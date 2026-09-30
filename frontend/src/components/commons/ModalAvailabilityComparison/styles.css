@@ -1,0 +1,261 @@
+.modal-box {
+  position: relative;
+  z-index: 9998;
+}
+
+.modal-bg {
+  background-color: rgb(107 114 128 / 0.75);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content {
+  overflow-y: hidden;
+  z-index: 10;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content--box {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.modal-availability--block {
+  background-color: white;
+  border-radius: 6px;
+  position: relative;
+}
+
+
+.transition {
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+.opa-0  {
+  opacity: 0;
+}
+
+.opa {
+  opacity: 1;
+}
+
+.leave-modal {
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.tranlate {
+  transform: translateX(1rem);
+}
+
+/* .warning_img {
+  width: 100%;
+} */
+.modal-title-availability{
+  font-size: 2.2rem;
+  text-align: left;
+  font-weight: 500;
+  color: #000000;
+  box-shadow: 5px 5px 30px #6E6B6B29;
+  border-radius: 12px 12px 0px 0px;
+  padding: 12px 20px 10px 54px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.close-availability {
+  font-weight: 300;
+  font-size: 2.6rem;
+}
+
+.modal-input--box {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #bdbdbd;
+}
+
+.modal-input--box:last-child {
+  border-bottom: 0;
+}
+
+.modal-input--box input[type="radio"]:checked {
+  accent-color: #82104C;
+}
+
+.modal-input {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.modal-label {
+  font-size: 1.6rem;
+  font-weight: 300;
+  padding-left: 20px;
+}
+
+.mt-availability {
+  padding: 0 54px;
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.btn-group {
+  border-top: 1px solid #CCCCCC;
+  padding-top: 2rem;
+}
+
+.button_availability {
+  background: #FCFCFC 0% 0% no-repeat padding-box;
+  border: .5px solid #CCCCCC;
+  border-radius: 6px;
+  color: #BBBFC6;
+  font-size: 2rem;
+  padding: 10px 24px;
+  height: 5rem;
+}
+
+.button_availability_download {
+  background: transparent linear-gradient(180deg, #BC3D81 0%, #820F4C 100%);
+  color: #FFFFFF;
+  border: none;
+  margin-left: 2rem;
+}
+
+.modal-user {
+  color: #B4B4B4;
+  font-weight: 500;
+}
+
+.modal-availability--textarea {
+  width: 100%;
+  padding: 12px 22px;
+  font-size: 1.4rem;
+  background: #F5F5F5;
+  border-radius: 6px;
+  outline: none;
+  border: none;
+  height: 112px;
+}
+
+
+@media (min-width: 640px) {
+  .modal-availability--block {
+    width: 100%;
+    max-width: 600px;
+} 
+}
+
+.table-export {
+  margin: 3rem 0;
+}
+
+.item-panel {
+  cursor: pointer;
+  flex: 1 0;
+  position: relative;
+  display: flex;
+  place-content: space-between;
+}
+
+.item-panel:nth-child(2) .item-panel-header {
+  padding-top: 4rem!important;
+  padding-bottom: 4rem!important;
+}
+
+.item-panel .item-panel-header:nth-child(2) {
+  border-left: 0.3px solid #CCCCCC;
+  border-right: 0.3px solid #CCCCCC;
+  padding: 0 1.5rem;
+}
+
+.item-panel-header {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.item-panel-header img {
+  background: #FFFFFF 0% 0% no-repeat padding-box;
+  border: 0.3px solid #CCCCCC;
+  border-radius: 3px;
+  padding: 4px 6px;
+  position: absolute;
+  top: 50%;
+  left: 64%;
+  transform: translate(-50%, -50%);
+  height: 20px;
+}
+
+.item-panel-header:nth-child(2) img {
+  left: 62%;
+}
+
+.item-panel-header-content {
+  display: flex;
+}
+
+.item-panel-header-content span {
+  flex: 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 5rem;
+  width: 5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  border: 1px solid #CCCCCC;
+}
+.item-panel-header-content span.red {
+  background: rgba(255, 231, 231, .35) 0% 0% no-repeat padding-box;
+  color: #EA0F0F;
+}
+
+.item-panel-header-content span.green {
+  background: rgba(230, 255, 232, .35) 0% 0% no-repeat padding-box;
+  color: #096912;
+}
+
+.item-panel-header-content span.white {
+  background: #FFFFFF 0% 0% no-repeat padding-box;
+  color: #292C2E;
+}
+
+.loading-area {
+  display: inline;
+}
+
+.loading-area .overlay {
+  background: #ddd;
+  position: absolute;
+  z-index: 1;
+  opacity: .7;
+  height: 100%;
+  width: 100%;
+  top: 0;
+}
+
+.loading-area .loading {
+  margin: 0;
+  position: absolute;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  top: 0;
+}

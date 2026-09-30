@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="74.71" height="74.71" viewBox="0 0 74.71 74.71">
+  <defs>
+    <clipPath id="clip-path">
+      <path id="path3723" d="M54.692,0H0V54.692H54.692Z" transform="translate(0 0)" fill="#fe6a36"/>
+    </clipPath>
+  </defs>
+  <g id="Group_12665" data-name="Group 12665" transform="translate(8223.227 -11400.43)">
+    <g id="Group_12664" data-name="Group 12664">
+      <g id="g3721" transform="translate(-8195.881 11475.14) rotate(-120)" clip-path="url(#clip-path)">
+        <g id="g3731" transform="translate(1.81 4.758)">
+          <path id="path3733" d="M3.267,40.8l12.815,7.4a4.967,4.967,0,0,0,6.785-1.818L40.277,16.225a2.877,2.877,0,0,0,.162-2.549L35.454,1.763A2.871,2.871,0,0,0,32.441.023L19.631,1.662a2.876,2.876,0,0,0-2.126,1.415L.876,31.879A6.531,6.531,0,0,0,3.267,40.8Z" transform="translate(0 0)" fill="none"/>
+        </g>
+        <path id="path3737" d="M2.536,41.434l14.818,8.555a5.07,5.07,0,0,0,6.926-1.856L41.786,17.812a5.307,5.307,0,0,0,.3-4.7L37.363,1.827a2.975,2.975,0,0,0-3.122-1.8L22.109,1.576a5.307,5.307,0,0,0-3.923,2.611L.68,34.508a5.07,5.07,0,0,0,1.856,6.926" transform="translate(10.386 1.068)" fill="#fea236"/>
+        <g id="g3739" transform="translate(10.385 1.068)">
+          <path id="path3741" d="M7.666,22.407.68,34.508a5.07,5.07,0,0,0,1.856,6.926l14.818,8.555a5.07,5.07,0,0,0,6.926-1.856L41.786,17.812a5.307,5.307,0,0,0,.3-4.7L37.363,1.827a2.976,2.976,0,0,0-3.122-1.8L22.109,1.576a5.307,5.307,0,0,0-3.923,2.611L12.1,14.735" transform="translate(0 0)" fill="none"/>
+        </g>
+        <g id="g3743" transform="translate(36.898 8.359)">
+          <path id="path3745" d="M.442,1.646a3.292,3.292,0,1,0,4.5-1.2,3.292,3.292,0,0,0-4.5,1.2" transform="translate(0 0)" fill="#eef8fd"/>
+        </g>
+        <g id="g3747" transform="translate(36.898 8.359)">
+          <path id="path3749" d="M.442,1.646a3.292,3.292,0,1,0,4.5-1.2A3.292,3.292,0,0,0,.442,1.646Z" transform="translate(0 0)" fill="none"/>
+        </g>
+        <g id="g3751" transform="translate(20.174 19.704)">
+          <path id="path3753" d="M0,0H0" transform="translate(0 0)" fill="none"/>
+        </g>
+      </g>
+    </g>
+    <text id="IF" transform="translate(-8192 11440)" fill="#fff" font-size="16" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="0" y="0">IF</tspan></text>
+  </g>
+</svg>

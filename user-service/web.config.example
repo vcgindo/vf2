@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+    <!-- Prevent MIME sniffing -->
+        <httpProtocol>
+            <customHeaders>
+                <add name="X-Content-Type-Options" value="nosniff" />
+            </customHeaders>
+        </httpProtocol>
+        <rewrite>
+            <rules>
+            <!-->: Change the rule name and port number while deployment as per site requirements default port 9000 -->
+                <rule name="userServiceProxy">
+                    <match url="(.*)" />
+                    <action type="Rewrite" url="http://localhost:10016/{R:0}" logRewrittenUrl="true" />
+                </rule>
+            </rules>
+            <outboundRules>
+                <remove name="Remove IIS Server Header" />
+                <remove name="RemoveXBackendServer" />
+                <rule name="Remove IIS Server Header" enabled="true">
+                    <match serverVariable="RESPONSE_Server" pattern="(.*)" />
+                    <action type="Rewrite" value="SecureServer" />
+                </rule>
+                <rule name="RemoveXBackendServer" preCondition="Always" enabled="true">
+                    <match serverVariable="RESPONSE_X-Backend-Server" pattern=".+" />
+                    <action type="Rewrite" />
+                </rule>
+                <rule name="Remove X-Powered-By ARR" enabled="true">
+                    <match serverVariable="RESPONSE_X-Powered-By" pattern=".*" />
+                    <action type="Rewrite" />
+                </rule>
+                <!-- Add security headers added for test -->
+                <rule name="Add Security Headers" enabled="true">
+                <match serverVariable="RESPONSE_Content-Security-Policy" pattern=".*" />
+                <action type="Rewrite" value="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" />
+                </rule>
+            </outboundRules>
+        </rewrite>
+    </system.webServer>
+    <system.web>
+        <httpCookies httpOnlyCookies="true" />
+    </system.web>
+</configuration>

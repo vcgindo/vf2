@@ -1,0 +1,15 @@
+.content-file {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  border: 0.5px dashed #707070;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .content-file {
+    height: 85px;
+  }
+}

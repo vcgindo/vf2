@@ -1,0 +1,8 @@
+.my-row-class {
+  background-color: #f9f9f9;
+}
+
+.my-row-class:nth-child(even),
+.my-shaded-effect {
+  background-color: #e0e0e0;
+}

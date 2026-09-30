@@ -1,0 +1,184 @@
+.modal-box {
+  position: relative;
+  z-index: 9998;
+  cursor: default;
+}
+
+.modal-bg {
+  background-color: rgb(107 114 128 / 0.75);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content {
+  overflow-y: hidden;
+  z-index: 10;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content--box {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.modal-forced--block {
+  background-color: white;
+  border-radius: 6px;
+}
+
+
+.transition {
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+.opa-0  {
+  opacity: 0;
+}
+
+.opa {
+  opacity: 1;
+}
+
+.leave-modal {
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.tranlate {
+  transform: translateX(1rem);
+}
+
+/* .warning_img {
+  width: 100%;
+} */
+.modal-title-forced{
+  font-size: 2.2rem;
+  text-align: left;
+  font-weight: 500;
+  color: #000000;
+  box-shadow: 5px 5px 30px #6E6B6B29;
+  border-radius: 12px 12px 0px 0px;
+  padding: 12px 30px 10px 50px;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  background-color: red;
+
+}
+
+.close-forced {
+  font-weight: 300;
+  font-size: 2.6rem;
+}
+
+.modal-input--box {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #bdbdbd;
+}
+
+.modal-input--box:last-child {
+  border-bottom: 0;
+}
+
+.modal-input--box input[type="radio"]:checked {
+  accent-color: #82104C;
+}
+
+.modal-input--box.REGALBLAZE input[type="radio"]:checked {
+  accent-color: #C7810E;
+}
+
+.modal-input {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.modal-label {
+  font-size: 1.6rem;
+  font-weight: 300;
+  padding-left: 20px;
+}
+
+.modal-forced--text {
+  font-size: 2.2rem;
+  color: #000000;
+  text-align: left;
+  padding-top: 20px;
+}
+
+.mt-forced {
+  padding: 0 50px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.button_cancel {
+   box-shadow: 5px 5px 15px #68656529;
+  border: 1px solid #A5A7A9;
+  border-radius: 6px;
+  letter-spacing: 0px;
+  color: #898989;
+  text-transform: uppercase;
+  font-size: 2rem;
+  padding: 16px 24px;
+}
+
+.button_forced:hover {
+  background: transparent linear-gradient(180deg, #BC3D81 0%, #820F4C 100%);
+  color: #FFFFFF;
+}
+
+.button_forced.REGALBLAZE:hover {
+  background: #C7810E;
+}
+
+.button_forced {
+  box-shadow: 5px 5px 15px #68656529;
+  border: 1px solid #A5A7A9;
+  border-radius: 6px;
+  letter-spacing: 0px;
+  color: #898989;
+  font-size: 2rem;
+  padding: 10px 24px;
+  margin-right: 34px;
+}
+
+.modal-user {
+  color: #B4B4B4;
+  font-weight: 500;
+}
+
+.modal-forced--textarea {
+  width: 100%;
+  padding: 12px 22px;
+  font-size: 1.4rem;
+  background: #F5F5F5;
+  border-radius: 6px;
+  outline: none;
+  border: none;
+  height: 112px;
+}
+
+
+@media (min-width: 640px) {
+  .modal-forced--block {
+    width: 100%;
+    max-width: 758px;
+} 
+}

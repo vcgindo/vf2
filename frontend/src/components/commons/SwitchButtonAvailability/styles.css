@@ -1,0 +1,152 @@
+
+.button-switch-availability {
+  font-size: 13px;
+  color: #820F4C;
+  margin-bottom: 0.625em;
+  position: relative;
+  width: 88px;
+  height: 37px;
+  margin-bottom: 0;
+  margin-right: 15px;
+  top: 10px;
+  left: 6px;
+}
+
+.button-switch-availability .lbl-off,
+.button-switch-availability .lbl-on {
+  cursor: pointer;
+  display: block;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1em;
+  position: absolute;
+  top: 7px;
+  transition: opacity 0.25s ease-out 0.1s;
+  pointer-events: none;
+  color: #820F4C;
+}
+.button-switch-availability .lbl-off {
+  right: 26px;
+}
+.button-switch-availability .lbl-on {
+  color: #820F4C;
+  opacity: 0;
+  left: 15px;
+}
+
+.button-switch-availability .lbl-on.REGALBLAZE, .button-switch-availability .lbl-off.REGALBLAZE {
+  color: var(--color-regalblaze) !important;
+}
+
+.button-switch-availability .switch {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 0;
+  font-size: 1em;
+  left: 0;
+  line-height: 0;
+  outline: none;
+  position: absolute;
+  top: 0;
+  width: 0;
+}
+.button-switch-availability .switch:before, .button-switch-availability .switch:after {
+  content: "";
+  font-size: 1em;
+  position: absolute;
+  border: 1px solid #820F4C;
+}
+
+.button-switch-availability .switch.REGALBLAZE:before, .button-switch-availability .switch.REGALBLAZE:after {
+  border: 1px solid var(--color-regalblaze);
+}
+
+.button-switch-availability .switch:before {
+  border-radius:30px;
+  background: #fff;
+  height: 37px;
+  left: -12px;
+  top: -12px;
+  transition: background-color 0.25s ease-out 0.1s;
+  width: 88px;
+  cursor: pointer;
+}
+.button-switch-availability .switch:checked:before {
+  border: 1px solid #820F4C;
+}
+
+.button-switch-availability .switch.REGALBLAZE:checked:before {
+  border: 1px solid var(--color-regalblaze);
+}
+
+.button-switch-availability .switch:after {
+  box-shadow: 0 0.0625em 0.375em 0 #666;
+  border-radius: 50%;
+  background: #820F4C;
+
+  width: 25px;
+  height: 24px;
+  transform: translate(-4px, -5px);
+  transition: transform 0.25s ease-out 0.1s;
+  cursor: pointer;
+}
+
+.button-switch-availability .switch.REGALBLAZE:after {
+  background: var(--color-regalblaze);
+}
+
+.button-switch-availability .switch:checked:after {
+  transform: translate(45px, -5px);
+  background: #820F4C;
+}
+
+.button-switch-availability .switch.REGALBLAZE:checked:after {
+  background: var(--color-regalblaze);
+}
+
+.button-switch-availability .switch:checked ~ .lbl-off {
+  opacity: 0;
+}
+.button-switch-availability .switch:checked ~ .lbl-on {
+  opacity: 1;
+}
+.button-switch-availability .switch#switch-orange:checked:before {
+  background: #fff;
+}
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .button-switch-availability {
+    width: 88px;
+    height: 37px;
+    left: 17px;
+  }
+  .button-switch-availability .switch:before {
+    width: 80px;
+    height: 33px;
+  }
+  .button-switch-availability .lbl-off,
+  .button-switch-availability .lbl-on {
+    top: 4px;
+  }
+  .button-switch-availability .switch:after {
+    width: 20px;
+    height: 19px;
+    top: 0.4px;
+  }
+  .button-switch-availability .switch:checked:after {
+    transform: translate(40px, -5px);
+    background: #820F4C;
+  }
+
+  .button-switch-availability .switch.REGALBLAZE:checked:after {
+    background: var(--color-regalblaze);
+  }
+
+  .button-switch-availability .lbl-off {
+    right: 30px;
+  }
+  .button-switch-availability .switch:before {
+    top: -12px;
+  }
+}

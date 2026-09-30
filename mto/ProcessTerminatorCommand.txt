@@ -1,0 +1,7 @@
+1.To create the exe enable the venv and run the below command ---------------
+Command :  pyinstaller --onefile --windowed --icon=Favicon_White.ico --name={Name of the Exe required} ProcessTerminator.py
+
+2. Once the exe is created in the dist folder then move the exe to the root folder of the project 
+3. Create the shortcut for the exe and place the shortcut in the desktop 
+
+

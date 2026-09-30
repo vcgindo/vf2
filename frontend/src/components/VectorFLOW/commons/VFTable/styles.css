@@ -1,0 +1,329 @@
+.ag-theme-noir-fusion {
+  /* --ag-foreground-color: #EBEBEB; */
+  --ag-range-selection-border-color: #bc3d81;
+  /* --ag-background-color: rgb(255, 255, 255); */
+  --ag-header-foreground-color: rgb(255, 255, 255);
+  --ag-header-background-color: rgb(0, 0, 0);
+  --ag-header-height:30px;
+  --ag-checkbox-checked-color: #bc3d81;
+  --ag-selected-row-background-color: rgb(188, 61, 129, 0.2);
+  /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+  /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+  /* --ag-border-radius:32px; */
+  --ag-font-size: 10px;
+  /* --ag-icon-font-color:rgb(0, 0, 0); */
+  /* --ag-font-family: monospace; */
+  --ag-range-selection-background-color: #bc3d814d;
+  --ag-alpine-active-color: #bc3d81;
+  --ag-input-focus-border-color: #bc3d81;
+}
+
+.ag-theme-regal-blaze {
+  /* --ag-foreground-color: #EBEBEB; */
+  --ag-range-selection-border-color: #FCA311;
+  /* --ag-background-color: rgb(255, 255, 255); */
+  --ag-header-foreground-color: rgb(255, 255, 255);
+  --ag-header-background-color: #14213D;
+  --ag-header-height:30px;
+  --ag-checkbox-checked-color: #C7810E;
+  --ag-selected-row-background-color: rgb(252, 163, 17, 0.3);
+  /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+  /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+  /* --ag-border-radius:32px; */
+  --ag-font-size: 10px;
+  /* --ag-icon-font-color:gray; */
+  /* --ag-font-family: monospace; */
+  --ag-range-selection-background-color: rgb(252, 163, 17, 0.3);
+  --ag-alpine-active-color: #C7810E;
+  --ag-input-focus-border-color: #C7810E;
+}
+
+.ag-theme-pure-elegance {
+  --ag-range-selection-border-color: #BC3D81;
+  /* --ag-background-color: rgb(255, 255, 255); */
+  --ag-header-foreground-color: rgb(255, 255, 255);
+  --ag-header-background-color: rgb(0, 0, 0);
+  --ag-header-height:30px;
+  --ag-checkbox-checked-color: #BC3D81;
+  --ag-selected-row-background-color: rgb(188, 61, 129, 0.2);
+  /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+  /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+  /* --ag-border-radius:32px; */
+  --ag-font-size: 10px;
+  /* --ag-icon-font-color:gray; */
+  /* --ag-font-family: monospace; */
+  --ag-range-selection-background-color: #bc3d814d;
+  --ag-alpine-active-color: #BC3D81;
+  --ag-input-focus-border-color: #BC3D81;
+}
+
+.ag-theme-charcoal-chic {
+  --ag-range-selection-border-color: #BC3D81;
+  /* --ag-background-color: rgb(255, 255, 255); */
+  --ag-header-foreground-color: rgb(255, 255, 255);
+  --ag-header-background-color: #636C78;
+  --ag-header-height:30px;
+  --ag-checkbox-checked-color: #BC3D81;
+  --ag-selected-row-background-color: rgb(188, 61, 129, 0.2);
+  /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+  /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+  /* --ag-border-radius:32px; */
+  --ag-font-size: 10px;
+  /* --ag-icon-font-color:gray; */
+  /* --ag-font-family: monospace; */
+  --ag-range-selection-background-color: #bc3d814d;
+  --ag-alpine-active-color: #BC3D81;
+  --ag-input-focus-border-color: #BC3D81;
+}
+
+/* .ag-header-cell .ag-floating-filter-button .ag-icon{
+  color:black !important;
+}
+
+.ag-menu-option-icon .ag-icon{
+  color:black;
+} */
+
+.child-grid .ag-header-viewport {
+  background-color: #ffffff;
+}
+
+/* .child-grid .ag-header-container {
+  /* Your styles for child grid header cells */
+/* background-color: #ffffff; */
+/* Change this to your desired background color */
+/*} */
+
+.child-grid .ag-header-cell-text {
+  color: black;
+  font-size: 1.5rem;
+}
+
+.child-header .ag-header-cell-label {
+  background-color: rgb(255, 255, 255) !important;
+  color: black !important;
+}
+
+.child-header {
+  background-color: rgb(255, 255, 255) !important;
+  /* --ag-header-foreground-color: rgb(255, 255, 255); */
+}
+
+.ag-cell{
+  height:30px !important;
+}
+
+.ag-icon-menu-alt{
+  color: white ;
+  background-color:rgb(0,0,0,0.1);
+  border-radius: 2px;
+}
+/* .simchild-header {
+  /* background-color: rgb(255, 255, 255) !important; */
+/* --ag-header-foreground-color: rgb(255, 255, 255); */
+/*} */
+
+.simchild-header .ag-header-cell-label {
+  background-color: rgb(255, 255, 255) !important;
+  color: rgb(157, 155, 155) !important;
+  font-weight: normal;
+}
+
+/* .ag-row:hover {
+  background-color: rgb(188, 61, 129, 0.3) !important;
+} */
+
+.ag-root-wrapper {
+  border-radius: 8px 8px 0 0;
+}
+
+/* .ag-header {
+  border-radius: 8px 0px 0 0;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 400;
+  font-size: 16px !important;
+  line-height: 24px;
+  font-family: Roboto;
+  letter-spacing: 0px;
+  color: #ffffff;
+} */
+
+.ag-header-icon {
+  opacity: 1 !important;
+  color: white;
+}
+
+
+.ag-theme-alpine {
+  --ag-header-column-resize-handle-width: 1px !important;
+}
+
+.active-row {
+  z-index: 111 !important;
+  /* Adjust z-index to suit your needs */
+  position: relative;
+  /* z-index only works on positioned elements (position:absolute, position:relative, or position:fixed) */
+  /* Any other styles */
+}
+
+.ag-filter-toolpanel-group-title{
+  color:black !important;
+  font-weight: 400 !important;
+  font-size: 12px !important;
+}
+
+.ag-row {
+  overflow: visible;
+}
+
+/* .ag-header-group-cell .ag-header-cell-comp-wrapper {
+  justify-content:center;
+} */
+
+.ag-header-row:nth-child(2) {
+  background-color: #f7f7f7;
+  color: black;
+  width: 100% !important;
+}
+
+
+
+.ag-theme-regal-blaze .ag-row:hover {
+  background-color: rgb(252, 163, 17, 0.3) !important;
+}
+
+
+
+
+.ag-theme-noir-fusion .ag-row:hover {
+  background-color: rgb(188, 61, 129, 0.3) !important;
+}
+
+.ag-theme-pure-elegance .ag-row:hover {
+  background-color: rgb(188, 61, 129, 0.3) !important;
+}
+
+.ag-theme-charcoal-chic .ag-row:hover {
+  background-color: rgb(188, 61, 129, 0.3) !important;
+}
+
+.ag-theme-alpine .ag-full-width-row:hover {
+  background-color: transparent !important;
+}
+
+.ag-theme-alpine .ag-root-wrapper {
+  border-radius: 8px 8px 0 0;
+}
+
+.ag-theme-alpine .ag-header {
+  border-radius: 8px 0px 0 0;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 400;
+  font-size: 12px !important;
+  line-height: 24px;
+  font-family: Roboto;
+  letter-spacing: 0px;
+  color: #FFFFFF;
+}
+
+.ag-theme-alpine .ag-header-icon {
+  opacity: 1 !important;
+  color: white;
+}
+
+.ag-theme-alpine .active-row {
+  z-index: 111 !important;
+  /* Adjust z-index to suit your needs */
+  position: relative;
+  /* z-index only works on positioned elements (position:absolute, position:relative, or position:fixed) */
+  /* Any other styles */
+}
+
+.ag-theme-alpine .ag-row {
+  overflow: visible;
+}
+
+/* .ag-theme-regal-blaze  .ag-header-row:nth-child(2){
+    background-color: #14213D;
+    color:black;
+    width: 100% !important;
+} */
+
+.ag-panel-title-bar-button-icon{
+  color: white !important;
+}
+
+.ag-theme-alpine .ag-header-row:nth-child(2) {
+  background-color: #F7F7F7;
+  color: black;
+  width: 100% !important;
+}
+
+/* .ag-header-row:nth-child(3){
+    background-color: #F7F7F7;
+    color:black;
+    width: 100% !important;
+} */
+
+.ag-theme-alpine .ag-header-cell-label {
+  justify-content: center;
+}
+
+.ag-header-cell-label {
+  justify-content: center;
+}
+
+.ag-header-cell-label  .ag-sort-indicator-icon .ag-icon{
+  color:white !important;
+}
+
+.ag-theme-alpine .ag-header-group-cell-with-group {
+  justify-content: center;
+}
+
+.ag-theme-alpine .ag-header-group-cell {
+  background-color: black;
+  color: white;
+}
+
+.ag-theme-alpine .ag-status-name-value span {
+  color: black;
+}
+
+
+
+/* .ag-pinned-right-cols-container {
+  margin-right: -12px !important;
+  min-width: 301px !important;
+} */
+/* 
+
+.ag-theme-alpine .ag-body-horizontal-scroll {
+  height: unset !important;
+  max-height: unset !important;
+  min-height: 29px !important;
+}
+
+.ag-theme-alpine .ag-body-horizontal-scroll-viewport {
+  height: unset !important;
+  max-height: unset !important;
+  min-height: unset !important;
+}
+
+.ag-theme-alpine .ag-horizontal-right-spacer{
+    visibility:hidden !important;
+}
+
+.ag-theme-alpine .ag-body-vertical-scroll-viewport {
+  min-width: unset !important;
+  width: 29px !important;
+  max-width: unset !important;
+}
+
+.ag-theme-alpine .ag-body-vertical-scroll {
+  min-width: unset !important;
+  max-width: unset !important;
+  width: unset !important;
+} */

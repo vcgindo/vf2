@@ -1,0 +1,134 @@
+.list-roles--title .title-text-per {
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 2.6rem;
+  margin: 15px 50px 0 50px;
+}
+
+.role-item-per--content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-item-per--content .role-item--text {
+  font-size: 2rem;
+  font-weight: 500;
+  width: 30%;
+}
+
+.role-item-per--content .role-item--input {
+  width: 70%;
+}
+
+.role-item-per--content .blurr {
+  opacity: 0.5;
+}
+
+.role-item-per--content select {
+  width: 70%;
+  border-radius: 6px;
+  border: none;
+  background: #F7F7F7 0% 0% no-repeat padding-box;
+  outline: none;
+  padding: 10px;
+
+}
+
+.role-item-per--content img {
+  position: absolute;
+  z-index: 2;
+  right: 13px;
+  top: 19.4px;
+}
+
+.list-roles .list-roles-per--content {
+  padding: 0 50px;
+  display: block;
+  width: 100%;
+  border-top: 1px solid #929292;
+  height: 280px;
+  overflow-y: scroll;
+}
+
+.list-roles-per--content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.list-roles-per--content::-webkit-scrollbar-track {
+  background-color: #DDDDDD;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+.list-roles-per--content::-webkit-scrollbar-thumb {
+  background-color: #313131;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+.list-roles .list-roles-down--content {
+  padding: 0 50px;
+  display: block;
+  width: 100%;
+  border-top: 1px solid #929292;
+  border-bottom: 1px solid #929292;
+  height: 280px;
+  overflow-y: scroll;
+}
+
+.role-item {
+  display: block;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding:10px 0;
+  border-bottom: 1px dashed #929292;
+}
+
+.role-item:last-child {
+  border-bottom: none;
+}
+
+.upper-line {
+  padding-top: 15px;
+  border-top: 1px solid #929292;
+}
+
+.border-under { 
+  border-bottom: 1px solid #929292;
+}
+
+.btn-disabled {
+  background-color: #ccc !important;
+  color: #888;
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .role-item {
+    padding: 5px 0;
+  }
+
+  .role-item-per--content .role-item--text {
+    font-size: 1.6rem;
+  }
+
+  .role-item-per--content select {
+    padding: 8px;
+  }
+
+  .list-roles .list-roles-per--content {
+    height: 185px;
+  }
+
+  .upper-line {
+    padding-top: 5px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1688px) {
+  .advanced-permission-container {
+    zoom:0.8;
+  }
+}
+

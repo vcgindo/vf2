@@ -1,0 +1,452 @@
+{
+  "loginPage": {
+    "welcome": "シームレスなエンドツーエンドのサプライチェーン管理システムへようこそ",
+    "title": "ログイン",
+    "validate": {
+      "email": "メールの形式が間違っています",
+      "password": "パスワードは8文字を超える必要があります",
+      "passwordMaxLength": "パスワードは15文字未満である必要があります"
+    },
+    "placeholder": {
+      "email": "メールアドレスを入力して",
+      "password": "パスワード"
+    },
+    "keepMeSignedIn": "ログイン状態を保持する",
+    "forgotPassword": "パスワードをお忘れですか ？",
+    "submitBtn": "送信",
+    "content": {
+      "mlTitle": "高価な小売店の棚スペースを完璧に活用",
+      "mlContent": "強力なアルゴリズムは、さまざまな製品属性レベルで特定の店舗ごとに最適なマーチャンダイジング グリッドを提案することで、小売プランナーを支援します。",
+      "businessTitle": "管理された在庫で定価販売を最大化",
+      "businessContent": "ROSN を活用した Short PLC の動的深さ管理により、スタイルごとに最適な深さを確保します。",
+      "optimizeTitle": "ROCEを維持するために値下げを最適化する",
+      "optimizeContent": "在庫状況、ROSN、耐用年数終了の近さに基づいて、動きの遅い商品に対する割引を段階的に調整することで、小売プランナーは店舗の返品の可能性を減らしながら、EOSS の前により良い利益を引き出すことができます。",
+      "dataTitle": "データを使用して意思決定を推進する",
+      "dataContent": "ダッシュボードを備えた強力な管制塔により、サプライ チェーン全体を俯瞰的に把握できます。"
+    },
+    "notify": {
+      "success": "ログイン成功"
+    }
+  },
+  "forgotPasswordPage": {
+    "title": "パスワードをお忘れですか",
+    "validate": {
+      "email": "メールの形式が間違っています"
+    },
+    "placeholder": {
+      "email": "メールアドレスを入力して"
+    },
+    "submitBtn": "送信",
+    "notify": {
+      "success": "メールを確認してください"
+    }
+  },
+  "navbar": {
+    "listMenuParent": {
+      "userManagement": "ユーザー管理",
+      "analytics": "分析",
+      "dynamicGridControl": "ダイナミックグリッドコントロール",
+      "assortmentPlanning": "品揃え企画",
+      "replenishment": "補充",
+      "groupLifeCycleManagement": "グループライフサイクルマネジメント",
+      "innerStoreTransfers": "店内転送",
+      "vectorAnalysis": "ベクトル解析"
+    },
+    "menuStoreTransfer": {
+      "innerStoreTransfer": "店内転送",
+      "manualUpload": "手動アップロード",
+      "pendingISTRequests": "保留中のISTリクエスト",
+      "ISTStatus": "ISTステータス",
+      "ISTForcedClosure": "ISTの強制終了",
+      "storeStatus": "店舗状況",
+      "availabilityComparison": "可用性の比較"
+    },
+    "particulars": {
+      "title": "詳細",
+      "count": "カウント",
+      "ISTYieldCumulative": "ISTの累積収量",
+      "totalISTLineItems": "IST ラインアイテムの合計",
+      "totalISTLineItemsSatisfyingMOQ": "MOQを満たすISTラインアイテムの合計数",
+      "ISTSuggesionsIgnoredRejected": "IST の提案は無視/拒否されました",
+      "ISTSuggestionsAccepted": "IST の提案が受け入れられました",
+      "sizeSetCompletion": "サイズセット完了",
+      "tableHeader": {
+        "title": "詳細",
+        "counts": "カウント",
+        "quantity": "量",
+        "value": "価値"
+      },
+      "tableContent": {
+        "totalISTLineItems": "IST ラインアイテムの合計",
+        "totalISTLineItemsSatisfyingMOQ": "MOQを満たすISTラインアイテムの合計数",
+        "ISTSuggesionsIgnoredRejected": "IST の提案 Ign/Rejtd",
+        "ISTSuggestionsAccepted": "IST の提案が受け入れられました",
+        "sizeSetCompletion": "サイズセット完了",
+        "ISTYieldToday": "今日のIST利回り",
+        "ISTYYieldCumulative": "ISTの累積収量"
+      }
+    },
+    "logoutBtn": "ログアウト"
+  },
+  "header": {
+    "myProfile": "私のプロフィール",
+    "manualUpload": "手動アップロード",
+    "pendingISTRequests": "保留中のISTリクエスト",
+    "ISTForcedClosure": "ISTの強制終了",
+    "storeStatus": "店舗状況",
+    "availabilityComparison": "可用性の比較",
+    "welcomeBack": "おかえり！",
+    "exportAllBtn": "すべてエクスポート",
+    "editBtn": "編集",
+    "deleteBtn": "消去",
+    "saveBtn": "保存",
+    "savingBtn": "保存中...",
+    "deletingBtn": "削除中...",
+    "ISTStatus": "ISTステータス"
+  },
+  "filter": {
+    "product": {
+      "title": "製品フィルター",
+      "placeholder": {
+        "brand": "ブランド",
+        "subBrand": "サブブランド",
+        "category": "カテゴリー",
+        "style": "スタイル",
+        "fit": "フィット",
+        "mrp": "MRP"
+      }
+    },
+    "location": {
+      "title": "場所フィルター",
+      "placeholder": {
+        "general": {
+          "dlGrp": "DLグループ",
+          "dl": "DL",
+          "dlRegion": "DL 地域",
+          "dlChannel": "DLチャンネル",
+          "rlGrp": "RLグループ",
+          "rl": "RL",
+          "rlRegion": "ロンドン地域",
+          "rlChannel": "RLチャンネル"
+        },
+        "storeStatus": {
+          "brand": "ブランド",
+          "locName": "場所名",
+          "locCode": "ロックコード",
+          "locCluster": "ロッククラスター",
+          "channel": "チャネル"
+        },
+        "availabilityComparison": {
+          "ISTLocGrp": "ISTロックグループ",
+          "region": "領域",
+          "cluster": "集まる",
+          "locPerfGrp": "ロック・パフォーマンス・グループ"
+        }
+      }
+    },
+    "select": {
+      "title": "選択する",
+      "more": "もっと"
+    }
+  },
+  "pendingISTRequests": {
+    "action": {
+      "title": "アクションのためにすべてを選択",
+      "accept": "受け入れる",
+      "reject": "拒絶",
+      "pause": "一時停止"
+    },
+    "quickFilter": {
+      "title": "クイックフィルター",
+      "accepted": "承認されました",
+      "rejected": "拒否されました",
+      "paused": "一時停止中",
+      "auto": "自動",
+      "manual": "マニュアル"
+    },
+    "button": {
+      "moqMet": "満たされたMOQ",
+      "moqNotMet": "MOQが満たされていません",
+      "accept": "受け入れる",
+      "reject": "拒絶",
+      "pause": "一時停止",
+      "filter": "フィルター",
+      "resetFilter": "フィルターをリセット",
+      "cancel": "キャンセル"
+    },
+    "table": {
+      "style": "スタイル",
+      "receiverROSN": "受信機ROSN",
+      "receiverLocation": "受信機の場所",
+      "city": "街",
+      "locationCode": "場所コード",
+      "channel": "チャネル",
+      "itemCode": "アイテムコード",
+      "quantity": "量",
+      "donorROSN": "ドナーROSN",
+      "donorLocation": "寄付者の所在地",
+      "locationType": "場所の種類",
+      "vfISTID": "VF IST ID"
+    },
+    "modal": {
+      "title": "再評価してみませんか?",
+      "pause": {
+        "content": "一部のサイズについては IST を保持することにしたため、スタイルは依然として壊れたままになります。",
+        "button": "一時停止"
+      },
+      "reject": {
+        "content": "一部のサイズについて IST を拒否することにしたため、スタイルは依然として壊れたままになります。",
+        "button": "拒絶"
+      },
+      "accept": {
+        "content": "一部のサイズの選択を解除すると、スタイルは壊れたままとなり、選択を解除したサイズは 7 日間一時停止されます。",
+        "button": "受け入れ！"
+      }
+    }
+  },
+  "pagination": {
+    "previous": "前",
+    "next": "次"
+  },
+  "manualUpload": {
+    "title": "ファイルをアップロードする",
+    "csvError": "CSV ファイルのみが受け入れられます",
+    "updateSuccess": "ファイルの更新が成功しました。",
+    "updateError": "一部のレコードにエラーがあります",
+    "dragDrop": "引っ張る",
+    "template": "マニュアル IST テンプレートをダウンロード",
+    "deleteBtn": "消去",
+    "uploadTitle": "新しいファイルをアップロードするにはここをクリックしてください",
+    "uploadBtn": "アップロード",
+    "uploadingBtn": "アップロード中...",
+    "uploadInProcess": "アップロード中です",
+    "modalTitle": "手動_アップロード"
+  },
+  "ISTStatus": {
+    "notify": {
+      "exportSuccess": "エクスポートの成功",
+      "saveSuccess": "保存成功",
+      "deleteSuccess": "削除成功",
+      "createViewSuccess": "ビューの作成が成功しました"
+    },
+    "viewName": "独自のレポートを作成する",
+    "viewTitle": "ビュー",
+    "addViews": "ビューの追加"
+  },
+  "ISTForcedClosure": {
+    "button": {
+      "filter": "フィルター",
+      "resetFilter": "フィルターをリセット",
+      "searchByISTID": "IST IDで検索",
+      "searchByISTDate": "IST の日付で検索",
+      "auto": "自動",
+      "manual": "マニュアル",
+      "pushedToSAP": "SAP にプッシュされる",
+      "readyToShip": "出荷する準備ができて",
+      "inTransit": "輸送中",
+      "exportAll": "すべてエクスポート",
+      "submitBtn": "送信"
+    },
+    "generationType": "生成タイプ",
+    "activeIST": "アクティブなIST",
+    "table": {
+      "donorLocation": "寄付者の所在地",
+      "locationCode": "場所コード",
+      "city": "街",
+      "locationType": "場所の種類",
+      "channel": "チャネル",
+      "itemCode": "アイテムコード",
+      "size": "サイズ",
+      "quantity": "量",
+      "status": "スターテス",
+      "type": "B | ",
+      "receiverLocation": "受信機の場所",
+      "vfISTID": "VF IST ID"
+    },
+    "notify": {
+      "enterTheReason": "理由を入力してください",
+      "noRecordsSelected": "レコードが選択されていません"
+    },
+    "modal": {
+      "detail": {
+        "title": "連絡先の詳細",
+        "name": "名前",
+        "email": "電子メールID",
+        "phone": "電話番号"
+      },
+      "terminate": {
+        "title": "提出者",
+        "header": "終了理由を選択してください",
+        "stockIsNotAvailable": "在庫がありません",
+        "stockIsNotInASaleableCondition": "在庫は販売できる状態ではありません",
+        "stockIsReservedForOnlineOrder": "ネット注文用に在庫を確保しております",
+        "others": "その他"
+      }
+    },
+    "contactDetails": "連絡先の詳細",
+    "age": "年",
+    "days": "日々",
+    "terminate": "終了"
+  },
+  "storeStatus": {
+    "button": {
+      "filter": "フィルター",
+      "resetFilter": "フィルターをリセット",
+      "active": "アクティブ",
+      "inactive": "非活性"
+    },
+    "quickFilter": "クイックフィルター",
+    "table": {
+      "brand": "ブランド",
+      "locationName": "場所の名前",
+      "locationCode": "場所コード",
+      "city": "街",
+      "cluster": "集まる",
+      "status": "スターテス"
+    }
+  },
+  "availabilityComparison": {
+    "button": {
+      "filter": "フィルター",
+      "resetFilter": "フィルターをリセット",
+      "exportSelected": "選択したものをエクスポート",
+      "pcs": "個",
+      "style": "スタイル",
+      "cancel": "キャンセル",
+      "downloadToExcel": "Excel にダウンロード"
+    },
+    "notify": {
+      "exportSuccess": "エクスポートの成功",
+      "exportError": "エクスポートエラー",
+      "noRecordsSelected": "少なくとも 1 つのフィールドを選択する必要があります。"
+    },
+    "tab": {
+      "storeLevel": "店舗レベル",
+      "subBrandLevel": "サブブランドレベル",
+      "categoryLevel": "カテゴリレベル"
+    },
+    "modal": {
+      "title": "ダウンロードを選択してください"
+    },
+    "color": {
+      "white": "白",
+      "green": "緑",
+      "red": "赤"
+    },
+    "currentAvailability": "現在の在庫状況",
+    "projectedAvailability": "予測される可用性",
+    "ISTReplenishment": "ISTの補充"
+  },
+  "profile": {
+    "tab": {
+      "overview": "概要",
+      "permissions": "権限",
+      "manageUsers": "ユーザーの管理"
+    },
+    "tabContent": {
+      "overview": {
+        "notify": {
+          "changePswSuccess": "パスワード変更成功"
+        },
+        "title": "プロフィールの詳細",
+        "fullName": "フルネーム",
+        "role": "役割",
+        "signInDetails": "サインインの詳細",
+        "email": "電子メールアドレス",
+        "password": "パスワード",
+        "passwordPlaceholder": "***************************",
+        "button": {
+          "notEditable": "編集不可",
+          "resetPsw": "パスワードを再設定する",
+          "updatePsw": "パスワードを更新する",
+          "cancel": "キャンセル"
+        },
+        "currentPsw": "現在のパスワード",
+        "newPsw": "新しいパスワード",
+        "confirmPsw": "新しいパスワードを確認"
+      },
+      "permissions": {
+        "title": "役割",
+        "roleAndPermissions": {
+          "pendingIST": "保留中のIST",
+          "ISTForcedClosure": "ISTの強制終了",
+          "storeStatus": "店舗状況",
+          "availabilityComparison": "可用性の比較",
+          "ISTStatus": "ISTステータス",
+          "manualUpload": "IST 手動アップロード",
+          "interStoreTransfer": "店舗間転送"
+        },
+        "L1": "L1",
+        "L2": "L2",
+        "L3": "L3",
+        "productPermission": {
+          "title": "製品の許可",
+          "brand": "ブランド",
+          "subBrand": "サブブランド",
+          "category": "カテゴリー"
+        },
+        "locationPermission": {
+          "title": "位置許可",
+          "locationRegion": "Ubicación Región",
+          "locationType": "Tipo de ubicacion",
+          "locationCluster": "Clúster de ubicación"
+        }
+      },
+      "manageUsers": {
+        "title": "ユーザー管理",
+        "button": {
+          "addNewUser": "新しいユーザーを追加",
+          "nextBtn": "次",
+          "updateBtn": "アップデート",
+          "bulkUpload": "一括アップロード",
+          "active": "アクティブ",
+          "inactive": "非活性",
+          "cancel": "キャンセル",
+          "addUser": "ユーザーを追加する",
+          "delete": "消する",
+          "goBack": "戻る"
+        },
+        "modal": {
+          "addNewTitle": "新しいユーザーを追加",
+          "editUserTitle": "ユーザーの編集",
+          "username": "ユーザー名",
+          "emailID": "電子メールID",
+          "password": "パスワード",
+          "roles": "役割",
+          "advancedPermission": "高度な権限",
+          "titleDelete": "このユーザーを削除しますか?",
+          "contentDelete": "このユーザーは削除されるとシステムに再度ログインできなくなります"
+        },
+        "table": {
+          "userID": "ユーザーID",
+          "emailID": "電子メールID",
+          "roles": "役割",
+          "actions": "行動",
+          "active": "アクティブ"
+        },
+        "roles": {
+          "ISTAdmin": "IST管理者",
+          "ISTRequestor": "ISTリクエスタ",
+          "ISTGovernor": "ISTガバナー",
+          "ISTLiaison": "ISTリエゾン"
+        },
+        "advancedPermission": {
+          "title": "高度な権限",
+          "productPermission": {
+            "title": "製品の権限"
+          },
+          "locationPermission": {
+            "title": "位置情報の許可",
+            "locationType": "場所の種類",
+            "locationSubType": "場所のサブタイプ",
+            "locationRegion": "所在地地域"
+          }
+        },
+        "validate": {
+          "userNameMaxLength": "パスワードは200文字未満である必要があります",
+          "emailMaxLength": "電子メールは 200 文字未満である必要があります"
+        }
+      }
+    }
+  }
+}

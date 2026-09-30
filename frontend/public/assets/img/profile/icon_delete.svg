@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="42" height="42" viewBox="0 0 42 42">
+  <defs>
+    <filter id="Ellipse_134" x="0" y="0" width="42" height="42" filterUnits="userSpaceOnUse">
+      <feOffset dy="2" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feFlood flood-color="#6f6f6f" flood-opacity="0.161"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Group_1209" data-name="Group 1209" transform="translate(-1527.117 -481)">
+    <g transform="matrix(1, 0, 0, 1, 1527.12, 481)" filter="url(#Ellipse_134)">
+      <circle id="Ellipse_134-2" data-name="Ellipse 134" cx="15" cy="15" r="15" transform="translate(6 4)" fill="#fff"/>
+    </g>
+    <g id="Icon-Trash" transform="translate(1542.405 492.003)">
+      <path id="Fill-6" d="M-207.5-205.1h.967v7.733h-.967Z" transform="translate(211.367 209.901)" fill="#313131"/>
+      <path id="Fill-7" d="M-201.5-205.1h.967v7.733h-.967Z" transform="translate(207.3 209.901)" fill="#313131"/>
+      <path id="Fill-8" d="M-195.5-205.1h.967v7.733h-.967Z" transform="translate(203.233 209.901)" fill="#313131"/>
+      <path id="Fill-9" d="M-219.5-214.1h12.566v.967H-219.5Z" transform="translate(219.5 216.001)" fill="#313131"/>
+      <path id="Fill-10" d="M-202.631-217.616h-.9v-.967a.509.509,0,0,0-.516-.516h-1.933a.509.509,0,0,0-.516.516v.967h-.9v-.967A1.43,1.43,0,0,1-205.982-220h1.933a1.43,1.43,0,0,1,1.418,1.418v.967" transform="translate(211.299 220)" fill="#313131"/>
+      <path id="Fill-11" d="M-208.283-199.618h-5.8a1.564,1.564,0,0,1-1.514-1.418l-.9-11.6.967-.064.9,11.6a.584.584,0,0,0,.548.516h5.8a.56.56,0,0,0,.548-.516l.9-11.6.967.064-.9,11.6a1.538,1.538,0,0,1-1.514,1.418" transform="translate(217.467 215.052)" fill="#313131"/>
+    </g>
+  </g>
+</svg>

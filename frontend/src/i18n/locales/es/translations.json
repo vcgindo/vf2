@@ -1,0 +1,452 @@
+{
+  "loginPage": {
+    "welcome": "Bienvenido a un sistema de gestión de la cadena de suministro continuo y de extremo a extremo",
+    "title": "Acceso",
+    "validate": {
+      "email": "El formato de correo electrónico es incorrecto",
+      "password": "La contraseña debe exceder los 8 caracteres",
+      "passwordMaxLength": "La contraseña debe tener menos de 15 caracteres"
+    },
+    "placeholder": {
+      "email": "Ingrese correo electrónico",
+      "password": "Contraseña"
+    },
+    "keepMeSignedIn": "Mantenerme conectado",
+    "forgotPassword": "Has olvidado tu contraseña ?",
+    "submitBtn": "Entregar",
+    "content": {
+      "mlTitle": "Aprovechamiento perfecto del costoso espacio en los estantes de las tiendas minoristas",
+      "mlContent": "Un poderoso algoritmo ayuda a los planificadores minoristas al sugerir la mejor cuadrícula de comercialización para cada tienda específica en diferentes niveles de atributos de productos. ",
+      "businessTitle": "Maximice la venta directa a precio completo con inventarios controlados",
+      "businessContent": "La gestión de profundidad dinámica de PLC corta asistida con ROSN garantiza una profundidad óptima por estilo. ",
+      "optimizeTitle": "Optimice las rebajas para mantener el ROCE",
+      "optimizeContent": "La calibración gradual de los descuentos en los productos de lento movimiento en función de la posición del inventario, el ROSN y la proximidad al final de la vida útil ayuda a los planificadores minoristas a obtener mejores márgenes antes del EOSS, al tiempo que reduce las posibilidades de devoluciones en las tiendas.",
+      "dataTitle": "Usar datos para impulsar decisiones",
+      "dataContent": "La potente torre de control con tableros le garantiza una vista panorámica de toda la cadena de suministro."
+    },
+    "notify": {
+      "success": "Acceso exitoso"
+    }
+  },
+  "forgotPasswordPage": {
+    "title": "Has olvidado tu contraseña",
+    "validate": {
+      "email": "El formato de correo electrónico es incorrecto"
+    },
+    "placeholder": {
+      "email": "Ingrese correo electrónico"
+    },
+    "submitBtn": "Entregar",
+    "notify": {
+      "success": "Por favor revise su correo electrónico"
+    }
+  },
+  "navbar": {
+    "listMenuParent": {
+      "userManagement": "Gestión de usuarios",
+      "analytics": "Analítica",
+      "dynamicGridControl": "Control de red dinámica",
+      "assortmentPlanning": "Planificación de surtido",
+      "replenishment": "Reposición",
+      "groupLifeCycleManagement": "Gestión del ciclo de vida del grupo",
+      "innerStoreTransfers": "Transferencias de tiendas internas",
+      "vectorAnalysis": "Análisis vectorial"
+    },
+    "menuStoreTransfer": {
+      "innerStoreTransfer": "Transferencia de tienda interna",
+      "manualUpload": "Carga manual",
+      "pendingISTRequests": "Solicitudes de IST pendientes",
+      "ISTStatus": "Estado IST",
+      "ISTForcedClosure": "Cierre forzado de IST",
+      "storeStatus": "Estado de la tienda",
+      "availabilityComparison": "Comparación de disponibilidad"
+    },
+    "particulars": {
+      "title": "Informe detallado",
+      "count": "Contar",
+      "ISTYieldCumulative": "Rendimiento IST acumulado",
+      "totalISTLineItems": "Líneas de pedido totales de IST",
+      "totalISTLineItemsSatisfyingMOQ": "Total de elementos de línea IST que satisfacen MOQ",
+      "ISTSuggesionsIgnoredRejected": "Sugerencias de IST ignoradas/rechazadas",
+      "ISTSuggestionsAccepted": "Sugerencias IST aceptadas",
+      "sizeSetCompletion": "Finalización del conjunto de tamaños",
+      "tableHeader": {
+        "title": "Informe detallado",
+        "counts": "cuenta",
+        "quantity": "Cantidad",
+        "value": "Valor"
+      },
+      "tableContent": {
+        "totalISTLineItems": "Líneas de pedido totales de IST",
+        "totalISTLineItemsSatisfyingMOQ": "Total de elementos de línea IST que satisfacen MOQ",
+        "ISTSuggesionsIgnoredRejected": "Sugerencias IST Ign/Rejtd",
+        "ISTSuggestionsAccepted": "Sugerencias IST aceptadas",
+        "sizeSetCompletion": "Finalización del conjunto de tamaños",
+        "ISTYieldToday": "Rendimiento IST hoy",
+        "ISTYYieldCumulative": "Rendimiento IST acumulado"
+      }
+    },
+    "logoutBtn": "Cerrar sesión"
+  },
+  "header": {
+    "myProfile": "Mi perfil",
+    "manualUpload": "Carga manual",
+    "pendingISTRequests": "Solicitudes de IST pendientes",
+    "ISTForcedClosure": "Cierre forzado de IST",
+    "storeStatus": "Estado de la tienda",
+    "availabilityComparison": "Comparación de disponibilidad",
+    "welcomeBack": "¡Bienvenido de nuevo!",
+    "exportAllBtn": "EXPORTAR TODO",
+    "editBtn": "Editar",
+    "deleteBtn": "Borrar",
+    "saveBtn": "Ahorrar",
+    "savingBtn": "Ahorro...",
+    "deletingBtn": "Borrando...",
+    "ISTStatus": "Estado IST"
+  },
+  "filter": {
+    "product": {
+      "title": "Filtro de producto",
+      "placeholder": {
+        "brand": "Marca",
+        "subBrand": "Sub marca",
+        "category": "Categoría",
+        "style": "Estilo",
+        "fit": "Adaptar",
+        "mrp": "MRP"
+      }
+    },
+    "location": {
+      "title": "Filtro de ubicación",
+      "placeholder": {
+        "general": {
+          "dlGrp": "Grupo DL",
+          "dl": "DL",
+          "dlRegion": "Región DL",
+          "dlChannel": "Canal DL",
+          "rlGrp": "Grupo RL",
+          "rl": "RL",
+          "rlRegion": "Región RL",
+          "rlChannel": "Canal RL"
+        },
+        "storeStatus": {
+          "brand": "Marca",
+          "locName": "Nombre de ubicación",
+          "locCode": "Código de ubicación",
+          "locCluster": "Clúster de ubicación",
+          "channel": "Canal"
+        },
+        "availabilityComparison": {
+          "ISTLocGrp": "Grupo Loc IST",
+          "region": "Región",
+          "cluster": "Grupo",
+          "locPerfGrp": "Loc Perf Grp"
+        }
+      }
+    },
+    "select": {
+      "title": "Seleccionar",
+      "more": "Más"
+    }
+  },
+  "pendingISTRequests": {
+    "action": {
+      "title": "Seleccionar todo para la acción",
+      "accept": "Aceptar",
+      "reject": "Rechazar",
+      "pause": "Pausa"
+    },
+    "quickFilter": {
+      "title": "Filtros rápidos",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "paused": "en pausa",
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "button": {
+      "moqMet": "MOQ cumplido",
+      "moqNotMet": "MOQ no cumplido",
+      "accept": "ACEPTAR",
+      "reject": "RECHAZAR",
+      "pause": "PAUSA",
+      "filter": "Filtrar",
+      "resetFilter": "Restablecer filtro",
+      "cancel": "Cancelar"
+    },
+    "table": {
+      "style": "Estilo",
+      "receiverROSN": "Receptor ROSN",
+      "receiverLocation": "Ubicación del receptor",
+      "city": "Ciudad",
+      "locationCode": "Código de localización",
+      "channel": "Canal",
+      "itemCode": "Código del objeto",
+      "quantity": "Cantidad",
+      "donorROSN": "ROSN del donante",
+      "donorLocation": "Ubicación del donante",
+      "locationType": "Tipo de ubicacion",
+      "vfISTID": "ID de VF IST"
+    },
+    "modal": {
+      "title": "¿Quiere volver a evaluar?",
+      "pause": {
+        "content": "Como ha decidido mantener los IST para algunos tamaños, el estilo seguirá estando roto. ",
+        "button": "PAUSA"
+      },
+      "reject": {
+        "content": "Como ha decidido rechazar los IST para algunos tamaños, el estilo seguirá estando roto. ",
+        "button": "RECHAZAR"
+      },
+      "accept": {
+        "content": "Como ha anulado la selección de algunos tamaños, el estilo permanecerá roto y los tamaños anulados se pausarán durante 7 días. ",
+        "button": "¡ACEPTARLO!"
+      }
+    }
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próximo"
+  },
+  "manualUpload": {
+    "title": "Subir archivo",
+    "csvError": "Solo se aceptan archivos csv",
+    "updateSuccess": "¡Actualización del archivo exitosa!",
+    "updateError": "Algunos registros tienen error",
+    "dragDrop": "Arrastrar",
+    "template": "Descargar plantilla IST manual",
+    "deleteBtn": "Borrar",
+    "uploadTitle": "Haga clic aquí para cargar un nuevo archivo",
+    "uploadBtn": "Subir",
+    "uploadingBtn": "Subiendo...",
+    "uploadInProcess": "Cargando en curso",
+    "modalTitle": "CARGA_MANUAL"
+  },
+  "ISTStatus": {
+    "notify": {
+      "exportSuccess": "Éxito de exportación",
+      "saveSuccess": "Guardar éxito",
+      "deleteSuccess": "Eliminar éxito",
+      "createViewSuccess": "Crear vista éxito"
+    },
+    "viewName": "Cree su propio informe",
+    "viewTitle": "Puntos de vista",
+    "addViews": "Agregar vistas"
+  },
+  "ISTForcedClosure": {
+    "button": {
+      "filter": "Filtrar",
+      "resetFilter": "Restablecer filtro",
+      "searchByISTID": "Buscar por ID de IST",
+      "searchByISTDate": "Buscar por fecha IST",
+      "auto": "Auto",
+      "manual": "Manual",
+      "pushedToSAP": "Empujado a SAP",
+      "readyToShip": "Listo para enviar",
+      "inTransit": "En tránsito",
+      "exportAll": "EXPORTAR TODO",
+      "submitBtn": "Entregar"
+    },
+    "generationType": "Tipo de generación",
+    "activeIST": "IST activos",
+    "table": {
+      "donorLocation": "Ubicación del donante",
+      "locationCode": "Código de localización",
+      "city": "Ciudad",
+      "locationType": "Tipo de ubicacion",
+      "channel": "Canal",
+      "itemCode": "Código del objeto",
+      "size": "Tamaño",
+      "quantity": "Cantidad",
+      "status": "Estado",
+      "type": "B | ",
+      "receiverLocation": "Ubicación del receptor",
+      "vfISTID": "ID de VF IST"
+    },
+    "notify": {
+      "enterTheReason": "Por favor ingrese el motivo",
+      "noRecordsSelected": "No hay registros seleccionados"
+    },
+    "modal": {
+      "detail": {
+        "title": "Detalles de contacto",
+        "name": "Nombre",
+        "email": "Identificación de correo",
+        "phone": "Telefono no"
+      },
+      "terminate": {
+        "title": "Enviado por",
+        "header": "Seleccione el motivo de la terminación",
+        "stockIsNotAvailable": "Stock no disponible",
+        "stockIsNotInASaleableCondition": "El stock no está en condiciones de venta.",
+        "stockIsReservedForOnlineOrder": "El stock está reservado para pedidos en línea.",
+        "others": "Otros"
+      }
+    },
+    "contactDetails": "DETALLES DE CONTACTO",
+    "age": "Edad",
+    "days": "Días",
+    "terminate": "TERMINAR"
+  },
+  "storeStatus": {
+    "button": {
+      "filter": "Filtrar",
+      "resetFilter": "Restablecer filtro",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "quickFilter": "Filtros rápidos",
+    "table": {
+      "brand": "Marca",
+      "locationName": "Nombre del lugar",
+      "locationCode": "Código de localización",
+      "city": "Ciudad",
+      "cluster": "Grupo",
+      "status": "Estado"
+    }
+  },
+  "availabilityComparison": {
+    "button": {
+      "filter": "Filtrar",
+      "resetFilter": "Restablecer filtro",
+      "exportSelected": "EXPORTAR SELECCIONADO",
+      "pcs": "PC",
+      "style": "Estilo",
+      "cancel": "Cancelar",
+      "downloadToExcel": "Descargar a Excel"
+    },
+    "notify": {
+      "exportSuccess": "Éxito de exportación",
+      "exportError": "Error de exportación",
+      "noRecordsSelected": "¡Debes elegir al menos un campo!"
+    },
+    "tab": {
+      "storeLevel": "Nivel de tienda",
+      "subBrandLevel": "Nivel de submarca",
+      "categoryLevel": "Nivel de categoría"
+    },
+    "modal": {
+      "title": "Seleccionar para descargar"
+    },
+    "color": {
+      "white": "Blanco",
+      "green": "Verde",
+      "red": "Rojo"
+    },
+    "currentAvailability": "Disponibilidad actual",
+    "projectedAvailability": "Disponibilidad proyectada",
+    "ISTReplenishment": "Reposición de IST"
+  },
+  "profile": {
+    "tab": {
+      "overview": "Descripción general",
+      "permissions": "permisos",
+      "manageUsers": "Administrar usuarios"
+    },
+    "tabContent": {
+      "overview": {
+        "notify": {
+          "changePswSuccess": "Cambio de contraseña exitoso"
+        },
+        "title": "detalles del perfil",
+        "fullName": "Nombre completo",
+        "role": "Role",
+        "signInDetails": "Detalles de inicio de sesión",
+        "email": "Dirección de correo electrónico",
+        "password": "Contraseña",
+        "passwordPlaceholder": "***************************",
+        "button": {
+          "notEditable": "no editable",
+          "resetPsw": "Restablecer la contraseña",
+          "updatePsw": "Actualiza contraseña",
+          "cancel": "Cancelar"
+        },
+        "currentPsw": "Contraseña actual",
+        "newPsw": "Nueva contraseña",
+        "confirmPsw": "Confirmar nueva contraseña"
+      },
+      "permissions": {
+        "title": "Role",
+        "roleAndPermissions": {
+          "pendingIST": "TSI pendiente",
+          "ISTForcedClosure": "Cierre forzado de IST",
+          "storeStatus": "Estado de la tienda",
+          "availabilityComparison": "Comparación de disponibilidad",
+          "ISTStatus": "Estado IST",
+          "manualUpload": "Carga manual de IST",
+          "interStoreTransfer": "Transferencia entre tiendas"
+        },
+        "L1": "L1",
+        "L2": "L2",
+        "L3": "L3",
+        "productPermission": {
+          "title": "Permiso de producto",
+          "brand": "Marca",
+          "subBrand": "Sub marca",
+          "category": "Categoría"
+        },
+        "locationPermission": {
+          "title": "Permiso de ubicación",
+          "locationRegion": "Ubicación Región",
+          "locationType": "Tipo de ubicacion",
+          "locationCluster": "Clúster de ubicación"
+        }
+      },
+      "manageUsers": {
+        "title": "Gestión de usuarios",
+        "button": {
+          "addNewUser": "Añadir nuevo usuario",
+          "nextBtn": "Próximo",
+          "updateBtn": "Actualizar",
+          "bulkUpload": "Carga masiva",
+          "active": "Activo",
+          "inactive": "Inactivo",
+          "cancel": "Cancelar",
+          "addUser": "Agregar usuario",
+          "delete": "borrar",
+          "goBack": "Regresa"
+        },
+        "modal": {
+          "addNewTitle": "Añadir nuevo usuario",
+          "editUserTitle": "editar usuario",
+          "username": "Nombre de usuario",
+          "emailID": "Identificación de correo",
+          "password": "Contraseña",
+          "roles": "roles",
+          "advancedPermission": "Permiso avanzado",
+          "titleDelete": "Quieres eliminar a este usuario?",
+          "contentDelete": "Este usuario no podrá volver a iniciar sesión en el sistema después de ser eliminado"
+        },
+        "table": {
+          "userID": "Identificación de usuario",
+          "emailID": "Identificación de correo",
+          "roles": "roles",
+          "actions": "Comportamiento",
+          "active": "Activo"
+        },
+        "roles": {
+          "ISTAdmin": "Administrador de IST",
+          "ISTRequestor": "Solicitante de IST",
+          "ISTGovernor": "Gobernador de IST",
+          "ISTLiaison": "Enlace IST"
+        },
+        "advancedPermission": {
+          "title": "Permisos avanzados",
+          "productPermission": {
+            "title": "Permisos de productos"
+          },
+          "locationPermission": {
+            "title": "Permisos de ubicación",
+            "locationRegion": "Ubicación Región",
+            "locationType": "Tipo de ubicacion",
+            "locationCluster": "Clúster de ubicación"
+          }
+        },
+        "validate": {
+          "userNameMaxLength": "La contraseña debe tener menos de 200 caracteres",
+          "emailMaxLength": "El correo electrónico debe tener menos de 200 caracteres"
+        }
+      }
+    }
+  }
+}

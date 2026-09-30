@@ -1,0 +1,3 @@
+from master_validation.models.prefinal_models import PreFinalContactDetailMasterModel
+
+print(PreFinalContactDetailMasterModel)

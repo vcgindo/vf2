@@ -1,0 +1,25 @@
+
+.ag-theme-intranist {
+    /* --ag-foreground-color: #EBEBEB; */
+    --ag-range-selection-border-color:#BC3D81;
+    /* --ag-background-color: rgb(255, 255, 255); */
+    --ag-header-foreground-color: rgb(255, 255, 255);
+    --ag-header-background-color: rgb(0, 0, 0);
+    --ag-header-height:43px;
+    --ag-checkbox-checked-color:#BC3D81;
+    --ag-selected-row-background-color:rgb(188, 61, 129,0.2);
+    /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+    /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+    /* --ag-border-radius:32px; */
+    --ag-font-size: 13px;
+    --ag-grid-size:12px ;
+    /* --ag-font-family: monospace; */
+}
+
+/* .ag-theme-intransit .ag-header-cell {
+    font-size: 10px !important;
+} */
+
+.ag-theme-intransit .ag-header {
+    font-size: 16px ;
+}

@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  vector:
+    container_name: vector
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_HOST=http://192.168.50.69:8000
+      cache_from:
+        - portal-vector:latest
+    ports:
+      - "3000:3000"

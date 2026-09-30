@@ -1,0 +1,145 @@
+:root{
+  --color-regalblaze: #C7810E
+}
+
+.button-switch-stote-status {
+  font-size: 13px;
+  color: #B4B4B4;
+  margin-bottom: 0.625em;
+  position: relative;
+  width: 88px;
+  height: 37px;
+  margin-bottom: 0;
+  top: 10px;
+  left: 6px;
+}
+.button-switch-stote-status .lbl-off,
+.button-switch-stote-status .lbl-on {
+  cursor: pointer;
+  display: block;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1em;
+  position: absolute;
+  top: 6px;
+  transition: opacity 0.25s ease-out 0.1s;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.button-switch-stote-status .lbl-off {
+  right: 14px;
+}
+.button-switch-stote-status .lbl-on {
+  color: #820F4C;
+  opacity: 0;
+  left: 2px;
+}
+
+.button-switch-stote-status .lbl-on.REGALBLAZE {
+  color: var(--color-regalblaze);
+}
+
+.button-switch-stote-status .switch {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 0;
+  font-size: 1em;
+  left: 0;
+  line-height: 0;
+  outline: none;
+  position: absolute;
+  top: 0;
+  width: 0;
+}
+.button-switch-stote-status .switch:before, .button-switch-stote-status .switch:after {
+  content: "";
+  font-size: 1em;
+  position: absolute;
+}
+.button-switch-stote-status .switch:before {
+  border-radius:30px;
+  background: #fff;
+  height: 37px;
+  left: -12px;
+  top: -12px;
+  transition: background-color 0.25s ease-out 0.1s;
+  width: 88px;
+  border: 1px solid #B4B4B4;
+  cursor: pointer;
+}
+.button-switch-stote-status .switch:checked:before {
+  border: 1px solid #820F4C;
+}
+
+.button-switch-stote-status .switch.REGALBLAZE:checked:before {
+  border: 1px solid var(--color-regalblaze);
+}
+
+.button-switch-stote-status .switch:after {
+  box-shadow: 0 0.0625em 0.375em 0 #666;
+  border-radius: 50%;
+  background: #B4B4B4;
+
+  width: 25px;
+  height: 24px;
+  transform: translate(-4px, -5px);
+  transition: transform 0.25s ease-out 0.1s;
+  cursor: pointer;
+}
+.button-switch-stote-status .switch:checked:after {
+  transform: translate(45px, -4.5px);
+  background: #820F4C;
+}
+
+.button-switch-stote-status .switch.REGALBLAZE:checked:after {
+  transform: translate(45px, -4.5px);
+  background: var(--color-regalblaze);
+}
+
+.button-switch-stote-status .switch:checked ~ .lbl-off {
+  opacity: 0;
+}
+.button-switch-stote-status .switch:checked ~ .lbl-on {
+  opacity: 1;
+}
+.button-switch-stote-status .switch#switch-orange:checked:before {
+  background: #fff;
+}
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .button-switch-stote-status {
+    width: 88px;
+    height: 37px;
+  }
+  .button-switch-stote-status .switch:before {
+    width: 88px;
+    height: 37px;
+  }
+  .button-switch-stote-status .lbl-off,
+.button-switch-stote-status .lbl-on {
+  /* font-size: 0.68em; */
+  top: 6px;
+}
+.button-switch-stote-status .switch:after {
+  width: 25px;
+  height: 24px;
+  top: 0.4px;
+}
+.button-switch-stote-status .switch:checked:after {
+  transform: translate(45px, -4.5px);
+  background: #820F4C;
+}
+
+.button-switch-stote-status .switch.REGALBLAZE:checked:after {
+  transform: translate(45px, -4.5px);
+  background: var(--color-regalblaze);
+}
+
+.button-switch-stote-status .lbl-off {
+  right: 14px;
+}
+.button-switch-stote-status .switch:before {
+    top: -12px;
+}
+}

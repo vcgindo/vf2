@@ -1,0 +1,16 @@
+**
+!mta/
+!mta/**
+!parity/
+!parity/**
+!infrastructure/
+!infrastructure/docker/
+!infrastructure/docker/mta-entrypoint.sh
+**/__pycache__
+**/*.pyc
+**/.venv
+**/venv
+**/.env
+**/.env.*
+parity/legacy-captures/
+parity/reports/

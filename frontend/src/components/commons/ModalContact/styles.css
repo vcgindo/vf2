@@ -1,0 +1,167 @@
+.modal-box {
+  position: relative;
+  z-index: 9998;
+  cursor: default;
+}
+
+ul li {
+  list-style: none;
+}
+
+.contact_list {
+  font-size: 2.2rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding-top: 32px;
+}
+
+.contact_span {
+  display: flex;
+  font-weight: 300;
+  /* display: block; */
+  margin-right: 20px;
+  width: 105px;
+  border-right: 1px solid #000000;
+}
+
+.modal-bg {
+  background-color: rgb(107 114 128 / 0.75);
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content {
+  overflow-y: hidden;
+  z-index: 10;
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  left: 0px;
+}
+
+.modal-content--box {
+  display: flex;
+  text-align: left;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+}
+
+.modal-contact--block {
+  background-color: white;
+  padding-bottom: 24px;
+  border-radius: 6px;
+}
+
+
+.transition {
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+.opa-0  {
+  opacity: 0;
+}
+
+.opa {
+  opacity: 1;
+}
+
+.leave-modal {
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.tranlate {
+  transform: translateX(1rem);
+}
+
+/* .warning_img {
+  width: 100%;
+} */
+.modal-title--contact {
+  display: flex;
+  justify-content: space-between;
+  font-size: 2.2rem;
+  color: #1A1A27;
+  margin: 4px;
+  box-shadow: 5px 5px 30px #6E6B6B29;
+  border-radius: 12px 12px 0px 0px;
+  margin: 0;
+  padding: 24px 20px 10px 70px;
+}
+
+.modal-title--contact .wrap-title--contact {
+    display: flex;
+}
+
+.modal-title--contact .avatar_contact {
+  width: 32.73px;
+  height: 32.73px;
+  margin-right: 10px;
+}
+
+.modal-title--contact .close-modal--contact {
+  width: 16.8px;
+  margin: 0 10px 10px 0;
+}
+
+.contact_list--item {
+  padding-left: 70px;
+}
+
+.modal-content--text {
+  font-size: 1.5rem;
+  color: #000000;
+}
+
+.mt-2 {
+  padding: 0 100px;
+}
+
+.button_cancel {
+   box-shadow: 5px 5px 15px #68656529;
+  border: 1px solid #A5A7A9;
+  border-radius: 6px;
+  letter-spacing: 0px;
+  color: #898989;
+  text-transform: uppercase;
+  font-size: 2rem;
+  padding: 16px 24px;
+}
+
+.button_reject:hover {
+  background: transparent linear-gradient(180deg, #BC3D81 0%, #820F4C 100%);
+  color: #FFFFFF;
+}
+
+.button_reject {
+  box-shadow: 5px 5px 15px #68656529;
+  border: 1px solid #A5A7A9;
+  border-radius: 6px;
+  letter-spacing: 0px;
+  color: #898989;
+  text-transform: uppercase;
+  font-size: 2rem;
+  padding: 16px 24px;
+  margin-right: 34px;
+}
+
+.mt-4 {
+  margin-top: 40px;
+}
+
+
+@media (min-width: 640px) {
+  .modal-contact--block {
+    width: 100%;
+    max-width: 619px;
+} 
+}

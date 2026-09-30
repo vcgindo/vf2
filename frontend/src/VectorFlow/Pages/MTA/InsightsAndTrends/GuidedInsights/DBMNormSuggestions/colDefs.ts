@@ -1,0 +1,298 @@
+import { ColDef } from "ag-grid-enterprise";
+
+export const coldefs1: ColDef[] = [
+    {
+      field: "location",
+      headerName: "Location Name",
+      colId: "location",
+    },
+    {
+      field: "NormInc",
+      headerName: "Norm Inc",
+      colId: "NormInc",
+    },
+    {
+      field: "NormDec",
+      headerName: "Norm Dec",
+      colId: "NormDec",
+    },
+    {
+      field: "whcode",
+      headerName: "Location Code",
+      colId: "whcode",
+    },
+    {
+      field: "LogisticsLocation",
+      headerName: "LogisticsLocation",
+      colId: "LogisticsLocation",
+    },
+    {
+      field: "LL1",
+      headerName: "LL1",
+      colId: "LL1",
+    },
+    {
+      field: "LL2",
+      headerName: "LL2",
+      colId: "LL2",
+    },
+    {
+      field: "LL3",
+      headerName: "LL3",
+      colId: "LL3",
+    },
+    {
+      field: "LL4",
+      headerName: "LL4",
+      colId: "LL4",
+    },
+    {
+      field: "LL5",
+      headerName: "LL5",
+      colId: "LL5",
+    },
+    {
+      field: "c1",
+      headerName: "C1",
+      colId: "c1",
+    },
+    {
+      field: "C2",
+      headerName: "C2",
+      colId: "C2",
+    },
+    {
+      field: "C3",
+      headerName: "C3",
+      colId: "C3",
+    },
+    {
+      field: "C4",
+      headerName: "C4",
+      colId: "C4",
+    },
+    {
+      field: "C5",
+      headerName: "C5",
+      colId: "C5",
+    },
+    {
+      field: "C6",
+      headerName: "C6",
+      colId: "C6",
+    },
+    {
+      field: "C7",
+      headerName: "C7",
+      colId: "C7",
+    },
+    {
+      field: "C8",
+      headerName: "C8",
+      colId: "C8",
+    },
+    {
+      field: "C9",
+      headerName: "C9",
+      colId: "C9",
+    },
+    {
+      field: "C10",
+      headerName: "C10",
+      colId: "C10",
+    },
+    {
+      field: "C11",
+      headerName: "C11",
+      colId: "C11",
+    },
+    {
+      field: "C12",
+      headerName: "C12",
+      colId: "C12",
+    },
+    {
+      field: "C13",
+      headerName: "C13",
+      colId: "C13",
+    },
+    {
+      field: "C14",
+      headerName: "C14",
+      colId: "C14",
+    },
+    {
+      field: "C15",
+      headerName: "C15",
+      colId: "C15",
+    },
+  ];
+
+export  const coldefs2: ColDef[] = [
+    {
+      field: "suggestion",
+      headerName: "Suggestion",
+      colId: "suggestion",
+    },
+    {
+      field: "count",
+      headerName: "Count",
+      colId: "count",
+    },
+  ];
+
+export  const coldefs3: ColDef[] = [
+    {
+      field: "sku",
+      headerName: "SKU Code",
+      colId: "sku",
+    },
+    {
+      field: "NormInc",
+      headerName: "Norm Inc",
+      colId: "NormInc",
+    },
+    {
+      field: "NormDec",
+      headerName: "Norm Dec",
+      colId: "NormDec",
+    },
+    {
+      field: "SKUDescription",
+      headerName: "SKUDescription",
+      colId: "SKUDescription",
+    },
+    {
+      field: "elephantOrderCapping",
+      headerName: "ElephantOrderCapping",
+      colId: "elephantOrderCapping",
+    },
+    {
+      field: "weight",
+      headerName: "Weight",
+      colId: "weight",
+    },
+    {
+      field: "volume",
+      headerName: "Volume",
+      colId: "volume",
+    },
+    {
+      field: "SL1",
+      headerName: "SL1",
+      colId: "SL1",
+    },
+    {
+      field: "SL2",
+      headerName: "SL2",
+      colId: "SL2",
+    },
+    {
+      field: "SL3",
+      headerName: "SL3",
+      colId: "SL3",
+    },
+    {
+      field: "SL4",
+      headerName: "SL4",
+      colId: "SL4",
+    },
+    {
+      field: "SL5",
+      headerName: "SL5",
+      colId: "SL5",
+    },
+    {
+      field: "c1",
+      headerName: "C1",
+      colId: "c1",
+    },
+    {
+      field: "C2",
+      headerName: "C2",
+      colId: "C2",
+    },
+    {
+      field: "C3",
+      headerName: "C3",
+      colId: "C3",
+    },
+    {
+      field: "C4",
+      headerName: "C4",
+      colId: "C4",
+    },
+    {
+      field: "C5",
+      headerName: "C5",
+      colId: "C5",
+    },
+    {
+      field: "C6",
+      headerName: "C6",
+      colId: "C6",
+    },
+    {
+      field: "C7",
+      headerName: "C7",
+      colId: "C7",
+    },
+    {
+      field: "C8",
+      headerName: "C8",
+      colId: "C8",
+    },
+    {
+      field: "C9",
+      headerName: "C9",
+      colId: "C9",
+    },
+    {
+      field: "C10",
+      headerName: "C10",
+      colId: "C10",
+    },
+    {
+      field: "C11",
+      headerName: "C11",
+      colId: "C11",
+    },
+    {
+      field: "C12",
+      headerName: "C12",
+      colId: "C12",
+    },
+    {
+      field: "C13",
+      headerName: "C13",
+      colId: "C13",
+    },
+    {
+      field: "C14",
+      headerName: "C14",
+      colId: "C14",
+    },
+    {
+      field: "C15",
+      headerName: "C15",
+      colId: "C15",
+    },
+  ];
+
+export  const coldefs4: ColDef[] = [
+    {
+      field: "age",
+      headerName: "Ageing",
+      colId: "age",
+    },
+    {
+      field: "NormInc",
+      headerName: "Norm Inc",
+      colId: "NormInc",
+    },
+    {
+      field: "NormDec",
+      headerName: "Norm Dec",
+      colId: "NormDec",
+    },
+  ];

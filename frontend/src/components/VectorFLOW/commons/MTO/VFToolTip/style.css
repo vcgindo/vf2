@@ -1,0 +1,18 @@
+.hover-text {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hover-text-left {
+  text-align: left;
+}
+
+.hover-text-center {
+  text-align: center;
+}
+
+.hover-text-right {
+  text-align: right;
+}

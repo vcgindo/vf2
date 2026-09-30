@@ -1,0 +1,11 @@
+**/node_modules
+**/build
+**/coverage
+**/.env
+**/.env.*
+!frontend/.env.example
+frontend/deployment matrix/
+**/*.pem
+**/*.key
+**/__pycache__
+**/*.pyc

@@ -1,0 +1,65 @@
+from django.urls import path
+
+from .views import *
+from .Masters.views import *
+from .MDM.views import *
+from .MDM.Buffer.views import *
+from .MDM.CCR.views import *
+from .MDM.Poogi.views import *
+from .MDM.Calendar.views import *
+
+urlpatterns = [
+    path('getUIReportConfiguration/', UIReportConfigurationsView.as_view(), name='Get UIReport Configuration'),
+    path('getCCRMasterData/', CCRMasterView.as_view(), name='Get CCR Master Data'),
+    path('getPlantMasterData/', PlantMasterView.as_view(), name='Get Plant Master Data'),
+    path('getBufferMasterData/', BufferMasterView.as_view(), name='Get Buffer Master Data'),
+    path('getPlantHolidayListData/', PlantHolidayListView.as_view(), name='Get PlantHolidayList Data'),
+    path('getPOOGIMajorMinorReason/', POOGIMajorMinorReasonView.as_view(), name='Get POOGI Major Reason'),
+    path('getDeptMasterData/', DeptMasterView.as_view(), name='Get Department Master Data'),
+    path('getOrderTypeMasterData/', OrderTypeMasterView.as_view(), name='Get Order Type Master Data'),
+    path('getRunDate/', RunDateTimeView.as_view(), name='Get run date from RunDateTime'),
+    path('getUserwiseUIReportConfigurationData/', UserwiseUIReportConfigurationView.as_view(), name='Get user wise ui report config data from UserwiseUiReportConfiguration'),
+    path('UpdateUserwiseUIReportConfigurationData/', UpdateUserwiseUIReportConfigurationView.as_view(), name='Get user wise ui report config data from UserwiseUiReportConfiguration'),
+    path('getCCRGroupMasterData/',CCRGroupMasterView.as_view(),name=' Get CCR Group Master Data'),
+    path('getMarketOperatingLeadTimeMasterData/',MarketOperatingLeadTimeMasterView.as_view(),name='Get market operating lead time data'),
+    path('getCCRItemTypeMapping/',CCRItemTypeMapView.as_view(),name='Get CCR-ItemType Mapping'),
+    path('getDailyWorkingCalendar/',DailyWorkingCalendarView.as_view(),name='Get Daily Working Calendar'),
+    path('getFOLData/',FOLDataView.as_view(),name='Get FOL Data'),   
+    path('getRouteDetails/',RouteDetailsView.as_view(),name='Get Route Details'),
+    path('getDBRsettingsData/',GetDBRSettingsView.as_view(),name='Get DBR Settings'),
+    path('getfilterData/',GetFilterDataView.as_view(),name='get filter data api'),
+    path('AddBufferMaster/',AddBufferMasterView.as_view(),name='Add Buffer to Master'),
+    path('GetMasterManagementData/',GetMasterManagementDataView.as_view(),name='Get Master Management Data'),
+    path('GetBufferMasterForMasterMgmt/',GetBufferMasterForMasterMgmtView.as_view(),name='Get Buffer Master data for Master Management'),
+    path('GetBufferTypeMaster/',GetBufferTypeMasterView.as_view(),name='Get Buffer Type Master data'),
+    path('SaveBufferMasterDraft/',SaveBufferMasterDraftView.as_view(),name='Save Buffer Master draft'),
+    path('GetDraftInstances/',GetDraftInstancesView.as_view(),name='Get Draft Instances'),
+    path('GetBufferDraftData/',GetBufferDraftDataView.as_view(),name='Get Buffer Draft data'),
+    path('SaveBufferMasterTask/',SaveBufferMasterTaskView.as_view(),name='Save buffer master tasks / master changes for approval'),
+    path('GetTasks/',GetTasksView.as_view(),name='Get MDM tasks'),
+    path('GetTaskById/',GetTaskByIdView.as_view(),name='Get MDM task by Id'),
+    path('GetAllReportData/',GetAllReportDataView.as_view(),name='Get all report data'),
+    path('DownloadReportData/',DownloadReportFileView.as_view(),name='Download report data file'),
+    path('GetCCRMasterForMasterMgmt/',GetCCRMasterForMasterMgmtView.as_view(),name='Get CCR Master data for Master Management'),
+    path('SaveCCRMasterTask/',SaveCCRMasterTaskView.as_view(),name='Save ccr master tasks / master changes for approval'),
+    path('AddCCRMaster/',AddCCRMasterView.as_view(),name='Add CCR to Master'),
+    path('SaveCCRMasterDraft/',SaveCCRMasterDraftView.as_view(),name='Save CCR Master draft'),
+    path('GetCCRDraftData/',GetCCRDraftDataView.as_view(),name='Get CCR Draft data'),
+    path('getCloseTypeMasterdata/', CloseTypeMasterView.as_view(),name='Get close type data from close type master'),
+    path('GetPoogiReasonMasterForMasterMgmt/',GetPoogiReasonMasterForMasterMgmtView.as_view(),name='Get Poogi Reason Master for Master Data Mgmt'),
+    path('SavePoogiReasonMasterTask/',SavePoogiReasonMasterTaskView.as_view(),name='Save poogi reason master tasks / master changes for approval'),
+    path('AddPOOGIReasonMaster/',AddPOOGIReasonMasterView.as_view(),name='Add Poogi reason to Master'),
+    path('SavePoogiReasonDraft/',SavePoogiReasonDraftView.as_view(),name='Save Poogi Reason draft'),
+    path('GetPoogiReasonDraftData/',GetPoogiReasonDraftDataView.as_view(),name='Get Poogi Reason Draft data'),
+    path('GetCalendarDataForMasterMgmt/',GetCalendarDataForMasterMgmtView.as_view(),name='Get Calendar data for Master Management'),
+    path('SaveCalendarTask/',SaveCalendarTaskView.as_view(),name='Save calendar holiday changes for approval'),
+    path('AddCalendarMaster/',AddCalendarMasterView.as_view(),name='Add Calendar Master to Plant Holiday List'),
+    path('SaveCalendarMasterDraft/',SaveCalendarMasterDraftView.as_view(),name='Save Calendar Data Master draft'),
+    path('GetCalendarMasterDraft/',GetCalendarMasterDraftView.as_view(),name='Get Calendar Master Draft data'),
+    path('GetAllPermission/',GetAllPermission.as_view(),name='Get All Permission'),
+    path('DeleteDraft/',DeleteDraftView.as_view(),name='Delete Draft'),
+    path('GetMTOHeaders/',GetMTOHeadersView.as_view(),name='Get MTO Permission Headers'),
+    path('GetMTOPermissionDetails/',GetMTOPermissionDetailsView.as_view(),name='Get MTO Permission Details'),
+    path('getMaxFolDateForCcr/',GetMaxFolDateForCcrView.as_view(),name='Get MTO Permission Details'),
+    path('getUpdatedUserwiseUIReportConfigurationData/',UserwiseUIReportConfigurationUpdatedView.as_view(),name='Get updated user wise ui report config data'),
+]

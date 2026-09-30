@@ -1,0 +1,19 @@
+services:
+  mta:
+    environment:
+      VECTORFLOW_DEMO_MODE: "true"
+    volumes:
+      - ./.local-demo/input:/demo/input:ro
+      - F:/new_vflow/docs/data_sample/sample_for_synthetic.csv:/demo/reference/sample_for_synthetic.csv:ro
+  frontend:
+    build:
+      args:
+        REACT_APP_DEMO_MODE: "true"
+    environment:
+      VECTORFLOW_DEMO_MODE: "true"
+
+networks:
+  platform:
+    ipam:
+      config:
+        - subnet: 10.254.241.0/24

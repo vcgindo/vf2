@@ -1,0 +1,21 @@
+# Linux container normalization of copied requirements.txt; Windows packaging/exe helpers omitted.
+Django==5.2.4
+djangorestframework==3.15.1
+django-cors-headers==4.3.1
+channels==4.2.2
+daphne==4.2.1
+psycopg2-binary==2.9.10
+redis==5.0.8
+requests>=2.31.0,<3.0.0
+uvicorn==0.35.0
+PyYAML==6.0.1
+openpyxl==3.1.2
+pandas==2.2.2
+python-dotenv==1.0.0
+django-import-export==4.3.9
+drf-yasg==1.21.10
+numpy==2.2.6
+python-dateutil==2.9.0.post0
+polars==1.33.1
+XlsxWriter==3.2.5
+channels-redis==4.2.1

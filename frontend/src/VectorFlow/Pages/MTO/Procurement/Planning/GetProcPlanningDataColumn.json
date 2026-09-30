@@ -1,0 +1,130 @@
+{
+    "HeaderData": [
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "ic",
+            "cp": 1,
+            "hdr": "",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "cp",
+            "cp": 2,
+            "hdr": "Color Priority",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "rm",
+            "cp": 3,
+            "hdr": "RM Code",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "rmd",
+            "cp": 4,
+            "hdr": "RM Description",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "nooi",
+            "cp": 5,
+            "hdr": "No Of Order Impacted",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "req",
+            "cp": 6,
+            "hdr": "Total Req",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "uom",
+            "cp": 7,
+            "hdr": "UOM",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "soh",
+            "cp": 8,
+            "hdr": "Stock On-Hand",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "siqc",
+            "cp": 9,
+            "hdr": "Stock In QC",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "sit",
+            "cp": 10,
+            "hdr": "Stock In Transit",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "gap",
+            "cp": 11,
+            "hdr": "Gap",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "ppo",
+            "cp": 12,
+            "hdr": "Pending PO",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "eas",
+            "cp": 13,
+            "hdr": "Expected Add Stock",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReport",
+            "jf": "tsfs",
+            "cp": 14,
+            "hdr": "Total Stock For Simulation",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        }
+    ]
+}

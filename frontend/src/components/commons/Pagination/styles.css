@@ -1,0 +1,41 @@
+.paginate {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.paginate li {
+  display: flex;
+  font-size: 16px;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 10px;
+  margin: 0 5px;
+  border-radius: 21px;
+  width: 42px;
+  height: 42px;
+  color: black;
+  cursor: pointer;
+}
+
+.paginate li:first-child,
+.paginate li:last-child {
+  width: 50px;
+}
+
+.paginate li.selected {
+  background-color: black;
+  color: white;
+}
+
+.disabledBtn {
+  color: #555976;
+  opacity: 0.3;
+  cursor: default !important;
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .paginate li {
+    margin-bottom: 25px;
+  }
+}

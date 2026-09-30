@@ -1,0 +1,19 @@
+<svg id="edit_calendar" data-name="edit calendar" xmlns="http://www.w3.org/2000/svg" width="20.61" height="20.872" viewBox="0 0 20.61 20.872">
+  <g id="Group_11946" data-name="Group 11946">
+    <path id="Path_16428" data-name="Path 16428" d="M11.615,4.338h5.418a.7.7,0,1,0,0-1.391H11.615a.7.7,0,0,0,0,1.391Z" transform="translate(-4.147 -1.592)" fill="#CC7722" fill-rule="evenodd"/>
+    <path id="Path_16429" data-name="Path 16429" d="M8.7,5.1a.7.7,0,0,0,.7-.7V1.7A.7.7,0,1,0,8,1.7V4.4A.7.7,0,0,0,8.7,5.1Z" transform="translate(-3.259 -1)" fill="#CC7722" fill-rule="evenodd"/>
+    <path id="Path_16430" data-name="Path 16430" d="M22.324,5.1a.7.7,0,0,0,.7-.7V1.7a.7.7,0,0,0-1.391,0V4.4A.7.7,0,0,0,22.324,5.1Z" transform="translate(-7.406 -1)" fill="#CC7722" fill-rule="evenodd"/>
+    <path id="Path_16431" data-name="Path 16431" d="M10.617,20.555H3.236a.658.658,0,0,1-.658-.659V8.4h12.17a.7.7,0,0,0,0-1.391H2.577V5a.658.658,0,0,1,.658-.659H4.59a.7.7,0,0,0,0-1.391H3.236A2.05,2.05,0,0,0,1.186,5V19.9a2.05,2.05,0,0,0,2.05,2.05h7.382a.7.7,0,1,0,0-1.391Z" transform="translate(-1.186 -1.592)" fill="#CC7722" fill-rule="evenodd"/>
+    <path id="Path_16432" data-name="Path 16432" d="M24.27,7.01a.7.7,0,0,0,0,1.391h2.69v3.627a.7.7,0,0,0,1.391,0V5a2.05,2.05,0,0,0-2.05-2.05H24.947a.7.7,0,1,0,0,1.391H26.3A.658.658,0,0,1,26.959,5V7.01Z" transform="translate(-7.998 -1.592)" fill="#CC7722" fill-rule="evenodd"/>
+  </g>
+  <circle id="Ellipse_613" data-name="Ellipse 613" cx="0.932" cy="0.932" r="0.932" transform="translate(4.213 8.728)" fill="#CC7722"/>
+  <circle id="Ellipse_614" data-name="Ellipse 614" cx="0.932" cy="0.932" r="0.932" transform="translate(4.213 11.989)" fill="#CC7722"/>
+  <circle id="Ellipse_615" data-name="Ellipse 615" cx="0.932" cy="0.932" r="0.932" transform="translate(4.213 15.25)" fill="#CC7722"/>
+  <circle id="Ellipse_616" data-name="Ellipse 616" cx="0.932" cy="0.932" r="0.932" transform="translate(7.568 8.728)" fill="#CC7722"/>
+  <circle id="Ellipse_617" data-name="Ellipse 617" cx="0.932" cy="0.932" r="0.932" transform="translate(7.567 11.988)" fill="#CC7722"/>
+  <circle id="Ellipse_618" data-name="Ellipse 618" cx="0.932" cy="0.932" r="0.932" transform="translate(7.568 15.25)" fill="#CC7722"/>
+  <circle id="Ellipse_619" data-name="Ellipse 619" cx="0.932" cy="0.932" r="0.932" transform="translate(10.922 8.728)" fill="#CC7722"/>
+  <circle id="Ellipse_620" data-name="Ellipse 620" cx="0.932" cy="0.932" r="0.932" transform="translate(10.922 11.989)" fill="#CC7722"/>
+  <circle id="Ellipse_621" data-name="Ellipse 621" cx="0.932" cy="0.932" r="0.932" transform="translate(14.276 8.728)" fill="#CC7722"/>
+  <path id="Path_16433" data-name="Path 16433" d="M26.346,19.123,25.324,18.1a1.418,1.418,0,0,0-2.005,0l-5.406,5.406a1.419,1.419,0,0,0-.417,1v1.744a.7.7,0,0,0,.7.7h1.744a1.418,1.418,0,0,0,1-.417l5.406-5.406A1.418,1.418,0,0,0,26.346,19.123Zm-6.39,6.427a.027.027,0,0,1-.019.008H18.89V24.51a.027.027,0,0,1,.008-.019L22.791,20.6l1.059,1.059Zm5.406-5.406-.529.529-1.059-1.059.529-.529a.028.028,0,0,1,.038,0l1.02,1.021a.026.026,0,0,1,0,.038Z" transform="translate(-6.148 -6.077)" fill="#CC7722" fill-rule="evenodd"/>
+</svg>

@@ -1,0 +1,105 @@
+.CheckboxPendingRequest_input {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 2px solid #D2CECE;
+  position: relative;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0;
+  outline: none;
+  margin-right: 10px;
+}
+
+.CheckboxAvailability_input {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 2px solid #D2CECE;
+  position: relative;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0;
+  outline: none;
+  margin-right: 2rem;
+}
+
+.CheckboxAvailability_input[value="1"] {
+  background: url('../../../../public/assets/img/availability/checked.svg');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 2px solid #820F4C;
+}
+
+.CheckboxPendingRequest_input[value="1"] {
+  background: url('../../../../public/assets/img/check/checked.svg');
+  background-size: 10px 10px;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 10px;
+}
+
+.CheckboxPendingRequest_input[value="-1"] {
+  background: url('../../../../public/assets/img/check/x.svg');
+  background-color: lightgray;
+  background-size: 10px 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: not-allowed;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.CheckboxPendingRequest_input[value="2"] {
+  background: url('../../../../public/assets/img/check/pause_checkbox.svg');
+  border: unset;
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: not-allowed;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.CheckboxPendingRequest_input[value="3"] {
+  background: url('../../../../public/assets/img/check/checked_checkbox.svg');
+  border: unset;
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: not-allowed;
+  width: 16px !important;
+  height: 16px !important;
+  margin-right: 10px;
+  border-radius: 50%;
+}
+
+.CheckboxPendingRequest_input.REGALBLAZE[value="3"] {
+  background: url('../../../../public/assets/img/check/checked_checkbox_yellow.svg');
+}
+
+.Checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 2px solid #D2CECE;
+  position: relative;
+  color: transparent;
+  cursor: pointer;
+  font-size: 0;
+  margin: 0px;
+}
+
+.Checkbox[type=checkbox]:checked {
+  content: url('../../../../public/assets/img/check/checked_bg.svg');
+  /* background-size: 10px 10px;
+    background-repeat: no-repeat;
+    background-position: center; */
+}

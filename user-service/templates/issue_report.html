@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"
+    style="margin: 0;padding: 0;background-color: #f5f5f5;font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Report</title>
+
+
+</head>
+
+<body
+    style="margin: 0 auto; max-width: 768px;padding: 0;background-color: #f5f5f5;font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;">
+    <div class="container" style="width: 100%;height: 100vh;margin: 0 auto;padding: 0;background-color: #fff;">
+        <div
+            style="width: 100%;height: 20vh;background: #000000 0% 0% no-repeat padding-box;margin: 0 auto;padding: 0;display: flex; background-image: url({{base_client_url}}/public/email_image/icon-left.png); background-position: left top; background-size: 50% 100%">
+
+            <table class="logo" style="width: 75%; height: 100%; text-align: right; border-spacing: 0px;">
+                <tbody style="height: 100%;">
+                    <tr">
+                        <th>
+                            <img src="{{base_client_url}}/assets/img/logo.png" alt="Logo"
+                                style="height: 100px;">
+                        </th>
+                        </tr>
+                </tbody>
+            </table>
+
+            <table class="icon-right" style="height: 100%; border-spacing: 0px;">
+                <tr>
+                    <td style="vertical-align: bottom;padding-top: 9.9vh;">
+                        <img src="{{base_client_url}}/assets/img/icon_right.png" alt="Icon right"
+                            style="width: auto;height: 10vh;">
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+        <main style="padding: 3vh 3vw;">
+            <div class="header-main" style="text-align: center;margin-top: 4vh;">
+                <div class="header-icon">
+                    <img src="{{base_client_url}}/assets/img/issue.png" alt="Issue">
+                </div>
+                <h1 style="margin: 1vh;font-family: &quot;Playfair Display&quot;, serif;font-size: 1.9rem;">Issue Report
+                </h1>
+            </div>
+            <div class="content-main" style="padding: 1vh 0;border-bottom: 1px dashed #A3A1A1;">
+                <p>Issue reported by,</p>
+                <p><strong>Username -</strong> {{username}}</p>
+            </div>
+            <div class="content-mail">
+                <div class="auth-form">
+                    <div class="input-area"
+                        style="display: flex;flex-direction: row;width: 100%;position: relative;margin: 2.5vh 0;align-items: center;justify-content: space-between;">
+                        <strong style="min-width: 9vw;">Component</strong>
+                        <div class="input-group"
+                            style="width: 50vw;overflow: hidden;display: flex;justify-content: end;">
+                            <input type="text" value="{{issue_component}}" disabled
+                                style="height: 3vh;background: #F0F0F0 0% 0% no-repeat padding-box;border: none;border-radius: 4px 0px 0px 4px;padding: .5vh 1vw;color: #000000;font-size: 1rem;width: 100%;">
+                        </div>
+                    </div>
+                    <div class="input-area"
+                        style="display: flex;flex-direction: row;width: 100%;position: relative;margin: 2.5vh 0;align-items: center;justify-content: space-between;">
+                        <strong style="min-width: 9vw;">Issue Type</strong>
+                        <div class="input-group"
+                            style="width: 50vw;overflow: hidden;display: flex;justify-content: end;">
+                            <input type="text" value="{{issue_type}}" disabled
+                                style="height: 3vh;background: #F0F0F0 0% 0% no-repeat padding-box;border: none;border-radius: 4px 0px 0px 4px;padding: .5vh 1vw;color: #000000;font-size: 1rem;width: 100%;">
+                        </div>
+                    </div>
+                    <div class="input-area"
+                        style="display: flex;flex-direction: row;width: 100%;position: relative;margin: 2.5vh 0;align-items: center;justify-content: space-between;">
+                        <strong style="min-width: 9vw;">Issue Description</strong>
+                        <div class="input-group"
+                            style="width: 50vw;overflow: hidden;display: flex;justify-content: end;">
+                            <textarea cols="30" rows="10" disabled
+                                style="height: 5vh;background: #F0F0F0 0% 0% no-repeat padding-box;border: none;border-radius: 4px 0px 0px 4px;padding: .5vh 1vw;color: #000000;font-size: 1rem;width: 100%;">{{issue_description}}</textarea>
+                        </div>
+                    </div>
+                    <div class="input-area"
+                        style="display: flex;flex-direction: row;width: 100%;position: relative;margin: 2.5vh 0;align-items: center;justify-content: space-between;">
+                        <strong style="min-width: 9vw;">Attachments</strong>
+                        <div class="attachments">
+                            {% for item in issue_attachment %}
+                            <a href="{{item}}" target="_blank"
+                                style="text-decoration: none;color: #000000;font-size: 1rem;height: 3vh;background: #F0F0F0 0% 0% no-repeat padding-box;padding: .5vh 1vw;border-radius: 4px;">Img
+                                {{forloop.counter}}</a>
+                            {%endfor%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer" style="border-top: 1px dashed #A3A1A1;margin: 3vh 0;padding: 3vh 0;">
+                <p style="font-size: 1.2rem;margin: 0;">Thanks!</p>
+                <p style="font-size: 1.2rem;margin: 0;">VectorFLOW Team</p>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

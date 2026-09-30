@@ -1,0 +1,37 @@
+.checkbox_ist {
+  display: none;
+}
+
+.checkbox_ist + label {
+  display: inline-flex;
+  position: relative;
+  border-radius: 2px;
+  border: 0.5px solid #929292;
+  padding: 17px 40px;
+  width: 138px;
+  max-width: 138px;
+  background: #ffffff;
+  color: #B4B4B4;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+}
+
+.checkbox_ist + label:hover {
+  background: #e4e4e4;
+}
+
+.checkbox_ist + label::after {
+  content: url('./../../../../public/assets/img/status/status.svg');
+  position: absolute;
+  right: 6px;
+  top: 12px;
+}
+
+
+
+.label-name {
+  position: absolute;
+  font-size: 1.4rem;
+
+}

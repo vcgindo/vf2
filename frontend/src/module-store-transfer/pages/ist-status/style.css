@@ -1,0 +1,201 @@
+.rdt_Table {
+  background-color: #F9F9F9 !important;
+}
+
+.rdt_TableHead {
+  margin-bottom: 20px;
+}
+
+.rdt_TableRow{
+  border-bottom: none !important;
+}
+
+.rdt_TableHeadRow {
+  border-bottom: none !important;
+}
+
+.rdt_TableBody {
+  padding-top: 4px;
+  background: white;
+}
+
+.rdt_TableCell{
+  border-right: 1px solid #b4b4b4;
+}
+
+.rdt_TableCell:last-child{
+  border-right: unset;
+}
+
+.rdt_TableRow:nth-child(even) {
+  background-color: #fff;
+}
+
+.rdt_TableRow:nth-child(odd) {
+  background-color: #F4F4F4;
+}
+
+/* .pvtTotalLabel,.pvtGrandTotal,.pvtTotal,.pvtRenderers,.pvtTriangle,.pvtDropdown,.pvtRowOrder,.pvtColOrder {
+  display: none;
+} */
+
+/* .pvtUi {
+  margin-top: 80px;
+}
+
+.pvtRenderers,.pvtVals {
+  position: absolute;
+  top: 5px;
+  background: none;
+  border: none;
+}
+
+.pvtRenderers {
+  top: 9px;
+}
+
+.pvtVals {
+  left: 25rem;
+}
+
+.pvtOutput {
+  width: 100%;
+  overflow: auto;
+}
+
+.pvtCols {
+  display: none!important;
+}
+
+.pvtUi>tbody>tr:nth-child(3) {
+  display: grid;
+}
+
+.pvtTable,.pvtUi {
+  width: 100%;
+}
+
+.pvtTable tbody tr:nth-child(odd) th {
+  background-color: #F4F4F4;
+}
+
+.pvtTable tbody tr:nth-child(even) th {
+  background-color: #FFFFFF;
+}
+
+.pvtTable tbody tr th {
+  align-items: center;
+  box-sizing: border-box;
+  line-height: normal;
+  word-break: break-word;
+  font-size: 1.3rem!important;
+  font-weight: 500;
+  color: #000;
+  height: 45px;
+}
+
+.pvtRows {
+  display: block;
+  height: auto;
+}
+
+.pvtRows:before {
+  content: "IST Status table";
+  background-color: #000000;
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 0;
+  border-radius: 5px;
+}
+
+.pvtAttr {
+  display: inline-flex;
+  position: relative;
+  border-radius: 2px!important;
+  border: 0.5px solid #929292!important;
+  padding: 2px 15px!important;
+  background: #ffffff!important;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.4rem;
+}
+
+.pvtAttr:hover {
+  background: #e4e4e4;
+}
+
+.pvtAttr::after {
+  content: url('./../../../../public/assets/img/status/status.svg');
+  position: absolute;
+  right: 6px;
+  top: 2px;
+}
+
+.pvtAxisContainer {
+  min-height: 63px!important;
+}
+
+table.pvtTable thead tr th, table.pvtTable tbody tr th,.pvtAxisContainer {
+  background-color: #FFF!important;
+}
+
+.pvtAxisContainer {
+  padding: 0;
+  border: none;
+}
+
+.pvtAxisContainer li {
+  display: inline-block;
+}
+
+table.pvtTable {
+  margin: 10px 0!important;
+}
+
+.pvtUi>tbody>tr:has(> td.pvtRenderers) {
+  display: block;
+}
+
+.pvtUi>tbody>tr:has(> td.pvtUnused)>td {
+  display: block;
+}
+
+.pvtUnused:before {
+  content: "Fields";
+  background-color: #B4B4B4;
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 0;
+  border-radius: 5px;
+}
+
+.edit-state .pvtUnused:before {
+  background-color: #000000!important;
+}
+
+.pvtUi>tbody>tr:has(> td.pvtUnused) {
+  display: block;
+}
+
+.pvtUi>tbody>tr:nth-child(3) {
+  margin-top: 20px;
+} */
+
+.pvtAxisContainer, .pvtVals, table.pvtTable thead tr th, table.pvtTable tbody tr th {
+  background: #FFF!important;
+  background-color: #FFF!important;
+}
+
+.pvtAxisContainer li span.pvtAttr {
+  background: #E7E9EA!important;
+  border: none!important;
+  padding: 5px 7px;
+  color: #000!important;
+}

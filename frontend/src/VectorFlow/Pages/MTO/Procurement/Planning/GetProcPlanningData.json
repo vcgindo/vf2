@@ -1,0 +1,1570 @@
+{
+    "data": [
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 10,
+            "sit": 16,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1232",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 78,
+                    "pend": 10,
+                    "lid": "Lid2",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 16.66,
+                    "R": 16.66,
+                    "Y": 16.66,
+                    "G": 16.66,
+                    "W": 16.66,
+                    "Bl": 16.66
+                }
+            ],
+            "rm": "AREB5092383",
+            "rmd": "SB2-NOTCH-KOTH-ABC-15",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 20,
+            "sit": 10,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1232",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 34,
+                    "pend": 8,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1234",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 34,
+                    "pend": 17,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1230",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 34,
+                    "pend": 10,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1233",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 34,
+                    "pend": 9,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1278",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "White",
+                    "bpp": 34,
+                    "pend": 9,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1268",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Blue",
+                    "bpp": 34,
+                    "pend": 9,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "AREB5092385",
+            "rmd": "SB2-NOTCH-KOTH-ABC-12",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 20,
+            "sit": 10,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1232",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1233",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 50,
+                    "Y": 25,
+                    "G": 25
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 50,
+            "siqc": 30,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Tarun Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1239",
+                    "oq": 66,
+                    "cn": "Tarang Amit",
+                    "cc": 546588,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 56,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 80,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 50,
+                    "R": 25,
+                    "Y": 25
+                }
+            ],
+            "rm": "AREB5094438",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 50,
+            "siqc": 30,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 26,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 56,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 80,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1255",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 80,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 25,
+                    "R": 25,
+                    "Y": 25,
+                    "G": 25
+                }
+            ],
+            "rm": "AEB50923810",
+            "rmd": "SB3-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 20,
+            "sit": 40,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1238",
+                    "oq": 54,
+                    "cn": "Jeevan Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 12,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 33,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1257",
+                    "oq": 33,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 50,
+                    "R": 50
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 50,
+            "sit": 10,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1241",
+                    "oq": 26,
+                    "cn": "Pareek Shah",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Nilesh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "R": 50,
+                    "Y": 50
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 70,
+            "siqc": 20,
+            "sit": 10,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BSN1231",
+                    "oq": 76,
+                    "cn": "Modi Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 38,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMA1256",
+                    "oq": 23,
+                    "cn": "Shiv Pandey",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "G": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 30,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 66.67
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 60,
+            "siqc": 20,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARNB5092381",
+            "rmd": "SB7-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 40,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 86,
+                    "cn": "Mukesh Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 92,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 49,
+            "siqc": 21,
+            "sit": 30,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "G": 33.33
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 5,
+            "siqc": 80,
+            "sit": 15,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "G": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 50,
+            "siqc": 5,
+            "sit": 25,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "Y": 66.67
+                }
+            ],
+            "rm": "AREB5092381",
+            "rmd": "SB2-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 90,
+            "siqc": 5,
+            "sit": 5,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 66,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "G": 33.33
+                }
+            ],
+            "rm": "ARSB6092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 10,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 20,
+            "siqc": 20,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 25,
+                    "R": 25,
+                    "Y": 25,
+                    "G": 25
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 10,
+            "siqc": 30,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1257",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Green",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 30,
+            "sit": 25,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 20,
+            "siqc": 10,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 40,
+            "sit": 10,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 25,
+                    "R": 25,
+                    "Y": 50
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 20,
+            "siqc": 30,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1257",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 33.33,
+                    "Y": 33.33
+                }
+            ],
+            "rm": "ARSB5092581",
+            "rmd": "SB6-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 20,
+            "sit": 20,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Yellow",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        },
+        {
+            "ot": "MTO",
+            "cp": [
+                {
+                    "B": 33.33,
+                    "R": 66.67
+                }
+            ],
+            "rm": "ARNB5092581",
+            "rmd": "SB12-NOTCH-KOTH-ABC-11",
+            "nooi": 100,
+            "req": 100,
+            "uom": "Kg",
+            "soh": 40,
+            "siqc": 40,
+            "sit": 5,
+            "ppo": 30,
+            "eas": 0,
+            "tsfs": 0,
+            "children": [
+                {
+                    "on": "BMN1231",
+                    "oq": 76,
+                    "cn": "Pareek Amit",
+                    "cc": 546788,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Black",
+                    "bpp": 78,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1212",
+                    "oq": 22,
+                    "cn": "Sourabh Shah",
+                    "cc": 5466721,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 87,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                },
+                {
+                    "on": "BMN1256",
+                    "oq": 43,
+                    "cn": "Shiv Mishra",
+                    "cc": 5466676,
+                    "odd": "23-jul-13",
+                    "ord": "23-jul-13",
+                    "clr": "Red",
+                    "bpp": 65,
+                    "pend": 12,
+                    "lid": "Lid1",
+                    "aq": "allocation Qty"
+                }
+            ]
+        }
+    ]
+}

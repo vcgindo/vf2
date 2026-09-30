@@ -1,0 +1,660 @@
+{
+  "loginPage": {
+    "welcome": "Welcome to a seamless, end to end supply chain management system",
+    "title": "Login",
+    "validate": {
+      "email": "*Invalid Email",
+      "password": "Password must exceed 8 characters",
+      "passwordMaxLength": "Password must be less than 15 characters",
+      "emailMaxLength": "Email must be less than 255 characters",
+      "includeSpace": "Password must not contain spaces."
+    },
+    "placeholder": {
+      "email": "Enter Username / Email ID",
+      "password": "Enter Password"
+    },
+    "keepMeSignedIn": "Keep Me Signed In",
+    "forgotPassword": "Forgot Password ?",
+    "submitBtn": "Submit",
+    "content": {
+      "mlTitle": "Perfect utilisation of expensive retail shelf space",
+      "mlContent": "A powerful algorithm aids retail planners by suggesting the best merchandising grid for each specific store at different product attribute levels. The fulfilment engine ensures a clean display and maximises throughput per shelf space.",
+      "businessTitle": "Maximize full price sell-through with controlled inventories",
+      "businessContent": "Short PLC dynamic depth management aided with ROSN ensures optimum depth per style. An Inter-Store Transfer engine allocates cut-sizes of fast movers and store specific slow movers to specific best-selling stores.",
+      "optimizeTitle": "Optimise markdowns to maintain ROCE",
+      "optimizeContent": "Gradual calibration of discounts on slow movers based on Inventory position, ROSN and proximity to end of life aids retail planners to extract better margins before EOSS while reducing chances of store-returns.",
+      "dataTitle": "Use data to drive decisions",
+      "dataContent": "Powerful control tower with dashboards ensures you get a hawk eye view of the whole supply chain."
+    },
+    "notify": {
+      "success": "Login Success",
+      "completeReCaptcha": "Please complete reCAPTCHA to continue"
+    }
+  },
+  "forgotPasswordPage": {
+    "title": "Forgot Password",
+    "validate": {
+      "email": "*Invalid Email"
+    },
+    "placeholder": {
+      "email": "Enter Username / Email ID"
+    },
+    "submitBtn": "Submit",
+    "goBackBtn": "Go back to login",
+    "notify": {
+      "success": "Please check your email"
+    }
+  },
+  "changePasswordPage": {
+    "title": "Password Reset",
+    "placeholder": {
+      "code": "Enter Code",
+      "password": "Enter New Password",
+      "confirmPassword": "Confirm New password"
+    },
+    "submitBtn": "Submit",
+    "loginBtn": "Login",
+    "notify": {
+      "success": "Change password success"
+    },
+    "validate": {
+      "password": "Password requires both uppercase and lowercase characters, numbers, and special characters",
+      "confirmPassword": "Passwords do not match. Please try again"
+    }
+  },
+  "navbar": {
+    "listMenuParent": {
+      "userManagement": {
+        "title": "User Management",
+        "administration": "Administration",
+        "analytics_usage": "Analytics & Usage",
+        "issueLogs": "Issue Logs"
+      },
+      "masterDataManagement": {
+        "title": "Master Data Management",
+        "normManagementSystem": "Norm Management System",
+        "forceNormChange": "Force Norm Change",
+        "PhaseIn_PhaseOut": "Phase-In & Phase Out",
+        "Seasonality": "Seasonality",
+        "controlPanel": "Control Panel",
+        "savedDrafts": "Saved Drafts",
+        "taskPendingForReview": "Task Pending for Review",
+        "taskStatus": "Task Status",
+        "modificationHistory": "Data Modification History"
+      },
+      "dynamicGridControl_AssortmentPlanning": {
+        "title": "Dynamic Grid Control & Assortment Planning",
+        "gridSizing": "Grid Sizing",
+        "productGridMapping": "Product Grid Mapping",
+        "currentStoreWiseAssortment": "Current Store Wise Assortment",
+        "newStoreAssortment": "New Store Assortment"
+      },
+      "replenishment_replacement": {
+        "title": "Replenishment & Replacement",
+        "bufferPenetrationReport": "Buffer Penetration Report",
+        "bufferTrendReport": "Buffer Trend Report",
+        "bufferTrendGraph": "Buffer Trend Graph",
+        "rationedRequirementReport": "Rationed Requirement Report",
+        "supplierDispatchReport": "Supplier Dispatch Report",
+        "buyerOrderReport": "Buyer Order Report",
+        "vendorDispatchReport": "Vendor Dispatch Report",
+        "availabilityComparison": "Availability Comparison"
+      },
+      "groupLifeCycleManagement": {
+        "title": "Group Life Cycle Management",
+        "item1": "Item1",
+        "item2": "Item2",
+        "item3": "Item3",
+        "item4": "Item4"
+      },
+      "innerStoreTransfers": {
+        "title": "Inter Store Transfer",
+        "manualUpload": "Manual Upload",
+        "pendingISTRequests": "Pending IST Requests",
+        "ISTStatus": "IST Status",
+        "ISTForcedClosure": "IST Forced Closure",
+        "storeStatus": "Store Status",
+        "availabilityComparison": "Availability Comparison"
+      },
+      "velocityAnalysis": {
+        "title": "Velocity Analysis",
+        "earlyIdentificationOfLaggards": "Early Identification of Laggards",
+        "itr": "ITR"
+      },
+      "miscellaneousReports": {
+        "title": "Download Reports",
+        "bufferPenetrationReport":"Buffer Penetration Report",
+        "fashionRationedRequirement":"Fashion RationedRequirement",
+        "rosn":"ROSN",
+        "store_classification":"Store Classification",
+        "ist":"IST",
+        "dailyDataUnavailibilityReport": "Daily Data Unavailibility Report",
+        "invalidDataReport": "Invalid Data Report",
+        "uiUploadLogs_AddNewSKULoc": "UI Upload Logs - Add New SKU-Loc",
+        "uiUploadLogs_ModifySKULoc": "UI Upload Logs - Modify SKU-Loc",
+        "uiUploadLogs_RemoveSKULoc": "UI Upload Logs - Remove SKU-Loc",
+        "uiUploadLogs_SKUMaster": "UI Upload Logs - SKU Master"
+      },
+      "prodAndPlanningScheduling": {
+        "title": "Production Planning & Scheduling",
+        "enquiryResponse": "Enquiry Response",
+        "dueDateQuotation": "Due Date Quotation",
+        "orderRescheduling": "Order Rescheduling",
+        "fullKitAssignment": "Full Kit Assignment",
+        "dynamicReleaseManagement": "Dynamic Release Management",
+        "deptWiseBMReport": "Dept-Wise BM Report",
+        "overallBMReport": "Overall BM Report",
+        "insightAndTrends": "Insight and Trends"
+      },
+      "poogi": {
+        "title": "POOGI",
+        "reasonForDelayedOrders": "Reason For Delayed Orders",
+        "insightAndTrends": "Insight and Trends"
+      },
+      "manufacturingHub": {
+        "title": "Manufacturing Intelligence Hub",
+        "deliveryPerformance": "Delivery Performance",
+        "bmtrends":"BM Trends",
+        "otifanalysis":"OTIF Analysis",
+        "otandifanalysis":"OT & IF Analysis",
+        "leadtime":"Lead Time",
+        "congestionanalysis":"Congestion Analysis",
+        "elapsedtime":"Elapsed Time",
+        "orderatrisk":"Orders At Risk",
+        "orderbalance":"Order Balance",
+        "forwardexecution":"Forward Execution",
+        "folsummary":"FOL Summary",
+        "STPL&FullKits":"STPL & Full Kits",
+        "daywisecoverage":"Day Wise Coverage",
+        "rmpmorderwisecoverage":"RM / PM Order Wise Coverage",
+        "expeditingrm":"Expediting - RM & Suppliers",
+        "rmpmbuffertrend":"RM / PM Buffer Trend",
+        "improvementaread":"Improvement Areas",
+        "topfailurereason":"Top Failure Reasons",
+        "trenfailurereason":"Trend Of Failure Reasons",
+        "resourceutilizationwip":"Resource Utilization & WIP Profile"
+      }
+    },
+    "particulars": {
+      "title": "Particulars",
+      "count": "Count",
+      "ISTYieldCumulative": "IST Yield Cumulative",
+      "totalISTLineItems": "Total IST Line Items",
+      "totalISTLineItemsSatisfyingMOQ": "Total IST Line Items Satisfying MOQ",
+      "ISTSuggesionsIgnoredRejected": "IST Suggesions Ignored/Rejected",
+      "ISTSuggestionsAccepted": "IST Suggestions Accepted",
+      "sizeSetCompletion": "Size Set Completion",
+      "ISTYieldToday": "IST Yield Today",
+      "tableHeader": {
+        "title": "Particulars",
+        "counts": "Counts",
+        "quantity": "Quantity",
+        "value": "Value"
+      },
+      "tableContent": {
+        "totalISTLineItems": "Total IST Line Items",
+        "totalISTLineItemsSatisfyingMOQ": "Total IST Line Items Satisfying MOQ",
+        "ISTSuggesionsIgnoredRejected": "IST Suggesions Ign/Rejtd",
+        "ISTSuggestionsAccepted": "IST Suggestions Accepted",
+        "sizeSetCompletion": "Size Set Completion",
+        "ISTYieldToday": "IST Yield Today",
+        "ISTYYieldCumulative": "IST Yield Cumulative"
+      }
+    },
+    "logoutBtn": "Logout"
+  },
+  "header": {
+    "myProfile": "My Profile",
+    "userAdmintrastor": "User Admintrastor",
+    "userAdministration": "User Administration",
+    "administration": "Administration",
+    "manualUpload": "Manual Upload",
+    "pendingISTRequests": "Pending IST Requests",
+    "ISTForcedClosure": "IST Forced Closure",
+    "storeStatus": "Store Status",
+    "availabilityComparison": "Availability Comparison",
+    "welcomeBack": "Welcome Back!",
+    "exportAllBtn": "EXPORT ALL",
+    "editBtn": "Edit",
+    "deleteBtn": "Delete",
+    "saveBtn": "Save",
+    "savingBtn": "Saving...",
+    "deletingBtn": "Deleting...",
+    "ISTStatus": "IST Status"
+  },
+  "filter": {
+    "product": {
+      "title": "Product Filter",
+      "placeholder": {
+        "brand": "Brand",
+        "subBrand": "Sub Brand",
+        "category": "Category",
+        "style": "Style",
+        "fit": "Fit",
+        "launchPeriod": "Launch Period"
+      }
+    },
+    "location": {
+      "title": "Location Filter",
+      "placeholder": {
+        "general": {
+          "istLocGrp": "IST Loc Grp",
+          "locGroup": "Loc Grp",
+          "dlRegion": "DL Region",
+          "dl": "DL",
+          "dlGrp": "DL Grp",
+          "dlChannel": "DL Channel",
+          "transferPref": "Transfer Pref",
+          "rlRegion": "RL Region",
+          "rl": "RL",
+          "rlChannel": "RL Channel"
+        },
+        "storeStatus": {
+          "brand": "Brand",
+          "locName": "Loc Name",
+          "locCode": "Loc Code",
+          "locGrp": "Loc Grp",
+          "channel": "Channel"
+        },
+        "availabilityComparison": {
+          "locGrp": "Loc Grp",
+          "region": "Region",
+          "locName": "Loc Name",
+          "locPerfGrp": "Loc Perf Grp"
+        }
+      }
+    },
+    "select": {
+      "title": "Select",
+      "more": "More"
+    }
+  },
+  "pendingISTRequests": {
+    "action": {
+      "title": "Select All For Action",
+      "accept": "Accept",
+      "reject": "Reject",
+      "pause": "Pause"
+    },
+    "quickFilter": {
+      "title": "Quick Filters",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "paused": "Paused",
+      "auto": "Auto",
+      "manual": "Manual"
+    },
+    "button": {
+      "moqMet": "MOQ Met",
+      "moqNotMet": "MOQ Not Met",
+      "accept": "ACCEPT",
+      "reject": "REJECT",
+      "pause": "PAUSE",
+      "filter": "Filter",
+      "resetFilter": "Reset Filter",
+      "cancel": "Cancel"
+    },
+    "selectCheckAll": {
+      "textInPage": "All {{in_page}} records on this page are selected.",
+      "textAllPage": "Select all  {{total}} records across all the pages",
+      "textAllPageSelected": "{{total}} records across all pages are selected.",
+      "clearSelection": "Clear selection"
+    },
+    "table": {
+      "style": "Style",
+      "receiverROSN": "Receiver ROSN",
+      "PvPA": "PvPA",
+      "receiverLocation": "Receiver Location",
+      "city": "City",
+      "locationCode": "Location Code",
+      "channel": "Channel",
+      "itemCode": "Item Code",
+      "quantity": "Quantity",
+      "donorROSN": "Donor ROSN",
+      "donorLocation": "Donor Location",
+      "locationType": "Location Type",
+      "vfISTID": "VF IST ID"
+    },
+    "modal": {
+      "title": "Do You Want To Re-evaluate?",
+      "pause": {
+        "content": "As you have decided to hold the IST’s for some sizes the style will still remain broken. Select cancel to re-evaluate else select Pause.",
+        "button": "PAUSE"
+      },
+      "reject": {
+        "content": "As you have decided to reject the IST’s for some sizes the style will still remain broken. Select cancel to re-evaluate else click reject.",
+        "button": "REJECT"
+      },
+      "accept": {
+        "content": "As you have deselected some sizes the style will still remain broken and deselected sizes will be paused for 7 days. Select cancel to re-evaluate.",
+        "button": "ACCEPT IT!"
+      }
+    }
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "manualUpload": {
+    "title": "Upload File",
+    "csvError": "Only csv files are accepted",
+    "updateSuccess": "Update file success !",
+    "updateError": "Some records have error",
+    "dragDrop": "Drag & Drop Your File Here",
+    "template": "Download Manual IST Template",
+    "deleteBtn": "Delete",
+    "uploadTitle": "Click here to upload new file",
+    "uploadBtn": "Upload",
+    "uploadingBtn": "Uploading...",
+    "uploadInProcess": "Uploading In Progress",
+    "modalTitle": "MANUAL_UPLOAD",
+    "uploadedSuccessfully": "Uploaded Successfully"
+  },
+  "ISTStatus": {
+    "notify": {
+      "exportSuccess": "Export success",
+      "saveSuccess": "Save success",
+      "deleteSuccess": "Delete success",
+      "createViewSuccess": "Create view success",
+      "noRecords": "No records were found, please approve the IST request to see the data."
+    },
+    "viewName": "Create Your Own Report",
+    "viewTitle": "Views",
+    "addViews": "Add Views"
+  },
+  "ISTForcedClosure": {
+    "button": {
+      "filter": "Filter",
+      "resetFilter": "Reset Filter",
+      "searchByISTID": "Search By IST ID",
+      "searchByISTDate": "Search By IST Date",
+      "auto": "Auto",
+      "manual": "Manual",
+      "pushedToSAP": "Pushed To SAP",
+      "readyToShip": "Ready To Ship",
+      "inTransit": "In-Transit",
+      "exportAll": "EXPORT ALL",
+      "submitBtn": "Submit"
+    },
+    "generationType": "Generation Type",
+    "activeIST": "Active IST's",
+    "table": {
+      "donorLocation": "Donor Location",
+      "locationCode": "Location Code",
+      "city": "City",
+      "locationType": "Location Type",
+      "channel": "Channel",
+      "itemCode": "Item Code",
+      "skuCode": "SKU Code",
+      "size": "Size",
+      "quantity": "Quantity",
+      "status": "Status",
+      "type": "B | SB | Cat",
+      "receiverLocation": "Receiver Location",
+      "vfISTID": "VF IST ID"
+    },
+    "notify": {
+      "enterTheReason": "Please enter the reason",
+      "noRecordsSelected": "No records selected"
+    },
+    "modal": {
+      "detail": {
+        "title": "Contact Details",
+        "name": "Name",
+        "email": "Email ID",
+        "phone": "Phone No"
+      },
+      "terminate": {
+        "title": "Submited By",
+        "header": "Select Reason for Termination",
+        "stockIsNotAvailable": "Stock is not available",
+        "stockIsNotInASaleableCondition": "Stock is not in a saleable condition",
+        "stockIsReservedForOnlineOrder": "Stock is reserved for online order",
+        "others": "Others"
+      }
+    },
+    "contactDetails": "CONTACT DETAILS",
+    "age": "Age",
+    "days": "Days",
+    "terminate": "TERMINATE",
+    "tableParticulars": {
+      "particulars": "Particulars",
+      ">7days": "> 7days",
+      "total": "Total",
+      "totalOpenIsts": "Total Open ISTs",
+      "terminated": "Terminated"
+    }
+  },
+  "storeStatus": {
+    "button": {
+      "filter": "Filter",
+      "resetFilter": "Reset Filter",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "quickFilter": "Quick Filters",
+    "table": {
+      "brand": "Brand",
+      "locationName": "Location Name",
+      "locationCode": "Location Code",
+      "city": "City",
+      "cluster": "Cluster",
+      "status": "Status"
+    },
+    "tableParticulars": {
+      "particulars": "Particulars",
+      "count": "Count",
+      "inactiveStores": "Inactive Stores",
+      "activeStores": "Active Stores",
+      "total": "Total"
+    }
+  },
+  "availabilityComparison": {
+    "button": {
+      "filter": "Filter",
+      "resetFilter": "Reset Filter",
+      "exportSelected": "EXPORT SELECTED",
+      "pcs": "Pcs",
+      "style": "Style",
+      "cancel": "Cancel",
+      "downloadToExcel": "Download To Excel"
+    },
+    "notify": {
+      "exportSuccess": "Export success",
+      "exportError": "Export error",
+      "noRecordsSelected": "You must choose at least one field!"
+    },
+    "tab": {
+      "storeLevel": "Store Level",
+      "subBrandLevel": "Sub Brand Level",
+      "categoryLevel": "Category Level"
+    },
+    "modal": {
+      "title": "Select to download"
+    },
+    "color": {
+      "white": "White",
+      "green": "Green",
+      "red": "Red"
+    },
+    "currentAvailability": "Current Availability",
+    "projectedAvailability": "Projected Availability",
+    "ISTReplenishment": "IST Replenishment",
+    "tableParticulars": {
+      "particulars": "Particulars",
+      "surplus": "Surplus",
+      "shortage": "Shortage",
+      "S-B": "S-B",
+      "S-B-S": "S - B - S",
+      "S-B-S-C": "S - B - S - C",
+      "total": "Total",
+      "inPcs": "In Pcs",
+      "inStyle": "In Style"
+    }
+  },
+  "profile": {
+    "tab": {
+      "overview": "Overview",
+      "permissions": "Permissions",
+      "manageUsers": "Manage Users"
+    },
+    "tabContent": {
+      "overview": {
+        "notify": {
+          "changePswSuccess": "Change password success"
+        },
+        "title": "Profile Details",
+        "fullName": "Full Name",
+        "role": "Role",
+        "signInDetails": "Sign In Details",
+        "email": "Email Address",
+        "password": "Password",
+        "passwordPlaceholder": "***************************",
+        "button": {
+          "notEditable": "Not Editable",
+          "resetPsw": "Reset Password",
+          "updatePsw": "Update Password",
+          "cancel": "Cancel"
+        },
+        "currentPsw": "Current Password",
+        "newPsw": "New Password",
+        "confirmPsw": "Confirm New Password"
+      },
+      "permissions": {
+        "title": "Role & Permissions",
+        "roleAndPermissions": {
+          "pendingIST": "Pending IST",
+          "ISTForcedClosure": "IST Forced Closure",
+          "storeStatus": "Store Status",
+          "availabilityComparison": "Availability Comparison",
+          "ISTStatus": "IST Status",
+          "manualUpload": "IST Manual Upload",
+          "interStoreTransfer": "Inter Store Transfer"
+        },
+        "L1": "L1",
+        "L2": "L2",
+        "L3": "L3",
+        "productPermission": {
+          "title": "Product Permission",
+          "brand": "Business",
+          "subBrand": "Category",
+          "category": "Family"
+        },
+        "locationPermission": {
+          "title": "Location Permission",
+          "locationRegion": "Zone",
+          "locationType": "Location Group",
+          "locationCluster": "WH Type"
+        }
+      },
+      "manageUsers": {
+        "title": "User Management",
+        "button": {
+          "addNewUser": "Add New User",
+          "nextBtn": "Next",
+          "updateBtn": "Update",
+          "bulkUpload": "Bulk Upload",
+          "active": "Active",
+          "inactive": "Inactive",
+          "cancel": "Cancel",
+          "addUser": "Add User",
+          "delete": "Delete",
+          "goBack": "Go Back"
+        },
+        "modal": {
+          "addNewTitle": "Add New User",
+          "editUserTitle": "Edit User",
+          "username": "Username",
+          "emailID": "Email ID",
+          "password": "Password",
+          "roles": "Roles",
+          "advancedPermission": "Advanced Permission",
+          "titleDelete": "Do you want to delete this user?",
+          "contentDelete": "This user will not be able to log back into the system after being deleted"
+        },
+        "table": {
+          "userID": "User ID",
+          "emailID": "Email ID",
+          "roles": "Roles",
+          "actions": "Actions",
+          "active": "Active"
+        },
+        "roles": {
+          "interStoreTransfers": "Inter Store Transfers",
+          "vectorFlow": "VectorFlow",
+          "distribution": "Distribution",
+          "ISTAdmin": "IST Admin",
+          "ISTRequestor": "IST Requestor",
+          "ISTGovernor": "IST Governor",
+          "ISTLiaison": "IST Liaison"
+        },
+        "advancedPermission": {
+          "title": "Advanced Permissions",
+          "productPermission": {
+            "title": "Product Permissions"
+          },
+          "locationPermission": {
+            "title": "Location Permissions",
+            "locationRegion": "Location Region",
+            "locationType": "Location Type",
+            "locationCluster": "Location Cluster"
+          }
+        },
+        "notifyError": {
+          "pleaseSelectRole": "Please select the role for the user",
+          "PleaseSelectPermission": "Please select permission"
+        },
+        "validate": {
+          "userNameMaxLength": "* Upto 8 characters allowed. [Any alpha-numeric, spcl chr: “_” , “.” only]",
+          "validateUserName": "* Upto 8 characters allowed. [Any alpha-numeric, spcl chr: “_” , “.” only]",
+          "emailMaxLength": "Email must be less than 200 characters",
+          "formatPassword": "Password requires both uppercase and lowercase characters, numbers, and special characters"
+        }
+      }
+    }
+  },
+  "theme": {
+    "chooseThemeColor": "Choose Theme Color",
+    "applyTheme": "Apply Theme"
+  },
+  "breadCrumb": {
+    "ist": "IST",
+    "um": "UM"
+  },
+  "reportAnIssue": {
+    "title": "Report an Issue",
+    "placeholderSelectAnOption": "Select an option",
+    "chooseComponent": "Choose Component *",
+    "selectIssueType": "Select Issue Type *",
+    "issueDescription": "Issue Description",
+    "placeholderDescription": "Enter a description",
+    "attachments": "Attachments",
+    "placeholderAttachments": "Drag & Drop or Browse",
+    "goBack": "Go Back!",
+    "submit": "Submit",
+    "anyFileUpto4Mb": "Any file upto 4MB",
+    "error": {
+      "pleaseSelectComponent": "Please select Component",
+      "pleaseSelectIssueType": "Please select Issue Type",
+      "pleaseSelectTheFileToUpload": "Please select the file to upload",
+      "DontSendMore5File": "Do not send more than 5 image files",
+      "allowedToSendFile": "The file is not in the correct format. Please choose png, jpg, jpeg, gif file"
+    },
+    "msgSuccessAbove": "Thank you for reporting the bug,",
+    "msgSuccessBelow": "it's very helpful for us!",
+    "btnClose": "Close this window",
+    "btnBack": "Report another bug?"
+  },
+  "columnChart": {
+    "textLeft": "Availability as a % of Capacity",
+    "red": "Red",
+    "green": "Green",
+    "white": "White"
+  },
+  "ProcPlanning": {
+    "Analytics": "Analytics",
+    "cntshort": "Count Of RM in Shortage",
+    "cntfa": "Count Of RM in Fully Available",
+    "total": "Total"
+  }
+}

@@ -1,0 +1,89 @@
+.split-view-horizontal {
+    height: 100%;
+}
+
+.ag-theme-planning {
+    /* --ag-foreground-color: #EBEBEB; */
+    --ag-range-selection-border-color: #BC3D81;
+    /* --ag-background-color: rgb(255, 255, 255); */
+    --ag-header-foreground-color: rgb(255, 255, 255);
+    --ag-header-background-color: rgb(0, 0, 0);
+    --ag-header-height: 43px;
+    --ag-checkbox-checked-color: #BC3D81;
+    --ag-selected-row-background-color: rgb(188, 61, 129, 0.2);
+    /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+    /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+    /* --ag-border-radius:32px; */
+    /* --ag-font-size: 13px; */
+    --ag-grid-size: 12px;
+    /* --ag-font-family: monospace; */
+}
+
+.ag-theme-planning .ag-header-cell {
+    font-size: 15px;
+}
+
+.ag-theme-planning .ag-row {
+    font-size: 13px;
+}
+
+.ag-theme-planning .ag-status-bar {
+    font-size: 13px;
+}
+
+.ag-theme-planning-custom {
+    /* --ag-foreground-color: #EBEBEB; */
+    --ag-range-selection-border-color: #BC3D81;
+    /* --ag-background-color: rgb(255, 255, 255); */
+    --ag-header-foreground-color: rgb(255, 255, 255);
+    --ag-header-background-color: rgb(0, 0, 0);
+    --ag-header-height: 43px;
+    --ag-checkbox-checked-color: #BC3D81;
+    --ag-selected-row-background-color: rgb(188, 61, 129, 0.2);
+    /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+    /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+    /* --ag-border-radius:32px; */
+    /* --ag-font-family: monospace; */
+    --ag-font-size: 12px !important;
+}
+
+/* .ag-theme-planning .ag-header-cell {
+    font-size: 15px;
+}
+
+.ag-theme-planning .ag-row {
+    font-size: 13px;
+} */
+
+/* .ag-theme-planning-custom .ag-side-bar-right{
+    width: 200px !important;
+} */
+
+.ag-theme-planning-custom .ag-tool-panel-wrapper {
+    width: 200px !important;
+    font-size: 13px;
+}
+
+.ag-theme-planning-custom .ag-side-buttons {
+    font-size: 13px;
+}
+
+.ag-theme-planning-custom .ag-status-bar {
+    font-size: 13px;
+}
+
+.ag-theme-planning-custom .ag-row {
+    font-size: 13px;
+}
+
+.ag-theme-planning-custom .ag-header-cell {
+    font-size: 14px;
+}
+
+.ag-theme-planning-custom .ag-checkbox-input-wrapper {
+    font-size: 12px;
+}
+
+.ag-theme-planning-custom .ag-column-select-checkbox:not(:last-child) {
+    margin-right: 4px !important;
+}

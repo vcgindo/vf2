@@ -1,0 +1,652 @@
+{
+    "data": [
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1231",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 62,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239236",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-16",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 12
+                },
+                {
+                    "rm": "AREB509239237",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-17",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 13
+                },
+                {
+                    "rm": "AREB509239238",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-18",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 15
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1232",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 60,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 45,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239236",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-16",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 13
+                },
+                {
+                    "rm": "AREB509239237",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-17",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239238",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-18",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 15
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1233",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 32,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 12,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239236",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-16",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239237",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-17",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239238",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-18",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 0
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1234",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 55,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 20,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239241",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-41",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239242",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-42",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239243",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-44",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 50,
+            "on": "BMN1241",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 33,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 16,
+            "cn": "Pravin Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239245",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-45",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239246",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-46",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239247",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-47",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1235",
+            "item": "AREB5092381",
+            "id": "SB4-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 33,
+            "cn": "Noel Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239248",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-48",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239249",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-49",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Yellow",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239250",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-50",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 0
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 40,
+            "on": "BMN1131",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 12,
+            "cn": "Yelkar Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239251",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-51",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239252",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-52",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239253",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-53",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 0
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 60,
+            "on": "BSN1231",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 78,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 54,
+            "cn": "Gajendra Lal",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239254",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-54",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239255",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-55",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239256",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-56",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Green",
+            "oli": 100,
+            "on": "BMN1236",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 78,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 66,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239257",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-57",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239258",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-58",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239259",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-59",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Yellow",
+            "oli": 100,
+            "on": "BMN1237",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 34,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 2,
+            "cn": "Pareek Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239260",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-60",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239261",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-61",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239262",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-62",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 0
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BKN1231",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 25,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 25,
+            "cn": "Rohit Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239263",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-63",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239264",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-64",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Yellow",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239265",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-65",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Black",
+            "oli": 100,
+            "on": "BMN1238",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 50,
+            "cn": "Parag Sharma",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239266",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-66",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 23
+                },
+                {
+                    "rm": "AREB509239267",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-67",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239268",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-68",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Red",
+            "oli": 100,
+            "on": "BMN1239",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 66,
+            "cn": "Mukesh Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239269",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-69",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239270",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-70",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Yellow",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239271",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-16",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                },
+                {
+                    "rm": "AREB509239239",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-71",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                },
+                {
+                    "rm": "AREB509239272",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-72",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        },
+        {
+            "cp": "Red",
+            "oli": 100,
+            "on": "BMN1240",
+            "item": "AREB5092381",
+            "id": "SB2-NOTCH-KOTCH",
+            "oq": 66,
+            "bs": 13,
+            "kbs": 50,
+            "fka": 12,
+            "cn": "Komal Amit",
+            "cc": 5466788,
+            "od": "23-jul-13",
+            "odd": "23-jul-13",
+            "ord": "23-jul-13",
+            "children": [
+                {
+                    "rm": "AREB509239273",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-73",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Red",
+                    "eas": 0
+                },
+                {
+                    "rm": "AREB509239274",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-74",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Yellow",
+                    "eas": 45
+                },
+                {
+                    "rm": "AREB509239275",
+                    "rmd": "SB2-NOTCH-KOTCH-ABC-",
+                    "rmqty": 33,
+                    "rma": 33,
+                    "rmall": 33,
+                    "clr": "Green",
+                    "eas": 56
+                }
+            ]
+        }
+    ]
+}

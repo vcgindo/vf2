@@ -1,0 +1,26 @@
+variables:
+  GIT_STRATEGY: clone
+before_script:
+  - docker version
+  - docker-compose version
+stages:
+  - build
+  - deploy
+build-vector-refactor:
+  stage: build
+  tags:
+    - vector-refactor
+  script:
+    - docker-compose stop vector-refactor
+    # - docker system prune -f
+    # - docker image prune --force
+  only:
+    - refactor
+deploy-vector-refactor:
+  stage: deploy
+  tags:
+    - vector-refactor
+  script:
+    - docker-compose up -d --build vector-refactor
+  only:
+    - refactor

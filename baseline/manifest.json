@@ -1,0 +1,2275 @@
+{
+  "schema": "freshvcf-baseline-v1",
+  "canonical_api": [
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-latest/VectorFlowAPIs.dll",
+      "role": "canonical deployed API",
+      "sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "bytes": 1065472
+    },
+    {
+      "path": "F:/VFlow_Source_Backup/deployed-demo/MTA/BackEndAPI/VectorFlowAPIs.dll",
+      "role": "preserved deployed API",
+      "sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "bytes": 1065472
+    }
+  ],
+  "engine_sources": [
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/AutoNormAcceptance.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ce4baa2b48962723bff44ee76808fe714c2846119ca3f8ad10dbc3f3f4169358",
+      "bytes": 3167
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Backup.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4fa3ed4aaf5085db4e6c60897fb1c43cad601285bd355634a1dce23d2fa27150",
+      "bytes": 4660
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/BackupUtility.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0b411d8e58da76159609d9e54d014f532712ee194e616b26f4f7bcd5ff2af501",
+      "bytes": 1001
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CheckFileSize.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e1ebc3aca43bd84d5baeda460bf3eedc2a460a4d9959e5759782d796f133366e",
+      "bytes": 272
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CheckFlagForNorm0-1-2Reports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9d4d52dd5e101f53f1a315362eb67ee075bc18048a6f1793b72c5fd8cc8cdee7",
+      "bytes": 663
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CheckForFilesAvailability.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "98b9a3aec5dffdf2168943c6db79922d366b7b853fdda19595a79fceacfbce53",
+      "bytes": 2242
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CheckRunStartCriteria.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9edf97b4a08b095bb97380576e5616cd84efa725ae37ed13e63b28974c4101ce",
+      "bytes": 6821
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CompressBackup.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1788c096716dfad5f1b883b244d6a6b64ce5b351a327c85a7d5d9718143480b9",
+      "bytes": 738
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CopyFile.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cf578bf00b16a7f99bc57015a99940b2d96c22c4615249a31073261496b688f4",
+      "bytes": 828
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DailyDataUnavailabilityAlert.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1d21f98e0f1b2b8d2215a17b1a3f44fe61bbbf69d2692bc2b21abd18ed0999bb",
+      "bytes": 2489
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DataSanitizationUtility.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fcc7af1d8c110a6436e4fee1db64aa7cd8de522a84c1959666f31e239948028b",
+      "bytes": 688
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DataValidationErrorAlert.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9f91bb9c6c37a9bfc3de7cb4d1798af9c63f4d701b210135f0c374ea3d73fdc4",
+      "bytes": 2361
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DistributorSnapshot.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c0e6c11ecf3ce147491d3934b69b9081b964303c084d0170118ebfd10d738ab0",
+      "bytes": 3500
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DownloadInputData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e2461ee47cf37f9cd82f5caeb6127f7f9ec6aa8ce41425aaa4370a5280d1877f",
+      "bytes": 993
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ExpediteDispatches.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1c4a1d5ed9478706f764657c5014c0f81a5b06131c3571b7403bc70cd55c1a26",
+      "bytes": 1419
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ExportBTR.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7efc38f30ccb4b0eedf158067492d10194b81710cbacb3b179401b6659258821",
+      "bytes": 1634
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ExportUIUploadLog.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e22099dca963ace3dae23e2cc6ff247eaa4e3c42f5db882aa59646b50aadd847",
+      "bytes": 2089
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/FullkitCheckForPostRun.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "767bde46a1d0df168aa5cf5c162be95038baccfe9133b363f228c300304a4ec7",
+      "bytes": 924
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateAllLocationDistributorTransactionReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0b10b78b41d39385f19bd93491ef3ea63935f07c23ce131c65452aa53fd4fbec",
+      "bytes": 1299
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateBPRExceptionReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "722798af0f50ebec6b15c4d4a07b8e342b8b5ed3a5c2fc18f29e6c1585317b4c",
+      "bytes": 2167
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateDistributorSpecificReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ac3d8bf7e26838032d8faa064075a3373e70d09d6c2c08633a619e161db40899",
+      "bytes": 3031
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateLocationInventoryMissingAlert.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b2e8709f6e95f92307f4be7170a8526070ccf218c84e0c888b9ec2e27b45ef0b",
+      "bytes": 2819
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateLocationwiseBufferTrendReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "03947044a0bcf6e3f616285652a0204ebee1d4557422604b2c35a88bbb8b58c9",
+      "bytes": 1043
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateLocSpecificTransactionReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8c31e6892763c293f0c7a308dfc096921201c50743cedc79cd8b437005f79980",
+      "bytes": 1273
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateNorm0-1-2Report.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fcfd8c93659d245c792209c5ae5f58471a8f9754e0f3e1647d09782d8ae2ff47",
+      "bytes": 1610
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateNormChangeLogReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8d858b9598f8ff9e8285515d27ed358e8eef2fe9713b5b49fa3b8a30f1af4db1",
+      "bytes": 1865
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateRuntimeReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8e1c83c49dd7c12dad25c153c923caf28b01db03720fe8aa665a3df09a88c7e8",
+      "bytes": 6114
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateUIUploadLogs.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "656da66db2a0e7e653b24b66c57765f168a64119fb928074ef76e7c55c222be3",
+      "bytes": 1738
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenericFinalProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ef27b6388517c1337c2b2f9216e036bfc8829355a6b7dabc4dc2d8a01620aa34",
+      "bytes": 482
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenericPreProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "197b6dfd3994d2ff6845e9f48ea559f74143adfc106fcb03a506b5bf2423f322",
+      "bytes": 372
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GITAndExcessInventory.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "56fbb115b14f87faf76a4706d1a8bf55ed9e7631e3c62deb0a702a201a023978",
+      "bytes": 889
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GuidedInsights.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c64655e53b377034bb007155e01a508066a7863c3316cc0e1a3f3f90cc35a6f1",
+      "bytes": 791
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportAllRawData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "30c28dbab43df40e00c6da682c1ae999985ba72200e91cce75c00d5023a7a1ac",
+      "bytes": 10820
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportDistributorData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d9f4c087355f5419f32cea968e0e227e55397dbf3bc5716330487522c9c5a262",
+      "bytes": 751
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportMasterDataComponents.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b6304216cf2faa1f8b848b057eaa7a6eaf489f971378ddfdd93f39fbe3497804",
+      "bytes": 4110
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportVendorData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a81acf3d40e8795dc67a4657b8a6258b84d540bbbd31e7c0acc74fee366ee6be",
+      "bytes": 332
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/IndividualPhaseoutRecommendationReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cf3fe9d1c979790aa7c74155815a8a36570c08852062cf2b2d2ebc7740cf9f3b",
+      "bytes": 1730
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/InvalidDataAlert.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2f3954b72a5c47f25f160388b9fedad67486106b461781c297e42f6686684d68",
+      "bytes": 3005
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MasterUpload/Alerts.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a08822032af1cdf9a271c400ce1f24f92e83b53845caaadf4106f1db19c21641",
+      "bytes": 809
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MasterUpload/Backup.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e8eda78f3af3245c37fe7db2e71c6ad7ac0c17009353e992aefad24dab3479d7",
+      "bytes": 947
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MasterUpload/ImportMasterRawData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ec1030e534001bf3aad0bdefcaf3283a124c4bed825c23540d91f8b6b11d1e19",
+      "bytes": 862
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MasterUpload/MasterUpload.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "88a33970b49af6def3c3ec92b4d356157180d8503f7b1d52e5387c1b551ecdfd",
+      "bytes": 3127
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MasterUpload/MasterUploadSpecificSettings.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d0c58bca0c69cdaa87bdfe0942e3a300d2a1ea1faea13a7eb07f07fac0fb0e92",
+      "bytes": 535
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/MissingMasterDataAlertForDistributor.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f98f99ecbcfd412042ed77961cd01f70f52afcfaceecd2ee69a5824053c47d82",
+      "bytes": 2549
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/NormChangesRun.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1b66cce3e052904bdb55b5c19952b987a264bb045285583be8ec1c9c5d9575b5",
+      "bytes": 4435
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/NormRationing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "79d57aa9fcaa5dc04ea31a1769b80d6b67199a9928d33477ad214e80041e628d",
+      "bytes": 1265
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/OrderAllocBasedReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "12df6d7a4eba37b4bc56cb03bed12f37d4749483bf19ebb2ceff7336723cf22b",
+      "bytes": 4448
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PhaseInPhaseOutException.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "04b97a15176b2b74ea19fcc76a2e53be5a0f96f8fca431c8b6f6b8146f124d3c",
+      "bytes": 2875
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PhaseoutRecommendationReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "5c8507f70d360d126b114bfb195b60dea137cb918cebfa3319f3adbc2c263b59",
+      "bytes": 737
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PickListReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a47e9dc5ddb8e356ddaa121d320dd694d2aca44c58e0f51ecd60a3730d757b40",
+      "bytes": 5016
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Planning.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "738b9f4eb8f93a5c738578a6cb59415e00c6f394e532ae841cb9e52a62ecdc10",
+      "bytes": 731
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PrintSettings.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8aa85720aba0f84417f63269270e441ac6f73e2df8bb45fe1a4e8d12ebd73a52",
+      "bytes": 8160
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ProvideDownloadableUIReports.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c72a24ce8fb1650fc0362b2016986ba14179362382d13891ef7dc34c6f432372",
+      "bytes": 2541
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ProvideInputDataForDownload.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d46ade48ab45823ae3b29a6d6808f33e1802afdccf98f87fc0c81b6050146b52",
+      "bytes": 2109
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ProvideInputFilesForDownload.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "70c10eda6033692f33acd4040a5ec07d5d48c4fdff237c43a1fca7c0246993fe",
+      "bytes": 529
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ProvideInputTablesForDownload.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "636bc63837fa1d1b031afd7343749253d6eaa814b7c646f2dd24af709ce5e51b",
+      "bytes": 1124
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RejectedInvoiceReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "848500953fb9b25d7d9a4423309e5f25bb6b94ee51c3e00f6bddbc414b29edf7",
+      "bytes": 1925
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreBPR.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ccd6d8038d953ea9c9ba1661cb8942a56626a754f6774cd70036c365314d7a02",
+      "bytes": 4630
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreBufferTrend.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "21787bb37d1ae15a86c6f95986c8c119aa15d7236e70dc0eab2260f140934dca",
+      "bytes": 4483
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreDBM.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b01193968e3b8ff5bd81b404ddb954f0978e7857eae5aa3acbe73be6d004da17",
+      "bytes": 8898
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Seasonality.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a7567726e35e9cc978396d8208c5262c500d02ecdfd773c2e3d287978ac54d1c",
+      "bytes": 820
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SendDBMNormChangeReport.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "37aad4ea93fb9465f65430183be4fddb874ac5f738d55f2bf8e435b157656cf3",
+      "bytes": 3020
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SetRunDate.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6dd96847bd625c90edc59ec97e086de5b1007b62baa63414d3672e7fbe76148b",
+      "bytes": 884
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/BackupInputData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d0f04b54473a6ed883e319829fed406c14886690caf947db29d17ce264bb3b4c",
+      "bytes": 794
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/CopyInputFiles.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "57a6d8acd96bf6e81f817850f0053a6c8345382d3527a583f24f39ccf689e782",
+      "bytes": 714
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/FinalProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4278f77981c917996646246c9af95724a3cb82fc2a05c3d72f16060ed80ff480",
+      "bytes": 380
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostBPRProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0a4d607eb06315406d064338a3f78f30f5ed04d30fb333dd3bd96dfcf859737a",
+      "bytes": 529
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostBTRProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2dade8dbcec02fa5867be2a8f1994ba0e3897302453a917fc38f3400313f2fa4",
+      "bytes": 775
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ff89655c149f18097bfe4bcd139ee2ff6fe60b6e3f6211e0c5f53d3445f3d526",
+      "bytes": 385
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreDataAvailabilityCheckProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1e4e4703521adb8b2422a1f0573383d4b782fc7965aa2e22051f8acfb3bfca5a",
+      "bytes": 1620
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreDataImportProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "eccfb78573fab875a78478c86c6788edc81b362e4977bca5493817329cd355bb",
+      "bytes": 406
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d0f7016dd295bc84c515d6ad562cc2c96f4caca8c7efb4aa9e4b4462da319d0d",
+      "bytes": 382
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreProcessing.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3315283f5b8f98224df88b568ee529a47973646654a5dd85dc58cf1b2520a1aa",
+      "bytes": 374
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/Settings.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0a21134b38bbeda7a32c96b5d2312e4c98200101e2f8bb58a168f325681439d2",
+      "bytes": 2021
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/StdSettingsPost.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d67e725c7b74f1b16062f5d693be2bf45de63791d4e90eb3b8096776c1938a7a",
+      "bytes": 1912
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/StdSettingsPre.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "38805cdf611057f3e92a2a080bd3b0686182464f0cb61c3dae8e49627cb31cdb",
+      "bytes": 3362
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/UnapprovedPhaseinPhaseoutAlert.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2412e0a5ef6cc052fef56766b6db10d2906f5efc27e066a42c7f5e2f0605e095",
+      "bytes": 1030
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/UpdateAcceptedNorm.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b1325ca94e1699e8a0d7f1d44c5802b6198d6b80155cc61a635cb5aac3779a43",
+      "bytes": 547
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/UpdateDistributorMaster.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "dcfa92647d8bb9ac1dff123b059475b495481d88678ad7aff8d7326011c4c04e",
+      "bytes": 969
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/UpdateTaskStatus.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c016ad921ccb6471adeed300ee0d1cc0f0a1cdfc17f970b826ff0f36f522838b",
+      "bytes": 233
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/UpdateVendorMaster.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "af0cc4eb9bcef5a9f4867dafcca0671e3edba102865791a3833a0ca0c968b069",
+      "bytes": 781
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateAndProcessInputData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b7d76ab0967099751bb6402b1e9cd3eaf1712ddb4cd06aba78b53f0776d96cd7",
+      "bytes": 4549
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateMatserDataComponents.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "84ce41f039abe00f9f7a251f24e0cbfdc0ef1cda24cff37505cc76001db60834",
+      "bytes": 1290
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateNearExpiryMaster.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7905df1f34a136467add6cc6ca5808767376c4dee11bf309077e5382621774ac",
+      "bytes": 1823
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateNewAndDiscontinuedMaster.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a2e0ffe07b171bead48b0e4a6960d72da54e3e77526eee65dc904222136d915b",
+      "bytes": 2408
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateNormCalendarData.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "df5d465ad85d791eca98064805ef176b46e44730f1e8c2fb23112b39b82a0e56",
+      "bytes": 1434
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateParentNorm.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "afbff90d850afce4247744a87d3ae0c5001ef8ade82d152cbb1e895caa0ea010",
+      "bytes": 2546
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/VectorFLOWv4.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6e70b6c7a6675ab1c8e38dfcba9a9a945f3da70aab673fc95ea7ce0e93f78d75",
+      "bytes": 14993
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/VectorFLOWv4_SandBox.bat",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "90e516bf32bc67c3b8f37260e70652b171e964805d77f580b262a61901c672a6",
+      "bytes": 14801
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/01. ImportData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c248baeedda13d74a71a499c8b59b7ec46f05f11db00938de59a746bce94ce93",
+      "bytes": 4393
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CalculatePenetrationAndColor.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e4a62d592b660fe08d46c45eecaf7a061e60eba7c8d86d3adec239023de5e251",
+      "bytes": 6820
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearHistoryData_BPR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "96f06d458161643e9729a215d990a280e445c25f01f58935cbcf476394dc2d92",
+      "bytes": 1803
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7f7c4db185b908c3a3f4390d8df5fabbe946ae97a4f71f6e3205606e86abe8b5",
+      "bytes": 1021
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectDataForBPR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1236b702861dce1d9f2492f9c7d9a280bbef20245326ff49628dd6b09308a7c7",
+      "bytes": 3035
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectDataForDispatchPriority.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3d0602ffd47f9d93489a5440fbd85ac031620fb66e6fe343d9314cc69714d278",
+      "bytes": 1746
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectDataToExpediteDispatches.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "894ba52512be0bb39ec4e97aff603ed1da572c4463d6c319b9a2ae20a54f753d",
+      "bytes": 2598
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectExcessInventoryDetails.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "71bb48766d3af7a739b90c511124f9ad99072066283536fd28a9530f3640b8c4",
+      "bytes": 2389
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectOrderFulfillmentData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b6ae768bd632c831050453f7702a2016bf8db11bc69a2a05088f31c030d3d3b1",
+      "bytes": 4240
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Existing DB Import/DailyConsumption.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bd281a75401b3d2c0e6dd8949849aad23f7e382c6362cf0afcbb43605c89ee78",
+      "bytes": 382
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Existing DB Import/DistLocation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "857a26c4427aca75a42c24ab2b45b0aef0d40c9e3e8ffc6eeccdf0f32827ced2",
+      "bytes": 73
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Existing DB Import/RationPWH_List.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "be26cb715317b808e542300911e9d9e6a1efad97a5c9eb539002a619092ca597",
+      "bytes": 75
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateBPR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "36f06df7a79a0e849ff728659df3ada0ad5a567fa6e0257a4b50b3baeffa4647",
+      "bytes": 3714
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateBPRExceptionReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c1e0a6b607a50a51226ed25f525f362f256eef34eb640b58ca33d6e0c7a2912d",
+      "bytes": 930
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateDownloadbleRRR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cefe2cecc94e5d1d539941c59433fc4d8565d822919554be85f1e6232140d6c1",
+      "bytes": 6483
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateGoodsInTransitMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "de8367e704206c9031bbec32fa2f5cb83b4656eca79ba0e1c8161f84786ac379",
+      "bytes": 1959
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GoodsInTransitTransporterMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "79a3a80bd45d989b37ae59d08259c7a39aeda8ef51e2261a722d241cc689a79d",
+      "bytes": 6811
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e06d22c31b0b51b6ba375c4bdf8ddeac52806d6e0b5b1c362a77dd8d3b4b18da",
+      "bytes": 9508
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4a58bb30a2b94c48693297852cafe0f48748f62f76c09178c0c2996e83298340",
+      "bytes": 2580
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/CollectRRR_OrderAllocationHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "266ec95240ef468b94ad1e433235723e8cbb04115fbbb35083c7825b24c2ca5b",
+      "bytes": 2386
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/GenerateBOR_OrderAllocation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9a063498e99060a119f5c82655de61074f2a4cb895beb444ce2cbb8714ef5d9c",
+      "bytes": 3400
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/GenerateOrderAllocationReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "aa0bd310aeac06a1c9f4df66aeb1f93716fe4701734c5e5a1274732aec4c9df0",
+      "bytes": 1378
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/OrderAllocationReports/GenerateRRR_OrderAllocation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4f034a2fab598d87683d5ab0457cf6af49460de67dbf42ad856a1dc3cdd26e7b",
+      "bytes": 14144
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/PickList_Reports/GenerateLogisticPickListReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0355da5c9b767d2a90bdc08a39845b0fb0d99577a573b9efb95afed4c743eb6c",
+      "bytes": 2698
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/PickList_Reports/GenerateRemainingQtyDetailsReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b6847f5d623f1306b00ee0a4ead0a6f213d7a040f9b27f693ef2734737744ed1",
+      "bytes": 2529
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/PickList_Reports/GenerateRemainingQtySummaryReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0f5a45ba41a21f8f8a7aa00a7904d849a0b5cf1a2850a2d61116f0afbde8bd87",
+      "bytes": 1111
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/PickList_Reports/GenerateTransportReqSummaryRpt.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fce7e6686d7271c8f0075dd367a8a3bf58691617213ed253049f39f626311a11",
+      "bytes": 882
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ProdOrderSuggestions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e4e50d327a60e02717183c803303ffa6ae8a731c7fa728a76dfff190d51377db",
+      "bytes": 4868
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateDD.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "98ddd068735a7154b53b4171e63899579363844d965541501f8dbd5e375bd210",
+      "bytes": 4893
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateReq.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "587c367323409081b9d1bf8050c23f166ab829a1f1f947cfe7d37bc5cd3902bf",
+      "bytes": 46263
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateRoute.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "66abe2e41ce2fb9d9a3f8583001d53a7cdc7a4fa2306a73a4da66f36f7416a41",
+      "bytes": 3958
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CollectDataForPSORationing.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7f74f75aeaaa3007ae62f69382e2ffea6505726b8203be26db068405c6495a01",
+      "bytes": 2122
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/ConsolidateReq.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "00bac7ce2c83dfc63980b369da2174d4a162875a8c4a2be666f5de5bf0e65415",
+      "bytes": 6855
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/EcoAvailabilityComparision.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a23382916bde287d4e6b6484e436f05a7857404d64dc9e2b70c8864cb446c71c",
+      "bytes": 2938
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateAddionalMasterData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "831092defb102e1efbe342fa3515f3319e556a6d47d77388e44286d420ea0123",
+      "bytes": 6308
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateBifurcationOfRationedReq.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8da7fde0a88fd29a8c1f3af0d92ff578be50262f1b5605be8421a1686c45f0b5",
+      "bytes": 6963
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb",
+      "bytes": 14574
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateRationReqReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "eca76c08c57a553c65f3c9bb460434adfbbcc88341a3a607bbe80a84c825f9c3",
+      "bytes": 10886
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenSupplierWiseReq.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fae0668e77fb3e149f62301f4e5e3cda1c1b546180a66f8262ca899644f16a9b",
+      "bytes": 13545
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/ImportSpikeOrders.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "5c8a724f98ef5b8ea830f64e825285e73b924ea03bf8b8e34a0a7e92709e58ce",
+      "bytes": 10082
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/CollectDataForNormRationing.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2ca0cb727cbbd30f2ab8709bdc4e4ba3d14feae6a720dae2b0305de34fa4a087",
+      "bytes": 3635
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/ExcludeReplenishment.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9fec772bd947f15d554b89da5dc9543ff6ba401729a990dc91c32af37fe85ac6",
+      "bytes": 896
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/FillRationSteps.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3f5821abbfa4719ce0a844ea996a286789b0797e26822fa279e08713b7bab631",
+      "bytes": 931
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetReqData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a82159e39c32e06be3532b3d7d99460350a87ff898df6ceedcd47902ffc4c61d",
+      "bytes": 1984
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetReqDataForParent.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2a0bae6e71dce7a967186597f87a602fc7c23b9bada2f5b3bbd1364e6f8c79e0",
+      "bytes": 1474
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetStepwiseChildReq.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6581e9d5ca8f2bd8b13d2d7a0a644c8d7002c033424b647846f293c86faf577a",
+      "bytes": 7176
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/RationPacksize.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "316dacda0806d94355556a796bc713c5da650493bb7ad213fd98a6a889c1891e",
+      "bytes": 6246
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/OrderAllocation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "733ef8cf0a166c1b1ed2a4eb755b40cd25154a01d57f90fe8e3b842eae6a2bc3",
+      "bytes": 58943
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/PostRationEcoAvailability.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ad726c858dab068a86e567dfe814b99a5309b693ebee061aaa84f60d00b2e977",
+      "bytes": 1591
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/PSORationing.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "89d4f88e851a2891a5edf5becab5026acf3da4064d69e0baf46e7cffd5b9ee12",
+      "bytes": 9903
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/ReqInColorBand.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ea2d235b5712db53a76722f4b74d34d76173e651d63e2c95c14ecdbc43d98478",
+      "bytes": 22301
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/StockCalculation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b493932706997cf38697695b74fc87e96332c6cfadd29c200a682ae0dbd462ce",
+      "bytes": 7034
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/UpdateBPPAndColorForOrder.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "317228062943593d9960bc106febbffb215e62e0990b220e31b74f36b7353ce2",
+      "bytes": 4459
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/UpdatePostRationPipelineInventoryPen.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3881064e266422ceddfde472420c74b70d7799f01311afd8b650f55e0a80f554",
+      "bytes": 1486
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/SendBPRExceptionsAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "947136833dda2c609968d03aea933d687ef73e145b4908dd3f83962d700f5bfc",
+      "bytes": 2229
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/UpdateBPR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fb050b8cb30a8c582dcf8ef5c4a50dff52c5252f82fc6318862fabfa6708722b",
+      "bytes": 1444
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/UpdateDispatchPriority.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1331f5cb21ece8ffce3ac3c9dbd61e6df7c2e636bdd297c6267b6b5595656e90",
+      "bytes": 1432
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/UpdatePSORationingResults.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "927110ac8e021d653136983700e3b4159994e31ea0a0debe866ee1d436d35862",
+      "bytes": 748
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ValidateBPRBatchExecutionFlags.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "5da557469af8f6a021ef7c4eabe503f1678b4035673082f82174b135472146e5",
+      "bytes": 1716
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/1. Import BPR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cf64ae9ac4127befb959863159609ae8b402a27d0b93a22fe9792e42fc6086c3",
+      "bytes": 8932
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/2. GenerateBufferTrend.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "adcf8279ca7dd95665af0cdb22751c90de9e9d5b8edc69bf0d5c052dc26bf06e",
+      "bytes": 14046
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/3. GenerateSnapshotForUI.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "622a3f9975fde6188f0f1442d9dfc28c7e03be31135f9046440319abcbd6a8c1",
+      "bytes": 11593
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/BufferTrendCountGraph.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "41745d897df0561b954e48dfefc5211f30ad33d1b27a84c8fa0e88c35d197a71",
+      "bytes": 5918
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/CalculateAvailabilityPhysicalInv.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6a18f6f5332f21be3ed771aae0495500bba899b9216cb4e8e66f72072c2e0ad9",
+      "bytes": 3250
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/CollectChronicUnavailabilityData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "468c88b79c55de294a247f88ba1e2e262f42e5478aa69bd76e7fdb70d4224c33",
+      "bytes": 1811
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/CollectDBMNormSuggestionsData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d4fbdd5dd11c3d5de05a64bd28fe767867aa1ce965b9335fbcac96590b868cb4",
+      "bytes": 4110
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/CollectRationingHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ebebc8377e7304e1aa923c50c375d754b771818dff085c9db8fb9d32d7dd33e1",
+      "bytes": 5470
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/ExportToExcel_30Days.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "51e1fa583fbbb6b526e732bc8b0c3d67f68c594b16a339a8a05ec2c6f35b046f",
+      "bytes": 4799
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/ExportToExcel_60Days.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6df9c901d4cec3c954a1e5cef293ec763ce1e5e7ba0c5a07a909ccdee1a3b3b5",
+      "bytes": 6107
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/ExportToExcel_90Days.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cc3d59d4c9bd3e60051079567fffd378d5f7a9b70b5129e73c53abd67010aeac",
+      "bytes": 7511
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/GenerateColorAgeingReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3250f7ab0613ce1d192f6c0d5be8e46d5bf44c9605b37d9afde41f686faffdca",
+      "bytes": 13350
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/GenerateLocationwiseBTR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2aed9347bd35f27312cef09f4b94b532f3fd97a92c8ba953702a98d8571acce8",
+      "bytes": 3377
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/UpdateBRAge.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d09aeda2fc7c3c4833a8610d4393afd87a082f37950e66be420495b78d9553ac",
+      "bytes": 8549
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/UpdateBRAgePhysicalInv.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6cad7b21c7719e4b280673948ce0d91743e693b18bf4ade807ee5c6daf157b4a",
+      "bytes": 8248
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BufferTrend/UpdateCategoryCol.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "eb12ec114a9cd056d8a41d9424645028ffea51d5db6d10cae496a819421508ae",
+      "bytes": 6114
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Common/ClearHistoryData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "560733d752e284a5eeea85af008d9199282e241f7df758c23ca670c9e1402d02",
+      "bytes": 3272
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Common/ExportRuntimeReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "87622287f8f2b8032babb6f04e084a4d0906dc96130f770072a2a79f849a4cdb",
+      "bytes": 2234
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Common/RunFinishAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "691388177831d6fd984a1bbd16e0048bb17e1ed9747cd364671e276d07a28251",
+      "bytes": 3161
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/BPR_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a906c4b7ea50cb4a121101159553c2d531a29fe5c782247318fc0f933efe6ec0",
+      "bytes": 56576
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/BTR_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "2d8a4b4091943ca67489789d60f964da0adbc80ec5b285c05fef9c0ed03ae16d",
+      "bytes": 40333
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/DB_IndexCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d28c622a3e3bd8d4e64b2bda4946def5971a078e7bb189f3825824b05d15f0a9",
+      "bytes": 584
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/DBM_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e2326115c126d056da21badac6f141f0c1e99a532623294379eca0e38e1049b1",
+      "bytes": 76116
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/Distributor_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ce805a9979e6e979ede21938d4417e019598892ae96254a2576f1bb93b5a0c64",
+      "bytes": 15536
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/Importer_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309",
+      "bytes": 176700
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/Intermediate_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3f716a38b20856ef4308d68d1ec896a63162a2c62e8cbe06132c564ec4c943fa",
+      "bytes": 227526
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/MasterMapper_2.0.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f6c3c800e643fd01101397c864bfc21eddf2f7fbb374287068d39aef83ceb967",
+      "bytes": 8330
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/UI_MDMConfig_2.0.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ffda9ff6f3395746303432eb24ef2f4aa63aa1cc7ba0a403d11fea8a3c6131dc",
+      "bytes": 108967
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/UI_ReportColumnTypes_2.0.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "51883c78e5effbb55b303f07b99df9c84a3a336b0525d19b0540a9b95df02a19",
+      "bytes": 260045
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/UI_ReportConfiguration.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "65141b0418028a01e06f7ec6bfac0ca06802c65d12a8cc84a4e0d16278894352",
+      "bytes": 369913
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/UI_ReportConfiguration_2.0.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4b248637cd659bdf05730964513bf555103d83521a268e93cddb24bc8c6f34da",
+      "bytes": 487778
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/Vendor_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bc5136ad9be0db67b9e2bbcacb838d0e1643e9815114546c2e4b30f3fcf0fd0b",
+      "bytes": 2598
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AdditionalRules/GeneratePhaseOutRecommendationReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7a3381414188261f33dc9d0a4ade11412f565ad487f8afbc57846533a2e66ce4",
+      "bytes": 1116
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AdditionalRules/Norm1IncreaseSuggestions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "30d88e8a14817fbdeb690fbc1b03a7a10f399f7d6fed90e92af96300a384df70",
+      "bytes": 4439
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AdditionalRules/PhaseOutRecommendation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b9769abcdfcf054a3f777eb0fc4e7c8dceb767f18755258d3de7950124fe147f",
+      "bytes": 4784
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AutoAcceptance/AutoNormAcceptance.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "96c58ae2313420b048ef40ae8b9c6af197c42fed5bc8f8f14a88ca5681567c5a",
+      "bytes": 4686
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AutoAcceptance/ExportAcceptedNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9282f1f94c21fcc7bed43f42b9d91a0f073529e054b43d300c70e32ecd3634be",
+      "bytes": 847
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/AutoAcceptance/NormAcceptanceAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e3c24304f5c6774c4944fc3152f11d25a2c6eb122e52ffcf07d3c2d9a5e74ca4",
+      "bytes": 2494
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/CalculateExtendedOCP.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "289a05b8454f347dda627eff5288e58761d170be7b32ad754ccd706cbd922977",
+      "bytes": 4054
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/ClearHistoryData_DBM.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fc7e73349d1992edb5446678e2988177c6ac8e3611dd0da9184a9d7554ca7380",
+      "bytes": 1012
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DailyDataImportExport/01. ImportMasterData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "dbf3b8b5f22daec422d239ede310a7ba1639e860fa2a5ba42649ae3b68a09a76",
+      "bytes": 3585
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DailyDataImportExport/02. GetDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d53889686164de1814d585a9b7f59acc26f3279f95d1f703e39a39cdfd73e07f",
+      "bytes": 3506
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DailyDataImportExport/ImportExclusions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "020089dea35e5ac9df73ead6dade7f313f1d8ae73e0ead87ea9ff745044b5d3b",
+      "bytes": 1392
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DailyDataImportExport/ImportForceNormChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c2b348323a6c4621800bae55387d24af768b38452453b7fc2be158ff3e1d7253",
+      "bytes": 4234
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DailyDataImportExport/ImportOrderData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "626e2f29478d5b65f2a5d68709feb0b0fdfe456f6b464b57a4fb71b4e27569b0",
+      "bytes": 1321
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMNormChange/DBMNormChangeAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6c11f52bb811d19f553b16b176fd5cc971eedbbbf67cedd3acf70618aa715941",
+      "bytes": 2522
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMNormChange/ExportDBMNormChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "940f0e1a92b97063b91799fa7724071128fcc592ff54a43596eb101a52280aff",
+      "bytes": 1137
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/01. Stockout type A.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3f734a954772d8f489d32504976ccb9d543eb43f30a75684a9f79125e57b2021",
+      "bytes": 2343
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/02. VirtualStockout.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "83ad9ff98eec02ebe515956cb15967568e31e9d24d2c830b8889f9f1a47916db",
+      "bytes": 4791
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/03. Stockout type B.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d43e07df850ff40999194b8e422dfe0b4edd133885669811602ec0b7bd1e864e",
+      "bytes": 3295
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/04. Too much in Red.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e24c0831b758e28536e83a46880f607982efce9cbe5c9c8169a9cefac2b099de",
+      "bytes": 3399
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/05. Too much in Green.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7d2da4eadd46389d24619b23e329b5b0cc748f6ef242f0deb97b511e28d2af76",
+      "bytes": 4583
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/06. Spikes.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "5e51b838af0734fb7d0e4c71fc786a4ef24672a7d9d8c0f49efdeaf493de9cb0",
+      "bytes": 4191
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/08. GenerateReports.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e8e4f864028fb252885d2603c282cda23aaec23da39f7983ce71943a21e641a7",
+      "bytes": 2314
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/12. DelistingofNorm.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bd117149bcbba66e2c6e72467f737721a37239ebf03b7178c2930551ee885c7b",
+      "bytes": 6152
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/SuggestionNorm0Increase_OrderBased.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "995f85ea1a285686d8ae00eb96527a6b8c78ebb6cdc27b8aee79db05467974a0",
+      "bytes": 8660
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/SuggestionNorm1Increase_ConsumptionBased.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bb5089247c6f90078bdbcd842f052ef1a77d070e52c19bf7516343e7e8ada227",
+      "bytes": 3736
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/DBMRules/SuggestionNorm2Decrease_ConsumptionBased.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0ffcd273ce840369f20d87f360052d4e07d981312a9bc69e78e94509c0c53548",
+      "bytes": 4581
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Existing DB Import/DailyConsumption.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6f3abfe4bf34b0ef5df99be4b65da5d5029213811bd2f881f53dfb6cc556a133",
+      "bytes": 386
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Existing DB Import/DBMMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "905c8558ef5a4a0b06a0ebe2f3db62e35c0e3ae72d1e6dfdf083bd307291524a",
+      "bytes": 1990
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Existing DB Import/ExistingSuspendedSKU.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8d50a6db44503db2b900bce7becc0dae92cd357d88c121123eb095b34d437b9f",
+      "bytes": 443
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/ClearForceNormChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "37f6da04a127dd2045c18029662f51d2f690075bb688800035dc451733ef96ae",
+      "bytes": 2297
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/CollectFailedForceNormData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1e54175d733b3551416ad522c7c1b297aa01c8484b2e43d9e1a80beba2284c0c",
+      "bytes": 8492
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/CollectPhaseInData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ea384c334edb3fada9c8447602dfe838f242f01ad6329889c805d5f17b58768b",
+      "bytes": 8060
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/CollectPhaseOutData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d76f8ed14b491680108b0920bfbbe552d287204004c115eefa663874c6f3a7da",
+      "bytes": 18958
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/FailedForceNormChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6446f1445c89a3859234f6ea5a03eada4a97695daeeae8282a4e5747a8ca7c1a",
+      "bytes": 825
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/FailedForceNormChangeAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "679e8596f8d6ae74af462f0f8d07fa088805b82a2d01eb92dfa27a9c8aebe0b2",
+      "bytes": 5482
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/GeneratePhaseInPhaseOutExceptionReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0d8435f3276fa3209ef5a255083ed121fea84a4c46d06bab9e42c84d1128fa9e",
+      "bytes": 809
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/InsertParentOrderTypeSuggestions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "de2479ad078e16b13739cc2259e8129db0a218f192b36058b6f3edec02cdc8f8",
+      "bytes": 7036
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/InsufficientDataPoints.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "deae17bb778bcda93329c36396b746fc1678b230d063f0ba847c06abc44587f7",
+      "bytes": 2236
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/PhaseInPhaseOutExceptionAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b659d2a5fc7806f9ef0f53e9b266ea710338f7ee7709f7d2d32995a7b8fea772",
+      "bytes": 2078
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/ProcessPhaseIn.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ceac31bab2037a73e7dbd6055300e88c947b55351b642b77cf789b273957f3ff",
+      "bytes": 2905
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/ProcessPhaseOut.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "73a2f7af4a334aa28b2b48920797d1e946694b6518a30d03a9dbf26bfd2045d1",
+      "bytes": 2484
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/StopPhaseOut.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "66485855eaa004a0c19ae365df2d37aaa4bda7a9148ee4c1cd5ba1cc473ff3cd",
+      "bytes": 605
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/Suspended.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c59fec72d67d15553e23d6fc64d747a4f82d056c35b6521982ce2e87fe916818",
+      "bytes": 1988
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/SuspendedStats.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "147abfbc253520366c1e8f97cf1cf01b80cc423a28c958c66d111ffcb7af6d57",
+      "bytes": 2851
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/UpdateAcceptedNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1e602d7aaf355b03060d33328316b296b68bd76f7eceab270e803108104f9f97",
+      "bytes": 9756
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/UpdateForceChangedNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "643903eb339835f1492a2b5b0302a2d362e089f456894b9668ceb6a46a85fe70",
+      "bytes": 4591
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Misc/UpdateOrderSummaryData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3cea460bada7bc4c67be96e58349a9d6f4e1d780d439463f7d17bfd204f38c8e",
+      "bytes": 1468
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/ClearNorm0-1-2ReportData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f8623424bb3e0d4580c26e0c83241801e94b407b81489c090ee0c364b6ae9c0d",
+      "bytes": 1176
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/ExportNorm0-1-2Report.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "45e728d47d5e84b13e6a70460d5c93473938b6bfff50b03fd26d5e1218e53ff2",
+      "bytes": 2626
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/GenerateNorm0-1-2Report.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d3e0313e1045bda9bf1ea79d2baa4548581d7612e04d92e8127e93f3a7abe72e",
+      "bytes": 3149
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/Norm0Data.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c47103cd5d309c8d692766fcef798ab138694627d944dee7c3d25619c9ed9766",
+      "bytes": 3613
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/Norm1Data.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "64c58d14390ce1133ff39ccb7c619827fc7c4e01625188e92f9dfe15ef53e7d2",
+      "bytes": 3637
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/Norm2Data.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9edb9e13504f36d6655cb762aa81853cdd10a4e44bba876fee3ffc8c83c16870",
+      "bytes": 3646
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/NormChangeHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f1ba8fbcd213c428ebc1ef2a89f76c47b0d2685c02718c9c5f1cb0c1d611a8aa",
+      "bytes": 1291
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Seasonality/ApplySeasonalityNormChanges.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a8490dba69e94027f3fa24008e4c2931cf8ca7d6f2fd09e7e53e0a636ba75112",
+      "bytes": 5218
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Seasonality/CollectSeasonalityData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "31739f5e5dc2ec1a85159d8c9babc0eb53256c5f273864238209c0ea47b4fcb6",
+      "bytes": 8319
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Seasonality/ProcessSeasonality.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8ec4e73b9120a871b0209988a95e4b4e0186b53fa51335864d5e69c0d2e3c255",
+      "bytes": 21426
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/01. StepOne.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0d7081e6b57b33d7b9aaf49ad71a3868150a456a261107eb684a444c7fd83cba",
+      "bytes": 2804
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/01.1. StepOneOrderType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "abf091c8fc9195f57d204623f93859c0c16c80b7225b92ab79e7d5d33d3d3fb1",
+      "bytes": 2374
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/02. NewSKUIntroduction.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fd5ecf92238c8ff118419ab4cca5cd8d96acd652a6a815d5b6964d5bdfcab167",
+      "bytes": 4042
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/03.1 AcceptedNormsStockType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "80daf002096c427038c2db79c05fca4ed248abdec76b102e63891922bf6c74cc",
+      "bytes": 8426
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/03.2 AcceptedNormsConsumptionType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "362640f97515ad557b858f4b252c569ac0a29f47fdad8c4b9e843f66aa53da7d",
+      "bytes": 3225
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/04. ForcedChangeNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c84d8f76dfe9f1a54340a8be052b3b7f890f8d68a98970cb909acfa89f6ced24",
+      "bytes": 6560
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/04.2 ForcedChangeNormsConsumptionType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "48564fc851c2e4c3ce96801e48fa5251ca70a8fb35b6175738b7b110cfdd479f",
+      "bytes": 1778
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/05. NormsInSleepMode.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d598e84ec57d74b220030d82482329936e421471d4edf159fc65801e886c5af1",
+      "bytes": 2233
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/06. ExistingDisabledNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ff73526d7c462489fd7ab6e6487fe88d3b6793ce549e3745581efdb288457f1b",
+      "bytes": 2160
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/07. SpikeToday.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "590afe1ebff1a39d93142e8da51ad168f30fbf3a1efbf8fd77f9ecfe724e5833",
+      "bytes": 3099
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/08. WhiteStock.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "982760649c2fcb7a722938483677f930132d2d6051bd87e48bdad7829637b353",
+      "bytes": 2099
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/09. RedBlackParent.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d2b653a57274951b1ca55a41dacce55f34da85fa4e63884dd1159687129a7b4c",
+      "bytes": 7417
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/10. SupplyIssue.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c02ff227406a9aa97703f6b60d3abb6ff7df82c41dd60b6c2ba3e9895d3b305f",
+      "bytes": 5040
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/11. Phaseout.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e9b230de9bb6c66b3539c59a9930c67bf3a1f2c5530eaf26bd60106c98c58a7d",
+      "bytes": 1225
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/12. PhaseIn.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "85cde20096799852404845a744cace944846c6b06f5ad246cd502a9b87ce0eb6",
+      "bytes": 1203
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/13. Seasonality.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4cab44b326427159a2fc67d2abdcf5016fc073ac0da438298e329bfc59dac0a8",
+      "bytes": 1369
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/14. AggregateCommonSuspensions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "79dc230b90264fb4bcf14666c8fd2467d280039272fb840cb6acd940a22987a7",
+      "bytes": 5895
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/14.0 AggregateCommonSuspensionWithOrderType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "323e47c38c04854e4a6c220322dae98c49a354ea5c174245612e869e3c61b307",
+      "bytes": 4479
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/15. AggregateStockTypeSuspensions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ffb311899d22ab65aa78eacef421f166f6163965d6c8d5bcb4c337a2afb65ade",
+      "bytes": 4517
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/16. AggregateConsumptionTypeSuspensions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "aeccee42815c62d7cbb3abb4e916c161931efdbf4aaa373b9467670694682f62",
+      "bytes": 2299
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/DiscardSuggestions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0ee098963427472aa6df1fa55b15f6e4c2f22a9cc347cddc73a81c11b010115e",
+      "bytes": 3581
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/GatherSuspensionHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "63be2ba8f388d67a94253356142c546fca0c4240bdef6478e5e6f67ac2c76370",
+      "bytes": 11831
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/InsufficientDataPoints.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d1fae658c2f5a237ea228131cab7b8832f075e52ec5ab7ad8c24e86b31823d29",
+      "bytes": 5557
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionsUpdatePreConsumptionType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ef36c11c07dcdd8a7c6d93bea5cbb10bec4b50da8c9df15954c05672508dc0bc",
+      "bytes": 2724
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionsUpdatePreOrderType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bde7d49fc2262c1f803d88ee955da0f1c90d8e57ee1a53a84776201760d4d633",
+      "bytes": 2378
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionsUpdatePreStockType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6ebae977c2f96184555199ecdb5feb2d125e77dac55afff811ccdf68985466cb",
+      "bytes": 2634
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionUpdateFinalConsumptionType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "50795b78f8ebe5c9996e969b5c871bbabf796d634c4c79fa47bffff985a816cf",
+      "bytes": 4686
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionUpdateFinalOrderType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c7c53991b8c496a87ba98caa7b026c9ac60167d0c6629976d8d7373575494b45",
+      "bytes": 5785
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/SuspensionRules/SuspensionUpdateFinalStockType.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "78ad9b66bca9a65f51cc872ebc1f19fd1a398bafca497fe6ffdd9595f3e70a97",
+      "bytes": 4545
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/AllLocationTransactionReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b1316718caf1964dadaeb22767497dcadb01b076931c6f0b88df0d0a95754206",
+      "bytes": 2568
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/CleanDistLogTbl.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "667f6e43fc9d8626e46208e42fad3ee7d5bfff588f7f641085ffc8055b6276ee",
+      "bytes": 900
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/CreateDistTransactionReportBatchFile.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6d78824ab6a06a04fb118e24c30db4b3e5f11c8a11704a6e7a33e369b7f63492",
+      "bytes": 2341
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/CreateTransactionLog.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cdce70f24101fb56103e75fa7ebda8d8d631a6af323e0ba8ffcc610694318383",
+      "bytes": 3815
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/DistributorsDataSnapshot.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1080a5501950e6f78a55a93703f0fe05383c9648a82373dfa2f9b30ff27816e7",
+      "bytes": 1211
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/DistSpecialOrderReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f8aa79d1fd5bcfaa21409d49b067728f95a0aa39ac75000059481eb5c20706b0",
+      "bytes": 1964
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/ImportDistInvoices.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7b3a2337a766ab6e5a9d4aca21911abd9883351fe45805f0866e02b1ac235437",
+      "bytes": 1395
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/ImportDistributorDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6268ea38e290408722c91dfe48340ffcb79d2440d80d093df342d15d644f1330",
+      "bytes": 3852
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/ImportMasterDataForDist.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f924d5ce35dfd3cba69c8dfd023685fe3ab6f75b4f06e05741a3f6ee33bcb238",
+      "bytes": 2481
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/ImportNewSKULocDistributor.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c557e530d6812fad256986c16692d46b4d60d7da7799a93381a89ed7744f48db",
+      "bytes": 1309
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/LocationTransactionReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "fbcec86c407974f031f41b0eafd083abc2cdd0fea817a812bbdcc0f9fc71bfee",
+      "bytes": 2224
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/MissingMasterDataAlertForDistributors.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "981b323c8616f1ade69e69ca7c315c73b0b83788bed0ed37f781af13ef6e0bda",
+      "bytes": 2443
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/MissingMasterDataRptForDistributors.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8feabdec4a77140e61f007ad0d148296b79df9a6a455a854de9912fd87a4680b",
+      "bytes": 1124
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/RejectedInvoiceAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "50b8970f2895ddb5a919d6b8d9630b4b2da93007d87510326596de4de7dfb4f5",
+      "bytes": 2418
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/RejectedInvoiceList.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "09c65cb2946e4290051a1902c09bc3ab9afc068f09306bc3ec77260ab0346d18",
+      "bytes": 871
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Distributor/ResetStockEntry.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "088ba90ee99c32e4ef4a716800c4eb5fcfb4bfa56a4bb054df960ed258ee1e4f",
+      "bytes": 1916
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/AddNewRemoveDiscontinued.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3da6da770b3d207ef7b8adf49cb6fbf20d2c2f090ae46bcd705064d019b6cd5a",
+      "bytes": 8343
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/AddPhaseInItemsMasterData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "334f09db3a78a8517cd32aec3dbf3b387a2dcb144191f219fbd6950d78613333",
+      "bytes": 5514
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearInvalidDataHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "98b1d893f577513e4ce8cb974a4d73ef403a56d45a3e6ec3c6ea4d276b161ed6",
+      "bytes": 2244
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearMasterInputTables.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c47079c697c5ca7f21c572e6975ea728b492b201f625e7a982359785b861e526",
+      "bytes": 2138
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearNonMasterInputTables.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0178c188c7c4c646aabfef7d1c1230f9b52c49f2bc15fd331c9fef66bbd23e3a",
+      "bytes": 1767
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearPhaseInPhaseOutData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "aea7f0f33a4e68611409d035b8974041d411af68a9af2781be3167d9f397b549",
+      "bytes": 1963
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearUIUploadLogHistory.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8acffa51420fae6c9263dc1f3e20c52212914aee91491b16f15db10d74c6e90e",
+      "bytes": 1433
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/CollectNonMasterSKUs.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ab6c9e863befa2909d691ab22973ea0b492c873922bc2652e80539177c107612",
+      "bytes": 1751
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/DailyDataUnavailabilityReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "34fa806c9978c8b36818962be0ea03bb75fcfa1a4d44b248e61edc50991e3a16",
+      "bytes": 722
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/DataUnavailabilityAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f3d19c52fb6a807a5270968364ae453a3fcb2b2dcda318a5044f39fdabe7c10f",
+      "bytes": 2240
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/DBMMissingDailyDataHandling.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "526bc472230f3178c74458bf8a43cfa084ae9262400a36bad0d11e55944c97ec",
+      "bytes": 1545
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ExportInputTable.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "022e622c60b7dee6e1921a54fdf778c53a6334f5bc1d78c76b28e04892aeaf07",
+      "bytes": 1784
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ExportUIUploadLog.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a8261731b1482229959192e3518f7294f9090a22377732f03d5094b3baffb3e6",
+      "bytes": 1196
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/FirstTimeImportOnly_DBMV3/ImportMasterFromDBMDB.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "dd94edf99703d418a67ca0f1cd345fa592c1f741d103b3e8e307ea38ceba6298",
+      "bytes": 97
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/FirstTimeImportWhereDBMV2/DBMMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "905c8558ef5a4a0b06a0ebe2f3db62e35c0e3ae72d1e6dfdf083bd307291524a",
+      "bytes": 1990
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/GenerateLocationInventoryMissingAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ae96bbf875b755445244598061f76e16f6f4bb68dc4b259d5ba04cb15ca2df41",
+      "bytes": 1926
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/GenerateLocationInventoryMissingReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "1d995b43f630a56255859270cb2131d5f2d0b21762e5716eb6aa9902b181e68f",
+      "bytes": 2320
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/GetUnavailableFiles.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d71c18293294f52c529ce6a02232eec48b78fb091e830b5cd5a407a4ff674601",
+      "bytes": 1261
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ImportFNCThroughNormCalendar.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "05b1c186392c8c93674d9f64cba67b63a9980cc529df4fc18c7e801e4bd6bb3b",
+      "bytes": 3644
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/InitialiseSkuLocStdAttributeData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "cb329137601a550c3a8fb02b77918878a8a22d3d31aebe7ef1b2beb392209802",
+      "bytes": 1346
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/InvalidDataAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f255986ef62d33180258b987cee1af795a705343f9af9b122ae2e706d033a8ee",
+      "bytes": 2092
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/InvalidDataReport.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "26011ea60891f9f04156f7bcac77080015c2f957c81cedb5c612aed72b24874e",
+      "bytes": 829
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/Misc/UnApprovedPhaseinPhaseoutAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6c9755e46f66fceda0dc757a478414e1c68424253509987baa7320131d149e26",
+      "bytes": 5090
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/Misc/UpdateNormChanges.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "20eee2a6847084129c33bdaa06bcb684086d5f66631544555c21db9bd9bea3bb",
+      "bytes": 1432
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSArchiveInputData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "594b896300c199de78748cbbf4474f52838fdb8bad8ae5fdc341644cc5bbb4fb",
+      "bytes": 3932
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSClearInputTables.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f3e5a78dda0d82ce593f06c2d09fd4af98dad6b60dccf8ec28ea3be8bfe42a45",
+      "bytes": 2078
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSCreateSnapshot.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f306ea8dc185611197d55d5deb7dd8bf5d1ab5523a581577bc0b8f1ec63a47ab",
+      "bytes": 2810
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSImportData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c86d014b1f7ee921821f83936a53d1d4da566ba9b2558db9252853260c3c3801",
+      "bytes": 34709
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSTaskStatusUpdate.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "99836bcf74c618350924bf02e21dea30cbe4cc9d6022f859f5c1c6cfca10dbe8",
+      "bytes": 29883
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NoNormParentAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3dd377318de5c1f3b0b6ad4bac3e7e3ce526a05a1e1c7d551b6cd01371b530d1",
+      "bytes": 2037
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetBatchExecutionFlag.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bff92b31a962ea6e609e2db6a202744a01a9e46b9a42ed07abaf91dd05e41fa1",
+      "bytes": 1461
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetFlags.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "54185074df4839d2e81156cb1d5417a72dcbd5bd6d8406e8baecd47ba45a2559",
+      "bytes": 1654
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetTotalOrdQtyForOrdCreationUI.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "4c2f60eb6af5fcc2c61e83c16637df7af4dc99d90dc90194128902487a12f6da",
+      "bytes": 949
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/SendDataValidationExceptionsAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "61df7dd2303dc997f71e880f1d03bafefeaf0d01eb2cec604ebce42f11c53a1e",
+      "bytes": 2123
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/UpdateChangedSKULocCode.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0cb7d3c1fab861e3794c772e9a2e4fb567ffaa1de9cebf525fc80ea6dd48e98d",
+      "bytes": 12227
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/UpdateInTransitDataTags.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9a0cad3e75c06f51ee24e03f18680ac307f3f7023750b347b6fb38c1ed15957b",
+      "bytes": 2588
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAcceptedNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b7d742ca39cf4e8c6b55b4ec8a8a47691c608673fd47bccecd3e6b6af835d1c5",
+      "bytes": 3254
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAdditionalDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "858c9f309f9b28d99c8831d9db74a2d99ae50fae66de71620ddaf25ced977c8a",
+      "bytes": 4579
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAdditionalDataStockForReqCalc.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "968a60ac469fcd53fae93a7be36e7c6d25455c8ad9b6b6ac827a8f362bad6dc9",
+      "bytes": 4791
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c210e968452e5cb695c68dfcdbe1b03e5aa8e9b6ca095d98c5cf7d7510497fad",
+      "bytes": 12964
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessDailyDataCarryStock.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "52ecb6160aae4472f929a57d6d452665d5f1c5f061b72da7a3153d0890ca0f40",
+      "bytes": 7219
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessDailyDataNoChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6868625b49a341f7f3f2af8606b2f88ea252eda7323425962d096380d863ff91",
+      "bytes": 4265
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessDailyDataStockZero.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "034e26c43545b2e3bbaa936ac25b3652680260682011ac00f7efd0799e6b6783",
+      "bytes": 6141
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "e95e7c2d7c4fa5459a75184a7eb546e77b58a6b9848b5e08befe61a874b85a88",
+      "bytes": 46043
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessNoNormMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "3ee891a8048ef82d090dea7158c25838f0ffa411679199382ce71e9dfdc4b111",
+      "bytes": 39376
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateBatchExecutionFlags.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "7c91eab8a46d3d6db540b11ba4bd5ee4daff526d1ffe6cd58ff46b70a8173b67",
+      "bytes": 1675
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateCustomGITData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b8c8a76d0346c69eb7e45de147d5e45f11159b1a37f8577ef05001b420def900",
+      "bytes": 5412
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateExclusions.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "335e314d5c7cc35ad85573f7dae3eb8377693bc630b5f02de9ccde8ca51e4d10",
+      "bytes": 3273
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateForceNormChange.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "aeb7918ff7f5619b99952bcf2354c967b578019b4fef3abfc95e512fa5815d03",
+      "bytes": 5140
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateGoodsInTransit.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6db973f9f72e28fcb6d22d8e9ce2e069708b6f656a7169573680afbd45e81257",
+      "bytes": 5079
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateInvoiceData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "12535cf418d5a874108772e09e94e87eb47f9b9ffa30239639009edf83fbdf3b",
+      "bytes": 4949
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateMOQDataRaw1.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "bb3c7118de499e3553875f315b5e388657a4b8a40e0098faea52f2d8cb80342c",
+      "bytes": 6419
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateMOQDataRaw2.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "0acf1f7f9327794e30476afd920e13da9e8494e90669d65bcc6d2d019ccd9eb1",
+      "bytes": 9936
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateNearExpiryMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "ee31086788759b8d9756b12d9fc0da74e86995430489cc631461073e5ed298b8",
+      "bytes": 6555
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateNewAndDiscontinuedMaster.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "f311b86a132bffe8126ec94266a894adb972529478b03dc5a29fb251fcd22399",
+      "bytes": 4388
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateNormCalendarFile.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "09ce49ea227ecd4c7afcbc9dd6d474b14b8f012c6a6936febc1058557c60eb07",
+      "bytes": 2139
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateOrderData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "928911a49f12877a2a99003e851956801492699bca89dd836e7ed97710ae2b8b",
+      "bytes": 2462
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidatePhaseInNorms.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "aba39a9f1590db4ae75a6da3dd0738a47fe1cb5273a154a40c5921d807b82f2e",
+      "bytes": 4507
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidatePhaseout.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "81ad0e7a1cbc22889177944b97b12aafd0c61aa430d0060e2cc5b3b1723f7e9c",
+      "bytes": 8208
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidatePSOData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b26c36120edfaeb7ab1835f4ff108435a0ccefb39bfbea244481caa9522d6be3",
+      "bytes": 2943
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateSeasonalityData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "c6083cc3e466249c4b050548317f1af566ccac05f015c90b9cdde8c754b3af46",
+      "bytes": 10535
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateSOBData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "043ea717cfec14fd642d8894bcaf415feccb83ca22c39e0d3e2b2ecb8483f8f1",
+      "bytes": 7031
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidationForParentNorm.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "014d3c5f3cccff32b266eb11210960ca3fe2241da4bdd62d807dfb860f92da52",
+      "bytes": 2120
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidMasterDataAlert.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "86f373326d9ec79bb43032274173ff91dc050aa60bd149e5b078ee7b94907f33",
+      "bytes": 2021
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d0d2036edd71269c514fd0e316889c6923c20f963063fb5f984b81eaaa7c332b",
+      "bytes": 3110
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "b2f356c09bdc905f11d33e58de2e47b7bb852db43eed2aceb7dcfe3982058f6b",
+      "bytes": 27601
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/AdditionalDataStockForReqCalc.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "62ccc1c33843790c600f4a1fa1271fedd30c8a313c5685458e8f7bd853333013",
+      "bytes": 12327
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ConvertNonNMSItemsToNMS.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "afb858d43fabd90826bc4e2646ef4c2eedc168a2b47bc5f871f4a4cc65e47a7f",
+      "bytes": 565
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportOther.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d37ef742edd00aa5f96956df7c2fcf334ee229065095a20349361b091c10621a",
+      "bytes": 1305
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportPSOData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "d688b3bb355b0fd72cfd0e275130036d162e43fb64170a74540e4f68f6e172dc",
+      "bytes": 3870
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportRawDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "6bb107f1254467bc26349c2a674354f0e2cbbe54ae004bc9a689ea5d0ef02ad6",
+      "bytes": 41526
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportRawMasterData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a6b5171b7e1bf473170709705234501bcf5f3f3b7b03e67fd8c8f64e4da6d5ef",
+      "bytes": 772
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportRawMasterDataNonNMS.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "56489aecb5c34633da7d0df77064e1eb2282a732463476cd0058fdf35cb5b055",
+      "bytes": 2228
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Importer/ImportRawOrderData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "847f0e4ff433406bab8bb9d7cc8b76828c1e6b67fbe19f0f191138d8dd76336c",
+      "bytes": 2018
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Interface_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9020878501610245795274c465e907bbb72096fb51b402f8e1900a3a3b495dd4",
+      "bytes": 7304
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/Intermediate_DBCreation.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "9f2e9dbe0f54ab336a7e5d760d825f5239657d18d52f9b91aa3b73487c11f89f",
+      "bytes": 2030
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/CleanVendorLogTbl.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "a2320ed50dc4d97acdacea965547f00c5a6fbb11e9038b73baee93c2d39d845e",
+      "bytes": 886
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/CreateTransactionLog.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "27ca1647ba6d081399d709306f38514d17aa3e8f4d949941f4e376620940d36b",
+      "bytes": 3564
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/ImportMasterDataForVendor.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "5b46d340b479d203ad04a70dc9ce6b11c37e5e1f0cef57d880114bd7caba456b",
+      "bytes": 1272
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/ImportVendorDailyData.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "8aefef86719c4e4c95283be66518e181da5ad4d515cccf69b123432b616c9d3e",
+      "bytes": 1578
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/ResetStockEntry.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "51af4057bd226cfebf3e88a366a532ae1e294458323d3cd6e8bb57b3918b0cce",
+      "bytes": 1496
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Vendor/VendorDataSnapshot.sql",
+      "role": "canonical source; activation must be reconciled",
+      "sha256": "df76b23133a6e7e3541c09b3051c8987766fcacd26dac7dc7333314b8e9cd50c",
+      "bytes": 1172
+    }
+  ],
+  "retained_resources": [
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block1-selected-consumers/input.json",
+      "role": "sizeable processed/report metadata parent",
+      "sha256": "8ea842061fc03687eafb30b152e3228e91632fb00914e894c1957cf049f753ec",
+      "bytes": 31756710
+    },
+    {
+      "path": "F:/vflow_integrated/.local-demo/input/integrated_current_day.json",
+      "role": "sizeable processed current-day input",
+      "sha256": "783a821712c2f221b21e85ac26f857ae5bf1d7597838a4ff351dd121a0fd20d8",
+      "bytes": 2314181
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block1-selected-consumers/permission-input-v1.json",
+      "role": "retained permission scopes",
+      "sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+      "bytes": 31629
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/manifest.json",
+      "role": "approved temporal extension manifest",
+      "sha256": "d91bdd6a575f1e8eb238c8ebc4cafe122f12bd5400c0213f43decff5a56623e0",
+      "bytes": 107618
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/sizeable-input.json",
+      "role": "full-depth external facts and opening state",
+      "sha256": "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546",
+      "bytes": 88169303
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/representative-bridge-input.json",
+      "role": "shallow connected temporal facts",
+      "sha256": "458c7c661cc2e6b2e65f30415042b98ab889c6e151aeaf086c00029c6528c92f",
+      "bytes": 9397564
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/full-depth-12day-replay.json",
+      "role": "historical parity receipt, not fresh acceptance",
+      "sha256": "a7f0d3ceea067b50f36eccdf89481d5d94ca5f6c3d38d90016ab019228bca581",
+      "bytes": 31588
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3/contract-freeze/effective-dbm-settings.json",
+      "role": "captured effective DBM profile",
+      "sha256": "ea2a5ecd31d087c88b06b801b1d3a77ccf05cad8c8b11939eabf9a2ddf2d5a6b",
+      "bytes": 686
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3/contract-freeze/effective-VFSettings.json",
+      "role": "captured effective BPR profile",
+      "sha256": "4ec1cc14f4a239991de38265483f96ede8e5eee535ace4dd76d57b2b7e2f6407",
+      "bytes": 1153
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3/contract-freeze/effective-ImporterSettingsTbl.json",
+      "role": "captured effective importer profile",
+      "sha256": "0250358fec1d9fe00595b8fe2363ef7fcd48801b7351c48889689e5e48d24437",
+      "bytes": 1465
+    }
+  ],
+  "reuse": {
+    "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+    "git_trees": {
+      "frontend": "dd1b8441644dc3439a27c15015f1ffcd40169faf",
+      "mto": "32099b8c8fd7b16a61858bfe98f22d9a6b47c957",
+      "user-service": "4f001dfb48773cb02e50b0e98e6f63ec5305d4be",
+      "mta": "47f4834437091a846e1d13ecee75bb0b2a10d564"
+    },
+    "status": "reference implementation, not fresh-build acceptance"
+  }
+}

@@ -1,0 +1,139 @@
+{
+    "HeaderData": [
+        {
+            "rn": "SimulateReport",
+            "jf": "ic",
+            "cp": 1,
+            "hdr": "",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "cp",
+            "cp": 2,
+            "hdr": "Color Priority",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "oli",
+            "cp": 3,
+            "hdr": "Order Line Item",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "on",
+            "cp": 4,
+            "hdr": "Order Number",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "item",
+            "cp": 5,
+            "hdr": "Item Code",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "id",
+            "cp": 6,
+            "hdr": "Item Desc",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "oq",
+            "cp": 7,
+            "hdr": "Order Qty",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "bs",
+            "cp": 8,
+            "hdr": "Batch Size",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "kbs",
+            "cp": 9,
+            "hdr": "Kits Before SM",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "fka",
+            "cp": 10,
+            "hdr": "Full Kits Avail",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "cn",
+            "cp": 11,
+            "hdr": "Cust Name",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "cc",
+            "cp": 12,
+            "hdr": "Cust Code",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "od",
+            "cp": 13,
+            "hdr": "Order Receipt Date",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "odd",
+            "cp": 14,
+            "hdr": "Order Due Date",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateReport",
+            "jf": "ord",
+            "cp": 15,
+            "hdr": "Order Release Date",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        }
+    ]
+}

@@ -1,0 +1,67 @@
+{
+    "HeaderChildren": [
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "clr",
+            "cp": 1,
+            "hdr": "",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "on",
+            "cp": 2,
+            "hdr": "Order No",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "oq",
+            "cp": 3,
+            "hdr": "Order Quantity",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "cn",
+            "cp": 4,
+            "hdr": "Cust Name",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "cc",
+            "cp": 5,
+            "hdr": "Cust Code",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "odd",
+            "cp": 6,
+            "hdr": "Order Due Date",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "ProcPlanningReportChildren",
+            "jf": "ord",
+            "cp": 7,
+            "hdr": "Order Release Date",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        }
+    ]
+}

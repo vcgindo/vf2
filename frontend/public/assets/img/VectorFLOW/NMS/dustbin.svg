@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="462" height="512.003" viewBox="0 0 462 512.003">
+  <g id="Layer_x0020_1" transform="translate(-25)">
+    <path id="Path_10783" data-name="Path 10783" d="M480,127H32c-3,0-7-3-7-7V65c0-4,4-7,7-7H480c3,0,7,3,7,7v55C487,124,483,127,480,127ZM39,113H473V72H39Z" fill="#1c1c1c" fill-rule="evenodd"/>
+    <path id="Path_10784" data-name="Path 10784" d="M409,512H102c-17,0-31-14-31-32V120c0-4,4-7,7-7a6.835,6.835,0,0,1,7,7V480c0,10,8,18,17,18H409c11,0,18-8,18-18V120c0-4,4-7,7-7a6.835,6.835,0,0,1,7,7V480a31.591,31.591,0,0,1-32,32Z" fill="#1c1c1c" fill-rule="evenodd"/>
+    <path id="Path_10785" data-name="Path 10785" d="M321,72c-3,0-7-3-7-7V36c0-12-9-22-22-22H219a22.2,22.2,0,0,0-22,22V65a6.835,6.835,0,0,1-7,7c-3,0-7-3-7-7V36c0-20,17-36,36-36h73a35.85,35.85,0,0,1,36,36V65a6.835,6.835,0,0,1-7,7Z" fill="#1c1c1c" fill-rule="evenodd"/>
+    <g id="Group_4005" data-name="Group 4005">
+      <path id="Path_10786" data-name="Path 10786" d="M163,407c-3,0-7-3-7-7V194c0-4,4-7,7-7a6.835,6.835,0,0,1,7,7V400a6.835,6.835,0,0,1-7,7Z" fill="#1c1c1c" fill-rule="evenodd"/>
+      <path id="Path_10787" data-name="Path 10787" d="M349,407c-3,0-7-3-7-7V194c0-4,4-7,7-7a6.835,6.835,0,0,1,7,7V400a6.835,6.835,0,0,1-7,7Z" fill="#1c1c1c" fill-rule="evenodd"/>
+      <path id="Path_10788" data-name="Path 10788" d="M256,407c-3,0-7-3-7-7V194c0-4,4-7,7-7a6.835,6.835,0,0,1,7,7V400a6.835,6.835,0,0,1-7,7Z" fill="#1c1c1c" fill-rule="evenodd"/>
+      <path id="Path_10789" data-name="Path 10789" d="M384,467H128c-3,0-7-3-7-7s4-7,7-7H384a7,7,0,1,1,0,14Z" fill="#1c1c1c" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>

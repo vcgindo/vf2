@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="51" height="34" viewBox="0 0 51 34">
+  <g id="Group_3183" data-name="Group 3183" transform="translate(-515 -269)">
+    <g id="Group_3067" data-name="Group 3067" transform="translate(516 271)">
+      <g id="Ellipse_224" data-name="Ellipse 224" transform="translate(-1 -2)" fill="#969696" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+      <g id="Ellipse_225" data-name="Ellipse 225" transform="translate(16 -2)" fill="#fff" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+      <g id="Ellipse_226" data-name="Ellipse 226" transform="translate(33 -2)" fill="#fff" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+      <g id="Ellipse_227" data-name="Ellipse 227" transform="translate(0 16)" fill="#fff" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+      <g id="Ellipse_228" data-name="Ellipse 228" transform="translate(17 16)" fill="#fff" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+      <g id="Ellipse_229" data-name="Ellipse 229" transform="translate(34 16)" fill="#969696" stroke="#9a9a9a" stroke-width="1">
+        <circle cx="8" cy="8" r="8" stroke="none"/>
+        <circle cx="8" cy="8" r="7.5" fill="none"/>
+      </g>
+    </g>
+    <text id="XS" transform="translate(522 280)" fill="#fff" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-4.327" y="0">XS</tspan></text>
+    <text id="S" transform="translate(540 280)" fill="#9a9a9a" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-2.112" y="0">S</tspan></text>
+    <text id="M" transform="translate(556 280)" fill="#9a9a9a" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-3.064" y="0">M</tspan></text>
+    <text id="L" transform="translate(524 297)" fill="#9a9a9a" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-1.894" y="0">L</tspan></text>
+    <text id="XL" transform="translate(541 297)" fill="#9a9a9a" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-4.108" y="0">XL</tspan></text>
+    <text id="XXL" transform="translate(558 297)" fill="#fff" font-size="7" font-family="Roboto-Medium, Roboto Medium" font-weight="500"><tspan x="-6.323" y="0">XXL</tspan></text>
+  </g>
+</svg>

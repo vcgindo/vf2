@@ -1,0 +1,64 @@
+.loading {
+	margin: 0 auto;
+
+	width: 100%;
+	max-width: 720px;
+	/* height: 100%; */
+
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
+
+@media screen and (max-width: 1280px) and (max-height: 768px){
+	.loading {
+		height: unset;
+	}
+}
+
+/* Keyframes Spin */
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Spinner */
+.spinner {
+	--spinner-color: black;
+
+	aspect-ratio: 1/1;
+	border-radius: 50%;
+
+	animation-name: spin;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+.spinner--quarter {
+	width: 48px;
+	border: 5px solid var(--spinner-color);
+	border-top-color: transparent;
+
+	animation-duration: 1s;
+}
+
+.spinner--dotted {
+	width: 48px;
+	border: 5px dotted var(--spinner-color);
+
+	animation-duration: 5s;
+}
+
+.spinner--hourglass {
+	width: 58px;
+	background: repeating-conic-gradient(
+		transparent 0deg 90deg,
+		var(--spinner-color) 90deg 180deg
+	);
+
+	animation-duration: 2s;
+}

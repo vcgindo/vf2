@@ -1,0 +1,58 @@
+{
+    "HeaderChildren": [
+        {
+            "rn": "SimulateChildren",
+            "jf": "clr",
+            "cp": 1,
+            "hdr": "",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateChildren",
+            "jf": "rm",
+            "cp": 2,
+            "hdr": "RM Code",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateChildren",
+            "jf": "rmd",
+            "cp": 3,
+            "hdr": "RM Desc",
+            "vs": true,
+            "ca": "right",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateChildren",
+            "jf": "rmqty",
+            "cp": 4,
+            "hdr": "RM ReqQty",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateChildren",
+            "jf": "rma",
+            "cp": 5,
+            "hdr": "RM Available",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        },
+        {
+            "rn": "SimulateChildren",
+            "jf": "rmall",
+            "cp": 6,
+            "hdr": "RM Allocated",
+            "vs": true,
+            "ca": "left",
+            "val": "*Error*"
+        }
+    ]
+}

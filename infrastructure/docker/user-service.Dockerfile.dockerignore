@@ -1,0 +1,11 @@
+**/node_modules
+**/.env
+**/.env.*
+!user-service/.env.example
+!user-service/.env.local.example
+**/*.pem
+**/*.key
+**/__pycache__
+**/*.pyc
+**/*.log
+**/logs/

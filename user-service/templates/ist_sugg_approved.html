@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IST suggestions accepted </title>
+
+    <style>
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+            border-collapse: collapse;
+        }
+
+    </style>
+</head>
+<body>
+    <p>Dear Team,</p>
+
+    <p>Today's ISTs accepted summary: </p>
+
+    <p> Total records: {{count_approved_ist_ids}} <br>
+    Total qty to be moved: {{total_quantity_to_be_moved}} </p>
+
+    {% if count_approved_ist_ids != 0 %}
+    <table>
+        <tr>
+            <th>Brand</th>
+            <th>Donor code </th>
+            <th>Donor name</th>
+            <th>Receiver code</th>
+            <th>Receiver name</th>
+            <th>Qty</th>
+        </tr>
+        {% for ist_row in accepted_ist_info%}
+            <tr>
+                {% for value in ist_row %}
+                    <td>{{value}}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <br>
+    <span>Thanks & Regards,<br> Vector Support</span>
+</body>
+</html>

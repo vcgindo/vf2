@@ -1,0 +1,43 @@
+trigger:
+  - develop
+pool:
+  name: default
+variables:
+  REACT_APP_API_HOST: http://10.8.1.10:8888/
+  REACT_APP_VF_API_HOST: http://10.8.1.10:8082
+  REACT_APP_ENV: test
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 18.x
+    displayName: Install Node.js
+  - script: |
+      npm install
+    displayName: Install Dependencies
+  - script: |
+      npx eslint --max-warnings=0 src || exit 1
+    displayName: Check Code Linting
+  - script: |
+      npm test -- --watchAll=false || exit 1
+    displayName: Run Unit Tests and Code Coverage
+  # - script: |
+  #     npm run build
+  #   env:
+  #     REACT_APP_API_HOST: ${REACT_APP_API_HOST}
+  #     REACT_APP_VF_API_HOST: ${REACT_APP_VF_API_HOST}
+  #     REACT_APP_ENV: ${REACT_APP_ENV}
+  #   displayName: Build React Application
+  #   workingDirectory: $(build.sourcesDirectory)
+  # - script: |
+  #     call npm install -g pm2 || exit 1
+  #     call npm install -g serve || exit 1
+  #     call pm2 delete vflow-frontend
+  #     call rmdir /s /q C:\Users\vflowadmin\CI-BUILDS\vflow-frontend\build
+  #     call mkdir C:\Users\vflowadmin\CI-BUILDS\vflow-frontend\build
+  #     call xcopy build C:\Users\vflowadmin\CI-BUILDS\vflow-frontend\build /E /I /H /K
+  #     call cd C:\Users\vflowadmin\CI-BUILDS\vflow-frontend
+  #     pm2 serve build/ 3000 --name "vflow-frontend" --spa || exit 1
+  #   displayName: Deploy to Test Server
+  #   env:
+  #     HOMEPATH: C:\Users\vflowadmin
+  #   workingDirectory: $(build.sourcesDirectory)

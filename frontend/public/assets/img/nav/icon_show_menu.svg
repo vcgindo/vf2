@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="32" height="32" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.5" y1="0.19" x2="0.5" y2="1.18" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#bc3d81"/>
+      <stop offset="1" stop-color="#820f4c"/>
+    </linearGradient>
+  </defs>
+  <g id="Group_1292" data-name="Group 1292" transform="translate(-161 -217)">
+    <g id="Group_1281" data-name="Group 1281" transform="translate(-317 77)">
+      <circle id="Ellipse_145" data-name="Ellipse 145" cx="16" cy="16" r="16" transform="translate(478 140)" fill="url(#linear-gradient)"/>
+    </g>
+    <g id="Page-1" transform="translate(169.712 227.124)">
+      <g id="Artboard" transform="translate(1 1)">
+        <g id="menu">
+          <path id="Shape" d="M0,6H12.575" transform="translate(0 -1.123)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" fill-rule="evenodd"/>
+          <path id="Shape-2" data-name="Shape" d="M0,0H12.575" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" fill-rule="evenodd"/>
+          <path id="Shape-3" data-name="Shape" d="M0,12H12.575" transform="translate(0 -2.247)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" fill-rule="evenodd"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

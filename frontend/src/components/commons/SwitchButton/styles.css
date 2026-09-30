@@ -1,0 +1,126 @@
+
+.button-switch {
+  font-size: 13px;
+  color: #B4B4B4;
+  margin-bottom: 0.625em;
+  position: relative;
+  width: 130px;
+  height: 54px;
+  margin-bottom: 0;
+  top: 8px;
+  left: 6px;
+}
+.button-switch .lbl-off,
+.button-switch .lbl-on {
+  cursor: pointer;
+  display: block;
+  font-size: 0.9em;
+  font-weight: bold;
+  line-height: 1em;
+  position: absolute;
+  top: 14px;
+  transition: opacity 0.25s ease-out 0.1s;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.button-switch .lbl-off {
+  right: 21px;
+}
+.button-switch .lbl-on {
+  color: #820F4C;
+  opacity: 0;
+  left: 9px;
+}
+.button-switch .switch {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 0;
+  font-size: 1em;
+  left: 0;
+  line-height: 0;
+  outline: none;
+  position: absolute;
+  top: 0;
+  width: 0;
+}
+.button-switch .switch:before, .button-switch .switch:after {
+  content: "";
+  font-size: 1em;
+  position: absolute;
+}
+.button-switch .switch:before {
+  border-radius:30px;
+  background: #fff;
+  height: 44px;
+  left: -12px;
+  top: -8px;
+  transition: background-color 0.25s ease-out 0.1s;
+  width: 120px;
+  border: 1px solid #B4B4B4;
+}
+.button-switch .switch:checked:before {
+
+  border: 1px solid #820F4C;
+}
+.button-switch .switch:after {
+  box-shadow: 0 0.0625em 0.375em 0 #666;
+  border-radius: 50%;
+  background: #B4B4B4;
+
+  height: 25px;
+  transform: translate(-3px, 2px);
+  transition: transform 0.25s ease-out 0.1s;
+  width: 25px;
+}
+.button-switch .switch:checked:after {
+  transform: translate(73px, 2px);
+  background: #820F4C;
+}
+.button-switch .switch:checked ~ .lbl-off {
+  opacity: 0;
+}
+.button-switch .switch:checked ~ .lbl-on {
+  opacity: 1;
+}
+.button-switch .switch#switch-orange:checked:before {
+  background: #fff;
+}
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .button-switch {
+    width: 100px;
+    height: 36px;
+  }
+  .button-switch .switch:before {
+    width: 100px;
+    height: 36px;
+  }
+  .button-switch .lbl-off,
+  .button-switch .lbl-on {
+    font-size: 0.68em;
+    top: 6px;
+  }
+
+  .button-switch .lbl-on {
+    left: 8px;
+  }
+
+  .button-switch .switch:after {
+    width: 16px;
+    height: 16px;
+    top: -1.6px;
+    transform: translate(0, 0);
+
+  }
+  .button-switch .switch:checked:after {
+    transform: translate(60px, 0);
+    background: #820F4C;
+  }
+  .button-switch .lbl-off {
+    right: 13px;
+  }
+  .button-switch .switch:before {
+      top: -12px;
+  }
+}

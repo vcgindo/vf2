@@ -1,0 +1,119 @@
+.ag-theme-alpine {
+    /* --ag-foreground-color: #EBEBEB; */
+    /* --ag-background-color: rgb(255, 255, 255); */
+    --ag-header-foreground-color: rgb(255, 255, 255);
+    --ag-header-background-color: rgb(0, 0, 0);
+    --ag-header-height:25px !important;
+    --ag-checkbox-checked-color:#BC3D81;
+    --ag-selected-row-background-color:rgb(188, 61, 129,0.2);
+    /* --ag-odd-row-background-color: rgb(0, 0, 0, 0.03); */
+    /* --ag-header-column-resize-handle-color: rgb(126, 46, 132); */
+    /* --ag-border-radius:32px; */
+    --ag-grid-size:3px ;
+    --ag-font-size: 17px;
+    /* --ag-font-family: monospace; */
+    
+  }
+  
+  .ag-row:hover{
+      background-color: rgb(188, 61, 129,0.3) !important;
+  }
+  
+  .ag-root-wrapper{
+      border-radius: 8px 8px 0 0;
+  }
+  
+  .ag-header{
+    border-radius: 8px 0px 0 0;
+    font-style:normal;
+    font-variant: normal;
+    font-weight: 400 ;
+    font-size: 12px !important;
+    line-height: 24px;
+    font-family: Roboto;
+    letter-spacing: 0px;
+    color: #FFFFFF;
+    height: 25px !important;
+    }
+  .ag-header-icon{
+      opacity:1 !important;
+      color:white;
+  }
+  
+  .active-row {
+      z-index: 111 !important; /* Adjust z-index to suit your needs */
+      position: relative; /* z-index only works on positioned elements (position:absolute, position:relative, or position:fixed) */
+      /* Any other styles */
+    }
+  
+  .ag-row{
+      overflow: visible;
+  }
+  
+  .ag-header-row:nth-child(2){
+      background-color: #F7F7F7;
+      color:black;
+      width: 100% !important;
+  }
+  
+  .ag-header-cell-label{
+      justify-content: center;
+  }
+  
+  .selected-record-count{
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 19px;
+      color: #6E6969;
+      padding-top: 24px;
+  
+  }
+  
+  .ag-header-group-cell-with-group{
+      justify-content: center;
+  }
+  
+  .ag-status-name-value span{
+      color:black;
+  }
+  
+  .ag-body-horizontal-scroll{
+      height: unset !important;
+      max-height: unset !important;
+      min-height: 29px !important;
+  }
+  
+  .ag-body-horizontal-scroll-viewport{
+      height:unset !important;
+      max-height: unset !important;
+      min-height: unset !important;
+  }
+  
+  .ag-horizontal-right-spacer{
+      display:none !important;
+  }
+  
+  .ag-body-vertical-scroll-viewport{
+      min-width: unset !important;
+      width: 29px !important;
+      max-width: unset !important;
+  }
+  
+  .ag-body-vertical-scroll{
+      min-width:unset !important;
+      max-width: unset !important;
+      width: unset !important;
+  }
+  .ag-panel-title-bar-button{
+      color:white !important;
+  }
+
+  .btr_cell_style{
+    font-size: 10px;
+    }
+    
+    .ag-paging-panel{
+    font-size: 10px;
+    }

@@ -1,0 +1,38 @@
+.filter-accordian{
+    width:'100%';
+    box-sizing: border-box;
+}
+
+.accordian-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.accordian-title{
+    font-family: 'Roboto';
+    font-weight: 300;
+    font-size: 16px;
+    letter-spacing: 0px;
+    color:#313131;
+   
+    /* margin-bottom: 0px; */
+}
+
+.accordian-body{
+    /* margin-top: 12px; */  
+    padding-left: 12px;
+    overflow: overlay;
+    max-height: 144px;
+    /* overflow:scroll;*/
+} 
+.accordian-body:not(.accordian-body .accordian-body)::-webkit-scrollbar {
+    display: none;
+}
+
+
+
+.padded-image {
+    padding-right: 10px;
+  }

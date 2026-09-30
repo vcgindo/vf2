@@ -1,0 +1,35 @@
+
+.react-select-container {
+  position: absolute !important;
+  background: white;
+  z-index: 3;
+}
+
+.select-search-input {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 40px;
+  width: 100%;
+  padding: 0 10px 0 24px;
+  border: 1px solid #D8D8D8;
+  border-radius: 6px;
+  outline: none;
+  font-size: 12px;
+  text-align: left;
+  background:#fff;
+}
+
+.select-Button {
+  white-space: nowrap; 
+  width: 100%; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+@media (min-width: 1024px) and (max-width: 1380px) {
+  .select-Button {
+    width: 100%; 
+  }
+}
+

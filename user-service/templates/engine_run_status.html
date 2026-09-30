@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VectorFLOW Retail Run Status:</title>
+    <style>
+        th,td{
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+            border-collapse: collapse;
+        }
+
+        .summary-table th, .summary-table td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+            border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+    <p>Dear Team,</p>
+        <p>VectorFLOW Retail app run for today has {{status}}</p>
+    <table>
+        <tr>
+            <th>Reports</th>
+            <th>Remarks</th>
+            <th>Numbers</th>
+        </tr>
+        <tr>
+            <td>Input Data</td>
+            <td>{{ftp_file_status}}</td>
+            {% if daily_input_file_size_in_mb != 0 %}
+                <td>Zip File Size: {{daily_input_file_size_in_mb}} Mb</td>
+            {% else %} 
+                <td>Zip File Size: NA</td>
+            {% endif %}
+        </tr>
+        <div>
+            <!-- i : report ; j : remarks ; k : quantity -->
+            {% for i, j, k in file_presence %}
+                {% if i == 'Fashion-RationedRequirement.csv'%}
+                <tr>
+                    <td>Fashion Rationed Requirement Report</td> <td>{{j}}</td> {% if k != -1 %} <td> Total Allocation Qty: {{k}} </td> {% else %} <td> Total Allocation Qty: NA</td> {% endif %}
+                </tr>
+                {% elif i == 'IST_Output.csv' %}
+                <tr>
+                    <td>Inter Store Transfer Suggestions</td> <td>{{j}}</td> {% if k != -1 %} <td> Qty to be moved: {{k}} </td> {% else %} <td> Qty to be moved: NA </td> {% endif %}
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </table>
+        {% if show_summary == True %}
+            <p>Today's input file contains some uncertain data. Please find the details below: </p>
+        <div>
+            {{ uncertain_data_summary_table|safe }}
+        </div>
+
+        <p>
+            <strong>Note:</strong> Last 7 days span from <strong>{{last_7_days_range_day_1}}</strong> to <strong>{{last_7_days_range_day_7}}</strong>.
+        </p>
+
+        <p>For detailed information download Warning_DataMissing.xlsx from miscellaneous reports tab on website.</p>
+        {% endif %}
+    <br>
+    <span>Thanks & Regards,<br> Vector Support</span>
+</body>
+</html>

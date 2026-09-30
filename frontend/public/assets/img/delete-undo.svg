@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="17.617" height="17.617" viewBox="0 0 17.617 17.617">
+  <g id="delete" transform="translate(0.5 0.5)">
+    <path id="Path_16966" data-name="Path 16966" d="M3,11.309A8.309,8.309,0,1,0,11.309,3,9.113,9.113,0,0,0,3.639,7.474" transform="translate(-3 -3)" fill="none" stroke="#bc3d81" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1"/>
+    <path id="Path_16967" data-name="Path 16967" d="M24,6V8.556h2.556" transform="translate(-23.361 -4.083)" fill="none" stroke="#b93b7e" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1"/>
+    <g id="Group_13092" data-name="Group 13092" transform="translate(5.113 4.474)">
+      <path id="Path_16968" data-name="Path 16968" d="M12.639,18.752h3.835L17.113,13H12Z" transform="translate(-11.361 -11.083)" fill="none" stroke="#b93b7e" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1"/>
+      <path id="Path_16969" data-name="Path 16969" d="M17.391,13H11" transform="translate(-11 -11.083)" fill="none" stroke="#b93b7e" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1"/>
+      <path id="Path_16970" data-name="Path 16970" d="M14.639,10h1.278a.6.6,0,0,1,.639.639v1.278H14V10.639A.6.6,0,0,1,14.639,10Z" transform="translate(-12.083 -10)" fill="none" stroke="#b93b7e" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1"/>
+    </g>
+  </g>
+</svg>

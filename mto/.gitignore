@@ -1,0 +1,4 @@
+/logs/api.log
+/local_wheels/*
+__pycache__
+.env

@@ -1,0 +1,11 @@
+1.To create the exe enable the venv and run the below command ---------------
+Change the portnumber in the ExeGenerator.py to the required port number
+Command :  pyinstaller --onefile --windowed --icon=Favicon_White.ico --name={Name of the Exe required} ExeGenerator.py
+
+2. Once the exe is created in the dist folder then move the exe to the root folder of the project 
+3. Create the shortcut for the exe and place the shortcut in the desktop 
+4. To add the exe on startup 
+    a. Press Windows + R 
+    b. open shell:startup
+    c. A folder will open in that folder copy the shortcut and place it in the folder
+    

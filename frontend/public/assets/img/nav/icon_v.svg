@@ -1,0 +1,15 @@
+<svg id="Component_68_1" data-name="Component 68 – 1" xmlns="http://www.w3.org/2000/svg" width="68" height="39" viewBox="0 0 68 39">
+  <g id="Rectangle_6915" data-name="Rectangle 6915" stroke="#bfbfbf" stroke-width="0.5">
+    <rect width="68" height="39" rx="6" stroke="none"/>
+    <rect x="0.25" y="0.25" width="67.5" height="38.5" rx="5.75" fill="none"/>
+  </g>
+  <path id="Name" d="M8.714-4.179,13.592-19.2h3.665L10.349,0H7.119L.237-19.2H3.889Z" transform="matrix(1, -0.017, 0.017, 1, 13.185, 30.147)" fill="#fff"/>
+  <g id="Layer_2" data-name="Layer 2" transform="translate(37 8)">
+    <g id="menu-2">
+      <circle id="Ellipse_143" data-name="Ellipse 143" cx="1" cy="1" r="1" transform="translate(3 11)" fill="#fff"/>
+      <rect id="Rectangle_6916" data-name="Rectangle 6916" width="14" height="2" rx="0.94" transform="translate(7 11)" fill="#fff"/>
+      <rect id="Rectangle_6917" data-name="Rectangle 6917" width="18" height="2" rx="0.94" transform="translate(3 16)" fill="#fff"/>
+      <rect id="Rectangle_6918" data-name="Rectangle 6918" width="18" height="2" rx="0.94" transform="translate(3 6)" fill="#fff"/>
+    </g>
+  </g>
+</svg>

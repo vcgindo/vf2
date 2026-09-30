@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="95" height="95" viewBox="0 0 95 95">
+  <defs>
+    <filter id="Subtraction_1" x="0" y="0" width="95" height="95" filterUnits="userSpaceOnUse">
+      <feOffset dy="10" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feFlood flood-color="#c4c8d0" flood-opacity="0.4"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <linearGradient id="linear-gradient" x1="0.5" y1="1" x2="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#be7a0a"/>
+      <stop offset="1" stop-color="#fca311"/>
+    </linearGradient>
+  </defs>
+  <g id="Group_2161" data-name="Group 2161" transform="translate(-388.185 -99.5)">
+    <g transform="matrix(1, 0, 0, 1, 388.19, 99.5)" filter="url(#Subtraction_1)">
+      <path id="Subtraction_1-2" data-name="Subtraction 1" d="M110.691,97.2a17.5,17.5,0,1,1-17.5,17.5A17.5,17.5,0,0,1,110.691,97.2Z" transform="translate(-63.19 -77.2)" fill="#fff"/>
+    </g>
+    <g id="Group_1296" data-name="Group 1296" transform="translate(281.996 -95.754)">
+      <g id="Group_1281" data-name="Group 1281" transform="translate(139.803 218.803)">
+        <circle id="Ellipse_145" data-name="Ellipse 145" cx="14" cy="14" r="14" transform="translate(0.197 0.197)" fill="url(#linear-gradient)"/>
+        <path id="_581e0110b683da824149a2354ae2354e" data-name="581e0110b683da824149a2354ae2354e" d="M.246,13.273a.715.715,0,0,0,.986,0L7,7.707A1.313,1.313,0,0,0,7,5.8L1.191.2A.716.716,0,0,0,.211.19.657.657,0,0,0,.2,1.15L5.52,6.28a.657.657,0,0,1,0,.952L2.46,10.185.246,12.322a.656.656,0,0,0,0,.952" transform="translate(10.493 7.461)" fill="#fff" fill-rule="evenodd"/>
+      </g>
+    </g>
+  </g>
+</svg>

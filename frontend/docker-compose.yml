@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  vector-refactor:
+    container_name: vector-refactor
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_HOST=http://192.168.50.69:8889
+      cache_from:
+        - portal-vector-refactor:latest
+    ports:
+      - "9000:3000"
