@@ -68,6 +68,17 @@ def provision_execution_principal(master):
             if not target.execute('SELECT USER_ID(?)',PRINCIPAL).fetchval():
                 target.execute(f'CREATE USER [{PRINCIPAL}] FOR LOGIN [{PRINCIPAL}]')
             target.execute(f'GRANT CONTROL ON DATABASE::[{database}] TO [{PRINCIPAL}]')
+            # SQL Server CHECKIDENT requires schema ownership or a fixed
+            # database role even with CONTROL. Only the owned BPR scratch DB
+            # needs reseeding to retain explicit legacy order identities.
+            # https://learn.microsoft.com/sql/t-sql/database-console-commands/dbcc-checkident-transact-sql
+            allowed={'db_ddladmin'} if database==MAPPING['VFTEST_BPR'] else set()
+            roles={r[0] for r in target.execute(
+                'SELECT r.name FROM sys.database_role_members m JOIN sys.database_principals r '
+                'ON r.principal_id=m.role_principal_id WHERE m.member_principal_id=USER_ID(?)',PRINCIPAL)}
+            if roles-allowed:raise ValueError('Unexpected Fresh database role grant')
+            if 'db_ddladmin' in allowed and 'db_ddladmin' not in roles:
+                target.execute(f'ALTER ROLE [db_ddladmin] ADD MEMBER [{PRINCIPAL}]')
 
 
 def build():

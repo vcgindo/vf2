@@ -1,0 +1,57 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "post_extraction_safeguards": {
+    "capture_rosters": "Frozen independently in temporal-oracle-roster.json from the unchanged registered input, declared producer sequence and full canonical SQL capture. Exact nested prior/closing and ordered control/report membership required.",
+    "source_receipts": "Replay captures every parity and MTA Python dependency plus oracle metadata; changed comparison/driver dependencies invalidate continuation.",
+    "automatic_actions": "Optional trial policy selects only from each engine's own suggestions, executes original API SQL Apply/Sleep writes, compares complete post-action state. Business SQL/config unchanged."
+  },
+  "files": [
+    {
+      "path": "parity/adapters/legacy/temporal_support.py",
+      "source": "parity/block3_control_carry_cases.py",
+      "source_sha256": "810ff432bfd1442b330167b1b967869688f3d91aecb01a8b352cf3ab5d1ec29c",
+      "changes": "Extract static control bindings and SHARED_CONTROLS only; local typed JSON helpers"
+    },
+    {
+      "path": "parity/adapters/legacy/temporal_maintenance.py",
+      "source": "parity/adapters/legacy/block3_accepted_norm_stock.py",
+      "source_sha256": "e2735b857ede90cdec76522a138ffa14c5a43829742a90f01fad7258f0c18924",
+      "changes": "Retain exact approved maintenance capture and source hash checks, exclude execution/test framework"
+    },
+    {
+      "path": "parity/adapters/legacy/temporal_delivery.py",
+      "source": "parity/adapters/legacy/block3_one_pass.py",
+      "source_sha256": "9b474ab0d4b8f10b256f2d8a9c86c2c0ac41ba2899f0ba749f4a9d07edffd6c4",
+      "changes": "Fresh-only binding; read-only metadata pin check; static controls; unchanged SQL execution sequence"
+    },
+    {
+      "path": "parity/adapters/legacy/temporal_day.py",
+      "source": "parity/adapters/legacy/block3_calculation_timeline.py",
+      "source_sha256": "0960104ded75426ee2cc1cf731cd14866c03f02860db58f9e2c6d994a6e52c77",
+      "changes": "Fresh exclusive lease replaces Block2 locks; no whole-DB fingerprints/restoration; unchanged producer SQL; rollback owned transaction only"
+    }
+  ],
+  "resources": [
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-one-pass/delivery-v1/btr-source-contract.json",
+      "sha256": "597b514681016a4227ac3cb862b2c6222659f43c7e9b59f20803de3dbd93c1b1"
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-one-pass/delivery-v1/consumer-settings-full.json",
+      "sha256": "e72315377dee6996c3fd649df4f4f0c9dbd30b6c9b880d7b0b76131d32ad2086"
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-one-pass/delivery-v1/selected-clock-source.json",
+      "sha256": "bd09266a8b0e36ea1961954f8836274405c1b732c3b4106cde86b1e3ffbf9239"
+    },
+    {
+      "path": "F:/vflow_integrated/.local-stage7/block3-one-pass/delivery-v1/full-sql-pins.json",
+      "sha256": "a514f47b447e7d18ed2df02a8d6224bc76d9badafba43395ebba7da358e1c515"
+    },
+    {
+      "path": "F:/vflow_integrated/docs/block3/R2_ACCEPTED_NORM_STOCK_CONTRACT.md",
+      "sha256": "1c7073c128fdc7adecd5449ee501e2f526ae5b084f442e54d75fd33b24052410",
+      "role": "previously approved shared-tempdb capture only"
+    }
+  ]
+}

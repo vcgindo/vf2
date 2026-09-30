@@ -20,7 +20,7 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — complete connected engine implemented; retained 39-identity/12-day regression96/96, fresh and ledger-governed acceptance pending |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — fresh fixed-action348/348 and shallow automatic372/372 PASS; unchanged full-estate ledger verified; full-estate execution pending |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
 Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
@@ -240,8 +240,75 @@ Remaining F2 exit, without a new queue: fresh isolated canonical temporal SQL
 replay; explicit ledger-governed shallow then200-SKU/20-location/1240-pair trial,
 3×maxRLT, half-RLT transit and automatic workflow policy; compare all required
 daily calculations, emitted reports, action effects and final persisted state.
-The retained v1 timelines encode the12-day horizon and fixed actions but do NOT
-declare the later ledger conservation/half-RLT/automatic-action policy. They
-remain regression inputs; do not relabel them as that final trial. Any extension
-must preserve retained catalogue identity and have one explicit input manifest.
+Correction to the earlier limited inventory: both retained v1 timelines DO
+contain explicit ledger conservation and half-RLT dated shipments. Independent
+validation of their unchanged bytes passes: representative39identities/1073fact
+rows/899shipments; sizeable1240identities/34682fact rows/32909shipments. Each
+opening BPR/DBM historical fact and every future input matches its stock/GIT
+ledger; receipts equal dated shipments; transit is positive half-up rounded
+RLT/2;12consecutive computed days equal3×maxRLT4. Receipts are
+`D:/freshvcf-build/evidence/f2-ledger-representative-001.json` and
+`f2-ledger-sizeable-001.json`. No generation or input substitution is needed.
+Their four fixed day0 Apply/Sleep commands do not establish daily automatic
+acceptance. The remaining trial-policy work uses these SAME external inputs,
+with each engine deriving actions from its own computed recommendations.
 F3 application delivery remains pending. Existing serving applications unchanged.
+
+### F2 fresh oracle and automatic trial checkpoint
+
+- Fresh canonical SQL completed the same39-identity/12-day fixed-action timeline:
+  **348/348 comparisons PASS** (8complete boundaries +20current-day contracts
+  +complete emitted reports each day). Modern counterparts are the prior fresh
+  PostgreSQL readbacks, not seeded legacy answers. SQL uses only owned Fresh
+  databases, restricted principal and exclusive replay lease. Canonical business
+  SQL and its132daily source receipts are unchanged.
+- Fresh receipt: `D:/freshvcf-build/evidence/f2-fresh-sql-012/replay.json`, SHA256
+  `e0b34436dcf4ead6603532d0d08c75a557443df6096ac093891d216b766415fd`.
+  Day0 is retained in its verified prefix `f2-fresh-sql-002`. Initial permission
+  failure remains in `f2-fresh-sql-001`; SQL CHECKIDENT required db_ddladmin only
+  in the owned Fresh BPR database. No live/other database or server grant added.
+- Independent review tightened exact nested capture rosters, stage multiplicity,
+  complete dependency hashes and continuation guards. Recomparison of all12full
+  SQL captures passes348/348 in `f2-fresh-sql-012-recomparison.json`; this is an
+  updated comparison of fresh captures, not another claimed SQL execution.
+- The same unchanged representative external facts now ran12days through fresh
+  PostgreSQL with explicit policy `own-recommendations-daily-apply-retained-sleep-v1`.
+  Retained Sleep events act on their exact declared dates; all other own computed
+  recommendations are submitted through the real Apply command. This does NOT
+  enable canonical `AutoDBMActive`; no cooling/suspension behavior is invented.
+  Every persisted action-state digest and next predecessor is recorded in
+  `f2-auto-representative-001`. Policies now have distinct durable opening and
+  idempotency identities. The complete shallow SQL result is recorded below;
+  this does not yet establish full-estate automatic parity.
+- Automatic SQL comparison stopped once at day1 on a comparison-harness regression:
+  wrapping reports in a list accidentally made nested row order significant.
+  Exact ordered stage/multiplicity assertions remain; per-stage report rows again
+  use typed bags preserving duplicates. Original failure `f2-auto-sql-001` remains.
+  Rechecking both complete captures passes62/62, including action selection/state,
+  in `f2-auto-sql-001-recomparison`. `f2-auto-sql-012` resumes from its OWN verified
+  legacy close; no repeated modern calculation or copied legacy state.
+- Positive Rule4 coverage is not inferred from the cohort name: it is shadowed
+  in the connected representative timeline. Two unchanged earlier Rule4 inputs
+  (`sequence-rule4-wins`, `threshold-inclusive`) were freshly computed in Python
+  against qualified retained canonical captures: **12/12 tables PASS**, with
+  positive Type4 suggestions. Receipt `f2-retained-rule4-001/comparison.json`, SHA256
+  `43563c8d0470e5a9ae65929154e90713ec4418972e79208d1032b80d20cf05e5`.
+  This is supplementary rule-seam proof, not a claim of Type4 activity in every
+  connected population or fresh SQL execution for those two cases.
+- 35 focused tests pass. Final bounded re-review has no actionable findings in the
+  revised oracle guards/report comparator/daily action-policy boundary.
+
+Final shallow automatic result: **372/372 comparisons PASS** across all12days,
+including own-derived selection and complete post-action state every day. The
+trial executes24Apply selections and2Sleep selections; later days consume their
+own resulting acceptance/cooling state. Receipt:
+`D:/freshvcf-build/evidence/f2-auto-sql-012/replay.json`, SHA256
+`316070183c5be144042736e314dfb0eb95a83e4833ae4882457a5bf4ac55dfd5`.
+Terminal PostgreSQL run: `1b3dbf1a-ddc7-4970-bb80-489248fd81e0`; output digest:
+`9bcf8f4c66578c51e28fbc55c49c8f5d58f776bcad3c43ef39ce24309ab95ebe`.
+Earlier two-day failed/recompared receipts remain linked, not overwritten.
+
+Remaining within F2: run the SAME accepted automatic policy on unchanged1240-pair
+full estate, compare every required daily population,
+reports, actions and terminal persisted state. Do not generate replacement facts,
+change legacy logic, broaden inactive profiles or begin F3 prematurely.

@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 
 from django.core.management.base import BaseCommand, CommandError
-from mta.runtime.temporal import execute_day, record_command
+from mta.runtime.temporal import execute_day, record_command, command_state
 from mta.runtime.services import read_outputs
 from mta.serialization import digest
 
@@ -20,18 +20,29 @@ class Command(BaseCommand):
         parser.add_argument('--evidence',type=Path,required=True)
         parser.add_argument('--through',type=int)
         parser.add_argument('--exceptions',type=Path)
+        parser.add_argument('--automatic-actions', action='store_true')
 
     def handle(self,*args,**options):
         target=options['evidence'];target.mkdir(parents=True,exist_ok=False)
         source_root=Path(__file__).resolve().parents[4]
         source_files={str(p.relative_to(source_root)):hashlib.sha256(p.read_bytes()).hexdigest()
                       for p in sorted((source_root/'mta').rglob('*.py'))}
+        for name in ('temporal_ledger.py','temporal_policy.py'):
+            path=source_root/'parity'/name
+            source_files[str(path.relative_to(source_root))]=hashlib.sha256(path.read_bytes()).hexdigest()
         (target/'source.json').write_text(json.dumps(dict(execution_revision=options['revision'],
             files=source_files),indent=2),encoding='utf-8')
         raw=options['input'].read_bytes()
         if hashlib.sha256(raw).hexdigest()!=options['sha256']:
             raise CommandError('Registered external artifact hash differs')
         artifact=json.loads(raw);case=artifact['case']
+        if options['automatic_actions']:
+            from parity.temporal_ledger import validate
+            from parity.temporal_policy import POLICY, commands_for_day
+            validate(artifact)
+            policy=POLICY
+        else:
+            policy='retained-fixed-actions'
         through=options['through'] if options['through'] is not None else len(case['days'])-1
         if not 0<=through<len(case['days']):raise CommandError('Day index outside retained artifact')
         exceptions=json.loads(options['exceptions'].read_text()) if options['exceptions'] else {}
@@ -43,7 +54,7 @@ class Command(BaseCommand):
             try:
                 run=execute_day(day=day,profile=case['profile'],execution_revision=options['revision'],
                     predecessor=previous,opening=None if previous else dict(state=case['opening'],
-                        opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']),
+                        opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),
                     report_exceptions=exceptions)
                 output=read_outputs(run)
                 with gzip.open(target/f'day-{index:03d}.json.gz','wt',encoding='utf-8',compresslevel=1) as stream:
@@ -54,13 +65,19 @@ class Command(BaseCommand):
                     closing_digest=digest(output['ClosingState']),
                     boundaries=[r['boundary'] for r in output['MajorBoundaries']],
                     suggestions=len(output['DBMFinal'][0]['Suggestions']),commands=[])
-                for position,command in enumerate(case['commands']):
-                    if command['after_day']!=index:continue
+                commands=(commands_for_day(case,index,output['DBMFinal'][0]['Suggestions'])
+                          if options['automatic_actions'] else
+                          [c for c in case['commands'] if c['after_day']==index])
+                for position,command in enumerate(commands):
                     event=record_command(run,operation=command['operation'],selected=command['selected'],
                         timestamp=command['timestamp'],actor='retained-synthetic-trial',
-                        idempotency_key='retained-command-'+str(position))
+                        idempotency_key=policy+'-command-'+str(position))
                     receipt['commands'].append(dict(id=event.pk,command=command,digest=event.digest,
                                                      before=event.before_digest,after=event.after_digest))
+                after,events=command_state(run,read_outputs(run)['DBMFinal'][0])
+                with gzip.open(target/f'actions-{index:03d}.json.gz','wt',encoding='utf-8',compresslevel=1) as stream:
+                    json.dump(dict(state=after,events=events),stream,sort_keys=True,separators=(',',':'))
+                receipt['post_action_state_digest']=digest(after)
                 previous=run
             except Exception as error:
                 receipt.update(status='FAILED',error_type=type(error).__name__,error=str(error))
@@ -71,5 +88,5 @@ class Command(BaseCommand):
                 (target/'execution.json').write_text(json.dumps(dict(
                     artifact_sha256=options['sha256'],revision=options['revision'],
                     requested_days=through+1,artifact_days=len(case['days']),
-                    report_exceptions=exceptions,days=receipts),indent=2),encoding='utf-8')
+                    action_policy=policy,report_exceptions=exceptions,days=receipts),indent=2),encoding='utf-8')
                 self.stdout.write(json.dumps(receipt));self.stdout.flush()
