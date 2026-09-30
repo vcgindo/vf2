@@ -20,14 +20,18 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — relational storage gate verified; approved producer-owned logistics mapping clears day-one Pick divergence; 30 day-one contracts PASS plus the sole qualified Norm0 text flaw; same frozen12-day continuation running |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | BLOCKED at day12 runtime memory — days1–11 committed/independently compared (330 strict PASS +11 narrowly qualified report contracts). Both day12 OOM attempts have zero partial rows and intact day11. Validation-only retries stopped; engine-memory scope decision required |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
-Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
-persisted predecessor lineage and complete shallow/full-estate temporal comparison.
+Active F2 unmet exit: complete full-estate day12 within the frozen memory caps,
+its independent legacy comparison, and final12-day terminal-state acceptance.
+Shallow12-day parity and full-estate days1–11 are retained evidence, not reopened.
 Dependencies: F1 current-day pipeline verified; retained rule/temporal inputs are
-registered. Permitted edits: pure DBM/state functions, the connected daily-chain
-orchestrator, run persistence needed for own-state replay, and affected proofs.
+registered. The original broad F2 build boundary below is now superseded by the
+user's frozen engine/artifact/actions/comparisons boundary: only bounded validation
+orchestration was permitted. Its retries are exhausted; further in-day runtime
+investigation/correction requires explicit scope authorization. Do not silently
+fall back to the earlier permission for pure DBM/state/orchestrator/storage edits.
 Do not import the old ORM/audit hierarchy or open a per-script recovery programme.
 Proof: each engine computes from its own prior state; all required boundaries and
 actions compare over 3×max RLT. Keep complete API/UI acceptance in F3.
@@ -501,3 +505,129 @@ own-state run. The previous divergent run remains immutable and unaccepted.
   Day one is reused idempotently; subsequent openings must come from each
   engine's own committed predecessor. Remaining F2 exit: the other11 daily
   comparisons and terminal-state evidence. F3 remains PENDING.
+
+### F2 day-ten interruption and in-scope one-day-worker continuation
+
+- Mapping checkpoint `204a342` is committed/pushed. Engine, actions, artifact,
+  SQL and comparator remain frozen at that code. No earlier receipt is replaced.
+- The long-lived worker was killed at its unchanged4GiB cgroup limit during
+  day10 (2026-06-15), after days1–9 committed. Kernel evidence and interrupted
+  identity are preserved in
+  `D:/freshvcf-build/evidence/f2-relational-logistics-full-006/resource-failure.json`,
+  SHA256 `5f3160363f570d28ce8be01a104e67f66eea50a1a50210b4df8dae61599ca89a`.
+  PostgreSQL remains healthy at1GiB; its historical OOM count did not increase.
+  The exact Python allocation site is not proven; no calculation defect is
+  inferred from this memory failure.
+- As an in-scope F2 validation-orchestration correction under the existing goal,
+  not a separate explicit user approval, interrupted run
+  `a0e957ff-7bc7-4d92-aeea-f89fb413684f` was verified to have zero production
+  rows, checkpoints and actions, then ONLY that run was marked FAILED. Its
+  identity/input/failure evidence remain. Parent day9
+  `2251b91e-921e-4952-aab6-742623c8c6c2` remains SUCCEEDED: native closing
+  matches its retained archive and committed action state matches the child's
+  recorded input lineage.
+- Active implementation boundary: `tools/temporal_worker.py`, focused validation
+  guard tests and these evidence notes. Each process runs exactly one next day
+  through unchanged `execute_day`, from its own committed predecessor; exports
+  all evidence/actions; then exits. An explicit new attempt revision preserves
+  the failed day-ten identity. No accepted day is recomputed or relabelled.
+- The helper lives outside `mta`/`parity`, retaining accepted source pins. Its own
+  hash is separately pinned in continuation receipts. Previously accepted output
+  archives are referenced, and existing action receipt bytes are copied unchanged
+  for the comparator's existing interface. The original comparator/31-contract
+  roster is untouched; metadata attachment validates each explicit attempt.
+- Focused validation guards:3 tests PASS (input/policy/horizon/sequence/source
+  substitution rejected). Exit still required: successful days10–12 within the
+  SAME4GiB/1GiB limits, own-state lineage, all daily comparisons, terminal native
+  readback and qualified comparison metadata. Continue legacy from the newest
+  accepted prefix, never replay accepted days. No F3 work or recovery queue.
+- Latest accepted canonical prefix is now days1–9, not merely the seven days
+  known when the continuation instruction was issued. The two already-running
+  comparisons completed:270 contracts PASS plus9 qualified Norm0 text receipts.
+  `D:/freshvcf-build/evidence/f2-relational-logistics-sql-through-009-006/replay.json`
+  SHA256 `c3d3594abac0eb5e73f51996ad83488dc0fb1d10211f5c3e933ccd96821bd6bc`.
+  Replaying days8/9 would duplicate accepted work; the next oracle day is10.
+  All94 pinned modern engine/evidence files remain unchanged. Bounded review
+  found no blocking defect in the external one-day validation helper.
+- Day10's fresh worker completed successfully as run
+  `e6763924-cffe-4524-9bb7-042ed6422180`; measured peak4,225,646,592bytes below
+  the unchanged4GiB cap, container exit0/OOM=false. PostgreSQL's OOM count stayed1.
+  The first fresh day11 worker then hit the same4GiB cap before publication;
+  `f2-fresh-worker-day011-007/resource-failure.json` preserves that failure and
+  its original worker source. Zero production rows/checkpoints/actions and
+  day10's intact closing/action lineage were verified before ONLY interrupted
+  run `6fdf2d9c-6dc1-4cad-ad28-11b64f8f6751` was marked FAILED.
+- The additional correction remains validation orchestration: after validating
+  the unchanged88MB artifact, retain only the identical selected day/profile and
+  the date/command context used by the unchanged action policy; release unused
+  initial-opening/other-day object graphs before calling the engine. Five tests
+  pass, including policy equivalence and source-archive tamper rejection. The
+  prior worker's exact SHA is archived/allowlisted solely for provenance of its
+  accepted day10; core engine/oracle source pins remain strict and unchanged.
+  No assertion, population, multiplicity or comparison is removed.
+- Day10 independent canonical comparison completed:300 strict PASS across the
+  ten-day prefix, plus10 qualified Norm0 text receipts. Receipt
+  `D:/freshvcf-build/evidence/f2-fresh-worker-sql-through-010-007/replay.json`, SHA256
+  `239e7edac046e8c621355b779d30a860f503de1460252e64ed57db4f12b462e9`.
+  No accepted legacy day was replayed.
+- Day11 retry `0bc7b113-3e97-4475-84ad-d3af1368dc7d` succeeded, exported all
+  evidence and exited0/OOM=false. Its input digest exactly equals the preserved
+  failed attempt (`c9cabf439e406e3505ac690f24768d635efe60064f943908edf5560f2ca62bd8`).
+  Peak4,201,570,304bytes remains below the unchanged4GiB cap; PostgreSQL's
+  historical OOM count remains1. Receipt: `f2-fresh-worker-day011-008/execution.json`.
+  Day12 now runs in another fresh worker, from this committed predecessor;
+  canonical day11 comparison continues from the accepted ten-day prefix.
+- Day12's first fresh worker also exceeded4GiB (container exit137/OOM=true).
+  `f2-fresh-worker-full-008/resource-failure.json` preserves its exact identity,
+  source and input. All relational tables, checkpoints and actions were empty;
+  day11 native closing and action lineage matched their retained receipts.
+  Only interrupted run `7f407e2f-867d-4ce7-b102-fd7c58b2458e` was marked FAILED.
+- Bounded independent review identified redundant full predecessor materialization
+  in validation preflight before `execute_day` independently reloads/verifies it.
+  The final in-scope orchestration correction keeps every preflight assertion but
+  executes it in a short-lived subprocess BEFORE loading the artifact. The child
+  must succeed and exit; its entire heap is then released by the OS. The engine
+  still verifies its own committed predecessor/action chain as before. This is
+  not removal of a comparison or calculation-stage change. Both previous worker
+  source hashes remain accepted only with their matching archived bytes.
+  Permit one day12 retry under the SAME4GiB/1GiB caps. If it fails, stop; further
+  engine/runtime memory-lifetime changes require a specifically widened boundary.
+
+### Current F2 bounded recovery result — 11 days accepted, day12 not closed
+
+- Canonical day11 completed successfully. The exact accepted prefix is now
+  `D:/freshvcf-build/evidence/f2-fresh-worker-sql-through-011-008/replay.json`, SHA256
+  `46d575ab97979639641956ebbff99a2e8f9a6ade05deea723d8fe100c376a7b5`.
+  **330 strict PASS +11 LEGACY_FLAW** contracts across11days: all eight major
+  boundaries, all15 calculation contracts, five master contracts and both action
+  contracts each day. Emitted reports remain fully compared except the exact
+  independently identified Norm0 occurrence-text limitation; that field is NOT
+  parity. No accepted legacy day was rerun. Day12 legacy was not started because
+  no complete modern counterpart exists.
+- Six focused orchestration tests PASS. Bounded review of the final subprocess
+  delta found no weakened guard or changed engine/action/comparison semantics.
+  The preflight child exits before input loading; the unchanged engine then
+  independently validates its own locked predecessor. This final retry still
+  OOMed at4GiB on day12. It does not establish a fix or a successful day12 run.
+- Preserve BOTH new day12 failures:
+  `f2-fresh-worker-full-008/resource-failure.json` (SHA256
+  `7fa4409446913fcc50839bb78ad7ced1833dec7b95ee6ed74ca4f44c30e380fe`)
+  and `f2-fresh-worker-full-009/resource-failure.json` (SHA256
+  `874b02a61158a01fe939fa35fa50b882bcbc9dc7a6a2f0bdfa48bd4d15174175`). The latter run is
+  `7b81ed2c-d0fa-4d65-bf1e-99204e7fab26`; its input digest exactly equals the
+  first failed day12 attempt. Each has zero relational rows, checkpoints and
+  actions, with only its own interrupted identity marked FAILED after proof.
+  Parent day11 remains SUCCEEDED; closing/action digests match its receipt.
+  PostgreSQL's historical OOM count remains1. No memory limit was raised.
+- Stop further validation-only retries. The exact in-day allocation site is
+  unproven; do not claim a calculation defect or invent a remedy. The next
+  decision is a bounded runtime-memory investigation/correction while retaining
+  all calculations, SQL, artifact, actions, comparisons and prior accepted days.
+  Such code work is outside the currently frozen engine boundary and has NOT
+  been performed or implicitly approved. F2 is NOT complete; F3 remains PENDING.
+- The unchanged qualified comparator result is linked to all11 committed run
+  identities after native production readback; this updates only receipt metadata,
+  not accepted rows or files. All94 engine/oracle dependency hashes still match
+  their accepted pins, and original input/failed/accepted-prefix receipt hashes
+  were rechecked unchanged. This checkpoint preserves partial progress, not F2
+  acceptance or authorization to start F3.

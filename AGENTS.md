@@ -83,6 +83,19 @@ and row multiplicity. Keep frozen artifacts, Pick/DBM algorithms, SQL, action
 policy and comparisons unchanged. Revalidate the failed day before the same
 12-day continuation; preserve the earlier divergent run and all receipts.
 
+After the preserved day-ten worker OOM, the in-scope validation-orchestration F2
+continuation under the existing goal (not a separate explicit user approval)
+verifies day nine and absence of partial day-ten rows, marks only the
+interrupted attempt FAILED, then runs one fresh bounded worker per remaining day.
+Keep execute_day/engine/actions/comparisons unchanged, preserve all earlier
+commits/receipts, and continue the oracle from its latest accepted prefix.
+Use explicit attempt identities; never overwrite the failed attempt, silently
+recalculate accepted days or increase memory. F3 remains outside this scope.
+Day12 also OOMed after both unused-artifact release and isolated predecessor
+preflight. Preserve all attempts and the accepted11-day prefix. No further
+speculative validation retry: an in-day runtime-memory investigation/correction
+requires explicit scope authorization; it must not be inferred from this note.
+
 ## Commands
 
 Use `D:/freshvcf-build/venv/Scripts/python.exe` for local commands.
