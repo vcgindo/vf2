@@ -1,0 +1,41 @@
+name: freshvcf-test
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: freshvcf
+      POSTGRES_DB: freshvcf
+      POSTGRES_PASSWORD: isolated-test-only-not-a-serving-password
+    volumes:
+      - D:/freshvcf-build/postgres:/var/lib/postgresql/data
+      - ./infrastructure/fresh/init.sql:/docker-entrypoint-initdb.d/01-schemas.sql:ro
+    restart: "no"
+    mem_limit: 1g
+    cpus: 1.0
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U freshvcf -d freshvcf"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+  mta:
+    build:
+      context: .
+      dockerfile: infrastructure/fresh/Dockerfile
+    environment:
+      VF_SECRET_KEY: isolated-framework-test-key-not-for-serving
+      VF_DB_HOST: postgres
+      VF_DB_NAME: freshvcf
+      VF_DB_USER: freshvcf
+      VF_DB_PASSWORD: isolated-test-only-not-a-serving-password
+    volumes:
+      - D:/freshvcf-build/evidence:/evidence
+      - D:/freshvcf-build/inputs:/inputs:ro
+      - ./mta:/app/mta:ro
+      - ./parity:/app/parity:ro
+      - ./tests:/app/tests:ro
+    restart: "no"
+    mem_limit: 2g
+    cpus: 2.0
+    depends_on:
+      postgres:
+        condition: service_healthy

@@ -20,6 +20,6 @@ DATABASES = {'default': {
     'PASSWORD': os.environ.get('VF_DB_PASSWORD', ''),
     'HOST': os.environ.get('VF_DB_HOST', 'localhost'),
     'PORT': os.environ.get('VF_DB_PORT', '5432'),
-    'OPTIONS': {'options': '-c search_path=mta,public'},
+    'OPTIONS': {'options': '-c search_path=mta,public', 'connect_timeout': 5},
     'TEST': {'NAME': 'test_freshvcf'},
 }}

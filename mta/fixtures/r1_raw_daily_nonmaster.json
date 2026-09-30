@@ -1,0 +1,486 @@
+{
+  "schema": "r1-current-day-input-v8",
+  "foundation": {
+    "snapshot": {
+      "snapshot_id": "R1-DAILY-NONMASTER",
+      "business_date": "2026-01-15",
+      "configuration_version": "R1-DAILY-1",
+      "site_code": "R1-SYNTHETIC",
+      "source_kind": "SYNTHETIC_R1",
+      "source_manifest_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+      "captured_at": "2026-01-15T00:00:00+00:00"
+    },
+    "skus": [
+      {
+        "sku_code": "R1SKU"
+      }
+    ],
+    "locations": [
+      {
+        "location_code": "R1-P"
+      },
+      {
+        "location_code": "R1-C"
+      },
+      {
+        "location_code": "R1-SUP"
+      }
+    ]
+  },
+  "orders": [
+    {
+      "order_id": "R1-NEW-SPIKE",
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "outstanding_quantity": 50,
+      "accepted_on": "2026-01-15",
+      "customer_expected_date": "2026-01-16",
+      "established_is_spike": null,
+      "established_due_date": null,
+      "first_servicing_location_code": null
+    },
+    {
+      "order_id": "R1-EXISTING-PSO",
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "outstanding_quantity": 10,
+      "accepted_on": "2026-01-12",
+      "customer_expected_date": "2026-01-17",
+      "established_is_spike": false,
+      "established_due_date": null,
+      "first_servicing_location_code": null
+    }
+  ],
+  "policies": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "0",
+        "pso_low": "0"
+      }
+    },
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "0",
+        "pso_low": "0"
+      }
+    }
+  ],
+  "stock_openings": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "utilized_stock": 0
+    }
+  ],
+  "allocation": {
+    "advance_stock_threshold_percent": "66.67"
+  },
+  "logistics": {
+    "vehicle": {
+      "name": "R1-TRUCK",
+      "weight_capacity": 100,
+      "volume_capacity": 100
+    },
+    "items": [
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-C",
+        "from_location": "R1-P",
+        "to_location": "R1-C"
+      }
+    ]
+  },
+  "master_state": {
+    "opening_provenance": {
+      "kind": "SYNTHETIC_PRIOR_DBM",
+      "identity": "R1-PRIOR-MASTER-ORDER-FLOW",
+      "business_date": "2026-01-14"
+    },
+    "dbm_opening": [
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-P",
+        "norm": 301,
+        "min_norm": 0,
+        "rlt": 4,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "R1-SUP",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-C",
+        "norm": 2,
+        "min_norm": 0,
+        "rlt": 2,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "R1-P",
+        "sku_intro_date": "2025-01-01"
+      }
+    ]
+  },
+  "stock_configuration": {
+    "reservation_type": 1,
+    "reservation_for_rationing_only": true
+  },
+  "replenishment_exclusions": [
+    "R1-P"
+  ],
+  "raw_master_entry": {
+    "schema": "r1-importer-master-input-v1",
+    "business_date": "2026-01-15",
+    "run_timestamp": "2026-01-15T04:05:06",
+    "import_non_nms": true,
+    "settings": [
+      {
+        "Parameter": "NMSActive",
+        "Value": 0
+      },
+      {
+        "Parameter": "DBMActive",
+        "Value": 1
+      },
+      {
+        "Parameter": "UpdatePWh_RLT_RCP_GCP",
+        "Value": 1
+      }
+    ],
+    "prior_provenance": {
+      "kind": "SYNTHETIC_PRIOR_IMPORTER",
+      "identity": "R1-INTEGRATED-RAW-MASTER-PRIOR",
+      "business_date": "2026-01-14"
+    },
+    "prior": {
+      "MasterData": [
+        {
+          "SKUCode": "R1SKU",
+          "WhCode": "R1-P",
+          "Norm": 300,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "R1-SUP",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "R1SKU",
+          "WhCode": "R1-C",
+          "Norm": 90,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "R1-P",
+          "SKUIntroDate": "2025-01-01"
+        }
+      ],
+      "SKUDescriptionTbl": [
+        {
+          "SKUCode": "R1SKU",
+          "SKUDescription": "Synthetic SKU"
+        }
+      ],
+      "SiteDescriptionTbl": [
+        {
+          "WHCode": "R1-P",
+          "WHDescription": "R1-P"
+        },
+        {
+          "WHCode": "R1-C",
+          "WHDescription": "R1-C"
+        },
+        {
+          "WHCode": "R1-SUP",
+          "WHDescription": "R1-SUP"
+        }
+      ],
+      "SkuAttributeData": [
+        {
+          "SKUCode": "R1SKU",
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000"
+        }
+      ],
+      "LocationAttributeData": [
+        {
+          "WHCode": "R1-P",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "R1-C",
+          "LogisticsLocation": "R1-LOG"
+        },
+        {
+          "WHCode": "R1-SUP",
+          "LogisticsLocation": null
+        }
+      ],
+      "SkuLocAttributeData": [
+        {
+          "SKUCode": "R1SKU",
+          "LocCode": "R1-P",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "R1SKU",
+          "LocCode": "R1-C",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        }
+      ],
+      "RetiredNormsTbl": [],
+      "RejectedMaster": [],
+      "ForceNormChange": []
+    },
+    "raw_master": [
+      {
+        "SKUCode": "R1SKU",
+        "WhCode": "R1-P",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 4,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "R1-SUP",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "R1-P",
+        "ParentDescription": "R1-SUP",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": null,
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "R1SKU",
+        "WhCode": "R1-C",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 2,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "R1-P",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "R1-C",
+        "ParentDescription": "R1-P",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "R1-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      }
+    ],
+    "raw_non_nms": [],
+    "raw_no_norm": []
+  },
+  "raw_supplier_entry": {
+    "SOBDataRaw": [
+      {
+        "SKUCode": "R1SKU",
+        "WHCode": "R1-P",
+        "SupplierCode": "R1-SUP",
+        "SupplierDescription": "Supplier",
+        "SOB": 80
+      }
+    ],
+    "MOQDataRaw1": [
+      {
+        "SKUCode": "R1SKU",
+        "SupplierCode": "R1-SUP",
+        "SupplierDescription": "Supplier",
+        "MOQ": 150
+      }
+    ],
+    "MOQDataRaw2": [
+      {
+        "SKUCode": "IGNORED",
+        "WHCode": "X",
+        "SupplierCode": "Y",
+        "SupplierDescription": "Ignored",
+        "MOQ": 999
+      }
+    ]
+  },
+  "supplier_state": {
+    "opening_provenance": {
+      "kind": "SYNTHETIC_PRIOR_BPR_SUPPLIER",
+      "identity": "R1-PRIOR-SUPPLIER",
+      "business_date": "2026-01-14"
+    },
+    "SOBData": [
+      {
+        "SKUCode": "R1SKU",
+        "WHCode": "R1-P",
+        "SupplierCode": "R1-SUP",
+        "SOB": 25
+      }
+    ],
+    "MOQData": [
+      {
+        "SKUCode": "R1SKU",
+        "WHCode": "R1-P",
+        "SupplierCode": "R1-SUP",
+        "MOQ": 200
+      }
+    ]
+  },
+  "raw_daily_entry": {
+    "schema": "r1-daily-input-v1",
+    "shell_flags": {
+      "DistributorSystemActive": 0,
+      "VendorSystemActive": 0,
+      "VectorDMSActive": 0
+    },
+    "raw_daily_data": [
+      {
+        "SKUCode": "R1SKU",
+        "WhCode": "R1-P",
+        "Stock": 100,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "R1SKU",
+        "WhCode": "R1-C",
+        "Stock": null,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      }
+    ],
+    "prior_bpr": {
+      "opening_provenance": {
+        "kind": "SYNTHETIC_PRIOR_BPR_DAILY",
+        "identity": "R1-PRIOR-DAILY",
+        "business_date": "2026-01-14"
+      },
+      "BPRMaster": [
+        {
+          "SKUCode": "R1SKU",
+          "WHCode": "OLD",
+          "Norm": 40,
+          "ParentWhCode": "R1-PLANT",
+          "SKUIntroDate": "2025-01-01"
+        }
+      ],
+      "Plants": [
+        {
+          "PlantCode": "R1-PLANT",
+          "PlantName": "Prior plant"
+        }
+      ],
+      "NoNormMaster": [
+        {
+          "SKUCode": "R1SKU",
+          "WhCode": "R1-NN",
+          "ParentWhCode": "R1-P",
+          "RLT": 1,
+          "SKUIntroDate": "2025-01-01"
+        }
+      ],
+      "DailyConsumption": [
+        {
+          "SKUCode": "R1SKU",
+          "WHCode": "R1-C",
+          "Stock": 70,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "R1SKU",
+          "WHCode": "R1-PLANT",
+          "Stock": 40,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "R1SKU",
+          "WHCode": "R1-NN",
+          "Stock": 30,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        }
+      ]
+    },
+    "distributor_codes": [],
+    "vendor_codes": [],
+    "vector_dms_codes": [],
+    "settings": [
+      {
+        "Parameter": "MissingDailyDataHandling",
+        "Value": "3"
+      },
+      {
+        "Parameter": "DBM_MissingDailyDataHandling",
+        "Value": "1"
+      }
+    ],
+    "vf_settings": [
+      {
+        "Parameter": "GenerateBPRForMissingInventoryLoc",
+        "Value": "1"
+      }
+    ]
+  }
+}

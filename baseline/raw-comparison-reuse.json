@@ -1,0 +1,28 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "sources": [
+    {
+      "source": "parity/run_r1_master_validation.py",
+      "sha256": "5baa1af08f3c50d0b967d4c62f24356c764f2d9483e66ed27556c3d6d9a99e0f",
+      "functions": [
+        "_bag",
+        "compare_master_validation"
+      ]
+    },
+    {
+      "source": "parity/run_r1_supplier_validation.py",
+      "sha256": "769080cb01762560867e29d3fcb4c8e7976ddbae373250de5e487e8cf8e52935",
+      "functions": [
+        "compare_supplier_state",
+        "compare_supplier_validation"
+      ]
+    },
+    {
+      "source": "parity/run_r1_daily_validation.py",
+      "sha256": "4017d92972f5128b49236a239a3186aad4dc3ed38de8d28c16f2085c8f071e5b",
+      "functions": [
+        "compare_daily_validation"
+      ]
+    }
+  ]
+}

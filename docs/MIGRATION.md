@@ -65,7 +65,9 @@ Django migration namespaces together or rewrite MTO calculations to consolidate.
 ## Evidence and checkpoints
 
 No fresh-build parity is claimed yet. See `baseline/manifest.json` for inherited
-resources; inherited receipt status is not fresh execution status.
+resources; inherited receipt status is not fresh execution status. The statement
+above describes the F0 baseline only; F1 results below now establish bounded
+current-day calculation/readback parity, not whole-MTA acceptance.
 The prior checkout is pinned at `66a77735d3f3f9a9becf4c87a08ae7827900cf84`;
 its uncommitted work is excluded. No service cutover is authorized by this tracker.
 
@@ -80,3 +82,38 @@ and PostgreSQL-enabled migration checks are part of F1.
 Storage: F: filled during dependency installation. User authorized D: build
 storage; dependencies and Git objects now live in D:/freshvcf-build. Source stays
 in the requested checkout. Existing services and source worktrees were untouched.
+
+### F1 working calculation/persistence checkpoint
+
+- Foundation committed/pushed: `4d5ffdb` on main.
+- Extracted31 pure calculation/input dependency modules and7 projection functions
+  from pinned66a7773. Removed ORM reads from those7 by passing produced rows;
+  did not import the old run/audit/model hierarchy. Exact mechanical provenance:
+  `baseline/calculation-reuse.json`. These functions are editable local code.
+- Fresh sizeable calculation: **20/20** typed contracts pass, then **20/20** pass
+  again against the actual PostgreSQL readback. Retained1240 populations and1685
+  remaining-Pick rows match. The source oracle is retained, not freshly replayed;
+  input logical identity and each SQL hash match both preserved and local runtime.
+- Raw-source comparisons: daily/order/auxiliary stock119/119; control diagnostics
+  24/24; transit tags23/23. Exact existing fixtures, no regenerated populations.
+- Connected-inputs-controls receipt predates remaining-Pick capture. It remains
+  **RECEIPT_INCOMPLETE**, not PASS, and modern results/old receipt are preserved.
+  Next: refresh only needed canonical receipts in dedicated VFTEST_Fresh_* DBs;
+  include positive PSO/advances/formed-Pick cases and the selected customer adapter.
+- Fresh PostgreSQL initial migration applied;4 migration-enabled transaction
+  tests pass (readback/retry, row tamper, missing output, durable failed attempt).
+  Six framework/pure-input tests pass. Django reports no missing migrations.
+- Evidence directories under `D:/freshvcf-build/evidence`:
+  `f1-sizeable-001`, `f1-persisted-001`, `f1-persisted-comparison-001`,
+  `f1-raw-001` (retained failed receipt-compatibility attempt), `f1-raw-002`.
+- Durable sizeable run: `fe5fd4dd-12e5-4415-a33f-16c1434c82f6`.
+  Output checksum: `1edd822a2b6167e6002d0936c7112bdbd1d81bbaa616a300fdc3406a5689bd69`.
+
+F1 remains ACTIVE. These proofs do not establish temporal DBM, raw ingestion for
+the whole sizeable estate, UI acceptance or branch-wide parity. No inherited
+empty output is credited as positive order/advance/formed-truck coverage.
+
+Test-resource owner: this fresh migration task. Compose project `freshvcf-test`,
+PostgreSQL data at D:/freshvcf-build/postgres,1GiB/1CPU; one-shot MTA2GiB/2CPU,
+restart=no, no host ports. One-shot containers use --rm. Stop this project's
+idle PostgreSQL at checkpoint/handoff; preserve its data for next invocation.

@@ -1,0 +1,180 @@
+{
+  "schema": "r1-current-day-report-input-v1",
+  "super_delay_factor": "1.5",
+  "skus": [
+    {
+      "sku_code": "STOCK-R1SKU",
+      "unit": "EA",
+      "product_category": "SYNTHETIC",
+      "product_group": "STOCK"
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "unit": "EA",
+      "product_category": "SYNTHETIC",
+      "product_group": "GIT"
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "unit": "EA",
+      "product_category": "SYNTHETIC",
+      "product_group": "PSO"
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "unit": "EA",
+      "product_category": "SYNTHETIC",
+      "product_group": "CTL"
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "unit": "EA",
+      "product_category": "SYNTHETIC",
+      "product_group": "CTL"
+    }
+  ],
+  "locations": [
+    {
+      "location_code": "STOCK-R1-P",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "STOCK-R1-C",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "STOCK-R1-SUP",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "GIT-R1-P",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "GIT-R1-C",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "GIT-R1-SUP",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "PSO-R1-P",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "PSO-R1-C",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "PSO-R1-SUP",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "CTL-R1-GP",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "CTL-R1-P",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "CTL-R1-C",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "CTL-R1-Q",
+      "region": "SYNTHETIC"
+    },
+    {
+      "location_code": "CTL-R1-SUP",
+      "region": "SYNTHETIC"
+    }
+  ],
+  "sku_locations": [
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-P",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-C",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-P",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-C",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-P",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-C",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-GP",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-P",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-C",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-Q",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-GP",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-P",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-C",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-Q",
+      "unit_price": "10.00",
+      "standard_lead_time_days": 2
+    }
+  ]
+}

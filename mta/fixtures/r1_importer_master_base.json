@@ -1,0 +1,32 @@
+{
+  "schema": "r1-importer-master-input-v1",
+  "business_date": "2026-01-15",
+  "run_timestamp": "2026-01-15T04:05:06",
+  "import_non_nms": false,
+  "settings": [
+    {"Parameter": "NMSActive", "Value": 0},
+    {"Parameter": "DBMActive", "Value": 1},
+    {"Parameter": "UpdatePWh_RLT_RCP_GCP", "Value": 1}
+  ],
+  "prior_provenance": {"kind": "SYNTHETIC_PRIOR_IMPORTER", "identity": "R1-RAW-MASTER-PRIOR", "business_date": "2026-01-14"},
+  "prior": {
+    "MasterData": [
+      {"SKUCode": "S", "WhCode": "A", "Norm": 10, "MinNorm": 1, "RLT": 3, "RCP": 4, "GCP": 5, "OCP": 2, "MinOrderCount": 4, "ParentWhCode": "OLD-P", "SKUIntroDate": "2024-01-01"},
+      {"SKUCode": "RETIRED", "WhCode": "Z", "Norm": 5, "MinNorm": 0, "RLT": 1, "RCP": 2, "GCP": 3, "OCP": null, "MinOrderCount": null, "ParentWhCode": "OLD-P", "SKUIntroDate": "2024-02-01"}
+    ],
+    "SKUDescriptionTbl": [{"SKUCode": "S", "SKUDescription": "Old SKU"}],
+    "SiteDescriptionTbl": [{"WHCode": "A", "WHDescription": "Old A"}],
+    "SkuAttributeData": [{"SKUCode": "S", "ElephantOrderCapping": 500, "SL1": "Old group"}],
+    "LocationAttributeData": [{"WHCode": "A", "LocationType": "Old type"}],
+    "SkuLocAttributeData": [{"SKUCode": "S", "LocCode": "A", "PackSize": 2, "StockPercentForRationing": 70, "NormPercentReservation": 10, "NonNMS": 0}],
+    "RetiredNormsTbl": [{"SKUCode": "NEW", "WhCode": "B", "Norm": 17, "Event_Date": "2025-01-01", "Event_Type": 0}],
+    "RejectedMaster": [{"SKUCode": "OLD", "WhCode": "X", "RejectionDate": "2026-01-14T04:05:06", "ReasonCode": 7, "ReasonDescription": "Old rejection"}],
+    "ForceNormChange": [{"SKUCode": "S", "WhCode": "A", "NewNorm": 88, "Approved": 1, "RequestedBy": "test-user"}]
+  },
+  "raw_master": [
+    {"SKUCode": " S ", "WhCode": " A ", "Norm": 99, "MinNorm": 2, "RLT": 6, "RCP": 7, "GCP": 8, "OCP": null, "MinOrderCount": 0, "ParentWhCode": " P ", "SKUIntroDate": "2020-01-01", "SKUDescription": " New SKU ", "WHDescription": " New A ", "ParentDescription": " Parent ", "PackSize": null, "SpikeThreshold": "20.25", "PSOThreshold": "0.00", "ElephantOrderCapping": 500, "Weight": "1.250", "Volume": "2.500", "SL1": " Group ", "SKUAtt01": " Custom S ", "LocAtt01": " Custom A ", "SKULocAtt01": " Custom S-A "},
+    {"SKUCode": "NEW", "WhCode": "B", "Norm": 20, "MinNorm": 0, "RLT": 2, "RCP": 3, "GCP": 4, "ParentWhCode": "P", "SKUDescription": " ", "WHDescription": "New B", "ParentDescription": "Parent", "PackSize": 4, "FGRMFlag": "FG", "StockPercentForRationing": 0, "NormPercentReservation": 25}
+  ],
+  "raw_non_nms": [],
+  "raw_no_norm": []
+}

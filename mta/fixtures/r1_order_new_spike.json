@@ -1,0 +1,209 @@
+{
+  "schema": "r1-current-day-input-v2",
+  "foundation": {
+    "snapshot": {
+      "snapshot_id": "R1-ORDER-NEW-SPIKE",
+      "business_date": "2026-01-15",
+      "configuration_version": "R1-SYNTHETIC-ADV-STOCK-2",
+      "site_code": "R1-SYNTHETIC",
+      "source_kind": "SYNTHETIC_R1",
+      "source_manifest_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+      "captured_at": "2026-01-15T00:00:00+00:00"
+    },
+    "skus": [
+      {
+        "sku_code": "R1SKU"
+      }
+    ],
+    "locations": [
+      {
+        "location_code": "R1-P"
+      },
+      {
+        "location_code": "R1-C"
+      }
+    ],
+    "sku_locations": [
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-P",
+        "effective_from": "2026-01-15",
+        "effective_to": null,
+        "base_norm": 300,
+        "replenishment_lead_time_days": 4,
+        "pack_size": 10
+      },
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-C",
+        "effective_from": "2026-01-15",
+        "effective_to": null,
+        "base_norm": 90,
+        "replenishment_lead_time_days": 2,
+        "pack_size": 10
+      }
+    ],
+    "hierarchy": [
+      {
+        "sku_code": "R1SKU",
+        "child_location_code": "R1-C",
+        "parent_location_code": "R1-P",
+        "effective_from": "2026-01-15",
+        "effective_to": null
+      }
+    ],
+    "inventory_positions": [
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-P",
+        "business_date": "2026-01-15",
+        "stock_quantity": 500,
+        "goods_in_transit_quantity": 0
+      },
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-C",
+        "business_date": "2026-01-15",
+        "stock_quantity": 20,
+        "goods_in_transit_quantity": 0
+      }
+    ],
+    "orders": [],
+    "norm_controls": []
+  },
+  "orders": [],
+  "policies": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "20",
+        "pso_high": "0",
+        "pso_low": "0",
+        "spike_override": null,
+        "pso_override": null
+      }
+    },
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "20",
+        "pso_high": "0",
+        "pso_low": "0",
+        "spike_override": null,
+        "pso_override": null
+      }
+    }
+  ],
+  "stock_openings": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "stock": 500,
+      "norm": 300,
+      "utilized_stock": 0,
+      "stock_percent_reservation": 100,
+      "norm_percent_reservation": 0
+    },
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "stock": 20,
+      "norm": 90,
+      "utilized_stock": 0,
+      "stock_percent_reservation": 100,
+      "norm_percent_reservation": 0
+    }
+  ],
+  "routing": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-C",
+      "has_bpr_master": true,
+      "norm": 90,
+      "spike_threshold_percent": 20,
+      "parent_location_code": "R1-P",
+      "rlt_to_parent_days": 2
+    },
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "has_bpr_master": true,
+      "norm": 300,
+      "spike_threshold_percent": 20,
+      "parent_location_code": null,
+      "rlt_to_parent_days": null
+    }
+  ],
+  "allocation": {
+    "advance_stock_threshold_percent": "66.67"
+  },
+  "sourcing": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "supplier": "R1-SUP",
+      "sob": 100,
+      "moq": 10,
+      "pack_size": 10
+    }
+  ],
+  "logistics": {
+    "vehicle": {
+      "name": "R1-TRUCK",
+      "weight_capacity": 100,
+      "volume_capacity": 100
+    },
+    "items": [
+      {
+        "sku_code": "R1SKU",
+        "location_code": "R1-C",
+        "from_location": "R1-P",
+        "to_location": "R1-C",
+        "logistics_location": "R1-LOG",
+        "weight": 1,
+        "volume": 1,
+        "pack_size": 10
+      }
+    ]
+  },
+  "supplier_openings": [
+    {
+      "sku_code": "R1SKU",
+      "location_code": "R1-P",
+      "supplier": "R1-SUP",
+      "sob": 100,
+      "moq": 10,
+      "pack_size": 10
+    }
+  ],
+  "order_input": {
+    "opening_date": "2026-01-14",
+    "opening_identity": "SYNTHETIC-NEW-SPIKE-OPENING",
+    "feed_status": "PRESENT",
+    "feed_rows": [
+      {
+        "OrderID": "R1-AMEND",
+        "SKUCode": "R1SKU",
+        "WhCode": "R1-C",
+        "Qty": 50,
+        "CustomerExpDate": "2026-01-20"
+      }
+    ],
+    "opening_orders": [],
+    "closure_history": [],
+    "sku_attributes": [
+      {
+        "SKUCode": "R1SKU",
+        "ElephantOrderCapping": 1000
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "source_path": "parity/run_r1.py",
+  "source_sha256": "120c771dc50bb1c71a52b77fd44a85164cfe8a7327ec8f926b008612b1baed7f",
+  "functions": [
+    "_rows",
+    "colour",
+    "compare",
+    "normalize_legacy",
+    "normalize_master_checkpoints",
+    "normalize_modern",
+    "number"
+  ],
+  "transformation": "Pure comparison and constants only; no runner/oracle execution"
+}

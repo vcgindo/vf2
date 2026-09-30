@@ -1,0 +1,2049 @@
+{
+  "schema": "r1-current-day-input-v8",
+  "foundation": {
+    "snapshot": {
+      "snapshot_id": "R1-BLOCK2-COMMON-POSITIVE",
+      "business_date": "2026-01-15",
+      "configuration_version": "BLOCK2-COMMON-SELECTED-1",
+      "site_code": "R1-SYNTHETIC",
+      "source_kind": "SYNTHETIC_R1",
+      "source_manifest_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+      "captured_at": "2026-01-15T00:00:00+00:00"
+    },
+    "skus": [
+      {
+        "sku_code": "STOCK-R1SKU"
+      },
+      {
+        "sku_code": "GIT-R1SKU"
+      },
+      {
+        "sku_code": "PSO-R1SKU"
+      },
+      {
+        "sku_code": "CTL-R1SKU"
+      },
+      {
+        "sku_code": "CTL-R1NEW"
+      }
+    ],
+    "locations": [
+      {
+        "location_code": "STOCK-R1-P"
+      },
+      {
+        "location_code": "STOCK-R1-C"
+      },
+      {
+        "location_code": "STOCK-R1-SUP"
+      },
+      {
+        "location_code": "GIT-R1-P"
+      },
+      {
+        "location_code": "GIT-R1-C"
+      },
+      {
+        "location_code": "GIT-R1-SUP"
+      },
+      {
+        "location_code": "PSO-R1-P"
+      },
+      {
+        "location_code": "PSO-R1-C"
+      },
+      {
+        "location_code": "PSO-R1-SUP"
+      },
+      {
+        "location_code": "CTL-R1-GP"
+      },
+      {
+        "location_code": "CTL-R1-P"
+      },
+      {
+        "location_code": "CTL-R1-C"
+      },
+      {
+        "location_code": "CTL-R1-Q"
+      },
+      {
+        "location_code": "CTL-R1-SUP"
+      }
+    ]
+  },
+  "orders": [],
+  "policies": [
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-GP",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-Q",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-GP",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-P",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-C",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-Q",
+      "controls": [],
+      "rationing_priority": 1,
+      "policy": {
+        "spike_high": "20",
+        "spike_low": "30",
+        "pso_high": "40",
+        "pso_low": "50"
+      }
+    }
+  ],
+  "stock_openings": [
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "STOCK-R1SKU",
+      "location_code": "STOCK-R1-C",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "GIT-R1SKU",
+      "location_code": "GIT-R1-C",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "PSO-R1SKU",
+      "location_code": "PSO-R1-C",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-GP",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-C",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1SKU",
+      "location_code": "CTL-R1-Q",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-GP",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-P",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-C",
+      "utilized_stock": 0
+    },
+    {
+      "sku_code": "CTL-R1NEW",
+      "location_code": "CTL-R1-Q",
+      "utilized_stock": 0
+    }
+  ],
+  "allocation": {
+    "advance_stock_threshold_percent": "66.67"
+  },
+  "logistics": {
+    "items": [
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-C",
+        "from_location": "STOCK-R1-P",
+        "to_location": "STOCK-R1-C"
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-C",
+        "from_location": "GIT-R1-P",
+        "to_location": "GIT-R1-C"
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-C",
+        "from_location": "PSO-R1-P",
+        "to_location": "PSO-R1-C"
+      }
+    ],
+    "vehicles": [
+      {
+        "vehicle_id": 1,
+        "name": "UNRELATED",
+        "weight_capacity": 1,
+        "volume_capacity": 1
+      },
+      {
+        "vehicle_id": 7,
+        "name": "BLOCK2-TRUCK",
+        "weight_capacity": 100,
+        "volume_capacity": 300
+      }
+    ],
+    "location_vehicles": [
+      {
+        "location_code": "UNRELATED",
+        "vehicle_id": 1
+      },
+      {
+        "location_code": "STOCK-R1-P",
+        "vehicle_id": 7
+      },
+      {
+        "location_code": "GIT-R1-P",
+        "vehicle_id": 7
+      },
+      {
+        "location_code": "PSO-R1-P",
+        "vehicle_id": 7
+      }
+    ]
+  },
+  "master_state": {
+    "opening_provenance": {
+      "kind": "SYNTHETIC_PRIOR_DBM",
+      "identity": "R1-PRIOR-MASTER-ORDER-FLOW",
+      "business_date": "2026-01-14"
+    },
+    "dbm_opening": [
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-P",
+        "norm": 300,
+        "min_norm": 0,
+        "rlt": 4,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "STOCK-R1-SUP",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-C",
+        "norm": 80,
+        "min_norm": 0,
+        "rlt": 2,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "STOCK-R1-P",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-P",
+        "norm": 300,
+        "min_norm": 0,
+        "rlt": 4,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "GIT-R1-SUP",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-C",
+        "norm": 90,
+        "min_norm": 0,
+        "rlt": 2,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "GIT-R1-P",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-P",
+        "norm": 300,
+        "min_norm": 0,
+        "rlt": 4,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "PSO-R1-SUP",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-C",
+        "norm": 90,
+        "min_norm": 0,
+        "rlt": 2,
+        "rcp": 0,
+        "gcp": 0,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "PSO-R1-P",
+        "sku_intro_date": "2025-01-01"
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-GP",
+        "norm": 3,
+        "min_norm": 7,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": 9,
+        "min_order_count": 8,
+        "parent_location_code": "CTL-R1-SUP",
+        "sku_intro_date": "2024-01-10"
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-P",
+        "norm": 2,
+        "min_norm": 8,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": 9,
+        "min_order_count": 8,
+        "parent_location_code": "CTL-R1-GP",
+        "sku_intro_date": null
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-Q",
+        "norm": 5,
+        "min_norm": 9,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "CTL-R1-P",
+        "sku_intro_date": "2024-03-10"
+      },
+      {
+        "sku_code": "RETIRED",
+        "location_code": "R1-OLD",
+        "norm": 99,
+        "min_norm": 1,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 1,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": null,
+        "sku_intro_date": "2024-01-01"
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-GP",
+        "norm": 3,
+        "min_norm": 7,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": 9,
+        "min_order_count": 8,
+        "parent_location_code": "CTL-R1-SUP",
+        "sku_intro_date": "2024-01-10"
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-P",
+        "norm": 2,
+        "min_norm": 8,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": 9,
+        "min_order_count": 8,
+        "parent_location_code": "CTL-R1-GP",
+        "sku_intro_date": null
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-Q",
+        "norm": 5,
+        "min_norm": 9,
+        "rlt": 1,
+        "rcp": 1,
+        "gcp": 2,
+        "ocp": null,
+        "min_order_count": null,
+        "parent_location_code": "CTL-R1-P",
+        "sku_intro_date": "2024-03-10"
+      }
+    ],
+    "accepted_norm_input": {
+      "opening_date": "2026-01-14",
+      "accepted": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C"
+        }
+      ],
+      "suggestions": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C",
+          "Type": 1,
+          "NewNorm": 90
+        }
+      ],
+      "acceptance": [],
+      "reason_codes": [
+        {
+          "Id": 1,
+          "Reason": "Synthetic accepted norm"
+        }
+      ],
+      "suggestions_log": [],
+      "order_summary": [],
+      "suspend_order_type": []
+    },
+    "phase_control_input": {
+      "from_ui": true,
+      "start_percent": 20,
+      "opening_date": "2026-01-14",
+      "run_timestamp": "2026-01-15T04:05:06",
+      "phase_out": [],
+      "phase_in": [],
+      "phase_map": [],
+      "phase_in_norms": [],
+      "phase_exceptions": [],
+      "phase_requests": [
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-C",
+          "PhaseInSKUCode": "CTL-R1NEW",
+          "Approved": 1
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-Q",
+          "PhaseInSKUCode": null,
+          "Approved": 1
+        }
+      ],
+      "phase_stops": [],
+      "phase_in_requests": [
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-C",
+          "TargetNorm": 20,
+          "Approved": 1
+        }
+      ],
+      "seasonality": [
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-Q",
+          "Status": 4
+        }
+      ],
+      "season_status": [
+        {
+          "Id": 22,
+          "Status": "Rejected"
+        },
+        {
+          "Id": 7,
+          "Status": "Finished"
+        },
+        {
+          "Id": 23,
+          "Status": "Stopped"
+        },
+        {
+          "Id": 21,
+          "Status": "Aborted"
+        },
+        {
+          "Id": 1,
+          "Status": "Not Started"
+        }
+      ]
+    },
+    "force_norm_input": {
+      "from_ui": true,
+      "ignore_master_norm": false,
+      "nms_active": false
+    },
+    "season_control_input": {
+      "opening_date": "2026-01-14",
+      "season_requests": [],
+      "seasonality": [
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-Q",
+          "StartDate": "2026-01-01",
+          "EndDate": "2026-02-20",
+          "TargetNorm": 6,
+          "DeltaNormPercentage": null,
+          "UpperLowerCap": null,
+          "OrigNorm": 3,
+          "NewNorm": 6,
+          "BuildupDuration": 10,
+          "ActivateDBM": 0,
+          "Type": 1,
+          "Status": 4,
+          "Comment": "Season in progress",
+          "LastProcessedOn": "2026-01-14"
+        }
+      ]
+    },
+    "control_diagnostics": true,
+    "transit_tag_input": [
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-C",
+        "Tags": "Prior tag"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-Q",
+        "Tags": "Prior tag"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-GP",
+        "Tags": "Prior tag"
+      }
+    ]
+  },
+  "stock_configuration": {
+    "reservation_type": 1,
+    "reservation_for_rationing_only": true
+  },
+  "replenishment_exclusions": [
+    "STOCK-R1-P",
+    "GIT-R1-P",
+    "PSO-R1-P",
+    "CTL-R1-GP",
+    "CTL-R1-Q"
+  ],
+  "raw_master_entry": {
+    "schema": "r1-importer-master-input-v1",
+    "business_date": "2026-01-15",
+    "run_timestamp": "2026-01-15T04:05:06",
+    "import_non_nms": true,
+    "settings": [
+      {
+        "Parameter": "NMSActive",
+        "Value": 0
+      },
+      {
+        "Parameter": "DBMActive",
+        "Value": 1
+      },
+      {
+        "Parameter": "UpdatePWh_RLT_RCP_GCP",
+        "Value": 1
+      }
+    ],
+    "prior_provenance": {
+      "kind": "SYNTHETIC_PRIOR_IMPORTER",
+      "identity": "R1-INTEGRATED-RAW-MASTER-PRIOR",
+      "business_date": "2026-01-14"
+    },
+    "prior": {
+      "MasterData": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-P",
+          "Norm": 300,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "STOCK-R1-SUP",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C",
+          "Norm": 90,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "STOCK-R1-P",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-P",
+          "Norm": 300,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "GIT-R1-SUP",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-C",
+          "Norm": 90,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "GIT-R1-P",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-P",
+          "Norm": 300,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "PSO-R1-SUP",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-C",
+          "Norm": 90,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "PSO-R1-P",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-GP",
+          "Norm": 2,
+          "MinNorm": 1,
+          "RLT": 6,
+          "RCP": 3,
+          "GCP": 4,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": "2025-02-03"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-P",
+          "Norm": 3,
+          "MinNorm": 2,
+          "RLT": 4,
+          "RCP": 4,
+          "GCP": 5,
+          "OCP": 0,
+          "MinOrderCount": 0,
+          "ParentWhCode": "CTL-R1-GP",
+          "SKUIntroDate": "2025-12-03"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-C",
+          "Norm": 12,
+          "MinNorm": 3,
+          "RLT": 2,
+          "RCP": 5,
+          "GCP": 6,
+          "OCP": null,
+          "MinOrderCount": 2,
+          "ParentWhCode": "CTL-R1-P",
+          "SKUIntroDate": "2026-01-15"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-Q",
+          "Norm": 3,
+          "MinNorm": 4,
+          "RLT": 7,
+          "RCP": 6,
+          "GCP": 7,
+          "OCP": 4,
+          "MinOrderCount": 5,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": null
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-GP",
+          "Norm": 2,
+          "MinNorm": 1,
+          "RLT": 6,
+          "RCP": 3,
+          "GCP": 4,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": "2025-02-03"
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-P",
+          "Norm": 3,
+          "MinNorm": 2,
+          "RLT": 4,
+          "RCP": 4,
+          "GCP": 5,
+          "OCP": 0,
+          "MinOrderCount": 0,
+          "ParentWhCode": "CTL-R1-GP",
+          "SKUIntroDate": "2025-12-03"
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-C",
+          "Norm": 12,
+          "MinNorm": 3,
+          "RLT": 2,
+          "RCP": 5,
+          "GCP": 6,
+          "OCP": null,
+          "MinOrderCount": 2,
+          "ParentWhCode": "CTL-R1-P",
+          "SKUIntroDate": "2026-01-15"
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-Q",
+          "Norm": 3,
+          "MinNorm": 4,
+          "RLT": 7,
+          "RCP": 6,
+          "GCP": 7,
+          "OCP": 4,
+          "MinOrderCount": 5,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": null
+        }
+      ],
+      "SKUDescriptionTbl": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "SKUDescription": "Synthetic SKU"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "SKUDescription": "Synthetic SKU"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "SKUDescription": "Synthetic SKU"
+        }
+      ],
+      "SiteDescriptionTbl": [
+        {
+          "WHCode": "STOCK-R1-P",
+          "WHDescription": "STOCK-R1-P"
+        },
+        {
+          "WHCode": "STOCK-R1-C",
+          "WHDescription": "STOCK-R1-C"
+        },
+        {
+          "WHCode": "STOCK-R1-SUP",
+          "WHDescription": "STOCK-R1-SUP"
+        },
+        {
+          "WHCode": "GIT-R1-P",
+          "WHDescription": "GIT-R1-P"
+        },
+        {
+          "WHCode": "GIT-R1-C",
+          "WHDescription": "GIT-R1-C"
+        },
+        {
+          "WHCode": "GIT-R1-SUP",
+          "WHDescription": "GIT-R1-SUP"
+        },
+        {
+          "WHCode": "PSO-R1-P",
+          "WHDescription": "PSO-R1-P"
+        },
+        {
+          "WHCode": "PSO-R1-C",
+          "WHDescription": "PSO-R1-C"
+        },
+        {
+          "WHCode": "PSO-R1-SUP",
+          "WHDescription": "PSO-R1-SUP"
+        }
+      ],
+      "SkuAttributeData": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "2.000",
+          "Volume": "1.000"
+        }
+      ],
+      "LocationAttributeData": [
+        {
+          "WHCode": "STOCK-R1-P",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "STOCK-R1-C",
+          "LogisticsLocation": "STOCK-R1-LOG"
+        },
+        {
+          "WHCode": "STOCK-R1-SUP",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "GIT-R1-P",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "GIT-R1-C",
+          "LogisticsLocation": "GIT-R1-LOG"
+        },
+        {
+          "WHCode": "GIT-R1-SUP",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "PSO-R1-P",
+          "LogisticsLocation": null
+        },
+        {
+          "WHCode": "PSO-R1-C",
+          "LogisticsLocation": "PSO-R1-LOG"
+        },
+        {
+          "WHCode": "PSO-R1-SUP",
+          "LogisticsLocation": null
+        }
+      ],
+      "SkuLocAttributeData": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "LocCode": "STOCK-R1-P",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "LocCode": "STOCK-R1-C",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "LocCode": "GIT-R1-P",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "LocCode": "GIT-R1-C",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "LocCode": "PSO-R1-P",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "LocCode": "PSO-R1-C",
+          "PackSize": 10,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "NonNMS": 0
+        }
+      ],
+      "RetiredNormsTbl": [],
+      "RejectedMaster": [],
+      "ForceNormChange": [
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-C",
+          "NewNorm": 99,
+          "Approved": 1,
+          "RequestedBy": "SYNTHETIC"
+        }
+      ]
+    },
+    "raw_master": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-P",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 4,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "STOCK-R1-SUP",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "STOCK-R1-P",
+        "ParentDescription": "STOCK-R1-SUP",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": null,
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-C",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 2,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "STOCK-R1-P",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "STOCK-R1-C",
+        "ParentDescription": "STOCK-R1-P",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "STOCK-R1-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-P",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 4,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "GIT-R1-SUP",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "GIT-R1-P",
+        "ParentDescription": "GIT-R1-SUP",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": null,
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-C",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 2,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "GIT-R1-P",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "GIT-R1-C",
+        "ParentDescription": "GIT-R1-P",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "GIT-R1-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WhCode": "PSO-R1-P",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 4,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "PSO-R1-SUP",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "PSO-R1-P",
+        "ParentDescription": "PSO-R1-SUP",
+        "PackSize": 10,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "2.000",
+        "Volume": "1.000",
+        "LogisticsLocation": null,
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WhCode": "PSO-R1-C",
+        "Norm": 999,
+        "MinNorm": 0,
+        "RLT": 2,
+        "RCP": 0,
+        "GCP": 0,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "PSO-R1-P",
+        "SKUIntroDate": "2025-01-01",
+        "SKUDescription": "Synthetic SKU",
+        "WHDescription": "PSO-R1-C",
+        "ParentDescription": "PSO-R1-P",
+        "PackSize": 6,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "2.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "PSO-R1-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-GP",
+        "Norm": 2,
+        "MinNorm": 1,
+        "RLT": 6,
+        "RCP": 3,
+        "GCP": 4,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "CTL-R1-SUP",
+        "SKUIntroDate": "2025-02-03",
+        "SKUDescription": "CTL-R1SKU",
+        "WHDescription": "CTL-R1-GP",
+        "ParentDescription": "CTL-R1-SUP",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": null,
+        "PSOThreshold": null
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-P",
+        "Norm": 3,
+        "MinNorm": 2,
+        "RLT": 4,
+        "RCP": 4,
+        "GCP": 5,
+        "OCP": 0,
+        "MinOrderCount": 0,
+        "ParentWhCode": "CTL-R1-GP",
+        "SKUIntroDate": "2025-12-03",
+        "SKUDescription": "CTL-R1SKU",
+        "WHDescription": "CTL-R1-P",
+        "ParentDescription": "CTL-R1-GP",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": null,
+        "PSOThreshold": null
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-C",
+        "Norm": 12,
+        "MinNorm": 3,
+        "RLT": 2,
+        "RCP": 5,
+        "GCP": 6,
+        "OCP": null,
+        "MinOrderCount": 2,
+        "ParentWhCode": "CTL-R1-P",
+        "SKUIntroDate": "2026-01-15",
+        "SKUDescription": "CTL-R1SKU",
+        "WHDescription": "CTL-R1-C",
+        "ParentDescription": "CTL-R1-P",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": "0",
+        "PSOThreshold": "25"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-Q",
+        "Norm": 3,
+        "MinNorm": 4,
+        "RLT": 7,
+        "RCP": 6,
+        "GCP": 7,
+        "OCP": 4,
+        "MinOrderCount": 5,
+        "ParentWhCode": "CTL-R1-SUP",
+        "SKUIntroDate": null,
+        "SKUDescription": "CTL-R1SKU",
+        "WHDescription": "CTL-R1-Q",
+        "ParentDescription": "CTL-R1-SUP",
+        "PackSize": 2,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": "7",
+        "PSOThreshold": "0"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-GP",
+        "Norm": 2,
+        "MinNorm": 1,
+        "RLT": 6,
+        "RCP": 3,
+        "GCP": 4,
+        "OCP": null,
+        "MinOrderCount": null,
+        "ParentWhCode": "CTL-R1-SUP",
+        "SKUIntroDate": "2025-02-03",
+        "SKUDescription": "CTL-R1NEW",
+        "WHDescription": "CTL-R1-GP",
+        "ParentDescription": "CTL-R1-SUP",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": null,
+        "PSOThreshold": null
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-P",
+        "Norm": 3,
+        "MinNorm": 2,
+        "RLT": 4,
+        "RCP": 4,
+        "GCP": 5,
+        "OCP": 0,
+        "MinOrderCount": 0,
+        "ParentWhCode": "CTL-R1-GP",
+        "SKUIntroDate": "2025-12-03",
+        "SKUDescription": "CTL-R1NEW",
+        "WHDescription": "CTL-R1-P",
+        "ParentDescription": "CTL-R1-GP",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": null,
+        "PSOThreshold": null
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-C",
+        "Norm": 99,
+        "MinNorm": 3,
+        "RLT": 2,
+        "RCP": 5,
+        "GCP": 6,
+        "OCP": null,
+        "MinOrderCount": 2,
+        "ParentWhCode": "CTL-R1-P",
+        "SKUIntroDate": "2026-01-15",
+        "SKUDescription": "CTL-R1NEW",
+        "WHDescription": "CTL-R1-C",
+        "ParentDescription": "CTL-R1-P",
+        "PackSize": 1,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": "0",
+        "PSOThreshold": "25"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-Q",
+        "Norm": 3,
+        "MinNorm": 4,
+        "RLT": 7,
+        "RCP": 6,
+        "GCP": 7,
+        "OCP": 4,
+        "MinOrderCount": 5,
+        "ParentWhCode": "CTL-R1-SUP",
+        "SKUIntroDate": null,
+        "SKUDescription": "CTL-R1NEW",
+        "WHDescription": "CTL-R1-Q",
+        "ParentDescription": "CTL-R1-SUP",
+        "PackSize": 2,
+        "ElephantOrderCapping": 2147483647,
+        "Weight": "1.000",
+        "Volume": "1.000",
+        "LogisticsLocation": "CTL-LOG",
+        "StockPercentForRationing": 100,
+        "NormPercentReservation": 0,
+        "SpikeThreshold": "7",
+        "PSOThreshold": "0"
+      }
+    ],
+    "raw_non_nms": [],
+    "raw_no_norm": []
+  },
+  "raw_supplier_entry": {
+    "SOBDataRaw": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WHCode": "STOCK-R1-P",
+        "SupplierCode": "STOCK-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "SOB": 80
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WHCode": "GIT-R1-P",
+        "SupplierCode": "GIT-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "SOB": 80
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WHCode": "PSO-R1-P",
+        "SupplierCode": "PSO-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "SOB": 80
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "SOB": 100
+      }
+    ],
+    "MOQDataRaw1": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "SupplierCode": "STOCK-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "MOQ": 150
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "SupplierCode": "GIT-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "MOQ": 150
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "SupplierCode": "PSO-R1-SUP",
+        "SupplierDescription": "Supplier",
+        "MOQ": 150
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "MOQ": 10
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "SupplierCode": "CTL-R1-SUP",
+        "SupplierDescription": "CTL-R1-SUP",
+        "MOQ": 10
+      }
+    ],
+    "MOQDataRaw2": [
+      {
+        "SKUCode": "IGNORED",
+        "WHCode": "X",
+        "SupplierCode": "Y",
+        "SupplierDescription": "Ignored",
+        "MOQ": 999
+      },
+      {
+        "SKUCode": "IGNORED",
+        "WHCode": "X",
+        "SupplierCode": "Y",
+        "SupplierDescription": "Ignored",
+        "MOQ": 999
+      },
+      {
+        "SKUCode": "IGNORED",
+        "WHCode": "X",
+        "SupplierCode": "Y",
+        "SupplierDescription": "Ignored",
+        "MOQ": 999
+      }
+    ]
+  },
+  "supplier_state": {
+    "opening_provenance": {
+      "kind": "SYNTHETIC_PRIOR_BPR_SUPPLIER",
+      "identity": "R1-PRIOR-SUPPLIER",
+      "business_date": "2026-01-14"
+    },
+    "SOBData": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WHCode": "STOCK-R1-P",
+        "SupplierCode": "STOCK-R1-SUP",
+        "SOB": 25
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WHCode": "GIT-R1-P",
+        "SupplierCode": "GIT-R1-SUP",
+        "SOB": 25
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WHCode": "PSO-R1-P",
+        "SupplierCode": "PSO-R1-SUP",
+        "SOB": 25
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "SOB": 100
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "SOB": 100
+      }
+    ],
+    "MOQData": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WHCode": "STOCK-R1-P",
+        "SupplierCode": "STOCK-R1-SUP",
+        "MOQ": 200
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WHCode": "GIT-R1-P",
+        "SupplierCode": "GIT-R1-SUP",
+        "MOQ": 200
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WHCode": "PSO-R1-P",
+        "SupplierCode": "PSO-R1-SUP",
+        "MOQ": 200
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "MOQ": 10
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "MOQ": 10
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-GP",
+        "SupplierCode": "CTL-R1-SUP",
+        "MOQ": 10
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WHCode": "CTL-R1-Q",
+        "SupplierCode": "CTL-R1-SUP",
+        "MOQ": 10
+      }
+    ]
+  },
+  "raw_daily_entry": {
+    "schema": "r1-daily-input-v1",
+    "shell_flags": {
+      "DistributorSystemActive": 0,
+      "VendorSystemActive": 0,
+      "VectorDMSActive": 0
+    },
+    "raw_daily_data": [
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-P",
+        "Stock": 500,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-C",
+        "Stock": 20,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-P",
+        "Stock": 100,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-C",
+        "Stock": 20,
+        "Consumption": 5,
+        "GIT": 100,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WhCode": "PSO-R1-P",
+        "Stock": 355,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "PSO-R1SKU",
+        "WhCode": "PSO-R1-C",
+        "Stock": 0,
+        "Consumption": 5,
+        "GIT": 0,
+        "Receipts": 2,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-GP",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-P",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-C",
+        "Stock": 0,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1SKU",
+        "WhCode": "CTL-R1-Q",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-GP",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-P",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-C",
+        "Stock": 0,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      },
+      {
+        "SKUCode": "CTL-R1NEW",
+        "WhCode": "CTL-R1-Q",
+        "Stock": 100,
+        "Consumption": 0,
+        "GIT": 0,
+        "Receipts": 0,
+        "PSO": 0,
+        "ReportDate": "2026-01-15"
+      }
+    ],
+    "prior_bpr": {
+      "opening_provenance": {
+        "kind": "SYNTHETIC_PRIOR_BPR_DAILY",
+        "identity": "R1-PRIOR-DAILY",
+        "business_date": "2026-01-14"
+      },
+      "BPRMaster": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-OLD",
+          "Norm": 40,
+          "ParentWhCode": "STOCK-R1-PLANT",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-OLD",
+          "Norm": 40,
+          "ParentWhCode": "GIT-R1-PLANT",
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-OLD",
+          "Norm": 40,
+          "ParentWhCode": "PSO-R1-PLANT",
+          "SKUIntroDate": "2025-01-01"
+        }
+      ],
+      "Plants": [
+        {
+          "PlantCode": "STOCK-R1-PLANT",
+          "PlantName": "Prior plant"
+        },
+        {
+          "PlantCode": "GIT-R1-PLANT",
+          "PlantName": "Prior plant"
+        },
+        {
+          "PlantCode": "PSO-R1-PLANT",
+          "PlantName": "Prior plant"
+        }
+      ],
+      "NoNormMaster": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-NN",
+          "ParentWhCode": "STOCK-R1-P",
+          "RLT": 1,
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-NN",
+          "ParentWhCode": "GIT-R1-P",
+          "RLT": 1,
+          "SKUIntroDate": "2025-01-01"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-NN",
+          "ParentWhCode": "PSO-R1-P",
+          "RLT": 1,
+          "SKUIntroDate": "2025-01-01"
+        }
+      ],
+      "DailyConsumption": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-C",
+          "Stock": 70,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-PLANT",
+          "Stock": 40,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-NN",
+          "Stock": 30,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-C",
+          "Stock": 70,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-PLANT",
+          "Stock": 40,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-NN",
+          "Stock": 30,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-C",
+          "Stock": 70,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-PLANT",
+          "Stock": 40,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-NN",
+          "Stock": 30,
+          "Consumption": 901,
+          "GIT": 902,
+          "Receipts": 903,
+          "PSO": 904,
+          "BlueZone": 0,
+          "ReportDate": "2026-01-14"
+        }
+      ]
+    },
+    "distributor_codes": [],
+    "vendor_codes": [],
+    "vector_dms_codes": [],
+    "settings": [
+      {
+        "Parameter": "MissingDailyDataHandling",
+        "Value": "3"
+      },
+      {
+        "Parameter": "DBM_MissingDailyDataHandling",
+        "Value": "1"
+      }
+    ],
+    "vf_settings": [
+      {
+        "Parameter": "GenerateBPRForMissingInventoryLoc",
+        "Value": "1"
+      }
+    ]
+  },
+  "order_input": {
+    "opening_date": "2026-01-14",
+    "opening_identity": "SYNTHETIC-STOCK-ORDER-OPENING",
+    "feed_status": "PRESENT",
+    "feed_rows": [],
+    "opening_orders": [
+      {
+        "OrderKey": 10,
+        "CustomerOrderId": "STOCK-SPIKE",
+        "PartId": 1,
+        "IsSpike": 1,
+        "IsElephant": 0,
+        "OriginalQty": 50,
+        "Qty": 50,
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-C",
+        "CustomerExpectedDate": "2026-01-15",
+        "FirstServicingWhCode": "STOCK-R1-P",
+        "DueDate": "2026-01-20",
+        "IntroDate": "2026-01-12"
+      },
+      {
+        "OrderKey": 11,
+        "CustomerOrderId": "STOCK-PSO",
+        "PartId": 1,
+        "IsSpike": 0,
+        "IsElephant": 0,
+        "OriginalQty": 10,
+        "Qty": 10,
+        "SKUCode": "STOCK-R1SKU",
+        "WhCode": "STOCK-R1-C",
+        "CustomerExpectedDate": "2026-01-20",
+        "FirstServicingWhCode": null,
+        "DueDate": null,
+        "IntroDate": "2026-01-12"
+      },
+      {
+        "OrderKey": 20,
+        "CustomerOrderId": "GIT-SPIKE",
+        "PartId": 1,
+        "IsSpike": 1,
+        "IsElephant": 0,
+        "OriginalQty": 50,
+        "Qty": 50,
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-C",
+        "CustomerExpectedDate": "2026-01-15",
+        "FirstServicingWhCode": "GIT-R1-P",
+        "DueDate": "2026-01-20",
+        "IntroDate": "2026-01-12"
+      },
+      {
+        "OrderKey": 21,
+        "CustomerOrderId": "GIT-PSO",
+        "PartId": 1,
+        "IsSpike": 0,
+        "IsElephant": 0,
+        "OriginalQty": 10,
+        "Qty": 10,
+        "SKUCode": "GIT-R1SKU",
+        "WhCode": "GIT-R1-C",
+        "CustomerExpectedDate": "2026-01-20",
+        "FirstServicingWhCode": null,
+        "DueDate": null,
+        "IntroDate": "2026-01-12"
+      },
+      {
+        "OrderKey": 31,
+        "CustomerOrderId": "PSO-PSO",
+        "PartId": 1,
+        "IsSpike": 0,
+        "IsElephant": 0,
+        "OriginalQty": 500,
+        "Qty": 500,
+        "SKUCode": "PSO-R1SKU",
+        "WhCode": "PSO-R1-C",
+        "CustomerExpectedDate": "2026-01-20",
+        "FirstServicingWhCode": null,
+        "DueDate": null,
+        "IntroDate": "2026-01-12"
+      }
+    ],
+    "closure_history": [],
+    "identity_last_value": 91
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "integrated-mta-run-v1",
+  "track_a": {
+    "schema": "track-a-v1",
+    "mode": 0,
+    "foundation": {
+      "snapshot": {
+        "snapshot_id": "STAGE6-INTEGRATED-002",
+        "business_date": "2026-01-15",
+        "configuration_version": "STAGE6-LEGACY-DEFAULTS-1",
+        "site_code": "STAGE6-SYNTHETIC",
+        "source_kind": "SYNTHETIC_INTEGRATION_FIXTURE",
+        "source_manifest_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+        "captured_at": "2026-01-15T00:00:00+00:00"
+      },
+      "skus": [{"sku_code": "STAGE6SKU"}],
+      "locations": [
+        {"location_code": "S6-P"},
+        {"location_code": "S6-C1"},
+        {"location_code": "S6-C2"},
+        {"location_code": "S6-C3"}
+      ],
+      "sku_locations": [
+        {"sku_code": "STAGE6SKU", "location_code": "S6-P", "effective_from": "2026-01-15", "effective_to": null, "base_norm": 100, "replenishment_lead_time_days": 2, "pack_size": 5},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C1", "effective_from": "2026-01-15", "effective_to": null, "base_norm": 100, "replenishment_lead_time_days": 1, "pack_size": 5},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C2", "effective_from": "2026-01-15", "effective_to": null, "base_norm": 80, "replenishment_lead_time_days": 2, "pack_size": 5},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C3", "effective_from": "2026-01-15", "effective_to": null, "base_norm": 60, "replenishment_lead_time_days": 3, "pack_size": 5}
+      ],
+      "hierarchy": [
+        {"sku_code": "STAGE6SKU", "child_location_code": "S6-C1", "parent_location_code": "S6-P", "effective_from": "2026-01-15", "effective_to": null},
+        {"sku_code": "STAGE6SKU", "child_location_code": "S6-C2", "parent_location_code": "S6-P", "effective_from": "2026-01-15", "effective_to": null},
+        {"sku_code": "STAGE6SKU", "child_location_code": "S6-C3", "parent_location_code": "S6-P", "effective_from": "2026-01-15", "effective_to": null}
+      ],
+      "inventory_positions": [
+        {"sku_code": "STAGE6SKU", "location_code": "S6-P", "business_date": "2026-01-15", "stock_quantity": 30, "goods_in_transit_quantity": 0},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C1", "business_date": "2026-01-15", "stock_quantity": 10, "goods_in_transit_quantity": 0},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C2", "business_date": "2026-01-15", "stock_quantity": 20, "goods_in_transit_quantity": 5},
+        {"sku_code": "STAGE6SKU", "location_code": "S6-C3", "business_date": "2026-01-15", "stock_quantity": 50, "goods_in_transit_quantity": 0}
+      ],
+      "orders": [],
+      "norm_controls": []
+    },
+    "nodes": [
+      {"sku_code": "STAGE6SKU", "location_code": "S6-P", "controls": [], "orders": [], "policy": {"spike_high": "33.33", "spike_low": "100", "pso_high": "66.67", "pso_low": "0", "spike_override": null, "pso_override": null}, "stock_for_requirement": 30, "routed_due_spike": 0, "rationing_priority": 1},
+      {"sku_code": "STAGE6SKU", "location_code": "S6-C1", "controls": [], "orders": [{"order_id": "S6-SPIKE-1", "quantity": 40, "accepted_on": "2026-01-10", "due_date": "2026-01-15", "is_spike": true}], "policy": {"spike_high": "33.33", "spike_low": "100", "pso_high": "66.67", "pso_low": "0", "spike_override": null, "pso_override": null}, "stock_for_requirement": 10, "routed_due_spike": 0, "rationing_priority": 1},
+      {"sku_code": "STAGE6SKU", "location_code": "S6-C2", "controls": [], "orders": [], "policy": {"spike_high": "33.33", "spike_low": "100", "pso_high": "66.67", "pso_low": "0", "spike_override": null, "pso_override": null}, "stock_for_requirement": 20, "routed_due_spike": 0, "rationing_priority": 2},
+      {"sku_code": "STAGE6SKU", "location_code": "S6-C3", "controls": [], "orders": [], "policy": {"spike_high": "33.33", "spike_low": "100", "pso_high": "66.67", "pso_low": "0", "spike_override": null, "pso_override": null}, "stock_for_requirement": 50, "routed_due_spike": 0, "rationing_priority": 3}
+    ],
+    "rationing": {"enabled": true}
+  },
+  "sourcing": [
+    {"case": "top_replenishment", "sku_code": "STAGE6SKU", "location_code": "S6-P", "supplier": "S6-SUPPLIER", "sob": 100, "moq": 10, "pack_size": 5}
+  ],
+  "order_allocation": [
+    {"case": "top_order_allocation", "sku_code": "STAGE6SKU", "location_code": "S6-P", "supplier": "S6-SUPPLIER", "bands": {"order_black": 10, "order_red": 10, "order_yellow": 0, "order_green": 0, "order_blue": 0, "norm_black": 0, "norm_red": 20, "norm_yellow": 20, "norm_green": 20, "order_black_band": 20, "order_red_band": 20, "order_yellow_band": 20, "order_green_band": 20}}
+  ],
+  "dbm": [
+    {"case": "top_stockout", "sku_code": "STAGE6SKU", "location_code": "S6-P", "introduced_on": "2025-01-01", "rule": "stockout_today", "timeline": [{"date": "2026-01-14", "stock": 20}, {"date": "2026-01-15", "stock": 0}]}
+  ],
+  "logistics": {
+    "vehicle": {"name": "S6-TRUCK", "weight_capacity": 100, "volume_capacity": 100},
+    "items": [
+      {"case": "top_pick", "sku_code": "STAGE6SKU", "location_code": "S6-P", "supplier": "S6-SUPPLIER", "from_location": "S6-SUPPLIER", "to_location": "S6-P", "logistics_location": "S6-LOG", "weight": 1, "volume": 1, "pack_size": 5}
+    ]
+  }
+}

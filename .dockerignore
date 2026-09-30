@@ -1,0 +1,10 @@
+.git
+.local
+.venv
+**/__pycache__
+**/node_modules
+frontend
+mto
+user-service
+*.env
+.env

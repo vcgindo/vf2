@@ -1,0 +1,216 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "acceptance": "NOT_CERTIFIED",
+  "files": [
+    {
+      "path": "mta/domain/remaining_capabilities.py",
+      "source_path": "mta/domain/remaining_capabilities.py",
+      "source_sha256": "203453220157a351156f407549ba07fae5e7095fe30555fc37913112b63a4d51",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/r1_requirement_bands.py",
+      "source_path": "mta/domain/r1_requirement_bands.py",
+      "source_sha256": "94074f982d47343f1c200b5acbba85c38cebfea3e5c0f682163fb585bb15d684",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/r1_current_day.py",
+      "source_path": "mta/domain/r1_current_day.py",
+      "source_sha256": "c2de7606dd1c7bf7021750588f2a3b6aae77cdf14a4e11baa9f1c4c7a12c5245",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/rrr.py",
+      "source_path": "mta/application/rrr.py",
+      "source_sha256": "6601973bf4fb5d5a2032a642690ff089242f190bce9ca26f368b271c45f363c7",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/rrr.py",
+      "source_path": "mta/domain/rrr.py",
+      "source_sha256": "fb8f42d2fd12ae554821ade985e807d35a3d4e37362b36cd3661c851a9b8e923",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/validation.py",
+      "source_path": "mta/domain/validation.py",
+      "source_sha256": "390932764e487b0ed893e5c7f29bbb630d94d3a67b2b6d7e7bd1979215e4ae73",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_calculation.py",
+      "source_path": "mta/application/r1_calculation.py",
+      "source_sha256": "5df5ba40daabae50471622cc3d9bed40d976039819cb1392042d0ca7ddb6a5ed",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/virtual_norm.py",
+      "source_path": "mta/domain/virtual_norm.py",
+      "source_sha256": "8380254e605838866ff30a37cf5f4f964a3c72d6e1f0c637e15dc8e8275b8428",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/models.py",
+      "source_path": "mta/domain/models.py",
+      "source_sha256": "bcd6d89290bc7f4cd08c1788b9aa9a8d8a8fce4bdc04ae805602c5346235b87b",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/demand.py",
+      "source_path": "mta/domain/demand.py",
+      "source_sha256": "d27055adfa148c31ed4c5d5f13e5ad68e02cd1276a07977a9ef601a0a4e2fd44",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/colours.py",
+      "source_path": "mta/domain/colours.py",
+      "source_sha256": "ed22ce2847f5040ecd57258f793bca55727b9ad65e20e860be8363770a17f237",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/track_a.py",
+      "source_path": "mta/application/track_a.py",
+      "source_sha256": "2ed0628812349145b546bffc3d82346196ec2fb733bce953f4ecd558ecab304c",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/domain/norm_controls.py",
+      "source_path": "mta/domain/norm_controls.py",
+      "source_sha256": "de6d3c9385fbfd5bbdee7e94b1f3f72888d66034ccee94dd4533928b6840df35",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_input.py",
+      "source_path": "mta/application/r1_input.py",
+      "source_sha256": "fa8c48cc846aa20a9f28ae35892e0bfecddf12db7d41d369bfd8c642fccdd452",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_daily_entry.py",
+      "source_path": "mta/application/r1_daily_entry.py",
+      "source_sha256": "a7f71bb30f4dce87f0a3e91af29e21bb8301e9034541f78d5514976613f18c38",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_supplier_entry.py",
+      "source_path": "mta/application/r1_supplier_entry.py",
+      "source_sha256": "2d572e694c5499c1861291ef735327e7728a537bcf67e456e2ed6a5dbc0e1655",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_supplier_input.py",
+      "source_path": "mta/application/r1_supplier_input.py",
+      "source_sha256": "ccc985295308f6b2805d14f70cc859424456e618a24d6681174e1cb97fcc162e",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_importer_master.py",
+      "source_path": "mta/application/r1_importer_master.py",
+      "source_sha256": "4750998b20d84a7798f3c750084676e8115635772d960ca827c048fc97838249",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_raw_master_entry.py",
+      "source_path": "mta/application/r1_raw_master_entry.py",
+      "source_sha256": "cf491c69f16c298e52bbfd11a7cc97a753cfba2afd46dca46f76b8af21a9fcde",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_transit_tags.py",
+      "source_path": "mta/application/r1_transit_tags.py",
+      "source_sha256": "fa92adb38fd196b578d8e99f963dafc73f62ee2fd636ec5f89229d5172d4ec3a",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_norm_updates.py",
+      "source_path": "mta/application/r1_norm_updates.py",
+      "source_sha256": "f16da10387e36973f19d981be176c151522a9c76d980d7ff91e4378ff4abe39f",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_seasonality.py",
+      "source_path": "mta/application/r1_seasonality.py",
+      "source_sha256": "f085beeb76076df509b18d7b43071589a63a9a390a10294aca516b3a10642665",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_phase_entry.py",
+      "source_path": "mta/application/r1_phase_entry.py",
+      "source_sha256": "0fc386a2c507d1eb081c3c89fc917885bdf79f3c1378370f57e7277557991a76",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_parent_suggestions.py",
+      "source_path": "mta/application/r1_parent_suggestions.py",
+      "source_sha256": "a8ea62ad404c6dc6c6fdc522cccda79651d36dbdf842a0ed7b4a473efb18a0de",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_master_state.py",
+      "source_path": "mta/application/r1_master_state.py",
+      "source_sha256": "f71eecdf8ab9364be3764ada32def032dfa97a90e19233ed0b14d1692df423c7",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_control_diagnostics.py",
+      "source_path": "mta/application/r1_control_diagnostics.py",
+      "source_sha256": "bce8593230d24fa080216b8cbadb052d74f58fa877d604b814752e71c028baa3",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_phase_in.py",
+      "source_path": "mta/application/r1_phase_in.py",
+      "source_sha256": "08be98fb0f900295030b60af645d955e16eea7d96b3f35892e3e12f51e33bd97",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_phase_out.py",
+      "source_path": "mta/application/r1_phase_out.py",
+      "source_sha256": "7f231c659fcf953a88ac9e6beb33b1d0d8a528a8942ba6e8c38ea0f4162d87e8",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_daily_input.py",
+      "source_path": "mta/application/r1_daily_input.py",
+      "source_sha256": "173b7cd67919b963446371660362e528464f3a443e9815d0bb927270302ee845",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_order_input.py",
+      "source_path": "mta/application/r1_order_input.py",
+      "source_sha256": "e32e71e402c5c41e1f44b2c4abc9d126bee9ac71ef8ae1900449e1b190200bb4",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_additional_master.py",
+      "source_path": "mta/application/r1_additional_master.py",
+      "source_sha256": "ddeebbb1f834c2bff701b1001dc85903f7e6bb0237e0f4e5a3c31727819e3c6e",
+      "transformation": "UTF8/LF only; functions unchanged"
+    },
+    {
+      "path": "mta/planning/projections.py",
+      "source_path": "mta/application/r1_run.py",
+      "source_sha256": "4285ddb3a6a6cace54b23625a02edda350fab8d1b5d1ad883a7a6627c7489bc1",
+      "functions": [
+        "_as_json",
+        "_pso_inputs",
+        "_bifurcation_rows",
+        "_bpp_order_rows",
+        "_requirement_band_rows",
+        "_source_bor_rows",
+        "_pick_rows"
+      ],
+      "replacements": {
+        "def _pso_inputs(prepared, requirement_rows: list[dict], run)": "def _pso_inputs(prepared, requirement_rows: list[dict], normal_rows)",
+        "list(RrrAllocationRecord.objects.filter(run=run).order_by(\"sku_id\", \"parent_location_id\", \"location_code\"))": "sorted(normal_rows, key=lambda r: (r.sku_id, r.parent_location_id, r.location_code))",
+        "def _bifurcation_rows(prepared, requirement_rows: list[dict], run, pso_rows)": "def _bifurcation_rows(prepared, requirement_rows: list[dict], normal_rows, pso_rows)",
+        "RrrAllocationRecord.objects.filter(run=run)": "normal_rows",
+        "def _source_bor_rows(prepared, payload: dict, requirement_rows: list[dict], run)": "def _source_bor_rows(prepared, payload: dict, requirement_rows: list[dict], band_rows)",
+        "(row.result[\"sku_code\"], row.result[\"location_code\"]): row.result\n        for row in RunCapabilityOutputRecord.objects.filter(run=run, capability=\"r1_requirement_band\")": "(row[\"sku_code\"], row[\"location_code\"]): row\n        for row in band_rows",
+        "def _pick_rows(run, logistics: dict, *, remaining=False)": "def _pick_rows(bifurcation_rows, logistics: dict, *, remaining=False)",
+        "(row.result[\"sku_code\"], row.result[\"location_code\"], row.result[\"parent_location_code\"]): row.result\n        for row in RunCapabilityOutputRecord.objects.filter(run=run, capability=\"r1_ration_bifurcation\")": "(row[\"sku_code\"], row[\"location_code\"], row[\"parent_location_code\"]): row\n        for row in bifurcation_rows"
+      }
+    }
+  ]
+}

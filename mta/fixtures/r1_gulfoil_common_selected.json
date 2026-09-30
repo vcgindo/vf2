@@ -1,0 +1,4240 @@
+{
+  "schema": "r1-gulfoil-file-input-v1",
+  "profile": "GulfOil",
+  "standard_input": {
+    "schema": "r1-current-day-input-v8",
+    "foundation": {
+      "snapshot": {
+        "snapshot_id": "R1-GULFOIL-COMMON-20260115-SELECTED-V2",
+        "business_date": "2026-01-15",
+        "configuration_version": "GULFOIL-83a4ac45",
+        "site_code": "R1-SYNTHETIC",
+        "source_kind": "SYNTHETIC_R1",
+        "source_manifest_checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+        "captured_at": "2026-01-15T00:00:00+00:00"
+      },
+      "skus": [
+        {
+          "sku_code": "STOCK-R1SKU"
+        },
+        {
+          "sku_code": "GIT-R1SKU"
+        },
+        {
+          "sku_code": "PSO-R1SKU"
+        },
+        {
+          "sku_code": "CTL-R1SKU"
+        },
+        {
+          "sku_code": "CTL-R1NEW"
+        }
+      ],
+      "locations": [
+        {
+          "location_code": "STOCK-R1-P"
+        },
+        {
+          "location_code": "STOCK-R1-C"
+        },
+        {
+          "location_code": "STOCK-R1-SUP"
+        },
+        {
+          "location_code": "GIT-R1-P"
+        },
+        {
+          "location_code": "GIT-R1-C"
+        },
+        {
+          "location_code": "GIT-R1-SUP"
+        },
+        {
+          "location_code": "PSO-R1-P"
+        },
+        {
+          "location_code": "PSO-R1-C"
+        },
+        {
+          "location_code": "PSO-R1-SUP"
+        },
+        {
+          "location_code": "CTL-R1-GP"
+        },
+        {
+          "location_code": "CTL-R1-P"
+        },
+        {
+          "location_code": "CTL-R1-C"
+        },
+        {
+          "location_code": "CTL-R1-Q"
+        },
+        {
+          "location_code": "CTL-R1-SUP"
+        }
+      ]
+    },
+    "orders": [],
+    "policies": [
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-P",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-C",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-P",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-C",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-P",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-C",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-GP",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-P",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-C",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-Q",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-GP",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-P",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-C",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-Q",
+        "controls": [],
+        "rationing_priority": 1,
+        "policy": {
+          "spike_high": "33.33",
+          "spike_low": "100.00",
+          "pso_high": "66.67",
+          "pso_low": "0"
+        }
+      }
+    ],
+    "stock_openings": [
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-P",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "STOCK-R1SKU",
+        "location_code": "STOCK-R1-C",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-P",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "GIT-R1SKU",
+        "location_code": "GIT-R1-C",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-P",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "PSO-R1SKU",
+        "location_code": "PSO-R1-C",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-GP",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-P",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-C",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1SKU",
+        "location_code": "CTL-R1-Q",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-GP",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-P",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-C",
+        "utilized_stock": 0
+      },
+      {
+        "sku_code": "CTL-R1NEW",
+        "location_code": "CTL-R1-Q",
+        "utilized_stock": 0
+      }
+    ],
+    "allocation": {
+      "advance_stock_threshold_percent": "66.6667"
+    },
+    "logistics": {
+      "items": [
+        {
+          "sku_code": "STOCK-R1SKU",
+          "location_code": "STOCK-R1-C",
+          "from_location": "STOCK-R1-P",
+          "to_location": "STOCK-R1-C"
+        },
+        {
+          "sku_code": "GIT-R1SKU",
+          "location_code": "GIT-R1-C",
+          "from_location": "GIT-R1-P",
+          "to_location": "GIT-R1-C"
+        },
+        {
+          "sku_code": "PSO-R1SKU",
+          "location_code": "PSO-R1-C",
+          "from_location": "PSO-R1-P",
+          "to_location": "PSO-R1-C"
+        }
+      ],
+      "vehicles": [
+        {
+          "vehicle_id": 1,
+          "name": "UNRELATED",
+          "weight_capacity": 1,
+          "volume_capacity": 1
+        },
+        {
+          "vehicle_id": 7,
+          "name": "BLOCK2-TRUCK",
+          "weight_capacity": 100,
+          "volume_capacity": 300
+        }
+      ],
+      "location_vehicles": [
+        {
+          "location_code": "UNRELATED",
+          "vehicle_id": 1
+        },
+        {
+          "location_code": "STOCK-R1-P",
+          "vehicle_id": 7
+        },
+        {
+          "location_code": "GIT-R1-P",
+          "vehicle_id": 7
+        },
+        {
+          "location_code": "PSO-R1-P",
+          "vehicle_id": 7
+        }
+      ]
+    },
+    "master_state": {
+      "opening_provenance": {
+        "kind": "SYNTHETIC_PRIOR_DBM",
+        "identity": "R1-PRIOR-MASTER-ORDER-FLOW",
+        "business_date": "2026-01-14"
+      },
+      "dbm_opening": [
+        {
+          "sku_code": "STOCK-R1SKU",
+          "location_code": "STOCK-R1-P",
+          "norm": 300,
+          "min_norm": 0,
+          "rlt": 4,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "STOCK-R1-SUP",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "STOCK-R1SKU",
+          "location_code": "STOCK-R1-C",
+          "norm": 80,
+          "min_norm": 0,
+          "rlt": 2,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "STOCK-R1-P",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "GIT-R1SKU",
+          "location_code": "GIT-R1-P",
+          "norm": 300,
+          "min_norm": 0,
+          "rlt": 4,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "GIT-R1-SUP",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "GIT-R1SKU",
+          "location_code": "GIT-R1-C",
+          "norm": 90,
+          "min_norm": 0,
+          "rlt": 2,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "GIT-R1-P",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "PSO-R1SKU",
+          "location_code": "PSO-R1-P",
+          "norm": 300,
+          "min_norm": 0,
+          "rlt": 4,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "PSO-R1-SUP",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "PSO-R1SKU",
+          "location_code": "PSO-R1-C",
+          "norm": 90,
+          "min_norm": 0,
+          "rlt": 2,
+          "rcp": 0,
+          "gcp": 0,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "PSO-R1-P",
+          "sku_intro_date": "2025-01-01"
+        },
+        {
+          "sku_code": "CTL-R1SKU",
+          "location_code": "CTL-R1-GP",
+          "norm": 3,
+          "min_norm": 7,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": 9,
+          "min_order_count": 8,
+          "parent_location_code": "CTL-R1-SUP",
+          "sku_intro_date": "2024-01-10"
+        },
+        {
+          "sku_code": "CTL-R1SKU",
+          "location_code": "CTL-R1-P",
+          "norm": 2,
+          "min_norm": 8,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": 9,
+          "min_order_count": 8,
+          "parent_location_code": "CTL-R1-GP",
+          "sku_intro_date": null
+        },
+        {
+          "sku_code": "CTL-R1SKU",
+          "location_code": "CTL-R1-Q",
+          "norm": 5,
+          "min_norm": 9,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "CTL-R1-P",
+          "sku_intro_date": "2024-03-10"
+        },
+        {
+          "sku_code": "RETIRED",
+          "location_code": "R1-OLD",
+          "norm": 99,
+          "min_norm": 1,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 1,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": null,
+          "sku_intro_date": "2024-01-01"
+        },
+        {
+          "sku_code": "CTL-R1NEW",
+          "location_code": "CTL-R1-GP",
+          "norm": 3,
+          "min_norm": 7,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": 9,
+          "min_order_count": 8,
+          "parent_location_code": "CTL-R1-SUP",
+          "sku_intro_date": "2024-01-10"
+        },
+        {
+          "sku_code": "CTL-R1NEW",
+          "location_code": "CTL-R1-P",
+          "norm": 2,
+          "min_norm": 8,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": 9,
+          "min_order_count": 8,
+          "parent_location_code": "CTL-R1-GP",
+          "sku_intro_date": null
+        },
+        {
+          "sku_code": "CTL-R1NEW",
+          "location_code": "CTL-R1-Q",
+          "norm": 5,
+          "min_norm": 9,
+          "rlt": 1,
+          "rcp": 1,
+          "gcp": 2,
+          "ocp": null,
+          "min_order_count": null,
+          "parent_location_code": "CTL-R1-P",
+          "sku_intro_date": "2024-03-10"
+        }
+      ],
+      "accepted_norm_input": {
+        "opening_date": "2026-01-14",
+        "accepted": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WhCode": "STOCK-R1-C"
+          }
+        ],
+        "suggestions": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WhCode": "STOCK-R1-C",
+            "Type": 1,
+            "NewNorm": 90
+          }
+        ],
+        "acceptance": [],
+        "reason_codes": [
+          {
+            "Id": 1,
+            "Reason": "Synthetic accepted norm"
+          }
+        ],
+        "suggestions_log": [],
+        "order_summary": [],
+        "suspend_order_type": []
+      },
+      "phase_control_input": {
+        "from_ui": true,
+        "start_percent": 66.67,
+        "opening_date": "2026-01-14",
+        "run_timestamp": "2026-01-15T04:05:06",
+        "phase_out": [],
+        "phase_in": [],
+        "phase_map": [],
+        "phase_in_norms": [],
+        "phase_exceptions": [],
+        "phase_requests": [
+          {
+            "SKUCode": "CTL-R1SKU",
+            "WhCode": "CTL-R1-C",
+            "PhaseInSKUCode": "CTL-R1NEW",
+            "Approved": 1
+          },
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-Q",
+            "PhaseInSKUCode": null,
+            "Approved": 1
+          }
+        ],
+        "phase_stops": [],
+        "phase_in_requests": [
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-C",
+            "TargetNorm": 20,
+            "Approved": 1
+          }
+        ],
+        "seasonality": [
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-Q",
+            "Status": 4
+          }
+        ],
+        "season_status": [
+          {
+            "Id": 22,
+            "Status": "Rejected"
+          },
+          {
+            "Id": 7,
+            "Status": "Finished"
+          },
+          {
+            "Id": 23,
+            "Status": "Stopped"
+          },
+          {
+            "Id": 21,
+            "Status": "Aborted"
+          },
+          {
+            "Id": 1,
+            "Status": "Not Started"
+          }
+        ]
+      },
+      "force_norm_input": {
+        "from_ui": true,
+        "ignore_master_norm": false,
+        "nms_active": false
+      },
+      "season_control_input": {
+        "opening_date": "2026-01-14",
+        "season_requests": [],
+        "seasonality": [
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-Q",
+            "StartDate": "2026-01-01",
+            "EndDate": "2026-02-20",
+            "TargetNorm": 6,
+            "DeltaNormPercentage": null,
+            "UpperLowerCap": null,
+            "OrigNorm": 3,
+            "NewNorm": 6,
+            "BuildupDuration": 10,
+            "ActivateDBM": 0,
+            "Type": 1,
+            "Status": 4,
+            "Comment": "Season in progress",
+            "LastProcessedOn": "2026-01-14"
+          }
+        ]
+      },
+      "control_diagnostics": true,
+      "transit_tag_input": [
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-C",
+          "Tags": "Prior tag"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-Q",
+          "Tags": "Prior tag"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-GP",
+          "Tags": "Prior tag"
+        }
+      ]
+    },
+    "stock_configuration": {
+      "reservation_type": 0,
+      "reservation_for_rationing_only": false
+    },
+    "replenishment_exclusions": [
+      "STOCK-R1-P",
+      "GIT-R1-P",
+      "PSO-R1-P",
+      "CTL-R1-GP",
+      "CTL-R1-Q"
+    ],
+    "raw_master_entry": {
+      "schema": "r1-importer-master-input-v1",
+      "business_date": "2026-01-15",
+      "run_timestamp": "2026-01-15T04:05:06",
+      "import_non_nms": true,
+      "settings": [
+        {
+          "Parameter": "NMSActive",
+          "Value": 0
+        },
+        {
+          "Parameter": "DBMActive",
+          "Value": 1
+        },
+        {
+          "Parameter": "UpdatePWh_RLT_RCP_GCP",
+          "Value": 0
+        }
+      ],
+      "prior_provenance": {
+        "kind": "SYNTHETIC_PRIOR_IMPORTER",
+        "identity": "R1-INTEGRATED-RAW-MASTER-PRIOR",
+        "business_date": "2026-01-14"
+      },
+      "prior": {
+        "MasterData": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WhCode": "STOCK-R1-P",
+            "Norm": 300,
+            "MinNorm": 0,
+            "RLT": 4,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "STOCK-R1-SUP",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WhCode": "STOCK-R1-C",
+            "Norm": 90,
+            "MinNorm": 0,
+            "RLT": 2,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "STOCK-R1-P",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WhCode": "GIT-R1-P",
+            "Norm": 300,
+            "MinNorm": 0,
+            "RLT": 4,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "GIT-R1-SUP",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WhCode": "GIT-R1-C",
+            "Norm": 90,
+            "MinNorm": 0,
+            "RLT": 2,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "GIT-R1-P",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WhCode": "PSO-R1-P",
+            "Norm": 300,
+            "MinNorm": 0,
+            "RLT": 4,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "PSO-R1-SUP",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WhCode": "PSO-R1-C",
+            "Norm": 90,
+            "MinNorm": 0,
+            "RLT": 2,
+            "RCP": 0,
+            "GCP": 0,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "PSO-R1-P",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "CTL-R1SKU",
+            "WhCode": "CTL-R1-GP",
+            "Norm": 2,
+            "MinNorm": 1,
+            "RLT": 6,
+            "RCP": 3,
+            "GCP": 4,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "CTL-R1-SUP",
+            "SKUIntroDate": "2025-02-03"
+          },
+          {
+            "SKUCode": "CTL-R1SKU",
+            "WhCode": "CTL-R1-P",
+            "Norm": 3,
+            "MinNorm": 2,
+            "RLT": 4,
+            "RCP": 4,
+            "GCP": 5,
+            "OCP": 0,
+            "MinOrderCount": 0,
+            "ParentWhCode": "CTL-R1-GP",
+            "SKUIntroDate": "2025-12-03"
+          },
+          {
+            "SKUCode": "CTL-R1SKU",
+            "WhCode": "CTL-R1-C",
+            "Norm": 12,
+            "MinNorm": 3,
+            "RLT": 2,
+            "RCP": 5,
+            "GCP": 6,
+            "OCP": null,
+            "MinOrderCount": 2,
+            "ParentWhCode": "CTL-R1-P",
+            "SKUIntroDate": "2026-01-15"
+          },
+          {
+            "SKUCode": "CTL-R1SKU",
+            "WhCode": "CTL-R1-Q",
+            "Norm": 3,
+            "MinNorm": 4,
+            "RLT": 7,
+            "RCP": 6,
+            "GCP": 7,
+            "OCP": 4,
+            "MinOrderCount": 5,
+            "ParentWhCode": "CTL-R1-SUP",
+            "SKUIntroDate": null
+          },
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-GP",
+            "Norm": 2,
+            "MinNorm": 1,
+            "RLT": 6,
+            "RCP": 3,
+            "GCP": 4,
+            "OCP": null,
+            "MinOrderCount": null,
+            "ParentWhCode": "CTL-R1-SUP",
+            "SKUIntroDate": "2025-02-03"
+          },
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-P",
+            "Norm": 3,
+            "MinNorm": 2,
+            "RLT": 4,
+            "RCP": 4,
+            "GCP": 5,
+            "OCP": 0,
+            "MinOrderCount": 0,
+            "ParentWhCode": "CTL-R1-GP",
+            "SKUIntroDate": "2025-12-03"
+          },
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-C",
+            "Norm": 12,
+            "MinNorm": 3,
+            "RLT": 2,
+            "RCP": 5,
+            "GCP": 6,
+            "OCP": null,
+            "MinOrderCount": 2,
+            "ParentWhCode": "CTL-R1-P",
+            "SKUIntroDate": "2026-01-15"
+          },
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-Q",
+            "Norm": 3,
+            "MinNorm": 4,
+            "RLT": 7,
+            "RCP": 6,
+            "GCP": 7,
+            "OCP": 4,
+            "MinOrderCount": 5,
+            "ParentWhCode": "CTL-R1-SUP",
+            "SKUIntroDate": null
+          }
+        ],
+        "SKUDescriptionTbl": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "SKUDescription": "Synthetic SKU"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "SKUDescription": "Synthetic SKU"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "SKUDescription": "Synthetic SKU"
+          }
+        ],
+        "SiteDescriptionTbl": [
+          {
+            "WHCode": "STOCK-R1-P",
+            "WHDescription": "STOCK-R1-P"
+          },
+          {
+            "WHCode": "STOCK-R1-C",
+            "WHDescription": "STOCK-R1-C"
+          },
+          {
+            "WHCode": "STOCK-R1-SUP",
+            "WHDescription": "STOCK-R1-SUP"
+          },
+          {
+            "WHCode": "GIT-R1-P",
+            "WHDescription": "GIT-R1-P"
+          },
+          {
+            "WHCode": "GIT-R1-C",
+            "WHDescription": "GIT-R1-C"
+          },
+          {
+            "WHCode": "GIT-R1-SUP",
+            "WHDescription": "GIT-R1-SUP"
+          },
+          {
+            "WHCode": "PSO-R1-P",
+            "WHDescription": "PSO-R1-P"
+          },
+          {
+            "WHCode": "PSO-R1-C",
+            "WHDescription": "PSO-R1-C"
+          },
+          {
+            "WHCode": "PSO-R1-SUP",
+            "WHDescription": "PSO-R1-SUP"
+          }
+        ],
+        "SkuAttributeData": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "ElephantOrderCapping": 2147483647,
+            "Weight": "1.000",
+            "Volume": "1.000"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "ElephantOrderCapping": 2147483647,
+            "Weight": "1.000",
+            "Volume": "1.000"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "ElephantOrderCapping": 2147483647,
+            "Weight": "2.000",
+            "Volume": "1.000"
+          }
+        ],
+        "LocationAttributeData": [
+          {
+            "WHCode": "STOCK-R1-P",
+            "LogisticsLocation": null
+          },
+          {
+            "WHCode": "STOCK-R1-C",
+            "LogisticsLocation": "STOCK-R1-LOG"
+          },
+          {
+            "WHCode": "STOCK-R1-SUP",
+            "LogisticsLocation": null
+          },
+          {
+            "WHCode": "GIT-R1-P",
+            "LogisticsLocation": null
+          },
+          {
+            "WHCode": "GIT-R1-C",
+            "LogisticsLocation": "GIT-R1-LOG"
+          },
+          {
+            "WHCode": "GIT-R1-SUP",
+            "LogisticsLocation": null
+          },
+          {
+            "WHCode": "PSO-R1-P",
+            "LogisticsLocation": null
+          },
+          {
+            "WHCode": "PSO-R1-C",
+            "LogisticsLocation": "PSO-R1-LOG"
+          },
+          {
+            "WHCode": "PSO-R1-SUP",
+            "LogisticsLocation": null
+          }
+        ],
+        "SkuLocAttributeData": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "LocCode": "STOCK-R1-P",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          },
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "LocCode": "STOCK-R1-C",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "LocCode": "GIT-R1-P",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "LocCode": "GIT-R1-C",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "LocCode": "PSO-R1-P",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "LocCode": "PSO-R1-C",
+            "PackSize": 10,
+            "StockPercentForRationing": 100,
+            "NormPercentReservation": 0,
+            "NonNMS": 0
+          }
+        ],
+        "RetiredNormsTbl": [],
+        "RejectedMaster": [],
+        "ForceNormChange": [
+          {
+            "SKUCode": "CTL-R1NEW",
+            "WhCode": "CTL-R1-C",
+            "NewNorm": 99,
+            "Approved": 1,
+            "RequestedBy": "SYNTHETIC"
+          }
+        ]
+      },
+      "raw_master": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-P",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "STOCK-R1-SUP",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "STOCK-R1-P",
+          "ParentDescription": "STOCK-R1-SUP",
+          "PackSize": 10,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": null,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "STOCK-R1-P",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "STOCK-R1-C",
+          "ParentDescription": "STOCK-R1-P",
+          "PackSize": 10,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "STOCK-R1-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-P",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "GIT-R1-SUP",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "GIT-R1-P",
+          "ParentDescription": "GIT-R1-SUP",
+          "PackSize": 10,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": null,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-C",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "GIT-R1-P",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "GIT-R1-C",
+          "ParentDescription": "GIT-R1-P",
+          "PackSize": 10,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "GIT-R1-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-P",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 4,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "PSO-R1-SUP",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "PSO-R1-P",
+          "ParentDescription": "PSO-R1-SUP",
+          "PackSize": 10,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "2.000",
+          "Volume": "1.000",
+          "LogisticsLocation": null,
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-C",
+          "Norm": 999,
+          "MinNorm": 0,
+          "RLT": 2,
+          "RCP": 0,
+          "GCP": 0,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "PSO-R1-P",
+          "SKUIntroDate": "2025-01-01",
+          "SKUDescription": "Synthetic SKU",
+          "WHDescription": "PSO-R1-C",
+          "ParentDescription": "PSO-R1-P",
+          "PackSize": 6,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "2.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "PSO-R1-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-GP",
+          "Norm": 2,
+          "MinNorm": 1,
+          "RLT": 6,
+          "RCP": 3,
+          "GCP": 4,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": "2025-02-03",
+          "SKUDescription": "CTL-R1SKU",
+          "WHDescription": "CTL-R1-GP",
+          "ParentDescription": "CTL-R1-SUP",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": null,
+          "PSOThreshold": null
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-P",
+          "Norm": 3,
+          "MinNorm": 2,
+          "RLT": 4,
+          "RCP": 4,
+          "GCP": 5,
+          "OCP": 0,
+          "MinOrderCount": 0,
+          "ParentWhCode": "CTL-R1-GP",
+          "SKUIntroDate": "2025-12-03",
+          "SKUDescription": "CTL-R1SKU",
+          "WHDescription": "CTL-R1-P",
+          "ParentDescription": "CTL-R1-GP",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": null,
+          "PSOThreshold": null
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-C",
+          "Norm": 12,
+          "MinNorm": 3,
+          "RLT": 2,
+          "RCP": 5,
+          "GCP": 6,
+          "OCP": null,
+          "MinOrderCount": 2,
+          "ParentWhCode": "CTL-R1-P",
+          "SKUIntroDate": "2026-01-15",
+          "SKUDescription": "CTL-R1SKU",
+          "WHDescription": "CTL-R1-C",
+          "ParentDescription": "CTL-R1-P",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": "0",
+          "PSOThreshold": "25"
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WhCode": "CTL-R1-Q",
+          "Norm": 3,
+          "MinNorm": 4,
+          "RLT": 7,
+          "RCP": 6,
+          "GCP": 7,
+          "OCP": 4,
+          "MinOrderCount": 5,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": null,
+          "SKUDescription": "CTL-R1SKU",
+          "WHDescription": "CTL-R1-Q",
+          "ParentDescription": "CTL-R1-SUP",
+          "PackSize": 2,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": "7",
+          "PSOThreshold": "0"
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-GP",
+          "Norm": 2,
+          "MinNorm": 1,
+          "RLT": 6,
+          "RCP": 3,
+          "GCP": 4,
+          "OCP": null,
+          "MinOrderCount": null,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": "2025-02-03",
+          "SKUDescription": "CTL-R1NEW",
+          "WHDescription": "CTL-R1-GP",
+          "ParentDescription": "CTL-R1-SUP",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": null,
+          "PSOThreshold": null
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-P",
+          "Norm": 3,
+          "MinNorm": 2,
+          "RLT": 4,
+          "RCP": 4,
+          "GCP": 5,
+          "OCP": 0,
+          "MinOrderCount": 0,
+          "ParentWhCode": "CTL-R1-GP",
+          "SKUIntroDate": "2025-12-03",
+          "SKUDescription": "CTL-R1NEW",
+          "WHDescription": "CTL-R1-P",
+          "ParentDescription": "CTL-R1-GP",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": null,
+          "PSOThreshold": null
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-C",
+          "Norm": 99,
+          "MinNorm": 3,
+          "RLT": 2,
+          "RCP": 5,
+          "GCP": 6,
+          "OCP": null,
+          "MinOrderCount": 2,
+          "ParentWhCode": "CTL-R1-P",
+          "SKUIntroDate": "2026-01-15",
+          "SKUDescription": "CTL-R1NEW",
+          "WHDescription": "CTL-R1-C",
+          "ParentDescription": "CTL-R1-P",
+          "PackSize": 1,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": "0",
+          "PSOThreshold": "25"
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WhCode": "CTL-R1-Q",
+          "Norm": 3,
+          "MinNorm": 4,
+          "RLT": 7,
+          "RCP": 6,
+          "GCP": 7,
+          "OCP": 4,
+          "MinOrderCount": 5,
+          "ParentWhCode": "CTL-R1-SUP",
+          "SKUIntroDate": null,
+          "SKUDescription": "CTL-R1NEW",
+          "WHDescription": "CTL-R1-Q",
+          "ParentDescription": "CTL-R1-SUP",
+          "PackSize": 2,
+          "ElephantOrderCapping": 2147483647,
+          "Weight": "1.000",
+          "Volume": "1.000",
+          "LogisticsLocation": "CTL-LOG",
+          "StockPercentForRationing": 100,
+          "NormPercentReservation": 0,
+          "SpikeThreshold": "7",
+          "PSOThreshold": "0"
+        }
+      ],
+      "raw_non_nms": [],
+      "raw_no_norm": []
+    },
+    "raw_supplier_entry": {
+      "SOBDataRaw": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-P",
+          "SupplierCode": "STOCK-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "SOB": 80
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-P",
+          "SupplierCode": "GIT-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "SOB": 80
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-P",
+          "SupplierCode": "PSO-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "SOB": 80
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "SOB": 100
+        }
+      ],
+      "MOQDataRaw1": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "SupplierCode": "STOCK-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "MOQ": 150
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "SupplierCode": "GIT-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "MOQ": 150
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "SupplierCode": "PSO-R1-SUP",
+          "SupplierDescription": "Supplier",
+          "MOQ": 150
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "MOQ": 10
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "SupplierCode": "CTL-R1-SUP",
+          "SupplierDescription": "CTL-R1-SUP",
+          "MOQ": 10
+        }
+      ],
+      "MOQDataRaw2": [
+        {
+          "SKUCode": "IGNORED",
+          "WHCode": "X",
+          "SupplierCode": "Y",
+          "SupplierDescription": "Ignored",
+          "MOQ": 999
+        },
+        {
+          "SKUCode": "IGNORED",
+          "WHCode": "X",
+          "SupplierCode": "Y",
+          "SupplierDescription": "Ignored",
+          "MOQ": 999
+        },
+        {
+          "SKUCode": "IGNORED",
+          "WHCode": "X",
+          "SupplierCode": "Y",
+          "SupplierDescription": "Ignored",
+          "MOQ": 999
+        }
+      ]
+    },
+    "supplier_state": {
+      "opening_provenance": {
+        "kind": "SYNTHETIC_PRIOR_BPR_SUPPLIER",
+        "identity": "R1-PRIOR-SUPPLIER",
+        "business_date": "2026-01-14"
+      },
+      "SOBData": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-P",
+          "SupplierCode": "STOCK-R1-SUP",
+          "SOB": 25
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-P",
+          "SupplierCode": "GIT-R1-SUP",
+          "SOB": 25
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-P",
+          "SupplierCode": "PSO-R1-SUP",
+          "SOB": 25
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "SOB": 100
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "SOB": 100
+        }
+      ],
+      "MOQData": [
+        {
+          "SKUCode": "STOCK-R1SKU",
+          "WHCode": "STOCK-R1-P",
+          "SupplierCode": "STOCK-R1-SUP",
+          "MOQ": 200
+        },
+        {
+          "SKUCode": "GIT-R1SKU",
+          "WHCode": "GIT-R1-P",
+          "SupplierCode": "GIT-R1-SUP",
+          "MOQ": 200
+        },
+        {
+          "SKUCode": "PSO-R1SKU",
+          "WHCode": "PSO-R1-P",
+          "SupplierCode": "PSO-R1-SUP",
+          "MOQ": 200
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "MOQ": 10
+        },
+        {
+          "SKUCode": "CTL-R1SKU",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "MOQ": 10
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-GP",
+          "SupplierCode": "CTL-R1-SUP",
+          "MOQ": 10
+        },
+        {
+          "SKUCode": "CTL-R1NEW",
+          "WHCode": "CTL-R1-Q",
+          "SupplierCode": "CTL-R1-SUP",
+          "MOQ": 10
+        }
+      ]
+    },
+    "raw_daily_entry": {
+      "schema": "r1-daily-input-v1",
+      "shell_flags": {
+        "DistributorSystemActive": 0,
+        "VendorSystemActive": 0,
+        "VectorDMSActive": 0
+      },
+      "raw_daily_data": [],
+      "prior_bpr": {
+        "opening_provenance": {
+          "kind": "SYNTHETIC_PRIOR_BPR_DAILY",
+          "identity": "R1-PRIOR-DAILY",
+          "business_date": "2026-01-14"
+        },
+        "BPRMaster": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WHCode": "STOCK-OLD",
+            "Norm": 40,
+            "ParentWhCode": "STOCK-R1-PLANT",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WHCode": "GIT-OLD",
+            "Norm": 40,
+            "ParentWhCode": "GIT-R1-PLANT",
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WHCode": "PSO-OLD",
+            "Norm": 40,
+            "ParentWhCode": "PSO-R1-PLANT",
+            "SKUIntroDate": "2025-01-01"
+          }
+        ],
+        "Plants": [
+          {
+            "PlantCode": "STOCK-R1-PLANT",
+            "PlantName": "Prior plant"
+          },
+          {
+            "PlantCode": "GIT-R1-PLANT",
+            "PlantName": "Prior plant"
+          },
+          {
+            "PlantCode": "PSO-R1-PLANT",
+            "PlantName": "Prior plant"
+          }
+        ],
+        "NoNormMaster": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WhCode": "STOCK-R1-NN",
+            "ParentWhCode": "STOCK-R1-P",
+            "RLT": 1,
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WhCode": "GIT-R1-NN",
+            "ParentWhCode": "GIT-R1-P",
+            "RLT": 1,
+            "SKUIntroDate": "2025-01-01"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WhCode": "PSO-R1-NN",
+            "ParentWhCode": "PSO-R1-P",
+            "RLT": 1,
+            "SKUIntroDate": "2025-01-01"
+          }
+        ],
+        "DailyConsumption": [
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WHCode": "STOCK-R1-C",
+            "Stock": 70,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WHCode": "STOCK-R1-PLANT",
+            "Stock": 40,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "STOCK-R1SKU",
+            "WHCode": "STOCK-R1-NN",
+            "Stock": 30,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WHCode": "GIT-R1-C",
+            "Stock": 70,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WHCode": "GIT-R1-PLANT",
+            "Stock": 40,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "GIT-R1SKU",
+            "WHCode": "GIT-R1-NN",
+            "Stock": 30,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WHCode": "PSO-R1-C",
+            "Stock": 70,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WHCode": "PSO-R1-PLANT",
+            "Stock": 40,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          },
+          {
+            "SKUCode": "PSO-R1SKU",
+            "WHCode": "PSO-R1-NN",
+            "Stock": 30,
+            "Consumption": 901,
+            "GIT": 902,
+            "Receipts": 903,
+            "PSO": 904,
+            "BlueZone": 0,
+            "ReportDate": "2026-01-14"
+          }
+        ]
+      },
+      "distributor_codes": [],
+      "vendor_codes": [],
+      "vector_dms_codes": [],
+      "settings": [
+        {
+          "Parameter": "MissingDailyDataHandling",
+          "Value": "1"
+        },
+        {
+          "Parameter": "DBM_MissingDailyDataHandling",
+          "Value": "0"
+        }
+      ],
+      "vf_settings": [
+        {
+          "Parameter": "GenerateBPRForMissingInventoryLoc ",
+          "Value": "0"
+        }
+      ]
+    },
+    "order_input": {
+      "opening_date": "2026-01-14",
+      "opening_identity": "SYNTHETIC-STOCK-ORDER-OPENING",
+      "feed_status": "PRESENT",
+      "feed_rows": [],
+      "opening_orders": [
+        {
+          "OrderKey": 10,
+          "CustomerOrderId": "STOCK-SPIKE",
+          "PartId": 1,
+          "IsSpike": 1,
+          "IsElephant": 0,
+          "OriginalQty": 50,
+          "Qty": 50,
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C",
+          "CustomerExpectedDate": "2026-01-15",
+          "FirstServicingWhCode": "STOCK-R1-P",
+          "DueDate": "2026-01-20",
+          "IntroDate": "2026-01-12"
+        },
+        {
+          "OrderKey": 11,
+          "CustomerOrderId": "STOCK-PSO",
+          "PartId": 1,
+          "IsSpike": 0,
+          "IsElephant": 0,
+          "OriginalQty": 10,
+          "Qty": 10,
+          "SKUCode": "STOCK-R1SKU",
+          "WhCode": "STOCK-R1-C",
+          "CustomerExpectedDate": "2026-01-20",
+          "FirstServicingWhCode": null,
+          "DueDate": null,
+          "IntroDate": "2026-01-12"
+        },
+        {
+          "OrderKey": 20,
+          "CustomerOrderId": "GIT-SPIKE",
+          "PartId": 1,
+          "IsSpike": 1,
+          "IsElephant": 0,
+          "OriginalQty": 50,
+          "Qty": 50,
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-C",
+          "CustomerExpectedDate": "2026-01-15",
+          "FirstServicingWhCode": "GIT-R1-P",
+          "DueDate": "2026-01-20",
+          "IntroDate": "2026-01-12"
+        },
+        {
+          "OrderKey": 21,
+          "CustomerOrderId": "GIT-PSO",
+          "PartId": 1,
+          "IsSpike": 0,
+          "IsElephant": 0,
+          "OriginalQty": 10,
+          "Qty": 10,
+          "SKUCode": "GIT-R1SKU",
+          "WhCode": "GIT-R1-C",
+          "CustomerExpectedDate": "2026-01-20",
+          "FirstServicingWhCode": null,
+          "DueDate": null,
+          "IntroDate": "2026-01-12"
+        },
+        {
+          "OrderKey": 31,
+          "CustomerOrderId": "PSO-PSO",
+          "PartId": 1,
+          "IsSpike": 0,
+          "IsElephant": 0,
+          "OriginalQty": 500,
+          "Qty": 500,
+          "SKUCode": "PSO-R1SKU",
+          "WhCode": "PSO-R1-C",
+          "CustomerExpectedDate": "2026-01-20",
+          "FirstServicingWhCode": null,
+          "DueDate": null,
+          "IntroDate": "2026-01-12"
+        }
+      ],
+      "closure_history": [],
+      "identity_last_value": 91
+    }
+  },
+  "mapping": [
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Material",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Material Description",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Base Quantity",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Component",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "BOM Component Description",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Quantity",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "BOM_DETAIL_20251008.CSV",
+      "TableName": "BOM_Detail",
+      "Col": "Plant",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "SKU Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Loc Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Storage Loc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Consumption",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Production",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Reciept(Goods recieved)",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "TableName": "Consumption_ReceiptFile",
+      "Col": "Reciept",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "VectorLocation",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "LocCode",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "LocDesc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "StorageLoc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "UnrestrictedStock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "BlockedStock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "QualityStock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "ReservedStock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "TableName": "LocationStorageMapping",
+      "Col": "DaystobeConsidered",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": ","
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "STO No.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "STO Line Item",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "SKU Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Sku Desc.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "From Loc Id",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "From Loc Descr.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "From Storage Location",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "To Loc Id",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "To Loc Descr.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "To Storage Location",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Stock in Transit",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Open Grn Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Delivery No.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Delivery Line Item",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "In_Transit_Stok_20251008_070014.CSV",
+      "TableName": "In_Transit_Stok",
+      "Col": "Date of PGI Creation",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Indent_Report_20251008_070014.CSV",
+      "TableName": "Indent_Report",
+      "Col": "Supp.Plant",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Indent_Report_20251008_070014.CSV",
+      "TableName": "Indent_Report",
+      "Col": "Rcv. Plant",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Indent_Report_20251008_070014.CSV",
+      "TableName": "Indent_Report",
+      "Col": "Material",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Indent_Report_20251008_070014.CSV",
+      "TableName": "Indent_Report",
+      "Col": "Dlv but not PGI",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Indent_Report_20251008_070014.CSV",
+      "TableName": "Indent_Report",
+      "Col": "Str Loc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "SKU Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sku Desc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Loc Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Loc Desc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sales group",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sales Grp Desc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Storage Loc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sales org",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sales Org Desc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Customer No",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Customer Name",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Customer Grp",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Product Type",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Order Date",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Order Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "UOM Ord Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Invoiced Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "UOM Inv Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Balance Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "UOM Bal Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Sales Order",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "TableName": "OPEN_SALES_ORDER",
+      "Col": "Item",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "SKU Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Sku Desc",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Plant Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Process Order No",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Process order date",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Tentative completion date",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Qty Conf",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "Plant_Wip20251008_070014.CSV",
+      "TableName": "Plant_Wip",
+      "Col": "Balance Qty",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "SKU Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Sku Desc.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Loc Code",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Loc Desc.",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Storage Location",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Unrestricted stock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Blocked Stock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Quality Stock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    },
+    {
+      "FileName": "STOCK_ON_HAND_20251008_070015.CSV",
+      "TableName": "STOCK_ON_HAND",
+      "Col": "Reserved Stock",
+      "StartLine": 0,
+      "DB": "Demo_Interface_1",
+      "Delimiter": "|"
+    }
+  ],
+  "interface_columns": [
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 1,
+      "column_name": "Material",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 2,
+      "column_name": "Material Description",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 3,
+      "column_name": "Base Quantity",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 4,
+      "column_name": "Component",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 5,
+      "column_name": "BOM Component Description",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 6,
+      "column_name": "Quantity",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "BOM_Detail",
+      "column_id": 7,
+      "column_name": "Plant",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 1,
+      "column_name": "SKU Code",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 2,
+      "column_name": "Loc Code",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 3,
+      "column_name": "Storage Loc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 4,
+      "column_name": "Consumption",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 5,
+      "column_name": "Production",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 6,
+      "column_name": "Reciept(Goods recieved)",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Consumption_ReceiptFile",
+      "column_id": 7,
+      "column_name": "Reciept",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 1,
+      "column_name": "STONo",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 2,
+      "column_name": "STOLineItem",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 3,
+      "column_name": "SKUCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 4,
+      "column_name": "SkuDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 5,
+      "column_name": "FromLocId",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 6,
+      "column_name": "FromLocDescr",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 7,
+      "column_name": "FromStorageLocation",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 8,
+      "column_name": "WhCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 9,
+      "column_name": "ToLocDescr",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 10,
+      "column_name": "ToStorageLocation",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 11,
+      "column_name": "StockinTransit",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 12,
+      "column_name": "OpenGrnQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 13,
+      "column_name": "DeliveryNo",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 14,
+      "column_name": "DeliveryLineItem",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "In_Transit_Stok",
+      "column_id": 15,
+      "column_name": "DateofPGICreation",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Indent_Report",
+      "column_id": 1,
+      "column_name": "Supp.Plant",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Indent_Report",
+      "column_id": 2,
+      "column_name": "Rcv. Plant",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Indent_Report",
+      "column_id": 3,
+      "column_name": "Material",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Indent_Report",
+      "column_id": 4,
+      "column_name": "Dlv but not PGI",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Indent_Report",
+      "column_id": 5,
+      "column_name": "Str Loc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 1,
+      "column_name": "VectorLocation",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 2,
+      "column_name": "LocCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 3,
+      "column_name": "LocDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 4,
+      "column_name": "StorageLoc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 5,
+      "column_name": "UnrestrictedStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 6,
+      "column_name": "BlockedStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 7,
+      "column_name": "QualityStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 8,
+      "column_name": "ReservedStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "LocationStorageMapping",
+      "column_id": 9,
+      "column_name": "DaystobeConsidered",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 1,
+      "column_name": "SKuCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 2,
+      "column_name": "SkuDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 3,
+      "column_name": "WhCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 4,
+      "column_name": "LocDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 5,
+      "column_name": "Salesgroup",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 6,
+      "column_name": "SalesGrpDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 7,
+      "column_name": "StorageLoc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 8,
+      "column_name": "Salesorg",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 9,
+      "column_name": "SalesOrgDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 10,
+      "column_name": "CustomerNo",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 11,
+      "column_name": "CustomerName",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 12,
+      "column_name": "CustomerGrp",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 13,
+      "column_name": "ProductType",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 14,
+      "column_name": "OrderDate",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 15,
+      "column_name": "OrderQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 16,
+      "column_name": "UOMOrdQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 17,
+      "column_name": "InvoicedQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 18,
+      "column_name": "UOMInvQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 19,
+      "column_name": "BalanceQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 20,
+      "column_name": "UOMBalQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 21,
+      "column_name": "SalesOrder",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "OPEN_SALES_ORDER",
+      "column_id": 22,
+      "column_name": "Item",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 1,
+      "column_name": "SKuCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 2,
+      "column_name": "SkuDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 3,
+      "column_name": "WhCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 4,
+      "column_name": "ProcessOrderNo",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 5,
+      "column_name": "Processorderdate",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 6,
+      "column_name": "Tentativecompletiondate",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 7,
+      "column_name": "Qty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 8,
+      "column_name": "QtyConf",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "Plant_Wip",
+      "column_id": 9,
+      "column_name": "BalanceQty",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 1,
+      "column_name": "SKUCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 2,
+      "column_name": "SKUDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 3,
+      "column_name": "WHCode",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 4,
+      "column_name": "LocDesc",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 5,
+      "column_name": "StorageLocation",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 6,
+      "column_name": "Unrestrictedstock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 7,
+      "column_name": "BlockedStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 8,
+      "column_name": "QualityStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    },
+    {
+      "schema_name": "dbo",
+      "table_name": "STOCK_ON_HAND",
+      "column_id": 9,
+      "column_name": "ReservedStock",
+      "type_name": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false,
+      "is_computed": false,
+      "collation_name": "SQL_Latin1_General_CP1_CI_AS",
+      "default_definition": null
+    }
+  ],
+  "files": [
+    {
+      "name": "BOM_DETAIL_20251008.CSV",
+      "encoding": "ascii",
+      "text": "Material|Material Description|Base Quantity|Component|BOM Component Description|Quantity|Plant\n",
+      "sha256": "966de4399a21f85fcfadfdb34d75a6f7cc46c1109790297224f358793808ba2e"
+    },
+    {
+      "name": "CONSUMPTION_RECIEPT_20251008_070014.CSV",
+      "encoding": "ascii",
+      "text": "SKU Code|Loc Code|Storage Loc|Consumption|Production|Reciept(Goods recieved)|Reciept\nSTOCK-R1SKU|STOCK-R1-P||5|0|0|2\nSTOCK-R1SKU|STOCK-R1-C||5|0|0|2\nGIT-R1SKU|GIT-R1-P||5|0|0|2\nGIT-R1SKU|GIT-R1-C||5|0|0|2\nPSO-R1SKU|PSO-R1-P||5|0|0|2\nPSO-R1SKU|PSO-R1-C||5|0|0|2\nCTL-R1SKU|CTL-R1-GP||0|0|0|0\nCTL-R1SKU|CTL-R1-P||0|0|0|0\nCTL-R1SKU|CTL-R1-C||0|0|0|0\nCTL-R1SKU|CTL-R1-Q||0|0|0|0\nCTL-R1NEW|CTL-R1-GP||0|0|0|0\nCTL-R1NEW|CTL-R1-P||0|0|0|0\nCTL-R1NEW|CTL-R1-C||0|0|0|0\nCTL-R1NEW|CTL-R1-Q||0|0|0|0\n",
+      "sha256": "03ec543729a6e199f0c0e1c7b74b52f927cc9cb3f4cecf620dd0174957916f0e"
+    },
+    {
+      "name": "Gulf_Oil_Interface_LocationStorageMapping.CSV",
+      "encoding": "ascii",
+      "text": "VectorLocation,LocCode,LocDesc,StorageLoc,UnrestrictedStock,BlockedStock,QualityStock,ReservedStock,DaystobeConsidered\nCTL-R1-C,CTL-R1-C,CTL-R1-C,,STK,GIT,,,90\nCTL-R1-GP,CTL-R1-GP,CTL-R1-GP,,STK,GIT,,,90\nCTL-R1-P,CTL-R1-P,CTL-R1-P,,STK,GIT,,,90\nCTL-R1-Q,CTL-R1-Q,CTL-R1-Q,,STK,GIT,,,90\nGIT-R1-C,GIT-R1-C,GIT-R1-C,,STK,GIT,,,90\nGIT-R1-P,GIT-R1-P,GIT-R1-P,,STK,GIT,,,90\nPSO-R1-C,PSO-R1-C,PSO-R1-C,,STK,GIT,,,90\nPSO-R1-P,PSO-R1-P,PSO-R1-P,,STK,GIT,,,90\nSTOCK-R1-C,STOCK-R1-C,STOCK-R1-C,,STK,GIT,,,90\nSTOCK-R1-P,STOCK-R1-P,STOCK-R1-P,,STK,GIT,,,90\n",
+      "sha256": "bb01331603994cb4824cf792587cc8e126fdc5e347baf34bcaf4243acd00b9f9"
+    },
+    {
+      "name": "In_Transit_Stok_20251008_070014.CSV",
+      "encoding": "ascii",
+      "text": "STO No.|STO Line Item|SKU Code|Sku Desc.|From Loc Id|From Loc Descr.|From Storage Location|To Loc Id|To Loc Descr.|To Storage Location|Stock in Transit|Open Grn Qty|Delivery No.|Delivery Line Item|Date of PGI Creation\n",
+      "sha256": "6691cba00f6b3ccb7588f89e2d2480373ccaacd8938bbfb3e89b29ee4ac96ddd"
+    },
+    {
+      "name": "Indent_Report_20251008_070014.CSV",
+      "encoding": "ascii",
+      "text": "Supp.Plant|Rcv. Plant|Material|Dlv but not PGI|Str Loc\n",
+      "sha256": "e8146de3fa0bd980d6ff52aad552be48e5077491257131e0a1263fccc343938c"
+    },
+    {
+      "name": "OPEN_SALES_ORDER_20251008_070041.CSV",
+      "encoding": "ascii",
+      "text": "SKU Code|Sku Desc|Loc Code|Loc Desc|Sales group|Sales Grp Desc|Storage Loc|Sales org|Sales Org Desc|Customer No|Customer Name|Customer Grp|Product Type|Order Date|Order Qty|UOM Ord Qty|Invoiced Qty|UOM Inv Qty|Balance Qty|UOM Bal Qty|Sales Order|Item\nSTOCK-R1SKU||STOCK-R1-C|||||||GULF-SYNTHETIC-CUSTOMER||||12-01-2026|||||50||STOCK-SPIKE|\nSTOCK-R1SKU||STOCK-R1-C|||||||GULF-SYNTHETIC-CUSTOMER||||12-01-2026|||||10||STOCK-PSO|\nGIT-R1SKU||GIT-R1-C|||||||GULF-SYNTHETIC-CUSTOMER||||12-01-2026|||||50||GIT-SPIKE|\nGIT-R1SKU||GIT-R1-C|||||||GULF-SYNTHETIC-CUSTOMER||||12-01-2026|||||10||GIT-PSO|\nPSO-R1SKU||PSO-R1-C|||||||GULF-SYNTHETIC-CUSTOMER||||12-01-2026|||||500||PSO-PSO|\n",
+      "sha256": "3e1258a852e33a0ef44179c4bbc814861615b18c46d60131233bb87465187396"
+    },
+    {
+      "name": "Plant_Wip20251008_070014.CSV",
+      "encoding": "ascii",
+      "text": "SKU Code|Sku Desc|Plant Code|Process Order No|Process order date|Tentative completion date|Qty|Qty Conf|Balance Qty\n",
+      "sha256": "96a86daf095914c83b18fb6450953bf6488e1fb18a2acbb90efe8768a4a8efea"
+    },
+    {
+      "name": "STOCK_ON_HAND_20251008_070015.CSV",
+      "encoding": "ascii",
+      "text": "SKU Code|Sku Desc.|Loc Code|Loc Desc.|Storage Location|Unrestricted stock|Blocked Stock|Quality Stock|Reserved Stock\nSTOCK-R1SKU|Synthetic SKU|STOCK-R1-P|STOCK-R1-P||500|0|0|0\nSTOCK-R1SKU|Synthetic SKU|STOCK-R1-C|STOCK-R1-C||20|0|0|0\nGIT-R1SKU|Synthetic SKU|GIT-R1-P|GIT-R1-P||100|0|0|0\nGIT-R1SKU|Synthetic SKU|GIT-R1-C|GIT-R1-C||20|100|0|0\nPSO-R1SKU|Synthetic SKU|PSO-R1-P|PSO-R1-P||355|0|0|0\nPSO-R1SKU|Synthetic SKU|PSO-R1-C|PSO-R1-C||0|0|0|0\nCTL-R1SKU|CTL-R1SKU|CTL-R1-GP|CTL-R1-GP||100|0|0|0\nCTL-R1SKU|CTL-R1SKU|CTL-R1-P|CTL-R1-P||100|0|0|0\nCTL-R1SKU|CTL-R1SKU|CTL-R1-C|CTL-R1-C||0|0|0|0\nCTL-R1SKU|CTL-R1SKU|CTL-R1-Q|CTL-R1-Q||100|0|0|0\nCTL-R1NEW|CTL-R1NEW|CTL-R1-GP|CTL-R1-GP||100|0|0|0\nCTL-R1NEW|CTL-R1NEW|CTL-R1-P|CTL-R1-P||100|0|0|0\nCTL-R1NEW|CTL-R1NEW|CTL-R1-C|CTL-R1-C||0|0|0|0\nCTL-R1NEW|CTL-R1NEW|CTL-R1-Q|CTL-R1-Q||100|0|0|0\n",
+      "sha256": "556ab0dd0bd6f973773c541815073359a779b8ef04d3fb26b75c0d255a3063f2"
+    }
+  ],
+  "qty2_days": null,
+  "adapter_prior": {},
+  "provenance": {
+    "approval": "User authorised Extend source facts for existing raw-fixture identities, 2026-09-27",
+    "role": "NEW bounded synthetic GulfOil source extension; not earlier approved artifact or sizeable replacement",
+    "base_sha256": "f15044529b8d8dc7c93f828fa39934763cb7950cbe99e358e37f6134520c31ea",
+    "selected_profile": "83a4ac45688df90aba5ba7bf2cfb4b73e0dc0aa77c3f5b440e5c875430bb1fdb",
+    "field_maps": {
+      "BOM_Detail": [
+        [
+          "Material",
+          "Material"
+        ],
+        [
+          "Material Description",
+          "Material Description"
+        ],
+        [
+          "Base Quantity",
+          "Base Quantity"
+        ],
+        [
+          "Component",
+          "Component"
+        ],
+        [
+          "BOM Component Description",
+          "BOM Component Description"
+        ],
+        [
+          "Quantity",
+          "Quantity"
+        ],
+        [
+          "Plant",
+          "Plant"
+        ]
+      ],
+      "Consumption_ReceiptFile": [
+        [
+          "SKU Code",
+          "SKU Code"
+        ],
+        [
+          "Loc Code",
+          "Loc Code"
+        ],
+        [
+          "Storage Loc",
+          "Storage Loc"
+        ],
+        [
+          "Consumption",
+          "Consumption"
+        ],
+        [
+          "Production",
+          "Production"
+        ],
+        [
+          "Reciept(Goods recieved)",
+          "Reciept(Goods recieved)"
+        ],
+        [
+          "Reciept",
+          "Reciept"
+        ]
+      ],
+      "LocationStorageMapping": [
+        [
+          "VectorLocation",
+          "VectorLocation"
+        ],
+        [
+          "LocCode",
+          "LocCode"
+        ],
+        [
+          "LocDesc",
+          "LocDesc"
+        ],
+        [
+          "StorageLoc",
+          "StorageLoc"
+        ],
+        [
+          "UnrestrictedStock",
+          "UnrestrictedStock"
+        ],
+        [
+          "BlockedStock",
+          "BlockedStock"
+        ],
+        [
+          "QualityStock",
+          "QualityStock"
+        ],
+        [
+          "ReservedStock",
+          "ReservedStock"
+        ],
+        [
+          "DaystobeConsidered",
+          "DaystobeConsidered"
+        ]
+      ],
+      "In_Transit_Stok": [
+        [
+          "STO No.",
+          "STONo"
+        ],
+        [
+          "STO Line Item",
+          "STOLineItem"
+        ],
+        [
+          "SKU Code",
+          "SKUCode"
+        ],
+        [
+          "Sku Desc.",
+          "SkuDesc"
+        ],
+        [
+          "From Loc Id",
+          "FromLocId"
+        ],
+        [
+          "From Loc Descr.",
+          "FromLocDescr"
+        ],
+        [
+          "From Storage Location",
+          "FromStorageLocation"
+        ],
+        [
+          "To Loc Id",
+          "WhCode"
+        ],
+        [
+          "To Loc Descr.",
+          "ToLocDescr"
+        ],
+        [
+          "To Storage Location",
+          "ToStorageLocation"
+        ],
+        [
+          "Stock in Transit",
+          "StockinTransit"
+        ],
+        [
+          "Open Grn Qty",
+          "OpenGrnQty"
+        ],
+        [
+          "Delivery No.",
+          "DeliveryNo"
+        ],
+        [
+          "Delivery Line Item",
+          "DeliveryLineItem"
+        ],
+        [
+          "Date of PGI Creation",
+          "DateofPGICreation"
+        ]
+      ],
+      "Indent_Report": [
+        [
+          "Supp.Plant",
+          "Supp.Plant"
+        ],
+        [
+          "Rcv. Plant",
+          "Rcv. Plant"
+        ],
+        [
+          "Material",
+          "Material"
+        ],
+        [
+          "Dlv but not PGI",
+          "Dlv but not PGI"
+        ],
+        [
+          "Str Loc",
+          "Str Loc"
+        ]
+      ],
+      "OPEN_SALES_ORDER": [
+        [
+          "SKU Code",
+          "SKuCode"
+        ],
+        [
+          "Sku Desc",
+          "SkuDesc"
+        ],
+        [
+          "Loc Code",
+          "WhCode"
+        ],
+        [
+          "Loc Desc",
+          "LocDesc"
+        ],
+        [
+          "Sales group",
+          "Salesgroup"
+        ],
+        [
+          "Sales Grp Desc",
+          "SalesGrpDesc"
+        ],
+        [
+          "Storage Loc",
+          "StorageLoc"
+        ],
+        [
+          "Sales org",
+          "Salesorg"
+        ],
+        [
+          "Sales Org Desc",
+          "SalesOrgDesc"
+        ],
+        [
+          "Customer No",
+          "CustomerNo"
+        ],
+        [
+          "Customer Name",
+          "CustomerName"
+        ],
+        [
+          "Customer Grp",
+          "CustomerGrp"
+        ],
+        [
+          "Product Type",
+          "ProductType"
+        ],
+        [
+          "Order Date",
+          "OrderDate"
+        ],
+        [
+          "Order Qty",
+          "OrderQty"
+        ],
+        [
+          "UOM Ord Qty",
+          "UOMOrdQty"
+        ],
+        [
+          "Invoiced Qty",
+          "InvoicedQty"
+        ],
+        [
+          "UOM Inv Qty",
+          "UOMInvQty"
+        ],
+        [
+          "Balance Qty",
+          "BalanceQty"
+        ],
+        [
+          "UOM Bal Qty",
+          "UOMBalQty"
+        ],
+        [
+          "Sales Order",
+          "SalesOrder"
+        ],
+        [
+          "Item",
+          "Item"
+        ]
+      ],
+      "Plant_Wip": [
+        [
+          "SKU Code",
+          "SKuCode"
+        ],
+        [
+          "Sku Desc",
+          "SkuDesc"
+        ],
+        [
+          "Plant Code",
+          "WhCode"
+        ],
+        [
+          "Process Order No",
+          "ProcessOrderNo"
+        ],
+        [
+          "Process order date",
+          "Processorderdate"
+        ],
+        [
+          "Tentative completion date",
+          "Tentativecompletiondate"
+        ],
+        [
+          "Qty",
+          "Qty"
+        ],
+        [
+          "Qty Conf",
+          "QtyConf"
+        ],
+        [
+          "Balance Qty",
+          "BalanceQty"
+        ]
+      ],
+      "STOCK_ON_HAND": [
+        [
+          "SKU Code",
+          "SKUCode"
+        ],
+        [
+          "Sku Desc.",
+          "SKUDesc"
+        ],
+        [
+          "Loc Code",
+          "WHCode"
+        ],
+        [
+          "Loc Desc.",
+          "LocDesc"
+        ],
+        [
+          "Storage Location",
+          "StorageLocation"
+        ],
+        [
+          "Unrestricted stock",
+          "Unrestrictedstock"
+        ],
+        [
+          "Blocked Stock",
+          "BlockedStock"
+        ],
+        [
+          "Quality Stock",
+          "QualityStock"
+        ],
+        [
+          "Reserved Stock",
+          "ReservedStock"
+        ]
+      ]
+    },
+    "new_facts": "Unrestricted stock and blocked GIT channels; other stock channels zero. Consumption and receipt channels own existing raw quantities, production/goods-received zero. Identity storage mappings, 90-day order window, existing opening order original quantities/intro dates and new synthetic customer. Unused optional CSV descriptive fields explicitly blank. No calculated-output receipts used.",
+    "supersedes": {
+      "file": "r1_gulfoil_common.json",
+      "sha256": "b8290eda04d8230fedf91d3ea961409241a2791ef2bf3f735791a07a5b0ffdeb",
+      "reason": "Inherited GenerateBPRForMissingInventoryLoc1 differs from captured selected GulfOil0; old attempt retained, not selected-profile proof"
+    },
+    "additional_configuration": "selected-extra-config.json and qty2-config.json in gulfoil-continuation; exact selected values"
+  }
+}
