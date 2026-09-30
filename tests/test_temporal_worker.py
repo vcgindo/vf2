@@ -88,5 +88,42 @@ class TemporalWorkerTests(unittest.TestCase):
             with self.assertRaises(subprocess.CalledProcessError):
                 predecessor_process(Path('/evidence/previous'))
 
+    def test_day12_transition_is_exact_and_does_not_rewrite_prior_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            engine = root/'mta/temporal/chain.py'
+            engine.parent.mkdir(parents=True)
+            engine.write_text('old calculator')
+            source = {'files': {'mta/temporal/chain.py': sha(engine)}}
+            source_path = root/'source.json'
+            source_path.write_text(json.dumps(source))
+            original_source = source_path.read_bytes()
+            execution = dict(artifact_sha256='same-artifact', days=[{'run_id':'same-parent'}]*11)
+            (root/'execution.json').write_text(json.dumps(execution))
+            before = sha(engine)
+            engine.write_text('reviewed memory boundary')
+            transition = root/'baseline/f2-day12-memory-transition.json'
+            transition.parent.mkdir()
+            approval = dict(schema='f2-day12-memory-transition-v1',day_index=11,
+                artifact_sha256='same-artifact',predecessor_id='same-parent',
+                accepted_modern_execution_sha256=sha(root/'execution.json'),
+                files={'mta/temporal/chain.py':dict(before=before,after=sha(engine))})
+            transition.write_text(json.dumps(approval))
+            with patch('tools.temporal_worker.ROOT',root), patch('tools.temporal_worker.TRANSITION_SHA',sha(transition)):
+                with self.assertRaises(ValueError): verify_sources(root)
+                result = verify_sources(root,transition)
+                self.assertEqual(result['files']['mta/temporal/chain.py'],sha(engine))
+                self.assertEqual(result['runtime_transition']['day_index'],11)
+                self.assertEqual(source_path.read_bytes(),original_source)
+                engine.write_text('unapproved further change')
+                with self.assertRaises(ValueError): verify_sources(root,transition)
+                engine.write_text('reviewed memory boundary')
+                transition.write_text(json.dumps({**approval,'predecessor_id':'substituted'}))
+                with self.assertRaisesRegex(ValueError,'manifest changed'): verify_sources(root,transition)
+                transition.write_text(json.dumps(approval))
+                execution['days'][-1]={'run_id':'different-parent'}
+                (root/'execution.json').write_text(json.dumps(execution))
+                with self.assertRaises(ValueError): verify_sources(root,transition)
+
 
 if __name__=='__main__':unittest.main()

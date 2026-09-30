@@ -210,6 +210,18 @@ def additional_native(prepared, importer):
 
 def calculate_day(prior, opening_date, day, profile, identity, execute_calculation,
                   report_exceptions=None):
+    # Finish calculation before normalization so its temporary frames are gone.
+    # Replacing one owned checkpoint at a time preserves the exact json_value
+    # representation without a simultaneous second copy of the complete trace.
+    result = _calculate_day_native(prior, opening_date, day, profile, identity,
+                                   execute_calculation, report_exceptions)
+    for name in result:
+        result[name] = json_value(result[name])
+    return result
+
+
+def _calculate_day_native(prior, opening_date, day, profile, identity, execute_calculation,
+                          report_exceptions=None):
     """execute_calculation runs the existing modern R1 producer and returns outputs/id."""
     today=day['business_date'];now=today+'T00:00:00'
     master_input,daily_input=entry_inputs(prior,opening_date,day,profile,identity)
@@ -368,4 +380,4 @@ def calculate_day(prior, opening_date, day, profile, identity, execute_calculati
                 ('final-suspensions', stages['suspension26']),
                 ('final-suggestions', stages['discard']), ('post-rule-reports', dbm_stages[-1][1]),
                 ('btr-insights', trends[-1][1]), ('closing-state', closing))])
-    return json_value(result)
+    return result

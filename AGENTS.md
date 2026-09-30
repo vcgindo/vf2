@@ -96,6 +96,14 @@ preflight. Preserve all attempts and the accepted11-day prefix. No further
 speculative validation retry: an in-day runtime-memory investigation/correction
 requires explicit scope authorization; it must not be inferred from this note.
 
+User now authorizes a bounded F2 day12 runtime memory-lifetime correction: profile
+retained objects in modern calculation/publication and make the smallest
+non-semantic release/streaming correction under4GiB. Preserve engine results,
+canonical SQL, frozen artifact, actions, all31 comparisons and days1–11 receipts.
+Execute only day12, prove terminal relational/readback state, and stop if any
+business-rule or acceptance-contract change is required. This supersedes only
+the preceding runtime-edit restriction; no F3 work is authorized.
+
 ## Commands
 
 Use `D:/freshvcf-build/venv/Scripts/python.exe` for local commands.

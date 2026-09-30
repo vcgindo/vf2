@@ -1,0 +1,21 @@
+{
+  "schema": "f2-day12-memory-transition-v1",
+  "scope": "User-authorized day12-only runtime memory-lifetime correction; no business-rule or acceptance-contract change",
+  "day_index": 11,
+  "business_date": "2026-06-17",
+  "artifact_sha256": "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546",
+  "predecessor_id": "0bc7b113-3e97-4475-84ad-d3af1368dc7d",
+  "accepted_modern_execution_sha256": "78a28475e451f259a40acddc357a80894068fde14369a255001d8e063f45dea3",
+  "accepted_legacy_receipt_sha256": "46d575ab97979639641956ebbff99a2e8f9a6ade05deea723d8fe100c376a7b5",
+  "files": {
+    "mta/temporal/chain.py": {
+      "before": "1b55d96432ecfd86b566a4387d44ebc49987bbc87be1949063957a8a61d41657",
+      "after": "7d446fea22e5204762a7aa95a3801b626040c30600c3d24674c5fdd4c898f24e"
+    }
+  },
+  "proof": "tests/test_temporal_memory.py pins the original calculation AST and exact checkpoint conversion semantics. Actual day12 parity and bounded persisted readback remain required.",
+  "original_calculation_ast_sha256": "72d7c16d6327a6eaead35cbf0e5bf58ed776d2865423edde592a771fc9feb1f9",
+  "oracle_source_bundle": "D:/freshvcf-build/oracle-pinned-07b89ee",
+  "oracle_comparator_source_files_unchanged": 130,
+  "legacy_flaw_is_parity": false
+}

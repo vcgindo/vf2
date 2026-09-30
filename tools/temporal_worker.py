@@ -1,6 +1,7 @@
-"""F2 validation only: one fresh worker, one day, original production boundary.
+"""F2 validation: one fresh worker, one day, the production execute_day boundary.
 
-Kept outside mta/parity so accepted engine/oracle source pins do not change.
+Earlier source pins stay immutable; the authorized day12 memory-only transition
+has its own exact source manifest and never rewrites prior receipts.
 An explicit attempt revision preserves failed identities; accepted predecessors
 are never recalculated, rewritten or populated from an oracle capture.
 """
@@ -23,6 +24,8 @@ sys.path.insert(0, str(ROOT))
 # removing only unused artifact references from subsequent fresh workers.
 RETAINED_WORKER = 'b49e199734dda06bd125d8970dbd3b4fbd64526e0fa8457ad1040ff4d95d04ce'
 RETAINED_RELEASE_WORKER = '63ca58fc8bf8d54b8ecd1bbe1181a4c88fdf659d9efa44d45e7a565201d6e9a9'
+RETAINED_TRANSITION_WORKER = 'f648387c88d81ea0fe82f2f180f653a9f157cd9071a78c5e7c2745f860653efa'
+TRANSITION_SHA = 'e2a1208bac4f1028b53de1c06f9fb5734e57d1d34ed5a785e87b10485651811d'
 
 
 def sha(path):
@@ -46,19 +49,50 @@ def sequence(record, case, expected_sha):
     return len(days)
 
 
-def verify_sources(directory):
+def verify_sources(directory, transition=None):
     source = json.loads((directory/'source.json').read_text())
-    if any(sha(ROOT/name) != value for name, value in source['files'].items()):
-        raise ValueError('Pinned engine/evidence dependency changed')
+    changed = {name for name,value in source['files'].items() if sha(ROOT/name) != value}
+    if changed:
+        if transition is None:
+            raise ValueError('Pinned engine/evidence dependency changed')
+        transition = transition.resolve()
+        if transition != (ROOT/'baseline/f2-day12-memory-transition.json').resolve():
+            raise ValueError('Unregistered runtime transition')
+        if sha(transition) != TRANSITION_SHA:
+            raise ValueError('Reviewed runtime transition manifest changed')
+        approval = json.loads(transition.read_text())
+        execution = json.loads((directory/'execution.json').read_text())
+        if (approval['schema'] != 'f2-day12-memory-transition-v1'
+                or approval['day_index'] != 11 or changed != {'mta/temporal/chain.py'}
+                or set(approval['files']) != changed or len(execution['days']) != 11
+                or execution['days'][-1]['run_id'] != approval['predecessor_id']
+                or execution['artifact_sha256'] != approval['artifact_sha256']
+                or sha(directory/'execution.json') != approval['accepted_modern_execution_sha256']):
+            raise ValueError('Runtime transition is not the authorized day12 boundary')
+        for name, pins in approval['files'].items():
+            if source['files'][name] != pins['before'] or sha(ROOT/name) != pins['after']:
+                raise ValueError('Runtime transition source bytes differ')
+            source['files'][name] = pins['after']
+        source['runtime_transition'] = dict(path='baseline/f2-day12-memory-transition.json',
+            sha256=sha(transition), predecessor_source_sha256=sha(directory/'source.json'),
+            day_index=11, artifact_sha256=approval['artifact_sha256'])
+    recorded_transition = source.get('runtime_transition')
+    if recorded_transition and (recorded_transition['path'] != 'baseline/f2-day12-memory-transition.json'
+            or recorded_transition['sha256'] != TRANSITION_SHA
+            or sha(ROOT/recorded_transition['path']) != recorded_transition['sha256']):
+        raise ValueError('Recorded runtime transition drift')
     orchestration = source.get('one_day_worker')
     if orchestration:
         current = dict(path='tools/temporal_worker.py', sha256=sha(__file__))
         if orchestration != current:
             archived = directory/'worker-source.py'
             if (orchestration.get('path') != 'tools/temporal_worker.py'
-                    or orchestration.get('sha256') not in (RETAINED_WORKER, RETAINED_RELEASE_WORKER)
+                    or orchestration.get('sha256') not in (
+                        RETAINED_WORKER, RETAINED_RELEASE_WORKER, RETAINED_TRANSITION_WORKER)
                     or not archived.is_file() or sha(archived) != orchestration['sha256']):
                 raise ValueError('Unpinned one-day orchestration change')
+            if orchestration['sha256'] == RETAINED_TRANSITION_WORKER and not recorded_transition:
+                raise ValueError('Retained runtime worker lacks its reviewed transition')
     return source
 
 
@@ -74,10 +108,13 @@ inputs. Do not keep their parsed object graph alive alongside engine traces.
     return case['profile'], day, policy_case
 
 
-def predecessor_process(previous):
+def predecessor_process(previous, transition=None):
     """Await the same integrity checks, then release their entire process heap."""
-    result = subprocess.run([sys.executable, str(Path(__file__).resolve()),
-        'verify-predecessor', '--previous', str(previous)],
+    command = [sys.executable, str(Path(__file__).resolve()),
+               'verify-predecessor', '--previous', str(previous)]
+    if transition is not None:
+        command += ['--runtime-transition', str(transition)]
+    result = subprocess.run(command,
         check=True, capture_output=True, text=True)
     return json.loads(result.stdout)
 
@@ -88,7 +125,7 @@ def verify_predecessor(options):
     from mta.runtime.temporal import command_state
     from mta.serialization import digest
 
-    verify_sources(options.previous)
+    verify_sources(options.previous, getattr(options, 'runtime_transition', None))
     prior = json.loads((options.previous/'execution.json').read_text())['days'][-1]
     parent = CalculationRun.objects.get(pk=prior['run_id'])
     opening = read_outputs(parent)
@@ -112,10 +149,11 @@ def run_one(options):
     from parity.temporal_policy import POLICY, commands_for_day
 
     previous, target = options.previous.resolve(), options.destination.resolve()
-    source = verify_sources(previous)
+    transition = getattr(options, 'runtime_transition', None)
+    source = verify_sources(previous, transition)
     # The child exits BEFORE loading inputs or entering the unchanged engine.
     # This preserves every guard without retaining its allocator high-water mark.
-    verification = predecessor_process(previous)
+    verification = predecessor_process(previous, transition)
     if sha(options.artifact) != options.sha256:
         raise ValueError('Frozen artifact bytes changed')
     artifact = json.loads(options.artifact.read_text())
@@ -125,6 +163,9 @@ def run_one(options):
     index = sequence(original, case, options.sha256)
     if index != options.day or index >= len(case['days']):
         raise ValueError('Worker must execute exactly the next frozen day')
+    if source.get('runtime_transition') and (index != 11
+            or options.sha256 != source['runtime_transition']['artifact_sha256']):
+        raise ValueError('Runtime correction is restricted to frozen day12')
     profile, day, policy_case = select_day_inputs(case, index)
     del artifact, case
     gc.collect()
@@ -156,6 +197,8 @@ def run_one(options):
     entry = dict(day_index=index, date=day['business_date'], status='RUNNING',
                  input_sha256=options.sha256, execution_revision=options.attempt_revision,
                  predecessor_verification=verification)
+    if source.get('runtime_transition'):
+        entry['runtime_transition_sha256'] = source['runtime_transition']['sha256']
     started = time.monotonic()
     try:
         run = execute_day(day=day, profile=profile, execution_revision=options.attempt_revision,
@@ -218,7 +261,8 @@ No comparison is executed, altered, inferred or waived here.
     qualified = any(day['status']=='PASS_WITH_LEGACY_FLAWS' for day in replay['days'])
     aggregate = 'COMPLETE_WITH_LEGACY_FLAWS' if qualified else 'PASS'
     if (not replay['days'] or len(replay['days']) != replay['requested_days']
-            or len(replay['days']) > len(modern['days']) or replay['status'] != aggregate):
+            or len(replay['days']) > len(modern['days']) or replay['status'] != aggregate
+            or not 0 <= options.from_day < len(replay['days'])):
         raise ValueError('Comparison span/aggregate differs')
     root = Path(os.environ['VF_EVIDENCE_ROOT']).resolve().parent
     if not options.replay.resolve().is_relative_to(root) or not options.modern.resolve().is_relative_to(root):
@@ -238,13 +282,19 @@ No comparison is executed, altered, inferred or waived here.
                     or run.business_date.isoformat() != entry['date']
                     or run.execution_revision != current.get('execution_revision', modern['revision'])):
                 raise ValueError('Compared run/attempt identity differs')
+            if index < options.from_day:
+                if (run.parity_summary.get('status') != status
+                        or run.parity_summary.get('comparisons') != {c['contract']:c['status'] for c in checks}):
+                    raise ValueError('Retained qualified comparison summary differs')
+                continue  # Preserve accepted run metadata as well as original receipts.
             read_outputs(run)
             run.parity_summary = dict(receipt=str(options.replay.resolve().relative_to(root)),
                 sha256=sha(options.replay), day_index=index, artifact_sha256=replay['input_sha256'],
                 status=status, boundaries=list(BOUNDARIES), comparisons={c['contract']:c['status'] for c in checks},
                 legacy_flaw_is_parity=False)
             run.save(update_fields=['parity_summary'])
-    print('Recorded %s qualified run summaries; no populations imported.' % len(replay['days']))
+    print('Recorded %s qualified run summaries; retained prefix untouched; no populations imported.'
+          % (len(replay['days'])-options.from_day))
 
 
 if __name__ == '__main__':
@@ -259,10 +309,13 @@ if __name__ == '__main__':
     one.add_argument('--sha256', required=True)
     one.add_argument('--day', type=int, required=True)
     one.add_argument('--attempt-revision', required=True)
+    one.add_argument('--runtime-transition', type=Path)
     link = commands.add_parser('attach')
     link.add_argument('--modern', type=Path, required=True)
     link.add_argument('--replay', type=Path, required=True)
+    link.add_argument('--from-day', type=int, default=0)
     verify = commands.add_parser('verify-predecessor')
     verify.add_argument('--previous', type=Path, required=True)
+    verify.add_argument('--runtime-transition', type=Path)
     options = parser.parse_args()
     {'one': run_one, 'attach': attach, 'verify-predecessor': verify_predecessor}[options.command](options)

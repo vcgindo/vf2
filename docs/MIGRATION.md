@@ -20,21 +20,19 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | BLOCKED at day12 runtime memory — days1–11 committed/independently compared (330 strict PASS +11 narrowly qualified report contracts). Both day12 OOM attempts have zero partial rows and intact day11. Validation-only retries stopped; engine-memory scope decision required |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | COMPLETE for selected registered scope WITH declared legacy flaw — all12 days accounted: 360 strict PASS +12 narrowly qualified report contracts. Day12 peak3.10GiB under4GiB; terminal native/readback proof PASS; prior receipts and failures preserved. Norm0 occurrence text is NOT parity |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
-Active F2 unmet exit: complete full-estate day12 within the frozen memory caps,
-its independent legacy comparison, and final12-day terminal-state acceptance.
-Shallow12-day parity and full-estate days1–11 are retained evidence, not reopened.
-Dependencies: F1 current-day pipeline verified; retained rule/temporal inputs are
-registered. The original broad F2 build boundary below is now superseded by the
-user's frozen engine/artifact/actions/comparisons boundary: only bounded validation
-orchestration was permitted. Its retries are exhausted; further in-day runtime
-investigation/correction requires explicit scope authorization. Do not silently
-fall back to the earlier permission for pure DBM/state/orchestrator/storage edits.
-Do not import the old ORM/audit hierarchy or open a per-script recovery programme.
-Proof: each engine computes from its own prior state; all required boundaries and
-actions compare over 3×max RLT. Keep complete API/UI acceptance in F3.
+F2's final unmet exit is now satisfied for its selected registered scope. The
+authorized day12-only memory-lifetime correction preserves the calculation body,
+inputs, actions, SQL and all31 comparison contracts. Only day12 was recalculated
+and compared; accepted days1–11 were retained without replay. Complete terminal
+relational/readback proof is recorded below. The sole Norm0 occurrence-text flaw
+remains explicitly qualified and is never described as parity.
+No further F2 retry or recovery queue is required. F3 is the only pending phase;
+this bounded authorization did not permit starting UI/application delivery or
+changing serving instances. This is not whole-application acceptance.
+Historical checkpoints below remain provenance, not a second active queue.
 
 ## Executable flow and ownership
 
@@ -593,7 +591,7 @@ own-state run. The previous divergent run remains immutable and unaccepted.
   Permit one day12 retry under the SAME4GiB/1GiB caps. If it fails, stop; further
   engine/runtime memory-lifetime changes require a specifically widened boundary.
 
-### Current F2 bounded recovery result — 11 days accepted, day12 not closed
+### Retained prior F2 checkpoint — 11 days accepted, day12 not yet closed
 
 - Canonical day11 completed successfully. The exact accepted prefix is now
   `D:/freshvcf-build/evidence/f2-fresh-worker-sql-through-011-008/replay.json`, SHA256
@@ -631,3 +629,81 @@ own-state run. The previous divergent run remains immutable and unaccepted.
   their accepted pins, and original input/failed/accepted-prefix receipt hashes
   were rechecked unchanged. This checkpoint preserves partial progress, not F2
   acceptance or authorization to start F3.
+
+### Authorized day12 memory-lifetime correction
+
+- The user explicitly authorized profiling and the smallest non-semantic runtime
+  release/streaming correction, day12 only, under the SAME4GiB cap. The previous
+  blocked status is superseded only within this boundary; F3 stays PENDING.
+- Diagnostic `f2-day012-profile-010-memory.jsonl` (SHA256
+  `f7116775a720f2f6e4fb07bdbbd4148cf11844cb40c87e2b3522cfa55961fc6b`)
+  reached the completed native calculation's final `return json_value(result)`
+  at2,245,419,008bytes, then OOMed during this whole-result conversion. No
+  publication frame was entered. `f2-day012-profile-010/resource-failure.json`
+  preserves the exact container/run/input and verified zero partial rows;
+  only that attempt was marked FAILED, with day11 closing/actions intact.
+- The calculation body is now a private native helper; the public boundary
+  converts/replaces one owned checkpoint at a time after that helper's frame
+  returns. `json_value` itself, business statements, inputs/actions, output
+  roster/types/duplicates and publication transaction are unchanged. The old
+  calculation AST is pinned by test, differing ONLY in private name/final return.
+  Eleven focused tests PASS, including shared-reference and typed-byte equality,
+  source-transition/tamper guards and original serialization checks.
+- Only `mta/temporal/chain.py` changes among94 modern pinned dependencies.
+  `baseline/f2-day12-memory-transition.json` pins exact old/new bytes, unchanged
+  artifact and day11 predecessor/execution identity. Its reviewed SHA is checked
+  before parsing; a changed manifest cannot authorize another transition.
+  Prior source/evidence files are not rewritten. The independent oracle runs
+  from `D:/freshvcf-build/oracle-pinned-07b89ee`; all130 comparator/oracle source
+  files match the accepted prefix exactly. No continuation/comparison assertion
+  was relaxed to accommodate the modern implementation change.
+- Corrected run `ac1612c8-0e49-4155-83c3-f59f41422293` completed day12 only,
+  revision `f2-runtime-memory-day12-011`, evidence `f2-runtime-memory-full-011`.
+  Its input digest matches BOTH prior day12 failures and the diagnostic.
+  It committed and exported successfully, exit0/OOM=false; peak3,326,636,032bytes
+  (3.10GiB) under the unchanged4,294,967,296byte cap. PostgreSQL remains1GiB;
+  its historical OOM count remains1, with no new event.
+
+### F2 selected-scope closure — 1 October2026
+
+- The unchanged independent oracle/comparator continued ONLY day12 from the
+  accepted11-day prefix. Day12: **30 strict PASS +1 LEGACY_FLAW**, no new
+  divergence, all31 required contracts evaluated. Full12-day receipt:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-sql-full-011/replay.json`, SHA256
+  `9f502ea08bc580db1149e3e38371ea62a0d01e61e56245ead027b43ece918c60`.
+  Total: **360 strict PASS +12 qualified emitted-report contracts**. The only
+  qualification is `LEG-NORM0-OCCURRENCE-ORDER` and its exact declared export
+  forms; numeric/state/population/type/multiplicity comparisons remain strict.
+  The ambiguous occurrence text is NOT parity. No contract was dropped.
+- Modern12-day execution receipt:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-full-011/execution.json`, SHA256
+  `4c96c3e3651c0dae849e29adb5d1e4c4fa1c770f1a11c40741b999de91c66cfb`.
+  Only day12's parity metadata was attached. First11 receipt/action/archive
+  identities and persisted parity links remain unchanged; prior failed attempts
+  remain available. The explicit memory-only source transition remains separate
+  from the accepted prefix rather than retrospectively relabelling its source.
+- Read-only terminal proof:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-full-011/terminal-readback.json`,
+  SHA256 `7a7af271cc1c6f0347829fe8cd8f7feaaffeba477c8157b614550956d7eb3ab2`.
+  **146,551 relational operational rows** round-trip exactly against production
+  projections from the complete calculation evidence. Closing, action state,
+  own-predecessor lineage, required histories and report readback pass. All8
+  external parity boundaries are present;19 database checkpoints contain metadata
+  only, not trace JSON. Next opening is reconstructed from committed rows without
+  executing day13. Its digest is
+  `c3b0222dbd2e7ed1cb9777ccf42fd0b44f4e381a32611514d0f6bd7e27148bac`.
+- Population clarification, not input/scope modification: the unchanged retained
+  catalogue has200 SKUs/20 locations; its DBM subset has1,240 pairs across200 SKUs
+  and13 locations. Terminal identity multiplicities exactly match that frozen
+  opening subset. The first readback verifier incorrectly asserted20 DBM
+  locations; preserve `terminal-readback-attempt1.py` and
+  `terminal-readback-attempt1-failure.json` (SHA256
+  `34e67ac306b67f6618502c358055259c231172b09105b0d874c2da8017435f3b`).
+  Only this diagnostic assertion was corrected against the immutable artifact;
+  no engine, output, parity receipt, business rule or acceptance contract changed.
+- Eleven focused tests PASS; `git diff --check` PASS. Earlier full-population
+  mid-write rollback proof remains valid because publication/schema code did not
+  change. All accepted receipts, failed receipts and frozen input were preserved.
+  F2 is closed for selected scope WITH the declared legacy flaw. **Pending: F3**
+  application/API/UI acceptance and coordinated3004 delivery; no F3 code or
+  serving instances were changed in this correction.
