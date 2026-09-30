@@ -14,7 +14,7 @@ import hashlib
 
 import json
 
-from mta.application.r1_importer_master import process_importer_master, PRIOR_TABLES
+from mta.application.r1_importer_master import process_importer_master, PRIOR_TABLES, _sql_key
 
 from mta.application.r1_supplier_input import process_supplier_validation, supplier_calculation_state, STAGES as SUPPLIER_STAGES
 
@@ -134,9 +134,34 @@ def project_phase_out_calculation_membership(policies, phase_out):
         membership.append({'SKUCode': key[0], 'WhCode': key[1]})
     return membership
 
+def producer_owned_logistics(logistics, importer):
+    """Project the canonical Pick attribute joins, not retained profile overrides.
+
+    GenerateLogisticPickList.sql joins SKU/location attributes and excludes
+    only rows whose Weight AND Volume are NULL. Keep candidate/join duplicates;
+    NULL LogisticsLocation remains NULL for the existing Pick ISNULL fallback.
+    """
+    skus, locations = {}, {}
+    for row in importer['SkuAttributeData']:
+        skus.setdefault(_sql_key(row['SKUCode']), []).append(row)
+    for row in importer['LocationAttributeData']:
+        locations.setdefault(_sql_key(row['WHCode']), []).append(row)
+    result = deepcopy(logistics)
+    result['items'] = []
+    for item in logistics['items']:
+        for sku in skus.get(_sql_key(item['sku_code']), []):
+            if sku['Weight'] is None and sku['Volume'] is None:
+                continue
+            for location in locations.get(_sql_key(item['to_location']), []):
+                result['items'].append({**deepcopy(item), 'weight': sku['Weight'],
+                    'volume': sku['Volume'], 'logistics_location': location['LogisticsLocation']})
+    return result
+
+
 def calculation_source(today, opening_date, profile, importer, dbm_master, processed, sourcing, supplier_prior,
                        identity, phase_out=None):
     config=deepcopy(profile['calculation'])
+    config['logistics'] = producer_owned_logistics(config['logistics'], importer)
     attrs={(r['SKUCode'],r['LocCode']):r for r in importer['SkuLocAttributeData']}
     skus={r['SKUCode']:r for r in importer['SkuAttributeData']}
     project=lambda rows:[{f:r[s] for f,s in MASTER_SOURCE_MAP.items()} for r in rows]

@@ -77,6 +77,12 @@ day-one rollback, committed rows, exact next opening, readable reports and all8
 boundary comparisons before the same frozen12-day continuation. Stay in F2;
 do not open a recovery queue or F3/UI work.
 
+Approved follow-up within F2: correct only the temporal logistics-input mapping
+to producer-owned SKU/location attributes, preserving canonical NULL exclusion
+and row multiplicity. Keep frozen artifacts, Pick/DBM algorithms, SQL, action
+policy and comparisons unchanged. Revalidate the failed day before the same
+12-day continuation; preserve the earlier divergent run and all receipts.
+
 ## Commands
 
 Use `D:/freshvcf-build/venv/Scripts/python.exe` for local commands.

@@ -20,7 +20,7 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — bounded1240-pair relational storage correction verified; eight fresh day-one boundaries PASS; continuation held at pre-existing temporal Pick-input divergence (14 modern versus0 legacy remaining rows) |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — relational storage gate verified; approved producer-owned logistics mapping clears day-one Pick divergence; 30 day-one contracts PASS plus the sole qualified Norm0 text flaw; same frozen12-day continuation running |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
 Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
@@ -429,7 +429,7 @@ rows used it) and adds external-evidence metadata. Both failed attempts remain.
   `record_parity` records DIVERGENCE and explicit NOT_RUN statuses for contracts
   after the stopping point. Source captures and failed receipts remain immutable.
 
-### Current F2 continuation constraint — no new queue
+### Preserved F2 continuation constraint at checkpoint72a0905 — no new queue
 
 The storage correction is verified, but the latest instruction freezes calculation
 behavior and the artifact. Therefore the12-day continuation has NOT resumed.
@@ -458,10 +458,46 @@ canonical producer-owned SKU/location attributes and preserves the SQL's NULL
 exclusion and multiplicity, rather than profile overrides. Do NOT repair the
 legacy SQL, populate synthetic weights, regenerate the artifact, waive Pick,
 change automatic actions, reopen unrelated F1 proofs, or add a recovery phase.
-That calculation-input correction is outside this turn's explicitly frozen
-calculation boundary, so it has NOT been implemented.
+That calculation-input correction was outside the preceding turn's frozen
+boundary and was not implemented in checkpoint72a0905.
 
 After authorisation, preserve this committed day/failed proof, prove the affected
 day on the same frozen input under an explicit corrected execution revision,
 and continue the same12-day horizon only after its required comparisons pass
 with the sole already-qualified Norm0 text limitation. F3 stays PENDING.
+
+User approval now permits this one mapping correction. Active boundary:
+`producer_owned_logistics`/`calculation_source` in the temporal input adapter,
+focused mapping tests and replay evidence only. No Pick/DBM algorithm, legacy
+SQL, frozen input, action policy, storage contract or comparator changes.
+Unmet exit: corrected full-population day-one comparisons, then the SAME12-day
+own-state run. The previous divergent run remains immutable and unaccepted.
+
+### Approved logistics mapping: day-one exit passed
+
+- The temporal input adapter now obtains Weight/Volume from produced
+  `SkuAttributeData` and LogisticsLocation from produced `LocationAttributeData`.
+  It preserves candidate/join multiplicity and NULL values; the canonical
+  Weight-not-NULL OR Volume-not-NULL predicate excludes only both-NULL rows.
+  No synthetic weights or new defaults were introduced. Pick/DBM algorithms,
+  `calculate_day`, canonical SQL, storage, actions and comparisons are unchanged.
+- Five focused mapping tests PASS. Independent bounded review found no concrete
+  defect in the selected projection. These unit cases are not replacement
+  synthetic acceptance artifacts.
+- Fresh corrected production run `029ea9e2-165b-48f0-a016-4b2851cedc7e`, revision
+  `f2-relational-logistics-006`, retains the exact registered1240-pair input.
+  Its own relational closing and post-action digests equal the preserved005
+  run; only the affected output projection changed.
+- Fresh canonical day-one receipt:
+  `D:/freshvcf-build/evidence/f2-relational-logistics-sql-day-one-006/replay.json`,
+  SHA256 `44f8988a559c882fe7bb55efd53a90f1d9ca4d52ea08b29f2c80f2998d05bb35`.
+  All31 contracts accounted for:30 PASS (including all8 major boundaries,
+  `calculation/pick_remaining`, action selection and post-action state), plus
+  `emitted-reports` qualified only for `LEG-NORM0-OCCURRENCE-ORDER`.
+  This text field is NOT claimed as parity. Receipt metadata is linked to the
+  committed production run. The original005 divergence remains preserved.
+- Same frozen12-day continuation is now executing under the corrected revision
+  at `D:/freshvcf-build/evidence/f2-relational-logistics-full-006`.
+  Day one is reused idempotently; subsequent openings must come from each
+  engine's own committed predecessor. Remaining F2 exit: the other11 daily
+  comparisons and terminal-state evidence. F3 remains PENDING.
