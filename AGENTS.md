@@ -65,6 +65,18 @@ Fresh SQL replay must use verified unique VFTEST_Fresh_* databases and exclusive
 ownership; never borrow/reset another task's VFTEST databases.
 Secrets stay outside Git. Do not import .env files, live data dumps or credentials.
 
+F2 persistence mandate: execute_day remains the single production day boundary.
+Operational closing state, actions, required histories and consumer projections
+belong in typed relational PostgreSQL rows linked to run_id, preserving duplicate
+ordinals and exact reconstruction. JSONB is limited to bounded metadata, not
+state payloads; compressed trace blobs are not an operational-state substitute.
+All internal comparisons remain complete in external compressed evidence under
+D:/freshvcf-build/evidence. Keep calculation/SQL/input/action-policy/comparison
+semantics fixed. No further memory increase as a remedy. Prove full1240-pair
+day-one rollback, committed rows, exact next opening, readable reports and all8
+boundary comparisons before the same frozen12-day continuation. Stay in F2;
+do not open a recovery queue or F3/UI work.
+
 ## Commands
 
 Use `D:/freshvcf-build/venv/Scripts/python.exe` for local commands.

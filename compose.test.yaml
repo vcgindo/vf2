@@ -27,14 +27,17 @@ services:
       VF_DB_NAME: freshvcf
       VF_DB_USER: freshvcf
       VF_DB_PASSWORD: isolated-test-only-not-a-serving-password
+      VF_EVIDENCE_ROOT: /evidence/runtime
     volumes:
       - D:/freshvcf-build/evidence:/evidence
       - D:/freshvcf-build/inputs:/inputs:ro
       - ./mta:/app/mta:ro
       - ./parity:/app/parity:ro
       - ./tests:/app/tests:ro
+      - ./baseline:/app/baseline:ro
     restart: "no"
-    mem_limit: 2g
+    mem_limit: 4g
+    memswap_limit: 4g
     cpus: 2.0
     depends_on:
       postgres:

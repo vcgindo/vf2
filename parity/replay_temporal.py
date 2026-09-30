@@ -19,6 +19,7 @@ from parity.current_day import compare as compare_calculations
 from parity.legacy_isolation import exclusive_replay, MAPPING
 from parity.temporal import BOUNDARIES, differences, fingerprint, legacy_states
 from parity.temporal_contract import CONTRACT, roster_map, validate_state
+from parity.output_archive import OutputArchive
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -36,7 +37,7 @@ def dump_gzip(path,value):
         json.dump(value,stream,sort_keys=True,separators=(',',':'))
 
 
-def compare_day(legacy,modern):
+def compare_day(legacy,modern,report_limitation=None,today=None):
     """8 daily boundaries +20 current-day obligations + all emitted reports.
 
     The five master/control obligations are read at their actual producer
@@ -49,9 +50,16 @@ def compare_day(legacy,modern):
         comparisons.append(dict(contract=name,status='FAIL' if delta else 'PASS',differences=delta))
         return not delta
     left=legacy_states(legacy)
-    right={k:r['state'] for k,r in roster_map(modern['MajorBoundaries'],'boundary',BOUNDARIES,'Modern boundaries').items()}
+    records=(modern.iter_rows('MajorBoundaries') if isinstance(modern,OutputArchive)
+             else iter(modern['MajorBoundaries']))
     for name in BOUNDARIES:
-        if not exact(name,left[name],right[name]):return comparisons
+        row=next(records,None)
+        if row is None or row['boundary']!=name:
+            raise ValueError('Modern boundaries ordered roster/multiplicity differs')
+        if not exact(name,left[name],row['state']):return comparisons
+        del row
+    if next(records,None) is not None:
+        raise ValueError('Modern boundaries ordered roster/multiplicity differs')
     # The adapter captures the15 native calculation outputs, including the
     # remaining Pick queue. The five state outputs have earlier control owners.
     outputs=roster_map(modern['CalculationOutputs'],'capability',CONTRACT['calculation_capabilities'],'Modern calculations')
@@ -75,14 +83,21 @@ def compare_day(legacy,modern):
     # The stage sequence is ordered and unique (asserted above). Within each
     # report table use exact typed bags, as for every other SQL population.
     # Comparing the wrapper list would accidentally make nested rows ordered.
-    exact('emitted-reports',{r['stage']:r['tables'] for r in report_left},
-          {r['stage']:r['tables'] for r in modern['Reports']})
+    report_left={r['stage']:r['tables'] for r in report_left}
+    report_right={r['stage']:r['tables'] for r in modern['Reports']}
+    if report_limitation:
+        from parity.report_flaws import compare_reports
+        comparisons.append(dict(contract='emitted-reports',**compare_reports(
+            report_left,report_right,legacy['closing']['dbm'],today,report_limitation)))
+    else:
+        exact('emitted-reports',report_left,report_right)
     return comparisons
 
 
 def source_files():
     paths=[p for folder in ('parity','mta') for p in (ROOT/folder).rglob('*.py')]
-    paths += [ROOT/'baseline/temporal-oracle-roster.json',ROOT/'baseline/temporal-oracle-reuse.json']
+    paths += [ROOT/'baseline/temporal-oracle-roster.json',ROOT/'baseline/temporal-oracle-reuse.json',
+              ROOT/'baseline/norm0-occurrence-limitation.json',ROOT/'baseline/production-state-schema.json']
     return {str(p.relative_to(ROOT)).replace('\\','/'):sha(p) for p in sorted(paths)}
 
 
@@ -91,6 +106,15 @@ def validate_continuation_sources(previous, current):
     # adapter dependencies. An older prefix must be re-compared if these differ.
     if previous != current:
         raise ValueError('Replay dependency changed after prefix proof; re-compare retained captures')
+
+
+def independent_contracts_pass(checks):
+    return all(c['status']=='PASS' or (
+        c['contract']=='emitted-reports' and c['status']=='LEGACY_FLAW'
+        and c.get('deterministic_status')=='PASS'
+        and c.get('parity_claim_for_affected_field') is False
+        and c.get('legacy_flaw')=='LEG-NORM0-OCCURRENCE-ORDER'
+        and bool(c.get('raw_values'))) for c in checks)
 
 
 def replay(artifact, expected_sha, modern_execution, destination, through, continue_from=None, automatic_actions=False):
@@ -103,6 +127,10 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
     case=json.loads(artifact.read_text())['case']
     modern=json.loads((modern_execution/'execution.json').read_text())
     if modern['artifact_sha256']!=expected_sha:raise ValueError('Legacy/modern input identity differs')
+    limitation=modern.get('report_exceptions',{})
+    if limitation:
+        from parity.report_flaws import validate_scope
+        validate_scope(limitation,expected_sha,verify_sources=True)
     if automatic_actions:
         from parity.temporal_policy import POLICY, commands_for_day
         if modern.get('action_policy')!=POLICY:raise ValueError('Action trial policy differs')
@@ -114,6 +142,7 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
     record=dict(status='RUNNING',input_sha256=expected_sha,modern_execution_sha256=sha(modern_execution/'execution.json'),
                 requested_days=through+1,artifact_days=len(case['days']),databases=MAPPING,days=[],
                 action_policy=POLICY if automatic_actions else 'retained-fixed-actions')
+    record['report_limitation_digest']=digest(limitation)
     sources=source_files()
     (destination/'source.json').write_text(json.dumps(dict(
         commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),files=sources),indent=2),encoding='utf-8')
@@ -121,13 +150,17 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
     if continue_from is not None:
         previous=json.loads((continue_from/'replay.json').read_text())
         source_before=json.loads((continue_from/'source.json').read_text())['files']
-        if previous['status']!='PASS' or previous['input_sha256']!=expected_sha or not previous['days']:
+        if previous['status'] not in ('PASS','COMPLETE_WITH_LEGACY_FLAWS') or previous['input_sha256']!=expected_sha or not previous['days']:
             raise ValueError('Continuation requires a passing same-input legacy prefix')
         validate_continuation_sources(source_before,sources)
         if previous.get('action_policy','retained-fixed-actions')!=record['action_policy']:
             raise ValueError('Continuation action policy differs')
+        if previous.get('report_limitation_digest',digest({}))!=record['report_limitation_digest']:
+            raise ValueError('Continuation legacy-flaw disposition differs')
         for index,entry in enumerate(previous['days']):
-            if entry['day_index']!=index or entry['status']!='PASS' or len(entry['comparisons'])!=(31 if automatic_actions else 29):
+            if (entry['day_index']!=index or entry['status'] not in ('PASS','PASS_WITH_LEGACY_FLAWS')
+                    or len(entry['comparisons'])!=(31 if automatic_actions else 29)
+                    or not independent_contracts_pass(entry['comparisons'])):
                 raise ValueError('Incomplete legacy prefix proof')
             if entry['modern_output_digest']!=modern['days'][index]['output_digest']:
                 raise ValueError('Modern counterpart changed after prefix proof')
@@ -166,10 +199,14 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
                 current=modern['days'][index]
                 if current['day_index']!=index or current['date']!=entry['date'] or current['status']!='COMPUTED_NOT_YET_PARITY':
                     raise ValueError('Modern date/status differs')
-                actual=load_gzip(modern_execution/f'day-{index:03d}.json.gz')
-                if digest(actual)!=current['output_digest']:raise ValueError('Modern export/readback digest differs')
-                checks=compare_day(result,actual)
-                if automatic_actions and all(c['status']=='PASS' for c in checks):
+                if current.get('output_archive'):
+                    actual=OutputArchive(modern_execution/current['output_archive'])
+                    actual.verify(current['output_digest'])
+                else:
+                    actual=load_gzip(modern_execution/f'day-{index:03d}.json.gz')
+                    if digest(actual)!=current['output_digest']:raise ValueError('Modern export/readback digest differs')
+                checks=compare_day(result,actual,limitation,entry['date'])
+                if automatic_actions and independent_contracts_pass(checks):
                     post=load_gzip(modern_execution/f'actions-{index:03d}.json.gz')['state']
                     if digest(post)!=current['post_action_state_digest']:
                         raise ValueError('Modern persisted action state digest differs')
@@ -178,7 +215,8 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
                         ('post-action-state',result['post_command_state'],post)):
                         delta=differences(left,right,'/'+name)
                         checks.append(dict(contract=name,status='FAIL' if delta else 'PASS',differences=delta))
-                status='PASS' if all(c['status']=='PASS' for c in checks) else 'DIVERGENCE'
+                status=('DIVERGENCE' if not independent_contracts_pass(checks) else
+                        'PASS_WITH_LEGACY_FLAWS' if any(c['status']=='LEGACY_FLAW' for c in checks) else 'PASS')
                 entry.update(status=status,closing_digest=digest(closing),comparisons=checks,
                              scripts=result['scripts'],command_receipts=result['command_inputs'],
                              legacy_boundaries={k:fingerprint(v,'/'+k) for k,v in legacy_states(result).items()},
@@ -192,12 +230,15 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
                 entry.update(status='HARNESS_FAILURE',error=traceback.format_exc())
             entry['seconds']=round(time.monotonic()-started,3)
             record['days'].append(entry)
-            record['status']='PASS' if index==through and entry['status']=='PASS' else entry['status'] if entry['status']!='PASS' else 'RUNNING'
+            success=entry['status'] in ('PASS','PASS_WITH_LEGACY_FLAWS')
+            record['status']=(('COMPLETE_WITH_LEGACY_FLAWS' if any(d['status']=='PASS_WITH_LEGACY_FLAWS' for d in record['days']) else 'PASS')
+                              if index==through and success else 'RUNNING' if success else entry['status'])
             (destination/'replay.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
             print(json.dumps({k:entry[k] for k in ('day_index','date','status','seconds')}|
                 dict(passed=sum(c['status']=='PASS' for c in entry.get('comparisons',[])),
-                     error=entry.get('error'),first_divergence=next((c['contract'] for c in entry.get('comparisons',[]) if c['status']!='PASS'),None))),flush=True)
-            if entry['status']!='PASS':return False
+                     legacy_flaws=sum(c['status']=='LEGACY_FLAW' for c in entry.get('comparisons',[])),
+                     error=entry.get('error'),first_divergence=next((c['contract'] for c in entry.get('comparisons',[]) if c['status']=='FAIL'),None))),flush=True)
+            if not success:return False
     return True
 
 

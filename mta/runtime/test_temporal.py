@@ -1,15 +1,26 @@
 """Persistence protocol tests; stub outputs here are NOT business parity inputs."""
 from copy import deepcopy
+import os
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import TransactionTestCase
-from mta.runtime.models import CalculationRun, RunCommand
+from mta.runtime.models import CalculationRun, RunCommand, Checkpoint
 from mta.runtime.services import read_outputs
 from mta.runtime.temporal import BOUNDARIES, execute_day, record_command
+from mta.runtime.validation_storage import export_run
+from parity.output_archive import OutputArchive
 
 
 class TemporalPersistenceTest(TransactionTestCase):
+    available_apps=['mta.runtime','django.contrib.contenttypes']
     def setUp(self):
+        self.directory = TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.environment = patch.dict(os.environ, {'VF_EVIDENCE_ROOT': self.directory.name})
+        self.environment.start()
+        self.addCleanup(self.environment.stop)
         self.profile = {'delivery': {'site_code': 'VECTORFLOW-DEMO'}}
         self.state = {'dbm': {
             'DBMMaster': [{'SKUCode': '337', 'WhCode': 'AG515802', 'Norm': 220}],
@@ -130,3 +141,34 @@ class TemporalPersistenceTest(TransactionTestCase):
         run = CalculationRun.objects.get()
         self.assertEqual(run.status, 'FAILED')
         self.assertEqual(run.checkpoints.count(), 0)
+
+    def test_validation_boundaries_are_external_and_exactly_verified(self):
+        run = self.run_day()
+        self.assertNotIn('MajorBoundaries', read_outputs(run))
+        checkpoint = run.checkpoints.get(name='MajorBoundaries')
+        self.assertEqual(checkpoint.rows, [])
+        self.assertEqual(checkpoint.row_count, 8)
+        manifest = export_run(run, Path(self.directory.name) / 'export')
+        archive = OutputArchive(manifest)
+        self.assertEqual([r['boundary'] for r in archive.iter_rows('MajorBoundaries')], list(BOUNDARIES))
+        self.assertEqual(archive['ClosingState'], read_outputs(run)['ClosingState'])
+        archive.verify(run.output_digest)
+        Checkpoint.objects.filter(pk=checkpoint.pk).update(evidence_sha256='0'*64)
+        with self.assertRaisesMessage(ValueError, 'evidence file drift'):
+            export_run(run, Path(self.directory.name) / 'tampered-export')
+
+    def test_atomic_failure_keeps_unpublished_trace_but_no_checkpoint_or_action(self):
+        create = Checkpoint.objects.create
+        def fail_trace(**fields):
+            if fields['name'] == 'MajorBoundaries':
+                raise RuntimeError('injected after external trace write')
+            return create(**fields)
+        with patch('mta.runtime.services.Checkpoint.objects.create', side_effect=fail_trace):
+            with self.assertRaisesMessage(RuntimeError, 'after external trace'):
+                self.run_day()
+        run = CalculationRun.objects.get()
+        self.assertEqual(run.status, 'FAILED')
+        self.assertEqual(run.checkpoints.count(), 0)
+        self.assertEqual(run.commands.count(), 0)
+        self.assertEqual(run.output_digest, '')
+        self.assertTrue((Path(self.directory.name) / str(run.pk) / 'MajorBoundaries.jsonl.gz').is_file())

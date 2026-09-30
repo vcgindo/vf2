@@ -4,42 +4,66 @@ from django.utils import timezone
 
 from mta.planning.engine import calculate_current_day
 from mta.runtime.models import CalculationRun, Checkpoint
+from mta.runtime.validation_storage import persist_trace, read_input
 from mta.serialization import storage, digest
 
 
 def read_outputs(run):
     run.refresh_from_db()
-    if digest(run.input_payload) != run.input_digest:
+    if digest(read_input(run)) != run.input_digest:
         raise ValueError('Immutable input drift')
     if run.status != 'SUCCEEDED':
         raise ValueError('Only a completed run may be read as an output')
+    if run.production_manifest:
+        from mta.runtime.relational_state import read_daily
+        if sorted(run.checkpoints.values_list('name',flat=True))!=run.output_roster:
+            raise ValueError('Output roster or checksum drift')
+        outputs=read_daily(run)
+        if digest(outputs)!=run.production_digest:raise ValueError('Operational output checksum drift')
+        return outputs
     outputs = {}
-    for row in run.checkpoints.all():
-        if row.row_count != len(row.rows) or row.digest != digest(row.rows):
+    roster = []
+    for row in run.checkpoints.all().iterator(chunk_size=1):
+        roster.append(row.name)
+        if row.evidence_path:
+            if row.rows != [] or not row.evidence_sha256:
+                raise ValueError('Validation/production storage boundary drift')
+            continue
+        values = row.rows
+        if row.row_count != len(values) or row.digest != digest(values):
             raise ValueError('Checkpoint storage drift: ' + row.name)
-        outputs[row.name] = row.rows
-    if sorted(outputs) != run.output_roster or digest(outputs) != run.output_digest:
+        outputs[row.name] = values
+    if sorted(roster) != run.output_roster or digest(outputs) != (run.production_digest or run.output_digest):
         raise ValueError('Output roster or checksum drift')
     return outputs
 
 
 def finish_run(run, output, *, expected_digest):
     """Only writer of a run's complete output, shared by both engine entries."""
-    output = storage(output)
     with transaction.atomic():
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
         if run.status != 'RUNNING' or run.checkpoints.exists():
             raise ValueError('Run changed during calculation')
-        if run.input_digest != expected_digest or digest(run.input_payload) != expected_digest:
+        if run.input_digest != expected_digest or digest(read_input(run)) != expected_digest:
             raise ValueError('Input snapshot changed during calculation')
-        Checkpoint.objects.bulk_create([Checkpoint(
-            run=run, name=name, rows=rows, row_count=len(rows), digest=digest(rows))
-            for name, rows in output.items()])
+        # Keep one atomic publication, but serialize/write one checkpoint at
+        # a time rather than retaining a second whole temporal output graph.
+        if run.kind=='DAILY_CHAIN':
+            from mta.runtime.relational_state import save_daily,read_daily,production_projection
+            run.production_manifest=save_daily(run,output)
+            run.production_digest=digest(production_projection(output))
+            if digest(read_daily(run))!=run.production_digest:
+                raise ValueError('Relational production readback differs from calculated state')
+        for name, rows in output.items():
+            fields = (persist_trace(run, name, rows) if run.kind == 'DAILY_CHAIN'
+                      else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))
+            Checkpoint.objects.create(run=run, name=name, **fields)
         run.status = 'SUCCEEDED'
         run.output_roster = sorted(output)
         run.output_digest = digest(output)
+        if run.kind!='DAILY_CHAIN':run.production_digest=digest(output)
         run.completed_at = timezone.now()
-        run.save(update_fields=['status', 'output_roster', 'output_digest', 'completed_at'])
+        run.save(update_fields=['status', 'output_roster', 'output_digest', 'production_digest', 'production_manifest', 'completed_at'])
     return run
 
 

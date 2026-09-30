@@ -10,6 +10,9 @@ from mta.planning.engine import calculate_current_day
 
 
 class CurrentDayPersistenceTest(TransactionTestCase):
+    # The migrated relational state tables have FK ownership but no separate
+    # Django model hierarchy. Cascade flush is confined to test_freshvcf.
+    available_apps=['mta.runtime','django.contrib.contenttypes']
     def setUp(self):
         self.payload = json.loads(Path('mta/fixtures/r1_raw_current_day.json').read_text())
 
@@ -39,6 +42,24 @@ class CurrentDayPersistenceTest(TransactionTestCase):
         run = CalculationRun.objects.get()
         self.assertEqual(run.status, 'FAILED')
         self.assertEqual(run.checkpoints.count(), 0)
+
+    def test_checkpoint_write_failure_rolls_back_every_partial_row(self):
+        create = Checkpoint.objects.create
+        attempts = []
+        def fail_second(**fields):
+            attempts.append(fields['name'])
+            if len(attempts) == 2:
+                raise RuntimeError('injected checkpoint storage failure')
+            return create(**fields)
+        with patch('mta.runtime.services.Checkpoint.objects.create', side_effect=fail_second):
+            with self.assertRaisesMessage(RuntimeError, 'checkpoint storage failure'):
+                execute_current_day(self.payload, execution_revision='atomic-storage-test-v1')
+        self.assertEqual(len(attempts), 2)
+        run = CalculationRun.objects.get()
+        self.assertEqual(run.status, 'FAILED')
+        self.assertEqual(run.checkpoints.count(), 0)
+        self.assertEqual(run.output_roster, [])
+        self.assertEqual(run.output_digest, '')
 
     def test_raw_file_source_and_generated_lineage_roundtrip(self):
         payload=json.loads(Path('mta/fixtures/r1_gulfoil_common_selected.json').read_text())

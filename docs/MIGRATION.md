@@ -20,7 +20,7 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — fresh fixed-action348/348 and shallow automatic372/372 PASS; unchanged full-estate ledger verified; full-estate execution pending |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — bounded1240-pair relational storage correction verified; eight fresh day-one boundaries PASS; continuation held at pre-existing temporal Pick-input divergence (14 modern versus0 legacy remaining rows) |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
 Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
@@ -136,7 +136,7 @@ for the whole sizeable estate, UI acceptance or branch-wide parity. No inherited
 empty output is credited as positive order/advance/formed-truck coverage.
 
 Test-resource owner: this fresh migration task. Compose project `freshvcf-test`,
-PostgreSQL data at D:/freshvcf-build/postgres,1GiB/1CPU; one-shot MTA2GiB/2CPU,
+PostgreSQL data at D:/freshvcf-build/postgres,1GiB/1CPU; one-shot MTA4GiB/2CPU,
 restart=no, no host ports. One-shot containers use --rm. Stop this project's
 idle PostgreSQL at checkpoint/handoff; preserve its data for next invocation.
 
@@ -312,3 +312,156 @@ Remaining within F2: run the SAME accepted automatic policy on unchanged1240-pai
 full estate, compare every required daily population,
 reports, actions and terminal persisted state. Do not generate replacement facts,
 change legacy logic, broaden inactive profiles or begin F3 prematurely.
+
+Full-estate execution reached the known Norm0 occurrence-order guard on day0.
+`f2-auto-sizeable-001` is a preserved FAILED attempt, not a calculation mismatch
+or accepted day. Active F2 boundary now includes transferring only
+LEG-NORM0-OCCURRENCE-ORDER's explicit non-parity presentation disposition from
+the identical retained artifact. Keep all other comparisons exact, independently
+derive affected keys from canonical state, preserve raw text, and carry a visible
+legacy-flaw status instead of declaring the affected field passed. No data
+regeneration, source repair, new queue or whole-report skip is permitted.
+
+Full-estate attempt `f2-auto-sizeable-002` was killed by its2GiB memory cgroup
+at2026-09-30T22:00:51+05:30 before publishing any checkpoint. Its source receipt
+and RUNNING database record remain preserved, not accepted or silently retried.
+The kernel records Python PID3344668, container19ab93954799ef8291b3a9bb7914c94961d8816f27f97404ea20f80232cbb1fc.
+Active F2 correction: canonical streaming checksums and checkpoint-at-a-time
+serialization inside the SAME atomic publication transaction; no output roster
+or values removed. The own one-shot worker now has4GiB RAM/no added swap,2CPUs;
+PostgreSQL and all serving resources unchanged. Prove checksum equivalence,
+transactional readback/tamper/rollback, then retry the full unchanged population.
+
+The next attempt `f2-auto-sizeable-003` computed day0 but PostgreSQL's1GiB
+backend was killed while parsing the full50-stage DBM trace into one JSONB
+value. The transaction rolled back; this FAILED attempt is not parity. No
+serving database was involved. The evidenced storage correction keeps every
+checkpoint and checksum: large row arrays are gzip-compressed JSONL in a nullable
+binary column, decoded before all existing integrity/parity checks. Small JSON
+checkpoints and all existing rows remain readable unchanged. New migration0004
+is additive, with a database constraint against conflicting encodings; no earlier
+migration is rewritten. Release verified predecessor/export graphs before the
+next calculation/action so unused full traces do not multiply memory.
+
+User storage mandate supersedes the preceding compressed-in-PostgreSQL remedy:
+keep calculate_day, inputs and comparison semantics unchanged. PostgreSQL owns
+run/input/predecessor/action identity, required closing state, consumer outputs
+and checksums. Internal traces, including all8 major boundaries, are compressed
+validation files referenced by immutable checkpoint metadata, not production
+JSON values. No additional memory increase. Before the12-day continuation,
+prove atomic rollback plus exact1240-pair day-one persistence/readback. Applied
+0004 remains immutable;0005 removes its unused binary column (zero retained
+rows used it) and adds external-evidence metadata. Both failed attempts remain.
+
+### Current F2 storage correction — supersedes JSON/blob operational storage
+
+- No calculation, canonical SQL, synthetic fact or automatic-action change.
+  `calculate_day` remains byte-unchanged. No further memory increase: own worker
+  remains4GiB/2CPU, PostgreSQL1GiB/1CPU, no public ports or serving changes.
+- Canonical schema descriptor: `baseline/production-state-schema.json`,337
+  bindings/300 existing source-table schemas (including the frozen scratch
+  closing roster). Types/column order/length/precision/scale/nullability come
+  from the already pinned, schema-verified Fresh oracle, not sampled data.
+  Canonical descriptor digest:
+  `89201eca8c797bcd70a9f87d9dce31cc2be27636eccc0f6cee027a8bcf09d7aa`.
+- New typed `mta_state` relations have run FK, image owner, ordinal and explicit
+  business columns. Bulk writes share the single day-publication transaction.
+  No unique SKU/location constraint discards duplicates. Per-image manifests
+  contain shapes/counts/checksums only and have a1MiB size guard. Required
+  selected report exports use relational cells, not row JSON; all other report
+  projections use their canonical typed columns. No internal stage graph is an
+  operational PostgreSQL checkpoint.
+- Closing-state reconstruction and committed Apply/Sleep deltas read these rows;
+  source input facts and complete validation traces are immutable compressed
+  files. Run/checkpoint metadata retains their owner paths, SHA256, logical
+  checksums and complete roster. The comparator reads each of the8 boundaries
+  separately, preserving its previous exact typed-bag comparisons and the sole
+  qualified Norm0 text limitation. Production reads do not reload parity traces.
+- Migration register: fresh_mta0004 was applied during the superseded experiment
+  and remains immutable; no retained row used its binary field.0005 removes it
+  and adds bounded production/evidence/action manifests.0006 creates explicit
+  typed relations through generated RunSQL. All are on the same PostgreSQL DB.
+  No migration fake/squash/history rewrite. Named-schema initialization now runs
+  before migration for fresh Django-created test databases as well as deployment.
+- Active gate: `prove_sizeable_storage` runs the unchanged1240-pair day twice:
+  injected mid-write rollback with failed evidence retained, then actual complete
+  publication/readback, exact next-opening/action-state reconstruction, readable
+  projections and8 emitted boundaries. It is NOT legacy parity by itself; the
+  fresh SQL day-one comparator must then pass before continuing the same12days.
+  F3 remains PENDING. No new phase or recovery ID has been introduced.
+
+### F2 bounded storage gate evidence
+
+- `D:/freshvcf-build/evidence/f2-relational-day-one-005/storage-proof.json`
+  SHA256 `71aab3f7f052645a4eb4a03f844091208f0df513ac125c55d7563a012be2af16`:
+  **STORAGE_GATE_PASS_NOT_YET_LEGACY_PARITY**. The unchanged1240-pair artifact
+  retains SHA256 `0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546`.
+- Successful run `14685c6c-7e24-49bb-8c70-2b325ce64907`, business date2026-06-06:
+  87,060 typed operational rows including three committed actions; exact
+  production/report readback and committed next-opening DBM state. All19 complete
+  output populations remain externally available, including all8 internal
+  boundaries. All19 database checkpoint rows contain metadata with empty row
+  payloads; `mta_state` contains no JSON/JSONB/bytea state columns.
+- Injected mid-write failure run `cb8f8e33-1818-49bc-9617-2c5dc97615e9`:
+  FAILED, zero production rows, zero checkpoint records, zero commands and no
+  output digest. Its files are retained and cannot be read as a publication.
+- Worker peak2,785,918,976bytes under unchanged4GiB; PostgreSQL unchanged1GiB.
+  PostgreSQL's historical OOM count stayed1 before/after: no new OOM occurred.
+  Both original OOM attempts remain. The first gate's count-to-JSON harness
+  failure also remains in `f2-relational-day-one-004`; only integral count
+  encoding was corrected, not calculation or input behavior.
+- Verification:18 migration-enabled PostgreSQL protocol tests passed;34 focused
+  archive/serialization/Norm0/oracle/policy checks passed; the bounded receipt
+  linkage test passed. Django schema drift check found no changes. Independent
+  review's one finding—receipt import accepted a substituted contract name—was
+  fixed with the full ordered29/31 contract roster and aggregate qualification
+  check. No additional static storage blocker was identified.
+- `record_parity` attaches the actual oracle receipt path/hash, complete8-boundary
+  roster and per-contract statuses to the same run after verifying its identity,
+  committed output digest and readback. It never imports comparison populations,
+  computes parity or treats the qualified Norm0 flaw as PASS.
+- Fresh same-day canonical SQL comparison is retained in
+  `D:/freshvcf-build/evidence/f2-relational-sql-day-one-005/replay.json`, SHA256
+  `2cabf1f2b91cb6878040e6e7c513f99efa0ab4b049f2e1d130f099b8c710cab3`.
+  All8 internal boundaries PASS. The unchanged comparator then stops with
+  **DIVERGENCE** at `calculation/pick_remaining`:0 legacy versus14 modern rows.
+  This is not waived, not a new legacy-flaw exception and not F2 acceptance.
+  `record_parity` records DIVERGENCE and explicit NOT_RUN statuses for contracts
+  after the stopping point. Source captures and failed receipts remain immutable.
+
+### Current F2 continuation constraint — no new queue
+
+The storage correction is verified, but the latest instruction freezes calculation
+behavior and the artifact. Therefore the12-day continuation has NOT resumed.
+
+Read-only diagnosis of the retained captures established:
+
+- The frozen opening and canonical closing importer have200 SKU attribute rows,
+  all with `Weight=NULL` and `Volume=NULL`.
+- Canonical `Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql:81` filters
+  these with `WHERE ([Weight] IS NOT NULL OR Volume IS NOT NULL)`. Zero remaining
+  Pick rows is consequently consistent with the actual canonical input.
+- The SAME artifact's calculation profile separately holds810 logistics items,
+  with unit weights/volumes. `mta/temporal/chain.py:137` (`calculation_source`)
+  retains that profile's logistics while refreshing other producer-owned fields.
+  `mta/planning/projections.py:278` (`_pick_rows`) consumes those retained
+  profile attributes, producing14 remaining rows. This discrepancy predates the
+  storage changes; neither file was edited in this correction.
+- A read-only re-evaluation of the already captured calculation outputs with
+  the existing comparator confirms the other14 current-day calculation contracts
+  match. This diagnostic does not replace/overwrite the first-divergence receipt
+  or certify its remaining master/report/action checks.
+
+Required authority before further implementation: permit one source-backed
+correction of the existing temporal logistics-input projection so it consumes
+canonical producer-owned SKU/location attributes and preserves the SQL's NULL
+exclusion and multiplicity, rather than profile overrides. Do NOT repair the
+legacy SQL, populate synthetic weights, regenerate the artifact, waive Pick,
+change automatic actions, reopen unrelated F1 proofs, or add a recovery phase.
+That calculation-input correction is outside this turn's explicitly frozen
+calculation boundary, so it has NOT been implemented.
+
+After authorisation, preserve this committed day/failed proof, prove the affected
+day on the same frozen input under an explicit corrected execution revision,
+and continue the same12-day horizon only after its required comparisons pass
+with the sole already-qualified Norm0 text limitation. F3 stays PENDING.

@@ -46,7 +46,7 @@ def differences(expected, actual, path=''):
 
 
 def legacy_states(result):
-    native = deepcopy(result['delivery']['boundaries'])
+    native = dict(result['delivery']['boundaries'])
     late = result['output']['BPRStages'][-1]['state']
     native['final-bpr-bluezone'] = dict(BPR_Table=late['BPR_Table'],
         BPRDailyConsumption=late['BPRDailyConsumption'], BPRLastBatchRunTbl=late['LastBatchRunTbl'],

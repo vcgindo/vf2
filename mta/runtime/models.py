@@ -14,6 +14,9 @@ class CalculationRun(models.Model):
     input_payload = models.JSONField()
     status = models.CharField(max_length=16, default='RUNNING')
     output_digest = models.CharField(max_length=64, blank=True)
+    production_digest = models.CharField(max_length=64, blank=True)
+    production_manifest = models.JSONField(default=dict)
+    parity_summary = models.JSONField(default=dict)
     output_roster = models.JSONField(default=list)
     failure = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,11 +30,16 @@ class Checkpoint(models.Model):
     run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT, related_name='checkpoints')
     name = models.CharField(max_length=100)
     rows = models.JSONField()
+    evidence_path = models.CharField(max_length=240, blank=True)
+    evidence_sha256 = models.CharField(max_length=64, blank=True)
     row_count = models.PositiveIntegerField()
     digest = models.CharField(max_length=64)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['run', 'name'], name='fresh_checkpoint_identity')]
+        constraints = [models.UniqueConstraint(fields=['run', 'name'], name='fresh_checkpoint_identity'),
+            models.CheckConstraint(condition=(models.Q(evidence_path='', evidence_sha256='') |
+                (~models.Q(evidence_path='') & ~models.Q(evidence_sha256='') & models.Q(rows=[]))),
+                name='fresh_checkpoint_storage_boundary')]
 
 
 class RunCommand(models.Model):
@@ -42,6 +50,7 @@ class RunCommand(models.Model):
     digest = models.CharField(max_length=64)
     before_digest = models.CharField(max_length=64)
     after_digest = models.CharField(max_length=64)
+    state_manifest = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

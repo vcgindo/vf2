@@ -17,5 +17,24 @@ def storage(value):
     return value
 
 
+def canonical_parts(value):
+    # Identical canonical JSON bytes without another full graph, JSON string,
+    # and encoded-byte copy at once. Large temporal traces otherwise multiply
+    # peak memory even though the calculation itself has already completed.
+    def scalar(item):
+        if isinstance(item, Decimal):
+            return format(item, 'f')
+        if isinstance(item, (date, datetime)):
+            return item.isoformat()
+        raise TypeError('Unsupported canonical JSON value: ' + type(item).__name__)
+    encoder = json.JSONEncoder(default=scalar, sort_keys=True,
+                               separators=(',', ':'), allow_nan=False)
+    for part in encoder.iterencode(value):
+        yield part.encode()
+
+
 def digest(value):
-    return hashlib.sha256(json.dumps(storage(value), sort_keys=True, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    checksum = hashlib.sha256()
+    for part in canonical_parts(value):
+        checksum.update(part)
+    return checksum.hexdigest()

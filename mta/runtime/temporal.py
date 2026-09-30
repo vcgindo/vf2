@@ -5,6 +5,7 @@ in this service. Parent locking freezes which actions a next day consumes.
 """
 from copy import deepcopy
 from datetime import date, datetime
+import uuid
 
 from django.db import transaction
 
@@ -14,6 +15,7 @@ from mta.runtime.services import read_outputs, finish_run, fail_run
 from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
+from mta.runtime.validation_storage import read_input, store_input
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
@@ -33,8 +35,13 @@ def command_state(run, state, *, through_date=None):
         if event_date<last_date or (through_date is not None and event_date>through_date):
             raise ValueError('Command date outside its temporal execution boundary')
         last_date=event_date
-        state=storage(apply_command(state,command['operation'],
-                    [tuple(k) for k in command['selected']],command['timestamp']))
+        if event.state_manifest:
+            from mta.runtime.relational_state import load_image
+            for name,metadata in event.state_manifest.items():
+                state[name]=load_image(run,metadata)
+        else:
+            state=storage(apply_command(state,command['operation'],
+                        [tuple(k) for k in command['selected']],command['timestamp']))
         if digest(state)!=event.after_digest:
             raise ValueError('Command output drift')
         receipts.append(dict(id=event.pk,digest=event.digest,before=event.before_digest,after=event.after_digest))
@@ -65,8 +72,20 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     if parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
         raise ValueError('Daily output has already been consumed; act on the current run')
     result=storage(apply_command(state,operation,[tuple(k) for k in selected],timestamp))
-    return RunCommand.objects.create(run=parent,idempotency_key=idempotency_key,payload=payload,
+    event=RunCommand.objects.create(run=parent,idempotency_key=idempotency_key,payload=payload,
         digest=digest(payload),before_digest=digest(state),after_digest=digest(result))
+    from mta.runtime.relational_state import save_image
+    changed={name for name in state if state[name]!=result[name]}
+    if changed-{'NormAcceptanceTbl','NormsInSleepModeTbl','Suggestions'}:
+        raise ValueError('Unexpected action state writer')
+    event.state_manifest={name:save_image(parent,'action/'+str(event.pk)+'/'+name,
+        'closing/dbm/'+name,result[name]) for name in changed}
+    # A no-change accepted command is still distinguishable from legacy events.
+    if not event.state_manifest:
+        event.state_manifest={'NormAcceptanceTbl':save_image(parent,'action/'+str(event.pk)+'/NormAcceptanceTbl',
+            'closing/dbm/NormAcceptanceTbl',result['NormAcceptanceTbl'])}
+    event.save(update_fields=['state_manifest'])
+    return event
 
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None, report_exceptions=None):
@@ -87,6 +106,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if parent.input_payload['profile']['delivery']['site_code']!=profile['delivery']['site_code']:
                 raise ValueError('Predecessor belongs to another site')
             prior=deepcopy(previous['ClosingState'][0])
+            del previous  # The predecessor trace is verified, not the next day's working state.
             prior['dbm'],commands=command_state(parent,prior['dbm'],through_date=today)
             opening_date=parent.business_date.isoformat()
             lineage=dict(run_id=str(parent.pk),output_digest=parent.output_digest,commands=commands)
@@ -110,7 +130,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             return existing
         if parent and parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
             raise ValueError('Predecessor already consumed; no implicit timeline fork')
-        fields=dict(input_digest=source_digest,input_payload=raw,execution_revision=execution_revision,
+        new_id=uuid.uuid4()
+        fields=dict(id=new_id,input_digest=source_digest,input_payload=store_input(new_id,raw),execution_revision=execution_revision,
                     kind=KIND,business_date=today,predecessor=parent)
         if parent is None:
             # A unique root key serializes concurrent initial starts without
@@ -119,7 +140,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             opening_key=digest(dict(identity=initial['identity'],revision=execution_revision))
             run,created=CalculationRun.objects.get_or_create(opening_key=opening_key,defaults=fields)
             if not created:
-                if run.input_digest!=source_digest or run.input_payload!=raw:
+                if run.input_digest!=source_digest or read_input(run)!=raw:
                     raise ValueError('Opening already used for different facts; explicit new trial required')
                 read_outputs(run)
                 return run

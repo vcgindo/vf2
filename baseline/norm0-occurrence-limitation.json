@@ -1,0 +1,20 @@
+{
+  "norm012_occurrence_order_scope": {
+    "all_ambiguous_rows": true,
+    "norms": [0],
+    "horizons": [30],
+    "field": "Occurances",
+    "classification": "LEGACY_FLAW_NOT_PARITY"
+  },
+  "evidence": {
+    "id": "LEG-NORM0-OCCURRENCE-ORDER",
+    "input_sha256": "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546",
+    "source": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBM/Norm 0-1-2 Reports/Norm0Data.sql",
+    "source_sha256": "c47103cd5d309c8d692766fcef798ab138694627d944dee7c3d25619c9ed9766",
+    "retained_receipt": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/norm012-occurrence-first-divergence.json",
+    "retained_receipt_sha256": "88534f720b108e7cf33d0fcd4e1310f9c3270b7e76a534ecbe0f2b5a57a83fc5",
+    "rule": "Record evidenced legacy flaws, do not invent a repair, and continue independent work. This is not an acceptance waiver or parity PASS for the affected text.",
+    "predicate": "Norm=0, selected horizon30, description join exists, more than one distinct positive-consumption date/quantity fragment in source window. Re-evaluate from each day's own canonical state.",
+    "unproven": "Occurances text and its truncated/quoted presentation only. Preserve raw SQL text; never sort it or copy it into modern output. Compare all other fields, populations and multiplicities exactly."
+  }
+}

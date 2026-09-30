@@ -9,6 +9,8 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from mta.runtime.temporal import execute_day, record_command, command_state
 from mta.runtime.services import read_outputs
+from mta.runtime.validation_storage import export_run
+from parity.output_archive import OutputArchive
 from mta.serialization import digest
 
 
@@ -27,9 +29,11 @@ class Command(BaseCommand):
         source_root=Path(__file__).resolve().parents[4]
         source_files={str(p.relative_to(source_root)):hashlib.sha256(p.read_bytes()).hexdigest()
                       for p in sorted((source_root/'mta').rglob('*.py'))}
-        for name in ('temporal_ledger.py','temporal_policy.py'):
+        for name in ('temporal_ledger.py','temporal_policy.py','report_flaws.py','output_archive.py'):
             path=source_root/'parity'/name
             source_files[str(path.relative_to(source_root))]=hashlib.sha256(path.read_bytes()).hexdigest()
+        catalog=source_root/'baseline/production-state-schema.json'
+        source_files[str(catalog.relative_to(source_root))]=hashlib.sha256(catalog.read_bytes()).hexdigest()
         (target/'source.json').write_text(json.dumps(dict(execution_revision=options['revision'],
             files=source_files),indent=2),encoding='utf-8')
         raw=options['input'].read_bytes()
@@ -46,6 +50,9 @@ class Command(BaseCommand):
         through=options['through'] if options['through'] is not None else len(case['days'])-1
         if not 0<=through<len(case['days']):raise CommandError('Day index outside retained artifact')
         exceptions=json.loads(options['exceptions'].read_text()) if options['exceptions'] else {}
+        if exceptions:
+            from parity.report_flaws import validate_scope
+            validate_scope(exceptions,options['sha256'])
         previous=None;receipts=[]
         for index in range(through+1):
             started=time.monotonic()
@@ -56,18 +63,22 @@ class Command(BaseCommand):
                     predecessor=previous,opening=None if previous else dict(state=case['opening'],
                         opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),
                     report_exceptions=exceptions)
+                manifest=export_run(run,target/f'day-{index:03d}')
+                archive=OutputArchive(manifest)
                 output=read_outputs(run)
-                with gzip.open(target/f'day-{index:03d}.json.gz','wt',encoding='utf-8',compresslevel=1) as stream:
-                    json.dump(output,stream,sort_keys=True,separators=(',',':'))
                 receipt.update(status='COMPUTED_NOT_YET_PARITY',run_id=str(run.pk),
                     predecessor_id=str(run.predecessor_id) if run.predecessor_id else None,
                     input_digest=run.input_digest,output_digest=run.output_digest,
                     closing_digest=digest(output['ClosingState']),
-                    boundaries=[r['boundary'] for r in output['MajorBoundaries']],
+                    output_archive=str(manifest.relative_to(target)),
+                    boundaries=[r['boundary'] for r in archive.iter_rows('MajorBoundaries')],
                     suggestions=len(output['DBMFinal'][0]['Suggestions']),commands=[])
                 commands=(commands_for_day(case,index,output['DBMFinal'][0]['Suggestions'])
                           if options['automatic_actions'] else
                           [c for c in case['commands'] if c['after_day']==index])
+                # Export/checksums are complete. Commands independently verify
+                # persisted outputs; do not hold another entire trace meanwhile.
+                del output
                 for position,command in enumerate(commands):
                     event=record_command(run,operation=command['operation'],selected=command['selected'],
                         timestamp=command['timestamp'],actor='retained-synthetic-trial',
