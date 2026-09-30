@@ -19,17 +19,18 @@ old acceptance does not automatically transfer to a changed build.
 | Phase | Delivery and exit | State |
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
-| F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | ACTIVE |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | PENDING |
+| F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — implementation next |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
-Active F1 unmet exit: independently calculated current-day outputs with fresh
-PostgreSQL persistence and retained canonical comparisons. Dependencies: F0
-checks pass; source/profile/retained processed input are pinned. Permitted edits:
-pure input/planning functions, their application orchestration, runtime schema,
-parity comparison and affected tests. Keep API/UI acceptance in F3.
-Proof: retained positive raw cases plus all required sizeable current-day fields,
-typed row multiplicity, persistence/readback and explicit invalid input failure.
+Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
+persisted predecessor lineage and complete shallow/full-estate temporal comparison.
+Dependencies: F1 current-day pipeline verified; retained rule/temporal inputs are
+registered. Permitted edits: pure DBM/state functions, the connected daily-chain
+orchestrator, run persistence needed for own-state replay, and affected proofs.
+Do not import the old ORM/audit hierarchy or open a per-script recovery programme.
+Proof: each engine computes from its own prior state; all required boundaries and
+actions compare over 3×max RLT. Keep complete API/UI acceptance in F3.
 
 ## Executable flow and ownership
 
@@ -97,9 +98,8 @@ in the requested checkout. Existing services and source worktrees were untouched
 - Raw-source comparisons: daily/order/auxiliary stock119/119; control diagnostics
   24/24; transit tags23/23. Exact existing fixtures, no regenerated populations.
 - Connected-inputs-controls receipt predates remaining-Pick capture. It remains
-  **RECEIPT_INCOMPLETE**, not PASS, and modern results/old receipt are preserved.
-  Next: refresh only needed canonical receipts in dedicated VFTEST_Fresh_* DBs;
-  include positive PSO/advances/formed-Pick cases and the selected customer adapter.
+  **RECEIPT_INCOMPLETE** as historical evidence; see fresh replacement below.
+  Neither the older receipt nor its failed comparison was overwritten.
 - Fresh PostgreSQL initial migration applied;4 migration-enabled transaction
   tests pass (readback/retry, row tamper, missing output, durable failed attempt).
   Six framework/pure-input tests pass. Django reports no missing migrations.
@@ -109,11 +109,76 @@ in the requested checkout. Existing services and source worktrees were untouched
 - Durable sizeable run: `fe5fd4dd-12e5-4415-a33f-16c1434c82f6`.
   Output checksum: `1edd822a2b6167e6002d0936c7112bdbd1d81bbaa616a300fdc3406a5689bd69`.
 
-F1 remains ACTIVE. These proofs do not establish temporal DBM, raw ingestion for
-the whole sizeable estate, UI acceptance or branch-wide parity. No inherited
+### F1 fresh SQL / positive population verification
+
+- Dedicated `VFTEST_Fresh_*` schema created from pinned canonical DDL, with MDF/
+  LDF files exclusively under `D:/freshvcf-build/sqlserver`. Existing databases
+  and serving instances untouched. Exclusive replay lease and physical-path
+  guards are required; original/default/Block2 runner connections unavailable.
+- `f1-fresh-sql-001`: connected-inputs-controls119, physical PSO16, stock advance15,
+  GIT advance15 and Pick groups15 comparisons all PASS (180 total). Fresh SQL
+  includes the previously absent remaining-Pick checkpoint. All five fixtures
+  are unchanged retained inputs, not newly invented replacement baselines.
+- `f1-positive-persisted-001`: the same180 comparisons all PASS on actual fresh
+  PostgreSQL readback. These include nonempty PSO, stock/GIT allocation, formed
+  Pick and remaining Pick. This is not temporal or API acceptance.
+- Bootstrap attempts are not parity: Windows SQL Server rejected forward-slash
+  MDF paths; native paths fixed this. Transactional DDL then hit an existing
+  duplicate CREATE and rolled back; schema-only duplicate/absent-DROP conditions
+  now match the retained provisioner's known exceptions before execution.
+  Per-database schema receipts list every exception. No business SQL was changed.
+- Ten focused tests pass. Next unmet F1 exit: selected GulfOil adapter proof and
+  final source/persistence review; no expansion of CSV formats or other customers.
+
+The earlier F1 working checkpoint was not closure. The final acceptance below
+closes its selected current-day obligations only, not temporal DBM, raw ingestion
+for the whole sizeable estate, UI acceptance or branch-wide parity. No inherited
 empty output is credited as positive order/advance/formed-truck coverage.
 
 Test-resource owner: this fresh migration task. Compose project `freshvcf-test`,
 PostgreSQL data at D:/freshvcf-build/postgres,1GiB/1CPU; one-shot MTA2GiB/2CPU,
 restart=no, no host ports. One-shot containers use --rm. Stop this project's
 idle PostgreSQL at checkpoint/handoff; preserve its data for next invocation.
+
+### F1 final acceptance (30 September 2026)
+
+- Fresh sizeable SQL replay: `f1-sizeable-fresh-sql-001`, **20/20 PASS** against
+  independent fresh Python execution. Exact retained200-SKU/20-location input;
+  1240 selected SKU-location rows;1685 remaining-Pick rows. Final PostgreSQL
+  comparison: `f1-sizeable-final-persisted`, **20/20 PASS**. This supersedes any
+  suggestion that the sizeable comparison relies only on an older SQL receipt.
+- Five positive/raw fixtures: fresh SQL and PostgreSQL both **180/180 PASS**;
+  additional retained raw receipts166/166. Refer to exact directories above;
+  counts describe contract comparisons, not percentages of the whole migration.
+- Selected GulfOil: `f1-gulfoil-003`, **126/126 calculation**, **13/13 adapter-table**
+  and **7/7 parser-case** comparisons PASS against retained canonical receipts.
+  `f1-gulfoil-persisted-001`:126/126 PASS after fresh PostgreSQL readback, with
+  original raw file bundle and generated standard-boundary lineage persisted.
+  This is the retained approved five-SKU raw extension, not sizeable raw coverage.
+- Parser qualification: deployed `ReadDailyDataToInterface.py` hash
+  `dd94826491cc045259d02c20168de0f24c0540bc1f91b855015161bf5cf55e3f` differs
+  from preserved `6b232a259f72fe55fa41aeb741f871442256593dab6bab3cd4cf1dc9026c50dd`.
+  Connection certificate handling and metadata `ORDER BY MappingId` are the
+  differences. All executed parser/insert functions match by AST; a read-only
+  configuration query proves all83 retained mapping rows in that exact order.
+  The qualification is in the successful evidence, not a waived hash assertion.
+- Retained failed attempts: `f1-gulfoil-001` source discrepancy;
+  `f1-gulfoil-002` SQL INT-vs-Decimal serialization and OrderID field spelling.
+  Comparator now applies only declared INT conversion (rejects fractions/range
+  errors), retains NULL/multiplicity/all fields, and explicitly maps OrderId.
+  No calculation or synthetic input changed to obtain these passes.
+- Independent review: runtime now calculates from its exact durable source
+  snapshot, not the caller's mutable object. SQL calculations run under disabled
+  login `freshvcf_oracle_replay`, impersonated WITH NO REVERT, with control only
+  on the eight owned Fresh databases. Server privilege/live DB access are denied.
+  Thread ownership and live schema fingerprints are checked before each replay.
+  `f1-isolation-final.json` proves restrictions and transactional schema-drift
+  detection/restoration; restricted connected replay119/119PASS is retained in
+  `f1-restricted-oracle-003`. Earlier guard false-positive attempts remain.
+- **14 focused tests +6 PostgreSQL transaction tests PASS**; migrations unchanged.
+  No serving application, legacy business data or other test estate was modified.
+
+Explicit remaining F3 runtime obligation: interrupted/failed-run retry currently
+fails closed and preserves its record. F3 must add a bounded, evidence-preserving
+restart/recovery policy. Successful-run immutable retry is verified; crash recovery
+is NOT claimed. This does not change or reopen F1 calculation parity.

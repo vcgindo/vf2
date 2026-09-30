@@ -30,7 +30,8 @@ def execute_current_day(payload, *, execution_revision):
         raise ValueError('The run service owns its durable transaction boundary')
     raw = storage(payload)
     input_digest = digest(raw)
-    today = raw['foundation']['snapshot']['business_date']
+    source = raw['standard_input'] if raw.get('schema') == 'r1-gulfoil-file-input-v1' else raw
+    today = source['foundation']['snapshot']['business_date']
     with transaction.atomic():
         run, created = CalculationRun.objects.get_or_create(
             input_digest=input_digest, execution_revision=execution_revision,
@@ -42,7 +43,9 @@ def execute_current_day(payload, *, execution_revision):
             read_outputs(run)
             return run
     try:
-        output = storage(calculate_current_day(payload))
+        # The durable source facts, not the caller's still-mutable object, own
+        # this execution. JSON readback must reproduce precisely these inputs.
+        output = storage(calculate_current_day(raw))
         with transaction.atomic():
             run = CalculationRun.objects.select_for_update().get(pk=run.pk)
             if run.status != 'RUNNING' or run.checkpoints.exists():

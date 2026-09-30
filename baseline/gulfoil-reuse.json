@@ -1,0 +1,110 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "files": [
+    {
+      "path": "mta/application/r1_file_input.py",
+      "source_sha256": "6672f3d9fcaa93babc1600e8740c74d2e1d3460255a973ad62042f4023634b2c",
+      "transformation": "LF only"
+    },
+    {
+      "path": "mta/application/r1_gulfoil_input.py",
+      "source_sha256": "a954cc049e408ba41b4da4770b647a3d961d5e3e27f229d7e119a3c114de8b0f",
+      "transformation": "LF only"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-identity.json",
+      "sha256": "8549c074d32ada33c65cf40b9b5b573e4f20ef371207960b3fb8ec2f99363969"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-adapter.json",
+      "sha256": "a245b0fc7626e208c537ed6e2b4461d70f9c8acbf00bd41f4a99c33561ec7633"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-legacy.json",
+      "sha256": "d2b441f1235cebd1759528e2e4d4efc692fafda99507a18f684d0d26e5a41e6b"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-legacy-repeat.json",
+      "sha256": "d2b441f1235cebd1759528e2e4d4efc692fafda99507a18f684d0d26e5a41e6b"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-standard.json",
+      "sha256": "b4087e1f45d02320e65342b2f2f3ea4c96e78bb0311a0ab6948e9f635f51b799"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-report-comparison-contract.json",
+      "sha256": "194e6ea88ff3d3c77060a7f66208735b21151f0a180b1012ccaf81408dee997b"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-v2-calculation-comparison.json",
+      "sha256": "ce2d10ecffefecf44bba4e405e755103a1ec58622852727a803f6769dc4ba559"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\summary.json",
+      "sha256": "612830ee25ff05903f9962d00a85370628dcdd424e74f73d2c509bedfdd73905"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\valid\\input.json",
+      "sha256": "d5bedb747a835391b17028079e5450847d7889fda1d92669845c1f5bb0681bca"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\valid\\result.json",
+      "sha256": "c6561653779f6ba98154f4ca57cdea70e693f96633401e45b1525b66ebac524e"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\reordered\\input.json",
+      "sha256": "abaa3c02f52fb63dc2dec0b0754482d1962960856d10e0ce7c8a6cb784f5c2a6"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\reordered\\result.json",
+      "sha256": "e55f0885e930264429d0a3fe9323aecd7e9f25a7b204c416f4aea0b4db0d2bbc"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\quoted\\input.json",
+      "sha256": "495afecf6d55bf9089050669eb7724a1d02cd4a84113fa006817ba8634fa8f17"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\quoted\\result.json",
+      "sha256": "d2b4a39971ce7d82ce48dde567995075aaa0efeac3ad2a3f37e78b5a5de5205f"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\header_only\\input.json",
+      "sha256": "bee3f515c996e1ddc826d9795de7218f32452ef0da7fe664c1b1ccb2a99d67aa"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\header_only\\result.json",
+      "sha256": "b1102ab40d294165dba68d70740e3f303baaf7f8869b2781659fc882acc659fe"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\missing\\input.json",
+      "sha256": "1531b6eeab8e7bfdcfa6e9e8b6982c3f5a16e3646479a0de2af7226ee6723f01"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\missing\\result.json",
+      "sha256": "919d64f28e20b87eea5175812df94eb9d4be5877dd69b0df0a1bcf59bce50cd4"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\byte_empty\\input.json",
+      "sha256": "4ba44df5f9b0b4747ed412502b47d2819885c4196066d93108a8a6de8a2cab21"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\byte_empty\\result.json",
+      "sha256": "ecf473077ced46c2f582a9ee8a59cd3c900bbc2a2ea73dd31f6f5ed27e1b3f3f"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\missing_required_header\\input.json",
+      "sha256": "023da5dafc5512c36f6a6e2cfee44f1d6a7b5631bf8ec28e443f6f61ffb1b30f"
+    },
+    {
+      "path": "F:\\vflow_integrated\\.local-stage7\\block2-replay\\gulfoil-continuation\\selected-file-cases\\missing_required_header\\result.json",
+      "sha256": "1ced41ff713b69ef87bbfad7024314b521fea29b47a05c115da0f5de1daa5cad"
+    }
+  ],
+  "input": {
+    "path": "mta\\fixtures\\r1_gulfoil_common_selected.json",
+    "sha256": "6d98b534b7e8e125ad0be985c4162e13b2288a5fa5a1e9402b6135e394ad5282",
+    "role": "retained approved five-SKU raw extension; not sizeable raw proof"
+  }
+}

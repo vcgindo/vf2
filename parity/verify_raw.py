@@ -20,6 +20,8 @@ RECEIPTS = (
 
 
 def options(payload):
+    if payload.get('schema') == 'r1-gulfoil-file-input-v1':
+        payload = payload['standard_input']
     schema = payload['schema']
     master = payload.get('master_state', {})
     order = payload.get('order_input', {})

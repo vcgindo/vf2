@@ -1,0 +1,2 @@
+# Oracle-only dependency; never installed into the modern application image.
+pyodbc==5.3.0

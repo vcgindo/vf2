@@ -21,6 +21,31 @@ python tools/baseline.py verify
 The health route deliberately reports NOT_CERTIFIED for the whole migration.
 A successful framework check is not migration parity.
 
+## Fresh legacy oracle (Windows, test-only)
+
+Install `requirements-parity-windows.txt` in the D: virtual environment. With
+MSSQLSERVER already running, provision only the dedicated Fresh databases:
+
+```powershell
+$env:VFTEST_PROFILE = 'fresh'
+& D:\freshvcf-build\venv\Scripts\python.exe -m parity.provision_legacy
+& D:\freshvcf-build\venv\Scripts\python.exe -m parity.replay_current_day D:\freshvcf-build\evidence\<new-directory> retained-sizeable
+```
+
+The create-only provisioner requires its MDF/LDF directory permission for the
+SQL Server service identity. It never drops/rebuilds existing databases. A schema
+fingerprint mismatch is a failure, not permission to overwrite its receipt.
+The disabled SQL login `freshvcf_oracle_replay` has rights only in VFTEST_Fresh_*
+and is impersonated WITH NO REVERT during calculations. Windows administrator
+access is used only for owned provisioning, physical-path/schema checks and the
+exclusive lease. Existing VFTEST/Block2/Demo databases are not replay targets.
+
+Named retained fixtures can replace `retained-sizeable` in the command. This does
+not authorize inventing/replacing synthetic data. Full source/input/failed-run
+receipts remain in the unique output directory. For selected GulfOil retained
+comparisons use `python -m parity.verify_gulfoil <new-evidence-directory>`; its
+parser qualification performs only a fixed read-only mapping metadata query.
+
 ## Isolated calculation/persistence verification
 
 ```powershell

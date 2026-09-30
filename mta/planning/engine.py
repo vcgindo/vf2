@@ -1,5 +1,6 @@
 """One pure input-to-output current-day MTA calculation; no ORM or oracle reads."""
-from dataclasses import dataclass
+from copy import deepcopy
+from dataclasses import dataclass, replace
 from decimal import Decimal
 
 from mta.application.r1_input import prepare_r1_current_day
@@ -8,6 +9,7 @@ from mta.application.r1_supplier_input import sorted_rows
 from mta.application.r1_importer_master import _sql_key
 from mta.application.rrr import calculate_rrr_groups
 from mta.domain.r1_current_day import allocate_spike_pso
+from mta.serialization import storage, digest
 from mta.planning.projections import (
     _as_json, _pso_inputs, _bifurcation_rows, _bpp_order_rows,
     _requirement_band_rows, _source_bor_rows, _pick_rows,
@@ -47,7 +49,19 @@ Caller cannot supply bands, calculated stock, ration or current-day answers.
 Raw producer/control checkpoints remain visible, not silently flattened into
 processed-input coverage. Legacy undefined branches retain their guards.
 """
+    adapter = None
+    if raw.get('schema') == 'r1-gulfoil-file-input-v1':
+        from mta.application.r1_gulfoil_input import prepare_gulfoil_standard_input
+        raw, adapter = prepare_gulfoil_standard_input(raw)
     prepared = prepare_r1_current_day(raw)
+    if adapter is not None:
+        # Canonical selected site hook follows validation and Norm controls.
+        # It is not a default common-engine behavior or an active NMS snapshot.
+        from mta.application.r1_gulfoil_input import convert_non_nms
+        validation = deepcopy(prepared.importer_validation)
+        validation['tables']['SkuLocAttributeData'] = convert_non_nms(
+            validation['tables']['SkuLocAttributeData'], profile='GulfOil')
+        prepared = replace(prepared, importer_validation=validation)
     payload = prepared.calculation_payload or raw
     track, requirements, stock_advances, git_advances, trace = calculate_r1_requirements(prepared, payload)
     normal = calculate_rrr_groups(
@@ -109,4 +123,8 @@ processed-input coverage. Legacy undefined branches retain their guards.
     if prepared.daily_validation is not None:
         output['r1_daily_validation'] = [{'stage': s, **v} for s, v in prepared.daily_validation.items()]
         output['r1_daily_consumption'] = [{'table': 'DailyConsumption', 'rows': sorted_rows(prepared.daily_consumption)}]
+    if adapter is not None:
+        output['r1_gulfoil_adapter'] = [dict(stage='files_to_standard',
+            source_checksum=digest(storage(adapter['source'])), standard_checksum=digest(storage(raw)),
+            **storage(adapter))]
     return output

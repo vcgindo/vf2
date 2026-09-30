@@ -1,0 +1,31 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "files": [
+    {
+      "path": "parity/adapters/legacy/runner.py",
+      "sha256": "5998c925c3013ae8d7d7e5fd9ec8adbde926909ba392efc823b6a4773a248132",
+      "transformation": "Fresh-only connection and canonical runtime root"
+    },
+    {
+      "path": "parity/adapters/legacy/r1_runner.py",
+      "sha256": "47b4d3953934eccdcb7330813948517af2745614a903851abd37660a0b382507",
+      "transformation": "LF only"
+    },
+    {
+      "path": "parity/adapters/legacy/r1_importer_master.py",
+      "sha256": "f0325ad0c30020883de6fbdb42368e32eb509daaaa2cfaaca353eaf0b330b24b",
+      "transformation": "LF only"
+    },
+    {
+      "path": "parity/adapters/legacy/r1_supplier_input.py",
+      "sha256": "d97c69574e2c3379fd6e43028717f487881072d1a6568f42fe28a66b6dcbbe91",
+      "transformation": "LF only"
+    },
+    {
+      "path": "parity/adapters/legacy/r1_daily_input.py",
+      "sha256": "0a0444962b5dc00b08a36e0b6237a2a4483393d7909a11f5c983aca1a3ee569f",
+      "transformation": "LF only"
+    }
+  ],
+  "scope": "SQL parity adapter only, never modern production engine"
+}
