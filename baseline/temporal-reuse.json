@@ -1,0 +1,300 @@
+{
+  "revision": "66a77735d3f3f9a9becf4c87a08ae7827900cf84",
+  "files": [
+    {
+      "path": "mta/temporal/chain.py",
+      "source_path": "mta/application/calculation_timeline.py",
+      "source_sha256": "76c10f144ced1d1854cd12d087b089f8eee2283f9395ea75176157fa99b492b7",
+      "transformation": "Keep pure code through calculate_day; exclude every persistence function"
+    },
+    {
+      "path": "mta/temporal/actions.py",
+      "source_path": "mta/application/dbm_delivery.py",
+      "source_sha256": "602657aa7c1f20156dce2c06ac6af66ac4705a0743da1afc63770cd79e0cf41b",
+      "transformation": "Extract key/apply_command only; no old ORM"
+    },
+    {
+      "path": "mta/domain/btr_finalization.py",
+      "source_path": "mta/domain/btr_finalization.py",
+      "source_sha256": "18adb9dd16ba0d30ad0ac77b5713494b733c9daf9bdbcf2ff474ca1f796ccaad",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/control_carry.py",
+      "source_path": "mta/domain/control_carry.py",
+      "source_sha256": "2d2d5664a709767c48fd7c56de14dbda481027af5d1a6983dfa82c6855075eda",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_parent_suggestions.py",
+      "source_path": "mta/application/r1_parent_suggestions.py",
+      "source_sha256": "a8ea62ad404c6dc6c6fdc522cccda79651d36dbdf842a0ed7b4a473efb18a0de",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_norm_updates.py",
+      "source_path": "mta/application/r1_norm_updates.py",
+      "source_sha256": "f16da10387e36973f19d981be176c151522a9c76d980d7ff91e4378ff4abe39f",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/timeline_controls.py",
+      "source_path": "mta/application/timeline_controls.py",
+      "source_sha256": "5b38fa0429e996bdd0a2ff90d2663ac9506bdc74a558fde15fb99dd443799b69",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_control_diagnostics.py",
+      "source_path": "mta/application/r1_control_diagnostics.py",
+      "source_sha256": "bce8593230d24fa080216b8cbadb052d74f58fa877d604b814752e71c028baa3",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_seasonality.py",
+      "source_path": "mta/application/r1_seasonality.py",
+      "source_sha256": "f085beeb76076df509b18d7b43071589a63a9a390a10294aca516b3a10642665",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_phase_entry.py",
+      "source_path": "mta/application/r1_phase_entry.py",
+      "source_sha256": "0fc386a2c507d1eb081c3c89fc917885bdf79f3c1378370f57e7277557991a76",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_phase_in.py",
+      "source_path": "mta/application/r1_phase_in.py",
+      "source_sha256": "08be98fb0f900295030b60af645d955e16eea7d96b3f35892e3e12f51e33bd97",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_phase_out.py",
+      "source_path": "mta/application/r1_phase_out.py",
+      "source_sha256": "7f231c659fcf953a88ac9e6beb33b1d0d8a528a8942ba6e8c38ea0f4162d87e8",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_rationed_report.py",
+      "source_path": "mta/application/r1_rationed_report.py",
+      "source_sha256": "372c7025d77a6e8994a66c3911251e710b42b81cbcbcaeb95821a7062fad2dd6",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_report_facts.py",
+      "source_path": "mta/application/r1_report_facts.py",
+      "source_sha256": "57e09e51533c159d0b3406fdfdc71b35583555d59ab194b61d24181cb5d60673",
+      "transformation": "Extract pure rationed_leftovers only; exclude ORM report readers"
+    },
+    {
+      "path": "mta/domain/virtual_norm.py",
+      "source_path": "mta/domain/virtual_norm.py",
+      "source_sha256": "8380254e605838866ff30a37cf5f4f964a3c72d6e1f0c637e15dc8e8275b8428",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/validation.py",
+      "source_path": "mta/domain/validation.py",
+      "source_sha256": "390932764e487b0ed893e5c7f29bbb630d94d3a67b2b6d7e7bd1979215e4ae73",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/colours.py",
+      "source_path": "mta/domain/colours.py",
+      "source_sha256": "ed22ce2847f5040ecd57258f793bca55727b9ad65e20e860be8363770a17f237",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_selected_chain.py",
+      "source_path": "mta/domain/dbm_selected_chain.py",
+      "source_sha256": "e35bffcc274f72abcb14573355165d4dfef817b68206a133612dc5d66f26c11a",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_daily_cleanup.py",
+      "source_path": "mta/domain/dbm_daily_cleanup.py",
+      "source_sha256": "83d9725b2efd39b6f8d441b381a6ad4902c0e835690c3b0e3897853e457602e5",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_norm012.py",
+      "source_path": "mta/domain/dbm_norm012.py",
+      "source_sha256": "a3c38820b866dd087263343e004ac2e453bcf949ab4dffa0211fbc77c11aab86",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_norm_change_history.py",
+      "source_path": "mta/domain/dbm_norm_change_history.py",
+      "source_sha256": "2d78b48d5de376d218a99c7aaca3ee3f0ac0d5389556ecfed7348d52558fa916",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_suspension_history.py",
+      "source_path": "mta/domain/dbm_suspension_history.py",
+      "source_sha256": "5022804e69f23c1e1328df4240b655293d204d5af5144734b73dd7d9499df350",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_norm_change_report.py",
+      "source_path": "mta/domain/dbm_norm_change_report.py",
+      "source_sha256": "05bb51c477e2527b4baf79f79ba22a565bdea41aefb6a5e1df32969d56194b92",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_norm1_advisory.py",
+      "source_path": "mta/domain/dbm_norm1_advisory.py",
+      "source_sha256": "32aea95ede4cc6171817d72631417e0485e2002f8713e8ffdeaf516ad2ea0580",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_order_summary.py",
+      "source_path": "mta/domain/dbm_order_summary.py",
+      "source_sha256": "be0bc4f3a79934fc2e7963cdcacec511dd1f9aa0e9f84564f970b4912d3162d9",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_postrules.py",
+      "source_path": "mta/domain/dbm_postrules.py",
+      "source_sha256": "103b667e94ab6b9307960818e459604bc7367efd484adc479feb2eaaa168b53e",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_delisting.py",
+      "source_path": "mta/domain/dbm_delisting.py",
+      "source_sha256": "2c3e1f388110960aadd626c4d9c76e0eca1c9263c9c5dc33f9554b99b2481f2d",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/dbm_connected.py",
+      "source_path": "mta/domain/dbm_connected.py",
+      "source_sha256": "440831dc04e09c262d908a3a5ae5bd1beac51e7ee15043ce2744a7407cdfaa60",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/dbm_rules.py",
+      "source_path": "mta/domain/dbm_rules.py",
+      "source_sha256": "7c2dc0827684d096ff998567e84b221751e814b461e1242a74ec7251f5a8ce2b",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/dbm_suspensions.py",
+      "source_path": "mta/domain/dbm_suspensions.py",
+      "source_sha256": "f1d7d3a21d4fe3c92610706b183167df523d522a93f1934625626f25e2bdbd54",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/dbm_ingestion.py",
+      "source_path": "mta/domain/dbm_ingestion.py",
+      "source_sha256": "90aea04c3c3414f1241e4ffedea26ccbdbfd23b8e668210f1824dc717fdf9cd1",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/bpr_construction.py",
+      "source_path": "mta/domain/bpr_construction.py",
+      "source_sha256": "6df8509befac847cfeaee92731a5800e7a622621a65103d4ddc2f23cdb2748e5",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/late_bpr_transfer.py",
+      "source_path": "mta/domain/late_bpr_transfer.py",
+      "source_sha256": "c10e42b0bff2c503358eb1647ec61e8d657262d2bd4c0865082792e9f0f08ac4",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/domain/order_closing.py",
+      "source_path": "mta/domain/order_closing.py",
+      "source_sha256": "0e213d64344f15c6e790709dd8d54b1223858153e2c7a8940908222e49021e30",
+      "transformation": "LF only; pure functions unchanged"
+    },
+    {
+      "path": "mta/application/r1_order_input.py",
+      "source_path": "mta/application/r1_order_input.py",
+      "source_sha256": "e32e71e402c5c41e1f44b2c4abc9d126bee9ac71ef8ae1900449e1b190200bb4",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_input.py",
+      "source_path": "mta/application/r1_input.py",
+      "source_sha256": "fa8c48cc846aa20a9f28ae35892e0bfecddf12db7d41d369bfd8c642fccdd452",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_daily_entry.py",
+      "source_path": "mta/application/r1_daily_entry.py",
+      "source_sha256": "a7f71bb30f4dce87f0a3e91af29e21bb8301e9034541f78d5514976613f18c38",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_supplier_entry.py",
+      "source_path": "mta/application/r1_supplier_entry.py",
+      "source_sha256": "2d572e694c5499c1861291ef735327e7728a537bcf67e456e2ed6a5dbc0e1655",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_supplier_input.py",
+      "source_path": "mta/application/r1_supplier_input.py",
+      "source_sha256": "ccc985295308f6b2805d14f70cc859424456e618a24d6681174e1cb97fcc162e",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_importer_master.py",
+      "source_path": "mta/application/r1_importer_master.py",
+      "source_sha256": "4750998b20d84a7798f3c750084676e8115635772d960ca827c048fc97838249",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_raw_master_entry.py",
+      "source_path": "mta/application/r1_raw_master_entry.py",
+      "source_sha256": "cf491c69f16c298e52bbfd11a7cc97a753cfba2afd46dca46f76b8af21a9fcde",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_transit_tags.py",
+      "source_path": "mta/application/r1_transit_tags.py",
+      "source_sha256": "fa92adb38fd196b578d8e99f963dafc73f62ee2fd636ec5f89229d5172d4ec3a",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_master_state.py",
+      "source_path": "mta/application/r1_master_state.py",
+      "source_sha256": "f71eecdf8ab9364be3764ada32def032dfa97a90e19233ed0b14d1692df423c7",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_daily_input.py",
+      "source_path": "mta/application/r1_daily_input.py",
+      "source_sha256": "173b7cd67919b963446371660362e528464f3a443e9815d0bb927270302ee845",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/r1_current_day.py",
+      "source_path": "mta/domain/r1_current_day.py",
+      "source_sha256": "c2de7606dd1c7bf7021750588f2a3b6aae77cdf14a4e11baa9f1c4c7a12c5245",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/demand.py",
+      "source_path": "mta/domain/demand.py",
+      "source_sha256": "d27055adfa148c31ed4c5d5f13e5ad68e02cd1276a07977a9ef601a0a4e2fd44",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/domain/models.py",
+      "source_path": "mta/domain/models.py",
+      "source_sha256": "bcd6d89290bc7f4cd08c1788b9aa9a8d8a8fce4bdc04ae805602c5346235b87b",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/application/r1_additional_master.py",
+      "source_path": "mta/application/r1_additional_master.py",
+      "source_sha256": "ddeebbb1f834c2bff701b1001dc85903f7e6bb0237e0f4e5a3c31727819e3c6e",
+      "transformation": "Existing identical pinned pure dependency"
+    },
+    {
+      "path": "mta/temporal/__init__.py",
+      "source_path": "",
+      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "Fresh package"
+    }
+  ],
+  "acceptance": "NOT_CERTIFIED"
+}

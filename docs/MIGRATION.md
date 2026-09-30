@@ -20,7 +20,7 @@ old acceptance does not automatically transfer to a changed build.
 |---|---|---|
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
-| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — implementation next |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | ACTIVE — complete connected engine implemented; retained 39-identity/12-day regression96/96, fresh and ledger-governed acceptance pending |
 | F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
 
 Active F2 unmet exit: independently computed daily DBM/state and workflow outputs,
@@ -182,3 +182,66 @@ Explicit remaining F3 runtime obligation: interrupted/failed-run retry currently
 fails closed and preserves its record. F3 must add a bounded, evidence-preserving
 restart/recovery policy. Successful-run immutable retry is verified; crash recovery
 is NOT claimed. This does not change or reopen F1 calculation parity.
+
+### F2 connected temporal checkpoint (30 September2026)
+
+- Complete pure chain extracted from pinned66a7773: controls/master/supplier/
+  orders → verified current-day calculation → BPR/BlueZone → DBM ingestion,
+  suspensions, ordered selected rules and reports → BTR → closing state.
+  `baseline/temporal-reuse.json` identifies49 extracted/reused records and their
+  source transformations. Old ORM/run/audit hierarchy was not copied.
+- `execute_day` consumes its own completed PostgreSQL predecessor and ordered
+  immutable Apply/Sleep command log. Parent locking prevents late action loss
+  and implicit branching; next-day input records parent checksum and command
+  identities. One immutable calculation identity owns all outputs. Migration
+  `0002_temporal_ownership` applied without changing0001.
+- Unchanged representative artifact SHA256
+  `458c7c661cc2e6b2e65f30415042b98ab889c6e151aeaf086c00029c6528c92f`:
+  **96/96 complete boundary comparisons PASS** across39 retained identities and
+  12 computed days, June6–17. **4/4 actions PASS** for input membership, exact
+  resulting acceptance/sleep rows and persisted before/after digests. Following
+  days consume these actions and match their legacy boundary fingerprints.
+- Modern outputs are fresh PostgreSQL readbacks. The oracle for this checkpoint
+  is retained canonical SQL evidence, not fresh SQL execution. The three retained
+  full-output days(0,1,11) each reconcile132 script receipts against both local
+  runtime and preserved deployment; remaining days use the retained exact typed
+  bag fingerprints. API DLL hashes qualify the action receipts. No fields were
+  excluded, coerced or normalized to achieve this connected result.
+- Evidence: `D:/freshvcf-build/evidence/f2-connected-012/execution.json`, hash
+  `3cabe70e3fa71232f84df1ea9e57c684321203715c8217788aef6fab1b1ee053`;
+  `f2-connected-012-final-comparison/comparison.json`, hash
+  `fc45a82a2e1815ce77b4ed01b09b0017bccf6344b9e84112c57f55056756ecdb`.
+  Terminal durable run: `83940672-749c-4728-b36a-26c29ea0dc61`.
+  Terminal output digest:
+  `d4d2863dd520c1ec7d22599ef432de86ef68d6773aa227aaede9df165bc2c759`.
+- Harness development failures are retained, not calculation failures: source
+  paths used both relative and absolute forms; representative action receipts
+  have a different wrapper from full-estate receipts; action membership is the
+  SQL Suggestions/latest-log/ReasonCodes projection, not raw Suggestions rows.
+  Exact source-backed mappings corrected these checks; inputs/calculations did
+  not change. Final comparator refuses ambiguous latest-log TOP1 values.
+- Independent review identified and resolved three ownership gaps: action dates
+  now stay within their parent/next-run chronological boundary; an opening and
+  execution revision have one unique root key; publication rechecks the locked
+  input against the exact digest calculated. Migration0003 backfills the existing
+  initial run's root key without changing business inputs or outputs. The bounded
+  re-review found no remaining issue in these corrections.
+- After those safeguards, `f2-ownership-001` freshly recomputed the affected first
+  two days:16/16 boundaries and4/4 actions PASS in
+  `f2-ownership-001-comparison/comparison.json`. This is a targeted2-day pass,
+  not another12-day claim. The unchanged business functions retain their prior
+  96-comparison evidence. The command now captures executed Python source hashes.
+- **15 migration-enabled persistence tests +17 focused tests PASS**, including
+  all6 F1 runtime tests; Django check and migration-drift check PASS. All376
+  baseline resources unchanged. `baseline/temporal-regression.json` freezes the
+  retained ledger and original fresh comparison receipt identities.
+
+Remaining F2 exit, without a new queue: fresh isolated canonical temporal SQL
+replay; explicit ledger-governed shallow then200-SKU/20-location/1240-pair trial,
+3×maxRLT, half-RLT transit and automatic workflow policy; compare all required
+daily calculations, emitted reports, action effects and final persisted state.
+The retained v1 timelines encode the12-day horizon and fixed actions but do NOT
+declare the later ledger conservation/half-RLT/automatic-action policy. They
+remain regression inputs; do not relabel them as that final trial. Any extension
+must preserve retained catalogue identity and have one explicit input manifest.
+F3 application delivery remains pending. Existing serving applications unchanged.

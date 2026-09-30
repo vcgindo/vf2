@@ -23,6 +23,32 @@ def read_outputs(run):
     return outputs
 
 
+def finish_run(run, output, *, expected_digest):
+    """Only writer of a run's complete output, shared by both engine entries."""
+    output = storage(output)
+    with transaction.atomic():
+        run = CalculationRun.objects.select_for_update().get(pk=run.pk)
+        if run.status != 'RUNNING' or run.checkpoints.exists():
+            raise ValueError('Run changed during calculation')
+        if run.input_digest != expected_digest or digest(run.input_payload) != expected_digest:
+            raise ValueError('Input snapshot changed during calculation')
+        Checkpoint.objects.bulk_create([Checkpoint(
+            run=run, name=name, rows=rows, row_count=len(rows), digest=digest(rows))
+            for name, rows in output.items()])
+        run.status = 'SUCCEEDED'
+        run.output_roster = sorted(output)
+        run.output_digest = digest(output)
+        run.completed_at = timezone.now()
+        run.save(update_fields=['status', 'output_roster', 'output_digest', 'completed_at'])
+    return run
+
+
+def fail_run(run, error):
+    CalculationRun.objects.filter(pk=run.pk, status='RUNNING').update(
+        status='FAILED', failure={'type': type(error).__name__, 'message': str(error)},
+        completed_at=timezone.now())
+
+
 def execute_current_day(payload, *, execution_revision):
     if not isinstance(execution_revision, str) or not execution_revision or len(execution_revision) > 80:
         raise ValueError('Explicit execution revision required')
@@ -45,22 +71,7 @@ def execute_current_day(payload, *, execution_revision):
     try:
         # The durable source facts, not the caller's still-mutable object, own
         # this execution. JSON readback must reproduce precisely these inputs.
-        output = storage(calculate_current_day(raw))
-        with transaction.atomic():
-            run = CalculationRun.objects.select_for_update().get(pk=run.pk)
-            if run.status != 'RUNNING' or run.checkpoints.exists():
-                raise ValueError('Run changed during calculation')
-            Checkpoint.objects.bulk_create([Checkpoint(
-                run=run, name=name, rows=rows, row_count=len(rows), digest=digest(rows))
-                for name, rows in output.items()])
-            run.status = 'SUCCEEDED'
-            run.output_roster = sorted(output)
-            run.output_digest = digest(output)
-            run.completed_at = timezone.now()
-            run.save(update_fields=['status', 'output_roster', 'output_digest', 'completed_at'])
-        return run
+        return finish_run(run, calculate_current_day(raw), expected_digest=input_digest)
     except Exception as error:
-        CalculationRun.objects.filter(pk=run.pk, status='RUNNING').update(
-            status='FAILED', failure={'type': type(error).__name__, 'message': str(error)},
-            completed_at=timezone.now())
+        fail_run(run, error)
         raise

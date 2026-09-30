@@ -1,0 +1,25 @@
+{
+  "schema": "fresh-temporal-regression-v1",
+  "scope": "Retained canonical regression only; not fresh SQL or ledger-governed full-depth acceptance",
+  "input": {
+    "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/representative-bridge-input.json",
+    "sha256": "458c7c661cc2e6b2e65f30415042b98ab889c6e151aeaf086c00029c6528c92f",
+    "identities": 39,
+    "days": 12
+  },
+  "ledger": {
+    "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/representative-bridge-replay.json",
+    "sha256": "5c3d36bc381ecee8679f4535065b24c08837c40a1db1ecd172f3cb9bd291c6e3"
+  },
+  "fresh_execution": {
+    "path": "D:/freshvcf-build/evidence/f2-connected-012/execution.json",
+    "sha256": "3cabe70e3fa71232f84df1ea9e57c684321203715c8217788aef6fab1b1ee053"
+  },
+  "comparison": {
+    "path": "D:/freshvcf-build/evidence/f2-connected-012-final-comparison/comparison.json",
+    "sha256": "fc45a82a2e1815ce77b4ed01b09b0017bccf6344b9e84112c57f55056756ecdb",
+    "boundary_comparisons": 96,
+    "action_comparisons": 4,
+    "status": "PASS"
+  }
+}
