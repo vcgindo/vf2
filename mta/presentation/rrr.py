@@ -89,7 +89,7 @@ NormPercentReservation ParentStockPercentageForRationing'''.split()
 NULL_DASH = ('SKUName','WhName','TCol','ECol','PWhName','TColParent','EColParent')
 
 
-def selected_rows(output, bands):
+def selected_rows(output, bands, *, predicate=None):
     """SQL inner/left joins, preserving every attribute-join multiplicity."""
     closing = output['ClosingState'][0]
     importer = closing['importer']
@@ -105,6 +105,9 @@ def selected_rows(output, bands):
         for _, b, c, d, _sla in product(standard.get(key, []), pair.get(key, []),
                 sku.get(sql_key(source['SKUCode']), []),
                 location.get(sql_key(source['WhCode']), []), pair.get(key, [])):
+            multiplicity = predicate(source,b,c,d) if predicate is not None else 1
+            if not multiplicity:
+                continue
             row = {name: source[name] for name in DIRECT_FIELDS}
             row.update({name: source[column] for name, column in ALIASES.items()})
             for name in NULL_DASH:
@@ -118,7 +121,7 @@ def selected_rows(output, bands):
             row.update({f'll{i}': d[f'LL{i}'] for i in range(1,6)})
             row.update({f'{prefix}{i}': '-' if values[f'c{i}'] is None else values[f'c{i}']
                 for prefix, values in (('SKULocAttr',b),('SKUAttr',c),('LocAttr',d)) for i in range(1,16)})
-            result.append(row)
+            result.extend(dict(row) for _ in range(multiplicity))
     # No added tie-break. Selected SQL does not order tied rows further.
     return sorted(result, key=lambda r: (r['DispatchColorSequence'], -r['DispatchPen'],
                                         sql_key(r['WhCode']), sql_key(r['SKUCode'])))

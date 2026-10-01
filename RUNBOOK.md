@@ -130,6 +130,14 @@ when a relevant change invalidates the proof, with a NEW evidence directory:
 This creates new isolated trial rows; it does not rerun accepted F2 days, mutate
 their actions or enable writes on the preview. Full browser/filter/download
 acceptance remains open.
+The isolated RRR filter checkpoint is `f3-rrr-filters-comparison-001`:44 valid
+request cases match actual deployed DLL-generated SQL across all119 fields,
+scopes, count/grid paging, raw NULLs, grouped filters and parent-join behavior.
+Eight source-invalid SQL cases are flagged NOT_PARITY in LEGACY_EXCEPTIONS.md;
+they are not repaired or credited as passing parity. Source and synthetic inputs
+remain pinned. This code was verified in the isolated test worker; the3005 image
+has NOT been rebuilt for this correction. Gateway filter/browser acceptance is
+still pending; do not promote this consumer receipt into whole-application parity.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 

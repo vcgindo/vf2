@@ -43,7 +43,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 | Obligation | Required exit evidence | State |
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day slice CLOSED:62 retained comparisons; approved scoped RRR14×119 matches SQL; eight authenticated gateway reads PASS. Next unmet exit: selected filter/scope/count/grid contracts |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR filters/scopes/count/grid44 valid cases match actual DLL-generated SQL, eight invalid-SQL cases NOT_PARITY; eight authenticated gateway reads PASS. Next: gateway RRR filter checks and remaining consumer filter/scope contracts |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -293,6 +293,59 @@ Next bounded F3.2 exit: selected filter/scope/count/grid contracts. Before its
 first edit name the exact deployed consumer, retained population and required
 positive/negative filter/permission comparisons; reuse unaffected root and action
 proofs. No new facts, permission supplement, publication rebind or F2 replay.
+
+Completed bounded consumer contract: RRRProcessor + GenericFunction's RRR alias mapping +
+CommonsProcessor.filterQueryForReports/GetFilterOperator from the pinned DLL.
+Exit proved: frontend-named product/location/supply/availability/custom filters,
+OR within attribute and AND across attributes, raw NULL handling, count/paging
+and retained root/leaf permissions compared against the actual DLL-generated
+SQL on unchanged accepted terminal facts. Allowed edit boundary: RRR consumer
+predicate adapter, its route, focused tests and proof drivers only. Leave the
+generic helpers used by other consumers unchanged until their own comparisons.
+Invoke the actual deployed pure filter builder for the oracle; no recovered
+source substitution, engine replay or permanent SQL writes. Invalid canonical
+column/alias branches are evidenced as legacy flaws/NOT_PARITY, not invented
+repairs. Existing hierarchy supplement stays restricted to its approved fields.
+
+RRR evidence (consumer readback, not full F3 acceptance):
+
+- `D:/freshvcf-build/evidence/f3-rrr-filters-modern-001/receipt.json`, SHA256
+  `f96cc963afce16ce3342ab49b7448ecea047159e71efe745bf81b568049c0dff`:
+  104 actual Django/PostgreSQL count/grid requests; accepted terminal run and
+  commands unchanged. No calculations, synthetic regeneration or serving change.
+- `f3-rrr-filters-comparison-001/receipt.json`, SHA256
+  `1cb7ff7fbd5952320d4a4e47242e722c0db5f11939dae5450bd319f08a9527b8`:
+  **44 strict request-case PASS; eight LEGACY_FLAW_NOT_PARITY**. Complete119-field
+  typed bags/counts/declared key order/paging match. Includes root/leaf/intersection/
+  overlapping permissions, OR/AND grouping, all14 deployed operators, raw NULL/
+  empty-value handling before ISNULL display aliases, SQL wildcard patterns,
+  Norm/Stock/GIT/VirtualNorm, color membership and parent-location join. Receiving
+  leaf count3; selected-product leaf3; their intersection1; parent leaf0 is the
+  canonical empty population, not an artificial positive test.
+- `deployed-filters.json` in that comparison directory, SHA256
+  `722888d5bacaf8ab2a28ecc83f6feb9c2a89def045fc0eecc260ec9c58e6ac00`:
+  actual pinned DLL's pure filterQueryForReports invocation with the exact RRR
+  alias tuple. Independent SQL runs only against session-temp copies of accepted
+  legacy facts and the approved six-field catalogue projection. No engine replay
+  or permanent SQL writes. The eight flaws have actual SQLSTATE42S22/42000 and
+  attributable invalid-column/syntax evidence; an infrastructure error cannot
+  satisfy their gate. See LEGACY_EXCEPTIONS.md; guarded503 is NOT legacy error-
+  envelope parity. The request roster is an API probe, not a new business dataset.
+- 32 focused tests PASS; all376 registered baseline resources unchanged. Protected
+  snapshot `f3-rrr-filters-protected-001/after.json` fully equals the previous
+  `f3-action-gateway-protected-001/after.json`, including all Fresh commands and
+  protected3003/3004/publication identities. Preview code/image not replaced.
+  The only production behavior changed is the RRR consumer predicate; action,
+  engine, persistence, other consumer helpers and schema remain unchanged. Prior
+  action/calculation proofs are not reopened by this unrelated view-file edit.
+
+Next permitted bounded F3.2 exit: representative RRR filters through a private
+real cookie gateway with existing stored root permissions, comparing the exact
+count/grid bodies to these retained consumer receipts. Do not repeat44 SQL
+queries or accepted calculations. Leaf expansion has independent SQL/Django
+proof; do not claim that as a new leaf user's login/browser proof. Keep3005 on
+the accepted terminal date and leave its image/permissions unchanged. Remaining
+DBM/BTR/Planning/insight filter contracts stay within F3.2, not new recovery IDs.
 
 F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
 MTA screen matrix here (route/component, complete call roster, selected run/date,

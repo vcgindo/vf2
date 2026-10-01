@@ -25,6 +25,7 @@ from mta.presentation.permissions import permission_multiplicity
 from mta.presentation.pick_storage import read_pick_bands
 from mta.presentation.rrr import selected_rows as rrr_rows
 from mta.presentation.rrr_types import selected_rrr_response
+from mta.presentation.rrr_filters import rrr_predicate
 from mta.runtime.models import PickProjection, ExcessProjection
 from mta.presentation.excess_storage import read_excess
 from mta.presentation.excess_views import joined_rows as excess_rows
@@ -192,9 +193,9 @@ def rrr_data(request, payload, *, count=False):
         bands = read_pick_bands(context.run)
     except PickProjection.DoesNotExist as exc:
         raise PublicationUnavailable('selected_run_pick_projection_not_published') from exc
-    rows = scoped(rrr_rows(context.output, bands), payload, 'WhCode',
+    importer = context.output['ClosingState'][0]['importer']
+    rows = scoped(rrr_rows(context.output, bands, predicate=rrr_predicate(payload,importer)), payload, 'WhCode',
                   attributes=context.output['ClosingState'][0]['importer'], preserve_join_multiplicity=True)
-    rows = _filter_rows(rows, payload)
     if count:
         return envelope(record_count=str(len(rows)))
     page, size = paging

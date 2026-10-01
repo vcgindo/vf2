@@ -95,3 +95,33 @@ govern. Selected sequential layout operations are compared in
 These are not F2 calculation exceptions or blanket exclusions. The proven
 layout contract is the selected sequential ASCII frontend payload; concurrent,
 case/collation variants and malformed-input equivalence are not certified by it.
+
+## LEG-RRR-FILTER-INVALID-SQL — selected report filter branches
+
+Authority: canonical DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`,
+RRRProcessor `d59a23788cb992f0413fb39fe43744043acea57804432d4eda8e09a1ac8dda82`,
+CommonsProcessor `6a79e4cd927c3a4bee0f72c9dab6f327bfcfcf9ef7dda21f1c906e8762be767b`.
+Actual deployed `filterQueryForReports` was invoked, then its generated WHERE/
+join text executed against the selected RRR query and accepted terminal facts.
+Evidence: `D:/freshvcf-build/evidence/f3-rrr-filters-comparison-001/receipt.json`,
+SHA256 `1cb7ff7fbd5952320d4a4e47242e722c0db5f11939dae5450bd319f08a9527b8`.
+
+| Branch | Source-generated invalid reference | Observed SQLSTATE |
+|---|---|---|
+| Availability category | b.category absent from the joined pair table | 42S22 |
+| PIPO/seasonality | tags absent from the selected joined tables | 42S22 |
+| Availability numeric | a.availability absent from the selected Pick report | 42S22 |
+| Coverage | coverage absent from the selected query | 42S22 |
+| Color count | redCount absent; no required history-count join | 42S22 |
+| Color age | btd.D90/Age absent; no required history/age join | 42S22 |
+| Unknown operator | generated empty predicate () | 42000 |
+| Unknown hierarchy p9 | generated sl9 absent | 42S22 |
+
+Modern explicitly guards these branches with503 and this flaw ID. It does not
+invent joins/default values, reinterpret categories or repair the malformed SQL.
+These eight cases are **NOT_PARITY**; successful guarded rejection is not a
+matching legacy HTTP error envelope. They are F3 consumer exceptions, not new
+F2 calculation waivers. Continue independent valid filters. The44 valid retained
+requests compare all row values/types/duplicate occurrences, counts and declared
+order. This certificate does not cover arbitrary malformed/Unicode/collation
+variants or a different report's aliases/populations.

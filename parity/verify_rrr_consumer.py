@@ -28,13 +28,17 @@ AUTH_SOURCE = RRR.with_name('VectorFlowAPIs.Filters.GenericFunction.decompiled.c
 AUTH_SHA = '6850a0bf2eadb4a38a2998e96ef70a264a2bc529d0de5c433c066d76c1933420'
 
 
-def selected_sql():
+def selected_sql(sql_filter='', sql_join_filter=''):
     if file_sha(RRR) != RRR_SHA:
         raise ValueError('Canonical deployed consumer source changed')
     method = RRR.read_text().split('private string getSelectQueryRRR(',1)[1]
     source = method.split('string.Concat(new string[6]',1)[1].split('if (sqlFilter',1)[0]
     literals = re.findall(r'"(?:[^"\\]|\\.)*"',source)
     query = ''.join(json.loads(s) for s in literals)
+    if sql_join_filter:
+        query = query.replace('from vf_PickListReport A ', 'from vf_PickListReport A '+sql_join_filter)
+    if sql_filter:
+        query += ' where '+sql_filter
     # Only table bindings and the omitted empty sqlJoinFilter/DB-name operands.
     for old,new in (('.dbo.SKULocStandardAttributes','#Standard'),('vf_PickListReport','#Pick'),
                     ('SkuLocAttributeData','#Pair'),('SkuAttributeData','#Sku'),('LocationAttributeData','#Loc')):
