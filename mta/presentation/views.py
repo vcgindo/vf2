@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from mta.presentation import btr, insights
@@ -196,6 +196,21 @@ def rrr_data(request, payload, *, count=False):
     if count:
         return envelope(record_count=str(rows))
     return envelope(data=[selected_rrr_response(row) for row in rows])
+
+
+@endpoint('POST')
+def export_data(request, payload):
+    from mta.presentation.rrr_sql import read_rrr
+    from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+    if payload.get('reportName') != 'RRR':
+        raise PublicationUnavailable('selected_report_export_not_connected')
+    run = selected_run()
+    rows = read_rrr(run, payload, paging=None)
+    state = ui_state.get_layout(identity(request)['id'], 'RRR')
+    headers = selected_headers(state, FIELDS)
+    response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment'
+    return response
 
 
 def planning_context(payload):

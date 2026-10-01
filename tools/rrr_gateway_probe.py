@@ -19,6 +19,28 @@ assert denied.status_code in (401,403)
 login=session.post(base+'/api/user/login/',json={'email':os.environ['VECTORFLOW_TEST_USERNAME'],'password':encrypted},timeout=15)
 assert login.status_code==200
 assert '/mta/supply-chain-intelligence-hub/rrr' in login.json()['data']['url_permission']
+if os.environ.get('RRR_GATEWAY_EXPORT') == '1':
+    denied=requests.post(base+'/api/mta/GetExportDataAsync',json={'reportName':'RRR'},headers={'Host':'localhost'},timeout=10)
+    assert denied.status_code in (401,403)
+    exports=[]
+    for name, filters, pagination in (
+        ('root-regression',{}, {'pageNumber':2,'recordsPerPage':1}),
+        ('location-type',{'supplyChainFilter':{'filters':[dict(attributeName='forlocation',operator='equalto',value='Depo')]}}, {'recordsPerPage':1})):
+        body=dict(reportName='RRR',filters=filters,paginationParameter=pagination,stream=1,ISExport='1',
+                  user={'id':'forged'},product_permissions=[],location_permissions=[])
+        started=time.monotonic()
+        response=session.post(base+'/api/mta/GetExportDataAsync',json=body,timeout=15)
+        assert response.status_code==200,(response.status_code,response.text[:200])
+        assert response.headers['Content-Type']=='text/csv'
+        assert response.headers['Content-Disposition']=='attachment'
+        exports.append(dict(id=name,status=response.status_code,seconds=round(time.monotonic()-started,4),
+            content_type=response.headers['Content-Type'],disposition=response.headers['Content-Disposition'],
+            bytes=len(response.content),sha256=hashlib.sha256(response.content).hexdigest(),
+            base64=base64.b64encode(response.content).decode()))
+    print(json.dumps(dict(status='RRR_REAL_GATEWAY_EXPORT_REQUIRES_BYTE_COMPARISON',exports=exports,
+        unauthenticated_status=denied.status_code,username=os.environ['VECTORFLOW_TEST_USERNAME'],
+        actions_submitted=False,qualification='Stored gateway scopes and identity overwrite forged payload; actual saved layout lookup, no preference writes.')))
+    raise SystemExit(0)
 payload={'paginationParameter':{'pageNumber':1,'recordsPerPage':5000},'filters':{}}
 observations=[]
 

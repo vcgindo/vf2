@@ -223,8 +223,10 @@ def read_rrr(run, payload, *, paging, count=False):
                                              for name,value in columns)
     query = 'WITH '+','.join(ctes)+' SELECT '+select+joins+' WHERE '+where
     if not count:
-        query += ' ORDER BY A."DispatchColorSequence" NULLS FIRST, A."DispatchPen" DESC NULLS LAST,'+key('A."WhCode"')+','+key('A."SKUCode"')+' LIMIT %s OFFSET %s'
-        params.extend((paging[1],(paging[0]-1)*paging[1]))
+        query += ' ORDER BY A."DispatchColorSequence" NULLS FIRST, A."DispatchPen" DESC NULLS LAST,'+key('A."WhCode"')+','+key('A."SKUCode"')
+        if paging is not None:
+            query += ' LIMIT %s OFFSET %s'
+            params.extend((paging[1],(paging[0]-1)*paging[1]))
     with connection.cursor() as cursor:
         # Retain pick_rows' unique-position/parent guard. Repeated band rows are
         # valid; repeated produced ration positions must not silently multiply.

@@ -178,3 +178,17 @@ Unlike RRR, BTR category/tags and valid age/colour-count filters have actual
 source joins and pass. The104 successful contracts preserve values, types,
 multiplicity, key paging/rejoin, declared order and horizon labels. Certification
 is limited to the frozen59 requests, not arbitrary malformed/collation variants.
+
+## RRR export header-order qualification
+
+Pinned BORProcessor.BuildHeaderQuery and StreamCsvFromQueryAsync, source SHA256
+80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298, select visible
+RationRequirementReport headers then stable-sort by Col_Position. The canonical
+configuration has both SKULocAttr9 and SKULocAttr10 at position99 and the default
+header query has no tie order. Export comparison001 matches the observed retained
+sequence exactly. Universal ordering for this tied pair is not certified; no
+new tie-break is introduced and neither column/comparison is dropped. Saved
+layout array positions remain distinct and are compared separately. This is a
+presentation ordering limitation, not a calculation waiver or a reason to block
+independent F3 work. Valid empty saved layouts emit blank records as deployed;
+no fallback to all columns is invented.

@@ -49,11 +49,15 @@ legacy timing claim. Evidence is in
 `D:/freshvcf-build/evidence/f3-rrr-selective-ui-010/receipt.json` and
 `f3-rrr-selective-final-gateway-016/receipt.json`.
 
-**CSV Export currently fails**: enabled RRR control calls the unconnected
-GetExportDataAsync route (gateway500). This modern integration defect remains
-open; do not treat the RRR screen or F3 as fully accepted. Other consumers have
-not yet received selective-read optimization. Full publication integrity is
-checked explicitly at validation/restart, not reconstructed on every RRR read.
+RRR **CSV Export is connected** through GetExportDataAsync. It exports the entire
+filtered, permission-scoped result regardless of grid page, using the deployed
+visible/saved-column rules. Ten independent SQL/header/CSV cases pass exact bytes;
+actual3005 root14 and Depo4 HTTP files match legacy and survive MTA restart.
+Evidence: `f3-rrr-export-comparison-001`, `f3-rrr-export-gateway-003` and
+`f3-rrr-export-restart-001` under the evidence root. Actual toolbar-click/file
+proof awaits browser reconnection; full RRR/F3 acceptance remains open. Other
+report exports and selective-read work remain pending. Full publication integrity
+is checked explicitly at validation/restart, not on every RRR request.
 
 ```powershell
 Set-Location F:\freshvcf

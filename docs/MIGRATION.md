@@ -44,12 +44,13 @@ Active contract: F3.1/F3.3 RRR selective persisted read and actual 3005 delivery
 Selective-read exit CLOSED below: whole-run reconstruction removed from RRR and
 its metadata requests; canonical joins, filters, scope, ordering, paging and
 envelopes retained; actual3005 screen/filter/clear/paging/restart reads verified.
-Active unmet exit: the existing enabled RRR CSV export calls GetExportDataAsync,
-which is not connected and returns gateway500. Resolve its exact matched-deployed
-consumer/download contract and gateway connection before full RRR screen closure.
-Do not disable the control, invent CSV semantics or label this modern defect a
-legacy flaw. No adjacent screen work until this exit closes or is explicitly
-blocked with source evidence in this tracker.
+RRR export API/byte/restart exit CLOSED below. Browser exit BLOCKED_BROWSER:
+replacement IAB4/tab1 is at3005/login, but three documented attachment attempts
+time out on Emulation.setFocusEmulationEnabled; old browser2 no longer exists.
+CAPTCHA confirmation for the replacement session is pending. Resume the exact
+toolbar-file check when browser control is usable; no API/oracle replay needed.
+Next independent item is the existing enabled-screen/request reconciliation,
+not a cross-report export sweep. Full RRR screen acceptance remains open.
 Allowed boundary: presentation context/RRR reader, necessary selective runtime
 helpers, affected tests/probes and demonstrated gateway plumbing only. No F2
 calculation, input, state, new fixture, schema or protected service change.
@@ -125,6 +126,51 @@ toolbar, gateway POST500, visible export-error toast, no downloaded file, missin
 modern route. GetAllReports' blank configured file paths do not authorize ignoring
 this dynamic export. Full RRR and F3.1–F3.5 remain partial/open.
 
+RRR export exit frozen before edits: matched ReportsController.ExportCSVData →
+ReportProcessor.GetExportConfiguration → RRRProcessor.BuildSqlForExportRRR and
+BORProcessor.BuildHeaderQuery/StreamCsvFromQueryAsync. Export uses the same
+unpaged RRR ordered raw SELECT; pagination is ignored. Headers use visible
+RationRequirementReport configuration or valid per-user RRR layout columns,
+then stable position order and exact case-sensitive returned-field membership.
+CSV is invariant-culture, CRLF, UTF8 without BOM, null empty, attachment/text/csv.
+Allowed edits: selective reader's optional unpaged mode, RRR export/header/CSV
+adapter and route, focused tests, proof drivers, isolated3005 MTA deployment.
+No frontend/gateway change unless a demonstrated passthrough defect requires it.
+Proof: raw typed legacy SELECT on retained terminal inputs, actual deployed
+CsvHelper bytes versus modern bytes; retained root/leaf/filter/empty populations,
+pagination ignored and layout selection; actual3005 cookie/download/root scope,
+unauthenticated denial, restart readback and protected-state preservation.
+Invalid source branches remain guarded NOT_PARITY. No F2 replay or new data.
+
+RRR export API checkpoint CLOSED, actual toolbar-file proof still OPEN:
+
+| Evidence under D:/freshvcf-build/evidence | Result / SHA256 of receipt.json |
+|---|---|
+| f3-rrr-export-comparison-001 | Ten cases: raw typed rows/all fields, headers and exact CSV bytes PASS. Root14/leaf3/empty0/Depo4; overlap, ignored paging, saved/empty/invalid layouts, raw types. d9c24b50a782e7e32b8ff3392604a4c466c889dc854cac7549e045f1b9c4539a |
+| f3-rrr-export-gateway-003 | Actual3005 root14/37columns/3291bytes and Depo4/1340bytes match legacy. Stored scopes override forged user/empty permissions; no-cookie export denied. 8eeba95003d2fe3e009d71f8b47113d70c6eac6c294c40656fad218957d5199b |
+| f3-rrr-export-restart-001 | MTA-only restart; both files byte-identical. 07c7bdd3638d57e455e3d5044e2db3fe5f01421caed1a4c0df4973429038eeae |
+| f3-rrr-export-grid-regression-001 | Existing15-request grid/filter/timing regression PASS. 1a6152b179d4987e537ec32838daefaf0918171a05eccf79109dcbbbd82346dd |
+
+Oracle: retained terminal SQL facts/session-temp tables, actual pinned DLL header/
+filter generators and deployed CsvHelper20101c39...; zero engine replay. Layout
+variants are private reader inputs; actual gateway uses saved-state lookup with
+no preview preference/action write. Empty valid layouts retain deployed blank
+records.46 focused tests/Django check pass. Protected before/after snapshots
+match in export-comparison-001. F2 state and receipts remain unchanged.
+
+Preserve gateway001/002 failures and dispositions:001 sent Agen against the
+registered Depo oracle;002 omitted localhost Host on the unauthenticated probe.
+Only probes corrected; assertions/oracle/application unchanged for003. Default
+headers include two position99 columns; observed retained bytes match, universal
+tie order is unqualified (legacy exception note). No invented tie-break.
+
+Preview image `sha256:b066e981059cb61da47303943f360e65e4f75c10e52de8709c05c369a073d14f`;
+gateway003 binds six candidate file hashes on03fb27e. Only MTA rebuilt/restarted.
+HTTP files are not toolbar-click proof; browser failure/pending confirmation
+above keeps that exit open. RRR-only dispatch guard remains. Other server CSV,
+client XLSX and configured-file downloads stay per-screen F3.3 obligations in
+the original continuation order; no all-report export closure or new queue.
+
 Ordered continuation inside the existing F3 rows, after RRR's exit:
 
 1. Reconcile the one screen matrix with actual enabled frontend dependencies,
@@ -153,7 +199,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
 | F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS; DBM82 strict contracts PASS,94 cookie requests plus14 private asserted scope reads. Source-invalid branches remain NOT_PARITY. Planning/insight contracts remain pending |
-| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR selective real3005 read/filter/clear/paging/restart checkpoint CLOSED; enabled CSV export500 is next unmet exit. Other screen-by-screen proof remains open; APIs alone do not close frontend exits |
+| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR read/filter/clear/paging/restart CLOSED; export API/files pass exact legacy bytes/restart, toolbar-file proof BLOCKED_BROWSER. Enabled-screen/request reconciliation is next independent work. Other screen proof remains open |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
 
@@ -657,7 +703,7 @@ obtained for the subsequent actual RRR inspection; no bypass.
 | Guided Insights → DBM rules/SKU/location/age `/mta/insights-and-trends/guided-insights` | DBMNormSuggestion* four native consumers landed | OPEN — exact terminal populations and visible charts/grid, not current-grid substitution |
 | Guided Insights → Chronic unavailability (same route) | ChronicUnavailabilityLoc/Sku/GridViewData landed | OPEN — authenticate and show actual scoped population/chart/grid |
 | Guided Insights → Availability trend/ageing (same route) | AvailabilityTrend/AvailabilityAgeing landed | OPEN — exact selected horizon and visible chart |
-| SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016 and actual UI010 receipts above | VISIBLE_READ/FILTER/PAGING/RESTART VERIFIED — all14, Agen3, clear14, page5/page2. Full screen OPEN: enabled GetExportDataAsync returns500; no CSV obtained |
+| SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016/UI010. Export comparison001/gateway003/restart001 PASS | VISIBLE_READ/FILTER/PAGING/RESTART VERIFIED. Exact HTTP CSV root14/Depo4; actual toolbar-download proof BLOCKED_BROWSER, full screen OPEN |
 | SCIH → Planning, Order fulfilment `/mta/supply-chain-intelligence-hub/planning` | GetPlanningDataGrid/Count/Graph selected parent/child consumer landed | OPEN — overview prerequisite still detailed-transit blocked; inspect reachable selected slice |
 | Planning, Excess inventory (same route) | Selected excess grid/count/charts landed | OPEN — same overview dependency; actual scoped chart/grid proof |
 | Planning, Expedite (same route) | Counts/charts landed; unordered receiving label NOT_PARITY | OPEN — verify attributable flaw status; no invented label or blanket success |
