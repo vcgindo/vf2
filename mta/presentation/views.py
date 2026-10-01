@@ -235,6 +235,18 @@ def export_data(request, payload):
     return response
 
 
+@endpoint('POST')
+def planning_overview(request, payload):
+    from mta.presentation.planning_read import planning_overview_context
+    from mta.presentation.planning_overview import counts
+    if not _no_active_filters(payload):
+        raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
+    context = planning_overview_context()
+    products, locations = scope(payload, attributes=context.attributes)
+    return envelope(data=counts(context.attributes, context.standards, context.reports,
+        context.run.business_date, products=products, locations=locations), message='')
+
+
 def planning_context(payload):
     category=str(payload.get('category','')).casefold()
     if category not in ('excessinventory','orderfulfillment') or payload.get('type')=='custom':

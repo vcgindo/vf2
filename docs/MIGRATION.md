@@ -43,6 +43,20 @@ The user resumed the existing goal after the authorised recovery handoff.
 Active contract: F3.1/F3.3 remaining BPR/Planning consumers using the approved
 terminal-only supplement; selected BPR backend and read-only BPR/Research
 grid-to-summary browser exits are now evidenced below. Full screens remain open.
+F3.1 Planning overview `GetPlanningDataCount` backend exit is CLOSED below:
+the ten deployed SCIH.GetQuadrantDetails counts must read the accepted native
+report projections and preserve their differing joins and permission bags.
+Reuse retained independent legacy producer receipts and the approved terminal
+empty-transit supplement. Only presentation reader/endpoint, focused tests and
+proof drivers may change; no F2/schema/frontend/input/action mutation. Exit:
+all ten exact string counts across retained root/leaf/overlap/denied scopes,
+guarded missing/nonterminal supplement, actual authenticated3005 readback,
+and unchanged protected identities. Empty permission input is source-invalid;
+the20 modern safe-denial values are NOT_PARITY, separate from40 valid counts.
+Actual browser exit is BLOCKED by the browser attachment timing out twice before
+login despite current user approval; no CAPTCHA was entered or bypassed. This
+does not block the next existing GIT grid/chart connection. Remaining GIT
+grids/charts, BPR contracts and full screen acceptance stay open.
 Prior RRR checkpoint:
 Selective-read exit CLOSED below: whole-run reconstruction removed from RRR and
 its metadata requests; canonical joins, filters, scope, ordering, paging and
@@ -100,6 +114,37 @@ compare full typed terminal BPR/Planning results and exact scope, then connect
 readback on3005. Allowed edits: presentation supplement/consumer wiring, focused
 tests/probes and isolated preview only. No operational state write, F2 replay,
 new logistics facts, other-day supplement or nonempty logistics parity claim.
+
+#### Planning overview — selected backend closed, browser pending
+
+`GetPlanningDataCount` now serves the ten deployed count contracts from ten named
+native images plus checked persisted Excess/Expedite/Fulfilment projections.
+No full515-image reconstruction, calculation or operational-state write occurs.
+Metadata joins, optional parent-description multiplicity and custom counts remain
+distinct. GIT emptiness is conditional on the explicit approved terminal manifest,
+native rationed.GIT having no positive values and the source producer predicates;
+other/nonempty transit remains unavailable, never replaced by empty defaults.
+
+Evidence under D:/freshvcf-build/evidence:
+
+| Receipt | Exit / SHA256 |
+|---|---|
+| f3-planning-overview-003/receipt.json |40 exact deployed-SQL counts across four retained permission scopes. Root GIT0/0/0,Expedite7/7/7,Excess85/85,Fulfilment1222/1222; own legacy producer rows vs modern relational projections. 14f588968bd1cdbf44cdcb862381bda0a7f89d39369b168d97b1a87ff60f94ae |
+| f3-planning-overview-gateway-001/receipt.json |Actual3005 cookie read; complete ten string values match. Forged scope overwritten, no-cookie401, active unsupported filter503. 90a8a402cbaad79260d0db47b903e8803d69ae01f630d28bc7bac41167e80231 |
+| f3-planning-overview-restart-001/receipt.json |MTA-only restart preserves exact response hash b55bcc7ae3746f3d2bad8cb9e1eaa8928061d518584af8bc5ba4db5909b010fc. 3c3c35d849d78cedd5919666cd51faf9f21c0f84f4aa281d2c6a74639ad71405 |
+| f3-planning-bpr-regression-001/receipt.json |Six unchanged BPR count/grid/paging wire comparisons on the new image. 971cbb2a3a6cd05c6e4c5267938890a0d846b954041e037ec95729b6a82bd847 |
+
+32 focused tests and Django check pass. Preview image:
+`sha256:846da0f2e909c31d1136aaec0dade85b9ce7c6793d4592c341156c1435de8709`;
+embedded sources match receipts;4GiB/2CPU unchanged. Protected snapshot before
+in overview002 equals final in overview003, including3003/3004 identities and
+accepted Fresh publication/actions. F2 remains untouched.
+Failed probes001 (missing private test identity) and002 (helper disallowed empty
+IDs) are preserved with dispositions.003 distinguishes two empty-permission
+guard cases from40 strict comparisons and records the source quotation flaw;
+no legacy repair. This is not whole Planning/GIT/filter/custom-grid acceptance.
+Browser verification attempted with user-approved sign-in, but IAB2/tab2
+attachment timed out before any input. Current approval is not the blocker.
 
 #### Approved terminal supplement / BPR count-grid checkpoint
 
@@ -337,7 +382,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 
 | Obligation | Required exit evidence | State |
 |---|---|---|
-| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight variants verified for registered contracts. Selected BPR terminal count/grid, scoped bags, paging and wire now verified with approved terminal-only supplement; Planning GIT/overview and remaining consumers stay open. Expedite ambiguous parent label remains NOT_PARITY |
+| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight variants verified for registered contracts. BPR terminal count/grid and Planning overview40 valid scoped counts now verified through authenticated3005/restart. GIT detail views and remaining consumers stay open. Expedite ambiguous parent label remains NOT_PARITY |
 | F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS; DBM82 strict contracts PASS,94 cookie requests plus14 private asserted scope reads. Source-invalid branches remain NOT_PARITY. Planning/insight contracts remain pending |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR read/filter/clear/paging/restart/toolbar files and DBM current/daily-history reader/visible-history exits CLOSED for selected contracts; layouts/other downloads/action UI remain open. Terminal-only BPR paging and Research grid/client-selection-to-summary now visible; calendar-date/empty-transit prompts qualified, not full screen or nonempty logistics acceptance |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
@@ -844,10 +889,10 @@ obtained for the subsequent actual RRR inspection; no bypass.
 | Guided Insights → Chronic unavailability (same route) | ChronicUnavailabilityLoc/Sku/GridViewData landed | OPEN — authenticate and show actual scoped population/chart/grid |
 | Guided Insights → Availability trend/ageing (same route) | AvailabilityTrend/AvailabilityAgeing landed | OPEN — exact selected horizon and visible chart |
 | SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016/UI010. Export comparison001/gateway003/restart001/UI001 PASS | VISIBLE_READ/FILTER/PAGING/RESTART/TOOLBAR_EXPORT VERIFIED. Actual root14/Depo4 files match legacy bytes; remaining layout/history controls not implicitly closed |
-| SCIH → Planning, Order fulfilment `/mta/supply-chain-intelligence-hub/planning` | GetPlanningDataGrid/Count/Graph selected parent/child consumer landed | OPEN — overview prerequisite still detailed-transit blocked; inspect reachable selected slice |
-| Planning, Excess inventory (same route) | Selected excess grid/count/charts landed | OPEN — same overview dependency; actual scoped chart/grid proof |
+| SCIH → Planning, Order fulfilment `/mta/supply-chain-intelligence-hub/planning` | GetPlanningDataGrid/Count/Graph selected parent/child consumer landed; GetPlanningDataCount overview connected | OPEN — overview backend dependency resolved. Actual browser attachment failed before login; visible selected slice remains pending |
+| Planning, Excess inventory (same route) | Selected excess grid/count/charts landed; overview connected | OPEN — actual scoped chart/grid browser proof pending attachment recovery |
 | Planning, Expedite (same route) | Counts/charts landed; unordered receiving label NOT_PARITY | OPEN — verify attributable flaw status; no invented label or blanket success |
-| Planning, GIT/overview and Research BPR prerequisite | Approved terminal-only empty transit/remarks bound to June17; BPR count/grid1,240 connected and independently verified | BPR BACKEND_READ and selected BPR/Research visible reads verified in bpr-ui001. Planning GIT/overview connection remains OPEN; nonempty/other-day transit remains outside this supplement |
+| Planning, GIT/overview and Research BPR prerequisite | Approved terminal-only empty transit/remarks bound to June17; BPR count/grid1,240 connected and independently verified | BPR selected reads verified in bpr-ui001. Planning overview40 valid counts/API/restart verified; GIT grids/charts remain OPEN. Nonempty/other-day transit remains outside this supplement |
 | Saved layouts / filter controls on landed grids | Existing per-user layout API and selected DBM/RRR/BTR raw filters landed | OPEN — read-only real control/config behavior; no preview user preference/action writes |
 | Configured downloads | GetAllReports retained selected paths empty; client-grid exports must be distinguished | OPEN — inventory actual enabled client download, disabled source paths; no invented files |
 

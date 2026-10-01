@@ -12,6 +12,25 @@ These known risks remain visible; neither is permission for blanket exclusions.
 Each reproduced flaw must add source hash, input hash, observed outcomes and
 the narrow affected contract. Independent implemented contracts may continue.
 
+## Planning overview empty-permission quotation — NOT_PARITY
+
+The pinned deployed SCIH `GetQuadrantDetailsQuery` quotes permission ID lists
+before calling GenericFunction. For an empty list it passes `''`; the helper's
+empty-expansion fallback quotes this again, yielding a literal apostrophe in
+the final SQL string_split/INT permission comparison. Source hashes:
+SCIH `f709a448c1bb6f6af6583975a13a88cf3cb009caee516bc2fe867af21eb624e5`;
+GenericFunction `6850a0bf2eadb4a38a2998e96ef70a264a2bc529d0de5c433c066d76c1933420`.
+The exact conversion expression reproduced SQL245 in the owned Fresh SQL
+connection, recorded with both denied requests in
+`D:/freshvcf-build/evidence/f3-planning-overview-003/receipt.json`
+(SHA256 `14f588968bd1cdbf44cdcb862381bda0a7f89d39369b168d97b1a87ff60f94ae`).
+This is source analysis plus SQL-expression reproduction, not a claim that the
+entire deployed HTTP request was run. Modern empty memberships return zero
+counts under the existing denial semantics; those20 guard values are explicitly
+NOT_PARITY. All40 positive-scope overview values remain exact comparisons.
+Do not repair the helper, manufacture a passing legacy empty response, widen
+permissions or carry this qualification into a valid positive scope.
+
 ## LEG-NORM0-OCCURRENCE-ORDER — reproduced on the retained full estate
 
 The first fresh full-estate run stopped at Norm0's report on June6, before

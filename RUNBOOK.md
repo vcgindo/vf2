@@ -28,7 +28,7 @@ account has retained root permissions71001/72001 for MTA application2.
 Native engine state and F2 receipts remain unchanged; without this explicit
 supplement the original NULL hierarchy still denies scope. The approved June17
 terminal-only empty transit/initial remarks supplement now connects BPR count/grid
-reads; it does not certify nonempty logistics. Planning GIT/overview, other
+reads; it does not certify nonempty logistics. Planning GIT detail views, other
 detailed transit consumers, full filters/actions/downloads and the
 Expedite unordered-parent-label qualification remain open. Do not use this
 preview to submit business actions or claim complete application acceptance.
@@ -85,7 +85,17 @@ Insights for the summary/ageing read. These read-only steps were verified in
 limitations: BPR's empty transit panel retains a select-row prompt; Research's
 calendar opens at the machine month rather than the June17 report month.
 Do not treat this as calendar-date/full screen parity. Remarks/actions,
-downloads, remaining configuration and Planning GIT/overview remain pending.
+downloads, remaining configuration and Planning GIT detail views remain pending.
+
+Planning overview counts are now connected through `GetPlanningDataCount`:
+June17 root scope returns GIT0/0/0, Expedite7/7/7, Excess85/85 and
+Fulfilment1222/1222 (strings, as deployed). Forty independent count comparisons
+and authenticated3005 read/restart checks pass. Actual Planning browser proof
+is pending browser attachment recovery, not permission to sign in. GIT detail
+grids/charts, active Planning filters and full screen acceptance remain open;
+overview counts alone do not certify those branches. Evidence:
+`f3-planning-overview-003`, `f3-planning-overview-gateway-001`,
+`f3-planning-overview-restart-001` under D:/freshvcf-build/evidence.
 
 ```powershell
 Set-Location F:\freshvcf

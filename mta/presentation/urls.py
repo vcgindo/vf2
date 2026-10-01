@@ -22,6 +22,7 @@ urlpatterns = [
     path('GetBPRDataCount', partial(views.bpr_data, count=True)),
     path('GetExportDataAsync', views.export_data),
     path('GetPlanningDataGrid', views.planning_grid),
+    path('GetPlanningDataCount', views.planning_overview),
     path('GetPlanningDataGraph', views.planning_graph),
     path('GetPlanningDataGridCount', partial(views.planning_grid,count=True)),
     path('GetBTRData', views.btr_data),
