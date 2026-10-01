@@ -54,8 +54,8 @@ the selected June17 publication remain unchanged.
 | Stage2 journey, in execution order | State / unmet exit |
 |---|---|
 | RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and exact filtered full CSV pass; inherited screen has no wired history entry; saved-layout browser file and matched performance remain unproved; details below |
-| DBM current and daily history | ACTIVE — unchanged June17/current0 plus bounded recommendation-bearing browser/action window authorized below; validate trial prerequisites before any serving switch |
-| BTR, then Buffer Trends | NOT STARTED — selective report reads, both Tech/Eco, actual filters/horizons/history/charts and BTR CSV; matched performance |
+| DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
+| BTR, then Buffer Trends | ACTIVE — selective report reads, both Tech/Eco, actual filters/horizons/history/charts and BTR CSV; matched performance |
 | Planning categories | NOT STARTED — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
 | BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
 | Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
@@ -137,8 +137,9 @@ Later Stage4 must reuse this positive DBM action/own-next-day evidence.
 Window002 restoration passed exact operative configuration and mounts, normal
 admission360ee8ab, June17/current0 with canonical data:null, actions-disabled403,
 original actor DBMNorm layout absence, and12 protected container identities.
-Temporary serving wrapper/overlay are removed. Browser normal-state screenshot
-after window001 is retained; window002 final browser reload awaits reconnection.
+Temporary serving wrapper/overlay are removed. Browser normal-state screenshots
+after window001 and final normal June17 reload after reconnection are retained;
+the latter is in descriptions-serving001/reset-reload.jpg.
 Preserve nextday001's diagnostic failure: its incorrect raw-Suggestions=0 check
 failed before any next-day run. Canonical Apply keeps eight raw Suggestions and
 uses NormAcceptanceTbl to exclude them from the visible grid. Only that diagnostic
@@ -170,6 +171,44 @@ Four focused tests cover identity denial, duplicate joins, NULL omission and BTR
 ownership; full208-test suite passes. This is adapter proof only: build/restart,
 authenticated gateway and actual3005 Product/Location filter acceptance are next.
 No frontend, gateway, auth, MTO, schema, F2 rows/commands or serving state changed.
+
+#### Stage2 DBM checkpoint — partial proof, explicit remaining gaps
+
+Lookup implementation b5fdccc is now deployed as image f28af6e8 on3005. Evidence
+`D:/freshvcf-build/evidence/f3-stage2-descriptions-serving-001/receipt.json` binds
+MTA-only recreation, normal admission360ee8ab, June17/run/digest, identical mounts,
+4GiB/2CPU/two workers/restart=no and22 unchanged other running containers.
+Both authenticated lookup bodies equal independent legacy root results (200 SKU,
+20 locations); forged user/scopes are overwritten and unauthenticated requests401.
+Actual browser actor1 selected SKU337, then AG515802, applied both filters,
+observed current0, reset filters and reloaded normal June17. No frontend change.
+The normal gateway still denies actions403/demo_read_only. No consumed trial was
+reopened and no new business command was made. The earlier CAPTCHA/login failures
+are browser-session evidence only; successful fresh login and reload are retained.
+
+DBM is **not accepted**. Positive grid/actions/history/layout are proved only for
+the registered10-row trial and specific controls recorded above. Product/Location
+after the repair is proved on current-empty June17; the consumed trial cannot be
+reset to manufacture missing positive coverage. Remaining filter/history branches
+and true permitted leaf-user browser coverage stay unproved. The IAB client export
+reported success in both trial windows but exposed no downloaded XLSX file, so
+headers/cells/types in the browser-produced file are not certified. No equivalent
+isolated canonical HTTP/browser provider is running for the frozen matched-speed
+gate. Existing typed SQL comparisons and query timings cannot substitute for it.
+These gaps stay in the Stage2 denominator; all60 accounted action/next-day and
+prior reader/filter comparisons remain reusable. Continue independent BTR work.
+
+**Active BTR boundary before mutation:** reuse f3-btr-comparison-002,
+f3-btr-filters-comparison-001 (104 successful,14 explicitly qualified contracts),
+f3-btr-gateway-001 and existing history proofs. Trace the inherited BTR request
+roster and deployed export contract. Replace only BTR whole-publication reads
+with selected typed relational reads, preserving Tech/Eco counts, SQL NULL/bag/
+order/filter/horizon semantics, native checksums and Stage1 admission. Connect the
+actual report-specific CSV under existing export route. Prove exact independent
+retained bodies/bytes, affected tests, actual3005 controls/history/export/reload
+and unchanged resources/publication. Establish or explicitly evidence the matched
+performance-provider limitation. Buffer Trends follows BTR closure or an explicit
+evidenced block; no adjacent report, frontend/auth/MTO/F2/schema change presumed.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
