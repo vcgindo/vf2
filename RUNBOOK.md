@@ -114,8 +114,22 @@ The scoped hierarchy checkpoint adds `f3-hierarchy-rrr-comparison-002`: full
 Tech/Eco BTR1,240 each, day12 current DBM0, and nonempty daily history. Full
 browser/filter/download acceptance remains open. `f3-action-http-retained-002`
 proves62 comparisons through real Django action routes and own next-day state;
-it is an isolated two-day trial, separate from the default publication and
-separate from pending real-gateway action acceptance.
+it is an isolated two-day trial, separate from the default publication. That
+original receipt did not include the real gateway; the following proof does.
+`f3-action-gateway-001` now closes that real-gateway action boundary: unchanged
+encrypted-password/cookie login, stored identity/scope, unauthorized401 and
+unknown-selection403/no writes, positive Apply/Sleep and62 full retained
+comparisons with own next-day state. The two private workers expose no host
+port and are removed on completion; no trial is selected by3005. Reproduce only
+when a relevant change invalidates the proof, with a NEW evidence directory:
+
+```powershell
+& D:\freshvcf-build\venv\Scripts\python.exe tools/action_gateway_probe.py --evidence D:/freshvcf-build/evidence/<new-action-trial> --revision <unique-trial-revision>
+```
+
+This creates new isolated trial rows; it does not rerun accepted F2 days, mutate
+their actions or enable writes on the preview. Full browser/filter/download
+acceptance remains open.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 

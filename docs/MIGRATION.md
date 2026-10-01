@@ -43,7 +43,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 | Obligation | Required exit evidence | State |
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — DBM HTTP/persistence/own-next-day slice CLOSED:62 retained comparisons; approved scoped RRR14×119 matches SQL; eight authenticated gateway reads PASS. Next unmet exit: positive gateway actions on isolated retained trials and selected filter/scope variants |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day slice CLOSED:62 retained comparisons; approved scoped RRR14×119 matches SQL; eight authenticated gateway reads PASS. Next unmet exit: selected filter/scope/count/grid contracts |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -261,6 +261,38 @@ acceptance on a private isolated retained trial, plus source-selected filter and
 scope variants. Never rebind3005's default terminal DBM publication to an action
 trial. Retained62-comparison proof and RRR root-scope proof stay closed unless
 a relevant semantic change invalidates them. F3.1 detailed transit remains BLOCKED.
+
+Completed bounded F3.2 exit: run the same two-day action proof through the unchanged
+cookie-login/gateway service in a private worker, using the approved preview
+identity and stored root permissions. The private MTA worker serves the actual
+Django WSGI routes; only its scenario clock is fixed. Verify unauthenticated401,
+rejected unknown identity403/no writes, forged user/header/permission values
+overwritten by gateway identity, positive Apply/Sleep wire responses and62 full
+retained comparisons including own next-day state. Permit test transport/driver
+changes only; no auth/frontend/engine rule change, new public port or3005 rebind.
+Evidence: `D:/freshvcf-build/evidence/f3-action-gateway-001/receipt.json`, SHA256
+`3928d8c9ab7f53ec01608246c2801c8f8f73ef7fc4fedaac2fc3462cfd3a3be6`;
+inner `proof/receipt.json`, SHA256
+`7d2ddb783b6393137bf7d1ac41bdb4c8a0495cd695da81e2d3061cd04d27d77f`.
+All62 comparisons PASS; unauthenticated401 and unknown selection403 leave no
+commands, actual stored gateway identity wins over forged actor/header/lists.
+Both days use unchanged retained facts, own committed predecessor/actions and
+accepted independent SQL captures; no SQL replay. Run IDs
+`2bc36f01-8a55-4757-a797-dab0c9589237` and
+`7f082262-852b-4495-af84-55a24f377498` are private trial identities, NOT delivery
+publications. Every pre-existing run/command identity is unchanged. Protected
+before/after snapshots in `f3-action-gateway-protected-001` match for3003/3004
+and the accepted Fresh terminal publication; only the new trial commands were
+added. Both ephemeral workers stopped/removed, no host ports allocated, disposable
+cookie deleted. Runtime image/config/network/resource identities are in the
+driver receipt; Django check and diff check PASS. No auth/engine/frontend/schema
+edit or serving change. This closes gateway action acceptance, not browser
+action acceptance or F3.2 as a whole.
+
+Next bounded F3.2 exit: selected filter/scope/count/grid contracts. Before its
+first edit name the exact deployed consumer, retained population and required
+positive/negative filter/permission comparisons; reuse unaffected root and action
+proofs. No new facts, permission supplement, publication rebind or F2 replay.
 
 F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
 MTA screen matrix here (route/component, complete call roster, selected run/date,

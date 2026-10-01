@@ -10,11 +10,16 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from threading import Thread
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 from unittest.mock import patch
+from wsgiref.simple_server import make_server
 
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.core.wsgi import get_wsgi_application
 from django.test import Client, override_settings
 
 from mta.presentation.context import publication
@@ -52,6 +57,8 @@ class Command(BaseCommand):
         parser.add_argument('--retained-replay', type=Path, required=True)
         parser.add_argument('--evidence', type=Path, required=True)
         parser.add_argument('--revision', required=True)
+        parser.add_argument('--gateway-url')
+        parser.add_argument('--gateway-session',type=Path)
 
     def handle(self, *args, **options):
         target = options['evidence']
@@ -74,6 +81,37 @@ class Command(BaseCommand):
                       sources=sources, observations=observations)
         client = Client()
         headers = {'HTTP_X_VECTORFLOW_IDENTITY':json.dumps({'id':'f3-retained-action-actor'})}
+        server = None
+        gateway = options['gateway_url']
+        actor = 'f3-retained-action-actor'
+        session = None
+        if gateway:
+            if gateway!='http://freshvcf-f3-action-gateway:10016' or not options['gateway_session']:
+                raise CommandError('Explicit private retained-action gateway/session required')
+            session=json.loads(options['gateway_session'].read_text())
+            if session['username']!='fresh.preview@vectorflow.local':
+                raise CommandError('Only approved isolated preview identity permitted')
+            actor=str(session['user_id'])
+            server=make_server('0.0.0.0',8000,get_wsgi_application())
+            Thread(target=server.serve_forever,daemon=True).start()
+            result['boundary']='F3.2 private real cookie-login gateway → Django/PostgreSQL actions → own next day'
+            result['gateway_identity']=dict(username=session['username'],user_id=session['user_id'],
+                authentication='existing cookie JWT login; unchanged gateway and stored permission assignments')
+
+        def post(route, body, authenticated=True):
+            if not gateway:
+                response=client.post('/api/mta/'+route,json.dumps(body),content_type='application/json',
+                                     **(headers if authenticated else {}))
+                return response.status_code,response.json()
+            request_headers={'Host':'localhost','Content-Type':'application/json',
+                             'X-VectorFLOW-Identity':'{"id":"forged-header-actor"}'}
+            if authenticated: request_headers['Cookie']='access_token='+session['access_token']
+            request=Request(gateway+'/api/mta/'+route,data=json.dumps(body).encode(),headers=request_headers,method='POST')
+            try:
+                with urlopen(request,timeout=180) as response:
+                    return response.status,json.loads(response.read())
+            except HTTPError as exc:
+                return exc.code,json.loads(exc.read())
         payload = dict(product_permissions=[71001], location_permissions=[72001],
                        paginationParameter=dict(pageNumber=1,recordsPerPage=5000))
         try:
@@ -129,26 +167,36 @@ class Command(BaseCommand):
                     # is assigned, before it reaches the real command writer.
                     selection = commands[0]['selected'][0]
                     denied = {**payload,'product_permissions':[], 'data':[dict(SKUCode=selection[0],WHCode=selection[1])]}
+                    if gateway:
+                        # Gateway owns permissions, so browser-supplied lists
+                        # cannot deny/grant scope. An unknown entity tests denial.
+                        denied={**payload,'data':[dict(SKUCode='outside-retained-catalogue',WHCode=selection[1])]}
                     count_before = run.commands.count()
-                    response = client.post('/api/mta/DBMApplySelectedNorms',json.dumps(denied),
-                                           content_type='application/json',**headers)
-                    if response.status_code!=403 or run.commands.count()!=count_before:
+                    status, value=post('DBMApplySelectedNorms',denied)
+                    observations.append(dict(day_index=index,route='DBMApplySelectedNorms',case='outside-scope',
+                                             status=status,response=value))
+                    if status!=403 or run.commands.count()!=count_before:
                         raise CommandError('Real permission rejection changed state')
+                    status,value=post('DBMApplySelectedNorms',denied,authenticated=False)
+                    if status not in ((401,) if gateway else (403,)) or run.commands.count()!=count_before:
+                        raise CommandError('Unauthenticated action reached a writer')
+                    observations.append(dict(day_index=index,case='unauthenticated',status=status))
                     for command in commands:
                         route = 'DBMApplySelectedNorms' if command['operation']=='APPLY' else 'DBMUpdateSleepTbl'
                         request = {**payload,'user':{'id':'forged'},'data':[
                             dict(SKUCode=sku,WHCode=loc) for sku,loc in command['selected']]}
+                        if gateway:
+                            request.update(product_permissions=[],location_permissions=[])
                         # Frozen scenario clock models canonical GETDATE(). Its
                         # own facts/actions are unchanged from the retained trial.
                         with patch('mta.presentation.actions.timestamp',return_value=command['timestamp']):
-                            response = client.post('/api/mta/'+route,json.dumps(request),
-                                                   content_type='application/json',**headers)
+                            status,value=post(route,request)
                         expected = dict(recordCount=None,data='' if command['operation']=='APPLY' else None,
                             status=200,msg='Saved Succesfully',errorCount=None,error=None,
                             conflictErrorCount=None,conflictError=None)
                         observations.append(dict(day_index=index,route=route,request=request,
-                            response=response.json(),status=response.status_code,expected=expected))
-                        if response.status_code!=200 or response.json()!=expected:
+                            response=value,status=status,expected=expected))
+                        if status!=200 or value!=expected:
                             raise CommandError('Canonical positive action response differs')
                     context = publication()
                     if context.hierarchy_receipt is None: raise CommandError('Approved supplement not applied')
@@ -159,7 +207,7 @@ class Command(BaseCommand):
                 checks += [dict(contract='post-action-state',status='FAIL' if delta else 'PASS',differences=delta)]
                 if len(checks)!=31 or not independent_contracts_pass(checks):
                     raise CommandError('Retained post-action comparison differs: '+json.dumps(checks))
-                if any(e.payload['actor']!='f3-retained-action-actor' for e in run.commands.all()):
+                if any(e.payload['actor']!=actor for e in run.commands.all()):
                     raise CommandError('Payload actor overrode trusted identity')
                 current.update(date=str(run.business_date),predecessor_id=str(run.predecessor_id) if run.predecessor_id else None,
                     post_action_digest=digest(after),commands=commands,command_lineage=events,
@@ -184,11 +232,14 @@ class Command(BaseCommand):
                 raise CommandError('Pre-existing run or action identity changed')
             result.update(status='PASS_RETAINED_HTTP_ACTIONS_AND_OWN_NEXT_DAY',days=days,
                 comparisons=62,existing_runs_and_commands_unchanged=True,
-                legacy_replays=0,serving_changes=False,real_gateway_acceptance='OPEN')
+                legacy_replays=0,serving_changes=False,real_gateway_acceptance='PASS' if gateway else 'OPEN')
         except Exception as exc:
             result['error']=dict(type=type(exc).__name__,message=str(exc))
             raise
         finally:
+            if server:
+                server.shutdown()
+                server.server_close()
             result['days']=days
             (target/'receipt.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         self.stdout.write(json.dumps(dict(status=result['status'],days=2,comparisons=62,receipt_sha256=sha(target/'receipt.json'))))
