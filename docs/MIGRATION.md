@@ -73,8 +73,9 @@ calculation comparison work.
 
 #### Stage 1 proof and bounded handoff
 
-Stage1 acceptance is proved at the final image below; commit/push is the final
-handoff step. The matrix, exact-call supplement and deployed IL anchors cover
+**Stage1 COMPLETE at implementation checkpoint26158a6; Stage2 not started.**
+This closure record accompanies that checkpoint in the final commit/push handoff.
+The matrix, exact-call supplement and deployed IL anchors cover
 every inventoried surface or name its unresolved source/input/control boundary.
 Required missing behavior, full-publication dependencies and the performance
 protocol remain visible. No Stage2 report/reader changed.
