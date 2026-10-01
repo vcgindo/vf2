@@ -68,6 +68,16 @@ class BprProjectionTest(unittest.TestCase):
         self.assertIsNone(row['intransit'][0]['cd'])
         self.assertEqual(self.output,before)
 
+    def test_terminal_empty_transit_is_sql_null_and_availability_is_decimal(self):
+        self.output['BTRFinal'][0]['BufferTrendPhysicalInv'] = [dict(SKUCode='337',WhCode='AG515802',
+            Availability_01_30='0.00',Availability_31_60='33.33',Availability_61_90=None)]
+        model = ReadModel(self.output,self.ancillary)
+        row = model.page(model.candidates(),1,10)[0]
+        self.assertIsNone(row['intransit'])
+        self.assertEqual(row['Availability_31_60'],Decimal('33.33'))
+        self.assertIsInstance(row['Availability_01_30'],Decimal)
+        self.assertIsNone(row['Availability_61_90'])
+
 
 if __name__ == '__main__':
     unittest.main()

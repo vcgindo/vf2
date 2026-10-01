@@ -20,6 +20,8 @@ services:
       VF_MTA_PERMISSIONS_SHA256: 18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356
       VF_MTA_HIERARCHY_FILE: /app/baseline/presentation-hierarchy-v1.json
       VF_MTA_HIERARCHY_SHA256: d69c63804798b3cf31f98849341d7a61d38a37fe73c05e627aef1237e5ecfc6a
+      VF_MTA_TERMINAL_FILE: /app/baseline/presentation-terminal-v1.json
+      VF_MTA_TERMINAL_SHA256: bca78680e3fd2162c097ef0abcc5894e9177e77da5a3d75cb367742fbf97fdd5
     volumes:
       - D:/freshvcf-build/inputs/permission-input-v1.json:/inputs/permission-input-v1.json:ro
       - D:/freshvcf-build/evidence/runtime/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:/input-identity/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:ro

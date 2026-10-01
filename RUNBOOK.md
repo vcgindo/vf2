@@ -26,8 +26,10 @@ user-approved presentation hierarchy supplement now fills only SL1–3/LL1–3
 from the retained200-SKU/20-location permission catalogue. The preview test
 account has retained root permissions71001/72001 for MTA application2.
 Native engine state and F2 receipts remain unchanged; without this explicit
-supplement the original NULL hierarchy still denies scope. Detailed transit
-consumers, full filters/actions/downloads and the
+supplement the original NULL hierarchy still denies scope. The approved June17
+terminal-only empty transit/initial remarks supplement now connects BPR count/grid
+reads; it does not certify nonempty logistics. Planning GIT/overview, other
+detailed transit consumers, full filters/actions/downloads and the
 Expedite unordered-parent-label qualification remain open. Do not use this
 preview to submit business actions or claim complete application acceptance.
 
@@ -55,9 +57,27 @@ visible/saved-column rules. Ten independent SQL/header/CSV cases pass exact byte
 actual3005 root14 and Depo4 HTTP files match legacy and survive MTA restart.
 Evidence: `f3-rrr-export-comparison-001`, `f3-rrr-export-gateway-003` and
 `f3-rrr-export-restart-001` under the evidence root. Actual toolbar-click/file
-proof awaits browser reconnection; full RRR/F3 acceptance remains open. Other
+proof also passes in `f3-rrr-export-ui-001`; full RRR/F3 acceptance remains open. Other
 report exports and selective-read work remain pending. Full publication integrity
 is checked explicitly at validation/restart, not on every RRR request.
+
+DBM current/history selective reads now use named committed images. Current
+June17 suggestions remain correctly empty. Existing BTR → Daily Data Graph on
+SKU337/AG515802 displays computed series and Norm220→294 onJune12,294→392 onJune16.
+All1,240 terminal graphs match retained legacy evidence. See
+`f3-dbm-selective-004`, `f3-dbm-selective-ui-001` and restart001. This does not
+close BTR exports or eligible-action UI acceptance; preview actions stay disabled.
+
+Terminal BPR connection: `GetBPRDataCount` and `GetBPRData` read the seven required
+native images, not the whole515-image publication. Explicit opt-in is configured
+by VF_MTA_TERMINAL_FILE/SHA256 in compose.preview.yaml, pinning
+`baseline/presentation-terminal-v1.json` to this run/date only. Full grid1,240,
+permission bags and page2/out-of-range reads match deployed SQL and wire types;
+actual cookie readback survives MTA-only restart. Evidence:
+`f3-bpr-terminal-003`, `f3-bpr-wire-001`, `f3-bpr-gateway-001`, `f3-bpr-restart-001`.
+Do not carry this supplement to another date or treat it as populated transit
+acceptance. Active BPR filters remain explicitly unavailable. Browser screen,
+remarks/actions, downloads and Planning GIT/overview are still pending.
 
 ```powershell
 Set-Location F:\freshvcf

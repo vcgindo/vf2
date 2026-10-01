@@ -18,6 +18,8 @@ urlpatterns = [
     path('DBMUpdateSleepTbl', partial(views.dbm_action, operation='SLEEP')),
     path('RRRData', views.rrr_data),
     path('RRRDataCount', partial(views.rrr_data, count=True)),
+    path('GetBPRData', views.bpr_data),
+    path('GetBPRDataCount', partial(views.bpr_data, count=True)),
     path('GetExportDataAsync', views.export_data),
     path('GetPlanningDataGrid', views.planning_grid),
     path('GetPlanningDataGraph', views.planning_graph),

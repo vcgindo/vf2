@@ -56,7 +56,8 @@ class ReadModel:
         self.sku = index(importer['SkuAttributeData'], 'SKUCode')
         self.location = index(importer['LocationAttributeData'], 'WHCode')
         self.pair = index(importer['SkuLocAttributeData'], 'SKUCode','LocCode')
-        self.trend = index(output['BTRFinal'][0]['BufferTrendPhysicalInv'], 'SKUCode','WhCode')
+        self.trend = index(native(output['BTRFinal'][0]['BufferTrendPhysicalInv'],
+                                  'BTR/BufferTrendPhysicalInv'), 'SKUCode','WhCode')
 
     def joined(self, *, count=False, final=False):
         for a in self.base:
@@ -129,7 +130,8 @@ class ReadModel:
                 item['exeecocolor'] = row['_base_eco']
                 transit.append(item)
             projected = {k:v for k,v in row.items() if not k.startswith('_')}
-            # Kept structured until the source-backed FOR JSON/wire serializer.
-            projected['intransit'] = transit
+            # The deployed scalar FOR JSON subquery yields SQL NULL when empty.
+            # Nonempty content stays structured until its wire serializer.
+            projected['intransit'] = transit or None
             rows.extend(dict(projected) for _ in range(multiplicity))
         return sort_rows(rows, projected=True)

@@ -200,6 +200,27 @@ def rrr_data(request, payload, *, count=False):
 
 
 @endpoint('POST')
+def bpr_data(request, payload, *, count=False):
+    from mta.presentation.bpr import ReadModel
+    from mta.presentation.bpr_read import bpr_context
+    from mta.presentation.bpr_response import response_row
+    if not _no_active_filters(payload):
+        raise PublicationUnavailable('selected_BPR_filters_not_yet_connected')
+    if not count:
+        paging = payload.get('paginationParameter')
+        if (not isinstance(paging, dict) or any(type(paging.get(k)) is not int or paging[k] < 1
+                for k in ('pageNumber', 'recordsPerPage'))):
+            raise ValueError('positive_BPR_pagination_required')
+    context = bpr_context()
+    model = ReadModel(context.output, context.ancillary)
+    rows = scoped(model.count_rows() if count else model.candidates(), payload, 'WHCode',
+        attributes=context.output['ClosingState'][0]['importer'], preserve_join_multiplicity=True)
+    if count:
+        return envelope(record_count=str(len(rows)))
+    return envelope(data=[response_row(row) for row in model.page(rows, paging['pageNumber'], paging['recordsPerPage'])])
+
+
+@endpoint('POST')
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks

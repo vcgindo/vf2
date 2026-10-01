@@ -131,6 +131,15 @@ view reads terminal current Suggestions (zero on17-Jun-2026); SuggestionsLog132
 belongs to historical views. Never select an earlier run to populate that grid.
 Positive Apply/Sleep evidence uses separately owned retained shallow trials.
 
+Terminal-only ancillary approval: direct user reply to
+`call_zsFKJgePAcUNJ7FUdBlryYEB`, "Approve terminal-only supplement". Only June17
+run ac1612c8-0e49-4155-83c3-f59f41422293 may opt into versioned empty InTransitData
+from the complete retained shipment ledger and initially empty Fresh BPR remarks.
+Bind run/date/output digest, frozen artifact and audit hashes; use identical
+inputs for independent legacy/modern consumer comparisons. No F2 mutation,
+other-day extension, new logistics/remark facts or nonempty logistics parity.
+Without explicit opt-in, missing populations remain unavailable, not empty.
+
 Narrow preview authorization (1 October2026, verified in review task
 01a0f29e-ec6b-7cf2-adb1-3ebda9365a55): expose the isolated F3 application on
 localhost:3005, reusing existing frontend/auth/MTO assets and Fresh PostgreSQL.
