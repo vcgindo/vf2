@@ -158,6 +158,19 @@ legacy inputs, normal/root/leaf/denied/duplicate cases, selective PostgreSQL rea
 authenticated3005 filter controls and restart. Current XLSX browser file, complete
 control coverage and matched API/browser performance remain open.
 
+DBM lookup implementation proof: SKUDesc/WHDesc now use only the selected run and
+three checksum-validated BufferTrend images (both attribute owners and the relevant
+description table). Four SQL queries per request; no whole-run read or calculation.
+Independent retained SQL comparison `f3-stage2-descriptions-002/receipt.json`, SHA
+e928b9bc220251a33a10b538df6f1a9f4a099c95d588d06257f73be44cf94899 passes all14
+ordered typed envelopes/statuses: root, product/location leaf, overlapping scopes,
+native NULL hierarchy, and relevant/irrelevant empty permissions. Empty relevant
+IDs preserve deployed SQL245/status500, separately documented in LEGACY_EXCEPTIONS.
+Four focused tests cover identity denial, duplicate joins, NULL omission and BTR
+ownership; full208-test suite passes. This is adapter proof only: build/restart,
+authenticated gateway and actual3005 Product/Location filter acceptance are next.
+No frontend, gateway, auth, MTO, schema, F2 rows/commands or serving state changed.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

@@ -226,3 +226,23 @@ This affects the requested RRR history-entry acceptance only. It does not waive
 DailyDataGraph API comparisons or history in screens that wire the control.
 No frontend repair or invented entry is authorized, and no full RRR parity is
 claimed. The unresolved requirement remains in docs/MIGRATION.md.
+
+## Description lookups — empty permission ID conversion failure
+
+Pinned DLL0222eb96, GuidedInsightsProcessor.GetSKUDescription/GetWHDescription
+and GenericFunction.GetAuthenticationCTEs use BufferTrend attributes/descriptions
+and Importer permission records. When the relevant permission ID array is empty,
+the caller supplies a quoted empty string and the generic fallback quotes it
+again. STRING_SPLIT then supplies a quote to the integer permission-ID predicate;
+SQL Server raises245 and the processor returns HTTP500/status500/data:null.
+Fresh preserves this exact source failure for empty product IDs on SKUDesc and
+empty location IDs on WHDesc. It does not invent a successful empty list.
+This differs from valid permissions with native NULL hierarchy, which return
+HTTP200/data:null. No calculation, permission assignment or scope rule changes.
+
+Evidence: `D:/freshvcf-build/evidence/f3-stage2-descriptions-002/receipt.json`,
+SHA256 `e928b9bc220251a33a10b538df6f1a9f4a099c95d588d06257f73be44cf94899`.
+All14 retained requests compare complete ordered typed envelopes and HTTP status
+against independent deployed SQL. Source SHA d2f578a2 and IL SHA ccd47dc8 are
+pinned in that receipt. The earlier descriptions001 table-alias binding failure
+is preserved as verifier diagnostics, not a legacy defect or acceptance result.

@@ -5,6 +5,8 @@ from mta.presentation import views
 urlpatterns = [
     path('GetAllPermmision', views.all_permissions),
     path('LocationType', views.location_types),
+    path('SKUDesc', partial(views.descriptions, kind='sku')),
+    path('WHDesc', partial(views.descriptions, kind='location')),
     path('GetEnvironmentConfiguration', views.environment),
     path('GetAllReports', views.report_paths),
     path('GetUIConfig', views.ui_config),

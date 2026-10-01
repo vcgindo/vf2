@@ -117,6 +117,17 @@ def location_types(request, payload):
 
 
 @endpoint('GET')
+def descriptions(request, payload, *, kind):
+    from mta.presentation.descriptions import selected_descriptions
+    # Deployed permission expansion double-quotes an empty ID list; its SQL
+    # membership conversion fails and the processor returns status500/data:null.
+    # Preserve that source failure rather than inventing a successful empty list.
+    if not payload.get('product_permissions' if kind == 'sku' else 'location_permissions'):
+        return envelope(status=500)
+    return envelope(data=selected_descriptions(payload, kind))
+
+
+@endpoint('GET')
 def environment(request, payload):
     values = json.loads((CONFIG / 'mta_environment_configuration.json').read_text())
     return envelope(data=[dict(ConfigKey=str(k), ConfigValue=str(v)) for k, v in sorted(values.items())])
