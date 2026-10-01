@@ -37,7 +37,113 @@ Historical checkpoints below remain provenance, not a second active queue.
 
 ## F3 finite application-delivery checklist
 
-### Active boundary — authorized recovery Stage 1
+### Active boundary — authorized recovery Stage 2
+
+The human's1 October2026 instruction in command-centre chat
+`01a0f7c6-1050-7741-b80a-a7f10ca0d04d` authorizes a new Stage2-only goal and
+implementation after accepted Stage1. Verified direct user instruction and
+injected prompt supersede the Stage1 stopping boundary **for Stage2 only**.
+The audit recovery plan remains a supporting contract; this is the sole queue.
+Stage1 admission, screen denominator and all earlier evidence remain accepted.
+Stages3–5, F2 changes, frontend/MTO/auth/permission/action-enablement changes,
+positive business-action trials except the DBM amendment below, and additional
+public ports remain excluded.
+Only bounded MTA deployment/restart on3005 is authorized; resource limits and
+the selected June17 publication remain unchanged.
+
+| Stage2 journey, in execution order | State / unmet exit |
+|---|---|
+| RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and exact filtered full CSV pass; inherited screen has no wired history entry; saved-layout browser file and matched performance remain unproved; details below |
+| DBM current and daily history | ACTIVE — unchanged June17/current0 plus bounded recommendation-bearing browser/action window authorized below; validate trial prerequisites before any serving switch |
+| BTR, then Buffer Trends | NOT STARTED — selective report reads, both Tech/Eco, actual filters/horizons/history/charts and BTR CSV; matched performance |
+| Planning categories | NOT STARTED — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
+| BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
+| Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
+
+**Recorded RRR boundary before mutation:** reuse accepted SQL/count/filter/page
+receipts and all ten export comparisons; Planning overview browser proof is
+already complete. Trace remaining controls once, establish the comparable
+canonical provider/baseline, then change only an evidenced presentation gap.
+Local test-actor layout writes are permitted and separate from immutable native
+publication and business-action rows. Required new proof binds actual3005
+controls, selected SKU/location/date/six graph sections, persisted layout and
+filtered export, scope/denial, restart, commit/image/run/date/digest, and the
+frozen matched API/browser protocol. Missing comparable provider/input keeps
+performance UNPROVED with exact evidence. Close or explicitly block this journey
+here before proceeding to an independent one. No code change is presumed needed.
+
+**DBM amendment, verified1 October2026:** the command-centre human explicitly
+authorized the temporary recommendation-bearing browser validation window.
+Apply only when DBM becomes active; do not interrupt the prior RRR journey. Bring
+forward only DBM Apply/Sleep browser proof from Stage4, alongside unchanged
+June17/current0 and populated grid/filter/selection/history/layout/XLSX,
+rejections, persisted readback and each trial's own next-day consequences.
+Reuse registered shallow inputs, bounded trial machinery and existing62 backend
+comparisons; never reset consumed trials, borrow calculated legacy state, use
+SuggestionsLog as current, replay the full estate or change accepted F2 rows.
+Each new mutable trial owns run/command/predecessor state and is compared with
+independent canonical results. Before a window, record trial run/date/digest,
+scenario clock, actor/scope, allowed actions, before-state and exact restoration.
+Only the3005 MTA process/config may temporarily select that trial and scenario
+clock and enable those actions, retaining production routes, scope and Stage1
+admission. No frontend selector, new endpoint, permanent clock abstraction,
+permission change, shared clock or non-MTA restart is allowed. A trial lacking
+valid required inputs/projections/supplement binding is blocked pending its exact
+remedy; June17 supplements do not transfer. On success, failure or interruption,
+restore normal June17 run/digest with actions disabled, remove all temporary
+clock/trial-serving overrides and disposable runtime capability, and verify
+startup/current0/gateway/protected identities. Retain inputs, runs, commands and
+receipts. DBM closure requires cleanup/restoration proof; later Stage4 must reuse
+the covered evidence. Other Stage3/4 obligations remain excluded. The existing
+Stage2 goal and matched legacy performance requirement remain unchanged.
+
+#### Stage2 RRR checkpoint — partial proof, explicit blockers
+
+Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
+`622fc36a286bbac165cd4d663bbee803c2f3e8a6dbff5a245981c1f0896a83dd`, binds
+unchanged application checkpoint52f2ff5/image312e3861 to the selected June17 run.
+Real3005 actor1/root71001/72001 hid SKUName, saved37-column layout, reloaded it,
+filtered Depo4 and displayed a two-row page. New export proof
+`f3-stage2-rrr-layout-export-001/receipt.json` reuses independent retained legacy
+typed cells and runs the actual DLL header builder/SQL/CsvHelper for that saved
+layout: all4 rows,36 headers,1211 bytes match exactly (CSV SHA256
+`7264b7f5d3cd7cdbb2aaa7cff1bcf3bcec66288ce914e2a30aea77278bd874c0`).
+The ten original export cases were not rerun. Unauthenticated export401 and
+authenticated actor/scope overwrite remain exact. Reset performs inherited
+reset-then-save;37 visible columns persisted across MTA-only restart and browser
+reload. Original actor layout absence was restored through authenticated routes.
+Admission/run/date/digest, accepted publication/commands, protected3003/3004,
+and all non-MTA container identities are unchanged. No application edit/replay.
+
+RRR is **not accepted**. Its pinned inherited useRRR/index source has no
+DailyDataGraph handler/modal and uses a column mapper without a graph renderer;
+the older generic graph helper is unused. The requested RRR six-section browser
+entry remains a source-capability/scope blocker, not a reason to invent UI.
+Toolbar export returned200, but IAB's download event timed out and no new Windows
+Downloads file was exposed; gateway bytes do not certify the saved-layout browser
+file. Existing root/Depo browser files remain accepted for their earlier layouts.
+Private leaf comparisons are reused, not relabeled as a real leaf login.
+No isolated canonical HTTP provider with equivalent terminal state/resources is
+running; existing .NET/SQL comparisons bind session-temp tables. Matched API and
+browser median/p95/throughput remain UNPROVED.3003/3004 are not substitutes.
+These blockers stay in the Stage2 denominator while independent DBM work proceeds.
+
+Instrumentation failure retained: initial restart probe incorrectly expected an
+integer count; canonical wire is string"14". It stopped before cleanup, then the
+correct exact-type assertion passed. No endpoint/type change was made. Browser
+checkbox lookup met aria-hidden input; documented tree-item Space key succeeded.
+
+**Active DBM boundary before mutation:** reuse terminal/current0,1240 six-section
+history,16-column/layout and retained positive-action/62 comparison receipts.
+First inspect the existing shallow trial builder and admission/projection/scope
+requirements; do not switch3005 or create mutable trials until their exact inputs,
+own state, action eligibility, bounded clock and restoration are concrete.
+Permitted edits are only an evidenced adapter gap or minimal disposable driver;
+no frontend/auth/permission/engine/action-policy/admission-contract change.
+Required proof is the amendment's real empty and populated DBM controls/actions,
+own next-day canonical comparison, matched performance and complete restoration.
+
+### Historical authorization — recovery Stage 1 (complete)
 
 The user's command-centre instruction in chat
 `01a0f7c6-1050-7741-b80a-a7f10ca0d04d` explicitly authorized goal creation and

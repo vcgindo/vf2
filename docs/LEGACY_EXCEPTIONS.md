@@ -211,3 +211,18 @@ layout array positions remain distinct and are compared separately. This is a
 presentation ordering limitation, not a calculation waiver or a reason to block
 independent F3 work. Valid empty saved layouts emit blank records as deployed;
 no fallback to all columns is invented.
+
+## RRR inherited history entry — unresolved source capability
+
+The Stage2 requested RRR DailyDataGraph browser entry is absent from the pinned
+inherited screen. At reuse revision66a77735d3f3f9a9becf4c87a08ae7827900cf84,
+`RationedRequirementReport/useRRR.ts` calls `getColumnDefinationsMTA` with no graph
+customization; its `grapCellRenderer` is empty. `index.tsx` has no history handler
+or modal. `CellRenderersMapping` contains only five colour mappings. The older
+`mapRRRColorBandWiseFieldsToColDefs` graph helper is not called by this screen.
+Current files normalize byte-identically to that pinned source; hashes and actual
+37-column3005 UI evidence are in `f3-stage2-rrr-001/rrr-inherited-source.json`.
+This affects the requested RRR history-entry acceptance only. It does not waive
+DailyDataGraph API comparisons or history in screens that wire the control.
+No frontend repair or invented entry is authorized, and no full RRR parity is
+claimed. The unresolved requirement remains in docs/MIGRATION.md.
