@@ -125,3 +125,30 @@ F2 calculation waivers. Continue independent valid filters. The44 valid retained
 requests compare all row values/types/duplicate occurrences, counts and declared
 order. This certificate does not cover arbitrary malformed/Unicode/collation
 variants or a different report's aliases/populations.
+
+## LEG-BTR-FILTER-INVALID-SQL — deployed count/grid filter distinction
+
+Authority: same pinned canonical DLL; BORProcessor source SHA256
+`80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`.
+Actual DLL Commons `filterQueryForReports` uses BTR aliases E/E/E/sa/la/sla.
+Generated text was executed in the exact GetBTRDataCount/GetBTRDataAsync queries
+on retained June17 facts and the identical run-bound hierarchy supplement.
+Evidence: `D:/freshvcf-build/evidence/f3-btr-filters-comparison-001/receipt.json`,
+SHA256 `fae017590847e047805d65883979b31e96fbdd2f9bdeb03b89f1f2f54e1a79b9`.
+
+| Selected branch | Count | Grid | Observed reason |
+|---|---|---|---|
+| Stock/GIT/PIC/OHIC | PASS | NOT_PARITY | Grid E joins only five requirement fields; missing Stock/GIT/DispatchColor/PhysicalInventoryColor,42S22 |
+| Availability | NOT_PARITY | NOT_PARITY | E.Availability absent,42S22 |
+| Coverage | NOT_PARITY | NOT_PARITY | coverage absent,42S22 |
+| Unknown operator | NOT_PARITY | NOT_PARITY | generated empty predicate,42000 |
+| Unknown p9 hierarchy | NOT_PARITY | NOT_PARITY | sl9 absent,42S22 |
+| Black/red colour count with hasvalue | NOT_PARITY | NOT_PARITY | OR inserted inside repeated-column operator yields invalid SQL,42000 |
+
+These are14 count/grid contracts across nine requests, not14 calculation flaws.
+Modern guards them with503/flaw ID and does not invent grid fields, repair SQL,
+waive valid count comparisons or claim matching legacy HTTP error envelopes.
+Unlike RRR, BTR category/tags and valid age/colour-count filters have actual
+source joins and pass. The104 successful contracts preserve values, types,
+multiplicity, key paging/rejoin, declared order and horizon labels. Certification
+is limited to the frozen59 requests, not arbitrary malformed/collation variants.

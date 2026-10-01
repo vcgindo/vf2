@@ -179,10 +179,19 @@ class PresentationTest(unittest.TestCase):
             self.assertEqual(self.client.get('/api/mta/GetLastRunDate', **IDENTITY).json()['data'],
                              [dict(formatted='17 Jun 2026',rawDate='2026-06-17')])
 
-    def test_imported_consumers_keep_registered_bytes(self):
+    def test_imported_consumers_keep_registered_bytes_or_proven_adaptation(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root/'baseline/consumer-reuse.json').read_text())
+        adaptations = manifest.get('accepted_adaptations', {})
+        self.assertEqual(set(adaptations), {'mta/presentation/btr.py'})
         for name, expected in manifest['outputs'].items():
+            if name in adaptations:
+                record = adaptations[name]
+                self.assertEqual(record['from_sha256'], expected, name)
+                self.assertTrue(record['scope'].startswith('F3.2 BTR'), name)
+                self.assertEqual(len(record['evidence_sha256']), 64, name)
+                self.assertIn('PASS_SELECTED_FILTER_CONTRACT_ONLY', record['acceptance'], name)
+                expected = record['sha256']
             actual = (root/name).read_bytes().replace(b'\r\n', b'\n')
             self.assertEqual(hashlib.sha256(actual).hexdigest(), expected, name)
 

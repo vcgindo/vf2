@@ -34,7 +34,8 @@ def joined_rows(output, name):
         )
         for t, req, la, sa, sla, standard in product(*populations):
             row = {**req, 'SKUCode': k[0], 'WHCode': k[1], 'WhCode': k[1],
-                   '_bpp': a, '_trend': t, '_standard': standard}
+                   '_bpp': a, '_trend': t, '_standard': standard,
+                   '_req': req, '_sa': sa, '_la': la, '_sla': sla}
             row.update({f'SKUAttribute{i}': sa.get(f'c{i}') for i in range(1, 16)})
             row.update({f'LocAttribute{i}': la.get(f'c{i}') for i in range(1, 16)})
             row.update({f'SkuLocAttribute{i}': sla.get(f'c{i}') for i in range(1, 16)})
@@ -70,7 +71,7 @@ def category_alias_text(category, categories):
     return '|'.join(aliases)
 
 
-def project_rows(output, name, selected, columns, limit):
+def project_rows(output, name, selected, columns, limit, *, join_multiplicity=None):
     """The deployed CTE pages keys, then rejoins and limits the result again."""
     closing = output['ClosingState'][0]
     importer = closing['importer']
@@ -99,5 +100,6 @@ def project_rows(output, name, selected, columns, limit):
                     **{alias: t.get(colour + 'Count') for alias, colour in
                        (('bc', 'Black'), ('rc', 'Red'), ('yc', 'Yellow'), ('gc', 'Green'), ('blc', 'Blue'), ('wc', 'White'))}}
                 # SqlDataReader.ToString(), including DBNull -> empty string.
-                result.append({k: '' if v is None else str(v) for k, v in value.items()})
+                for _ in range(join_multiplicity(row) if join_multiplicity else 1):
+                    result.append({k: '' if v is None else str(v) for k, v in value.items()})
     return sorted(result, key=key)[:limit]

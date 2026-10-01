@@ -43,7 +43,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 | Obligation | Required exit evidence | State |
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelope comparisons PASS; eight source-invalid cases NOT_PARITY. Next: remaining BTR/DBM/Planning/insight filter/scope contracts |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS. Selected source-invalid branches remain NOT_PARITY. Next: remaining DBM/Planning/insight filter/scope contracts |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -371,12 +371,78 @@ disposable cookie deleted; image/config/network/resource identities retained.
 This closes representative RRR gateway-filter acceptance, not full F3.2/browser
 acceptance or a new leaf-user login. Preview remains at its prior image.
 
-Next F3.2 boundary: BTR's selected Tech/Eco count/grid filter contract. Reconcile
+Completed F3.2 boundary: BTR's selected Tech/Eco count/grid filter contract. Reconcile
 BORProcessor.GetBTRDataAsync/Count and its exact Commons/GenericFunction aliases
 with persisted native BTR facts. Reuse the RRR operator semantics only where the
 deployed BTR contract genuinely matches; preserve BTR horizon/key paging/rejoin
 and NULL/join multiplicity. Before editing, freeze its request roster and source
 exit here. No new facts, metadata bindings, engine replay or preview replacement.
+
+Active BTR exit (frozen before implementation): retain the existing RRR finite
+request categories, but select BTR Tech/Eco/Both, published June17 D79–D90,
+root/leaf/intersection/overlapping permission IDs, key page2, all14 operators,
+raw custom NULL/empty, hierarchy/code/supply joins, Norm/VirtualNorm, category/
+tags, and BTR age/colour-count branches. Declare count/grid validity separately:
+count E is vf_RationedReqReport; grid E is the proven five-field native
+vf_ReqCalculation projection. Stock/GIT/PIC/OHIC grid filters must not acquire
+invented columns. Include category and parent joins without deduplicating.
+Permitted edits: BTR raw joined/filter/projector adapter, BTR HTTP route, focused
+tests and consumer-only evidence adapters. No engine/schema/state/source/input
+changes. Required proof: exact DLL-generated SQL, both native retained branch
+populations, typed full-response bags/counts/key order/horizon labels, preserved
+run/action identities, focused tests and representative private gateway follow-up.
+SQL errors remain NOT_PARITY and require attributable source diagnostics;
+consumer comparison alone does not close full F3.2 or browser acceptance.
+
+BTR retained consumer proof:59 frozen requests/118 count-grid contracts,104
+strict PASS and14 attributable invalid-source contracts NOT_PARITY. Both native
+branches remain1,240 rows at the root; selected product leaf126 per branch,
+intersection8, category-code15, parent-type join813, green-age1,137. Positive
+Stock count1,232 passes while its grid is source-invalid; never add missing grid
+fields to fabricate agreement. All14 deployed operators, OR/AND/raw NULL and
+key-page/horizon/branch behavior compare independently. The generator invokes
+the actual pinned DLL BTR alias tuple; SQL session-temp tables only, no daily
+engine replay or operational write. Reuse the existing native five-field
+requirement proof; prior unfiltered query extraction remains byte-identical.
+
+Readback `D:/freshvcf-build/evidence/f3-btr-filters-modern-001/receipt.json`,
+SHA256 `11eb19e745f9f1a80d36da60899e516783506ec05383029a6cc0ed09c2f9303f`,
+explicitly uses one checksum-verified relational snapshot with private asserted
+identity for its finite batch, not59 real logins or59 fresh PostgreSQL reloads.
+Independent `f3-btr-filters-comparison-001/receipt.json`, SHA256
+`fae017590847e047805d65883979b31e96fbdd2f9bdeb03b89f1f2f54e1a79b9`.
+Representative actual-cookie gateway full-envelope reads, stored scopes/forged-
+input rejection, source-flaw guard and preserved identities are now CLOSED below.
+
+Import-byte guard found the expected BTR adaptation at its original immutable
+import hash. Preserve that failed42-test receipt in `f3-btr-unit-001`; keep all
+original `consumer-reuse.json` source/output hashes. Register only the BTR
+adaptation under `accepted_adaptations`, paired to the independent filter proof,
+then rerun the affected suite. This changes provenance accounting, not an oracle,
+calculation, source SQL, synthetic fact or other imported consumer's byte guard.
+
+BTR real-gateway exit CLOSED: `f3-btr-gateway-001/receipt.json`, SHA256
+`f146467884e98ac80e4888cc07d28530a40e7f7dfb96dff904534ca39aafadfc`;
+inner proof SHA256
+`94609de463f6f4e28e6bdeea66c1d7d6e034cffbca4857080b891337e7f01590`.
+Seven requests/14 full typed count/grid envelopes match the SQL-validated
+readbacks: root, cross-attribute AND, category, raw NULL, parent join, green age
+and key page2. Missing cookie401; forged identity/empty scopes replaced by stored
+roots; source-invalid Stock grid503 NOT_PARITY. Actual Django WSGI and PostgreSQL
+reloads through the unchanged private user gateway, no snapshot patch. All
+existing run/action identities unchanged, private workers removed and disposable
+cookie deleted. Whole protected before/after snapshots equal in
+`f3-btr-filters-protected-001`;42 focused tests PASS after explicit import-
+adaptation registration. No serving image/rebind, engine replay or synthetic
+change. Preview remains at its prior image and is NOT credited with this code.
+
+Next F3.2 boundary: reconcile the deployed DBM selected count/grid filters and
+permission joins against its persisted current/log populations. Use existing
+nonempty retained evidence where its selected branch requires it; terminal
+Suggestions=0 cannot by itself certify filters, and SuggestionsLog132 must not
+be substituted into the current Suggestions grid. Freeze that finite request
+roster/source/exit here before its mutation. Planning/insight and F3.3–F3.5 remain
+open; do not reopen the completed BTR/RRR/F2 proofs without relevant invalidation.
 
 F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
 MTA screen matrix here (route/component, complete call roster, selected run/date,

@@ -26,6 +26,7 @@ from mta.presentation.pick_storage import read_pick_bands
 from mta.presentation.rrr import selected_rows as rrr_rows
 from mta.presentation.rrr_types import selected_rrr_response
 from mta.presentation.rrr_filters import rrr_predicate
+from mta.presentation.btr_filters import BtrPredicate
 from mta.runtime.models import PickProjection, ExcessProjection
 from mta.presentation.excess_storage import read_excess
 from mta.presentation.excess_views import joined_rows as excess_rows
@@ -291,15 +292,17 @@ def btr_data(request, payload, *, count=False):
     filters = deepcopy(payload)
     if isinstance(filters.get('filters'), dict):
         filters['filters'].pop('horizonFilter', None)
+    predicate = BtrPredicate(filters, context.output['BTRFinal'][0]['LocationAttributeData'], count=count)
     result = {}
     for name in ('tech', 'eco'):
         rows = scoped(btr.joined_rows(context.output, name), payload, 'WHCode',
                       attributes=context.output['BTRFinal'][0], preserve_join_multiplicity=True)
-        rows = _filter_rows(rows, filters)
+        rows = [row for row in rows for _ in range(predicate(row))]
         if count:
             result['TechCount' if name == 'tech' else 'EcoCount'] = str(len(rows))
         elif str(payload.get('name', 'both')).lower() in (name, 'both'):
-            result[name] = btr.project_rows(context.output, name, rows[(page - 1) * size:page * size], columns, size)
+            result[name] = btr.project_rows(context.output, name, rows[(page - 1) * size:page * size], columns, size,
+                                            join_multiplicity=predicate.join_multiplicity)
         else:
             result[name] = []
     if not count:

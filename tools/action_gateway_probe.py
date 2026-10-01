@@ -61,7 +61,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--evidence', type=Path, required=True)
     parser.add_argument('--revision', required=True)
-    parser.add_argument('--rrr-filters',action='store_true',help='Read-only representative RRR filter proof; no calculation/action trial')
+    mode=parser.add_mutually_exclusive_group()
+    mode.add_argument('--rrr-filters',action='store_true',help='Read-only representative RRR filter proof; no calculation/action trial')
+    mode.add_argument('--btr-filters',action='store_true',help='Read-only representative BTR filter proof; no calculation/action trial')
     args = parser.parse_args()
     target = args.evidence.resolve()
     evidence_root = Path('D:/freshvcf-build/evidence').resolve()
@@ -76,8 +78,10 @@ def main():
     receipt = dict(status='FAILED', boundary='F3.2 real cookie gateway retained action trial',
         containers=[], serving_changes=False, host_ports_allocated=0,
         driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
-    if args.rrr_filters:
-        receipt['boundary']='F3.2 real cookie gateway retained RRR filters; read-only, no calculation'
+    read_only=args.rrr_filters or args.btr_filters
+    report='BTR' if args.btr_filters else 'RRR'
+    if read_only:
+        receipt['boundary']='F3.2 real cookie gateway retained '+report+' filters; read-only, no calculation'
     gateway_started = False
     try:
         start = subprocess.run(['docker', 'compose', '--env-file',
@@ -110,13 +114,13 @@ def main():
             '--evidence', '/evidence/' + target.name + '/proof',
             '--revision', args.revision, '--gateway-url', 'http://' + GATEWAY + ':10016',
             '--gateway-session', '/trial/gateway-session.json']
-        if args.rrr_filters:
+        if read_only:
             command=command[:command.index('mta')]+[
                 '-e','VF_MTA_PUBLISHED_RUN=ac1612c8-0e49-4155-83c3-f59f41422293',
                 '-e','VF_MTA_PUBLISHED_DIGEST=bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d',
                 '-e','VF_MTA_HIERARCHY_FILE=/app/baseline/presentation-hierarchy-v1.json',
                 '-e','VF_MTA_HIERARCHY_SHA256=d69c63804798b3cf31f98849341d7a61d38a37fe73c05e627aef1237e5ecfc6a',
-                'mta','python','manage.py','prove_rrr_gateway',
+                'mta','python','manage.py','prove_btr_gateway' if args.btr_filters else 'prove_rrr_gateway',
                 '--evidence','/evidence/'+target.name+'/proof',
                 '--gateway-session','/trial/gateway-session.json']
         with (target / 'worker.log').open('w', encoding='utf-8') as log:
@@ -134,14 +138,14 @@ def main():
             raise RuntimeError('Retained gateway proof failed; inspect preserved worker/proof logs')
         proof_path = target / 'proof/receipt.json'
         proof = json.loads(proof_path.read_text())
-        expected_comparisons=14 if args.rrr_filters else 62
+        expected_comparisons=14 if read_only else 62
         if proof.get('real_gateway_acceptance') != 'PASS' or proof.get('comparisons') != expected_comparisons:
             raise RuntimeError('Gateway/complete retained comparison exit not met')
         if len(receipt['containers']) != 2 or any(c['port_bindings'] for c in receipt['containers']):
             raise RuntimeError('Private no-host-port isolation not proved')
-        receipt.update(status='PASS_REAL_GATEWAY_RRR_FILTERS' if args.rrr_filters else 'PASS_REAL_GATEWAY_ACTIONS_AND_OWN_NEXT_DAY',
+        receipt.update(status='PASS_REAL_GATEWAY_'+report+'_FILTERS' if read_only else 'PASS_REAL_GATEWAY_ACTIONS_AND_OWN_NEXT_DAY',
             proof_sha256=hashlib.sha256(proof_path.read_bytes()).hexdigest(), comparisons=expected_comparisons)
-        if args.rrr_filters: receipt['publication_run_id']=proof['run']['id']
+        if read_only: receipt['publication_run_id']=proof['run']['id']
         else: receipt['private_run_ids']=[d['run_id'] for d in proof['days']]
     except Exception as exc:
         receipt['error'] = dict(type=type(exc).__name__, message=str(exc))

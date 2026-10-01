@@ -39,6 +39,16 @@
     "mta/config/mta_environment_configuration.json": "8d9333766278fa1fb87d262492e7587ec4f216f9509813a04cfda440fccfb548",
     "mta/config/mta_report_paths.json": "8a40417eb96721484cbbb498bea64261f75b99a7a2f6dd39fb87159ae120f3d3"
   },
+  "accepted_adaptations": {
+    "mta/presentation/btr.py": {
+      "from_sha256": "3bc143f70cd1c475324f1d279b3f3002da93b6c1e4c246da185bafc9f21d79f6",
+      "sha256": "7e964f2156ee7283ebd69d99fc1329fda410d65bbfc443b4743ef250a54a60d6",
+      "scope": "F3.2 BTR raw join access and repeated parent-join multiplicity; original source/output pins retained; no calculation/state change",
+      "evidence": "D:/freshvcf-build/evidence/f3-btr-filters-comparison-001/receipt.json",
+      "evidence_sha256": "fae017590847e047805d65883979b31e96fbdd2f9bdeb03b89f1f2f54e1a79b9",
+      "acceptance": "PASS_SELECTED_FILTER_CONTRACT_ONLY; not whole F3 acceptance"
+    }
+  },
   "transformation": "Pure functions/configuration only; no old ORM, publication, calculation, authentication or generators",
   "acceptance": "NOT_YET_F3_ACCEPTED; deployed API/configuration and fresh runtime comparisons still required"
 }

@@ -1,4 +1,5 @@
-param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath)
+param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
+    [ValidateSet('RRR','BTR')][string]$Report='RRR')
 $ErrorActionPreference='Stop'
 $vfRoot=[IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[IO.Path]::GetFullPath($InputPath)
@@ -21,11 +22,11 @@ $vfCases=@()
 foreach ($vfCase in $vfValues.cases) {
     $vfFilterJson=$vfCase.payload.filters | ConvertTo-Json -Depth 40 -Compress
     $vfFilter=[System.Text.Json.JsonSerializer]::Deserialize($vfFilterJson,$vfFilterType,$vfOptions)
-    # Exact RRR alias tuple selected by GenericFunction.ApplyFiltersForReports.
+    # Exact report alias tuple selected by GenericFunction.ApplyFiltersForReports.
     $vfParameters=New-Object object[] 9
     $vfParameters[0]=$vfFilter
-    $vfParameters[1]='a';$vfParameters[2]='a';$vfParameters[3]='a'
-    $vfParameters[4]='c';$vfParameters[5]='d';$vfParameters[6]='b'
+    $vfAliases=if ($Report -eq 'BTR') { @('E','E','E','sa','la','sla') } else { @('a','a','a','c','d','b') }
+    for ($vfIndex=0;$vfIndex -lt 6;$vfIndex++) { $vfParameters[$vfIndex+1]=$vfAliases[$vfIndex] }
     $vfParameters[7]='';$vfParameters[8]=''
     $vfMethod.Invoke($vfInstance,$vfParameters) | Out-Null
     $vfCases+=,@{id=$vfCase.id;sql_filter=[string]$vfParameters[7];sql_join_filter=[string]$vfParameters[8]}
@@ -33,6 +34,6 @@ foreach ($vfCase in $vfValues.cases) {
 $vfResult=@{assembly_sha256=$vfHash;cases=$vfCases;
     runtime=[Runtime.InteropServices.RuntimeInformation]::FrameworkDescription;
     input_sha256=(Get-FileHash $vfInput).Hash.ToLowerInvariant();
-    authority='Actual pinned DLL filterQueryForReports invocation; exact GenericFunction RRR alias tuple; no source-transcribed filter generator'}
+    report=$Report;authority="Actual pinned DLL filterQueryForReports invocation; exact GenericFunction $Report alias tuple; no source-transcribed filter generator"}
 [IO.File]::WriteAllText($vfOutput,($vfResult | ConvertTo-Json -Depth 60),[Text.UTF8Encoding]::new($false))
-Write-Output 'Canonical DLL RRR filter queries saved'
+Write-Output "Canonical DLL $Report filter queries saved"

@@ -146,6 +146,17 @@ permission changes or preview replacement. Browser and other report acceptance
 remain open. The existing private driver supports this read-only check with
 `--rrr-filters`; use a new evidence directory only if relevant code changes
 invalidate the retained proof. It creates no trial calculation/action rows.
+The corresponding BTR isolated checkpoint is `f3-btr-filters-comparison-001`:
+59 requests/118 count-grid contracts,104 strict PASS and14 source-invalid
+contracts NOT_PARITY. Category/tags and history age/count joins are source-backed;
+the legacy grid does not acquire Stock/GIT/PIC/OHIC fields simply because its
+count query has them. `f3-btr-gateway-001` passes14 representative full-envelope
+cookie-gateway comparisons plus401 and the Stock-grid503 source-flaw guard.
+Its private driver uses `--btr-filters`, no host port/calculation/action writes.
+Protected serving/publication snapshots are unchanged. These BTR changes are
+committed source/private-worker acceptance, NOT a rebuilt3005 preview or3004
+cutover. Remaining DBM/Planning/insight filters and full UI/MTO/runtime acceptance
+stay in the finite F3 checklist in docs/MIGRATION.md.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 
