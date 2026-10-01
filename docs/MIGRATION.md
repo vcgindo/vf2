@@ -97,6 +97,67 @@ receipts. DBM closure requires cleanup/restoration proof; later Stage4 must reus
 the covered evidence. Other Stage3/4 obligations remain excluded. The existing
 Stage2 goal and matched legacy performance requirement remain unchanged.
 
+#### DBM window continuation — restoration and retained action prefix
+
+Window001 auto-restored normal June17 when its20-minute limit expired. The
+browser completed Sleep6584/DP010290 and Sleep337/AG515802 as actor1 at the exact
+retained scenario instant, reducing current suggestions10→9→8. Apply confirmation
+was cancelled; no Apply command exists. Populated history, horizon, layout
+save/reset/reload and export-success UI evidence remains in window001. XLSX file
+contents and matched performance remain unproved.
+
+The disposable driver then failed its whole Docker Config equality assertion
+(generated hostname/unordered environment included), after successful normal
+recreation. Preserve the original window.json and failure. Separate
+`f3-stage2-dbm-window-001/restoration-recovery.json` proves the complete normal
+compose+image environment and command, original mounts/image/resources, normal
+admission360ee8ab, and12 protected container identities/configurations. Inactive
+wrapper/overlay files were removed. No test clock or action override is serving.
+
+Continuation remains the SAME owned trial20261d94 and accepted two-command
+prefix. Do not recalculate/reset it. The driver's comparison now normalizes only
+Docker-assigned hostname and Env order, retains all operative values/labels, and
+records any restoration failure before exit. Reopen a bounded window only after
+real browser login is available; submit only the remaining eight-pair Apply,
+prove persistent state and own-next-day effects, then restore/clean up again.
+
+DBM action sub-boundary now proved in window002 and nextday002: actual browser
+Apply completed the remaining eight pairs, giving exactly three commands with
+trusted actor1 and the fixed June6 timestamps. Cancel and empty-selection checks
+added no command. Grid current0 persisted across reload. Complete post-command
+state and own action selection match independent legacy; next-day run
+ed864154-f08a-4ef0-b449-5c303c97d36a, June7, digest
+111f5918524d642f4813ecadb5fa2d3a07b60184e4d88b628feb705d67e35b66 passes29
+comparisons and exact native closing readback using this trial's three-command
+predecessor. No next-day action or serving switch, no legacy calculation replay.
+The evidence accounts for60 contracts:29 reused day0, two new action comparisons,
+29 new day1. All other run identities and all commands were unchanged by proof.
+Later Stage4 must reuse this positive DBM action/own-next-day evidence.
+
+Window002 restoration passed exact operative configuration and mounts, normal
+admission360ee8ab, June17/current0 with canonical data:null, actions-disabled403,
+original actor DBMNorm layout absence, and12 protected container identities.
+Temporary serving wrapper/overlay are removed. Browser normal-state screenshot
+after window001 is retained; window002 final browser reload awaits reconnection.
+Preserve nextday001's diagnostic failure: its incorrect raw-Suggestions=0 check
+failed before any next-day run. Canonical Apply keeps eight raw Suggestions and
+uses NormAcceptanceTbl to exclude them from the visible grid. Only that diagnostic
+assertion changed. Also preserve the restoration probe's incorrect [] expectation;
+the exact existing empty DBM wire is null, with string count"0".
+
+**Active DBM unmet exit:** Product filter caused the real browser error page;
+gateway logs attribute it to GET SKUDesc returning HTML404 upstream then gateway500.
+WHDesc is likewise absent. These shared read dependencies are required by current
+DBM controls and belong inside Stage2; they are not a new screen/workflow. Next
+permitted boundary: exact deployed GuidedInsightsProcessor.GetSKUDescription /
+GetWHDescription adapters over BufferTrend-owned attributes/descriptions, existing
+run-bound six-field hierarchy and authenticated permission joins. Preserve native
+NULL exclusion, bag multiplicity, wire types and source ordering; do not change
+frontend/gateway/auth/F2. Required proof: independent deployed SQL on retained
+legacy inputs, normal/root/leaf/denied/duplicate cases, selective PostgreSQL reads,
+authenticated3005 filter controls and restart. Current XLSX browser file, complete
+control coverage and matched API/browser performance remain open.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
@@ -142,6 +203,58 @@ Permitted edits are only an evidenced adapter gap or minimal disposable driver;
 no frontend/auth/permission/engine/action-policy/admission-contract change.
 Required proof is the amendment's real empty and populated DBM controls/actions,
 own next-day canonical comparison, matched performance and complete restoration.
+
+DBM prerequisite observation: retained consumed June6 trial381378ac has all five
+typed projections and PASS provenance, but all32 SKU and17 location attribute
+rows have NULL SL1–3/LL1–3 in both DBM and Importer ownership. Its prior run-bound
+hierarchy manifest is specific to that consumed run. A new pre-action trial is
+authorized; prepare exactly day0 of registered representative-bridge input
+458c7c66 using execute_day and the existing29 pre-action comparisons against
+f2-auto-sql-012. No commands or serving switch in preparation. Record its exact
+identity and verify native/projected prerequisites; any new hierarchy binding
+must be explicit and cannot use the June17 manifest by assumption. The frozen
+day0 policy has Sleep6584/DP010290 and337/AG515802, then Apply remaining own
+suggestions, at June6 noon+05:30. Retain all prior runs and restore normal state
+after any later window. No fresh source/input programme is opened.
+
+Prepared own pre-action run20261d94-b78a-4141-8770-2fe2d5b3354b, June6, digest
+12722fa8f8dc1d8d1c3d4f379e9702e5af3827fd16bee35052dab598dda24a88:
+29 independent retained comparisons PASS;10 current recommendations; all five
+native projections present; zero commands. Offline full startup admission passes
+without supplements, but native NULL hierarchy correctly admits zero scoped SKU/
+locations. No serving switch occurred. Evidence `f3-stage2-dbm-prepare-001` retains
+the initial receipt-driver failure (InputSnapshot is input_payload metadata, not
+a Checkpoint) and readback.json recovery of this SAME run without recalculation.
+
+The smallest prerequisite remedy is a separately validated manifest binding this
+new trial to the already approved exact catalogue and six hierarchy fields,
+following the authorized retained trial machinery. This is an explicit new
+run/date/digest binding, not reuse of the June17 manifest. Validate complete
+pre-action count/grid against retained independent legacy results and native
+checksum preservation before use. June17 terminal ancillary opt-in is disabled
+throughout the trial. No permission assignment, new attribute/fact or admission
+contract changes are permitted. Stage2 serving-window activation remains pending
+the bounded clock, allowlisted action sequence and concrete restoration driver.
+
+Trial scope/preflight now passes: `scope-admission-readback.json` compares the
+entire count/string/grid/typed fields with retained independent legacy day0
+responses. Exact separate hierarchy manifest SHA2d95af9ba25d97a6751d1e841039289c09a383526b5995058c83c968cd8d6f00;
+all five projections/full native startup checks pass. No persistent write or
+command in this preflight. Normal June17 empty DBM DOM/screenshot retained.
+
+Temporary window boundary: trial20261d94,June6,digest12722fa8 above; existing
+actor1/root71001/72001; scenario civil instant2026-06-06T12:00:00+05:30.
+Only DBM controls and frozen Sleep6584/DP010290, Sleep337/AG515802 then Apply the
+remaining eight computed recommendations. Confirmation cancel must not submit.
+`tools/dbm_browser_window.py` uses an external disposable import wrapper to fix
+only actions.timestamp; normal production WSGI/admission/routes stay intact.
+The MTA-only compose overlay clears terminal ancillary, binds exact trial input
+and hierarchy, enables actions for this finite window, and keeps4GiB/2CPU/two
+workers/180s. It restores in finally or after20min using normal compose
+`up -d --no-deps --no-build --force-recreate mta`, verifies exact original config/
+mounts and readiness, and deletes disposable serving files. Writing restore-now
+in its new evidence directory ends it earlier. Evidence keeps wrapper/config
+copies without an active serving mount. No other service or host clock changes.
 
 ### Historical authorization — recovery Stage 1 (complete)
 
