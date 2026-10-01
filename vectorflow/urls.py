@@ -12,9 +12,11 @@ def ready(request):
         with connection.cursor() as cursor:
             cursor.execute('SELECT 1')
             cursor.fetchone()
+        from mta.presentation.admission import require_admission
+        admission = require_admission()
     except Exception:
         return JsonResponse({'ready': False}, status=503)
-    return JsonResponse({'ready': True})
+    return JsonResponse({'ready': True, 'admission_digest': admission})
 
 
 urlpatterns = [path('healthz', health), path('readyz', ready),

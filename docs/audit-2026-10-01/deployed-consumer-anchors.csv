@@ -1,0 +1,271 @@
+method,il_start,il_end,sql_identifiers,wire_clues
+DraftValidator::.ctor,5456,5494,,
+TaskValidator::.ctor,5542,5580,,
+TaskIdAndApproverValidator::.ctor,5628,5690,,
+MTAProcessor::GetEnvironmentConfiguration,5828,5926,EnvironmentConfiguration,for json path; responseMessage
+MTAProcessor::EditEnvironmentConfiguration,5928,6245,EnvironmentConfiguration; UI_MDMConfig,responseMessage
+MTAProcessor::GetAllUIMDMConfig,8208,8322,UI_MDMConfig,for json path; responseMessage
+MTAProcessor::UpdateUIMDMConfig,8324,8494,UI_MDMConfig,responseMessage
+MTAProcessor::GetAllUIReportConfig,8496,8610,ui_ReportConfigurations,for json path; responseMessage
+MTAProcessor::UpdateUIReportConfig,8612,8774,ui_ReportConfigurations,responseMessage
+'<<GetRRRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult',9549,9568,,
+'<<GetRRRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus',9570,9589,,
+'<<GetRRRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted',9591,9624,,
+'<<GetRRRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetResult,9626,9646,,
+'<<GetRRRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetStatus,9648,9667,,
+'<<GetRRRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted,9669,9702,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult',11793,11812,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus',11814,11833,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted',11835,11868,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetResult,11870,11890,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetStatus,11892,11911,,
+'<<GetBTRDataAsync>g__StreamResults|17_0>d'::System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted,11913,11946,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::.ctor,12387,12412,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::MoveNext,12414,12938,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::SetStateMachine,12940,12959,,
+"'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Collections.Generic.IAsyncEnumerable<System.Collections.Generic.Dictionary<System.String,System.Object>>.GetAsyncEnumerator'",12961,13023,,
+"'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Collections.Generic.IAsyncEnumerator<System.Collections.Generic.Dictionary<System.String,System.Object>>.MoveNextAsync'",13025,13083,,
+"'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Collections.Generic.IAsyncEnumerator<System.Collections.Generic.Dictionary<System.String,System.Object>>.get_Current'",13085,13100,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult',13102,13121,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus',13123,13142,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted',13144,13177,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetResult,13179,13199,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetStatus,13201,13220,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted,13222,13255,,
+'<<GetBORDataAsync>g__StreamResults|0>d'::System.IAsyncDisposable.DisposeAsync,13257,13309,,
+'<>c__DisplayClass4_0'::'<GetBORDataAsync>g__StreamResults|0',13337,13370,,
+'<GetBORDataAsync>d__4'::MoveNext,13401,14048,ui_ReportColumnTypes,responseMessage
+'<GetBORDataAsync>d__4'::SetStateMachine,14050,14073,,responseMessage
+BORProcessor::GetBORUiConfig,16916,17035,ui_ReportConfigurations,for json path; responseMessage
+BORProcessor::GetBORDataCount,17037,17194,cte_finaldata,responseMessage
+BORProcessor::getBORSelectQuery,17196,17261,BORReport_RemarkDetails; LocationAttributeData; MOQData; SKUDescriptionTbl; SOBData; SiteDescriptionTbl; SkuAttributeData; SkuLocAttributeData; SupplierDispatchReq; cte_SKUs; cte_WhCodes; vf_RationedReqReport,Convert(nvarchar
+BORProcessor::BuildSqlForExportBOR,17263,17353,,
+BORProcessor::GetBORDataAsync,17355,17395,,responseMessage
+BORProcessor::GetDailyDataQryForDDG,17397,17472,DailyConsumption; LastBatchRunTbl; SuspendHistory,for json path
+BORProcessor::GetNormChangeHistoryQryForDDG,17474,17524,LastBatchRunTbl; NormChangeLogTbl,for json path
+BORProcessor::GetMasterDataQryForDDG,17526,17566,DBMMaster,for json path
+BORProcessor::GetMonitoringDateQryForDDG,17568,17608,SuspendConsumptionType; SuspendStockType,for json path
+BORProcessor::GetNormChangeHistoryQryForDDG,17610,17650,NormChangeLogTbl; ReasonCodes,for json path
+BORProcessor::GetSuggestionHistoryQryForDDG,17652,17702,LastBatchRunTbl; ReasonCodes; SuggestionsLog,for json path
+BORProcessor::GetRunDate,17704,17719,LastBatchRunTbl,
+BORProcessor::GetDailyDataGraphData,17721,17955,,for json path; responseMessage
+BORProcessor::GetBTRDataCount,17957,18326,BPPTrendDispatch; BPPTrendPhysicalInv; BufferTrendDispatch; BufferTrendPhysicalInv; LocationAttributeData; SKUAttributeData; SkuLocAttributeData; cte_SKUs; cte_WhCodes,responseMessage
+BORProcessor::BuildSqlForExportBTR,18328,18533,CategoryColDescription; LocationAttributeData; SKUAttributeData; cteCat; cteCatDes; cte_SKUs; cte_WhCodes,
+BORProcessor::BuildHeaderQuery,18535,18850,JsonCols; OPENJSON,
+BORProcessor::StreamCsvFromQueryAsync,18852,18906,,
+BORProcessor::GetBTRDataAsync,18908,18945,,responseMessage
+BORProcessor::GetBTRData,18947,20212,BPPTrendDispatch; BPPTrendPhysicalInv; BufferTrendDates; BufferTrendDispatch; BufferTrendPhysicalInv; LocationAttributeData; SKUAttributeData; [CategoryColDescription]; cteCat; cteCatDes; cte_SKUs; cte_WhCodes,for json path; responseMessage
+BORProcessor::ExportToExcelGetBTRData,20214,21068,BPPTrendDispatch; BPPTrendPhysicalInv; BufferTrendDates; BufferTrendDispatch; BufferTrendPhysicalInv; LocationAttributeData; SKUAttributeData; [CategoryColDescription]; cteCat; cteCatDes; cte_SKUs; cte_WhCodes,for json path
+BORProcessor::.ctor,21070,21081,,
+BORProcessor::'<GetBTRDataAsync>g__StreamResults|17_0',21083,21114,,
+'<>c'::'<AddMasterDraft>b__6_0',21162,21175,,
+'<>c'::'<AddMasterDraft>b__6_1',21177,21190,,
+'<>c'::'<ModifyMasterDraft>b__7_0',21192,21205,,
+'<>c'::'<ModifyMasterDraft>b__7_1',21207,21220,,
+DraftProcessor::.ctor,21230,21254,,
+DraftProcessor::GetOrginalCollist,21256,21347,STRING_SPLIT; SplitSequence; UI_MDMConfig,
+DraftProcessor::GetDraftMasterTbl,21349,21421,MasterMapper,
+DraftProcessor::GetDraftCount,21423,21504,DraftInstanceMastersMap; mastermapper,for json path; Convert(nvarchar; responseMessage
+DraftProcessor::AddMasterDraft,21506,22157,DraftInstance; DraftInstanceMastersMap,responseMessage
+DraftProcessor::ModifyMasterDraft,22159,22781,DraftInstance; DraftInstanceMastersMap; mastermapper,responseMessage
+DraftProcessor::DeleteMasterDraft,22783,22959,DraftInstance; DraftInstanceMastersMap; mastermapper,responseMessage
+DraftProcessor::GetAllMasterDrafts,22961,23094,[DraftInstance],for json path; responseMessage
+DraftProcessor::GetDraftDetails,23096,23299,DraftInstanceMastersMap; UI_MDMConfig; mastermapper,for json path; Convert(nvarchar; responseMessage
+'<>c'::'<StopResumeSeasonality>b__25_0',24126,24139,,
+'<>c'::'<UploadSeasonality>b__27_0',24156,24171,,
+'<>c'::'<UploadSeasonality>b__27_1',24173,24188,,
+'<>c'::'<UploadSeasonality>b__27_2',24190,24205,,
+'<>c'::'<UploadSeasonality>b__27_4',24207,24220,,
+'<>c'::'<UploadSeasonality>b__27_5',24222,24235,,
+'<>c__DisplayClass11_0'::'<GetMasterData>b__0',30204,30220,,responseMessage
+'<>c__DisplayClass27_0'::'<UploadSeasonality>b__3',30411,30473,,
+MDMProcessor::GetMasterUIConfiguration,34035,34461,MasterMapper; UI_MDMConfig,responseMessage
+MDMProcessor::GetMasterData,34548,34603,,responseMessage
+MDMProcessor::GetSeasonalityGraph,36806,36986,DBMMaster; DailyConsumption; LastBatchRunTbl; NormChangeLogTbl; ReasonCodes; Seasonality,for json path; responseMessage
+MDMProcessor::ModifyMasterData,37422,37475,,
+MDMProcessor::StopResumeSeasonality,39097,39802,NMSSubTaskStatus; NMSTaskStatus; TaskSeasonalityStopResume; TaskSeasonalityStopResumeHistory,
+MDMProcessor::UploadSeasonality,40528,41324,NMSAllItems; NMSSubTaskStatus; NMSTaskStatus; TaskSeasonality; TaskSeasonalityHistory; string_split,for json path
+MDMProcessor::GetTaskQuery,51295,51507,NMSSubTaskStatus; NMSTaskStatus,
+TaskStatusProcessor::.ctor,77782,77806,,
+TaskStatusProcessor::IsNMSUIUploadLogActive,77808,77880,,
+TaskStatusProcessor::GetTaskStatusData,77882,78007,NMSSubTaskStatus; NMSTaskStatus; [NMSTaskStatusActionMaster],for json path; responseMessage
+TaskStatusProcessor::GetTaskPendingForReviewData,78009,78174,NMSSubTaskStatus; NMSTaskStatus,for json path; responseMessage
+TaskStatusProcessor::GetTaskDetails,78176,81533,NMSNewItemsTemp; NMSNewSKUsTemp; SKUDescriptionTbl; SKUDescriptiontbl; SiteDescriptionTbl; SiteDescriptiontbl; SkuAttributeDataHistory; TaskDetailsTempTbl; TaskLocationAttributeDataHistory; TaskNMSAllItemsHistory; TaskNMSMOQWithOrWithoutDestination; TaskNMSMOQWithOrWithoutDestinationHistory; TaskNMSSOBHistory; TaskPhaseInNormsHistory; TaskPhaseOutHistory; TaskPhaseOutStop; TaskPhaseOutStopHistory; TaskSeasonality; TaskSeasonalityHistory; TaskSeasonalityStopResume; TaskSeasonalityStopResumeHistory; [TaskForceNormChangeHistory]; [TaskForceNormChange]; [TaskLocationAttributeDataHistory]; [TaskNMSAllItemsHistory]; [TaskNMSNewLocations]; [TaskNMSRemoveItems]; [TaskNMSSOBHistory]; [TaskNMSSOB]; cte_SKUPermissions; cte_SKUs; cte_TaskDetails; cte_WhCodes; cte_whPermissions,for json path; responseMessage
+TaskStatusProcessor::GetColumnList,81535,81674,NMSTaskStatus,
+TaskStatusProcessor::GetColumnList,81676,81772,NMSTaskStatus,
+TaskStatusProcessor::GetMasterId,81774,81866,NMSTaskStatus,
+TaskStatusProcessor::PostMasterAfterApproved,81868,82400,,
+TaskStatusProcessor::getCollist,82402,82474,NMSTaskStatus,
+TaskStatusProcessor::modifyMainTable,82476,83386,Cte_ProcessingData; NMSNewLocations; NMSNewSKUs,
+TaskStatusProcessor::ModifyTaskSubTask,83388,83456,NMSNewLocations; NMSNewSKUs; NMSSUbTaskStatus; NMSSubTaskStatus; NMSTaskStatus; Pending; SkuAttributeDataHistory; TaskLocationAttributeDataHistory; cteApprovedDBUpdatedData; cteRevisedTaskStatus,
+TaskStatusProcessor::RemoveRequesteddata,83458,83510,NMSNewLocations; NMSNewSKUs; SkuAttributeDataHistory; TaskLocationAttributeDataHistory,
+TaskStatusProcessor::PartiallyApproved,83512,83581,NMSSUbTaskStatus,
+TaskStatusProcessor::Task_Update_NoActionTakenByApprover,83583,83632,NMSSUbTaskStatus,
+TaskStatusProcessor::getValues,83634,83782,,
+TaskStatusProcessor::ApprovedOrRejectedDataCount,83784,83948,,
+TaskStatusProcessor::ApproverDataCount,83950,84099,NMSSUbTaskStatus,
+TaskStatusProcessor::TaskDetailsDownloadData,84101,86580,NMSNewItemsTemp; NMSNewSKUsTemp; SKUDescriptionTbl; SiteDescriptionTbl; SkuAttributeDataHistory; TaskDetailsTempTbl; TaskLocationAttributeDataHistory; TaskNMSAllItemsHistory; TaskNMSMOQWithOrWithoutDestination; TaskNMSMOQWithOrWithoutDestinationHistory; TaskNMSSOBHistory; TaskPhaseInNormsHistory; TaskPhaseOutHistory; TaskPhaseOutStopHistory; TaskSeasonality; TaskSeasonalityHistory; UIUploadLogActionType; [TaskForceNormChangeHistory]; [TaskForceNormChange]; [TaskLocationAttributeDataHistory]; [TaskNMSAllItemsHistory]; [TaskNMSModifiedItems]; [TaskNMSNewLocations]; [TaskNMSRemoveItems]; [TaskNMSSOBHistory]; [TaskNMSSOB]; [TaskSeasonalityStopResumeHistory]; [TaskSeasonalityStopResume],for json path; responseMessage
+TaskStatusProcessor::UpdateApprovedData,86582,88303,ForceNormChange; NMSModifiedItems; NMSNewItems; NMSNewItemsTemp; NMSNewLocations; NMSNewSKUs; NMSRemoveItems; NMSSOB; PhaseOut; PhaseOutStop; Seasonality; SkuAttributeDataHistory; TaskForceNormChange; TaskForceNormChangeHistory; TaskLocationAttributeDataHistory; TaskNMSAllItemsHistory; TaskNMSMOQWithOrWithoutDestination; TaskNMSMOQWithOrWithoutDestinationHistory; TaskNMSModifiedItems; TaskNMSNewLocations; TaskNMSSOB; TaskNMSSOBHistory; TaskPhaseInNormsHistory; TaskPhaseOutHistory; TaskPhaseOutStop; TaskPhaseOutStopHistory; TaskSeasonality; TaskSeasonalityHistory; TaskSeasonalityStopResume; TaskSeasonalityStopResumeHistory; [NMSNewItemsTemp]; [NMSNewSKUsTemp]; [PhaseInNorms]; [TaskForceNormChange]; [TaskNMSMOQWithOrWithoutDestination]; [TaskNMSModifiedItems]; [TaskNMSNewLocations]; [TaskNMSRemoveItems]; [TaskNMSSOB]; [TaskPhaseInNorms]; [TaskPhaseOutStop]; [TaskPhaseOut]; [TaskSeasonalityStopResume]; [TaskSeasonality],Convert(nvarchar
+TaskStatusProcessor::EntryInLogTable,88305,89157,UIUploadLogFNC; UIUploadLogNMSLocations; UIUploadLogNMSMOQ; UIUploadLogNMSSKUs; UIUploadLogNMSSOB,
+TaskStatusProcessor::UpdateTaskStatus,89159,89405,NMSSubTaskStatus; cteCalTaskStatus,
+TaskStatusProcessor::GetApproversId,89407,89551,NMSSubTaskStatus; cteApprovedApprovedItems; cteDistinctApprovers,for json path; responseMessage
+TaskStatusProcessor::GetColCodeCollist,89553,89672,STRING_SPLIT; UI_MDMConfig,
+TaskStatusProcessor::GetOrginalCollist,89674,89765,STRING_SPLIT; SplitSequence; UI_MDMConfig,
+TaskStatusProcessor::GetMOQType,89767,89834,ImporterSettingsTbl,
+TaskStatusProcessor::GetActionType,89836,89909,NMSTaskStatus,
+TaskStatusProcessor::GetOrginalCollistWithAlias,89911,89994,STRING_SPLIT; UI_MDMConfig,
+TaskStatusProcessor::GetSingleresponse,89996,90078,,
+TaskStatusProcessor::GetMasterHistoryTbl,90080,90152,MasterMapper,
+TaskStatusProcessor::GetMasterTempTbl,90154,90226,MasterMapper,
+TaskStatusProcessor::DeleteTaskProcessor,90228,90354,MasterMapper; TableNames,responseMessage
+TaskStatusProcessor::PostQuery,90356,90438,,
+TaskStatusProcessor::TaskCount,90440,90653,STRING_SPLIT,for json path; responseMessage
+TaskStatusProcessor::TaskMasterHistory,90655,91055,NMSTaskStatus; [NMSNewItemsTemp]; [TaskNMSModifiedItems]; [TaskNMSRemoveItems]; cteSKULOCData,for json path; responseMessage
+TaskStatusProcessor::GetModifiedColList,91057,91152,,
+TaskStatusProcessor::GetColumnList,91154,91414,DistinctColumns; MasterMapper; NMSTaskStatus; STRING_SPLIT; TableNames; UI_MDMConfig; cteSKULOCS,
+TaskStatusProcessor::GetSkuLocProcessor,91416,91687,NMSTaskStatus; cte_SKUs; cte_WhCodes,for json path; responseMessage
+TaskStatusProcessor::GetSubQuerySql,91689,92198,,
+TaskStatusProcessor::GetMasterIdByColCode,92200,92346,CTETaskStatus; [NMSTaskStatusActionMaster]; cteMasterId; cteMastersId,for json path
+'<>c'::'<AddBORRemark>b__9_0',94043,94056,,
+'<>c'::'<AddBORRemark>b__9_1',94058,94071,,
+'<>c'::'<AddBOROARemark>b__14_0',94073,94086,,
+'<>c'::'<AddBOROARemark>b__14_1',94088,94101,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult',94859,94878,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetStatus',94880,94899,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::'System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.OnCompleted',94901,94934,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetResult,94936,94956,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.GetStatus,94958,94977,,
+'<<GetBPRDataAsync>g__StreamResults|0>d'::System.Threading.Tasks.Sources.IValueTaskSource.OnCompleted,94979,95012,,
+BPRProcessor::GetBORRemarkDetails,96894,96994,BORReport_RemarkDetails,for json path; responseMessage
+BPRProcessor::AddBORRemark,96996,97156,BORReport_RemarkDetails,responseMessage
+BPRProcessor::GetBOROARemarkDetails,98740,98840,BORReport_OARemarkDetails,for json path; responseMessage
+BPRProcessor::AddBOROARemark,98842,99006,BORReport_OARemarkDetails,responseMessage
+PlanningProcessor::OpenExpediteRequest,106818,107097,ExpediteDispatches; LocationAttributeData; OpenExpediteRequests; SkuAttributeData; SkuLocAttributeData; cte_SKUs; cte_WhCodes,for json path; responseMessage
+PlanningProcessor::SupplierDispatchReportData,107714,107971,LocationAttributeData; MOQData; SKUDescriptionTbl; SOBData; SiteDescriptionTbl; SkuAttributeData; SkuLocAttributeData; SupplierDispatchReq; vf_RationedReqReport,for json path; Convert(nvarchar; responseMessage
+PlanningProcessor::SupplierDispatchReportDataCount,107973,108155,LocationAttributeData; MOQData; SKUDescriptionTbl; SiteDescriptionTbl; SkuAttributeData; SkuLocAttributeData; SupplierDispatchReq; vf_RationedReqReport,for json path; responseMessage
+PlanningProcessor::ElephantOrderData,108157,108375,ElephantOrders; SKUDescriptionTbl; SiteDescriptionTbl; cte_SKUs; cte_WhCodes,for json path; responseMessage
+PlanningProcessor::ElephantOrderDataCount,108377,108524,ElephantOrders; cte_SKUs; cte_WhCodes,responseMessage
+PlanningProcessor::UpdateElephantOrderDueDates,108526,108790,ElephantOrders,responseMessage
+PlanningProcessor::SupplierWiseAllocationReportDataCount,108792,108961,ColorSequence; LocationAttributeData; SkuAttributeData; SkuLocAttributeData; [BORWithOrderAllocation],for json path; responseMessage
+PlanningProcessor::getSelectQueryBORColorBandWise,109226,109362,BORReport_OARemarkDetails; ColorSequence; EnvironmentConfiguration; LocationAttributeData; SkuAttributeData; SkuLocAttributeData; [BORWithOrderAllocation]; [SKUDescriptionTbl]; [SiteDescriptionTbl]; cte_SKUs; cte_WhCodes; vf_ReqCalculation,
+PlanningProcessor::BuildSqlForExportBOROA,109364,109453,,
+PlanningProcessor::BOROrderAllocationReportData,109455,109651,,for json path; responseMessage
+PlanningProcessor::BOROrderAllocationReportDataCount,110265,110480,ColorSequence; EnvironmentConfiguration; LocationAttributeData; SkuAttributeData; SkuLocAttributeData; [BORWithOrderAllocation]; cte_SKUs; cte_WhCodes; vf_ReqCalculation,for json path; responseMessage
+PlanningProcessor::SupplierWiseAllocationReportData,110845,111088,BORReport_OARemarkDetails; ColorSequence; LocationAttributeData; SkuAttributeData; SkuLocAttributeData; [BORWithOrderAllocation]; [SKUDescriptionTbl]; [SiteDescriptionTbl]; vf_ReqCalculation,for json path; responseMessage
+SCIHProcessor::GetInTransitWhereAbouts,113654,113939,GoodsInTransitTransporterMaster; LocationAttributeData; SKUAttributeData; SKUDescriptionTbl; SkuLocAttributeData; cte_SKUs; cte_WhCodes,for json path; responseMessage
+SCIHProcessor::GetInTransitWhereAboutsCount,113941,114180,GoodsInTransitTransporterMaster; LocationAttributeData; SKUAttributeData; SKUDescriptionTbl; SkuLocAttributeData; cte_SKUs; cte_WhCodes,responseMessage
+SCIHProcessor::GetTransporterDetails,114724,114824,GoodsInTransitTransporterMaster; cte_SKUs; cte_WhCodes,for json path; responseMessage
+AnalyticsProcessor::GetBORAnalytics,129413,129505,SupplierDispatchReq; cte_SKUs; cte_WhCodes,for json path; responseMessage
+AnalyticsProcessor::GetInTransitWhereAboutAnalytics,129749,129839,GoodsInTransitTransporterMaster; cte_SKUs; cte_WhCodes,for json path; responseMessage
+DraftModel::get_DraftId,142169,142183,,
+DraftModel::set_DraftId,142185,142202,,
+DraftModel::get_ActionType,142204,142218,,
+DraftModel::set_ActionType,142220,142237,,
+DraftModel::get_InstanceName,142239,142253,,
+DraftModel::set_InstanceName,142255,142272,,
+DraftModel::get_SearchKey,142274,142288,,
+DraftModel::set_SearchKey,142290,142307,,
+DraftModel::get_DraftData,142309,142323,,
+DraftModel::set_DraftData,142325,142342,,
+DraftModel::.ctor,142344,142355,,
+Draft::get_MasterId,142408,142422,,
+Draft::set_MasterId,142424,142441,,
+Draft::get_Status,142443,142457,,
+Draft::set_Status,142459,142476,,
+Draft::get_GridState,142478,142492,,
+Draft::set_GridState,142494,142511,,
+Draft::get_DataMaster,142513,142527,,
+Draft::set_DataMaster,142529,142546,,
+Draft::.ctor,142548,142559,,
+TopTenProductsWithExcessInventoryInValue::get_ElephantOrderCapping,144382,144396,,
+TopTenProductsWithExcessInventoryInValue::set_ElephantOrderCapping,144398,144415,,
+TopTenProductsWithExcessInventoryNumberOfLocation::get_ElephantOrderCapping,144736,144750,,
+TopTenProductsWithExcessInventoryNumberOfLocation::set_ElephantOrderCapping,144752,144769,,
+Requestdata::get_TaskId,151018,151032,,
+Requestdata::set_TaskId,151034,151051,,
+ElephantOrderDueDateUpdateRequest::get_data,153983,153997,,
+ElephantOrderDueDateUpdateRequest::set_data,153999,154016,,
+ElephantOrderDueDateUpdateRequest::.ctor,154018,154029,,
+ElephantOrderDueDateItem::get_SKUCode,154062,154076,,
+ElephantOrderDueDateItem::set_SKUCode,154078,154095,,
+ElephantOrderDueDateItem::get_WhCode,154097,154111,,
+ElephantOrderDueDateItem::set_WhCode,154113,154130,,
+ElephantOrderDueDateItem::get_OrderID,154132,154146,,
+ElephantOrderDueDateItem::set_OrderID,154148,154165,,
+ElephantOrderDueDateItem::get_DueDate,154167,154181,,
+ElephantOrderDueDateItem::set_DueDate,154183,154200,,
+ElephantOrderDueDateItem::.ctor,154202,154213,,
+postresponse::get_TaskId,158724,158738,,
+postresponse::set_TaskId,158740,158757,,
+TaskStatusModels::get_taskId,159002,159016,,
+TaskStatusModels::set_taskId,159018,159035,,
+TaskStatusModels::get_recordsCount,159037,159051,,
+TaskStatusModels::set_recordsCount,159053,159070,,
+TaskStatusModels::get_data,159072,159086,,
+TaskStatusModels::set_data,159088,159105,,
+TaskStatusModels::get_paginationParameter,159107,159121,,
+TaskStatusModels::set_paginationParameter,159123,159140,,
+TaskStatusModels::.ctor,159142,159153,,
+TSApproverModels::get_taskId,159197,159211,,
+TSApproverModels::set_taskId,159213,159230,,
+TaskId::get_taskId,159344,159358,,
+TaskId::set_taskId,159360,159377,,
+TaskId::.ctor,159379,159390,,
+DraftController::.ctor,159668,159695,,
+DraftController::AddMasterDraft,159697,159748,,responseMessage
+DraftController::ModifyMasterDraft,159750,159857,,responseMessage
+DraftController::DeleteMasterDraft,159859,159991,,responseMessage
+DraftController::GetAllMasterDrafts,159993,160056,,responseMessage
+DraftController::GetDraftCount,160058,160110,,responseMessage
+DraftController::GetDraftDetails,160112,160228,,responseMessage
+MDMController::GetMasterUIConfiguration,160295,160347,,responseMessage
+MDMController::GetSeasonalityDetails,160448,160500,,responseMessage
+MDMController::GetMasterData,160561,160629,,responseMessage
+MDMController::ModifyMasterData,160631,160684,,
+MDMController::AddMasterData,160686,160739,,
+MDMController::RemoveMasterData,160741,160796,,
+TaskStatusController::.ctor,160992,161022,,
+TaskStatusController::GetTaskStatusData,161024,161078,,responseMessage
+TaskStatusController::GetTaskPendingForReviewData,161080,161134,,responseMessage
+TaskStatusController::GetTaskDetails,161136,161190,,responseMessage
+TaskStatusController::PostMasterAfterApproved,161192,161246,,
+TaskStatusController::GetTaskDetailsDownloadData,161248,161302,,responseMessage
+TaskStatusController::DeleteTask,161304,161363,,responseMessage
+TaskStatusController::GetTaskCount,161365,161425,,responseMessage
+TaskStatusController::GetTaskMastersHistory,161427,161481,,responseMessage
+TaskStatusController::GetSkuLoc,161483,161536,,responseMessage
+'<GetBORData>d__2'::MoveNext,161565,161691,,responseMessage
+'<GetBORData>d__2'::SetStateMachine,161693,161716,,
+SCController::GetBORUIConfig,161911,161957,,responseMessage
+SCController::GetBORData,161959,162009,,
+SCController::GetBORDataCount,162011,162060,,responseMessage
+ReportsController::GetEnvironmentConfiguration,163274,163326,,responseMessage
+ReportsController::EditEnvironmentConfiguration,163328,163393,,responseMessage
+ReportsController::GetAllUIMDMConfig,163569,163615,,responseMessage
+ReportsController::UpdateUIMDMConfig,163617,163680,UIMDMConfig,responseMessage
+ReportsController::GetAllUIReportConfig,163682,163728,,responseMessage
+ReportsController::UpdateUIReportConfig,163730,163793,UIReportConfig,responseMessage
+BPRController::AddBORRemark,164657,164708,,responseMessage
+BPRController::GetBORRemarkDetails,164710,164762,,responseMessage
+BPRController::GetBOROARemarkDetails,164764,164816,,responseMessage
+BPRController::AddBOROARemark,164818,164870,,responseMessage
+PlanningController::SubmitOpenExpediteRequest,165592,165639,,responseMessage
+PlanningController::GetOpenExpediteRequest,165641,165688,,responseMessage
+PlanningController::GetSupplierDispatchReportData,165907,165960,,responseMessage
+PlanningController::GetSupplierDispatchReportDataCount,165962,166015,,responseMessage
+PlanningController::GetElephantOrderData,166017,166069,,responseMessage
+PlanningController::UpdateElephantOrderDueDates,166071,166127,Elephant,responseMessage
+PlanningController::GetElephantOrderDataCount,166129,166181,,responseMessage
+PlanningController::GetBOROrderAllocationReportData,166286,166339,,responseMessage
+PlanningController::GetBOROrderAllocationReportDataCount,166450,166503,,responseMessage
+PlanningController::SupplierWiseAllocationReportData,166615,166668,,responseMessage
+PlanningController::SupplierWiseAllocationReportDataCount,166670,166723,,responseMessage
+'<GetInTransitWhereAboutsData>d__3'::MoveNext,166879,166951,,responseMessage
+'<GetInTransitWhereAboutsData>d__3'::SetStateMachine,166953,166976,,responseMessage
+'<GetInTransitWhereAboutsDataCount>d__4'::MoveNext,166994,167066,,responseMessage
+'<GetInTransitWhereAboutsDataCount>d__4'::SetStateMachine,167068,167091,,responseMessage
+SCIHController::GetInTransitWhereAboutsData,167317,167366,,responseMessage
+SCIHController::GetInTransitWhereAboutsDataCount,167368,167419,,responseMessage
+SCIHController::GetTransporterDetails,167528,167580,,responseMessage
+AnalyticsController::GetBORAnalytics,168572,168616,,responseMessage
+AnalyticsController::GetInTransitWhereAboutAnalytics,168665,168711,,responseMessage

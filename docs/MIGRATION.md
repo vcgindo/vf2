@@ -37,7 +37,290 @@ Historical checkpoints below remain provenance, not a second active queue.
 
 ## F3 finite application-delivery checklist
 
-### Resumed recovery — first connected slice
+### Active boundary — authorized recovery Stage 1
+
+The user's command-centre instruction in chat
+`01a0f7c6-1050-7741-b80a-a7f10ca0d04d` explicitly authorized goal creation and
+Stage 1 implementation; verified against the direct user reply on1 October2026.
+This supersedes the audit-only boundary and the historical instruction below
+to proceed directly to the next GIT endpoint. That unfinished GIT obligation,
+all earlier proofs and every required missing screen remain in scope for later
+F3 delivery. Stage 2 is not authorized in this execution checkpoint.
+
+Stage1 F3.1/F3.3/F3.4 exit: reconcile the finite application contract and verify
+publication admission. Use the audit inventories as supporting evidence, not a
+second queue. Every inventoried screen needs actual caller/control tracing or
+an exact source-backed unresolved disposition; map remaining full-publication
+request dependencies without converting those readers. Implement only the
+smallest missing deployment/startup integrity admission for the configured
+accepted native publication and already advertised projections/configuration.
+Preserve complete command integrity and keep whole-state validation outside
+ordinary selective requests. No schema, frontend, MTO, auth-contract, permission,
+action-enablement, engine, fixture or accepted-state change is permitted.
+
+Proof: valid admission; isolated missing/mismatched identity/integrity rejection;
+selected-run stable restart; representative authenticated3005 reads and affected
+browser navigation with commit/image/run/date/digest and focused timings.
+Controlled rebuild/restart is authorized for3005 MTA only; all other services
+remain unchanged. Smoke timings are not legacy performance parity. Freeze the
+audit's matched performance protocol for subsequent screen exits. Commit/push
+this bounded checkpoint and stop before Stage2, naming its next complete journey.
+
+Initial observation: checkout HEAD24c05db and MTA image846da0f2 match the audit;
+only the audit documents are untracked. Existing4GiB/2CPU/restart=no retained.
+No actual implementation/runtime identity change requires renewed baseline or
+calculation comparison work.
+
+#### Stage 1 proof and bounded handoff
+
+Stage1 acceptance is proved at the final image below; commit/push is the final
+handoff step. The matrix, exact-call supplement and deployed IL anchors cover
+every inventoried surface or name its unresolved source/input/control boundary.
+Required missing behavior, full-publication dependencies and the performance
+protocol remain visible. No Stage2 report/reader changed.
+
+The independent review found a mixed-worker startup gap in initial receipt001:
+one worker could admit while another failed. The smallest correction uses
+Gunicorn `--preload` in both supported entrypoints. Full selected input/native
+output/command/configuration/projection validation runs once in the master,
+before opening the listener or forking. Failure aborts startup with exit1 and
+zero listener/workers; there is no health/ready endpoint on a failed startup.
+Database connections close before fork. Both workers inherit only the identity
+token, with no operational row cache. Ordinary guards make seven bounded metadata
+queries plus file hashes; no input snapshot or full-state reconstruction.
+
+A validated identity mismatch or configuration/integrity error returns503 and
+revokes the worker token until the MTA master restarts. A transient Django
+OperationalError/InterfaceError rejects that request without poisoning one
+worker; the next request must compare matching metadata before serving, without
+rerunning full validation. Existing reader/command and actor-scope checks remain
+unchanged. This relies on immutable native publications, not a general database
+tamper monitor or new workflow authority. The earlier health200/ready503 startup
+claim in receipt001 is superseded and retained as historical evidence only.
+
+Final receipt `D:/freshvcf-build/evidence/f3-stage1-admission-002/receipt.json`,
+SHA256 `1591413b80ab9476b245759606029f834bd539efa3c32c3ff2455e7484b346f8`,
+binds embedded source hashes and configuration to image
+`sha256:312e386161cfb017613f4c0ccdb8b16a90748a157ff7abcd329e30921b52c1f3`.
+Two-worker proof `f3-stage1-preload-004/receipt.json`, SHA256
+`3fa87c1dc7ee180ab2f13b83cfb85e238282f1fb338ca46d74ee591e2e0a0c6d`,
+shows one admission before listening, both PIDs serving32 successful requests
+with the same inherited digest, and wrong-identity startup exit1 before any
+listener/worker. Isolated cgroup peak237584384bytes; final3005 representative
+read/restart mix peak591249408bytes.4GiB/2CPU/two workers/180s/restart=no retained.
+
+Same selected June17 run/output; admission digest
+`360ee8ab9beb66952f761761eedd825644011b16a8c310327c79d12202e5767f`.
+204 repository tests,11 focused admission tests and final-image Django check
+pass. Independent review reports no blocking findings. Six read-only PostgreSQL
+integrity faults are retained from001's unchanged verify() boundary: missing
+identity, wrong output identity, changed input/native output, corrupt projection
+checksum and hierarchy identity. Failed attempts and superseded receipts remain.
+
+Ten authenticated3005 response hashes match before implementation, final deploy
+and final restart (metadata, current DBM, RRR, BPR, Planning). Forged scope is
+overwritten; no-cookie401 and unsupported-filter503 remain. Initial real browser
+sign-in, SCIH sidebar RRR14 and DBMJune17/current0 evidence is retained in001;
+reader/frontend code did not change. Final-image Planning reopen and reload after
+restart confirmsJune17 GIT0/0, Expedite7/7, Excess85 and Fulfilment1222 in002's
+screenshot/DOM. No layout, action or permission write was submitted.
+
+Initial isolated verify11.6221s;30 metadata guard samples median0.03186s and
+max0.05342s. Final restart gateway reads0.2243-0.98s. These are local smoke
+observations, **not matched legacy performance parity**. Frontend/auth/MTO/Redis/
+PG container IDs/images/start times and protected3003/3004 snapshots are unchanged;
+accepted Fresh publication/actions and three retained F2 receipt hashes match.
+No F2/frontend/MTO/auth/report-reader/schema edit or calculation replay occurred.
+
+Initial probe001 stopped at its read-only-mode assertion because Django overrides
+PGOPTIONS; retained002 explicitly sets that option through Django. Initial browser
+inventory timed out; explicit IAB attachment succeeded. The review correction
+uses shared preload, not a coordinator service, cache, new port, larger worker
+pool, memory increase, or validation bypass. Final runbook describes this contract.
+
+**Next Stage2 journey, not started: RRR finishing acceptance.** The formerly
+pending Planning overview browser observation is now evidenced. Preserve existing
+RRR SQL/count/filter/page/CSV proofs. On3005 close actual layout save/reset/reload,
+designated Daily Data Graph control and selected-pair/date/history rendering,
+full filtered export after layout, scope/denial and run-stable restart. Establish
+matched legacy/Fresh API and browser median/p95/throughput before calling RRR
+fully accepted. Only an attributable gap permits an affected presentation edit;
+no F2 replay, source-flaw repair, default-run substitution or MTO change. Close
+or explicitly block that full journey here before starting another screen.
+
+#### Stage 1 reconciled screen contract (1 October 2026)
+
+This is the finite F3 denominator. The [route inventory](audit-2026-10-01/frontend-routes.csv)
+contains29 declarations,27 unique paths:26 under MTA and one merchandising mock.
+Planning and DBM have duplicate declarations; they are each one journey. The
+26-surface [connection register](audit-2026-10-01/screen-connections.csv) also
+separates Planning categories, shared history and admin/download controls.
+The matrix below expands MDM's eight routes and preserves every surface. These
+are existing F3.1–F3.5 obligations, not new phases or an additional status queue.
+
+Exact verb/path/payload declarations are retained in
+[frontend-api-calls.csv](audit-2026-10-01/frontend-api-calls.csv); actual hook and
+invocation lines, including mutation aliases and non-page callers, are in
+[frontend-call-controls.csv](audit-2026-10-01/frontend-call-controls.csv).
+It has129 declaration/helper rows, not129 enabled endpoints. The
+[endpoint reconciliation](audit-2026-10-01/endpoint-reconciliation.csv) retains
+114 unique MTA verb/path templates:36 match implemented routes,78 do not.
+A match is not a complete contract (generic export, configuration and Planning
+dispatch still have unavailable branches). The37 backend routes and their
+reader boundaries remain in [backend-api-inventory.csv](audit-2026-10-01/backend-api-inventory.csv).
+
+All report rows below refer to the pinned June17 run `ac1612c8-0e49-4155-83c3-f59f41422293`
+and digest `bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d`,
+unless explicitly marked as an application write or a separate positive trial.
+No missing population is deemed empty. Authenticated URL permissions select
+navigation; actor product/location memberships select rows. Hierarchy supplement
+is read-time SL1–3/LL1–3 only. Current preview actor is not the whole-product
+scope. Do not change permission assignments to close a matrix row.
+
+`P` below means `frontend/src/VectorFlow/Pages/MTA/`; service call evidence
+includes exact paths/lines in the CSV. Report bodies carry the existing filter
+tree and `paginationParameter` where used; scope/user supplied by the client
+is overwritten by the auth gateway. Preserve case, NULL omission, string counts,
+JSON-in-string envelopes, duplicates and existing empty/error semantics.
+
+| Surface / navigation | Actual caller and configuration/layout/export keys | Canonical owner / current connection / precise remaining disposition |
+|---|---|---|
+| RRR — SCIH `/rrr` | P`SupplyChainIntelligenceHub/RationedRequirementReport/useRRR.ts`: data/count, common UI/layout, daily-history control, `CsvExportMTA`. Config `RationRequirementReport`; layout/export `RRR` | Required. Pick bands + rationed report + importer attributes. Selective SQL/grid/filter/export receipts retained. Stage1 browser14 rows/date confirmed. Layout/history controls and matched performance remain Stage2. The export key is **not** the config key. |
+| DBM — `/dbm/dbm-norm-suggestions` | P`DBM/DBMNormSuggestions/useDBM.ts`: current/count, Apply/Sleep, history, client XLSX. Config `NormSuggestion`; layout `DBMNorm` | Required, current Suggestions0 onJune17. DBM-owned attributes/current tables; six-history projection uses importer scope. SuggestionsLog132 is historical only. Existing9-image reader and command overlay stay fixed; positive actions require separately owned retained trials. Layout/XLSX/actions and performance open. |
+| Daily Data Graph — row controls | BTR/DBM/RRR/BPR row-renderer/dialog hooks → `DailyDataGraph(SKUCode,WHCode)`; see invocation CSV | Required only at actual controls. BORProcessor's six DBM history queries, importer scope, complete command overlay. All1240 backend graphs retained; verify each actual entry point and selected pair/date/rendering under Stage2, not generic history substitution. |
+| BTR — Insights `/buffer-trend-report` | P`InsightsAndTrends/BTR`; GetBTRData/Count, Tech/Eco/horizon/page, daily graph, CSV. Config `BufferTrendReport`; layouts `BTRon-hand`/`BTRpipeline`; export `BTR` | Required. Both1240 branches have retained consumer comparisons. Full-publication read and BTR-specific export still open. Date columns/string values, both filter branches, history and visible grid/export/performance form one Stage2 exit. |
+| Buffer Trends — `/buffer-trends` | P`InsightsAndTrends/BufferTrends`; GetBufferTrendGraphData with bufferTrendType/Days and filters | Required. Computed physical/dispatch colours + dated history, producer-owned scope. Whole publication currently loaded; filters unavailable. Actual selector/horizon/chart/summary and performance open. No export is invented merely because another page has one. |
+| Guided Insights — `/guided-insights` | P`InsightsAndTrends/GuidedInsights`; nine DBM/chronic/availability methods. Chronic grid config/layout `ChronicUnavailability` | Required enabled tabs. BTR insight relations, DBMMaster, NMSAllItems. Existing backend proofs are not browser acceptance. Complete tabs, age/date/selection/filter/grid/chart; each defined branch and selective-read performance remain Stage2. |
+| Research Insights — `/research-insights` | P`InsightsAndTrends/ResearchInsights`; BPR grid/count, GetResearchInsightData, GetHistroricalAvailabilityBPRData; config/layout `ResearchInsight`, client XLSX | Required. BPR seven-image reader plus BTR colour/date/age histories and rationed master. Earlier selected summary browser proof retained. Whole graph/history reads, server filters, calendar/horizon/selection/export/performance remain open. Machine-month behavior is an inherited presentation qualification, not an engine change. |
+| Planning overview — SCIH `/planning` | P`SupplyChainIntelligenceHub/Planning`; GetPlanningDataCount + GetLastRunDate; actual landing-page Click to view | Required. Ten distinct SCIH.GetQuadrantDetails query contracts, ten native images and checked projections.40 accepted counts retained; browser now showsJune17 GIT0/0, Expedite7/7, Excess85, Fulfilment1222. Filters and matched performance remain open. |
+| Planning Excess — same route, Review | GetPlanningDataGraph/Grid/GridCount category `excessInventory`; custom request; config `Excess_Inventory_Review/CS`, custom layout `ExcessInventorycustom`, client XLSX | Required. ExcessInventory typed rows, rationed/standards/attributes/descriptions. Normal read connected through full publication; custom and filters absent. Overview→chart→normal/custom grid→scope/filter/export remains a Stage2 journey. |
+| Planning Fulfilment — same route, Review | category `orderFulfillment`; graph/grid/count/custom; config `Order_Fulfillment_Review/CS`, layout `OrderFulfillmentcustom`, client XLSX | Required. Typed summary/details, SpikeOrderData routes and native standards/master.1222 terminal summaries, nested details and bag joins must survive. Normal branches connected, custom/filter/selective-read/full journey not accepted. |
+| Planning Expedite — From Parent / To Child | category `expedite`, actual type; graph/grid/count/custom; SubmitOpenExpediteRequest. Configs `Expedit_From_Parent_ED`, `Expedite_To_Parent_CAAP`, `Expedit_To_Child_ED`, `Expedite_To_Child_CS`; custom layout `ExpediteToChildcustom` | Required. Expedite/PickPost rows, native attributes/standards/rationed/age. Counts/charts partial; grids/custom/filter/action absent. Keep LEG-EXPEDITE-UNORDERED-LABEL503 separate from defined numeric parity. No invented receiving label. Submission lifecycle remains Stage4. |
+| Planning GIT/WIP — From Parent / To Child | category/type bodies and custom/grid/graph/count in Planning hooks; config `GIT_From_Parent`, `GIT_To_Child_LW/TW/CS`; custom layout `GITToChildcustom` | Required. Terminal empty InTransitData only is approved. Overview zeros connected; detailed generated GIT consumer not connected. Stage2 must close exact zero branch; positive shipment fields/date/producer disposition below remains Stage3 blocker. Directory rows cannot supply shipment facts. |
+| BPR — SCIH `/bpr` | P`SupplyChainIntelligenceHub/BPR`; grid/count, pair history, remark history/add, transit/lookups, CSV. Config `AdminBPR`; layout/export `BPR` | Required. Seven native images and explicit terminal ancillary supplement; SQL key-bag paging and wire receipts retained. Full server filters/details/layout/export and Stage4 remarks remain. Empty transit is onlyJune17; initial empty remarks do not implement writes. |
+| BOR — SCIH `/bor` | P`SupplyChainIntelligenceHub/BuyerOrderReport`; BORData/Count, actual analytics hook, BOR remark methods, CSV. Config `BuyerOrderReport`; layout/export `BOR` | Required. Deployed BORProcessor data/count/export and BPRProcessor BORReport_RemarkDetails. Route family absent. Exact BOR query-to-native opening/refresh relation mapping and source wire comparison required before Stage3 implementation; immutable terminal facts cannot be supplemented with a prior run. Remark rows belong to application actor/time, not calculation history. |
+| BOR colour-band — `/bor-color-bandwise` | P`SupplyChainIntelligenceHub/BuyerOrderReport Color Bandwise`; allocation data/count, BOROA remarks and CSV. Config `BOR_OA`; layout `BORColorBandwise`; export `BOROA` | Required producer outside IsMTO gate. Deployed PlanningProcessor reads BORWithOrderAllocation + vf_ReqCalculation + ColorSequence/attributes/descriptions and BORReport_OARemarkDetails. No registered terminal image under that report name. Resolve exact derivation from retained accepted facts or missing producer output once; route/grid/export/action absent. |
+| Supplier-wise allocation — `/SupplierWiseAllocation` | P`SupplyChainIntelligenceHub/SupplierWiseAllocation/useSupplierWiseAllocation.ts`:266/278/440; data/count/client XLSX. Config/layout `SupplierWiseAllocation` | Required. **Deployed consumer reads BORWithOrderAllocation**, not SupplierDispatchReq. PlanningProcessor methods at IL108792 and110845 anchor count/grid. Input mapping/typed values/scope/grid/export/performance remain Stage3. MOQ/SOB populations do not certify this output. |
+| Supplier Dispatch — `/sdr` | P`SupplyChainIntelligenceHub/SupplierDispatchReport/useSupplierDispatchReport.ts`:139/158/255/268/277; real data/count/export calls. Config `SupplierDispatchReport`; layout `SDR` | Required, visible in the Stage1 authenticated sidebar. PlanningProcessor.SupplierDispatchReportData/Count reads SupplierDispatchReq, rationed, MOQ/SOB, attributes/descriptions; GenSupplierWiseReq.sql generates it. No terminal report image currently mapped. Distributor/Vendor DB-held flags affect source branches, not permission to drop this visible consumer. Family absent; map produced values and complete Stage3. |
+| Elephant Orders — `/eo` | P`SupplyChainIntelligenceHub/ElephantOrders/useElephantOrders.ts`:180 due-date update;298/317 data/count;431/447/456 reload/export. Config `ElephantOrderReport`; layout `EO` | Required, visible sidebar. PlanningProcessor reads ElephantOrders plus descriptions; UpdateElephantOrderDueDates updates that source table. Native terminal order image0 proves only empty input. Exact order identity/due-date predicate and positive trial transition/readback/next-run consequence remain Stage3/4. |
+| Open expediting — `/open-expediting-requests` | P`SupplyChainIntelligenceHub/OpenExpeditingRequests`; list/remarks + Planning submit; config/layout `OpenExpeditingRequests`, client XLSX | Required. PlanningProcessor.OpenExpediteRequest joins OpenExpediteRequests and computed ExpediteDispatches with attributes. Request SKU/location/parent/actor/time and remark lifecycle are application facts. Routes/state absent; submit→list→remark→reload and canonical downstream effect remain Stage4. |
+| Logistics — `/logistics/intransit-whereabouts` | P`Logistics/InTransitWhereAbouts/useInTransitWhereAbouts.ts`:295/314 grid/count;387 history;402/419/436/527 remarks;465 transporter;516 export. Config/layout `InTransitWhereAbouts` | Required. SCIHProcessor reads **generated GoodsInTransitTransporterMaster**, not the retained four-row directory of the same name. Exact terminal-zero query is possible only through approved producer/supplement proof; positive input fields and current-location/ETA/remarks are unresolved below. All family routes absent. |
+| RRR colour-band — `/rrr-color-bandwise` | P`SupplyChainIntelligenceHub/RationedRequirementReport  Color Bandwise`; allocation grid/count, config `RRR_OA`, layout `RRRColorBandWise`, export `RRROA` | Source producer gated by IsMTOEnvironment1; selected0. Visible route still requires an explicit configured empty/unavailable behavior proof; absent API is not accepted parity. Do not create output or change MTO to populate it. |
+| Order allocation — `/order-allocation-report` | P`SupplyChainIntelligenceHub/OrderAllocationReport`; data/count/client XLSX; config/layout `OrderAllocationReport` | Same selected inactive producer qualification. Sidebar not displayed for this actor, route retained. Exact inactive-profile UX remains unresolved, not universal feature exclusion. |
+| Total Requirement — `/total-requirement-report` | P`SupplyChainIntelligenceHub/TotalRequirementReport/useTotalRequirementReport.tsx`:16/34 mock rows;62/133 real RRR count;84 grid fetch commented;262 client XLSX. Config `RRR_OA`, layout `RRRColorBandWise` | Exact inherited mock behavior evidenced; no genuine grid producer/caller currently established. Not displayed for this actor. Source-undefined/configuration decision required before claiming data parity; cannot silently enable mock output or repair frontend. Required selected-profile disposition remains open. |
+| MDM Control Panel — `/master-data-management/control-panel` | Via `/masters-interceptor/control-panel` and application2 selection; P`MDM/ControlPanel/index.tsx`:29 GetMasterUIConfiguration(screenType) | Required. Deployed MDMProcessor MasterMapper/UI_MDMConfig selects masters and fields. No Fresh route/state. Freeze selected master IDs/control flags/field mapping and actor scope from exact retained config before Stage4; absence is not an empty master list. |
+| MDM View/Modify — nested `control-panel/view-modify` | P`MDM/ViewModify/useViewModify.ts`:266 config;579–626 count/data;1088 validation;1339/1342 submit;1831–1856 drafts;2027 seasonality | Required. masterId/filters/page + typed master records, draftId/taskId and approval actor. Validation-enabled branch calls non-MTA `/api/validate-master/*`; it is a real dependency, not unused inventory. Current masters, validation schemas and approved controls feed execute_day; mutable drafts/tasks must not update accepted June17 rows. |
+| MDM Add — `control-panel/add` | P`MDM/AddRecord/useAdd.ts`:206/211 validation or214 AddMasterData;274 DeleteTask; drafts | Required. Selected MasterMapper type/field contract, new-item source controls and task state absent. Exact valid/duplicate/rejected/approved lifecycle and own-next-day consequence remain Stage4. No new MTO rules. |
+| MDM Delete — `control-panel/delete` | P`MDM/DeleteRecord/useDelete.ts`:258 validation or261 RemoveMasterData;326 DeleteTask; draft/delete confirmations | Required. Application removal request/approval and canonical control effect, not direct deletion of immutable run rows. Exact rejection/retry/history and next-run proof required Stage4. |
+| MDM Saved Drafts — `/saved-drafts` | P`MDM/SavedDrafts/useSavedDrafts.ts`:24 allDrafts;42 draftCount;54/62 draft details;102 config;170 delete | Required. Deployed DraftProcessor uses DraftInstance, DraftInstanceMastersMap and mapped draft tables/UI_MDMConfig. Fresh typed app state/routes absent. Owner/id/master/count/details, edit/delete/reopen and persistence remain Stage4. |
+| MDM Pending — `/task-pending` | P`MDM/TaskPendingForReview/useTaskPendingForReview.ts`:40 pending;111 count;128/135 details;157 config;245 PostMasterAfterApproved | Required. NMSTaskStatus/NMSSubTaskStatus and task-specific masters/history; actor approval scope. Approval/rejection and command effects not supplied by report projections. Full source transition/error contract remains Stage4. |
+| MDM Status — `/task-status` | P`MDM/TaskStatus/index.tsx`:24 status;74 task download;78 config | Required. Deployed TaskStatusProcessor status/detail/download over each task history family. Exact returned count/string/NULL/envelope and task download are unresolved, source anchored in IL78176/84101; no Fresh route. |
+| MDM History — `/data-modification-history` | P`MDM/DataModificationHistory/useDataModificationHistory.ts`:31 config;53 GetSkuLoc;97 GetTaskMastersHistory(masterId,skuCode,WHCode) | Required. Selected master's typed history + actor and event times, not just daily calculation images. Current route family absent. Dropdown/reset/pair history/scopes and client export remain Stage4. |
+| Shared layout/filter/lookups | Common UI config; actual Save/Reset imported from BPR service by `hooks/useSaveAllState.ts`:24/25, not duplicate Common wrappers | Required wherever reached. Per-user/report relational layout separate from publication. Keep report-specific configuration/layout/export keys distinct. GetAllSKUs/Locations/analytics wrappers with actual invocation evidence remain required only for their reached controls; generic configuration does not certify underlying report. |
+| Admin drawers / validation | `components/layouts/{EnvConfigDrawer,UIReportConfigDrawer,UIMDMConfigDrawer,PermissionsDrawer}` actual methods in call CSV; validation branch above | Source methods/config paths anchored; exact eligible admin actor and selected MasterMapper/config population unresolved. Do not widen current actor, implement every service declaration by assumption, or silently discard actual controls. Read/edit permissions/config bulk-upload are application state changes for Stage4 after selected reachability proof. |
+| Configured downloads / shared XLSX | NavbarMenu:56 GetAllReports→permission `mta-report-urls`; MenuToolTip:105 `useDownloadHandler.handleDownloadVF(url,downloadName)`; `useSaveAllState.ts`:75 `/download-excel` helper | Configured report paths currently empty. Dynamic daily download remains conditional on exact path/file producer and run/date mapping; no fabricated files. `/download-excel` helper has a local call but per-screen final control use remains unresolved. Each actual page CSV/client XLSX is already in its row; no blanket download closure. |
+| Merchandising MCGrid | Route `/supply-chain-intelligence-hub/merchandising-grid`, component MCGrid and mock service | Outside MTA API path and mock data. Record as inherited non-MTA mock, not migrated MTA reporting or completed parity. No redesign or feature invention authorized. |
+
+The deployed DLL anchors for unresolved consumers are in
+[deployed-consumer-anchors.csv](audit-2026-10-01/deployed-consumer-anchors.csv).
+They identify IL method spans and literal SQL relation names, including generated
+async methods; these are source navigation evidence, not reconstructed complete
+queries or parity receipts. Their retained full IL is
+`D:/freshvcf-build/evidence/f3-bpr-wire-source-001/VectorFlowAPIs.il`, SHA256
+`ccd47dc8d76895a6aa63ad5d6beaadb32f4f53ab75047a68fb8055382fd87ca1`,
+from the pinned deployed DLL. Raw recovered C# remains supporting evidence only.
+
+**Precise unresolved input ownership:**
+
+- Logistics: generated rows need SKU, receiving/source location, order/shipment
+  identity, quantity, dispatch/receipt/ETA dates and transporter/LR/transport
+  details. Current-location/ETA/remark/user/time updates belong to the application
+  shipment workflow. The complete frozen ledger provesJune17 outstanding0 only;
+  no positive dated detail contract is approved. The four retained directory
+  rows have transporter identity/contact/name only. Do not rename those rows as
+  generated shipment rows. Canonical GenerateGoodsInTransitMaster.sql and
+  GoodsInTransitTransporterMaster.sql plus SCIHProcessor are the owners.
+- BOR allocation/supplier allocation and supplier dispatch: terminal native
+  manifest has no BORWithOrderAllocation or SupplierDispatchReq report image.
+  It retains supplier MOQ430/SOB430 and calculation facts. First reconcile exact
+  producer output/derivability and fields onJune17; if facts are insufficient,
+  name the missing source boundary before proposing a typed projection. No
+  accepted F2 calculation correction is implied by an absent consumer relation.
+- MDM: MasterMapper/UI_MDMConfig selects masterId, field list/type and mapped
+  operational/draft/task/history tables. Freeze these plus FNCFromUI/PI_PO_FromUI
+  and relevant validation flags before writes. Draft/task actors, decision
+  timestamps, previous/new values and status transitions are new application
+  facts. Approved controls enter a future own execute_day, never mutateJune17.
+- Conditional profile claims: retained effective settings prove IsMTOEnvironment0;
+  StdSettingsPre defaults for DistributorSystemActive/VendorSystemActive are not
+  proof of later DB overrides. Neither unknown excludes visible Supplier Dispatch.
+  Total Requirement's mocked grid and inactive allocation UX need exact source
+  disposition; this Stage1 does not approve a frontend repair.
+
+Static extraction is not runtime activation. Eleven declarations/helpers have
+no production call traced (duplicate Common Save/Reset, legacy per-report UI
+config wrappers, BPR alternate UI/Excel helper and duplicate utils download);
+GetUploadProgress is initialized without a traced invocation. Keep these as
+declarations/unresolved controls, not mandatory live HTTP calls. Generic
+GetUIConfig and BPR-service Save/Reset are the actual replacements. The CSV
+also records shared MTO-page imports of MTA MDM wrappers; MTO source/API is
+unchanged and this dependency must be preserved in final regression.
+
+#### Remaining full-publication request dependencies — mapped, unchanged
+
+Every listed path currently enters `context.publication()` and therefore native
+readback/input/checksum plus DBM command-state validation. This is a dependency
+map for subsequent targeted readers, **not authorization to remove integrity**.
+All projection-source validation must use native pre-supplement rows; scoped
+consumer attributes use their existing approved producer-owned projection.
+
+Planning bodies are explicit in `Planning/usePlanning.ts`:549–655 and698–885:
+`git`/`expedite` use `parent` or `child`; `excessInventory`/`orderFulfillment`
+use `review`. Grid requests carry the existing filter tree/page; initial charts
+send `filters:[]`. Custom views use the separate `GetPlanningDataCustom` route
+(for example Excess custom still sends type `review`), not an invented
+type=`custom` API contract. Missing branches must match the actual caller body.
+The older Expedite Child/Grid/index.tsx:30 contains a literal `wc:"GE04"` in its
+submit body, whereas named subgrids use the selected row. Its active control and
+deployed request compatibility remain an exact Stage4 source disposition; do
+not repair this inherited frontend or invoke the action to hide that uncertainty.
+
+| Current caller | Actually required report inputs and work after full read |
+|---|---|
+| views.planning_context → normal Excess grid/count/chart | ExcessInventoryRow + source receipt; native rationed, ClosingState.dbm.SKULocStandardAttributes, importer MasterData/SKU/site descriptions and SKU/location/pair attributes; business date. Scope bag, joins, chart grouping then page. |
+| same → Fulfilment grid/count/chart | FulfillmentSummaryRow/DetailRow + calculation/source receipts; native rationed/standards/SpikeOrderData; importer master/attributes/descriptions and order route details. Keep nested detail and independent chart/count joins. |
+| views.planning_graph Expedite; planning_grid Expedite count | ExpediteRow, chart additionally PickPostRow/PickBand; source rationed, importer MasterData, standards, btr.ExpediteDispatches; importer SKU/location/pair attrs/descriptions; chart additionally ClosingState.bpr.BPRMaster. Per-type chart/count joins; unordered label qualification unchanged. |
+| views.btr_data grid/count | BTR BPPTrendPhysicalInv/Dispatch, BufferTrendPhysicalInv/Dispatch, BufferTrendDates, producer SKU/location/pair attributes; final rationed report (BPRStages compatibility alias), DBM standards, importer descriptions, consumer CategoryColDescription. Horizon filter, Tech/Eco predicates, permission multiplicity, key-page/final-rejoin/stringification. Both branches currently computed. |
+| views.buffer_trends | BTR physical/dispatch colour tables D1–D90, BufferTrendDates, SKU/location attributes; pair attributes where current consumer joins them. scope→colour counts→dated graph. Current unsupported filters checked only after full load. |
+| views.research_insights | Same colour/date histories + Age/BRAge + final rationed master. Self/parent/children relations and UNION-distinct behavior, importer/BTR scope, exact selected SKU/WH. Preserve omission of NULL properties. |
+| views.historical_availability | BTR BufferTrendPhysicalInv and SKU/location attributes (not generic pair join), three30-day windows and current permissions. |
+| views.insight_data chronic loc/sku/grid | BTR ChronicUnavalabilityData, SKU/location/pair attrs, respective descriptions; grid also ClosingState.consumer_context.NMSAllItems. Strict BRAge>RLT and duplicate joins. |
+| views.insight_data DBM loc/sku/pie/ageing | BTR DBMNormSuggestionsData + SKU/location/pair attrs and descriptions; DBMFinal.DBMMaster parent ownership. Suggestion/age bands, grouping/order and NULL omission. |
+| views.insight_data availability trend/ageing | BTR.BPR dated colour facts and producer attrs; ageing also BTRSnapshotForUI.AgePhysicalInv. Non-Black counting and age qualification must not be replaced by current-day totals. |
+| actions.submit (conditional write, not ordinary read) | Full native DBM state and unchanged command_state integrity under the existing transaction/lock. Retain this complete boundary; action enablement and command history remain unchanged. |
+
+RRR + metadata, DBM current/daily-history, BPR and Planning overview are already
+selective. DBM/history intentionally reconstruct the **complete DBM section**
+when commands exist to validate the unchanged command-state digests. No request
+reader or algorithm above changed in Stage1. No whole-run cache was added.
+
+#### Frozen performance protocol for later complete journeys
+
+Adopt the audit plan's performance contract without calling Stage1 smoke timings
+parity: same date/input/run population, producer/hierarchy/scope, request/filter,
+columns/page/export and output; isolated deployed DLL/query legacy provider with
+matched bounded resources, never unrelated3003/3004 migration as oracle.
+Five warmups +30 measured interleaved warm samples, five application-cold starts,
+concurrency1 and4 initially; retain raw samples/failures and median/p95. Compare
+API/query time/bytes/query counts/CPU/peak memory and browser click→usable
+grid/chart/filter/page/history/layout/download, including cold/empty/denied/error.
+No shared cache flush. Successful-result median/p95 must be no worse than legacy,
+throughput at least equal and errors no worse; inconclusive distributions mean
+UNPROVED, not a tolerance-based pass. Keep4GiB/2CPU. Missing legacy successful
+behavior or narrow source flaw is explicitly qualified, not a timed fake result.
+Measurements trigger only the affected selective query/index/streaming work.
+
+### Historical recovery checkpoints (superseded by Stage 1 above)
 
 The user resumed the existing goal after the authorised recovery handoff.
 Active contract: F3.1/F3.3 remaining BPR/Planning consumers using the approved

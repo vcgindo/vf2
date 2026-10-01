@@ -3,3 +3,6 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
 application = get_wsgi_application()
+from mta.presentation.admission import AdmittedApplication
+
+application = AdmittedApplication(application)

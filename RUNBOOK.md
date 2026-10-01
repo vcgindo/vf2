@@ -41,6 +41,48 @@ still tracked under F3.3; these receipts do not close full screen acceptance.
 
 ### Restart or stop ONLY this preview
 
+Stage1 publication admission runs once in the MTA Gunicorn master with
+`--preload`, before opening its listener or forking either worker. It checks
+the explicit accepted run/input/native output,
+complete command state, opted-in permission/hierarchy/terminal configuration and
+the five existing typed report projections. It retains only an identity digest,
+not publication rows. Missing/corrupt input, projection or supplement aborts
+startup with a nonzero exit: no listener or worker starts and readiness cannot
+succeed. The gateway consequently reports an unavailable upstream. Database
+connections are closed before fork; both workers inherit the same admission.
+Ordinary reads check only bounded identity metadata/files, plus their unchanged
+reader checks. Changes to that identity revoke admission until an MTA restart;
+restoring a setting does not silently admit it. Investigate the startup error,
+restore the exact pinned identity/source, and restart MTA. Never switch to a trial
+run, replay accepted days, enable actions or weaken a validator to obtain readiness.
+
+For an authorized MTA-only deployment/restart, use the existing commands:
+
+```powershell
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml build mta
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml up -d --no-deps --no-build mta
+# For a restart of the same image only:
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml restart mta
+docker logs --tail 20 freshvcf-preview-mta-1
+docker exec freshvcf-preview-mta-1 python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/readyz',timeout=30).read().decode())"
+```
+
+Wait for one **Publication admitted** message before **Listening at**, then
+two **Booting worker** messages and successful readiness. Do not
+raise the existing180-second timeout,2-worker/2CPU/4GiB settings to mask failure.
+Stage1 proved the unchanged June17 identity before/after MTA-only restart,
+ten byte-identical authenticated gateway responses, actual Planning/RRR/DBM
+navigation and invalid publication aborting two-worker startup before binding.
+Evidence: `D:/freshvcf-build/evidence/f3-stage1-admission-002/receipt.json`
+and `f3-stage1-preload-004/receipt.json`; initial001 is retained and superseded
+for startup behavior. After successful startup, metadata mismatch returns503
+for MTA/readiness until restart. Transient database connection failure also
+rejects that request; recovery compares identity again before serving without
+repeating full validation. `/healthz` remains a process-only check.
+This is selective-serving integrity and smoke evidence, not full application
+or legacy performance acceptance. Read-only fault probes patch only returned
+in-process values and use PostgreSQL read-only sessions, never persisted rows.
+
 RRR selective-read checkpoint: open the existing sidebar's SCIH → Rationed
 Requirement Report. Click **Show All**:17 Jun2026,14 retained rows. Supply Chain
 Node → For Location → Agen shows3; Reset Filters then Show All restores14.
@@ -302,5 +344,7 @@ Use a new revision after a relevant code/input contract change. Retries of the
 same revision verify stored input/output integrity; they are not fresh execution
 of changed code. A failed/running attempt cannot be silently promoted by retry.
 
-When idle: `docker compose -f compose.test.yaml stop postgres`.
+Historical standalone test-only shutdown: `docker compose -f compose.test.yaml stop postgres`.
+**Do not run that while3005 is in use**: the preview now depends on this same
+owned PostgreSQL container. MTA-only restart does not require a database restart.
 Never use down -v, delete the data directory or stop another task's containers.

@@ -11,4 +11,4 @@ COPY tests /app/tests
 COPY baseline /app/baseline
 RUN groupadd --gid 10001 vectorflow && useradd --uid 10001 --gid vectorflow vectorflow
 USER 10001:10001
-CMD ["gunicorn", "vectorflow.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]
+CMD ["gunicorn", "vectorflow.wsgi:application", "--preload", "--bind", "0.0.0.0:8000", "--workers", "2"]

@@ -1,0 +1,272 @@
+{
+  "type": "read-only-audit-snapshot-not-status-tracker",
+  "date": "2026-10-01",
+  "timezone": "Asia/Calcutta",
+  "commit": "24c05db04e531a04584b93e3912f0da1c1a84f30",
+  "authoritative_status": "docs/MIGRATION.md",
+  "thread_sources": [
+    {
+      "id": "01a0ed2b-dd20-7722-a00c-5f32b4d5c1f3",
+      "title": "rebuildplan",
+      "anchor_utc": "2026-09-29T12:38:58Z",
+      "anchor_ist": "29 September 2026 18:08:58",
+      "note": "Retrieved original ten-step plan; near user 18:10 anchor"
+    },
+    {
+      "id": "01a0f29e-ec6b-7cf2-adb1-3ebda9365a55",
+      "title": "rebuildplanmonitor",
+      "anchor_utc": "2026-10-01T07:05:13Z",
+      "anchor_ist": "1 October 2026 12:35:13",
+      "note": "Audit turn near user 12:41 anchor; also inspected 12:42 recovery handoff and later progress"
+    }
+  ],
+  "canonical_dll_sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+  "baseline_verification": "PASS:376 pinned resources unchanged",
+  "source_hashes": {
+    "mta/presentation/views.py": "55fde7f93812b358b88849c6ea1179aedd17e111f0a0f7b9a8c40ccfa95b1c67",
+    "mta/presentation/urls.py": "40c16d461f35cd521e63a95c1d350cdd5936bbceaa1089c2e9de010a4827593c",
+    "mta/presentation/context.py": "3b7bd8f59f640848408df3e69c216bd69657da6304791bfe8cdfcb67f741e533",
+    "mta/presentation/dbm_read.py": "f1d722d1b74dc2e185ef9504b7031f67022bfdb01bf8f8ea516328dd29778093",
+    "mta/presentation/bpr_read.py": "8d3db83c7172cde9bd5c23432058af38f43940576c0c7de191e528d7dedaad6c",
+    "mta/presentation/planning_read.py": "e1c798391013b3dbfd5df4ec73e44e572a0781309296a97fa179fd85423ae8e7",
+    "mta/presentation/selective.py": "a7c9d91ee1757f0108ff4fada82358b3a7e6b2de7ca74634bcf7ab0c0ac2b327",
+    "mta/presentation/rrr_sql.py": "141ccb9c8cc450bdb985de6d90acd8f28b5ac015367416a90b60dd15f6c7904d",
+    "vectorflow/urls.py": "2f15bea619e26fbf2ce863056137e9541222f328d6a04030163acba6bd994599",
+    "compose.preview.yaml": "40824bae3cd1b2476aeb86dc1060e47d1c1ab5ff3c1179b4392f5ab9a9ec1b23",
+    "docs/MIGRATION.md": "07508b3b1040695ff9c98474a430d603ce8bf0959902d344628b2bba6e66f4fb",
+    "docs/SOURCE_CONTRACT.md": "24445b69d1aac901baa38b95ffa2c766ab419f4043fd1226ad8f9f4a41c0f73c",
+    "docs/LEGACY_EXCEPTIONS.md": "a77a055d38b0ca12f89f22de2b5affd232418f645f58da2b4da5ed7e20868383",
+    "baseline/manifest.json": "534591471cf0966854e80e16b1750d3bdbf7bd9c51ee7f40b1e00a54230646b5"
+  },
+  "backend_route_count": 37,
+  "runtime_read_only_observation": {
+    "mta_image": "sha256:846da0f2e909c31d1136aaec0dade85b9ce7c6793d4592c341156c1435de8709",
+    "memory_bytes": 4294967296,
+    "cpus": 2,
+    "restart": "no",
+    "public_binding": "127.0.0.1:3005",
+    "selected_run": "ac1612c8-0e49-4155-83c3-f59f41422293",
+    "business_date": "2026-06-17",
+    "output_digest": "bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d",
+    "status": "SUCCEEDED",
+    "parity": "PASS_WITH_LEGACY_FLAWS",
+    "operational_images": 515,
+    "image_manifest_rows": 146028,
+    "commands": 0,
+    "note": "Image-row subtotal is not the146551 total operational row count in historical terminal proof; different counting boundaries."
+  },
+  "provenance": {
+    "mto_tree_matches_pin": true,
+    "user_service_tree_matches_pin": true,
+    "frontend_delta": "only3 removedZIP assets; source code identical to pinned inherited tree; not a comparison with original legacy deployed JS bundle"
+  },
+  "receipts": [
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f2-runtime-memory-sql-full-011\\replay.json",
+      "sha256": "9f502ea08bc580db1149e3e38371ea62a0d01e61e56245ead027b43ece918c60",
+      "status": "COMPLETE_WITH_LEGACY_FLAWS",
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f2-runtime-memory-full-011\\execution.json",
+      "sha256": "4c96c3e3651c0dae849e29adb5d1e4c4fa1c770f1a11c40741b999de91c66cfb",
+      "status": null,
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f2-runtime-memory-full-011\\terminal-readback.json",
+      "sha256": "7a7af271cc1c6f0347829fe8cd8f7feaaffeba477c8157b614550956d7eb3ab2",
+      "status": "TERMINAL_READBACK_PASS_WITH_DECLARED_LEGACY_FLAW",
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-rrr-selective-final-gateway-016\\receipt.json",
+      "sha256": "74cedf0157533e368d0d56fc277f82570c1d3f74a24c7030be35f81eff370f28",
+      "status": "RRR_REAL_GATEWAY_TIMING_READBACK_PASS_NOT_BROWSER_ACCEPTANCE",
+      "recorded_timing_seconds": [
+        {
+          "route": "GetLastRunDate",
+          "seconds": 0.252
+        },
+        {
+          "route": "LocationType",
+          "seconds": 0.214
+        },
+        {
+          "route": "RRRDataCount",
+          "seconds": 0.2901
+        },
+        {
+          "route": "RRRData",
+          "seconds": 0.3012
+        },
+        {
+          "route": "GetLastRunDate",
+          "seconds": 0.206
+        },
+        {
+          "route": "LocationType",
+          "seconds": 0.2256
+        },
+        {
+          "route": "RRRDataCount",
+          "seconds": 0.3573
+        },
+        {
+          "route": "RRRData",
+          "seconds": 0.3988
+        },
+        {
+          "route": "RRRDataCount",
+          "seconds": 0.5043
+        },
+        {
+          "route": "RRRData",
+          "seconds": 0.2812
+        },
+        {
+          "route": "RRRDataCount",
+          "seconds": 0.2884
+        },
+        {
+          "route": "GetLastRunDate",
+          "seconds": 0.2507
+        },
+        {
+          "route": "LocationType",
+          "seconds": 0.3393
+        },
+        {
+          "route": "RRRDataCount",
+          "seconds": 0.3445
+        },
+        {
+          "route": "RRRData",
+          "seconds": 0.5551
+        }
+      ],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-dbm-selective-gateway-001\\receipt.json",
+      "sha256": "848b34ff935605ab64f303e3b3fba8248dd7325401bcb7821b9dbb50e2499722",
+      "status": "PASS_3005_CURRENT_DBM_HISTORY_REAL_COOKIE_GATEWAY",
+      "recorded_timing_seconds": [
+        {
+          "route": "DBMDataCount",
+          "seconds": 0.4829
+        },
+        {
+          "route": "DBMData",
+          "seconds": 0.6052
+        },
+        {
+          "route": "DailyDataGraph",
+          "seconds": 1.9635
+        },
+        {
+          "route": "DBMDataCount",
+          "seconds": 1.0012
+        },
+        {
+          "route": "DBMData",
+          "seconds": 0.6266
+        },
+        {
+          "route": "DailyDataGraph",
+          "seconds": 2.0141
+        }
+      ],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-bpr-gateway-001\\receipt.json",
+      "sha256": "d23f8b925e2a55fcc7bc7ffdd66cce8a515425914ccbb0cf245c4c0ccd5d0073",
+      "status": "PASS",
+      "recorded_timing_seconds": [
+        {
+          "route": "GetBPRDataCount",
+          "seconds": 1.2895
+        },
+        {
+          "route": "GetBPRData",
+          "seconds": 1.2745
+        },
+        {
+          "route": "GetBPRDataCount",
+          "seconds": 0.9949
+        },
+        {
+          "route": "GetBPRData",
+          "seconds": 1.3928
+        },
+        {
+          "route": "GetBPRDataCount",
+          "seconds": 1.1776
+        },
+        {
+          "route": "GetBPRData",
+          "seconds": 1.0593
+        }
+      ],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-planning-overview-gateway-001\\receipt.json",
+      "sha256": "90a8a402cbaad79260d0db47b903e8803d69ae01f630d28bc7bac41167e80231",
+      "status": "PASS",
+      "recorded_timing_seconds": [
+        {
+          "route": null,
+          "seconds": 0.7966
+        },
+        {
+          "route": null,
+          "seconds": 0.9595
+        }
+      ],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-rrr-export-ui-001\\receipt.json",
+      "sha256": "55118db95a9e0579d0782d4fcc058e89576c762f8a22148a4a47889f5e71aae3",
+      "status": "PASS_ACTUAL_3005_RRR_TOOLBAR_FILES",
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-bpr-ui-001\\receipt.json",
+      "sha256": "e6b75205c6ff3cd935e091bfe27b5b49cabb707d239f20047a819ce08955814e",
+      "status": "PASS_SELECTED_BPR_RESEARCH_READ_ONLY_UI_WITH_PRESENTATION_LIMITATIONS",
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\f3-dbm-selective-ui-001\\receipt.json",
+      "sha256": "4a3d84e4bfebf87854ddcdd8e243db20069527c2f61795a434418997d4c8bd33",
+      "status": "PASS_CURRENT_DBM_AND_SELECTED_DAILY_HISTORY_VISIBLE",
+      "recorded_timing_seconds": [],
+      "timing_qualification": "retained observations; not a new benchmark or legacy speed parity"
+    }
+  ],
+  "limitations": [
+    "No new browser session, HTTP benchmark, mutation/action test or legacy replay performed.",
+    "No service restart/rebuild/reconfiguration or existing tracker edit.",
+    "Endpoint existence does not certify branches, selected activation or parity."
+  ],
+  "static_inventory_counts": {
+    "frontend_call_rows": 129,
+    "mta_method_path_templates": 114,
+    "templates_with_modern_route": 36,
+    "templates_absent_in_modern_urls": 78,
+    "outside_mta_namespace_call_rows": 8,
+    "browser_route_declarations": 29,
+    "unique_browser_paths": 27,
+    "qualification": "Static potential call coverage; neither selected active-contract denominator nor parity percentage",
+    "unique_mta_browser_paths": 26,
+    "non_mta_browser_paths": 1
+  }
+}
