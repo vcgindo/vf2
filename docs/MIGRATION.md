@@ -43,7 +43,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 | Obligation | Required exit evidence | State |
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR filters/scopes/count/grid44 valid cases match actual DLL-generated SQL, eight invalid-SQL cases NOT_PARITY; eight authenticated gateway reads PASS. Next: gateway RRR filter checks and remaining consumer filter/scope contracts |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelope comparisons PASS; eight source-invalid cases NOT_PARITY. Next: remaining BTR/DBM/Planning/insight filter/scope contracts |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -339,13 +339,44 @@ RRR evidence (consumer readback, not full F3 acceptance):
   engine, persistence, other consumer helpers and schema remain unchanged. Prior
   action/calculation proofs are not reopened by this unrelated view-file edit.
 
-Next permitted bounded F3.2 exit: representative RRR filters through a private
+Completed bounded F3.2 exit: representative RRR filters through a private
 real cookie gateway with existing stored root permissions, comparing the exact
 count/grid bodies to these retained consumer receipts. Do not repeat44 SQL
 queries or accepted calculations. Leaf expansion has independent SQL/Django
 proof; do not claim that as a new leaf user's login/browser proof. Keep3005 on
 the accepted terminal date and leave its image/permissions unchanged. Remaining
 DBM/BTR/Planning/insight filter contracts stay within F3.2, not new recovery IDs.
+Verified proof boundary: root-regression, cross-attribute-AND, positive-stock,
+raw-null-hasnovalue, parent-type-join, empty-hasvalue and page-two, each count/grid
+through the unchanged real cookie gateway. Reject unauthenticated401; overwrite
+forged identity and empty client permission lists with existing stored roots.
+Verify the missing-category503 separately as a guarded source flaw, NOT parity.
+Allowed files: test management command/private driver/tracker only; no production
+adapter, auth, permissions, frontend, engine, schema or serving edits. Required
+exit:14 exact full-envelope retained comparisons, native publication/all existing
+run/action identities preserved, private workers removed and no public port.
+
+Gateway receipt: `D:/freshvcf-build/evidence/f3-rrr-gateway-001/receipt.json`,
+SHA256 `464cfada86fc27791e7e3cc794bedad3de4f136d59ac697aca78c14b96b4b426`;
+inner `proof/receipt.json`, SHA256
+`3e58bc5347f46240d4c67d639d70ed90454079770f23e685f9c4a71736221695`.
+All14 full-envelope typed-bag/order comparisons PASS; missing-cookie401 and
+source-flaw503 preserved. Stored root scopes overwrite forged empty lists and
+body/header identity. Reused the accepted44-case SQL receipt; zero SQL/engine
+replays, calculation runs, permission/binding or serving changes. Every existing
+run/command identity is unchanged. Protected snapshot in
+`f3-rrr-gateway-protected-001/after.json` fully equals the preceding
+`f3-rrr-filters-protected-001/after.json`. Both private workers removed and
+disposable cookie deleted; image/config/network/resource identities retained.
+This closes representative RRR gateway-filter acceptance, not full F3.2/browser
+acceptance or a new leaf-user login. Preview remains at its prior image.
+
+Next F3.2 boundary: BTR's selected Tech/Eco count/grid filter contract. Reconcile
+BORProcessor.GetBTRDataAsync/Count and its exact Commons/GenericFunction aliases
+with persisted native BTR facts. Reuse the RRR operator semantics only where the
+deployed BTR contract genuinely matches; preserve BTR horizon/key paging/rejoin
+and NULL/join multiplicity. Before editing, freeze its request roster and source
+exit here. No new facts, metadata bindings, engine replay or preview replacement.
 
 F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
 MTA screen matrix here (route/component, complete call roster, selected run/date,

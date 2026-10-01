@@ -138,6 +138,14 @@ they are not repaired or credited as passing parity. Source and synthetic inputs
 remain pinned. This code was verified in the isolated test worker; the3005 image
 has NOT been rebuilt for this correction. Gateway filter/browser acceptance is
 still pending; do not promote this consumer receipt into whole-application parity.
+`f3-rrr-gateway-001` subsequently closes representative real-cookie-gateway
+filter acceptance:14 full count/grid envelope comparisons match retained SQL-
+validated responses, unauthorized401, and the source-flaw503 remains NOT_PARITY.
+It reused existing roots and immutable publication without calculation/replay,
+permission changes or preview replacement. Browser and other report acceptance
+remain open. The existing private driver supports this read-only check with
+`--rrr-filters`; use a new evidence directory only if relevant code changes
+invalidate the retained proof. It creates no trial calculation/action rows.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 
