@@ -40,23 +40,106 @@ Historical checkpoints below remain provenance, not a second active queue.
 ### Resumed recovery — first connected slice
 
 The user resumed the existing goal after the authorised recovery handoff.
-Active contract: F3.1/F3.3 RRR selective persisted read and actual 3005 delivery.
+Active contract: F3.1/F3.3 approved terminal-only BPR/Planning input supplement,
+after the closed DBM reader checkpoint below. Prior RRR checkpoint:
 Selective-read exit CLOSED below: whole-run reconstruction removed from RRR and
 its metadata requests; canonical joins, filters, scope, ordering, paging and
 envelopes retained; actual3005 screen/filter/clear/paging/restart reads verified.
-RRR export API/byte/restart exit CLOSED below. Browser exit BLOCKED_BROWSER:
-replacement IAB4/tab1 is at3005/login, but three documented attachment attempts
-time out on Emulation.setFocusEmulationEnabled; old browser2 no longer exists.
-CAPTCHA confirmation for the replacement session is pending. Resume the exact
-toolbar-file check when browser control is usable; no API/oracle replay needed.
-Next independent item is the existing enabled-screen/request reconciliation,
-not a cross-report export sweep. Full RRR screen acceptance remains open.
-Allowed boundary: presentation context/RRR reader, necessary selective runtime
-helpers, affected tests/probes and demonstrated gateway plumbing only. No F2
-calculation, input, state, new fixture, schema or protected service change.
+RRR export API/byte/restart and actual toolbar-file exits CLOSED below. The
+previous browser attachment failure remains preserved, superseded by IAB4/tab2
+read-only sign-in after the user's explicit confirmation. Root and Depo toolbar
+downloads are byte-identical to the retained legacy oracle; no replay was needed.
+Enabled-screen reconciliation is recorded in the expanded visibility matrix.
+The detailed-transit mapping review found terminal outstanding shipments0 and
+GIT0 across all1240 pairs in the unchanged retained ledger. User subsequently
+approved the terminal-only supplement described below; no nonempty logistics
+claim or F2 mutation follows from it. Full RRR screen acceptance remains open.
+Historical RRR allowed boundary: presentation context/RRR reader and affected
+tests/probes only. Current DBM gate below supersedes it without authorizing F2
+calculation, input, state, new fixture, schema or protected-service changes.
 Existing API proofs remain valid semantic references, not completed frontend exits.
 Earlier active-item statements below describe historical checkpoints; this slice
 governs current execution. Remaining F3 obligations are not silently closed.
+
+Current checkpoint: F3.1/F3.3 selective DBM current/daily-history reads CLOSED
+for this reader/visible-history boundary with the evidence below. Its original
+unmet exit was whole515-image reconstruction on ordinary DBM/history requests.
+Allowed edits are a named-image presentation reader, those two HTTP consumers,
+focused tests/probes and isolated3005 MTA deployment. Existing DBM filters,
+projection, importer-versus-DBM permission ownership, action before/after digests,
+scalar envelopes and all calculation code remain unchanged. No new schema,
+inputs, action submission or engine replay. Current reads load the nine declared
+consumer tables; daily-history reads load the exact six-projection dependencies
+and importer scope. If committed commands exist, reconstruct the complete DBM
+section and use unchanged command_state integrity before projecting; never pass
+partial state into its full-state digest checks. Verify retained pre-action
+responses without rewriting stored command history, action-current readback,
+terminal0, selected history and actual3005 behavior. Full publication integrity
+remains an explicit acceptance check, not a claim made by each selective read.
+
+Terminal-only supplement authorization: user reply to
+`call_zsFKJgePAcUNJ7FUdBlryYEB` says "Approve terminal-only supplement".
+The approved boundary is June17 InTransitData empty from the frozen complete
+shipment ledger, and initially empty BPR remarks for the new Fresh app, both
+run/date bound and identically supplied to isolated canonical/modern consumers.
+Artifact SHA256 `0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546`:
+last dispatchJune16, last receiptJune17, no outstanding June17 shipment, final
+raw_daily GIT sum0 and positive-GIT pairs0. This is not permission to reuse June5
+transit details as June17, fabricate transporter/LR/current-location/remarks,
+change F2 or claim nonempty logistics parity. Supplement construction/comparison
+belongs to the existing BPR/Planning connection item after this DBM reader slice.
+
+Active supplement exit: a versioned opt-in manifest bound to the exact terminal
+run/date/output digest and frozen ledger hash; source-backed empty InTransitData
+and Fresh initial BPRReport_RemarkDetails only. Reject mismatched dates/runs or
+nonempty overrides, retain missing-is-not-empty behavior without opt-in. Supply
+the same supplement to isolated deployed-query and modern consumer checks;
+compare full typed terminal BPR/Planning results and exact scope, then connect
+readback on3005. Allowed edits: presentation supplement/consumer wiring, focused
+tests/probes and isolated preview only. No operational state write, F2 replay,
+new logistics facts, other-day supplement or nonempty logistics parity claim.
+
+#### DBM current/daily-history reader checkpoint — CLOSED
+
+- `f3-dbm-selective-004/receipt.json` under D:/freshvcf-build/evidence,
+  SHA256 `d6fb4630fe057453e9d3e9fd77c2ed5765b0106f64fae320a31557ca2fe516f1`:
+  82 strict retained DBM comparisons PASS;26 source-invalid guards remain
+  NOT_PARITY. All1,240 terminal history graphs match the independent retained
+  legacy outputs:34,682 stock rows,136 Norm rows/changes,1,240 master/monitoring
+  rows and132 historical suggestions. Current terminal Suggestions remains0.
+  Private pre-action proxy matches immutable pre-action receipts without changing
+  stored commands. Real action-bearing readback separately verifies complete DBM
+  command digests. No full-publication read on ordinary requests; no writes/replay.
+- `f3-dbm-selective-gateway-001/receipt.json`, SHA256
+  `848b34ff935605ab64f303e3b3fba8248dd7325401bcb7821b9dbb50e2499722`:
+  actual3005 cookie count/grid/history and concurrent equivalents PASS. Stored
+  scopes override forged identity/scope; no-cookie401. Selected history returns
+ 28 stock rows,2 Norm changes and3 historical suggestions. Observed sequential
+  times0.483/0.605/1.964s; not a frozen SLA or cold-disk performance claim.
+- `f3-dbm-selective-restart-001/receipt.json`, SHA256
+  `7d37a698562d463e5b33339a23ed022e1761420e523db545ebc65d31896600bd`:
+  MTA-only restart; all six response hashes equal the previous gateway proof.
+- `f3-dbm-selective-ui-001/receipt.json`, SHA256
+  `4a3d84e4bfebf87854ddcdd8e243db20069527c2f61795a434418997d4c8bd33`:
+  actual unchanged UI shows June17 current grid0, BTR daily-history dialog for
+  SKU337/AG515802, stock/GIT/receipt/consumption series, Norm220→294 onJune12
+  and294→392 onJune16. Screenshots retained and inspected. Client grid filters
+  are not server-filter proof; BTR's old reader/export and visible disabled-action
+  handling remain open. No actions or saved-layout writes.
+- 37 focused tests, embedded6 DBM/history tests, Django check and diff check PASS.
+  Explicit terminal full515-image readback/integrity PASS before restart. Protected
+  before/after-deploy/final snapshots in selective-004 are exactly equal, including
+  existing3003/3004 and Fresh run/action state. F2 untouched.
+- Failed probes001–003 retained:001 receipt UUID serialization,002/003 private
+  guard body versus gateway503 wrapper. Only evidence adapters corrected; strict
+  response checks and source-invalid NOT_PARITY qualifications preserved.
+
+Preview MTA image `sha256:10bf1c8a9bd48df3bd47434c96cb54969aecf2c43d248a74e1965289d216635b`
+contains d44b740 plus recorded candidate hashes; reader
+`f1d722d1b74dc2e185ef9504b7031f67022bfdb01bf8f8ea516328dd29778093`,
+views `8faebac6a39ef10e37ff04a134b3f66581826311920fc66a65c51f32a771e833`.
+Embedded bytes match. Caps4GiB MTA/1GiB PostgreSQL unchanged. This checkpoint
+does not close whole F3.1–F3.5 or authorize3004 cutover.
 
 Performance acceptance for this RRR slice (local isolated preview, not a claimed
 legacy SLA): each first-after-deploy/warm request <=2s; the four-request metadata /
@@ -121,10 +204,11 @@ Selected terminal run/date/root scopes remain unchanged.
 RRR enabled call roster: GetEnvironmentConfiguration, GetLastRunDate,
 LocationType, GetUIConfig(reportName=RationRequirementReport), GetState,
 RRRDataCount/RRRData, and GetExportDataAsync. Read/config/grid controls are
-verified as above; CSV export is **OPEN_MODERN_INTEGRATION_DEFECT**: enabled
-toolbar, gateway POST500, visible export-error toast, no downloaded file, missing
-modern route. GetAllReports' blank configured file paths do not authorize ignoring
-this dynamic export. Full RRR and F3.1–F3.5 remain partial/open.
+verified as above. The earlier CSV **OPEN_MODERN_INTEGRATION_DEFECT** (missing
+route, POST500 and export-error toast) is resolved by the export checkpoint and
+actual browser proof below. GetAllReports' blank configured file paths never
+excluded this dynamic export. Remaining layout/history controls and F3.1–F3.5
+are not closed by this selected read/filter/paging/export acceptance.
 
 RRR export exit frozen before edits: matched ReportsController.ExportCSVData →
 ReportProcessor.GetExportConfiguration → RRRProcessor.BuildSqlForExportRRR and
@@ -142,7 +226,7 @@ pagination ignored and layout selection; actual3005 cookie/download/root scope,
 unauthenticated denial, restart readback and protected-state preservation.
 Invalid source branches remain guarded NOT_PARITY. No F2 replay or new data.
 
-RRR export API checkpoint CLOSED, actual toolbar-file proof still OPEN:
+RRR export API checkpoint CLOSED; subsequent actual toolbar-file proof CLOSED:
 
 | Evidence under D:/freshvcf-build/evidence | Result / SHA256 of receipt.json |
 |---|---|
@@ -166,8 +250,16 @@ tie order is unqualified (legacy exception note). No invented tie-break.
 
 Preview image `sha256:b066e981059cb61da47303943f360e65e4f75c10e52de8709c05c369a073d14f`;
 gateway003 binds six candidate file hashes on03fb27e. Only MTA rebuilt/restarted.
-HTTP files are not toolbar-click proof; browser failure/pending confirmation
-above keeps that exit open. RRR-only dispatch guard remains. Other server CSV,
+Actual browser proof `D:/freshvcf-build/evidence/f3-rrr-export-ui-001/receipt.json`
+(SHA256 `55118db95a9e0579d0782d4fcc058e89576c762f8a22148a4a47889f5e71aae3`)
+binds d44b740 and the same runtime image: sign-in, June17 root grid14, Depo grid4,
+actual toolbar downloads14/4 rows and37 headers, byte-for-byte against the
+independent legacy files (3291/1340 bytes). Screenshots and downloaded files
+are retained. The browser download-event wait timed out, but the actual Windows
+Downloads files and gateway request timestamps prove successful completion;
+the timeout remains an instrumentation limitation, not an application failure.
+No action/layout write, deployment, input mutation or F2 replay occurred.
+RRR-only dispatch guard remains. Other server CSV,
 client XLSX and configured-file downloads stay per-screen F3.3 obligations in
 the original continuation order; no all-report export closure or new queue.
 
@@ -199,7 +291,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
 | F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS; DBM82 strict contracts PASS,94 cookie requests plus14 private asserted scope reads. Source-invalid branches remain NOT_PARITY. Planning/insight contracts remain pending |
-| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR read/filter/clear/paging/restart CLOSED; export API/files pass exact legacy bytes/restart, toolbar-file proof BLOCKED_BROWSER. Enabled-screen/request reconciliation is next independent work. Other screen proof remains open |
+| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR read/filter/clear/paging/restart/toolbar files and DBM current/daily-history reader/visible-history exits CLOSED for selected contracts; layouts/other downloads/action UI remain open. Screen/request reconciliation recorded, unknown/conditional rows visible. Approved terminal-only supplement is active, not nonempty logistics acceptance |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
 
@@ -695,21 +787,68 @@ obtained for the subsequent actual RRR inspection; no bypass.
 
 | Existing surface / sidebar route | Landed API / exact selected population evidence | Visible status / unmet exit |
 |---|---|---|
-| DBM → Norm suggestions `/mta/dbm/dbm-norm-suggestions` | DBMDataCount0; DBMDataNULL;16-column configuration/layout APIs landed | OPEN — verify EXPECTED_EMPTY_WITH_SOURCE_PROOF and disabled actions; related history must render |
+| DBM → Norm suggestions `/mta/dbm/dbm-norm-suggestions` | DBMDataCount0; DBMDataNULL;16-column configuration/layout APIs landed | CURRENT_READ/RESTART/EXPECTED_EMPTY verified; related history visible. Action buttons visible while backend preview actions disabled: eligible action UI/layout/export acceptance remains open |
 | Insights and Trends → Buffer Trend Report `/mta/insights-and-trends/buffer-trend-report` | GetBTRData/Count Tech1,240 and Eco1,240; current cookie gateway proof | OPEN — both visible grids, labels, count/paging/filter and download evidence |
-| BTR/RRR/DBM designated per-row daily-history dialog | DailyDataGraph nonempty; all1,240 native history consumers previously compared | OPEN — open existing dialog on retained337/AG515802 where reachable; visible dated history |
+| BTR/RRR/DBM designated per-row daily-history dialog | DailyDataGraph nonempty; all1,240 native histories compared through selective reader | VISIBLE from BTR on337/AG515802: dated series and Norm changes; no implied acceptance of every report's entry point |
 | Insights and Trends → Buffer Trends `/mta/insights-and-trends/buffer-trends` | GetBufferTrendGraphData native technical/economic comparisons landed | OPEN — actual selection, chart/summary and both branches |
 | Insights and Trends → Research Insights `/mta/insights-and-trends/research-insights` | GetResearchInsightData and historical-availability consumers landed; GetBPRData/Count not connected | OPEN — inspect graph entry/grid prerequisite; do not invent BPR detailed transit |
 | Guided Insights → DBM rules/SKU/location/age `/mta/insights-and-trends/guided-insights` | DBMNormSuggestion* four native consumers landed | OPEN — exact terminal populations and visible charts/grid, not current-grid substitution |
 | Guided Insights → Chronic unavailability (same route) | ChronicUnavailabilityLoc/Sku/GridViewData landed | OPEN — authenticate and show actual scoped population/chart/grid |
 | Guided Insights → Availability trend/ageing (same route) | AvailabilityTrend/AvailabilityAgeing landed | OPEN — exact selected horizon and visible chart |
-| SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016/UI010. Export comparison001/gateway003/restart001 PASS | VISIBLE_READ/FILTER/PAGING/RESTART VERIFIED. Exact HTTP CSV root14/Depo4; actual toolbar-download proof BLOCKED_BROWSER, full screen OPEN |
+| SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016/UI010. Export comparison001/gateway003/restart001/UI001 PASS | VISIBLE_READ/FILTER/PAGING/RESTART/TOOLBAR_EXPORT VERIFIED. Actual root14/Depo4 files match legacy bytes; remaining layout/history controls not implicitly closed |
 | SCIH → Planning, Order fulfilment `/mta/supply-chain-intelligence-hub/planning` | GetPlanningDataGrid/Count/Graph selected parent/child consumer landed | OPEN — overview prerequisite still detailed-transit blocked; inspect reachable selected slice |
 | Planning, Excess inventory (same route) | Selected excess grid/count/charts landed | OPEN — same overview dependency; actual scoped chart/grid proof |
 | Planning, Expedite (same route) | Counts/charts landed; unordered receiving label NOT_PARITY | OPEN — verify attributable flaw status; no invented label or blanket success |
 | Planning, GIT/overview and Research BPR prerequisite | Detailed retained transit absent; overview consumer remains blocked | BLOCKED_SOURCE_INPUT — source disposition retained; browser must show precise boundary, not fabricate data |
 | Saved layouts / filter controls on landed grids | Existing per-user layout API and selected DBM/RRR/BTR raw filters landed | OPEN — read-only real control/config behavior; no preview user preference/action writes |
 | Configured downloads | GetAllReports retained selected paths empty; client-grid exports must be distinguished | OPEN — inventory actual enabled client download, disabled source paths; no invented files |
+
+#### Screen/request reconciliation — governing the same F3 rows
+
+Static route and live-login reconciliation on d44b740, not new feature scope:
+`frontend/src/app-routes.tsx`, `components/layouts/NavbarMenu/listMenu.tsx`,
+`NavbarMenu/index.tsx`, page hooks under `VectorFlow/Pages/MTA`, corresponding
+`Services/MTA/*/api.ts`, and `mta/presentation/urls.py`. Login URL permission
+and a static menu entry establish reachability, NOT selected engine activation.
+The current environment configuration is presentation configuration; it does
+not carry the engine's IsMTOEnvironment setting. The pinned execution contract
+and BAT/SQL retain authority. Service declarations unused by a page hook do not
+automatically become additional mandatory calls.
+
+This extends the existing visibility matrix; these rows are not another queue.
+
+| Surface / selected disposition | Exact dependencies and source boundary | Existing F3 exit still required |
+|---|---|---|
+| DBM suggestions — required, permission enabled | DBMData/Count → DBMProcessor, DBM-owned attributes, current Suggestions/NormAcceptance/master/reasons; GetUIConfig(NormSuggestion), GetState/SaveState/ResetState. Apply/Sleep routes already independently proved. Download is client AG Grid XLSX, not GetExportDataAsync. | Selective committed-state reader; terminal current0 shown honestly; retained nonempty trial/filter/action proofs preserved; actual XLSX/history/control behavior. |
+| BTR and daily dialog — required, permission enabled | GetBTRData/Count → BTRProcessor Tech/Eco, BufferTrendDates and producer-owned state. DailyDataGraph → BORProcessor's six DBM histories, importer scope. BTR CSV uses reportName BTR; old AG Grid helper is not proof of the live toolbar path. | Both grids/labels/filter/paging, daily graph, then BTR-specific export on3005. RRR export guard cannot be reused as BTR acceptance. |
+| Buffer Trends — required, permission enabled | GetBufferTrendGraphData → native technical/economic wide BTR colour histories. No server CSV/client XLSX call observed in the page hook. | Actual selections, two graphs and dated summaries; do not invent a download. |
+| Guided Insights — required, permission enabled | DBMNormSuggestionLoc/SKUs/Pie/Ageing; ChronicUnavailabilityLoc/Sku/GridViewData; AvailabilityTrend/Ageing. Landed native consumers, no evidence of an enabled page export in the hook. | Actual selected tabs/chart/grid populations, scope and dates; current0 and historical132 remain different populations. |
+| Research Insights — required, permission enabled | GetResearchInsightData/GetHistroricalAvailabilityBPRData plus GetBPRData/Count, DailyDataGraph and layout/config. XLSX callback requests BPR grid data; standalone graph proof does not close the screen. | Resolve BPR input prerequisite, graph/grid pairing and XLSX. |
+| BPR — required, permission enabled | GetBPRData/Count → deployed BPRProcessor.GetBPRDataAsync; AddRemark/GetRemarkDetails; DailyDataGraph; BPR server CSV/config/layout. | Detailed transit/remark input boundary below; source-backed readback then separately owned action acceptance. |
+| Planning — required, permission enabled | GetPlanningDataCount overview; GetPlanningDataGraph/Grid/GridCount, GetPlanningDataCustom, SubmitOpenExpediteRequest. Selected Fulfilment/Excess/Expedite adapters exist; GIT/transit overview does not. Client XLSX calls the selected grid category/type. | Overview prerequisite, connected category drilldowns and applicable actions/downloads, preserving source-invalid branches. |
+| Logistics whereabouts — required, permission enabled | GetInTransitWhereAboutsData/Count, GetTransporterDetails, GetRemarkDetailsForInTransit/SubmitRemarksForInTransit; client XLSX. Detailed Importer.InTransitData/transport master required. | Same dated detailed-transit boundary; no fake current location, LR or transporter. |
+| BOR — required, permission enabled; not excluded merely because name says order | BOR data/count/analytics and BOR remarks from BuyerOrderReport service; toolbar CSV report-specific query. BOR opening/refresh producers already belong to selected engine. | Consumer/source-to-persisted mapping, API/filter/scope/layout/export and actual page; not yet implemented/accepted. |
+| BOR colour-band — selected producer active, permission enabled | GetBOROrderAllocationReportData/Count, AddBOROARemark/GetBOROARemarkDetails; BOROA export. OrderAllocBasedReports.bat executes CollectBOR_OrderAllocationData/GenerateBOR_OrderAllocation AFTER the IsMTOEnvironment=1 closing parenthesis. | Consumer and current persisted input reconciliation remains OPEN. Never classify this as MTO-only by analogy with RRR colour-band. |
+| RRR colour-band / order allocation — selected producer inactive | GetRRROrderAllocationReportData/GetRRRAllocationReportDataCount; OrderAllocationReport service. RunCoreBPR and OrderAllocBasedReports gate the corresponding producers with IsMTOEnvironment=1; selected profile0. RRR colour-band URL is nevertheless in preview permission. | Explicit inactive-profile presentation/disposition; no fabricated combined rows. Order-allocation route is not in current preview permission; do not widen permission. |
+| Supplier-wise allocation — required, permission enabled | getSupplierWiseAllocationReportData/Count; GenSupplierWiseReq is invoked by selected RunCoreBPR. Client XLSX; commented BOROA remark calls are not active dependencies. | Required producer/consumer mapping and actual scoped grid/export. |
+| Elephant Orders — permission enabled; selected behavior not yet reconciled | GetElephantOrderData/Count, UpdateElephantOrderDueDates; client XLSX. | OPEN source/producer classification before mutation; visible permission is not evidence to invent a rule or silently exclude it. |
+| Open Expediting Requests — permission enabled | Existing page service and SubmitOpenExpediteRequest workflow; direct AG Grid XLSX. | OPEN exact deployed action/readback/state consequence; Planning count proof alone is insufficient. |
+| Total Requirement / Supplier Dispatch — routed but not current preview permission | Their page/service dependencies exist; supplier/distributor settings and selected producer evidence govern activation. | CONDITIONAL/UNRESOLVED, explicitly visible. Resolve once before enabling or excluding; do not broaden permissions just to test. |
+| Master-data management — permission enabled family | Control Panel/Add/Delete/View-Modify/Saved Drafts/Task Pending/Task Status/Data Modification History; Services/MTA/MDM/api.ts GetMasterUIConfiguration/GetCount/GetMasterData and draft/task/modify/add/remove methods. | OPEN direct deployed workflow classification and owned action/state/consumer proof. Not covered by DBM Apply/Sleep. |
+| Dynamic configured downloads / dormant menu nodes | GetAllReports keys have empty selected paths; dynamic menu requires mta-report-urls. Merchandising route is outside /mta and service points at a mock API; commented logistics/dispatch menu entries are not enabled evidence. | Keep configuration-limited/dormant/unknown classifications explicit. No fabricated file, mock backend promotion or additional features inferred from raw reference counts. |
+
+Shared applicable dependencies: authenticated gateway URL/row permissions;
+GetEnvironmentConfiguration, GetLastRunDate, LocationType; exact per-page
+GetUIConfig/reportName and saved-state key. Filters using SKU/WH pickers must
+include their actual lookup call when reached; merely declaring SKUDesc/WHDesc
+in the BPR service does not prove every report requests them. Scope/filter/header
+and full-versus-paged population are mandatory parts of each actual export exit.
+
+Reconciliation outcome: the earlier visibility table omitted reachable BOR,
+BOR colour-band, supplier, logistics and MDM obligations. They are now explicit,
+not newly invented features. Unresolved conditional consumers remain visible
+and do not block independent known DBM/BTR work. No frontend permission or
+selected producer has changed, and no unknown row is credited as complete.
 
 OPEN is an intermediate verification state, never an exit. Verified rows require
 real-login route/sidebar observation, screenshot, API population and applicable

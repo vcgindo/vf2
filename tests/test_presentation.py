@@ -142,7 +142,7 @@ class PresentationTest(unittest.TestCase):
         payload = dict(product_permissions=[71001], location_permissions=[72001],
                        paginationParameter=dict(pageNumber=2,recordsPerPage=1))
         # Canonical DBM CTES own these attributes; Importer is deliberately empty.
-        with patch('mta.presentation.views.publication', return_value=SimpleNamespace(dbm=ATTRIBUTES,
+        with patch('mta.presentation.views.dbm_context', return_value=SimpleNamespace(dbm=ATTRIBUTES,
              output={'ClosingState':[{'importer':{}}]})), \
              patch('mta.presentation.views.dbm_rows', return_value=rows), \
              patch('mta.presentation.context.permission_catalogue', return_value=CATALOGUE):
@@ -158,7 +158,7 @@ class PresentationTest(unittest.TestCase):
 
     def test_history_forbidden_pair_is_not_loaded(self):
         with patch('mta.presentation.context.permission_catalogue', return_value=CATALOGUE), \
-             patch('mta.presentation.views.publication', side_effect=AssertionError('denied')):
+             patch('mta.presentation.views.dbm_context', side_effect=AssertionError('denied')):
             response = self.post('DailyDataGraph', dict(SKUCode='337',WHCode='AG515802'), **IDENTITY)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['data'], [])
@@ -169,7 +169,7 @@ class PresentationTest(unittest.TestCase):
             MonitoringData=[],NormChangeHistoryData=[],SuggestionHistoryData=[],RunDate='2026-06-17',horizonValue=90)]
         payload=dict(SKUCode='337',WHCode='AG515802',product_permissions=[71001],location_permissions=[72001])
         with patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE), \
-             patch('mta.presentation.views.publication',return_value=context), \
+             patch('mta.presentation.views.dbm_context',return_value=context), \
              patch('mta.presentation.views.daily_graph',return_value=graph) as read:
             result=self.post('DailyDataGraph',payload,**IDENTITY)
             self.assertEqual(result.status_code,200); self.assertEqual(result.json()['data'],graph)

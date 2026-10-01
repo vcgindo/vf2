@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from mta.presentation import btr, insights
 from mta.presentation.context import PublicationUnavailable, permission_catalogue, publication, scope, selected_run
 from mta.presentation.dbm import dbm_rows, delivery_history
+from mta.presentation.dbm_read import dbm_context
 from mta.presentation.dbm_filters import dbm_predicate
 from mta.presentation.daily_history import daily_graph
 from mta.presentation.insight_response import scalar_json_rows,chronic_grid_payload
@@ -178,7 +179,7 @@ def dbm_data(request, payload, *, count=False):
     paging = _pagination(payload)
     if paging is None:
         raise ValueError('invalid_pagination')
-    rows = dbm_filtered(publication(), payload)
+    rows = dbm_filtered(dbm_context(), payload)
     if count:
         return envelope(record_count=str(len(rows)))
     page, size = paging
@@ -327,7 +328,7 @@ def history_graph(request, payload):
         raise ValueError('SKUCode_and_WHCode_required')
     if not payload.get('product_permissions') or not payload.get('location_permissions'):
         return envelope(data=[])
-    context = publication()
+    context = dbm_context(history=True)
     products, locations = scope(payload, attributes=context.output['ClosingState'][0]['importer'])
     if sku not in products or location not in locations:
         return envelope(data=[])
