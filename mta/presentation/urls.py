@@ -1,0 +1,34 @@
+from functools import partial
+from django.urls import path
+from mta.presentation import views
+
+urlpatterns = [
+    path('GetAllPermmision', views.all_permissions),
+    path('LocationType', views.location_types),
+    path('GetEnvironmentConfiguration', views.environment),
+    path('GetAllReports', views.report_paths),
+    path('GetUIConfig', views.ui_config),
+    path('GetLastRunDate', views.last_run_date),
+    path('DBMData', views.dbm_data),
+    path('DBMDataCount', partial(views.dbm_data, count=True)),
+    path('RRRData', views.rrr_data),
+    path('RRRDataCount', partial(views.rrr_data, count=True)),
+    path('GetPlanningDataGrid', views.planning_grid),
+    path('GetPlanningDataGraph', views.planning_graph),
+    path('GetPlanningDataGridCount', partial(views.planning_grid,count=True)),
+    path('GetBTRData', views.btr_data),
+    path('GetBTRDataCount', partial(views.btr_data, count=True)),
+    path('DailyDataGraph', views.history_graph),
+    path('GetBufferTrendGraphData', views.buffer_trends),
+    path('GetResearchInsightData', views.research_insights),
+    path('GetHistroricalAvailabilityBPRData', views.historical_availability),
+    path('DBMNormSuggestionLoc', partial(views.insight_data, kind='loc')),
+    path('DBMNormSuggestionSKUs', partial(views.insight_data, kind='sku')),
+    path('DBMNormSuggestionPie', partial(views.insight_data, kind='pie')),
+    path('DBMNormSuggestionAgeing', partial(views.insight_data, kind='ageing')),
+    path('ChronicUnavailabilityLoc', partial(views.insight_data, kind='chronic-loc')),
+    path('ChronicUnavailabilitySku', partial(views.insight_data, kind='chronic-sku')),
+    path('ChronicUnavailabilityGridViewData', partial(views.insight_data, kind='chronic-grid')),
+    path('AvailabilityTrend', partial(views.insight_data, kind='availability-trend')),
+    path('AvailabilityAgeing', partial(views.insight_data, kind='availability-ageing')),
+]

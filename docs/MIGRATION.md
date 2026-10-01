@@ -21,7 +21,7 @@ old acceptance does not automatically transfer to a changed build.
 | F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
 | F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
 | F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | COMPLETE for selected registered scope WITH declared legacy flaw — all12 days accounted: 360 strict PASS +12 narrowly qualified report contracts. Day12 peak3.10GiB under4GiB; terminal native/readback proof PASS; prior receipts and failures preserved. Norm0 occurrence text is NOT parity |
-| F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | PENDING |
+| F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | ACTIVE — isolated implementation authorized from1eb0a2f; serving3004 cutover remains a separate approval gate |
 
 F2's final unmet exit is now satisfied for its selected registered scope. The
 authorized day12-only memory-lifetime correction preserves the calculation body,
@@ -29,10 +29,661 @@ inputs, actions, SQL and all31 comparison contracts. Only day12 was recalculated
 and compared; accepted days1–11 were retained without replay. Complete terminal
 relational/readback proof is recorded below. The sole Norm0 occurrence-text flaw
 remains explicitly qualified and is never described as parity.
-No further F2 retry or recovery queue is required. F3 is the only pending phase;
-this bounded authorization did not permit starting UI/application delivery or
-changing serving instances. This is not whole-application acceptance.
+No further F2 retry or recovery queue is required. F3 is the only remaining phase.
+The user subsequently authorized isolated F3 implementation via the review task;
+that authorization was verified at its source. Serving changes and3004 cutover
+remain excluded pending separate approval. This is not whole-application acceptance.
 Historical checkpoints below remain provenance, not a second active queue.
+
+## F3 finite application-delivery checklist
+
+Baseline: clean pushed1eb0a2f. Existing full-migration goal resumed by the user.
+This is the only F3 checklist; no new recovery programme or parallel status file.
+
+| Obligation | Required exit evidence | State |
+|---|---|---|
+| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | ACTIVE/PARTIAL — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. Native readback works; nonempty scoped delivery awaits retained-metadata disposition. BPR transit input, remaining consumers and application acceptance stay open |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PENDING |
+| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
+| F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
+| F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
+
+Completed bounded boundary: minimum reversible3005 preview under F3.3/F3.4.
+Authorization verified from the user's review task, turn01a0f548-9cb3-7b20-9f9f-8ccb15ac5881,
+with verified-local-login runbook instruction in turn01a0f549-7e92-7941-8851-186b9375c158.
+Reuse existing frontend/auth/MTO assets; connect only Fresh PostgreSQL and explicit
+accepted F2 publication. No new synthetic input, metadata bypass, F2 replay or
+3004 mutation. Required proof: protected service identities/health unchanged,
+real3005 login, isolated route/DB targets, honest implemented/blocked responses,
+selected-run/readback unchanged through isolated restart, exact stop instructions.
+F3.1's completed history slice is recorded below; the preview interruption is
+finished. Active work returns to F3.1's remaining source-backed API/configuration
+connections. Do not confuse the running preview with application acceptance.
+
+Preview evidence (1 October2026):
+
+- Real newly authorized local test account; actual browser CAPTCHA/login and
+  existing sidebar verified: Planning, RRR, BTR, Buffer Trends, Guided/Research
+  Insights and DBM navigation are visible. DBM shell shows17 Jun2026, actions and
+  empty grid; this is NOT positive row/action/UI parity. Some inherited sidebar
+  entries remain unimplemented/inactive; visibility does not certify them.
+- `f3-preview-http-002/receipt.json` SHA256
+  `d3da09d47a8738c9e8a52dd45dce0d6b15e2ebf6d99857cf9569b3b381a1f3c9`:
+ 11 gateway reads and login PASS; unauthenticated request401.
+  `f3-preview-restart-002/receipt.json` SHA256
+  `b2b56670a5bb12cef7bb8d9a1c6fbf8c635967e4269e787b5fb07b1769d0e8c6`:
+ 12 reads PASS after restart, including LocationType. Final normal two-worker
+  configuration, unchanged4GiB cap: `f3-preview-two-worker-001/receipt.json`
+  SHA256 `9fa054cd7376fe21d71605dbb4629d31ab8e30917b2d09190b41ce3b65b19344`;
+ login and three affected readback bodies exactly match preceding receipt.
+- `D:/freshvcf-build/evidence/f3-preview-001/protected-final.json` equals the
+ before snapshot:3004/3003 container/image/config/start identities, selected3004
+ routes/publication identities and accepted Fresh run/actions unchanged.
+ Engine and frozen artifact hashes unchanged. No output traces mounted; only
+ immutable input-identity snapshot and permission definitions. HTTP values come
+ from native relational rows. Exact image/config/mount identities are in receipts.
+- Preserved wiring failures: auth-internal001 missing evidence-root setting;
+ http001 missing immutable input snapshot; restart001 ran before readiness(502).
+ Single-worker/browser concurrent requests also exposed timeouts; normal two
+ workers restored, no cap increase. Do not relabel these as accepted evidence.
+- Existing auth/MTO migration chains applied only to empty owned schemas;
+ all three service checks pass and migration plans are empty.25 focused MTA
+ tests PASS. No frontend/auth/MTO source changed, no calculation replay.
+ Full MTO regression, DBM column/preferences contracts, Planning overview/BPR
+ routes, remaining consumers and user-action/download acceptance remain open.
+ Runbook now contains verified local login, startup/stop boundaries and limitations.
+
+Preview-discovered F3.1 connection gap: authenticated DBM rendering requests
+`LocationType`; the missing route triggers the unchanged React query error
+boundary. Permit this single source-backed read adapter and focused tests within
+the preview boundary. CommonsProcessor from the pinned deployed DLL selects
+DISTINCT non-NULL LocationAttributeData.LocationType and returns JSON text;
+empty strings are NOT excluded. No hierarchy substitution or calculation change.
+Processor SHA256 `6a79e4cd927c3a4bee0f72c9dab6f327bfcfcf9ef7dda21f1c906e8762be767b`
+in `f3-preview-source-001`. Route and NULL/empty/distinct/text-shape unit proof
+are implemented; independent endpoint parity is not claimed from this preview.
+GetState/preferences and other unimplemented endpoints remain existing F3 exits.
+
+F3.1 retained-history/DBM consumer slice closure:
+
+- `D:/freshvcf-build/evidence/f3-history-comparison-003/receipt.json`, SHA256
+  `92c39d5e46d310fbca2019c9b3b39dd813ffdb594ae2cce2ad0be55fe9957e92`:
+  PASS_RETAINED_HISTORY_DBM, zero typed-bag/order differences. Research5720rows,
+  canonical parent projection1240rows; Tech/Eco graphs at12/90days; three
+  historical-availability bands; terminal DBM count0/gridNULL. Empty terminal
+  suggestions are NOT positive suggestion/action coverage.
+- `f3-history-export-002/receipt.json` SHA256
+  `2ec03bb41cb2e6d15ed27c3d48d4bd5b5abbccd5b17a2f548e7bef74ee537d79`.
+  Native relational wide BTR is authoritative, not dated-BPR aggregation.
+  SQL NULL omission, permission multiplicity and deployed Decimal/string versus
+  double/JSON wire behavior retained. Actual DLL research query builder was used;
+  graph formatting is independently source-transcribed on.NET, not represented
+  as a running legacy.NET6 HTTP endpoint.
+- `f3-api-history-native-001/receipt.json` SHA256
+  `9993c235886e9f2a10d0f2cf94bc0b802a55f5c96cab1807eaac703a997bd7c9`:
+  five Django/PostgreSQL routes return200; run/action/parity identities unchanged.
+  Scoped NULL hierarchy yields honest denial/zero populations, NOT authenticated
+  positive UI acceptance. Active graph filters remain explicitly unavailable
+  until F3.2, not silently ignored.24 focused tests and diff check PASS.
+- Preserve comparison001 (BPRMaster WHCode harness mapping) and002 (0.0 versus0
+  wire mismatch) unchanged. Corrected003 is the new evidence, not an overwrite.
+  Remaining F3.1: missing detailed transit consumers, nonempty scoped metadata
+  disposition and remaining endpoint contracts. No blanket API acceptance.
+
+F3.1 permitted boundary after preview: new application/read adapters, routes and their tests/config;
+the accepted engine, actions and storage semantics are unchanged. Reuse pure
+consumer projections from the pinned integrated revision66a77735d3f3f9a9becf4c87a08ae7827900cf84
+with recorded provenance, not the prior dirty worktree or its calculation/ORM
+hierarchy. Actual deployed API/config remains canonical; inherited consumer
+code is a porting input, not independent evidence of correctness.
+
+Architecture invariant: CalculationRun plus its relational closing/report rows
+and ordered RunCommand records own business state. API/UI are projections and
+adapters, not a second calculation engine or state source. Select the publication
+explicitly; never infer it from whichever experimental run was created last.
+Keep accepted F2 run identities read-only during application work; action proofs
+use their own isolated retained-case run identities, not accepted timeline days.
+
+F3.1 working evidence (not API parity acceptance):
+
+- Explicit selected run `ac1612c8-0e49-4155-83c3-f59f41422293`;7 basic reads
+  PASS in `D:/freshvcf-build/evidence/f3-api-read-001/receipt.json` (SHA256
+  `814308366ef474b71a9c80cd7de654dd87d547696407addd2dc0fbc40cb3c33d`).
+- Twelve insight/history reads PASS in
+  `D:/freshvcf-build/evidence/f3-api-insights-001/receipt.json` (SHA256
+  `06f718cce424ffa6e093a6d82de89183f103d29f0bd4df91c264f628699a8e54`).
+  Request/response bytes and source hashes retained; run/output/production and
+  action identities checked unchanged. These are application readback checks,
+  NOT independent legacy API parity or authenticated browser acceptance.
+- Concrete consumer/storage gap: deployed RRR consumes Pick-specific report
+  membership/bifurcation facts. F2 retained those calculated facts in external
+  comparison evidence, while its operational BPR projection stores only
+  BPR_Table/vf_RationedReqReport. F3 must publish the required typed consumer
+  projection with explicit lineage; it must not read traces on HTTP requests,
+  recalculate ration quantities, use a fixture fallback or alter accepted F2
+  rows/receipts. Record/review the exact additive publication boundary before
+  implementation. This is an F3.1 application obligation, not a reopened F2
+  calculation failure or another recovery queue.
+
+Bounded F3.1 correction selected: typed PickBand rows plus a small PickProjection
+receipt linked to the existing CalculationRun. Copy the existing calculated
+band population, preserving its ordinal/multiplicity and wire digest. New daily
+runs write it inside finish_run's existing transaction; no calculation, old
+production-manifest or parity-output change. A separate explicit restore command
+may materialize accepted day12 from its own checksum-verified modern checkpoint,
+without replay or any update to the accepted run/receipts. HTTP reads never load
+that checkpoint. Required proof: exact band readback, idempotent restore, tamper
+rejection and rollback of the additive projection with the existing transaction.
+
+F3.1 Pick connection evidence:
+
+- Generated additive migration `fresh_mta.0007_pick_consumer_projection`, after
+  0006; two typed read-model tables, no data rewrite/custom migration operation.
+  PostgreSQL fresh migration-enabled17 transaction tests PASS, including native
+  daily rollback; the extra overall-acceptance rejection test also PASS. Fifteen
+  report/framework unit tests PASS; migration plan/apply/check show no drift.
+- `f3-pick-publication-001/receipt.json` SHA256
+  `d101245e868e564276936f374d9796f71c28f46a8013edd86538f5c408054aa1`:
+  all14 terminal Pick-band rows transferred exactly, duplicate/order/type digest
+  verified, retry idempotent, accepted run/action/receipt identities unchanged.
+- `f3-api-rrr-001/receipt.json` SHA256
+  `b2097cbefde6360b75900d1a71124fac4bac1c97a90971433dea3788f21f5296`:
+  RRR configuration/count/grid HTTP readback PASS. Not independent API parity.
+- Preserve `f3-pick-native-comparison-001/receipt.json`: the read-only comparison
+  correctly refused the current SQL database's June5 date. The F2 oracle rolls
+  back each SQL transaction by design; its accepted terminal state is in the
+  immutable dated captures, NOT in current SQL tables. This was a comparison
+  setup assumption, not a new engine divergence. Do not replay accepted days or
+  weaken the date guard. Consumer checks must use the retained day12 captures
+  with their receipt/boundary fingerprints. A validation-only streaming reader
+  avoids materializing the entire44MB-compressed trace in memory.
+- `f3-pick-native-comparison-003/receipt.json` SHA256
+  `d06e30cc8d203d78ec7ade158ddc2402b0134e30e268217ade1be2fb84beb19a`:
+  all14 rows and67 native consumer fields match exactly. SQL executes only the
+  pinned producer's two SELECT/INSERT projections over its OWN retained legacy
+  rationed rows/bands in session-temp tables. No band arithmetic, daily batch,
+  modern seeding, persistent SQL-table update or accepted-day replay occurs.
+  The retained closing and BPR boundary fingerprints match the F2 receipt.
+  API filters/auth/type-envelope acceptance remains distinct and open.
+  Preserve comparison002's strict IsNormed int/bit mismatch: the first harness
+  omitted the source INSERT target-type conversion. Only that harness was
+  corrected to use the canonical target schema; no app value/comparator change.
+
+F3.1 BPR source reconciliation (not accepted API delivery):
+
+- Deployed BPRController selects GetBPRDataAsync. Its exact decompilation is
+  `D:/freshvcf-build/evidence/f3-canonical-api-001/VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.BPRProcessor.decompiled.cs`
+  (SHA256 `68b9680373d7edf530fe5985f89d88d67b6fc4f7f1870112230cba9c7bb6b03b`);
+  controller SHA256 `8a89ac76c8f396a96be4d5553e614fde6547d4649567a739f2e2ca58fab9329d`.
+  The pure adapter preserves two-pass key-bag paging, count's inner standard
+  membership, grid's left membership, latest-remark ties and producer colours.
+  Five focused unit probes pass. No API/parity acceptance is claimed yet.
+- BLOCKED sub-obligation: terminal BPR `intransit` and remark attachment inputs.
+  Legacy `ValidateAndProcessInputData.bat:57–59` unconditionally invokes
+  ValidateGoodsInTransit.sql; Planning invokes GoodsInTransitTransporterMaster.
+  The accepted temporal output contains neither InTransitData nor remark rows.
+  The frozen artifact retains June5 transit raw context and a separate dated
+  shipment ledger; the latter has no transporter/LR/current-location fields.
+  Neither is silently relabelled as a complete June17 detailed-transit input.
+  Do not invent empty rows, transport facts or a new synthetic artifact, and do
+  not change/replay F2. Ancillary input/publication mapping needs an explicit
+  source-backed disposition before enabling the full BPR response. This does
+  not block independent RRR/DBM/BTR consumer work or reopen calculation proofs.
+
+F3.1 independently detected permission mismatch:
+
+- Preserve `f3-api-rrr-comparison-001/receipt.json`, SHA256
+  `b70cdc6993b9cd8078fb0e104def6189571b88bef3fe9b6de6f0b810f3ee6fd0`.
+  The actual deployed query over retained terminal legacy rows returned0, while
+  the initial modern API returned14. Root cause: modern scope incorrectly used
+  the historical permission artifact's code memberships; the selected run's
+  producer-owned SL1–3 and LL1–3 are all NULL. SQL NULL hierarchy joins authorize
+  no rows. This is an F3 adapter/input-boundary defect, not a calculation failure.
+- Correct scope membership against the selected run's actual attribute rows;
+  preserve the registered permission ID definitions. No all-access fallback,
+  historical membership substitution or silent hierarchy injection is allowed.
+  Nine HTTP/permission unit checks pass, including retained-membership/NULL
+  disagreement. F2 identities/rows/receipts remain unchanged. Earlier HTTP200
+  receipts remain historical wiring evidence, not current permission acceptance.
+- User decision requested: an explicitly versioned F3 metadata supplement from
+  the exact retained catalogue/hierarchy, used identically in isolated legacy
+  and modern consumer checks WITHOUT changing F2 inputs/calculations/run rows.
+  Until approved and proved, empty authorized output cannot close the required
+  nonempty UI acceptance. This request does not authorize new transit facts.
+- `f3-rrr-readmodel-comparison-001/receipt.json`, SHA256
+  `fcb70b7cb7c4401bdb09d2451f7ecae803fb53bba4fbbed27f5dc13662407de5`:
+  all14 unscoped RRR rows and119 fields match the actual deployed SELECT and
+  type configuration over the independent retained legacy facts; declared
+  ordering matches. This proves the read model, NOT authorization acceptance.
+- `f3-api-rrr-scope-comparison-002/receipt.json`, SHA256
+  `fd6c27fb4b084f4d648b457dd02f843e17200909ae5036c49740ec608b94324b`:
+  independently verifies corrected API grid/count denial (0/0) for the terminal
+  NULL hierarchies. No comparison waived, no fabricated membership. This empty
+  proof explicitly leaves nonempty application acceptance OPEN.
+- Seven affected DBM/BTR/history HTTP reads pass after the scope correction:
+  `f3-api-scope-read-002/receipt.json`, SHA256
+  `eb4ec698b1c36791e746650496f6ad9f3295fd5263c9c4674df8986e774c4775`.
+  The selected accepted run/action/parity identities remained unchanged.
+  Eighteen focused HTTP, BPR and RRR unit tests pass. No serving changes or F2
+  replay occurred. Await the metadata decision before claiming nonempty UI
+  delivery; F3.2–F3.5 remain pending and no new goal/tracker was created.
+
+F3.1 current-day Excess report connection:
+
+- Canonical `CollectExcessInventoryDetails.sql` SHA256
+  `71bb48766d3af7a739b90c511124f9ad99072066283536fd28a9530f3640b8c4`
+  now has an additive relational consumer projection. White/nonzero predicate,
+  source joins, NULLs, duplicate bags, numeric conversions and all17 fields are
+  preserved. Migration0008 adds only typed report rows and a publication receipt;
+  it does not rewrite accepted F2 state or store internal traces.
+- `f3-excess-publication-001/receipt.json`, SHA256
+  `53df50640b95e9c31935f14052270c0f2d4f3bb1d9c917348d2105118bdffee8`:
+  85 persisted rows round-trip exactly; publication retry is idempotent and
+  accepted run/action identities are unchanged.
+- `f3-excess-comparison-001/receipt.json`, SHA256
+  `41498dec00989c834efe90b496e312dd9d92f52d5b8d8d0fe934cf60365894f4`:
+  all85 rows/all17 fields PASS against the canonical INSERT over independently
+  retained legacy terminal facts in temporary tables. No daily replay.
+- Nine migration-enabled producer/storage tests and two affected temporal
+  transaction tests PASS, including additive report rollback. Fourteen focused
+  HTTP/producer tests PASS; Django migration checks and diff check PASS.
+- `f3-api-excess-001/receipt.json`, SHA256
+  `ad78a3c7ae96f965ef81ff943c7b2c6e84c3fb4ffd0398dada7c30232613be7d`:
+  configuration/count/grid HTTP reads PASS, not independent API acceptance.
+  Current-day producer parity does not claim historical retention, filters,
+  charts or nonempty authenticated UI acceptance.
+- `f3-excess-readmodel-comparison-002/receipt.json`, SHA256
+  `d5fbbea579ac8394746521c895fc0408d16478b08825e5be516af2211036f233`:
+  **85 grid rows/all28 fields, count/config and four chart populations PASS**
+  against exact SELECTs extracted from the deployed Planning/Excess processors.
+  Location charts each have12 rows; product charts each have70 rows. All typed
+  bags and declared ordering match; equal chart-count ties receive no invented
+  ordering. Description/permission multiplicity is before aggregation, outer
+  attribute multiplicity after it; no TOP10 is fabricated from chart labels.
+  Enabled dynamic attributes were explicitly checked absent before comparison.
+  Its SQL/grid proof remains valid. Its hand-transcribed chart response omitted
+  UiConfigAttr.colPosition; that response qualification is corrected by the
+  actual-DLL check below. This was not full hosted API/authorization acceptance.
+- Preserve comparison001 (SHA256
+  `9aaf24e29a0fa34dd8ff79822e3999bc02d9e19915977061b146ed43ab6a3c30`):
+  the harness's temporary table substitution omitted a delimiter before alias
+  `a`. Corrected only that binding; no query predicate/app value/assertion changed.
+- `f3-api-excess-002/receipt.json`, SHA256
+  `13ad210c99259bae7bf408805767bcfdabf2aa105b06d56f3464ff861a98c9b3`:
+  four configuration/grid/count/chart HTTP reads PASS from the selected run;
+  accepted identity unchanged.27 focused presentation checks PASS. No engine
+  replay, synthetic generation, F2 receipt change or serving mutation occurred.
+  Filters, historical retention and nonempty authenticated UI remain open.
+
+Continue the existing F3.1 report-connection obligation using known canonical
+sources and accepted relational facts. Do not broaden the approval for metadata
+to ancillary transit inputs. The pending user decision is unchanged; unavailable
+inputs must stay explicit, never be manufactured to close an endpoint.
+
+F3.1 Fulfilment connection contract: canonical
+`Scripts/BPR/CollectOrderFulfillmentData.sql` consumes the already-calculated
+rationed rows, standard attributes, current orders and original calculated
+routes. Required persisted summary/detail projections are connected below.
+Permitted mutation is additive report tables/publication and API read adapters;
+no F2 algorithm, input, state, action or receipt changes. Restore the accepted
+run only from its own verified calculation evidence where necessary; normal
+daily publication writes in the existing transaction and HTTP reads typed rows.
+Resolve a route's OrderKey only from its explicit part identity or a provably
+unique produced order identity; ambiguity is an error, not a guessed match.
+Required proof: complete canonical producer comparison, exact persisted/readback
+and rollback, then deployed consumer grid/count/chart comparison and HTTP read.
+
+F3.1 Fulfilment producer and normal grid evidence:
+
+- Canonical producer SHA256
+  `b6ae768bd632c831050453f7702a2016bf8db11bc69a2a05088f31c030d3d3b1`.
+  Additive migration `fresh_mta.0009_fulfillment_consumer_projection` depends on
+  0008 and creates three tables (receipt, typed21-column summary and typed9-column
+  detail); no custom SQL/data rewrite. Applied ONLY isolated PostgreSQL. Django
+  check/no-model-drift/plan and migration-enabled nine producer/storage/temporal
+  tests PASS, including exact next-opening and complete transactional rollback.
+- `f3-fulfillment-publication-001/receipt.json`, SHA256
+  `f88ccfe3db7a458d46762d7efe56146aac306dc6cf41ee7b0340b719431f00a6`:
+  1,222 summary rows and one detail row committed/read back exactly. The accepted
+  native calculation supplies three original routes; the one retained OrderKey
+  mapping is unique. No order/detail fact was inferred from aggregate quantities.
+  Publication is idempotent; accepted run/actions/receipt identity unchanged.
+- `f3-fulfillment-comparison-002/receipt.json`, SHA256
+  `7942b6bf84cda3c467970e89809aa45515c7570de681dacc4839d2dcfddea19f`:
+  **1,222 summaries ×21 fields, one detail ×9 fields, and 1,222 normal grid rows
+  ×34 fields PASS**, plus count/config and declared ordering. The grid includes
+  typed nested order data. The oracle executes the exact canonical report SQL
+  and deployed SELECT over its own retained closing/routes in temporary tables,
+  never modern seeded answers or an accepted-day replay.
+- Preserve comparison001 (SHA256
+  `04573808fe6120eb0080e8ee344202e966b1654b58195c7b3cba5023a64ca455`):
+  SQL SELECT-INTO propagated the OrderKey identity generator into the temporary
+  harness table and rejected retained keys. Only that temp-table projection was
+  corrected to a typed INT expression; actual keys/SQL/comparisons were preserved.
+  A separate diagnostic tempdb catalogue inspection was refused by the existing
+  cross-database guard; that guard was NOT changed or bypassed.
+- `f3-api-fulfillment-001/receipt.json`, SHA256
+  `3c137896d7d33b504c9aa63b9bd911f5c9d2cc01569cdf8f99303c48ed6f0f2e`:
+  grid/count HTTP readback PASS on the selected accepted run. This remains
+  permission-denied empty output until the existing metadata decision is resolved,
+  not positive authenticated acceptance.25 focused presentation/reader tests PASS.
+- F2 engine, frozen artifact, final replay receipt and terminal readback were
+  rehashed unchanged. No F2 rows or receipts were updated, no serving mutation,
+  no new public port and no commit claimed as F3 acceptance.
+
+F3.1 Fulfilment chart boundary source is the already
+matched deployed `QuadrantProcessor.GetOrderFulfillment/GetResponse`, decompilation
+SHA256 `9f084f3550ab5c6ca8193de71b70ee6d7341aa1647004776ff152dd9fd858d60`
+under the registered `.local-stage7/deployed-planning` evidence directory.
+The prior pure chart response at66a7773 explicitly contains an earlier
+presentation exception (grouping by code and additional score sorting); do NOT
+blindly import it as canonical behavior. The deployed response groups by Details
+and reads the first three category rows. Preserve/report source limitations;
+no new repair or tie-break is authorized. Its current-day facts now exist in
+typed PostgreSQL rows, so no additional synthetic generation or engine replay
+is needed. Filters/scopes/browser and other F3.1 reports remain open.
+
+F3.1 Fulfilment charts and exact Excess chart response evidence:
+
+- Four canonical Fulfilment query populations (1,1,23,218 rows) and all response
+  fields/config PASS. `f3-fulfillment-charts-comparison-002/receipt.json`, SHA256
+  `32a9680aedc508e6f24d8fcfe4e264b39fe07c4ff1549f7311e9586a42c62cfe`.
+  SQL runs only in temporary tables over independently retained legacy report
+  rows. The real pinned DLL's GetResponse processes those results; no copied
+  modern expected outputs, repaired description grouping, extra sorting or
+  TOP10 truncation. Duplicate bags, types and declared count ordering are checked.
+- Preserve comparison001's original assembly-resolution failure and the separate
+  `response-mismatch.json`. The successful invocation exposed the missing
+  serialized `UiConfigAttr.colPosition=0` in the modern chart configuration.
+  Correct only that application response field; canonical code/config is unchanged.
+  The original Fulfilment chart data otherwise matched the deployed method.
+- The same field was missing from the imported Excess response helper. Keep
+  its registered imported bytes intact and add the actual field in the local
+  adapter. `f3-excess-deployed-response-001/receipt.json`, SHA256
+  `4f70d956babbfd7c164de6e720afde4846b09ef4e5f83128964478fa078a51aa`:
+  all four populations (12,12,70,70), full response/config, unchanged85-row grid
+  and count PASS. Reused the hash-pinned independent SQL results; no SQL/engine
+  replay. The receipt retains the earlier response's four exact config differences.
+  Earlier producer/grid comparisons remain valid; the earlier response assertion
+  alone is superseded by this stronger deployed-method proof.
+- Method invocation loads the actual deployed DLL and its installed MVC assembly
+  without starting/changing a service. Runtime/assembly/input hashes are recorded.
+  It runs under the recorded .NET10.0.11 tool CLR, not the deployed .NET6 HTTP
+  host. This proves the selected pure method and SQL bags, not hosted HTTP,
+  nonempty authenticated scopes/filters, browser behavior or unspecified tie order.
+- `f3-api-fulfillment-002/receipt.json`, SHA256
+  `ab9a14d42b23b0bd5d1bdd54450bc7702a3a27ecd5d26b320eef9a70043069e6`:
+  grid/count/chart HTTP reads PASS against typed PostgreSQL reports; accepted
+  run/actions/parity identity unchanged. Actual authorized populations remain
+  empty because the selected native hierarchy is NULL, as previously documented.
+- `f3-api-excess-003/receipt.json`, SHA256
+  `916b99fd5bfb9d2f4e65e4f5ee2ccab81bb364d4b6928e150eaaeb0550c4d8f0`:
+  all four configuration/grid/count/chart HTTP reads PASS after the wire-field
+  correction, with accepted run/actions/parity identity unchanged. This carries
+  the same explicit nonempty-authorization qualification, not UI acceptance.
+- 27 focused producer/chart/HTTP tests PASS. Source-defined NULL-description
+  exception behavior is NOT claimed as parity: the adapter explicitly rejects
+  that unsupported chart condition rather than inventing a label or repairing
+  the legacy partial-response behavior. It does not occur in these retained
+  nonempty populations. No new F2 qualification or broader exception is implied.
+- F2 engine, frozen artifact, final replay and terminal readback hashes remain
+  unchanged. No accepted day replay, synthetic regeneration, serving change or
+  public port was introduced. Pending finite IDs remain F3.1 (partial), F3.2,
+  F3.3, F3.4 and F3.5. No F3 acceptance commit is claimed.
+
+F3.1 Expedite connection contract: port the exact
+`CollectDataToExpediteDispatches.sql` projection (SHA256
+`894ba52512be0bb39ec4e97aff603ed1da572c4463d6c319b9a2ae20a54f753d`)
+from the already-produced Pick rows, importer masters/standard attributes and
+existing BTR black/red-age outputs. Add a typed run-linked22-column projection
+inside the existing transaction, with explicit accepted-run publication,
+exact canonical SQL comparison/readback, idempotence and rollback proof.
+No Pick/rationing/DBM recalculation, synthetic replacement or F2 state mutation.
+Connect the canonical parent/child count branch; full grids require the
+separately missing detailed-transit/remark inputs and must not invent empties.
+
+F3.1 Expedite producer/count evidence:
+
+- Migration `fresh_mta.0010_expedite_consumer_projection` depends on0009 and
+  creates only a typed22-column report table and bounded run-linked receipt.
+  No RunSQL/RunPython, baseline rewrite or old-state transformation. Generated
+  migration inspected; PostgreSQL check, no-model-drift and migration plan PASS.
+  Applied only to the owned isolated database.19 migration-enabled persistence
+  tests PASS, including report mid-write rollback, whole daily-transaction
+  rollback and unchanged own-predecessor/action reconstruction.17 focused unit
+  producer/count/HTTP tests PASS; their protocol inputs are NOT parity fixtures.
+- `f3-expedite-publication-001/receipt.json`, SHA256
+  `76b4bef30a69b8a5c635919436905839ad601d7a804cea03b66b44e3fbe70396`:
+  all10 retained day12 Expedite rows published and read back exactly; retry is
+  idempotent and the accepted run/actions/parity identity is unchanged. These
+  ten rows are the canonical report subset of the existing full estate, not
+  a replacement small synthetic dataset. BRAge/red/black counts come from
+  already-accepted own BTR state; HTTP uses only relational report facts.
+- `f3-expedite-comparison-001/receipt.json`, SHA256
+  `24a68d58ca9c69ba73bf0c82e8b3576bd874a75ae3ed30d2268f45add34ff9e1`:
+  **10 rows ×22 fields PASS** against the exact producer SQL over its own
+  checksum-verified legacy Pick/closing facts in temporary tables. Accepted
+  legacy BTR age values are attached to that legacy report, never modern answers.
+  Normal unscoped parent and child counts each match7 dispatch/0 availability
+  candidates. Seven separate SQL decimal/rounding probes match individually;
+  these unit probes do not alter or replace the full-estate artifact. The
+  verifier now compares each probe by index, not an unordered scalar bag; the
+  retained original receipt explicitly contains matching typed values for every
+  individual probe and was rechecked without replay or alteration.
+- `f3-api-expedite-001/receipt.json`, SHA256
+  `d82ae462eb931323e01d53bc60104aa61907baea9656ad6c9e93a4727a98af3e`:
+  both normal count endpoint directions read PostgreSQL successfully; accepted
+  identity unchanged. Native NULL hierarchy correctly denies actual assigned
+  scope, so this is wiring evidence, not nonempty authenticated acceptance.
+  Full grids/charts/custom branches and filters remain OPEN. In particular,
+  source-backed missing transit/remark inputs are not replaced with empty data.
+- Preserve the pre-publication CLI invocation error separately: a direct
+  `call_command` supplied a string where its option parser normally produces
+  a Path. No report write or receipt directory had begun. The normal CLI then
+  completed publication; no business/source/comparison change was made for this.
+- Engine, frozen artifact, final F2 replay and terminal readback SHA values were
+  rechecked unchanged. No accepted-day replay, engine action, serving mutation,
+  new public port or F3 acceptance commit. Pending: F3.1 (partial), F3.2–F3.5.
+  The next independent Expedite work is its chart consumer; preserve the already
+  closed producer/count proof and resolve only its actual additional inputs.
+
+F3.1 Expedite chart contract: both deployed parent/child queries require
+PostRationEcoAvailability → CalculatePenetrationAndColor →
+UpdatePostRationPipelineInventoryPen. This missing report projection can be
+derived from the already accepted Pick/rationed facts; it is not permission to
+change/replay their calculation or substitute inputs. Persist the two canonical
+post fields in typed run/ordinal-linked rows, compare the exact SQL producer,
+then connect/compare all chart result sets and deployed response methods.
+Keep previous Expedite producer/count proofs closed. Do not import the earlier
+demo's LogisticsLocation label repair; the deployed receiving response reads
+the final critical-chart label, a source flaw, not authority for a new solution.
+
+F3.1 Expedite chart results (bounded producer/query closure, not whole API/UI):
+
+- Additive `fresh_mta.0011_pick_post_consumer_projection` depends on0010;
+  two typed report/receipt tables, no data migration or prior-history rewrite.
+  Fresh migration-enabled PostgreSQL tests passed: three storage protocol
+  checks, three imported pure tests and two native daily transaction/next-state
+  checks. Django check, migration drift check, plan and isolated apply passed.
+  Twenty-one focused chart/HTTP tests passed after route connection.
+- `f3-expedite-charts-export-003/receipt.json`, SHA256
+  `3c168146ad726e9f98e76615127f3e062507673a0e3d5314ca6684afbec0a6e7`:
+  post-projection idempotently published from own accepted relational Pick
+  inputs; run identity remains unchanged, no engine replay or evidence fallback.
+- `f3-expedite-charts-comparison-001/receipt.json`, SHA256
+  `e5aff4654c4878180a0984176e45dc28f99a30ec78794f8a9261b3f300c4750b`:
+  exact canonical three-stage report SQL in session-temp tables matches all14
+  Pick rows×69 fields. All eight chart query bags match, including full typed
+  multiplicity and declared sorting. Parent populations4/6/0/3/2; child0/6/2.
+  Selected empty subqueries are not credited with positive branch coverage.
+  Actual deployed DLL methods match modern transformations on the same explicit
+  ordered DataSets; this is not legacy HTTP-host or browser acceptance.
+- `LEG-EXPEDITE-UNORDERED-LABEL` is independently reproduced in that receipt:
+  the same critical bag in reverse order changes receiving labels in the DLL.
+  The ambiguous parent response remains unavailable/NOT_PARITY; no label repair,
+  invented order or blanket comparator exclusion. Details are in the exception
+  register. Source-deterministic child response matches on its own query results.
+- `f3-api-expedite-charts-001/receipt.json`, SHA256
+  `097d155836cd11931a742c8d468f35ee14edb563e13fd15b5a0b7211e0e90f75`:
+  both parent/child chart endpoints read the persisted projection successfully,
+  leaving accepted run/action identity unchanged. Actual native NULL hierarchy
+  still correctly denies assigned scopes: these two HTTP200 reads are wiring
+  evidence, not positive authenticated chart/UI parity. Twenty-one unit tests
+  include the HTTP503 flaw response and native scope forwarding.
+- Preserve export001's wrong-case BPRMaster key failure (corrected only in the
+  consumer), and export002's source-ambiguity guard receipt. Neither is parity.
+  Previous producer/count proofs and F2 acceptance remain valid. No new artifact,
+  accepted-day replay, public port or serving change. The ambiguous response is
+  explicitly blocked; continue independent report/API obligations, not another
+  attempt to repair or order the legacy labels.
+
+F3.1 daily-history graph contract — compare the already-wired
+DailyDataGraph consumer across the full retained terminal DBM population.
+Required proof is all six nested populations (stock/consumption/receipts,
+Norm changes, master, monitoring, Norm reasons and suggestion history), run
+date/horizon, NULLs, duplicate multiplicity and declared temporal sorting.
+Use the deployed DLL's actual query-builder methods over its own accepted
+legacy closing tables, and modern PostgreSQL rows over its own accepted run.
+No daily replay, new synthetic inputs, schema change or action is permitted.
+Correct only an evidenced consumer divergence. Positive authenticated delivery
+remains gated by the separate metadata decision; unscoped proof cannot close it.
+
+Daily-history graph consumer proof is now COMPLETE for all retained terminal
+pairs, without closing authenticated/UI acceptance:
+
+- Actual deployed DLL query-builder methods generated the seven query fragments;
+  their receipt SHA256 is
+  `a17e0bcd3b8a92916c678acb5615754593d878e94b31e752b92835e8f550e16e`.
+  Fresh decompilation from that DLL also confirms the caller's90-day horizon,
+  outer JSON wrapper, child roster and response deserialization. Source:
+  `D:/freshvcf-build/evidence/f3-daily-history-source-001/VectorFlowAPIs.VectorFlow.Processors.BORProcessor.decompiled.cs`,
+  SHA256 `80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`.
+  Only this selected method was reconciled with the older source; do not infer
+  whole-file equivalence from that check. CLR recorded as.NET10 for query builders.
+- Preserve comparison001: its ordering check exposed a canonical empty nested
+  JSON section as NULL, not an iterable. The independent scalar SQL observation
+  in `f3-daily-history-empty-observation-001` confirms that the reused adapter's
+  empty lists differed from the deployed wire contract. Added a narrow wire
+  wrapper; original reused helper bytes, engine and production rows unchanged.
+  Comparator still distinguishes NULL from[]; optional sorting checks do not
+  replace typed population comparison.
+- `f3-daily-history-export-002/receipt.json`, SHA256
+  `1bb4b7ae7b650578515ae01c6c4ab290b69e049fc72724ac386164031bb67dd0`,
+  proves native readback from the explicit accepted modern run; identity and
+  actions unchanged, no calculation/evidence-trace fallback.
+- `f3-daily-history-comparison-002/receipt.json`, SHA256
+  `9b49e4ba47fa1347c0383ea41b8bf2b41d177b38f515e3a16ea0ad13282d1383`:
+  **1240/1240 full graph comparisons PASS**, zero typed/multiplicity/date-order
+  differences. All34682 stock records,136 recent Norm records,1240 master rows,
+  1240 monitoring rows,136 reason-joined Norm-history rows and132 suggestion
+  rows match independently reconstructed legacy consumer results. The source's
+  history window includes retained opening history, not90 newly computed days.
+- Eighteen focused consumer/HTTP unit tests PASS, including full-outer-join
+  multiplicity, NULL fields/sections, horizon-vs-all-history distinction and
+  authorized/denied graph forwarding. Native positive authentication/UI proof
+  still awaits the existing metadata decision; it is not inferred from these
+  unscoped comparisons. No serving mutation, schema change or accepted-day replay.
+
+F3.1 BTR contract: deployed SCController selects GetBTRDataAsync; compare
+its exact tech/eco grid, count, two-pass paging, horizon and label queries using
+the fresh DLL decompilation and retained terminal rows. The grid joins
+vf_ReqCalculation; count joins vf_RationedReqReport. Prove the shared five-field
+projection before reusing native rationed rows for grid joins; never assume the
+entire tables interchangeable. GenerateRationReqReport.sql copies these fields
+without calculation (SHA256 eca76c08c57a553c65f3c9bb460434adfbbcc88341a3a607bbe80a84c825f9c3).
+Reproduce the source combined-query/Category-order concerns without repairing
+SQL or inventing an aggregation order. Any flaw stays explicit and independent
+deterministic branches continue. Allowed edits: consumer connection/guards,
+focused tests and validation only; no engine, input, action or schema change.
+Keep accepted daily-history/report proofs closed unless directly invalidated.
+
+F3.1 BTR retained-data consumer proof:
+- `f3-btr-export-001/receipt.json` SHA256
+  `763513d2c6dd8dfea4a550e245ba33f46abf14f5871434893715feb9a291eca8`
+  exports the accepted run's own relational state without writes. Independent
+  oracle `D:/freshvcf-build/evidence/f3-btr-comparison-002/receipt.json` SHA256
+  `72cf11924ef7d4a4d0d9afa1d4eb591ff0ee35feedf755aa8fb1ae4dbeffdc2b`
+  uses the accepted legacy capture and session-temp SQL bindings only.
+- All1,240 five-field requirement projections match exactly between canonical
+  vf_ReqCalculation, canonical rationed report and modern native rationed rows.
+  This proves only SKUCode/WhCode/ParentWhCode/Norm/VirtualNorm reuse, not arbitrary
+  interchangeability of these tables. No new production checkpoint is needed.
+- Both tech/eco counts are1,240. Exact typed wire rows, duplicate populations,
+  declared key ordering and date labels PASS for each90-column full view,
+  12-column recent view, and page2/size7. The combined query also PASSes against
+  both independent modern branch results (2,480 full rows,14 page2 rows).
+  The receipt's conservative status label is PASS_SELECTED_SINGLE_BRANCHES;
+  its empty differences also includes the explicit combined comparisons.
+- The suspected combined-SQL syntax defect was DISPROVED by executing the exact
+  extracted query. No legacy exception or repair was introduced. Reversing only
+  physical Category metadata insertion preserves the same full SQL result;
+  this probe did not reproduce an order defect. STRING_AGG still has no explicit
+  order, so this is an observed retained-input match, not a general ordering
+  guarantee or permission to invent a canonical order.
+- Fresh deployed BOR source SHA256
+  `80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`;
+  fresh SCController source SHA256
+  `bf1c33e1fdabd52e7280315583571581c52bea943c25a2871bae77048a3967ec`.
+  Source-only controller HTTP error semantics are not claimed as runtime proof.
+- Five focused tests PASS. Preserved earlier comparison001. No engine replay,
+  schema, F2 input/action/receipt or serving mutation. Scope/filter/HTTP/browser
+  acceptance remains open; these unscoped rows do not bypass NULL hierarchy.
+
+F3.1 insight boundary: existing DBM insight consumers over accepted native
+BTR/DBM outputs. Compare deployed queries/projections for their finite existing
+endpoint roster; use retained rows and session-temp oracle bindings, no new
+synthetic inputs, calculation edits or source repairs. A branch lacking required
+input or deterministic source semantics must be qualified explicitly while
+independent reports continue. This is report connection, not another queue.
+
+F3.1 insight consumer evidence:
+- Fresh deployed GuidedInsightsProcessor source SHA256
+  `d2f578a2beda0b67226b3c85ae65d3a39fe732496237ee41f7c0a9b067f29249`.
+  All nine existing insight endpoint methods were selected, with availability
+  horizons12/90 and ageing thresholds1/4, giving13 query comparisons.
+- `D:/freshvcf-build/evidence/f3-insight-comparison-004/receipt.json` SHA256
+  `97bfef0d867b16f9fb553e546c385d2bc98433921db8621894827a35cb064614`:
+  all13 PASS, zero typed-bag or declared-order differences. Populations:13
+  location summaries,200 SKU summaries,1 pie,8 chronic-grid rows,72 rows per
+  availability-trend horizon and12 per availability-ageing case. Suggestion
+  ageing and chronic loc/SKU summaries are canonical NULL on this terminal
+  input; they are not positive rule/branch coverage.
+- Corrected only the insight response adapter: selected empty scalar SQL JSON
+  must become null, not []; chronic grid's two penetration decimals must be JSON
+  numbers, not persisted decimal strings. No calculation, input, state, schema or
+  legacy repair. Existing pinned pure helpers remain byte-identical.
+- Modern export002 receipt SHA256
+  `0ffb37c3ae0a3c32144e3dc7ca86ff4204fbd6afeda201d86f74b5873f0be8fc`.
+  Preserve export001 and comparison003's actual wire mismatches (receiptSHA
+  `f3a9289c0deadbfc9a49c3c1460110ea64f19fb33f38ff391d0398df4d1c2f80`).
+  Also preserve comparison001/002 harness failures: bracket/separator mistakes
+  in session-temp table binding, not legacy flaws. Corrected queries compile
+  independently before the populated comparison; no assertion was weakened.
+- Twenty focused consumer/HTTP tests PASS. Native12-route HTTP readback:
+  `f3-api-insight-wire-001/receipt.json` SHA256
+  `20aae32a25beb8b76505b8a637316a515f5450a6d63c955c7284de5cc5d627c8`.
+  All returnHTTP200 without run/action/parity changes; the nine insight responses
+  correctly contain data=null under the current NULL hierarchy/denied scope.
+  This is wiring/denial evidence, NOT nonempty authenticated UI acceptance.
+  The12-route packet also exercises three existing history routes, without
+  claiming their independent consumer parity. No serving instances changed.
+- Accepted F2 engine, frozen artifact, day12 execution and independent parity
+  receipt hashes remain unchanged. No accepted day was replayed.
+
+Next active F3.1 boundary: canonical DBM grid/count and the three remaining
+history-report consumers (buffer-trend graph, research insights, historical
+availability), using already-retained native state and exact deployed methods.
+Keep completed BTR/daily-graph/insight proofs closed. Do not credit empty data
+as positive-path coverage or substitute historical permission memberships.
+Source-backed unmet exit in this boundary: inherited history helpers aggregate
+dated BPR rows, but deployed SCIH.GetResearchInsightDataQuery returns selected
+self/child/parent wide colour histories; GetBufferGraphData and
+BPR.GetHistroricalAvailabilityBPRData aggregate persisted D1..D90 trend columns.
+Replace only these consumer adapters and DBM empty-result wire semantics, then
+compare independent retained populations and exact SQL/DLL-derived formatting.
+Prove BPRMaster's key/parent projection before reusing native rationed rows.
+No new fixture, engine, action, schema or legacy repair is authorized by this.
+Overall pending IDs: F3.1 (partial), F3.2, F3.3, F3.4, F3.5.
 
 ## Executable flow and ownership
 

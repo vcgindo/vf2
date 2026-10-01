@@ -104,7 +104,32 @@ Execute only day12, prove terminal relational/readback state, and stop if any
 business-rule or acceptance-contract change is required. This supersedes only
 the preceding runtime-edit restriction; no F3 work is authorized.
 
+F3 authorization (1 October2026, relayed by the user's review task and verified
+there): the preceding F2-only restriction is now superseded for isolated F3
+application delivery. Connect accepted persisted MTA outputs/workflows to the
+existing API and unchanged frontend; verify required reports/navigation,
+authenticated scopes/filters, Apply/Sleep, downloads, PostgreSQL operation,
+fresh-start/restart/retry, direct-port MTO and the runbook. Keep one finite F3
+checklist in docs/MIGRATION.md. Preserve F2 calculations, frozen inputs/actions,
+SQL and receipts; record a concrete attributable mismatch before proposing any
+F2 correction. No redesign, new MTO rules, legacy repair or new public port.
+Do not restart/replace/repopulate any serving instance or cut over3004 without
+separate explicit approval. Commit/push isolated acceptance, then report exact
+remaining cutover steps and request approval. Continue the existing full goal.
+
 ## Commands
+
+Narrow preview authorization (1 October2026, verified in review task
+01a0f29e-ec6b-7cf2-adb1-3ebda9365a55): expose the isolated F3 application on
+localhost:3005, reusing existing frontend/auth/MTO assets and Fresh PostgreSQL.
+This supersedes ONLY the no-new-port restriction for3005. Keep3004 and all other
+serving services unchanged. No additional port, redesign, synthetic replacement,
+calculation replay or implicit acceptance/cutover. Record preview work against
+existing F3.3/F3.4, then return to F3.1. Verify isolation, real login, reachable
+implemented routes, selected-run preservation and isolated restart. Document
+known blocked/denied/flaw responses without bypasses. The runbook must give the
+actually verified local test login; never invent/reset credentials merely to
+document them or expose production/external secrets.
 
 Use `D:/freshvcf-build/venv/Scripts/python.exe` for local commands.
 Build storage and Git objects are on D: by user authorization; source remains

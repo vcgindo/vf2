@@ -1,0 +1,174 @@
+{
+  "BufferTrendReport": [
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "Category",
+      "Col_Position": 1,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "center    "
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "Availability",
+      "Col_Position": 2,
+      "Header": "Availability",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "Tags",
+      "Col_Position": 3,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "SKUCode",
+      "Col_Position": 4,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "SKUDescription",
+      "Col_Position": 5,
+      "Header": "SKUDescription",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "WhCode",
+      "Col_Position": 6,
+      "Header": "Location Code",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "LocationName",
+      "Col_Position": 7,
+      "Header": "Location Name",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "Norm",
+      "Col_Position": 8,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "VirtualNorm",
+      "Col_Position": 9,
+      "Header": "VirtualNorm",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "pc",
+      "Col_Position": 10,
+      "Header": "Parent Code",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "pn",
+      "Col_Position": 11,
+      "Header": "Parent Name",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "age",
+      "Col_Position": 110,
+      "Header": "Age",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "bc",
+      "Col_Position": 111,
+      "Header": "Black in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "rc",
+      "Col_Position": 112,
+      "Header": "Red in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "yc",
+      "Col_Position": 113,
+      "Header": "Yellow in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "gc",
+      "Col_Position": 114,
+      "Header": "Green in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "blc",
+      "Col_Position": 115,
+      "Header": "Blue in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "wc",
+      "Col_Position": 116,
+      "Header": "White in 30 days",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "BufferTrendReport",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 12,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "DataType": "String"
+    }
+  ]
+}

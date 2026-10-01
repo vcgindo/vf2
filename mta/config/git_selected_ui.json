@@ -1,0 +1,982 @@
+{
+  "GIT_From_Parent": [
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "st",
+      "Col_Position": 2,
+      "Header": "Status",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "sc",
+      "Col_Position": 3,
+      "Header": "SKU Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "skd",
+      "Col_Position": 4,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "wcd",
+      "Col_Position": 5,
+      "Header": "Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "prn",
+      "Col_Position": 6,
+      "Header": "Parent Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "n",
+      "Col_Position": 7,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "vn",
+      "Col_Position": 8,
+      "Header": "VirtualNorm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "stk",
+      "Col_Position": 9,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "pip",
+      "Col_Position": 10,
+      "Header": "On-HandInventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "g",
+      "Col_Position": 11,
+      "Header": "Git",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "plp",
+      "Col_Position": 12,
+      "Header": "Pipeline Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "rq",
+      "Col_Position": 13,
+      "Header": "Required Qty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "pr",
+      "Col_Position": 14,
+      "Header": "Price",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "eoc",
+      "Col_Position": 15,
+      "Header": "ElephantOrderCapping",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "wt",
+      "Col_Position": 16,
+      "Header": "Weight",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "v",
+      "Col_Position": 17,
+      "Header": "Volume",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "sl1",
+      "Col_Position": 18,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "sl2",
+      "Col_Position": 19,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "sl3",
+      "Col_Position": 20,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "ll1",
+      "Col_Position": 23,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "ll2",
+      "Col_Position": 24,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "ll3",
+      "Col_Position": 25,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_From_Parent",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 30,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ],
+  "GIT_To_Child_LW": [
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "t",
+      "Col_Position": 1,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "st",
+      "Col_Position": 2,
+      "Header": "Status",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "sc",
+      "Col_Position": 3,
+      "Header": "SKU Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "skd",
+      "Col_Position": 4,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "wcd",
+      "Col_Position": 5,
+      "Header": "Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "prn",
+      "Col_Position": 6,
+      "Header": "Parent Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "n",
+      "Col_Position": 7,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "vn",
+      "Col_Position": 8,
+      "Header": "VirtualNorm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "stk",
+      "Col_Position": 9,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "pip",
+      "Col_Position": 10,
+      "Header": "On-HandInventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "g",
+      "Col_Position": 11,
+      "Header": "Git",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "plp",
+      "Col_Position": 12,
+      "Header": "Pipeline Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "rq",
+      "Col_Position": 13,
+      "Header": "Required Qty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "pr",
+      "Col_Position": 14,
+      "Header": "Price",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "eoc",
+      "Col_Position": 15,
+      "Header": "ElephantOrderCapping",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "wt",
+      "Col_Position": 16,
+      "Header": "Weight",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "v",
+      "Col_Position": 17,
+      "Header": "Volume",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "sl1",
+      "Col_Position": 18,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "sl2",
+      "Col_Position": 19,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "sl3",
+      "Col_Position": 20,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "ll1",
+      "Col_Position": 23,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "ll2",
+      "Col_Position": 24,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "ll3",
+      "Col_Position": 25,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_LW",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 30,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ],
+  "GIT_To_Child_TW": [
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "st",
+      "Col_Position": 1,
+      "Header": "Status",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "tn",
+      "Col_Position": 2,
+      "Header": "Transporter name",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "tc",
+      "Col_Position": 3,
+      "Header": "Transporter code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "on",
+      "Col_Position": 4,
+      "Header": "OrderNo/TrackingNo",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "fc",
+      "Col_Position": 5,
+      "Header": "From Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "wc",
+      "Col_Position": 6,
+      "Header": "To Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "tq",
+      "Col_Position": 7,
+      "Header": "Total Qty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "trc",
+      "Col_Position": 8,
+      "Header": "Transporter Contact",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "cd",
+      "Col_Position": 9,
+      "Header": "Creation Date",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "slt",
+      "Col_Position": 10,
+      "Header": "SLT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "ag",
+      "Col_Position": 11,
+      "Header": "Ageing",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "eta",
+      "Col_Position": 12,
+      "Header": "ETA",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "cl",
+      "Col_Position": 13,
+      "Header": "Current Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "re",
+      "Col_Position": 14,
+      "Header": "Remarks",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_TW",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 30,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ],
+  "GIT_To_Child_CS": [
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sc",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "wc",
+      "Col_Position": 2,
+      "Header": "WHCode",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sd",
+      "Col_Position": 3,
+      "Header": "SKUDescription",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "wd",
+      "Col_Position": 4,
+      "Header": "WHDescription",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "dd",
+      "Col_Position": 5,
+      "Header": "DelayDays",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ss",
+      "Col_Position": 6,
+      "Header": "SKUStatus",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "s",
+      "Col_Position": 7,
+      "Header": "Status",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "pwc",
+      "Col_Position": 8,
+      "Header": "ParentWhCode",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "pn",
+      "Col_Position": 9,
+      "Header": "ParentName",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "n",
+      "Col_Position": 10,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "mn",
+      "Col_Position": 11,
+      "Header": "MinNorm",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "rlt",
+      "Col_Position": 12,
+      "Header": "RLT",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "rcp",
+      "Col_Position": 13,
+      "Header": "RCP",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "gcp",
+      "Col_Position": 14,
+      "Header": "GCP",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ocp",
+      "Col_Position": 15,
+      "Header": "OCP",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "moc",
+      "Col_Position": 16,
+      "Header": "MinOrderCount",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ps",
+      "Col_Position": 17,
+      "Header": "PackSize",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "frf",
+      "Col_Position": 18,
+      "Header": "FGRMFlag",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "da",
+      "Col_Position": 19,
+      "Header": "DBMActive",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "odn",
+      "Col_Position": 20,
+      "Header": "OrderNo",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ts",
+      "Col_Position": 21,
+      "Header": "TruckStatus",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "tn",
+      "Col_Position": 22,
+      "Header": "TransporterName",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "tc",
+      "Col_Position": 23,
+      "Header": "TransporterCode",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "fl",
+      "Col_Position": 24,
+      "Header": "FromLocation",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "itq",
+      "Col_Position": 25,
+      "Header": "ToLocationQty",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "tct",
+      "Col_Position": 26,
+      "Header": "TransporterContact",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "cd",
+      "Col_Position": 27,
+      "Header": "CreationDate",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "slt",
+      "Col_Position": 28,
+      "Header": "SLT",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ag",
+      "Col_Position": 29,
+      "Header": "Ageing",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "eta",
+      "Col_Position": 30,
+      "Header": "ETA",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "cl",
+      "Col_Position": 31,
+      "Header": "CurrentLocation",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "rmk",
+      "Col_Position": 32,
+      "Header": "Remark",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "lc",
+      "Col_Position": 33,
+      "Header": "LRCode",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sk",
+      "Col_Position": 34,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "pt",
+      "Col_Position": 35,
+      "Header": "Tech Pen",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "tpp",
+      "Col_Position": 36,
+      "Header": "Tech Pen Percentage",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "git",
+      "Col_Position": 37,
+      "Header": "GIT",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "epp",
+      "Col_Position": 38,
+      "Header": "Eco Pen Percentage",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ep",
+      "Col_Position": 39,
+      "Header": "Eco Pen",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "rq",
+      "Col_Position": 40,
+      "Header": "RationedQty",
+      "Visible": true,
+      "CellAlignment": "Right     ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sl1",
+      "Col_Position": 41,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sl2",
+      "Col_Position": 42,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "sl3",
+      "Col_Position": 43,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ll1",
+      "Col_Position": 46,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ll2",
+      "Col_Position": 47,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "GIT_To_Child_CS",
+      "Col_Code": "ll3",
+      "Col_Position": 48,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ]
+}

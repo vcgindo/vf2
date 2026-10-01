@@ -1,7 +1,91 @@
 # Fresh build runbook
 
-This build is not yet the application served on3004. Do not run copied historical
-startup scripts; deployment wiring is pending in F3.
+This build is not the application served on3004. An isolated F3 work-in-progress
+preview is available on3005; it is NOT full F3 acceptance or a3004 cutover.
+Do not run copied historical startup scripts.
+
+## Open the isolated F3 preview
+
+Use **http://127.0.0.1:3005/login**. The loopback host deliberately differs from
+localhost:3004 so browser login cookies cannot overwrite the3004 session.
+http://localhost:3005 also serves the app, but shares localhost cookies across
+ports; use127.0.0.1 or a separate browser profile when comparing instances.
+
+Verified newly created **local/test-only** account:
+
+- Username: `fresh.preview@vectorflow.local`
+- Password: `F3!2e77659192`
+- Complete the displayed CAPTCHA. This is a disposable preview credential,
+  never a production/external account. No existing user's password was reset.
+
+The browser login and11 authenticated gateway reads were verified against3005,
+not inferred from3004. The existing frontend, authentication and MTO sources are
+reused unchanged. DBM, BTR, history, insights, RRR and Planning implementation
+is partial: the accepted terminal day has no pending DBM suggestions; missing
+producer hierarchy yields empty scoped populations, not certified positive UI
+parity. Detailed transit consumers, full filters/actions/downloads and the
+Expedite unordered-parent-label qualification remain open. Do not use this
+preview to submit business actions or claim complete application acceptance.
+
+### Restart or stop ONLY this preview
+
+```powershell
+Set-Location F:\freshvcf
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml up -d --no-build
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml restart
+# Reversible rollback: stop the preview; preserve its database and secrets.
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml stop
+```
+
+Never use a blanket Docker restart, `down -v`, prune or delete a data directory.
+No command above addresses3004 or its project. Onlyfrontend publishes a port,
+bound to127.0.0.1:3005. MTA/auth/MTO/Redis are internal. All three services use
+the already-owned `freshvcf-test-postgres-1`, database`freshvcf`, separate
+`mta`/`mta_state`, `identity` and`mto` schemas. Do not stop that database while
+the preview or a Fresh validation worker needs it. The preview does not connect
+to an integrated/demo database or import their data.
+
+Explicit publication: `ac1612c8-0e49-4155-83c3-f59f41422293`, business date
+17 June2026, output digest
+`bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d`.
+This remains the frozen12-day F2 result. HTTP reads use relational state/report
+rows. Only the immutable InputSnapshot is mounted for input-identity validation;
+no internal output traces, demo fixtures or fallback dataset are mounted.
+
+### Fresh preview initialization (not required for ordinary restart)
+
+Prerequisite: the accepted Fresh PostgreSQL database and its F3 projections
+already exist. This procedure does NOT generate or replay synthetic calculations.
+
+```powershell
+Set-Location F:\freshvcf
+& D:/freshvcf-build/venv/Scripts/python.exe tools/preview_setup.py
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml build
+docker run --rm --user 0 --entrypoint python --env USER_SERVICE_DATABASE_PASSWORD=isolated-test-only-not-a-serving-password --volume D:/freshvcf-build/preview/secrets:/run/secrets freshvcf-preview-user:f3 /usr/local/bin/user-service-key-init.py
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python user-service manage.py migrate --noinput
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python mto manage.py migrate --noinput
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python mto manage.py seed_all
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python user-service manage.py shell -c "from api.models import User; from django.core.management import call_command; assert not User.all_objects.exists(), 'Refuse to reset an existing preview identity'; call_command('bootstrap_stage7b')"
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml up -d --no-build
+```
+
+`preview_setup.py` preserves an existing config. In a genuinely new environment
+it generates a different test password; use that environment's configured value
+and verify login before documenting it. Never overwrite an existing environment
+file or rerun bootstrap to reset accounts. Signing/encryption/private keys stay
+outside Git under`D:/freshvcf-build/preview`; the frontend's transport key is
+build-time matched to this local auth service, not copied from3004.
+
+Evidence: `D:/freshvcf-build/evidence/f3-preview-http-002/receipt.json` records
+actual image/container/config identities and route results. Protected-runtime
+snapshots are in`f3-preview-001`; earlier failed wiring probes remain preserved.
+`f3-preview-restart-002` proves login and12 reads after restart;
+`f3-preview-two-worker-001` records the final two-worker/4GiB MTA configuration
+and identical selected readback. The DBM shell and expanded existing sidebar
+render, but column/preferences and several other endpoints are still incomplete.
+An empty grid or visible menu is not proof that the feature is accepted.
+The default MTO settings catalogue is initialized, but no MTO business dataset
+was invented; full direct-port MTO regression is still F3.4 work.
 
 Source: F:/freshvcf. Remote: git@github.com:yurtse/freshvcf.git, branch main.
 User-authorized storage: D:/freshvcf-build. Git's objects directory is a junction

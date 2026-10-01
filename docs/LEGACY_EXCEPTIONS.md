@@ -39,3 +39,30 @@ fields. A completed trial with this limitation must say
 This disposition does not authorize conflicting-parent-Norm resolution, changes
 to Rule12 occurrence text, broader report omissions or hidden UI substitutions.
 F3 must expose the limitation in the delivered report/readback.
+
+## LEG-EXPEDITE-UNORDERED-LABEL — F3 consumer only
+
+The pinned deployed DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`
+implements ExpediteProcessor receiving-location `LogisticsLocation` using the
+last critical-chart model, not the receiving row. Its critical SQL has no ORDER
+BY. Decompiled source SHA256:
+`e78148cc38d5a802e014e6085111e79a40c2a6b462563e2bd412677505e654b4`.
+
+Reproduced using the retained June17 report populations in
+`D:/freshvcf-build/evidence/f3-expedite-charts-comparison-001/receipt.json`, SHA256
+`e5aff4654c4878180a0984176e45dc28f99a30ec78794f8a9261b3f300c4750b`.
+The original parent method input SHA is
+`f44f5c06cbfd9641a05262dd5e17223cbc90bef5fdc58a0b8387a94023d722e3`;
+reversing only its unordered critical rows preserves the exact query bag but
+changes all five receiving labels from `PLCS21` to `PL001` in the actual DLL.
+Both original/reordered inputs and DLL responses are retained. The pure method
+was invoked under the recorded .NET10 CLR, not the legacy HTTP host.
+
+Treatment: do not carry over the old demo's label repair or select a fabricated
+last row. The application rejects an ambiguous chart response explicitly with
+HTTP503 and this flaw ID. A deterministic scoped input may use the unchanged
+source transformation; an empty critical population preserves the source's
+NULL label. The ambiguous label/response is **NOT_PARITY**, not a waived match.
+All14×69 post-report values, eight query bags and the pure DLL transformations
+on explicit ordered datasets were compared independently. This does not alter
+F2's calculations or its sole Norm0 qualification. Continue independent F3 work.

@@ -55,3 +55,187 @@ class RunCommand(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','idempotency_key'], name='fresh_command_identity')]
+
+
+class PickProjection(models.Model):
+    """Read-model receipt, not another execution/state/publication hierarchy."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT,
+                              related_name='pick_projection')
+    version = models.PositiveIntegerField(default=1)
+    calculation_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveIntegerField()
+    provenance = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PickBand(models.Model):
+    """Already-computed RRR bands, with source order and duplicates retained."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT, related_name='pick_bands')
+    ordinal = models.PositiveIntegerField()
+    sku_code = models.CharField(max_length=50)
+    location_code = models.CharField(max_length=50)
+    parent_location_code = models.CharField(max_length=50)
+    to_black = models.BigIntegerField()
+    to_red = models.BigIntegerField()
+    to_yellow = models.BigIntegerField()
+    to_green = models.BigIntegerField()
+    to_blue = models.BigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='fresh_pick_band_ordinal')]
+
+
+class ExcessProjection(models.Model):
+    """Bounded receipt for the canonical current-day Excess report producer."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    producer_sha256 = models.CharField(max_length=64)
+    source_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ExcessInventoryRow(models.Model):
+    """ExcessInventoryDetails columns, preserving SQL types, NULLs and bags."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveIntegerField()
+    Tags = models.CharField(max_length=50, null=True)
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+    ParentWhCode = models.CharField(max_length=50, null=True)
+    Norm = models.IntegerField(null=True)
+    VirtualNorm = models.IntegerField(null=True)
+    Stock = models.IntegerField(null=True)
+    GIT = models.IntegerField(null=True)
+    BlueReq = models.IntegerField(null=True)
+    RequiredQty = models.IntegerField(null=True)
+    PhysicalInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PhysicalInventoryColor = models.CharField(max_length=10, null=True)
+    PipelineInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PipelineInventoryColor = models.CharField(max_length=10, null=True)
+    ExcessQty = models.IntegerField(null=True)
+    Amount = models.BigIntegerField(null=True)
+    ReportDate = models.DateField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_excess_ordinal')]
+
+
+class FulfillmentProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    producer_sha256 = models.CharField(max_length=64)
+    source_digest = models.CharField(max_length=64)
+    calculation_digest = models.CharField(max_length=64)
+    summary_digest = models.CharField(max_length=64)
+    summary_count = models.PositiveIntegerField()
+    details_digest = models.CharField(max_length=64)
+    details_count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class FulfillmentSummaryRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveIntegerField()
+    Coverage = models.CharField(max_length=20, null=True)
+    Tags = models.CharField(max_length=50, null=True)
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+    ParentWhCode = models.CharField(max_length=50, null=True)
+    VirtualNorm = models.IntegerField(null=True)
+    Norm = models.IntegerField(null=True)
+    Stock = models.IntegerField(null=True)
+    GIT = models.IntegerField(null=True)
+    RationedQty = models.IntegerField(null=True)
+    NormReq = models.IntegerField(null=True)
+    SpikeReq = models.IntegerField(null=True)
+    RelPSOAndCNR = models.IntegerField(null=True)
+    TotalReq = models.IntegerField(null=True)
+    Gap = models.IntegerField(null=True)
+    PhysicalInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PhysicalInventoryColor = models.CharField(max_length=10, null=True)
+    PipelineInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PipelineInventoryColor = models.CharField(max_length=10, null=True)
+    Price = models.BigIntegerField(null=True)
+    TotalSnP = models.IntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_fulfillment_summary_ordinal')]
+
+
+class FulfillmentDetailRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveIntegerField()
+    OrderNo = models.CharField(max_length=50, null=True)
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+    Introdate = models.DateField(null=True)
+    PendingQty = models.IntegerField(null=True)
+    DueDate = models.DateField(null=True)
+    Customer = models.CharField(max_length=50, null=True)
+    Price = models.BigIntegerField(null=True)
+    OrderStatus = models.CharField(max_length=10, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_fulfillment_detail_ordinal')]
+
+
+class ExpediteProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    producer_sha256 = models.CharField(max_length=64)
+    source_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ExpediteRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveIntegerField()
+    SKUCode = models.CharField(max_length=50)
+    WhCode = models.CharField(max_length=50)
+    ParentWhCode = models.CharField(max_length=50)
+    PhysicalInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PhysicalInventoryColor = models.CharField(max_length=10, null=True)
+    PipelineInventoryPen = models.DecimalField(max_digits=10, decimal_places=2)
+    PipelineInventoryColor = models.CharField(max_length=10)
+    RationedQty = models.IntegerField()
+    Req = models.IntegerField()
+    StockAtParent = models.IntegerField(null=True)
+    ParentPipelineInventoryColor = models.CharField(max_length=10, null=True)
+    RLT = models.IntegerField()
+    BRAge = models.IntegerField(null=True)
+    BRAgeRedCount = models.IntegerField(null=True)
+    BRAgeBlackCount = models.IntegerField(null=True)
+    Norm = models.IntegerField()
+    VirtualNorm = models.IntegerField()
+    Stock = models.IntegerField()
+    GIT = models.IntegerField()
+    PotentialLossPerDay = models.BigIntegerField(null=True)
+    IsParent = models.BooleanField(null=True)
+    IsReceiving = models.BooleanField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_expedite_ordinal')]
+
+
+class PickPostProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    producers_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PickPostRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveIntegerField()
+    SKUCode = models.CharField(max_length=50)
+    WhCode = models.CharField(max_length=50)
+    ParentWhCode = models.CharField(max_length=50)
+    PostPipelineInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PostPipelineInventoryColor = models.CharField(max_length=10, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_pick_post_ordinal')]

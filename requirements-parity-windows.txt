@@ -1,2 +1,4 @@
 # Oracle-only dependency; never installed into the modern application image.
 pyodbc==5.3.0
+# Stream selected retained legacy consumer tables without loading whole traces.
+ijson==3.5.1

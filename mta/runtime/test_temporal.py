@@ -6,7 +6,10 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.test import TransactionTestCase
-from mta.runtime.models import CalculationRun, RunCommand, Checkpoint
+from mta.runtime.models import (CalculationRun, RunCommand, Checkpoint, PickBand, PickProjection,
+                                ExcessInventoryRow, ExcessProjection,
+                                FulfillmentSummaryRow,FulfillmentDetailRow,FulfillmentProjection,
+                                ExpediteRow,ExpediteProjection,PickPostRow,PickPostProjection)
 from mta.runtime.services import read_outputs
 from mta.runtime.temporal import BOUNDARIES, execute_day, record_command
 from mta.runtime.validation_storage import export_run
@@ -22,16 +25,19 @@ class TemporalPersistenceTest(TransactionTestCase):
         self.environment.start()
         self.addCleanup(self.environment.stop)
         self.profile = {'delivery': {'site_code': 'VECTORFLOW-DEMO'}}
-        self.state = {'dbm': {
+        self.state = {'importer':{'MasterData':[]},'btr':{'ExpediteDispatches':[]},'orders':{'SpikeOrderData':[]},'dbm': {
             'DBMMaster': [{'SKUCode': '337', 'WhCode': 'AG515802', 'Norm': 220}],
             'Suggestions': [{'SKUCode': '337', 'WhCode': 'AG515802', 'NewNorm': 250}],
-            'NormAcceptanceTbl': [], 'NormsInSleepModeTbl': []}}
+            'NormAcceptanceTbl': [], 'NormsInSleepModeTbl': [], 'SKULocStandardAttributes':[]}}
         self.opening = dict(identity='persistence-protocol-only', opening_date='2026-06-05', state=self.state)
         self.seen = []
 
     def calculate(self, prior, opening_date, day, profile, identity, calculate, exceptions):
         self.seen.append(deepcopy(prior))
         return dict(ClosingState=[prior], DBMFinal=[prior['dbm']], Lineage=[],
+                    CalculationOutputs=[dict(capability='r1_ration_bifurcation', rows=[]),
+                                        dict(capability='r1_order_route',rows=[])],
+                    BPRFinal=[dict(BPR_Table=[],vf_RationedReqReport=[])],
                     MajorBoundaries=[dict(boundary=name, state={}) for name in BOUNDARIES])
 
     def run_day(self, index=0, **kwargs):
@@ -170,5 +176,16 @@ class TemporalPersistenceTest(TransactionTestCase):
         self.assertEqual(run.status, 'FAILED')
         self.assertEqual(run.checkpoints.count(), 0)
         self.assertEqual(run.commands.count(), 0)
+        self.assertFalse(PickBand.objects.filter(run=run).exists())
+        self.assertFalse(PickProjection.objects.filter(run=run).exists())
+        self.assertFalse(ExcessInventoryRow.objects.filter(run=run).exists())
+        self.assertFalse(ExcessProjection.objects.filter(run=run).exists())
+        self.assertFalse(FulfillmentProjection.objects.filter(run=run).exists())
+        self.assertFalse(FulfillmentSummaryRow.objects.filter(run=run).exists())
+        self.assertFalse(FulfillmentDetailRow.objects.filter(run=run).exists())
+        self.assertFalse(ExpediteProjection.objects.filter(run=run).exists())
+        self.assertFalse(ExpediteRow.objects.filter(run=run).exists())
+        self.assertFalse(PickPostProjection.objects.filter(run=run).exists())
+        self.assertFalse(PickPostRow.objects.filter(run=run).exists())
         self.assertEqual(run.output_digest, '')
         self.assertTrue((Path(self.directory.name) / str(run.pk) / 'MajorBoundaries.jsonl.gz').is_file())

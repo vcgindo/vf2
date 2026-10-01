@@ -1,0 +1,372 @@
+[
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "NormReq",
+    "Col_Position": 54,
+    "DataType": "Number",
+    "Header": "Norm Req.",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "BlueReq",
+    "Col_Position": 55,
+    "DataType": "Number",
+    "Header": "Blue Req.",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "ParentStockForNormRationing",
+    "Col_Position": 58,
+    "DataType": "Number",
+    "Header": "Parent Stock For Norm Rationing",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "ParentStockForSnPRationing",
+    "Col_Position": 59,
+    "DataType": "Number",
+    "Header": "Parent Stock For Spike/PSO Rationing",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "SKUCode",
+    "Col_Position": 1,
+    "DataType": "String",
+    "Header": "SKUCode",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "SKUName",
+    "Col_Position": 2,
+    "DataType": "String",
+    "Header": "SKUName",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "WhCode",
+    "Col_Position": 3,
+    "DataType": "String",
+    "Header": "To Location",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "WhName",
+    "Col_Position": 4,
+    "DataType": "String",
+    "Header": "Child Name",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "Norm",
+    "Col_Position": 5,
+    "DataType": "Number",
+    "Header": "Norm at Child",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "VirtualNorm",
+    "Col_Position": 6,
+    "DataType": "Number",
+    "Header": "Virtual Norm",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "VirtualNodeNorm",
+    "Col_Position": 7,
+    "DataType": "Number",
+    "Header": "Virtual Node Norm",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "GIT",
+    "Col_Position": 11,
+    "DataType": "Number",
+    "Header": "GIT at Child",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "StockForReqCalc",
+    "Col_Position": 13,
+    "DataType": "Number",
+    "Header": "Child Stock For Req. Calc.",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "TPen",
+    "Col_Position": 14,
+    "DataType": "Number",
+    "Header": "On hand Inv. Pen at Child",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "EPen",
+    "Col_Position": 16,
+    "DataType": "Number",
+    "Header": "Pipeline Inv. Pen at Child",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "DispatchPen",
+    "Col_Position": 18,
+    "DataType": "Number",
+    "Header": "Dispatch Pen.",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "DispatchColor",
+    "Col_Position": 19,
+    "DataType": "String",
+    "Header": "Dispatch Color",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "PWh",
+    "Col_Position": 20,
+    "DataType": "String",
+    "Header": "From Location",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "PWhName",
+    "Col_Position": 21,
+    "DataType": "String",
+    "Header": "Parent Name",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "Req",
+    "Col_Position": 27,
+    "DataType": "Number",
+    "Header": "Req Qty",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "AllocatedForDirectOrders",
+    "Col_Position": 32,
+    "DataType": "Number",
+    "Header": "Allocated For Direct Orders",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "RReq",
+    "Col_Position": 33,
+    "DataType": "Number",
+    "Header": "Rationed Qty",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "torb",
+    "Col_Position": 34,
+    "DataType": "Number",
+    "Header": "TOR-B",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "torr",
+    "Col_Position": 35,
+    "DataType": "Number",
+    "Header": "TOR-R",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "toy",
+    "Col_Position": 36,
+    "DataType": "Number",
+    "Header": "TOY",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "tog",
+    "Col_Position": 37,
+    "DataType": "Number",
+    "Header": "TOG",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "tob",
+    "Col_Position": 38,
+    "DataType": "Number",
+    "Header": "TOBlue",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "RCPs",
+    "Col_Position": 40,
+    "DataType": "Number",
+    "Header": "Ration Case Packs",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "LPS",
+    "Col_Position": 41,
+    "DataType": "Number",
+    "Header": "Parent Leftover Stock",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "DirectSpikeOverdue",
+    "Col_Position": 45,
+    "DataType": "Number",
+    "Header": "Direct Spike Overdue",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "SpikeOverdueAtParent",
+    "Col_Position": 46,
+    "DataType": "Number",
+    "Header": "Spike Overdue At Parent",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "PSO",
+    "Col_Position": 47,
+    "DataType": "Number",
+    "Header": "PSO",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "RelPSOAndCNR",
+    "Col_Position": 48,
+    "DataType": "Number",
+    "Header": "Relevant PSO and CNR",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "ResidualChildrenSnP",
+    "Col_Position": 49,
+    "DataType": "Number",
+    "Header": "Residual Children Spike/PSO/CNR",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "right     ",
+    "Col_Code": "ResidualSnP",
+    "Col_Position": 52,
+    "DataType": "Number",
+    "Header": "Residual Spike/PSO/CNR",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error*",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "SKULocAttr9",
+    "Col_Position": 99,
+    "DataType": "Number",
+    "Header": "Continuous Black",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  },
+  {
+    "CellAlignment": "left      ",
+    "Col_Code": "SKULocAttr10",
+    "Col_Position": 99,
+    "DataType": "Number",
+    "Header": "Continuous Black and Red",
+    "ReportName": "RationRequirementReport",
+    "Value": "*Error",
+    "Visible": true
+  }
+]

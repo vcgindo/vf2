@@ -1,0 +1,991 @@
+{
+  "Expedit_From_Parent_ED": [
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "t",
+      "Col_Position": 1,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "sc",
+      "Col_Position": 2,
+      "Header": "SKU code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "sd",
+      "Col_Position": 3,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "wcd",
+      "Col_Position": 4,
+      "Header": "Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "pl",
+      "Col_Position": 5,
+      "Header": "Parent location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "n",
+      "Col_Position": 6,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "vn",
+      "Col_Position": 7,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "st",
+      "Col_Position": 8,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "pip",
+      "Col_Position": 9,
+      "Header": "On-hand Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "g",
+      "Col_Position": 10,
+      "Header": "GIT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "pin",
+      "Col_Position": 12,
+      "Header": "Pipeline Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "rq",
+      "Col_Position": 13,
+      "Header": "Required Quantity",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "rtq",
+      "Col_Position": 15,
+      "Header": "RationedQty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "am",
+      "Col_Position": 16,
+      "Header": "Price",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "sl1",
+      "Col_Position": 17,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "sl2",
+      "Col_Position": 18,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "sl3",
+      "Col_Position": 19,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "ll1",
+      "Col_Position": 22,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "ll2",
+      "Col_Position": 23,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "ll3",
+      "Col_Position": 24,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_From_Parent_ED",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 30,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ],
+  "Expedite_To_Parent_CAAP": [
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "t",
+      "Col_Position": 1,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "sc",
+      "Col_Position": 2,
+      "Header": "SKU code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "sd",
+      "Col_Position": 3,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "wcd",
+      "Col_Position": 4,
+      "Header": "Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "pl",
+      "Col_Position": 5,
+      "Header": "Parent location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "n",
+      "Col_Position": 6,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "vn",
+      "Col_Position": 7,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "st",
+      "Col_Position": 8,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "pip",
+      "Col_Position": 9,
+      "Header": "On-hand Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "g",
+      "Col_Position": 10,
+      "Header": "GIT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "rq",
+      "Col_Position": 13,
+      "Header": "Required Quantity",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "pin",
+      "Col_Position": 12,
+      "Header": "Pipeline Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "rtq",
+      "Col_Position": 15,
+      "Header": "RationedQty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "am",
+      "Col_Position": 16,
+      "Header": "Price",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "sl1",
+      "Col_Position": 17,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "sl2",
+      "Col_Position": 18,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "sl3",
+      "Col_Position": 19,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "ll1",
+      "Col_Position": 22,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "ll2",
+      "Col_Position": 23,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "ll3",
+      "Col_Position": 24,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Parent_CAAP",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 25,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Center    ",
+      "DataType": "String"
+    }
+  ],
+  "Expedit_To_Child_ED": [
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "t",
+      "Col_Position": 1,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "sc",
+      "Col_Position": 2,
+      "Header": "SKU code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "sd",
+      "Col_Position": 3,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "wcd",
+      "Col_Position": 4,
+      "Header": "Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "pl",
+      "Col_Position": 5,
+      "Header": "Parent location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "n",
+      "Col_Position": 6,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "vn",
+      "Col_Position": 7,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "st",
+      "Col_Position": 8,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "pip",
+      "Col_Position": 9,
+      "Header": "On-hand Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "g",
+      "Col_Position": 10,
+      "Header": "GIT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "pin",
+      "Col_Position": 11,
+      "Header": "Pipeline Inventory Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "rq",
+      "Col_Position": 12,
+      "Header": "Required Quantity",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "rtq",
+      "Col_Position": 15,
+      "Header": "RationedQty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "am",
+      "Col_Position": 16,
+      "Header": "Price",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "sl1",
+      "Col_Position": 17,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "sl2",
+      "Col_Position": 18,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "sl3",
+      "Col_Position": 19,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "ll1",
+      "Col_Position": 22,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "ll2",
+      "Col_Position": 23,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "ll3",
+      "Col_Position": 24,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedit_To_Child_ED",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 30,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "Left      ",
+      "DataType": "String"
+    }
+  ],
+  "Expedite_To_Child_CS": [
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sc",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "wc",
+      "Col_Position": 2,
+      "Header": "WHCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sd",
+      "Col_Position": 3,
+      "Header": "SKUDescription",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "wd",
+      "Col_Position": 4,
+      "Header": "WHDescription",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "dd",
+      "Col_Position": 5,
+      "Header": "DelayDays",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ss",
+      "Col_Position": 6,
+      "Header": "SKUStatus",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "s",
+      "Col_Position": 7,
+      "Header": "Status",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "pwc",
+      "Col_Position": 8,
+      "Header": "ParentWhCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "pn",
+      "Col_Position": 9,
+      "Header": "ParentName",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "n",
+      "Col_Position": 10,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "mn",
+      "Col_Position": 11,
+      "Header": "MinNorm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "rlt",
+      "Col_Position": 12,
+      "Header": "RLT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "rcp",
+      "Col_Position": 13,
+      "Header": "RCP",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "gcp",
+      "Col_Position": 14,
+      "Header": "GCP",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ocp",
+      "Col_Position": 15,
+      "Header": "OCP",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "moc",
+      "Col_Position": 16,
+      "Header": "MinOrderCount",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ps",
+      "Col_Position": 17,
+      "Header": "PackSize",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "frf",
+      "Col_Position": 18,
+      "Header": "FGRMFlag",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "da",
+      "Col_Position": 19,
+      "Header": "DBMActive",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "odn",
+      "Col_Position": 20,
+      "Header": "OrderNo",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ts",
+      "Col_Position": 21,
+      "Header": "TruckStatus",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "tn",
+      "Col_Position": 22,
+      "Header": "TransporterName",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "tc",
+      "Col_Position": 23,
+      "Header": "TransporterCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "fl",
+      "Col_Position": 24,
+      "Header": "FromLocation",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "itq",
+      "Col_Position": 25,
+      "Header": "ToLocationQty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "tct",
+      "Col_Position": 26,
+      "Header": "TransporterContact",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "cd",
+      "Col_Position": 27,
+      "Header": "CreationDate",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "slt",
+      "Col_Position": 28,
+      "Header": "SLT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ag",
+      "Col_Position": 29,
+      "Header": "Ageing",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "eta",
+      "Col_Position": 30,
+      "Header": "ETA",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "cl",
+      "Col_Position": 31,
+      "Header": "CurrentLocation",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "rmk",
+      "Col_Position": 32,
+      "Header": "Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "lc",
+      "Col_Position": 33,
+      "Header": "LRCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sk",
+      "Col_Position": 34,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "pt",
+      "Col_Position": 35,
+      "Header": "Tech Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "tpp",
+      "Col_Position": 36,
+      "Header": "Tech Pen Percentage",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "git",
+      "Col_Position": 37,
+      "Header": "GIT",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "epp",
+      "Col_Position": 38,
+      "Header": "Eco Pen Percentage",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ep",
+      "Col_Position": 39,
+      "Header": "Eco Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "rq",
+      "Col_Position": 40,
+      "Header": "RationedQty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sl1",
+      "Col_Position": 41,
+      "Header": "Business",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sl2",
+      "Col_Position": 42,
+      "Header": "Category",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "sl3",
+      "Col_Position": 43,
+      "Header": "Family",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ll1",
+      "Col_Position": 46,
+      "Header": "Zone",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ll2",
+      "Col_Position": 47,
+      "Header": "Location Group",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "Expedite_To_Child_CS",
+      "Col_Code": "ll3",
+      "Col_Position": 48,
+      "Header": "WH Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "DataType": "String"
+    }
+  ]
+}

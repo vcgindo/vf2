@@ -1,0 +1,115 @@
+name: freshvcf-preview
+services:
+  mta:
+    image: freshvcf-preview-mta:f3
+    build:
+      context: .
+      dockerfile: infrastructure/fresh/Dockerfile
+    environment:
+      VF_SECRET_KEY: ${PREVIEW_SECRET_KEY:?Run tools/preview_setup.py first}
+      VF_DB_HOST: freshvcf-test-postgres-1
+      VF_DB_NAME: freshvcf
+      VF_DB_USER: freshvcf
+      VF_DB_PASSWORD: isolated-test-only-not-a-serving-password
+      # Only the immutable input-identity snapshot is mounted, no output traces.
+      # Report and closing-state values come exclusively from relational rows.
+      VF_EVIDENCE_ROOT: /input-identity
+      VF_MTA_PUBLISHED_RUN: ac1612c8-0e49-4155-83c3-f59f41422293
+      VF_MTA_PUBLISHED_DIGEST: bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d
+      VF_MTA_PERMISSIONS_FILE: /inputs/permission-input-v1.json
+      VF_MTA_PERMISSIONS_SHA256: 18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356
+    volumes:
+      - D:/freshvcf-build/inputs/permission-input-v1.json:/inputs/permission-input-v1.json:ro
+      - D:/freshvcf-build/evidence/runtime/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:/input-identity/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:ro
+    command: [gunicorn, vectorflow.wsgi:application, --bind, '0.0.0.0:8000', --workers, '2', --timeout, '180']
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: 2
+    restart: 'no'
+    networks: [preview, fresh-db]
+  user-service:
+    image: freshvcf-preview-user:f3
+    build:
+      context: .
+      dockerfile: infrastructure/docker/user-service.Dockerfile
+    # Schema/bootstrap is an explicit first-start command, never a restart reset.
+    entrypoint: [uvicorn, 'apps.asgi:application', --host, 0.0.0.0, --port, '10016']
+    environment:
+      DB_HOST: freshvcf-test-postgres-1
+      DB_PORT: '5432'
+      DB_NAME: freshvcf
+      DB_USER: freshvcf
+      DB_PASSWORD_FILE: /run/secrets/user-service-db-password.enc
+      PGOPTIONS: '-c search_path=identity'
+      USER_SERVICE_RSA_PRIVATE_KEY_PATH: /run/secrets/user-service-private-key.pem
+      USER_SERVICE_RSA_PUBLIC_KEY_PATH: /run/secrets/user-service-public-key.pem
+      SECRET_KEY: ${PREVIEW_SECRET_KEY:?}
+      SECRET_KEY_FOR_PASSWORD: ${PREVIEW_CLIENT_KEY:?}
+      VECTORFLOW_TEST_USERNAME: ${PREVIEW_USERNAME:?}
+      VECTORFLOW_TEST_PASSWORD: ${PREVIEW_PASSWORD:?}
+      VECTORFLOW_TEST_DISPLAY_NAME: Fresh F3 Preview
+      BASE_CLIENT_URL: http://localhost:3005
+      ALLOWED_SSL: localhost,127.0.0.1,user-service
+      MTA_BACKEND_URL: http://mta:8000
+      MTO_BACKEND_URL: http://mto:10015
+      DEBUG: 'false'
+      PASSWORD_RESET_TIMEOUT: '28800'
+      EMAIL_HOST: ''
+      EMAIL_HOST_USER: ''
+      EMAIL_HOST_PASSWORD: ''
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - D:/freshvcf-build/preview/secrets:/run/secrets:ro
+    mem_limit: 1g
+    cpus: 1
+    restart: 'no'
+    networks: [preview, fresh-db]
+  mto:
+    image: freshvcf-preview-mto:f3
+    build:
+      context: .
+      dockerfile: infrastructure/docker/mto.Dockerfile
+    entrypoint: [uvicorn, 'MTO_API.asgi:application', --host, 0.0.0.0, --port, '10015']
+    environment:
+      SECRET_KEY: ${PREVIEW_SECRET_KEY:?}
+      DB_HOST: freshvcf-test-postgres-1
+      DB_PORT: '5432'
+      DB_NAME: freshvcf
+      DB_USER: freshvcf
+      DB_PASSWORD: isolated-test-only-not-a-serving-password
+      PGOPTIONS: '-c search_path=mto'
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      DEBUG: 'false'
+      CORS_ALLOWED_ORIGINS: http://localhost:3005
+      MTO_STAGE7B_ENABLE_DDQ_UI: 'false'
+    mem_limit: 1g
+    cpus: 1
+    restart: 'no'
+    networks: [preview, fresh-db]
+  redis:
+    image: redis:7.4-alpine
+    mem_limit: 128m
+    cpus: 0.5
+    restart: 'no'
+    networks: [preview]
+  frontend:
+    image: freshvcf-preview-frontend:f3
+    build:
+      context: .
+      dockerfile: infrastructure/docker/frontend.Dockerfile
+      args:
+        REACT_APP_SECRET_KEY: ${PREVIEW_CLIENT_KEY:?}
+        REACT_APP_WS_API_HOST: ws://localhost:3005
+        REACT_APP_DEMO_MODE: 'false'
+    ports: ['127.0.0.1:3005:80']
+    mem_limit: 128m
+    cpus: 0.5
+    restart: 'no'
+    networks: [preview]
+networks:
+  preview: {}
+  fresh-db:
+    external: true
+    name: freshvcf-test_default

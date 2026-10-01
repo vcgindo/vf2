@@ -54,6 +54,19 @@ def finish_run(run, output, *, expected_digest):
             run.production_digest=digest(production_projection(output))
             if digest(read_daily(run))!=run.production_digest:
                 raise ValueError('Relational production readback differs from calculated state')
+            # F3 consumer-only projection: copy produced bands without changing
+            # calculations, existing manifests, checkpoints or output digests.
+            from mta.presentation.pick_storage import write_pick_bands
+            write_pick_bands(run, output['CalculationOutputs'],
+                             provenance={'origin': 'production-calculation'})
+            from mta.presentation.excess_storage import write_excess
+            write_excess(run,output)
+            from mta.presentation.fulfillment_storage import write_fulfillment
+            write_fulfillment(run,output,output['CalculationOutputs'])
+            from mta.presentation.expedite_storage import write_expedite, selected_bands
+            write_expedite(run,output,bands=selected_bands(output['CalculationOutputs']))
+            from mta.presentation.pick_post_storage import write_pick_post
+            write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
         for name, rows in output.items():
             fields = (persist_trace(run, name, rows) if run.kind == 'DAILY_CHAIN'
                       else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))

@@ -1,6 +1,6 @@
 from django.db import connection
 from django.http import JsonResponse
-from django.urls import path
+from django.urls import include, path
 
 
 def health(request):
@@ -17,4 +17,5 @@ def ready(request):
     return JsonResponse({'ready': True})
 
 
-urlpatterns = [path('healthz', health), path('readyz', ready)]
+urlpatterns = [path('healthz', health), path('readyz', ready),
+               path('api/mta/', include('mta.presentation.urls'))]

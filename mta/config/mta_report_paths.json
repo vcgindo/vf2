@@ -1,0 +1,68 @@
+{
+  "DailyDataUnavailabilityReport": {
+    "path": "",
+    "downloadName": "DailyDataUnavailabilityReport.zip",
+    "reportName": "Daily Data Unavailability Report",
+    "fileType": "application/zip"
+  },
+  "InvalidDataReport": {
+    "path": "",
+    "downloadName": "InvalidDataReport.zip",
+    "reportName": "Invalid Data Report",
+    "fileType": "application/zip"
+  },
+  "NMSAddNewSKULoc": {
+    "path": "",
+    "downloadName": "NMSAddNewSKULocLog.zip",
+    "reportName": "UI Upload Logs - Add New SKU-Loc",
+    "fileType": "application/zip"
+  },
+  "NMSModifySKULoc": {
+    "path": "",
+    "downloadName": "NMSModifySKULocLog.zip",
+    "reportName": "UI Upload Logs - Modify SKU-Loc",
+    "fileType": "application/zip"
+  },
+  "NMSRemoveSKULoc": {
+    "path": "",
+    "downloadName": "NMSRemoveSKULocLog.zip",
+    "reportName": "UI Upload Logs - Remove SKU-Loc",
+    "fileType": "application/zip"
+  },
+  "NMSSKUMaster": {
+    "path": "",
+    "downloadName": "NMSSKUMasterLog.zip",
+    "reportName": "UI Upload Logs - SKU Master",
+    "fileType": "application/zip"
+  },
+  "NMSLocMaster": {
+    "path": "",
+    "downloadName": "NMSLocMasterLog.zip",
+    "reportName": "UI Upload Logs - Location Master",
+    "fileType": "application/zip"
+  },
+  "NMSMOQMaster": {
+    "path": "",
+    "downloadName": "NMSMOQMasterLog.zip",
+    "reportName": "UI Upload Logs - MOQ Master",
+    "fileType": "application/zip"
+  },
+  "NMSSOBMaster": {
+    "path": "",
+    "downloadName": "NMSSOBMasterLog.zip",
+    "reportName": "UI Upload Logs - SOB Master",
+    "fileType": "application/zip"
+  },
+  "ForceNormChangeUpload": {
+    "path": "",
+    "downloadName": "ForceNormChangeUploadLog.zip",
+    "reportName": "UI Upload Logs - Force Norm Change",
+    "fileType": "application/zip"
+  },
+  "InputData": {
+    "path": "",
+    "downloadName": "InputData.zip",
+    "reportName": "Input Data",
+    "fileType": "application/zip"
+  }
+}
