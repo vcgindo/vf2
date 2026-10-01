@@ -104,6 +104,62 @@ in `f3-preview-source-001`. Route and NULL/empty/distinct/text-shape unit proof
 are implemented; independent endpoint parity is not claimed from this preview.
 GetState/preferences and other unimplemented endpoints remain existing F3 exits.
 
+Completed bounded F3.1 slice: DBM column configuration and per-user saved layout.
+Selected exit: the unchanged DBM page receives the deployed visible-column/type
+projection and GetState/SaveState/ResetState envelopes from PostgreSQL. Permit
+only source-backed configuration/read adapters, an additive user-layout model
+and migration, routes and focused evidence/tests. No F2 engine/input/run change,
+new metadata hierarchy, frontend edit, transit invention or3004 mutation.
+Proof: pinned deployed UIConfigProcessor/CommonsProcessor/GenericFunction;
+canonical SQL configuration comparison; isolated layout save/replace/get/reset,
+cross-user isolation and transaction rollback; migration-enabled PostgreSQL;
+authenticated3005 read-only screen check. Browser verification never submits
+DBM Apply/Sleep or changes the preview user's preferences. Layout mutation tests
+use isolated test identities only. Source flaws stay qualified, not repaired.
+
+Evidence for this bounded connection (not full F3 closure):
+
+- `f3-ui-state-comparison-001/receipt.json` SHA256
+  `adbc5ddfa8924ed0eb6816346e6bf246ab0b3c3caed9ca8ecc7bf4a65fbb97ac`:
+  16 visible typed DBM configuration rows and10 sequential layout responses
+  match independently executed deployed SQL; zero typed-population differences.
+  Configuration inputs are the pinned deployed2.0 setup scripts; only session
+  temp tables were written. No legacy daily replay or business-data reseeding.
+- `f3-ui-state-modern-001/receipt.json` SHA256
+  `31e4f4d575d302b8be3c5fed91e27fc467ef1610192324bb2b1eb515a9f13d8b`:
+  PostgreSQL/API layout sequence, test-only identity, entire sequence rolled
+  back and no retained test rows. Six migration-enabled PostgreSQL tests and18
+  affected presentation tests PASS, including unauthorized/forged-body identity
+  rejection and injected replacement rollback.
+- Migration register: fresh_mta.0012_user_report_layout depends on0011; one
+  nullable typed preference table, no RunSQL/RunPython, seed or F2 rewrite.
+  Required on both fresh and upgraded databases. check, migration-enabled
+  empty test database, makemigrations--check, plan/apply and final empty plan
+  PASS. Initial host-only generation warned that localhost PostgreSQL is not
+  published; real graph/application checks ran successfully on owned PostgreSQL.
+- Authenticated browser login succeeded with the user-approved CAPTCHA.
+  DBM shows17 Jun2026; its Columns panel exposes16 configured fields plus the
+  selection checkbox, including Old/New Norm. GetState now returns200. Browser
+  still logs the unchanged frontend's `Failed to apply column state`; this is
+  an outstanding F3.3 UI behavior, not silently repaired or called accepted.
+  No Apply/Sleep, Save Layout or Reset Layout was submitted through the browser.
+- `f3-ui-state-http-002/receipt.json` SHA256
+  `af8e9015d1c2609a7112dfd9050a2885be08cda8f8836f854e3289c1417c8add`:
+  real login, unauthorized401 and four authenticated reads PASS after preview
+  backend recreation: typed DBM config, actual frontend`DBMNorm` GetState,
+  last-run date and DBM grid. Empty current suggestions/scopes remain explicitly
+  NOT positive report/action acceptance. Earlier001 used a generic`DBM` layout
+  key and remains retained, not relabelled as the actual frontend key.
+- Protected before/after snapshots in`f3-ui-state-001` are identical for3003,
+  3004 and accepted Fresh run/actions. Engine and frozen artifact hashes match.
+  Preview MTA alone was rebuilt; memory remains4GiB. Source flaws for quoted
+  layout SQL, ambiguous duplicate state and empty-state NULL are recorded in
+  LEGACY_EXCEPTIONS.md; those branches are not unconditional parity.
+
+Still pending: F3.1 remaining consumers and nonempty scoped metadata disposition;
+F3.2 authenticated filters/permissions/actions; F3.3 full UI/download acceptance;
+F3.4 full runtime/MTO regression; F3.5 combined acceptance/cutover handoff.
+
 F3.1 retained-history/DBM consumer slice closure:
 
 - `D:/freshvcf-build/evidence/f3-history-comparison-003/receipt.json`, SHA256

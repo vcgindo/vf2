@@ -14,6 +14,8 @@ if len(sys.argv) > 2:
     args += ['-e', f'PREVIEW_PROBE_BASE={sys.argv[2]}']
 if len(sys.argv) > 3 and sys.argv[3] == 'restart':
     args += ['-e', 'PREVIEW_PROBE_RESTART=1']
+if len(sys.argv) > 3 and sys.argv[3] == 'layout':
+    args += ['-e', 'PREVIEW_PROBE_LAYOUT=1']
 args += ['freshvcf-preview-user-service-1', 'python', '-']
 result = subprocess.run(args, input=script, text=True, capture_output=True)
 (target/'stdout.json').write_text(result.stdout, encoding='utf-8')

@@ -41,6 +41,7 @@ from mta.presentation.expedite_views import counts as expedite_counts
 from mta.presentation.pick_post_storage import read_pick_post
 from mta.presentation.expedite_charts import queries as expedite_chart_queries,response as expedite_chart_response
 from mta.runtime.models import PickPostProjection
+from mta.presentation import ui_state
 
 CONFIG = Path(__file__).resolve().parents[1] / 'config'
 
@@ -123,9 +124,23 @@ def report_paths(request, payload):
 @endpoint('GET')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
+    if name == 'NormSuggestion':
+        return envelope(data=ui_state.dbm_columns())
     if name not in UI_CONFIGS:
         return JsonResponse({'error': 'legacy_ui_config_not_migrated', 'reportName': name}, status=404)
     return envelope(data=UI_CONFIGS[name])
+
+
+@endpoint('POST')
+def user_layout(request, payload, *, operation):
+    # Never accept an impersonated payload.user on the private service either.
+    username = identity(request)['id']
+    arguments = [username, payload.get('reportname')]
+    if operation == 'save':
+        arguments.append(payload.get('state'))
+    function = {'get': ui_state.get_layout, 'save': ui_state.save_layout,
+                'reset': ui_state.reset_layout}[operation]
+    return envelope(data=function(*arguments))
 
 
 @endpoint('GET')

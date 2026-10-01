@@ -43,11 +43,20 @@ def probe(base):
               ('POST', 'GetPlanningDataGridCount', {**payload, 'category': 'orderFulfillment','type':'parent'})]
     if os.environ.get('PREVIEW_PROBE_RESTART') == '1':
         roster = [item for item in roster if item[1] in ('GetLastRunDate', 'LocationType', 'DBMData')]
+    if os.environ.get('PREVIEW_PROBE_LAYOUT') == '1':
+        roster = [('GET','GetUIConfig?reportName=NormSuggestion',None),
+                  ('POST','GetState',{'reportname':'DBMNorm'}),
+                  ('GET','GetLastRunDate',None),('POST','DBMData',payload)]
     observations = []
     for method, route, body in roster:
         started = time.monotonic()
         response = session.request(method, base + '/api/mta/' + route, json=body, timeout=180)
         assert response.status_code == 200, (route, response.status_code, response.text[:500])
+        if os.environ.get('PREVIEW_PROBE_LAYOUT') == '1' and route.startswith('GetUIConfig'):
+            rows=response.json()['data']
+            assert len(rows)==16 and all(r['Visible'] and 'DataType' in r for r in rows)
+        if os.environ.get('PREVIEW_PROBE_LAYOUT') == '1' and route=='GetState':
+            assert response.json()['data']=='', 'Do not overwrite an existing preview layout'
         observations.append(dict(route=route, status=response.status_code,
             sha256=hashlib.sha256(response.content).hexdigest(),
             body=response.json(), seconds=round(time.monotonic()-started,3)))

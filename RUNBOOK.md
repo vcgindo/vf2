@@ -27,6 +27,12 @@ parity. Detailed transit consumers, full filters/actions/downloads and the
 Expedite unordered-parent-label qualification remain open. Do not use this
 preview to submit business actions or claim complete application acceptance.
 
+The DBM column/layout connection is evidenced separately in
+`D:/freshvcf-build/evidence/f3-ui-state-comparison-001/receipt.json` and
+`f3-ui-state-http-002/receipt.json`:16 visible typed columns,10 selected layout
+steps and authenticated readback. A remaining frontend column-state warning is
+still tracked under F3.3; these receipts do not close full screen acceptance.
+
 ### Restart or stop ONLY this preview
 
 ```powershell
@@ -61,6 +67,7 @@ already exist. This procedure does NOT generate or replay synthetic calculations
 Set-Location F:\freshvcf
 & D:/freshvcf-build/venv/Scripts/python.exe tools/preview_setup.py
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml build
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python mta manage.py migrate --noinput
 docker run --rm --user 0 --entrypoint python --env USER_SERVICE_DATABASE_PASSWORD=isolated-test-only-not-a-serving-password --volume D:/freshvcf-build/preview/secrets:/run/secrets freshvcf-preview-user:f3 /usr/local/bin/user-service-key-init.py
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python user-service manage.py migrate --noinput
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python mto manage.py migrate --noinput
@@ -82,7 +89,11 @@ snapshots are in`f3-preview-001`; earlier failed wiring probes remain preserved.
 `f3-preview-restart-002` proves login and12 reads after restart;
 `f3-preview-two-worker-001` records the final two-worker/4GiB MTA configuration
 and identical selected readback. The DBM shell and expanded existing sidebar
-render, but column/preferences and several other endpoints are still incomplete.
+render. DBM's16 visible typed columns and selected sequential saved-layout
+contract now have source-backed SQL/PostgreSQL proof, with migration0012 for
+per-user preferences. Empty grids, full UI actions/downloads and other endpoint
+gaps remain unaccepted. Quoted/conflicting layout edge cases are explicitly
+qualified in`docs/LEGACY_EXCEPTIONS.md`; no legacy flaw is repaired silently.
 An empty grid or visible menu is not proof that the feature is accepted.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.

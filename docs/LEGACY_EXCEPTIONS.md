@@ -66,3 +66,32 @@ NULL label. The ambiguous label/response is **NOT_PARITY**, not a waived match.
 All14×69 post-report values, eight query bags and the pure DLL transformations
 on explicit ordered datasets were compared independently. This does not alter
 F2's calculations or its sole Norm0 qualification. Continue independent F3 work.
+
+## Layout preference edge cases — F3 presentation only
+
+Pinned DLL CommonsProcessor SHA256
+`6a79e4cd927c3a4bee0f72c9dab6f327bfcfcf9ef7dda21f1c906e8762be767b`
+and GenericFunction SHA256
+`6850a0bf2eadb4a38a2998e96ef70a264a2bc529d0de5c433c066d76c1933420`
+govern. Selected sequential layout operations are compared in
+`D:/freshvcf-build/evidence/f3-ui-state-comparison-001/receipt.json`.
+
+- **LEG-LAYOUT-UNESCAPED-LITERAL:** SaveState concatenates unescaped strings
+  into SQL. The retained test `user's layout` reproduces a syntax error in the
+  exact selected batch shape, using session-temp tables only. GenericFunction
+  swallows SQL errors and returns empty text; Commons reports200. Modern rejects
+  this branch explicitly as503/NOT_PARITY before changing rows; it does not
+  invent a successful escaped-literal repair or reproduce an injection hole.
+- **LEG-LAYOUT-UNORDERED-DUPLICATE:** the source table permits duplicates and
+  GetState has no ORDER BY. Conflicting states have no defined selected value.
+  Modern retains duplicate-capable storage but rejects conflicting values as
+  503/NOT_PARITY, never choosing first/latest as a business rule. This is a
+  source-backed ambiguity guard, not a claim of reproduced deployed divergence.
+- Empty stored state differs from an absent row: GetSingleresponse returnsNULL
+  for an existing empty/NULL scalar, but empty text for no row. The unchanged
+  DBM frontend dereferences `.length` without a NULL check. Preserve the response
+  distinction; do not silently normalize it to hide that frontend edge case.
+
+These are not F2 calculation exceptions or blanket exclusions. The proven
+layout contract is the selected sequential ASCII frontend payload; concurrent,
+case/collation variants and malformed-input equivalence are not certified by it.

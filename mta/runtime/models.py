@@ -3,6 +3,13 @@ import uuid
 from django.db import models
 
 
+class UserReportLayout(models.Model):
+    """Per-user presentation preference; separate from immutable run state."""
+    username = models.CharField(max_length=256, null=True)
+    reportname = models.CharField(max_length=50, null=True)
+    state = models.TextField(null=True)
+
+
 class CalculationRun(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     input_digest = models.CharField(max_length=64)
