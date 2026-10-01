@@ -36,14 +36,17 @@ class PresentationTest(unittest.TestCase):
         context = SimpleNamespace(output={'ClosingState':[{'importer':{'LocationAttributeData':[
             {'LocationType':'Depot'}, {'LocationType':None}, {'LocationType':''}, {'LocationType':'Depot'}
         ]}}]})
-        with patch('mta.presentation.views.publication', return_value=context) as load:
+        with patch('mta.presentation.views.selected_run', return_value=object()) as load, \
+             patch('mta.presentation.selective.image_field', return_value=['Depot',None,'','Depot']), \
+             patch('mta.presentation.views.publication', side_effect=AssertionError('metadata must not reconstruct publication')):
             self.assertEqual(self.client.get('/api/mta/LocationType').status_code,403)
             load.assert_not_called()
             response = self.client.get('/api/mta/LocationType', **IDENTITY)
             self.assertEqual(response.status_code,200)
             self.assertEqual(response.json()['data'],'[{"lt":"Depot"},{"lt":""}]')
         context.output['ClosingState'][0]['importer']['LocationAttributeData']=[]
-        with patch('mta.presentation.views.publication', return_value=context):
+        with patch('mta.presentation.views.selected_run', return_value=object()), \
+             patch('mta.presentation.selective.image_field', return_value=[]):
             self.assertEqual(self.client.get('/api/mta/LocationType', **IDENTITY).json()['data'],'[]')
 
     def setUp(self):
@@ -176,7 +179,8 @@ class PresentationTest(unittest.TestCase):
             read.assert_not_called()
 
     def test_last_date_is_explicit_selected_business_date(self):
-        with patch('mta.presentation.views.publication', return_value=SimpleNamespace(business_date=date(2026,6,17))):
+        with patch('mta.presentation.views.selected_run', return_value=SimpleNamespace(business_date=date(2026,6,17))), \
+             patch('mta.presentation.views.publication', side_effect=AssertionError('date must not reconstruct publication')):
             self.assertEqual(self.client.get('/api/mta/GetLastRunDate', **IDENTITY).json()['data'],
                              [dict(formatted='17 Jun 2026',rawDate='2026-06-17')])
 

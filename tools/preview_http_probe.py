@@ -48,12 +48,31 @@ def probe(base):
                   ('POST','GetState',{'reportname':'DBMNorm'}),
                   ('GET','GetLastRunDate',None),('POST','DBMData',payload)]
     hierarchy_mode=os.environ.get('PREVIEW_PROBE_HIERARCHY')=='1'
+    visible_mode=os.environ.get('PREVIEW_PROBE_VISIBLE')=='1'
     if hierarchy_mode:
         payload['paginationParameter']['recordsPerPage']=5000
         roster=[('GET','GetLastRunDate',None),('POST','DBMDataCount',payload),('POST','DBMData',payload),
                 ('POST','RRRDataCount',payload),('POST','RRRData',payload),
                 ('POST','GetBTRDataCount',payload),('POST','GetBTRData',payload),
                 ('POST','DailyDataGraph',{**payload,'SKUCode':'337','WHCode':'AG515802'})]
+    if visible_mode:
+        # Read-only landed-consumer roster. This is not independent parity or
+        # browser acceptance; preserve bodies/populations for the UI matrix.
+        empty_filters={name:dict(filters=[]) for name in ('supplyChainFilter',
+            'locationFilter','productFilter','availabilityFilter','coverageFilter',
+            'colorFilter','generalFilter','customAttributeFilter','horizonFilter')}
+        payload={**payload,'filters':empty_filters}
+        roster=[('GET','GetLastRunDate',None),('GET','GetAllReports',None)]
+        roster += [('POST','GetBufferTrendGraphData',{**payload,'days':30,'bufferTrendType':kind}) for kind in ('tech','eco')]
+        roster += [('POST',route,{**payload,'horison':9,'ageing':1}) for route in (
+            'AvailabilityTrend','AvailabilityAgeing','DBMNormSuggestionLoc','DBMNormSuggestionSKUs',
+            'DBMNormSuggestionPie','DBMNormSuggestionAgeing','ChronicUnavailabilityLoc',
+            'ChronicUnavailabilitySku','ChronicUnavailabilityGridViewData')]
+        roster += [('POST','GetResearchInsightData',{**payload,'data':[dict(SKUCode='337',WhCode='AG515802')]}),
+                   ('GET','GetHistroricalAvailabilityBPRData',None)]
+        for category in ('orderFulfillment','excessInventory'):
+            roster += [('POST',route,{**payload,'category':category,'type':'parent'})
+                       for route in ('GetPlanningDataGridCount','GetPlanningDataGrid','GetPlanningDataGraph')]
     observations = []
     for method, route, body in roster:
         started = time.monotonic()
@@ -78,7 +97,8 @@ def probe(base):
     return dict(status='PREVIEW_LOGIN_READBACK_PASS_NOT_F3_ACCEPTANCE',
         username=login['user']['email'], unauthenticated_status=denied.status_code,
         navigation=sorted(urls), observations=observations,
-        qualification=('Approved retained hierarchy supplement and root assignments; latest terminal day. Real gateway reads only; no actions submitted.'
+        qualification=('Landed-consumer visible-checkpoint API roster; exact terminal run and existing empty filters; not browser/independent parity proof.30-day charts include retained historical opening plus12 computed days.' if visible_mode else
+            'Approved retained hierarchy supplement and root assignments; latest terminal day. Real gateway reads only; no actions submitted.'
             if hierarchy_mode else 'Inspect assignments and selected supplement from the matching receipt. This readback probe does not itself certify independent legacy parity. No actions submitted.'))
 
 

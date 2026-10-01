@@ -39,6 +39,22 @@ still tracked under F3.3; these receipts do not close full screen acceptance.
 
 ### Restart or stop ONLY this preview
 
+RRR selective-read checkpoint: open the existing sidebar's SCIH → Rationed
+Requirement Report. Click **Show All**:17 Jun2026,14 retained rows. Supply Chain
+Node → For Location → Agen shows3; Reset Filters then Show All restores14.
+Page Size5 and next page show5 rows with total14. Real3005 filter/clear/paging
+and isolated MTA restart-readback were verified; final gateway reads <=0.556s
+and four concurrent requests0.5593s on the local warm database. No cold-disk or
+legacy timing claim. Evidence is in
+`D:/freshvcf-build/evidence/f3-rrr-selective-ui-010/receipt.json` and
+`f3-rrr-selective-final-gateway-016/receipt.json`.
+
+**CSV Export currently fails**: enabled RRR control calls the unconnected
+GetExportDataAsync route (gateway500). This modern integration defect remains
+open; do not treat the RRR screen or F3 as fully accepted. Other consumers have
+not yet received selective-read optimization. Full publication integrity is
+checked explicitly at validation/restart, not reconstructed on every RRR read.
+
 ```powershell
 Set-Location F:\freshvcf
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml up -d --no-build

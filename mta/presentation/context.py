@@ -42,7 +42,12 @@ class Publication:
         return self.run.business_date
 
 
-def publication():
+def selected_run():
+    """Resolve immutable accepted identity without replaying its entire state.
+
+    Full verification remains in read_outputs/publication and publication/startup
+    acceptance. Routine selective readers verify the images they actually use.
+    """
     identifier = settings.VF_MTA_PUBLISHED_RUN
     expected = settings.VF_MTA_PUBLISHED_DIGEST
     if not identifier or not expected:
@@ -56,6 +61,11 @@ def publication():
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
     if run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
         raise PublicationUnavailable('publication_acceptance_required')
+    return run
+
+
+def publication():
+    run = selected_run()
     output = read_outputs(run)
     dbm, _ = command_state(run, output['DBMFinal'][0])
     # Compatibility input shape only: the BTR consumer needs final ration rows,

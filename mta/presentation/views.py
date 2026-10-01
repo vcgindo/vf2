@@ -14,7 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from mta.presentation import btr, insights
-from mta.presentation.context import PublicationUnavailable, permission_catalogue, publication, scope
+from mta.presentation.context import PublicationUnavailable, permission_catalogue, publication, scope, selected_run
 from mta.presentation.dbm import dbm_rows, delivery_history
 from mta.presentation.dbm_filters import dbm_predicate
 from mta.presentation.daily_history import daily_graph
@@ -109,8 +109,9 @@ def all_permissions(request, payload):
 def location_types(request, payload):
     # Deployed CommonsProcessor.GetLocationType: DISTINCT, NULL exclusion only;
     # response.data is JSON text, not a nested array. No scope predicate/order.
-    rows = publication().output['ClosingState'][0]['importer']['LocationAttributeData']
-    values = list(dict.fromkeys(row['LocationType'] for row in rows if row['LocationType'] is not None))
+    from mta.presentation.selective import image_field
+    rows = image_field(selected_run(), 'closing/importer/LocationAttributeData','LocationType')
+    values = list(dict.fromkeys(value for value in rows if value is not None))
     return envelope(data=json.dumps([{'lt': value} for value in values], separators=(',', ':'), ensure_ascii=False))
 
 
@@ -158,7 +159,7 @@ def dbm_action(request, payload, *, operation):
 
 @endpoint('GET')
 def last_run_date(request, payload):
-    value = publication().business_date
+    value = selected_run().business_date
     return envelope(data=[dict(formatted=value.strftime('%d %b %Y'), rawDate=value.isoformat())])
 
 
@@ -190,18 +191,11 @@ def rrr_data(request, payload, *, count=False):
     paging = _pagination(payload)
     if paging is None:
         raise ValueError('invalid_pagination')
-    context = publication()
-    try:
-        bands = read_pick_bands(context.run)
-    except PickProjection.DoesNotExist as exc:
-        raise PublicationUnavailable('selected_run_pick_projection_not_published') from exc
-    importer = context.output['ClosingState'][0]['importer']
-    rows = scoped(rrr_rows(context.output, bands, predicate=rrr_predicate(payload,importer)), payload, 'WhCode',
-                  attributes=context.output['ClosingState'][0]['importer'], preserve_join_multiplicity=True)
+    from mta.presentation.rrr_sql import read_rrr
+    rows = read_rrr(selected_run(), payload, paging=paging, count=count)
     if count:
-        return envelope(record_count=str(len(rows)))
-    page, size = paging
-    return envelope(data=[selected_rrr_response(row) for row in rows[(page-1)*size:page*size]])
+        return envelope(record_count=str(rows))
+    return envelope(data=[selected_rrr_response(row) for row in rows])
 
 
 def planning_context(payload):
