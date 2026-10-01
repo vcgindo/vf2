@@ -76,8 +76,16 @@ permission bags and page2/out-of-range reads match deployed SQL and wire types;
 actual cookie readback survives MTA-only restart. Evidence:
 `f3-bpr-terminal-003`, `f3-bpr-wire-001`, `f3-bpr-gateway-001`, `f3-bpr-restart-001`.
 Do not carry this supplement to another date or treat it as populated transit
-acceptance. Active BPR filters remain explicitly unavailable. Browser screen,
-remarks/actions, downloads and Planning GIT/overview are still pending.
+acceptance. Active BPR server filters remain explicitly unavailable. Actual
+browser BPR Show All shows1,240 rows, page size50, and next page51–100.
+Research Insights loads the same1,240-row estate; client grid filters337 and
+AG515802 select the retained pair (Norm392). Select its checkbox then Load
+Insights for the summary/ageing read. These read-only steps were verified in
+`f3-bpr-ui-001`; no business action or layout was saved. Known presentation
+limitations: BPR's empty transit panel retains a select-row prompt; Research's
+calendar opens at the machine month rather than the June17 report month.
+Do not treat this as calendar-date/full screen parity. Remarks/actions,
+downloads, remaining configuration and Planning GIT/overview remain pending.
 
 ```powershell
 Set-Location F:\freshvcf
