@@ -126,6 +126,32 @@ requests compare all row values/types/duplicate occurrences, counts and declared
 order. This certificate does not cover arbitrary malformed/Unicode/collation
 variants or a different report's aliases/populations.
 
+## LEG-DBM-FILTER-INVALID-SQL — selected current-suggestions filters
+
+Authority: pinned DLL SHA256
+`0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`;
+DBMProcessor SHA256 `7339a2e04aab1b2c4108bb182721dfb057ab65267fcee027c88480e6c449aea5`.
+Actual Commons.filterQuery overload e/i/f, six-group gate and ParentWhCode
+replacement were invoked. Exact SQL reads independent retained pre-action legacy
+state with the identical approved hierarchy supplement, not modern outputs.
+Evidence: `D:/freshvcf-build/evidence/f3-dbm-filters-comparison-001/receipt.json`,
+SHA256 `a9e9cc25d37316918f6322e88b9b78135f1315c8deabd2a30ac4d20abb7ef0e6`.
+
+| Selected branch | Canonical defect |
+|---|---|
+| Stock/GIT/VirtualNorm/PIC/OHIC | Missing selected Suggestions/DBMMaster columns |
+| Category/tags/availability/coverage | Missing category/tags/availability/coverage columns |
+| Colour count/age | Missing btd/history/age joins |
+| Unknown operator | Empty invalid predicate |
+| Unknown p9 hierarchy | Generated sl9 absent |
+
+13 frozen requests yield26 count/grid contracts LEGACY_FLAW_NOT_PARITY with
+attributable42S22/42000 receipts. Modern503 guards are not legacy HTTP-error parity
+or calculation waivers. Never invent missing fields/joins/defaults. Other82
+contracts compare full typed populations/multiplicity. Custom-only filters,
+including invalid operators, are ignored by the actual standard-group call gate;
+preserve it, do not repair it. No arbitrary malformed/Unicode/collation certification.
+
 ## LEG-BTR-FILTER-INVALID-SQL — deployed count/grid filter distinction
 
 Authority: same pinned canonical DLL; BORProcessor source SHA256

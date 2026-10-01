@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from mta.presentation import btr, insights
 from mta.presentation.context import PublicationUnavailable, permission_catalogue, publication, scope
 from mta.presentation.dbm import dbm_rows, delivery_history
+from mta.presentation.dbm_filters import dbm_predicate
 from mta.presentation.daily_history import daily_graph
 from mta.presentation.insight_response import scalar_json_rows,chronic_grid_payload
 from mta.presentation import history_native
@@ -162,11 +163,11 @@ def last_run_date(request, payload):
 
 
 def dbm_filtered(context, payload):
-    rows = dbm_rows(context.dbm)
+    rows = dbm_rows(context.dbm, predicate=dbm_predicate(payload,context.dbm))
     rows = [dict(r, WHCode=r['LocCode'], WhCode=r['LocCode'], WHName=r['LocName'],
                  ParentWhCode=r.get('PWhCode')) for r in rows]
-    rows = scoped(_filter_rows(rows, payload), payload, 'LocCode',
-                  attributes=context.output['ClosingState'][0]['importer'],preserve_join_multiplicity=True)
+    rows = scoped(rows, payload, 'LocCode',
+                  attributes=context.dbm,preserve_join_multiplicity=True)
     return [dict({k: v for k, v in r.items() if k not in ('WHCode', 'WhCode', 'WHName', 'ParentWhCode')}, RN=i)
             for i, r in enumerate(rows, 1)]
 

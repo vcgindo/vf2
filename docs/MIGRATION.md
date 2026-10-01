@@ -43,7 +43,7 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 | Obligation | Required exit evidence | State |
 |---|---|---|
 | F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS. Selected source-invalid branches remain NOT_PARITY. Next: remaining DBM/Planning/insight filter/scope contracts |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS; DBM82 strict contracts PASS,94 cookie requests plus14 private asserted scope reads. Source-invalid branches remain NOT_PARITY. Next: Planning/insight filter/scope contracts |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -443,6 +443,84 @@ Suggestions=0 cannot by itself certify filters, and SuggestionsLog132 must not
 be substituted into the current Suggestions grid. Freeze that finite request
 roster/source/exit here before its mutation. Planning/insight and F3.3–F3.5 remain
 open; do not reopen the completed BTR/RRR/F2 proofs without relevant invalidation.
+
+Completed DBM F3.2 exit, contract frozen before mutation: GetDBMData/GetDBMDataCount use
+Commons.filterQuery(FilterType,e,i,f), not filterQueryForReports. The deployed
+six-group presence gate ignores custom-only filters; an empty standard group
+activates raw custom filtering. Preserve anti-NormAcceptance membership, raw
+NULL/ISNULL distinction, parent inner-join bags, permission multiplicity, row
+numbers and JSON null-for-empty. Norm is DBMMaster-owned; missing category/tags/
+Stock/GIT/VirtualNorm/PIC/OHIC/availability/coverage/colour columns remain flaws.
+
+Positive application proof requires one fresh, owned pre-action day0 from the
+EXISTING representative-bridge-input.json (SHA458c7c66...) and saved independent
+f2-auto-sql-012 receipt (SHA31607018...), not regenerated fixtures or historical
+SuggestionLog substitution. Reuse execute_day/29 pre-action checks, real cookie
+gateway and existing hierarchy-supplement binding pattern from the accepted
+action proof. Freeze the finite RRR request categories adapted to DBM plus an
+explicit custom-only ignored case; compare count/full grid/paging/typed values
+against DLL-generated filters and exact deployed SQL on the saved pre-action
+legacy state. Then execute the same day0 Apply/Sleep policy and compare all31
+contracts. Only this new trial gets rows/commands; existing runs/actions/serving
+instances/F2 inputs and policy remain immutable. This is a pre-action consumer
+test, not a new full-depth replay or a replacement default publication.
+Permitted edits: DBM raw consumer predicate/projection, DBM route, focused tests,
+provenance registration and bounded existing proof-driver mode. No engine,
+schema, source SQL, frontend, input, policy, permission-assignment or serving edit.
+Exit includes attributable NOT_PARITY diagnostics, terminal current0 preserved,
+real gateway scope, unchanged prior identities and independent response proof.
+
+DBM bounded exit CLOSED (not whole F3 acceptance):
+
+- `D:/freshvcf-build/evidence/f3-dbm-filters-comparison-001/receipt.json`,
+  SHA256 `a9e9cc25d37316918f6322e88b9b78135f1315c8deabd2a30ac4d20abb7ef0e6`:
+  **82 strict PASS +26 LEGACY_FLAW_NOT_PARITY**,54 requests/108 count-grid
+  contracts. Actual pinned DLL filterQuery e/i/f and exact deployed SQL use the
+  independent day-zero pre-action capture SHA256
+  `4346d698254c1b6556aae5ce7205cafd891b0d70c7319c185869cdb3c18a18e7`.
+  Typed fields/NULLs/duplicates/counts/permission bags/RN paging compare.
+  Custom-only filters remain ignored under the actual source call gate.
+  No legacy engine replay or persistent SQL write occurred.
+- Corrected owned trial `381378ac-bcb0-4977-b255-a3c038d018e2`, June6:
+  `f3-dbm-gateway-002/receipt.json`, SHA256
+  `c4b6e833ad2a7bec4515fbc315d15e77b242aef5531673b28e78d22dbd513019`;
+  inner proof SHA256 `7c84d5e8021d7c7dc30aaadf0b267393918f48337525fcc1c4611b4049e95521`.
+  **31 unchanged day-zero calculation/action contracts PASS**. Current grid10 is
+  from this explicitly selected pre-action trial, not history.94 actual cookie
+  requests used stored roots;14 leaf reads used private asserted identities,
+  NOT leaf-login proof. Missing cookie401; forged body/empty scopes overridden.
+- Trial001 (`5efd9b4a-42ff-4010-817f-b74243edb642`) remains intact with its31
+  passing calculation/action receipts but non-final consumer reads: Importer
+  permission attributes were incorrect for DBM. The source-backed correction
+  uses DBM-owned attributes;002 is fresh consumer proof. The preserved
+  `f3-dbm-gateway-001/disposition.md` records this, without rewinding a run.
+- `f3-dbm-filters-protected-001/closure.md`: protected3003/3004 services/HTTP/
+  publications and accepted Fresh terminal run unchanged. Only six commands on
+  the two new trials were added; each proof checked prior identities. Workers/
+  cookie removed; caps unchanged. Current code preserves terminal count0/gridNULL.
+- **47 focused tests PASS**, diff check PASS. Original DBM import byte pin stays;
+  its raw-predicate adaptation is separately registered with independent proof.
+  No engine/schema/facts/policy/frontend change. Preview3005 and serving3004
+  remain at prior images; private code proof is not serving-upgrade acceptance.
+
+User priority now supersedes the next backend slice: finish this DBM code/proof
+checkpoint, then make already-landed F2/F3 consumers visible on3005 before any
+new Planning/insight filter work. Direct user instructions verified in review
+task01a0f29e-ec6b-7cf2-adb1-3ebda9365a55, turn01a0f635-4784-75d3-aef0-df5fd85f807d:
+"now onwards- the exit handoff for any part of the frontend integration has to
+be with3005 proof" and "get all the work done so far, visible on3005".
+This explicitly authorizes isolated3005 rebuild/redeployment/restart only.
+
+Active F3.3 exit: rebuild committed HEAD on3005 with the accepted F2 terminal run
+and approved catalogue/hierarchy; real-login screen-by-screen proof of every
+landed consumer. Record one visibility matrix here, with route/sidebar, commit/
+image, run/date, identity, API population, visible content, screenshot and relevant
+filter/count/paging/download/action behavior plus restart-stable readback.
+Backend/private proof is not frontend closure. Expected-empty current DBM needs
+its zero source and visible designated history/output. API data with blank UI
+is ACTIVE connection/configuration work. Exact missing-source/flaw boundaries
+stay BLOCKED/NOT_PARITY, never fabricated. No new port, F2 changes, fixture/date
+substitution, frontend redesign or3003/3004 mutation. F3.1–F3.5 remain partial/open.
 
 F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
 MTA screen matrix here (route/component, complete call roster, selected run/date,

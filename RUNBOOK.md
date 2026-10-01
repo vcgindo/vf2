@@ -155,8 +155,22 @@ cookie-gateway comparisons plus401 and the Stock-grid503 source-flaw guard.
 Its private driver uses `--btr-filters`, no host port/calculation/action writes.
 Protected serving/publication snapshots are unchanged. These BTR changes are
 committed source/private-worker acceptance, NOT a rebuilt3005 preview or3004
-cutover. Remaining DBM/Planning/insight filters and full UI/MTO/runtime acceptance
+cutover. Remaining Planning/insight filters and full UI/MTO/runtime acceptance
 stay in the finite F3 checklist in docs/MIGRATION.md.
+DBM private checkpoint: `f3-dbm-filters-comparison-001`,82 strict count/grid
+contracts PASS and26 attributable source-invalid contracts NOT_PARITY. Uses the
+unchanged retained shallow day-zero pre-action population, not SuggestionsLog.
+`f3-dbm-gateway-002` exports94 real cookie requests and14 private asserted leaf
+scope reads (not leaf-login proof), followed by31 unchanged day-zero engine/action
+comparisons. The `--dbm-filters` proof mode creates a newly owned retained trial;
+it is NOT a serving startup command or a full-depth replay. Terminal default
+current count0/gridNULL remains unchanged. Trial001 non-final reads are preserved.
+These committed source/private-worker changes are not rebuilt preview/3004
+acceptance. All F2 accepted receipts and protected serving identities remain intact.
+Next authorized delivery checkpoint rebuilds/redeploys only3005 from committed
+HEAD, retaining the F2 terminal publication and approved hierarchy. Every frontend
+exit now requires authenticated real-screen3005 proof; backend/private evidence
+alone cannot certify UI delivery.3003/3004 remain unchanged.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 

@@ -64,6 +64,7 @@ def main():
     mode=parser.add_mutually_exclusive_group()
     mode.add_argument('--rrr-filters',action='store_true',help='Read-only representative RRR filter proof; no calculation/action trial')
     mode.add_argument('--btr-filters',action='store_true',help='Read-only representative BTR filter proof; no calculation/action trial')
+    mode.add_argument('--dbm-filters',action='store_true',help='One unchanged retained day0: pending DBM reads, then original day0 actions')
     args = parser.parse_args()
     target = args.evidence.resolve()
     evidence_root = Path('D:/freshvcf-build/evidence').resolve()
@@ -82,6 +83,8 @@ def main():
     report='BTR' if args.btr_filters else 'RRR'
     if read_only:
         receipt['boundary']='F3.2 real cookie gateway retained '+report+' filters; read-only, no calculation'
+    elif args.dbm_filters:
+        receipt['boundary']='F3.2 one retained pre-action day0 DBM filter readback, then unchanged day0 actions; no serving changes'
     gateway_started = False
     try:
         start = subprocess.run(['docker', 'compose', '--env-file',
@@ -114,6 +117,7 @@ def main():
             '--evidence', '/evidence/' + target.name + '/proof',
             '--revision', args.revision, '--gateway-url', 'http://' + GATEWAY + ':10016',
             '--gateway-session', '/trial/gateway-session.json']
+        if args.dbm_filters:command.append('--dbm-filters')
         if read_only:
             command=command[:command.index('mta')]+[
                 '-e','VF_MTA_PUBLISHED_RUN=ac1612c8-0e49-4155-83c3-f59f41422293',
@@ -138,12 +142,13 @@ def main():
             raise RuntimeError('Retained gateway proof failed; inspect preserved worker/proof logs')
         proof_path = target / 'proof/receipt.json'
         proof = json.loads(proof_path.read_text())
-        expected_comparisons=14 if read_only else 62
+        expected_comparisons=14 if read_only else 31 if args.dbm_filters else 62
         if proof.get('real_gateway_acceptance') != 'PASS' or proof.get('comparisons') != expected_comparisons:
             raise RuntimeError('Gateway/complete retained comparison exit not met')
         if len(receipt['containers']) != 2 or any(c['port_bindings'] for c in receipt['containers']):
             raise RuntimeError('Private no-host-port isolation not proved')
-        receipt.update(status='PASS_REAL_GATEWAY_'+report+'_FILTERS' if read_only else 'PASS_REAL_GATEWAY_ACTIONS_AND_OWN_NEXT_DAY',
+        receipt.update(status=('PASS_REAL_GATEWAY_'+report+'_FILTERS' if read_only else
+            'DBM_GATEWAY_READBACK_EXPORTED_COMPARISON_REQUIRED' if args.dbm_filters else 'PASS_REAL_GATEWAY_ACTIONS_AND_OWN_NEXT_DAY'),
             proof_sha256=hashlib.sha256(proof_path.read_bytes()).hexdigest(), comparisons=expected_comparisons)
         if read_only: receipt['publication_run_id']=proof['run']['id']
         else: receipt['private_run_ids']=[d['run_id'] for d in proof['days']]

@@ -28,12 +28,14 @@ def concat(expression,parameters):
         for t in re.findall(r'"(?:[^"\\]|\\.)*"|\b[A-Za-z_]\w*\b',expression))
 
 
-def assignments(body,variable,parameters):
+def assignments(body,variable,parameters,*,sql_filter=''):
     pattern=r'(?m)^\s*(?:string )?'+variable+r'\s*(?:\+=|=)\s*((?:"(?:[^"\\]|\\.)*"|[^";])*);'
     parts=[]
     for match in re.finditer(pattern,body):
         expression=match.group(1)
-        if re.search(r'\+\s*(?:sqlFilter|text3)\b',expression): continue
+        if re.search(r'\+\s*(?:sqlFilter|text3)\b',expression):
+            if sql_filter and re.search(r'\+\s*sqlFilter\b',expression): parts.append(' and '+sql_filter)
+            continue
         if 'masterRoot.paginationParameter ==' in expression: continue
         parts.append(concat(expression,parameters))
     return ''.join(parts)
@@ -65,8 +67,8 @@ def availability_query():
     return bind(CTE+' union all '.join(branches))
 
 
-def dbm_query(*,count=False,page=1,size=5000):
+def dbm_query(*,count=False,page=1,size=5000,sql_filter='',sql_join_filter='',auth_cte=None):
     body=method('dbm','GetDBMDataCount' if count else 'GetDBMData').split('string vectorPULLFG_DBM',1)[0]
-    sql=CTE+assignments(body,'text2',{})
+    sql=(auth_cte or CTE)+assignments(body,'text2',dict(sqlJoinFilter=sql_join_filter),sql_filter=sql_filter)
     if not count: sql+=f' where RN between ({page}-1)*{size}+1 and ({page}*{size}) for json path) dbm'
     return bind(sql)

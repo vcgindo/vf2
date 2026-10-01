@@ -138,8 +138,9 @@ class PresentationTest(unittest.TestCase):
         rows.append(dict(SKUCode='5328',LocCode='AG515802',LocName='',PWhCode='',RN=3,NewNormValue='220'))
         payload = dict(product_permissions=[71001], location_permissions=[72001],
                        paginationParameter=dict(pageNumber=2,recordsPerPage=1))
-        with patch('mta.presentation.views.publication', return_value=SimpleNamespace(dbm={},
-             output={'ClosingState':[{'importer':ATTRIBUTES}]})), \
+        # Canonical DBM CTES own these attributes; Importer is deliberately empty.
+        with patch('mta.presentation.views.publication', return_value=SimpleNamespace(dbm=ATTRIBUTES,
+             output={'ClosingState':[{'importer':{}}]})), \
              patch('mta.presentation.views.dbm_rows', return_value=rows), \
              patch('mta.presentation.context.permission_catalogue', return_value=CATALOGUE):
             count = self.post('DBMDataCount', payload, **IDENTITY).json()
@@ -183,12 +184,13 @@ class PresentationTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root/'baseline/consumer-reuse.json').read_text())
         adaptations = manifest.get('accepted_adaptations', {})
-        self.assertEqual(set(adaptations), {'mta/presentation/btr.py'})
+        self.assertEqual(set(adaptations), {'mta/presentation/btr.py', 'mta/presentation/dbm.py'})
         for name, expected in manifest['outputs'].items():
             if name in adaptations:
                 record = adaptations[name]
                 self.assertEqual(record['from_sha256'], expected, name)
-                self.assertTrue(record['scope'].startswith('F3.2 BTR'), name)
+                report = {'mta/presentation/btr.py': 'BTR', 'mta/presentation/dbm.py': 'DBM'}[name]
+                self.assertTrue(record['scope'].startswith('F3.2 ' + report), name)
                 self.assertEqual(len(record['evidence_sha256']), 64, name)
                 self.assertIn('PASS_SELECTED_FILTER_CONTRACT_ONLY', record['acceptance'], name)
                 expected = record['sha256']

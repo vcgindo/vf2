@@ -88,7 +88,7 @@ def daily_graph(state, sku, location):
         'RunDate': run_date, 'horizonValue': 90,
     }]
 
-def dbm_rows(state):
+def dbm_rows(state, *, predicate=None):
     """DBMProcessor's full joins and literal attribute aliases, including bags."""
     accepted = {key(r) for r in state['NormAcceptanceTbl']}
     result = []
@@ -113,6 +113,7 @@ def dbm_rows(state):
                 row[f'SKUAttribute{i}' if i in (1, 2, 6, 7, 8, 9, 10, 14) else f'c{i}'] = sa.get(f'c{i}') or ''
                 row[f'SkuLocAttribute{i}' if i <= 2 else f'sl{i}'] = sla.get(f'c{i}') or ''
                 row[f'LocAttribute{i}' if i <= 2 else f'l{i}'] = la.get(f'c{i}') or ''
-            result.append(row)
+            for _ in range(predicate(s,m,sa,la,sla) if predicate else 1):
+                result.append(row)
     result.sort(key=lambda r: (r['SKUCode'], r['LocCode']))
     return [dict(r, RN=i) for i, r in enumerate(result, 1)]

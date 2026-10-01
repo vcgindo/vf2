@@ -59,6 +59,7 @@ class Command(BaseCommand):
         parser.add_argument('--revision', required=True)
         parser.add_argument('--gateway-url')
         parser.add_argument('--gateway-session',type=Path)
+        parser.add_argument('--dbm-filters',action='store_true',help='One retained day0, pre-action DBM reads, then unchanged day0 actions')
 
     def handle(self, *args, **options):
         target = options['evidence']
@@ -83,6 +84,8 @@ class Command(BaseCommand):
         headers = {'HTTP_X_VECTORFLOW_IDENTITY':json.dumps({'id':'f3-retained-action-actor'})}
         server = None
         gateway = options['gateway_url']
+        dbm_mode=options['dbm_filters']
+        if dbm_mode and not gateway:raise CommandError('DBM pre-action mode requires the actual cookie gateway')
         actor = 'f3-retained-action-actor'
         session = None
         if gateway:
@@ -115,7 +118,7 @@ class Command(BaseCommand):
         payload = dict(product_permissions=[71001], location_permissions=[72001],
                        paginationParameter=dict(pageNumber=1,recordsPerPage=5000))
         try:
-            for index in (0,1):
+            for index in ((0,) if dbm_mode else (0,1)):
                 entry = retained['days'][index]
                 if len(entry['comparisons']) != 31 or not independent_contracts_pass(entry['comparisons']):
                     raise CommandError('Retained day lacks complete accepted comparisons')
@@ -163,6 +166,13 @@ class Command(BaseCommand):
                 with override_settings(VF_MTA_PUBLISHED_RUN=str(run.pk),VF_MTA_PUBLISHED_DIGEST=run.output_digest,
                         VF_MTA_HIERARCHY_FILE=str(supplement_path),VF_MTA_HIERARCHY_SHA256=sha(supplement_path),
                         VF_MTA_ACTIONS_ENABLED=True):
+                    if dbm_mode:
+                        from mta.runtime.dbm_filter_probe import export_reads
+                        result['dbm_filters']=export_reads(target,post,self.stdout)
+                        result['dbm_filters']['retained_capture_path']=registered
+                        result['dbm_filters']['retained_capture_sha256']=entry['legacy_capture_sha256']
+                        result['dbm_filters']['legacy_closing_digest']=entry['closing_digest']
+                        result['dbm_filters']['hierarchy_file']=supplement_path.name
                     # Actual scope rejects a selected identity when no permission
                     # is assigned, before it reaches the real command writer.
                     selection = commands[0]['selected'][0]
@@ -219,7 +229,7 @@ class Command(BaseCommand):
             final_modern_path=target/'execution.json'
             final_modern_path.write_text(json.dumps(final_modern,indent=2))
             final_replay=dict(status='PASS',input_sha256=INPUT_SHA,action_policy=POLICY,
-                modern_execution_sha256=sha(final_modern_path),requested_days=2,
+                modern_execution_sha256=sha(final_modern_path),requested_days=len(days),
                 kind='RETAINED_CAPTURE_COMPARISON_WITH_F3_HTTP_ACTIONS',
                 retained_replay_sha256=REPLAY_SHA,days=[dict(day_index=i,date=d['date'],
                     modern_run=d['run_id'],modern_output_digest=d['output_digest'],status='PASS',
@@ -230,8 +240,8 @@ class Command(BaseCommand):
             final=frozen_existing()
             if any(final[k].get(identifier)!=value for k,rows in before.items() for identifier,value in rows.items()):
                 raise CommandError('Pre-existing run or action identity changed')
-            result.update(status='PASS_RETAINED_HTTP_ACTIONS_AND_OWN_NEXT_DAY',days=days,
-                comparisons=62,existing_runs_and_commands_unchanged=True,
+            result.update(status='RETAINED_DBM_GATEWAY_READBACK_EXPORTED_COMPARISON_REQUIRED' if dbm_mode else 'PASS_RETAINED_HTTP_ACTIONS_AND_OWN_NEXT_DAY',days=days,
+                comparisons=31*len(days),existing_runs_and_commands_unchanged=True,
                 legacy_replays=0,serving_changes=False,real_gateway_acceptance='PASS' if gateway else 'OPEN')
         except Exception as exc:
             result['error']=dict(type=type(exc).__name__,message=str(exc))
@@ -242,4 +252,4 @@ class Command(BaseCommand):
                 server.server_close()
             result['days']=days
             (target/'receipt.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
-        self.stdout.write(json.dumps(dict(status=result['status'],days=2,comparisons=62,receipt_sha256=sha(target/'receipt.json'))))
+        self.stdout.write(json.dumps(dict(status=result['status'],days=len(days),comparisons=31*len(days),receipt_sha256=sha(target/'receipt.json'))))

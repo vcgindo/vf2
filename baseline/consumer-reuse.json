@@ -40,6 +40,14 @@
     "mta/config/mta_report_paths.json": "8a40417eb96721484cbbb498bea64261f75b99a7a2f6dd39fb87159ae120f3d3"
   },
   "accepted_adaptations": {
+    "mta/presentation/dbm.py": {
+      "from_sha256": "d340640989a47e5e098ce120b6be71b283f06fa31b7ae3e365e8914e3c87f55b",
+      "sha256": "7d0268a08c32a062845ab6cdfdede64c412275e3886fb6dc28fe4bcf7ab73790",
+      "scope": "F3.2 DBM raw source filter and parent-join multiplicity; original source/output pins retained; no calculation/state change",
+      "evidence": "D:/freshvcf-build/evidence/f3-dbm-filters-comparison-001/receipt.json",
+      "evidence_sha256": "a9e9cc25d37316918f6322e88b9b78135f1315c8deabd2a30ac4d20abb7ef0e6",
+      "acceptance": "PASS_SELECTED_FILTER_CONTRACT_ONLY; declared source-invalid branches NOT_PARITY; not whole F3 acceptance"
+    },
     "mta/presentation/btr.py": {
       "from_sha256": "3bc143f70cd1c475324f1d279b3f3002da93b6c1e4c246da185bafc9f21d79f6",
       "sha256": "7e964f2156ee7283ebd69d99fc1329fda410d65bbfc443b4743ef250a54a60d6",
