@@ -42,8 +42,8 @@ This is the only F3 checklist; no new recovery programme or parallel status file
 
 | Obligation | Required exit evidence | State |
 |---|---|---|
-| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | ACTIVE/PARTIAL — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. Native readback works; nonempty scoped delivery awaits retained-metadata disposition. BPR transit input, remaining consumers and application acceptance stay open |
-| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PENDING |
+| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL / remaining work deferred while F3.2 is active — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight query variants verified unscoped. Expedite ambiguous parent label remains NOT_PARITY. BPR transit input is BLOCKED; remaining consumers and application acceptance stay open |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | ACTIVE/PARTIAL — DBM HTTP/persistence/own-next-day slice CLOSED:62 retained comparisons; approved scoped RRR14×119 matches SQL; eight authenticated gateway reads PASS. Next unmet exit: positive gateway actions on isolated retained trials and selected filter/scope variants |
 | F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | PARTIAL —3005 preview login, existing sidebar and DBM shell verified. Full UI/configuration/download/action acceptance remains pending |
 | F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
 | F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
@@ -159,6 +159,122 @@ Evidence for this bounded connection (not full F3 closure):
 Still pending: F3.1 remaining consumers and nonempty scoped metadata disposition;
 F3.2 authenticated filters/permissions/actions; F3.3 full UI/download acceptance;
 F3.4 full runtime/MTO regression; F3.5 combined acceptance/cutover handoff.
+
+F3.1 Planning overview disposition: BLOCKED by the same detailed-transit input
+boundary already recorded below, not a new gap. Deployed
+SCIHProcessor.GetQuadrantDetailsQuery joins Importer.InTransitData for the custom
+GIT count and returns ten counts together; no permission to replace this with
+zero, June5 detail or a partial success envelope. Independent F3.2 work may proceed.
+
+Completed F3.2 slice: DBMApplySelectedNorms/DBMUpdateSleepTbl HTTP adapters around the
+existing record_command service. Its required exit was exact selected request/response
+mapping, gateway-derived actor, permission rejection, persisted Apply/Sleep and
+own-next-day consequences on the retained shallow artifact. Permit application
+adapters/settings/routes/tests only; no F2 calculation/SQL/action policy or accepted
+run mutation. Preview stays read-only for actions. Proof uses newly owned isolated
+run identities and the unchanged representative artifact/retained SQL receipts;
+tests cannot authorize changing hierarchy or replacing the bulk artifact.
+User has now approved the exact retained hierarchy as a versioned presentation-only
+supplement, identically applied in isolated legacy/modern consumer checks. This
+approval is direct in this task: questionItemId
+`["request_user_input_async","call_t0gFrlwyElTIUHNFLokPERgQ",0]`, answer
+**"Approve the retained hierarchy supplement"**. The approved question says:
+"add a versioned presentation-only supplement using the exact previously approved
+catalogue/hierarchy, apply it identically to isolated legacy and modern consumer
+checks, and leave all F2 inputs, calculations, run rows and receipts unchanged"
+and explicitly excludes new transit facts. Screen-content cues are not the source
+of this approval. Catalogue source is `D:/freshvcf-build/inputs/permission-input-v1.json`,
+SHA256 `18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356`:
+200 exact SKU memberships,20 locations, retained names/hierarchy and IDs; no new
+facts generated. Each code copies its retained level_1/2/3 into SL1/2/3 or LL1/2/3.
+Independent SQL updates session-local attribute tables only using the same code
+mapping; modern fills copies after native checksums, before the same auth joins.
+No calculated/state fields or c1–c15 descriptions are overwritten. This
+is a prerequisite within F3.2, not another workstream. `baseline/presentation-hierarchy-v1.json`
+pins the catalogue, six allowed fields and selected run/date/digest. Fill only
+SL1–3/LL1–3; keep NULL-denial without opt-in and reject conflicting native values.
+Validate all production checksums on original native rows before presenting the
+copy. No persistence, calculation, F2 receipt, input or transit-fact change.
+The first publication binding remains terminal run ac1612c8-0e49-4155-83c3-f59f41422293,
+17-Jun-2026; no historical run substitution. Positive action proof must use its
+own isolated retained shallow run, separately bound, never the accepted bulk run.
+Protocol tests passed17/17 (including11 existing persistence tests); mocked scope/
+calculation tests prove protocol and rollback ONLY, not real-gateway or SQL parity.
+No fresh engine workstream or new recovery IDs.
+
+F3.2 slice evidence (1 October2026):
+
+- `D:/freshvcf-build/evidence/f3-action-http-retained-002/receipt.json`, SHA256
+  `511a44053e45fcd2a4f8a2b7699205064dc936b005c7a65db8f26a8f348be053`:
+  PASS_RETAINED_HTTP_ACTIONS_AND_OWN_NEXT_DAY,62/62 complete comparisons on the
+  first two days of unchanged representative-bridge-input.json (SHA458c7c...92f).
+  Existing independent12-day replay `f2-auto-sql-012/replay.json` SHA
+  `316070183c5be144042736e314dfb0eb95a83e4833ae4882457a5bf4ac55dfd5`
+  supplies individually hash-verified SQL captures. No legacy replay or output
+  seeding. New trial roots `3bd266fe-8b1c-4e5f-b731-45b19c0f792e` →
+  `43df0098-4e95-4359-a838-5d6d16e0e2fa` use own relational predecessor and
+  committed command state.29 full pre-action contracts per day, own selection
+  and full post-action state (31 each) pass. Only clock is fixed to retained
+  scenario dates; real calculations/publication/scopes/Django routes/storage.
+  Missing assigned scope403 writes no command; forged payload actor is ignored.
+  Actual gateway session/action interaction remains separate, explicitly OPEN.
+  Positive wire envelopes are checked against deployed DBMProcessor source;
+  full action state is compared to independently retained SQL, not inferred
+  from the message or affected count. Selected host timezone is India Standard Time.
+-17 protocol/persistence tests passed, including injected action-write rollback,
+  read-only/unauthenticated denial and duplicate selection.11 are existing base
+  tests rediscovered by a class import; later focused runs should select
+  `mta.runtime.test_action_http.DBMActionHTTPTest` for only the six new tests. These protocol
+  tests use stubs and do not replace the retained62-comparison proof above.
+- `f3-hierarchy-rrr-modern-001/receipt.json` SHA256
+  `c47c481bacd0a666301f78e50f34621b659c3a186629fee3844d2eedd6ef1f96`;
+  `f3-hierarchy-rrr-comparison-002/receipt.json` SHA256
+  `8e3fed321c3646a2761707ba62b75ddffdea02d7d0b2087316d45257a18b6ee7`:
+  all14 selected root-scope RRR rows,119 fields, count14 and declared order PASS
+  against canonical deployed SELECT with identical retained metadata applied to
+  isolated session-temp SQL rows. Unfiltered selected root scope only; filter
+  variants stay open. No live/permanent legacy write and no engine replay.
+- `f3-preview-hierarchy-assignment-001/receipt.json` SHA256
+  `0ebedd770019c0e521756aa25847c48f73bb79e75fb2a749229883622ca601fa`:
+  only Fresh preview user1 receives MTA application2 roots71001/72001. No reset.
+  `f3-preview-hierarchy-http-001/receipt.json` SHA256
+  `9f99f9eb28de4e12ef3783baf716bf128274108d7285cc6c431bae6f710d608d`:
+  real login plus eight authenticated gateway reads PASS, unauthenticated401;
+  terminal17-Jun2026, DBM count0/gridNULL, RRR count14/full14, both BTR branches
+  count1,240/full1,240 and daily history
+  content. This is gateway readback; browser screen/filters/action closure remain
+  F3.2/F3.3 exits. Preview still disables actions. No older-day grid substitution.
+- `f3-hierarchy-001/protected-before.json` and `protected-after.json`: protected
+  containers/config/start identities,3004 HTTP/publication and Fresh terminal-run
+  identity unchanged. Global Fresh command count increases only for the owned
+  new trials; the retained-action proof separately verifies every pre-existing
+  run and command unchanged. Engine SHA7d446fea...f24e and bulk artifact
+  SHA0f3084b7...9546 unchanged.24 focused presentation/metadata guards PASS;
+  schema check/no-pending-migration/diff check PASS. No migration added.
+- Preserve failures: hierarchy comparison001 failed while MSSQLSERVER was stopped;
+  action-http-retained001 failed at evidence-root configuration before calculation.
+  SQL Server was started with explicit user authority. Fresh PostgreSQL recovered
+  after interruption; no data deletion, reset or memory-cap increase.
+
+Exactly one next active item remains F3.2: real authenticated positive action
+acceptance on a private isolated retained trial, plus source-selected filter and
+scope variants. Never rebind3005's default terminal DBM publication to an action
+trial. Retained62-comparison proof and RRR root-scope proof stay closed unless
+a relevant semantic change invalidates them. F3.1 detailed transit remains BLOCKED.
+
+F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
+MTA screen matrix here (route/component, complete call roster, selected run/date,
+canonical expected count/content, actual scoped/authenticated content, filters,
+actions/downloads and evidence). No parallel tracker. DBMProcessor reads current
+Suggestions, not SuggestionsLog; the day12 current grid is canonically empty
+(Suggestions0; historical SuggestionsLog132). Verify that empty contract/date/
+scope and show historical records only on their designated history/insight views.
+Never use day9 or fabricate recommendations for a nonempty demonstration.
+Screen statuses: OPEN, VISIBLE_CONTENT_VERIFIED (including canonically expected
+empty current state), LEGACY_FLAW_NOT_PARITY, SOURCE_INPUT_BLOCKED, or
+NOT_APPLICABLE_TO_SELECTED_MTA_PROFILE. Each exception needs exact source evidence.
+Domain cues require checking the deployed source and approved contracts before
+changing acceptance; this does not permit ignoring explicit scope approvals.
 
 F3.1 retained-history/DBM consumer slice closure:
 
@@ -726,7 +842,7 @@ F3.1 insight consumer evidence:
 - Accepted F2 engine, frozen artifact, day12 execution and independent parity
   receipt hashes remain unchanged. No accepted day was replayed.
 
-Next active F3.1 boundary: canonical DBM grid/count and the three remaining
+Historical F3.1 boundary (CLOSED by f3-history-comparison-003 above): canonical DBM grid/count and the three remaining
 history-report consumers (buffer-trend graph, research insights, historical
 availability), using already-retained native state and exact deployed methods.
 Keep completed BTR/daily-graph/insight proofs closed. Do not credit empty data

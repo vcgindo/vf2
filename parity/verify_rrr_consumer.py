@@ -87,6 +87,25 @@ def auth_ctes(db, catalogue, payload):
     return ';WITH '+','.join(ctes)+' '
 
 
+def supplement_temp_hierarchy(db, catalogue):
+    """Independent SQL-only projection of approved retained six-field metadata.
+
+    Session-local tables only. Deliberately do not import the modern adapter.
+    SQL joins retain every original occurrence; reject missing/conflicting rows.
+    """
+    for kind, table, code, prefix in (('products','#Sku','SKUCode','SL'),
+                                     ('locations','#Loc','WHCode','LL')):
+        name = '#Retained'+prefix
+        db.execute(f'CREATE TABLE {name} (code nvarchar(255) PRIMARY KEY,l1 nvarchar(255),l2 nvarchar(255),l3 nvarchar(255))')
+        db.cursor().executemany(f'INSERT INTO {name} VALUES (?,?,?,?)',
+            [(r['code'],r['level_1'],r['level_2'],r['level_3']) for r in catalogue[kind]['attributes']])
+        conflicts = ' OR '.join(f'(a.{prefix}{i} IS NOT NULL AND a.{prefix}{i}<>r.l{i})' for i in (1,2,3))
+        bad = db.execute(f'SELECT COUNT(*) FROM {table} a LEFT JOIN {name} r ON a.{code}=r.code WHERE r.code IS NULL OR '+conflicts).fetchone()[0]
+        if bad: raise ValueError('Retained hierarchy has missing/conflicting native identities')
+        db.execute(f'UPDATE a SET '+','.join(f'{prefix}{i}=r.l{i}' for i in (1,2,3))+
+                   f' FROM {table} a JOIN {name} r ON a.{code}=r.code')
+
+
 def wire_rows(rows, types):
     # Independent oracle transcription of the deployed reader, using canonical
     # SQL configuration rather than importing the modern serializer/type list.
@@ -110,6 +129,7 @@ def main():
     parser.add_argument('evidence',type=Path)
     parser.add_argument('--unscoped-read-model',action='store_true')
     parser.add_argument('--scope-denial-only',action='store_true')
+    parser.add_argument('--hierarchy-supplement',type=Path)
     args = parser.parse_args()
     if args.evidence.exists():
         raise ValueError('Preserve earlier receipts; select a new directory')
@@ -119,6 +139,19 @@ def main():
         if args.unscoped_read_model and args.scope_denial_only:
             raise ValueError('Select one proof boundary')
         receipt = json.loads((args.modern/'receipt.json').read_text())
+        supplement = receipt.get('hierarchy_supplement')
+        if bool(args.hierarchy_supplement) != bool(supplement):
+            raise ValueError('Modern/legacy presentation supplement must be explicit and identical')
+        if supplement:
+            manifest = json.loads(args.hierarchy_supplement.read_text())
+            binding = dict(run_id=receipt['run']['id'],business_date='2026-06-17',output_digest=receipt['run']['output_digest'])
+            if (file_sha(args.hierarchy_supplement)!=supplement['sha256'] or
+                    manifest['catalogue_sha256']!=PERMISSION_SHA or
+                    binding not in manifest['publications'] or
+                    manifest['allowed_fields']!={'products':['SL1','SL2','SL3'],'locations':['LL1','LL2','LL3']}):
+                raise ValueError('Unapproved or mismatched consumer hierarchy supplement')
+            if args.unscoped_read_model or args.scope_denial_only:
+                raise ValueError('Supplement proof must exercise actual selected hierarchy permissions')
         root = Path(__file__).resolve().parents[1]
         sources = receipt['sources'] if args.unscoped_read_model else json.loads((args.modern/'source.json').read_text())
         if not args.unscoped_read_model and file_sha(args.modern/'source.json') != receipt['sources_sha256']:
@@ -176,6 +209,8 @@ def main():
                 temp_rows(db,'#Standard','VFTEST_Importer.dbo.SKULocStandardAttributes',closing['dbm']['SKULocStandardAttributes'])
                 for name,table in (('#Sku','SkuAttributeData'),('#Loc','LocationAttributeData'),('#Pair','SkuLocAttributeData')):
                     temp_rows(db,name,'dbo.'+table,closing['importer'][table])
+                if supplement:
+                    supplement_temp_hierarchy(db,catalogue)
                 cte = (';WITH cte_SKUs AS (SELECT DISTINCT SKUCode FROM #Sku), '
                        'cte_WhCodes AS (SELECT DISTINCT WHCode FROM #Loc) '
                        if args.unscoped_read_model else auth_ctes(db,catalogue,payload))
@@ -199,6 +234,7 @@ def main():
                   'PASS_SCOPE_DENIAL_NONEMPTY_ACCEPTANCE_OPEN' if args.scope_denial_only else
                   'PASS_SELECTED_RRR_RESPONSE')
         result.update(status=passed if not delta and order_match else 'FAIL',
+            hierarchy_supplement=supplement,
             legacy_source=provenance,legacy_rows=write_rows(args.evidence/'legacy-rrr.jsonl.gz',expected),
             rows=len(expected),fields=len(columns),count=count,differences=delta,declared_order_matches=order_match,
             modern_receipt_sha256=file_sha(args.modern/'receipt.json'),consumer_source_sha256=RRR_SHA,

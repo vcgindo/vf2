@@ -42,6 +42,7 @@ from mta.presentation.pick_post_storage import read_pick_post
 from mta.presentation.expedite_charts import queries as expedite_chart_queries,response as expedite_chart_response
 from mta.runtime.models import PickPostProjection
 from mta.presentation import ui_state
+from mta.presentation import actions
 
 CONFIG = Path(__file__).resolve().parents[1] / 'config'
 
@@ -143,6 +144,15 @@ def user_layout(request, payload, *, operation):
     return envelope(data=function(*arguments))
 
 
+@endpoint('POST')
+def dbm_action(request, payload, *, operation):
+    try:
+        _, response = actions.submit(payload, identity(request)['id'], operation)
+    except actions.ActionDenied as exc:
+        return JsonResponse({'error': str(exc)}, status=403)
+    return envelope(**response)
+
+
 @endpoint('GET')
 def last_run_date(request, payload):
     value = publication().business_date
@@ -201,8 +211,8 @@ def planning_context(payload):
         raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
     context=publication()
     try:
-        rows=(read_excess(context.run,output=context.output) if category=='excessinventory' else
-              read_fulfillment(context.run,output=context.output))
+        rows=(read_excess(context.run,output=context.storage_output) if category=='excessinventory' else
+              read_fulfillment(context.run,output=context.storage_output))
     except (ExcessProjection.DoesNotExist,FulfillmentProjection.DoesNotExist) as exc:
         raise PublicationUnavailable('selected_run_'+category+'_projection_not_published') from exc
     return context,rows
@@ -215,8 +225,8 @@ def planning_graph(request,payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
         context=publication()
         try:
-            rows=read_expedite(context.run,output=context.output)
-            pick=read_pick_post(context.run,output=context.output)
+            rows=read_expedite(context.run,output=context.storage_output)
+            pick=read_pick_post(context.run,output=context.storage_output)
         except (ExpediteProjection.DoesNotExist,PickPostProjection.DoesNotExist) as exc:
             raise PublicationUnavailable('selected_run_expedite_chart_projection_not_published') from exc
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
@@ -244,7 +254,7 @@ def planning_grid(request, payload, *, count=False):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
         context=publication()
         try:
-            rows=read_expedite(context.run,output=context.output)
+            rows=read_expedite(context.run,output=context.storage_output)
         except ExpediteProjection.DoesNotExist as exc:
             raise PublicationUnavailable('selected_run_expedite_projection_not_published') from exc
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])

@@ -119,6 +119,18 @@ remaining cutover steps and request approval. Continue the existing full goal.
 
 ## Commands
 
+Retained presentation hierarchy approval (direct user reply in this task,
+questionItemId `["request_user_input_async","call_t0gFrlwyElTIUHNFLokPERgQ",0]`):
+"Approve the retained hierarchy supplement". Approved question explicitly limits
+it to the exact previously approved catalogue/hierarchy, identical isolated
+legacy/modern consumer checks, with F2 inputs/calculations/run rows/receipts
+unchanged and no new transit facts. Pin the version, run/date/output digest,
+catalogue hash and allowed SL1–3/LL1–3 fields; read-time projection only. Retain
+native checksum validation and NULL-denial when not opted in. The default DBM
+view reads terminal current Suggestions (zero on17-Jun-2026); SuggestionsLog132
+belongs to historical views. Never select an earlier run to populate that grid.
+Positive Apply/Sleep evidence uses separately owned retained shallow trials.
+
 Narrow preview authorization (1 October2026, verified in review task
 01a0f29e-ec6b-7cf2-adb1-3ebda9365a55): expose the isolated F3 application on
 localhost:3005, reusing existing frontend/auth/MTO assets and Fresh PostgreSQL.

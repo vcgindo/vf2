@@ -14,6 +14,8 @@ urlpatterns = [
     path('GetLastRunDate', views.last_run_date),
     path('DBMData', views.dbm_data),
     path('DBMDataCount', partial(views.dbm_data, count=True)),
+    path('DBMApplySelectedNorms', partial(views.dbm_action, operation='APPLY')),
+    path('DBMUpdateSleepTbl', partial(views.dbm_action, operation='SLEEP')),
     path('RRRData', views.rrr_data),
     path('RRRDataCount', partial(views.rrr_data, count=True)),
     path('GetPlanningDataGrid', views.planning_grid),

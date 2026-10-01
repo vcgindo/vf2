@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.test import Client
 
-from mta.presentation.context import permission_catalogue
+from mta.presentation.context import permission_catalogue, publication
 from mta.runtime.models import CalculationRun
 from mta.serialization import digest
 
@@ -47,6 +47,7 @@ class Command(BaseCommand):
         catalogue = permission_catalogue()
         run = CalculationRun.objects.get(pk=settings.VF_MTA_PUBLISHED_RUN)
         before = run_identity(run)
+        hierarchy_receipt = publication().hierarchy_receipt
         payload = dict(product_permissions=[r['id'] for r in catalogue['products']['records'] if r['level_2'] is None],
                        location_permissions=[r['id'] for r in catalogue['locations']['records'] if r['level_2'] is None],
                        paginationParameter=dict(pageNumber=1,recordsPerPage=10))
@@ -132,6 +133,7 @@ class Command(BaseCommand):
             if any(hashlib.sha256((root/name).read_bytes()).hexdigest()!=sha for name,sha in source_hashes.items()):
                 raise CommandError('Application source changed during proof')
             result = dict(status='APPLICATION_READBACK_PASS_NOT_API_PARITY_ACCEPTANCE',
+                hierarchy_supplement=hierarchy_receipt,
                 run=before, selected_scope=payload, observations=observations,
                 accepted_run_unchanged=True, calculations_executed=0, serving_changes=False,
                 sources_sha256=hashlib.sha256((target/'source.json').read_bytes()).hexdigest(),

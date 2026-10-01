@@ -21,9 +21,13 @@ Verified newly created **local/test-only** account:
 The browser login and11 authenticated gateway reads were verified against3005,
 not inferred from3004. The existing frontend, authentication and MTO sources are
 reused unchanged. DBM, BTR, history, insights, RRR and Planning implementation
-is partial: the accepted terminal day has no pending DBM suggestions; missing
-producer hierarchy yields empty scoped populations, not certified positive UI
-parity. Detailed transit consumers, full filters/actions/downloads and the
+is partial: the accepted terminal day has no pending DBM suggestions. The
+user-approved presentation hierarchy supplement now fills only SL1–3/LL1–3
+from the retained200-SKU/20-location permission catalogue. The preview test
+account has retained root permissions71001/72001 for MTA application2.
+Native engine state and F2 receipts remain unchanged; without this explicit
+supplement the original NULL hierarchy still denies scope. Detailed transit
+consumers, full filters/actions/downloads and the
 Expedite unordered-parent-label qualification remain open. Do not use this
 preview to submit business actions or claim complete application acceptance.
 
@@ -57,6 +61,13 @@ Explicit publication: `ac1612c8-0e49-4155-83c3-f59f41422293`, business date
 This remains the frozen12-day F2 result. HTTP reads use relational state/report
 rows. Only the immutable InputSnapshot is mounted for input-identity validation;
 no internal output traces, demo fixtures or fallback dataset are mounted.
+The read-time hierarchy binding is `baseline/presentation-hierarchy-v1.json`,
+SHA256 `d69c63804798b3cf31f98849341d7a61d38a37fe73c05e627aef1237e5ecfc6a`.
+Current DBM recommendations are correctly zero on17-Jun-2026. Historical
+SuggestionsLog has132 records; it must not be used as current recommendations.
+The preview keeps `VF_MTA_ACTIONS_ENABLED=0`. Positive workflow trials are isolated
+under F3.2, using the unchanged retained representative artifact and fixed scenario
+clock. Their run IDs are never substituted for this preview's terminal run.
 
 ### Fresh preview initialization (not required for ordinary restart)
 
@@ -74,6 +85,8 @@ docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.previ
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python mto manage.py seed_all
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml run --rm --no-deps --entrypoint python user-service manage.py shell -c "from api.models import User; from django.core.management import call_command; assert not User.all_objects.exists(), 'Refuse to reset an existing preview identity'; call_command('bootstrap_stage7b')"
 docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml up -d --no-build
+# Assign only retained MTA root scopes to the newly bootstrapped preview account.
+& D:/freshvcf-build/venv/Scripts/python.exe tools/preview_assign_permissions.py D:/freshvcf-build/evidence/<new-assignment-receipt>
 ```
 
 `preview_setup.py` preserves an existing config. In a genuinely new environment
@@ -95,6 +108,14 @@ per-user preferences. Empty grids, full UI actions/downloads and other endpoint
 gaps remain unaccepted. Quoted/conflicting layout edge cases are explicitly
 qualified in`docs/LEGACY_EXCEPTIONS.md`; no legacy flaw is repaired silently.
 An empty grid or visible menu is not proof that the feature is accepted.
+The scoped hierarchy checkpoint adds `f3-hierarchy-rrr-comparison-002`: full
+14-row/119-field RRR and declared order match isolated canonical SQL.
+`f3-preview-hierarchy-http-001` verifies real gateway counts/content: RRR14,
+Tech/Eco BTR1,240 each, day12 current DBM0, and nonempty daily history. Full
+browser/filter/download acceptance remains open. `f3-action-http-retained-002`
+proves62 comparisons through real Django action routes and own next-day state;
+it is an isolated two-day trial, separate from the default publication and
+separate from pending real-gateway action acceptance.
 The default MTO settings catalogue is initialized, but no MTO business dataset
 was invented; full direct-port MTO regression is still F3.4 work.
 

@@ -1,0 +1,13 @@
+{
+  "version": "fresh-presentation-hierarchy-v1",
+  "role": "presentation-only-retained-hierarchy",
+  "catalogue_sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+  "allowed_fields": {"products": ["SL1", "SL2", "SL3"], "locations": ["LL1", "LL2", "LL3"]},
+  "catalogue_counts": {"products": 200, "locations": 20},
+  "publications": [{
+    "run_id": "ac1612c8-0e49-4155-83c3-f59f41422293",
+    "business_date": "2026-06-17",
+    "output_digest": "bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d"
+  }],
+  "authorization": "User approved retained hierarchy supplement; identical isolated legacy/modern consumer metadata only. No F2 input, state, calculation, receipt or transit-fact changes."
+}

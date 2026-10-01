@@ -14,6 +14,7 @@ from django.conf import settings
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
 from mta.runtime.temporal import command_state
+from mta.presentation import hierarchy
 from mta.presentation.permissions import (
     PermissionCodes, expand_permission_ids, materialize_permission_memberships,
 )
@@ -28,6 +29,13 @@ class Publication:
     run: CalculationRun
     output: dict
     dbm: dict
+    native_output: dict | None = None
+    hierarchy_receipt: dict | None = None
+
+    @property
+    def storage_output(self):
+        """Projection checksum validation must always use immutable native inputs."""
+        return self.native_output if self.native_output is not None else self.output
 
     @property
     def business_date(self):
@@ -53,7 +61,18 @@ def publication():
     # Compatibility input shape only: the BTR consumer needs final ration rows,
     # not a persisted or reconstructed internal calculation-stage trace.
     output = {**output, 'BPRStages': [{'state': output['BPRReports'][0]}]}
-    return Publication(run, output, dbm)
+    native_output = output
+    try:
+        manifest = hierarchy.selected_manifest(run)
+        if manifest:
+            output, dbm = hierarchy.project(output, dbm, permission_catalogue(), manifest)
+    except hierarchy.HierarchyUnavailable as exc:
+        raise PublicationUnavailable(str(exc)) from exc
+    receipt = None if manifest is None else dict(
+        version=manifest['version'], sha256=settings.VF_MTA_HIERARCHY_SHA256,
+        catalogue_sha256=manifest['catalogue_sha256'], run_id=str(run.pk),
+        fields=manifest['allowed_fields'], native_state_unchanged=True)
+    return Publication(run, output, dbm, native_output, receipt)
 
 
 def permission_catalogue():
@@ -80,8 +99,10 @@ def scope(payload, *, attributes):
     """Expand permission IDs against THIS publication's producer attributes.
 
     The registered permission artifact owns IDs/hierarchy definitions only.
-    Its historical attribute memberships are not authority to bypass the
-    selected run's NULL/missing or changed SKU/location hierarchy values.
+    Without an explicitly approved, run-bound presentation supplement, its
+    historical memberships cannot override native NULL/missing hierarchy.
+    With that supplement, actual projected attributes still undergo the same
+    canonical permission join; no direct membership shortcut is permitted.
     """
     catalogue = permission_catalogue()
     result = []

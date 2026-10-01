@@ -189,6 +189,7 @@ class PresentationTest(unittest.TestCase):
     def test_excess_wire_contract_and_incomplete_filters_are_explicit(self):
         context=SimpleNamespace(run=None,business_date=date(2026,6,17),
                                 output={'ClosingState':[{'importer':ATTRIBUTES}]})
+        context.storage_output=context.output
         payload=dict(category='excessInventory',type='parent',product_permissions=[71001],
             location_permissions=[72001],paginationParameter=dict(pageNumber=1,recordsPerPage=50))
         with patch('mta.presentation.views.publication',return_value=context), \
@@ -204,6 +205,7 @@ class PresentationTest(unittest.TestCase):
 
     def test_fulfillment_count_grid_and_nested_detail_wire_types(self):
         context=SimpleNamespace(run=None,business_date=date(2026,6,17),output={'ClosingState':[{'importer':ATTRIBUTES}]})
+        context.storage_output=context.output
         payload=dict(category='orderFulfillment',type='parent',product_permissions=[71001],location_permissions=[72001],
                      paginationParameter=dict(pageNumber=1,recordsPerPage=50))
         detail=dict(WhCode='AG515802',SKUCode='337',Introdate='2026-06-01',OrderNo='unit',PendingQty=5,DueDate=None,Price=None)
@@ -228,6 +230,7 @@ class PresentationTest(unittest.TestCase):
         importer.update(SKUDescriptionTbl=[dict(SKUCode='337',SKUDescription='Retained SKU')],
                         SiteDescriptionTbl=[dict(WHCode='AG515802',WHDescription='Retained location')])
         context=SimpleNamespace(run=object(),output={'ClosingState':[{'importer':importer}]})
+        context.storage_output=context.output
         reports=dict(summary=[dict(SKUCode='337',WhCode='AG515802',Coverage='Gap > 67%')],details=[])
         payload=dict(category='orderFulfillment',product_permissions=[71001],location_permissions=[72001])
         with patch('mta.presentation.views.publication',return_value=context), \
@@ -245,6 +248,7 @@ class PresentationTest(unittest.TestCase):
 
     def test_expedite_count_direction_and_unavailable_detail_contract(self):
         context=SimpleNamespace(run=object(),output={'ClosingState':[{'importer':ATTRIBUTES}]})
+        context.storage_output=context.output
         payload=dict(category='expedite',type='child',product_permissions=[71001],location_permissions=[72001])
         with patch('mta.presentation.views.publication',return_value=context), \
              patch('mta.presentation.views.read_expedite',return_value=['persisted']) as read, \
@@ -262,6 +266,7 @@ class PresentationTest(unittest.TestCase):
 
     def test_expedite_chart_native_scope_and_source_flaw_unavailable(self):
         context=SimpleNamespace(run=object(),output={'ClosingState':[{'importer':ATTRIBUTES}]})
+        context.storage_output=context.output
         payload=dict(category='expedite',type='parent',product_permissions=[71001],location_permissions=[72001])
         with patch('mta.presentation.views.publication',return_value=context), \
              patch('mta.presentation.views.read_expedite',return_value=['report']) as report, \

@@ -47,6 +47,13 @@ def probe(base):
         roster = [('GET','GetUIConfig?reportName=NormSuggestion',None),
                   ('POST','GetState',{'reportname':'DBMNorm'}),
                   ('GET','GetLastRunDate',None),('POST','DBMData',payload)]
+    hierarchy_mode=os.environ.get('PREVIEW_PROBE_HIERARCHY')=='1'
+    if hierarchy_mode:
+        payload['paginationParameter']['recordsPerPage']=5000
+        roster=[('GET','GetLastRunDate',None),('POST','DBMDataCount',payload),('POST','DBMData',payload),
+                ('POST','RRRDataCount',payload),('POST','RRRData',payload),
+                ('POST','GetBTRDataCount',payload),('POST','GetBTRData',payload),
+                ('POST','DailyDataGraph',{**payload,'SKUCode':'337','WHCode':'AG515802'})]
     observations = []
     for method, route, body in roster:
         started = time.monotonic()
@@ -57,13 +64,22 @@ def probe(base):
             assert len(rows)==16 and all(r['Visible'] and 'DataType' in r for r in rows)
         if os.environ.get('PREVIEW_PROBE_LAYOUT') == '1' and route=='GetState':
             assert response.json()['data']=='', 'Do not overwrite an existing preview layout'
+        if hierarchy_mode:
+            value=response.json()
+            if route=='GetLastRunDate': assert value['data'][0]['rawDate']=='2026-06-17'
+            elif route=='DBMDataCount': assert value['recordCount']=='0'
+            elif route=='DBMData': assert value['data'] is None
+            elif route=='RRRDataCount': assert value['recordCount']=='14'
+            elif route=='RRRData': assert len(value['data'])==14
+            elif route=='DailyDataGraph': assert value['data'] is not None
         observations.append(dict(route=route, status=response.status_code,
             sha256=hashlib.sha256(response.content).hexdigest(),
             body=response.json(), seconds=round(time.monotonic()-started,3)))
     return dict(status='PREVIEW_LOGIN_READBACK_PASS_NOT_F3_ACCEPTANCE',
         username=login['user']['email'], unauthenticated_status=denied.status_code,
         navigation=sorted(urls), observations=observations,
-        qualification='No product/location assignments provisioned; native NULL hierarchy remains unchanged. Empty scoped rows are not positive parity. No actions submitted.')
+        qualification=('Approved retained hierarchy supplement and root assignments; latest terminal day. Real gateway reads only; no actions submitted.'
+            if hierarchy_mode else 'Inspect assignments and selected supplement from the matching receipt. This readback probe does not itself certify independent legacy parity. No actions submitted.'))
 
 
 if __name__ == '__main__':
