@@ -210,6 +210,52 @@ and unchanged resources/publication. Establish or explicitly evidence the matche
 performance-provider limitation. Buffer Trends follows BTR closure or an explicit
 evidenced block; no adjacent report, frontend/auth/MTO/F2/schema change presumed.
 
+BTR selective001 diagnostic: root/both1240 and initial leaf bodies match retained
+SQL, but receiving-leaf grid hits the45s verification statement limit. Preserve
+the failed receipt and EXPLAIN ANALYZE: root Tech takes7.527s, repeated1240-loop
+nested joins follow estimated-one-row relations. pg_stat_user_tables records no
+manual/automatic analysis for the consumed typed tables. Before further query
+changes, refresh planner statistics with ANALYZE only on the exact BTR-consumed
+mta_state tables in the owned Fresh PostgreSQL database. This changes statistics,
+not operational rows, schema, accepted F2 receipts, clock or resource settings.
+Required proof: retained source/query failure, statistics/plan before and after,
+unchanged selected publication/commands and same complete contract roster. No
+shared database maintenance, vacuum/reset, broader tuning or timeout increase.
+
+BTR statistics refresh completed on the exact13 owned relations. Receipt
+`f3-stage2-btr-statistics-001/receipt.json`, SHA256
+`aea8706feb0080bf38d9eb45f4d2650f8ca8b8602737f7e943ac58e599b5257d`,
+retains unchanged publication/commands and the same root query's7.527s→0.077s
+plan. This is not matched legacy performance. Selective rerun003 then passed
+all104 strict and14 existing declared-flaw contracts, including complete ordered
+HTTP bodies against independently certified retained responses; no whole-run
+reader is allowed in that probe. Receipt SHA256
+`e53e864d305ba5a762d27d145886f0e6e746070e2c81492c89cfc5a72ddfb5f2`.
+
+BTR CSV initial13 cases pass complete SQL types, deployed header generation and
+CsvHelper bytes (`f3-stage2-btr-export-002`, receipt SHA256
+`6a9a65cd4d5787c23c8d73a8fecc043e58190cfbebca1cd55de5a3b5fbf5af79`).
+The early native requirement capture is **before** UpdateDispatchPriority, so its
+NULL colours cannot certify terminal colour filters. Canonical
+GenerateRationReqReport copies the nine consumed requirement fields directly,
+without a join/filter/distinct; subsequent updates leave those fields unchanged.
+Expanded export003 uses this explicit terminal field projection, independently
+corroborates dispatch colour against the accepted terminal calculation capture,
+and covers the complete retained filter roster plus saved/empty/invalid layouts.
+Export003 verified terminal dispatch capture equality but failed in its oracle
+setup: the full requirement schema demanded unrelated non-null ParentPacksize.
+Preserve that failed receipt. Retry004 creates only the nine consumed columns
+with their native SQL types; it invents no other requirement values and changes
+no query/comparison. Export004 now passes54 complete ordered typed/header/CSV
+comparisons, including PIC8/OHIC1137 filtered rows. Nine actual canonical SQL
+errors remain NOT_PARITY: four missing sla-join cases and the five existing
+invalid-filter cases. Receipt SHA256
+`248811e2146fc79fc3efdc4b3f4f367cb53659308131f4bc184a24eb5e48dab0`.
+211 repository tests pass; all376 baseline pins remain unchanged. The candidate
+is ready for its authorized MTA-only3005 deployment, keeping selected June17,
+actions disabled, admission, mounts, resources and all22 other running containers.
+Actual3005 controls/download/restart and matched performance remain open.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

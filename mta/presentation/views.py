@@ -235,12 +235,20 @@ def bpr_data(request, payload, *, count=False):
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
-    if payload.get('reportName') != 'RRR':
+    if payload.get('reportName') not in ('RRR', 'BTR'):
         raise PublicationUnavailable('selected_report_export_not_connected')
     run = selected_run()
-    rows = read_rrr(run, payload, paging=None)
-    state = ui_state.get_layout(identity(request)['id'], 'RRR')
-    headers = selected_headers(state, FIELDS)
+    if payload['reportName'] == 'BTR':
+        from mta.presentation.btr_sql import read_btr
+        from mta.presentation.btr_export import selected_headers as btr_headers
+        rows, dates = read_btr(run, payload, paging=None, export=True)
+        report = 'BTRon-hand' if payload.get('name') == 'tech' else 'BTRpipeline'
+        state = ui_state.get_layout(identity(request)['id'], report)
+        headers = btr_headers(state, dates)
+    else:
+        rows = read_rrr(run, payload, paging=None)
+        state = ui_state.get_layout(identity(request)['id'], 'RRR')
+        headers = selected_headers(state, FIELDS)
     response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
     response['Content-Disposition'] = 'attachment'
     return response
@@ -338,31 +346,12 @@ def planning_grid(request, payload, *, count=False):
 
 @endpoint('POST')
 def btr_data(request, payload, *, count=False):
-    context = publication()
-    columns = btr.horizon_columns(context.business_date.isoformat(), payload)
+    from mta.presentation.btr_sql import read_btr
+    run = selected_run()
     paging = _pagination(payload)
     if paging is None:
         raise ValueError('invalid_pagination')
-    page, size = paging
-    filters = deepcopy(payload)
-    if isinstance(filters.get('filters'), dict):
-        filters['filters'].pop('horizonFilter', None)
-    predicate = BtrPredicate(filters, context.output['BTRFinal'][0]['LocationAttributeData'], count=count)
-    result = {}
-    for name in ('tech', 'eco'):
-        rows = scoped(btr.joined_rows(context.output, name), payload, 'WHCode',
-                      attributes=context.output['BTRFinal'][0], preserve_join_multiplicity=True)
-        rows = [row for row in rows for _ in range(predicate(row))]
-        if count:
-            result['TechCount' if name == 'tech' else 'EcoCount'] = str(len(rows))
-        elif str(payload.get('name', 'both')).lower() in (name, 'both'):
-            result[name] = btr.project_rows(context.output, name, rows[(page - 1) * size:page * size], columns, size,
-                                            join_multiplicity=predicate.join_multiplicity)
-        else:
-            result[name] = []
-    if not count:
-        result['labels'] = [{c: r[c] for c in columns} for r in context.output['BTRFinal'][0]['BufferTrendDates']]
-    return envelope(data=result)
+    return envelope(data=read_btr(run, payload, paging=paging, count=count))
 
 
 @endpoint('POST')

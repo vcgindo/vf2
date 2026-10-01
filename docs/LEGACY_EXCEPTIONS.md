@@ -246,3 +246,22 @@ All14 retained requests compare complete ordered typed envelopes and HTTP status
 against independent deployed SQL. Source SHA d2f578a2 and IL SHA ccd47dc8 are
 pinned in that receipt. The earlier descriptions001 table-alias binding failure
 is preserved as verifier diagnostics, not a legacy defect or acceptance result.
+
+## BTR export — missing pair-attribute join
+
+Pinned BORProcessor.BuildSqlForExportBTR (source80ceb491, DLL0222eb96) omits
+SkuLocAttributeData/sla, although Commons can generate predicates on sla.c1–c15.
+The retained pair-custom and three raw-NULL pair-attribute requests therefore
+raise SQL4104. Fresh returns503 with LEG-BTR-EXPORT-MISSING-SLA; it does not add
+the missing join or claim matching legacy HTTP error handling. This qualification
+applies to export only; the canonical grid/count pair-attribute join remains valid.
+
+Export also retains five previously identified invalid-filter cases: missing
+availability/coverage/sl9 columns (SQL207), unknown operator and malformed
+black/red multi-column operator (SQL102). All nine failures are individually
+retained in `f3-stage2-btr-export-004/receipt.json`, SHA256
+`248811e2146fc79fc3efdc4b3f4f367cb53659308131f4bc184a24eb5e48dab0`.
+The other54 cases match full ordered typed rows, actual deployed header SQL and
+CsvHelper bytes. Valid Stock/GIT/PIC/OHIC export filters are supported because
+export consumes terminal requirements; their grid-specific five-column failure
+does not transfer to export. No calculation or F2 exception is introduced.

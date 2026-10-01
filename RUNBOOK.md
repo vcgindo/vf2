@@ -83,6 +83,20 @@ This is selective-serving integrity and smoke evidence, not full application
 or legacy performance acceptance. Read-only fault probes patch only returned
 in-process values and use PostgreSQL read-only sessions, never persisted rows.
 
+After a bulk publication, inspect PostgreSQL planner statistics before diagnosing
+a slow report as a calculation or resource problem. The Stage2 BTR investigation
+found no analysis on its13 consumed typed tables: one-row estimates caused1240
+nested-loop iterations and a receiving-scope query exceeded45seconds. A bounded
+`ANALYZE` of only those owned tables changed the identical root-query plan from
+7.527seconds to0.077seconds, with publication and command fingerprints unchanged.
+Exact table allowlist, command, before/after statistics and plans are retained in
+`D:/freshvcf-build/evidence/f3-stage2-btr-statistics-001` (receipt SHA256
+`aea8706feb0080bf38d9eb45f4d2650f8ca8b8602737f7e943ac58e599b5257d`).
+This is an observed PostgreSQL plan improvement, not matched legacy performance.
+Do not run maintenance per request, broaden it to shared databases, replay a
+publication, or raise memory/timeouts. Refresh statistics only for an evidenced
+affected owned-table set after relevant population changes; preserve the receipt.
+
 RRR selective-read checkpoint: open the existing sidebar's SCIH → Rationed
 Requirement Report. Click **Show All**:17 Jun2026,14 retained rows. Supply Chain
 Node → For Location → Agen shows3; Reset Filters then Show All restores14.

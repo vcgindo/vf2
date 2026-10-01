@@ -68,3 +68,23 @@ def count_queries(sql_filter='',sql_join_filter='',auth_cte=None):
             parts.append(literals(line)+(sql_join_filter if 'sqlJoinFilter' in line else ''))
         result[name]=(auth_cte or CTE)+bindings(''.join(parts))
     return result
+
+
+def export_query(name, *, sql_filter='', sql_join_filter='', auth_cte=None):
+    """Extract the distinct full-population export SQL, not grid SQL."""
+    body = source().split('public string BuildSqlForExportBTR(', 1)[1].split('\n\tpublic ', 1)[0]
+    category = next(line for line in body.splitlines() if line.strip().startswith('authQueryForReports = authQueryForReports +'))
+    auth = (auth_cte or CTE) + bindings(literals(category))
+    block = body.split('string.Concat(new string[20]', 1)[1].split('\n\t\t});', 1)[0]
+    pieces = [line.strip().rstrip(',') for line in block.splitlines()[2:]]
+    assert len(pieces) == 20, len(pieces)
+    trend = 'PhysicalInv' if name == 'tech' else 'Dispatch'
+    values = {'authQueryForReports': auth, 'text': 'BPPTrend' + trend, 'text2': 'BufferTrend' + trend,
+              'text3': ',\n'.join(f"REPLACE(a.D{i}, -99999999.00, '') AS D{i}" for i in range(1, 91)),
+              'Startup.BPRServerName': '{Startup.BPRServerName}',
+              'Startup.ImporterServerName': '{Startup.ImporterServerName}', 'sqlJoinFilter': sql_join_filter}
+    query = ''.join(json.loads(piece) if piece.startswith('"') else values[piece] for piece in pieces)
+    if sql_filter.strip():
+        query += '\nWHERE ' + sql_filter
+    query += '\n) t1) t2 order by SKUCode, WhCode'
+    return bindings(query)
