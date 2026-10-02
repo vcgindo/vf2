@@ -976,6 +976,18 @@ The restored browser provider had no tabs; a new3005 tab shows the normal login
 with CAPTCHA. Authenticated browser continuation is unavailable until login is
 restored; do not bypass authentication or treat private injected scope as login.
 
+Custom adapter serving proof: deployed a9f1845 as MTA image
+`sha256:3e8df1ae64b8ee106d890c4975249da89593b3ed41d503c4071683f4428448a4`.
+`f3-stage2-expedite-custom-serving-001/receipt.json` proves normal admission,
+June17 run/digest, actions disabled,4GiB/2CPU/restart=no and47 protected containers
+unchanged. Real preview-account API login exercises root custom503 with the
+gateway's error wrapper, forged leaf scope overwritten to the same root denial,
+and out-of-range200 with empty data and46 columns; unauthenticated access denied.
+This is gateway proof, not positive leaf-login or browser acceptance. The root
+custom feature remains blocked by undefined ordering; no invented NMS identity
+or ordering was introduced. Subsequent restart/readback and browser controls
+remain outstanding; matched performance remains unproved.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
