@@ -892,6 +892,35 @@ currently shows3005/login; authenticated browser controls/exports/layout remain
 untested, not certified by gateway proof. No repeated restart is needed absent
 another relevant serving change or failure. Expedite remains ACTIVE.
 
+Expedite child dependency check against existing holistic owners: repository
+Python search finds no OpenExpediteRequests read/write owner (only the gateway
+routing test for SubmitOpenExpediteRequest). Models expose ExpediteProjection/
+ExpediteRow; the production catalogue exposes closing/btr/ExpediteDispatches.
+Fresh PostgreSQL information_schema returns only fresh_mta_expediteprojection,
+fresh_mta_expediterow and mta_state.bpr_expeditedispatches for expediting tables.
+Canonical ExpediteFromChild reads TOP1 request by RequestDate for each SKU/WH/
+parent; no admitted image or existing application owner supplies that history.
+Thus child normal-grid remarks are a blocked dependency, not merely a missing
+route. Minimum unblock: a separately authorized owner/provenance for these facts
+under the later workflow boundary; no assumed empty population or new Stage4
+implementation here. This does not block the independent custom grid's defined
+single-row/empty scopes. Browser login restoration requested; no CAPTCHA bypass,
+credential reset or permission changes. Other feasible Expedite exits remain open.
+
+Authenticated parent browser entry observed after human-restored login: Planning
+shows June17 and Expedite7/7. Clicking Expedite From Parent displays
+LEG-EXPEDITE-UNORDERED-LABEL and remains on category selection; no grid toolbar
+is reached. `usePlanning.ts` parent selection awaits getPlanningDataGraph before
+setting the current category/view. Thus the existing chart denial blocks the
+normal UI path to the now-proved parent grid. This is an integration blocker,
+not successful browser/grid acceptance; filters/export/layout remain untested
+behind it. Screenshot `f3-stage2-expedite-browser-001/parent-entry.png` retains
+the resulting category-selection state; the transient error was observed live.
+Do not bypass the handler, invent the chart label, or modify inherited frontend
+to manufacture proof. Parent entry needs a precise disposition of the existing
+undefined-label chart contract. Signed-in browser is now available for other
+feasible controls; the earlier login-restoration gap is resolved.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
