@@ -83,8 +83,8 @@ the selected June17 publication remain unchanged.
 | DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
 | BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset plus both toolbar files proved; delayed tab-return restore passes, fresh reload fails in inherited hook; remaining controls/leaf actor are UNTESTED and matched performance remains blocked |
 | Buffer Trends | BLOCKED with partial proof —134 exact graph responses/30 declared failures, gateway/restart and actual type/horizon/summary/Depo/reset/reload controls proved; inherited doubled Total/stale Percentage plot, remaining controls/leaf actor and matched performance remain open |
-| Planning categories | ACTIVE — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
-| BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
+| Planning categories | DEFERRED with partial proof — user confirms Excel exports work and directs moving on; remaining custom identities, source-invalid/filter contracts, leaf actor and matched performance unresolved; earlier receipts retained |
+| BPR | ACTIVE — reuse accepted count/grid/paging/restart; verify remaining actual server filters/lookups/details/sorting/layout/own export and matched performance |
 | Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
 
 **Recorded RRR boundary before mutation:** reuse accepted SQL/count/filter/page
@@ -3715,3 +3715,22 @@ flag to export. That hook exactly matches the canonical retained frontend,
 SHA2564ce076108abf187183aee4f9db3bbf68fada719ca4eb52518fa1659c48b0d20a.
 This is a suspected inherited cause, not yet isolated proof; no frontend repair
 is inferred from the earlier Custom Screens-only exception. Export remains open.
+
+User correction and sequencing instruction: "i find excel expots work, move on".
+Record Excel exports as USER-VERIFIED WORKING. The automation download timeout
+is not evidence that the product export is broken; the suspected frontend race
+is unconfirmed and withdrawn as a blocking diagnosis. No export repair or repeat
+is requested. Export cell-level independent parity is not inferred from this
+confirmation. Move from Planning to BPR under the user's explicit instruction;
+remaining Planning controls are deferred, not accepted. Missing custom NMS
+identities need producer provenance or explicit presentation disposition; child
+SQL/filtered-count wire proof needs the healthy independent oracle; matched
+performance needs the retained equivalent provider; real leaf browser needs an
+existing authorized actor. No workflow/data invention is permitted to fill them.
+Child daily graph additionally accepted horizon1 and90 and upward-stock overlay
+(8→9 series), then restored horizon14/no overlay. Screenshots are in child-grid-001;
+this verifies controls, not plotted numerical parity or the other overlay options.
+BPR active boundary: unchanged June17/native seven-image reader and approved
+terminal ancillary input; read-only UI, test layout save/reset allowed, no remarks
+writes or positive logistics. Reuse existing bpr-terminal003/wire001/gateway001/
+restart001/ui001 proofs. Unmet exit is remaining actual BPR controls and files.
