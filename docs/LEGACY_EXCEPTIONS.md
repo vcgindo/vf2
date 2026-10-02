@@ -366,3 +366,23 @@ causing SQL245 varchar-to-int conversion. The existing modern empty-scope denial
 is retained as SCOPE_DENIAL_NOT_PARITY, with the exact source failure recorded;
 it is not evidence that the legacy returned an empty grid successfully.
 No calculation, action-policy or broader presentation repair is authorized here.
+
+## Fulfilment browser — inherited zero rendering and tied graph order
+
+Actual3005 order details for6584/DP020819 show the retained order
+B3F-positive-pick-remaining-6584-DP020819, pending65, due2026-06-16 and Over Due.
+The exact independently compared API detail has numeric price0. Inherited
+`frontend/src/VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BPR/BPRViewTable.tsx`
+line102 uses a truthiness test on each value, falling back to literal NULL at141.
+Thus zero is rendered NULL. The API must preserve numeric0; no frontend repair
+or reporting-accuracy waiver is inferred. Source hash/screenshot are bound in
+f3-stage2-fulfillment-serving-001/receipt.json.
+
+The product coverage chart's200-row workbook has every canonical typed cell and
+source count-descending order, but its first different relative position from
+the independent SQL capture is index24 within count9 groups. Quadrant SQL orders
+only counts descending; no group tie-break is defined. Preserve the failed strict
+order verifier/complete actual and expected arrays, then separately record exact
+serving-response→workbook order, full canonical bags and count order. Relative
+order for those ties remains unproved/NOT_PARITY; do not claim exact independent
+ordered workbooks, invent a tie-break or silently exclude values.

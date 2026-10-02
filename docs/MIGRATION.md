@@ -472,7 +472,7 @@ No frontend, auth, MTO, F2, business action or positive-data substitution is
 authorized. GIT/Expedite follow after this category's proof or explicit block;
 BPR and insight journeys remain unopened.
 
-#### Stage2 Planning — Fulfilment connection checkpoint (ACTIVE)
+#### Stage2 Planning — Fulfilment connection checkpoint (partial BLOCKED)
 
 Actual3005 normal Grid View failed with `e.map is not a function`; screenshot
 and console are retained in f3-stage2-fulfillment-001. The canonical method uses
@@ -513,16 +513,53 @@ hash-bound unchanged modern observations. All earlier passed checks and failures
 remain retained. Graph001's independent worker succeeded but the oracle lease
 was occupied by the normal verifier; graph002 reuses that capture after release.
 No concurrent oracle access, legacy repair or comparison weakening occurred.
-222 repository tests and376 baseline resource identities pass. Serving remains
-the preceding Excess image until this checkpoint is committed and MTA-only deployed.
+222 repository tests and376 baseline resource identities pass. Code11b659c is now
+served on3005 as image14457962. MTA-only recreation and explicit restart preserve
+normal admission360ee8ab, June17 run/digest, disabled actions and22 protected
+containers. All15 authenticated gateway cases return complete identical bodies
+after restart, including denied custom/source-invalid cases and trusted scope.
+
+Serving/browser receipt `f3-stage2-fulfillment-serving-001/receipt.json`, SHA256
+`08c15c65782e27084bda647f3e250d17699d81817358361f8cc1e2451149122f`,
+binds67 retained files. Actual normal1222, five-row pages1/2 of245, Depo304,
+Coverage Gap>67%10 and reset1222 pass. SKU6584/DP020819 selects the retained
+positive order detail: creationJune9, pending65, dueJune16, Over Due. Daily Data
+Graph shows RLT3/Norm58, horizon14→30 and June7/12 Norm changes130→87→58.
+Hide sd/save/reload visibly restores the25-column layout with sd hidden;
+UI reset and authenticated ResetState restore the actor's original layout absence.
+Both actual grid XLSX files exactly match all ordered canonical cells:304x23
+default and304x22 hidden-column, exported from a five-row page.
+
+All four real chart-table XLSX files are retained: location pending1x9,
+location gap13x9, product pending1x9, product gap200x9. Every typed cell/bag
+matches independent DLL output and every ordered row matches the serving response.
+Source-declared descending count order passes. Preserve the first verifier and
+failed strict product-order comparison: at index24, equal count9 groups have
+different relative order. The deployed query defines no tie-break; that relative
+order remains NOT_PARITY, not silently accepted or replaced by a new sort rule.
+Location chart filtering CIPONDOH1/13 and clear13 pass. Custom Screens visibly
+reports failed-to-load for the documented503; this is unavailable, not parity.
+
+Dependency-blocked exits: native custom/NMS identity and undefined source ordering;
+source-invalid filters/empty-permission failure; inherited zero-price→NULL display
+in BPRViewTable; unproved relative order of tied chart groups; matched canonical
+HTTP/browser performance provider/protocol. Separately UNTESTED, not described as
+dependency-blocked: actual leaf login, remaining filter/history selectors and
+sorting/PNG downloads, this report's visible saved layout across MTA restart.
+Browser reload is proved; generic restart evidence does not substitute for that
+specific layout observation. No frontend/auth/MTO/F2/schema changes were made.
 
 Before any next category/journey, revisit recoverable RRR/BTR toolbar downloads
 and BTR visible saved-layout reload. Earlier IAB event timeouts/session loss are
 historical observations, not sufficient current blockers after Excess downloads
 were located on disk. Require actual compared files and visible restoration, or
 a current reproducible failure. Other untested controls remain open, distinct
-from genuine native-input/source/performance dependencies. Fulfilment remains
-the active implementation boundary until its serving proof or explicit block.
+from genuine native-input/source/performance dependencies. Fulfilment is now
+explicitly partial BLOCKED above. **Active retained-state verification boundary:**
+RRR actual toolbar download with saved columns, then BTR toolbar file and visible
+saved-layout reload. Only temporary preview-actor layouts/filters and their exact
+restoration are permitted; no frontend/auth/F2 edits or consumed trial reset.
+GIT/Expedite and other unopened journeys remain deferred until this reconciliation.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
