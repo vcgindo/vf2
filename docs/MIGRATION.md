@@ -690,6 +690,36 @@ reachable views/filters/downloads/layout and selected-run preservation, record
 explicit child-grid/filter failure displays, and retain unmatched performance as
 blocked. This checkpoint does not authorize frontend, MTO or F2 changes.
 
+GIT3005 deployment/readback checkpoint: implementation07ce0a1 now serves from
+image `sha256:4274ec5cc7ca5408a4161a657d2c1d8196cb47c3ef5f3aab1b696261cb5fcf11`.
+`f3-stage2-git-serving-001/receipt.json` SHA256
+`55158b1c7a76b846a920f3181b64eed26c27ee38671244491fe512d50e883ba3`
+binds420 authenticated gateway checks, trusted scope overwrite, unauthenticated401,
+and420 byte-identical readbacks after MTA-only restart. The first immediate
+post-restart request500 is retained; admission/listener startup took16 seconds.
+Readiness then reported the unchanged admission digest before the successful
+retry. All22 other containers, full MTA settings/resources and publication/command
+state remain unchanged. No business actions, layout writes or frontend edits.
+
+Browser proved parent grid0/June17, both child chart tabs empty, and child normal
+grid's generic load-failure alert. Custom displayed its explicit empty-view
+message; browser connection was lost before saving that screenshot, which is an
+evidence limitation, not a product defect. Parent Excel Export announced success
+but no new file appeared in Windows Downloads. Located source chain:
+useSaveAllState.ts41–62 skips data calls for zero pages, sets empty export rows
+and announces success; usePlanning.ts175–189 downloads only in the hidden grid's
+row-update callback; Planning/index.tsx190–200 supplies that hidden grid.
+Exact missed-callback cause and actual file export remain **UNPROVED**; no further
+discovery or claim follows from the toast. These sources/hashes are retained.
+
+**GIT remains ACTIVE.** Proved: bounded deployment, valid API contracts and
+post-readiness restart/readback, core browser entry/chart navigation. Blocked:
+source-invalid child/filter branches and unavailable matched performance provider.
+Untested: browser filters, layout save/reset/reload, leaf actor and actual downloads.
+Resume feasible browser controls using the existing evidence; do not reopen SQL,
+repeat the420-case proof or advance to Expedite until this journey's remaining
+exits are proved or explicitly dispositioned with evidence.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
