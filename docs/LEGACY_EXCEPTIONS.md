@@ -482,3 +482,20 @@ observations are bound in f3-stage2-btr-browser-recheck-001/receipt.json. The
 original absent layout is restored through the existing authenticated endpoint;
 no business publication or command changes. This is a reporting-control blocker,
 not parity acceptance or approval to repair inherited frontend behavior.
+
+## Approved initial child Expedite request history — 3 October 2026
+
+Direct user reply to `call_zbzXQ93n4Qfs9tOGAixne3Lc` approves an explicitly
+empty initial OpenExpediteRequests input for the June17 preview run
+ac1612c8-0e49-4155-83c3-f59f41422293, output digest
+bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d.
+This is new preview application input, not a claim that legacy history was empty.
+The opt-in environment setting defaults off and the reader checks run/date/digest.
+Canonical ExpediteFromChild (pinned PlanningProcessor bf716c4f) consequently
+returns NULL remarks; empty InTransitData remains separately authorized by the
+terminal supplement. No request writes, populated-history behavior, calculation,
+F2 row or receipt changes are authorized by this input. Missing/unapproved inputs
+remain unavailable. Canonical child complete SQL wire parity, including ETA
+serialization, remains unproved while the SQL oracle is unavailable. Norm server
+filter is explicitly unavailable pending its canonical ambiguous-SQL disposition;
+this is not silently corrected or claimed as parity.

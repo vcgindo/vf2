@@ -39,6 +39,32 @@ Historical checkpoints below remain provenance, not a second active queue.
 
 ### Active boundary — authorized recovery Stage 2
 
+3 October child-grid correction implemented on3005: direct user approval to question
+`call_zbzXQ93n4Qfs9tOGAixne3Lc` establishes empty initial OpenExpediteRequests
+for the selected June17 preview run only. Implement the canonical child normal
+grid with this explicitly opted-in read input and the existing approved empty
+transit. No historical-empty parity claim, request writes, F2 change or MTO change.
+Exit requires complete fields/scopes/paging checks and actual3005 child-grid
+rendering; the earlier Custom Screens switching fix did not satisfy this exit.
+
+The normal To Child grid now renders all7 dispatch rows in the authenticated
+browser. SKU337 client filter yields1of7; selecting it exposes June20 ETA and
+NULL remarks. No request was submitted. The reader preserves parent-location
+permissions, numeric/NULL child fields, branch-specific joins and ordering;
+25 focused tests pass, including opt-in/run/date/digest denial.16 read-only
+private requests cover four scopes, full/unpaged and page slices, with complete
+slice equality. Actual3005 cookie request matches the full private response,
+HTTP200 in0.829s; this is one request timing, not matched legacy performance.
+Evidence: D:/freshvcf-build/evidence/f3-stage2-expedite-child-grid-001.
+Only MTA redeployed;47 other container identities/start times unchanged,4GiB
+limit retained, selected admission digest unchanged. Parent test layout was
+restored to its original absent DB row through ResetState after persistence proof.
+Canonical child SQL wire parity/ETA serialization remains unproved because the
+existing SQL provider failure has not been repaired or retried. Norm server
+filter stays explicitly unavailable pending its canonical SQL disposition.
+Custom Screens missing-NMS identities and request-write workflow remain separate
+unresolved boundaries. This correction does not close the whole Expedite journey.
+
 The human's1 October2026 instruction in command-centre chat
 `01a0f7c6-1050-7741-b80a-a7f10ca0d04d` authorizes a new Stage2-only goal and
 implementation after accepted Stage1. Verified direct user instruction and
@@ -3669,3 +3695,9 @@ own-state run. The previous divergent run remains immutable and unaccepted.
   F2 is closed for selected scope WITH the declared legacy flaw. **Pending: F3**
   application/API/UI acceptance and coordinated3004 delivery; no F3 code or
   serving instances were changed in this correction.
+
+Browser paging also passes: size3 page1 SKUs6980/6904/6679, page2
+6664/6584/6404, range4–6of7. The full view is restored after verification.
+Screenshots child-grid.png, child-filter-detail.png and child-page2.png are in
+that evidence directory. These are actual browser observations, separate from
+API-only scope tests and from the still-unavailable independent SQL comparison.

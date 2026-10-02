@@ -58,6 +58,41 @@ def custom_grid(payload):
                                     for h, c, p in CUSTOM_COLUMNS])
 
 
+def child_grid(payload):
+    from django.conf import settings
+    from mta.presentation.context import scope
+    from mta.presentation.excess_read import pagination
+    from mta.presentation.excess_filters import predicate
+    from mta.presentation.expedite_child import child_rows
+    from mta.presentation.legacy_ui import BPR_UI_CONFIG
+    if any(row.get('Visible') and 'attr' in row['Col_Code'].lower() for row in BPR_UI_CONFIG):
+        raise PublicationUnavailable('child_expedite_dynamic_attributes_not_connected')
+    # Commons emits an unqualified norm expression in this joined query.
+    # Its child SQL failure envelope has not been qualified; do not silently
+    # replace it with a corrected a.Norm predicate.
+    availability = (payload.get('filters') or {}).get('availabilityFilter') or {}
+    if any(item.get('attributeName', '').lower() == 'norm'
+           for item in availability.get('filters', [])):
+        raise PublicationUnavailable('child_expedite_norm_filter_contract_unverified')
+    context = expedite_context()
+    # Direct human approval on 3 October 2026 establishes an initial empty
+    # application history ONLY here. It is not a claim about legacy history.
+    binding = (str(context.run.pk), str(context.run.business_date), context.run.output_digest)
+    if (not settings.VF_MTA_PREVIEW_EMPTY_EXPEDITE_HISTORY or binding != (
+            'ac1612c8-0e49-4155-83c3-f59f41422293', '2026-06-17',
+            'bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d')):
+        raise PublicationUnavailable('child_expedite_request_history_not_admitted')
+    products, locations = scope(payload, attributes=context.importer)
+    data = child_rows(context.rows, context.importer, context.standards,
+                      products=products, locations=locations, paging=pagination(payload),
+                      business_date=context.run.business_date, requests=[],
+                      transit=terminal_ancillary(context.run)['InTransitData'],
+                      matches=predicate(payload, context.importer))
+    positions = {'rq': 12, 'pin': 11}
+    return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=positions.get(c, p))
+                                    for h, c, p in PARENT_COLUMNS])
+
+
 def expedite_context():
     run = selected_run()
     importer = {name: image_rows(run, 'closing/importer/'+name) for name in (
