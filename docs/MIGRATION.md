@@ -606,6 +606,25 @@ recorded separately. Permitted implementation boundary is the MTA consumer and
 focused proofs only; no shipment creation, F2 replay, frontend/auth/MTO change or
 positive logistics acceptance. Stage3's missing nonempty input remains separate.
 
+GIT source/connection baseline retained in
+`D:/freshvcf-build/evidence/f3-stage2-git-source-001/`: seven frontend/backend
+contracts, exact retained PlanningProcessor bf716c4f / ExpediteProcessor e78148cc,
+deployed DLL/IL and both producer pins. Receipt SHA256
+`a45edcb52b854668c1a24b5786a8ee2d07f1c9e35e061b493a0ef268fc1aad51`
+also binds22 unchanged protected containers and publication/commands. The
+real3005 overview remains GIT0/0;
+six authenticated parent/child grid/count, child graph/custom requests all return
+503 with the current explicit disconnected-branch guards. This is attributable
+missing consumer integration, not zero-population parity or a source-flaw match.
+The inherited child normal-grid request includes locationWise and transporterWise
+together. Retained B1-SOURCE-03 documents absent transporter-query fields, but
+that earlier migration's inputs/evidence are reference only: compile the exact
+query on this independently admitted empty terminal state before recording its
+current disposition. Custom count0 can cause the frontend to skip its data
+request; its empty browser message would not certify the API. No application code,
+producer, permissions or publication changed. The next unmet exit is independent
+selected-state SQL/envelope/filter/schema proof, then bounded MTA connection.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
