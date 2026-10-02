@@ -720,6 +720,18 @@ Resume feasible browser controls using the existing evidence; do not reopen SQL,
 repeat the420-case proof or advance to Expedite until this journey's remaining
 exits are proved or explicitly dispositioned with evidence.
 
+GIT selected browser controls follow-up: `f3-stage2-git-controls-001/receipt.json`
+SHA256 `724e7512adcd00dfc15382c0c888f4421e129b0beab6d4e8230188678038665b`
+records Depo server-filter application and SKU337 client-filter/clear behavior.
+Zero rows remain, so positive-row filtering is not inferred from this UI check.
+The23-column parent layout saved skd hidden; its full persisted state matched
+after fresh reload and re-entry, with SKU Description visibly hidden. UI reset
+restored the column; authenticated ResetState restored the original absent row.
+No code/service/business-state changes or repeat SQL/gateway proof. Remaining
+GIT obligations are unchanged except these selected filter/layout controls are
+now proved: other browser filters, actual downloads, leaf actor, source-invalid
+branches and matched performance remain open. GIT remains ACTIVE.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
