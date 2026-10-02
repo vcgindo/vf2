@@ -943,6 +943,26 @@ not a comparison result. Existing MTA-only restart authority does not cover this
 database restoration; requested human direction, no reset/shared restart.
 Expedite remains ACTIVE; persisted custom verification is pending restoration.
 
+Restoration follow-up (3 October): the human explicitly approved restoring the
+existing Fresh database, then the existing3005 preview services. PostgreSQL
+completed crash recovery and is healthy at its original1GiB/restart=no limit.
+Started the existing Redis, MTO, user-service, MTA and frontend containers;
+no recreation, reset, image/configuration change or new port. Evidence in
+`f3-stage2-preview-restoration-001/result.json` verifies unchanged identities,
+images and operative configuration for all48 retained containers, unchanged
+state/start time for43 other containers, MTA readiness with admission360ee8ab,
+and HTTP200 at3005/login. Authenticated browser continuation remains pending;
+service restoration is not report acceptance.
+
+The persisted custom probe subsequently read the admitted June17 publication.
+Preserve modern002's Decimal JSON serialization failure; only the probe's numeric
+serialization was corrected. `f3-stage2-expedite-custom-modern-003/comparison.json`
+compares complete PostgreSQL reader results against the retained independent
+custom SQL: four defined cases match,12 undefined-order cases are explicitly
+denied and NOT_PARITY. Run/output/admission digests remain unchanged. This closes
+the persisted-reader proof only; route/configuration/wire/browser/performance
+exits remain open. No custom route connection or serving-code deployment occurred.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

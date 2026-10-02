@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from decimal import Decimal
 from unittest.mock import patch
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -41,4 +42,11 @@ with patch('mta.runtime.services.read_outputs', side_effect=AssertionError('whol
             except PublicationUnavailable as exc:
                 value = dict(source_error=str(exc))
             result['observations'][case['id']+'/'+label] = value
-print(json.dumps(result))
+def probe_number(value):
+    # Custom SQL JSON emits numeric penetration, unlike parent string dictionaries.
+    if isinstance(value, Decimal):
+        return float(value)
+    raise TypeError(type(value).__name__)
+
+
+print(json.dumps(result, default=probe_number))
