@@ -2,6 +2,17 @@
 from parity.git_queries import method, blocks, parts, bound
 
 
+def custom_query(auth, *, page=1, size=5000):
+    body = method('GetCustomGridData')
+    p = parts(next(b for b in blocks(body) if 'rq=B.RationedQty' in b and 'ExpediteDispatches B' in b))
+    assert len(p) == 3
+    query = auth + p[0] + p[1] + '[VFTEST_Importer]' + p[2]
+    if page is not None:
+        query += f' where RN between ({page}-1)*{size}+1 and ({page}*{size})'
+    query += ' for json path) data'
+    return bound(query.replace('ExpediteDispatches B', '#Expedite B').replace('BPR_Table D', '#Bpr D'))
+
+
 def parent_query(auth, *, page=1, size=5000, sql_filter=''):
     body = method('ExpediteFromParent')
     fragments = [parts(b) for b in blocks(body) if 'cte_' in b]

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 
-from parity.expedite_grid_queries import parent_query
+from parity.expedite_grid_queries import parent_query, custom_query
 from parity.git_queries import PLAN, PLAN_SHA
 from parity.legacy_isolation import connection, exclusive_replay
 from parity.output_archive import file_sha, iter_rows
@@ -22,6 +22,7 @@ from parity.verify_rrr_consumer import (
 def main():
     target = Path(sys.argv[1])
     target.mkdir(parents=True, exist_ok=False)
+    custom = '--custom' in sys.argv[2:]
     result = dict(status='FAILED', engine_replays=0, persistent_database_writes=False,
                   qualification='Independent parent SQL observations only; no API/browser/performance parity.')
     try:
@@ -70,6 +71,8 @@ def main():
                     ('#Nms', 'VFTEST_Importer.dbo.NMSAllItems', legacy['closing']['consumer_context']['NMSAllItems']),
                     ('#Remarks', 'dbo.BPRReport_RemarkDetails', supplement['populations']['BPRReport_RemarkDetails']),
                 ]
+                if custom:
+                    tables.append(('#Bpr', 'dbo.BPR_Table', legacy['late']['BPR_Table']))
                 for name, table in (('#Sku', 'SkuAttributeData'), ('#Loc', 'LocationAttributeData'),
                                     ('#Pair', 'SkuLocAttributeData'), ('#SkuDesc', 'SKUDescriptionTbl'),
                                     ('#LocDesc', 'SiteDescriptionTbl')):
@@ -81,7 +84,7 @@ def main():
                     auth = auth_ctes(db, catalogue, case['payload'])
                     for label, page, size in (('full', 1, 5000), ('page1', 1, 3), ('page2', 2, 3), ('unpaged', None, 5000)):
                         key = case['id']+'/'+label
-                        query = parent_query(auth, page=page, size=size)
+                        query = (custom_query if custom else parent_query)(auth, page=page, size=size)
                         queries[key] = query
                         try:
                             cursor = db.execute(query)
@@ -92,7 +95,7 @@ def main():
                     db.execute('DROP TABLE #ProductPermissions; DROP TABLE #LocationPermissions')
         (target/'queries.json').write_text(json.dumps(queries, indent=2))
         (target/'requests.json').write_text(json.dumps(cases, indent=2))
-        result['status'] = 'CAPTURED_PARENT_SQL_REQUIRES_REVIEW'
+        result['status'] = 'CAPTURED_CUSTOM_SQL_REQUIRES_REVIEW' if custom else 'CAPTURED_PARENT_SQL_REQUIRES_REVIEW'
         result['file_hashes'] = {p.name: file_sha(p) for p in target.iterdir() if p.is_file()}
     except Exception as exc:
         result['error'] = dict(type=type(exc).__name__, message=str(exc))

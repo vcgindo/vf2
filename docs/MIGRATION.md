@@ -774,6 +774,29 @@ filter/configuration/API/browser/export/performance proofs remain open. Child
 OpenExpediteRequests is absent from the admitted images, and is not covered by
 the terminal empty-transit/remarks supplement. Expedite remains ACTIVE.
 
+Expedite custom SQL / parent conversion follow-up: custom receipt
+`f3-stage2-expedite-custom-sql-001/receipt.json` SHA256
+`541f2c37720a663a14c5c7af4bee2c1caa9be7aec10e2119ff73efb48e696319`
+records all16 paged/unpaged scope queries executing on the same owned temp-table
+boundary. Full custom populations are 7/1/4/7 in the four retained scope cases.
+Native NMS is empty but the LEFT join retains rows: identifiers are omitted,
+while colour/penetration/GIT/rationed quantity survive. All ROW_NUMBER sort keys
+are NULL/NULL. Root and overlapping scopes contain the same seven quantities
+but assign different RN order (root starts176, overlapping starts103). Therefore
+multirow custom ordering/page membership is demonstrably not defined by the
+canonical query. Do not substitute Expedite identifiers or invent a tie-break.
+The selected one-row leaf remains independently comparable; no blanket custom
+empty-result claim is valid. This evidence does not authorize legacy repair.
+
+`f3-stage2-expedite-parent-sql-001/string-conversion.json` SHA256
+`43b2e30d3f776ef8fd7883eff077f921897a8ecd48dd5fcdf71201edb6ad6d04`
+uses the deployed Newtonsoft dependency with the exact source dictionary type:
+parent numbers become strings and decimal scale survives (`100.00`). This is a
+dependency conversion probe, not invocation of the hosted endpoint. Source
+GetDataSet catches SQL failures and returns its DataSet; the parent's empty-table
+fallback therefore must be investigated as a successful empty envelope, not
+inferred HTTP500 from SQL156. No application route or serving state changed.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
