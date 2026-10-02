@@ -386,3 +386,25 @@ order verifier/complete actual and expected arrays, then separately record exact
 serving-response→workbook order, full canonical bags and count order. Relative
 order for those ties remains unproved/NOT_PARITY; do not claim exact independent
 ordered workbooks, invent a tie-break or silently exclude values.
+
+## BTR inherited frontend — fresh reload misses saved column state
+
+On3005, save a31-column BTRon-hand layout for Depo/June6–17 with SKUDescription
+unpinned. The exact persisted row survives a fresh page reload, but that grid
+still renders SKUDescription pinned left after the inherited2-second apply delay.
+Pipeline→On-Hand subsequently fetches and applies the saved row, visibly unpinning
+it. These are different entry paths; successful tab-return restoration does not
+certify fresh-reload restoration.
+
+`frontend/src/VectorFlow/Pages/MTA/InsightsAndTrends/BTR/useBTR.tsx` starts
+initialColumnState as undefined at133. Saved-state effects at641–656 track mount
+and currentTab only and require initialColumnState before calling
+getUserColumnConfig; no dependency tracks its first asynchronous arrival.
+The apply effects at568–600 wait2000ms after a saved state exists. Current Fresh
+bytes equal `F:/VFlow_Local/vflow-frontend/src/VectorFlow/Pages/MTA/InsightsAndTrends/BTR/useBTR.tsx`,
+SHA256 `ae2aaa8e048e9e9220f49e92f805b31b2c8ec99856a6a0943ab5ed658faa1833`.
+Source, input, exact saved/readback state, screenshots and separate reload/tab
+observations are bound in f3-stage2-btr-browser-recheck-001/receipt.json. The
+original absent layout is restored through the existing authenticated endpoint;
+no business publication or command changes. This is a reporting-control blocker,
+not parity acceptance or approval to repair inherited frontend behavior.

@@ -53,9 +53,9 @@ the selected June17 publication remain unchanged.
 
 | Stage2 journey, in execution order | State / unmet exit |
 |---|---|
-| RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and exact filtered full CSV pass; inherited screen has no wired history entry; saved-layout browser file and matched performance remain unproved; details below |
+| RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and actual saved-layout full CSV pass; inherited screen has no wired history entry; real leaf actor, remaining controls and matched performance remain unproved; details below |
 | DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
-| BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset proved; browser file, delayed visible layout restore, remaining controls/leaf actor and matched performance remain open |
+| BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset plus both toolbar files proved; delayed tab-return restore passes, fresh reload fails in inherited hook; remaining controls/leaf actor are UNTESTED and matched performance remains blocked |
 | Buffer Trends | BLOCKED with partial proof —134 exact graph responses/30 declared failures, gateway/restart and actual type/horizon/summary/Depo/reset/reload controls proved; inherited doubled Total/stale Percentage plot, remaining controls/leaf actor and matched performance remain open |
 | Planning categories | ACTIVE — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
 | BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
@@ -280,14 +280,48 @@ workflow. Original absence was subsequently restored through authenticated
 ResetState after checking the exact retained reset value. Pipeline layout and
 business commands were unchanged.
 
-Remaining blockers are not acceptance: browser download event timed out and no
-actual toolbar CSV file was obtained; early reload observation did not wait for
-the inherited delayed column-state apply, so visible restoration remains unproved;
-the browser session then returned to login. Remaining enabled UI filter/history
-branches and actual leaf login remain open. The equivalent canonical HTTP/browser
-performance provider remains unavailable under the frozen protocol; SQL plan and
-modern gateway timings are not matched performance. Preserve these gaps while
-continuing the independent Buffer Trends journey. Do not report BTR complete.
+Historical gaps at that checkpoint: the browser download event timed out, no
+toolbar file was obtained, and an early reload observation did not establish
+delayed visible restoration before the session returned to login. These are
+superseded by the retained-state recheck below; session/event loss is no longer
+the current export/layout blocker.
+
+**Retained-state browser reconciliation,2 October2026:** receipt
+`f3-stage2-btr-browser-recheck-001/receipt.json`, SHA256
+`1640ac7561e6c01d1c600eddb0f62dd0f7febb7fcffc1241f6a59941f06a0c5e`,
+binds serving image14457962/codef075949, the same selected June17 run/digest,
+complete unchanged environment, publication/commands and22 protected containers.
+Actual toolbar pipeline CSV is1,240×108 and exactly matches the independent
+canonical root-pipeline CSV bytes (`c06b7362…`). On-hand saved-layout files are
+308×30 for Depo/June6–17 and1,240×30 from a five-row root page. Every ordered cell
+and serialized byte matches the corresponding retained canonical CSV projection
+through the actual31-column persisted layout; complete full canonical reference
+hashes are checked before projection. This is source-backed cell/header selection,
+not a new oracle, excluded-row comparison or matched performance proof.
+
+Save keeps SKUDescription unpinned. The exact saved row survives a real page
+reload, but the loaded Depo/June6–17 grid still displays it pinned left after
+independent readback work well beyond the inherited2-second delay. Returning
+Pipeline→On-Hand does fetch/apply that state and visibly unpins it. The inherited
+`useBTR.tsx` has saved-state effects tracking only mount/currentTab while initial
+configuration is undefined; it does not refetch when configuration first arrives.
+Fresh bytes equal canonical runtime frontend bytes, SHA256
+`ae2aaa8e048e9e9220f49e92f805b31b2c8ec99856a6a0943ab5ed658faa1833`.
+Fresh-reload restoration is therefore a reproducible current **BLOCKER**,
+separate from successful delayed tab-return restoration. Do not report the tab
+round trip as successful fresh reload. No frontend repair is authorized here.
+
+UI Reset stores109 default columns and visibly pins SKUDescription left; its
+complete grid ordering is not newly certified. Exact reset state was checked
+before authenticated ResetState restored original absence. Pipeline layout was
+not mutated; its absence is confirmed. Page size returns to5000. No application
+change, engine replay or serving restart occurred in this recheck.
+
+BTR remains partial BLOCKED: fresh reload and the missing equivalent canonical
+HTTP/browser performance provider are dependencies. Remaining enabled filter,
+history and layout-order controls plus real leaf browser login remain **UNTESTED**,
+not excused by those dependencies. SQL plans/modern timings are not matched
+performance. Keep the whole screen denominator; do not report BTR complete.
 
 **Active Buffer Trends boundary before mutation:** reuse retained history
 consumer SQL/.NET formatting and BTR-owned colour/date/attribute evidence.
@@ -555,11 +589,22 @@ historical observations, not sufficient current blockers after Excess downloads
 were located on disk. Require actual compared files and visible restoration, or
 a current reproducible failure. Other untested controls remain open, distinct
 from genuine native-input/source/performance dependencies. Fulfilment is now
-explicitly partial BLOCKED above. **Active retained-state verification boundary:**
-RRR actual toolbar download with saved columns, then BTR toolbar file and visible
-saved-layout reload. Only temporary preview-actor layouts/filters and their exact
-restoration are permitted; no frontend/auth/F2 edits or consumed trial reset.
-GIT/Expedite and other unopened journeys remain deferred until this reconciliation.
+explicitly partial BLOCKED above. **Retained-state reconciliation CLOSED:** RRR
+actual toolbar files pass below; BTR both toolbar files pass above, while fresh
+reload now has a reproducible inherited-source failure and delayed tab-return
+restoration passes. Original temporary layout absence is restored. Untested
+controls remain in each screen's denominator. No frontend/auth/F2 edits or
+consumed trial reset occurred. Return to Planning's approved terminal-zero GIT
+and then Expedite; other unopened journeys retain their recorded order.
+
+**Active Planning GIT boundary before mutation:** trace the inherited From Parent,
+To Child/Location Wise/Time Wise/custom requests to canonical deployed consumer
+SQL and the explicitly admitted terminal-only empty InTransitData. Required proof
+is the complete selected zero-population graph/grid/count/config/export contract,
+authenticated controls and stable selected-run readback, with source failures
+recorded separately. Permitted implementation boundary is the MTA consumer and
+focused proofs only; no shipment creation, F2 replay, frontend/auth/MTO change or
+positive logistics acceptance. Stage3's missing nonempty input remains separate.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
@@ -586,6 +631,15 @@ entry remains a source-capability/scope blocker, not a reason to invent UI.
 Toolbar export returned200, but IAB's download event timed out and no new Windows
 Downloads file was exposed; gateway bytes do not certify the saved-layout browser
 file. Existing root/Depo browser files remain accepted for their earlier layouts.
+This historical download gap is now resolved by the2 October retained-state
+recheck `f3-stage2-rrr-browser-recheck-001/receipt.json`, SHA256
+`c8675178b554a255a93f6e0f6a6eac4d20a4b2327b09df9330f8d107bcb07e03`.
+Actual CSV toolbar downloads with SKUName hidden and Depo4 are byte-identical
+to the retained independent SQL/DLL/CsvHelper CSV above:1211bytes/36headers/4rows.
+Both the four-row display and a two-row page export the full filtered file.
+The original absent actor layout is restored; all22 protected containers and
+June17 publication/commands remain unchanged. No code or calculation replay.
+Do not retain the old download event/session failure as a current blocker.
 Private leaf comparisons are reused, not relabeled as a real leaf login.
 No isolated canonical HTTP provider with equivalent terminal state/resources is
 running; existing .NET/SQL comparisons bind session-temp tables. Matched API and
