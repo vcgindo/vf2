@@ -880,6 +880,18 @@ gateway-boundary finding, not a calculation mismatch or legacy parity claim.
 Browser controls/download/layout and restart readback remain pending; no journey
 acceptance or performance claim follows this deployment.
 
+Expedite restart/readback: `f3-stage2-expedite-restart-001` preserves before/after
+container and publication/command fingerprints, readiness attempts, and complete
+post-restart authenticated responses. Only MTA restarted;47 other containers
+unchanged. Readiness succeeded on attempt7 with the unchanged admission digest
+360ee8ab9beb66952f761761eedd825644011b16a8c310327c79d12202e5767f;
+earlier connection failures remain recorded as startup observations. All four
+affected parent responses equal the pre-restart gateway results after readiness.
+Selected publication and command fingerprints are identical. Browser session
+currently shows3005/login; authenticated browser controls/exports/layout remain
+untested, not certified by gateway proof. No repeated restart is needed absent
+another relevant serving change or failure. Expedite remains ACTIVE.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
