@@ -910,8 +910,8 @@ credential reset or permission changes. Other feasible Expedite exits remain ope
 Authenticated parent browser entry observed after human-restored login: Planning
 shows June17 and Expedite7/7. Clicking Expedite From Parent displays
 LEG-EXPEDITE-UNORDERED-LABEL and remains on category selection; no grid toolbar
-is reached. `usePlanning.ts` parent selection awaits getPlanningDataGraph before
-setting the current category/view. Thus the existing chart denial blocks the
+is reached. `usePlanning.ts` sets category/view first, but awaits
+getPlanningDataGraph before closing category selection. Thus the chart denial blocks the
 normal UI path to the now-proved parent grid. This is an integration blocker,
 not successful browser/grid acceptance; filters/export/layout remain untested
 behind it. Screenshot `f3-stage2-expedite-browser-001/parent-entry.png` retains
