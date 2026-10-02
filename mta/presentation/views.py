@@ -372,6 +372,9 @@ def planning_grid(request, payload, *, count=False):
 
 @endpoint('POST')
 def planning_custom(request, payload):
+    if payload.get('category') == 'expedite':
+        from mta.presentation.expedite_read import custom_grid as expedite_custom_grid
+        return envelope(data=expedite_custom_grid(payload))
     if payload.get('category') == 'git':
         from mta.presentation.git_read import custom
         return envelope(data=custom(payload))

@@ -963,6 +963,19 @@ denied and NOT_PARITY. Run/output/admission digests remain unchanged. This close
 the persisted-reader proof only; route/configuration/wire/browser/performance
 exits remain open. No custom route connection or serving-code deployment occurred.
 
+Expedite custom API follow-up: the exact case-sensitive category now dispatches
+to the selective persisted reader. Reuses the canonical46-column custom config,
+ignores type/filters as the deployed custom handler does, preserves parent scope,
+and serializes penetration as JSON numbers rather than Django Decimal strings.
+`f3-stage2-expedite-custom-route-001/comparison.json` proves four complete defined
+private HTTP envelopes against independent SQL plus pinned handler/configuration;
+all12 ambiguous cases return the explicit503 NOT_PARITY limitation. Eight affected
+reader checks pass. No business state/schema/calculation change. Gateway, browser,
+restart and performance verification remain outstanding for this adapter.
+The restored browser provider had no tabs; a new3005 tab shows the normal login
+with CAPTCHA. Authenticated browser continuation is unavailable until login is
+restored; do not bypass authentication or treat private injected scope as login.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

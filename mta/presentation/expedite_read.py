@@ -37,6 +37,27 @@ def parent_grid(payload):
     return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=p) for h,c,p in PARENT_COLUMNS])
 
 
+def custom_grid(payload):
+    from decimal import Decimal
+    from mta.presentation.context import scope
+    from mta.presentation.excess_read import CUSTOM_COLUMNS, pagination
+    from mta.presentation.expedite_custom import custom_rows
+    context = expedite_context()
+    paging = pagination(payload)
+    products, locations = scope(payload, attributes=context.importer)
+    try:
+        rows = custom_rows(context.rows, nms=context.nms, products=products,
+                           locations=locations, paging=paging)
+    except ValueError as exc:
+        raise PublicationUnavailable(str(exc)) from exc
+    # The deployed custom handler deserializes SQL JSON as an object: numeric
+    # penetration stays numeric, unlike the parent string-dictionary handler.
+    data = [{key: float(value) if isinstance(value, Decimal) else value
+             for key, value in row.items()} for row in rows]
+    return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=p)
+                                    for h, c, p in CUSTOM_COLUMNS])
+
+
 def expedite_context():
     run = selected_run()
     importer = {name: image_rows(run, 'closing/importer/'+name) for name in (
