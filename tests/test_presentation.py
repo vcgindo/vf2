@@ -233,12 +233,14 @@ class PresentationTest(unittest.TestCase):
         payload=dict(category='orderFulfillment',type='parent',product_permissions=[71001],location_permissions=[72001],
                      paginationParameter=dict(pageNumber=1,recordsPerPage=50))
         detail=dict(WhCode='AG515802',SKUCode='337',Introdate='2026-06-01',OrderNo='unit',PendingQty=5,DueDate=None,Price=None)
-        with patch('mta.presentation.views.publication',return_value=context), \
-             patch('mta.presentation.views.read_fulfillment',return_value={'summary':[],'details':[detail]}), \
+        context.rows={'summary':[],'details':[detail]}
+        with patch('mta.presentation.views.publication',side_effect=AssertionError('whole publication forbidden')), \
+             patch('mta.presentation.fulfillment_read.fulfillment_context',return_value=context), \
              patch('mta.presentation.views.fulfillment_rows',return_value=[dict(SKUCode='337',WHCode='AG515802',Gap=5,Price=12)]), \
              patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE):
             response=self.post('GetPlanningDataGrid',payload,**IDENTITY).json()
-            grid=json.loads(response['data']['data'])
+            grid=response['data']['data']
+            self.assertIsInstance(grid,list)
             self.assertEqual(grid[0]['p'],'12')
             self.assertEqual(grid[0]['transit'][0]['p'],0)
             self.assertEqual(grid[0]['transit'][0]['dd'],'-')
@@ -256,16 +258,17 @@ class PresentationTest(unittest.TestCase):
         context=SimpleNamespace(run=object(),output={'ClosingState':[{'importer':importer}]})
         context.storage_output=context.output
         reports=dict(summary=[dict(SKUCode='337',WhCode='AG515802',Coverage='Gap > 67%')],details=[])
+        context.rows=reports
         payload=dict(category='orderFulfillment',product_permissions=[71001],location_permissions=[72001])
-        with patch('mta.presentation.views.publication',return_value=context), \
-             patch('mta.presentation.views.read_fulfillment',return_value=reports) as read, \
+        with patch('mta.presentation.views.publication',side_effect=AssertionError('whole publication forbidden')), \
+             patch('mta.presentation.fulfillment_read.fulfillment_context',return_value=context) as read, \
              patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE):
             response=self.post('GetPlanningDataGraph',payload,**IDENTITY)
             self.assertEqual(response.status_code,200)
             charts=response.json()['data']['data']
             self.assertEqual(charts['maxSkuWithGap']['data'][0]['greater'],'1')
             self.assertEqual(charts['maxSkuWithGap']['uiconfig'][0]['colPosition'],0)
-            read.assert_called_once_with(context.run,output=context.output)
+            read.assert_called_once_with()
             payload['product_permissions']=[]
             denied=self.post('GetPlanningDataGraph',payload,**IDENTITY).json()['data']['data']
             self.assertTrue(all(not section['data'] for section in denied.values()))

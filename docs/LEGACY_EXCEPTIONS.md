@@ -334,3 +334,35 @@ the normal Excess report has85 rows. Do not substitute normal rows, populate
 NMSAllItems or project new hierarchy into that table to conceal this difference.
 Terminal empty custom parity does not certify populated custom behavior.
 No business/calculation exception or authorization to change these rules follows.
+
+## Planning Fulfilment — missing custom identity and undefined row numbering
+
+Pinned PlanningProcessor bf716c4f, GetCustomGridData orderFulfillment branch,
+LEFT joins OrderFulfillmentData B to native NMSAllItems A and orders ROW_NUMBER
+only by A.SKUCode,A.WhCode. Selected June17 has1222 summary rows and zero native
+NMS rows in both independently retained engines. The SQL therefore emits distinct
+Norm/Stock/RationedQty payloads without sc/wc and assigns RN from identical
+NULL/NULL keys. Neither a hidden report-identity tie-break nor normal-grid rows
+may replace that source contract. Paged membership/ordered RN parity cannot be
+claimed; empty scope and bounds selecting no rows remain verifiable empty results.
+
+Fresh's custom adapter preserves native LEFT joins and NULL omission and returns
+503 LEG-FULFILLMENT-CUSTOM-UNORDERED-NMS when different payloads share those source
+sort keys. This is an explicit unavailable contract, not a claim that legacy
+returns the same HTTP error. Existing inherited validateCustomRows also refuses
+rows without sc/wc. Do not invent NMS identities, change the frontend guard,
+populate calculated metadata or weaken comparison assertions. Populated custom
+behavior requires independently admitted native input and its own proof.
+
+Normal Fulfilment Commons filters also retain source failures: category refers
+to unbound b.category (SQL4104); availability and colour-count fields are missing;
+colour age refers to absent btd.D90; invalid sl9/operator and malformed black/red
+hasvalue SQL fail. Fresh exposes LEG-FULFILLMENT-FILTER-INVALID-SQL, not repaired
+results. Coverage is valid on this report and uses the exact stored labels
+(`Gap < 33%`, `33% <= Gap <= 67%`, `Gap > 67%`), never ordinal codes inferred
+from the UI. Canonical QuadrantProcessor9f084f35 ignores graph request filters.
+Planning's empty-permission literal is quoted twice by GenericFunction's fallback,
+causing SQL245 varchar-to-int conversion. The existing modern empty-scope denial
+is retained as SCOPE_DENIAL_NOT_PARITY, with the exact source failure recorded;
+it is not evidence that the legacy returned an empty grid successfully.
+No calculation, action-policy or broader presentation repair is authorized here.

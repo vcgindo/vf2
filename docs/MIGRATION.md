@@ -472,6 +472,58 @@ No frontend, auth, MTO, F2, business action or positive-data substitution is
 authorized. GIT/Expedite follow after this category's proof or explicit block;
 BPR and insight journeys remain unopened.
 
+#### Stage2 Planning — Fulfilment connection checkpoint (ACTIVE)
+
+Actual3005 normal Grid View failed with `e.map is not a function`; screenshot
+and console are retained in f3-stage2-fulfillment-001. The canonical method uses
+the same GenericFunction.ExecuteScalar<object> as Excess and returns a list.
+Actual DLL invocation proves the complete1222-row list/nested detail and empty
+fallback in `f3-stage2-fulfillment-scalar-001/receipt.json`, SHA256
+`8a3dc1b92fcd19d2c62262577ec1c676fb63a333791973addee3828eba3984af`.
+The active adapter now returns that list, reads only named accepted relational
+inputs plus the checksum-validated summary/details projection, and connects the
+normal Commons filters/count/paging. Graphs use those bounded reads and preserve
+the source's ignored-filter behavior. Frontend, F2, MTO and auth are unchanged.
+
+`f3-stage2-fulfillment-005/receipt.json`, SHA256
+`0c9190fb814186ab566d56330b7191b2b50e0005325f63ae8e9380aa4c32dfe5`,
+contains185 checks:146 complete ordered responses PASS,36 declared source flaws
+NOT_PARITY, and3 existing empty-scope denials NOT_PARITY. Native normal1222,
+leaf6, Depo304, parent-type join802; coverage labels produce8/1204/10. Complete
+nested detail and configuration values survive. No calculated facts were replayed.
+Four scoped/overlapping/ignored-filter graphs independently match SQL and actual
+DLL GetResponse in `f3-stage2-fulfillment-graph-002/receipt.json`, SHA256
+`6b6e3f531af6c1dfd6e9135c8f820d8cfcf4b01239b44e915fba6392a1d70561`.
+Each normal/graph request uses13 queries and cannot call full publication().
+These timings are private diagnostics, not matched-performance acceptance.
+
+Custom differs from Excess: the source LEFT join emits1222 identity-less rows
+from missing native NMS, with distinct payloads assigned RN from tied NULL keys.
+The adapter explicitly denies that undefined ordering, preserves safe empty
+scope/page behavior, and never fills NMS IDs or invents a tie-break. Existing
+frontend's missing-identity guard is retained. Exact source-invalid filters and
+SQL245 empty-permission quoting failure are recorded in LEGACY_EXCEPTIONS;
+unavailable/denied results are not relabeled as parity.
+
+Preserve verifier attempts002–004.002 expected missing category207 where this
+report has unbound b.category4104;003 expected NULLIF156 where the nested grid
+reports syntax102;004 reached the selected-ID-only oracle helper on empty scope.
+005 fixes only those source-error/empty-literal verifier bindings and reuses
+hash-bound unchanged modern observations. All earlier passed checks and failures
+remain retained. Graph001's independent worker succeeded but the oracle lease
+was occupied by the normal verifier; graph002 reuses that capture after release.
+No concurrent oracle access, legacy repair or comparison weakening occurred.
+222 repository tests and376 baseline resource identities pass. Serving remains
+the preceding Excess image until this checkpoint is committed and MTA-only deployed.
+
+Before any next category/journey, revisit recoverable RRR/BTR toolbar downloads
+and BTR visible saved-layout reload. Earlier IAB event timeouts/session loss are
+historical observations, not sufficient current blockers after Excess downloads
+were located on disk. Require actual compared files and visible restoration, or
+a current reproducible failure. Other untested controls remain open, distinct
+from genuine native-input/source/performance dependencies. Fulfilment remains
+the active implementation boundary until its serving proof or explicit block.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
