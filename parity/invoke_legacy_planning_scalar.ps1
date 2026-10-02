@@ -21,9 +21,14 @@ $vfResults=@()
 foreach ($vfCase in $vfValues.cases) {
     $vfLiteral=if ($null -eq $vfCase.sql_value) { 'CAST(NULL AS nvarchar(max))' } else { "N'"+$vfCase.sql_value.Replace("'","''")+"'" }
     $vfQuery="EXECUTE AS LOGIN = 'freshvcf_oracle_replay' WITH NO REVERT; SELECT "+$vfLiteral
+    if ($vfCase.ContainsKey('sql_error_207') -and $vfCase.sql_error_207 -eq $true) {
+        # Bounded SQL binding failure to verify the deployed scalar helper's
+        # error handling. The actual GIT query failure is recorded separately.
+        $vfQuery="EXECUTE AS LOGIN = 'freshvcf_oracle_replay' WITH NO REVERT; SELECT MissingColumn FROM (SELECT 1 AS KnownColumn) s"
+    }
     $vfResult=$vfMethod.Invoke($null,@($vfConnection,$vfQuery))
     $vfType=if ($null -eq $vfResult) { 'null' } else { $vfResult.GetType().FullName }
-    # Exact ReviewExcessInventory null fallback.
+    # Exact ReviewExcessInventory/GetMonitorGITParent/transporter null fallback.
     if ($null -eq $vfResult) { $vfResult=[Collections.Generic.List[string]]::new() }
     $vfWire=[System.Text.Json.JsonSerializer]::Serialize($vfResult,$vfResult.GetType())
     $vfResults+=,@{id=$vfCase.id;runtime_type=$vfType;json=$vfWire}

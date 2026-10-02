@@ -625,6 +625,37 @@ request; its empty browser message would not certify the API. No application cod
 producer, permissions or publication changed. The next unmet exit is independent
 selected-state SQL/envelope/filter/schema proof, then bounded MTA connection.
 
+GIT unfiltered source proof now retained in
+`D:/freshvcf-build/evidence/f3-stage2-git-terminal-wire-001/receipt.json`, SHA256
+`7a8481ab22525ae8aefa7b275491343249db38e791128edf6791aaa89c0b0575`.
+Four retained permission cases execute11 queries each against independently
+admitted June17 session-temp tables in VFTEST_Fresh_BPR. Per case: three zero
+counts, three SQL-NULL grid/custom scalars and four empty typed chart result
+sets execute; the child transporter query fails207 (TransporterCode, OrderNo,
+InTransitQty) plus8120 (ungrouped correlated SKUCode). Native NMS remains empty;
+visible custom attributes were independently checked absent. No positive transit
+facts, calculated state or permissions were substituted.
+
+**Critical source qualification:** actual pinned DLL GenericFunction.ExecuteScalar
+swallows a controlled207 error and returns null; both that result and SQL NULL
+become[] under the inherited grid fallback. The source child method therefore
+does not necessarily return500 for its SQL failure. An empty200 UI cannot prove
+a valid transporter query. Record the failure explicitly, retain its inherited
+wire disposition, and do not repair SQL or claim healthy-query parity. Actual
+GetGoodsInTransitResponse invoked with the four empty SQL schemas preserves
+all four empty data sections and LL1–5 UI metadata. Invocation uses.NET10.0.11
+with the canonical DLL, not the hosted legacy HTTP runtime/performance provider.
+
+The first SQL verifier expected JSON[] where SQL returnedNULL and failed after
+capturing all44 observations. Preserve `f3-stage2-git-terminal-sql-001` receipt
+SHA256 `70ac12d3594997f0e3bd5f63c7191f655030ec4501aabc36372b073db0c82911`
+and original verifier. The wire proof checks those exact pinned observations
+with corrected NULL expectations; no query rerun, input/SQL change or overwrite.
+This is an independent source checkpoint only. **GIT remains ACTIVE:** filtered
+and paginated contracts, complete configuration/envelopes, bounded modern
+connection, authenticated controls/downloads/restart and matched performance
+remain unmet. No serving application, frontend/MTO/auth/F2 code changed here.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

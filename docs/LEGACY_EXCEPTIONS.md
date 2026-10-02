@@ -387,6 +387,35 @@ serving-response→workbook order, full canonical bags and count order. Relative
 order for those ties remains unproved/NOT_PARITY; do not claim exact independent
 ordered workbooks, invent a tie-break or silently exclude values.
 
+## GIT child transporter — SQL failure concealed by empty response
+
+Pinned deployed PlanningProcessor `bf716c4f84e43920b5f2ab302e3d3c78ec685f5d714471c53047d377537d3486`,
+GetMonitorGITChildTransporter, selects ta.InTransitQty and correlates
+ta.TransporterCode/ta.OrderNo against GoodsInTransitMaster, where those fields
+are absent. Its grouped outer query also references an ungrouped SKUCode.
+Selected June17 empty terminal inputs reproduce SQL207 and8120 in all four
+retained permission cases; emptiness does not avoid SQL name/group binding.
+The child's direct-ID permission CTE differs from generic hierarchical expansion
+and is retained separately. No positive-shipment or other-day behavior is proved.
+
+GenericFunction.ExecuteScalar catches SQL exceptions and returns null. Actual
+canonical DLL invocation with a controlled207 confirms that behavior. The
+child processor substitutes an empty list when that helper returns null and
+continues toward its200 envelope. Its catch assigning500 does not establish
+the disposition of an exception swallowed by the helper. Thus the SQL fault is
+real even when the outward transporter grid looks empty. Preserve the inherited
+wire behavior separately from its failed SQL contract; neither fix the source
+nor count an empty UI as healthy-query/reporting parity.
+
+Input/provenance,44 exact SQL observations, four empty chart schemas and actual
+DLL method outputs are bound in
+`D:/freshvcf-build/evidence/f3-stage2-git-terminal-wire-001/receipt.json`, SHA256
+`7a8481ab22525ae8aefa7b275491343249db38e791128edf6791aaa89c0b0575`.
+The initial proof expected[] instead of SQL NULL; its failed receipt and original
+verifier remain immutable. Corrected expectations validate the pinned capture
+without changing SQL or rerunning accepted calculations. DLL method invocation
+under.NET10.0.11 is not a native hosted legacy HTTP/performance proof.
+
 ## BTR inherited frontend — fresh reload misses saved column state
 
 On3005, save a31-column BTRon-hand layout for Depo/June6–17 with SKUDescription

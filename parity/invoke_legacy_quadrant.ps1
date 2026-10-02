@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
       [ValidateSet('QuadrantProcessor','ExcessInventoryProcessor','ExpediteProcessor')][string]$Processor='QuadrantProcessor',
-      [ValidateSet('parent','child')][string]$Direction='parent')
+      [ValidateSet('parent','child','git')][string]$Direction='parent')
 $ErrorActionPreference='Stop'
 $vfEvidenceRoot=[System.IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[System.IO.Path]::GetFullPath($InputPath)
@@ -18,14 +18,17 @@ $vfMvc='F:/VFlow_Local/local-config/dotnet/shared/Microsoft.AspNetCore.App/6.0.3
 [void][System.Reflection.Assembly]::LoadFrom($vfMvc)
 $vfAssembly=[System.Reflection.Assembly]::LoadFrom($vfDll)
 $vfType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.InsightsAndTrends.'+$Processor,$true)
-$vfMethodName=if ($Processor -eq 'ExpediteProcessor') { if ($Direction -eq 'parent') { 'GetParentResponse' } else { 'GetChildResponse' } } else { 'GetResponse' }
+if ($Direction -eq 'git' -and $Processor -ne 'ExpediteProcessor') { throw 'GIT response belongs to ExpediteProcessor' }
+$vfMethodName=if ($Processor -eq 'ExpediteProcessor') {
+    switch ($Direction) { 'parent' { 'GetParentResponse' } 'child' { 'GetChildResponse' } 'git' { 'GetGoodsInTransitResponse' } }
+} else { 'GetResponse' }
 $vfMethod=$vfType.GetMethod($vfMethodName)
 $vfParameters=New-Object object[] ($vfMethod.GetParameters().Count)
 $vfParameters[0]=[System.Data.DataSet]::new()
 foreach ($vfTableInput in $vfValues.tables) {
     $vfTable=[System.Data.DataTable]::new()
     foreach ($vfColumn in $vfTableInput.columns) {
-        $vfColumnType=switch ($vfColumn.type) { 'int32' { [int] } 'int64' { [long] } 'string' { [string] } default { throw 'Unknown SQL column type' } }
+        $vfColumnType=switch ($vfColumn.type) { 'int32' { [int] } 'int64' { [long] } 'decimal' { [decimal] } 'string' { [string] } default { throw 'Unknown SQL column type' } }
         [void]$vfTable.Columns.Add($vfColumn.name,$vfColumnType)
     }
     foreach ($vfSource in $vfTableInput.rows) {
