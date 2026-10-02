@@ -424,9 +424,53 @@ classification.005 corrects only those verifier bindings/expectations, reuses
 the hash-bound independent input capture, and retains every failure. No oracle
 or modern calculated state was changed to make comparisons pass.
 
-Planning stays ACTIVE. Next: MTA-only3005 deployment, real Excess controls,
-scope/export/restart, then the remaining Planning categories. Positive custom
-coverage and matched canonical HTTP/browser performance remain explicit gaps.
+Excess is now BLOCKED WITH PARTIAL PROOF; Planning remains ACTIVE. Serving receipt
+`f3-stage2-excess-serving-001/receipt.json`, SHA256
+`592f108dcb331dff8a5f1bf76b317e3aae8213721eb58ce87acf49398e9cb1f3`,
+binds pushed code a654e25 to image eccef26a and unchanged June17 admission360ee8ab.
+MTA-only deployment/restart passed12 complete authenticated gateway bodies,
+byte-identical across restart, unauthenticated401 and trusted root actor/scope
+overwrite.22 protected containers, operative environment/resources/mounts,
+selected publication and all business commands remain unchanged.
+
+Actual3005 browser proof: normal85; native custom0 with explicit missing-NMS
+message; five-row pages1/2 of17; server Depo filter23 and page reset; SKU6517
+client filter3 and numeric Norm sort0/61/71; clear restores85. The real daily
+graph entry opens337/DP020819, RLT2/current Norm0, June8 Phase In205→0, and
+horizon14→30. Existing complete six-section backend comparisons remain reused;
+this browser observation does not claim every positive suspension/history branch.
+Hide SKU Description, save, reload and re-enter restores the hidden column and
+identical persisted20-column layout. Reset restores all columns; authenticated
+ResetState restores the actor's original absence, verified by readback.
+
+Six actual browser-downloaded XLSX files are retained and completely inspected.
+Depo export contains all23 rows despite page size5:18 default columns and17 with
+the saved hidden-description layout, every ordered cell matching independent
+legacy rows under inherited Excel numeric-SKU conversion. Four chart-table
+exports match all typed cell bags and descending values/counts: product70x7
+for count/value, location12x7 for count/value. Equal-value source ties are not
+strengthened. The chart-table CIPONDOH filter gives1/12 and clear restores12.
+IAB's download event timed out, but the new Windows Downloads files were present;
+the receipt binds the files, not a success toast or API-only substitute.
+Inherited charts convert empty amounts to zero; positive amount parity is not
+claimed. The existing frontend/MTO/auth assets are unchanged.
+
+Remaining Excess gaps: real leaf-user login, remaining actual server-filter and
+positive history selections, populated NMS/custom and monetary amounts absent
+from retained inputs, direct saved-Excess-layout MTA-restart proof, and matched
+canonical HTTP/browser performance. Private scope and timing checks do not close
+those gaps. The earlier generic layout-restart evidence is reusable but not
+relabeled as a new Excess browser check. No engine replay or replacement facts.
+
+**Next active Planning boundary — Order Fulfillment:** reuse its accepted1222-row
+normal read-model and four-chart receipts, inspect actual normal/custom wire,
+filter/count/export routes and their inherited controls. Change only attributable
+presentation/provider mismatches and bounded relational reads. Required proof:
+independent canonical complete bodies, actual3005 controls/downloads, authenticated
+scope/restart, unchanged defaults/isolation, and the same performance gate.
+No frontend, auth, MTO, F2, business action or positive-data substitution is
+authorized. GIT/Expedite follow after this category's proof or explicit block;
+BPR and insight journeys remain unopened.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
