@@ -374,6 +374,60 @@ Proof requires complete independently compared bodies/exports, actual3005
 controls/scope/restart and the unchanged matched-performance gate. No new queue,
 business calculation, synthetic replacement, new port or adjacent BPR/insight work.
 
+#### Stage2 Planning — Excess connection checkpoint (ACTIVE)
+
+The actual3005 Excess Review chart opened, but Grid View crashed with
+`TypeError: e.map is not a function`. The earlier port incorrectly treated SQL
+FOR JSON as the HTTP value. Canonical GenericFunction.ExecuteScalar<object>
+(source6850a0bf, lines160–203) deserializes it to List<object>; ReviewExcessInventory
+then returns that list. Actual DLL invocation over the independently captured85
+rows proves the list and empty fallback: `f3-stage2-excess-scalar-001/receipt.json`,
+SHA256 `4176b432295d9fbbc9a125e6866c872018d0b82fb14383c9c65510ea148544cb`.
+This attributable migration mismatch is corrected for the active Excess path.
+The before screenshot/console remain in f3-stage2-excess-001.
+
+Excess normal grid/count and graph now read named relational inputs and validate
+the accepted85-row projection before the approved hierarchy projection. They
+do not reconstruct the full publication. Normal filters preserve the actual
+Commons six-group gate, raw NULLs, attribute OR/AND groups, permission bags and
+parent-location join multiplicity. Paging follows source ROW_NUMBER bounds,
+including an absent pagination object; no silent5000-row clamp is applied.
+Charts canonically ignore request filters. The separate GetPlanningDataCustom
+route now connects its case-sensitive excessInventory branch, native NMSAllItems,
+parent description and standard-attribute joins. Custom ignores filters, omits
+NULL JSON properties, returns the complete46-column shared configuration and
+accepts the frontend's10000-row chunks. No frontend/schema/MTO/auth/F2 changes.
+
+`f3-stage2-excess-005/receipt.json`, SHA256
+`7cc3f164296758df21a685525cc8195d3b913c8cb88bac87931bd9a94b4d1c9c`,
+proves146 complete ordered grid/count/custom responses;28 exact deployed SQL
+flaws remain503 and NOT_PARITY. The separate failure-audit.json SHA256
+`b9a1e394cd8145cbf7c34a338e0564f698f27380e8c41360f04b7d93789eb0b4`
+checks exact identifiers/codes, not merely any SQL failure. Executed runner is
+archived. Root normal85, selected intersection3, parent-type join54, custom0.
+Native retained NMSAllItems is empty in BOTH independent engines. This certifies
+terminal empty custom behavior only; no populated custom population is invented.
+
+`f3-stage2-excess-graph-001/receipt.json`, SHA256
+`e1c293b48c688a016513fc509a140a0c1b77a2720877f472225444183e2c779d`,
+proves four complete scoped/ignored-filter graphs using extracted SQL and the
+actual deployed GetResponse. All bags and source-declared count ordering match;
+equal-count relative ordering is not invented.219 repository tests PASS and376
+baseline pins unchanged. Private API timings are diagnostic only.
+
+Preserved failed verification attempts:001 used incorrect test permission IDs;
+002 failed to handle SQL DBNull's source-defined empty-list conversion;003 sent
+custom filter arrays into the normal-filter reflection harness;004 left the
+parent filter's LocationAttributeData join bound to the owned database instead
+of the independent temporary table and lacked the exact NULLIF syntax-error
+classification.005 corrects only those verifier bindings/expectations, reuses
+the hash-bound independent input capture, and retains every failure. No oracle
+or modern calculated state was changed to make comparisons pass.
+
+Planning stays ACTIVE. Next: MTA-only3005 deployment, real Excess controls,
+scope/export/restart, then the remaining Planning categories. Positive custom
+coverage and matched canonical HTTP/browser performance remain explicit gaps.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

@@ -270,8 +270,10 @@ def planning_context(payload):
     category=str(payload.get('category','')).casefold()
     if category not in ('excessinventory','orderfulfillment') or payload.get('type')=='custom':
         raise PublicationUnavailable('selected_planning_branch_not_yet_connected')
-    # Explicit incomplete contract, never silently ignore or invent a filter.
-    # Canonical filter/flaw handling is part of the pending F3.2 obligation.
+    if category == 'excessinventory':
+        from mta.presentation.excess_read import excess_context
+        context = excess_context()
+        return context, context.rows
     if not _no_active_filters(payload):
         raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
     context=publication()
@@ -285,6 +287,13 @@ def planning_context(payload):
 
 @endpoint('POST')
 def planning_graph(request,payload):
+    if str(payload.get('category', '')).casefold() == 'excessinventory':
+        from mta.presentation.excess_read import excess_context
+        context = excess_context()
+        products, locations = scope(payload, attributes=context.output['ClosingState'][0]['importer'])
+        # The deployed Excess graph processor never reads request filters.
+        return envelope(data=excess_chart_response(context.output, context.rows, context.business_date,
+            products=products, locations=locations), message='')
     if str(payload.get('category','')).casefold()=='expedite':
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
@@ -325,23 +334,45 @@ def planning_grid(request, payload, *, count=False):
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
         return envelope(data=expedite_counts(context.output,rows,str(payload.get('type','')).casefold(),
                          products=products,locations=locations))
-    paging=_pagination(payload)
-    if paging is None:
+    excess = str(payload.get('category', '')).casefold() == 'excessinventory'
+    if excess:
+        from mta.presentation.excess_read import pagination
+        paging = pagination(payload)
+    else:
+        paging = _pagination(payload)
+    if paging is None and not excess:
         raise ValueError('invalid_pagination')
     context,rows=planning_context(payload)
     fulfillment=str(payload.get('category','')).casefold()=='orderfulfillment'
     details=detail_aliases(rows['details']) if fulfillment else []
-    rows=(fulfillment_rows(context.output,rows['summary']) if fulfillment else
-          excess_rows(context.output,rows,context.business_date))
+    if fulfillment:
+        rows = fulfillment_rows(context.output, rows['summary'])
+    else:
+        from mta.presentation.excess_filters import predicate
+        selected = predicate(payload, context.output['ClosingState'][0]['importer'])
+        rows = excess_rows(context.output, rows, context.business_date, predicate=selected)
     rows=scoped(rows,payload,'WHCode',attributes=context.output['ClosingState'][0]['importer'],
                 preserve_join_multiplicity=True)
     if count:
         return envelope(data=len(rows))
-    # Deployed PlanningProcessor returns SQL FOR JSON as a STRING in data.data.
-    page,size=paging
-    projected=(fulfillment_grid_rows(rows,details) if fulfillment else excess_grid_rows(rows))[(page-1)*size:page*size]
-    return envelope(data={'data':json.dumps(projected,ensure_ascii=False,separators=(',',':')),
+    projected = fulfillment_grid_rows(rows, details) if fulfillment else excess_grid_rows(rows)
+    if paging is not None:
+        page, size = paging
+        projected = [row for row in projected if (page-1)*size+1 <= row['rn'] <= page*size]
+    # Excess calls GenericFunction.ExecuteScalar<object>, which deserializes
+    # SQL JSON into List<object> before the controller serializes its response.
+    return envelope(data={'data':json.dumps(projected,ensure_ascii=False,separators=(',',':')) if fulfillment else projected,
                           'uiConfig':fulfillment_grid_config() if fulfillment else excess_grid_config()})
+
+
+@endpoint('POST')
+def planning_custom(request, payload):
+    # Deployed custom dispatch is case sensitive and does not inspect type.
+    if payload.get('category') != 'excessInventory':
+        raise PublicationUnavailable('selected_planning_custom_branch_not_yet_connected')
+    from mta.presentation.excess_read import excess_context, custom_grid, pagination
+    paging = pagination(payload)
+    return envelope(data=custom_grid(excess_context(custom=True), payload, paging))
 
 
 @endpoint('POST')

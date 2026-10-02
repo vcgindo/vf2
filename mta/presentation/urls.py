@@ -27,6 +27,7 @@ urlpatterns = [
     path('GetPlanningDataCount', views.planning_overview),
     path('GetPlanningDataGraph', views.planning_graph),
     path('GetPlanningDataGridCount', partial(views.planning_grid,count=True)),
+    path('GetPlanningDataCustom', views.planning_custom),
     path('GetBTRData', views.btr_data),
     path('GetBTRDataCount', partial(views.btr_data, count=True)),
     path('DailyDataGraph', views.history_graph),

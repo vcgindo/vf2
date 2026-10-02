@@ -6,7 +6,7 @@ from mta.presentation.permissions import permission_multiplicity
 from mta.presentation.rrr import index,sql_key
 
 
-def joined_rows(output, rows, business_date):
+def joined_rows(output, rows, business_date, *, predicate=None):
     importer=output['ClosingState'][0]['importer']
     sku_desc=index(importer['SKUDescriptionTbl'],'SKUCode')
     loc_desc=index(importer['SiteDescriptionTbl'],'WHCode')
@@ -21,6 +21,9 @@ def joined_rows(output, rows, business_date):
         for sd,wd,pd,sa,la,_pair in product(sku_desc.get(sku,[]),loc_desc.get(wh,[]),
                 loc_desc.get(sql_key(a['ParentWhCode']),[]) or [{}],sku_attrs.get(sku,[]),loc_attrs.get(wh,[]),
                 pair_attrs.get(sql_key(a['SKUCode'],a['WhCode']),[])):
+            weight = predicate(a, _pair, sa, la) if predicate is not None else 1
+            if not weight:
+                continue
             row={**a,'WHCode':a['WhCode'],'SKUName':sd['SKUDescription'],'WHName':wd['WHDescription'],
                  'ParentWHName':pd.get('WHDescription'),'Requirement':a['RequiredQty'],
                  'PhysicalPen':None if a['PhysicalInventoryPen'] is None else float(a['PhysicalInventoryPen']),
@@ -28,7 +31,7 @@ def joined_rows(output, rows, business_date):
                  'PhysicalColor':a['PhysicalInventoryColor'],'PipelineColor':a['PipelineInventoryColor']}
             row.update({f'sl{i}':sa[f'SL{i}'] for i in range(1,6)})
             row.update({f'll{i}':la[f'LL{i}'] for i in range(1,6)})
-            result.append(row)
+            result.extend(dict(row) for _ in range(weight))
     return result
 
 

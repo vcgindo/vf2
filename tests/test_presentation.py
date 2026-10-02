@@ -209,21 +209,22 @@ class PresentationTest(unittest.TestCase):
             actual = (root/name).read_bytes().replace(b'\r\n', b'\n')
             self.assertEqual(hashlib.sha256(actual).hexdigest(), expected, name)
 
-    def test_excess_wire_contract_and_incomplete_filters_are_explicit(self):
+    def test_excess_wire_contract_and_invalid_filters_are_explicit(self):
         context=SimpleNamespace(run=None,business_date=date(2026,6,17),
                                 output={'ClosingState':[{'importer':ATTRIBUTES}]})
         context.storage_output=context.output
         payload=dict(category='excessInventory',type='parent',product_permissions=[71001],
             location_permissions=[72001],paginationParameter=dict(pageNumber=1,recordsPerPage=50))
-        with patch('mta.presentation.views.publication',return_value=context), \
-             patch('mta.presentation.views.read_excess',return_value=[]), \
+        context.rows = []
+        with patch('mta.presentation.views.publication',side_effect=AssertionError('whole publication forbidden')), \
+             patch('mta.presentation.excess_read.excess_context',return_value=context), \
              patch('mta.presentation.views.excess_rows',return_value=[dict(SKUCode='337',WHCode='AG515802',Amount=12)]), \
              patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE):
             response=self.post('GetPlanningDataGrid',payload,**IDENTITY).json()
-            self.assertIsInstance(response['data']['data'],str)
-            self.assertEqual(json.loads(response['data']['data'])[0]['am'],12)
+            self.assertIsInstance(response['data']['data'],list)
+            self.assertEqual(response['data']['data'][0]['am'],12)
             self.assertEqual(self.post('GetPlanningDataGridCount',payload,**IDENTITY).json()['data'],1)
-            payload['filters']={'availabilityFilter':{'filters':[{'attributeName':'Stock','value':1}]}}
+            payload['filters']={'availabilityFilter':{'filters':[{'attributeName':'category','value':'1'}]}}
             self.assertEqual(self.post('GetPlanningDataGrid',payload,**IDENTITY).status_code,503)
 
     def test_fulfillment_count_grid_and_nested_detail_wire_types(self):

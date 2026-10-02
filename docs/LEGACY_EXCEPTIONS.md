@@ -313,3 +313,24 @@ inherited frontend flaws, not evidence of a Django calculation/report mismatch.
 They remain unresolved acceptance blockers: no approval to repair frontend or
 waive chart accuracy is inferred. Backend responses must not compensate by
 changing true counts, percentages, date ranges or legacy comparison assertions.
+
+## Planning Excess — source-invalid filters and independent custom population
+
+PlanningProcessor bf716c4f uses Commons filterQuery(sa,la,sla) for normal Excess
+grid/count. Category targets missing description-table column b.category;
+availability/coverage and colour-count fields do not exist in the selected
+joins; colour-age targets missing btd.D90. Invalid sl9/operator and malformed
+black/red hasvalue SQL also fail. Receipt f3-stage2-excess-005 binds28 failures
+to exact207/4104/102/156 identifiers/codes, independently checked in
+failure-audit.json. Fresh returns503 LEG-EXCESS-FILTER-INVALID-SQL; this is an
+explicit unavailable contract, not matching legacy HTTP errors or repaired SQL.
+Other filters, including tags and normal numeric inventory fields, are valid.
+
+ExcessInventoryProcessor5eb90eb1 does not read graph request filters.
+GetCustomGridData does not read filters or type and uses case-sensitive category
+dispatch. Its NMSAllItems inner join sees zero native rows in the accepted June17
+independent legacy/modern states. Custom therefore returns an empty list while
+the normal Excess report has85 rows. Do not substitute normal rows, populate
+NMSAllItems or project new hierarchy into that table to conceal this difference.
+Terminal empty custom parity does not certify populated custom behavior.
+No business/calculation exception or authorization to change these rules follows.
