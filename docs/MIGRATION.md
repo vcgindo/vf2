@@ -1031,6 +1031,24 @@ OpenExpediteRequests provenance/owner; parent unpaged export/source-invalid filt
 remaining controls/leaf actor and matched performance remain unresolved. Stage2
 remains ACTIVE; none of these gaps is waived by the two presentation exceptions.
 
+Authenticated browser follow-up on serving70018e1/image76f3b5ca: after admission
+readiness, the normal From Parent click succeeds and displays charts; Grid View
+displays all seven rows. To Child renders its unchanged chart values. Screenshots
+parent-browser.png, parent-grid-browser.png and child-browser.png are in the
+approved-presentation001 evidence directory. The prior parent denial screenshot
+preceded the verified ready deployment; it is preserved, not dismissed as a pass.
+
+Actual child Grid View still fails on the recorded missing normal-grid dependency.
+Clicking Custom Screens also fails: user-service logs show GetPlanningDataGrid503,
+not GetPlanningDataCustom. Thus the approved custom API is not yet reachable via
+this actual control sequence. Do not claim browser custom acceptance. Inspect the
+existing hook's branch/error clearing before proposing any frontend change, which
+the two presentation exceptions did not authorize. A separate grid-count request
+took13.318s and returned7/0; it still uses publication()/whole-output reconstruction.
+Next in-scope latency work is the selective count reader with identical complete
+responses, independently of the deferred filter-semantic work and unhealthy SQL
+oracle. Actual UI timing and matched legacy performance remain unproved.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
