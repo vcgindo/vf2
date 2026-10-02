@@ -1085,6 +1085,19 @@ approved-presentation001/custom-identity-guard.png and chart-return-recovered.pn
 These observations close only the authorized navigation fix, not child/custom
 journey acceptance, exports, positive identities or matched performance.
 
+Parent controls continuation: actual SKU-code client filter337 reduces7→1,
+retaining the exact337/AG515802/Norm392 row; selection is visible and clear-filter
+is exercised. Create Availability At Parent shows0 rows, matching the accepted
+terminal response. Evidence screenshots parent-filter-selection.png and
+parent-availability-empty.png are retained in approved-presentation001.
+Row selection leaves both detail placeholders unchanged. Bounded source trace:
+usePlanning passes only expediteDispatchestransit as stockData (native empty),
+and the detail handler opens only when stockData has rows; transitData is not
+passed. This proves the observed current empty-population behavior, not positive
+detail acceptance or canonical legacy UI provenance. No new detail facts, UI
+repair or request-expediting action. Parent detail positive states, export,
+layout persistence, remaining filters/leaf actor and performance remain open.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
