@@ -966,7 +966,8 @@ const usePlanning = ()=>{
         }
         if(currentCategory==='ExpediteToChild' && currentView==='grid'){
             setCurrentPage(1)
-            fetchAndUpdateGridData(1,false,currentFilter,tab.value , currentUserPageSize)
+            if(tab.value==='custom') setFulfillmentError(null);
+            else fetchAndUpdateGridData(1,false,currentFilter,tab.value , currentUserPageSize)
         }
         if(currentCategory==='ExcessInventory' && currentView==='grid'){
             setCurrentPage(1)
@@ -1040,7 +1041,7 @@ const usePlanning = ()=>{
     const onViewChange = async (view: string) => {
         // P4a: the failed combined child GRID does not invalidate its separately
         // loaded canonical chart. Returning to grid will fetch/fail explicitly.
-        if(currentCategory==='GITToChild' && view==='chart') setFulfillmentError(null);
+        if((currentCategory==='GITToChild' || currentCategory==='ExpediteToChild') && view==='chart') setFulfillmentError(null);
         const tabsList = getFloatingTabsList(view);
         if (currentTab === '') {
             if (tabsList.length > 0) {

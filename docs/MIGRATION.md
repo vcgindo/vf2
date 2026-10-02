@@ -1062,6 +1062,29 @@ timeout; another observation stopped before rows appeared), so no UI timing pass
 is claimed. Serving count timing is separately recorded in serving.json.
 No frontend, business calculation, publication or scope change.
 
+Narrow frontend amendment: direct human reply to
+`call_AADSNAm2H7ZI0eS4YSsiXJG3` approves exactly the ExpediteToChild custom-tab
+dispatch/stale-error correction and3005 frontend deployment. Custom selection
+now clears the unrelated normal-grid error to mount its existing custom API
+component; chart return clears that stale error. Normal grid failure, layout,
+API contracts, calculations and other categories are unchanged. Production
+frontend build and actual error→custom→chart browser verification are pending;
+approval is not acceptance. This supersedes the no-frontend boundary only for
+these two branches.
+
+Frontend amendment verified: production build passed; deployed frontend image
+`sha256:a37599db5558f52af99753ece785a0254aedc64a832906b3f99533d6983f366a`
+on3005,47 other container identities/images/start/config unchanged. Actual signed-in
+error→Custom Screens now clears the normal-grid failure and mounts the existing
+custom fetch. It reaches the explicit missing-NMS-identity guard rather than
+rendering rows: custom data display remains BLOCKED, not accepted. The approved
+ordering exception preserves missing fields and cannot waive this requirement.
+Normal-grid error→Chart View now restores both charts and unchanged percentages;
+normal-grid failure remains honest and separate. Browser evidence is retained in
+approved-presentation001/custom-identity-guard.png and chart-return-recovered.png.
+These observations close only the authorized navigation fix, not child/custom
+journey acceptance, exports, positive identities or matched performance.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
