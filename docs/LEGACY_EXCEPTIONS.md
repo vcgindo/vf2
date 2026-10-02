@@ -288,3 +288,28 @@ Evidence: `f3-stage2-buffer-trends-001/receipt.json`, SHA256
 134 full ordered responses match,30 source failures are qualified, with exact
 failure audit retained separately. The scope is this graph consumer only; no
 calculation exception, filter repair or whole-journey acceptance follows.
+
+## Buffer Trends inherited frontend — doubled Total and stale Percentage plot
+
+`frontend/src/VectorFlow/Pages/MTA/InsightsAndTrends/BufferTrends/useBufferTrends.tsx`
+contains two reproduced presentation defects. `getGraphDataWithTotal` only
+shallow-copies its argument and rewrites nested data. `handleApplyFilter` calls
+it twice on that same response; the second reduction includes the already-added
+total. Show All therefore plots Total2480 for1240 colour observations, and the
+percentage Total is approximately200. The six colour values and summary are
+unmodified canonical API outputs.
+
+Separately, mode switching sets `currentPageTab` to `Percentage`, while the
+graphData effect checks `percentage`. Submitting a different horizon in that
+mode updates summary/availability but retains the prior plotted dates/data.
+Observed: one-day selector and99.35% summary with the old30-day graph; toggling
+Absolute then shows only17-Jun-2026.
+
+Receipt `f3-stage2-buffer-trends-serving-001/receipt.json`, SHA256
+`b169380bfa441f5299cbfe84e550801d20f2dd1b5af68c9dc60ae0cb42becc95`, includes
+screenshots and source hashes. The hook, page and both chart components match
+the pinned reuse revision66a77735 after line-ending normalization. These are
+inherited frontend flaws, not evidence of a Django calculation/report mismatch.
+They remain unresolved acceptance blockers: no approval to repair frontend or
+waive chart accuracy is inferred. Backend responses must not compensate by
+changing true counts, percentages, date ranges or legacy comparison assertions.

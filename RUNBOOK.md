@@ -70,6 +70,9 @@ docker exec freshvcf-preview-mta-1 python -c "import urllib.request; print(urlli
 Wait for one **Publication admitted** message before **Listening at**, then
 two **Booting worker** messages and successful readiness. Do not
 raise the existing180-second timeout,2-worker/2CPU/4GiB settings to mask failure.
+Container `Started` is insufficient: during admission the unchanged gateway can
+return500 for connection refusal. Stage2 Buffer Trends retained such an early
+probe; start acceptance requests only after readiness succeeds.
 Stage1 proved the unchanged June17 identity before/after MTA-only restart,
 ten byte-identical authenticated gateway responses, actual Planning/RRR/DBM
 navigation and invalid publication aborting two-worker startup before binding.

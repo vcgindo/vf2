@@ -56,8 +56,8 @@ the selected June17 publication remain unchanged.
 | RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and exact filtered full CSV pass; inherited screen has no wired history entry; saved-layout browser file and matched performance remain unproved; details below |
 | DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
 | BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset proved; browser file, delayed visible layout restore, remaining controls/leaf actor and matched performance remain open |
-| Buffer Trends | ACTIVE — selected colour-history reader, deployed filter contract, actual type/horizon/chart/summary controls and matched performance |
-| Planning categories | NOT STARTED — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
+| Buffer Trends | BLOCKED with partial proof —134 exact graph responses/30 declared failures, gateway/restart and actual type/horizon/summary/Depo/reset/reload controls proved; inherited doubled Total/stale Percentage plot, remaining controls/leaf actor and matched performance remain open |
+| Planning categories | ACTIVE — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
 | BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
 | Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
 
@@ -330,6 +330,50 @@ three times; preserve it rather than replacing the session or changing auth.
 Matched canonical HTTP/browser performance remains unavailable under the frozen
 protocol and cannot be replaced by private-worker timings.
 
+**Serving/browser checkpoint:**
+`D:/freshvcf-build/evidence/f3-stage2-buffer-trends-serving-001/receipt.json`,
+SHA256 `b169380bfa441f5299cbfe84e550801d20f2dd1b5af68c9dc60ae0cb42becc95`,
+binds commit5210f3c/imagef2293217 to the unchanged June17 selection and admission.
+Eleven authenticated gateway checks pass before/after MTA-only restart with
+byte-identical responses, including the inherited wrapper around a declared503.
+Unauthenticated requests return401; stored actor/scopes overwrite forged client
+values.22 protected containers, full environment, resource limits, publication
+and command rows remain unchanged. The first probe preceded listener readiness;
+gateway logs retain connection refusal. A second probe incorrectly expected an
+unwrapped503; its failed log is retained and expectation corrected against the
+unchanged gateway source. Neither finding required product-code changes.
+
+Browser access recovered through a fresh tab in the same browser, sharing the
+user's signed-in session. Actual Show All, Tech/Eco,1/90-day submits, Percentage/
+Absolute, Depo apply, reset/Show All, reload/default30-day and legend hide/restore
+were exercised. Captured summaries match independent SQL/.NET expectations:
+technical30-day availability99.25%, technical1-day99.35%, economic90-day99.95%;
+Depo90-day counts2/0/2/347/0/3345. Earlier60 days are zero in the independently
+proved full-estate90-day population. These observations do not certify every
+enabled filter or a real leaf-user session.
+
+Two concrete inherited frontend defects prevent chart-accuracy acceptance:
+`handleApplyFilter` computes Total twice through a shared nested object, doubling
+the plotted total (2480 versus1240). The graphData effect tests lowercase
+`percentage` while the actual mode is `Percentage`; a horizon submit updates
+summary but leaves the old plotted date range until mode toggle. Both are
+reproduced in screenshots, with the four affected frontend files proved equal
+after line-ending normalization to the pinned reuse revision66a77735. No frontend
+repair or wider exception has been authorized; no backend values were altered
+to compensate. See exact entries in docs/LEGACY_EXCEPTIONS.md.
+
+Buffer Trends is therefore **BLOCKED/PARTIAL**, not complete. Preserve remaining
+UI branch/leaf scope and matched-performance gates while proceeding independently.
+**Active Planning boundary before mutation:** reuse accepted Planning overview,
+Pick/Excess/Expedite/Fulfillment readers and independent consumer receipts. Trace
+each inherited normal/custom category dispatch, grid/count/chart/filter and
+export request to its deployed owner. Implement only attributable missing MTA
+consumer connections/selective reads within those contracts; preserve category
+populations, terminal-zero GIT approval, F2, frontend, MTO, auth and defaults.
+Proof requires complete independently compared bodies/exports, actual3005
+controls/scope/restart and the unchanged matched-performance gate. No new queue,
+business calculation, synthetic replacement, new port or adjacent BPR/insight work.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
@@ -581,7 +625,7 @@ JSON-in-string envelopes, duplicates and existing empty/error semantics.
 | DBM — `/dbm/dbm-norm-suggestions` | P`DBM/DBMNormSuggestions/useDBM.ts`: current/count, Apply/Sleep, history, client XLSX. Config `NormSuggestion`; layout `DBMNorm` | Required, current Suggestions0 onJune17. DBM-owned attributes/current tables; six-history projection uses importer scope. SuggestionsLog132 is historical only. Existing9-image reader and command overlay stay fixed; positive actions require separately owned retained trials. Layout/XLSX/actions and performance open. |
 | Daily Data Graph — row controls | BTR/DBM/RRR/BPR row-renderer/dialog hooks → `DailyDataGraph(SKUCode,WHCode)`; see invocation CSV | Required only at actual controls. BORProcessor's six DBM history queries, importer scope, complete command overlay. All1240 backend graphs retained; verify each actual entry point and selected pair/date/rendering under Stage2, not generic history substitution. |
 | BTR — Insights `/buffer-trend-report` | P`InsightsAndTrends/BTR`; GetBTRData/Count, Tech/Eco/horizon/page, daily graph, CSV. Config `BufferTrendReport`; layouts `BTRon-hand`/`BTRpipeline`; export `BTR` | Required. Both1240 branches have retained consumer comparisons. Full-publication read and BTR-specific export still open. Date columns/string values, both filter branches, history and visible grid/export/performance form one Stage2 exit. |
-| Buffer Trends — `/buffer-trends` | P`InsightsAndTrends/BufferTrends`; GetBufferTrendGraphData with bufferTrendType/Days and filters | Required. Computed physical/dispatch colours + dated history, producer-owned scope. Whole publication currently loaded; filters unavailable. Actual selector/horizon/chart/summary and performance open. No export is invented merely because another page has one. |
+| Buffer Trends — `/buffer-trends` | P`InsightsAndTrends/BufferTrends`; GetBufferTrendGraphData with bufferTrendType/Days and filters | Required. Selective colour aggregation and deployed filters proved in Stage2; selected browser controls/gateway/restart verified. Inherited doubled Total and stale Percentage plot plus remaining controls/leaf actor/performance prevent closure. No export is invented merely because another page has one. |
 | Guided Insights — `/guided-insights` | P`InsightsAndTrends/GuidedInsights`; nine DBM/chronic/availability methods. Chronic grid config/layout `ChronicUnavailability` | Required enabled tabs. BTR insight relations, DBMMaster, NMSAllItems. Existing backend proofs are not browser acceptance. Complete tabs, age/date/selection/filter/grid/chart; each defined branch and selective-read performance remain Stage2. |
 | Research Insights — `/research-insights` | P`InsightsAndTrends/ResearchInsights`; BPR grid/count, GetResearchInsightData, GetHistroricalAvailabilityBPRData; config/layout `ResearchInsight`, client XLSX | Required. BPR seven-image reader plus BTR colour/date/age histories and rationed master. Earlier selected summary browser proof retained. Whole graph/history reads, server filters, calendar/horizon/selection/export/performance remain open. Machine-month behavior is an inherited presentation qualification, not an engine change. |
 | Planning overview — SCIH `/planning` | P`SupplyChainIntelligenceHub/Planning`; GetPlanningDataCount + GetLastRunDate; actual landing-page Click to view | Required. Ten distinct SCIH.GetQuadrantDetails query contracts, ten native images and checked projections.40 accepted counts retained; browser now showsJune17 GIT0/0, Expedite7/7, Excess85, Fulfilment1222. Filters and matched performance remain open. |
