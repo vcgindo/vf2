@@ -977,7 +977,7 @@ with CAPTCHA. Authenticated browser continuation is unavailable until login is
 restored; do not bypass authentication or treat private injected scope as login.
 
 Custom adapter serving proof: deployed a9f1845 as MTA image
-`sha256:3e8df1ae64b8ee106d890c4975249da89593b3ed41d503c4071683f4428448a4`.
+`sha256:36b670700e9f73d5fd0b357d47cc902936c1f65a099198cb945b526884ef3498`.
 `f3-stage2-expedite-custom-serving-001/receipt.json` proves normal admission,
 June17 run/digest, actions disabled,4GiB/2CPU/restart=no and47 protected containers
 unchanged. Real preview-account API login exercises root custom503 with the
