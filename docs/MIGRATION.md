@@ -732,6 +732,48 @@ GIT obligations are unchanged except these selected filter/layout controls are
 now proved: other browser filters, actual downloads, leaf actor, source-invalid
 branches and matched performance remain open. GIT remains ACTIVE.
 
+**GIT disposition for independent continuation: PARTIAL / BLOCKED, not accepted.**
+The preceding ACTIVE checkpoints are superseded by this disposition. Exact child
+grid/filter SQL failures and modern explicit-denial versus legacy silent-empty
+wire divergence prevent full parity; the canonical matched performance provider
+also remains unavailable. Actual empty export remains unproved after the retained
+no-file observation and bounded source trace. No repair or waiver is authorized.
+Other browser filter variants and real leaf login are explicitly **DEFERRED /
+UNTESTED**, not dependency-blocked and not removed from Stage2's denominator.
+Selected parent filter/layout controls, core charts and restart proofs stand.
+Do not repeat these unchanged proofs merely to increase evidence volume.
+
+**Active Planning Expedite boundary:** complete inherited parent/child normal
+grid/count and custom branches, then authenticated navigation/controls/exports.
+Reuse accepted independent terminal Expedite producer and chart receipts. Trace
+deployed PlanningProcessor joins and missing native facts before implementation;
+do not use imported adapters as authority or replace native NMS with invented
+rows. Preserve the existing unordered parent-chart-label exception. Permitted
+mutation: selected MTA consumer/proof files and this tracker only; frontend,
+MTO/auth/F2/actions and publication remain frozen. Required proof: complete
+canonical cells/configuration/filter/scope/page envelopes, followed by bounded
+3005 readback and affected browser checks; explicitly record unavailable branches.
+
+Expedite parent source checkpoint: `f3-stage2-expedite-parent-sql-001/receipt.json`
+(SHA256 `50896fa72457524dcee4ed08caf54ad5c1f01fefb2b101235f98350001c0be37`)
+captures 16 canonical SQL observations in owned `VFTEST_Fresh_BPR`, using only
+session-temp tables. Reused accepted own-legacy producer rows (10), Pick rows
+(14), native NMS (0), terminal BPRMaster and the approved empty BPR remarks;
+no engine replay or permanent database writes. All 12 paged queries execute.
+Root/selected-leaf/parent-leaf/overlapping scopes return 7/1/0/7 expedite rows;
+availability and both transit sections are empty. Page1/page2 complete cells
+equal the corresponding full-result slices. The normal availability grid's
+BPRMaster parent join therefore must not be replaced by its count consumer.
+All four unpaged requests fail with SQL156 near BY: the canonical source
+concatenates the CTE name directly with `order by`. Preserve this behavior for
+wire-contract investigation; do not repair the legacy query or claim parity.
+The earlier source-only extraction had a temp-table alias binding error; the
+SQL harness fixes that binding before execution, not canonical query semantics.
+Parent numeric JSON still requires the deployed string-dictionary conversion;
+filter/configuration/API/browser/export/performance proofs remain open. Child
+OpenExpediteRequests is absent from the admitted images, and is not covered by
+the terminal empty-transit/remarks supplement. Expedite remains ACTIVE.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
