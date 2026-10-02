@@ -332,11 +332,9 @@ def planning_grid(request, payload, *, count=False):
     if str(payload.get('category','')).casefold()=='expedite' and count:
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
-        context=publication()
-        try:
-            rows=read_expedite(context.run,output=context.storage_output)
-        except ExpediteProjection.DoesNotExist as exc:
-            raise PublicationUnavailable('selected_run_expedite_projection_not_published') from exc
+        from mta.presentation.expedite_read import expedite_context
+        context=expedite_context()
+        rows=context.rows
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
         return envelope(data=expedite_counts(context.output,rows,str(payload.get('type','')).casefold(),
                          products=products,locations=locations))

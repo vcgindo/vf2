@@ -1049,6 +1049,19 @@ Next in-scope latency work is the selective count reader with identical complete
 responses, independently of the deferred filter-semantic work and unhealthy SQL
 oracle. Actual UI timing and matched legacy performance remain unproved.
 
+Parent Grid latency correction: user reported the remaining delay explicitly.
+Moved only the unfiltered count route from whole publication reconstruction to
+the existing checksum-verified selective context; count joins/scope/formulas and
+filter rejection are unchanged. `f3-stage2-expedite-count-selective-001` compares
+all eight complete old/new responses across four scopes and both directions,
+with identical admission and bodies. New isolated reads take0.34–0.44s;20 affected
+tests pass. Deployed MTA only. Actual signed-in parent Chart→Grid succeeds with
+seven rows and success toast; screenshot parent-grid-complete.png retained.
+Browser timing attempts did not establish a reliable elapsed value (one locator
+timeout; another observation stopped before rows appeared), so no UI timing pass
+is claimed. Serving count timing is separately recorded in serving.json.
+No frontend, business calculation, publication or scope change.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
