@@ -811,6 +811,20 @@ Still required before route delivery: selective persisted context, canonical
 filter/configuration and error-envelope verification, modern relational readback,
 authenticated3005/browser/restart and performance obligations. Expedite ACTIVE.
 
+Expedite persisted parent checkpoint: selective context in
+`mta/presentation/expedite_read.py` verifies the existing ExpediteProjection
+source/row digests using named persisted inputs and approved read-time hierarchy;
+it admits the terminal remarks supplement without extending its scope. Private
+read-only worker receipt `f3-stage2-expedite-parent-persisted-001/receipt.json`
+SHA256 `8343a1f210711cc8bdbd5c0842ae81b42ec0e097eabe30a71bd24e53c74eb2e8`
+proves all12 complete paged parent results against the canonical SQL/Newtonsoft
+wire capture, zero differences, selected June17 run/digest unchanged. Whole-output
+loading was forbidden; worker bounded at4GiB/2CPU, no host port, no production
+writes or serving restart. Eight affected unit checks pass. This closes the
+persisted parent row-readback subcriterion only. Filter/configuration/unpaged
+wire behavior remain before route integration; browser/export/restart/performance
+and remaining Expedite branches are still open. No full-journey acceptance.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
