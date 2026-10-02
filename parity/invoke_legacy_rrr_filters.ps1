@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
-    [ValidateSet('RRR','BTR','DBM')][string]$Report='RRR')
+    [ValidateSet('RRR','BTR','DBM','BufferTrends')][string]$Report='RRR')
 $ErrorActionPreference='Stop'
 $vfRoot=[IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[IO.Path]::GetFullPath($InputPath)
@@ -15,10 +15,14 @@ $vfAssembly=[Reflection.Assembly]::LoadFrom($vfDll)
 $vfType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Commons.CommonsProcessor',$true)
 $vfMethod=$vfType.GetMethod('filterQueryForReports')
 $vfFilterType=$vfMethod.GetParameters()[0].ParameterType
-if ($Report -eq 'DBM') {
+if ($Report -in @('DBM','BufferTrends')) {
     # DBMProcessor.GetDBMData's filter property chooses the exact overload.
     $vfDbmType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.DBMProcessor',$true)
-    $vfFilterType=$vfDbmType.GetMethod('GetDBMData').GetParameters()[0].ParameterType.GetProperty('filters').PropertyType
+    $vfRequestMethod=$vfDbmType.GetMethod('GetDBMData')
+    if ($Report -eq 'BufferTrends') {
+        $vfRequestMethod=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.SCIHProcessor',$true).GetMethod('GetBufferGraphData')
+    }
+    $vfFilterType=$vfRequestMethod.GetParameters()[0].ParameterType.GetProperty('filters').PropertyType
     $vfMethod=@($vfType.GetMethods() | Where-Object { $_.Name -eq 'filterQuery' -and
         $_.GetParameters().Count -eq 6 -and $_.GetParameters()[0].ParameterType -eq $vfFilterType })[0]
     if ($null -eq $vfMethod) { throw 'Exact deployed DBM filter overload missing' }
@@ -30,17 +34,23 @@ $vfCases=@()
 foreach ($vfCase in $vfValues.cases) {
     $vfFilterJson=$vfCase.payload.filters | ConvertTo-Json -Depth 40 -Compress
     $vfFilter=[System.Text.Json.JsonSerializer]::Deserialize($vfFilterJson,$vfFilterType,$vfOptions)
-    if ($Report -eq 'DBM') {
+    if ($Report -in @('DBM','BufferTrends')) {
         $vfSql='';$vfJoin=''
         $vfActive=@('availabilityFilter','supplyChainFilter','coverageFilter','productFilter','locationFilter','colorFilter') |
             Where-Object { $vfCase.payload.filters.ContainsKey($_) -and $null -ne $vfCase.payload.filters[$_] }
         if (@($vfActive).Count -gt 0) {
             $vfParameters=New-Object object[] 6
             $vfParameters[0]=$vfFilter;$vfParameters[1]='e';$vfParameters[2]='i';$vfParameters[3]='f'
+            if ($Report -eq 'BufferTrends') {
+                $vfParameters[1]='sa';$vfParameters[2]='la';$vfParameters[3]='sla'
+            }
             $vfParameters[4]='';$vfParameters[5]=''
             $vfMethod.Invoke($vfInstance,$vfParameters) | Out-Null
-            $vfSql=([string]$vfParameters[4]).Replace('a.ParentWhCode','b.ParentWhCode')
-            $vfJoin=([string]$vfParameters[5]).Replace('a.ParentWhCode','b.ParentWhCode')
+            $vfSql=[string]$vfParameters[4];$vfJoin=[string]$vfParameters[5]
+            if ($Report -eq 'DBM') {
+                $vfSql=$vfSql.Replace('a.ParentWhCode','b.ParentWhCode')
+                $vfJoin=$vfJoin.Replace('a.ParentWhCode','b.ParentWhCode')
+            }
         }
     } else {
         # Exact report alias tuple selected by GenericFunction.ApplyFiltersForReports.

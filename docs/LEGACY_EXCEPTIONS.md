@@ -265,3 +265,26 @@ The other54 cases match full ordered typed rows, actual deployed header SQL and
 CsvHelper bytes. Valid Stock/GIT/PIC/OHIC export filters are supported because
 export consumes terminal requirements; their grid-specific five-column failure
 does not transfer to export. No calculation or F2 exception is introduced.
+
+## Buffer Trends graph — deployed filter failures and call gate
+
+SCIHProcessor.GetBufferGraphData (sourcef709a448, DLL0222eb96) uses colour history
+A with SKU/location/pair attributes. It does not join btd or b. Consequently
+colour-age predicates reference missing btd.D90; category references b.category.
+Stock/GIT/PIC/OHIC/tags/availability/coverage are absent. The retained invalid
+sl9, unknown operator and malformed black/red hasvalue requests also fail.
+Independent SQL Server reports207/4104/102 for the exact affected identifiers.
+Fresh returns503 LEG-BUFFER-TRENDS-FILTER-INVALID-SQL and does not repair the
+query or claim matching legacy HTTP error behavior.
+
+The six-group call gate excludes customAttributeFilter. Custom-only requests
+therefore canonically do not apply that filter; a present standard group, even
+empty, causes Commons to include it. The valid black/red count expression has
+an unparenthesized OR whose precedence is preserved, including combined SKU
+filters. These behaviors are not silently normalized.
+
+Evidence: `f3-stage2-buffer-trends-001/receipt.json`, SHA256
+`f26ab20f3f15dc51e7b46e650453f452bfc5db62a8bee94a06d5a53388861265`:
+134 full ordered responses match,30 source failures are qualified, with exact
+failure audit retained separately. The scope is this graph consumer only; no
+calculation exception, filter repair or whole-journey acceptance follows.

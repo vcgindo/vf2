@@ -300,6 +300,36 @@ filters, affected tests, actual3005 selector/chart/summary/restart evidence, plu
 the unchanged matched-performance gate. No frontend/MTO/auth/F2/schema change,
 invented export, new port or adjacent report work.
 
+#### Stage2 Buffer Trends — selective reader and independent filter proof
+
+`D:/freshvcf-build/evidence/f3-stage2-buffer-trends-001/receipt.json`, SHA256
+`f26ab20f3f15dc51e7b46e650453f452bfc5db62a8bee94a06d5a53388861265`,
+proves134 complete ordered graph responses and30 individually confirmed deployed
+SQL failures across164 cases. Both technical/economic branches,1/7/12/30/60/90
+day horizons, retained hierarchy scopes/intersections, parent types/codes,
+Norm/VirtualNorm, hierarchy/custom operators, colour counts, empty populations
+and black/red OR precedence are covered. Custom-only requests preserve the
+deployed six-group call gate; adding an empty standard group opens that gate.
+The actual pinned DLL supplies filters; source-extracted SCIH SQL executes on
+independent retained terminal facts, followed by the accepted independent.NET
+formatter. Exact failure identifiers/codes are additionally checked in
+`failure-audit.json`; the executed original runner is archived alongside it.
+
+GetBufferTrendGraphData now selects the configured run and named BTR relations,
+aggregates requested columns in PostgreSQL and reuses the native graph formatter.
+It does not load the whole publication, both wide histories, rerun calculations,
+cache results or alter frontend/MTO/auth/schema. Valid reads use five queries.
+The original12/90-day unfiltered oracle queries remain byte-identical to their
+accepted receipt.216 tests PASS; all376 source/input pins unchanged. Timings in
+this private-worker receipt are diagnostic, not matched legacy performance.
+
+The journey remains ACTIVE. Next proof is authenticated3005 gateway/restart,
+then actual type/horizon/two chart modes/summary/filter/reset controls. The user
+completed login in tab1, but the browser tool's attachment to that tab timed out
+three times; preserve it rather than replacing the session or changing auth.
+Matched canonical HTTP/browser performance remains unavailable under the frozen
+protocol and cannot be replaced by private-worker timings.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

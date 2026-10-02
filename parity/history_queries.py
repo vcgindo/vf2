@@ -48,13 +48,16 @@ def bind(query):
     return query
 
 
-def buffer_query(kind,days):
+def buffer_query(kind,days,*,sql_filter='',sql_join_filter='',auth_cte=None):
     body=method('scih','GetBufferGraphData').split('strSql = authQueryForReports;',1)[1].split('ErrorLog.Logger(',1)[0]
     cols=range(91-days,91)
     parameters=dict(text='BufferTrendDispatch' if kind=='eco' else 'BufferTrendPhysicalInv',
         text4=','.join(f"({i}, 'D{i}')" for i in cols),text5=','.join(f'( {i}, D{i})' for i in cols),
-        text6=' ; Select '+','.join(f'D{i}' for i in cols)+' from BufferTrendDates ;')
-    return bind(CTE+assignments(body,'strSql',parameters))
+        text6=' ; Select '+','.join(f'D{i}' for i in cols)+' from BufferTrendDates ;',sqlJoinFilter=sql_join_filter)
+    # Preserve this method's WHERE rather than the DBM extractor's AND prefix.
+    body=body.replace('strSql = strSql + " WHERE " + sqlFilter;',
+        'strSql += '+json.dumps(' WHERE '+sql_filter)+';' if sql_filter else '')
+    return bind((auth_cte or CTE)+assignments(body,'strSql',parameters))
 
 
 def availability_query():

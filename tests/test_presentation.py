@@ -87,18 +87,26 @@ class PresentationTest(unittest.TestCase):
         with patch('mta.presentation.views.publication',return_value=context), \
              patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE), \
              patch('mta.presentation.views.history_rows',side_effect=AssertionError('wrong historical population')), \
-             patch('mta.presentation.views.history_native.buffer_graph',return_value={'native':'graph'}) as graph, \
              patch('mta.presentation.views.history_native.research_rows',return_value=[{'Type':'Parent'}]) as research, \
              patch('mta.presentation.views.history_native.historical_availability',return_value=[{'availability_01_30':0}]) as historical:
-            self.assertEqual(self.post('GetBufferTrendGraphData',payload,**IDENTITY).json()['data'],{'native':'graph'})
-            self.assertEqual(graph.call_args.args,(ATTRIBUTES,'eco',12))
-            self.assertEqual(graph.call_args.kwargs,dict(products={'337'},locations={'AG515802'}))
             self.assertEqual(self.post('GetResearchInsightData',payload,**IDENTITY).json()['data'],[{'Type':'Parent'}])
             self.assertEqual(research.call_args.args,(ATTRIBUTES,master,payload['data']))
             response=self.client.generic('GET','/api/mta/GetHistroricalAvailabilityBPRData',json.dumps(payload),
                 content_type='application/json',**IDENTITY)
             self.assertEqual(response.json()['data'],[{'availability_01_30':0}])
             historical.assert_called_once_with(ATTRIBUTES,products={'337'},locations={'AG515802'})
+
+    def test_graph_uses_explicit_selected_run_without_whole_publication(self):
+        run = object()
+        payload = dict(product_permissions=[71001], location_permissions=[72001], days=12,
+                       bufferTrendType='eco', filters={'productFilter': {'filters': []}})
+        with patch('mta.presentation.views.publication', side_effect=AssertionError('whole publication forbidden')), \
+             patch('mta.presentation.views.selected_run', return_value=run), \
+             patch('mta.presentation.buffer_trends_sql.read_graph', return_value={'native':'graph'}) as graph:
+            response = self.post('GetBufferTrendGraphData', payload, **IDENTITY)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['data'], {'native':'graph'})
+            graph.assert_called_once_with(run, payload)
 
     def test_missing_publication_never_chooses_latest_run(self):
         with override_settings(VF_MTA_PUBLISHED_RUN='', VF_MTA_PUBLISHED_DIGEST=''):

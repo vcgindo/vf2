@@ -376,12 +376,8 @@ def history_rows(context, payload, horizon):
 
 @endpoint('POST')
 def buffer_trends(request, payload):
-    context = publication()
-    if not _no_active_filters(payload): raise PublicationUnavailable('buffer_graph_filters_not_yet_connected')
-    state=context.output['BTRFinal'][0]; products,locations=scope(payload,attributes=state)
-    days=int(payload.get('Days',payload.get('days',90)))
-    return envelope(data=history_native.buffer_graph(state,str(payload.get('bufferTrendType','tech')).lower(),days,
-        products=products,locations=locations),message='')
+    from mta.presentation.buffer_trends_sql import read_graph
+    return envelope(data=read_graph(selected_run(),payload),message='')
 
 
 @endpoint('POST')
