@@ -3701,3 +3701,17 @@ Browser paging also passes: size3 page1 SKUs6980/6904/6679, page2
 Screenshots child-grid.png, child-filter-detail.png and child-page2.png are in
 that evidence directory. These are actual browser observations, separate from
 API-only scope tests and from the still-unavailable independent SQL comparison.
+
+Child Expedite browser follow-through after85db72c: actual Daily Data Graph for
+SKU6980 opens with RLT3/current Norm403; Norm Change History opens and displays
+June16 302→403 and June12 226→302, both High spike count. Screenshots
+child-daily-graph.png and child-norm-history.png are in child-grid-001. This proves
+these entry controls, not all graph/horizon/semantic parity. No business actions.
+Toolbar Excel Export produced no download event within20seconds; retain
+export-no-download.png and export-browser-warnings.json. No workbook exists as
+acceptance evidence. Source suggests a frontend race: useSaveAllState's effect
+clears tempDownloadData while the hidden grid's onRowDataUpdated requires that
+flag to export. That hook exactly matches the canonical retained frontend,
+SHA2564ce076108abf187183aee4f9db3bbf68fada719ca4eb52518fa1659c48b0d20a.
+This is a suspected inherited cause, not yet isolated proof; no frontend repair
+is inferred from the earlier Custom Screens-only exception. Export remains open.
