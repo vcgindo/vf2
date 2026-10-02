@@ -866,6 +866,20 @@ Next: bounded3005 integration and controls for supported parent behavior, then
 remaining child/custom exits using existing dependency evidence. Full journey,
 source-failure disposition and performance acceptance remain outstanding.
 
+Expedite3005 deployment checkpoint: source6097081 deployed by MTA-only build/up;
+`f3-stage2-expedite-serving-001` retains readiness, container isolation and actual
+cookie-gateway observations. All47 other existing containers retain ID/image/
+start/config; MTA remains4GiB/2CPU/restart=no with the same two-worker command.
+Four distinct valid parent responses (root, SKU, location type, ignored parent
+type join) match complete private-proved envelopes; forged scope is overwritten
+and unauthenticated requests return401. Invalid Norm returns503 through the
+inherited gateway's `Failed to forward request` wrapper containing the MTA error.
+The first probe incorrectly expected the private503 envelope unchanged; failure
+is preserved in gateway.log, exact wrapper in error-envelope.json. This is a
+gateway-boundary finding, not a calculation mismatch or legacy parity claim.
+Browser controls/download/layout and restart readback remain pending; no journey
+acceptance or performance claim follows this deployment.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
