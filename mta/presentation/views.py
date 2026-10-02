@@ -320,6 +320,9 @@ def planning_graph(request,payload):
 
 @endpoint('POST')
 def planning_grid(request, payload, *, count=False):
+    if payload.get('category') == 'expedite' and payload.get('type') == 'parent' and not count:
+        from mta.presentation.expedite_read import parent_grid
+        return envelope(data=parent_grid(payload))
     if payload.get('category') == 'git':
         from mta.presentation.git_read import grid
         return envelope(data=grid(payload, count=count))

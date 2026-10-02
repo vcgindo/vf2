@@ -8,6 +8,34 @@ from mta.presentation.selective import image_rows
 from mta.presentation.terminal_supplement import terminal_ancillary
 from mta.runtime.models import ExpediteProjection
 
+PARENT_COLUMNS = (
+    ('Tags', 't', 1), ('SKU code', 'sc', 2), ('SKU Description', 'sd', 3),
+    ('Location', 'wcd', 4), ('Parent location', 'pl', 5), ('Norm', 'n', 6),
+    ('Virtual Norm', 'vn', 7), ('Stock', 'st', 8), ('On-hand Inventory Pen', 'pip', 9),
+    ('GIT', 'g', 10), ('Required Quantity', 'rq', 13), ('Pipeline Inventory Pen', 'pin', 12),
+    ('RationedQty', 'rtq', 15), ('Price', 'am', 16), ('Business', 'sl1', 17),
+    ('Category', 'sl2', 18), ('Family', 'sl3', 19), ('Zone', 'll1', 22),
+    ('Location Group', 'll2', 23), ('WH Type', 'll3', 24),
+)
+
+
+def parent_grid(payload):
+    from mta.presentation.context import scope
+    from mta.presentation.excess_read import pagination
+    from mta.presentation.expedite_parent import parent_filter, parent_rows
+    context = expedite_context()
+    paging = pagination(payload)
+    if paging is None:
+        # Canonical SQL156 is swallowed into empty success. Do not present this
+        # required export path as working or silently authorize that defect.
+        raise PublicationUnavailable('LEG-EXPEDITE-PARENT-UNPAGED-SQL156: legacy empty-success; NOT_PARITY')
+    selected = parent_filter(payload, context.importer)
+    products, locations = scope(payload, attributes=context.importer)
+    data = parent_rows(context.rows, context.importer, context.standards, context.masters,
+                       nms=context.nms, products=products, locations=locations,
+                       paging=paging, matches=selected)
+    return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=p) for h,c,p in PARENT_COLUMNS])
+
 
 def expedite_context():
     run = selected_run()

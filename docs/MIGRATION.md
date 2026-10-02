@@ -848,6 +848,24 @@ Eight affected unit checks pass. No serving route/restart or business-state
 change. Remaining immediate exit: configuration and deployed GetDataSet failure
 to envelope behavior, then bounded parent route integration. Expedite ACTIVE.
 
+Expedite parent route checkpoint: GetDataSet actual-DLL probe in
+`f3-stage2-expedite-envelope-002/dataset.json` confirms zero-table returns for
+syntax/ambiguous-column errors. Source parent maps that to empty200; SQL errors
+alone must not be reported as legacy500. First harness binding failure remains
+in envelope-001. Owned configuration has no enabled AdminBPR dynamic attributes;
+20 fixed columns are matched exactly, including inherited Price code `am` while
+row price is `p` (no repair). Parent route now calls the existing selective reader.
+Private read-only Django proof `f3-stage2-expedite-route-001/receipt.json` SHA256
+`0e82afaeab237d868a0ae531f0a897997170a3c8654723a471e0c9cdbf07c2a5`
+matches all59 valid complete envelopes/configurations, zero differences. All18
+invalid-filter requests return explicit503, an intentional divergence from
+legacy empty-success, recorded in LEGACY_EXCEPTIONS, not accepted parity.
+Unpaged route explicitly denies SQL156 as well; required export behavior remains
+open. Eight affected unit checks pass. No serving deployment/restart occurred.
+Next: bounded3005 integration and controls for supported parent behavior, then
+remaining child/custom exits using existing dependency evidence. Full journey,
+source-failure disposition and performance acceptance remain outstanding.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

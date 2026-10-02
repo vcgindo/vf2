@@ -428,6 +428,24 @@ Do not count these unavailable branches as accepted or infer permission to
 repair legacy SQL. Valid independently proved parent/count/chart/custom branches
 may continue. A zero count alone does not certify an invalid child query.
 
+## Expedite parent — SQL failures become empty success in legacy
+
+Pinned PlanningProcessor `bf716c4f84e43920b5f2ab302e3d3c78ec685f5d714471c53047d377537d3486`
+has no separator before ORDER BY in unpaged parent queries (SQL156); the Norm
+filter is unqualified in the availability branch (SQL209). The remaining invalid
+filters and exact inputs are retained in f3-stage2-expedite-parent-filters-001.
+Actual deployed GetDataSet in f3-stage2-expedite-envelope-002/dataset.json returns
+a zero-table DataSet on both failure classes; parent source then returns empty
+lists with status200. This helper probe does not claim hosted legacy HTTP proof.
+Its first harness invocation failed argument binding; envelope-001 is preserved.
+
+The new parent route keeps an explicit unavailable response for source-invalid
+filters and unpaged requests. This is an intentional containment divergence,
+NOT_PARITY and not an approved acceptance exception. Do not silently reproduce
+empty-success to conceal failures or repair canonical SQL. Valid paged responses
+remain independently comparable. A human disposition is required if these exits
+cannot satisfy Stage2's unchanged working-feature and parity requirements.
+
 ## BTR inherited frontend — fresh reload misses saved column state
 
 On3005, save a31-column BTRon-hand layout for Depo/June6–17 with SKUDescription
