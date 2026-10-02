@@ -55,7 +55,8 @@ the selected June17 publication remain unchanged.
 |---|---|
 | RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and exact filtered full CSV pass; inherited screen has no wired history entry; saved-layout browser file and matched performance remain unproved; details below |
 | DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
-| BTR, then Buffer Trends | ACTIVE — selective report reads, both Tech/Eco, actual filters/horizons/history/charts and BTR CSV; matched performance |
+| BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset proved; browser file, delayed visible layout restore, remaining controls/leaf actor and matched performance remain open |
+| Buffer Trends | ACTIVE — selected colour-history reader, deployed filter contract, actual type/horizon/chart/summary controls and matched performance |
 | Planning categories | NOT STARTED — actual normal/custom/filter/chart/grid/count/export branches and approved terminal-zero GIT; matched performance |
 | BPR | NOT STARTED — actual server filters/lookups/details/sorting/layout/own export and matched performance |
 | Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
@@ -255,6 +256,49 @@ invalid-filter cases. Receipt SHA256
 is ready for its authorized MTA-only3005 deployment, keeping selected June17,
 actions disabled, admission, mounts, resources and all22 other running containers.
 Actual3005 controls/download/restart and matched performance remain open.
+
+#### Stage2 BTR checkpoint — partial proof, explicit remaining gaps
+
+Implementation956ebac is committed/pushed and deployed MTA-only on3005, image
+`sha256:f39855c104ca04c1405905c8c685c42cd11f635ccc751738ea229b643ce97399`.
+Serving receipt `f3-stage2-btr-serving-001/receipt.json`, SHA256
+`5541e7b8ae5ed93f54354121656452ad82235b7697620a7d2b598dd733499e77`, binds
+the same June17 run/digest/admission, mounts/resources, publication/commands and
+22 unchanged other running containers.13 authenticated gateway checks pass before
+and after MTA restart with exact ordered JSON/CSV bytes; forged actor/scope is
+overwritten and unauthenticated requests return401. Current full environment
+matches Compose/image settings. The first unordered-Env hash check failed and the
+old image could not be inspected; direct full before/after environment equality
+is not claimed. Selection, command, mounts and limits are separately exact.
+
+Actual browser proof: Tech1240, Eco1240, both views; pages1–5 then6–10; Depo308
+with June6–17 date columns; daily graph337/AG515802, horizon12, current Norm392,
+and June12/16 changes220→294→392. Unpin/save stores31-column BTRon-hand layout
+and its exact row survives restart. Reset Layout stores109 default columns with
+SKUDescription pinned left, matching inherited useSaveAllState's delete-then-save
+workflow. Original absence was subsequently restored through authenticated
+ResetState after checking the exact retained reset value. Pipeline layout and
+business commands were unchanged.
+
+Remaining blockers are not acceptance: browser download event timed out and no
+actual toolbar CSV file was obtained; early reload observation did not wait for
+the inherited delayed column-state apply, so visible restoration remains unproved;
+the browser session then returned to login. Remaining enabled UI filter/history
+branches and actual leaf login remain open. The equivalent canonical HTTP/browser
+performance provider remains unavailable under the frozen protocol; SQL plan and
+modern gateway timings are not matched performance. Preserve these gaps while
+continuing the independent Buffer Trends journey. Do not report BTR complete.
+
+**Active Buffer Trends boundary before mutation:** reuse retained history
+consumer SQL/.NET formatting and BTR-owned colour/date/attribute evidence.
+Trace GetBufferTrendGraphData's exact aliases and filter joins against the
+inherited screen; replace only its whole-publication read and connect valid
+source-backed filters. Preserve colour counts, permission/attribute multiplicity,
+NULL/date/percentage/summary semantics and deployed failures. Required proof:
+independent complete ordered responses for Tech/Eco and supported horizons/scopes/
+filters, affected tests, actual3005 selector/chart/summary/restart evidence, plus
+the unchanged matched-performance gate. No frontend/MTO/auth/F2/schema change,
+invented export, new port or adjacent report work.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
