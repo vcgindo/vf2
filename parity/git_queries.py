@@ -104,3 +104,39 @@ def queries(auth, payload):
     for i, query in enumerate(charts):
         result['chart-' + str(i)] = bound(auth + ', ' + query)
     return result
+
+
+def request_queries(auth, payload, compiled):
+    """Insert actual DLL filter output and the source RN paging predicates."""
+    selected = queries(auth, payload)
+    for name in ('parent-location-count', 'child-location-count', 'child-transporter-count',
+                 'parent-location-grid', 'child-location-grid', 'child-transporter-grid'):
+        report = 'GitTransporter' if name == 'child-transporter-grid' else 'GitCount' if name.endswith('-count') else 'GitGrid'
+        f = compiled[report]
+        query = selected[name]
+        table = '#Transporter' if '-transporter-' in name else '#Git'
+        marker = table + ' a '
+        assert query.count(marker) == 1, name
+        query = query.replace(marker, marker + bound(f['sql_join_filter']) + ' ')
+        if f['sql_filter']:
+            # Append after the branch's fixed colour/positive-GIT WHERE,
+            # before GROUP BY or derived-table closure.
+            marker = " WHERE a.GIT>0 AND a.PhysicalInventoryColor IN ('Black','Red') " if '-location-' in name else " WHERE a.PhysicalInventoryColor IN ('Black','Red') " if name.endswith('-count') else " where a.PhysicalInventoryColor in ('Black','Red') "
+            assert query.count(marker) == 1, name
+            query = query.replace(marker, marker + ' and ' + bound(f['sql_filter']) + ' ')
+        selected[name] = query
+    for kind in ('parent', 'child'):
+        location = selected[kind+'-location-count'].removeprefix(auth)
+        wire = auth + ' select locationwise=(' + location + ')'
+        if kind == 'child':
+            wire += ', transporterwise=(' + selected['child-transporter-count'].removeprefix(auth) + ')'
+        selected[kind+'-count-wire'] = wire + ' for json path'
+    paging = payload.get('paginationParameter')
+    if paging is not None:
+        page, size = (int(paging[n]) for n in ('pageNumber', 'recordsPerPage'))
+        predicate = f' where RN between ({page}-1)*{size}+1 and ({page}*{size}) '
+        for name in ('parent-location-grid', 'child-location-grid'):
+            selected[name] = selected[name].replace('ORDER BY RN FOR JSON', predicate+'ORDER BY RN FOR JSON')
+        selected['child-transporter-grid'] = selected['child-transporter-grid'].replace('order by RN for json', predicate+'order by RN for json')
+        selected['child-custom'] = selected['child-custom'].replace(' for json path) data', predicate+' for json path) data')
+    return selected

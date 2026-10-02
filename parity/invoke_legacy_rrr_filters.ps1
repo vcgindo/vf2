@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
-    [ValidateSet('RRR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount')][string]$Report='RRR')
+    [ValidateSet('RRR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')][string]$Report='RRR')
 $ErrorActionPreference='Stop'
 $vfRoot=[IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[IO.Path]::GetFullPath($InputPath)
@@ -15,7 +15,7 @@ $vfAssembly=[Reflection.Assembly]::LoadFrom($vfDll)
 $vfType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Commons.CommonsProcessor',$true)
 $vfMethod=$vfType.GetMethod('filterQueryForReports')
 $vfFilterType=$vfMethod.GetParameters()[0].ParameterType
-if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount')) {
+if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
     # DBMProcessor.GetDBMData's filter property chooses the exact overload.
     $vfDbmType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.DBMProcessor',$true)
     $vfRequestMethod=$vfDbmType.GetMethod('GetDBMData')
@@ -27,6 +27,9 @@ if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGr
     }
     if ($Report -in @('FulfillmentGrid','FulfillmentCount')) {
         $vfRequestMethod=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.PlanningProcessor',$true).GetMethod('OrderFulfillment')
+    }
+    if ($Report -in @('GitGrid','GitCount','GitTransporter')) {
+        $vfRequestMethod=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.PlanningProcessor',$true).GetMethod('GetMonitorGITParent')
     }
     $vfFilterType=$vfRequestMethod.GetParameters()[0].ParameterType.GetProperty('filters').PropertyType
     $vfMethod=@($vfType.GetMethods() | Where-Object { $_.Name -eq 'filterQuery' -and
@@ -40,16 +43,17 @@ $vfCases=@()
 foreach ($vfCase in $vfValues.cases) {
     $vfFilterJson=$vfCase.payload.filters | ConvertTo-Json -Depth 40 -Compress
     $vfFilter=[System.Text.Json.JsonSerializer]::Deserialize($vfFilterJson,$vfFilterType,$vfOptions)
-    if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount')) {
+    if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
         $vfSql='';$vfJoin=''
         $vfActive=@('availabilityFilter','supplyChainFilter','coverageFilter','productFilter','locationFilter','colorFilter') |
             Where-Object { $vfCase.payload.filters.ContainsKey($_) -and $null -ne $vfCase.payload.filters[$_] }
         if (@($vfActive).Count -gt 0) {
             $vfParameters=New-Object object[] 6
             $vfParameters[0]=$vfFilter;$vfParameters[1]='e';$vfParameters[2]='i';$vfParameters[3]='f'
-            if ($Report -in @('BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount')) {
+            if ($Report -in @('BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
                 $vfParameters[1]='sa';$vfParameters[2]='la';$vfParameters[3]='sla'
             }
+            if ($Report -eq 'GitTransporter') { $vfParameters[1]='c' }
             $vfParameters[4]='';$vfParameters[5]=''
             $vfMethod.Invoke($vfInstance,$vfParameters) | Out-Null
             $vfSql=[string]$vfParameters[4];$vfJoin=[string]$vfParameters[5]
@@ -57,10 +61,13 @@ foreach ($vfCase in $vfValues.cases) {
                 $vfSql=$vfSql.Replace('a.ParentWhCode','b.ParentWhCode')
                 $vfJoin=$vfJoin.Replace('a.ParentWhCode','b.ParentWhCode')
             }
-            if ($Report -in @('ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount')) {
+            if ($Report -in @('ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
                 $vfSql=$vfSql.Replace('pic','a.PipelineInventoryColor').Replace('ohic','a.PhysicalInventoryColor')
                 if ($Report -eq 'ExcessGrid') {
                     $vfSql=$vfSql.Replace('tags','a.tags').Replace('Git','a.git').Replace(' Norm',' a.Norm').Replace('Stock','a.Stock')
+                }
+                if ($Report -in @('GitGrid','GitTransporter')) {
+                    $vfSql=$vfSql.Replace('Git','a.git').Replace(' Norm',' a.Norm').Replace('Stock','a.Stock')
                 }
                 if ($Report -eq 'FulfillmentGrid') { $vfSql=$vfSql.Replace('tags','a.tags') }
             }

@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from parity.git_queries import queries, PLAN, PLAN_SHA, CHART, CHART_SHA
+from parity.git_queries import queries, request_queries, method, PLAN, PLAN_SHA, CHART, CHART_SHA
 from parity.legacy_isolation import connection, exclusive_replay
 from parity.output_archive import file_sha
 from parity.retained_consumer_input import terminal_inputs
@@ -50,7 +50,35 @@ def main():
         assert file_sha(parent/'receipt.json') == '89a9ba03575422174690183aaa1771340aa57d759c925a1c6ecb27ad11ec1693'
         receipt = json.loads((parent/'receipt.json').read_text())
         assert file_sha(parent/'requests.json') == receipt['file_hashes']['requests.json']
+        filtered = '--filters' in sys.argv[2:]
         cases = json.loads((parent/'requests.json').read_text())['cases'][:4]
+        compiled = {}
+        if filtered:
+            from copy import deepcopy
+            from parity.btr_filter_cases import cases as filter_cases
+            cases = filter_cases()
+            for case in list(cases):
+                if 'customAttributeFilter' in case['payload']['filters']:
+                    opened = deepcopy(case)
+                    opened['id'] += '-gate-open'
+                    opened['payload']['filters']['productFilter'] = dict(filters=[])
+                    cases.append(opened)
+            for name, paging in (('unpaged', None), ('zero-page', dict(pageNumber=0, recordsPerPage=5))):
+                case = deepcopy(cases[0]); case['id'] = name
+                case['payload']['paginationParameter'] = paging
+                cases.append(case)
+            for case in cases:
+                case['payload'].update(category='git', type='child')
+            (target/'filter-input.json').write_text(json.dumps(dict(cases=cases), indent=2))
+            for report in ('GitGrid', 'GitCount', 'GitTransporter'):
+                completed = subprocess.run(['pwsh', '-NoProfile', '-File', str(root/'parity/invoke_legacy_rrr_filters.ps1'),
+                    '-InputPath', str(target/'filter-input.json'), '-OutputPath', str(target/(report+'.json')), '-Report', report], capture_output=True, text=True)
+                (target/(report+'.log')).write_text(completed.stdout+completed.stderr)
+                assert completed.returncode == 0, report
+                output = json.loads((target/(report+'.json')).read_text(encoding='utf-8-sig'))
+                assert output['input_sha256'] == file_sha(target/'filter-input.json')
+                compiled[report] = {r['id']: r for r in output['cases']}
+            result['filter_harness_sha256'] = file_sha(root/'parity/invoke_legacy_rrr_filters.ps1')
         (target/'requests.json').write_text(json.dumps(cases, indent=2))
         observations, sqls = {}, {}
         result['observations'] = observations
@@ -73,8 +101,19 @@ def main():
                 config = db.execute("select Col_Code, Header,Col_Position from ui_ReportConfigurations where reportname='adminbpr' and Col_Code like '%attr%' and Visible=1").fetchall()
                 assert not config, 'Dynamic attributes require their actual source expression'
                 result['visible_custom_attributes'] = []
+                configurations = {}
+                for report in ('GIT_From_Parent', 'GIT_To_Child_LW', 'GIT_To_Child_TW', 'GIT_To_Child_CS'):
+                    sql = "select(select a.[ReportName],a.[Col_Code],[Col_Position],[Header],[Visible],[CellAlignment],[Value], b.DataType from ui_ReportConfigurations a left join VFTEST_Importer.dbo.ui_ReportColumnTypes b on a.reportname=b.reportname and a.Col_Code=b.ColCode where a.Visible=1 and a.reportname=? for json path)a"
+                    value = db.execute(sql, report).fetchone()[0]
+                    configurations[report] = json.loads(value) if value else None
+                import re
+                for label, source_method in (('normal-columns', 'GetMonitorGITParent'), ('custom-columns', 'GetCustomGridData')):
+                    configurations[label] = [dict(header=h, colCode=c, colPosition=int(p)) for h,c,p in re.findall(
+                        r'header = "([^"]+)",\s*colCode = "([^"]+)",\s*colPosition = (\d+)', method(source_method))]
+                (target/'configurations.json').write_text(json.dumps(configurations, indent=2))
                 for case in cases:
-                    selected = queries(auth_ctes(db, catalogue, case['payload']), case['payload'])
+                    auth = auth_ctes(db, catalogue, case['payload'])
+                    selected = request_queries(auth, case['payload'], {r: rows[case['id']] for r, rows in compiled.items()}) if filtered else queries(auth, case['payload'])
                     sqls[case['id']] = selected
                     observations[case['id']] = {}
                     for name, query in selected.items():
@@ -87,9 +126,14 @@ def main():
                         except Exception as exc:
                             observation = dict(status='SQL_ERROR', error_type=type(exc).__name__, message=str(exc))
                         observations[case['id']][name] = observation
-                        print(case['id']+'/'+name+': '+observation['status'], flush=True)
+                    print(case['id']+': '+str(sum(r['status']=='SQL_ERROR' for r in observations[case['id']].values()))+' SQL errors', flush=True)
                     db.execute('DROP TABLE #ProductPermissions; DROP TABLE #LocationPermissions')
         (target/'queries.json').write_text(json.dumps(sqls, indent=2))
+        if filtered:
+            result['status'] = 'CAPTURED_FILTERED_TERMINAL_SQL_REQUIRES_CONTRACT_REVIEW'
+            result['qualification'] = 'Actual DLL filter expressions and canonical SQL observations; errors preserved, not yet modern parity or accepted filter classification.'
+            result['file_hashes'] = {p.name: file_sha(p) for p in target.iterdir() if p.is_file()}
+            return
         expected_failures = {'child-transporter-grid'}
         for case in observations.values():
             for name, observation in case.items():

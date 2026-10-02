@@ -416,6 +416,18 @@ verifier remain immutable. Corrected expectations validate the pinned capture
 without changing SQL or rerunning accepted calculations. DLL method invocation
 under.NET10.0.11 is not a native hosted legacy HTTP/performance proof.
 
+The77-case retained filter expansion is in `f3-stage2-git-filters-001`; the
+review/private-route comparison is `f3-stage2-git-modern-001` (SHA256
+`e41bf5f17be5fbb0e1782709e450be565425b08c9ea1af1f1ff5e55e308aed65`).
+Fourteen filter cases fail the location queries; another14 fail only the child
+transporter count because SKU hierarchy/custom fields or their alias are absent.
+The selected modern adapter exposes these source failures as503/LEG-GIT and
+keeps the combined child grid unavailable. This is an explicit blocker and
+**NOT wire parity with the legacy helper's concealed error/empty response**.
+Do not count these unavailable branches as accepted or infer permission to
+repair legacy SQL. Valid independently proved parent/count/chart/custom branches
+may continue. A zero count alone does not certify an invalid child query.
+
 ## BTR inherited frontend — fresh reload misses saved column state
 
 On3005, save a31-column BTRon-hand layout for Depo/June6–17 with SKUDescription

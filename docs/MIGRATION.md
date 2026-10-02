@@ -656,6 +656,40 @@ and paginated contracts, complete configuration/envelopes, bounded modern
 connection, authenticated controls/downloads/restart and matched performance
 remain unmet. No serving application, frontend/MTO/auth/F2 code changed here.
 
+GIT consumer implementation checkpoint (not deployed yet):
+`f3-stage2-git-filters-001/receipt.json` SHA256
+`ef961a530945a1be380a3be6267b2aefb2789beed0f62b0f11d1629c13385469`
+captures77 retained filter/scope/page cases through the actual DLL Commons
+generator and13 canonical SQL branches each (1,001 observations). Fourteen
+cases fail parent/child location queries; child transporter count has14 further
+SKU hierarchy/custom-attribute failures. All77 child transporter grids fail;
+custom and four chart branches execute empty because their source ignores these
+filters. Complete raw SQL/errors/results remain retained, not removed as outliers.
+
+`f3-stage2-git-modern-001/receipt.json` SHA256
+`e41bf5f17be5fbb0e1782709e450be565425b08c9ea1af1f1ff5e55e308aed65`
+reviews those observations and compares462 read-only Django route responses.
+Valid parent grid/count, child count/graphs and custom bodies/configuration match
+the independent contracts. Source-invalid branches deliberately return explicit
+503/LEG-GIT errors: **NOT the legacy helper's silent-empty wire parity**, and still
+block affected acceptance. The reader admits only the approved June17 manifest
+plus persisted rationed GIT with no positive values, then checks actual scoped
+attributes. No generated logistics row, other-day extension or calculation replay.
+Seventeen focused terminal/admission/overview tests PASS, including nonempty
+denial and filter failure despite an empty population. The private worker used
+the existing image with current source read-only, under4GiB/2CPU, and exited0.
+
+The owned SQL database lacks all four GIT UI configurations. Imported metadata
+was therefore independently compared by complete column/value bags with pinned
+deployed configuration/type INSERT scripts; no live/protected database was read
+and no configuration rows were seeded. Script ordering versus imported ordering
+is recorded separately in `ui-config-proof.json`; no tie-order claim is inferred.
+Normal23-column/custom46-column configurations also match exact processor source.
+Remaining active exit: deploy/restart only MTA on3005, prove authenticated
+reachable views/filters/downloads/layout and selected-run preservation, record
+explicit child-grid/filter failure displays, and retain unmatched performance as
+blocked. This checkpoint does not authorize frontend, MTO or F2 changes.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

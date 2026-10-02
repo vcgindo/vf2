@@ -281,6 +281,9 @@ def planning_context(payload):
 
 @endpoint('POST')
 def planning_graph(request,payload):
+    if payload.get('category') == 'git':
+        from mta.presentation.git_read import graph
+        return envelope(data=graph(payload), message='')
     if str(payload.get('category', '')).casefold() == 'excessinventory':
         from mta.presentation.excess_read import excess_context
         context = excess_context()
@@ -317,6 +320,9 @@ def planning_graph(request,payload):
 
 @endpoint('POST')
 def planning_grid(request, payload, *, count=False):
+    if payload.get('category') == 'git':
+        from mta.presentation.git_read import grid
+        return envelope(data=grid(payload, count=count))
     if str(payload.get('category','')).casefold()=='expedite' and count:
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
@@ -363,6 +369,9 @@ def planning_grid(request, payload, *, count=False):
 
 @endpoint('POST')
 def planning_custom(request, payload):
+    if payload.get('category') == 'git':
+        from mta.presentation.git_read import custom
+        return envelope(data=custom(payload))
     # Deployed custom dispatch is case sensitive and does not inspect type.
     if payload.get('category') not in ('excessInventory','orderFulfillment'):
         raise PublicationUnavailable('selected_planning_custom_branch_not_yet_connected')
