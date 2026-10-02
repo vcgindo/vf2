@@ -797,6 +797,20 @@ GetDataSet catches SQL failures and returns its DataSet; the parent's empty-tabl
 fallback therefore must be investigated as a successful empty envelope, not
 inferred HTTP500 from SQL156. No application route or serving state changed.
 
+Expedite parent reader checkpoint: `mta/presentation/expedite_parent.py` now ports
+the normal parent joins, exact string-valued projection, NULL omission, scope
+multiplicity, parent-master availability join, ordering and paging. It has no
+route connection or production-state writes. Complete pure-consumer results in
+`f3-stage2-expedite-parent-port-001/results.json` match all12 prior canonical
+paged SQL/Newtonsoft outputs across the four scopes. Receipt qualification is
+explicit: retained legacy inputs, not persisted modern readback or HTTP parity.
+Eight focused parent/producer tests pass, including left metadata, duplicate
+parent/permission multiplicity, nonempty-transit denial and conflicting sort-key
+ties. Nonempty transit is unsupported explicitly; no silent empty replacement.
+Still required before route delivery: selective persisted context, canonical
+filter/configuration and error-envelope verification, modern relational readback,
+authenticated3005/browser/restart and performance obligations. Expedite ACTIVE.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
