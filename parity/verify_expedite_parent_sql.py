@@ -23,6 +23,9 @@ def main():
     target = Path(sys.argv[1])
     target.mkdir(parents=True, exist_ok=False)
     custom = '--custom' in sys.argv[2:]
+    filtered = '--filters' in sys.argv[2:]
+    if custom and filtered:
+        raise ValueError('Custom source ignores filters; use its existing proof')
     result = dict(status='FAILED', engine_replays=0, persistent_database_writes=False,
                   qualification='Independent parent SQL observations only; no API/browser/performance parity.')
     try:
@@ -55,6 +58,19 @@ def main():
         scope_receipt = json.loads((scopes/'receipt.json').read_text())
         assert file_sha(scopes/'requests.json') == scope_receipt['file_hashes']['requests.json']
         cases = json.loads((scopes/'requests.json').read_text())['cases'][:4]
+        compiled = {}
+        if filtered:
+            # Parent Expedite uses the identical PlanningGrid filter type,
+            # Commons overload, aliases, call gate and replacements as GitGrid.
+            # Reuse its actual-DLL expressions; execute the different SQL here.
+            source = Path('D:/freshvcf-build/evidence/f3-stage2-git-filters-001')
+            assert file_sha(source/'receipt.json') == 'ef961a530945a1be380a3be6267b2aefb2789beed0f62b0f11d1629c13385469'
+            source_receipt = json.loads((source/'receipt.json').read_text())
+            for name in ('requests.json', 'GitGrid.json'):
+                assert file_sha(source/name) == source_receipt['file_hashes'][name]
+            cases = json.loads((source/'requests.json').read_text())
+            compiled = {r['id']:r for r in json.loads((source/'GitGrid.json').read_text(encoding='utf-8-sig'))['cases']}
+            result['reused_filter_receipt_sha256'] = file_sha(source/'receipt.json')
         result['input_rows'] = dict(expedite=len(expedite), pick=len(pick),
                                     nms=len(legacy['closing']['consumer_context']['NMSAllItems']))
         observations, queries = {}, {}
@@ -82,9 +98,12 @@ def main():
                 supplement_temp_hierarchy(db, catalogue)
                 for case in cases:
                     auth = auth_ctes(db, catalogue, case['payload'])
-                    for label, page, size in (('full', 1, 5000), ('page1', 1, 3), ('page2', 2, 3), ('unpaged', None, 5000)):
+                    variants = (('full', 1, 5000),) if filtered else (('full', 1, 5000), ('page1', 1, 3), ('page2', 2, 3), ('unpaged', None, 5000))
+                    for label, page, size in variants:
                         key = case['id']+'/'+label
                         query = (custom_query if custom else parent_query)(auth, page=page, size=size)
+                        if filtered:
+                            query = parent_query(auth, page=page, size=size, sql_filter=compiled[case['id']]['sql_filter'])
                         queries[key] = query
                         try:
                             cursor = db.execute(query)
@@ -95,7 +114,7 @@ def main():
                     db.execute('DROP TABLE #ProductPermissions; DROP TABLE #LocationPermissions')
         (target/'queries.json').write_text(json.dumps(queries, indent=2))
         (target/'requests.json').write_text(json.dumps(cases, indent=2))
-        result['status'] = 'CAPTURED_CUSTOM_SQL_REQUIRES_REVIEW' if custom else 'CAPTURED_PARENT_SQL_REQUIRES_REVIEW'
+        result['status'] = 'CAPTURED_FILTERED_PARENT_SQL_REQUIRES_REVIEW' if filtered else 'CAPTURED_CUSTOM_SQL_REQUIRES_REVIEW' if custom else 'CAPTURED_PARENT_SQL_REQUIRES_REVIEW'
         result['file_hashes'] = {p.name: file_sha(p) for p in target.iterdir() if p.is_file()}
     except Exception as exc:
         result['error'] = dict(type=type(exc).__name__, message=str(exc))

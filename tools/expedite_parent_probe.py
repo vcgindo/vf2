@@ -10,8 +10,8 @@ import django
 django.setup()
 from django.conf import settings
 from mta.presentation.admission import admit
-from mta.presentation.context import scope
-from mta.presentation.expedite_parent import parent_rows
+from mta.presentation.context import scope, PublicationUnavailable
+from mta.presentation.expedite_parent import parent_rows, parent_filter
 from mta.presentation.expedite_read import expedite_context
 
 settings.DATABASES['default']['OPTIONS']['options'] += ' -c default_transaction_read_only=on -c statement_timeout=45000'
@@ -22,8 +22,14 @@ with patch('mta.runtime.services.read_outputs', side_effect=AssertionError('whol
                   admission=admission, observations={})
     for case in json.loads(Path(sys.argv[1]).read_text()):
         products, locations = scope(case['payload'], attributes=context.importer)
-        for label, paging in (('full', (1, 5000)), ('page1', (1, 3)), ('page2', (2, 3))):
-            result['observations'][case['id']+'/'+label] = parent_rows(
-                context.rows, context.importer, context.standards, context.masters,
-                nms=context.nms, products=products, locations=locations, paging=paging)
+        filtered = '--filters' in sys.argv[2:]
+        variants = (('full', (1, 5000)),) if filtered else (('full', (1, 5000)), ('page1', (1, 3)), ('page2', (2, 3)))
+        for label, paging in variants:
+            try:
+                matches = parent_filter(case['payload'], context.importer) if filtered else None
+                value = parent_rows(context.rows, context.importer, context.standards, context.masters,
+                    nms=context.nms, products=products, locations=locations, paging=paging, matches=matches)
+            except PublicationUnavailable as exc:
+                value = dict(source_error=str(exc))
+            result['observations'][case['id']+'/'+label] = value
 print(json.dumps(result))

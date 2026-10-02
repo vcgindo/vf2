@@ -5,12 +5,34 @@ requires its separate consumer port; it must not silently become empty.
 """
 from decimal import Decimal
 from itertools import product
+from copy import deepcopy
 
 from mta.presentation.permissions import permission_multiplicity
 from mta.presentation.rrr import index, sql_key
 
 
-def parent_rows(rows, importer, standards, masters, *, nms, products, locations, paging):
+def parent_filter(payload, importer):
+    """Same Commons expressions as Excess, with the parent query's own joins."""
+    from mta.presentation.context import PublicationUnavailable
+    from mta.presentation.dbm_filters import STANDARD_GROUPS
+    from mta.presentation.excess_filters import predicate
+    payload = deepcopy(payload)
+    groups = payload.get('filters') or {}
+    if any(groups.get(name) is not None for name in STANDARD_GROUPS):
+        if any(i.get('attributeName', '').lower() == 'norm'
+               for i in (groups.get('availabilityFilter') or {}).get('filters', [])):
+            raise PublicationUnavailable('LEG-EXPEDITE-PARENT-FILTER-SQL209: ambiguous norm')
+        supply = groups.get('supplyChainFilter')
+        if supply:
+            # Commons emits this as sqlJoinFilter; parent never appends it.
+            supply['filters'] = [i for i in supply['filters'] if i.get('attributeName', '').lower() != 'forchildren']
+    try:
+        return predicate(payload, importer)
+    except PublicationUnavailable as exc:
+        raise PublicationUnavailable('LEG-EXPEDITE-PARENT-FILTER-INVALID-SQL:'+str(exc).partition(':')[2]) from exc
+
+
+def parent_rows(rows, importer, standards, masters, *, nms, products, locations, paging, matches=None):
     if nms:
         raise ValueError('parent_expedite_nonempty_transit_consumer_unavailable')
     result = dict(expediteDispatches=[], expediteDispatchestransit=[],
@@ -43,11 +65,13 @@ def parent_rows(rows, importer, standards, masters, *, nms, products, locations,
             continue
         target = 'expediteDispatches' if quantity > 0 else 'createAvailabilityAtParent'
         parent_matches = [{}] if quantity > 0 else master.get(sql_key(a['SKUCode'], a['ParentWhCode']), [])
-        for slsa, sd, ld, pd, sa, la, _, _master in product(
+        for slsa, sd, ld, pd, sa, la, pair_row, _master in product(
                 standard.get(key, []) or [{}], sku_desc.get(sk, []) or [{}],
                 loc_desc.get(wc, []) or [{}], loc_desc.get(parent, []) or [{}],
                 sku.get(sk, []) or [{}], loc.get(wc, []) or [{}],
                 pair.get(key, []) or [{}], parent_matches):
+            if matches is not None and not matches(dict(a, Tags=slsa.get('Tags')), pair_row, sa, la):
+                continue
             row = {alias: a[field] for alias, field in aliases.items()}
             row.update(t=slsa.get('Tags'), p=slsa.get('Price'), sd=sd.get('SKUDescription'),
                        wcd=ld.get('WHDescription'), pl=pd.get('WHDescription'))

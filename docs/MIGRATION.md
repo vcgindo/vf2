@@ -754,6 +754,13 @@ MTO/auth/F2/actions and publication remain frozen. Required proof: complete
 canonical cells/configuration/filter/scope/page envelopes, followed by bounded
 3005 readback and affected browser checks; explicitly record unavailable branches.
 
+Human resume on2 October2026 adopts adjacent
+`audit-2026-10-01/STAGE_2_COMPLETION_PLAN.md` for remaining Stage2 procedure.
+This file remains the sole status tracker. Resume from outstanding Expedite
+filter/configuration/unpaged-envelope and route work; reuse the12 proved parent
+comparisons. Recoverable earlier gaps precede BPR/Guided/Research. No scope or
+acceptance waiver, automatic deployment, or Stage3–5 opening follows adoption.
+
 Expedite parent source checkpoint: `f3-stage2-expedite-parent-sql-001/receipt.json`
 (SHA256 `50896fa72457524dcee4ed08caf54ad5c1f01fefb2b101235f98350001c0be37`)
 captures 16 canonical SQL observations in owned `VFTEST_Fresh_BPR`, using only
@@ -824,6 +831,22 @@ writes or serving restart. Eight affected unit checks pass. This closes the
 persisted parent row-readback subcriterion only. Filter/configuration/unpaged
 wire behavior remain before route integration; browser/export/restart/performance
 and remaining Expedite branches are still open. No full-journey acceptance.
+
+Resumed Expedite filter checkpoint: reused the pinned actual-DLL GitGrid Commons
+expressions because the parent method has the same filter type/overload, aliases,
+gate and replacements; ran those expressions against the exact parent SQL.
+`f3-stage2-expedite-parent-filters-001/comparison-receipt.json`, SHA256
+`97179bf3b88d290d39fc25361a20b900af38bdc90f1bd1f518b2a68fa4f1d6a0`,
+compares77 cases: all59 valid complete results match the selective persisted
+modern reader, zero differences;18 SQL failures are identified separately and
+are NOT HTTP-envelope parity. Parent-specific behavior now preserves ignored
+forchildren join filters and reads Tags from standards. Norm filters reproduce
+SQL209 ambiguity rather than choosing a column. All cases deliberately use
+page1/5000 to isolate filtering; names inherited from the reused request roster
+do not certify unpaged/zero-page behavior. Original12 paging comparisons stand.
+Eight affected unit checks pass. No serving route/restart or business-state
+change. Remaining immediate exit: configuration and deployed GetDataSet failure
+to envelope behavior, then bounded parent route integration. Expedite ACTIVE.
 
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
