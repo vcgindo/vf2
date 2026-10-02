@@ -22,6 +22,15 @@ with patch('mta.runtime.services.read_outputs', side_effect=AssertionError('whol
                   admission=admission, observations={})
     for case in json.loads(Path(sys.argv[1]).read_text()):
         products, locations = scope(case['payload'], attributes=context.importer)
+        if '--custom' in sys.argv[2:]:
+            from mta.presentation.expedite_custom import custom_rows
+            for label, paging in (('full', (1,5000)), ('page1', (1,3)), ('page2', (2,3)), ('unpaged', None)):
+                try:
+                    value = custom_rows(context.rows, nms=context.nms, products=products, locations=locations, paging=paging)
+                except ValueError as exc:
+                    value = dict(source_error=str(exc))
+                result['observations'][case['id']+'/'+label] = value
+            continue
         filtered = '--filters' in sys.argv[2:]
         variants = (('full', (1, 5000)),) if filtered else (('full', (1, 5000)), ('page1', (1, 3)), ('page2', (2, 3)))
         for label, paging in variants:

@@ -921,6 +921,28 @@ to manufacture proof. Parent entry needs a precise disposition of the existing
 undefined-label chart contract. Signed-in browser is now available for other
 feasible controls; the earlier login-restoration gap is resolved.
 
+Expedite child browser observations: authenticated To Child renders June17
+receiving-location and pre/post charts; legend hide/show works. Screenshots in
+f3-stage2-expedite-browser-001 retain child-charts, child-grid-error and
+child-chart-return-error. Grid and Custom Screens show explicit load failure;
+returning to Chart View retains the error and hides already-loaded charts.
+Current usePlanning.ts clears that error on chart return only for GITToChild;
+index.tsx suppresses renderView while the error exists. This is a current
+frontend navigation defect; canonical legacy provenance has not been established.
+No frontend repair, action or layout write performed. Category selection restored.
+
+Custom reader implementation now preserves the admitted empty-NMS LEFT-join
+values, parent scope, NULL omission and duplicate bags, denying distinct rows
+with undefined RN keys. Twelve affected unit checks pass. Pure retained-SQL
+comparison in f3-stage2-expedite-custom-modern-001/pure-comparison.json matches
+four defined single-row/page/empty results;12 ambiguous results remain denied,
+NOT_PARITY. No custom route connection or serving change yet. The private
+persisted probe failed before data access: Fresh PostgreSQL is exited and
+freshvcf-test_default has no active containers. Failure retained in modern.log;
+not a comparison result. Existing MTA-only restart authority does not cover this
+database restoration; requested human direction, no reset/shared restart.
+Expedite remains ACTIVE; persisted custom verification is pending restoration.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
