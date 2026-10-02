@@ -988,6 +988,49 @@ custom feature remains blocked by undefined ordering; no invented NMS identity
 or ordering was introduced. Subsequent restart/readback and browser controls
 remain outstanding; matched performance remains unproved.
 
+#### Active Expedite correction after human QA challenge —3 October
+
+Expedite has NOT passed end-to-end QA. The human reproduced the parent entry
+error and child latency; earlier route/serving checks must not imply working
+journey acceptance. The custom adapter restart proof is complete in the existing
+custom-serving001 restart files: three authenticated bodies unchanged, selected
+publication/49-command fingerprint unchanged,47 other containers unchanged.
+
+Child latency was attributable to chart routing through publication()/read_outputs,
+reconstructing the whole publication per request. Replaced only that read path
+with the existing selective Expedite context and checked PickPost projection;
+native source/row checksums, admission and chart calculations are preserved.
+`f3-stage2-expedite-chart-selective-001/comparison.json` records the same actual
+private HTTP path before10.044s/after0.640s, byte-identical complete child body,
+47 protected containers unchanged and bounded resources. This is one diagnostic
+sample, NOT matched legacy or browser performance acceptance.
+
+Direct human approval to call_7ZtUGdijA5CSTdAfXbs6XTwM authorizes both narrow
+presentation exceptions, now recorded in LEGACY_EXCEPTIONS: parent receiving
+labels from their own persisted location; custom paging by persisted producer
+SKU/location/parent keys, retaining native missing display fields. No new facts,
+calculation/state changes or claimed exact parity. The strict pure transformations
+remain available; only the named presentation callers opt in. Conflicting custom
+values sharing a producer key still deny rather than invent another tie-break.
+`f3-stage2-expedite-approved-presentation-001/comparison.json` proves all16 custom
+route responses across four scopes, complete value/duplicate bags against retained
+independent SQL, approved paging slices, all five own-location parent labels,
+and unchanged complete child response. Twenty affected checks pass.
+
+Filtered-count investigation is deferred while this human-reported entry/latency
+correction is active. The new count SQL capture failed before observations with
+SQL Server login failure and engine error823; retained under
+`f3-stage2-expedite-count-filters-001`. No database repair/restart or retry was
+attempted, and no runtime count/filter change was made. This needs a healthy
+independent oracle before count-filter comparison can continue.
+
+Actual authenticated UI interaction is still outstanding: the automation tab is
+at login; requested normal sign-in, no authentication bypass. Parent/custom serving
+verification follows the approved correction. Child normal grid still requires
+OpenExpediteRequests provenance/owner; parent unpaged export/source-invalid filters,
+remaining controls/leaf actor and matched performance remain unresolved. Stage2
+remains ACTIVE; none of these gaps is waived by the two presentation exceptions.
+
 #### Stage2 RRR checkpoint — partial proof, explicit blockers
 
 Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256

@@ -33,3 +33,13 @@ class ExpediteCustomTest(unittest.TestCase):
         self.assertEqual(self.read(rows=[dict(self.row,IsReceiving=False),dict(self.row,RationedQty=0)]), [])
         with self.assertRaisesRegex(ValueError,'nonempty_nms'):
             self.read(nms=[{}])
+
+    def test_approved_order_preserves_values_nulls_and_duplicates(self):
+        rows = [dict(self.row, SKUCode='Z', RationedQty=8), self.row, self.row]
+        ordered = self.read(rows=rows, stable_producer_order=True)
+        self.assertEqual([r['rq'] for r in ordered], [7, 7, 8])
+        self.assertTrue(all('sc' not in r for r in ordered))
+        self.assertEqual(ordered, self.read(rows=list(reversed(rows)), stable_producer_order=True))
+        self.assertEqual(self.read(rows=rows, stable_producer_order=True, paging=(2, 2)), [ordered[2]])
+        with self.assertRaisesRegex(ValueError, 'conflicting_producer_key'):
+            self.read(rows=[self.row, dict(self.row, RationedQty=8)], stable_producer_order=True)

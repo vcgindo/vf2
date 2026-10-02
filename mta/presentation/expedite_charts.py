@@ -118,14 +118,14 @@ def queries(output,rows,pick,kind,*,products,locations):
     return result
 
 
-def response(tables,kind):
+def response(tables,kind,*,receiving_own_label=False):
     labels={'' if r['LogisticsLocation'] is None else str(r['LogisticsLocation']) for r in tables['critical']}
-    if tables['receiving'] and len(labels)>1:
+    if not receiving_own_label and tables['receiving'] and len(labels)>1:
         raise ValueError('Legacy Expedite receiving LogisticsLocation depends on unordered critical rows')
-    return response_from_dataset(tables,kind)
+    return response_from_dataset(tables,kind,receiving_own_label=receiving_own_label)
 
 
-def response_from_dataset(tables,kind):
+def response_from_dataset(tables,kind,*,receiving_own_label=False):
     """Exact pure DLL transformation for an explicitly ordered DataSet.
 
     This does not confer an ordering on the SQL query. Application callers must
@@ -146,7 +146,8 @@ def response_from_dataset(tables,kind):
         first=rows[0]; pairs={}
         for r in rows: pairs.setdefault((sql_key(r['ParentWhCode']),r['ParentwiseCount']),(r['ParentWhCode'],r['ParentwiseCount']))
         receiving.append(dict(WHDescription=text(first['Details']),count=[dict(pwc=text(p),count=text(n)) for p,n in pairs.values()],
-            LogisticsLocation=last_label,**{f'll{i}':text(first[f'll{i}']) for i in range(1,6)}))
+            LogisticsLocation=first['LogisticsLocation'] if receiving_own_label else last_label,
+            **{f'll{i}':text(first[f'll{i}']) for i in range(1,6)}))
     def percentage(count,total):
         if not total: return '0'
         with localcontext() as context:

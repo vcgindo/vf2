@@ -69,3 +69,9 @@ class ExpediteChartsTest(unittest.TestCase):
         tables=queries(self.output,[self.row],[self.pick],'parent',products=None,locations=None)
         tables['critical'].append(dict(tables['critical'][0],LogisticsLocation='Other'))
         with self.assertRaisesRegex(ValueError,'unordered'): response(tables,'parent')
+        approved = response(tables, 'parent', receiving_own_label=True)
+        receiving = approved['data']['expediteDispatches']['maxPipelineInvBlackRedSKUWithRationedQuantityAvailableAtParentuiconfig']['data']
+        self.assertEqual(receiving[0]['LogisticsLocation'], tables['receiving'][0]['LogisticsLocation'])
+        reversed_tables = dict(tables, critical=list(reversed(tables['critical'])))
+        reordered = response(reversed_tables, 'parent', receiving_own_label=True)
+        self.assertEqual(receiving, reordered['data']['expediteDispatches']['maxPipelineInvBlackRedSKUWithRationedQuantityAvailableAtParentuiconfig']['data'])

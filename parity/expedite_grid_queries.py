@@ -2,6 +2,20 @@
 from parity.git_queries import method, blocks, parts, bound
 
 
+def count_query(auth, kind, *, sql_filter='', sql_join_filter=''):
+    from parity.verify_expedite_consumer import selected_queries
+    _, selected = selected_queries()
+    queries = []
+    for query in selected[kind].values():
+        assert query.count('#Expedite a ') == 1
+        query = query.replace('#Expedite a ', '#Expedite a '+sql_join_filter+' ')
+        if sql_filter:
+            position = query.rindex(')) ')
+            query = query[:position]+' and '+sql_filter+query[position:]
+        queries.append(auth+bound(query))
+    return ';'.join(queries)
+
+
 def custom_query(auth, *, page=1, size=5000):
     body = method('GetCustomGridData')
     p = parts(next(b for b in blocks(body) if 'rq=B.RationedQty' in b and 'ExpediteDispatches B' in b))

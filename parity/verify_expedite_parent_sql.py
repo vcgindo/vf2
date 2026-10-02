@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 
-from parity.expedite_grid_queries import parent_query, custom_query
+from parity.expedite_grid_queries import parent_query, custom_query, count_query
 from parity.git_queries import PLAN, PLAN_SHA
 from parity.legacy_isolation import connection, exclusive_replay
 from parity.output_archive import file_sha, iter_rows
@@ -24,6 +24,9 @@ def main():
     target.mkdir(parents=True, exist_ok=False)
     custom = '--custom' in sys.argv[2:]
     filtered = '--filters' in sys.argv[2:]
+    counts = '--counts' in sys.argv[2:]
+    if counts and (not filtered or custom):
+        raise ValueError('Count proof requires --filters and excludes --custom')
     if custom and filtered:
         raise ValueError('Custom source ignores filters; use its existing proof')
     result = dict(status='FAILED', engine_replays=0, persistent_database_writes=False,
@@ -99,14 +102,29 @@ def main():
                 for case in cases:
                     auth = auth_ctes(db, catalogue, case['payload'])
                     variants = (('full', 1, 5000),) if filtered else (('full', 1, 5000), ('page1', 1, 3), ('page2', 2, 3), ('unpaged', None, 5000))
+                    if counts:
+                        variants = (('parent', 1, 5000), ('child', 1, 5000))
                     for label, page, size in variants:
                         key = case['id']+'/'+label
                         query = (custom_query if custom else parent_query)(auth, page=page, size=size)
                         if filtered:
                             query = parent_query(auth, page=page, size=size, sql_filter=compiled[case['id']]['sql_filter'])
+                        if counts:
+                            query = count_query(auth, label, sql_filter=compiled[case['id']]['sql_filter'],
+                                                sql_join_filter=compiled[case['id']]['sql_join_filter'])
                         queries[key] = query
                         try:
                             cursor = db.execute(query)
+                            if counts:
+                                tables = []
+                                while True:
+                                    if cursor.description:
+                                        tables.append(dict(columns=[c[0] for c in cursor.description],
+                                                           rows=[list(r) for r in cursor.fetchall()]))
+                                    if not cursor.nextset():
+                                        break
+                                observations[key] = dict(status='EXECUTED', tables=tables)
+                                continue
                             observations[key] = dict(status='EXECUTED', columns=[c[0] for c in cursor.description],
                                                      rows=[list(r) for r in cursor.fetchall()])
                         except Exception as exc:
@@ -115,6 +133,8 @@ def main():
         (target/'queries.json').write_text(json.dumps(queries, indent=2))
         (target/'requests.json').write_text(json.dumps(cases, indent=2))
         result['status'] = 'CAPTURED_FILTERED_PARENT_SQL_REQUIRES_REVIEW' if filtered else 'CAPTURED_CUSTOM_SQL_REQUIRES_REVIEW' if custom else 'CAPTURED_PARENT_SQL_REQUIRES_REVIEW'
+        if counts:
+            result['status'] = 'CAPTURED_FILTERED_COUNTS_SQL_REQUIRES_REVIEW'
         result['file_hashes'] = {p.name: file_sha(p) for p in target.iterdir() if p.is_file()}
     except Exception as exc:
         result['error'] = dict(type=type(exc).__name__, message=str(exc))

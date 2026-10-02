@@ -294,17 +294,20 @@ def planning_graph(request,payload):
     if str(payload.get('category','')).casefold()=='expedite':
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
-        context=publication()
+        from mta.presentation.expedite_read import expedite_context
+        context=expedite_context()
         try:
-            rows=read_expedite(context.run,output=context.storage_output)
-            pick=read_pick_post(context.run,output=context.storage_output)
+            rows=context.rows
+            pick=read_pick_post(context.run,output=context.native_output)
         except (ExpediteProjection.DoesNotExist,PickPostProjection.DoesNotExist) as exc:
             raise PublicationUnavailable('selected_run_expedite_chart_projection_not_published') from exc
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
         kind=str(payload.get('type','')).casefold()
         tables=expedite_chart_queries(context.output,rows,pick,kind,products=products,locations=locations)
         try:
-            values=expedite_chart_response(tables,kind)
+            # Explicit 3 October presentation exception: parent receiving labels
+            # belong to their own persisted location, not the last critical row.
+            values=expedite_chart_response(tables,kind,receiving_own_label=kind=='parent')
         except ValueError as exc:
             if str(exc)!='Legacy Expedite receiving LogisticsLocation depends on unordered critical rows': raise
             raise PublicationUnavailable('LEG-EXPEDITE-UNORDERED-LABEL: chart response unavailable; no legacy repair applied') from exc

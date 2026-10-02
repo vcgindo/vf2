@@ -47,7 +47,7 @@ def custom_grid(payload):
     products, locations = scope(payload, attributes=context.importer)
     try:
         rows = custom_rows(context.rows, nms=context.nms, products=products,
-                           locations=locations, paging=paging)
+                           locations=locations, paging=paging, stable_producer_order=True)
     except ValueError as exc:
         raise PublicationUnavailable(str(exc)) from exc
     # The deployed custom handler deserializes SQL JSON as an object: numeric
@@ -78,7 +78,10 @@ def expedite_context():
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
     ancillary = terminal_ancillary(run)
+    masters = image_rows(run, 'closing/bpr/BPRMaster')
+    output = {**native, 'ClosingState': [{**native['ClosingState'][0],
+                                        'importer': importer, 'bpr': {'BPRMaster': masters}}]}
     return SimpleNamespace(run=run, rows=rows, importer=importer, standards=standards,
-                           masters=image_rows(run, 'closing/bpr/BPRMaster'),
+                           masters=masters, native_output=native, output=output,
                            nms=image_rows(run, 'closing/consumer_context/NMSAllItems'),
                            remarks=ancillary['BPRReport_RemarkDetails'])

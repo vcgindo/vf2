@@ -61,6 +61,21 @@ F3 must expose the limitation in the delivered report/readback.
 
 ## LEG-EXPEDITE-UNORDERED-LABEL — F3 consumer only
 
+**Approved presentation amendment,3 October2026:** direct human response to
+`call_7ZtUGdijA5CSTdAfXbs6XTwM`: "Approve both presentation exceptions".
+Parent chart receiving labels now use each receiving location's persisted
+LogisticsLocation. The child chart retains its existing transformation. This
+supersedes the parent denial treatment below only; it is an intentional
+presentation difference, not exact legacy parity. Calculated values, quantities,
+permissions, persisted state and F2 remain unchanged.
+
+The same approval permits custom Expedite paging by persisted producer SKUCode,
+WhCode and ParentWhCode, retaining native missing/NULL display fields and duplicate
+bags. Native NMS identities are not filled. Conflicting values for the same
+producer key remain unavailable rather than gaining an invented tie-break.
+This ordering supersedes the custom undefined-NMS-order denial only and is also
+an intentional presentation difference, not exact legacy ordering parity.
+
 The pinned deployed DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`
 implements ExpediteProcessor receiving-location `LogisticsLocation` using the
 last critical-chart model, not the receiving row. Its critical SQL has no ORDER
