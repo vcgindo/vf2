@@ -26,6 +26,84 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Report contention correction — PASS for bounded overlap; stopped for review
+
+4 October 2026: the human in the successor control chat authorizes the bounded
+[report contention correction](REPORT_CONTENTION_CORRECTION_PLAN.md) following
+accepted login/profile checkpoint `fe8ad13`. Active exit: eliminate the retained
+60-second 504s for the four existing grid/count pairs plus ChronicUnavailabilityLoc
+under the same full fixture and resource limits, preserving complete responses,
+scopes and login/profile independence. Diagnose query/request/queue work, apply
+only measured non-semantic corrections, verify repeated overlap and browser
+behavior, deploy on isolated3005, commit/push and stop for review. This narrowly
+supersedes the report-tuning pause below; general Stage2 and Stages3–5 stay paused.
+The contract fixes the permitted boundary, required proof and blocker conditions;
+it is not a second status tracker.
+
+Execution starts from the unchanged `fe8ad13` runtime. Capture individual/pair
+and eight-/nine-request timing, isolated native profiling, DB activity and drain
+before choosing a correction. Successful retained responses remain the oracle;
+timeouts are failures, never expected response bodies. No engine, import,
+permission, capacity or broader page work is opened.
+
+The bounded baseline reproduced six 60-second failures in the nine-request burst;
+the eight-request burst succeeded (maximum33.91s). Native attribution identified
+Chronic Location's repeated lookup scans as dominant:55.14s initially, and105.31s
+in the retained full-bag differential run. Its insertion-ordered lookup correction
+reduces that reconstruction to0.56s, preserving all3340 joined rows and five full
+response cases (broad, restricted, SKU/location filters, empty). The broad response
+matches the retained successful native response byte-for-byte; the candidate full
+request took6.24s. The normal June17 response also matches exactly (empty terminal
+population); adversarial tests cover duplicate/NULL/missing joins and order.
+
+Only the MTA image is changed. Dataset/policy/catalogue hashes, admission, resource
+limits, worker count, gateway/frontend, grants and accepted state remain fixed.
+No SQL/index/schema or calculation change is included. Evidence:
+`D:/freshvcf-build/evidence/3005-report-contention-20261004-001`.
+The original drain monitor included its own CPU overhead; its nine-burst drain
+timeout is retained as an observer failure. A corrected Gunicorn-only CPU plus DB
+activity check confirmed quiescence before candidate proof/deployment. Do not use
+the original aggregate-CPU drain times as precise worker completion times.
+
+Final bounded acceptance: three consecutive nine-request bursts returned all27
+complete expected responses, maximum50.565/53.155/54.376s under the unchanged60s
+gateway limit, without restart/cache clearing between bursts. The eight-request
+burst also passed (45.424s). All six measured candidate phases match the retained
+successful native baseline in complete JSON types, values, fields and ordering.
+Fresh login overlapped each burst (0.865/1.022/1.228s);94 profile reads succeeded,
+maximum2.046s. Worker/DB quiescence was observed between bursts. Sampled candidate
+MTA/gateway maxima were502.98/125.24MiB with no OOM, within unchanged4GiB/1GiB.
+The finite samples are not formal matched-legacy median/p95 acceptance.
+
+Browser RRR/BPR/BTR/DBM rendered5000/50/5000/5000 rows from8063/97097/97299/11158
+totals; local SKU filters worked and both BTR inventory branches rendered.
+Address navigation away from pending BTR reached Profile Details; work drained
+and returning BTR loaded successfully. The SPA profile-link attempt during BTR
+loading stayed on BTR; this observation remains, and immediate SQL cancellation
+is not claimed. Restricted/forged/unauthenticated/normal-actor/action-denial proofs
+pass, and serving grants retain SHA92579e9b054da03d9e170b91ca3037d35c6d7a8ae757179a9a28a6b7658d264a.
+23 focused tests pass. Normal Chronic's terminal empty response is byte-identical;
+populated/duplicate coverage is supplied by fixture and adversarial proofs.
+There is no affected backend Chronic download route.
+
+Unchanged BTR paired reads varied19.16s before to44.89–46.87s afterward. Image
+source comparison proves only insights.py changed; the SQL text and response
+hashes match. Follow-up observed37096 PostgreSQL block reads,10.58MB temporary
+files,26.32 CPU-seconds and9.24 throttle-seconds at the fixed1CPU/1GiB allocation,
+with no lock waits or other active database. Exact EXPLAIN/BUFFERS plans are
+retained. The earlier baseline lacks matching PG counters, so a specific host/
+cache cause is unproven. This remaining SQL/I/O performance limitation is explicit;
+the bounded timeout fix does not certify broader low-latency acceptance.
+
+MTA image761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a
+is deployed. Restart, exact rollback to66ddf0722c4f87cbbfa9291067b991f85d51acfbd0cb604661591788463263c2,
+candidate reapplication and coordinated normal-restoration input checks pass.
+Gateway/frontend, fixture admission and accepted/protected state remain unchanged.
+Consolidated receipt:`3005-report-contention-20261004-001/validation.json` under
+the evidence root above. Operational commands are in the dataset handoff.
+The delivery commit is identified by the external `delivery.json` receipt, avoiding
+a self-referential commit hash. General Stage2 performance and Stages3–5 remain open.
+
 ### Login/profile catalogue delivery — PASS; stopped for review
 
 4 October 2026: direct human authorization in command-centre turn

@@ -4,6 +4,56 @@ Updated 4 October 2026. Operational reference; `docs/MIGRATION.md` is the sole s
 
 ## Current login/profile delivery and operation
 
+### 4 October report contention successor
+
+The bounded report correction is deployed on3005. Only Chronic Location's repeated
+Python lookup scans changed to insertion-ordered lookup tables; full rows, duplicate
+multiplicity, NULL behavior and order are preserved. No SQL/schema/index, engine,
+grant or dataset change. Three consecutive nine-request bursts passed with full
+response equality (max50.565/53.155/54.376s); the eight-request burst also passed.
+All four browser grids/filter journeys, both BTR branches, restricted scopes,
+denials, restart, drain and image rollback checks are retained in
+`D:/freshvcf-build/evidence/3005-report-contention-20261004-001/validation.json`.
+
+Current MTA image is
+`sha256:761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a`.
+Gateway/frontend identities below are unchanged. The older MTA image mentioned
+below is now the tested rollback target. Fixture policy image_sha256 remains its
+original serving provenance; deployment image is separately pinned in deployment.json.
+The policy/catalogue/admission bytes remain identical.
+
+From `F:/freshvcf`, verify current state and normal-restoration inputs:
+
+```powershell
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_report_contention_runtime.py check
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_identity_catalogue.py check --runtime-checkpoint D:/freshvcf-build/evidence/3005-report-contention-20261004-001/after.json
+```
+
+For an expressly requested normal-publication restoration, use the second command
+with `restore` instead of `check`. It closes ingress, uses the existing fixture
+account disable mechanism and restores MTA/catalogue together. No normal switch
+was performed by this correction. Earlier commands without the successor checkpoint
+intentionally reject the changed MTA image.
+
+Tested MTA-only rollback/reapply (gateway/catalogue remain selected to the fixture):
+
+```powershell
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml -f D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002/compose.fixture.json -f D:/freshvcf-build/evidence/3005-report-contention-20261004-001/compose.rollback.json up -d --no-deps --no-build mta
+```
+
+Replace `compose.rollback.json` with `compose.candidate.json` to reapply the current
+candidate, then run the check command above. The prepared operational tool also
+records a guarded first rollback receipt; existing receipts are never overwritten.
+
+Remaining limitations: SQL/I/O-heavy BTR paired samples varied19.16–46.87s despite
+unchanged SQL and full response equality. Retained PostgreSQL plans/counters show
+data/temp I/O and fixed CPU throttling, but matched baseline PG counters are absent;
+no specific host/cache cause or general latency acceptance is claimed. Navigating
+away from pending BTR via the address bar worked and drained; its SPA profile-link
+attempt remained on the loading page. Immediate database cancellation is unproven.
+Broader Stage2 and Stages3–5 remain paused. The following login checkpoint details
+remain historical evidence, superseded only for MTA image and report timeout status.
+
 The bounded login/profile correction following `612a629` is deployed. The gateway
 consumes the same registered MTA catalogue locally, pinned to the active fixture
 policy or retained normal-publication hierarchy binding. Live grants, roles,

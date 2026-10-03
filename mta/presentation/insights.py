@@ -74,16 +74,31 @@ def availability_ageing(rows, snapshots, minimum_age, *, predicate=None):
 
 def joined_rows(btr, dbm, kind, *, filter_owners=False):
     table = 'ChronicUnavalabilityData' if kind.startswith('chronic') else 'DBMNormSuggestionsData'
+    chronic_loc = None
+    if kind == 'chronic-loc':
+        chronic_loc = dict(
+            skus=_native_index(btr['SkuAttributeData'], lambda r: r['SKUCode']),
+            locations=_native_index(btr['LocationAttributeData'], lambda r: r['WHCode']),
+            pairs=_native_index(btr['SkuLocAttributeData'], _key),
+            descriptions=_native_index(btr['SiteDescriptionTbl'], lambda r: r['WHCode']))
     result = []
     for row in btr[table]:
         sku, loc = _key(row)
-        populations = [
-            [r for r in btr['SkuAttributeData'] if r['SKUCode'] == sku],
-            [r for r in btr['LocationAttributeData'] if r['WHCode'] == loc],
-            [r for r in btr['SkuLocAttributeData'] if _key(r) == (sku, loc)] or [{}],
-        ]
+        if chronic_loc is not None:
+            populations = [
+                chronic_loc['skus'].get(sku, []),
+                chronic_loc['locations'].get(loc, []),
+                chronic_loc['pairs'].get((sku, loc), []) or [{}],
+            ]
+        else:
+            populations = [
+                [r for r in btr['SkuAttributeData'] if r['SKUCode'] == sku],
+                [r for r in btr['LocationAttributeData'] if r['WHCode'] == loc],
+                [r for r in btr['SkuLocAttributeData'] if _key(r) == (sku, loc)] or [{}],
+            ]
         if kind.endswith('loc'):
-            populations.append([r for r in btr['SiteDescriptionTbl'] if r['WHCode'] == loc])
+            populations.append(chronic_loc['descriptions'].get(loc, []) if chronic_loc is not None
+                               else [r for r in btr['SiteDescriptionTbl'] if r['WHCode'] == loc])
         elif kind.endswith('sku'):
             populations.append([r for r in btr['SKUDescriptionTbl'] if r['SKUCode'] == sku])
         else:

@@ -90,8 +90,19 @@ def prepare():
     print('Prepared fixture and normal catalogue configuration; no serving mutation')
 
 
-def check_current():
+def check_current(runtime_checkpoint=None):
     after = saved('after.json')
+    if runtime_checkpoint is not None:
+        successor = json.loads(Path(runtime_checkpoint).read_text())
+        # A later read-only report image may supersede this checkpoint, while
+        # every dataset/catalogue, resource, command and protected identity stays
+        # fixed. Never silently accept an unrelated runtime or rewrite evidence.
+        previous_runtime = dict(after['mta'])
+        previous_runtime['image'] = successor['mta']['image']
+        if (successor['mta'] != previous_runtime or successor['protected'] != after['protected']
+                or successor['ready'] != after['ready']):
+            raise ValueError('Successor checkpoint changes more than the MTA image')
+        after = successor
     if window.protected() != after['protected'] or window.runtime(window.inspect(window.MTA)) != after['mta']:
         raise ValueError('Runtime or protected state changed after catalogue deployment')
     if live_selection() != saved('before.json')['selection']:
@@ -144,8 +155,8 @@ def deploy():
     window.atomic(EVIDENCE / 'after.json', after)
 
 
-def restore():
-    check_current()
+def restore(runtime_checkpoint=None):
+    check_current(runtime_checkpoint)
     before = saved('before.json')
     target = json.loads((window.DEST / 'fixture-window-010/window-before.json').read_text())
     destination = EVIDENCE / 'normal-restoration'
@@ -181,5 +192,12 @@ def restore():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=('prepare', 'deploy', 'check', 'restore'))
+    parser.add_argument('--runtime-checkpoint', type=Path,
+        help='Explicit later MTA-image-only checkpoint; retained catalogue inputs must be identical')
     args = parser.parse_args()
-    {'prepare': prepare, 'deploy': deploy, 'check': check_current, 'restore': restore}[args.operation]()
+    if args.runtime_checkpoint and args.operation not in ('check', 'restore'):
+        parser.error('--runtime-checkpoint only applies to check/restore')
+    if args.operation in ('check', 'restore'):
+        {'check': check_current, 'restore': restore}[args.operation](args.runtime_checkpoint)
+    else:
+        {'prepare': prepare, 'deploy': deploy}[args.operation]()
