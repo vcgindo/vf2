@@ -39,7 +39,8 @@ class RrrSqlTest(unittest.TestCase):
         self.assertEqual(queries[0][0],queries[1][0])
         before,after=(items[1].args for items in queries)
         self.assertEqual(before[0].count(' OFFSET 0'),5)
-        self.assertEqual(before[0].replace(' OFFSET 0',''),after[0])
+        expected=before[0].replace(' OFFSET 0','').replace(' AS MATERIALIZED (',' AS (')
+        self.assertEqual(expected,after[0].replace(' AS NOT MATERIALIZED (',' AS ('))
         self.assertEqual(before[1],after[1])
 
     def test_like_patterns_match_retained_evaluator(self):

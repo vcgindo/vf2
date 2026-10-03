@@ -18,6 +18,7 @@ import { UIColumnConfigName, UserUIColumnConfigName } from "../../../../../helpe
 import { useSelector } from "react-redux"
 import { RootState } from "../../../../../redux/store/store"
 import { rrrFailureMessage } from './rrrFailure';
+import { settleRequestPair } from "../../requestPair";
 
  
   
@@ -225,19 +226,25 @@ const useRRR =()=>{
     const onApplyFilter = async(filter:any)=>{
         setCurrFilter(filter);
         try {
-          await getDataCount(filter);
           notifyLoader("Loading Grid Data");
-          const rowData = await getRRRData({
-            filters: filter,
-            paginationParameter: {
-              pageNumber: 1,
-              recordsPerPage: parseInt(
-                userPageSize || RRR_ROWS_PER_PAGE || "100"
-              ),
-            },
-          });
+          const { count: rowDataCount, grid: rowData } = await settleRequestPair(
+            () => getRRRDataCount({
+              filters: filter,
+              paginationParameter: { pageNumber: 1, recordsPerPage: rowsPerPage },
+            }),
+            () => getRRRData({
+              filters: filter,
+              paginationParameter: {
+                pageNumber: 1,
+                recordsPerPage: parseInt(
+                  userPageSize || RRR_ROWS_PER_PAGE || "100"
+                ),
+              },
+            })
+          );
 
           // setRecordCount(rowData.data.recordCount)
+          setRRRDataCount(rowDataCount?.data?.recordCount)
           await getRRRUiConfig();
           setCurrFilter(filter);
           setCurrentPage(1);

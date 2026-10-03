@@ -10,7 +10,7 @@ and bounded four-page availability correction are complete for the scope below:
 RRR/BPR/BTR/DBM populated browser grids, counts, local filters and restricted reads
 on3005. Engines, accepted F1/F2 state, replay, authentication permissions, other
 pages and Stages3–5 were not changed. The isolated fixture remains serving after
-window008's successful admission, security and protected-resource checks.
+window010's successful admission, security and protected-resource checks.
 
 The previous 4,286-line tracker is preserved byte-for-byte in [the historical snapshot](archive/MIGRATION_2026-10-03_2d0cfde.md), SHA256 `a913419e34a3318d7ca09f11b163295c9d695b55d99e3060e87c23fadc84242b`. It contains provenance and exact earlier approvals, **not active instructions or a second queue**. Do not load the whole archive routinely; consult the relevant passage only when an unresolved contract requires it.
 
@@ -25,6 +25,64 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 `execute_day` remains the production day boundary. Operational state, histories, actions and consumer projections are typed PostgreSQL rows linked to run identity, preserving duplicates and source order. JSON metadata or trace blobs do not replace operational state. MSSQL and PostgreSQL physical schemas must not be assumed identical.
 
 ## Programme status
+
+### Four-page latency correction — active
+
+Direct human follow-up authorizes inspecting contracts and data-fetch architecture
+and reducing latency on the existing RRR/BPR/BTR/DBM fixture paths. Profile the
+current full page-size requests, reuse earlier selective-read work, and correct
+measured redundant work at the relational/request boundary. Preserve responses,
+scope/filter semantics, duplicate bags/order, immutable dataset, admission and
+the4GiB/two-worker/60-second limits. No engines/F1/F2/authentication/permission
+changes, other-page work or dataset reload. Required proof: complete affected
+response comparisons, focused regression checks, authenticated concurrent API
+and browser timings, and preserved fixture/normal restoration. Retain window008
+as the rollback checkpoint; record measured improvements and remaining limits.
+
+Measured follow-up within this same item: the retained RRR and DBM frontend hooks
+serialize count then grid on filter application (RRR browser12.76s versus concurrent
+gateway6.7s). BPR and BTR already start both requests concurrently and remain unchanged.
+Prepare only concurrent existing count/grid reads in the RRR and DBM hooks,
+retaining endpoints, payloads, page sizes, error cleanup and UI configuration.
+Prove concurrency and rejection handling with deferred-request tests. The
+protected frontend service is not replaced by the MTA-only fixture window;
+any frontend runtime replacement must respect the separate serving approval.
+
+Backend checkpoint: window010 repeats the populated four-page browser/filter,
+restricted-scope and denial proofs with the same frozen dataset. Fixture reads
+now use bounded BPR SQL, pair-filtered DBM inputs, narrower BTR metadata/late daily
+column fetching, inline RRR CTEs and a transaction-local measured count plan.
+The index roster retains the prior seven and adds nine measured access paths;
+raw keys and stored facts are unchanged. Full first-page response comparisons
+pass; RRR preserves full row bags and declared sort-key groups, with physical
+permutations inside undeclared exact ties (no invented tie-break).
+
+Three concurrent gateway observations give median complete grid/count wall times
+RRR6.70s, BPR7.83s, BTR16.75s and DBM4.21s. Existing-frontend browser observations
+are12.76s,16.84s,16.76s and3.20s respectively. These are diagnostic observations,
+not the required matched legacy performance protocol. BTR remains slow; minimum
+latency and production-scale normal-run performance are not accepted. Evidence:
+`latency-001/response-comparison.json` and `fixture-window-010` below the dataset
+evidence root. Window009's unsuccessful timing trial restored normal serving;
+window010 retains fixture serving and its exact normal restoration command.
+
+Normalization finding: the original synthetic-run RRR serving SQL also used
+`lower(rtrim(...))`; relational state was keyed by run/image/source ordinal,
+without dedicated canonical SKU/location lookup columns. F1/F2 correctness proof
+did not certify a scalable consumer lookup design. The present expression indexes
+are an isolated compatibility correction, not a schema-wide canonical-key
+migration or evidence that normal production access paths are now optimized.
+
+Client candidate `freshvcf-preview-frontend:latency-20261003` built successfully;
+four deferred-request Jest tests passed. It is not deployed: separate frontend
+serving approval has been requested. Current frontend rollback image is
+`sha256:a37599db5558f52af99753ece785a0254aedc64a832906b3f99533d6983f366a`.
+The final focused backend run passed16 of17 tests (one opt-in PostgreSQL case
+skipped there and separately passed against PostgreSQL). A unit-route run inside
+the serving fixture environment failed because its mocked actor was denied;
+the clean local test environment passed. Preserve both receipts. The next exit
+is frontend runtime proof if approved, then an honest remaining performance
+disposition; neither this checkpoint nor fixture availability closes Stage2.
 
 ### Four-page visible-data delivery — PASS; fixture serving on3005
 

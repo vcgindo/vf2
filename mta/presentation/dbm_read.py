@@ -49,12 +49,12 @@ def dbm_context(*, history=False, pair=None, payload=None):
         return SimpleNamespace(run=run,business_date=run.business_date,dbm=state,output={'ClosingState':[{'importer':importer}]})
     if run.commands.exists():
         state, _ = command_state(run, _section(run))
+    elif not history and getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.dbm_fixture_read import grid_state
+        state = grid_state(run, payload)
     else:
         tables = HISTORY_TABLES if history else GRID_TABLES
         state = {name: image_rows(run, 'closing/dbm/' + name) for name in tables}
-        if not history and getattr(run,'kind',None)=='LEGACY_UI_FIXTURE':
-            from mta.presentation.fixture import grid_subjects
-            state=grid_subjects(state,payload)
     # History authorization is Importer-owned; grid authorization is DBM-owned.
     importer = {name: image_rows(run, 'closing/importer/' + name)
                 for name in SCOPE_TABLES} if history else None

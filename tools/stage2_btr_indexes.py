@@ -1,4 +1,7 @@
-"""Exact normalized BTR join indexes on the owned, immutable VM fixture only."""
+"""Exact normalized report join indexes on the owned, immutable VM fixture only.
+
+The original BTR index names remain stable; RRR/BPR reuse the same join keys.
+"""
 import os
 
 from tools.stage2_vm_load import DATA, DB, IDENTITY
@@ -13,6 +16,8 @@ TABLES = (
     ('btr_skulocattributedata', 'LocCode'),
     ('importer_skulocstandardattributes', 'WhCode'),
     ('bpr_vf_rationedreqreport', 'WhCode'),
+    ('importer_skulocattributedata', 'LocCode'),
+    ('bpr_bpr_table', 'WhCode'),
 )
 
 
@@ -35,21 +40,32 @@ def main():
             raise ValueError('Wrong source identity')
         cursor.execute("SET maintenance_work_mem='64MB'")
         cursor.execute('SET max_parallel_maintenance_workers=0')
-        for table, location in TABLES:
-            name = 'stage2_btr_join_' + table
+        # Retain the seven existing plain indexes. Plans use those for wide
+        # display fetches and the BPR plain index for its final 50-key rejoin.
+        # Cover only relations observed in count/key-page index-only scans.
+        specs = [(table, location, False) for table, location in TABLES
+                 if table != 'importer_skulocattributedata']
+        specs += [(table, location, True) for table, location in TABLES
+                  if table != 'bpr_bpr_table']
+        for table, location, covering in specs:
+            name = ('stage2_report_cover_' if covering else 'stage2_btr_join_') + table
             columns = ['vf_run_id', 'vf_image', key('"SKUCode"'), key('"' + location + '"')]
+            include = ['vf_ordinal', '"SKUCode"', '"' + location + '"']
+            if table == 'bpr_vf_rationedreqreport':
+                include.append('"ParentWhCode"')
+            suffix = ' INCLUDE (' + ','.join(include) + ')' if covering else ''
             # Compare PostgreSQL's own canonical definition, including expression
             # casts, using a transactional reference index on an empty temp table.
             with connection.cursor() as check:
                 check.execute('CREATE TEMP TABLE btr_index_shape (LIKE mta_state."' + table + '")')
-                check.execute('CREATE INDEX btr_index_shape_check ON btr_index_shape (' + ','.join(columns) + ')')
+                check.execute('CREATE INDEX btr_index_shape_check ON btr_index_shape (' + ','.join(columns) + ')' + suffix)
                 check.execute("SELECT pg_get_indexdef('btr_index_shape_check'::regclass)")
                 expected = 'CREATE INDEX ' + name + ' ON mta_state.' + table + ' USING ' + check.fetchone()[0].split(' USING ', 1)[1]
                 check.execute('DROP TABLE btr_index_shape')
             cursor.execute('SELECT pg_get_indexdef(indexrelid),indisvalid,indisready FROM pg_index WHERE indexrelid=to_regclass(%s)', ['mta_state.' + name])
             prior = cursor.fetchone()
             if not prior:
-                cursor.execute('CREATE INDEX "' + name + '" ON mta_state."' + table + '" (' + ','.join(columns) + ')')
+                cursor.execute('CREATE INDEX "' + name + '" ON mta_state."' + table + '" (' + ','.join(columns) + ')' + suffix)
             cursor.execute('SELECT pg_get_indexdef(indexrelid),indisvalid,indisready FROM pg_index WHERE indexrelid=to_regclass(%s)', ['mta_state.' + name])
             actual = cursor.fetchone()
             if actual != (expected, True, True):
@@ -61,7 +77,7 @@ def main():
         raise ValueError('Fixture freeze identity changed')
     atomic(DATA / 'btr-indexes.json', dict(status='PASS', identity=IDENTITY,
         manifest_sha256=manifest_sha, freeze_digest=before, indexes=receipts,
-        row_mutations=0, reason='Retained BTR concurrent count/grid timeout and full-scan plan'))
+        row_mutations=0, reason='Measured report join latency; exact fixture-only normalized keys'))
 
 
 if __name__ == '__main__':

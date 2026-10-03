@@ -154,8 +154,10 @@ def read_rrr(run, payload, *, paging, count=False):
     if not products or not locations or not bands: return 0 if count else []
 
     ctes, params = [], []
+    fixture = getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE'
     def add(name, query, values, *, materialized=False):
-        ctes.append(name + (' AS MATERIALIZED (' if materialized else ' AS (') + query + ')'); params.extend(values)
+        mode = ' AS NOT MATERIALIZED (' if fixture else (' AS MATERIALIZED (' if materialized else ' AS (')
+        ctes.append(name + mode + query + ')'); params.extend(values)
     for alias, path in (('R','reports/bpr/vf_RationedReqReport'),
             ('S','closing/dbm/SKULocStandardAttributes'),('B','closing/importer/SkuLocAttributeData')):
         query, values = image_query(run,path); add(alias,query,values)

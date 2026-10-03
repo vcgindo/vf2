@@ -62,5 +62,47 @@ def availability():
                 pages=['RRR', 'BPR', 'BTR', 'DBM'], observations=observations)
 
 
+def latency():
+    """Real gateway wall times at unchanged UI page sizes; no profiler/cache."""
+    from concurrent.futures import ThreadPoolExecutor
+    credentials = json.load(open('/run/secrets/stage2-fixture-accounts.json'))
+    authenticated = login(credentials['broad'])
+    observations = []
+    for repetition in range(3):
+        for page, grid, count, size in (
+            ('RRR', 'RRRData', 'RRRDataCount', 5000),
+            ('BPR', 'GetBPRData', 'GetBPRDataCount', 50),
+            ('BTR', 'GetBTRData', 'GetBTRDataCount', 5000),
+            ('DBM', 'DBMData', 'DBMDataCount', 5000),
+        ):
+            payload = dict(paginationParameter=dict(pageNumber=1, recordsPerPage=size),
+                           name='both', filters={})
+            def read(route):
+                session = requests.Session()
+                session.headers.update(authenticated.headers)
+                session.cookies.update(authenticated.cookies)
+                started = time.monotonic()
+                response = session.post('http://frontend/api/mta/' + route, json=payload, timeout=65)
+                elapsed = time.monotonic() - started
+                assert response.status_code == 200, (route, response.status_code)
+                body = response.json()
+                data = body.get('data')
+                if isinstance(data, str):
+                    data = json.loads(data)
+                rows = ({key: len(data[key]) for key in ('tech','eco')} if page == 'BTR' else len(data)) if route == grid else None
+                return dict(route=route, seconds=round(elapsed,3), status=response.status_code,
+                    bytes=len(response.content), sha256=hashlib.sha256(response.content).hexdigest(),
+                    rows=rows, counts=data if page == 'BTR' and route == count else body.get('recordCount'))
+            started = time.monotonic()
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(executor.map(read, (grid, count)))
+            observations.append(dict(page=page, repetition=repetition + 1, page_size=size,
+                concurrent_wall_seconds=round(time.monotonic()-started,3), requests=results))
+    return dict(status='PASS', actor='broad', concurrency=2, profiler=False,
+                acceptance='Observed gateway timings, not a matched legacy performance benchmark',
+                observations=observations)
+
+
 if __name__ == '__main__':
-    print(json.dumps(availability()))
+    import sys
+    print(json.dumps(latency() if sys.argv[1:] == ['latency'] else availability()))

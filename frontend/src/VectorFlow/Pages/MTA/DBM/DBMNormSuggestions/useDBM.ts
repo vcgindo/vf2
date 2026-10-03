@@ -22,6 +22,7 @@ import useGetLastRunData from "../../../../../hooks/useGetLastRunData"
 import { UIColumnConfigName, UserUIColumnConfigName } from "../../../../../helpers/Enum"
 import { useGetUIConfigData } from "../../../../Services/MTA/Common/UIConfig"
 import { useGetState } from "../../../../Services/MTA/Common/UserUIConfig"
+import { settleRequestPair } from "../../requestPair"
 
 const useDBM =()=>{
     //const [DBMApplySelectedNormData,setDBMApplySelectedNormData] = useState<any[]>([])
@@ -379,9 +380,30 @@ const useDBM =()=>{
     const handleApplyFilter = async(filter:any)=>{
         setCurrentPage(1)
         setCurrentFilter(filter)
-        await getDataCount(filter)
-        await getDBMRowData(filter,1)
-        getDBMUiConfig()
+        const loaderId = notifyLoader("Loading Grid Data")
+        try {
+            const { count, grid } = await settleRequestPair(
+                () => getDBMDataCount({
+                    filters: filter,
+                    paginationParameter: { pageNumber: 1, recordsPerPage: recordsPerPage }
+                }),
+                () => getDBMData({
+                    filters: filter,
+                    paginationParameter: {
+                        pageNumber: 1,
+                        recordsPerPage: userPageSize || recordsPerPage
+                    }
+                })
+            )
+            setDBMDataCount(count?.data?.recordCount)
+            toast.dismiss()
+            notifySuccess("Data Loaded Successfully")
+            setDBMRowData(grid?.data?.data || [])
+            getDBMUiConfig()
+        } catch (error) {
+            toast.dismiss(loaderId)
+            throw error
+        }
     }
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{

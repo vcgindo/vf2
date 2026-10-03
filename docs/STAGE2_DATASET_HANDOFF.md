@@ -6,7 +6,7 @@
 
 Current dataset: `stage2-vm-dataset-20261003-002`. Source preservation, staging,
 consumer mapping, explicit fixture admission and **four-page visible availability
-are complete**. Window008 proved RRR/BPR/BTR/DBM populated browser grids, local
+are complete**. Window010 re-proved RRR/BPR/BTR/DBM populated browser grids, local
 filters, restricted reads and BTR concurrency. The April7 fixture is serving on
 3005 for human inspection. This certifies only the four-page availability scope;
 whole-page behavior, remaining reports and later-stage acceptance remain open.
@@ -217,7 +217,7 @@ limits, not missing synthetic replacements or permission bypasses. Source data
 is preserved for later authorized integration. This handoff does not certify
 API value parity, whole-page behavior, performance parity or Stages3–5.
 
-## Four-page availability and current operation — window008 PASS
+## Four-page availability — retained window008 proof
 
 Window008 uses the same immutable April7 dataset. Seven fixture-only indexes
 match the existing case-insensitive, trailing-space-normalized BTR joins, with
@@ -255,7 +255,7 @@ preview services,3002/3003/3004 and accepted F1/F2 state remain unchanged.
 Exact normalJune17 restoration (also disables fixture actors):
 
 ```powershell
-D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 008
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 010
 ```
 
 The existing bounded `serve` window restores automatically on failure/interruption
@@ -270,3 +270,43 @@ review passed. Full export/layout/history/filter semantics, matched legacy
 performance, remaining pages and workflows are not certified by availability.
 The original `dataset-validation.json` remains historical; current availability
 and scope limits are consolidated in `visible-availability-validation.json`.
+
+## Current latency checkpoint — window010
+
+The same sealed dataset is now served by MTA image
+`sha256:66ddf0722c4f87cbbfa9291067b991f85d51acfbd0cb604661591788463263c2`.
+`fixture-window-010/serving-handoff.json` supersedes window008's runtime identity.
+Only MTA changed; all four browser grids/filters, restricted reads and denied
+actions were re-proved. Window009 retained its slower diagnostic results and
+restored normal serving before the next bounded trial.
+
+The fixture uses bounded BPR SQL, scoped DBM pair reads, inline RRR CTEs and BTR
+page keys before wide daily columns. Count queries use transaction-local planner
+settings with success/failure restoration proof. The repeatable index utility
+now validates16 exact definitions (the original seven plus nine additions);
+unused additions from this attempt were removed. No raw key/value rewrite,
+deduplication, engine change, reload or general schema migration occurred.
+
+`latency-001/response-comparison.json` records complete first-page results.
+BPR/BTR/DBM and all counts match exactly. RRR's complete row bags and declared
+sort-group sequence match; physical order within exact undeclared ties differs.
+This is not byte-for-byte ordered equality or permission to add a tie-break.
+
+`fixture-window-010/gateway-latency.json` records three grid/count pairs per page:
+median total wall time RRR6.70s, BPR7.83s, BTR16.75s and DBM4.21s. Browser timings
+with the existing frontend are12.76s,16.84s,16.76s and3.20s. BTR's API probe requests
+5000 rows in each inventory branch and returns33.7MB. The browser observation used
+the default On Hand view. Peak MTA memory was1,896,857,600 bytes under4GiB, with no
+OOM events. These observations establish neither minimum latency nor performance
+parity with3002; the formal matched benchmark remains unproved.
+
+The frontend candidate changes only RRR/DBM's serial filter-apply count/grid reads
+to concurrent requests. BPR/BTR already issue them concurrently. This candidate
+is separate from the serving MTA change; its build/test and deployment state are
+recorded in the sole tracker, `docs/MIGRATION.md`.
+
+Original synthetic-run serving queries also normalized strings during reads;
+there were no separate canonical SKU/location lookup columns. Fixture expression
+indexes preserve the legacy matching contract, but do not complete a general
+canonical-key migration or certify normal-run performance. Accepted F1/F2 state
+and calculation evidence remain untouched.

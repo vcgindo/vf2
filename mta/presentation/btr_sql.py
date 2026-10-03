@@ -13,6 +13,7 @@ from mta.presentation.context import PublicationUnavailable, permission_catalogu
 from mta.presentation.rrr_sql import Filters, equal, key, like_pattern
 from mta.presentation.selective import image_query, image_rows
 from mta.runtime.relational_state import CATALOG, quote
+from mta.presentation.fixture_count_plan import count_cursor
 
 
 class BtrFilters(Filters):
@@ -135,7 +136,16 @@ def read_btr(run, payload, *, paging, count=False, export=False):
         image('sd', 'closing/importer/SKUDescriptionTbl')
         image('ld', 'closing/importer/SiteDescriptionTbl')
         categories = image_rows(run, 'closing/consumer_context/CategoryColDescription')
-        standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
+        if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+            # Only category identities are consumed here. The immutable input is
+            # already bound by admission; do not transfer/hash 97k full records.
+            query, bound = image_query(run, 'closing/dbm/SKULocStandardAttributes')
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT "Category" FROM (' + query + ') categories '
+                               'GROUP BY "Category" ORDER BY min(vf_ordinal)', bound)
+                standards = [{'Category': row[0]} for row in cursor.fetchall()]
+        else:
+            standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
         aliases = [(value, btr.category_alias_text(value, categories))
                    for value in dict.fromkeys(row['Category'] for row in standards)]
         add('cd', 'VALUES ' + ','.join(['(%s::text,%s::text)'] * len(aliases)) if aliases else
@@ -195,12 +205,38 @@ def read_btr(run, payload, *, paging, count=False, export=False):
                 ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1') + \
                 (auth + ' WHERE ' + where if export else '') + ' ORDER BY ' + order + ('' if export else ' LIMIT %s')
             values.extend(filters.children + (filters.params if export else [paging[1]]))
+            if not export and getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+                # Sort the narrow final join bag before fetching its daily
+                # values. All joins, selected-key multiplicity and both LIMITs
+                # remain unchanged; source ordinals identify rows, not tie-breaks.
+                daily = set(columns) | {'C' + column for column in columns}
+                narrow = [(alias, value) for alias, value in projection if alias not in daily]
+                final_from = (' FROM selected t JOIN A ON ' + equal('t."SKUCode"', 'A."SKUCode"') +
+                    ' AND ' + equal('t."WhCode"', 'A."WhCode"')) + joins + \
+                    ' LEFT JOIN sd ON ' + equal('A."SKUCode"', 'sd."SKUCode"') + \
+                    ' LEFT JOIN ld ON ' + equal('A."WhCode"', 'ld."WHCode"') + \
+                    ' LEFT JOIN ld pld ON ' + equal('E."ParentWhCode"', 'pld."WHCode"') + \
+                    ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1')
+                local_ctes.append('final_keys AS (SELECT A.vf_ordinal AS ao,btd.vf_ordinal AS bo,' +
+                    key('A."SKUCode"') + ' AS sort_sku,' + key('A."WhCode"') + ' AS sort_loc,' +
+                    ','.join(value + ' AS ' + quote(alias) for alias, value in narrow) +
+                    final_from + ' ORDER BY ' + order + ' LIMIT %s)')
+                fetched = ','.join(quote(column) for column in columns)
+                query = ('WITH ' + ','.join(local_ctes) + ' SELECT ' + ','.join(
+                    (('AD.' + quote(alias)) if alias in columns else
+                     ('TD.' + quote(alias[1:])) if alias in daily else 'K.' + quote(alias)) +
+                    ' AS ' + quote(alias) for alias, _ in projection) + \
+                    ' FROM final_keys K JOIN LATERAL (SELECT ' + fetched +
+                    ' FROM A WHERE vf_ordinal=K.ao OFFSET 0) AD ON TRUE' + \
+                    ' LEFT JOIN LATERAL (SELECT ' + fetched +
+                    ' FROM btd WHERE vf_ordinal=K.bo OFFSET 0) TD ON TRUE' + \
+                    ' ORDER BY K.sort_sku NULLS FIRST,K.sort_loc NULLS FIRST')
             if export:
                 return iter_rows(query, values), dates
-        # The isolated fixture has indexes for these exact normalized join
-        # expressions. Let PostgreSQL use bounded index lookups for the key page
-        # and its display rejoin; disabling nested loops forces wide full scans.
-        with connection.cursor() as cursor:
+        # Grid lookups retain their native planner choices. The measured full
+        # count uses a serial merge plan over narrow covering indexes, confined
+        # to its transaction and restored even inside an outer transaction.
+        with count_cursor(count and getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE') as cursor:
             cursor.execute(query, values)
             if count:
                 result['TechCount' if name == 'tech' else 'EcoCount'] = str(cursor.fetchone()[0])

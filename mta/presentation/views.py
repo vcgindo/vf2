@@ -284,6 +284,14 @@ def bpr_data(request, payload, *, count=False):
         if (not isinstance(paging, dict) or any(type(paging.get(k)) is not int or paging[k] < 1
                 for k in ('pageNumber', 'recordsPerPage'))):
             raise ValueError('positive_BPR_pagination_required')
+    from mta.presentation.fixture import enabled as fixture_enabled
+    if fixture_enabled():
+        from mta.presentation.bpr_sql import read_bpr
+        rows = read_bpr(selected_run(), payload, count=count,
+            paging=None if count else (paging['pageNumber'], paging['recordsPerPage']))
+        if count:
+            return envelope(record_count=str(rows))
+        return envelope(data=[response_row(row) for row in rows])
     model, rows = bpr_selected(payload, mode='count' if count else 'grid')
     if count:
         return envelope(record_count=str(len(rows)))
