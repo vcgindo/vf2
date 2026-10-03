@@ -26,6 +26,71 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### BTR query/access-path performance — consolidated blocker; accepted runtime retained
+
+4 October2026: the human in the successor control chat authorizes the next bounded
+[BTR performance intervention](BTR_READ_PERFORMANCE_PLAN.md) from accepted timeout
+checkpoint `7b40ba6`. Reduce evidenced BTR grid/count SQL work using query/index
+corrections, proving both branches, complete output contracts, normal-publication
+compatibility and comparable before/after latency. Preserve the full fixture,
+resource limits, identity isolation, F1/F2 and protected services. Deploy on3005,
+commit/push and stop with consolidated proof or an exact blocker. No storage/read-
+model redesign, unrelated report/UI work or broader Stage2–5 continuation.
+This narrowly supersedes the latency pause below; the linked contract specifies
+the acceptance boundary, not a second status queue.
+The prior bounded goal is closed; the new goal contains only this contract.
+Human clarification: the full VM dataset and equivalent canonical legacy versus
+Fresh application journeys govern BTR performance acceptance. Fresh before/after
+is diagnostic; normal F1/F2 publication checks are functional regressions only,
+not a scale benchmark or renewed engine-parity exercise. Preserve the current
+candidate and proof; apply the amended plan's matched-performance gate, or record
+the exact unavailable comparison as UNPROVED without weakening it.
+Human resource amendment on4 October2026 authorizes hardware-informed matched
+CPU/memory budgets for exclusively owned isolated benchmark processes only, as
+detailed in the BTR plan. Verify effective allocations and host headroom; alternate
+legacy/Fresh runs under comparable database/application budgets. Keep serving3005,
+shared infrastructure and protected services unchanged. Report matched-resource
+parity separately from existing fixed-limit deployment behavior. The rejected
+key-prefix candidate's correctness failures remain evidence, not a speedup claim.
+No query/index correction is accepted. The unfiltered key-prefix candidate matched
+eight complete heavy-fixture grid/count responses (broad/restricted, first/later
+pages) and104 independent normal-publication checks, with14 unchanged declared
+legacy flaws. It nevertheless failed10/30 adversarial **actual-reader** cases:
+nine normal and one fixture case changed tied row selection/values. Example:
+page1/size1 returned D90=11 before and10 after. A source-order-preserving semijoin
+variant also failed its SQL edge check. Both are rejected; source was restored to
+`7b40ba6`, and no candidate image, schema/index or data mutation was deployed.
+Narrow normalized-key materialization was slower (count approximately3.52/4.96s
+to9.48/10.17s; grid exceeded55s). A subsequent duplicate-multiplicity count
+aggregation returned the same97299 counts but regressed1.12/1.88s to3.42/3.44s.
+These are bounded diagnostics, not comparable median/p95 acceptance.
+
+The initial stopped-legacy finding is **resolved**: after the human started it,
+3002 and5153 returned HTTP200; the pinned canonical DLL returned both BTR counts
+97299 from the retained VM clones. Do not repeat the old availability blocker.
+The matched-resource boundary remains unresolved: the Windows SQL instance hosts
+61 other user databases; Fresh PostgreSQL serves3005 from its existing data
+directory. Neither process may be resized under the amendment. An independently
+enforced comparison needs at least an owned SQL instance and retained-data restore;
+a Fresh budget different from serving3005 also needs an independent PostgreSQL
+copy. These copies/restores and storage authorization are explicitly outside the
+current amendment. The SQL clone files
+allocate14.20GiB and the PostgreSQL fixture is22.86GiB before copy/working overhead;
+D: had8.88GiB free. Host32GB/16 logical CPUs and Docker15.46GiB are capacity
+observations, not permission to allocate all resources or evidence of actual use.
+No common enforced budget was guessed; matched performance remains **UNPROVED**.
+
+Required next decision: authorize and provision the required benchmark database
+copy/storage, or explicitly change that acceptance prerequisite. Further query
+work must preserve the now-demonstrated tied-row contract; no tie-break, relaxed
+comparison, storage redesign or resource increase is inferred. No deployable
+candidate exists for new browser/overlap/restart/rollback acceptance. The prior
+accepted image and its bounded proofs remain in force, not a new performance pass.
+Current source restoration passed14 focused BTR tests; runtime/admission/protected
+state and grants were rechecked unchanged. Consolidated evidence and rejected
+candidates: `D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/validation.json`.
+Operational disposition: [dataset handoff](STAGE2_DATASET_HANDOFF.md).
+
 ### Report contention correction — PASS for bounded overlap; stopped for review
 
 4 October 2026: the human in the successor control chat authorizes the bounded

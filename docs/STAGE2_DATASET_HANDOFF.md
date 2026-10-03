@@ -4,6 +4,47 @@ Updated 4 October 2026. Operational reference; `docs/MIGRATION.md` is the sole s
 
 ## Current login/profile delivery and operation
 
+### BTR performance investigation: no successor deployed
+
+The4 October query investigation retains MTA image
+`sha256:761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a`
+and the restoration commands below. No engine, import, index/schema, permissions,
+serving configuration or resource limit changed. Source is restored to the accepted
+`7b40ba6` implementation. There is no new image/index rollback to perform.
+
+The seemingly faster page-prefix rewrite is unsafe:10/30 adversarial full-reader
+cases changed tied rows or values despite full retained-dataset comparisons passing.
+Its attempted ordering adjustment also failed. Narrow materialization and count
+multiplicity aggregation regressed query time. All candidates are rejected and
+retained outside Git; do not deploy or reuse their fast samples as acceptance.
+
+Legacy is now running:3002/5153 respond, canonical DLL identity matches, and the
+heavy-data BTR count endpoint returns97299 for both branches. The old stopped-service
+blocker is resolved. Resource-matched performance remains unproved: SQL Server is
+shared with61 other databases, and the PostgreSQL data directory serves3005.
+Owned benchmark-process limits cannot isolate database resource opportunity within
+those serving/shared processes. At least an independent SQL restore needs separate
+authority and storage. A Fresh budget different from serving3005 additionally
+needs its own PostgreSQL copy (14.20GiB allocated SQL files and22.86GiB PostgreSQL
+fixture respectively, before
+overhead; only8.88GiB free onD: at inspection). Do not mount the active PostgreSQL
+data directory into another server or change shared SQL limits.
+
+The next concrete dependency is authorization/provisioning of the required benchmark
+database copy and storage. A resource budget must then be selected from
+measured headroom and enforced equally, with serving3005 unchanged. No synthetic
+or SQL-only timing substitutes for the required matched full-data application test.
+The known BTR SPA profile-link limitation remains unchanged.
+
+Evidence: `D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/`:
+`validation.json`, `reader-edges-003/result.json`, `fixture-contract/result.json`,
+`normal-independent-002/receipt.json`, `legacy-live-count-receipt.json`,
+`resource-boundary.json`, and `final-runtime.json`. The actual-reader reproducer
+`reader_edges_003.py` runs via retained `run_native.py` using read-only CTE values;
+it creates no database population. Candidate sources and failed attempts remain
+preserved. The current benchmark blocker and remaining exits are recorded only in
+`MIGRATION.md`; this is an operational reference, not another task queue.
+
 ### 4 October report contention successor
 
 The bounded report correction is deployed on3005. Only Chronic Location's repeated
