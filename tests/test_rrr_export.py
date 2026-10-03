@@ -51,7 +51,7 @@ class RrrExportTest(unittest.TestCase):
         self.assertEqual(client.post('/api/mta/GetExportDataAsync','{}',content_type='application/json').status_code,403)
 
     def test_no_fallback_for_other_export_family(self):
-        response=Client().post('/api/mta/GetExportDataAsync',json.dumps({'reportName':'BPR'}),
+        response=Client().post('/api/mta/GetExportDataAsync',json.dumps({'reportName':'BOR'}),
             content_type='application/json',HTTP_X_VECTORFLOW_IDENTITY='{"id":"authenticated"}')
         self.assertEqual(response.status_code,503)
         self.assertEqual(response.json()['error'],'selected_report_export_not_connected')

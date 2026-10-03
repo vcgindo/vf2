@@ -77,11 +77,11 @@ class TerminalSupplementTest(unittest.TestCase):
         self.assertEqual(response_row(row), dict(intransit='',Norm=220,TechPen=12.5,EcoPen=None,
             Availability_01_30='33.30',sl4='',SKUCode='337',ts='2'))
 
-    def test_http_rejects_unapproved_filters_and_invalid_pagination_before_read(self):
+    def test_http_rejects_invalid_pagination_before_read(self):
         client = Client()
         with patch('mta.presentation.bpr_read.bpr_context', side_effect=AssertionError('must not read')):
             for payload,status in [({},400), ({'paginationParameter':{'pageNumber':0,'recordsPerPage':5}},400),
-                ({'filters':{'productFilter':{'filters':[{'attributeName':'SKUCode','value':'337'}]}}},503)]:
+                ({'filters':{'productFilter':{'filters':[{'attributeName':'sku','value':'337'}]}}},400)]:
                 reply = client.post('/api/mta/GetBPRData',json.dumps(payload),content_type='application/json',
                     HTTP_X_VECTORFLOW_IDENTITY='{"id":"unit"}')
                 self.assertEqual(reply.status_code,status)

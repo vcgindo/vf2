@@ -28,7 +28,7 @@ def bindings(query):
     return query
 
 
-def queries(auth, page=1, size=5000):
+def queries(auth, page=1, size=5000, *, sql_filter='', sql_join_filter=''):
     text = source()
     selector = text.split('private string getBPRSelectQuery(',1)[1].split('if (flag == 1)',1)[0]
     select_line = next(line for line in selector.splitlines() if line.strip().startswith('text = "Select tags,'))
@@ -42,8 +42,31 @@ def queries(auth, page=1, size=5000):
     paging = next(line.strip()[len('strSql5 += $'):-1] for line in lines if line.strip().startswith('strSql5 += $" OFFSET'))
     paging = json.loads(paging).replace('{(masterRoot.paginationParameter.PageNumber - 1) * masterRoot.paginationParameter.RecordsPerPage}', str((page-1)*size))
     paging = paging.replace('{masterRoot.paginationParameter.RecordsPerPage}', str(size))
-    grid = auth + json.loads(prefix).replace('{sqlJoinFilter}', '') + literals(ordering) + paging + selected + json.loads(suffix)
+    where = ' where ' + sql_filter if sql_filter else ''
+    grid = auth + json.loads(prefix).replace('{sqlJoinFilter}', sql_join_filter) + where + literals(ordering) + paging + selected + json.loads(suffix)
     count_body = text.split('public responseMessage GetBPRDataCount(',1)[1].split('if (sqlFilter',1)[0]
     count_concat = count_body.split('string.Concat(new string[6]',1)[1]
-    count = auth + literals(count_concat)
+    count = auth + literals(count_concat).replace('from BPR_Table A ', 'from BPR_Table A '+sql_join_filter, 1) + where
     return dict(count=bindings(count), grid=bindings(grid))
+
+
+def export_query(auth, *, sql_filter='', sql_join_filter=''):
+    body = source().split('private string getBPRSelectQuery(',1)[1].split('[AsyncStateMachine',1)[0]
+    select_line = next(line for line in body.splitlines() if line.strip().startswith('text = "Select tags,'))
+    join_body = body.split('text = string.Concat(new string[8]',1)[1].split('if (sqlFilter',1)[0]
+    joined = literals(join_body).replace(' from BPR_Table A ', ' from BPR_Table A '+sql_join_filter, 1)
+    ordering = next(line for line in body.splitlines() if line.strip().startswith('text += "order by'))
+    return bindings(auth + literals(select_line) + joined +
+                    (' where '+sql_filter if sql_filter else '') + literals(ordering))
+
+
+def analytics_query(auth, *, sql_filter='', sql_join_filter=''):
+    path = Path('D:/freshvcf-build/evidence/f3-stage2-bpr-analytics-source-001/AnalyticsProcessor.cs')
+    if file_sha(path) != '5aaa5d1d137789ca46a1d41608872c6b0074dcaabe9d914ad07412fbca200d6e':
+        raise ValueError('Selected deployed analytics source changed')
+    line = next(line.strip() for line in path.read_text().splitlines()
+                if line.strip().startswith('text2 = authQueryForReports + $'))
+    query = json.loads(line.split(' + $',1)[1][:-1])
+    query = query.replace('{sqlJoinFilter}',sql_join_filter).replace(
+        '{((DbConnection)sqlConnection3).Database}.dbo.SKULocStandardAttributes','#Standard')
+    return bindings(auth + query + (' where '+sql_filter if sql_filter else '') + 'for json path) a')

@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
-    [ValidateSet('RRR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')][string]$Report='RRR')
+    [ValidateSet('RRR','BPR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')][string]$Report='RRR')
 $ErrorActionPreference='Stop'
 $vfRoot=[IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[IO.Path]::GetFullPath($InputPath)
@@ -76,7 +76,9 @@ foreach ($vfCase in $vfValues.cases) {
         # Exact report alias tuple selected by GenericFunction.ApplyFiltersForReports.
         $vfParameters=New-Object object[] 9
         $vfParameters[0]=$vfFilter
-        $vfAliases=if ($Report -eq 'BTR') { @('E','E','E','sa','la','sla') } else { @('a','a','a','c','d','b') }
+        $vfAliases=if ($Report -eq 'BTR') { @('E','E','E','sa','la','sla') }
+            elseif ($Report -eq 'BPR') { @('vf','a','a','c','d','sla') }
+            else { @('a','a','a','c','d','b') }
         for ($vfIndex=0;$vfIndex -lt 6;$vfIndex++) { $vfParameters[$vfIndex+1]=$vfAliases[$vfIndex] }
         $vfParameters[7]='';$vfParameters[8]=''
         $vfMethod.Invoke($vfInstance,$vfParameters) | Out-Null

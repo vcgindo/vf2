@@ -11,12 +11,12 @@ FIELDS = (*DIRECT_FIELDS, *ALIASES,
           *(p + str(i) for p in ('SKULocAttr','SKUAttr','LocAttr') for i in range(1,16)))
 
 
-def selected_headers(state, fields):
+def selected_headers(state, fields, *, configuration=RRR_UI_CONFIG):
     try:
         layout = json.loads(state) if state else None
     except (ValueError, TypeError):
         layout = None
-    visible = [r for r in RRR_UI_CONFIG if r['Visible']]
+    visible = [r for r in configuration if r['Visible']]
     if not isinstance(layout, (dict, list)):
         selected = [(r['Header'] or '', r['Col_Code'], r['Col_Position']) for r in visible]
     else:

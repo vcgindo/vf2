@@ -84,8 +84,8 @@ the selected June17 publication remain unchanged.
 | BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset plus both toolbar files proved; delayed tab-return restore passes, fresh reload fails in inherited hook; remaining controls/leaf actor are UNTESTED and matched performance remains blocked |
 | Buffer Trends | BLOCKED with partial proof —134 exact graph responses/30 declared failures, gateway/restart and actual type/horizon/summary/Depo/reset/reload controls proved; inherited doubled Total/stale Percentage plot, remaining controls/leaf actor and matched performance remain open |
 | Planning categories | DEFERRED with partial proof — user confirms Excel exports work and directs moving on; remaining custom identities, source-invalid/filter contracts, leaf actor and matched performance unresolved; earlier receipts retained |
-| BPR | ACTIVE — reuse accepted count/grid/paging/restart; verify remaining actual server filters/lookups/details/sorting/layout/own export and matched performance |
-| Guided and Research Insights | NOT STARTED — all enabled defined branches, controls/client exports, selective reads and matched performance |
+| BPR | BLOCKED with partial proof — coherent read batch deployed: filtering/count/grid/CSV/analytics/history/configuration; authenticated graph/filter/layout/paging controls proved. Independent new-contract SQL, actual browser CSV receipt, leaf actor and matched performance unproved; residual UI checks explicitly listed below. Not accepted. |
+| Guided and Research Insights | ACTIVE — next whole-page package: Guided first, then Research. Reconcile retained inventory/source and all enabled branches before one read-contract implementation batch; no later-stage or business-write scope. |
 
 **Recorded RRR boundary before mutation:** reuse accepted SQL/count/filter/page
 receipts and all ten export comparisons; Planning overview browser proof is
@@ -3734,3 +3734,244 @@ BPR active boundary: unchanged June17/native seven-image reader and approved
 terminal ancillary input; read-only UI, test layout save/reset allowed, no remarks
 writes or positive logistics. Reuse existing bpr-terminal003/wire001/gateway001/
 restart001/ui001 proofs. Unmet exit is remaining actual BPR controls and files.
+
+## Execution correction — complete page contract before implementation/QA
+
+Direct user instruction supersedes the piecemeal review sequence: for each active
+page, first inventory EVERY interaction and UI→API→persisted-fact contract;
+identify all missing/mismatched contracts and scope exceptions together. Second,
+implement all authorized page contracts as one coherent batch. Third, perform
+interaction-by-interaction QA against the complete inventory and report one
+consolidated result. Do not alternate discovery, tiny fixes and isolated QA or
+create a commit/checkpoint for each control. Preserve canonical parity and scope;
+collect indispensable decisions together after the full page assessment.
+
+BPR remains the active page. The uncommitted GetRemarkDetails read-only route is
+part of its unfinished batch, not a completed page/checkpoint. Current evidence:
+12 focused BPR/terminal/history tests pass; actual authenticated gateway returns
+HTTP200/data[] with forwardUsers true (0.505s) and false (0.347s), matching the
+approved empty terminal remark input. Only MTA redeployed,47 other container IDs
+unchanged,4GiB/2CPU/restart=no and admitted publication unchanged. Browser history
+recheck remains pending after provider disconnect. Actual DLL BPR filter capture
+has52 expressions at f3-stage2-bpr-filters-001/dll-filters.json; this is filter
+expression provenance, not SQL result parity. Complete the page interaction
+inventory before further implementation or browser QA. Reuse these results.
+
+BPR page-wide inventory is now retained in
+`docs/audit-2026-10-01/BPR_PAGE_CONTRACT.md` (contract map, not a second tracker).
+It includes all identified page/filter/grid/layout/history/export/sidebar
+interactions, scope, restart and matched-performance proof, with Stage4 remark
+writes explicitly excluded. The next implementation boundary is the coherent
+read-contract batch: filters, CSV, sidebar analytics and pending remark-history
+route. No new implementation/deployment or browser QA was performed during this
+inventory pass. Prior acknowledgement-only turn was no progress; this pass adds
+the contract artifact and independently recovered canonical analytics source.
+
+Analytics processor recovered from hash-checked canonical DLL using retained
+.NET6/ILSpy into `D:/freshvcf-build/evidence/f3-stage2-bpr-analytics-source-001/AnalyticsProcessor.cs`,
+SHA256 `5aaa5d1d137789ca46a1d41608872c6b0074dcaabe9d914ad07412fbca200d6e`.
+Its colour counts use the filtered/scoped BPR+rationed+attribute+standard LEFT
+join bag, not final grid rows or count rows (no remarks/trend joins). This resolves
+the source-owner question for the missing GetAnalyticsData BPR route. SQL result
+parity and browser verification remain unproved; do not replace them with source
+inspection. No source/runtime authority or retained input was changed.
+
+BPR coherent read-contract batch is implemented in the worktree, not deployed:
+raw-owner server filters; separate unpaged CSV join path and AdminBPR headers;
+seven-colour analytics over its own join bag; admitted empty remark history.
+Grid key paging/final rejoin, count's inner standard join, duplicate bags and
+raw NULLs are preserved. No frontend, MTO, auth, schema or calculation changes.
+Thirty focused batch/BPR/terminal/RRR-export/BTR-export tests pass. Two former
+tests asserted blanket BPR unavailability; their obsolete expectations were
+replaced while new HTTP/filter/export/auth checks cover the connected paths.
+
+`D:/freshvcf-build/evidence/f3-stage2-bpr-batch-001/modern.json.gz` contains all52
+retained cases across count/grid/analytics/export, executed against actual
+PostgreSQL with a read-only session in a disposable4GiB/2CPU container. Run and
+output digest remain ac1612c8-0e49-4155-83c3-f59f41422293 / bd1c522f…d33d.
+`retained-regression.json` verifies four identical unfiltered requests against
+hash-verified prior SQL outputs: root1240, selected-leaf126, parent-leaf-empty161,
+overlap1240, complete typed rows/order/count. The misleading historical case
+name parent-leaf-empty is retained verbatim, not interpreted as an empty result.
+Seven invalid filter cases remain explicitly unavailable as documented in
+LEGACY_EXCEPTIONS; colour-count export alone has a valid trend-column owner.
+
+Source-extracted count/grid/export/analytics SQL for all52 cases is retained in
+`extracted-queries.json.gz`; all7 prior count/grid SQL strings remain unchanged
+under default arguments. New SQL was NOT executed: extraction and modern
+observations do not certify independent parity. Next: reconcile remaining SQL
+proof limitations, deploy the complete batch only after readiness checks, then
+QA each inventoried browser interaction and collect performance/restart evidence.
+BPR remains active and incomplete; no micro-commit or page acceptance recorded.
+
+BPR batch deployed as one MTA-only change on3005. Image
+`sha256:a0ac4d3e0e91fefc44db87d3d92560e6489152b1e4a75e36e86597ec9d0f1b50`;
+47 other container identities unchanged,4GiB/2CPU/restart=no/no MTA host ports.
+June17 run/output/admission digests unchanged. Deployment/build evidence is in
+f3-stage2-bpr-batch-001. Repository suite:248/250 pass; two Expedite tests fail
+identically in the PRE-BATCH serving image (old publication/read_expedite mocks
+no longer intercept the actual read paths). These are pre-existing failures,
+not repaired or suppressed in this BPR batch. Focused30 tests pass.
+
+Authenticated browser re-login succeeded through the visible CAPTCHA using
+existing credentials and the user's retained authorization. BPR initial filter
+dialog and Show All work: June17/1240rows. Product lookup337 and Apply Filter
+return10rows; sidebar expand renders matching OnHand/Pipeline colour counts
+1/0/1/3/5/0/0, total10. Remark-history eye opens Name/Remarks with "No data to
+show" and Go Back closes it. Client location filter AG515802 shows1of10 and
+Clear All Grid Filters restores10, leaving server scope/count intact. Edit
+Filter→Reset Filters→Show All restores1240 and sidebar totals
+8/0/10/1137/85/0/0. Pagination next=51–100/page2, last=1201–1240/page25 with40
+rows, previous=1151–1200/page24, first returns page1. Page size3 produces1–3of1240,
+414pages;50 restored. Screenshots: remark-history.png, filtered-analytics.png,
+page-size-three.png. Browser remains on BPR, with no business writes performed.
+
+Actual authenticated gateway proof (gateway.json) returns200 for filtered count,
+grid, analytics, CSV and history, respectively1.282/1.400/1.242/1.138/0.703seconds.
+Filtered CSV retained as filtered-gateway.csv:10data rows, all SKU337. These are
+modern-only observations, not matched performance or independent CSV cell parity.
+Browser CSV click produced no download event within20seconds and no application
+error; do not diagnose a broken export from this automation observation. Browser
+file delivery remains unverified, separately from successful gateway CSV.
+
+Continue the SAME BPR QA inventory: remaining filter families/chip/cancel flows,
+layout and column controls, row/history graph controls, browser file receipt,
+scope/restart and independent new-contract SQL/performance proof. Do not move to
+Guided/Research or call BPR accepted merely because the newly connected paths work.
+
+BPR layout QA continued after user restored the browser login. Before testing,
+GetState returned empty string (layout-before.json). Hiding Description and
+Save Layout persisted a4228-character state with SKUName.hide=true; an interrupted
+browser session prevented that first reload proof. Saved state was captured and
+the original empty state restored via existing ResetState/GetState, recorded in
+layout-save-restore.json. This was authorized test-layout state only.
+After the user logged in, the browser test was completed: hide Description via
+Columns panel, Save Layout toast, reload→Show All retains hidden Description
+(layout-reload.png). Reset Layout restores visibility immediately but observed
+order is SKUCode/Location Code/Location Description/Description. A subsequent
+reload→Show All restores the original SKUCode/Description/Location Code/Location
+Description order (layout-reset-reload.png). Thus saved visibility/reload and
+default restoration after reload are verified; immediate reset ordering is a
+separate observed mismatch needing frontend/source attribution, not blanket
+layout acceptance. No frontend change made. Browser is left on unfiltered BPR.
+
+Seven authenticated read families have pre-restart byte hashes retained in
+pre-restart.json: count, page2 grid, analytics, filtered CSV, DailyDataGraph337/
+AG515802, empty remark history and GetState. Unauthenticated analytics returns401.
+This is only the BEFORE half; no new restart or after comparison has yet occurred.
+Do not infer restart acceptance from the file name or readback success.
+
+BPR authorized MTA-only restart completed. Initial gateway attempt preceded
+listener readiness and failed; no service re-restart was inferred. Admission
+subsequently completed with the same run/output/admission digests. Post-restart
+readback (post-restart.json) returns200 and identical complete byte hashes for
+count, page2 grid, analytics, filtered CSV, DailyDataGraph and remark history;
+unauthenticated analytics remains401. GetState differs because the intervening
+browser Reset Layout saved a default layout via onSaveState, not because restart
+changed state. Original absent saved layout was restored and verified in
+layout-restored-final.json. The shared reset hook exactly matches retained
+frontend SHA4ce076108abf187183aee4f9db3bbf68fada719ca4eb52518fa1659c48b0d20a;
+BPR hook reset callback also matches, but whole-file hash differs at initial
+mount loading only. Do not claim complete frontend identity from the hook match.
+
+Remaining BPR detail QA exposed a configuration omission missed by initial
+inventory: Daily Data Graph action is absent from modern AdminBPR configuration.
+Full source comparison now retained in config-audit.json: canonical visible19,
+modern23 including6hidden; missing dailydatagraph/tags, wrong vn position6vs7
+and alignment, missing DataType join and extraneous TagID/hidden rows in HTTP.
+Pinned config/type SQL hashes remain4b248637…f34da and51883c78…a19. Corrected
+the WHOLE configuration contract in the worktree: exact81raw config/type rows
+retained for CSV metadata; HTTP projects visible19 with LEFT JOIN types and
+NULL omission. No frontend edit. Focused31tests pass. This QA-discovered backend
+configuration correction is NOT YET DEPLOYED; serving image remainsa0ac4d3e…1b50.
+Next deploy this correction and verify graph/tags plus remaining interactions;
+the page is still incomplete, with independent SQL/performance gates open.
+
+
+BPR continuation 3 October: current CAPTCHA/login completed by the agent with
+existing preview credentials under the user's explicit current authorization;
+landing and BPR verified. Whole-page batching in PAGE_DELIVERY_CONTRACT.md and
+PAGE_INTERACTION_INVENTORY.csv adopted; these supplement the BPR contract and
+are not additional status trackers. BPR remains the active package.
+
+Configuration correction (including SQL bit -> JSON boolean Visible) is now
+deployed in MTA image ce9d40b63e1d663139508ea04be99ef90453a6a6c7b9ff27515bafc201612aa6.
+Only MTA was recreated; 4GiB/2CPU/restart=no/no host binding retained. June17
+run/output unchanged; admission digest eda6776a892624ed743d820d9ac1b5202ccec01b15078ea98d3f2286538f1005
+changes because pinned presentation configuration contributes to admission.
+config-gateway.json proves authenticated HTTP configuration equals the complete
+19-column extracted projection, including boolean Visible and action/type fields.
+Filtered CSV returns10 SKU337 rows with16 configured data headers (no action
+columns). config-deployment.json and config-bit-build.log retain serving evidence.
+This supersedes the earlier NOT YET DEPLOYED note; focused31 tests remain passing.
+
+Browser BPR now renders Tags and Daily Data Graph. Graph opens SKU6404/PPI000604,
+norm299/RLT3, and history shows June16 224->299 and June12 168->224, both High
+spike count. Horizon14->15 works; GIT legend hides the series (visible screenshot),
+and all four suspension choices render a ninth series. Close/reopen on SKU6980
+shows norm403 with default horizon14 and no prior overlay, avoiding stale pair.
+Evidence bpr-graph.png and bpr-norm-history.png. This verifies interactions, not
+independent plotted-value parity. Terminal empty transit still shows the inherited
+selection placeholder even after selection; no positive transit acceptance.
+
+Location search AG515802 plus Norm greater-than0 applies together and returns86
+records; new rows clear the previous selection. Reset Filters/Show All restores
+default scope. All remaining filter-family panels were traversed and snapshots
+retained; this is panel inventory, not full operator acceptance. Attributes-SKU
+Loc has no controls with current visible configuration. Existing invalid SQL
+filter dispositions and independent SQL/performance blockers remain open.
+No business writes, frontend edits or additional page acceptance occurred.
+
+BPR CSV browser receipt remains unverified after the configuration correction:
+registered download event timed out15seconds, no matching BufferPenetration file
+in the user Downloads directory. The unchanged CsvExportMTA chain creates/clicks
+and revokes a blob URL; authenticated gateway CSV is text/csv with attachment
+and valid contents. No further identical browser-download retries: retain the
+browser-provider/file-delivery gap distinctly from API/cell parity. Filter reset
+restored1240 rows. Current session remains authenticated on BPR. The preceding
+continuation was progress (deployed config plus new browser/API evidence), not
+an external-dependency wait or a completion claim.
+
+
+### BPR whole-page batch disposition, 3 October
+
+The batch is implemented and deployed, but BPR acceptance is BLOCKED, not complete.
+Final focused31 tests pass; diff whitespace check passes. Source-invalid filters
+remain explicit denials, not repaired legacy behavior. No calculation, auth,
+frontend or MTO changes belong to this batch.
+
+Additional consolidated browser results: Agen supply filter returns87; removing
+its staged selection and cancelling preserves the applied87. Removing the actual
+chip restores1240/page1. SKUCode cycles ascending/descending/none; Pin Left moves
+to the pinned header and No Pin restores the centre; Autosize This Column runs.
+PIPO tag filter renders No Rows To Show/0 and removes paging, then reset restores
+scope. These are actual interactions on the serving image, not SQL equivalence.
+
+Remaining acceptance gaps are explicit:
+- Independent52-case filtered grid/count/analytics/export SQL results and exact
+  CSV cell comparison: read-only master connection was rechecked once and still
+  fails18456/823 (sql-connectivity.json). SQL service is running but that does not
+  establish health. Requires administrator recovery of the existing oracle or
+  explicit approval for an isolated replacement, preserving registered inputs.
+  Do not repair/restart shared SQL or keep repeating this failed connection.
+- Browser CSV file receipt: supported event timed out and no matching file was
+  found; successful authenticated CSV bytes do not close browser delivery.
+- Real leaf-actor browser traversal and matched legacy/modern API/browser timings
+  remain absent. Modern timings are observations only.
+- Immediate Reset Layout ordering differs; retained reset callback/hook evidence
+  does not authorize a frontend repair. Saved visibility/reload works.
+- Unverified residual controls: drag reorder/resize/split pane, multiple selection,
+  remaining hierarchy/operator UI combinations, historical/horizon application
+  semantics and concurrent late-response behavior. They are deferred, not passed.
+  Existing52-case modern filter observations and panel inventory do not replace
+  independent semantics or those specific browser checks.
+- Positive logistics/remarks histories are outside the admitted empty terminal
+  input; remark writes remain Stage4 and were not executed.
+
+This is a coherent partial implementation checkpoint, not page or Stage2 closure.
+Proceed to independent Guided page work while retaining every BPR gap above.
+Guided boundary: reconcile the inherited route/tabs/hooks/configuration and
+consumer owners using P21 and the retained call inventory, then port only its
+read contracts against the same publication. Required proof is complete branch
+responses, auth/scope, actual controls/client exports and performance; missing
+oracle comparison remains a shared blocker. Research follows Guided disposition.

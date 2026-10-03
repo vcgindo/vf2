@@ -499,3 +499,29 @@ remain unavailable. Canonical child complete SQL wire parity, including ETA
 serialization, remains unproved while the SQL oracle is unavailable. Norm server
 filter is explicitly unavailable pending its canonical ambiguous-SQL disposition;
 this is not silently corrected or claimed as parity.
+
+## BPR filter SQL defects — source-attributed, 3 October 2026
+
+Affected contracts: GetBPRData, GetBPRDataCount, GetAnalyticsData(name=BPR),
+GetExportDataAsync(reportName=BPR). Actual pinned DLL Commons invocation with
+aliases vf/a/a/c/d/sla is retained in
+`D:/freshvcf-build/evidence/f3-stage2-bpr-filters-001/dll-filters.json` for the
+unchanged 52-case input roster SHA256
+1393290641b5a0f0a5b8117f328a3c585f953bd6be8ae72927fe3429e24b3ee5.
+BPR processor SHA256 68b9680373d7edf530fe5985f89d88d67b6fc4f7f1870112230cba9c7bb6b03b;
+analytics SHA256 5aaa5d1d137789ca46a1d41608872c6b0074dcaabe9d914ad07412fbca200d6e.
+
+Category emits b.category although BPR has no b alias; availability emits
+a.availability although BPR_Table has no such column; coverage has no joined
+owner. Colour age emits btd.D90 although no BPR branch joins btd. Colour counts
+have no owner in grid/count/analytics but CAN resolve to the trend join in CSV
+export. Invalid operator/hierarchy cases emit empty expressions or missing sl9.
+The modern adapter explicitly denies those invalid cases. These denials are not
+claimed as exact legacy error-envelope parity or as completed controls; no
+presentation or business-rule repair is authorized here. SQL execution/error
+comparison remains open while the independent oracle is unavailable.
+
+The roster's historical label `missing-tags` does NOT describe BPR: its emitted
+unqualified tags resolves to joined SKULocStandardAttributes.Tags, so that filter
+is connected. NULL values and exact IN matching remain intact. No missing
+population is defaulted to empty and no F2 data is changed.

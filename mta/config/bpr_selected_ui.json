@@ -1,0 +1,1221 @@
+{
+  "columns": [
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUCode",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUName",
+      "Col_Position": 2,
+      "Header": "Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "WHCode",
+      "Col_Position": 3,
+      "Header": "Location Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "WHName",
+      "Col_Position": 4,
+      "Header": "Location Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "Norm",
+      "Col_Position": 5,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "Stock",
+      "Col_Position": 8,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "TechPen",
+      "Col_Position": 9,
+      "Header": "On hand Inv. Pen",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "TechColor",
+      "Col_Position": 10,
+      "Header": "On hand Inv. Color",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "GIT",
+      "Col_Position": 11,
+      "Header": "GIT/ Pending",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "EcoPen",
+      "Col_Position": 13,
+      "Header": "Pipeline Inv. Pen",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "EcoColor",
+      "Col_Position": 14,
+      "Header": "Pipeline Inv. Color",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "Req",
+      "Col_Position": 99,
+      "Header": "Requirement",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "RationedQTY",
+      "Col_Position": 51,
+      "Header": "Rationed Qty",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LeftoverParentStock",
+      "Col_Position": 52,
+      "Header": "Parent Rationing Leftover",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ParentWhCode",
+      "Col_Position": 15,
+      "Header": "SourceCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ParentName",
+      "Col_Position": 16,
+      "Header": "SourceLocation",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "PhaseIn-Out",
+      "Col_Position": 55,
+      "Header": "PhaseIn/Out",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ResidualSnP",
+      "Col_Position": 57,
+      "Header": "Residual Spike/PSO/CNR",
+      "Visible": false,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "NormReq",
+      "Col_Position": 58,
+      "Header": "Norm Requirement",
+      "Visible": false,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "BlueReq",
+      "Col_Position": 60,
+      "Header": "Blue Requirement",
+      "Visible": false,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "sl1",
+      "Col_Position": 99,
+      "Header": "SL1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "sl2",
+      "Col_Position": 99,
+      "Header": "SL2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "sl3",
+      "Col_Position": 99,
+      "Header": "SL3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "sl4",
+      "Col_Position": 99,
+      "Header": "SL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "sl5",
+      "Col_Position": 99,
+      "Header": "SL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ll1",
+      "Col_Position": 99,
+      "Header": "LL1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ll2",
+      "Col_Position": 99,
+      "Header": "LL2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ll3",
+      "Col_Position": 99,
+      "Header": "LL3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ll4",
+      "Col_Position": 99,
+      "Header": "LL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "ll5",
+      "Col_Position": 99,
+      "Header": "LL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr1",
+      "Col_Position": 61,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr2",
+      "Col_Position": 62,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr3",
+      "Col_Position": 63,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr4",
+      "Col_Position": 64,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr5",
+      "Col_Position": 65,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "LocAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr3",
+      "Col_Position": 99,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr5",
+      "Col_Position": 99,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr6",
+      "Col_Position": 12,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKULocAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr3",
+      "Col_Position": 99,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr5",
+      "Col_Position": 99,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "SKUAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "vn",
+      "Col_Position": 7,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "dailydatagraph",
+      "Col_Position": 99,
+      "Header": "-",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "rh",
+      "Col_Position": 19,
+      "Header": "Remark History",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "tags",
+      "Col_Position": 0,
+      "Header": "Tags",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "Remark",
+      "Col_Position": 17,
+      "Header": "Latest Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "ReportName": "AdminBPR",
+      "Col_Code": "remarks",
+      "Col_Position": 18,
+      "Header": "Enter New Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    }
+  ],
+  "types": [
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "dailydatagraph",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUCode",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUName",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "WHCode",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "WHName",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "Norm",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "Stock",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "TechPen",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "TechColor",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "GIT",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "EcoPen",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "EcoColor",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "Req",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "RationedQTY",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LeftoverParentStock",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ParentWhCode",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ParentName",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "PhaseIn-Out",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ResidualSnP",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "NormReq",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "BlueReq",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "sl1",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "sl2",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "sl3",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "sl4",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "sl5",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ll1",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ll2",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ll3",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ll4",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "ll5",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr1",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr2",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr3",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr4",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr5",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr6",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr7",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr8",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr9",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr10",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr12",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr13",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr14",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr15",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr1",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr2",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr3",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr4",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr5",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr6",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr7",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr8",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr9",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr10",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr11",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr12",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr13",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr14",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKUAttr15",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "vn",
+      "DataType": "Number"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr11",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr12",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr13",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr14",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "LocAttr15",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr1",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr2",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr3",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr4",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr5",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr6",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr7",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr8",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr9",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr10",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "SKULocAttr11",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "rh",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "Tags",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "Remark",
+      "DataType": "String"
+    },
+    {
+      "ReportName": "AdminBPR",
+      "ColCode": "remarks",
+      "DataType": "String"
+    }
+  ]
+}

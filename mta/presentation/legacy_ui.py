@@ -114,34 +114,20 @@ def _report_columns(report_name: str, columns: list[tuple]) -> list[dict]:
         for code, position, header, visible, alignment, value in columns
     ]
 
-BPR_UI_CONFIG = _report_columns("AdminBPR", [
-    ("SKUCode", 1, "SKUCode", True, "left      ", "*Error*"),
-    ("SKUName", 2, "Description", True, "left      ", "*Error*"),
-    ("WHCode", 3, "Location Code", True, "left      ", "*Error*"),
-    ("WHName", 4, "Location Description", True, "left      ", "*Error*"),
-    ("Norm", 5, "Norm", True, "right     ", "*Error*"),
-    # The recovered BPR endpoint exposes this as ``vn`` from
-    # vf_RationedReqReport.  It is a calculated report field, not a second
-    # master-data input.
-    ("vn", 6, "Virtual Norm", True, "right     ", "*Error*"),
-    ("Stock", 8, "Stock", True, "right     ", "*Error*"),
-    ("TechPen", 9, "On hand Inv. Pen", True, "right     ", "*Error*"),
-    ("TechColor", 10, "On hand Inv. Color", True, "left      ", "*Error*"),
-    ("GIT", 11, "GIT/ Pending", True, "right     ", "*Error*"),
-    ("EcoPen", 13, "Pipeline Inv. Pen", True, "right     ", "*Error*"),
-    ("EcoColor", 14, "Pipeline Inv. Color", True, "left      ", "*Error*"),
-    ("ParentWhCode", 15, "SourceCode", True, "left      ", "*Error*"),
-    ("ParentName", 16, "SourceLocation", True, "left      ", "*Error*"),
-    ("Remark", 17, "Latest Remark", True, "left      ", "*Error*"),
-    ("remarks", 18, "Enter New Remark", True, "left      ", "*Error*"),
-    ("rh", 19, "Remark History", True, "left      ", "*Error*"),
-    ("Req", 99, "Requirement", False, "left      ", "*Error"),
-    ("RationedQTY", 51, "Rationed Qty", False, "left      ", "*Error"),
-    ("LeftoverParentStock", 52, "Parent Rationing Leftover", False, "left      ", "*Error"),
-    ("ResidualSnP", 57, "Residual Spike/PSO/CNR", False, "right     ", "*Error"),
-    ("NormReq", 58, "Norm Requirement", False, "right     ", "*Error"),
-    ("BlueReq", 60, "Blue Requirement", False, "right     ", "*Error"),
-])
+# Exact retained DB-creation rows, including hidden export metadata.
+# Source hashes and complete comparison: f3-stage2-bpr-batch-001/config-audit.json.
+_BPR_METADATA = json.loads((Path(__file__).parents[1]/'config'/'bpr_selected_ui.json').read_text())
+BPR_UI_CONFIG = _BPR_METADATA['columns']
+
+
+def bpr_ui_columns():
+    # UIConfigProcessor: visible only, LEFT JOIN types, FOR JSON omits NULLs.
+    return [dict({key:value for key,value in row.items() if key != 'TagID' and value is not None},
+                 **({'DataType':match['DataType']} if match.get('DataType') is not None else {}))
+            for row in BPR_UI_CONFIG if row['Visible']
+            for match in ([t for t in _BPR_METADATA['types']
+                           if t['ColCode'].casefold() == row['Col_Code'].casefold()] or [{}])]
+
 
 RESEARCH_INSIGHT_UI_CONFIG = _report_columns("ResearchInsight", [
     ("Tags", 0, "Tags", True, "left      ", "*Error*"),

@@ -143,6 +143,9 @@ def ui_config(request, payload):
     name = request.GET.get('reportName')
     if name == 'NormSuggestion':
         return envelope(data=ui_state.dbm_columns())
+    if name == 'AdminBPR':
+        from mta.presentation.legacy_ui import bpr_ui_columns
+        return envelope(data=bpr_ui_columns())
     if name not in UI_CONFIGS:
         return JsonResponse({'error': 'legacy_ui_config_not_migrated', 'reportName': name}, status=404)
     return envelope(data=UI_CONFIGS[name])
@@ -211,21 +214,48 @@ def rrr_data(request, payload, *, count=False):
 
 
 @endpoint('POST')
-def bpr_data(request, payload, *, count=False):
+def bpr_remark_history(request, payload):
+    """Canonical empty terminal history; no remark-write workflow implied."""
+    from mta.presentation.terminal_supplement import terminal_ancillary
+    rows = terminal_ancillary(selected_run())['BPRReport_RemarkDetails']
+    # The admitted supplement proves only initial emptiness. Do not silently
+    # extend this reader to populated history or other selected publications.
+    if rows != []:
+        raise PublicationUnavailable('populated_BPR_remark_history_not_connected')
+    return envelope(data=[])
+
+
+def bpr_selected(payload, *, mode='grid'):
     from mta.presentation.bpr import ReadModel
     from mta.presentation.bpr_read import bpr_context
+    from mta.presentation.bpr_filters import BprPredicate
+    context = bpr_context()
+    model = ReadModel(context.output, context.ancillary)
+    importer = context.output['ClosingState'][0]['importer']
+    predicate = BprPredicate(payload, importer['LocationAttributeData'], export=mode == 'export')
+    source = (model.count_rows() if mode == 'count' else
+              list(model.joined(final=True)) if mode == 'export' else model.candidates())
+    rows = scoped(source, payload, 'WHCode', attributes=importer, preserve_join_multiplicity=True)
+    return model, predicate.select(rows)
+
+
+@endpoint('POST')
+def bpr_analytics(request, payload):
+    if payload.get('name') != 'BPR':
+        raise PublicationUnavailable('selected_analytics_report_not_connected')
+    model, rows = bpr_selected(payload, mode='analytics')
+    return envelope(data=model.analytics(rows))
+
+
+@endpoint('POST')
+def bpr_data(request, payload, *, count=False):
     from mta.presentation.bpr_response import response_row
-    if not _no_active_filters(payload):
-        raise PublicationUnavailable('selected_BPR_filters_not_yet_connected')
     if not count:
         paging = payload.get('paginationParameter')
         if (not isinstance(paging, dict) or any(type(paging.get(k)) is not int or paging[k] < 1
                 for k in ('pageNumber', 'recordsPerPage'))):
             raise ValueError('positive_BPR_pagination_required')
-    context = bpr_context()
-    model = ReadModel(context.output, context.ancillary)
-    rows = scoped(model.count_rows() if count else model.candidates(), payload, 'WHCode',
-        attributes=context.output['ClosingState'][0]['importer'], preserve_join_multiplicity=True)
+    model, rows = bpr_selected(payload, mode='count' if count else 'grid')
     if count:
         return envelope(record_count=str(len(rows)))
     return envelope(data=[response_row(row) for row in model.page(rows, paging['pageNumber'], paging['recordsPerPage'])])
@@ -235,7 +265,7 @@ def bpr_data(request, payload, *, count=False):
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
-    if payload.get('reportName') not in ('RRR', 'BTR'):
+    if payload.get('reportName') not in ('RRR', 'BTR', 'BPR'):
         raise PublicationUnavailable('selected_report_export_not_connected')
     run = selected_run()
     if payload['reportName'] == 'BTR':
@@ -245,6 +275,12 @@ def export_data(request, payload):
         report = 'BTRon-hand' if payload.get('name') == 'tech' else 'BTRpipeline'
         state = ui_state.get_layout(identity(request)['id'], report)
         headers = btr_headers(state, dates)
+    elif payload['reportName'] == 'BPR':
+        from mta.presentation.bpr_export import selected_headers as bpr_headers
+        model, selected = bpr_selected(payload, mode='export')
+        rows = model.export(selected)
+        state = ui_state.get_layout(identity(request)['id'], 'BPR')
+        headers = bpr_headers(state)
     else:
         rows = read_rrr(run, payload, paging=None)
         state = ui_state.get_layout(identity(request)['id'], 'RRR')

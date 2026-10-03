@@ -84,7 +84,8 @@ class ReadModel:
                     TechColor=vf.get('PhysicalInventoryColor'), EcoColor=vf.get('DispatchColor'),
                     vn=vf.get('VirtualNorm'), Remark=remark.get('Remark'),
                     _physical_pen=vf.get('PhysicalInventoryPen'), _dispatch_pen=vf.get('DispatchPen'),
-                    _key=key, _base_eco=a['EcoColor'], _pair=pair, _standard=standard)
+                    _key=key, _base_eco=a['EcoColor'], _pair=pair, _standard=standard,
+                    _a=a, _vf=vf, _sku=sku, _location=location, _trend=trend)
                 row.update({name:0 if a[name] is None else a[name]
                             for name in ('Req','RationedQTY','LeftoverParentStock')})
                 row['PhaseIn-Out'] = {1:'Phase Out',2:'Phase In'}.get(a['PhaseIn-Out'],'-')
@@ -112,6 +113,32 @@ class ReadModel:
         """Apply authenticated scope/filters to this bag BEFORE paging."""
         return sort_rows(list(self.joined()))
 
+    def analytics(self, selected):
+        # AnalyticsProcessor counts the candidate join bag, without remarks or
+        # trend joins. NULL and unknown colours do not enter any colour bucket.
+        return [{prefix + colour: sum(sql_key(row['_vf'].get(field)) == sql_key(colour)
+                     for row in selected)
+                 for prefix, field in (('OnHand', 'PhysicalInventoryColor'),
+                                       ('Pipeline', 'DispatchColor'))
+                 for colour in ('Black','Red','Yellow','Green','White','Blue','Grey')}]
+
+    def project(self, row):
+        transit = []
+        for t in self.transit.get(row['_key'], []):
+            item = {target:t[source] for target,source in (
+                ('lc','OrderNo'),('cd','CreationDate'),('slt','SLT'),('tlt','TLT'),
+                ('ag','Ageing'),('eta','ETA'),('cl','CurrentLocationCode'),('qty','InTransitQty'),
+                ('remarks','Remark'))}
+            item['exeecocolor'] = row['_base_eco']
+            transit.append(item)
+        projected = {k:v for k,v in row.items() if not k.startswith('_')}
+        projected['intransit'] = transit or None
+        return projected
+
+    def export(self, selected):
+        # Caller selects the final join bag directly, not the paged key bag.
+        return sort_rows([self.project(row) for row in selected], projected=True)
+
     def page(self, selected, page, size):
         if page < 1 or size < 1:
             raise ValueError('positive pagination is required by deployed BPR')
@@ -121,17 +148,6 @@ class ReadModel:
             multiplicity = selected_keys[row['_key']]
             if not multiplicity:
                 continue
-            transit = []
-            for t in self.transit.get(row['_key'],[]):
-                item = {target:t[source] for target,source in (
-                    ('lc','OrderNo'),('cd','CreationDate'),('slt','SLT'),('tlt','TLT'),
-                    ('ag','Ageing'),('eta','ETA'),('cl','CurrentLocationCode'),('qty','InTransitQty'),
-                    ('remarks','Remark'))}
-                item['exeecocolor'] = row['_base_eco']
-                transit.append(item)
-            projected = {k:v for k,v in row.items() if not k.startswith('_')}
-            # The deployed scalar FOR JSON subquery yields SQL NULL when empty.
-            # Nonempty content stays structured until its wire serializer.
-            projected['intransit'] = transit or None
+            projected = self.project(row)
             rows.extend(dict(projected) for _ in range(multiplicity))
         return sort_rows(rows, projected=True)

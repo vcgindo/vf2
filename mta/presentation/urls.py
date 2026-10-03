@@ -21,6 +21,8 @@ urlpatterns = [
     path('RRRData', views.rrr_data),
     path('RRRDataCount', partial(views.rrr_data, count=True)),
     path('GetBPRData', views.bpr_data),
+    path('GetRemarkDetails', views.bpr_remark_history),
+    path('GetAnalyticsData', views.bpr_analytics),
     path('GetBPRDataCount', partial(views.bpr_data, count=True)),
     path('GetExportDataAsync', views.export_data),
     path('GetPlanningDataGrid', views.planning_grid),
