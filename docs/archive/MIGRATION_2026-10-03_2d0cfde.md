@@ -1,0 +1,4286 @@
+# Fresh migration — authoritative delivery tracker
+
+## Frozen objective
+
+Complete deployed MTA behavior, not merely DBM: input/control/order handling,
+planning and rationing, ordered DBM, computed rollover, workflows, reports/API
+and unchanged UI. Preserve MTO business behavior. Runtime uses Python/Django
+and PostgreSQL, never SQL Server/.NET as a calculation dependency. Legacy SQL
+Server remains only the independent validation oracle.
+
+Canonical reference is the local deployed runtime, matched to its preserved
+deployment. Selected settings determine enabled branches. Conditional customer
+hooks and dormant features must be classified rather than silently imported or
+dropped. Existing proven modern functions may be reused with explicit provenance;
+old acceptance does not automatically transfer to a changed build.
+
+## Finite logical phases
+
+| Phase | Delivery and exit | State |
+|---|---|---|
+| F0 Foundation | Pinned source/config/input register; direct-port frontend/MTO/auth snapshot; runnable clean Django service; source/framework checks | COMPLETE — framework check, 3 tests, 376 resources, direct-port byte correspondence |
+| F1 Current-day MTA | Input/controls/orders → requirement/rationing/PSO/advances/Pick → persisted report inputs. Full typed comparison on retained positive and sizeable artifacts; readback | COMPLETE for the selected registered contracts — evidence below; not universal branch/customer coverage |
+| F2 Temporal MTA | Complete configured DBM + controls/workflows + BTR/history; independent own-state shallow then full-estate replay over 3×max RLT; required actions and next-day consequences | COMPLETE for selected registered scope WITH declared legacy flaw — all12 days accounted: 360 strict PASS +12 narrowly qualified report contracts. Day12 peak3.10GiB under4GiB; terminal native/readback proof PASS; prior receipts and failures preserved. Norm0 occurrence text is NOT parity |
+| F3 Application delivery | Required API/UI surfaces, navigation/scopes/actions/downloads; single-PostgreSQL deployment, fresh-start/restart/retry, MTO regression, runbook and coordinated 3004 delivery | ACTIVE — isolated implementation authorized from1eb0a2f; serving3004 cutover remains a separate approval gate |
+
+F2's final unmet exit is now satisfied for its selected registered scope. The
+authorized day12-only memory-lifetime correction preserves the calculation body,
+inputs, actions, SQL and all31 comparison contracts. Only day12 was recalculated
+and compared; accepted days1–11 were retained without replay. Complete terminal
+relational/readback proof is recorded below. The sole Norm0 occurrence-text flaw
+remains explicitly qualified and is never described as parity.
+No further F2 retry or recovery queue is required. F3 is the only remaining phase.
+The user subsequently authorized isolated F3 implementation via the review task;
+that authorization was verified at its source. Serving changes and3004 cutover
+remain excluded pending separate approval. This is not whole-application acceptance.
+Historical checkpoints below remain provenance, not a second active queue.
+
+## F3 finite application-delivery checklist
+
+### Active boundary — authorized recovery Stage 2
+
+3 October child-grid correction implemented on3005: direct user approval to question
+`call_zbzXQ93n4Qfs9tOGAixne3Lc` establishes empty initial OpenExpediteRequests
+for the selected June17 preview run only. Implement the canonical child normal
+grid with this explicitly opted-in read input and the existing approved empty
+transit. No historical-empty parity claim, request writes, F2 change or MTO change.
+Exit requires complete fields/scopes/paging checks and actual3005 child-grid
+rendering; the earlier Custom Screens switching fix did not satisfy this exit.
+
+The normal To Child grid now renders all7 dispatch rows in the authenticated
+browser. SKU337 client filter yields1of7; selecting it exposes June20 ETA and
+NULL remarks. No request was submitted. The reader preserves parent-location
+permissions, numeric/NULL child fields, branch-specific joins and ordering;
+25 focused tests pass, including opt-in/run/date/digest denial.16 read-only
+private requests cover four scopes, full/unpaged and page slices, with complete
+slice equality. Actual3005 cookie request matches the full private response,
+HTTP200 in0.829s; this is one request timing, not matched legacy performance.
+Evidence: D:/freshvcf-build/evidence/f3-stage2-expedite-child-grid-001.
+Only MTA redeployed;47 other container identities/start times unchanged,4GiB
+limit retained, selected admission digest unchanged. Parent test layout was
+restored to its original absent DB row through ResetState after persistence proof.
+Canonical child SQL wire parity/ETA serialization remains unproved because the
+existing SQL provider failure has not been repaired or retried. Norm server
+filter stays explicitly unavailable pending its canonical SQL disposition.
+Custom Screens missing-NMS identities and request-write workflow remain separate
+unresolved boundaries. This correction does not close the whole Expedite journey.
+
+The human's1 October2026 instruction in command-centre chat
+`01a0f7c6-1050-7741-b80a-a7f10ca0d04d` authorizes a new Stage2-only goal and
+implementation after accepted Stage1. Verified direct user instruction and
+injected prompt supersede the Stage1 stopping boundary **for Stage2 only**.
+The audit recovery plan remains a supporting contract; this is the sole queue.
+Stage1 admission, screen denominator and all earlier evidence remain accepted.
+Stages3–5, F2 changes, frontend/MTO/auth/permission/action-enablement changes,
+positive business-action trials except the DBM amendment below, and additional
+public ports remain excluded.
+Only bounded MTA deployment/restart on3005 is authorized; resource limits and
+the selected June17 publication remain unchanged.
+
+| Stage2 journey, in execution order | State / unmet exit |
+|---|---|
+| RRR finishing acceptance | BLOCKED with partial proof — layout/save/reset/reload/restart and actual saved-layout full CSV pass; inherited screen has no wired history entry; real leaf actor, remaining controls and matched performance remain unproved; details below |
+| DBM current and daily history | BLOCKED with partial proof — current0, positive Apply/Sleep/own next day, restoration and repaired Product/Location controls pass; downloaded XLSX, remaining positive controls/scopes and matched performance remain unproved; details below |
+| BTR | BLOCKED with partial proof — selective reads/CSV, authenticated gateway/restart and actual both views/paging/Depo/horizon/history/layout-save/reset plus both toolbar files proved; delayed tab-return restore passes, fresh reload fails in inherited hook; remaining controls/leaf actor are UNTESTED and matched performance remains blocked |
+| Buffer Trends | BLOCKED with partial proof —134 exact graph responses/30 declared failures, gateway/restart and actual type/horizon/summary/Depo/reset/reload controls proved; inherited doubled Total/stale Percentage plot, remaining controls/leaf actor and matched performance remain open |
+| Planning categories | DEFERRED with partial proof — user confirms Excel exports work and directs moving on; remaining custom identities, source-invalid/filter contracts, leaf actor and matched performance unresolved; earlier receipts retained |
+| BPR | BLOCKED with partial proof — coherent read batch deployed: filtering/count/grid/CSV/analytics/history/configuration; authenticated graph/filter/layout/paging controls proved. Independent new-contract SQL, actual browser CSV receipt, leaf actor and matched performance unproved; residual UI checks explicitly listed below. Not accepted. |
+| Guided and Research Insights | ACTIVE — next whole-page package: Guided first, then Research. Reconcile retained inventory/source and all enabled branches before one read-contract implementation batch; no later-stage or business-write scope. |
+
+**Recorded RRR boundary before mutation:** reuse accepted SQL/count/filter/page
+receipts and all ten export comparisons; Planning overview browser proof is
+already complete. Trace remaining controls once, establish the comparable
+canonical provider/baseline, then change only an evidenced presentation gap.
+Local test-actor layout writes are permitted and separate from immutable native
+publication and business-action rows. Required new proof binds actual3005
+controls, selected SKU/location/date/six graph sections, persisted layout and
+filtered export, scope/denial, restart, commit/image/run/date/digest, and the
+frozen matched API/browser protocol. Missing comparable provider/input keeps
+performance UNPROVED with exact evidence. Close or explicitly block this journey
+here before proceeding to an independent one. No code change is presumed needed.
+
+**DBM amendment, verified1 October2026:** the command-centre human explicitly
+authorized the temporary recommendation-bearing browser validation window.
+Apply only when DBM becomes active; do not interrupt the prior RRR journey. Bring
+forward only DBM Apply/Sleep browser proof from Stage4, alongside unchanged
+June17/current0 and populated grid/filter/selection/history/layout/XLSX,
+rejections, persisted readback and each trial's own next-day consequences.
+Reuse registered shallow inputs, bounded trial machinery and existing62 backend
+comparisons; never reset consumed trials, borrow calculated legacy state, use
+SuggestionsLog as current, replay the full estate or change accepted F2 rows.
+Each new mutable trial owns run/command/predecessor state and is compared with
+independent canonical results. Before a window, record trial run/date/digest,
+scenario clock, actor/scope, allowed actions, before-state and exact restoration.
+Only the3005 MTA process/config may temporarily select that trial and scenario
+clock and enable those actions, retaining production routes, scope and Stage1
+admission. No frontend selector, new endpoint, permanent clock abstraction,
+permission change, shared clock or non-MTA restart is allowed. A trial lacking
+valid required inputs/projections/supplement binding is blocked pending its exact
+remedy; June17 supplements do not transfer. On success, failure or interruption,
+restore normal June17 run/digest with actions disabled, remove all temporary
+clock/trial-serving overrides and disposable runtime capability, and verify
+startup/current0/gateway/protected identities. Retain inputs, runs, commands and
+receipts. DBM closure requires cleanup/restoration proof; later Stage4 must reuse
+the covered evidence. Other Stage3/4 obligations remain excluded. The existing
+Stage2 goal and matched legacy performance requirement remain unchanged.
+
+#### DBM window continuation — restoration and retained action prefix
+
+Window001 auto-restored normal June17 when its20-minute limit expired. The
+browser completed Sleep6584/DP010290 and Sleep337/AG515802 as actor1 at the exact
+retained scenario instant, reducing current suggestions10→9→8. Apply confirmation
+was cancelled; no Apply command exists. Populated history, horizon, layout
+save/reset/reload and export-success UI evidence remains in window001. XLSX file
+contents and matched performance remain unproved.
+
+The disposable driver then failed its whole Docker Config equality assertion
+(generated hostname/unordered environment included), after successful normal
+recreation. Preserve the original window.json and failure. Separate
+`f3-stage2-dbm-window-001/restoration-recovery.json` proves the complete normal
+compose+image environment and command, original mounts/image/resources, normal
+admission360ee8ab, and12 protected container identities/configurations. Inactive
+wrapper/overlay files were removed. No test clock or action override is serving.
+
+Continuation remains the SAME owned trial20261d94 and accepted two-command
+prefix. Do not recalculate/reset it. The driver's comparison now normalizes only
+Docker-assigned hostname and Env order, retains all operative values/labels, and
+records any restoration failure before exit. Reopen a bounded window only after
+real browser login is available; submit only the remaining eight-pair Apply,
+prove persistent state and own-next-day effects, then restore/clean up again.
+
+DBM action sub-boundary now proved in window002 and nextday002: actual browser
+Apply completed the remaining eight pairs, giving exactly three commands with
+trusted actor1 and the fixed June6 timestamps. Cancel and empty-selection checks
+added no command. Grid current0 persisted across reload. Complete post-command
+state and own action selection match independent legacy; next-day run
+ed864154-f08a-4ef0-b449-5c303c97d36a, June7, digest
+111f5918524d642f4813ecadb5fa2d3a07b60184e4d88b628feb705d67e35b66 passes29
+comparisons and exact native closing readback using this trial's three-command
+predecessor. No next-day action or serving switch, no legacy calculation replay.
+The evidence accounts for60 contracts:29 reused day0, two new action comparisons,
+29 new day1. All other run identities and all commands were unchanged by proof.
+Later Stage4 must reuse this positive DBM action/own-next-day evidence.
+
+Window002 restoration passed exact operative configuration and mounts, normal
+admission360ee8ab, June17/current0 with canonical data:null, actions-disabled403,
+original actor DBMNorm layout absence, and12 protected container identities.
+Temporary serving wrapper/overlay are removed. Browser normal-state screenshots
+after window001 and final normal June17 reload after reconnection are retained;
+the latter is in descriptions-serving001/reset-reload.jpg.
+Preserve nextday001's diagnostic failure: its incorrect raw-Suggestions=0 check
+failed before any next-day run. Canonical Apply keeps eight raw Suggestions and
+uses NormAcceptanceTbl to exclude them from the visible grid. Only that diagnostic
+assertion changed. Also preserve the restoration probe's incorrect [] expectation;
+the exact existing empty DBM wire is null, with string count"0".
+
+**Active DBM unmet exit:** Product filter caused the real browser error page;
+gateway logs attribute it to GET SKUDesc returning HTML404 upstream then gateway500.
+WHDesc is likewise absent. These shared read dependencies are required by current
+DBM controls and belong inside Stage2; they are not a new screen/workflow. Next
+permitted boundary: exact deployed GuidedInsightsProcessor.GetSKUDescription /
+GetWHDescription adapters over BufferTrend-owned attributes/descriptions, existing
+run-bound six-field hierarchy and authenticated permission joins. Preserve native
+NULL exclusion, bag multiplicity, wire types and source ordering; do not change
+frontend/gateway/auth/F2. Required proof: independent deployed SQL on retained
+legacy inputs, normal/root/leaf/denied/duplicate cases, selective PostgreSQL reads,
+authenticated3005 filter controls and restart. Current XLSX browser file, complete
+control coverage and matched API/browser performance remain open.
+
+DBM lookup implementation proof: SKUDesc/WHDesc now use only the selected run and
+three checksum-validated BufferTrend images (both attribute owners and the relevant
+description table). Four SQL queries per request; no whole-run read or calculation.
+Independent retained SQL comparison `f3-stage2-descriptions-002/receipt.json`, SHA
+e928b9bc220251a33a10b538df6f1a9f4a099c95d588d06257f73be44cf94899 passes all14
+ordered typed envelopes/statuses: root, product/location leaf, overlapping scopes,
+native NULL hierarchy, and relevant/irrelevant empty permissions. Empty relevant
+IDs preserve deployed SQL245/status500, separately documented in LEGACY_EXCEPTIONS.
+Four focused tests cover identity denial, duplicate joins, NULL omission and BTR
+ownership; full208-test suite passes. This is adapter proof only: build/restart,
+authenticated gateway and actual3005 Product/Location filter acceptance are next.
+No frontend, gateway, auth, MTO, schema, F2 rows/commands or serving state changed.
+
+#### Stage2 DBM checkpoint — partial proof, explicit remaining gaps
+
+Lookup implementation b5fdccc is now deployed as image f28af6e8 on3005. Evidence
+`D:/freshvcf-build/evidence/f3-stage2-descriptions-serving-001/receipt.json` binds
+MTA-only recreation, normal admission360ee8ab, June17/run/digest, identical mounts,
+4GiB/2CPU/two workers/restart=no and22 unchanged other running containers.
+Both authenticated lookup bodies equal independent legacy root results (200 SKU,
+20 locations); forged user/scopes are overwritten and unauthenticated requests401.
+Actual browser actor1 selected SKU337, then AG515802, applied both filters,
+observed current0, reset filters and reloaded normal June17. No frontend change.
+The normal gateway still denies actions403/demo_read_only. No consumed trial was
+reopened and no new business command was made. The earlier CAPTCHA/login failures
+are browser-session evidence only; successful fresh login and reload are retained.
+
+DBM is **not accepted**. Positive grid/actions/history/layout are proved only for
+the registered10-row trial and specific controls recorded above. Product/Location
+after the repair is proved on current-empty June17; the consumed trial cannot be
+reset to manufacture missing positive coverage. Remaining filter/history branches
+and true permitted leaf-user browser coverage stay unproved. The IAB client export
+reported success in both trial windows but exposed no downloaded XLSX file, so
+headers/cells/types in the browser-produced file are not certified. No equivalent
+isolated canonical HTTP/browser provider is running for the frozen matched-speed
+gate. Existing typed SQL comparisons and query timings cannot substitute for it.
+These gaps stay in the Stage2 denominator; all60 accounted action/next-day and
+prior reader/filter comparisons remain reusable. Continue independent BTR work.
+
+**Active BTR boundary before mutation:** reuse f3-btr-comparison-002,
+f3-btr-filters-comparison-001 (104 successful,14 explicitly qualified contracts),
+f3-btr-gateway-001 and existing history proofs. Trace the inherited BTR request
+roster and deployed export contract. Replace only BTR whole-publication reads
+with selected typed relational reads, preserving Tech/Eco counts, SQL NULL/bag/
+order/filter/horizon semantics, native checksums and Stage1 admission. Connect the
+actual report-specific CSV under existing export route. Prove exact independent
+retained bodies/bytes, affected tests, actual3005 controls/history/export/reload
+and unchanged resources/publication. Establish or explicitly evidence the matched
+performance-provider limitation. Buffer Trends follows BTR closure or an explicit
+evidenced block; no adjacent report, frontend/auth/MTO/F2/schema change presumed.
+
+BTR selective001 diagnostic: root/both1240 and initial leaf bodies match retained
+SQL, but receiving-leaf grid hits the45s verification statement limit. Preserve
+the failed receipt and EXPLAIN ANALYZE: root Tech takes7.527s, repeated1240-loop
+nested joins follow estimated-one-row relations. pg_stat_user_tables records no
+manual/automatic analysis for the consumed typed tables. Before further query
+changes, refresh planner statistics with ANALYZE only on the exact BTR-consumed
+mta_state tables in the owned Fresh PostgreSQL database. This changes statistics,
+not operational rows, schema, accepted F2 receipts, clock or resource settings.
+Required proof: retained source/query failure, statistics/plan before and after,
+unchanged selected publication/commands and same complete contract roster. No
+shared database maintenance, vacuum/reset, broader tuning or timeout increase.
+
+BTR statistics refresh completed on the exact13 owned relations. Receipt
+`f3-stage2-btr-statistics-001/receipt.json`, SHA256
+`aea8706feb0080bf38d9eb45f4d2650f8ca8b8602737f7e943ac58e599b5257d`,
+retains unchanged publication/commands and the same root query's7.527s→0.077s
+plan. This is not matched legacy performance. Selective rerun003 then passed
+all104 strict and14 existing declared-flaw contracts, including complete ordered
+HTTP bodies against independently certified retained responses; no whole-run
+reader is allowed in that probe. Receipt SHA256
+`e53e864d305ba5a762d27d145886f0e6e746070e2c81492c89cfc5a72ddfb5f2`.
+
+BTR CSV initial13 cases pass complete SQL types, deployed header generation and
+CsvHelper bytes (`f3-stage2-btr-export-002`, receipt SHA256
+`6a9a65cd4d5787c23c8d73a8fecc043e58190cfbebca1cd55de5a3b5fbf5af79`).
+The early native requirement capture is **before** UpdateDispatchPriority, so its
+NULL colours cannot certify terminal colour filters. Canonical
+GenerateRationReqReport copies the nine consumed requirement fields directly,
+without a join/filter/distinct; subsequent updates leave those fields unchanged.
+Expanded export003 uses this explicit terminal field projection, independently
+corroborates dispatch colour against the accepted terminal calculation capture,
+and covers the complete retained filter roster plus saved/empty/invalid layouts.
+Export003 verified terminal dispatch capture equality but failed in its oracle
+setup: the full requirement schema demanded unrelated non-null ParentPacksize.
+Preserve that failed receipt. Retry004 creates only the nine consumed columns
+with their native SQL types; it invents no other requirement values and changes
+no query/comparison. Export004 now passes54 complete ordered typed/header/CSV
+comparisons, including PIC8/OHIC1137 filtered rows. Nine actual canonical SQL
+errors remain NOT_PARITY: four missing sla-join cases and the five existing
+invalid-filter cases. Receipt SHA256
+`248811e2146fc79fc3efdc4b3f4f367cb53659308131f4bc184a24eb5e48dab0`.
+211 repository tests pass; all376 baseline pins remain unchanged. The candidate
+is ready for its authorized MTA-only3005 deployment, keeping selected June17,
+actions disabled, admission, mounts, resources and all22 other running containers.
+Actual3005 controls/download/restart and matched performance remain open.
+
+#### Stage2 BTR checkpoint — partial proof, explicit remaining gaps
+
+Implementation956ebac is committed/pushed and deployed MTA-only on3005, image
+`sha256:f39855c104ca04c1405905c8c685c42cd11f635ccc751738ea229b643ce97399`.
+Serving receipt `f3-stage2-btr-serving-001/receipt.json`, SHA256
+`5541e7b8ae5ed93f54354121656452ad82235b7697620a7d2b598dd733499e77`, binds
+the same June17 run/digest/admission, mounts/resources, publication/commands and
+22 unchanged other running containers.13 authenticated gateway checks pass before
+and after MTA restart with exact ordered JSON/CSV bytes; forged actor/scope is
+overwritten and unauthenticated requests return401. Current full environment
+matches Compose/image settings. The first unordered-Env hash check failed and the
+old image could not be inspected; direct full before/after environment equality
+is not claimed. Selection, command, mounts and limits are separately exact.
+
+Actual browser proof: Tech1240, Eco1240, both views; pages1–5 then6–10; Depo308
+with June6–17 date columns; daily graph337/AG515802, horizon12, current Norm392,
+and June12/16 changes220→294→392. Unpin/save stores31-column BTRon-hand layout
+and its exact row survives restart. Reset Layout stores109 default columns with
+SKUDescription pinned left, matching inherited useSaveAllState's delete-then-save
+workflow. Original absence was subsequently restored through authenticated
+ResetState after checking the exact retained reset value. Pipeline layout and
+business commands were unchanged.
+
+Historical gaps at that checkpoint: the browser download event timed out, no
+toolbar file was obtained, and an early reload observation did not establish
+delayed visible restoration before the session returned to login. These are
+superseded by the retained-state recheck below; session/event loss is no longer
+the current export/layout blocker.
+
+**Retained-state browser reconciliation,2 October2026:** receipt
+`f3-stage2-btr-browser-recheck-001/receipt.json`, SHA256
+`1640ac7561e6c01d1c600eddb0f62dd0f7febb7fcffc1241f6a59941f06a0c5e`,
+binds serving image14457962/codef075949, the same selected June17 run/digest,
+complete unchanged environment, publication/commands and22 protected containers.
+Actual toolbar pipeline CSV is1,240×108 and exactly matches the independent
+canonical root-pipeline CSV bytes (`c06b7362…`). On-hand saved-layout files are
+308×30 for Depo/June6–17 and1,240×30 from a five-row root page. Every ordered cell
+and serialized byte matches the corresponding retained canonical CSV projection
+through the actual31-column persisted layout; complete full canonical reference
+hashes are checked before projection. This is source-backed cell/header selection,
+not a new oracle, excluded-row comparison or matched performance proof.
+
+Save keeps SKUDescription unpinned. The exact saved row survives a real page
+reload, but the loaded Depo/June6–17 grid still displays it pinned left after
+independent readback work well beyond the inherited2-second delay. Returning
+Pipeline→On-Hand does fetch/apply that state and visibly unpins it. The inherited
+`useBTR.tsx` has saved-state effects tracking only mount/currentTab while initial
+configuration is undefined; it does not refetch when configuration first arrives.
+Fresh bytes equal canonical runtime frontend bytes, SHA256
+`ae2aaa8e048e9e9220f49e92f805b31b2c8ec99856a6a0943ab5ed658faa1833`.
+Fresh-reload restoration is therefore a reproducible current **BLOCKER**,
+separate from successful delayed tab-return restoration. Do not report the tab
+round trip as successful fresh reload. No frontend repair is authorized here.
+
+UI Reset stores109 default columns and visibly pins SKUDescription left; its
+complete grid ordering is not newly certified. Exact reset state was checked
+before authenticated ResetState restored original absence. Pipeline layout was
+not mutated; its absence is confirmed. Page size returns to5000. No application
+change, engine replay or serving restart occurred in this recheck.
+
+BTR remains partial BLOCKED: fresh reload and the missing equivalent canonical
+HTTP/browser performance provider are dependencies. Remaining enabled filter,
+history and layout-order controls plus real leaf browser login remain **UNTESTED**,
+not excused by those dependencies. SQL plans/modern timings are not matched
+performance. Keep the whole screen denominator; do not report BTR complete.
+
+**Active Buffer Trends boundary before mutation:** reuse retained history
+consumer SQL/.NET formatting and BTR-owned colour/date/attribute evidence.
+Trace GetBufferTrendGraphData's exact aliases and filter joins against the
+inherited screen; replace only its whole-publication read and connect valid
+source-backed filters. Preserve colour counts, permission/attribute multiplicity,
+NULL/date/percentage/summary semantics and deployed failures. Required proof:
+independent complete ordered responses for Tech/Eco and supported horizons/scopes/
+filters, affected tests, actual3005 selector/chart/summary/restart evidence, plus
+the unchanged matched-performance gate. No frontend/MTO/auth/F2/schema change,
+invented export, new port or adjacent report work.
+
+#### Stage2 Buffer Trends — selective reader and independent filter proof
+
+`D:/freshvcf-build/evidence/f3-stage2-buffer-trends-001/receipt.json`, SHA256
+`f26ab20f3f15dc51e7b46e650453f452bfc5db62a8bee94a06d5a53388861265`,
+proves134 complete ordered graph responses and30 individually confirmed deployed
+SQL failures across164 cases. Both technical/economic branches,1/7/12/30/60/90
+day horizons, retained hierarchy scopes/intersections, parent types/codes,
+Norm/VirtualNorm, hierarchy/custom operators, colour counts, empty populations
+and black/red OR precedence are covered. Custom-only requests preserve the
+deployed six-group call gate; adding an empty standard group opens that gate.
+The actual pinned DLL supplies filters; source-extracted SCIH SQL executes on
+independent retained terminal facts, followed by the accepted independent.NET
+formatter. Exact failure identifiers/codes are additionally checked in
+`failure-audit.json`; the executed original runner is archived alongside it.
+
+GetBufferTrendGraphData now selects the configured run and named BTR relations,
+aggregates requested columns in PostgreSQL and reuses the native graph formatter.
+It does not load the whole publication, both wide histories, rerun calculations,
+cache results or alter frontend/MTO/auth/schema. Valid reads use five queries.
+The original12/90-day unfiltered oracle queries remain byte-identical to their
+accepted receipt.216 tests PASS; all376 source/input pins unchanged. Timings in
+this private-worker receipt are diagnostic, not matched legacy performance.
+
+The journey remains ACTIVE. Next proof is authenticated3005 gateway/restart,
+then actual type/horizon/two chart modes/summary/filter/reset controls. The user
+completed login in tab1, but the browser tool's attachment to that tab timed out
+three times; preserve it rather than replacing the session or changing auth.
+Matched canonical HTTP/browser performance remains unavailable under the frozen
+protocol and cannot be replaced by private-worker timings.
+
+**Serving/browser checkpoint:**
+`D:/freshvcf-build/evidence/f3-stage2-buffer-trends-serving-001/receipt.json`,
+SHA256 `b169380bfa441f5299cbfe84e550801d20f2dd1b5af68c9dc60ae0cb42becc95`,
+binds commit5210f3c/imagef2293217 to the unchanged June17 selection and admission.
+Eleven authenticated gateway checks pass before/after MTA-only restart with
+byte-identical responses, including the inherited wrapper around a declared503.
+Unauthenticated requests return401; stored actor/scopes overwrite forged client
+values.22 protected containers, full environment, resource limits, publication
+and command rows remain unchanged. The first probe preceded listener readiness;
+gateway logs retain connection refusal. A second probe incorrectly expected an
+unwrapped503; its failed log is retained and expectation corrected against the
+unchanged gateway source. Neither finding required product-code changes.
+
+Browser access recovered through a fresh tab in the same browser, sharing the
+user's signed-in session. Actual Show All, Tech/Eco,1/90-day submits, Percentage/
+Absolute, Depo apply, reset/Show All, reload/default30-day and legend hide/restore
+were exercised. Captured summaries match independent SQL/.NET expectations:
+technical30-day availability99.25%, technical1-day99.35%, economic90-day99.95%;
+Depo90-day counts2/0/2/347/0/3345. Earlier60 days are zero in the independently
+proved full-estate90-day population. These observations do not certify every
+enabled filter or a real leaf-user session.
+
+Two concrete inherited frontend defects prevent chart-accuracy acceptance:
+`handleApplyFilter` computes Total twice through a shared nested object, doubling
+the plotted total (2480 versus1240). The graphData effect tests lowercase
+`percentage` while the actual mode is `Percentage`; a horizon submit updates
+summary but leaves the old plotted date range until mode toggle. Both are
+reproduced in screenshots, with the four affected frontend files proved equal
+after line-ending normalization to the pinned reuse revision66a77735. No frontend
+repair or wider exception has been authorized; no backend values were altered
+to compensate. See exact entries in docs/LEGACY_EXCEPTIONS.md.
+
+Buffer Trends is therefore **BLOCKED/PARTIAL**, not complete. Preserve remaining
+UI branch/leaf scope and matched-performance gates while proceeding independently.
+**Active Planning boundary before mutation:** reuse accepted Planning overview,
+Pick/Excess/Expedite/Fulfillment readers and independent consumer receipts. Trace
+each inherited normal/custom category dispatch, grid/count/chart/filter and
+export request to its deployed owner. Implement only attributable missing MTA
+consumer connections/selective reads within those contracts; preserve category
+populations, terminal-zero GIT approval, F2, frontend, MTO, auth and defaults.
+Proof requires complete independently compared bodies/exports, actual3005
+controls/scope/restart and the unchanged matched-performance gate. No new queue,
+business calculation, synthetic replacement, new port or adjacent BPR/insight work.
+
+#### Stage2 Planning — Excess connection checkpoint (ACTIVE)
+
+The actual3005 Excess Review chart opened, but Grid View crashed with
+`TypeError: e.map is not a function`. The earlier port incorrectly treated SQL
+FOR JSON as the HTTP value. Canonical GenericFunction.ExecuteScalar<object>
+(source6850a0bf, lines160–203) deserializes it to List<object>; ReviewExcessInventory
+then returns that list. Actual DLL invocation over the independently captured85
+rows proves the list and empty fallback: `f3-stage2-excess-scalar-001/receipt.json`,
+SHA256 `4176b432295d9fbbc9a125e6866c872018d0b82fb14383c9c65510ea148544cb`.
+This attributable migration mismatch is corrected for the active Excess path.
+The before screenshot/console remain in f3-stage2-excess-001.
+
+Excess normal grid/count and graph now read named relational inputs and validate
+the accepted85-row projection before the approved hierarchy projection. They
+do not reconstruct the full publication. Normal filters preserve the actual
+Commons six-group gate, raw NULLs, attribute OR/AND groups, permission bags and
+parent-location join multiplicity. Paging follows source ROW_NUMBER bounds,
+including an absent pagination object; no silent5000-row clamp is applied.
+Charts canonically ignore request filters. The separate GetPlanningDataCustom
+route now connects its case-sensitive excessInventory branch, native NMSAllItems,
+parent description and standard-attribute joins. Custom ignores filters, omits
+NULL JSON properties, returns the complete46-column shared configuration and
+accepts the frontend's10000-row chunks. No frontend/schema/MTO/auth/F2 changes.
+
+`f3-stage2-excess-005/receipt.json`, SHA256
+`7cc3f164296758df21a685525cc8195d3b913c8cb88bac87931bd9a94b4d1c9c`,
+proves146 complete ordered grid/count/custom responses;28 exact deployed SQL
+flaws remain503 and NOT_PARITY. The separate failure-audit.json SHA256
+`b9a1e394cd8145cbf7c34a338e0564f698f27380e8c41360f04b7d93789eb0b4`
+checks exact identifiers/codes, not merely any SQL failure. Executed runner is
+archived. Root normal85, selected intersection3, parent-type join54, custom0.
+Native retained NMSAllItems is empty in BOTH independent engines. This certifies
+terminal empty custom behavior only; no populated custom population is invented.
+
+`f3-stage2-excess-graph-001/receipt.json`, SHA256
+`e1c293b48c688a016513fc509a140a0c1b77a2720877f472225444183e2c779d`,
+proves four complete scoped/ignored-filter graphs using extracted SQL and the
+actual deployed GetResponse. All bags and source-declared count ordering match;
+equal-count relative ordering is not invented.219 repository tests PASS and376
+baseline pins unchanged. Private API timings are diagnostic only.
+
+Preserved failed verification attempts:001 used incorrect test permission IDs;
+002 failed to handle SQL DBNull's source-defined empty-list conversion;003 sent
+custom filter arrays into the normal-filter reflection harness;004 left the
+parent filter's LocationAttributeData join bound to the owned database instead
+of the independent temporary table and lacked the exact NULLIF syntax-error
+classification.005 corrects only those verifier bindings/expectations, reuses
+the hash-bound independent input capture, and retains every failure. No oracle
+or modern calculated state was changed to make comparisons pass.
+
+Excess is now BLOCKED WITH PARTIAL PROOF; Planning remains ACTIVE. Serving receipt
+`f3-stage2-excess-serving-001/receipt.json`, SHA256
+`592f108dcb331dff8a5f1bf76b317e3aae8213721eb58ce87acf49398e9cb1f3`,
+binds pushed code a654e25 to image eccef26a and unchanged June17 admission360ee8ab.
+MTA-only deployment/restart passed12 complete authenticated gateway bodies,
+byte-identical across restart, unauthenticated401 and trusted root actor/scope
+overwrite.22 protected containers, operative environment/resources/mounts,
+selected publication and all business commands remain unchanged.
+
+Actual3005 browser proof: normal85; native custom0 with explicit missing-NMS
+message; five-row pages1/2 of17; server Depo filter23 and page reset; SKU6517
+client filter3 and numeric Norm sort0/61/71; clear restores85. The real daily
+graph entry opens337/DP020819, RLT2/current Norm0, June8 Phase In205→0, and
+horizon14→30. Existing complete six-section backend comparisons remain reused;
+this browser observation does not claim every positive suspension/history branch.
+Hide SKU Description, save, reload and re-enter restores the hidden column and
+identical persisted20-column layout. Reset restores all columns; authenticated
+ResetState restores the actor's original absence, verified by readback.
+
+Six actual browser-downloaded XLSX files are retained and completely inspected.
+Depo export contains all23 rows despite page size5:18 default columns and17 with
+the saved hidden-description layout, every ordered cell matching independent
+legacy rows under inherited Excel numeric-SKU conversion. Four chart-table
+exports match all typed cell bags and descending values/counts: product70x7
+for count/value, location12x7 for count/value. Equal-value source ties are not
+strengthened. The chart-table CIPONDOH filter gives1/12 and clear restores12.
+IAB's download event timed out, but the new Windows Downloads files were present;
+the receipt binds the files, not a success toast or API-only substitute.
+Inherited charts convert empty amounts to zero; positive amount parity is not
+claimed. The existing frontend/MTO/auth assets are unchanged.
+
+Remaining Excess gaps: real leaf-user login, remaining actual server-filter and
+positive history selections, populated NMS/custom and monetary amounts absent
+from retained inputs, direct saved-Excess-layout MTA-restart proof, and matched
+canonical HTTP/browser performance. Private scope and timing checks do not close
+those gaps. The earlier generic layout-restart evidence is reusable but not
+relabeled as a new Excess browser check. No engine replay or replacement facts.
+
+**Next active Planning boundary — Order Fulfillment:** reuse its accepted1222-row
+normal read-model and four-chart receipts, inspect actual normal/custom wire,
+filter/count/export routes and their inherited controls. Change only attributable
+presentation/provider mismatches and bounded relational reads. Required proof:
+independent canonical complete bodies, actual3005 controls/downloads, authenticated
+scope/restart, unchanged defaults/isolation, and the same performance gate.
+No frontend, auth, MTO, F2, business action or positive-data substitution is
+authorized. GIT/Expedite follow after this category's proof or explicit block;
+BPR and insight journeys remain unopened.
+
+#### Stage2 Planning — Fulfilment connection checkpoint (partial BLOCKED)
+
+Actual3005 normal Grid View failed with `e.map is not a function`; screenshot
+and console are retained in f3-stage2-fulfillment-001. The canonical method uses
+the same GenericFunction.ExecuteScalar<object> as Excess and returns a list.
+Actual DLL invocation proves the complete1222-row list/nested detail and empty
+fallback in `f3-stage2-fulfillment-scalar-001/receipt.json`, SHA256
+`8a3dc1b92fcd19d2c62262577ec1c676fb63a333791973addee3828eba3984af`.
+The active adapter now returns that list, reads only named accepted relational
+inputs plus the checksum-validated summary/details projection, and connects the
+normal Commons filters/count/paging. Graphs use those bounded reads and preserve
+the source's ignored-filter behavior. Frontend, F2, MTO and auth are unchanged.
+
+`f3-stage2-fulfillment-005/receipt.json`, SHA256
+`0c9190fb814186ab566d56330b7191b2b50e0005325f63ae8e9380aa4c32dfe5`,
+contains185 checks:146 complete ordered responses PASS,36 declared source flaws
+NOT_PARITY, and3 existing empty-scope denials NOT_PARITY. Native normal1222,
+leaf6, Depo304, parent-type join802; coverage labels produce8/1204/10. Complete
+nested detail and configuration values survive. No calculated facts were replayed.
+Four scoped/overlapping/ignored-filter graphs independently match SQL and actual
+DLL GetResponse in `f3-stage2-fulfillment-graph-002/receipt.json`, SHA256
+`6b6e3f531af6c1dfd6e9135c8f820d8cfcf4b01239b44e915fba6392a1d70561`.
+Each normal/graph request uses13 queries and cannot call full publication().
+These timings are private diagnostics, not matched-performance acceptance.
+
+Custom differs from Excess: the source LEFT join emits1222 identity-less rows
+from missing native NMS, with distinct payloads assigned RN from tied NULL keys.
+The adapter explicitly denies that undefined ordering, preserves safe empty
+scope/page behavior, and never fills NMS IDs or invents a tie-break. Existing
+frontend's missing-identity guard is retained. Exact source-invalid filters and
+SQL245 empty-permission quoting failure are recorded in LEGACY_EXCEPTIONS;
+unavailable/denied results are not relabeled as parity.
+
+Preserve verifier attempts002–004.002 expected missing category207 where this
+report has unbound b.category4104;003 expected NULLIF156 where the nested grid
+reports syntax102;004 reached the selected-ID-only oracle helper on empty scope.
+005 fixes only those source-error/empty-literal verifier bindings and reuses
+hash-bound unchanged modern observations. All earlier passed checks and failures
+remain retained. Graph001's independent worker succeeded but the oracle lease
+was occupied by the normal verifier; graph002 reuses that capture after release.
+No concurrent oracle access, legacy repair or comparison weakening occurred.
+222 repository tests and376 baseline resource identities pass. Code11b659c is now
+served on3005 as image14457962. MTA-only recreation and explicit restart preserve
+normal admission360ee8ab, June17 run/digest, disabled actions and22 protected
+containers. All15 authenticated gateway cases return complete identical bodies
+after restart, including denied custom/source-invalid cases and trusted scope.
+
+Serving/browser receipt `f3-stage2-fulfillment-serving-001/receipt.json`, SHA256
+`08c15c65782e27084bda647f3e250d17699d81817358361f8cc1e2451149122f`,
+binds67 retained files. Actual normal1222, five-row pages1/2 of245, Depo304,
+Coverage Gap>67%10 and reset1222 pass. SKU6584/DP020819 selects the retained
+positive order detail: creationJune9, pending65, dueJune16, Over Due. Daily Data
+Graph shows RLT3/Norm58, horizon14→30 and June7/12 Norm changes130→87→58.
+Hide sd/save/reload visibly restores the25-column layout with sd hidden;
+UI reset and authenticated ResetState restore the actor's original layout absence.
+Both actual grid XLSX files exactly match all ordered canonical cells:304x23
+default and304x22 hidden-column, exported from a five-row page.
+
+All four real chart-table XLSX files are retained: location pending1x9,
+location gap13x9, product pending1x9, product gap200x9. Every typed cell/bag
+matches independent DLL output and every ordered row matches the serving response.
+Source-declared descending count order passes. Preserve the first verifier and
+failed strict product-order comparison: at index24, equal count9 groups have
+different relative order. The deployed query defines no tie-break; that relative
+order remains NOT_PARITY, not silently accepted or replaced by a new sort rule.
+Location chart filtering CIPONDOH1/13 and clear13 pass. Custom Screens visibly
+reports failed-to-load for the documented503; this is unavailable, not parity.
+
+Dependency-blocked exits: native custom/NMS identity and undefined source ordering;
+source-invalid filters/empty-permission failure; inherited zero-price→NULL display
+in BPRViewTable; unproved relative order of tied chart groups; matched canonical
+HTTP/browser performance provider/protocol. Separately UNTESTED, not described as
+dependency-blocked: actual leaf login, remaining filter/history selectors and
+sorting/PNG downloads, this report's visible saved layout across MTA restart.
+Browser reload is proved; generic restart evidence does not substitute for that
+specific layout observation. No frontend/auth/MTO/F2/schema changes were made.
+
+Before any next category/journey, revisit recoverable RRR/BTR toolbar downloads
+and BTR visible saved-layout reload. Earlier IAB event timeouts/session loss are
+historical observations, not sufficient current blockers after Excess downloads
+were located on disk. Require actual compared files and visible restoration, or
+a current reproducible failure. Other untested controls remain open, distinct
+from genuine native-input/source/performance dependencies. Fulfilment is now
+explicitly partial BLOCKED above. **Retained-state reconciliation CLOSED:** RRR
+actual toolbar files pass below; BTR both toolbar files pass above, while fresh
+reload now has a reproducible inherited-source failure and delayed tab-return
+restoration passes. Original temporary layout absence is restored. Untested
+controls remain in each screen's denominator. No frontend/auth/F2 edits or
+consumed trial reset occurred. Return to Planning's approved terminal-zero GIT
+and then Expedite; other unopened journeys retain their recorded order.
+
+**Active Planning GIT boundary before mutation:** trace the inherited From Parent,
+To Child/Location Wise/Time Wise/custom requests to canonical deployed consumer
+SQL and the explicitly admitted terminal-only empty InTransitData. Required proof
+is the complete selected zero-population graph/grid/count/config/export contract,
+authenticated controls and stable selected-run readback, with source failures
+recorded separately. Permitted implementation boundary is the MTA consumer and
+focused proofs only; no shipment creation, F2 replay, frontend/auth/MTO change or
+positive logistics acceptance. Stage3's missing nonempty input remains separate.
+
+GIT source/connection baseline retained in
+`D:/freshvcf-build/evidence/f3-stage2-git-source-001/`: seven frontend/backend
+contracts, exact retained PlanningProcessor bf716c4f / ExpediteProcessor e78148cc,
+deployed DLL/IL and both producer pins. Receipt SHA256
+`a45edcb52b854668c1a24b5786a8ee2d07f1c9e35e061b493a0ef268fc1aad51`
+also binds22 unchanged protected containers and publication/commands. The
+real3005 overview remains GIT0/0;
+six authenticated parent/child grid/count, child graph/custom requests all return
+503 with the current explicit disconnected-branch guards. This is attributable
+missing consumer integration, not zero-population parity or a source-flaw match.
+The inherited child normal-grid request includes locationWise and transporterWise
+together. Retained B1-SOURCE-03 documents absent transporter-query fields, but
+that earlier migration's inputs/evidence are reference only: compile the exact
+query on this independently admitted empty terminal state before recording its
+current disposition. Custom count0 can cause the frontend to skip its data
+request; its empty browser message would not certify the API. No application code,
+producer, permissions or publication changed. The next unmet exit is independent
+selected-state SQL/envelope/filter/schema proof, then bounded MTA connection.
+
+GIT unfiltered source proof now retained in
+`D:/freshvcf-build/evidence/f3-stage2-git-terminal-wire-001/receipt.json`, SHA256
+`7a8481ab22525ae8aefa7b275491343249db38e791128edf6791aaa89c0b0575`.
+Four retained permission cases execute11 queries each against independently
+admitted June17 session-temp tables in VFTEST_Fresh_BPR. Per case: three zero
+counts, three SQL-NULL grid/custom scalars and four empty typed chart result
+sets execute; the child transporter query fails207 (TransporterCode, OrderNo,
+InTransitQty) plus8120 (ungrouped correlated SKUCode). Native NMS remains empty;
+visible custom attributes were independently checked absent. No positive transit
+facts, calculated state or permissions were substituted.
+
+**Critical source qualification:** actual pinned DLL GenericFunction.ExecuteScalar
+swallows a controlled207 error and returns null; both that result and SQL NULL
+become[] under the inherited grid fallback. The source child method therefore
+does not necessarily return500 for its SQL failure. An empty200 UI cannot prove
+a valid transporter query. Record the failure explicitly, retain its inherited
+wire disposition, and do not repair SQL or claim healthy-query parity. Actual
+GetGoodsInTransitResponse invoked with the four empty SQL schemas preserves
+all four empty data sections and LL1–5 UI metadata. Invocation uses.NET10.0.11
+with the canonical DLL, not the hosted legacy HTTP runtime/performance provider.
+
+The first SQL verifier expected JSON[] where SQL returnedNULL and failed after
+capturing all44 observations. Preserve `f3-stage2-git-terminal-sql-001` receipt
+SHA256 `70ac12d3594997f0e3bd5f63c7191f655030ec4501aabc36372b073db0c82911`
+and original verifier. The wire proof checks those exact pinned observations
+with corrected NULL expectations; no query rerun, input/SQL change or overwrite.
+This is an independent source checkpoint only. **GIT remains ACTIVE:** filtered
+and paginated contracts, complete configuration/envelopes, bounded modern
+connection, authenticated controls/downloads/restart and matched performance
+remain unmet. No serving application, frontend/MTO/auth/F2 code changed here.
+
+GIT consumer implementation checkpoint (not deployed yet):
+`f3-stage2-git-filters-001/receipt.json` SHA256
+`ef961a530945a1be380a3be6267b2aefb2789beed0f62b0f11d1629c13385469`
+captures77 retained filter/scope/page cases through the actual DLL Commons
+generator and13 canonical SQL branches each (1,001 observations). Fourteen
+cases fail parent/child location queries; child transporter count has14 further
+SKU hierarchy/custom-attribute failures. All77 child transporter grids fail;
+custom and four chart branches execute empty because their source ignores these
+filters. Complete raw SQL/errors/results remain retained, not removed as outliers.
+
+`f3-stage2-git-modern-001/receipt.json` SHA256
+`e41bf5f17be5fbb0e1782709e450be565425b08c9ea1af1f1ff5e55e308aed65`
+reviews those observations and compares462 read-only Django route responses.
+Valid parent grid/count, child count/graphs and custom bodies/configuration match
+the independent contracts. Source-invalid branches deliberately return explicit
+503/LEG-GIT errors: **NOT the legacy helper's silent-empty wire parity**, and still
+block affected acceptance. The reader admits only the approved June17 manifest
+plus persisted rationed GIT with no positive values, then checks actual scoped
+attributes. No generated logistics row, other-day extension or calculation replay.
+Seventeen focused terminal/admission/overview tests PASS, including nonempty
+denial and filter failure despite an empty population. The private worker used
+the existing image with current source read-only, under4GiB/2CPU, and exited0.
+
+The owned SQL database lacks all four GIT UI configurations. Imported metadata
+was therefore independently compared by complete column/value bags with pinned
+deployed configuration/type INSERT scripts; no live/protected database was read
+and no configuration rows were seeded. Script ordering versus imported ordering
+is recorded separately in `ui-config-proof.json`; no tie-order claim is inferred.
+Normal23-column/custom46-column configurations also match exact processor source.
+Remaining active exit: deploy/restart only MTA on3005, prove authenticated
+reachable views/filters/downloads/layout and selected-run preservation, record
+explicit child-grid/filter failure displays, and retain unmatched performance as
+blocked. This checkpoint does not authorize frontend, MTO or F2 changes.
+
+GIT3005 deployment/readback checkpoint: implementation07ce0a1 now serves from
+image `sha256:4274ec5cc7ca5408a4161a657d2c1d8196cb47c3ef5f3aab1b696261cb5fcf11`.
+`f3-stage2-git-serving-001/receipt.json` SHA256
+`55158b1c7a76b846a920f3181b64eed26c27ee38671244491fe512d50e883ba3`
+binds420 authenticated gateway checks, trusted scope overwrite, unauthenticated401,
+and420 byte-identical readbacks after MTA-only restart. The first immediate
+post-restart request500 is retained; admission/listener startup took16 seconds.
+Readiness then reported the unchanged admission digest before the successful
+retry. All22 other containers, full MTA settings/resources and publication/command
+state remain unchanged. No business actions, layout writes or frontend edits.
+
+Browser proved parent grid0/June17, both child chart tabs empty, and child normal
+grid's generic load-failure alert. Custom displayed its explicit empty-view
+message; browser connection was lost before saving that screenshot, which is an
+evidence limitation, not a product defect. Parent Excel Export announced success
+but no new file appeared in Windows Downloads. Located source chain:
+useSaveAllState.ts41–62 skips data calls for zero pages, sets empty export rows
+and announces success; usePlanning.ts175–189 downloads only in the hidden grid's
+row-update callback; Planning/index.tsx190–200 supplies that hidden grid.
+Exact missed-callback cause and actual file export remain **UNPROVED**; no further
+discovery or claim follows from the toast. These sources/hashes are retained.
+
+**GIT remains ACTIVE.** Proved: bounded deployment, valid API contracts and
+post-readiness restart/readback, core browser entry/chart navigation. Blocked:
+source-invalid child/filter branches and unavailable matched performance provider.
+Untested: browser filters, layout save/reset/reload, leaf actor and actual downloads.
+Resume feasible browser controls using the existing evidence; do not reopen SQL,
+repeat the420-case proof or advance to Expedite until this journey's remaining
+exits are proved or explicitly dispositioned with evidence.
+
+GIT selected browser controls follow-up: `f3-stage2-git-controls-001/receipt.json`
+SHA256 `724e7512adcd00dfc15382c0c888f4421e129b0beab6d4e8230188678038665b`
+records Depo server-filter application and SKU337 client-filter/clear behavior.
+Zero rows remain, so positive-row filtering is not inferred from this UI check.
+The23-column parent layout saved skd hidden; its full persisted state matched
+after fresh reload and re-entry, with SKU Description visibly hidden. UI reset
+restored the column; authenticated ResetState restored the original absent row.
+No code/service/business-state changes or repeat SQL/gateway proof. Remaining
+GIT obligations are unchanged except these selected filter/layout controls are
+now proved: other browser filters, actual downloads, leaf actor, source-invalid
+branches and matched performance remain open. GIT remains ACTIVE.
+
+**GIT disposition for independent continuation: PARTIAL / BLOCKED, not accepted.**
+The preceding ACTIVE checkpoints are superseded by this disposition. Exact child
+grid/filter SQL failures and modern explicit-denial versus legacy silent-empty
+wire divergence prevent full parity; the canonical matched performance provider
+also remains unavailable. Actual empty export remains unproved after the retained
+no-file observation and bounded source trace. No repair or waiver is authorized.
+Other browser filter variants and real leaf login are explicitly **DEFERRED /
+UNTESTED**, not dependency-blocked and not removed from Stage2's denominator.
+Selected parent filter/layout controls, core charts and restart proofs stand.
+Do not repeat these unchanged proofs merely to increase evidence volume.
+
+**Active Planning Expedite boundary:** complete inherited parent/child normal
+grid/count and custom branches, then authenticated navigation/controls/exports.
+Reuse accepted independent terminal Expedite producer and chart receipts. Trace
+deployed PlanningProcessor joins and missing native facts before implementation;
+do not use imported adapters as authority or replace native NMS with invented
+rows. Preserve the existing unordered parent-chart-label exception. Permitted
+mutation: selected MTA consumer/proof files and this tracker only; frontend,
+MTO/auth/F2/actions and publication remain frozen. Required proof: complete
+canonical cells/configuration/filter/scope/page envelopes, followed by bounded
+3005 readback and affected browser checks; explicitly record unavailable branches.
+
+Human resume on2 October2026 adopts adjacent
+`audit-2026-10-01/STAGE_2_COMPLETION_PLAN.md` for remaining Stage2 procedure.
+This file remains the sole status tracker. Resume from outstanding Expedite
+filter/configuration/unpaged-envelope and route work; reuse the12 proved parent
+comparisons. Recoverable earlier gaps precede BPR/Guided/Research. No scope or
+acceptance waiver, automatic deployment, or Stage3–5 opening follows adoption.
+
+Expedite parent source checkpoint: `f3-stage2-expedite-parent-sql-001/receipt.json`
+(SHA256 `50896fa72457524dcee4ed08caf54ad5c1f01fefb2b101235f98350001c0be37`)
+captures 16 canonical SQL observations in owned `VFTEST_Fresh_BPR`, using only
+session-temp tables. Reused accepted own-legacy producer rows (10), Pick rows
+(14), native NMS (0), terminal BPRMaster and the approved empty BPR remarks;
+no engine replay or permanent database writes. All 12 paged queries execute.
+Root/selected-leaf/parent-leaf/overlapping scopes return 7/1/0/7 expedite rows;
+availability and both transit sections are empty. Page1/page2 complete cells
+equal the corresponding full-result slices. The normal availability grid's
+BPRMaster parent join therefore must not be replaced by its count consumer.
+All four unpaged requests fail with SQL156 near BY: the canonical source
+concatenates the CTE name directly with `order by`. Preserve this behavior for
+wire-contract investigation; do not repair the legacy query or claim parity.
+The earlier source-only extraction had a temp-table alias binding error; the
+SQL harness fixes that binding before execution, not canonical query semantics.
+Parent numeric JSON still requires the deployed string-dictionary conversion;
+filter/configuration/API/browser/export/performance proofs remain open. Child
+OpenExpediteRequests is absent from the admitted images, and is not covered by
+the terminal empty-transit/remarks supplement. Expedite remains ACTIVE.
+
+Expedite custom SQL / parent conversion follow-up: custom receipt
+`f3-stage2-expedite-custom-sql-001/receipt.json` SHA256
+`541f2c37720a663a14c5c7af4bee2c1caa9be7aec10e2119ff73efb48e696319`
+records all16 paged/unpaged scope queries executing on the same owned temp-table
+boundary. Full custom populations are 7/1/4/7 in the four retained scope cases.
+Native NMS is empty but the LEFT join retains rows: identifiers are omitted,
+while colour/penetration/GIT/rationed quantity survive. All ROW_NUMBER sort keys
+are NULL/NULL. Root and overlapping scopes contain the same seven quantities
+but assign different RN order (root starts176, overlapping starts103). Therefore
+multirow custom ordering/page membership is demonstrably not defined by the
+canonical query. Do not substitute Expedite identifiers or invent a tie-break.
+The selected one-row leaf remains independently comparable; no blanket custom
+empty-result claim is valid. This evidence does not authorize legacy repair.
+
+`f3-stage2-expedite-parent-sql-001/string-conversion.json` SHA256
+`43b2e30d3f776ef8fd7883eff077f921897a8ecd48dd5fcdf71201edb6ad6d04`
+uses the deployed Newtonsoft dependency with the exact source dictionary type:
+parent numbers become strings and decimal scale survives (`100.00`). This is a
+dependency conversion probe, not invocation of the hosted endpoint. Source
+GetDataSet catches SQL failures and returns its DataSet; the parent's empty-table
+fallback therefore must be investigated as a successful empty envelope, not
+inferred HTTP500 from SQL156. No application route or serving state changed.
+
+Expedite parent reader checkpoint: `mta/presentation/expedite_parent.py` now ports
+the normal parent joins, exact string-valued projection, NULL omission, scope
+multiplicity, parent-master availability join, ordering and paging. It has no
+route connection or production-state writes. Complete pure-consumer results in
+`f3-stage2-expedite-parent-port-001/results.json` match all12 prior canonical
+paged SQL/Newtonsoft outputs across the four scopes. Receipt qualification is
+explicit: retained legacy inputs, not persisted modern readback or HTTP parity.
+Eight focused parent/producer tests pass, including left metadata, duplicate
+parent/permission multiplicity, nonempty-transit denial and conflicting sort-key
+ties. Nonempty transit is unsupported explicitly; no silent empty replacement.
+Still required before route delivery: selective persisted context, canonical
+filter/configuration and error-envelope verification, modern relational readback,
+authenticated3005/browser/restart and performance obligations. Expedite ACTIVE.
+
+Expedite persisted parent checkpoint: selective context in
+`mta/presentation/expedite_read.py` verifies the existing ExpediteProjection
+source/row digests using named persisted inputs and approved read-time hierarchy;
+it admits the terminal remarks supplement without extending its scope. Private
+read-only worker receipt `f3-stage2-expedite-parent-persisted-001/receipt.json`
+SHA256 `8343a1f210711cc8bdbd5c0842ae81b42ec0e097eabe30a71bd24e53c74eb2e8`
+proves all12 complete paged parent results against the canonical SQL/Newtonsoft
+wire capture, zero differences, selected June17 run/digest unchanged. Whole-output
+loading was forbidden; worker bounded at4GiB/2CPU, no host port, no production
+writes or serving restart. Eight affected unit checks pass. This closes the
+persisted parent row-readback subcriterion only. Filter/configuration/unpaged
+wire behavior remain before route integration; browser/export/restart/performance
+and remaining Expedite branches are still open. No full-journey acceptance.
+
+Resumed Expedite filter checkpoint: reused the pinned actual-DLL GitGrid Commons
+expressions because the parent method has the same filter type/overload, aliases,
+gate and replacements; ran those expressions against the exact parent SQL.
+`f3-stage2-expedite-parent-filters-001/comparison-receipt.json`, SHA256
+`97179bf3b88d290d39fc25361a20b900af38bdc90f1bd1f518b2a68fa4f1d6a0`,
+compares77 cases: all59 valid complete results match the selective persisted
+modern reader, zero differences;18 SQL failures are identified separately and
+are NOT HTTP-envelope parity. Parent-specific behavior now preserves ignored
+forchildren join filters and reads Tags from standards. Norm filters reproduce
+SQL209 ambiguity rather than choosing a column. All cases deliberately use
+page1/5000 to isolate filtering; names inherited from the reused request roster
+do not certify unpaged/zero-page behavior. Original12 paging comparisons stand.
+Eight affected unit checks pass. No serving route/restart or business-state
+change. Remaining immediate exit: configuration and deployed GetDataSet failure
+to envelope behavior, then bounded parent route integration. Expedite ACTIVE.
+
+Expedite parent route checkpoint: GetDataSet actual-DLL probe in
+`f3-stage2-expedite-envelope-002/dataset.json` confirms zero-table returns for
+syntax/ambiguous-column errors. Source parent maps that to empty200; SQL errors
+alone must not be reported as legacy500. First harness binding failure remains
+in envelope-001. Owned configuration has no enabled AdminBPR dynamic attributes;
+20 fixed columns are matched exactly, including inherited Price code `am` while
+row price is `p` (no repair). Parent route now calls the existing selective reader.
+Private read-only Django proof `f3-stage2-expedite-route-001/receipt.json` SHA256
+`0e82afaeab237d868a0ae531f0a897997170a3c8654723a471e0c9cdbf07c2a5`
+matches all59 valid complete envelopes/configurations, zero differences. All18
+invalid-filter requests return explicit503, an intentional divergence from
+legacy empty-success, recorded in LEGACY_EXCEPTIONS, not accepted parity.
+Unpaged route explicitly denies SQL156 as well; required export behavior remains
+open. Eight affected unit checks pass. No serving deployment/restart occurred.
+Next: bounded3005 integration and controls for supported parent behavior, then
+remaining child/custom exits using existing dependency evidence. Full journey,
+source-failure disposition and performance acceptance remain outstanding.
+
+Expedite3005 deployment checkpoint: source6097081 deployed by MTA-only build/up;
+`f3-stage2-expedite-serving-001` retains readiness, container isolation and actual
+cookie-gateway observations. All47 other existing containers retain ID/image/
+start/config; MTA remains4GiB/2CPU/restart=no with the same two-worker command.
+Four distinct valid parent responses (root, SKU, location type, ignored parent
+type join) match complete private-proved envelopes; forged scope is overwritten
+and unauthenticated requests return401. Invalid Norm returns503 through the
+inherited gateway's `Failed to forward request` wrapper containing the MTA error.
+The first probe incorrectly expected the private503 envelope unchanged; failure
+is preserved in gateway.log, exact wrapper in error-envelope.json. This is a
+gateway-boundary finding, not a calculation mismatch or legacy parity claim.
+Browser controls/download/layout and restart readback remain pending; no journey
+acceptance or performance claim follows this deployment.
+
+Expedite restart/readback: `f3-stage2-expedite-restart-001` preserves before/after
+container and publication/command fingerprints, readiness attempts, and complete
+post-restart authenticated responses. Only MTA restarted;47 other containers
+unchanged. Readiness succeeded on attempt7 with the unchanged admission digest
+360ee8ab9beb66952f761761eedd825644011b16a8c310327c79d12202e5767f;
+earlier connection failures remain recorded as startup observations. All four
+affected parent responses equal the pre-restart gateway results after readiness.
+Selected publication and command fingerprints are identical. Browser session
+currently shows3005/login; authenticated browser controls/exports/layout remain
+untested, not certified by gateway proof. No repeated restart is needed absent
+another relevant serving change or failure. Expedite remains ACTIVE.
+
+Expedite child dependency check against existing holistic owners: repository
+Python search finds no OpenExpediteRequests read/write owner (only the gateway
+routing test for SubmitOpenExpediteRequest). Models expose ExpediteProjection/
+ExpediteRow; the production catalogue exposes closing/btr/ExpediteDispatches.
+Fresh PostgreSQL information_schema returns only fresh_mta_expediteprojection,
+fresh_mta_expediterow and mta_state.bpr_expeditedispatches for expediting tables.
+Canonical ExpediteFromChild reads TOP1 request by RequestDate for each SKU/WH/
+parent; no admitted image or existing application owner supplies that history.
+Thus child normal-grid remarks are a blocked dependency, not merely a missing
+route. Minimum unblock: a separately authorized owner/provenance for these facts
+under the later workflow boundary; no assumed empty population or new Stage4
+implementation here. This does not block the independent custom grid's defined
+single-row/empty scopes. Browser login restoration requested; no CAPTCHA bypass,
+credential reset or permission changes. Other feasible Expedite exits remain open.
+
+Authenticated parent browser entry observed after human-restored login: Planning
+shows June17 and Expedite7/7. Clicking Expedite From Parent displays
+LEG-EXPEDITE-UNORDERED-LABEL and remains on category selection; no grid toolbar
+is reached. `usePlanning.ts` sets category/view first, but awaits
+getPlanningDataGraph before closing category selection. Thus the chart denial blocks the
+normal UI path to the now-proved parent grid. This is an integration blocker,
+not successful browser/grid acceptance; filters/export/layout remain untested
+behind it. Screenshot `f3-stage2-expedite-browser-001/parent-entry.png` retains
+the resulting category-selection state; the transient error was observed live.
+Do not bypass the handler, invent the chart label, or modify inherited frontend
+to manufacture proof. Parent entry needs a precise disposition of the existing
+undefined-label chart contract. Signed-in browser is now available for other
+feasible controls; the earlier login-restoration gap is resolved.
+
+Expedite child browser observations: authenticated To Child renders June17
+receiving-location and pre/post charts; legend hide/show works. Screenshots in
+f3-stage2-expedite-browser-001 retain child-charts, child-grid-error and
+child-chart-return-error. Grid and Custom Screens show explicit load failure;
+returning to Chart View retains the error and hides already-loaded charts.
+Current usePlanning.ts clears that error on chart return only for GITToChild;
+index.tsx suppresses renderView while the error exists. This is a current
+frontend navigation defect; canonical legacy provenance has not been established.
+No frontend repair, action or layout write performed. Category selection restored.
+
+Custom reader implementation now preserves the admitted empty-NMS LEFT-join
+values, parent scope, NULL omission and duplicate bags, denying distinct rows
+with undefined RN keys. Twelve affected unit checks pass. Pure retained-SQL
+comparison in f3-stage2-expedite-custom-modern-001/pure-comparison.json matches
+four defined single-row/page/empty results;12 ambiguous results remain denied,
+NOT_PARITY. No custom route connection or serving change yet. The private
+persisted probe failed before data access: Fresh PostgreSQL is exited and
+freshvcf-test_default has no active containers. Failure retained in modern.log;
+not a comparison result. Existing MTA-only restart authority does not cover this
+database restoration; requested human direction, no reset/shared restart.
+Expedite remains ACTIVE; persisted custom verification is pending restoration.
+
+Restoration follow-up (3 October): the human explicitly approved restoring the
+existing Fresh database, then the existing3005 preview services. PostgreSQL
+completed crash recovery and is healthy at its original1GiB/restart=no limit.
+Started the existing Redis, MTO, user-service, MTA and frontend containers;
+no recreation, reset, image/configuration change or new port. Evidence in
+`f3-stage2-preview-restoration-001/result.json` verifies unchanged identities,
+images and operative configuration for all48 retained containers, unchanged
+state/start time for43 other containers, MTA readiness with admission360ee8ab,
+and HTTP200 at3005/login. Authenticated browser continuation remains pending;
+service restoration is not report acceptance.
+
+The persisted custom probe subsequently read the admitted June17 publication.
+Preserve modern002's Decimal JSON serialization failure; only the probe's numeric
+serialization was corrected. `f3-stage2-expedite-custom-modern-003/comparison.json`
+compares complete PostgreSQL reader results against the retained independent
+custom SQL: four defined cases match,12 undefined-order cases are explicitly
+denied and NOT_PARITY. Run/output/admission digests remain unchanged. This closes
+the persisted-reader proof only; route/configuration/wire/browser/performance
+exits remain open. No custom route connection or serving-code deployment occurred.
+
+Expedite custom API follow-up: the exact case-sensitive category now dispatches
+to the selective persisted reader. Reuses the canonical46-column custom config,
+ignores type/filters as the deployed custom handler does, preserves parent scope,
+and serializes penetration as JSON numbers rather than Django Decimal strings.
+`f3-stage2-expedite-custom-route-001/comparison.json` proves four complete defined
+private HTTP envelopes against independent SQL plus pinned handler/configuration;
+all12 ambiguous cases return the explicit503 NOT_PARITY limitation. Eight affected
+reader checks pass. No business state/schema/calculation change. Gateway, browser,
+restart and performance verification remain outstanding for this adapter.
+The restored browser provider had no tabs; a new3005 tab shows the normal login
+with CAPTCHA. Authenticated browser continuation is unavailable until login is
+restored; do not bypass authentication or treat private injected scope as login.
+
+Custom adapter serving proof: deployed a9f1845 as MTA image
+`sha256:36b670700e9f73d5fd0b357d47cc902936c1f65a099198cb945b526884ef3498`.
+`f3-stage2-expedite-custom-serving-001/receipt.json` proves normal admission,
+June17 run/digest, actions disabled,4GiB/2CPU/restart=no and47 protected containers
+unchanged. Real preview-account API login exercises root custom503 with the
+gateway's error wrapper, forged leaf scope overwritten to the same root denial,
+and out-of-range200 with empty data and46 columns; unauthenticated access denied.
+This is gateway proof, not positive leaf-login or browser acceptance. The root
+custom feature remains blocked by undefined ordering; no invented NMS identity
+or ordering was introduced. Subsequent restart/readback and browser controls
+remain outstanding; matched performance remains unproved.
+
+#### Active Expedite correction after human QA challenge —3 October
+
+Expedite has NOT passed end-to-end QA. The human reproduced the parent entry
+error and child latency; earlier route/serving checks must not imply working
+journey acceptance. The custom adapter restart proof is complete in the existing
+custom-serving001 restart files: three authenticated bodies unchanged, selected
+publication/49-command fingerprint unchanged,47 other containers unchanged.
+
+Child latency was attributable to chart routing through publication()/read_outputs,
+reconstructing the whole publication per request. Replaced only that read path
+with the existing selective Expedite context and checked PickPost projection;
+native source/row checksums, admission and chart calculations are preserved.
+`f3-stage2-expedite-chart-selective-001/comparison.json` records the same actual
+private HTTP path before10.044s/after0.640s, byte-identical complete child body,
+47 protected containers unchanged and bounded resources. This is one diagnostic
+sample, NOT matched legacy or browser performance acceptance.
+
+Direct human approval to call_7ZtUGdijA5CSTdAfXbs6XTwM authorizes both narrow
+presentation exceptions, now recorded in LEGACY_EXCEPTIONS: parent receiving
+labels from their own persisted location; custom paging by persisted producer
+SKU/location/parent keys, retaining native missing display fields. No new facts,
+calculation/state changes or claimed exact parity. The strict pure transformations
+remain available; only the named presentation callers opt in. Conflicting custom
+values sharing a producer key still deny rather than invent another tie-break.
+`f3-stage2-expedite-approved-presentation-001/comparison.json` proves all16 custom
+route responses across four scopes, complete value/duplicate bags against retained
+independent SQL, approved paging slices, all five own-location parent labels,
+and unchanged complete child response. Twenty affected checks pass.
+
+Filtered-count investigation is deferred while this human-reported entry/latency
+correction is active. The new count SQL capture failed before observations with
+SQL Server login failure and engine error823; retained under
+`f3-stage2-expedite-count-filters-001`. No database repair/restart or retry was
+attempted, and no runtime count/filter change was made. This needs a healthy
+independent oracle before count-filter comparison can continue.
+
+Actual authenticated UI interaction is still outstanding: the automation tab is
+at login; requested normal sign-in, no authentication bypass. Parent/custom serving
+verification follows the approved correction. Child normal grid still requires
+OpenExpediteRequests provenance/owner; parent unpaged export/source-invalid filters,
+remaining controls/leaf actor and matched performance remain unresolved. Stage2
+remains ACTIVE; none of these gaps is waived by the two presentation exceptions.
+
+Authenticated browser follow-up on serving70018e1/image76f3b5ca: after admission
+readiness, the normal From Parent click succeeds and displays charts; Grid View
+displays all seven rows. To Child renders its unchanged chart values. Screenshots
+parent-browser.png, parent-grid-browser.png and child-browser.png are in the
+approved-presentation001 evidence directory. The prior parent denial screenshot
+preceded the verified ready deployment; it is preserved, not dismissed as a pass.
+
+Actual child Grid View still fails on the recorded missing normal-grid dependency.
+Clicking Custom Screens also fails: user-service logs show GetPlanningDataGrid503,
+not GetPlanningDataCustom. Thus the approved custom API is not yet reachable via
+this actual control sequence. Do not claim browser custom acceptance. Inspect the
+existing hook's branch/error clearing before proposing any frontend change, which
+the two presentation exceptions did not authorize. A separate grid-count request
+took13.318s and returned7/0; it still uses publication()/whole-output reconstruction.
+Next in-scope latency work is the selective count reader with identical complete
+responses, independently of the deferred filter-semantic work and unhealthy SQL
+oracle. Actual UI timing and matched legacy performance remain unproved.
+
+Parent Grid latency correction: user reported the remaining delay explicitly.
+Moved only the unfiltered count route from whole publication reconstruction to
+the existing checksum-verified selective context; count joins/scope/formulas and
+filter rejection are unchanged. `f3-stage2-expedite-count-selective-001` compares
+all eight complete old/new responses across four scopes and both directions,
+with identical admission and bodies. New isolated reads take0.34–0.44s;20 affected
+tests pass. Deployed MTA only. Actual signed-in parent Chart→Grid succeeds with
+seven rows and success toast; screenshot parent-grid-complete.png retained.
+Browser timing attempts did not establish a reliable elapsed value (one locator
+timeout; another observation stopped before rows appeared), so no UI timing pass
+is claimed. Serving count timing is separately recorded in serving.json.
+No frontend, business calculation, publication or scope change.
+
+Narrow frontend amendment: direct human reply to
+`call_AADSNAm2H7ZI0eS4YSsiXJG3` approves exactly the ExpediteToChild custom-tab
+dispatch/stale-error correction and3005 frontend deployment. Custom selection
+now clears the unrelated normal-grid error to mount its existing custom API
+component; chart return clears that stale error. Normal grid failure, layout,
+API contracts, calculations and other categories are unchanged. Production
+frontend build and actual error→custom→chart browser verification are pending;
+approval is not acceptance. This supersedes the no-frontend boundary only for
+these two branches.
+
+Frontend amendment verified: production build passed; deployed frontend image
+`sha256:a37599db5558f52af99753ece785a0254aedc64a832906b3f99533d6983f366a`
+on3005,47 other container identities/images/start/config unchanged. Actual signed-in
+error→Custom Screens now clears the normal-grid failure and mounts the existing
+custom fetch. It reaches the explicit missing-NMS-identity guard rather than
+rendering rows: custom data display remains BLOCKED, not accepted. The approved
+ordering exception preserves missing fields and cannot waive this requirement.
+Normal-grid error→Chart View now restores both charts and unchanged percentages;
+normal-grid failure remains honest and separate. Browser evidence is retained in
+approved-presentation001/custom-identity-guard.png and chart-return-recovered.png.
+These observations close only the authorized navigation fix, not child/custom
+journey acceptance, exports, positive identities or matched performance.
+
+Parent controls continuation: actual SKU-code client filter337 reduces7→1,
+retaining the exact337/AG515802/Norm392 row; selection is visible and clear-filter
+is exercised. Create Availability At Parent shows0 rows, matching the accepted
+terminal response. Evidence screenshots parent-filter-selection.png and
+parent-availability-empty.png are retained in approved-presentation001.
+Row selection leaves both detail placeholders unchanged. Bounded source trace:
+usePlanning passes only expediteDispatchestransit as stockData (native empty),
+and the detail handler opens only when stockData has rows; transitData is not
+passed. This proves the observed current empty-population behavior, not positive
+detail acceptance or canonical legacy UI provenance. No new detail facts, UI
+repair or request-expediting action. Parent detail positive states, export,
+layout persistence, remaining filters/leaf actor and performance remain open.
+
+#### Stage2 RRR checkpoint — partial proof, explicit blockers
+
+Receipt `D:/freshvcf-build/evidence/f3-stage2-rrr-001/receipt.json`, SHA256
+`622fc36a286bbac165cd4d663bbee803c2f3e8a6dbff5a245981c1f0896a83dd`, binds
+unchanged application checkpoint52f2ff5/image312e3861 to the selected June17 run.
+Real3005 actor1/root71001/72001 hid SKUName, saved37-column layout, reloaded it,
+filtered Depo4 and displayed a two-row page. New export proof
+`f3-stage2-rrr-layout-export-001/receipt.json` reuses independent retained legacy
+typed cells and runs the actual DLL header builder/SQL/CsvHelper for that saved
+layout: all4 rows,36 headers,1211 bytes match exactly (CSV SHA256
+`7264b7f5d3cd7cdbb2aaa7cff1bcf3bcec66288ce914e2a30aea77278bd874c0`).
+The ten original export cases were not rerun. Unauthenticated export401 and
+authenticated actor/scope overwrite remain exact. Reset performs inherited
+reset-then-save;37 visible columns persisted across MTA-only restart and browser
+reload. Original actor layout absence was restored through authenticated routes.
+Admission/run/date/digest, accepted publication/commands, protected3003/3004,
+and all non-MTA container identities are unchanged. No application edit/replay.
+
+RRR is **not accepted**. Its pinned inherited useRRR/index source has no
+DailyDataGraph handler/modal and uses a column mapper without a graph renderer;
+the older generic graph helper is unused. The requested RRR six-section browser
+entry remains a source-capability/scope blocker, not a reason to invent UI.
+Toolbar export returned200, but IAB's download event timed out and no new Windows
+Downloads file was exposed; gateway bytes do not certify the saved-layout browser
+file. Existing root/Depo browser files remain accepted for their earlier layouts.
+This historical download gap is now resolved by the2 October retained-state
+recheck `f3-stage2-rrr-browser-recheck-001/receipt.json`, SHA256
+`c8675178b554a255a93f6e0f6a6eac4d20a4b2327b09df9330f8d107bcb07e03`.
+Actual CSV toolbar downloads with SKUName hidden and Depo4 are byte-identical
+to the retained independent SQL/DLL/CsvHelper CSV above:1211bytes/36headers/4rows.
+Both the four-row display and a two-row page export the full filtered file.
+The original absent actor layout is restored; all22 protected containers and
+June17 publication/commands remain unchanged. No code or calculation replay.
+Do not retain the old download event/session failure as a current blocker.
+Private leaf comparisons are reused, not relabeled as a real leaf login.
+No isolated canonical HTTP provider with equivalent terminal state/resources is
+running; existing .NET/SQL comparisons bind session-temp tables. Matched API and
+browser median/p95/throughput remain UNPROVED.3003/3004 are not substitutes.
+These blockers stay in the Stage2 denominator while independent DBM work proceeds.
+
+Instrumentation failure retained: initial restart probe incorrectly expected an
+integer count; canonical wire is string"14". It stopped before cleanup, then the
+correct exact-type assertion passed. No endpoint/type change was made. Browser
+checkbox lookup met aria-hidden input; documented tree-item Space key succeeded.
+
+**Active DBM boundary before mutation:** reuse terminal/current0,1240 six-section
+history,16-column/layout and retained positive-action/62 comparison receipts.
+First inspect the existing shallow trial builder and admission/projection/scope
+requirements; do not switch3005 or create mutable trials until their exact inputs,
+own state, action eligibility, bounded clock and restoration are concrete.
+Permitted edits are only an evidenced adapter gap or minimal disposable driver;
+no frontend/auth/permission/engine/action-policy/admission-contract change.
+Required proof is the amendment's real empty and populated DBM controls/actions,
+own next-day canonical comparison, matched performance and complete restoration.
+
+DBM prerequisite observation: retained consumed June6 trial381378ac has all five
+typed projections and PASS provenance, but all32 SKU and17 location attribute
+rows have NULL SL1–3/LL1–3 in both DBM and Importer ownership. Its prior run-bound
+hierarchy manifest is specific to that consumed run. A new pre-action trial is
+authorized; prepare exactly day0 of registered representative-bridge input
+458c7c66 using execute_day and the existing29 pre-action comparisons against
+f2-auto-sql-012. No commands or serving switch in preparation. Record its exact
+identity and verify native/projected prerequisites; any new hierarchy binding
+must be explicit and cannot use the June17 manifest by assumption. The frozen
+day0 policy has Sleep6584/DP010290 and337/AG515802, then Apply remaining own
+suggestions, at June6 noon+05:30. Retain all prior runs and restore normal state
+after any later window. No fresh source/input programme is opened.
+
+Prepared own pre-action run20261d94-b78a-4141-8770-2fe2d5b3354b, June6, digest
+12722fa8f8dc1d8d1c3d4f379e9702e5af3827fd16bee35052dab598dda24a88:
+29 independent retained comparisons PASS;10 current recommendations; all five
+native projections present; zero commands. Offline full startup admission passes
+without supplements, but native NULL hierarchy correctly admits zero scoped SKU/
+locations. No serving switch occurred. Evidence `f3-stage2-dbm-prepare-001` retains
+the initial receipt-driver failure (InputSnapshot is input_payload metadata, not
+a Checkpoint) and readback.json recovery of this SAME run without recalculation.
+
+The smallest prerequisite remedy is a separately validated manifest binding this
+new trial to the already approved exact catalogue and six hierarchy fields,
+following the authorized retained trial machinery. This is an explicit new
+run/date/digest binding, not reuse of the June17 manifest. Validate complete
+pre-action count/grid against retained independent legacy results and native
+checksum preservation before use. June17 terminal ancillary opt-in is disabled
+throughout the trial. No permission assignment, new attribute/fact or admission
+contract changes are permitted. Stage2 serving-window activation remains pending
+the bounded clock, allowlisted action sequence and concrete restoration driver.
+
+Trial scope/preflight now passes: `scope-admission-readback.json` compares the
+entire count/string/grid/typed fields with retained independent legacy day0
+responses. Exact separate hierarchy manifest SHA2d95af9ba25d97a6751d1e841039289c09a383526b5995058c83c968cd8d6f00;
+all five projections/full native startup checks pass. No persistent write or
+command in this preflight. Normal June17 empty DBM DOM/screenshot retained.
+
+Temporary window boundary: trial20261d94,June6,digest12722fa8 above; existing
+actor1/root71001/72001; scenario civil instant2026-06-06T12:00:00+05:30.
+Only DBM controls and frozen Sleep6584/DP010290, Sleep337/AG515802 then Apply the
+remaining eight computed recommendations. Confirmation cancel must not submit.
+`tools/dbm_browser_window.py` uses an external disposable import wrapper to fix
+only actions.timestamp; normal production WSGI/admission/routes stay intact.
+The MTA-only compose overlay clears terminal ancillary, binds exact trial input
+and hierarchy, enables actions for this finite window, and keeps4GiB/2CPU/two
+workers/180s. It restores in finally or after20min using normal compose
+`up -d --no-deps --no-build --force-recreate mta`, verifies exact original config/
+mounts and readiness, and deletes disposable serving files. Writing restore-now
+in its new evidence directory ends it earlier. Evidence keeps wrapper/config
+copies without an active serving mount. No other service or host clock changes.
+
+### Historical authorization — recovery Stage 1 (complete)
+
+The user's command-centre instruction in chat
+`01a0f7c6-1050-7741-b80a-a7f10ca0d04d` explicitly authorized goal creation and
+Stage 1 implementation; verified against the direct user reply on1 October2026.
+This supersedes the audit-only boundary and the historical instruction below
+to proceed directly to the next GIT endpoint. That unfinished GIT obligation,
+all earlier proofs and every required missing screen remain in scope for later
+F3 delivery. Stage 2 is not authorized in this execution checkpoint.
+
+Stage1 F3.1/F3.3/F3.4 exit: reconcile the finite application contract and verify
+publication admission. Use the audit inventories as supporting evidence, not a
+second queue. Every inventoried screen needs actual caller/control tracing or
+an exact source-backed unresolved disposition; map remaining full-publication
+request dependencies without converting those readers. Implement only the
+smallest missing deployment/startup integrity admission for the configured
+accepted native publication and already advertised projections/configuration.
+Preserve complete command integrity and keep whole-state validation outside
+ordinary selective requests. No schema, frontend, MTO, auth-contract, permission,
+action-enablement, engine, fixture or accepted-state change is permitted.
+
+Proof: valid admission; isolated missing/mismatched identity/integrity rejection;
+selected-run stable restart; representative authenticated3005 reads and affected
+browser navigation with commit/image/run/date/digest and focused timings.
+Controlled rebuild/restart is authorized for3005 MTA only; all other services
+remain unchanged. Smoke timings are not legacy performance parity. Freeze the
+audit's matched performance protocol for subsequent screen exits. Commit/push
+this bounded checkpoint and stop before Stage2, naming its next complete journey.
+
+Initial observation: checkout HEAD24c05db and MTA image846da0f2 match the audit;
+only the audit documents are untracked. Existing4GiB/2CPU/restart=no retained.
+No actual implementation/runtime identity change requires renewed baseline or
+calculation comparison work.
+
+#### Stage 1 proof and bounded handoff
+
+**Stage1 COMPLETE at implementation checkpoint26158a6; Stage2 not started.**
+This closure record accompanies that checkpoint in the final commit/push handoff.
+The matrix, exact-call supplement and deployed IL anchors cover
+every inventoried surface or name its unresolved source/input/control boundary.
+Required missing behavior, full-publication dependencies and the performance
+protocol remain visible. No Stage2 report/reader changed.
+
+The independent review found a mixed-worker startup gap in initial receipt001:
+one worker could admit while another failed. The smallest correction uses
+Gunicorn `--preload` in both supported entrypoints. Full selected input/native
+output/command/configuration/projection validation runs once in the master,
+before opening the listener or forking. Failure aborts startup with exit1 and
+zero listener/workers; there is no health/ready endpoint on a failed startup.
+Database connections close before fork. Both workers inherit only the identity
+token, with no operational row cache. Ordinary guards make seven bounded metadata
+queries plus file hashes; no input snapshot or full-state reconstruction.
+
+A validated identity mismatch or configuration/integrity error returns503 and
+revokes the worker token until the MTA master restarts. A transient Django
+OperationalError/InterfaceError rejects that request without poisoning one
+worker; the next request must compare matching metadata before serving, without
+rerunning full validation. Existing reader/command and actor-scope checks remain
+unchanged. This relies on immutable native publications, not a general database
+tamper monitor or new workflow authority. The earlier health200/ready503 startup
+claim in receipt001 is superseded and retained as historical evidence only.
+
+Final receipt `D:/freshvcf-build/evidence/f3-stage1-admission-002/receipt.json`,
+SHA256 `1591413b80ab9476b245759606029f834bd539efa3c32c3ff2455e7484b346f8`,
+binds embedded source hashes and configuration to image
+`sha256:312e386161cfb017613f4c0ccdb8b16a90748a157ff7abcd329e30921b52c1f3`.
+Two-worker proof `f3-stage1-preload-004/receipt.json`, SHA256
+`3fa87c1dc7ee180ab2f13b83cfb85e238282f1fb338ca46d74ee591e2e0a0c6d`,
+shows one admission before listening, both PIDs serving32 successful requests
+with the same inherited digest, and wrong-identity startup exit1 before any
+listener/worker. Isolated cgroup peak237584384bytes; final3005 representative
+read/restart mix peak591249408bytes.4GiB/2CPU/two workers/180s/restart=no retained.
+
+Same selected June17 run/output; admission digest
+`360ee8ab9beb66952f761761eedd825644011b16a8c310327c79d12202e5767f`.
+204 repository tests,11 focused admission tests and final-image Django check
+pass. Independent review reports no blocking findings. Six read-only PostgreSQL
+integrity faults are retained from001's unchanged verify() boundary: missing
+identity, wrong output identity, changed input/native output, corrupt projection
+checksum and hierarchy identity. Failed attempts and superseded receipts remain.
+
+Ten authenticated3005 response hashes match before implementation, final deploy
+and final restart (metadata, current DBM, RRR, BPR, Planning). Forged scope is
+overwritten; no-cookie401 and unsupported-filter503 remain. Initial real browser
+sign-in, SCIH sidebar RRR14 and DBMJune17/current0 evidence is retained in001;
+reader/frontend code did not change. Final-image Planning reopen and reload after
+restart confirmsJune17 GIT0/0, Expedite7/7, Excess85 and Fulfilment1222 in002's
+screenshot/DOM. No layout, action or permission write was submitted.
+
+Initial isolated verify11.6221s;30 metadata guard samples median0.03186s and
+max0.05342s. Final restart gateway reads0.2243-0.98s. These are local smoke
+observations, **not matched legacy performance parity**. Frontend/auth/MTO/Redis/
+PG container IDs/images/start times and protected3003/3004 snapshots are unchanged;
+accepted Fresh publication/actions and three retained F2 receipt hashes match.
+No F2/frontend/MTO/auth/report-reader/schema edit or calculation replay occurred.
+
+Initial probe001 stopped at its read-only-mode assertion because Django overrides
+PGOPTIONS; retained002 explicitly sets that option through Django. Initial browser
+inventory timed out; explicit IAB attachment succeeded. The review correction
+uses shared preload, not a coordinator service, cache, new port, larger worker
+pool, memory increase, or validation bypass. Final runbook describes this contract.
+
+**Next Stage2 journey, not started: RRR finishing acceptance.** The formerly
+pending Planning overview browser observation is now evidenced. Preserve existing
+RRR SQL/count/filter/page/CSV proofs. On3005 close actual layout save/reset/reload,
+designated Daily Data Graph control and selected-pair/date/history rendering,
+full filtered export after layout, scope/denial and run-stable restart. Establish
+matched legacy/Fresh API and browser median/p95/throughput before calling RRR
+fully accepted. Only an attributable gap permits an affected presentation edit;
+no F2 replay, source-flaw repair, default-run substitution or MTO change. Close
+or explicitly block that full journey here before starting another screen.
+
+#### Stage 1 reconciled screen contract (1 October 2026)
+
+This is the finite F3 denominator. The [route inventory](audit-2026-10-01/frontend-routes.csv)
+contains29 declarations,27 unique paths:26 under MTA and one merchandising mock.
+Planning and DBM have duplicate declarations; they are each one journey. The
+26-surface [connection register](audit-2026-10-01/screen-connections.csv) also
+separates Planning categories, shared history and admin/download controls.
+The matrix below expands MDM's eight routes and preserves every surface. These
+are existing F3.1–F3.5 obligations, not new phases or an additional status queue.
+
+Exact verb/path/payload declarations are retained in
+[frontend-api-calls.csv](audit-2026-10-01/frontend-api-calls.csv); actual hook and
+invocation lines, including mutation aliases and non-page callers, are in
+[frontend-call-controls.csv](audit-2026-10-01/frontend-call-controls.csv).
+It has129 declaration/helper rows, not129 enabled endpoints. The
+[endpoint reconciliation](audit-2026-10-01/endpoint-reconciliation.csv) retains
+114 unique MTA verb/path templates:36 match implemented routes,78 do not.
+A match is not a complete contract (generic export, configuration and Planning
+dispatch still have unavailable branches). The37 backend routes and their
+reader boundaries remain in [backend-api-inventory.csv](audit-2026-10-01/backend-api-inventory.csv).
+
+All report rows below refer to the pinned June17 run `ac1612c8-0e49-4155-83c3-f59f41422293`
+and digest `bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d`,
+unless explicitly marked as an application write or a separate positive trial.
+No missing population is deemed empty. Authenticated URL permissions select
+navigation; actor product/location memberships select rows. Hierarchy supplement
+is read-time SL1–3/LL1–3 only. Current preview actor is not the whole-product
+scope. Do not change permission assignments to close a matrix row.
+
+`P` below means `frontend/src/VectorFlow/Pages/MTA/`; service call evidence
+includes exact paths/lines in the CSV. Report bodies carry the existing filter
+tree and `paginationParameter` where used; scope/user supplied by the client
+is overwritten by the auth gateway. Preserve case, NULL omission, string counts,
+JSON-in-string envelopes, duplicates and existing empty/error semantics.
+
+| Surface / navigation | Actual caller and configuration/layout/export keys | Canonical owner / current connection / precise remaining disposition |
+|---|---|---|
+| RRR — SCIH `/rrr` | P`SupplyChainIntelligenceHub/RationedRequirementReport/useRRR.ts`: data/count, common UI/layout, daily-history control, `CsvExportMTA`. Config `RationRequirementReport`; layout/export `RRR` | Required. Pick bands + rationed report + importer attributes. Selective SQL/grid/filter/export receipts retained. Stage1 browser14 rows/date confirmed. Layout/history controls and matched performance remain Stage2. The export key is **not** the config key. |
+| DBM — `/dbm/dbm-norm-suggestions` | P`DBM/DBMNormSuggestions/useDBM.ts`: current/count, Apply/Sleep, history, client XLSX. Config `NormSuggestion`; layout `DBMNorm` | Required, current Suggestions0 onJune17. DBM-owned attributes/current tables; six-history projection uses importer scope. SuggestionsLog132 is historical only. Existing9-image reader and command overlay stay fixed; positive actions require separately owned retained trials. Layout/XLSX/actions and performance open. |
+| Daily Data Graph — row controls | BTR/DBM/RRR/BPR row-renderer/dialog hooks → `DailyDataGraph(SKUCode,WHCode)`; see invocation CSV | Required only at actual controls. BORProcessor's six DBM history queries, importer scope, complete command overlay. All1240 backend graphs retained; verify each actual entry point and selected pair/date/rendering under Stage2, not generic history substitution. |
+| BTR — Insights `/buffer-trend-report` | P`InsightsAndTrends/BTR`; GetBTRData/Count, Tech/Eco/horizon/page, daily graph, CSV. Config `BufferTrendReport`; layouts `BTRon-hand`/`BTRpipeline`; export `BTR` | Required. Both1240 branches have retained consumer comparisons. Full-publication read and BTR-specific export still open. Date columns/string values, both filter branches, history and visible grid/export/performance form one Stage2 exit. |
+| Buffer Trends — `/buffer-trends` | P`InsightsAndTrends/BufferTrends`; GetBufferTrendGraphData with bufferTrendType/Days and filters | Required. Selective colour aggregation and deployed filters proved in Stage2; selected browser controls/gateway/restart verified. Inherited doubled Total and stale Percentage plot plus remaining controls/leaf actor/performance prevent closure. No export is invented merely because another page has one. |
+| Guided Insights — `/guided-insights` | P`InsightsAndTrends/GuidedInsights`; nine DBM/chronic/availability methods. Chronic grid config/layout `ChronicUnavailability` | Required enabled tabs. BTR insight relations, DBMMaster, NMSAllItems. Existing backend proofs are not browser acceptance. Complete tabs, age/date/selection/filter/grid/chart; each defined branch and selective-read performance remain Stage2. |
+| Research Insights — `/research-insights` | P`InsightsAndTrends/ResearchInsights`; BPR grid/count, GetResearchInsightData, GetHistroricalAvailabilityBPRData; config/layout `ResearchInsight`, client XLSX | Required. BPR seven-image reader plus BTR colour/date/age histories and rationed master. Earlier selected summary browser proof retained. Whole graph/history reads, server filters, calendar/horizon/selection/export/performance remain open. Machine-month behavior is an inherited presentation qualification, not an engine change. |
+| Planning overview — SCIH `/planning` | P`SupplyChainIntelligenceHub/Planning`; GetPlanningDataCount + GetLastRunDate; actual landing-page Click to view | Required. Ten distinct SCIH.GetQuadrantDetails query contracts, ten native images and checked projections.40 accepted counts retained; browser now showsJune17 GIT0/0, Expedite7/7, Excess85, Fulfilment1222. Filters and matched performance remain open. |
+| Planning Excess — same route, Review | GetPlanningDataGraph/Grid/GridCount category `excessInventory`; custom request; config `Excess_Inventory_Review/CS`, custom layout `ExcessInventorycustom`, client XLSX | Required. ExcessInventory typed rows, rationed/standards/attributes/descriptions. Normal read connected through full publication; custom and filters absent. Overview→chart→normal/custom grid→scope/filter/export remains a Stage2 journey. |
+| Planning Fulfilment — same route, Review | category `orderFulfillment`; graph/grid/count/custom; config `Order_Fulfillment_Review/CS`, layout `OrderFulfillmentcustom`, client XLSX | Required. Typed summary/details, SpikeOrderData routes and native standards/master.1222 terminal summaries, nested details and bag joins must survive. Normal branches connected, custom/filter/selective-read/full journey not accepted. |
+| Planning Expedite — From Parent / To Child | category `expedite`, actual type; graph/grid/count/custom; SubmitOpenExpediteRequest. Configs `Expedit_From_Parent_ED`, `Expedite_To_Parent_CAAP`, `Expedit_To_Child_ED`, `Expedite_To_Child_CS`; custom layout `ExpediteToChildcustom` | Required. Expedite/PickPost rows, native attributes/standards/rationed/age. Counts/charts partial; grids/custom/filter/action absent. Keep LEG-EXPEDITE-UNORDERED-LABEL503 separate from defined numeric parity. No invented receiving label. Submission lifecycle remains Stage4. |
+| Planning GIT/WIP — From Parent / To Child | category/type bodies and custom/grid/graph/count in Planning hooks; config `GIT_From_Parent`, `GIT_To_Child_LW/TW/CS`; custom layout `GITToChildcustom` | Required. Terminal empty InTransitData only is approved. Overview zeros connected; detailed generated GIT consumer not connected. Stage2 must close exact zero branch; positive shipment fields/date/producer disposition below remains Stage3 blocker. Directory rows cannot supply shipment facts. |
+| BPR — SCIH `/bpr` | P`SupplyChainIntelligenceHub/BPR`; grid/count, pair history, remark history/add, transit/lookups, CSV. Config `AdminBPR`; layout/export `BPR` | Required. Seven native images and explicit terminal ancillary supplement; SQL key-bag paging and wire receipts retained. Full server filters/details/layout/export and Stage4 remarks remain. Empty transit is onlyJune17; initial empty remarks do not implement writes. |
+| BOR — SCIH `/bor` | P`SupplyChainIntelligenceHub/BuyerOrderReport`; BORData/Count, actual analytics hook, BOR remark methods, CSV. Config `BuyerOrderReport`; layout/export `BOR` | Required. Deployed BORProcessor data/count/export and BPRProcessor BORReport_RemarkDetails. Route family absent. Exact BOR query-to-native opening/refresh relation mapping and source wire comparison required before Stage3 implementation; immutable terminal facts cannot be supplemented with a prior run. Remark rows belong to application actor/time, not calculation history. |
+| BOR colour-band — `/bor-color-bandwise` | P`SupplyChainIntelligenceHub/BuyerOrderReport Color Bandwise`; allocation data/count, BOROA remarks and CSV. Config `BOR_OA`; layout `BORColorBandwise`; export `BOROA` | Required producer outside IsMTO gate. Deployed PlanningProcessor reads BORWithOrderAllocation + vf_ReqCalculation + ColorSequence/attributes/descriptions and BORReport_OARemarkDetails. No registered terminal image under that report name. Resolve exact derivation from retained accepted facts or missing producer output once; route/grid/export/action absent. |
+| Supplier-wise allocation — `/SupplierWiseAllocation` | P`SupplyChainIntelligenceHub/SupplierWiseAllocation/useSupplierWiseAllocation.ts`:266/278/440; data/count/client XLSX. Config/layout `SupplierWiseAllocation` | Required. **Deployed consumer reads BORWithOrderAllocation**, not SupplierDispatchReq. PlanningProcessor methods at IL108792 and110845 anchor count/grid. Input mapping/typed values/scope/grid/export/performance remain Stage3. MOQ/SOB populations do not certify this output. |
+| Supplier Dispatch — `/sdr` | P`SupplyChainIntelligenceHub/SupplierDispatchReport/useSupplierDispatchReport.ts`:139/158/255/268/277; real data/count/export calls. Config `SupplierDispatchReport`; layout `SDR` | Required, visible in the Stage1 authenticated sidebar. PlanningProcessor.SupplierDispatchReportData/Count reads SupplierDispatchReq, rationed, MOQ/SOB, attributes/descriptions; GenSupplierWiseReq.sql generates it. No terminal report image currently mapped. Distributor/Vendor DB-held flags affect source branches, not permission to drop this visible consumer. Family absent; map produced values and complete Stage3. |
+| Elephant Orders — `/eo` | P`SupplyChainIntelligenceHub/ElephantOrders/useElephantOrders.ts`:180 due-date update;298/317 data/count;431/447/456 reload/export. Config `ElephantOrderReport`; layout `EO` | Required, visible sidebar. PlanningProcessor reads ElephantOrders plus descriptions; UpdateElephantOrderDueDates updates that source table. Native terminal order image0 proves only empty input. Exact order identity/due-date predicate and positive trial transition/readback/next-run consequence remain Stage3/4. |
+| Open expediting — `/open-expediting-requests` | P`SupplyChainIntelligenceHub/OpenExpeditingRequests`; list/remarks + Planning submit; config/layout `OpenExpeditingRequests`, client XLSX | Required. PlanningProcessor.OpenExpediteRequest joins OpenExpediteRequests and computed ExpediteDispatches with attributes. Request SKU/location/parent/actor/time and remark lifecycle are application facts. Routes/state absent; submit→list→remark→reload and canonical downstream effect remain Stage4. |
+| Logistics — `/logistics/intransit-whereabouts` | P`Logistics/InTransitWhereAbouts/useInTransitWhereAbouts.ts`:295/314 grid/count;387 history;402/419/436/527 remarks;465 transporter;516 export. Config/layout `InTransitWhereAbouts` | Required. SCIHProcessor reads **generated GoodsInTransitTransporterMaster**, not the retained four-row directory of the same name. Exact terminal-zero query is possible only through approved producer/supplement proof; positive input fields and current-location/ETA/remarks are unresolved below. All family routes absent. |
+| RRR colour-band — `/rrr-color-bandwise` | P`SupplyChainIntelligenceHub/RationedRequirementReport  Color Bandwise`; allocation grid/count, config `RRR_OA`, layout `RRRColorBandWise`, export `RRROA` | Source producer gated by IsMTOEnvironment1; selected0. Visible route still requires an explicit configured empty/unavailable behavior proof; absent API is not accepted parity. Do not create output or change MTO to populate it. |
+| Order allocation — `/order-allocation-report` | P`SupplyChainIntelligenceHub/OrderAllocationReport`; data/count/client XLSX; config/layout `OrderAllocationReport` | Same selected inactive producer qualification. Sidebar not displayed for this actor, route retained. Exact inactive-profile UX remains unresolved, not universal feature exclusion. |
+| Total Requirement — `/total-requirement-report` | P`SupplyChainIntelligenceHub/TotalRequirementReport/useTotalRequirementReport.tsx`:16/34 mock rows;62/133 real RRR count;84 grid fetch commented;262 client XLSX. Config `RRR_OA`, layout `RRRColorBandWise` | Exact inherited mock behavior evidenced; no genuine grid producer/caller currently established. Not displayed for this actor. Source-undefined/configuration decision required before claiming data parity; cannot silently enable mock output or repair frontend. Required selected-profile disposition remains open. |
+| MDM Control Panel — `/master-data-management/control-panel` | Via `/masters-interceptor/control-panel` and application2 selection; P`MDM/ControlPanel/index.tsx`:29 GetMasterUIConfiguration(screenType) | Required. Deployed MDMProcessor MasterMapper/UI_MDMConfig selects masters and fields. No Fresh route/state. Freeze selected master IDs/control flags/field mapping and actor scope from exact retained config before Stage4; absence is not an empty master list. |
+| MDM View/Modify — nested `control-panel/view-modify` | P`MDM/ViewModify/useViewModify.ts`:266 config;579–626 count/data;1088 validation;1339/1342 submit;1831–1856 drafts;2027 seasonality | Required. masterId/filters/page + typed master records, draftId/taskId and approval actor. Validation-enabled branch calls non-MTA `/api/validate-master/*`; it is a real dependency, not unused inventory. Current masters, validation schemas and approved controls feed execute_day; mutable drafts/tasks must not update accepted June17 rows. |
+| MDM Add — `control-panel/add` | P`MDM/AddRecord/useAdd.ts`:206/211 validation or214 AddMasterData;274 DeleteTask; drafts | Required. Selected MasterMapper type/field contract, new-item source controls and task state absent. Exact valid/duplicate/rejected/approved lifecycle and own-next-day consequence remain Stage4. No new MTO rules. |
+| MDM Delete — `control-panel/delete` | P`MDM/DeleteRecord/useDelete.ts`:258 validation or261 RemoveMasterData;326 DeleteTask; draft/delete confirmations | Required. Application removal request/approval and canonical control effect, not direct deletion of immutable run rows. Exact rejection/retry/history and next-run proof required Stage4. |
+| MDM Saved Drafts — `/saved-drafts` | P`MDM/SavedDrafts/useSavedDrafts.ts`:24 allDrafts;42 draftCount;54/62 draft details;102 config;170 delete | Required. Deployed DraftProcessor uses DraftInstance, DraftInstanceMastersMap and mapped draft tables/UI_MDMConfig. Fresh typed app state/routes absent. Owner/id/master/count/details, edit/delete/reopen and persistence remain Stage4. |
+| MDM Pending — `/task-pending` | P`MDM/TaskPendingForReview/useTaskPendingForReview.ts`:40 pending;111 count;128/135 details;157 config;245 PostMasterAfterApproved | Required. NMSTaskStatus/NMSSubTaskStatus and task-specific masters/history; actor approval scope. Approval/rejection and command effects not supplied by report projections. Full source transition/error contract remains Stage4. |
+| MDM Status — `/task-status` | P`MDM/TaskStatus/index.tsx`:24 status;74 task download;78 config | Required. Deployed TaskStatusProcessor status/detail/download over each task history family. Exact returned count/string/NULL/envelope and task download are unresolved, source anchored in IL78176/84101; no Fresh route. |
+| MDM History — `/data-modification-history` | P`MDM/DataModificationHistory/useDataModificationHistory.ts`:31 config;53 GetSkuLoc;97 GetTaskMastersHistory(masterId,skuCode,WHCode) | Required. Selected master's typed history + actor and event times, not just daily calculation images. Current route family absent. Dropdown/reset/pair history/scopes and client export remain Stage4. |
+| Shared layout/filter/lookups | Common UI config; actual Save/Reset imported from BPR service by `hooks/useSaveAllState.ts`:24/25, not duplicate Common wrappers | Required wherever reached. Per-user/report relational layout separate from publication. Keep report-specific configuration/layout/export keys distinct. GetAllSKUs/Locations/analytics wrappers with actual invocation evidence remain required only for their reached controls; generic configuration does not certify underlying report. |
+| Admin drawers / validation | `components/layouts/{EnvConfigDrawer,UIReportConfigDrawer,UIMDMConfigDrawer,PermissionsDrawer}` actual methods in call CSV; validation branch above | Source methods/config paths anchored; exact eligible admin actor and selected MasterMapper/config population unresolved. Do not widen current actor, implement every service declaration by assumption, or silently discard actual controls. Read/edit permissions/config bulk-upload are application state changes for Stage4 after selected reachability proof. |
+| Configured downloads / shared XLSX | NavbarMenu:56 GetAllReports→permission `mta-report-urls`; MenuToolTip:105 `useDownloadHandler.handleDownloadVF(url,downloadName)`; `useSaveAllState.ts`:75 `/download-excel` helper | Configured report paths currently empty. Dynamic daily download remains conditional on exact path/file producer and run/date mapping; no fabricated files. `/download-excel` helper has a local call but per-screen final control use remains unresolved. Each actual page CSV/client XLSX is already in its row; no blanket download closure. |
+| Merchandising MCGrid | Route `/supply-chain-intelligence-hub/merchandising-grid`, component MCGrid and mock service | Outside MTA API path and mock data. Record as inherited non-MTA mock, not migrated MTA reporting or completed parity. No redesign or feature invention authorized. |
+
+The deployed DLL anchors for unresolved consumers are in
+[deployed-consumer-anchors.csv](audit-2026-10-01/deployed-consumer-anchors.csv).
+They identify IL method spans and literal SQL relation names, including generated
+async methods; these are source navigation evidence, not reconstructed complete
+queries or parity receipts. Their retained full IL is
+`D:/freshvcf-build/evidence/f3-bpr-wire-source-001/VectorFlowAPIs.il`, SHA256
+`ccd47dc8d76895a6aa63ad5d6beaadb32f4f53ab75047a68fb8055382fd87ca1`,
+from the pinned deployed DLL. Raw recovered C# remains supporting evidence only.
+
+**Precise unresolved input ownership:**
+
+- Logistics: generated rows need SKU, receiving/source location, order/shipment
+  identity, quantity, dispatch/receipt/ETA dates and transporter/LR/transport
+  details. Current-location/ETA/remark/user/time updates belong to the application
+  shipment workflow. The complete frozen ledger provesJune17 outstanding0 only;
+  no positive dated detail contract is approved. The four retained directory
+  rows have transporter identity/contact/name only. Do not rename those rows as
+  generated shipment rows. Canonical GenerateGoodsInTransitMaster.sql and
+  GoodsInTransitTransporterMaster.sql plus SCIHProcessor are the owners.
+- BOR allocation/supplier allocation and supplier dispatch: terminal native
+  manifest has no BORWithOrderAllocation or SupplierDispatchReq report image.
+  It retains supplier MOQ430/SOB430 and calculation facts. First reconcile exact
+  producer output/derivability and fields onJune17; if facts are insufficient,
+  name the missing source boundary before proposing a typed projection. No
+  accepted F2 calculation correction is implied by an absent consumer relation.
+- MDM: MasterMapper/UI_MDMConfig selects masterId, field list/type and mapped
+  operational/draft/task/history tables. Freeze these plus FNCFromUI/PI_PO_FromUI
+  and relevant validation flags before writes. Draft/task actors, decision
+  timestamps, previous/new values and status transitions are new application
+  facts. Approved controls enter a future own execute_day, never mutateJune17.
+- Conditional profile claims: retained effective settings prove IsMTOEnvironment0;
+  StdSettingsPre defaults for DistributorSystemActive/VendorSystemActive are not
+  proof of later DB overrides. Neither unknown excludes visible Supplier Dispatch.
+  Total Requirement's mocked grid and inactive allocation UX need exact source
+  disposition; this Stage1 does not approve a frontend repair.
+
+Static extraction is not runtime activation. Eleven declarations/helpers have
+no production call traced (duplicate Common Save/Reset, legacy per-report UI
+config wrappers, BPR alternate UI/Excel helper and duplicate utils download);
+GetUploadProgress is initialized without a traced invocation. Keep these as
+declarations/unresolved controls, not mandatory live HTTP calls. Generic
+GetUIConfig and BPR-service Save/Reset are the actual replacements. The CSV
+also records shared MTO-page imports of MTA MDM wrappers; MTO source/API is
+unchanged and this dependency must be preserved in final regression.
+
+#### Remaining full-publication request dependencies — mapped, unchanged
+
+Every listed path currently enters `context.publication()` and therefore native
+readback/input/checksum plus DBM command-state validation. This is a dependency
+map for subsequent targeted readers, **not authorization to remove integrity**.
+All projection-source validation must use native pre-supplement rows; scoped
+consumer attributes use their existing approved producer-owned projection.
+
+Planning bodies are explicit in `Planning/usePlanning.ts`:549–655 and698–885:
+`git`/`expedite` use `parent` or `child`; `excessInventory`/`orderFulfillment`
+use `review`. Grid requests carry the existing filter tree/page; initial charts
+send `filters:[]`. Custom views use the separate `GetPlanningDataCustom` route
+(for example Excess custom still sends type `review`), not an invented
+type=`custom` API contract. Missing branches must match the actual caller body.
+The older Expedite Child/Grid/index.tsx:30 contains a literal `wc:"GE04"` in its
+submit body, whereas named subgrids use the selected row. Its active control and
+deployed request compatibility remain an exact Stage4 source disposition; do
+not repair this inherited frontend or invoke the action to hide that uncertainty.
+
+| Current caller | Actually required report inputs and work after full read |
+|---|---|
+| views.planning_context → normal Excess grid/count/chart | ExcessInventoryRow + source receipt; native rationed, ClosingState.dbm.SKULocStandardAttributes, importer MasterData/SKU/site descriptions and SKU/location/pair attributes; business date. Scope bag, joins, chart grouping then page. |
+| same → Fulfilment grid/count/chart | FulfillmentSummaryRow/DetailRow + calculation/source receipts; native rationed/standards/SpikeOrderData; importer master/attributes/descriptions and order route details. Keep nested detail and independent chart/count joins. |
+| views.planning_graph Expedite; planning_grid Expedite count | ExpediteRow, chart additionally PickPostRow/PickBand; source rationed, importer MasterData, standards, btr.ExpediteDispatches; importer SKU/location/pair attrs/descriptions; chart additionally ClosingState.bpr.BPRMaster. Per-type chart/count joins; unordered label qualification unchanged. |
+| views.btr_data grid/count | BTR BPPTrendPhysicalInv/Dispatch, BufferTrendPhysicalInv/Dispatch, BufferTrendDates, producer SKU/location/pair attributes; final rationed report (BPRStages compatibility alias), DBM standards, importer descriptions, consumer CategoryColDescription. Horizon filter, Tech/Eco predicates, permission multiplicity, key-page/final-rejoin/stringification. Both branches currently computed. |
+| views.buffer_trends | BTR physical/dispatch colour tables D1–D90, BufferTrendDates, SKU/location attributes; pair attributes where current consumer joins them. scope→colour counts→dated graph. Current unsupported filters checked only after full load. |
+| views.research_insights | Same colour/date histories + Age/BRAge + final rationed master. Self/parent/children relations and UNION-distinct behavior, importer/BTR scope, exact selected SKU/WH. Preserve omission of NULL properties. |
+| views.historical_availability | BTR BufferTrendPhysicalInv and SKU/location attributes (not generic pair join), three30-day windows and current permissions. |
+| views.insight_data chronic loc/sku/grid | BTR ChronicUnavalabilityData, SKU/location/pair attrs, respective descriptions; grid also ClosingState.consumer_context.NMSAllItems. Strict BRAge>RLT and duplicate joins. |
+| views.insight_data DBM loc/sku/pie/ageing | BTR DBMNormSuggestionsData + SKU/location/pair attrs and descriptions; DBMFinal.DBMMaster parent ownership. Suggestion/age bands, grouping/order and NULL omission. |
+| views.insight_data availability trend/ageing | BTR.BPR dated colour facts and producer attrs; ageing also BTRSnapshotForUI.AgePhysicalInv. Non-Black counting and age qualification must not be replaced by current-day totals. |
+| actions.submit (conditional write, not ordinary read) | Full native DBM state and unchanged command_state integrity under the existing transaction/lock. Retain this complete boundary; action enablement and command history remain unchanged. |
+
+RRR + metadata, DBM current/daily-history, BPR and Planning overview are already
+selective. DBM/history intentionally reconstruct the **complete DBM section**
+when commands exist to validate the unchanged command-state digests. No request
+reader or algorithm above changed in Stage1. No whole-run cache was added.
+
+#### Frozen performance protocol for later complete journeys
+
+Adopt the audit plan's performance contract without calling Stage1 smoke timings
+parity: same date/input/run population, producer/hierarchy/scope, request/filter,
+columns/page/export and output; isolated deployed DLL/query legacy provider with
+matched bounded resources, never unrelated3003/3004 migration as oracle.
+Five warmups +30 measured interleaved warm samples, five application-cold starts,
+concurrency1 and4 initially; retain raw samples/failures and median/p95. Compare
+API/query time/bytes/query counts/CPU/peak memory and browser click→usable
+grid/chart/filter/page/history/layout/download, including cold/empty/denied/error.
+No shared cache flush. Successful-result median/p95 must be no worse than legacy,
+throughput at least equal and errors no worse; inconclusive distributions mean
+UNPROVED, not a tolerance-based pass. Keep4GiB/2CPU. Missing legacy successful
+behavior or narrow source flaw is explicitly qualified, not a timed fake result.
+Measurements trigger only the affected selective query/index/streaming work.
+
+### Historical recovery checkpoints (superseded by Stage 1 above)
+
+The user resumed the existing goal after the authorised recovery handoff.
+Active contract: F3.1/F3.3 remaining BPR/Planning consumers using the approved
+terminal-only supplement; selected BPR backend and read-only BPR/Research
+grid-to-summary browser exits are now evidenced below. Full screens remain open.
+F3.1 Planning overview `GetPlanningDataCount` backend exit is CLOSED below:
+the ten deployed SCIH.GetQuadrantDetails counts must read the accepted native
+report projections and preserve their differing joins and permission bags.
+Reuse retained independent legacy producer receipts and the approved terminal
+empty-transit supplement. Only presentation reader/endpoint, focused tests and
+proof drivers may change; no F2/schema/frontend/input/action mutation. Exit:
+all ten exact string counts across retained root/leaf/overlap/denied scopes,
+guarded missing/nonterminal supplement, actual authenticated3005 readback,
+and unchanged protected identities. Empty permission input is source-invalid;
+the20 modern safe-denial values are NOT_PARITY, separate from40 valid counts.
+Actual browser exit is BLOCKED by the browser attachment timing out twice before
+login despite current user approval; no CAPTCHA was entered or bypassed. This
+does not block the next existing GIT grid/chart connection. Remaining GIT
+grids/charts, BPR contracts and full screen acceptance stay open.
+Prior RRR checkpoint:
+Selective-read exit CLOSED below: whole-run reconstruction removed from RRR and
+its metadata requests; canonical joins, filters, scope, ordering, paging and
+envelopes retained; actual3005 screen/filter/clear/paging/restart reads verified.
+RRR export API/byte/restart and actual toolbar-file exits CLOSED below. The
+previous browser attachment failure remains preserved, superseded by IAB4/tab2
+read-only sign-in after the user's explicit confirmation. Root and Depo toolbar
+downloads are byte-identical to the retained legacy oracle; no replay was needed.
+Enabled-screen reconciliation is recorded in the expanded visibility matrix.
+The detailed-transit mapping review found terminal outstanding shipments0 and
+GIT0 across all1240 pairs in the unchanged retained ledger. User subsequently
+approved the terminal-only supplement described below; no nonempty logistics
+claim or F2 mutation follows from it. Full RRR screen acceptance remains open.
+Historical RRR allowed boundary: presentation context/RRR reader and affected
+tests/probes only. Current DBM gate below supersedes it without authorizing F2
+calculation, input, state, new fixture, schema or protected-service changes.
+Existing API proofs remain valid semantic references, not completed frontend exits.
+Earlier active-item statements below describe historical checkpoints; this slice
+governs current execution. Remaining F3 obligations are not silently closed.
+
+Current checkpoint: F3.1/F3.3 selective DBM current/daily-history reads CLOSED
+for this reader/visible-history boundary with the evidence below. Its original
+unmet exit was whole515-image reconstruction on ordinary DBM/history requests.
+Allowed edits are a named-image presentation reader, those two HTTP consumers,
+focused tests/probes and isolated3005 MTA deployment. Existing DBM filters,
+projection, importer-versus-DBM permission ownership, action before/after digests,
+scalar envelopes and all calculation code remain unchanged. No new schema,
+inputs, action submission or engine replay. Current reads load the nine declared
+consumer tables; daily-history reads load the exact six-projection dependencies
+and importer scope. If committed commands exist, reconstruct the complete DBM
+section and use unchanged command_state integrity before projecting; never pass
+partial state into its full-state digest checks. Verify retained pre-action
+responses without rewriting stored command history, action-current readback,
+terminal0, selected history and actual3005 behavior. Full publication integrity
+remains an explicit acceptance check, not a claim made by each selective read.
+
+Terminal-only supplement authorization: user reply to
+`call_zsFKJgePAcUNJ7FUdBlryYEB` says "Approve terminal-only supplement".
+The approved boundary is June17 InTransitData empty from the frozen complete
+shipment ledger, and initially empty BPR remarks for the new Fresh app, both
+run/date bound and identically supplied to isolated canonical/modern consumers.
+Artifact SHA256 `0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546`:
+last dispatchJune16, last receiptJune17, no outstanding June17 shipment, final
+raw_daily GIT sum0 and positive-GIT pairs0. This is not permission to reuse June5
+transit details as June17, fabricate transporter/LR/current-location/remarks,
+change F2 or claim nonempty logistics parity. Supplement construction/comparison
+belongs to the existing BPR/Planning connection item after this DBM reader slice.
+
+Active supplement exit: a versioned opt-in manifest bound to the exact terminal
+run/date/output digest and frozen ledger hash; source-backed empty InTransitData
+and Fresh initial BPRReport_RemarkDetails only. Reject mismatched dates/runs or
+nonempty overrides, retain missing-is-not-empty behavior without opt-in. Supply
+the same supplement to isolated deployed-query and modern consumer checks;
+compare full typed terminal BPR/Planning results and exact scope, then connect
+readback on3005. Allowed edits: presentation supplement/consumer wiring, focused
+tests/probes and isolated preview only. No operational state write, F2 replay,
+new logistics facts, other-day supplement or nonempty logistics parity claim.
+
+#### Planning overview — selected backend closed, browser pending
+
+`GetPlanningDataCount` now serves the ten deployed count contracts from ten named
+native images plus checked persisted Excess/Expedite/Fulfilment projections.
+No full515-image reconstruction, calculation or operational-state write occurs.
+Metadata joins, optional parent-description multiplicity and custom counts remain
+distinct. GIT emptiness is conditional on the explicit approved terminal manifest,
+native rationed.GIT having no positive values and the source producer predicates;
+other/nonempty transit remains unavailable, never replaced by empty defaults.
+
+Evidence under D:/freshvcf-build/evidence:
+
+| Receipt | Exit / SHA256 |
+|---|---|
+| f3-planning-overview-003/receipt.json |40 exact deployed-SQL counts across four retained permission scopes. Root GIT0/0/0,Expedite7/7/7,Excess85/85,Fulfilment1222/1222; own legacy producer rows vs modern relational projections. 14f588968bd1cdbf44cdcb862381bda0a7f89d39369b168d97b1a87ff60f94ae |
+| f3-planning-overview-gateway-001/receipt.json |Actual3005 cookie read; complete ten string values match. Forged scope overwritten, no-cookie401, active unsupported filter503. 90a8a402cbaad79260d0db47b903e8803d69ae01f630d28bc7bac41167e80231 |
+| f3-planning-overview-restart-001/receipt.json |MTA-only restart preserves exact response hash b55bcc7ae3746f3d2bad8cb9e1eaa8928061d518584af8bc5ba4db5909b010fc. 3c3c35d849d78cedd5919666cd51faf9f21c0f84f4aa281d2c6a74639ad71405 |
+| f3-planning-bpr-regression-001/receipt.json |Six unchanged BPR count/grid/paging wire comparisons on the new image. 971cbb2a3a6cd05c6e4c5267938890a0d846b954041e037ec95729b6a82bd847 |
+
+32 focused tests and Django check pass. Preview image:
+`sha256:846da0f2e909c31d1136aaec0dade85b9ce7c6793d4592c341156c1435de8709`;
+embedded sources match receipts;4GiB/2CPU unchanged. Protected snapshot before
+in overview002 equals final in overview003, including3003/3004 identities and
+accepted Fresh publication/actions. F2 remains untouched.
+Failed probes001 (missing private test identity) and002 (helper disallowed empty
+IDs) are preserved with dispositions.003 distinguishes two empty-permission
+guard cases from40 strict comparisons and records the source quotation flaw;
+no legacy repair. This is not whole Planning/GIT/filter/custom-grid acceptance.
+Browser verification attempted with user-approved sign-in, but IAB2/tab2
+attachment timed out before any input. Current approval is not the blocker.
+
+#### Approved terminal supplement / BPR count-grid checkpoint
+
+Supplement and selected BPR backend exit CLOSED; full BPR/Planning UI remains
+OPEN. `baseline/presentation-terminal-v1.json` SHA256
+`bca78680e3fd2162c097ef0abcc5894e9177e77da5a3d75cb367742fbf97fdd5`
+binds the unchanged accepted run/date/output and artifact. Read-time only;
+unconfigured/wrong-run/wrong-date/hash/populated override fails closed. Seven
+native images supply BPR. SQL NULL exclusion, permission/key-page/final-rejoin
+multiplicity and declared ordering remain canonical. No F2 or frontend changes.
+
+Evidence under D:/freshvcf-build/evidence:
+
+| Receipt | Proved exit / SHA256 |
+|---|---|
+| f3-terminal-supplement-001/receipt.json | Exact frozen ledger:32,909 shipments,0 terminal outstanding,1,240 pairs allGIT0. Existing full ledger validation retained; remarks empty by explicit approval, not inferred from engine. cbe38c447eb538f25fd7596ef6a82c00e63e4da8910283cc1f728373acdd23ba |
+| f3-bpr-terminal-003/receipt.json | Seven independent deployed-SQL/modern full typed count-grid cases: root1,240,selected leaf126,other selected membership161,overlap1,240; page1/page2 five rows, out-of-range0. Same ancillary inputs, own retained native outputs. Order and duplicate bags match. 89a9ba03575422174690183aaa1771340aa57d759c925a1c6ecb27ad11ec1693 |
+| f3-bpr-wire-001/receipt.json |14 private HTTP comparisons; all fields/types/counts/order match retained SQL plus deployed async-reader IL and canonical AdminBPR type config. d906173b706a9ccdbb857f115d3894789bf3e4646dadd1b2aedfe759e7926e35 |
+| f3-bpr-gateway-001/receipt.json | Six actual3005 cookie reads match complete expected wire rows. Forged identity/empty permissions overwritten; no-cookie401. Observed0.995–1.393s, not a universal SLA. d23f8b925e2a55fcc7bc7ffdd66cce8a515425914ccbb0cf245c4c0ccd5d0073 |
+| f3-bpr-restart-001/receipt.json | MTA-only restart; all six complete responses/hash identities preserved. 9fd855c1bdb6243004f52f3d9ebc11c53f48b6b42c65ca4a2563044c0d65651d |
+| f3-bpr-ui-001/receipt.json | Authorized CAPTCHA/login on127.0.0.1:3005. BPR total1,240/page50/next-page and selected Norm392; Research grid1,240, client-filtered337/AG515802, selected1 and completed insight summary. Calendar/date limitation retained, not full screen acceptance. e6b75205c6ff3cd935e091bfe27b5b49cabb707d239f20047a819ce08955814e |
+
+Failed terminal001 (probe imported an oracle-only dependency) and002 (actual
+consumer representation mismatch) are retained.002 found only SQL NULL empty
+transit and three availability decimals; corrected consumer reconstruction,
+not calculated values or source SQL.29 focused tests and Django check PASS.
+Full typed comparisons still include those fields. No accepted engine day replay.
+The historical case ID `parent-leaf-empty` has161 BPR rows: the label was inherited
+from the RRR request, not a false BPR empty-population claim.
+
+Preview image `sha256:accb7976de5fdd9e383b88039ef18008482cbe3b69b93087b09be9bfa5742325`
+binds abbccc0 plus exact source hashes in gateway001. Embedded files match.
+Caps unchanged. Protected before/final snapshots in terminal-supplement-001
+equal, including existing3003/3004 and accepted Fresh run/commands. No action,
+remark, layout or production-state write. The user's current CAPTCHA permission
+was used to sign in read-only. Actual BPR page1/page2 and Research
+grid/filter/selection-to-summary proof is now retained in ui001, not inferred
+from API success. Research loading completed; no timing SLA is claimed.
+Visible limitations remain: empty BPR transit panel still asks to select a row
+after selection; Research's calendar defaults to October2026 while the report
+date isJune17. Retained frontend index.tsx:321 supplies no run-bound month to
+DayPicker, and useResearchInsights.tsx:372 uses machine date in another chart
+date conversion. Source hashes/screenshots are in ui001. No frontend repair,
+full calendar-date parity, nonempty logistics or full screen acceptance claimed.
+Pending within this slice: BPR filter/export/remarks contracts and Planning
+GIT/overview source consumer connections; no nonempty logistics claim.
+
+#### DBM current/daily-history reader checkpoint — CLOSED
+
+- `f3-dbm-selective-004/receipt.json` under D:/freshvcf-build/evidence,
+  SHA256 `d6fb4630fe057453e9d3e9fd77c2ed5765b0106f64fae320a31557ca2fe516f1`:
+  82 strict retained DBM comparisons PASS;26 source-invalid guards remain
+  NOT_PARITY. All1,240 terminal history graphs match the independent retained
+  legacy outputs:34,682 stock rows,136 Norm rows/changes,1,240 master/monitoring
+  rows and132 historical suggestions. Current terminal Suggestions remains0.
+  Private pre-action proxy matches immutable pre-action receipts without changing
+  stored commands. Real action-bearing readback separately verifies complete DBM
+  command digests. No full-publication read on ordinary requests; no writes/replay.
+- `f3-dbm-selective-gateway-001/receipt.json`, SHA256
+  `848b34ff935605ab64f303e3b3fba8248dd7325401bcb7821b9dbb50e2499722`:
+  actual3005 cookie count/grid/history and concurrent equivalents PASS. Stored
+  scopes override forged identity/scope; no-cookie401. Selected history returns
+ 28 stock rows,2 Norm changes and3 historical suggestions. Observed sequential
+  times0.483/0.605/1.964s; not a frozen SLA or cold-disk performance claim.
+- `f3-dbm-selective-restart-001/receipt.json`, SHA256
+  `7d37a698562d463e5b33339a23ed022e1761420e523db545ebc65d31896600bd`:
+  MTA-only restart; all six response hashes equal the previous gateway proof.
+- `f3-dbm-selective-ui-001/receipt.json`, SHA256
+  `4a3d84e4bfebf87854ddcdd8e243db20069527c2f61795a434418997d4c8bd33`:
+  actual unchanged UI shows June17 current grid0, BTR daily-history dialog for
+  SKU337/AG515802, stock/GIT/receipt/consumption series, Norm220→294 onJune12
+  and294→392 onJune16. Screenshots retained and inspected. Client grid filters
+  are not server-filter proof; BTR's old reader/export and visible disabled-action
+  handling remain open. No actions or saved-layout writes.
+- 37 focused tests, embedded6 DBM/history tests, Django check and diff check PASS.
+  Explicit terminal full515-image readback/integrity PASS before restart. Protected
+  before/after-deploy/final snapshots in selective-004 are exactly equal, including
+  existing3003/3004 and Fresh run/action state. F2 untouched.
+- Failed probes001–003 retained:001 receipt UUID serialization,002/003 private
+  guard body versus gateway503 wrapper. Only evidence adapters corrected; strict
+  response checks and source-invalid NOT_PARITY qualifications preserved.
+
+Preview MTA image `sha256:10bf1c8a9bd48df3bd47434c96cb54969aecf2c43d248a74e1965289d216635b`
+contains d44b740 plus recorded candidate hashes; reader
+`f1d722d1b74dc2e185ef9504b7031f67022bfdb01bf8f8ea516328dd29778093`,
+views `8faebac6a39ef10e37ff04a134b3f66581826311920fc66a65c51f32a771e833`.
+Embedded bytes match. Caps4GiB MTA/1GiB PostgreSQL unchanged. This checkpoint
+does not close whole F3.1–F3.5 or authorize3004 cutover.
+
+Performance acceptance for this RRR slice (local isolated preview, not a claimed
+legacy SLA): each first-after-deploy/warm request <=2s; the four-request metadata /
+count / grid batch <=5s; ShowAll/filter/clear click-to-ready <=8s. Freeze these
+limits for the formal gateway/browser checks, using the observed old11–12s
+metadata bottleneck and the selective-query baseline. No historical legacy
+timings are invented; database pages were already warm from semantic checks,
+so these are not cold-disk results. No cache flush, larger memory/worker count or
+timeout was used.
+
+#### RRR selective-read checkpoint — verified, export remains open
+
+Existing typed production tables and Pick projection supply the selective SQL
+joins/count/order/page; no new schema, calculated projection, fixture or cache.
+Metadata reads select the configured accepted run/date and required LocationType
+field only. Full input/manifest/all515-image checksum verification remains an
+explicit publication/integrity proof, not an ordinary HTTP request. Selective
+SQL queries are manifest/run bound; they do not claim whole-image checksum
+verification per filtered read. Other report readers still use their existing
+publication path and are not credited with this optimization.
+
+- Retained52-case receipt `D:/freshvcf-build/evidence/f3-rrr-selective-final-015/receipt.json`,
+  SHA256 `ba4a7156402df623ba0b7aed0ac895a79e0755a1c08fce1f11fce48ff3754a48`:
+  88 exact typed JSON responses match44 valid retained source cases.16 guarded
+  responses for8 source-invalid cases match but remain NOT_PARITY. Includes all
+  selected119 fields, NULLs, duplicates, scope/filter joins, deterministic order
+  and paging. Whole-run reconstruction forbidden; no persistent writes/replay.
+- Final real-cookie gateway receipt `f3-rrr-selective-final-gateway-016/receipt.json`,
+  SHA256 `74cedf0157533e368d0d56fc277f82570c1d3f74a24c7030be35f81eff370f28`:
+  all15 requests PASS, maximum0.5551s; four concurrent requests finish0.5593s.
+  Missing cookie401; client-supplied empty permissions overwritten by stored
+  roots. All15 response byte hashes equal the pre/post-restart receipts011/013.
+- Actual browser receipt `f3-rrr-selective-ui-010/receipt.json`, SHA256
+  `ed261cd030e4e4846a2fcff27d968d5e60aaaf0b79fe33cf060fba47fcbbd10a`:
+  real root login/sidebar; ShowAll14 (1.075s), Agen filter3 (0.847s), clear14
+  (1.007s), page size5/page2 five rows/total14, clean restart-read14 (0.859s).
+  Screenshot/code/image bindings distinguish the earlier UI candidate from the
+  final-image14-row confirmation. Intermediate screenshots and timed-out selector
+  waits are retained but not credited as valid timing/filter evidence. Private
+  leaf comparisons are not browser leaf-login proof. No actions/layout writes.
+- Explicit full integrity before/after the isolated MTA restart PASS; after
+  receipt `f3-rrr-selective-restart-integrity-014/receipt.json`, SHA256
+  `7fba641c2c81b3b7ded419ec8f8920232c5365b175c16584163d378ada221b41`.
+  Final protected snapshot `f3-rrr-selective-001/protected-final.json` equals
+  protected-before.json, including3003/3004 and existing Fresh run/action state.
+  41 focused tests, Django check and diff check PASS. F2 receipts/state untouched.
+- Failed probes001/004/005 retained.001 initially compared an archive wrapper
+  rather than its response;004's long owned read-only query was cancelled and
+  its source-hash capture is not acceptance provenance;005 hit its bounded10s
+  timeout. Actual permission bags and pair-bounded relational joins corrected
+  query expansion without dropping occurrences, increasing memory or changing
+  engine logic. Passing final receipt015 supersedes intermediate checks.
+
+Final runtime MTA image
+`sha256:badb2cbd8b18762506e8827631787082f05f5b3099d6bb834234c9edb088d218`.
+Built on bea389a plus the four exact source hashes in gateway016; embedded image
+files match those reviewed working-tree bytes. Logical commit will bind those
+bytes without claiming the pre-commit image was built from a future commit.
+Only preview MTA was recreated/restarted; frontend/auth/MTO unchanged.
+Selected terminal run/date/root scopes remain unchanged.
+
+RRR enabled call roster: GetEnvironmentConfiguration, GetLastRunDate,
+LocationType, GetUIConfig(reportName=RationRequirementReport), GetState,
+RRRDataCount/RRRData, and GetExportDataAsync. Read/config/grid controls are
+verified as above. The earlier CSV **OPEN_MODERN_INTEGRATION_DEFECT** (missing
+route, POST500 and export-error toast) is resolved by the export checkpoint and
+actual browser proof below. GetAllReports' blank configured file paths never
+excluded this dynamic export. Remaining layout/history controls and F3.1–F3.5
+are not closed by this selected read/filter/paging/export acceptance.
+
+RRR export exit frozen before edits: matched ReportsController.ExportCSVData →
+ReportProcessor.GetExportConfiguration → RRRProcessor.BuildSqlForExportRRR and
+BORProcessor.BuildHeaderQuery/StreamCsvFromQueryAsync. Export uses the same
+unpaged RRR ordered raw SELECT; pagination is ignored. Headers use visible
+RationRequirementReport configuration or valid per-user RRR layout columns,
+then stable position order and exact case-sensitive returned-field membership.
+CSV is invariant-culture, CRLF, UTF8 without BOM, null empty, attachment/text/csv.
+Allowed edits: selective reader's optional unpaged mode, RRR export/header/CSV
+adapter and route, focused tests, proof drivers, isolated3005 MTA deployment.
+No frontend/gateway change unless a demonstrated passthrough defect requires it.
+Proof: raw typed legacy SELECT on retained terminal inputs, actual deployed
+CsvHelper bytes versus modern bytes; retained root/leaf/filter/empty populations,
+pagination ignored and layout selection; actual3005 cookie/download/root scope,
+unauthenticated denial, restart readback and protected-state preservation.
+Invalid source branches remain guarded NOT_PARITY. No F2 replay or new data.
+
+RRR export API checkpoint CLOSED; subsequent actual toolbar-file proof CLOSED:
+
+| Evidence under D:/freshvcf-build/evidence | Result / SHA256 of receipt.json |
+|---|---|
+| f3-rrr-export-comparison-001 | Ten cases: raw typed rows/all fields, headers and exact CSV bytes PASS. Root14/leaf3/empty0/Depo4; overlap, ignored paging, saved/empty/invalid layouts, raw types. d9c24b50a782e7e32b8ff3392604a4c466c889dc854cac7549e045f1b9c4539a |
+| f3-rrr-export-gateway-003 | Actual3005 root14/37columns/3291bytes and Depo4/1340bytes match legacy. Stored scopes override forged user/empty permissions; no-cookie export denied. 8eeba95003d2fe3e009d71f8b47113d70c6eac6c294c40656fad218957d5199b |
+| f3-rrr-export-restart-001 | MTA-only restart; both files byte-identical. 07c7bdd3638d57e455e3d5044e2db3fe5f01421caed1a4c0df4973429038eeae |
+| f3-rrr-export-grid-regression-001 | Existing15-request grid/filter/timing regression PASS. 1a6152b179d4987e537ec32838daefaf0918171a05eccf79109dcbbbd82346dd |
+
+Oracle: retained terminal SQL facts/session-temp tables, actual pinned DLL header/
+filter generators and deployed CsvHelper20101c39...; zero engine replay. Layout
+variants are private reader inputs; actual gateway uses saved-state lookup with
+no preview preference/action write. Empty valid layouts retain deployed blank
+records.46 focused tests/Django check pass. Protected before/after snapshots
+match in export-comparison-001. F2 state and receipts remain unchanged.
+
+Preserve gateway001/002 failures and dispositions:001 sent Agen against the
+registered Depo oracle;002 omitted localhost Host on the unauthenticated probe.
+Only probes corrected; assertions/oracle/application unchanged for003. Default
+headers include two position99 columns; observed retained bytes match, universal
+tie order is unqualified (legacy exception note). No invented tie-break.
+
+Preview image `sha256:b066e981059cb61da47303943f360e65e4f75c10e52de8709c05c369a073d14f`;
+gateway003 binds six candidate file hashes on03fb27e. Only MTA rebuilt/restarted.
+Actual browser proof `D:/freshvcf-build/evidence/f3-rrr-export-ui-001/receipt.json`
+(SHA256 `55118db95a9e0579d0782d4fcc058e89576c762f8a22148a4a47889f5e71aae3`)
+binds d44b740 and the same runtime image: sign-in, June17 root grid14, Depo grid4,
+actual toolbar downloads14/4 rows and37 headers, byte-for-byte against the
+independent legacy files (3291/1340 bytes). Screenshots and downloaded files
+are retained. The browser download-event wait timed out, but the actual Windows
+Downloads files and gateway request timestamps prove successful completion;
+the timeout remains an instrumentation limitation, not an application failure.
+No action/layout write, deployment, input mutation or F2 replay occurred.
+RRR-only dispatch guard remains. Other server CSV,
+client XLSX and configured-file downloads stay per-screen F3.3 obligations in
+the original continuation order; no all-report export closure or new queue.
+
+Ordered continuation inside the existing F3 rows, after RRR's exit:
+
+1. Reconcile the one screen matrix with actual enabled frontend dependencies,
+   matched deployed methods/config, required state, scope and exact3005 proof.
+   The113-reference inventory is not a list of113 mandatory new features.
+2. Resolve the known BPR/Planning producer-to-consumer transit gap once against
+   retained June5 context and dated shipments. Connect existing facts if complete;
+   otherwise request one exact field/date/producer-bound extension. No invented
+   June17 details, zero placeholders, F2 rewrite or silent full-acceptance waiver.
+3. Deliver selective DBM current/history, BTR/daily graphs, then independent
+   Planning/BPR/Guided/Research families with actual3005 proof per screen.
+   Terminal current DBM remainsJune17 Suggestions0; history132 is not current.
+4. Finish applicable filters/scopes/layouts/exports and eligible isolated action
+   UI connections. Preserve accepted Apply/Sleep next-day evidence; disabled
+   terminal-preview actions do not prove an enabled working workflow.
+5. Complete single-PostgreSQL fresh-start/restart/retry and direct-port MTO/auth
+   regression on owned resources, preserving all protected services and attempts.
+6. Combined affected acceptance, exact identities/runbook, logical commit/push
+   and separate3004 cutover/rollback approval. Missing required inputs or modern
+   integration defects cannot silently count as full F3 acceptance.
+
+Baseline: clean pushed1eb0a2f. Existing full-migration goal resumed by the user.
+This is the only F3 checklist; no new recovery programme or parallel status file.
+
+| Obligation | Required exit evidence | State |
+|---|---|---|
+| F3.1 Persisted-output/API connection | Existing endpoint/envelope roster served from an explicitly selected accepted relational run; DBM/BTR/history/insights and current-day reports read that run, no trace-as-production or fallback synthetic outputs. Preserve configuration and canonical branch qualifications. | PARTIAL — current-day reports/charts, all1,240 daily-history graphs, both1,240-row BTR branches and13 insight variants verified for registered contracts. BPR terminal count/grid and Planning overview40 valid scoped counts now verified through authenticated3005/restart. GIT detail views and remaining consumers stay open. Expedite ambiguous parent label remains NOT_PARITY |
+| F3.2 Authentication, scopes and actions | Real gateway identity; filter/grid/count/permission membership comparisons; unauthorized rows/actions rejected; Apply/Sleep persist through existing command service and affect the next own-state run on isolated retained shallow inputs. | PARTIAL / remaining backend work deferred during F3.3 visibility checkpoint — real cookie-gateway Apply/Sleep/own-next-day CLOSED:62 comparisons; RRR44 valid source cases and14 gateway envelopes PASS; BTR104 valid count/grid contracts and14 gateway envelopes PASS; DBM82 strict contracts PASS,94 cookie requests plus14 private asserted scope reads. Source-invalid branches remain NOT_PARITY. Planning/insight contracts remain pending |
+| F3.3 Existing frontend and downloads | Existing frontend connected; required sidebar/screens visible; authenticated browser/readback evidence, correct API/UI shapes and enabled downloads; no redesign. | ACTIVE/PARTIAL — RRR read/filter/clear/paging/restart/toolbar files and DBM current/daily-history reader/visible-history exits CLOSED for selected contracts; layouts/other downloads/action UI remain open. Terminal-only BPR paging and Research grid/client-selection-to-summary now visible; calendar-date/empty-transit prompts qualified, not full screen or nonempty logistics acceptance |
+| F3.4 Runtime and direct-port MTO | One PostgreSQL database with preserved service schemas; isolated fresh-start/restart/retry proof; MTO and identity regression; no existing serving changes. | PARTIAL — isolated auth/MTO migrations, same-DB schemas and preview restart verified; full MTO regression remains pending |
+| F3.5 Isolated acceptance and cutover handoff | Combined focused acceptance, F2 preservation, updated runnable runbook, committed/pushed checkpoint and exact3004 cutover/rollback steps. Ask separate approval before cutover. | PENDING |
+
+Completed bounded boundary: minimum reversible3005 preview under F3.3/F3.4.
+Authorization verified from the user's review task, turn01a0f548-9cb3-7b20-9f9f-8ccb15ac5881,
+with verified-local-login runbook instruction in turn01a0f549-7e92-7941-8851-186b9375c158.
+Reuse existing frontend/auth/MTO assets; connect only Fresh PostgreSQL and explicit
+accepted F2 publication. No new synthetic input, metadata bypass, F2 replay or
+3004 mutation. Required proof: protected service identities/health unchanged,
+real3005 login, isolated route/DB targets, honest implemented/blocked responses,
+selected-run/readback unchanged through isolated restart, exact stop instructions.
+F3.1's completed history slice is recorded below; the preview interruption is
+finished. Active work returns to F3.1's remaining source-backed API/configuration
+connections. Do not confuse the running preview with application acceptance.
+
+Preview evidence (1 October2026):
+
+- Real newly authorized local test account; actual browser CAPTCHA/login and
+  existing sidebar verified: Planning, RRR, BTR, Buffer Trends, Guided/Research
+  Insights and DBM navigation are visible. DBM shell shows17 Jun2026, actions and
+  empty grid; this is NOT positive row/action/UI parity. Some inherited sidebar
+  entries remain unimplemented/inactive; visibility does not certify them.
+- `f3-preview-http-002/receipt.json` SHA256
+  `d3da09d47a8738c9e8a52dd45dce0d6b15e2ebf6d99857cf9569b3b381a1f3c9`:
+ 11 gateway reads and login PASS; unauthenticated request401.
+  `f3-preview-restart-002/receipt.json` SHA256
+  `b2b56670a5bb12cef7bb8d9a1c6fbf8c635967e4269e787b5fb07b1769d0e8c6`:
+ 12 reads PASS after restart, including LocationType. Final normal two-worker
+  configuration, unchanged4GiB cap: `f3-preview-two-worker-001/receipt.json`
+  SHA256 `9fa054cd7376fe21d71605dbb4629d31ab8e30917b2d09190b41ce3b65b19344`;
+ login and three affected readback bodies exactly match preceding receipt.
+- `D:/freshvcf-build/evidence/f3-preview-001/protected-final.json` equals the
+ before snapshot:3004/3003 container/image/config/start identities, selected3004
+ routes/publication identities and accepted Fresh run/actions unchanged.
+ Engine and frozen artifact hashes unchanged. No output traces mounted; only
+ immutable input-identity snapshot and permission definitions. HTTP values come
+ from native relational rows. Exact image/config/mount identities are in receipts.
+- Preserved wiring failures: auth-internal001 missing evidence-root setting;
+ http001 missing immutable input snapshot; restart001 ran before readiness(502).
+ Single-worker/browser concurrent requests also exposed timeouts; normal two
+ workers restored, no cap increase. Do not relabel these as accepted evidence.
+- Existing auth/MTO migration chains applied only to empty owned schemas;
+ all three service checks pass and migration plans are empty.25 focused MTA
+ tests PASS. No frontend/auth/MTO source changed, no calculation replay.
+ Full MTO regression, DBM column/preferences contracts, Planning overview/BPR
+ routes, remaining consumers and user-action/download acceptance remain open.
+ Runbook now contains verified local login, startup/stop boundaries and limitations.
+
+Preview-discovered F3.1 connection gap: authenticated DBM rendering requests
+`LocationType`; the missing route triggers the unchanged React query error
+boundary. Permit this single source-backed read adapter and focused tests within
+the preview boundary. CommonsProcessor from the pinned deployed DLL selects
+DISTINCT non-NULL LocationAttributeData.LocationType and returns JSON text;
+empty strings are NOT excluded. No hierarchy substitution or calculation change.
+Processor SHA256 `6a79e4cd927c3a4bee0f72c9dab6f327bfcfcf9ef7dda21f1c906e8762be767b`
+in `f3-preview-source-001`. Route and NULL/empty/distinct/text-shape unit proof
+are implemented; independent endpoint parity is not claimed from this preview.
+GetState/preferences and other unimplemented endpoints remain existing F3 exits.
+
+Completed bounded F3.1 slice: DBM column configuration and per-user saved layout.
+Selected exit: the unchanged DBM page receives the deployed visible-column/type
+projection and GetState/SaveState/ResetState envelopes from PostgreSQL. Permit
+only source-backed configuration/read adapters, an additive user-layout model
+and migration, routes and focused evidence/tests. No F2 engine/input/run change,
+new metadata hierarchy, frontend edit, transit invention or3004 mutation.
+Proof: pinned deployed UIConfigProcessor/CommonsProcessor/GenericFunction;
+canonical SQL configuration comparison; isolated layout save/replace/get/reset,
+cross-user isolation and transaction rollback; migration-enabled PostgreSQL;
+authenticated3005 read-only screen check. Browser verification never submits
+DBM Apply/Sleep or changes the preview user's preferences. Layout mutation tests
+use isolated test identities only. Source flaws stay qualified, not repaired.
+
+Evidence for this bounded connection (not full F3 closure):
+
+- `f3-ui-state-comparison-001/receipt.json` SHA256
+  `adbc5ddfa8924ed0eb6816346e6bf246ab0b3c3caed9ca8ecc7bf4a65fbb97ac`:
+  16 visible typed DBM configuration rows and10 sequential layout responses
+  match independently executed deployed SQL; zero typed-population differences.
+  Configuration inputs are the pinned deployed2.0 setup scripts; only session
+  temp tables were written. No legacy daily replay or business-data reseeding.
+- `f3-ui-state-modern-001/receipt.json` SHA256
+  `31e4f4d575d302b8be3c5fed91e27fc467ef1610192324bb2b1eb515a9f13d8b`:
+  PostgreSQL/API layout sequence, test-only identity, entire sequence rolled
+  back and no retained test rows. Six migration-enabled PostgreSQL tests and18
+  affected presentation tests PASS, including unauthorized/forged-body identity
+  rejection and injected replacement rollback.
+- Migration register: fresh_mta.0012_user_report_layout depends on0011; one
+  nullable typed preference table, no RunSQL/RunPython, seed or F2 rewrite.
+  Required on both fresh and upgraded databases. check, migration-enabled
+  empty test database, makemigrations--check, plan/apply and final empty plan
+  PASS. Initial host-only generation warned that localhost PostgreSQL is not
+  published; real graph/application checks ran successfully on owned PostgreSQL.
+- Authenticated browser login succeeded with the user-approved CAPTCHA.
+  DBM shows17 Jun2026; its Columns panel exposes16 configured fields plus the
+  selection checkbox, including Old/New Norm. GetState now returns200. Browser
+  still logs the unchanged frontend's `Failed to apply column state`; this is
+  an outstanding F3.3 UI behavior, not silently repaired or called accepted.
+  No Apply/Sleep, Save Layout or Reset Layout was submitted through the browser.
+- `f3-ui-state-http-002/receipt.json` SHA256
+  `af8e9015d1c2609a7112dfd9050a2885be08cda8f8836f854e3289c1417c8add`:
+  real login, unauthorized401 and four authenticated reads PASS after preview
+  backend recreation: typed DBM config, actual frontend`DBMNorm` GetState,
+  last-run date and DBM grid. Empty current suggestions/scopes remain explicitly
+  NOT positive report/action acceptance. Earlier001 used a generic`DBM` layout
+  key and remains retained, not relabelled as the actual frontend key.
+- Protected before/after snapshots in`f3-ui-state-001` are identical for3003,
+  3004 and accepted Fresh run/actions. Engine and frozen artifact hashes match.
+  Preview MTA alone was rebuilt; memory remains4GiB. Source flaws for quoted
+  layout SQL, ambiguous duplicate state and empty-state NULL are recorded in
+  LEGACY_EXCEPTIONS.md; those branches are not unconditional parity.
+
+Still pending: F3.1 remaining consumers and nonempty scoped metadata disposition;
+F3.2 authenticated filters/permissions/actions; F3.3 full UI/download acceptance;
+F3.4 full runtime/MTO regression; F3.5 combined acceptance/cutover handoff.
+
+F3.1 Planning overview disposition: BLOCKED by the same detailed-transit input
+boundary already recorded below, not a new gap. Deployed
+SCIHProcessor.GetQuadrantDetailsQuery joins Importer.InTransitData for the custom
+GIT count and returns ten counts together; no permission to replace this with
+zero, June5 detail or a partial success envelope. Independent F3.2 work may proceed.
+
+Completed F3.2 slice: DBMApplySelectedNorms/DBMUpdateSleepTbl HTTP adapters around the
+existing record_command service. Its required exit was exact selected request/response
+mapping, gateway-derived actor, permission rejection, persisted Apply/Sleep and
+own-next-day consequences on the retained shallow artifact. Permit application
+adapters/settings/routes/tests only; no F2 calculation/SQL/action policy or accepted
+run mutation. Preview stays read-only for actions. Proof uses newly owned isolated
+run identities and the unchanged representative artifact/retained SQL receipts;
+tests cannot authorize changing hierarchy or replacing the bulk artifact.
+User has now approved the exact retained hierarchy as a versioned presentation-only
+supplement, identically applied in isolated legacy/modern consumer checks. This
+approval is direct in this task: questionItemId
+`["request_user_input_async","call_t0gFrlwyElTIUHNFLokPERgQ",0]`, answer
+**"Approve the retained hierarchy supplement"**. The approved question says:
+"add a versioned presentation-only supplement using the exact previously approved
+catalogue/hierarchy, apply it identically to isolated legacy and modern consumer
+checks, and leave all F2 inputs, calculations, run rows and receipts unchanged"
+and explicitly excludes new transit facts. Screen-content cues are not the source
+of this approval. Catalogue source is `D:/freshvcf-build/inputs/permission-input-v1.json`,
+SHA256 `18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356`:
+200 exact SKU memberships,20 locations, retained names/hierarchy and IDs; no new
+facts generated. Each code copies its retained level_1/2/3 into SL1/2/3 or LL1/2/3.
+Independent SQL updates session-local attribute tables only using the same code
+mapping; modern fills copies after native checksums, before the same auth joins.
+No calculated/state fields or c1–c15 descriptions are overwritten. This
+is a prerequisite within F3.2, not another workstream. `baseline/presentation-hierarchy-v1.json`
+pins the catalogue, six allowed fields and selected run/date/digest. Fill only
+SL1–3/LL1–3; keep NULL-denial without opt-in and reject conflicting native values.
+Validate all production checksums on original native rows before presenting the
+copy. No persistence, calculation, F2 receipt, input or transit-fact change.
+The first publication binding remains terminal run ac1612c8-0e49-4155-83c3-f59f41422293,
+17-Jun-2026; no historical run substitution. Positive action proof must use its
+own isolated retained shallow run, separately bound, never the accepted bulk run.
+Protocol tests passed17/17 (including11 existing persistence tests); mocked scope/
+calculation tests prove protocol and rollback ONLY, not real-gateway or SQL parity.
+No fresh engine workstream or new recovery IDs.
+
+F3.2 slice evidence (1 October2026):
+
+- `D:/freshvcf-build/evidence/f3-action-http-retained-002/receipt.json`, SHA256
+  `511a44053e45fcd2a4f8a2b7699205064dc936b005c7a65db8f26a8f348be053`:
+  PASS_RETAINED_HTTP_ACTIONS_AND_OWN_NEXT_DAY,62/62 complete comparisons on the
+  first two days of unchanged representative-bridge-input.json (SHA458c7c...92f).
+  Existing independent12-day replay `f2-auto-sql-012/replay.json` SHA
+  `316070183c5be144042736e314dfb0eb95a83e4833ae4882457a5bf4ac55dfd5`
+  supplies individually hash-verified SQL captures. No legacy replay or output
+  seeding. New trial roots `3bd266fe-8b1c-4e5f-b731-45b19c0f792e` →
+  `43df0098-4e95-4359-a838-5d6d16e0e2fa` use own relational predecessor and
+  committed command state.29 full pre-action contracts per day, own selection
+  and full post-action state (31 each) pass. Only clock is fixed to retained
+  scenario dates; real calculations/publication/scopes/Django routes/storage.
+  Missing assigned scope403 writes no command; forged payload actor is ignored.
+  Actual gateway session/action interaction remains separate, explicitly OPEN.
+  Positive wire envelopes are checked against deployed DBMProcessor source;
+  full action state is compared to independently retained SQL, not inferred
+  from the message or affected count. Selected host timezone is India Standard Time.
+-17 protocol/persistence tests passed, including injected action-write rollback,
+  read-only/unauthenticated denial and duplicate selection.11 are existing base
+  tests rediscovered by a class import; later focused runs should select
+  `mta.runtime.test_action_http.DBMActionHTTPTest` for only the six new tests. These protocol
+  tests use stubs and do not replace the retained62-comparison proof above.
+- `f3-hierarchy-rrr-modern-001/receipt.json` SHA256
+  `c47c481bacd0a666301f78e50f34621b659c3a186629fee3844d2eedd6ef1f96`;
+  `f3-hierarchy-rrr-comparison-002/receipt.json` SHA256
+  `8e3fed321c3646a2761707ba62b75ddffdea02d7d0b2087316d45257a18b6ee7`:
+  all14 selected root-scope RRR rows,119 fields, count14 and declared order PASS
+  against canonical deployed SELECT with identical retained metadata applied to
+  isolated session-temp SQL rows. Unfiltered selected root scope only; filter
+  variants stay open. No live/permanent legacy write and no engine replay.
+- `f3-preview-hierarchy-assignment-001/receipt.json` SHA256
+  `0ebedd770019c0e521756aa25847c48f73bb79e75fb2a749229883622ca601fa`:
+  only Fresh preview user1 receives MTA application2 roots71001/72001. No reset.
+  `f3-preview-hierarchy-http-001/receipt.json` SHA256
+  `9f99f9eb28de4e12ef3783baf716bf128274108d7285cc6c431bae6f710d608d`:
+  real login plus eight authenticated gateway reads PASS, unauthenticated401;
+  terminal17-Jun2026, DBM count0/gridNULL, RRR count14/full14, both BTR branches
+  count1,240/full1,240 and daily history
+  content. This is gateway readback; browser screen/filters/action closure remain
+  F3.2/F3.3 exits. Preview still disables actions. No older-day grid substitution.
+- `f3-hierarchy-001/protected-before.json` and `protected-after.json`: protected
+  containers/config/start identities,3004 HTTP/publication and Fresh terminal-run
+  identity unchanged. Global Fresh command count increases only for the owned
+  new trials; the retained-action proof separately verifies every pre-existing
+  run and command unchanged. Engine SHA7d446fea...f24e and bulk artifact
+  SHA0f3084b7...9546 unchanged.24 focused presentation/metadata guards PASS;
+  schema check/no-pending-migration/diff check PASS. No migration added.
+- Preserve failures: hierarchy comparison001 failed while MSSQLSERVER was stopped;
+  action-http-retained001 failed at evidence-root configuration before calculation.
+  SQL Server was started with explicit user authority. Fresh PostgreSQL recovered
+  after interruption; no data deletion, reset or memory-cap increase.
+
+Exactly one next active item remains F3.2: real authenticated positive action
+acceptance on a private isolated retained trial, plus source-selected filter and
+scope variants. Never rebind3005's default terminal DBM publication to an action
+trial. Retained62-comparison proof and RRR root-scope proof stay closed unless
+a relevant semantic change invalidates them. F3.1 detailed transit remains BLOCKED.
+
+Completed bounded F3.2 exit: run the same two-day action proof through the unchanged
+cookie-login/gateway service in a private worker, using the approved preview
+identity and stored root permissions. The private MTA worker serves the actual
+Django WSGI routes; only its scenario clock is fixed. Verify unauthenticated401,
+rejected unknown identity403/no writes, forged user/header/permission values
+overwritten by gateway identity, positive Apply/Sleep wire responses and62 full
+retained comparisons including own next-day state. Permit test transport/driver
+changes only; no auth/frontend/engine rule change, new public port or3005 rebind.
+Evidence: `D:/freshvcf-build/evidence/f3-action-gateway-001/receipt.json`, SHA256
+`3928d8c9ab7f53ec01608246c2801c8f8f73ef7fc4fedaac2fc3462cfd3a3be6`;
+inner `proof/receipt.json`, SHA256
+`7d2ddb783b6393137bf7d1ac41bdb4c8a0495cd695da81e2d3061cd04d27d77f`.
+All62 comparisons PASS; unauthenticated401 and unknown selection403 leave no
+commands, actual stored gateway identity wins over forged actor/header/lists.
+Both days use unchanged retained facts, own committed predecessor/actions and
+accepted independent SQL captures; no SQL replay. Run IDs
+`2bc36f01-8a55-4757-a797-dab0c9589237` and
+`7f082262-852b-4495-af84-55a24f377498` are private trial identities, NOT delivery
+publications. Every pre-existing run/command identity is unchanged. Protected
+before/after snapshots in `f3-action-gateway-protected-001` match for3003/3004
+and the accepted Fresh terminal publication; only the new trial commands were
+added. Both ephemeral workers stopped/removed, no host ports allocated, disposable
+cookie deleted. Runtime image/config/network/resource identities are in the
+driver receipt; Django check and diff check PASS. No auth/engine/frontend/schema
+edit or serving change. This closes gateway action acceptance, not browser
+action acceptance or F3.2 as a whole.
+
+Next bounded F3.2 exit: selected filter/scope/count/grid contracts. Before its
+first edit name the exact deployed consumer, retained population and required
+positive/negative filter/permission comparisons; reuse unaffected root and action
+proofs. No new facts, permission supplement, publication rebind or F2 replay.
+
+Completed bounded consumer contract: RRRProcessor + GenericFunction's RRR alias mapping +
+CommonsProcessor.filterQueryForReports/GetFilterOperator from the pinned DLL.
+Exit proved: frontend-named product/location/supply/availability/custom filters,
+OR within attribute and AND across attributes, raw NULL handling, count/paging
+and retained root/leaf permissions compared against the actual DLL-generated
+SQL on unchanged accepted terminal facts. Allowed edit boundary: RRR consumer
+predicate adapter, its route, focused tests and proof drivers only. Leave the
+generic helpers used by other consumers unchanged until their own comparisons.
+Invoke the actual deployed pure filter builder for the oracle; no recovered
+source substitution, engine replay or permanent SQL writes. Invalid canonical
+column/alias branches are evidenced as legacy flaws/NOT_PARITY, not invented
+repairs. Existing hierarchy supplement stays restricted to its approved fields.
+
+RRR evidence (consumer readback, not full F3 acceptance):
+
+- `D:/freshvcf-build/evidence/f3-rrr-filters-modern-001/receipt.json`, SHA256
+  `f96cc963afce16ce3342ab49b7448ecea047159e71efe745bf81b568049c0dff`:
+  104 actual Django/PostgreSQL count/grid requests; accepted terminal run and
+  commands unchanged. No calculations, synthetic regeneration or serving change.
+- `f3-rrr-filters-comparison-001/receipt.json`, SHA256
+  `1cb7ff7fbd5952320d4a4e47242e722c0db5f11939dae5450bd319f08a9527b8`:
+  **44 strict request-case PASS; eight LEGACY_FLAW_NOT_PARITY**. Complete119-field
+  typed bags/counts/declared key order/paging match. Includes root/leaf/intersection/
+  overlapping permissions, OR/AND grouping, all14 deployed operators, raw NULL/
+  empty-value handling before ISNULL display aliases, SQL wildcard patterns,
+  Norm/Stock/GIT/VirtualNorm, color membership and parent-location join. Receiving
+  leaf count3; selected-product leaf3; their intersection1; parent leaf0 is the
+  canonical empty population, not an artificial positive test.
+- `deployed-filters.json` in that comparison directory, SHA256
+  `722888d5bacaf8ab2a28ecc83f6feb9c2a89def045fc0eecc260ec9c58e6ac00`:
+  actual pinned DLL's pure filterQueryForReports invocation with the exact RRR
+  alias tuple. Independent SQL runs only against session-temp copies of accepted
+  legacy facts and the approved six-field catalogue projection. No engine replay
+  or permanent SQL writes. The eight flaws have actual SQLSTATE42S22/42000 and
+  attributable invalid-column/syntax evidence; an infrastructure error cannot
+  satisfy their gate. See LEGACY_EXCEPTIONS.md; guarded503 is NOT legacy error-
+  envelope parity. The request roster is an API probe, not a new business dataset.
+- 32 focused tests PASS; all376 registered baseline resources unchanged. Protected
+  snapshot `f3-rrr-filters-protected-001/after.json` fully equals the previous
+  `f3-action-gateway-protected-001/after.json`, including all Fresh commands and
+  protected3003/3004/publication identities. Preview code/image not replaced.
+  The only production behavior changed is the RRR consumer predicate; action,
+  engine, persistence, other consumer helpers and schema remain unchanged. Prior
+  action/calculation proofs are not reopened by this unrelated view-file edit.
+
+Completed bounded F3.2 exit: representative RRR filters through a private
+real cookie gateway with existing stored root permissions, comparing the exact
+count/grid bodies to these retained consumer receipts. Do not repeat44 SQL
+queries or accepted calculations. Leaf expansion has independent SQL/Django
+proof; do not claim that as a new leaf user's login/browser proof. Keep3005 on
+the accepted terminal date and leave its image/permissions unchanged. Remaining
+DBM/BTR/Planning/insight filter contracts stay within F3.2, not new recovery IDs.
+Verified proof boundary: root-regression, cross-attribute-AND, positive-stock,
+raw-null-hasnovalue, parent-type-join, empty-hasvalue and page-two, each count/grid
+through the unchanged real cookie gateway. Reject unauthenticated401; overwrite
+forged identity and empty client permission lists with existing stored roots.
+Verify the missing-category503 separately as a guarded source flaw, NOT parity.
+Allowed files: test management command/private driver/tracker only; no production
+adapter, auth, permissions, frontend, engine, schema or serving edits. Required
+exit:14 exact full-envelope retained comparisons, native publication/all existing
+run/action identities preserved, private workers removed and no public port.
+
+Gateway receipt: `D:/freshvcf-build/evidence/f3-rrr-gateway-001/receipt.json`,
+SHA256 `464cfada86fc27791e7e3cc794bedad3de4f136d59ac697aca78c14b96b4b426`;
+inner `proof/receipt.json`, SHA256
+`3e58bc5347f46240d4c67d639d70ed90454079770f23e685f9c4a71736221695`.
+All14 full-envelope typed-bag/order comparisons PASS; missing-cookie401 and
+source-flaw503 preserved. Stored root scopes overwrite forged empty lists and
+body/header identity. Reused the accepted44-case SQL receipt; zero SQL/engine
+replays, calculation runs, permission/binding or serving changes. Every existing
+run/command identity is unchanged. Protected snapshot in
+`f3-rrr-gateway-protected-001/after.json` fully equals the preceding
+`f3-rrr-filters-protected-001/after.json`. Both private workers removed and
+disposable cookie deleted; image/config/network/resource identities retained.
+This closes representative RRR gateway-filter acceptance, not full F3.2/browser
+acceptance or a new leaf-user login. Preview remains at its prior image.
+
+Completed F3.2 boundary: BTR's selected Tech/Eco count/grid filter contract. Reconcile
+BORProcessor.GetBTRDataAsync/Count and its exact Commons/GenericFunction aliases
+with persisted native BTR facts. Reuse the RRR operator semantics only where the
+deployed BTR contract genuinely matches; preserve BTR horizon/key paging/rejoin
+and NULL/join multiplicity. Before editing, freeze its request roster and source
+exit here. No new facts, metadata bindings, engine replay or preview replacement.
+
+Active BTR exit (frozen before implementation): retain the existing RRR finite
+request categories, but select BTR Tech/Eco/Both, published June17 D79–D90,
+root/leaf/intersection/overlapping permission IDs, key page2, all14 operators,
+raw custom NULL/empty, hierarchy/code/supply joins, Norm/VirtualNorm, category/
+tags, and BTR age/colour-count branches. Declare count/grid validity separately:
+count E is vf_RationedReqReport; grid E is the proven five-field native
+vf_ReqCalculation projection. Stock/GIT/PIC/OHIC grid filters must not acquire
+invented columns. Include category and parent joins without deduplicating.
+Permitted edits: BTR raw joined/filter/projector adapter, BTR HTTP route, focused
+tests and consumer-only evidence adapters. No engine/schema/state/source/input
+changes. Required proof: exact DLL-generated SQL, both native retained branch
+populations, typed full-response bags/counts/key order/horizon labels, preserved
+run/action identities, focused tests and representative private gateway follow-up.
+SQL errors remain NOT_PARITY and require attributable source diagnostics;
+consumer comparison alone does not close full F3.2 or browser acceptance.
+
+BTR retained consumer proof:59 frozen requests/118 count-grid contracts,104
+strict PASS and14 attributable invalid-source contracts NOT_PARITY. Both native
+branches remain1,240 rows at the root; selected product leaf126 per branch,
+intersection8, category-code15, parent-type join813, green-age1,137. Positive
+Stock count1,232 passes while its grid is source-invalid; never add missing grid
+fields to fabricate agreement. All14 deployed operators, OR/AND/raw NULL and
+key-page/horizon/branch behavior compare independently. The generator invokes
+the actual pinned DLL BTR alias tuple; SQL session-temp tables only, no daily
+engine replay or operational write. Reuse the existing native five-field
+requirement proof; prior unfiltered query extraction remains byte-identical.
+
+Readback `D:/freshvcf-build/evidence/f3-btr-filters-modern-001/receipt.json`,
+SHA256 `11eb19e745f9f1a80d36da60899e516783506ec05383029a6cc0ed09c2f9303f`,
+explicitly uses one checksum-verified relational snapshot with private asserted
+identity for its finite batch, not59 real logins or59 fresh PostgreSQL reloads.
+Independent `f3-btr-filters-comparison-001/receipt.json`, SHA256
+`fae017590847e047805d65883979b31e96fbdd2f9bdeb03b89f1f2f54e1a79b9`.
+Representative actual-cookie gateway full-envelope reads, stored scopes/forged-
+input rejection, source-flaw guard and preserved identities are now CLOSED below.
+
+Import-byte guard found the expected BTR adaptation at its original immutable
+import hash. Preserve that failed42-test receipt in `f3-btr-unit-001`; keep all
+original `consumer-reuse.json` source/output hashes. Register only the BTR
+adaptation under `accepted_adaptations`, paired to the independent filter proof,
+then rerun the affected suite. This changes provenance accounting, not an oracle,
+calculation, source SQL, synthetic fact or other imported consumer's byte guard.
+
+BTR real-gateway exit CLOSED: `f3-btr-gateway-001/receipt.json`, SHA256
+`f146467884e98ac80e4888cc07d28530a40e7f7dfb96dff904534ca39aafadfc`;
+inner proof SHA256
+`94609de463f6f4e28e6bdeea66c1d7d6e034cffbca4857080b891337e7f01590`.
+Seven requests/14 full typed count/grid envelopes match the SQL-validated
+readbacks: root, cross-attribute AND, category, raw NULL, parent join, green age
+and key page2. Missing cookie401; forged identity/empty scopes replaced by stored
+roots; source-invalid Stock grid503 NOT_PARITY. Actual Django WSGI and PostgreSQL
+reloads through the unchanged private user gateway, no snapshot patch. All
+existing run/action identities unchanged, private workers removed and disposable
+cookie deleted. Whole protected before/after snapshots equal in
+`f3-btr-filters-protected-001`;42 focused tests PASS after explicit import-
+adaptation registration. No serving image/rebind, engine replay or synthetic
+change. Preview remains at its prior image and is NOT credited with this code.
+
+Next F3.2 boundary: reconcile the deployed DBM selected count/grid filters and
+permission joins against its persisted current/log populations. Use existing
+nonempty retained evidence where its selected branch requires it; terminal
+Suggestions=0 cannot by itself certify filters, and SuggestionsLog132 must not
+be substituted into the current Suggestions grid. Freeze that finite request
+roster/source/exit here before its mutation. Planning/insight and F3.3–F3.5 remain
+open; do not reopen the completed BTR/RRR/F2 proofs without relevant invalidation.
+
+Completed DBM F3.2 exit, contract frozen before mutation: GetDBMData/GetDBMDataCount use
+Commons.filterQuery(FilterType,e,i,f), not filterQueryForReports. The deployed
+six-group presence gate ignores custom-only filters; an empty standard group
+activates raw custom filtering. Preserve anti-NormAcceptance membership, raw
+NULL/ISNULL distinction, parent inner-join bags, permission multiplicity, row
+numbers and JSON null-for-empty. Norm is DBMMaster-owned; missing category/tags/
+Stock/GIT/VirtualNorm/PIC/OHIC/availability/coverage/colour columns remain flaws.
+
+Positive application proof requires one fresh, owned pre-action day0 from the
+EXISTING representative-bridge-input.json (SHA458c7c66...) and saved independent
+f2-auto-sql-012 receipt (SHA31607018...), not regenerated fixtures or historical
+SuggestionLog substitution. Reuse execute_day/29 pre-action checks, real cookie
+gateway and existing hierarchy-supplement binding pattern from the accepted
+action proof. Freeze the finite RRR request categories adapted to DBM plus an
+explicit custom-only ignored case; compare count/full grid/paging/typed values
+against DLL-generated filters and exact deployed SQL on the saved pre-action
+legacy state. Then execute the same day0 Apply/Sleep policy and compare all31
+contracts. Only this new trial gets rows/commands; existing runs/actions/serving
+instances/F2 inputs and policy remain immutable. This is a pre-action consumer
+test, not a new full-depth replay or a replacement default publication.
+Permitted edits: DBM raw consumer predicate/projection, DBM route, focused tests,
+provenance registration and bounded existing proof-driver mode. No engine,
+schema, source SQL, frontend, input, policy, permission-assignment or serving edit.
+Exit includes attributable NOT_PARITY diagnostics, terminal current0 preserved,
+real gateway scope, unchanged prior identities and independent response proof.
+
+DBM bounded exit CLOSED (not whole F3 acceptance):
+
+- `D:/freshvcf-build/evidence/f3-dbm-filters-comparison-001/receipt.json`,
+  SHA256 `a9e9cc25d37316918f6322e88b9b78135f1315c8deabd2a30ac4d20abb7ef0e6`:
+  **82 strict PASS +26 LEGACY_FLAW_NOT_PARITY**,54 requests/108 count-grid
+  contracts. Actual pinned DLL filterQuery e/i/f and exact deployed SQL use the
+  independent day-zero pre-action capture SHA256
+  `4346d698254c1b6556aae5ce7205cafd891b0d70c7319c185869cdb3c18a18e7`.
+  Typed fields/NULLs/duplicates/counts/permission bags/RN paging compare.
+  Custom-only filters remain ignored under the actual source call gate.
+  No legacy engine replay or persistent SQL write occurred.
+- Corrected owned trial `381378ac-bcb0-4977-b255-a3c038d018e2`, June6:
+  `f3-dbm-gateway-002/receipt.json`, SHA256
+  `c4b6e833ad2a7bec4515fbc315d15e77b242aef5531673b28e78d22dbd513019`;
+  inner proof SHA256 `7c84d5e8021d7c7dc30aaadf0b267393918f48337525fcc1c4611b4049e95521`.
+  **31 unchanged day-zero calculation/action contracts PASS**. Current grid10 is
+  from this explicitly selected pre-action trial, not history.94 actual cookie
+  requests used stored roots;14 leaf reads used private asserted identities,
+  NOT leaf-login proof. Missing cookie401; forged body/empty scopes overridden.
+- Trial001 (`5efd9b4a-42ff-4010-817f-b74243edb642`) remains intact with its31
+  passing calculation/action receipts but non-final consumer reads: Importer
+  permission attributes were incorrect for DBM. The source-backed correction
+  uses DBM-owned attributes;002 is fresh consumer proof. The preserved
+  `f3-dbm-gateway-001/disposition.md` records this, without rewinding a run.
+- `f3-dbm-filters-protected-001/closure.md`: protected3003/3004 services/HTTP/
+  publications and accepted Fresh terminal run unchanged. Only six commands on
+  the two new trials were added; each proof checked prior identities. Workers/
+  cookie removed; caps unchanged. Current code preserves terminal count0/gridNULL.
+- **47 focused tests PASS**, diff check PASS. Original DBM import byte pin stays;
+  its raw-predicate adaptation is separately registered with independent proof.
+  No engine/schema/facts/policy/frontend change. Preview3005 and serving3004
+  remain at prior images; private code proof is not serving-upgrade acceptance.
+
+User priority now supersedes the next backend slice: finish this DBM code/proof
+checkpoint, then make already-landed F2/F3 consumers visible on3005 before any
+new Planning/insight filter work. Direct user instructions verified in review
+task01a0f29e-ec6b-7cf2-adb1-3ebda9365a55, turn01a0f635-4784-75d3-aef0-df5fd85f807d:
+"now onwards- the exit handoff for any part of the frontend integration has to
+be with3005 proof" and "get all the work done so far, visible on3005".
+This explicitly authorizes isolated3005 rebuild/redeployment/restart only.
+
+Active F3.3 exit: rebuild committed HEAD on3005 with the accepted F2 terminal run
+and approved catalogue/hierarchy; real-login screen-by-screen proof of every
+landed consumer. Record one visibility matrix here, with route/sidebar, commit/
+image, run/date, identity, API population, visible content, screenshot and relevant
+filter/count/paging/download/action behavior plus restart-stable readback.
+Backend/private proof is not frontend closure. Expected-empty current DBM needs
+its zero source and visible designated history/output. API data with blank UI
+is ACTIVE connection/configuration work. Exact missing-source/flaw boundaries
+stay BLOCKED/NOT_PARITY, never fabricated. No new port, F2 changes, fixture/date
+substitution, frontend redesign or3003/3004 mutation. F3.1–F3.5 remain partial/open.
+
+### Active3005 visibility matrix — single F3.3 checkpoint
+
+Historical initial visibility checkpoint (superseded for RRR by final015/016/UI010
+above; unchanged terminal publication): runtime code commit
+`bea389a8f73210856dc359f28c329137e16f9cb8`; initial MTA image
+`sha256:70af9f124014c89cc4d3d10c769225a94ae82f5ab2ab3330882db8cf1b73540d`.
+Only preview MTA recreated; frontend/auth/MTO unchanged. Selected run
+`ac1612c8-0e49-4155-83c3-f59f41422293`, June17; disposable user
+`fresh.preview@vectorflow.local`, stored roots71001/72001. Actions stay disabled
+on this accepted terminal preview; no historical/trial publication substitution.
+`f3-visible-3005-http-001/receipt.json`, SHA256
+`827c33672c2b4ee08bd140e1de484af840cd99ee3dee42f47fe7efbbbb654096`:
+eight actual login/cookie-gateway reads PASS. Protected before/after-deploy
+snapshots in`f3-visible-3005-001` exactly match. Browser CAPTCHA confirmation was
+obtained for the subsequent actual RRR inspection; no bypass.
+
+| Existing surface / sidebar route | Landed API / exact selected population evidence | Visible status / unmet exit |
+|---|---|---|
+| DBM → Norm suggestions `/mta/dbm/dbm-norm-suggestions` | DBMDataCount0; DBMDataNULL;16-column configuration/layout APIs landed | CURRENT_READ/RESTART/EXPECTED_EMPTY verified; related history visible. Action buttons visible while backend preview actions disabled: eligible action UI/layout/export acceptance remains open |
+| Insights and Trends → Buffer Trend Report `/mta/insights-and-trends/buffer-trend-report` | GetBTRData/Count Tech1,240 and Eco1,240; current cookie gateway proof | OPEN — both visible grids, labels, count/paging/filter and download evidence |
+| BTR/RRR/DBM designated per-row daily-history dialog | DailyDataGraph nonempty; all1,240 native histories compared through selective reader | VISIBLE from BTR on337/AG515802: dated series and Norm changes; no implied acceptance of every report's entry point |
+| Insights and Trends → Buffer Trends `/mta/insights-and-trends/buffer-trends` | GetBufferTrendGraphData native technical/economic comparisons landed | OPEN — actual selection, chart/summary and both branches |
+| Insights and Trends → Research Insights `/mta/insights-and-trends/research-insights` | Research/historical-availability and terminal BPR grid/count connected | SELECTED_VISIBLE_READ verified in bpr-ui001:1,240 grid, client-filtered337/AG515802, selected1, summary/ageing loaded. Default calendar uses machine month; full dates/branches/server filters/config/XLSX remain OPEN |
+| Guided Insights → DBM rules/SKU/location/age `/mta/insights-and-trends/guided-insights` | DBMNormSuggestion* four native consumers landed | OPEN — exact terminal populations and visible charts/grid, not current-grid substitution |
+| Guided Insights → Chronic unavailability (same route) | ChronicUnavailabilityLoc/Sku/GridViewData landed | OPEN — authenticate and show actual scoped population/chart/grid |
+| Guided Insights → Availability trend/ageing (same route) | AvailabilityTrend/AvailabilityAgeing landed | OPEN — exact selected horizon and visible chart |
+| SCIH → RRR `/mta/supply-chain-intelligence-hub/rrr` | RRRData/Count14; selective final015/016/UI010. Export comparison001/gateway003/restart001/UI001 PASS | VISIBLE_READ/FILTER/PAGING/RESTART/TOOLBAR_EXPORT VERIFIED. Actual root14/Depo4 files match legacy bytes; remaining layout/history controls not implicitly closed |
+| SCIH → Planning, Order fulfilment `/mta/supply-chain-intelligence-hub/planning` | GetPlanningDataGrid/Count/Graph selected parent/child consumer landed; GetPlanningDataCount overview connected | OPEN — overview backend dependency resolved. Actual browser attachment failed before login; visible selected slice remains pending |
+| Planning, Excess inventory (same route) | Selected excess grid/count/charts landed; overview connected | OPEN — actual scoped chart/grid browser proof pending attachment recovery |
+| Planning, Expedite (same route) | Counts/charts landed; unordered receiving label NOT_PARITY | OPEN — verify attributable flaw status; no invented label or blanket success |
+| Planning, GIT/overview and Research BPR prerequisite | Approved terminal-only empty transit/remarks bound to June17; BPR count/grid1,240 connected and independently verified | BPR selected reads verified in bpr-ui001. Planning overview40 valid counts/API/restart verified; GIT grids/charts remain OPEN. Nonempty/other-day transit remains outside this supplement |
+| Saved layouts / filter controls on landed grids | Existing per-user layout API and selected DBM/RRR/BTR raw filters landed | OPEN — read-only real control/config behavior; no preview user preference/action writes |
+| Configured downloads | GetAllReports retained selected paths empty; client-grid exports must be distinguished | OPEN — inventory actual enabled client download, disabled source paths; no invented files |
+
+#### Screen/request reconciliation — governing the same F3 rows
+
+Static route and live-login reconciliation on d44b740, not new feature scope:
+`frontend/src/app-routes.tsx`, `components/layouts/NavbarMenu/listMenu.tsx`,
+`NavbarMenu/index.tsx`, page hooks under `VectorFlow/Pages/MTA`, corresponding
+`Services/MTA/*/api.ts`, and `mta/presentation/urls.py`. Login URL permission
+and a static menu entry establish reachability, NOT selected engine activation.
+The current environment configuration is presentation configuration; it does
+not carry the engine's IsMTOEnvironment setting. The pinned execution contract
+and BAT/SQL retain authority. Service declarations unused by a page hook do not
+automatically become additional mandatory calls.
+
+This extends the existing visibility matrix; these rows are not another queue.
+
+| Surface / selected disposition | Exact dependencies and source boundary | Existing F3 exit still required |
+|---|---|---|
+| DBM suggestions — required, permission enabled | DBMData/Count → DBMProcessor, DBM-owned attributes, current Suggestions/NormAcceptance/master/reasons; GetUIConfig(NormSuggestion), GetState/SaveState/ResetState. Apply/Sleep routes already independently proved. Download is client AG Grid XLSX, not GetExportDataAsync. | Selective committed-state reader; terminal current0 shown honestly; retained nonempty trial/filter/action proofs preserved; actual XLSX/history/control behavior. |
+| BTR and daily dialog — required, permission enabled | GetBTRData/Count → BTRProcessor Tech/Eco, BufferTrendDates and producer-owned state. DailyDataGraph → BORProcessor's six DBM histories, importer scope. BTR CSV uses reportName BTR; old AG Grid helper is not proof of the live toolbar path. | Both grids/labels/filter/paging, daily graph, then BTR-specific export on3005. RRR export guard cannot be reused as BTR acceptance. |
+| Buffer Trends — required, permission enabled | GetBufferTrendGraphData → native technical/economic wide BTR colour histories. No server CSV/client XLSX call observed in the page hook. | Actual selections, two graphs and dated summaries; do not invent a download. |
+| Guided Insights — required, permission enabled | DBMNormSuggestionLoc/SKUs/Pie/Ageing; ChronicUnavailabilityLoc/Sku/GridViewData; AvailabilityTrend/Ageing. Landed native consumers, no evidence of an enabled page export in the hook. | Actual selected tabs/chart/grid populations, scope and dates; current0 and historical132 remain different populations. |
+| Research Insights — required, permission enabled | GetResearchInsightData/GetHistroricalAvailabilityBPRData plus GetBPRData/Count, DailyDataGraph and layout/config. XLSX callback requests BPR grid data; standalone graph proof does not close the screen. | Resolve BPR input prerequisite, graph/grid pairing and XLSX. |
+| BPR — required, permission enabled | GetBPRData/Count → deployed BPRProcessor.GetBPRDataAsync; AddRemark/GetRemarkDetails; DailyDataGraph; BPR server CSV/config/layout. | Detailed transit/remark input boundary below; source-backed readback then separately owned action acceptance. |
+| Planning — required, permission enabled | GetPlanningDataCount overview; GetPlanningDataGraph/Grid/GridCount, GetPlanningDataCustom, SubmitOpenExpediteRequest. Selected Fulfilment/Excess/Expedite adapters exist; GIT/transit overview does not. Client XLSX calls the selected grid category/type. | Overview prerequisite, connected category drilldowns and applicable actions/downloads, preserving source-invalid branches. |
+| Logistics whereabouts — required, permission enabled | GetInTransitWhereAboutsData/Count, GetTransporterDetails, GetRemarkDetailsForInTransit/SubmitRemarksForInTransit; client XLSX. Detailed Importer.InTransitData/transport master required. | Same dated detailed-transit boundary; no fake current location, LR or transporter. |
+| BOR — required, permission enabled; not excluded merely because name says order | BOR data/count/analytics and BOR remarks from BuyerOrderReport service; toolbar CSV report-specific query. BOR opening/refresh producers already belong to selected engine. | Consumer/source-to-persisted mapping, API/filter/scope/layout/export and actual page; not yet implemented/accepted. |
+| BOR colour-band — selected producer active, permission enabled | GetBOROrderAllocationReportData/Count, AddBOROARemark/GetBOROARemarkDetails; BOROA export. OrderAllocBasedReports.bat executes CollectBOR_OrderAllocationData/GenerateBOR_OrderAllocation AFTER the IsMTOEnvironment=1 closing parenthesis. | Consumer and current persisted input reconciliation remains OPEN. Never classify this as MTO-only by analogy with RRR colour-band. |
+| RRR colour-band / order allocation — selected producer inactive | GetRRROrderAllocationReportData/GetRRRAllocationReportDataCount; OrderAllocationReport service. RunCoreBPR and OrderAllocBasedReports gate the corresponding producers with IsMTOEnvironment=1; selected profile0. RRR colour-band URL is nevertheless in preview permission. | Explicit inactive-profile presentation/disposition; no fabricated combined rows. Order-allocation route is not in current preview permission; do not widen permission. |
+| Supplier-wise allocation — required, permission enabled | getSupplierWiseAllocationReportData/Count; GenSupplierWiseReq is invoked by selected RunCoreBPR. Client XLSX; commented BOROA remark calls are not active dependencies. | Required producer/consumer mapping and actual scoped grid/export. |
+| Elephant Orders — permission enabled; selected behavior not yet reconciled | GetElephantOrderData/Count, UpdateElephantOrderDueDates; client XLSX. | OPEN source/producer classification before mutation; visible permission is not evidence to invent a rule or silently exclude it. |
+| Open Expediting Requests — permission enabled | Existing page service and SubmitOpenExpediteRequest workflow; direct AG Grid XLSX. | OPEN exact deployed action/readback/state consequence; Planning count proof alone is insufficient. |
+| Total Requirement / Supplier Dispatch — routed but not current preview permission | Their page/service dependencies exist; supplier/distributor settings and selected producer evidence govern activation. | CONDITIONAL/UNRESOLVED, explicitly visible. Resolve once before enabling or excluding; do not broaden permissions just to test. |
+| Master-data management — permission enabled family | Control Panel/Add/Delete/View-Modify/Saved Drafts/Task Pending/Task Status/Data Modification History; Services/MTA/MDM/api.ts GetMasterUIConfiguration/GetCount/GetMasterData and draft/task/modify/add/remove methods. | OPEN direct deployed workflow classification and owned action/state/consumer proof. Not covered by DBM Apply/Sleep. |
+| Dynamic configured downloads / dormant menu nodes | GetAllReports keys have empty selected paths; dynamic menu requires mta-report-urls. Merchandising route is outside /mta and service points at a mock API; commented logistics/dispatch menu entries are not enabled evidence. | Keep configuration-limited/dormant/unknown classifications explicit. No fabricated file, mock backend promotion or additional features inferred from raw reference counts. |
+
+Shared applicable dependencies: authenticated gateway URL/row permissions;
+GetEnvironmentConfiguration, GetLastRunDate, LocationType; exact per-page
+GetUIConfig/reportName and saved-state key. Filters using SKU/WH pickers must
+include their actual lookup call when reached; merely declaring SKUDesc/WHDesc
+in the BPR service does not prove every report requests them. Scope/filter/header
+and full-versus-paged population are mandatory parts of each actual export exit.
+
+Reconciliation outcome: the earlier visibility table omitted reachable BOR,
+BOR colour-band, supplier, logistics and MDM obligations. They are now explicit,
+not newly invented features. Unresolved conditional consumers remain visible
+and do not block independent known DBM/BTR work. No frontend permission or
+selected producer has changed, and no unknown row is credited as complete.
+
+OPEN is an intermediate verification state, never an exit. Verified rows require
+real-login route/sidebar observation, screenshot, API population and applicable
+interaction proof on this committed image. Restart3005 and recheck before closure.
+Unimplemented unrelated MTA pages are not silently added to this landed-surface
+checkpoint; full application coverage still belongs to the finite F3 obligations.
+
+F3.3 handoff rule to apply at its existing screen-acceptance exit: keep one finite
+MTA screen matrix here (route/component, complete call roster, selected run/date,
+canonical expected count/content, actual scoped/authenticated content, filters,
+actions/downloads and evidence). No parallel tracker. DBMProcessor reads current
+Suggestions, not SuggestionsLog; the day12 current grid is canonically empty
+(Suggestions0; historical SuggestionsLog132). Verify that empty contract/date/
+scope and show historical records only on their designated history/insight views.
+Never use day9 or fabricate recommendations for a nonempty demonstration.
+Screen statuses: OPEN, VISIBLE_CONTENT_VERIFIED (including canonically expected
+empty current state), LEGACY_FLAW_NOT_PARITY, SOURCE_INPUT_BLOCKED, or
+NOT_APPLICABLE_TO_SELECTED_MTA_PROFILE. Each exception needs exact source evidence.
+Domain cues require checking the deployed source and approved contracts before
+changing acceptance; this does not permit ignoring explicit scope approvals.
+
+F3.1 retained-history/DBM consumer slice closure:
+
+- `D:/freshvcf-build/evidence/f3-history-comparison-003/receipt.json`, SHA256
+  `92c39d5e46d310fbca2019c9b3b39dd813ffdb594ae2cce2ad0be55fe9957e92`:
+  PASS_RETAINED_HISTORY_DBM, zero typed-bag/order differences. Research5720rows,
+  canonical parent projection1240rows; Tech/Eco graphs at12/90days; three
+  historical-availability bands; terminal DBM count0/gridNULL. Empty terminal
+  suggestions are NOT positive suggestion/action coverage.
+- `f3-history-export-002/receipt.json` SHA256
+  `2ec03bb41cb2e6d15ed27c3d48d4bd5b5abbccd5b17a2f548e7bef74ee537d79`.
+  Native relational wide BTR is authoritative, not dated-BPR aggregation.
+  SQL NULL omission, permission multiplicity and deployed Decimal/string versus
+  double/JSON wire behavior retained. Actual DLL research query builder was used;
+  graph formatting is independently source-transcribed on.NET, not represented
+  as a running legacy.NET6 HTTP endpoint.
+- `f3-api-history-native-001/receipt.json` SHA256
+  `9993c235886e9f2a10d0f2cf94bc0b802a55f5c96cab1807eaac703a997bd7c9`:
+  five Django/PostgreSQL routes return200; run/action/parity identities unchanged.
+  Scoped NULL hierarchy yields honest denial/zero populations, NOT authenticated
+  positive UI acceptance. Active graph filters remain explicitly unavailable
+  until F3.2, not silently ignored.24 focused tests and diff check PASS.
+- Preserve comparison001 (BPRMaster WHCode harness mapping) and002 (0.0 versus0
+  wire mismatch) unchanged. Corrected003 is the new evidence, not an overwrite.
+  Remaining F3.1: missing detailed transit consumers, nonempty scoped metadata
+  disposition and remaining endpoint contracts. No blanket API acceptance.
+
+F3.1 permitted boundary after preview: new application/read adapters, routes and their tests/config;
+the accepted engine, actions and storage semantics are unchanged. Reuse pure
+consumer projections from the pinned integrated revision66a77735d3f3f9a9becf4c87a08ae7827900cf84
+with recorded provenance, not the prior dirty worktree or its calculation/ORM
+hierarchy. Actual deployed API/config remains canonical; inherited consumer
+code is a porting input, not independent evidence of correctness.
+
+Architecture invariant: CalculationRun plus its relational closing/report rows
+and ordered RunCommand records own business state. API/UI are projections and
+adapters, not a second calculation engine or state source. Select the publication
+explicitly; never infer it from whichever experimental run was created last.
+Keep accepted F2 run identities read-only during application work; action proofs
+use their own isolated retained-case run identities, not accepted timeline days.
+
+F3.1 working evidence (not API parity acceptance):
+
+- Explicit selected run `ac1612c8-0e49-4155-83c3-f59f41422293`;7 basic reads
+  PASS in `D:/freshvcf-build/evidence/f3-api-read-001/receipt.json` (SHA256
+  `814308366ef474b71a9c80cd7de654dd87d547696407addd2dc0fbc40cb3c33d`).
+- Twelve insight/history reads PASS in
+  `D:/freshvcf-build/evidence/f3-api-insights-001/receipt.json` (SHA256
+  `06f718cce424ffa6e093a6d82de89183f103d29f0bd4df91c264f628699a8e54`).
+  Request/response bytes and source hashes retained; run/output/production and
+  action identities checked unchanged. These are application readback checks,
+  NOT independent legacy API parity or authenticated browser acceptance.
+- Concrete consumer/storage gap: deployed RRR consumes Pick-specific report
+  membership/bifurcation facts. F2 retained those calculated facts in external
+  comparison evidence, while its operational BPR projection stores only
+  BPR_Table/vf_RationedReqReport. F3 must publish the required typed consumer
+  projection with explicit lineage; it must not read traces on HTTP requests,
+  recalculate ration quantities, use a fixture fallback or alter accepted F2
+  rows/receipts. Record/review the exact additive publication boundary before
+  implementation. This is an F3.1 application obligation, not a reopened F2
+  calculation failure or another recovery queue.
+
+Bounded F3.1 correction selected: typed PickBand rows plus a small PickProjection
+receipt linked to the existing CalculationRun. Copy the existing calculated
+band population, preserving its ordinal/multiplicity and wire digest. New daily
+runs write it inside finish_run's existing transaction; no calculation, old
+production-manifest or parity-output change. A separate explicit restore command
+may materialize accepted day12 from its own checksum-verified modern checkpoint,
+without replay or any update to the accepted run/receipts. HTTP reads never load
+that checkpoint. Required proof: exact band readback, idempotent restore, tamper
+rejection and rollback of the additive projection with the existing transaction.
+
+F3.1 Pick connection evidence:
+
+- Generated additive migration `fresh_mta.0007_pick_consumer_projection`, after
+  0006; two typed read-model tables, no data rewrite/custom migration operation.
+  PostgreSQL fresh migration-enabled17 transaction tests PASS, including native
+  daily rollback; the extra overall-acceptance rejection test also PASS. Fifteen
+  report/framework unit tests PASS; migration plan/apply/check show no drift.
+- `f3-pick-publication-001/receipt.json` SHA256
+  `d101245e868e564276936f374d9796f71c28f46a8013edd86538f5c408054aa1`:
+  all14 terminal Pick-band rows transferred exactly, duplicate/order/type digest
+  verified, retry idempotent, accepted run/action/receipt identities unchanged.
+- `f3-api-rrr-001/receipt.json` SHA256
+  `b2097cbefde6360b75900d1a71124fac4bac1c97a90971433dea3788f21f5296`:
+  RRR configuration/count/grid HTTP readback PASS. Not independent API parity.
+- Preserve `f3-pick-native-comparison-001/receipt.json`: the read-only comparison
+  correctly refused the current SQL database's June5 date. The F2 oracle rolls
+  back each SQL transaction by design; its accepted terminal state is in the
+  immutable dated captures, NOT in current SQL tables. This was a comparison
+  setup assumption, not a new engine divergence. Do not replay accepted days or
+  weaken the date guard. Consumer checks must use the retained day12 captures
+  with their receipt/boundary fingerprints. A validation-only streaming reader
+  avoids materializing the entire44MB-compressed trace in memory.
+- `f3-pick-native-comparison-003/receipt.json` SHA256
+  `d06e30cc8d203d78ec7ade158ddc2402b0134e30e268217ade1be2fb84beb19a`:
+  all14 rows and67 native consumer fields match exactly. SQL executes only the
+  pinned producer's two SELECT/INSERT projections over its OWN retained legacy
+  rationed rows/bands in session-temp tables. No band arithmetic, daily batch,
+  modern seeding, persistent SQL-table update or accepted-day replay occurs.
+  The retained closing and BPR boundary fingerprints match the F2 receipt.
+  API filters/auth/type-envelope acceptance remains distinct and open.
+  Preserve comparison002's strict IsNormed int/bit mismatch: the first harness
+  omitted the source INSERT target-type conversion. Only that harness was
+  corrected to use the canonical target schema; no app value/comparator change.
+
+F3.1 BPR source reconciliation (not accepted API delivery):
+
+- Deployed BPRController selects GetBPRDataAsync. Its exact decompilation is
+  `D:/freshvcf-build/evidence/f3-canonical-api-001/VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.BPRProcessor.decompiled.cs`
+  (SHA256 `68b9680373d7edf530fe5985f89d88d67b6fc4f7f1870112230cba9c7bb6b03b`);
+  controller SHA256 `8a89ac76c8f396a96be4d5553e614fde6547d4649567a739f2e2ca58fab9329d`.
+  The pure adapter preserves two-pass key-bag paging, count's inner standard
+  membership, grid's left membership, latest-remark ties and producer colours.
+  Five focused unit probes pass. No API/parity acceptance is claimed yet.
+- BLOCKED sub-obligation: terminal BPR `intransit` and remark attachment inputs.
+  Legacy `ValidateAndProcessInputData.bat:57–59` unconditionally invokes
+  ValidateGoodsInTransit.sql; Planning invokes GoodsInTransitTransporterMaster.
+  The accepted temporal output contains neither InTransitData nor remark rows.
+  The frozen artifact retains June5 transit raw context and a separate dated
+  shipment ledger; the latter has no transporter/LR/current-location fields.
+  Neither is silently relabelled as a complete June17 detailed-transit input.
+  Do not invent empty rows, transport facts or a new synthetic artifact, and do
+  not change/replay F2. Ancillary input/publication mapping needs an explicit
+  source-backed disposition before enabling the full BPR response. This does
+  not block independent RRR/DBM/BTR consumer work or reopen calculation proofs.
+
+F3.1 independently detected permission mismatch:
+
+- Preserve `f3-api-rrr-comparison-001/receipt.json`, SHA256
+  `b70cdc6993b9cd8078fb0e104def6189571b88bef3fe9b6de6f0b810f3ee6fd0`.
+  The actual deployed query over retained terminal legacy rows returned0, while
+  the initial modern API returned14. Root cause: modern scope incorrectly used
+  the historical permission artifact's code memberships; the selected run's
+  producer-owned SL1–3 and LL1–3 are all NULL. SQL NULL hierarchy joins authorize
+  no rows. This is an F3 adapter/input-boundary defect, not a calculation failure.
+- Correct scope membership against the selected run's actual attribute rows;
+  preserve the registered permission ID definitions. No all-access fallback,
+  historical membership substitution or silent hierarchy injection is allowed.
+  Nine HTTP/permission unit checks pass, including retained-membership/NULL
+  disagreement. F2 identities/rows/receipts remain unchanged. Earlier HTTP200
+  receipts remain historical wiring evidence, not current permission acceptance.
+- User decision requested: an explicitly versioned F3 metadata supplement from
+  the exact retained catalogue/hierarchy, used identically in isolated legacy
+  and modern consumer checks WITHOUT changing F2 inputs/calculations/run rows.
+  Until approved and proved, empty authorized output cannot close the required
+  nonempty UI acceptance. This request does not authorize new transit facts.
+- `f3-rrr-readmodel-comparison-001/receipt.json`, SHA256
+  `fcb70b7cb7c4401bdb09d2451f7ecae803fb53bba4fbbed27f5dc13662407de5`:
+  all14 unscoped RRR rows and119 fields match the actual deployed SELECT and
+  type configuration over the independent retained legacy facts; declared
+  ordering matches. This proves the read model, NOT authorization acceptance.
+- `f3-api-rrr-scope-comparison-002/receipt.json`, SHA256
+  `fd6c27fb4b084f4d648b457dd02f843e17200909ae5036c49740ec608b94324b`:
+  independently verifies corrected API grid/count denial (0/0) for the terminal
+  NULL hierarchies. No comparison waived, no fabricated membership. This empty
+  proof explicitly leaves nonempty application acceptance OPEN.
+- Seven affected DBM/BTR/history HTTP reads pass after the scope correction:
+  `f3-api-scope-read-002/receipt.json`, SHA256
+  `eb4ec698b1c36791e746650496f6ad9f3295fd5263c9c4674df8986e774c4775`.
+  The selected accepted run/action/parity identities remained unchanged.
+  Eighteen focused HTTP, BPR and RRR unit tests pass. No serving changes or F2
+  replay occurred. Await the metadata decision before claiming nonempty UI
+  delivery; F3.2–F3.5 remain pending and no new goal/tracker was created.
+
+F3.1 current-day Excess report connection:
+
+- Canonical `CollectExcessInventoryDetails.sql` SHA256
+  `71bb48766d3af7a739b90c511124f9ad99072066283536fd28a9530f3640b8c4`
+  now has an additive relational consumer projection. White/nonzero predicate,
+  source joins, NULLs, duplicate bags, numeric conversions and all17 fields are
+  preserved. Migration0008 adds only typed report rows and a publication receipt;
+  it does not rewrite accepted F2 state or store internal traces.
+- `f3-excess-publication-001/receipt.json`, SHA256
+  `53df50640b95e9c31935f14052270c0f2d4f3bb1d9c917348d2105118bdffee8`:
+  85 persisted rows round-trip exactly; publication retry is idempotent and
+  accepted run/action identities are unchanged.
+- `f3-excess-comparison-001/receipt.json`, SHA256
+  `41498dec00989c834efe90b496e312dd9d92f52d5b8d8d0fe934cf60365894f4`:
+  all85 rows/all17 fields PASS against the canonical INSERT over independently
+  retained legacy terminal facts in temporary tables. No daily replay.
+- Nine migration-enabled producer/storage tests and two affected temporal
+  transaction tests PASS, including additive report rollback. Fourteen focused
+  HTTP/producer tests PASS; Django migration checks and diff check PASS.
+- `f3-api-excess-001/receipt.json`, SHA256
+  `ad78a3c7ae96f965ef81ff943c7b2c6e84c3fb4ffd0398dada7c30232613be7d`:
+  configuration/count/grid HTTP reads PASS, not independent API acceptance.
+  Current-day producer parity does not claim historical retention, filters,
+  charts or nonempty authenticated UI acceptance.
+- `f3-excess-readmodel-comparison-002/receipt.json`, SHA256
+  `d5fbbea579ac8394746521c895fc0408d16478b08825e5be516af2211036f233`:
+  **85 grid rows/all28 fields, count/config and four chart populations PASS**
+  against exact SELECTs extracted from the deployed Planning/Excess processors.
+  Location charts each have12 rows; product charts each have70 rows. All typed
+  bags and declared ordering match; equal chart-count ties receive no invented
+  ordering. Description/permission multiplicity is before aggregation, outer
+  attribute multiplicity after it; no TOP10 is fabricated from chart labels.
+  Enabled dynamic attributes were explicitly checked absent before comparison.
+  Its SQL/grid proof remains valid. Its hand-transcribed chart response omitted
+  UiConfigAttr.colPosition; that response qualification is corrected by the
+  actual-DLL check below. This was not full hosted API/authorization acceptance.
+- Preserve comparison001 (SHA256
+  `9aaf24e29a0fa34dd8ff79822e3999bc02d9e19915977061b146ed43ab6a3c30`):
+  the harness's temporary table substitution omitted a delimiter before alias
+  `a`. Corrected only that binding; no query predicate/app value/assertion changed.
+- `f3-api-excess-002/receipt.json`, SHA256
+  `13ad210c99259bae7bf408805767bcfdabf2aa105b06d56f3464ff861a98c9b3`:
+  four configuration/grid/count/chart HTTP reads PASS from the selected run;
+  accepted identity unchanged.27 focused presentation checks PASS. No engine
+  replay, synthetic generation, F2 receipt change or serving mutation occurred.
+  Filters, historical retention and nonempty authenticated UI remain open.
+
+Continue the existing F3.1 report-connection obligation using known canonical
+sources and accepted relational facts. Do not broaden the approval for metadata
+to ancillary transit inputs. The pending user decision is unchanged; unavailable
+inputs must stay explicit, never be manufactured to close an endpoint.
+
+F3.1 Fulfilment connection contract: canonical
+`Scripts/BPR/CollectOrderFulfillmentData.sql` consumes the already-calculated
+rationed rows, standard attributes, current orders and original calculated
+routes. Required persisted summary/detail projections are connected below.
+Permitted mutation is additive report tables/publication and API read adapters;
+no F2 algorithm, input, state, action or receipt changes. Restore the accepted
+run only from its own verified calculation evidence where necessary; normal
+daily publication writes in the existing transaction and HTTP reads typed rows.
+Resolve a route's OrderKey only from its explicit part identity or a provably
+unique produced order identity; ambiguity is an error, not a guessed match.
+Required proof: complete canonical producer comparison, exact persisted/readback
+and rollback, then deployed consumer grid/count/chart comparison and HTTP read.
+
+F3.1 Fulfilment producer and normal grid evidence:
+
+- Canonical producer SHA256
+  `b6ae768bd632c831050453f7702a2016bf8db11bc69a2a05088f31c030d3d3b1`.
+  Additive migration `fresh_mta.0009_fulfillment_consumer_projection` depends on
+  0008 and creates three tables (receipt, typed21-column summary and typed9-column
+  detail); no custom SQL/data rewrite. Applied ONLY isolated PostgreSQL. Django
+  check/no-model-drift/plan and migration-enabled nine producer/storage/temporal
+  tests PASS, including exact next-opening and complete transactional rollback.
+- `f3-fulfillment-publication-001/receipt.json`, SHA256
+  `f88ccfe3db7a458d46762d7efe56146aac306dc6cf41ee7b0340b719431f00a6`:
+  1,222 summary rows and one detail row committed/read back exactly. The accepted
+  native calculation supplies three original routes; the one retained OrderKey
+  mapping is unique. No order/detail fact was inferred from aggregate quantities.
+  Publication is idempotent; accepted run/actions/receipt identity unchanged.
+- `f3-fulfillment-comparison-002/receipt.json`, SHA256
+  `7942b6bf84cda3c467970e89809aa45515c7570de681dacc4839d2dcfddea19f`:
+  **1,222 summaries ×21 fields, one detail ×9 fields, and 1,222 normal grid rows
+  ×34 fields PASS**, plus count/config and declared ordering. The grid includes
+  typed nested order data. The oracle executes the exact canonical report SQL
+  and deployed SELECT over its own retained closing/routes in temporary tables,
+  never modern seeded answers or an accepted-day replay.
+- Preserve comparison001 (SHA256
+  `04573808fe6120eb0080e8ee344202e966b1654b58195c7b3cba5023a64ca455`):
+  SQL SELECT-INTO propagated the OrderKey identity generator into the temporary
+  harness table and rejected retained keys. Only that temp-table projection was
+  corrected to a typed INT expression; actual keys/SQL/comparisons were preserved.
+  A separate diagnostic tempdb catalogue inspection was refused by the existing
+  cross-database guard; that guard was NOT changed or bypassed.
+- `f3-api-fulfillment-001/receipt.json`, SHA256
+  `3c137896d7d33b504c9aa63b9bd911f5c9d2cc01569cdf8f99303c48ed6f0f2e`:
+  grid/count HTTP readback PASS on the selected accepted run. This remains
+  permission-denied empty output until the existing metadata decision is resolved,
+  not positive authenticated acceptance.25 focused presentation/reader tests PASS.
+- F2 engine, frozen artifact, final replay receipt and terminal readback were
+  rehashed unchanged. No F2 rows or receipts were updated, no serving mutation,
+  no new public port and no commit claimed as F3 acceptance.
+
+F3.1 Fulfilment chart boundary source is the already
+matched deployed `QuadrantProcessor.GetOrderFulfillment/GetResponse`, decompilation
+SHA256 `9f084f3550ab5c6ca8193de71b70ee6d7341aa1647004776ff152dd9fd858d60`
+under the registered `.local-stage7/deployed-planning` evidence directory.
+The prior pure chart response at66a7773 explicitly contains an earlier
+presentation exception (grouping by code and additional score sorting); do NOT
+blindly import it as canonical behavior. The deployed response groups by Details
+and reads the first three category rows. Preserve/report source limitations;
+no new repair or tie-break is authorized. Its current-day facts now exist in
+typed PostgreSQL rows, so no additional synthetic generation or engine replay
+is needed. Filters/scopes/browser and other F3.1 reports remain open.
+
+F3.1 Fulfilment charts and exact Excess chart response evidence:
+
+- Four canonical Fulfilment query populations (1,1,23,218 rows) and all response
+  fields/config PASS. `f3-fulfillment-charts-comparison-002/receipt.json`, SHA256
+  `32a9680aedc508e6f24d8fcfe4e264b39fe07c4ff1549f7311e9586a42c62cfe`.
+  SQL runs only in temporary tables over independently retained legacy report
+  rows. The real pinned DLL's GetResponse processes those results; no copied
+  modern expected outputs, repaired description grouping, extra sorting or
+  TOP10 truncation. Duplicate bags, types and declared count ordering are checked.
+- Preserve comparison001's original assembly-resolution failure and the separate
+  `response-mismatch.json`. The successful invocation exposed the missing
+  serialized `UiConfigAttr.colPosition=0` in the modern chart configuration.
+  Correct only that application response field; canonical code/config is unchanged.
+  The original Fulfilment chart data otherwise matched the deployed method.
+- The same field was missing from the imported Excess response helper. Keep
+  its registered imported bytes intact and add the actual field in the local
+  adapter. `f3-excess-deployed-response-001/receipt.json`, SHA256
+  `4f70d956babbfd7c164de6e720afde4846b09ef4e5f83128964478fa078a51aa`:
+  all four populations (12,12,70,70), full response/config, unchanged85-row grid
+  and count PASS. Reused the hash-pinned independent SQL results; no SQL/engine
+  replay. The receipt retains the earlier response's four exact config differences.
+  Earlier producer/grid comparisons remain valid; the earlier response assertion
+  alone is superseded by this stronger deployed-method proof.
+- Method invocation loads the actual deployed DLL and its installed MVC assembly
+  without starting/changing a service. Runtime/assembly/input hashes are recorded.
+  It runs under the recorded .NET10.0.11 tool CLR, not the deployed .NET6 HTTP
+  host. This proves the selected pure method and SQL bags, not hosted HTTP,
+  nonempty authenticated scopes/filters, browser behavior or unspecified tie order.
+- `f3-api-fulfillment-002/receipt.json`, SHA256
+  `ab9a14d42b23b0bd5d1bdd54450bc7702a3a27ecd5d26b320eef9a70043069e6`:
+  grid/count/chart HTTP reads PASS against typed PostgreSQL reports; accepted
+  run/actions/parity identity unchanged. Actual authorized populations remain
+  empty because the selected native hierarchy is NULL, as previously documented.
+- `f3-api-excess-003/receipt.json`, SHA256
+  `916b99fd5bfb9d2f4e65e4f5ee2ccab81bb364d4b6928e150eaaeb0550c4d8f0`:
+  all four configuration/grid/count/chart HTTP reads PASS after the wire-field
+  correction, with accepted run/actions/parity identity unchanged. This carries
+  the same explicit nonempty-authorization qualification, not UI acceptance.
+- 27 focused producer/chart/HTTP tests PASS. Source-defined NULL-description
+  exception behavior is NOT claimed as parity: the adapter explicitly rejects
+  that unsupported chart condition rather than inventing a label or repairing
+  the legacy partial-response behavior. It does not occur in these retained
+  nonempty populations. No new F2 qualification or broader exception is implied.
+- F2 engine, frozen artifact, final replay and terminal readback hashes remain
+  unchanged. No accepted day replay, synthetic regeneration, serving change or
+  public port was introduced. Pending finite IDs remain F3.1 (partial), F3.2,
+  F3.3, F3.4 and F3.5. No F3 acceptance commit is claimed.
+
+F3.1 Expedite connection contract: port the exact
+`CollectDataToExpediteDispatches.sql` projection (SHA256
+`894ba52512be0bb39ec4e97aff603ed1da572c4463d6c319b9a2ae20a54f753d`)
+from the already-produced Pick rows, importer masters/standard attributes and
+existing BTR black/red-age outputs. Add a typed run-linked22-column projection
+inside the existing transaction, with explicit accepted-run publication,
+exact canonical SQL comparison/readback, idempotence and rollback proof.
+No Pick/rationing/DBM recalculation, synthetic replacement or F2 state mutation.
+Connect the canonical parent/child count branch; full grids require the
+separately missing detailed-transit/remark inputs and must not invent empties.
+
+F3.1 Expedite producer/count evidence:
+
+- Migration `fresh_mta.0010_expedite_consumer_projection` depends on0009 and
+  creates only a typed22-column report table and bounded run-linked receipt.
+  No RunSQL/RunPython, baseline rewrite or old-state transformation. Generated
+  migration inspected; PostgreSQL check, no-model-drift and migration plan PASS.
+  Applied only to the owned isolated database.19 migration-enabled persistence
+  tests PASS, including report mid-write rollback, whole daily-transaction
+  rollback and unchanged own-predecessor/action reconstruction.17 focused unit
+  producer/count/HTTP tests PASS; their protocol inputs are NOT parity fixtures.
+- `f3-expedite-publication-001/receipt.json`, SHA256
+  `76b4bef30a69b8a5c635919436905839ad601d7a804cea03b66b44e3fbe70396`:
+  all10 retained day12 Expedite rows published and read back exactly; retry is
+  idempotent and the accepted run/actions/parity identity is unchanged. These
+  ten rows are the canonical report subset of the existing full estate, not
+  a replacement small synthetic dataset. BRAge/red/black counts come from
+  already-accepted own BTR state; HTTP uses only relational report facts.
+- `f3-expedite-comparison-001/receipt.json`, SHA256
+  `24a68d58ca9c69ba73bf0c82e8b3576bd874a75ae3ed30d2268f45add34ff9e1`:
+  **10 rows ×22 fields PASS** against the exact producer SQL over its own
+  checksum-verified legacy Pick/closing facts in temporary tables. Accepted
+  legacy BTR age values are attached to that legacy report, never modern answers.
+  Normal unscoped parent and child counts each match7 dispatch/0 availability
+  candidates. Seven separate SQL decimal/rounding probes match individually;
+  these unit probes do not alter or replace the full-estate artifact. The
+  verifier now compares each probe by index, not an unordered scalar bag; the
+  retained original receipt explicitly contains matching typed values for every
+  individual probe and was rechecked without replay or alteration.
+- `f3-api-expedite-001/receipt.json`, SHA256
+  `d82ae462eb931323e01d53bc60104aa61907baea9656ad6c9e93a4727a98af3e`:
+  both normal count endpoint directions read PostgreSQL successfully; accepted
+  identity unchanged. Native NULL hierarchy correctly denies actual assigned
+  scope, so this is wiring evidence, not nonempty authenticated acceptance.
+  Full grids/charts/custom branches and filters remain OPEN. In particular,
+  source-backed missing transit/remark inputs are not replaced with empty data.
+- Preserve the pre-publication CLI invocation error separately: a direct
+  `call_command` supplied a string where its option parser normally produces
+  a Path. No report write or receipt directory had begun. The normal CLI then
+  completed publication; no business/source/comparison change was made for this.
+- Engine, frozen artifact, final F2 replay and terminal readback SHA values were
+  rechecked unchanged. No accepted-day replay, engine action, serving mutation,
+  new public port or F3 acceptance commit. Pending: F3.1 (partial), F3.2–F3.5.
+  The next independent Expedite work is its chart consumer; preserve the already
+  closed producer/count proof and resolve only its actual additional inputs.
+
+F3.1 Expedite chart contract: both deployed parent/child queries require
+PostRationEcoAvailability → CalculatePenetrationAndColor →
+UpdatePostRationPipelineInventoryPen. This missing report projection can be
+derived from the already accepted Pick/rationed facts; it is not permission to
+change/replay their calculation or substitute inputs. Persist the two canonical
+post fields in typed run/ordinal-linked rows, compare the exact SQL producer,
+then connect/compare all chart result sets and deployed response methods.
+Keep previous Expedite producer/count proofs closed. Do not import the earlier
+demo's LogisticsLocation label repair; the deployed receiving response reads
+the final critical-chart label, a source flaw, not authority for a new solution.
+
+F3.1 Expedite chart results (bounded producer/query closure, not whole API/UI):
+
+- Additive `fresh_mta.0011_pick_post_consumer_projection` depends on0010;
+  two typed report/receipt tables, no data migration or prior-history rewrite.
+  Fresh migration-enabled PostgreSQL tests passed: three storage protocol
+  checks, three imported pure tests and two native daily transaction/next-state
+  checks. Django check, migration drift check, plan and isolated apply passed.
+  Twenty-one focused chart/HTTP tests passed after route connection.
+- `f3-expedite-charts-export-003/receipt.json`, SHA256
+  `3c168146ad726e9f98e76615127f3e062507673a0e3d5314ca6684afbec0a6e7`:
+  post-projection idempotently published from own accepted relational Pick
+  inputs; run identity remains unchanged, no engine replay or evidence fallback.
+- `f3-expedite-charts-comparison-001/receipt.json`, SHA256
+  `e5aff4654c4878180a0984176e45dc28f99a30ec78794f8a9261b3f300c4750b`:
+  exact canonical three-stage report SQL in session-temp tables matches all14
+  Pick rows×69 fields. All eight chart query bags match, including full typed
+  multiplicity and declared sorting. Parent populations4/6/0/3/2; child0/6/2.
+  Selected empty subqueries are not credited with positive branch coverage.
+  Actual deployed DLL methods match modern transformations on the same explicit
+  ordered DataSets; this is not legacy HTTP-host or browser acceptance.
+- `LEG-EXPEDITE-UNORDERED-LABEL` is independently reproduced in that receipt:
+  the same critical bag in reverse order changes receiving labels in the DLL.
+  The ambiguous parent response remains unavailable/NOT_PARITY; no label repair,
+  invented order or blanket comparator exclusion. Details are in the exception
+  register. Source-deterministic child response matches on its own query results.
+- `f3-api-expedite-charts-001/receipt.json`, SHA256
+  `097d155836cd11931a742c8d468f35ee14edb563e13fd15b5a0b7211e0e90f75`:
+  both parent/child chart endpoints read the persisted projection successfully,
+  leaving accepted run/action identity unchanged. Actual native NULL hierarchy
+  still correctly denies assigned scopes: these two HTTP200 reads are wiring
+  evidence, not positive authenticated chart/UI parity. Twenty-one unit tests
+  include the HTTP503 flaw response and native scope forwarding.
+- Preserve export001's wrong-case BPRMaster key failure (corrected only in the
+  consumer), and export002's source-ambiguity guard receipt. Neither is parity.
+  Previous producer/count proofs and F2 acceptance remain valid. No new artifact,
+  accepted-day replay, public port or serving change. The ambiguous response is
+  explicitly blocked; continue independent report/API obligations, not another
+  attempt to repair or order the legacy labels.
+
+F3.1 daily-history graph contract — compare the already-wired
+DailyDataGraph consumer across the full retained terminal DBM population.
+Required proof is all six nested populations (stock/consumption/receipts,
+Norm changes, master, monitoring, Norm reasons and suggestion history), run
+date/horizon, NULLs, duplicate multiplicity and declared temporal sorting.
+Use the deployed DLL's actual query-builder methods over its own accepted
+legacy closing tables, and modern PostgreSQL rows over its own accepted run.
+No daily replay, new synthetic inputs, schema change or action is permitted.
+Correct only an evidenced consumer divergence. Positive authenticated delivery
+remains gated by the separate metadata decision; unscoped proof cannot close it.
+
+Daily-history graph consumer proof is now COMPLETE for all retained terminal
+pairs, without closing authenticated/UI acceptance:
+
+- Actual deployed DLL query-builder methods generated the seven query fragments;
+  their receipt SHA256 is
+  `a17e0bcd3b8a92916c678acb5615754593d878e94b31e752b92835e8f550e16e`.
+  Fresh decompilation from that DLL also confirms the caller's90-day horizon,
+  outer JSON wrapper, child roster and response deserialization. Source:
+  `D:/freshvcf-build/evidence/f3-daily-history-source-001/VectorFlowAPIs.VectorFlow.Processors.BORProcessor.decompiled.cs`,
+  SHA256 `80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`.
+  Only this selected method was reconciled with the older source; do not infer
+  whole-file equivalence from that check. CLR recorded as.NET10 for query builders.
+- Preserve comparison001: its ordering check exposed a canonical empty nested
+  JSON section as NULL, not an iterable. The independent scalar SQL observation
+  in `f3-daily-history-empty-observation-001` confirms that the reused adapter's
+  empty lists differed from the deployed wire contract. Added a narrow wire
+  wrapper; original reused helper bytes, engine and production rows unchanged.
+  Comparator still distinguishes NULL from[]; optional sorting checks do not
+  replace typed population comparison.
+- `f3-daily-history-export-002/receipt.json`, SHA256
+  `1bb4b7ae7b650578515ae01c6c4ab290b69e049fc72724ac386164031bb67dd0`,
+  proves native readback from the explicit accepted modern run; identity and
+  actions unchanged, no calculation/evidence-trace fallback.
+- `f3-daily-history-comparison-002/receipt.json`, SHA256
+  `9b49e4ba47fa1347c0383ea41b8bf2b41d177b38f515e3a16ea0ad13282d1383`:
+  **1240/1240 full graph comparisons PASS**, zero typed/multiplicity/date-order
+  differences. All34682 stock records,136 recent Norm records,1240 master rows,
+  1240 monitoring rows,136 reason-joined Norm-history rows and132 suggestion
+  rows match independently reconstructed legacy consumer results. The source's
+  history window includes retained opening history, not90 newly computed days.
+- Eighteen focused consumer/HTTP unit tests PASS, including full-outer-join
+  multiplicity, NULL fields/sections, horizon-vs-all-history distinction and
+  authorized/denied graph forwarding. Native positive authentication/UI proof
+  still awaits the existing metadata decision; it is not inferred from these
+  unscoped comparisons. No serving mutation, schema change or accepted-day replay.
+
+F3.1 BTR contract: deployed SCController selects GetBTRDataAsync; compare
+its exact tech/eco grid, count, two-pass paging, horizon and label queries using
+the fresh DLL decompilation and retained terminal rows. The grid joins
+vf_ReqCalculation; count joins vf_RationedReqReport. Prove the shared five-field
+projection before reusing native rationed rows for grid joins; never assume the
+entire tables interchangeable. GenerateRationReqReport.sql copies these fields
+without calculation (SHA256 eca76c08c57a553c65f3c9bb460434adfbbcc88341a3a607bbe80a84c825f9c3).
+Reproduce the source combined-query/Category-order concerns without repairing
+SQL or inventing an aggregation order. Any flaw stays explicit and independent
+deterministic branches continue. Allowed edits: consumer connection/guards,
+focused tests and validation only; no engine, input, action or schema change.
+Keep accepted daily-history/report proofs closed unless directly invalidated.
+
+F3.1 BTR retained-data consumer proof:
+- `f3-btr-export-001/receipt.json` SHA256
+  `763513d2c6dd8dfea4a550e245ba33f46abf14f5871434893715feb9a291eca8`
+  exports the accepted run's own relational state without writes. Independent
+  oracle `D:/freshvcf-build/evidence/f3-btr-comparison-002/receipt.json` SHA256
+  `72cf11924ef7d4a4d0d9afa1d4eb591ff0ee35feedf755aa8fb1ae4dbeffdc2b`
+  uses the accepted legacy capture and session-temp SQL bindings only.
+- All1,240 five-field requirement projections match exactly between canonical
+  vf_ReqCalculation, canonical rationed report and modern native rationed rows.
+  This proves only SKUCode/WhCode/ParentWhCode/Norm/VirtualNorm reuse, not arbitrary
+  interchangeability of these tables. No new production checkpoint is needed.
+- Both tech/eco counts are1,240. Exact typed wire rows, duplicate populations,
+  declared key ordering and date labels PASS for each90-column full view,
+  12-column recent view, and page2/size7. The combined query also PASSes against
+  both independent modern branch results (2,480 full rows,14 page2 rows).
+  The receipt's conservative status label is PASS_SELECTED_SINGLE_BRANCHES;
+  its empty differences also includes the explicit combined comparisons.
+- The suspected combined-SQL syntax defect was DISPROVED by executing the exact
+  extracted query. No legacy exception or repair was introduced. Reversing only
+  physical Category metadata insertion preserves the same full SQL result;
+  this probe did not reproduce an order defect. STRING_AGG still has no explicit
+  order, so this is an observed retained-input match, not a general ordering
+  guarantee or permission to invent a canonical order.
+- Fresh deployed BOR source SHA256
+  `80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`;
+  fresh SCController source SHA256
+  `bf1c33e1fdabd52e7280315583571581c52bea943c25a2871bae77048a3967ec`.
+  Source-only controller HTTP error semantics are not claimed as runtime proof.
+- Five focused tests PASS. Preserved earlier comparison001. No engine replay,
+  schema, F2 input/action/receipt or serving mutation. Scope/filter/HTTP/browser
+  acceptance remains open; these unscoped rows do not bypass NULL hierarchy.
+
+F3.1 insight boundary: existing DBM insight consumers over accepted native
+BTR/DBM outputs. Compare deployed queries/projections for their finite existing
+endpoint roster; use retained rows and session-temp oracle bindings, no new
+synthetic inputs, calculation edits or source repairs. A branch lacking required
+input or deterministic source semantics must be qualified explicitly while
+independent reports continue. This is report connection, not another queue.
+
+F3.1 insight consumer evidence:
+- Fresh deployed GuidedInsightsProcessor source SHA256
+  `d2f578a2beda0b67226b3c85ae65d3a39fe732496237ee41f7c0a9b067f29249`.
+  All nine existing insight endpoint methods were selected, with availability
+  horizons12/90 and ageing thresholds1/4, giving13 query comparisons.
+- `D:/freshvcf-build/evidence/f3-insight-comparison-004/receipt.json` SHA256
+  `97bfef0d867b16f9fb553e546c385d2bc98433921db8621894827a35cb064614`:
+  all13 PASS, zero typed-bag or declared-order differences. Populations:13
+  location summaries,200 SKU summaries,1 pie,8 chronic-grid rows,72 rows per
+  availability-trend horizon and12 per availability-ageing case. Suggestion
+  ageing and chronic loc/SKU summaries are canonical NULL on this terminal
+  input; they are not positive rule/branch coverage.
+- Corrected only the insight response adapter: selected empty scalar SQL JSON
+  must become null, not []; chronic grid's two penetration decimals must be JSON
+  numbers, not persisted decimal strings. No calculation, input, state, schema or
+  legacy repair. Existing pinned pure helpers remain byte-identical.
+- Modern export002 receipt SHA256
+  `0ffb37c3ae0a3c32144e3dc7ca86ff4204fbd6afeda201d86f74b5873f0be8fc`.
+  Preserve export001 and comparison003's actual wire mismatches (receiptSHA
+  `f3a9289c0deadbfc9a49c3c1460110ea64f19fb33f38ff391d0398df4d1c2f80`).
+  Also preserve comparison001/002 harness failures: bracket/separator mistakes
+  in session-temp table binding, not legacy flaws. Corrected queries compile
+  independently before the populated comparison; no assertion was weakened.
+- Twenty focused consumer/HTTP tests PASS. Native12-route HTTP readback:
+  `f3-api-insight-wire-001/receipt.json` SHA256
+  `20aae32a25beb8b76505b8a637316a515f5450a6d63c955c7284de5cc5d627c8`.
+  All returnHTTP200 without run/action/parity changes; the nine insight responses
+  correctly contain data=null under the current NULL hierarchy/denied scope.
+  This is wiring/denial evidence, NOT nonempty authenticated UI acceptance.
+  The12-route packet also exercises three existing history routes, without
+  claiming their independent consumer parity. No serving instances changed.
+- Accepted F2 engine, frozen artifact, day12 execution and independent parity
+  receipt hashes remain unchanged. No accepted day was replayed.
+
+Historical F3.1 boundary (CLOSED by f3-history-comparison-003 above): canonical DBM grid/count and the three remaining
+history-report consumers (buffer-trend graph, research insights, historical
+availability), using already-retained native state and exact deployed methods.
+Keep completed BTR/daily-graph/insight proofs closed. Do not credit empty data
+as positive-path coverage or substitute historical permission memberships.
+Source-backed unmet exit in this boundary: inherited history helpers aggregate
+dated BPR rows, but deployed SCIH.GetResearchInsightDataQuery returns selected
+self/child/parent wide colour histories; GetBufferGraphData and
+BPR.GetHistroricalAvailabilityBPRData aggregate persisted D1..D90 trend columns.
+Replace only these consumer adapters and DBM empty-result wire semantics, then
+compare independent retained populations and exact SQL/DLL-derived formatting.
+Prove BPRMaster's key/parent projection before reusing native rationed rows.
+No new fixture, engine, action, schema or legacy repair is authorized by this.
+Overall pending IDs: F3.1 (partial), F3.2, F3.3, F3.4, F3.5.
+
+## Executable flow and ownership
+
+```text
+versioned external facts + previous OWN committed closing state
+  → input validation / daily scratch reset / ordered control application
+  → master/order/supplier processing
+  → BPR: stock, requirements, rationing, PSO, advances, Pick
+  → DBM import → suspensions → ordered rules → suggestions/reports
+  → BTR/history → durable closing state
+  → published read models → deployed API contracts → unchanged frontend
+                          ↘ Apply/Sleep/controls → next OWN daily run
+```
+
+The diagram describes dependency order, not permission to skip a producer.
+Persisted outputs, report projections and API consumers share a run identity.
+Compare fixed major boundaries plus the required current-day output roster.
+Stop debugging at the earliest divergence, preserving its receipt. Do not reload
+legacy state into modern midway or retry by narrowing the fixture.
+
+## Synthetic and acceptance resources
+
+`baseline/manifest.json` is a generated immutable inventory of existing source
+and artifact identities. It distinguishes raw, processed, temporal and report
+inputs. The existing full artifact is reused, not regenerated as a fresh small
+demo. New shallow cases explicitly select retained identities; their passing
+results do not close full-population acceptance.
+
+One physical PostgreSQL database is the target, with separate service schemas
+where necessary to preserve MTO/auth migration histories. Do not force incompatible
+Django migration namespaces together or rewrite MTO calculations to consolidate.
+
+## Evidence and checkpoints
+
+No fresh-build parity is claimed yet. See `baseline/manifest.json` for inherited
+resources; inherited receipt status is not fresh execution status. The statement
+above describes the F0 baseline only; F1 results below now establish bounded
+current-day calculation/readback parity, not whole-MTA acceptance.
+The prior checkout is pinned at `66a77735d3f3f9a9becf4c87a08ae7827900cf84`;
+its uncommitted work is excluded. No service cutover is authorized by this tracker.
+
+F0 proof (30 September2026): `manage.py check` passes; three foundation tests pass;
+`tools/baseline.py verify` confirms376 pinned resources. Of2230 pinned frontend/
+MTO/auth files,2227 have exact Git blob/mode correspondence. The three excluded
+files are unused icon ZIP archives (`forced/excel (1).zip`, `manual/Group 473.zip`,
+`manual/plus.zip`), not business code. No MTA application functions or old runtime
+models were imported in F0. There are no fresh MTA migrations yet; persistence
+and PostgreSQL-enabled migration checks are part of F1.
+
+Storage: F: filled during dependency installation. User authorized D: build
+storage; dependencies and Git objects now live in D:/freshvcf-build. Source stays
+in the requested checkout. Existing services and source worktrees were untouched.
+
+### F1 working calculation/persistence checkpoint
+
+- Foundation committed/pushed: `4d5ffdb` on main.
+- Extracted31 pure calculation/input dependency modules and7 projection functions
+  from pinned66a7773. Removed ORM reads from those7 by passing produced rows;
+  did not import the old run/audit/model hierarchy. Exact mechanical provenance:
+  `baseline/calculation-reuse.json`. These functions are editable local code.
+- Fresh sizeable calculation: **20/20** typed contracts pass, then **20/20** pass
+  again against the actual PostgreSQL readback. Retained1240 populations and1685
+  remaining-Pick rows match. The source oracle is retained, not freshly replayed;
+  input logical identity and each SQL hash match both preserved and local runtime.
+- Raw-source comparisons: daily/order/auxiliary stock119/119; control diagnostics
+  24/24; transit tags23/23. Exact existing fixtures, no regenerated populations.
+- Connected-inputs-controls receipt predates remaining-Pick capture. It remains
+  **RECEIPT_INCOMPLETE** as historical evidence; see fresh replacement below.
+  Neither the older receipt nor its failed comparison was overwritten.
+- Fresh PostgreSQL initial migration applied;4 migration-enabled transaction
+  tests pass (readback/retry, row tamper, missing output, durable failed attempt).
+  Six framework/pure-input tests pass. Django reports no missing migrations.
+- Evidence directories under `D:/freshvcf-build/evidence`:
+  `f1-sizeable-001`, `f1-persisted-001`, `f1-persisted-comparison-001`,
+  `f1-raw-001` (retained failed receipt-compatibility attempt), `f1-raw-002`.
+- Durable sizeable run: `fe5fd4dd-12e5-4415-a33f-16c1434c82f6`.
+  Output checksum: `1edd822a2b6167e6002d0936c7112bdbd1d81bbaa616a300fdc3406a5689bd69`.
+
+### F1 fresh SQL / positive population verification
+
+- Dedicated `VFTEST_Fresh_*` schema created from pinned canonical DDL, with MDF/
+  LDF files exclusively under `D:/freshvcf-build/sqlserver`. Existing databases
+  and serving instances untouched. Exclusive replay lease and physical-path
+  guards are required; original/default/Block2 runner connections unavailable.
+- `f1-fresh-sql-001`: connected-inputs-controls119, physical PSO16, stock advance15,
+  GIT advance15 and Pick groups15 comparisons all PASS (180 total). Fresh SQL
+  includes the previously absent remaining-Pick checkpoint. All five fixtures
+  are unchanged retained inputs, not newly invented replacement baselines.
+- `f1-positive-persisted-001`: the same180 comparisons all PASS on actual fresh
+  PostgreSQL readback. These include nonempty PSO, stock/GIT allocation, formed
+  Pick and remaining Pick. This is not temporal or API acceptance.
+- Bootstrap attempts are not parity: Windows SQL Server rejected forward-slash
+  MDF paths; native paths fixed this. Transactional DDL then hit an existing
+  duplicate CREATE and rolled back; schema-only duplicate/absent-DROP conditions
+  now match the retained provisioner's known exceptions before execution.
+  Per-database schema receipts list every exception. No business SQL was changed.
+- Ten focused tests pass. Next unmet F1 exit: selected GulfOil adapter proof and
+  final source/persistence review; no expansion of CSV formats or other customers.
+
+The earlier F1 working checkpoint was not closure. The final acceptance below
+closes its selected current-day obligations only, not temporal DBM, raw ingestion
+for the whole sizeable estate, UI acceptance or branch-wide parity. No inherited
+empty output is credited as positive order/advance/formed-truck coverage.
+
+Test-resource owner: this fresh migration task. Compose project `freshvcf-test`,
+PostgreSQL data at D:/freshvcf-build/postgres,1GiB/1CPU; one-shot MTA4GiB/2CPU,
+restart=no, no host ports. One-shot containers use --rm. Stop this project's
+idle PostgreSQL at checkpoint/handoff; preserve its data for next invocation.
+
+### F1 final acceptance (30 September 2026)
+
+- Fresh sizeable SQL replay: `f1-sizeable-fresh-sql-001`, **20/20 PASS** against
+  independent fresh Python execution. Exact retained200-SKU/20-location input;
+  1240 selected SKU-location rows;1685 remaining-Pick rows. Final PostgreSQL
+  comparison: `f1-sizeable-final-persisted`, **20/20 PASS**. This supersedes any
+  suggestion that the sizeable comparison relies only on an older SQL receipt.
+- Five positive/raw fixtures: fresh SQL and PostgreSQL both **180/180 PASS**;
+  additional retained raw receipts166/166. Refer to exact directories above;
+  counts describe contract comparisons, not percentages of the whole migration.
+- Selected GulfOil: `f1-gulfoil-003`, **126/126 calculation**, **13/13 adapter-table**
+  and **7/7 parser-case** comparisons PASS against retained canonical receipts.
+  `f1-gulfoil-persisted-001`:126/126 PASS after fresh PostgreSQL readback, with
+  original raw file bundle and generated standard-boundary lineage persisted.
+  This is the retained approved five-SKU raw extension, not sizeable raw coverage.
+- Parser qualification: deployed `ReadDailyDataToInterface.py` hash
+  `dd94826491cc045259d02c20168de0f24c0540bc1f91b855015161bf5cf55e3f` differs
+  from preserved `6b232a259f72fe55fa41aeb741f871442256593dab6bab3cd4cf1dc9026c50dd`.
+  Connection certificate handling and metadata `ORDER BY MappingId` are the
+  differences. All executed parser/insert functions match by AST; a read-only
+  configuration query proves all83 retained mapping rows in that exact order.
+  The qualification is in the successful evidence, not a waived hash assertion.
+- Retained failed attempts: `f1-gulfoil-001` source discrepancy;
+  `f1-gulfoil-002` SQL INT-vs-Decimal serialization and OrderID field spelling.
+  Comparator now applies only declared INT conversion (rejects fractions/range
+  errors), retains NULL/multiplicity/all fields, and explicitly maps OrderId.
+  No calculation or synthetic input changed to obtain these passes.
+- Independent review: runtime now calculates from its exact durable source
+  snapshot, not the caller's mutable object. SQL calculations run under disabled
+  login `freshvcf_oracle_replay`, impersonated WITH NO REVERT, with control only
+  on the eight owned Fresh databases. Server privilege/live DB access are denied.
+  Thread ownership and live schema fingerprints are checked before each replay.
+  `f1-isolation-final.json` proves restrictions and transactional schema-drift
+  detection/restoration; restricted connected replay119/119PASS is retained in
+  `f1-restricted-oracle-003`. Earlier guard false-positive attempts remain.
+- **14 focused tests +6 PostgreSQL transaction tests PASS**; migrations unchanged.
+  No serving application, legacy business data or other test estate was modified.
+
+Explicit remaining F3 runtime obligation: interrupted/failed-run retry currently
+fails closed and preserves its record. F3 must add a bounded, evidence-preserving
+restart/recovery policy. Successful-run immutable retry is verified; crash recovery
+is NOT claimed. This does not change or reopen F1 calculation parity.
+
+### F2 connected temporal checkpoint (30 September2026)
+
+- Complete pure chain extracted from pinned66a7773: controls/master/supplier/
+  orders → verified current-day calculation → BPR/BlueZone → DBM ingestion,
+  suspensions, ordered selected rules and reports → BTR → closing state.
+  `baseline/temporal-reuse.json` identifies49 extracted/reused records and their
+  source transformations. Old ORM/run/audit hierarchy was not copied.
+- `execute_day` consumes its own completed PostgreSQL predecessor and ordered
+  immutable Apply/Sleep command log. Parent locking prevents late action loss
+  and implicit branching; next-day input records parent checksum and command
+  identities. One immutable calculation identity owns all outputs. Migration
+  `0002_temporal_ownership` applied without changing0001.
+- Unchanged representative artifact SHA256
+  `458c7c661cc2e6b2e65f30415042b98ab889c6e151aeaf086c00029c6528c92f`:
+  **96/96 complete boundary comparisons PASS** across39 retained identities and
+  12 computed days, June6–17. **4/4 actions PASS** for input membership, exact
+  resulting acceptance/sleep rows and persisted before/after digests. Following
+  days consume these actions and match their legacy boundary fingerprints.
+- Modern outputs are fresh PostgreSQL readbacks. The oracle for this checkpoint
+  is retained canonical SQL evidence, not fresh SQL execution. The three retained
+  full-output days(0,1,11) each reconcile132 script receipts against both local
+  runtime and preserved deployment; remaining days use the retained exact typed
+  bag fingerprints. API DLL hashes qualify the action receipts. No fields were
+  excluded, coerced or normalized to achieve this connected result.
+- Evidence: `D:/freshvcf-build/evidence/f2-connected-012/execution.json`, hash
+  `3cabe70e3fa71232f84df1ea9e57c684321203715c8217788aef6fab1b1ee053`;
+  `f2-connected-012-final-comparison/comparison.json`, hash
+  `fc45a82a2e1815ce77b4ed01b09b0017bccf6344b9e84112c57f55056756ecdb`.
+  Terminal durable run: `83940672-749c-4728-b36a-26c29ea0dc61`.
+  Terminal output digest:
+  `d4d2863dd520c1ec7d22599ef432de86ef68d6773aa227aaede9df165bc2c759`.
+- Harness development failures are retained, not calculation failures: source
+  paths used both relative and absolute forms; representative action receipts
+  have a different wrapper from full-estate receipts; action membership is the
+  SQL Suggestions/latest-log/ReasonCodes projection, not raw Suggestions rows.
+  Exact source-backed mappings corrected these checks; inputs/calculations did
+  not change. Final comparator refuses ambiguous latest-log TOP1 values.
+- Independent review identified and resolved three ownership gaps: action dates
+  now stay within their parent/next-run chronological boundary; an opening and
+  execution revision have one unique root key; publication rechecks the locked
+  input against the exact digest calculated. Migration0003 backfills the existing
+  initial run's root key without changing business inputs or outputs. The bounded
+  re-review found no remaining issue in these corrections.
+- After those safeguards, `f2-ownership-001` freshly recomputed the affected first
+  two days:16/16 boundaries and4/4 actions PASS in
+  `f2-ownership-001-comparison/comparison.json`. This is a targeted2-day pass,
+  not another12-day claim. The unchanged business functions retain their prior
+  96-comparison evidence. The command now captures executed Python source hashes.
+- **15 migration-enabled persistence tests +17 focused tests PASS**, including
+  all6 F1 runtime tests; Django check and migration-drift check PASS. All376
+  baseline resources unchanged. `baseline/temporal-regression.json` freezes the
+  retained ledger and original fresh comparison receipt identities.
+
+Remaining F2 exit, without a new queue: fresh isolated canonical temporal SQL
+replay; explicit ledger-governed shallow then200-SKU/20-location/1240-pair trial,
+3×maxRLT, half-RLT transit and automatic workflow policy; compare all required
+daily calculations, emitted reports, action effects and final persisted state.
+Correction to the earlier limited inventory: both retained v1 timelines DO
+contain explicit ledger conservation and half-RLT dated shipments. Independent
+validation of their unchanged bytes passes: representative39identities/1073fact
+rows/899shipments; sizeable1240identities/34682fact rows/32909shipments. Each
+opening BPR/DBM historical fact and every future input matches its stock/GIT
+ledger; receipts equal dated shipments; transit is positive half-up rounded
+RLT/2;12consecutive computed days equal3×maxRLT4. Receipts are
+`D:/freshvcf-build/evidence/f2-ledger-representative-001.json` and
+`f2-ledger-sizeable-001.json`. No generation or input substitution is needed.
+Their four fixed day0 Apply/Sleep commands do not establish daily automatic
+acceptance. The remaining trial-policy work uses these SAME external inputs,
+with each engine deriving actions from its own computed recommendations.
+F3 application delivery remains pending. Existing serving applications unchanged.
+
+### F2 fresh oracle and automatic trial checkpoint
+
+- Fresh canonical SQL completed the same39-identity/12-day fixed-action timeline:
+  **348/348 comparisons PASS** (8complete boundaries +20current-day contracts
+  +complete emitted reports each day). Modern counterparts are the prior fresh
+  PostgreSQL readbacks, not seeded legacy answers. SQL uses only owned Fresh
+  databases, restricted principal and exclusive replay lease. Canonical business
+  SQL and its132daily source receipts are unchanged.
+- Fresh receipt: `D:/freshvcf-build/evidence/f2-fresh-sql-012/replay.json`, SHA256
+  `e0b34436dcf4ead6603532d0d08c75a557443df6096ac093891d216b766415fd`.
+  Day0 is retained in its verified prefix `f2-fresh-sql-002`. Initial permission
+  failure remains in `f2-fresh-sql-001`; SQL CHECKIDENT required db_ddladmin only
+  in the owned Fresh BPR database. No live/other database or server grant added.
+- Independent review tightened exact nested capture rosters, stage multiplicity,
+  complete dependency hashes and continuation guards. Recomparison of all12full
+  SQL captures passes348/348 in `f2-fresh-sql-012-recomparison.json`; this is an
+  updated comparison of fresh captures, not another claimed SQL execution.
+- The same unchanged representative external facts now ran12days through fresh
+  PostgreSQL with explicit policy `own-recommendations-daily-apply-retained-sleep-v1`.
+  Retained Sleep events act on their exact declared dates; all other own computed
+  recommendations are submitted through the real Apply command. This does NOT
+  enable canonical `AutoDBMActive`; no cooling/suspension behavior is invented.
+  Every persisted action-state digest and next predecessor is recorded in
+  `f2-auto-representative-001`. Policies now have distinct durable opening and
+  idempotency identities. The complete shallow SQL result is recorded below;
+  this does not yet establish full-estate automatic parity.
+- Automatic SQL comparison stopped once at day1 on a comparison-harness regression:
+  wrapping reports in a list accidentally made nested row order significant.
+  Exact ordered stage/multiplicity assertions remain; per-stage report rows again
+  use typed bags preserving duplicates. Original failure `f2-auto-sql-001` remains.
+  Rechecking both complete captures passes62/62, including action selection/state,
+  in `f2-auto-sql-001-recomparison`. `f2-auto-sql-012` resumes from its OWN verified
+  legacy close; no repeated modern calculation or copied legacy state.
+- Positive Rule4 coverage is not inferred from the cohort name: it is shadowed
+  in the connected representative timeline. Two unchanged earlier Rule4 inputs
+  (`sequence-rule4-wins`, `threshold-inclusive`) were freshly computed in Python
+  against qualified retained canonical captures: **12/12 tables PASS**, with
+  positive Type4 suggestions. Receipt `f2-retained-rule4-001/comparison.json`, SHA256
+  `43563c8d0470e5a9ae65929154e90713ec4418972e79208d1032b80d20cf05e5`.
+  This is supplementary rule-seam proof, not a claim of Type4 activity in every
+  connected population or fresh SQL execution for those two cases.
+- 35 focused tests pass. Final bounded re-review has no actionable findings in the
+  revised oracle guards/report comparator/daily action-policy boundary.
+
+Final shallow automatic result: **372/372 comparisons PASS** across all12days,
+including own-derived selection and complete post-action state every day. The
+trial executes24Apply selections and2Sleep selections; later days consume their
+own resulting acceptance/cooling state. Receipt:
+`D:/freshvcf-build/evidence/f2-auto-sql-012/replay.json`, SHA256
+`316070183c5be144042736e314dfb0eb95a83e4833ae4882457a5bf4ac55dfd5`.
+Terminal PostgreSQL run: `1b3dbf1a-ddc7-4970-bb80-489248fd81e0`; output digest:
+`9bcf8f4c66578c51e28fbc55c49c8f5d58f776bcad3c43ef39ce24309ab95ebe`.
+Earlier two-day failed/recompared receipts remain linked, not overwritten.
+
+Remaining within F2: run the SAME accepted automatic policy on unchanged1240-pair
+full estate, compare every required daily population,
+reports, actions and terminal persisted state. Do not generate replacement facts,
+change legacy logic, broaden inactive profiles or begin F3 prematurely.
+
+Full-estate execution reached the known Norm0 occurrence-order guard on day0.
+`f2-auto-sizeable-001` is a preserved FAILED attempt, not a calculation mismatch
+or accepted day. Active F2 boundary now includes transferring only
+LEG-NORM0-OCCURRENCE-ORDER's explicit non-parity presentation disposition from
+the identical retained artifact. Keep all other comparisons exact, independently
+derive affected keys from canonical state, preserve raw text, and carry a visible
+legacy-flaw status instead of declaring the affected field passed. No data
+regeneration, source repair, new queue or whole-report skip is permitted.
+
+Full-estate attempt `f2-auto-sizeable-002` was killed by its2GiB memory cgroup
+at2026-09-30T22:00:51+05:30 before publishing any checkpoint. Its source receipt
+and RUNNING database record remain preserved, not accepted or silently retried.
+The kernel records Python PID3344668, container19ab93954799ef8291b3a9bb7914c94961d8816f27f97404ea20f80232cbb1fc.
+Active F2 correction: canonical streaming checksums and checkpoint-at-a-time
+serialization inside the SAME atomic publication transaction; no output roster
+or values removed. The own one-shot worker now has4GiB RAM/no added swap,2CPUs;
+PostgreSQL and all serving resources unchanged. Prove checksum equivalence,
+transactional readback/tamper/rollback, then retry the full unchanged population.
+
+The next attempt `f2-auto-sizeable-003` computed day0 but PostgreSQL's1GiB
+backend was killed while parsing the full50-stage DBM trace into one JSONB
+value. The transaction rolled back; this FAILED attempt is not parity. No
+serving database was involved. The evidenced storage correction keeps every
+checkpoint and checksum: large row arrays are gzip-compressed JSONL in a nullable
+binary column, decoded before all existing integrity/parity checks. Small JSON
+checkpoints and all existing rows remain readable unchanged. New migration0004
+is additive, with a database constraint against conflicting encodings; no earlier
+migration is rewritten. Release verified predecessor/export graphs before the
+next calculation/action so unused full traces do not multiply memory.
+
+User storage mandate supersedes the preceding compressed-in-PostgreSQL remedy:
+keep calculate_day, inputs and comparison semantics unchanged. PostgreSQL owns
+run/input/predecessor/action identity, required closing state, consumer outputs
+and checksums. Internal traces, including all8 major boundaries, are compressed
+validation files referenced by immutable checkpoint metadata, not production
+JSON values. No additional memory increase. Before the12-day continuation,
+prove atomic rollback plus exact1240-pair day-one persistence/readback. Applied
+0004 remains immutable;0005 removes its unused binary column (zero retained
+rows used it) and adds external-evidence metadata. Both failed attempts remain.
+
+### Current F2 storage correction — supersedes JSON/blob operational storage
+
+- No calculation, canonical SQL, synthetic fact or automatic-action change.
+  `calculate_day` remains byte-unchanged. No further memory increase: own worker
+  remains4GiB/2CPU, PostgreSQL1GiB/1CPU, no public ports or serving changes.
+- Canonical schema descriptor: `baseline/production-state-schema.json`,337
+  bindings/300 existing source-table schemas (including the frozen scratch
+  closing roster). Types/column order/length/precision/scale/nullability come
+  from the already pinned, schema-verified Fresh oracle, not sampled data.
+  Canonical descriptor digest:
+  `89201eca8c797bcd70a9f87d9dce31cc2be27636eccc0f6cee027a8bcf09d7aa`.
+- New typed `mta_state` relations have run FK, image owner, ordinal and explicit
+  business columns. Bulk writes share the single day-publication transaction.
+  No unique SKU/location constraint discards duplicates. Per-image manifests
+  contain shapes/counts/checksums only and have a1MiB size guard. Required
+  selected report exports use relational cells, not row JSON; all other report
+  projections use their canonical typed columns. No internal stage graph is an
+  operational PostgreSQL checkpoint.
+- Closing-state reconstruction and committed Apply/Sleep deltas read these rows;
+  source input facts and complete validation traces are immutable compressed
+  files. Run/checkpoint metadata retains their owner paths, SHA256, logical
+  checksums and complete roster. The comparator reads each of the8 boundaries
+  separately, preserving its previous exact typed-bag comparisons and the sole
+  qualified Norm0 text limitation. Production reads do not reload parity traces.
+- Migration register: fresh_mta0004 was applied during the superseded experiment
+  and remains immutable; no retained row used its binary field.0005 removes it
+  and adds bounded production/evidence/action manifests.0006 creates explicit
+  typed relations through generated RunSQL. All are on the same PostgreSQL DB.
+  No migration fake/squash/history rewrite. Named-schema initialization now runs
+  before migration for fresh Django-created test databases as well as deployment.
+- Active gate: `prove_sizeable_storage` runs the unchanged1240-pair day twice:
+  injected mid-write rollback with failed evidence retained, then actual complete
+  publication/readback, exact next-opening/action-state reconstruction, readable
+  projections and8 emitted boundaries. It is NOT legacy parity by itself; the
+  fresh SQL day-one comparator must then pass before continuing the same12days.
+  F3 remains PENDING. No new phase or recovery ID has been introduced.
+
+### F2 bounded storage gate evidence
+
+- `D:/freshvcf-build/evidence/f2-relational-day-one-005/storage-proof.json`
+  SHA256 `71aab3f7f052645a4eb4a03f844091208f0df513ac125c55d7563a012be2af16`:
+  **STORAGE_GATE_PASS_NOT_YET_LEGACY_PARITY**. The unchanged1240-pair artifact
+  retains SHA256 `0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546`.
+- Successful run `14685c6c-7e24-49bb-8c70-2b325ce64907`, business date2026-06-06:
+  87,060 typed operational rows including three committed actions; exact
+  production/report readback and committed next-opening DBM state. All19 complete
+  output populations remain externally available, including all8 internal
+  boundaries. All19 database checkpoint rows contain metadata with empty row
+  payloads; `mta_state` contains no JSON/JSONB/bytea state columns.
+- Injected mid-write failure run `cb8f8e33-1818-49bc-9617-2c5dc97615e9`:
+  FAILED, zero production rows, zero checkpoint records, zero commands and no
+  output digest. Its files are retained and cannot be read as a publication.
+- Worker peak2,785,918,976bytes under unchanged4GiB; PostgreSQL unchanged1GiB.
+  PostgreSQL's historical OOM count stayed1 before/after: no new OOM occurred.
+  Both original OOM attempts remain. The first gate's count-to-JSON harness
+  failure also remains in `f2-relational-day-one-004`; only integral count
+  encoding was corrected, not calculation or input behavior.
+- Verification:18 migration-enabled PostgreSQL protocol tests passed;34 focused
+  archive/serialization/Norm0/oracle/policy checks passed; the bounded receipt
+  linkage test passed. Django schema drift check found no changes. Independent
+  review's one finding—receipt import accepted a substituted contract name—was
+  fixed with the full ordered29/31 contract roster and aggregate qualification
+  check. No additional static storage blocker was identified.
+- `record_parity` attaches the actual oracle receipt path/hash, complete8-boundary
+  roster and per-contract statuses to the same run after verifying its identity,
+  committed output digest and readback. It never imports comparison populations,
+  computes parity or treats the qualified Norm0 flaw as PASS.
+- Fresh same-day canonical SQL comparison is retained in
+  `D:/freshvcf-build/evidence/f2-relational-sql-day-one-005/replay.json`, SHA256
+  `2cabf1f2b91cb6878040e6e7c513f99efa0ab4b049f2e1d130f099b8c710cab3`.
+  All8 internal boundaries PASS. The unchanged comparator then stops with
+  **DIVERGENCE** at `calculation/pick_remaining`:0 legacy versus14 modern rows.
+  This is not waived, not a new legacy-flaw exception and not F2 acceptance.
+  `record_parity` records DIVERGENCE and explicit NOT_RUN statuses for contracts
+  after the stopping point. Source captures and failed receipts remain immutable.
+
+### Preserved F2 continuation constraint at checkpoint72a0905 — no new queue
+
+The storage correction is verified, but the latest instruction freezes calculation
+behavior and the artifact. Therefore the12-day continuation has NOT resumed.
+
+Read-only diagnosis of the retained captures established:
+
+- The frozen opening and canonical closing importer have200 SKU attribute rows,
+  all with `Weight=NULL` and `Volume=NULL`.
+- Canonical `Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql:81` filters
+  these with `WHERE ([Weight] IS NOT NULL OR Volume IS NOT NULL)`. Zero remaining
+  Pick rows is consequently consistent with the actual canonical input.
+- The SAME artifact's calculation profile separately holds810 logistics items,
+  with unit weights/volumes. `mta/temporal/chain.py:137` (`calculation_source`)
+  retains that profile's logistics while refreshing other producer-owned fields.
+  `mta/planning/projections.py:278` (`_pick_rows`) consumes those retained
+  profile attributes, producing14 remaining rows. This discrepancy predates the
+  storage changes; neither file was edited in this correction.
+- A read-only re-evaluation of the already captured calculation outputs with
+  the existing comparator confirms the other14 current-day calculation contracts
+  match. This diagnostic does not replace/overwrite the first-divergence receipt
+  or certify its remaining master/report/action checks.
+
+Required authority before further implementation: permit one source-backed
+correction of the existing temporal logistics-input projection so it consumes
+canonical producer-owned SKU/location attributes and preserves the SQL's NULL
+exclusion and multiplicity, rather than profile overrides. Do NOT repair the
+legacy SQL, populate synthetic weights, regenerate the artifact, waive Pick,
+change automatic actions, reopen unrelated F1 proofs, or add a recovery phase.
+That calculation-input correction was outside the preceding turn's frozen
+boundary and was not implemented in checkpoint72a0905.
+
+After authorisation, preserve this committed day/failed proof, prove the affected
+day on the same frozen input under an explicit corrected execution revision,
+and continue the same12-day horizon only after its required comparisons pass
+with the sole already-qualified Norm0 text limitation. F3 stays PENDING.
+
+User approval now permits this one mapping correction. Active boundary:
+`producer_owned_logistics`/`calculation_source` in the temporal input adapter,
+focused mapping tests and replay evidence only. No Pick/DBM algorithm, legacy
+SQL, frozen input, action policy, storage contract or comparator changes.
+Unmet exit: corrected full-population day-one comparisons, then the SAME12-day
+own-state run. The previous divergent run remains immutable and unaccepted.
+
+### Approved logistics mapping: day-one exit passed
+
+- The temporal input adapter now obtains Weight/Volume from produced
+  `SkuAttributeData` and LogisticsLocation from produced `LocationAttributeData`.
+  It preserves candidate/join multiplicity and NULL values; the canonical
+  Weight-not-NULL OR Volume-not-NULL predicate excludes only both-NULL rows.
+  No synthetic weights or new defaults were introduced. Pick/DBM algorithms,
+  `calculate_day`, canonical SQL, storage, actions and comparisons are unchanged.
+- Five focused mapping tests PASS. Independent bounded review found no concrete
+  defect in the selected projection. These unit cases are not replacement
+  synthetic acceptance artifacts.
+- Fresh corrected production run `029ea9e2-165b-48f0-a016-4b2851cedc7e`, revision
+  `f2-relational-logistics-006`, retains the exact registered1240-pair input.
+  Its own relational closing and post-action digests equal the preserved005
+  run; only the affected output projection changed.
+- Fresh canonical day-one receipt:
+  `D:/freshvcf-build/evidence/f2-relational-logistics-sql-day-one-006/replay.json`,
+  SHA256 `44f8988a559c882fe7bb55efd53a90f1d9ca4d52ea08b29f2c80f2998d05bb35`.
+  All31 contracts accounted for:30 PASS (including all8 major boundaries,
+  `calculation/pick_remaining`, action selection and post-action state), plus
+  `emitted-reports` qualified only for `LEG-NORM0-OCCURRENCE-ORDER`.
+  This text field is NOT claimed as parity. Receipt metadata is linked to the
+  committed production run. The original005 divergence remains preserved.
+- Same frozen12-day continuation is now executing under the corrected revision
+  at `D:/freshvcf-build/evidence/f2-relational-logistics-full-006`.
+  Day one is reused idempotently; subsequent openings must come from each
+  engine's own committed predecessor. Remaining F2 exit: the other11 daily
+  comparisons and terminal-state evidence. F3 remains PENDING.
+
+### F2 day-ten interruption and in-scope one-day-worker continuation
+
+- Mapping checkpoint `204a342` is committed/pushed. Engine, actions, artifact,
+  SQL and comparator remain frozen at that code. No earlier receipt is replaced.
+- The long-lived worker was killed at its unchanged4GiB cgroup limit during
+  day10 (2026-06-15), after days1–9 committed. Kernel evidence and interrupted
+  identity are preserved in
+  `D:/freshvcf-build/evidence/f2-relational-logistics-full-006/resource-failure.json`,
+  SHA256 `5f3160363f570d28ce8be01a104e67f66eea50a1a50210b4df8dae61599ca89a`.
+  PostgreSQL remains healthy at1GiB; its historical OOM count did not increase.
+  The exact Python allocation site is not proven; no calculation defect is
+  inferred from this memory failure.
+- As an in-scope F2 validation-orchestration correction under the existing goal,
+  not a separate explicit user approval, interrupted run
+  `a0e957ff-7bc7-4d92-aeea-f89fb413684f` was verified to have zero production
+  rows, checkpoints and actions, then ONLY that run was marked FAILED. Its
+  identity/input/failure evidence remain. Parent day9
+  `2251b91e-921e-4952-aab6-742623c8c6c2` remains SUCCEEDED: native closing
+  matches its retained archive and committed action state matches the child's
+  recorded input lineage.
+- Active implementation boundary: `tools/temporal_worker.py`, focused validation
+  guard tests and these evidence notes. Each process runs exactly one next day
+  through unchanged `execute_day`, from its own committed predecessor; exports
+  all evidence/actions; then exits. An explicit new attempt revision preserves
+  the failed day-ten identity. No accepted day is recomputed or relabelled.
+- The helper lives outside `mta`/`parity`, retaining accepted source pins. Its own
+  hash is separately pinned in continuation receipts. Previously accepted output
+  archives are referenced, and existing action receipt bytes are copied unchanged
+  for the comparator's existing interface. The original comparator/31-contract
+  roster is untouched; metadata attachment validates each explicit attempt.
+- Focused validation guards:3 tests PASS (input/policy/horizon/sequence/source
+  substitution rejected). Exit still required: successful days10–12 within the
+  SAME4GiB/1GiB limits, own-state lineage, all daily comparisons, terminal native
+  readback and qualified comparison metadata. Continue legacy from the newest
+  accepted prefix, never replay accepted days. No F3 work or recovery queue.
+- Latest accepted canonical prefix is now days1–9, not merely the seven days
+  known when the continuation instruction was issued. The two already-running
+  comparisons completed:270 contracts PASS plus9 qualified Norm0 text receipts.
+  `D:/freshvcf-build/evidence/f2-relational-logistics-sql-through-009-006/replay.json`
+  SHA256 `c3d3594abac0eb5e73f51996ad83488dc0fb1d10211f5c3e933ccd96821bd6bc`.
+  Replaying days8/9 would duplicate accepted work; the next oracle day is10.
+  All94 pinned modern engine/evidence files remain unchanged. Bounded review
+  found no blocking defect in the external one-day validation helper.
+- Day10's fresh worker completed successfully as run
+  `e6763924-cffe-4524-9bb7-042ed6422180`; measured peak4,225,646,592bytes below
+  the unchanged4GiB cap, container exit0/OOM=false. PostgreSQL's OOM count stayed1.
+  The first fresh day11 worker then hit the same4GiB cap before publication;
+  `f2-fresh-worker-day011-007/resource-failure.json` preserves that failure and
+  its original worker source. Zero production rows/checkpoints/actions and
+  day10's intact closing/action lineage were verified before ONLY interrupted
+  run `6fdf2d9c-6dc1-4cad-ad28-11b64f8f6751` was marked FAILED.
+- The additional correction remains validation orchestration: after validating
+  the unchanged88MB artifact, retain only the identical selected day/profile and
+  the date/command context used by the unchanged action policy; release unused
+  initial-opening/other-day object graphs before calling the engine. Five tests
+  pass, including policy equivalence and source-archive tamper rejection. The
+  prior worker's exact SHA is archived/allowlisted solely for provenance of its
+  accepted day10; core engine/oracle source pins remain strict and unchanged.
+  No assertion, population, multiplicity or comparison is removed.
+- Day10 independent canonical comparison completed:300 strict PASS across the
+  ten-day prefix, plus10 qualified Norm0 text receipts. Receipt
+  `D:/freshvcf-build/evidence/f2-fresh-worker-sql-through-010-007/replay.json`, SHA256
+  `239e7edac046e8c621355b779d30a860f503de1460252e64ed57db4f12b462e9`.
+  No accepted legacy day was replayed.
+- Day11 retry `0bc7b113-3e97-4475-84ad-d3af1368dc7d` succeeded, exported all
+  evidence and exited0/OOM=false. Its input digest exactly equals the preserved
+  failed attempt (`c9cabf439e406e3505ac690f24768d635efe60064f943908edf5560f2ca62bd8`).
+  Peak4,201,570,304bytes remains below the unchanged4GiB cap; PostgreSQL's
+  historical OOM count remains1. Receipt: `f2-fresh-worker-day011-008/execution.json`.
+  Day12 now runs in another fresh worker, from this committed predecessor;
+  canonical day11 comparison continues from the accepted ten-day prefix.
+- Day12's first fresh worker also exceeded4GiB (container exit137/OOM=true).
+  `f2-fresh-worker-full-008/resource-failure.json` preserves its exact identity,
+  source and input. All relational tables, checkpoints and actions were empty;
+  day11 native closing and action lineage matched their retained receipts.
+  Only interrupted run `7f407e2f-867d-4ce7-b102-fd7c58b2458e` was marked FAILED.
+- Bounded independent review identified redundant full predecessor materialization
+  in validation preflight before `execute_day` independently reloads/verifies it.
+  The final in-scope orchestration correction keeps every preflight assertion but
+  executes it in a short-lived subprocess BEFORE loading the artifact. The child
+  must succeed and exit; its entire heap is then released by the OS. The engine
+  still verifies its own committed predecessor/action chain as before. This is
+  not removal of a comparison or calculation-stage change. Both previous worker
+  source hashes remain accepted only with their matching archived bytes.
+  Permit one day12 retry under the SAME4GiB/1GiB caps. If it fails, stop; further
+  engine/runtime memory-lifetime changes require a specifically widened boundary.
+
+### Retained prior F2 checkpoint — 11 days accepted, day12 not yet closed
+
+- Canonical day11 completed successfully. The exact accepted prefix is now
+  `D:/freshvcf-build/evidence/f2-fresh-worker-sql-through-011-008/replay.json`, SHA256
+  `46d575ab97979639641956ebbff99a2e8f9a6ade05deea723d8fe100c376a7b5`.
+  **330 strict PASS +11 LEGACY_FLAW** contracts across11days: all eight major
+  boundaries, all15 calculation contracts, five master contracts and both action
+  contracts each day. Emitted reports remain fully compared except the exact
+  independently identified Norm0 occurrence-text limitation; that field is NOT
+  parity. No accepted legacy day was rerun. Day12 legacy was not started because
+  no complete modern counterpart exists.
+- Six focused orchestration tests PASS. Bounded review of the final subprocess
+  delta found no weakened guard or changed engine/action/comparison semantics.
+  The preflight child exits before input loading; the unchanged engine then
+  independently validates its own locked predecessor. This final retry still
+  OOMed at4GiB on day12. It does not establish a fix or a successful day12 run.
+- Preserve BOTH new day12 failures:
+  `f2-fresh-worker-full-008/resource-failure.json` (SHA256
+  `7fa4409446913fcc50839bb78ad7ced1833dec7b95ee6ed74ca4f44c30e380fe`)
+  and `f2-fresh-worker-full-009/resource-failure.json` (SHA256
+  `874b02a61158a01fe939fa35fa50b882bcbc9dc7a6a2f0bdfa48bd4d15174175`). The latter run is
+  `7b81ed2c-d0fa-4d65-bf1e-99204e7fab26`; its input digest exactly equals the
+  first failed day12 attempt. Each has zero relational rows, checkpoints and
+  actions, with only its own interrupted identity marked FAILED after proof.
+  Parent day11 remains SUCCEEDED; closing/action digests match its receipt.
+  PostgreSQL's historical OOM count remains1. No memory limit was raised.
+- Stop further validation-only retries. The exact in-day allocation site is
+  unproven; do not claim a calculation defect or invent a remedy. The next
+  decision is a bounded runtime-memory investigation/correction while retaining
+  all calculations, SQL, artifact, actions, comparisons and prior accepted days.
+  Such code work is outside the currently frozen engine boundary and has NOT
+  been performed or implicitly approved. F2 is NOT complete; F3 remains PENDING.
+- The unchanged qualified comparator result is linked to all11 committed run
+  identities after native production readback; this updates only receipt metadata,
+  not accepted rows or files. All94 engine/oracle dependency hashes still match
+  their accepted pins, and original input/failed/accepted-prefix receipt hashes
+  were rechecked unchanged. This checkpoint preserves partial progress, not F2
+  acceptance or authorization to start F3.
+
+### Authorized day12 memory-lifetime correction
+
+- The user explicitly authorized profiling and the smallest non-semantic runtime
+  release/streaming correction, day12 only, under the SAME4GiB cap. The previous
+  blocked status is superseded only within this boundary; F3 stays PENDING.
+- Diagnostic `f2-day012-profile-010-memory.jsonl` (SHA256
+  `f7116775a720f2f6e4fb07bdbbd4148cf11844cb40c87e2b3522cfa55961fc6b`)
+  reached the completed native calculation's final `return json_value(result)`
+  at2,245,419,008bytes, then OOMed during this whole-result conversion. No
+  publication frame was entered. `f2-day012-profile-010/resource-failure.json`
+  preserves the exact container/run/input and verified zero partial rows;
+  only that attempt was marked FAILED, with day11 closing/actions intact.
+- The calculation body is now a private native helper; the public boundary
+  converts/replaces one owned checkpoint at a time after that helper's frame
+  returns. `json_value` itself, business statements, inputs/actions, output
+  roster/types/duplicates and publication transaction are unchanged. The old
+  calculation AST is pinned by test, differing ONLY in private name/final return.
+  Eleven focused tests PASS, including shared-reference and typed-byte equality,
+  source-transition/tamper guards and original serialization checks.
+- Only `mta/temporal/chain.py` changes among94 modern pinned dependencies.
+  `baseline/f2-day12-memory-transition.json` pins exact old/new bytes, unchanged
+  artifact and day11 predecessor/execution identity. Its reviewed SHA is checked
+  before parsing; a changed manifest cannot authorize another transition.
+  Prior source/evidence files are not rewritten. The independent oracle runs
+  from `D:/freshvcf-build/oracle-pinned-07b89ee`; all130 comparator/oracle source
+  files match the accepted prefix exactly. No continuation/comparison assertion
+  was relaxed to accommodate the modern implementation change.
+- Corrected run `ac1612c8-0e49-4155-83c3-f59f41422293` completed day12 only,
+  revision `f2-runtime-memory-day12-011`, evidence `f2-runtime-memory-full-011`.
+  Its input digest matches BOTH prior day12 failures and the diagnostic.
+  It committed and exported successfully, exit0/OOM=false; peak3,326,636,032bytes
+  (3.10GiB) under the unchanged4,294,967,296byte cap. PostgreSQL remains1GiB;
+  its historical OOM count remains1, with no new event.
+
+### F2 selected-scope closure — 1 October2026
+
+- The unchanged independent oracle/comparator continued ONLY day12 from the
+  accepted11-day prefix. Day12: **30 strict PASS +1 LEGACY_FLAW**, no new
+  divergence, all31 required contracts evaluated. Full12-day receipt:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-sql-full-011/replay.json`, SHA256
+  `9f502ea08bc580db1149e3e38371ea62a0d01e61e56245ead027b43ece918c60`.
+  Total: **360 strict PASS +12 qualified emitted-report contracts**. The only
+  qualification is `LEG-NORM0-OCCURRENCE-ORDER` and its exact declared export
+  forms; numeric/state/population/type/multiplicity comparisons remain strict.
+  The ambiguous occurrence text is NOT parity. No contract was dropped.
+- Modern12-day execution receipt:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-full-011/execution.json`, SHA256
+  `4c96c3e3651c0dae849e29adb5d1e4c4fa1c770f1a11c40741b999de91c66cfb`.
+  Only day12's parity metadata was attached. First11 receipt/action/archive
+  identities and persisted parity links remain unchanged; prior failed attempts
+  remain available. The explicit memory-only source transition remains separate
+  from the accepted prefix rather than retrospectively relabelling its source.
+- Read-only terminal proof:
+  `D:/freshvcf-build/evidence/f2-runtime-memory-full-011/terminal-readback.json`,
+  SHA256 `7a7af271cc1c6f0347829fe8cd8f7feaaffeba477c8157b614550956d7eb3ab2`.
+  **146,551 relational operational rows** round-trip exactly against production
+  projections from the complete calculation evidence. Closing, action state,
+  own-predecessor lineage, required histories and report readback pass. All8
+  external parity boundaries are present;19 database checkpoints contain metadata
+  only, not trace JSON. Next opening is reconstructed from committed rows without
+  executing day13. Its digest is
+  `c3b0222dbd2e7ed1cb9777ccf42fd0b44f4e381a32611514d0f6bd7e27148bac`.
+- Population clarification, not input/scope modification: the unchanged retained
+  catalogue has200 SKUs/20 locations; its DBM subset has1,240 pairs across200 SKUs
+  and13 locations. Terminal identity multiplicities exactly match that frozen
+  opening subset. The first readback verifier incorrectly asserted20 DBM
+  locations; preserve `terminal-readback-attempt1.py` and
+  `terminal-readback-attempt1-failure.json` (SHA256
+  `34e67ac306b67f6618502c358055259c231172b09105b0d874c2da8017435f3b`).
+  Only this diagnostic assertion was corrected against the immutable artifact;
+  no engine, output, parity receipt, business rule or acceptance contract changed.
+- Eleven focused tests PASS; `git diff --check` PASS. Earlier full-population
+  mid-write rollback proof remains valid because publication/schema code did not
+  change. All accepted receipts, failed receipts and frozen input were preserved.
+  F2 is closed for selected scope WITH the declared legacy flaw. **Pending: F3**
+  application/API/UI acceptance and coordinated3004 delivery; no F3 code or
+  serving instances were changed in this correction.
+
+Browser paging also passes: size3 page1 SKUs6980/6904/6679, page2
+6664/6584/6404, range4–6of7. The full view is restored after verification.
+Screenshots child-grid.png, child-filter-detail.png and child-page2.png are in
+that evidence directory. These are actual browser observations, separate from
+API-only scope tests and from the still-unavailable independent SQL comparison.
+
+Child Expedite browser follow-through after85db72c: actual Daily Data Graph for
+SKU6980 opens with RLT3/current Norm403; Norm Change History opens and displays
+June16 302→403 and June12 226→302, both High spike count. Screenshots
+child-daily-graph.png and child-norm-history.png are in child-grid-001. This proves
+these entry controls, not all graph/horizon/semantic parity. No business actions.
+Toolbar Excel Export produced no download event within20seconds; retain
+export-no-download.png and export-browser-warnings.json. No workbook exists as
+acceptance evidence. Source suggests a frontend race: useSaveAllState's effect
+clears tempDownloadData while the hidden grid's onRowDataUpdated requires that
+flag to export. That hook exactly matches the canonical retained frontend,
+SHA2564ce076108abf187183aee4f9db3bbf68fada719ca4eb52518fa1659c48b0d20a.
+This is a suspected inherited cause, not yet isolated proof; no frontend repair
+is inferred from the earlier Custom Screens-only exception. Export remains open.
+
+User correction and sequencing instruction: "i find excel expots work, move on".
+Record Excel exports as USER-VERIFIED WORKING. The automation download timeout
+is not evidence that the product export is broken; the suspected frontend race
+is unconfirmed and withdrawn as a blocking diagnosis. No export repair or repeat
+is requested. Export cell-level independent parity is not inferred from this
+confirmation. Move from Planning to BPR under the user's explicit instruction;
+remaining Planning controls are deferred, not accepted. Missing custom NMS
+identities need producer provenance or explicit presentation disposition; child
+SQL/filtered-count wire proof needs the healthy independent oracle; matched
+performance needs the retained equivalent provider; real leaf browser needs an
+existing authorized actor. No workflow/data invention is permitted to fill them.
+Child daily graph additionally accepted horizon1 and90 and upward-stock overlay
+(8→9 series), then restored horizon14/no overlay. Screenshots are in child-grid-001;
+this verifies controls, not plotted numerical parity or the other overlay options.
+BPR active boundary: unchanged June17/native seven-image reader and approved
+terminal ancillary input; read-only UI, test layout save/reset allowed, no remarks
+writes or positive logistics. Reuse existing bpr-terminal003/wire001/gateway001/
+restart001/ui001 proofs. Unmet exit is remaining actual BPR controls and files.
+
+## Execution correction — complete page contract before implementation/QA
+
+Direct user instruction supersedes the piecemeal review sequence: for each active
+page, first inventory EVERY interaction and UI→API→persisted-fact contract;
+identify all missing/mismatched contracts and scope exceptions together. Second,
+implement all authorized page contracts as one coherent batch. Third, perform
+interaction-by-interaction QA against the complete inventory and report one
+consolidated result. Do not alternate discovery, tiny fixes and isolated QA or
+create a commit/checkpoint for each control. Preserve canonical parity and scope;
+collect indispensable decisions together after the full page assessment.
+
+BPR remains the active page. The uncommitted GetRemarkDetails read-only route is
+part of its unfinished batch, not a completed page/checkpoint. Current evidence:
+12 focused BPR/terminal/history tests pass; actual authenticated gateway returns
+HTTP200/data[] with forwardUsers true (0.505s) and false (0.347s), matching the
+approved empty terminal remark input. Only MTA redeployed,47 other container IDs
+unchanged,4GiB/2CPU/restart=no and admitted publication unchanged. Browser history
+recheck remains pending after provider disconnect. Actual DLL BPR filter capture
+has52 expressions at f3-stage2-bpr-filters-001/dll-filters.json; this is filter
+expression provenance, not SQL result parity. Complete the page interaction
+inventory before further implementation or browser QA. Reuse these results.
+
+BPR page-wide inventory is now retained in
+`docs/audit-2026-10-01/BPR_PAGE_CONTRACT.md` (contract map, not a second tracker).
+It includes all identified page/filter/grid/layout/history/export/sidebar
+interactions, scope, restart and matched-performance proof, with Stage4 remark
+writes explicitly excluded. The next implementation boundary is the coherent
+read-contract batch: filters, CSV, sidebar analytics and pending remark-history
+route. No new implementation/deployment or browser QA was performed during this
+inventory pass. Prior acknowledgement-only turn was no progress; this pass adds
+the contract artifact and independently recovered canonical analytics source.
+
+Analytics processor recovered from hash-checked canonical DLL using retained
+.NET6/ILSpy into `D:/freshvcf-build/evidence/f3-stage2-bpr-analytics-source-001/AnalyticsProcessor.cs`,
+SHA256 `5aaa5d1d137789ca46a1d41608872c6b0074dcaabe9d914ad07412fbca200d6e`.
+Its colour counts use the filtered/scoped BPR+rationed+attribute+standard LEFT
+join bag, not final grid rows or count rows (no remarks/trend joins). This resolves
+the source-owner question for the missing GetAnalyticsData BPR route. SQL result
+parity and browser verification remain unproved; do not replace them with source
+inspection. No source/runtime authority or retained input was changed.
+
+BPR coherent read-contract batch is implemented in the worktree, not deployed:
+raw-owner server filters; separate unpaged CSV join path and AdminBPR headers;
+seven-colour analytics over its own join bag; admitted empty remark history.
+Grid key paging/final rejoin, count's inner standard join, duplicate bags and
+raw NULLs are preserved. No frontend, MTO, auth, schema or calculation changes.
+Thirty focused batch/BPR/terminal/RRR-export/BTR-export tests pass. Two former
+tests asserted blanket BPR unavailability; their obsolete expectations were
+replaced while new HTTP/filter/export/auth checks cover the connected paths.
+
+`D:/freshvcf-build/evidence/f3-stage2-bpr-batch-001/modern.json.gz` contains all52
+retained cases across count/grid/analytics/export, executed against actual
+PostgreSQL with a read-only session in a disposable4GiB/2CPU container. Run and
+output digest remain ac1612c8-0e49-4155-83c3-f59f41422293 / bd1c522f…d33d.
+`retained-regression.json` verifies four identical unfiltered requests against
+hash-verified prior SQL outputs: root1240, selected-leaf126, parent-leaf-empty161,
+overlap1240, complete typed rows/order/count. The misleading historical case
+name parent-leaf-empty is retained verbatim, not interpreted as an empty result.
+Seven invalid filter cases remain explicitly unavailable as documented in
+LEGACY_EXCEPTIONS; colour-count export alone has a valid trend-column owner.
+
+Source-extracted count/grid/export/analytics SQL for all52 cases is retained in
+`extracted-queries.json.gz`; all7 prior count/grid SQL strings remain unchanged
+under default arguments. New SQL was NOT executed: extraction and modern
+observations do not certify independent parity. Next: reconcile remaining SQL
+proof limitations, deploy the complete batch only after readiness checks, then
+QA each inventoried browser interaction and collect performance/restart evidence.
+BPR remains active and incomplete; no micro-commit or page acceptance recorded.
+
+BPR batch deployed as one MTA-only change on3005. Image
+`sha256:a0ac4d3e0e91fefc44db87d3d92560e6489152b1e4a75e36e86597ec9d0f1b50`;
+47 other container identities unchanged,4GiB/2CPU/restart=no/no MTA host ports.
+June17 run/output/admission digests unchanged. Deployment/build evidence is in
+f3-stage2-bpr-batch-001. Repository suite:248/250 pass; two Expedite tests fail
+identically in the PRE-BATCH serving image (old publication/read_expedite mocks
+no longer intercept the actual read paths). These are pre-existing failures,
+not repaired or suppressed in this BPR batch. Focused30 tests pass.
+
+Authenticated browser re-login succeeded through the visible CAPTCHA using
+existing credentials and the user's retained authorization. BPR initial filter
+dialog and Show All work: June17/1240rows. Product lookup337 and Apply Filter
+return10rows; sidebar expand renders matching OnHand/Pipeline colour counts
+1/0/1/3/5/0/0, total10. Remark-history eye opens Name/Remarks with "No data to
+show" and Go Back closes it. Client location filter AG515802 shows1of10 and
+Clear All Grid Filters restores10, leaving server scope/count intact. Edit
+Filter→Reset Filters→Show All restores1240 and sidebar totals
+8/0/10/1137/85/0/0. Pagination next=51–100/page2, last=1201–1240/page25 with40
+rows, previous=1151–1200/page24, first returns page1. Page size3 produces1–3of1240,
+414pages;50 restored. Screenshots: remark-history.png, filtered-analytics.png,
+page-size-three.png. Browser remains on BPR, with no business writes performed.
+
+Actual authenticated gateway proof (gateway.json) returns200 for filtered count,
+grid, analytics, CSV and history, respectively1.282/1.400/1.242/1.138/0.703seconds.
+Filtered CSV retained as filtered-gateway.csv:10data rows, all SKU337. These are
+modern-only observations, not matched performance or independent CSV cell parity.
+Browser CSV click produced no download event within20seconds and no application
+error; do not diagnose a broken export from this automation observation. Browser
+file delivery remains unverified, separately from successful gateway CSV.
+
+Continue the SAME BPR QA inventory: remaining filter families/chip/cancel flows,
+layout and column controls, row/history graph controls, browser file receipt,
+scope/restart and independent new-contract SQL/performance proof. Do not move to
+Guided/Research or call BPR accepted merely because the newly connected paths work.
+
+BPR layout QA continued after user restored the browser login. Before testing,
+GetState returned empty string (layout-before.json). Hiding Description and
+Save Layout persisted a4228-character state with SKUName.hide=true; an interrupted
+browser session prevented that first reload proof. Saved state was captured and
+the original empty state restored via existing ResetState/GetState, recorded in
+layout-save-restore.json. This was authorized test-layout state only.
+After the user logged in, the browser test was completed: hide Description via
+Columns panel, Save Layout toast, reload→Show All retains hidden Description
+(layout-reload.png). Reset Layout restores visibility immediately but observed
+order is SKUCode/Location Code/Location Description/Description. A subsequent
+reload→Show All restores the original SKUCode/Description/Location Code/Location
+Description order (layout-reset-reload.png). Thus saved visibility/reload and
+default restoration after reload are verified; immediate reset ordering is a
+separate observed mismatch needing frontend/source attribution, not blanket
+layout acceptance. No frontend change made. Browser is left on unfiltered BPR.
+
+Seven authenticated read families have pre-restart byte hashes retained in
+pre-restart.json: count, page2 grid, analytics, filtered CSV, DailyDataGraph337/
+AG515802, empty remark history and GetState. Unauthenticated analytics returns401.
+This is only the BEFORE half; no new restart or after comparison has yet occurred.
+Do not infer restart acceptance from the file name or readback success.
+
+BPR authorized MTA-only restart completed. Initial gateway attempt preceded
+listener readiness and failed; no service re-restart was inferred. Admission
+subsequently completed with the same run/output/admission digests. Post-restart
+readback (post-restart.json) returns200 and identical complete byte hashes for
+count, page2 grid, analytics, filtered CSV, DailyDataGraph and remark history;
+unauthenticated analytics remains401. GetState differs because the intervening
+browser Reset Layout saved a default layout via onSaveState, not because restart
+changed state. Original absent saved layout was restored and verified in
+layout-restored-final.json. The shared reset hook exactly matches retained
+frontend SHA4ce076108abf187183aee4f9db3bbf68fada719ca4eb52518fa1659c48b0d20a;
+BPR hook reset callback also matches, but whole-file hash differs at initial
+mount loading only. Do not claim complete frontend identity from the hook match.
+
+Remaining BPR detail QA exposed a configuration omission missed by initial
+inventory: Daily Data Graph action is absent from modern AdminBPR configuration.
+Full source comparison now retained in config-audit.json: canonical visible19,
+modern23 including6hidden; missing dailydatagraph/tags, wrong vn position6vs7
+and alignment, missing DataType join and extraneous TagID/hidden rows in HTTP.
+Pinned config/type SQL hashes remain4b248637…f34da and51883c78…a19. Corrected
+the WHOLE configuration contract in the worktree: exact81raw config/type rows
+retained for CSV metadata; HTTP projects visible19 with LEFT JOIN types and
+NULL omission. No frontend edit. Focused31tests pass. This QA-discovered backend
+configuration correction is NOT YET DEPLOYED; serving image remainsa0ac4d3e…1b50.
+Next deploy this correction and verify graph/tags plus remaining interactions;
+the page is still incomplete, with independent SQL/performance gates open.
+
+
+BPR continuation 3 October: current CAPTCHA/login completed by the agent with
+existing preview credentials under the user's explicit current authorization;
+landing and BPR verified. Whole-page batching in PAGE_DELIVERY_CONTRACT.md and
+PAGE_INTERACTION_INVENTORY.csv adopted; these supplement the BPR contract and
+are not additional status trackers. BPR remains the active package.
+
+Configuration correction (including SQL bit -> JSON boolean Visible) is now
+deployed in MTA image ce9d40b63e1d663139508ea04be99ef90453a6a6c7b9ff27515bafc201612aa6.
+Only MTA was recreated; 4GiB/2CPU/restart=no/no host binding retained. June17
+run/output unchanged; admission digest eda6776a892624ed743d820d9ac1b5202ccec01b15078ea98d3f2286538f1005
+changes because pinned presentation configuration contributes to admission.
+config-gateway.json proves authenticated HTTP configuration equals the complete
+19-column extracted projection, including boolean Visible and action/type fields.
+Filtered CSV returns10 SKU337 rows with16 configured data headers (no action
+columns). config-deployment.json and config-bit-build.log retain serving evidence.
+This supersedes the earlier NOT YET DEPLOYED note; focused31 tests remain passing.
+
+Browser BPR now renders Tags and Daily Data Graph. Graph opens SKU6404/PPI000604,
+norm299/RLT3, and history shows June16 224->299 and June12 168->224, both High
+spike count. Horizon14->15 works; GIT legend hides the series (visible screenshot),
+and all four suspension choices render a ninth series. Close/reopen on SKU6980
+shows norm403 with default horizon14 and no prior overlay, avoiding stale pair.
+Evidence bpr-graph.png and bpr-norm-history.png. This verifies interactions, not
+independent plotted-value parity. Terminal empty transit still shows the inherited
+selection placeholder even after selection; no positive transit acceptance.
+
+Location search AG515802 plus Norm greater-than0 applies together and returns86
+records; new rows clear the previous selection. Reset Filters/Show All restores
+default scope. All remaining filter-family panels were traversed and snapshots
+retained; this is panel inventory, not full operator acceptance. Attributes-SKU
+Loc has no controls with current visible configuration. Existing invalid SQL
+filter dispositions and independent SQL/performance blockers remain open.
+No business writes, frontend edits or additional page acceptance occurred.
+
+BPR CSV browser receipt remains unverified after the configuration correction:
+registered download event timed out15seconds, no matching BufferPenetration file
+in the user Downloads directory. The unchanged CsvExportMTA chain creates/clicks
+and revokes a blob URL; authenticated gateway CSV is text/csv with attachment
+and valid contents. No further identical browser-download retries: retain the
+browser-provider/file-delivery gap distinctly from API/cell parity. Filter reset
+restored1240 rows. Current session remains authenticated on BPR. The preceding
+continuation was progress (deployed config plus new browser/API evidence), not
+an external-dependency wait or a completion claim.
+
+
+### BPR whole-page batch disposition, 3 October
+
+The batch is implemented and deployed, but BPR acceptance is BLOCKED, not complete.
+Final focused31 tests pass; diff whitespace check passes. Source-invalid filters
+remain explicit denials, not repaired legacy behavior. No calculation, auth,
+frontend or MTO changes belong to this batch.
+
+Additional consolidated browser results: Agen supply filter returns87; removing
+its staged selection and cancelling preserves the applied87. Removing the actual
+chip restores1240/page1. SKUCode cycles ascending/descending/none; Pin Left moves
+to the pinned header and No Pin restores the centre; Autosize This Column runs.
+PIPO tag filter renders No Rows To Show/0 and removes paging, then reset restores
+scope. These are actual interactions on the serving image, not SQL equivalence.
+
+Remaining acceptance gaps are explicit:
+- Independent52-case filtered grid/count/analytics/export SQL results and exact
+  CSV cell comparison: read-only master connection was rechecked once and still
+  fails18456/823 (sql-connectivity.json). SQL service is running but that does not
+  establish health. Requires administrator recovery of the existing oracle or
+  explicit approval for an isolated replacement, preserving registered inputs.
+  Do not repair/restart shared SQL or keep repeating this failed connection.
+- Browser CSV file receipt: supported event timed out and no matching file was
+  found; successful authenticated CSV bytes do not close browser delivery.
+- Real leaf-actor browser traversal and matched legacy/modern API/browser timings
+  remain absent. Modern timings are observations only.
+- Immediate Reset Layout ordering differs; retained reset callback/hook evidence
+  does not authorize a frontend repair. Saved visibility/reload works.
+- Unverified residual controls: drag reorder/resize/split pane, multiple selection,
+  remaining hierarchy/operator UI combinations, historical/horizon application
+  semantics and concurrent late-response behavior. They are deferred, not passed.
+  Existing52-case modern filter observations and panel inventory do not replace
+  independent semantics or those specific browser checks.
+- Positive logistics/remarks histories are outside the admitted empty terminal
+  input; remark writes remain Stage4 and were not executed.
+
+This is a coherent partial implementation checkpoint, not page or Stage2 closure.
+Proceed to independent Guided page work while retaining every BPR gap above.
+Guided boundary: reconcile the inherited route/tabs/hooks/configuration and
+consumer owners using P21 and the retained call inventory, then port only its
+read contracts against the same publication. Required proof is complete branch
+responses, auth/scope, actual controls/client exports and performance; missing
+oracle comparison remains a shared blocker. Research follows Guided disposition.
+
+
+BPR implementation checkpoint88c434d pushed to origin/main. Guided whole-page
+source reconciliation started in GUIDED_PAGE_CONTRACT.md, reusing P21. Five tabs
+are enabled; Custom Screens is commented out. Two ExcessInventory routes are
+missing; nine existing insight handlers reconstruct whole publication. Captured
+child/parent effect dependencies, age/horizon payload quirks and shared export
+ref dependency for source attribution before any mutation. No Guided code changed
+or deployed yet. Authenticated Guided entry renders five tab buttons; chart
+readiness is not yet proved by that initial observation. SQL connectivity remains
+a shared blocker, not a reason to stop independent contract integration work.
+
+
+Guided batch in worktree: insight_read.py now loads each branch's named native
+BTR images, DBMMaster only for DBM charts, NMS only for chronic grid, and applies
+the same approved hierarchy projection. Nine handlers use this selective context;
+projection/filter/paging logic remains unchanged. Seven focused tests pass for
+wire/projections and required dependency/checksum failure behavior. The first
+new test invocation lacked Django setup, the second lacked the test-only secret;
+normal repository test bootstrap fixed both before the passing run.
+Canonical chronic configuration is corrected from11 hand-authored columns to9
+visible SQL/type rows, including positions, labels, alignment and NULL omission.
+Shared GridViewTable export ref is verified connected; no frontend repair needed.
+No serving deployment or Guided acceptance yet; all work remains one page batch.
+
+Guided selective native readback completed against all13 retained independently
+compared results: complete object/value/order equality, not counts only. Receipt
+chain for f3-insight-export-002 is reconciled to f3-insight-comparison-004 and the
+compressed export digest is verified. Proof selective-native.json is under
+f3-stage2-guided-batch-001. Hierarchy was explicitly disabled for this native
+unscoped comparison to match the retained boundary; scoped/projected wire and
+browser proof remain required.
+The first probe measured availability ageing10.9–17.5s. Repeated attribute and
+snapshot scans in insights.py were replaced with native-key indexes preserving
+input list order, duplicate bags, NULL key behavior and the same projection.
+All13 complete outputs remain equal (indexed-native.json), with availability
+requests0.63–0.90s in that modern-only observation. These timings are not a matched
+legacy/API/browser performance claim. Seven focused tests pass after the change.
+Worktree only; no new image, service restart or per-interaction delivery. Remaining
+Guided batch work is filter source ownership/configuration proof, excess history
+provenance/disposition, then consolidated scoped API/browser/restart verification.
+Lean-code-orchestrator applied as complex integration with direct primary ownership;
+no helper was needed for these bounded read changes. Goal remains active.
+
+Guided dependency reconciliation update (3 October): one bounded read-only helper
+checked Excess history ownership. The registered full-prefix population contains
+only the June17 current-day Excess projection (85 rows); June6/7 projections belong
+to independent shallow trials and cannot be concatenated into that history.
+The missing dependency is a provenance-bound Excess history for the accepted full
+chain. Existing accepted daily facts and the current report producer must be
+assessed before deciding whether an additive historical report projection fits
+the authorized read boundary. The helper's investigation boundary is not itself
+a new permission restriction. No history was synthesized or published.
+
+The legacy recovery chat 01a0f7c6-1050-7741-b80a-a7f10ca0d04d reports successful
+CHECKDB and normal legacy startup after the human's elevated SQL restart, with
+no subsequent823 observed. This is a reported dependency recovery, not a local
+matched-oracle check or parity receipt. Earlier18456/823 failures remain evidence
+of their attempts; do not carry them forward as an assumed current outage.
+The serving legacy October8,2025 snapshot is not the Fresh June17 input. Reuse
+the retained June17 independent setup for outstanding comparisons; no live legacy
+data mutation, calculation replay, or service restart follows from this update.
+Guided remains the active coherent batch, undeployed and not accepted.
+
+Guided filter implementation checkpoint (worktree only): insight_filters.py now
+resolves predicates against the exact native join owners before aggregation,
+including DBMMaster parent ownership, per-attribute OR/cross-attribute AND,
+parent-location duplicate multiplicity, the six-standard-group activation gate,
+and missing/ambiguous source columns even on empty populations. All nine existing
+handlers use it; ageing applies it after each snapshot join. Raw owner metadata
+is stripped before chronic grid serialization. No frontend or F2 mutation.
+The chronic chart processor's explicit null-to-empty-List conversion was also
+restored; this is distinct from its scalar SQL boundary, which remains null.
+
+Fresh oracle recovery is now independently checked: restricted owned connection
+and SELECT1 PASS in f3-stage2-guided-batch-001/oracle-recovery-check.json. The same
+bundle's check_filter_sql_schema.py / filter-sql-schema-check.json executes all468
+captured cases over session-temp empty native schemas:340 compile,128 fail SQL,
+and all468 agree with the adapter's classification. No persistent SQL writes or
+engine replay. This proves source-column/error classification only, not filtered
+values, scope, HTTP error envelopes or browser parity. The13 original unfiltered
+queries remain byte-identical after adding captured-filter operands to the query
+extractor. Fourteen focused insight tests pass; diff whitespace checks pass.
+Next proof must compare full filtered outputs on the separately retained modern
+and legacy populations, then finish wire/configuration/history reconciliation and
+the consolidated3005 page QA. In particular, invalid-filter wire behavior still
+needs verification; current PublicationUnavailable handling is not claimed equal
+to the canonical processor's status500 response. Batch remains undeployed.
+
+Guided populated filter proof: filtered-native-modern.json and
+filtered-native-comparison.json in f3-stage2-guided-batch-001 preserve the first
+468-case comparison over separately retained native modern/legacy terminal rows.
+It found four availability-ageing mismatches: rejected rows created date groups
+with zero counts. insights.py now creates a date group only when join/filter
+multiplicity is positive. The regression test covers total exclusion.
+filtered-native-modern-002.json and filtered-native-comparison-002.json pass all468
+cases against the preserved SQL results (340 value results,128 SQL failures).
+No failed evidence was replaced, no engine replay or persistent SQL write occurred.
+This boundary remains native/unscoped: the request roster's scope labels do not
+constitute authenticated or projected-hierarchy proof.
+
+Read-only canonical HTTP AvailabilityTrend invalid-filter observation confirms
+HTTP500 with the standard eight-field null/error envelope; retained in
+legacy-invalid-filter-http.json. InsightFilterUnavailable now maps only Guided
+filter SQL failures to that envelope; missing publication data retains503.
+Fifteen focused tests pass, including both HTTP failure classes. No deployment.
+
+Excess reconciliation confirms pinned producer retention is90 days (StdSettingsPre)
+with current-date replacement. The existing June17 report does not establish the
+prior history/opening population. The literal .dbo identifier probe was rejected
+by the Fresh SQL guard before execution (excess-identifier-syntax.json); despite
+its generic SQL_ERROR label, it is NOT evidence that canonical SQL is invalid.
+Do not repair that identifier or conflate independent shallow trials with history.
+Remaining Guided batch proof: authenticated/projected scopes, complete wire/config
+and history disposition, then consolidated controls/exports/restart/performance.
+
+Guided scoped modern export completed: filtered-scoped-modern.json retains468
+cases using the configured approved hierarchy supplement and explicit permission
+IDs. Independent SQL comparison stopped before execution because another process
+holds the Fresh oracle lease. Read-only lock inspection confirms session130,
+host PID5292; do not interrupt it or claim the comparison ran. The prepared
+compare_filtered_scoped.py uses independent SQL hierarchy projection/auth CTEs.
+Canonical GET GetUIConfig?reportName=ChronicUnavailability returns200 and exactly
+matches all nine metadata rows (chronic-config-http.json).
+
+Direct user approval to question call_bEZzSUkIR32TJ5lhNiuxhyFI:
+"Approve this preview history input". Exact scope: declare empty Excess history
+before June6 for the selected preview; derive June6–17 report rows from each
+engine's OWN accepted outputs, then compare with the identical declared opening.
+This is a new preview input, not evidence that legacy historical rows were empty.
+F2 calculations, state and receipts remain unchanged. Read-only traversal verified
+the selected terminal run's complete12-day accepted predecessor chain, beginning
+029ea9e2-165b-48f0-a016-4b2851cedc7e onJune6 and ending the pinnedJune17 run.
+Use the existing Excess producer/typed per-run projection owner; preserve June17
+and all independent shallow trials. Do not mix those trials into the chain.
+No history has yet been published. Approval clears the missing-opening decision,
+not implementation, independent comparison, or UI acceptance.
+
+Approved-history implementation is now in the Guided worktree batch.
+software-architecture-reasoning and one bounded Sol review confirmed reuse of
+existing per-run ExcessProjection/ExcessInventoryRow. excess_history.py validates
+the exact consecutive accepted12-day chain, input/output/production/parity and
+predecessor identities, explicit opening and producer. Its publication operation
+requires a pinned independent comparison and runs atomically across all12 days;
+existing projections are validated, never replaced. Native rationed reports and
+each day's own DBM standards supply the existing producer. The read operation
+checks all projection metadata and native source/row digests, including zero days.
+Startup admission integration remains to be wired; no history publication occurred.
+
+Canonical BPR/01. ImportData.sql copies BPR-local attribute bags from Importer.
+Thus both Guided Excess trends must join historical rows against the SELECTED
+TERMINAL closing/importer attributes, not each prior day's or BTR's attributes.
+Only the previously approved terminal hierarchy fields may be supplemented.
+excess_insights.py implements the separate count-white and sum-all aggregates,
+NULL handling and BIGINT overflow boundary. Actual-DLL filter captures for both
+Excess methods are retained as GuidedExcessSku/Value-filters.json (52 each).
+Twenty-one focused tests pass across history boundaries, aggregates and existing
+Guided changes. Transactional PostgreSQL rollback/retry, independent12-day report
+comparison, admission/route wiring and consolidated browser proof remain required.
+These additions are not serving, accepted, or a new status queue.
+
+Guided scoped comparison resumed after the other owner released the lease:
+filtered-scoped-comparison.json PASS for all468 cases using independent SQL
+hierarchy/auth joins. This is explicit scope-contract proof, not leaf login.
+Both Excess API routes are wired in the worktree with selected Importer attributes,
+strict date cutoff and source filters. Optional pinned history settings now extend
+admission to all12 run/projection identities and startup readback; absent input
+denies these routes. Bulk chain queries exclude input payload/large manifests,
+and duplicate within-operation chain lookups were removed without dropping checks.
+Configured HTTP/query-count and unaffected-route performance remain to measure.
+
+History candidate:770 rows with daily counts8/42/53/52/67/67/69/78/79/85/85/85;
+all12 modern output digests and row digests/counts verified. Canonical producer SQL
+over each day's OWN accepted legacy facts passes all12 complete comparisons in
+excess-history-comparison-001/receipt.json, SHA256
+370ff3064aebf3620725fca940c3d0d24e77ab67ee6459d9f6289b6641b98138.
+The approved manifest is excess-history-input.json, SHA256
+f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
+No calculation replay or persistent SQL writes occurred. History remains unpublished.
+
+PostgreSQL transaction protocol proof passes in retained owned database
+test_freshvcf_guided_history_20261003_002: injected middle failure rolls back new
+days while preserving the existing terminal; full retry is idempotent and keeps
+CalculationRun/terminal projection metadata unchanged. history-postgres-tests-003.txt
+records6 passing tests (two history transaction tests plus four reused producer
+tests). Earlier001 failed dynamic module registration before DB tests;002 hit a
+UUID/string assertion mismatch after correct rollback. Both are preserved.
+Thirty-three focused admission/Guided/history tests pass after wiring.
+
+Canonical live Excess HTTP probes initially used Fresh-only permission IDs and
+failed the known missing-ID auth fallback. With actual legacy permission ID1
+(read via GetAllPermissionsAdmin), both methods return200, including a populated
+SKU result. Thus the literal omitted-database .dbo form executes in the canonical
+runtime; no SQL repair is required. Those October2025 responses prove execution/
+wire behavior only, not matchedJune17 values. Existing probe files remain retained.
+
+Bounded independent review found one HTTP gap: Excess date/BIGINT overflow escaped
+the canonical responseMessage envelope. The Excess branch now maps OverflowError
+to HTTP500/envelope while retaining overflow checks; its focused HTTP regression
+passes. No other material persistence/security issue was found. The review does
+not replace configured query/time, matched-performance or browser proof.
+
+Approved history has now been published atomically using the pinned manifest and
+independent receipt. history-publication.json records PASS_PUBLISHED_HISTORY_READBACK:
+12 days/770 rows, idempotent retry, all pre-existing projections unchanged (including
+June17 and independent shallow trials), and accepted run metadata unchanged.
+read_history validated every native source/row digest after publication. No F2
+calculation replay or serving rebuild/restart occurred. Current serving image is
+still the BPR checkpoint; the new routes/settings remain worktree-only until the
+coherent Guided deployment. Remaining: Excess trend/filter/wire comparisons over
+this history, configured admission/API diagnostics, full page controls/downloads,
+restart and matched performance. Stage2 remains active and unaccepted.
+
+### Stage2 safe-stop handoff — 3 October 2026
+
+Human stop instruction relayed by command-centre thread
+01a0f7c6-1050-7741-b80a-a7f10ca0d04d after deployment began. Stop expansion and
+preserve a partial checkpoint. Existing goal is PAUSED, not complete. No new
+page, exhaustive browser loop, benchmark campaign or later stage is authorized
+by this handoff. Resume only on a new explicit human instruction.
+
+Checkpoint: the single commit containing this handoff, based on88c434d; resolve
+its immutable SHA with `git log -1 --format=%H -- docs/MIGRATION.md` at handoff.
+The final chat reports that actual SHA after commit/push. This self-reference
+avoids embedding a necessarily stale self-hash. Runtime source/config is the
+Guided batch in this checkpoint, not the preceding BPR image.
+Serving MTA image:
+sha256:526ebe525ca7ea1b4c90e7fd475d3dc1eec6166a40161983477a117f7b302da8.
+Container a7a583ea16a86197fe507013927db9df859b13574f25257b129b4fc5a922e9e8
+is running. compose.preview.yaml includes the approved history manifest mount;
+4GiB/2CPU/restart=no, two workers/180s, no MTA host port. Only MTA was recreated;
+frontend/user-service/MTO/Redis/PostgreSQL and protected services were unchanged.
+No schema change. Preview remains localhost:3005, no3004 cutover.
+Startup admitted June17 run ac1612c8-0e49-4155-83c3-f59f41422293,
+output bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d,
+admission34a99fa5de6f70c2e7384283d083f6011558ac92c5927e627f4fd322d97044a7.
+
+Published preview input is D:/freshvcf-build/inputs/excess-history-input-v1.json,
+SHA256 f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
+It declares empty pre-June6 history ONLY for this preview and binds12 accepted
+June6–17 own-output projections,770 typed rows. It is not proof of empty legacy
+history. Publication/retry preserved all existing projections and F2 run metadata.
+No engine replay or calculated legacy-output copying occurred.
+
+Completed proof, all under D:/freshvcf-build/evidence/f3-stage2-guided-batch-001:
+- filtered-scoped-comparison.json:468 complete independent scoped/filter cases.
+- excess-trend-comparison.json:110 independent trend/filter/horizon cases PASS,
+  including declared order. Together578 cases; not578 UI interactions.
+- excess-history-comparison-001/receipt.json:12 own-output/770-row comparisons.
+- history-publication.json: atomic publication/readback and idempotent retry;
+  history-postgres-tests-003.txt:6 PostgreSQL transaction/producer tests pass.
+- Existing13 native output proofs, canonical nine-column chronic configuration,
+  distinct NULL/empty responses and overflow envelope regression retained.
+- unit-suite-final.txt:270 tests,268 pass; two pre-existing Expedite fixture
+  failures remain (test_expedite_chart_native_scope_and_source_flaw_unavailable,
+  test_expedite_count_direction_and_unavailable_detail_contract,503vs200).
+  Guided fixture/provenance failures corrected; original source/output pins
+  remain, with evidence-bound adaptations registered in consumer-reuse.json.
+- Baseline verification:376 pinned resources unchanged; git diff check passes.
+- build.txt and startup admission above establish deployment readiness.
+- guided-gateway.json: actual authenticated3005 requests, all11 Guided routes
+  and BPR count each return200 twice. This bounded stabilization check records
+  complete bodies, not an independent gateway-value comparison. Modern-only
+  observed times:Excess2.80–3.06s, BPR count0.82–0.87s; these are NOT matched
+  performance acceptance. No latency threshold or checksum relaxation inferred.
+- Browser signed in through the existing preview account. Availability Trend
+  rendered six location-type series; Agen legend toggled hidden and restored.
+  browser-handoff.png retains the final view. Other Guided browser controls
+  were not tested after deployment; no blanket UI QA claim.
+
+Exact remaining Stage2 exits for a newly authorized bounded task:
+1. Guided active item: finish actual five-tab interactions (horizons/ageing,
+   chart/table/legend controls, Chronic grid/filter/layout/paging and downloads,
+   DBM panels/link, Excess dual horizons), complete gateway wire/value checks,
+   real authorized leaf-actor proof, configured query-count/unaffected-route
+   overhead diagnostic and frozen matched API/browser performance. The deployment
+   startup/readback is proved; persisted-layout/restart interactions remain open.
+   Inherited ageing handler and stale Excess horizon behavior are source-mapped,
+   not implicitly repaired or waived. Next-day/general lifecycle behavior of the
+   preview-specific history manifest is unproved and outside this bounded batch.
+2. BPR remains partial: independent52-case grid/count/analytics/export and CSV
+   cells, actual browser CSV receipt, leaf login, matched timings, deferred drag/
+   resize/split/multiselect/filter/historical/concurrency controls, and the
+   inherited Reset Layout ordering disposition. SQL is now locally healthy and
+   Guided comparisons succeeded: the old18456/823 outage is no longer a reason
+   to defer feasible BPR independent proof. Do not repeat its existing UI work.
+3. Planning remains user-directed deferred: exports USER-VERIFIED WORKING,
+   not a broken-product diagnosis; outstanding custom NMS provenance/disposition,
+   child SQL/filtered-count wire proof, residual controls/real leaf and matched
+   performance. Prior exact presentation/empty-request-history approvals transfer
+   only within their recorded scope. No expediting or remarks writes.
+4. RRR/DBM/BTR/Buffer Trends earlier residual exits remain as already recorded:
+   layout/history/selection interactions, inherited BTR fresh-reload disposition,
+   authorized actor and matched performance gaps. Reuse completed RRR/BTR files
+   and DBM positive action/own-next-day/restoration receipts; no trial reset.
+5. Research has not been opened in this Guided batch: whole-page contract and
+   graph/grid selection/date/horizon/filter/config/layout/export QA still owed,
+   reusing existing native history/BPR proofs. Do not infer it is covered by
+   Guided or open it before explicit Guided disposition.
+6. Reconcile these existing page exits into one Stage2 completion assessment.
+   Stages3–5, positive logistics/remark histories, new workflow writes, MTO changes
+   and3004 cutover remain excluded. This checkpoint is not Stage2 acceptance.
+
+Owned processes: build and gateway commands terminated; all SQL comparisons
+terminated and exclusive leases exited; no owned temporary worker is running.
+The bounded review helper completed (overflow finding fixed before build).
+Retained test DB test_freshvcf_guided_history_20261003_002 is preserved; no drop,
+reset, volume cleanup or other task process interruption. The authenticated
+Guided tab is retained for handoff. Goal stays paused; no automatic continuation.
