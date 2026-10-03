@@ -30,6 +30,13 @@ def run(phase, *, overlap=False, overlap_rounds=2, include_chronic=True, repetit
     authenticated = login(credentials['broad'])
     observations, profiles = [], []
     stop = threading.Event()
+    active_reports = set()
+    active_lock = threading.Lock()
+    phase_started = time.monotonic()
+
+    def outstanding():
+        with active_lock:
+            return sorted(active_reports)
 
     def session():
         result = requests.Session()
@@ -41,12 +48,15 @@ def run(phase, *, overlap=False, overlap_rounds=2, include_chronic=True, repetit
         with session() as client:
             while not stop.is_set():
                 started = time.monotonic()
+                pending_before = outstanding()
                 try:
                     response = client.get('http://frontend/api/user/profile/', timeout=65)
                     status = response.status_code
                 except requests.RequestException as error:
                     status = type(error).__name__
-                profiles.append(dict(status=status, seconds=round(time.monotonic()-started,3)))
+                profiles.append(dict(status=status, seconds=round(time.monotonic()-started,3),
+                    started_seconds=round(started-phase_started,3),
+                    outstanding_before=pending_before, outstanding_after=outstanding()))
                 stop.wait(1)
 
     def read(route, size, repetition, body=None, abort=False):
@@ -54,6 +64,8 @@ def run(phase, *, overlap=False, overlap_rounds=2, include_chronic=True, repetit
             paginationParameter=dict(pageNumber=1, recordsPerPage=size))
         started = time.monotonic()
         path = root / f'{repetition}-{route}.json.gz'
+        with active_lock:
+            active_reports.add(route)
         try:
             with session() as client, client.post('http://frontend/api/mta/'+route,
                     json=payload, timeout=65, stream=True) as response:
@@ -69,6 +81,9 @@ def run(phase, *, overlap=False, overlap_rounds=2, include_chronic=True, repetit
                     headers_seconds=round(first,3),aborted=abort,body=path.name)
         except requests.RequestException as error:
             return dict(route=route,status=type(error).__name__,seconds=round(time.monotonic()-started,3))
+        finally:
+            with active_lock:
+                active_reports.discard(route)
 
     monitor = threading.Thread(target=profile_loop)
     monitor.start()
@@ -87,10 +102,12 @@ def run(phase, *, overlap=False, overlap_rounds=2, include_chronic=True, repetit
             def concurrent_login():
                 time.sleep(1)  # Let the report burst enter the upstream queue.
                 started = time.monotonic()
+                pending_before = outstanding()
                 try:
                     with login(credentials['broad']):
                         return dict(route='real_login_during_overlap',status=200,
-                                    seconds=round(time.monotonic()-started,3))
+                                    seconds=round(time.monotonic()-started,3),
+                                    outstanding_before=pending_before, outstanding_after=outstanding())
                 except (requests.RequestException, AssertionError) as error:
                     return dict(route='real_login_during_overlap',status=type(error).__name__,
                                 seconds=round(time.monotonic()-started,3))

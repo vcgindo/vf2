@@ -8,7 +8,7 @@ import {  useNavigate } from "react-router";
 import { notifyError, notifySuccess, notifyWarningWithoutAutoClose } from "../../../helpers/notify";
 import { useEffect, useRef, useState } from "react";
 import WelcomeBoard from "./welcome-board";
-import { hashPassword } from '../../../helpers/utils'
+import { completeLocalLogin, hashPassword } from '../../../helpers/utils'
 import VFLoader from "../../../components/VectorFLOW/commons/VFLoader";
 import { loadCaptchaEnginge, LoadCanvasTemplateNoReload, validateCaptcha } from 'react-simple-captcha';
 import { useGetAllEnvironmentConfiguration } from "../../../VectorFlow/Services/MTA/MDM";
@@ -87,8 +87,7 @@ function LoginContainer() {
           // Reload captcha
           loadCaptchaEnginge(6);
         } else {
-          const url = "/landing-page";
-          navigate(url, { replace: true });
+          completeLocalLogin(navigate);
           getAllEnvironmentConfiguration();
           notifySuccess(data.data?.data?.msg);
           if(data.data?.data?.wrng != null){

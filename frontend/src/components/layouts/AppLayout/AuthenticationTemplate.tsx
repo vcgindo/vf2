@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren, useEffect, useRef, useState } from 'react'
-import {getRedirecting, loginRedirect } from '../../../helpers/utils'
+import {clearRedirecting, loginRedirect } from '../../../helpers/utils'
 import { MainService } from '../../../module-main/services/api'
 import { useLocation, useNavigate } from 'react-router'
 import { useUserData } from '../../../context';
@@ -77,21 +77,24 @@ const AuthenticatedTemplate = (
     useEffect(() => {
       const verifyUserSession = async () => {
         try {
-          if (getRedirecting()) return;
-
+          // A protected-route verification is a new redirect transition. Any
+          // failure below still goes through loginRedirect's deduplication.
+          clearRedirecting();
           const response = await MainService.getProfile();
           const profile = response?.data?.data;
 
-          if (profile) {
-            setUser(profile);
+          if (!profile) {
+            throw new Error('Profile response did not include user data.');
+          }
 
-            const selectedMenu = getSelectedMenuItem(
-              location?.pathname
-            );
+          setUser(profile);
 
-            if (selectedMenu) {
-              props.setMenuItem(selectedMenu);
-            }
+          const selectedMenu = getSelectedMenuItem(
+            location?.pathname
+          );
+
+          if (selectedMenu) {
+            props.setMenuItem(selectedMenu);
           }
         } catch (err) {
           console.warn(err, 'User session verification failed, redirecting to login.');

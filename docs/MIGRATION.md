@@ -26,7 +26,72 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### 3005 stabilization — STOPPED; memory fix deployed, latency exit blocked
+### Login/profile catalogue delivery — PASS; stopped for review
+
+4 October 2026: direct human authorization in command-centre turn
+`01a10375-b2b4-7993-aad5-35e850573d9d` opens only the dependency correction in
+[the implementation contract](LOGIN_REPORT_WORKER_DECOUPLING_PLAN.md), from
+`612a629`. Consume the same validated catalogue locally in the configured 3005
+user-service; preserve live identity grants, scope enforcement, response values,
+fixture/publication selection, resource limits and protected services. No report
+tuning, F1/F2 changes or general Stage 2–5 work. Required exit: exact catalogue
+and identity comparisons, fail-closed selection/startup and isolated revocation
+proof, real login/profile under the retained report contention, coordinated
+restoration, committed/pushed deployed result or precise consolidated blocker.
+The preceding stabilization stop remains in force outside this boundary.
+
+Deployed and verified on 4 October 2026. The configured user-service reads the
+same checksum-bound catalogue locally, with the existing fixture policy or normal
+publication/hierarchy binding. Its MTA permission branch makes no catalogue HTTP
+request. Missing, corrupt, mixed or wrong selection fails startup/returns 503;
+local assembly failures cannot become an empty-permission success. Effective
+grants remain live identity-database queries; other deployments retain HTTP mode.
+
+The profile Loading defect was a stale module-level redirect flag surviving SPA
+login. A new protected verification clears that transition flag, always fetches
+profile, and sends missing/failed profile responses through the existing login
+redirect. Successful local login also resets the flag. No permission or route
+rule was changed.
+
+- 26 focused backend tests pass, including actual login/profile assembly without
+  MTA HTTP and grant addition/revocation in an isolated identity test database.
+  Five frontend regression tests pass; both production images built successfully.
+- Complete normal and fixture catalogue payloads equal the unchanged native MTA
+  view, including ordering and types. Network-disabled ASGI startup accepts both
+  valid configurations and rejects missing/wrong selections. Broad/restricted
+  login and profile preserve all response content; only the pre-existing
+  `list(set(...))` URL/feature arrays are compared as unordered sets. No values
+  are excluded; catalogue and hierarchy array order is compared exactly.
+- Unloaded login/profile: broad 0.931/0.437s; restricted 1.161/0.403s. During eight
+  full grid/count requests plus Chronic, fresh login returned 200 in 2.495s with
+  all nine report requests still outstanding. All 72 profile requests returned
+  200; maximum 2.427s, 70 completed while reports were pending. Earlier 30s login
+  timeout and 51.47s profile evidence remain retained. These are bounded diagnostic
+  observations, not matched legacy report-performance acceptance.
+- Real browser login during contention returned 200, Profile Details rendered,
+  all four populated pages were reached, and SPA navigation back to profile
+  completed. Restricted four-page reads, forged scopes, unauthenticated and
+  normal-versus-fixture denials, and disabled Apply/Sleep all pass.
+- Sampled gateway/MTA memory peaks: 119.95/719.02 MiB; no new OOM events. CPU over
+  the measured phase, including the probes/browser activity: 45.049/157.149s.
+  Existing limits/timeouts/restart policies are unchanged. MTA was not restarted;
+  image, admission, full fixture, accepted F1/F2 and serving grants are unchanged.
+
+Evidence: `D:/freshvcf-build/evidence/3005-login-decoupling-20261004-001/validation.json`,
+with retained bodies, browser screenshots, resource samples and test logs. Initial
+test setup/coverage-run failures remain recorded alongside the corrected passes.
+Gateway image `sha256:9de37195b08a33a6916fa9c10e8ecd0dc5b4d847bd8f0c96c1892caa61c1188b`;
+frontend `sha256:c7f4fc70f70df8a3a59b557a6d815fc0f473d856c799877c9515cc0f01facf4e`.
+Recreated startup/readiness and `tools/stage2_identity_catalogue.py check` passed.
+The handoff records coordinated normal restoration and exact-image rollback;
+normal restoration was not executed, so the April 7 fixture remains available.
+
+Residual limitation: the retained contention burst produced 60s 504s for BPR
+grid, BTR grid, DBM grid/count and Chronic. The following aborted-read diagnostic
+also received a BTR 504. The login/profile dependency exit is complete; report
+latency, general Stage 2–5 and other workflows remain paused, not accepted.
+
+### Earlier 3005 stabilization checkpoint — memory fixed, identity blocker superseded above
 
 4 October2026: human authorization in review chat
 `01a100e2-7943-7102-9760-62d9e492ecd9`, turn

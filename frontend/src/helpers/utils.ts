@@ -44,6 +44,12 @@ let isRedirecting = false;
 
 export const setRedirecting = () => { isRedirecting = true; }
 export const getRedirecting = () => isRedirecting;
+export const clearRedirecting = () => { isRedirecting = false; }
+
+export const completeLocalLogin = (navigate: NavigateFunction) => {
+  clearRedirecting();
+  navigate('/landing-page', { replace: true });
+}
 
 export const loginRedirect = (navigate?: NavigateFunction) => {
 

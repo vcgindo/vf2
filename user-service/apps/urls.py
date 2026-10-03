@@ -24,6 +24,7 @@ from django.db import connection
 from django.http import JsonResponse
 import os
 import requests
+from common.mta_catalogue import enabled as local_catalogue, validate_configured
 
 
 def healthz(request):
@@ -33,6 +34,10 @@ def healthz(request):
 def readyz(request):
     checks = {'identity_database': False, 'mta': False}
     try:
+        if local_catalogue():
+            checks['mta_catalogue'] = False
+            validate_configured()
+            checks['mta_catalogue'] = True
         with connection.cursor() as cursor:
             cursor.execute('SELECT 1')
             checks['identity_database'] = cursor.fetchone()[0] == 1

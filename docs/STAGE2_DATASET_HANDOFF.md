@@ -1,6 +1,60 @@
 # Stage 2 shared VM dataset handoff
 
-3 October 2026. Operational reference; `docs/MIGRATION.md` is the sole status tracker.
+Updated 4 October 2026. Operational reference; `docs/MIGRATION.md` is the sole status tracker.
+
+## Current login/profile delivery and operation
+
+The bounded login/profile correction following `612a629` is deployed. The gateway
+consumes the same registered MTA catalogue locally, pinned to the active fixture
+policy or retained normal-publication hierarchy binding. Live grants, roles,
+authentication and scope enforcement are unchanged. No MTA catalogue HTTP call
+occurs in configured login/profile assembly. Invalid local metadata fails closed;
+there is no stale/empty success or network fallback. Other deployments remain in
+their existing HTTP mode.
+
+The stale SPA redirect flag that could leave profile on Loading is corrected.
+Real login, Profile Details and navigation to populated RRR/BPR/BTR/DBM pass.
+Under the retained nine-request report burst, fresh login took 2.495s while all
+nine remained outstanding; 72/72 profile requests succeeded, maximum 2.427s.
+Report 504s remain under that load and are not hidden by this identity correction.
+This does not close report-performance or general Stage 2 acceptance.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/3005-login-decoupling-20261004-001/validation.json`.
+26 backend and five frontend tests pass; both catalogue payloads match native
+MTA exactly. Full broad/restricted identity response content is retained (existing
+URL/feature set ordering alone is unordered). Restricted/forged/denial proofs
+pass. Gateway/MTA sampled peaks are 119.95/719.02 MiB, with no new OOM events.
+
+Running gateway image:
+`sha256:9de37195b08a33a6916fa9c10e8ecd0dc5b4d847bd8f0c96c1892caa61c1188b`.
+Running frontend:
+`sha256:c7f4fc70f70df8a3a59b557a6d815fc0f473d856c799877c9515cc0f01facf4e`.
+MTA remains `sha256:66ddf0722c4f87cbbfa9291067b991f85d51acfbd0cb604661591788463263c2`.
+The full April 7 fixture remains selected. Resource limits, worker count,
+timeouts, restart policies, serving grants and accepted F1/F2 are unchanged.
+
+Rollback to the preceding streaming gateway/frontend checkpoint:
+
+```powershell
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml -f D:/freshvcf-build/evidence/3005-login-decoupling-20261004-001/compose.rollback.json up -d --no-deps --no-build user-service frontend
+```
+
+That selects gateway `ccf8da228c02` and frontend `89118af27cb1`, restores the former
+HTTP catalogue dependency, and leaves MTA/data untouched. The same command with
+`compose.candidate.json` reapplies the locally selected catalogue. Both selections
+are explicit; never pair a fixture gateway catalogue with normal MTA. After any
+manual recreation, retained checkpoint IDs must be reconciled before using the
+guarded restoration tool; it deliberately refuses changed runtime identities.
+
+The normal-restoration commands below supersede the historical MTA-only commands.
+The tool checks current runtime/input identities, stops frontend ingress, disables
+fixture accounts through the existing tooling, restores MTA and gateway catalogue
+selection together, validates readiness/selection and protected state, then starts
+frontend. On failure ingress stays stopped. Check mode passed; an actual normal
+switch was not performed. Startup of both catalogue modes was exercised in owned
+network-disabled containers. Earlier fixture-window and stabilization proofs are
+preserved and are not rewritten as new acceptance.
 
 ## Identity and source
 
@@ -255,8 +309,8 @@ preview services,3002/3003/3004 and accepted F1/F2 state remain unchanged.
 Exact normalJune17 restoration (also disables fixture actors):
 
 ```powershell
-D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_stabilization_restore.py --check-only
-D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_stabilization_restore.py
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_identity_catalogue.py check
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_identity_catalogue.py restore
 ```
 
 The existing bounded `serve` window restores automatically on failure/interruption
@@ -312,7 +366,7 @@ indexes preserve the legacy matching contract, but do not complete a general
 canonical-key migration or certify normal-run performance. Accepted F1/F2 state
 and calculation evidence remain untouched.
 
-## 4 October gateway stabilization handoff
+## Earlier 4 October gateway stabilization handoff (historical checkpoint)
 
 The isolated gateway exited137/OOMKilled at00:46:41IST. The incident state and
 gateway/nginx logs are preserved in
@@ -377,7 +431,7 @@ That rollback reintroduces the known gateway buffering defect. The same command
 with `compose.candidate.json` reapplies the verified correction. MTA, database,
 accounts and other services are unchanged by either command.
 
-For normal June17 restoration, use `stage2_stabilization_restore.py` as above
+At that historical checkpoint, normal June17 restoration used `stage2_stabilization_restore.py`
 instead of the old window010 command. Its check-only mode passed against the
 current runtime. It checks accepted/protected state and the sealed restore
 configuration, creates a separate restoration receipt, then reuses the original
@@ -385,4 +439,5 @@ account-disable/MTA-only restore checks. Window010's historical protected-servic
 IDs are preserved. If gateway/frontend are subsequently rolled back or otherwise
 recreated, the new checkpoint deliberately refuses restoration until those new
 identities are explicitly reconciled. No normal restoration was executed here;
-the full April7 fixture remains selected for review.
+the full April7 fixture remained selected for review. The current coordinated
+catalogue restoration at the top of this handoff supersedes this old procedure.

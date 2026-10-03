@@ -14,3 +14,7 @@ from django.core.asgi import get_asgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'apps.settings')
 
 application = get_asgi_application()
+
+# Explicit local mode must validate before uvicorn opens its listener.
+from common.mta_catalogue import validate_configured
+validate_configured()

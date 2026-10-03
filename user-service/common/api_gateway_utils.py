@@ -4,6 +4,7 @@ from api.models import *
 from api.serializer.profile import *
 import pandas as pd
 from asyncio.log import logger
+from common.mta_catalogue import CatalogueUnavailable, enabled as local_mta_catalogue, payload as mta_catalogue_payload
 
 def get_application_details_by_id(id):
     application = ApplicationMaster.objects.get(application_id=id)
@@ -264,11 +265,11 @@ class ALL_PERMISSIONS:
             logger.exception("Error fetching mto permissions")
         try:
             if service_map['mta']['active']:
-                url=service_map['mta']['base_url'].rstrip('/') + '/api/mta/GetAllPermmision'
-                response = requests.request(
-                    method='GET',
-                    url=url,
-                ).json()
+                if local_mta_catalogue():
+                    response = mta_catalogue_payload()
+                else:
+                    url=service_map['mta']['base_url'].rstrip('/') + '/api/mta/GetAllPermmision'
+                    response = requests.request(method='GET', url=url).json()
                 application_details = get_application_details_by_id(service_map['mta']['application_id'])
                 if permission_type=="both":
                     permission_obj={
@@ -293,6 +294,11 @@ class ALL_PERMISSIONS:
                         "application_name":application_details.application_name,
                         "permission":PRODUCT_LOCATION_MAPPER.flat_to_nested_location(response['location']) if nested else response['location']
                     })
+        except CatalogueUnavailable:
+            # Local-mode failures must not become a successful empty catalogue.
+            raise
         except Exception as e:
+            if local_mta_catalogue():
+                raise CatalogueUnavailable('mta_catalogue_assembly_unavailable') from e
             logger.exception("Error fetching mta permissions")
         return all_permissions
