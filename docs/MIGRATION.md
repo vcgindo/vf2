@@ -4,7 +4,7 @@ Baseline date: 3 October 2026. Implementation checkpoint: `2d0cfde95606aef58a486
 
 ## Authority and current instruction
 
-This is the **only migration status tracker**. The implementation goal is **PAUSED**, not complete. Stage 2 is incomplete. The human requested a logical stop and a separately bounded continuation; this documentation cleanup does not resume execution, authorize data loading, or open another stage.
+This is the **only migration status tracker**. Page implementation remains **PAUSED**, not complete. On 3 October 2026 the human authorized a separate bounded Stage 2 shared-dataset preparation goal. Its active exit is dataset readiness or a precise consolidated blocker: assess the eight retained Demo backups, preserve source tables, bulk-load owned PostgreSQL staging, map actual consumer tables and prove representative authenticated reads through an explicit fixture boundary. Engines, accepted F1/F2 state, authentication permissions, serving instances, replay and Stages 3–5 remain excluded. No page-by-page implementation is authorized. Required proof is source identity/consistency, complete mapped values/NULLs/duplicates and relationships, consolidated inventory coverage and operational handoff.
 
 The previous 4,286-line tracker is preserved byte-for-byte in [the historical snapshot](archive/MIGRATION_2026-10-03_2d0cfde.md), SHA256 `a913419e34a3318d7ca09f11b163295c9d695b55d99e3060e87c23fadc84242b`. It contains provenance and exact earlier approvals, **not active instructions or a second queue**. Do not load the whole archive routinely; consult the relevant passage only when an unresolved contract requires it.
 
@@ -19,6 +19,41 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 `execute_day` remains the production day boundary. Operational state, histories, actions and consumer projections are typed PostgreSQL rows linked to run identity, preserving duplicates and source order. JSON metadata or trace blobs do not replace operational state. MSSQL and PostgreSQL physical schemas must not be assumed identical.
 
 ## Programme status
+
+### Bounded Stage 2 dataset preparation — stopped at consolidated blocker
+
+On 3 October the human corrected source authority to `F:/VFlow_Source_Backup`
+in review chat `01a0f7c6-1050-7741-b80a-a7f10ca0d04d`. No original populated
+SQL backup set was found in the bounded preserved-source inventory/MTA archives;
+its reconstruction runbook says databases were not copied. The local Demo
+runbook explicitly identifies its 1,240-row population as synthetic reconstruction.
+Matching database names did not establish original-data lineage.
+
+Before the correction, eight checksum-verified local Demo backups were restored
+to owned read-only `VFTEST_Fresh_S2_20261003_001_*` clones. 523 tables / 280,651
+rows passed full typed staging readback in owned PostgreSQL database
+`test_freshvcf_stage2_dataset_20261003_001`; 102 consumer images and six projection
+families were copied and fully read back. The consumer transaction finished before
+the stop took effect. All are preserved as quarantined evidence, **not dataset
+readiness**. Fixture partition `f9db3dfc-efc3-488d-af2f-a88e8b2c68ee` is
+`LEGACY_UI_FIXTURE/FIXTURE_BLOCKED`, with no engine success, parity receipt,
+checkpoint, command or production manifest. No fixture admission/serving change
+was implemented. All three loader entry points now fail before source/database
+work pending reconciliation; no environment override is provided.
+
+Additional observed limits of that rejected candidate: native `LOCAL_ALL`
+hierarchy matches zero unchanged modern permission memberships; Suggestions,
+SuggestionsLog and RationingHistory are empty; BTR BPR has one date; source
+OrderIdentity is absent. Do not transfer these findings to the missing original
+data. No engines, accepted F1/F2 rows, authentication permissions, serving services
+or page implementation were changed. Scope ends at this consolidated blocker.
+
+Handoff: [Stage 2 dataset handoff](STAGE2_DATASET_HANDOFF.md). Evidence:
+`D:/freshvcf-build/evidence/stage2-shared-dataset-20261003-001/`, especially
+`source-reconciliation.json`, `dataset-manifest.json`, `mapping.json` and
+`staging-validation.json`. Resumption requires the original populated source set
+and API/engine suffix reconciliation, or an explicit human change of source scope;
+use separately owned replacement resources and retain this candidate.
 
 | Boundary | Current assessment |
 |---|---|
