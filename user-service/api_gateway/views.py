@@ -5,11 +5,26 @@ from rest_framework.permissions import IsAuthenticated
 import requests
 from django.http import JsonResponse,HttpResponse,StreamingHttpResponse
 import logging
+from .mta_stream import streamed_response, bounded_mta_read
 
 logger = logging.getLogger(__name__)
 
 class API_GATEWAY_VIEW(APIView):
     permission_classes = [IsAuthenticated]
+
+    @staticmethod
+    def _forward(request, application_name):
+        try:
+            return service_map[application_name]['interceptor']().forward(request, service_map)
+        except requests.RequestException as error:
+            if not bounded_mta_read(request):
+                raise
+            timeout = isinstance(error, requests.Timeout)
+            status = 504 if timeout else 500
+            return JsonResponse({'error': 'Failed to forward request',
+                'status_code': status,
+                'message': 'MTA upstream response timed out' if timeout else 'MTA upstream connection failed'},
+                status=status)
 
     @staticmethod
     def _passthrough_local_json(response):
@@ -26,12 +41,16 @@ class API_GATEWAY_VIEW(APIView):
     def get(self, request, format=None):
         try:
             application_name = request.path.split('/')[2]
-            response = service_map[application_name]['interceptor']().forward(request, service_map)        
+            response = self._forward(request, application_name)
             local_response = self._passthrough_local_json(response)
             if local_response is not None:
                 return local_response
+            streamed = streamed_response(request, response)
+            if streamed is not None:
+                return streamed
             if 'Content-Disposition' in response.headers:
                 if response.status_code == 404:
+                    response.close()
                     return HttpResponse(status=404)
                 file_response = HttpResponse(response.content, content_type=response.headers.get('Content-Type', 'application/octet-stream'))
                 file_response['Content-Disposition'] = response.headers['Content-Disposition']
@@ -46,10 +65,13 @@ class API_GATEWAY_VIEW(APIView):
 
     def post(self, request, format=None):
         application_name = request.path.split('/')[2]
-        response = service_map[application_name]['interceptor']().forward(request, service_map)
+        response = self._forward(request, application_name)
         local_response = self._passthrough_local_json(response)
         if local_response is not None:
             return local_response
+        streamed = streamed_response(request, response)
+        if streamed is not None:
+            return streamed
         
         try:
             if 'Content-Disposition' in response.headers:

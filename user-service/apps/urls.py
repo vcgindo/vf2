@@ -22,6 +22,8 @@ from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView
 from rest_framework import permissions
 from django.db import connection
 from django.http import JsonResponse
+import os
+import requests
 
 
 def healthz(request):
@@ -29,10 +31,20 @@ def healthz(request):
 
 
 def readyz(request):
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT 1')
-        cursor.fetchone()
-    return JsonResponse({'status': 'ready', 'service': 'user-service'})
+    checks = {'identity_database': False, 'mta': False}
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+            checks['identity_database'] = cursor.fetchone()[0] == 1
+        url = os.environ.get('MTA_BACKEND_URL', 'http://localhost:5153').rstrip('/')
+        with requests.get(url + '/readyz', timeout=(2, 2)) as response:
+            checks['mta'] = response.status_code == 200 and response.json().get('ready') is True
+    except Exception:
+        pass
+    ready = all(checks.values())
+    return JsonResponse({'status': 'ready' if ready else 'unavailable',
+        'service': 'user-service', 'scope': 'identity-and-mta-dependencies',
+        'checks': checks}, status=200 if ready else 503)
 
 
 urlpatterns = [

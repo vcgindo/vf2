@@ -6,6 +6,7 @@ from api.models import User_Application_Product_Permission
 from api_gateway.utils import getAllUserDetails
 from django.http import JsonResponse
 from rest_framework.response import Response
+from api_gateway.mta_stream import streams_mta_read, bounded_mta_read, UPSTREAM_TIMEOUT
 
 class MTA_INTERCEPTOR:
     def __init__(self):
@@ -54,7 +55,9 @@ class MTA_INTERCEPTOR:
         data['user'] = user_dict
         if(forwardUsers): data['all_users'] = getAllUserDetails(request=request,application_id=application_id)
         
-        stream = bool(int(data.get("stream", 0)))
+        bounded_read = bounded_mta_read(request)
+        stream = streams_mta_read(request) or bool(int(data.get("stream", 0)))
+        transport = {'timeout': UPSTREAM_TIMEOUT} if bounded_read else {}
         
         if hasattr(request, "FILES") and request.FILES:
             # multipart/form-data
@@ -82,6 +85,7 @@ class MTA_INTERCEPTOR:
                 data=form_data,
                 files=files,
                 stream=stream,
+                **transport,
             )
         else:
            
@@ -92,6 +96,7 @@ class MTA_INTERCEPTOR:
                 params=request.query_params,
                 json=data,
                 stream=stream,
+                **transport,
             )
 
         if response.status_code >= 400:
@@ -101,13 +106,14 @@ class MTA_INTERCEPTOR:
             if response.status_code == 403:
                 try:
                     if response.json().get("error") == "demo_read_only":
+                        response.close()
                         return JsonResponse({"error": "demo_read_only"}, status=403)
                 except (ValueError, AttributeError):
                     pass
             if response.status_code ==404:
                 return response
             else:
-                return JsonResponse(
+                error = JsonResponse(
                     {
                         'error': 'Failed to forward request',
                         'status_code': response.status_code,
@@ -115,4 +121,6 @@ class MTA_INTERCEPTOR:
                     },
                     status=response.status_code
                 )
+                response.close()
+                return error
         return response

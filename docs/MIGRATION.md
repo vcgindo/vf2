@@ -26,7 +26,76 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Four-page latency correction — active
+### 3005 stabilization — STOPPED; memory fix deployed, latency exit blocked
+
+4 October2026: human authorization in review chat
+`01a100e2-7943-7102-9760-62d9e492ecd9`, turn
+`01a1033b-54a0-7692-9984-d480048bd840`, supersedes the pending serving-approval
+blocker for the isolated3005 gateway/user-service, MTA and frontend only. The
+gateway exited137/OOMKilled at1GiB on3 October19:16:41UTC; frontend liveness200
+did not establish login/API availability. Preserve this incident and diagnose
+actual forwarding/request memory lifetime before choosing the smallest correction.
+Active exit: reliable real login/profile during bounded repeated and overlapping
+RRR/BPR/BTR/DBM navigation, full retained responses/scopes and resource/timing
+proof, verified deployment, rollback identities, one committed/pushed handoff.
+Keep limits/restart policy fixed; no reload, engine/F1/F2/auth/permission change,
+other-page implementation or broader Stage2/Stages3–5 continuation. Earlier
+four-page availability is historical, not a claim that the failed gateway is healthy.
+
+Result: the bounded gateway correction and RRR/DBM frontend candidate are deployed.
+Stop for command-centre review; do not resume general Stage2 or Stages3–5. Evidence
+root: `D:/freshvcf-build/evidence/3005-stabilization-20261004-001`;
+`stabilization-validation.json` consolidates resources, timings, protected state
+and exact running identities. This is **not full stabilization acceptance**.
+
+- Original BTR33.7MB forwarding raised an isolated gateway process from128MiB
+  to377MiB peak through body/text/JSON/serialization allocations. Actual old
+  gateway cgroup peak reached695MiB during two full four-page rounds.
+- Large MTA grid/export and observed Chronic reads now use an async byte iterator;
+  no duplicate report object graph, explicit close on EOF/error/disconnect,
+  bounded connect/read waits, and count-request cleanup within the existing
+  public60-second limit. Commands, authentication, scope injection and MTO remain
+  unchanged. The measured final gateway peak is134MiB across stress samples;
+  no gateway/MTA OOM. Largest sampled MTA usage is742MiB under the unchanged4GiB.
+-16 focused gateway tests pass, including ASGI first-chunk/disconnect, timeout,
+  downloads and existing identity tests. All16 complete grid/count responses at
+  full page sizes match the original gateway after UTF-8 JSON decoding. No new
+  RRR tie-break is introduced. The complete1,524,093-byte RRR CSV and headers
+  match the native response. Four restricted grids/counts, forged scope,
+  Apply/Sleep403, normal-preview403 and unauthenticated denials pass.
+- Real browser login and all four populated pages pass. Observed page times are
+  RRR13.82s, BPR9.12s, BTR On Hand9.00s and DBM navigation4.52s. Navigation away
+  during pending reads and return to populated RRR were exercised. `/profile`
+  itself remained Loading despite observed API200; that UI is not certified.
+- Full paired API medians (two diagnostic observations each), before→final:
+  RRR7.31→10.36s, BPR7.47→11.78s, BTR both15.99→22.49s, DBM4.18→5.42s.
+  There is **no demonstrated API latency improvement** or matched legacy parity.
+  Eight supported overlapping grid/count requests returned200 within39.88s;
+  adding Chronic produced60-second report504s in retained stress attempts.
+
+Consolidated blocker: `ResponseUser.response()` and `ResponseProfile.response()`
+call `ALL_PERMISSIONS.get_combined_permissions()`, which synchronously retrieves
+MTA `GetAllPermmision` through the same two sync workers as large reports. The
+final dependency probe's profile requests returned200 but took up to51.47s
+(65-second observer, unchanged60-second gateway). Real login during that burst
+exceeded the existing30-second probe timeout. Earlier10-second profile observer
+failures are retained and are not misreported as public HTTP failures. Gateway
+memory is healthy; report-worker contention still delays identity responses.
+Correcting catalogue delivery/freshness or worker isolation changes the present
+dependency boundary and is not inferred here. No permission snapshot/cache,
+new source, extra workers, memory increase or timeout extension was introduced.
+
+Current gateway image: `sha256:ccf8da228c02c7ebd25eb91c5dae52447fed13ae58f20fd17bf931ea768bee36`.
+Current frontend: `sha256:89118af27cb171259f14d570f35cfcdc35e21ebcd20d2a784716c76ec60fe401`.
+MTA remains `sha256:66ddf0722c4f87cbbfa9291067b991f85d51acfbd0cb604661591788463263c2`.
+Readiness now distinguishes frontend-only `/healthz` from `/readyz` checks of
+the identity database and admitted MTA; neither certifies whole-page behavior.
+Protected services/publications match the retained checkpoint. Normal restoration
+uses `tools/stage2_stabilization_restore.py` (check-only passed), preserving
+window010 and checking the explicitly updated protected-service identities.
+Gateway/frontend rollback commands and limitations are in the dataset handoff.
+
+The existing four-page latency history below is retained context for this result.
 
 Direct human follow-up authorizes inspecting contracts and data-fetch architecture
 and reducing latency on the existing RRR/BPR/BTR/DBM fixture paths. Profile the
@@ -74,15 +143,15 @@ are an isolated compatibility correction, not a schema-wide canonical-key
 migration or evidence that normal production access paths are now optimized.
 
 Client candidate `freshvcf-preview-frontend:latency-20261003` built successfully;
-four deferred-request Jest tests passed. It is not deployed: separate frontend
-serving approval has been requested. Current frontend rollback image is
+four deferred-request Jest tests passed. Its RRR/DBM changes are now deployed in
+the above stabilization frontend. The prior frontend rollback image is
 `sha256:a37599db5558f52af99753ece785a0254aedc64a832906b3f99533d6983f366a`.
 The final focused backend run passed16 of17 tests (one opt-in PostgreSQL case
 skipped there and separately passed against PostgreSQL). A unit-route run inside
 the serving fixture environment failed because its mocked actor was denied;
-the clean local test environment passed. Preserve both receipts. The next exit
-is frontend runtime proof if approved, then an honest remaining performance
-disposition; neither this checkpoint nor fixture availability closes Stage2.
+the clean local test environment passed. Preserve both receipts. The above
+stabilization disposition supersedes the former pending deployment approval;
+neither this checkpoint nor fixture availability closes Stage2.
 
 ### Four-page visible-data delivery — PASS; fixture serving on3005
 

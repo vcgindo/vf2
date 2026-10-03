@@ -78,6 +78,8 @@ class TestMtaInterceptorIdentity(SimpleTestCase):
         self.assertEqual(forwarded["json"]["user"], {"id": 7, "name": "Stage 7B"})
         self.assertEqual(original["user"], {"id": 999, "name": "spoofed"})
         self.assertEqual(original["product_permissions"], [999])
+        self.assertTrue(forwarded['stream'])
+        self.assertEqual(forwarded['timeout'], (5, 60))
 
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")

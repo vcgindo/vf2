@@ -255,7 +255,8 @@ preview services,3002/3003/3004 and accepted F1/F2 state remain unchanged.
 Exact normalJune17 restoration (also disables fixture actors):
 
 ```powershell
-D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 010
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_stabilization_restore.py --check-only
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_stabilization_restore.py
 ```
 
 The existing bounded `serve` window restores automatically on failure/interruption
@@ -310,3 +311,78 @@ there were no separate canonical SKU/location lookup columns. Fixture expression
 indexes preserve the legacy matching contract, but do not complete a general
 canonical-key migration or certify normal-run performance. Accepted F1/F2 state
 and calculation evidence remain untouched.
+
+## 4 October gateway stabilization handoff
+
+The isolated gateway exited137/OOMKilled at00:46:41IST. The incident state and
+gateway/nginx logs are preserved in
+`D:/freshvcf-build/evidence/3005-stabilization-20261004-001`. Gateway restart
+restored service; the deployed correction removes buffered text/JSON/serialization
+copies for the four large grids, native export and the observed Chronic read
+family. Async iteration avoids Django ASGI's eager conversion of sync iterators.
+EOF, errors and downstream cancellation close upstream responses. Full-page
+counts also receive bounded waits. No authentication/permission grants changed.
+
+The final source and evidence are a **partial stabilization handoff**. Memory is
+corrected; latency acceptance remains blocked. `stabilization-validation.json`
+contains all samples, CPU deltas, OOM events and exact runtime configuration.
+`response-comparison-final-002.json` compares16 complete responses; all match.
+`download-proof.json` proves the full RRR CSV bytes/headers. `restricted-scope.json`
+and `security.log` retain scoped reads and denials. `browser-done.json` and page
+screenshots prove real login, the four populated pages and navigation away during
+pending requests. The profile UI stayed Loading and is not certified.
+
+Gateway sampled peak fell from678MiB before to134MiB across final stress phases;
+the old cgroup high-water mark was695MiB. Final MTA sampled peak was742MiB;
+its1896857600-byte cgroup high-water mark predates this assignment. Both retained
+their limits (gateway1GiB/1CPU, MTA4GiB/2CPU) and restart=no. No OOM recurred.
+Two-sample paired API medians worsened rather than proving a latency gain:
+RRR7.31→10.36s, BPR7.47→11.78s, BTR both15.99→22.49s, DBM4.18→5.42s.
+Browser observations were13.82/9.12/9.00/4.52s respectively (BTR On Hand only).
+These diagnostic runs are not the formal matched legacy benchmark.
+
+Eight supported grid/count requests all returned200 in the final overlap run.
+Adding Chronic in retained runs caused report504s. Login/profile synchronously
+call MTA `GetAllPermmision` via `ALL_PERMISSIONS.get_combined_permissions`; its
+two sync report workers therefore remain on the identity-response critical path.
+With the full gateway observation window, profile returned200 but took up to51.47s;
+fresh login during the burst exceeded the30-second probe deadline. Earlier
+10-second observer timeouts are client failures, not proof of HTTP502/504.
+No catalogue snapshot, cache, alternate permission source, worker increase or
+larger timeout was added. This is the precise unresolved concurrency/latency
+boundary for command-centre review; wider Stage2 and Stages3–5 remain paused.
+
+Running images:
+
+| Service | Image |
+|---|---|
+| Gateway | `sha256:ccf8da228c02c7ebd25eb91c5dae52447fed13ae58f20fd17bf931ea768bee36` |
+| Frontend | `sha256:89118af27cb171259f14d570f35cfcdc35e21ebcd20d2a784716c76ec60fe401` |
+| MTA, unchanged | `sha256:66ddf0722c4f87cbbfa9291067b991f85d51acfbd0cb604661591788463263c2` |
+
+`/healthz` explicitly means frontend-only liveness. `/readyz` checks gateway,
+identity DB and admitted MTA dependency availability; report saturation can make
+it503. It does not bypass business authentication or certify page acceptance.
+After a controlled restart, wait for `/readyz`200 before attempting login; the
+retained immediate-post-restart502 attempt is not hidden.
+
+To roll back only this deployment to the exact prior gateway/frontend images,
+from `F:/freshvcf`:
+
+```powershell
+docker compose --env-file D:/freshvcf-build/preview/preview.env -f compose.preview.yaml -f D:/freshvcf-build/evidence/3005-stabilization-20261004-001/compose.rollback.json up -d --no-deps --no-build user-service frontend
+```
+
+That rollback reintroduces the known gateway buffering defect. The same command
+with `compose.candidate.json` reapplies the verified correction. MTA, database,
+accounts and other services are unchanged by either command.
+
+For normal June17 restoration, use `stage2_stabilization_restore.py` as above
+instead of the old window010 command. Its check-only mode passed against the
+current runtime. It checks accepted/protected state and the sealed restore
+configuration, creates a separate restoration receipt, then reuses the original
+account-disable/MTA-only restore checks. Window010's historical protected-service
+IDs are preserved. If gateway/frontend are subsequently rolled back or otherwise
+recreated, the new checkpoint deliberately refuses restoration until those new
+identities are explicitly reconciled. No normal restoration was executed here;
+the full April7 fixture remains selected for review.
