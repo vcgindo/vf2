@@ -1,10 +1,16 @@
 """Focused insight wire/aggregation tests, not replacement parity fixtures."""
 import unittest
-from mta.presentation.insight_response import scalar_json_rows,chronic_grid_payload
+from mta.presentation.insight_response import scalar_json_rows,chronic_grid_payload,insight_payload
 from mta.presentation import insights
 
 
 class InsightTest(unittest.TestCase):
+    def test_chronic_chart_post_scalar_empty_list(self):
+        for kind in ('chronic-loc', 'chronic-sku'):
+            self.assertEqual(insight_payload([], kind), [])
+        for kind in ('loc', 'sku', 'pie', 'ageing', 'availability-trend', 'availability-ageing'):
+            self.assertIsNone(insight_payload([], kind))
+
     def test_scalar_json_null_and_positive_identity(self):
         self.assertIsNone(scalar_json_rows([]))
         rows=[dict(count=0),dict(count=0)]

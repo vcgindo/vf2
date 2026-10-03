@@ -62,12 +62,11 @@ class PresentationTest(unittest.TestCase):
             self.assertEqual(self.post('DBMData', {}, HTTP_X_VECTORFLOW_IDENTITY='[]').status_code, 403)
 
     def test_insight_wire_nulls_and_chronic_numbers_after_scope(self):
-        context=SimpleNamespace(output={'BTRFinal':[ATTRIBUTES],'DBMFinal':[{}],
-            'ClosingState':[{'consumer_context':{'NMSAllItems':[]}}]})
+        context=SimpleNamespace(state=ATTRIBUTES, dbm={}, nms=[])
         payload=dict(product_permissions=[71001],location_permissions=[72001])
         row=dict(SKUCode='337',WHCode='AG515802',skucode='337',PhysicalInventoryPen='100.00',
             PipelineInventoryPen='66.67',RLT=3,skudesc=None)
-        with patch('mta.presentation.views.publication',return_value=context), \
+        with patch('mta.presentation.insight_read.insight_context',return_value=context), \
              patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE), \
              patch('mta.presentation.views.insights.chronic_grid',return_value=[row]), \
              patch('mta.presentation.views.insights.joined_rows',return_value=[]):
@@ -196,15 +195,21 @@ class PresentationTest(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root/'baseline/consumer-reuse.json').read_text())
         adaptations = manifest.get('accepted_adaptations', {})
-        self.assertEqual(set(adaptations), {'mta/presentation/btr.py', 'mta/presentation/dbm.py'})
+        self.assertEqual(set(adaptations), {'mta/presentation/btr.py', 'mta/presentation/dbm.py',
+                                           'mta/presentation/insights.py', 'mta/presentation/legacy_ui.py'})
         for name, expected in manifest['outputs'].items():
             if name in adaptations:
                 record = adaptations[name]
                 self.assertEqual(record['from_sha256'], expected, name)
-                report = {'mta/presentation/btr.py': 'BTR', 'mta/presentation/dbm.py': 'DBM'}[name]
+                report = {'mta/presentation/btr.py': 'BTR', 'mta/presentation/dbm.py': 'DBM',
+                          'mta/presentation/insights.py': 'Guided',
+                          'mta/presentation/legacy_ui.py': 'Guided'}[name]
                 self.assertTrue(record['scope'].startswith('F3.2 ' + report), name)
                 self.assertEqual(len(record['evidence_sha256']), 64, name)
-                self.assertIn('PASS_SELECTED_FILTER_CONTRACT_ONLY', record['acceptance'], name)
+                expected_acceptance = ('PASS_CANONICAL_CHRONIC_CONFIG' if name.endswith('/legacy_ui.py') else
+                                       'PASS_PROJECTED_SCOPED_FILTER_VALUES' if report == 'Guided'
+                                       else 'PASS_SELECTED_FILTER_CONTRACT_ONLY')
+                self.assertIn(expected_acceptance, record['acceptance'], name)
                 expected = record['sha256']
             actual = (root/name).read_bytes().replace(b'\r\n', b'\n')
             self.assertEqual(hashlib.sha256(actual).hexdigest(), expected, name)

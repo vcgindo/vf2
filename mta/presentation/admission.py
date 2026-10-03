@@ -33,6 +33,7 @@ CONFIG_SETTINGS = (
     'VF_MTA_PERMISSIONS_FILE', 'VF_MTA_PERMISSIONS_SHA256',
     'VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256',
     'VF_MTA_TERMINAL_FILE', 'VF_MTA_TERMINAL_SHA256',
+    'VF_MTA_EXCESS_HISTORY_FILE', 'VF_MTA_EXCESS_HISTORY_SHA256',
     'VF_MTA_ACTIONS_ENABLED', 'VF_MTA_ACTION_TIME_ZONE',
 )
 
@@ -45,6 +46,8 @@ def binding():
     files += [Path(configuration[name]) for name in (
         'VF_MTA_PERMISSIONS_FILE', 'VF_MTA_HIERARCHY_FILE', 'VF_MTA_TERMINAL_FILE')
         if configuration[name]]
+    if configuration['VF_MTA_EXCESS_HISTORY_FILE']:
+        files.append(Path(configuration['VF_MTA_EXCESS_HISTORY_FILE']))
     hashes = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
     projections = {}
     for model in PROJECTIONS:
@@ -59,6 +62,9 @@ def binding():
         manifest_digest=digest(run.production_manifest), output_roster=run.output_roster,
         checkpoints=list(run.checkpoints.order_by('name').values('name', 'digest', 'row_count')),
         configuration=configuration, files=hashes, projections=projections)
+    if configuration['VF_MTA_EXCESS_HISTORY_FILE'] or configuration['VF_MTA_EXCESS_HISTORY_SHA256']:
+        from mta.presentation.excess_history import selected_manifest, admission_identity
+        value['excess_history'] = admission_identity(run, selected_manifest(run))
     return run, digest(value)
 
 
@@ -92,6 +98,9 @@ def verify(run):
     read_fulfillment(run, output=output)
     read_expedite(run, output=output, bands=bands)
     read_pick_post(run, output=output, bands=bands)
+    if settings.VF_MTA_EXCESS_HISTORY_FILE or settings.VF_MTA_EXCESS_HISTORY_SHA256:
+        from mta.presentation.excess_history import selected_manifest, read_history
+        read_history(run, selected_manifest(run))
     # All local row objects are released on return. No result cache is retained.
 
 

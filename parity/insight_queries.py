@@ -1,6 +1,7 @@
 """Selected no-filter SQL extracted from the pinned deployed insight methods."""
 from pathlib import Path
 import re
+import json
 from parity.output_archive import file_sha
 from parity.verify_excess_readmodel import literals
 
@@ -9,13 +10,14 @@ SOURCE_SHA='d2f578a2beda0b67226b3c85ae65d3a39fe732496237ee41f7c0a9b067f29249'
 METHODS={'loc':'GetDBMNormSuggestionLoc','sku':'GetDBMNormSuggestionSKUs','pie':'GetDBMNormSuggestionPie',
     'ageing':'GetDBMNormSuggestionAgeing','chronic-loc':'GetChronicUnavailabilityLoc',
     'chronic-sku':'GetChronicUnavailabilitySku','chronic-grid':'ChronicUnavailabilityGridViewData',
-    'availability-trend':'GetAvailabilityTrend','availability-ageing':'GetAvailabilityAgeing'}
+    'availability-trend':'GetAvailabilityTrend','availability-ageing':'GetAvailabilityAgeing',
+    'excess-sku':'GetExcessInventorySku','excess-value':'GetExcessInventoryValue'}
 TABLES=('ChronicUnavalabilityData','DBMNormSuggestionsData','LocationAttributeData','SkuAttributeData',
     'SkuLocAttributeData','SKUDescriptionTbl','SiteDescriptionTbl','BTRSnapshotForUI','LastBatchRunTbl','BPR')
 CTE=';WITH cte_SKUs AS (SELECT DISTINCT SKUCode FROM #SkuAttributeData),cte_WhCodes AS (SELECT DISTINCT WHCode FROM #LocationAttributeData) '
 
 
-def query(kind,*,horizon=90,ageing=1):
+def query(kind,*,horizon=90,ageing=1,sql_filter='',sql_join_filter=''):
     if file_sha(SOURCE)!=SOURCE_SHA: raise ValueError('Canonical insight source changed')
     body=SOURCE.read_text().split('public responseMessage '+METHODS[kind]+'(',1)[1].split('\n\tpublic ',1)[0]
     variable='text3' if kind=='chronic-grid' else 'text'
@@ -26,12 +28,16 @@ def query(kind,*,horizon=90,ageing=1):
     parts=[]
     for match in re.finditer(pattern,body):
         expression=match.group(1)
-        if re.search(r'\+\s*sqlFilter\b',expression): continue
+        if re.search(r'\+\s*sqlFilter\b',expression) and not sql_filter: continue
+        expression=re.sub(r'\bsqlFilter\b',lambda _:json.dumps(sql_filter),expression)
+        expression=re.sub(r'\bsqlJoinFilter\b',lambda _:json.dumps(sql_join_filter),expression)
         expression=re.sub(r'\bhorison(?:\.ToString\(\))?',f'"{int(horizon)}"',expression)
         expression=re.sub(r'\bageing\.ToString\(\)',f'"{int(ageing)}"',expression)
         parts.append(literals(expression))
     sql=CTE+''.join(parts)
     for old,new in (('.dbo.DBMMaster','#DBMMaster'),('.dbo.NMSAllItems','#NMSAllItems'),
+                    ('.dbo.ExcessInventoryDetails','#ExcessInventoryDetails'),
+                    ('[dbo].[ExcessInventoryDetails]','#ExcessInventoryDetails'),
                     ('.[dbo].[ChronicUnavalabilityData]','#ChronicUnavalabilityData')):
         sql=sql.replace(old,new)
     for table in sorted(TABLES,key=len,reverse=True):

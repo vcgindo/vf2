@@ -2,9 +2,13 @@
 
 
 def scalar_json_rows(rows):
-    # Every selected method reads SELECT (SELECT ... FOR JSON PATH), then
-    # maps DBNull.ToString()=="" to null. This is not an empty JSON array.
+    # The scalar SQL boundary maps an empty string to null. Chronic chart
+    # processors subsequently replace null with an empty List<string>.
     return rows if rows else None
+
+
+def insight_payload(rows, kind):
+    return rows if kind in ('chronic-loc', 'chronic-sku') else scalar_json_rows(rows)
 
 
 def chronic_grid_payload(rows):

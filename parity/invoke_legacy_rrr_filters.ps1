@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$InputPath,[Parameter(Mandatory=$true)][string]$OutputPath,
-    [ValidateSet('RRR','BPR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')][string]$Report='RRR')
+    [ValidateSet('RRR','BPR','BTR','DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter','GuidedTrend','GuidedAgeing','GuidedGrid','GuidedLoc','GuidedSku','GuidedPie','GuidedSuggestionAgeing','GuidedChronicLoc','GuidedChronicSku','GuidedExcessSku','GuidedExcessValue')][string]$Report='RRR')
 $ErrorActionPreference='Stop'
 $vfRoot=[IO.Path]::GetFullPath('D:/freshvcf-build/evidence/')
 $vfInput=[IO.Path]::GetFullPath($InputPath)
@@ -15,7 +15,7 @@ $vfAssembly=[Reflection.Assembly]::LoadFrom($vfDll)
 $vfType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Commons.CommonsProcessor',$true)
 $vfMethod=$vfType.GetMethod('filterQueryForReports')
 $vfFilterType=$vfMethod.GetParameters()[0].ParameterType
-if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
+if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter','GuidedTrend','GuidedAgeing','GuidedGrid','GuidedLoc','GuidedSku','GuidedPie','GuidedSuggestionAgeing','GuidedChronicLoc','GuidedChronicSku','GuidedExcessSku','GuidedExcessValue')) {
     # DBMProcessor.GetDBMData's filter property chooses the exact overload.
     $vfDbmType=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.DBMProcessor',$true)
     $vfRequestMethod=$vfDbmType.GetMethod('GetDBMData')
@@ -31,7 +31,18 @@ if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGr
     if ($Report -in @('GitGrid','GitCount','GitTransporter')) {
         $vfRequestMethod=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.SCIH.PlanningProcessor',$true).GetMethod('GetMonitorGITParent')
     }
-    $vfFilterType=$vfRequestMethod.GetParameters()[0].ParameterType.GetProperty('filters').PropertyType
+    if ($Report.StartsWith('Guided')) {
+        $vfGuidedMethods=@{GuidedTrend='GetAvailabilityTrend';GuidedAgeing='GetAvailabilityAgeing';
+            GuidedGrid='ChronicUnavailabilityGridViewData';GuidedLoc='GetDBMNormSuggestionLoc';
+            GuidedSku='GetDBMNormSuggestionSKUs';GuidedPie='GetDBMNormSuggestionPie';
+            GuidedSuggestionAgeing='GetDBMNormSuggestionAgeing';GuidedChronicLoc='GetChronicUnavailabilityLoc';
+            GuidedChronicSku='GetChronicUnavailabilitySku';GuidedExcessSku='GetExcessInventorySku';
+            GuidedExcessValue='GetExcessInventoryValue'}
+        $vfRequestMethod=$vfAssembly.GetType('VectorFlowAPIs.VectorFlow.Processors.Replenishment.InsightsAndTrends.GuidedInsightsProcessor',$true).GetMethod($vfGuidedMethods[$Report])
+    }
+    $vfRequestType=$vfRequestMethod.GetParameters()[0].ParameterType
+    $vfFilterProperty=$vfRequestType.GetProperty('filters')
+    $vfFilterType=if ($null -eq $vfFilterProperty) { $vfRequestType } else { $vfFilterProperty.PropertyType }
     $vfMethod=@($vfType.GetMethods() | Where-Object { $_.Name -eq 'filterQuery' -and
         $_.GetParameters().Count -eq 6 -and $_.GetParameters()[0].ParameterType -eq $vfFilterType })[0]
     if ($null -eq $vfMethod) { throw 'Exact deployed DBM filter overload missing' }
@@ -43,20 +54,31 @@ $vfCases=@()
 foreach ($vfCase in $vfValues.cases) {
     $vfFilterJson=$vfCase.payload.filters | ConvertTo-Json -Depth 40 -Compress
     $vfFilter=[System.Text.Json.JsonSerializer]::Deserialize($vfFilterJson,$vfFilterType,$vfOptions)
-    if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
+    if ($Report -in @('DBM','BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter','GuidedTrend','GuidedAgeing','GuidedGrid','GuidedLoc','GuidedSku','GuidedPie','GuidedSuggestionAgeing','GuidedChronicLoc','GuidedChronicSku','GuidedExcessSku','GuidedExcessValue')) {
         $vfSql='';$vfJoin=''
         $vfActive=@('availabilityFilter','supplyChainFilter','coverageFilter','productFilter','locationFilter','colorFilter') |
             Where-Object { $vfCase.payload.filters.ContainsKey($_) -and $null -ne $vfCase.payload.filters[$_] }
         if (@($vfActive).Count -gt 0) {
             $vfParameters=New-Object object[] 6
             $vfParameters[0]=$vfFilter;$vfParameters[1]='e';$vfParameters[2]='i';$vfParameters[3]='f'
-            if ($Report -in @('BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter')) {
+            if ($Report -in @('BufferTrends','ExcessGrid','ExcessCount','FulfillmentGrid','FulfillmentCount','GitGrid','GitCount','GitTransporter','GuidedTrend','GuidedAgeing','GuidedGrid','GuidedLoc','GuidedSku','GuidedPie','GuidedSuggestionAgeing','GuidedChronicLoc','GuidedChronicSku','GuidedExcessSku','GuidedExcessValue')) {
                 $vfParameters[1]='sa';$vfParameters[2]='la';$vfParameters[3]='sla'
             }
             if ($Report -eq 'GitTransporter') { $vfParameters[1]='c' }
+            if ($Report.StartsWith('Guided')) {
+                $vfParameters[1]='sa';$vfParameters[2]='b';$vfParameters[3]='sla'
+                if ($Report -in @('GuidedAgeing','GuidedGrid')) { $vfParameters[2]='la' }
+                if ($Report -in @('GuidedSku','GuidedSuggestionAgeing','GuidedChronicSku')) {
+                    $vfParameters[1]='b';$vfParameters[2]='la'
+                }
+            }
             $vfParameters[4]='';$vfParameters[5]=''
             $vfMethod.Invoke($vfInstance,$vfParameters) | Out-Null
             $vfSql=[string]$vfParameters[4];$vfJoin=[string]$vfParameters[5]
+            if ($Report -in @('GuidedLoc','GuidedSku','GuidedPie','GuidedSuggestionAgeing')) {
+                $vfSql=$vfSql.Replace('a.ParentWhCode','db.ParentWhCode')
+                $vfJoin=$vfJoin.Replace('a.ParentWhCode','db.ParentWhCode')
+            }
             if ($Report -eq 'DBM') {
                 $vfSql=$vfSql.Replace('a.ParentWhCode','b.ParentWhCode')
                 $vfJoin=$vfJoin.Replace('a.ParentWhCode','b.ParentWhCode')

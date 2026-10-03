@@ -1,0 +1,83 @@
+[
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "skucode",
+    "Col_Position": 1,
+    "Header": "SKU Code",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "location",
+    "Col_Position": 2,
+    "Header": "Location Code",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "skudesc",
+    "Col_Position": 3,
+    "Header": "SKU Description",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "parentloc",
+    "Col_Position": 4,
+    "Header": "Parent Location Code",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "RLT",
+    "Col_Position": 5,
+    "Header": "RLT",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "Number"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "BlackRedAgeing",
+    "Col_Position": 6,
+    "Header": "Black Red Ageing",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "Techcolor",
+    "Col_Position": 8,
+    "Header": "On hand Inv. Color",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "ecocolor",
+    "Col_Position": 10,
+    "Header": "Pipeline Inv. Color",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "String"
+  },
+  {
+    "ReportName": "ChronicUnavailability",
+    "Col_Code": "RationedStockatparent",
+    "Col_Position": 11,
+    "Header": "Rationed Stock at Parent",
+    "Visible": true,
+    "CellAlignment": "left      ",
+    "DataType": "Number"
+  }
+]

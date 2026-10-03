@@ -341,19 +341,9 @@ PLANNING_FULFILMENT_UI_CONFIG = _report_columns("Order_Fulfillment_Review", [
     ]
 ])
 
-CHRONIC_UI_CONFIG = _report_columns("ChronicUnavailability", [
-    ("skucode", 1, "SKU Code", True, "left      ", "*Error*"),
-    ("skudesc", 2, "SKU Description", True, "left      ", "*Error*"),
-    ("location", 3, "Location", True, "left      ", "*Error*"),
-    ("parentloc", 4, "Parent Location", True, "left      ", "*Error*"),
-    ("RLT", 5, "RLT", True, "right     ", "*Error*"),
-    ("BlackRedAgeing", 6, "Black/Red Ageing", True, "right     ", "*Error*"),
-    ("Techcolor", 7, "On-Hand Colour", True, "left      ", "*Error*"),
-    ("Executive", 8, "On-Hand Penetration", True, "right     ", "*Error*"),
-    ("ecocolor", 9, "Pipeline Colour", True, "left      ", "*Error*"),
-    ("ExecutiveEco", 10, "Pipeline Penetration", True, "right     ", "*Error*"),
-    ("RationedStockatparent", 11, "Rationed Quantity", True, "right     ", "*Error*"),
-])
+CHRONIC_UI_CONFIG = json.loads(
+    (Path(__file__).resolve().parents[1] / 'config/chronic_selected_ui.json').read_text())
+
 
 def _planning_config(report_name: str, template: list[dict]) -> list[dict]:
     """Reuse a fact-backed Planning shape while preserving every UI name."""

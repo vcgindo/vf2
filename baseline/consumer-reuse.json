@@ -55,6 +55,22 @@
       "evidence": "D:/freshvcf-build/evidence/f3-btr-filters-comparison-001/receipt.json",
       "evidence_sha256": "fae017590847e047805d65883979b31e96fbdd2f9bdeb03b89f1f2f54e1a79b9",
       "acceptance": "PASS_SELECTED_FILTER_CONTRACT_ONLY; not whole F3 acceptance"
+    },
+    "mta/presentation/insights.py": {
+      "from_sha256": "1a439ff33352e1a737ca3e5180fffbc96c9386eaaaa61ca28bf984526647fb78",
+      "sha256": "c76a02614010b9b559c211cdf27b32d2f184b40209f2e61537948f348912ca66",
+      "scope": "F3.2 Guided raw source filters, indexed duplicate-preserving joins and scoped snapshots; original source/output pins retained; no calculation/state change",
+      "evidence": "D:/freshvcf-build/evidence/f3-stage2-guided-batch-001/filtered-scoped-comparison.json",
+      "evidence_sha256": "bdbdcdc2268a1c62691a61d686bfafa5ef77a9f0d4069a4d79b247d1c4317d77",
+      "acceptance": "PASS_PROJECTED_SCOPED_FILTER_VALUES; not whole F3 acceptance"
+    },
+    "mta/presentation/legacy_ui.py": {
+      "from_sha256": "b370aefde21fb2baf7cb004f102e38ec76c826698ae7900d7395bb80b2eddc6c",
+      "sha256": "ab5ded9cfd9ac5b7e1ae4ce585f4b28c60675f7189d7272d26eaccb1fcc8f102",
+      "scope": "F3.2 Guided canonical deployed ChronicUnavailability nine-column metadata; original source/output pins retained; no calculation/state change",
+      "evidence": "D:/freshvcf-build/evidence/f3-stage2-guided-batch-001/chronic-config-http.json",
+      "evidence_sha256": "d15ac9d40f9cd3934628dcadb10bc13ada9270ee6072222ef346ac8b5b6fdc43",
+      "acceptance": "PASS_CANONICAL_CHRONIC_CONFIG; not whole F3 acceptance"
     }
   },
   "transformation": "Pure functions/configuration only; no old ORM, publication, calculation, authentication or generators",

@@ -525,3 +525,22 @@ The roster's historical label `missing-tags` does NOT describe BPR: its emitted
 unqualified tags resolves to joined SKULocStandardAttributes.Tags, so that filter
 is connected. NULL values and exact IN matching remain intact. No missing
 population is defaulted to empty and no F2 data is changed.
+
+## Guided Excess — approved preview opening history
+
+Direct user reply to call_bEZzSUkIR32TJ5lhNiuxhyFI approves declaring no Excess
+history before June6 for the selected June6–17 preview, then deriving reports
+independently from each engine's own accepted daily outputs. This is a declared
+preview input, not proof that the original legacy history was empty. It does not
+authorize another run/date chain, calculation change or copied legacy output.
+
+Affected contracts: GuidedInsightsProcessor.GetExcessInventorySku/Value, source
+SHA256 d2f578a2beda0b67226b3c85ae65d3a39fe732496237ee41f7c0a9b067f29249;
+CollectExcessInventoryDetails.sql producer SHA256
+71bb48766d3af7a739b90c511124f9ad99072066283536fd28a9530f3640b8c4.
+The input declaration and all12 accepted run/digest identities are pinned in
+D:/freshvcf-build/evidence/f3-stage2-guided-batch-001/excess-history-input.json,
+SHA256 f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
+Its independent comparison covers770 rows/all producer fields. No synthetic
+zero dates, unrelated shallow trials, F2 mutations or general history lifecycle
+acceptance follow from this approval. Publication and browser proof remain separate.

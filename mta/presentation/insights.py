@@ -12,19 +12,30 @@ def _key(row):
     return row['SKUCode'], row.get('WhCode', row.get('WHCode', row.get('LocCode')))
 
 
-def availability_rows(btr):
+def _native_index(rows, key):
+    result = defaultdict(list)
+    for row in rows:
+        result[key(row)].append(row)
+    return result
+
+
+def availability_rows(btr, *, filter_owners=False):
     """GetAvailabilityTrend's attribute joins over the computed BPR history."""
     result = []
+    skus = _native_index(btr['SkuAttributeData'], lambda r: r['SKUCode'])
+    locations = _native_index(btr['LocationAttributeData'], lambda r: r['WHCode'])
+    pairs = _native_index(btr['SkuLocAttributeData'], _key)
     for row in btr['BPR']:
         sku, loc = _key(row)
         for sa, la, sla in product(
-                [r for r in btr['SkuAttributeData'] if r['SKUCode'] == sku],
-                [r for r in btr['LocationAttributeData'] if r['WHCode'] == loc],
-                [r for r in btr['SkuLocAttributeData'] if _key(r) == (sku, loc)] or [{}]):
+                skus.get(sku, []), locations.get(loc, []),
+                pairs.get((sku, loc), []) or [{}]):
             value = {**row, **la, 'WhCode': loc}
             value.update({f'SKUAttribute{i}': sa.get(f'c{i}') for i in range(1, 16)})
             value.update({f'LocAttribute{i}': la.get(f'c{i}') for i in range(1, 16)})
             value.update({f'SkuLocAttribute{i}': sla.get(f'c{i}') for i in range(1, 16)})
+            if filter_owners:
+                value.update(_a=row, _sku=sa, _location=la, _pair=sla)
             result.append(value)
     return result
 
@@ -45,20 +56,23 @@ def availability_trend(rows):
     return sorted(result, key=lambda r: r['week'])
 
 
-def availability_ageing(rows, snapshots, minimum_age):
+def availability_ageing(rows, snapshots, minimum_age, *, predicate=None):
     """The current snapshot age qualifies all selected history for that key."""
     groups = defaultdict(list)
+    by_pair = _native_index(snapshots, _key)
     for row in rows:
-        for snapshot in snapshots:
-            if (_key(row) == _key(snapshot) and snapshot['AgePhysicalInv'] is not None
+        for snapshot in by_pair.get(_key(row), []):
+            if (snapshot['AgePhysicalInv'] is not None
                     and snapshot['AgePhysicalInv'] >= minimum_age):
-                groups[row['ReportDate']].append(row['PhysicalInventoryColor'])
+                multiplicity = predicate({**row, '_snapshot': snapshot}) if predicate else 1
+                if multiplicity:
+                    groups[row['ReportDate']].extend([row['PhysicalInventoryColor']] * multiplicity)
     return [{'date': day, 'black': colours.count('Black'),
              'red': colours.count('Red'), 'white': colours.count('White')}
             for day, colours in sorted(groups.items())]
 
 
-def joined_rows(btr, dbm, kind):
+def joined_rows(btr, dbm, kind, *, filter_owners=False):
     table = 'ChronicUnavalabilityData' if kind.startswith('chronic') else 'DBMNormSuggestionsData'
     result = []
     for row in btr[table]:
@@ -84,6 +98,8 @@ def joined_rows(btr, dbm, kind):
             value.update({f'SkuLocAttribute{i}': sla.get(f'c{i}') for i in range(1, 16)})
             value.update({k: v for k, v in sa.items() if not k.startswith('c')})
             value.update({k: v for k, v in la.items() if not k.startswith('c')})
+            if filter_owners:
+                value.update(_a=row, _location=la, _pair=sla, _master=master)
             result.append(value)
     return result
 
@@ -93,7 +109,7 @@ def _max(rows, owner, name):
     return max(values) if values else None
 
 
-def chronic_grid(btr, nms):
+def chronic_grid(btr, nms, *, filter_owners=False):
     result = []
     for row in btr['ChronicUnavalabilityData']:
         populations = (
@@ -110,6 +126,8 @@ def chronic_grid(btr, nms):
                 'PhysicalInventoryPen': row['PhysicalInventoryPen'], 'Techcolor': row['PhysicalInventoryColor'],
                 'PipelineInventoryPen': row['PipelineInventoryPen'], 'ecocolor': row['PipelineInventoryColor'],
                 'RationedStockatparent': row['RationedQty']})
+            if filter_owners:
+                result[-1].update(_a=row, _sku=sa, _location=la, _pair=sla, _description=n)
     return result
 
 

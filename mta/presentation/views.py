@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from mta.presentation import btr, insights
 from mta.presentation.context import PublicationUnavailable, permission_catalogue, publication, scope, selected_run
+from mta.presentation.insight_filters import InsightFilterUnavailable
 from mta.presentation.dbm import dbm_rows, delivery_history
 from mta.presentation.dbm_read import dbm_context
 from mta.presentation.dbm_filters import dbm_predicate
@@ -80,6 +81,9 @@ def endpoint(method, *, public=False):
                 if not isinstance(payload, dict):
                     raise ValueError('JSON body must be an object')
                 return function(request, payload, *args, **kwargs)
+            except InsightFilterUnavailable:
+                # Canonical Guided controller: HTTP500 and responseMessage null fields.
+                return envelope(status=500)
             except PublicationUnavailable as exc:
                 return JsonResponse({'error': str(exc)}, status=503)
             except (ValueError, TypeError) as exc:
@@ -482,28 +486,45 @@ def historical_availability(request, payload):
 
 @endpoint('POST')
 def insight_data(request, payload, *, kind):
-    context = publication()
-    state = context.output['BTRFinal'][0]
+    from mta.presentation.insight_read import insight_context
+    from mta.presentation.insight_filters import InsightPredicate
+    from mta.presentation.insight_response import insight_payload
+    context = insight_context(kind)
+    state = context.state
+    predicate = InsightPredicate(payload, state['LocationAttributeData'], kind=kind)
+    if kind in ('excess-sku', 'excess-value'):
+        from mta.presentation.excess_insights import project
+        try:
+            horizon = int(payload.get('horison', 0))
+            cutoff = (context.business_date - timedelta(days=horizon)).isoformat()
+            rows = insights.availability_rows({**state, 'BPR': context.history}, filter_owners=True)
+            rows = [r for r in rows if r['ReportDate'] > cutoff]
+            rows = predicate.select(scoped(rows, payload, 'WHCode', attributes=state,
+                                           preserve_join_multiplicity=True))
+            return envelope(data=scalar_json_rows(project(rows, value=kind == 'excess-value')))
+        except OverflowError:
+            return envelope(status=500)
     if kind == 'chronic-grid':
-        rows = insights.chronic_grid(state, context.output['ClosingState'][0]['consumer_context']['NMSAllItems'])
-        rows = _filter_rows(scoped(rows, payload, 'WHCode', attributes=state,
-                                  preserve_join_multiplicity=True), payload)
-        return envelope(data=chronic_grid_payload(rows))
+        rows = insights.chronic_grid(state, context.nms, filter_owners=True)
+        rows = predicate.select(scoped(rows, payload, 'WHCode', attributes=state,
+                                       preserve_join_multiplicity=True))
+        return envelope(data=chronic_grid_payload([
+            {k: v for k, v in row.items() if not k.startswith('_')} for row in rows]))
     if kind in ('availability-trend', 'availability-ageing'):
         horizon = int(payload.get('horizon', payload.get('horison', 90 if kind == 'availability-trend' else 30)))
         if not 1 <= horizon <= 90:
             raise ValueError('horizon must be between 1 and 90 days')
         cutoff = (context.business_date - timedelta(days=horizon)).isoformat()
-        rows = [r for r in insights.availability_rows(state) if r['ReportDate'] > cutoff]
-        rows = _filter_rows(scoped(rows, payload, 'WHCode', attributes=state,
-                                  preserve_join_multiplicity=True), payload)
-        values = (insights.availability_trend(rows) if kind == 'availability-trend' else
-                  insights.availability_ageing(rows, state['BTRSnapshotForUI'], int(payload.get('ageing',1))))
+        rows = [r for r in insights.availability_rows(state, filter_owners=True) if r['ReportDate'] > cutoff]
+        rows = scoped(rows, payload, 'WHCode', attributes=state, preserve_join_multiplicity=True)
+        values = (insights.availability_trend(predicate.select(rows)) if kind == 'availability-trend' else
+                  insights.availability_ageing(rows, state['BTRSnapshotForUI'],
+                      int(payload.get('ageing',1)), predicate=predicate))
     else:
         # Insight tables are producer-owned daily outputs. Later Apply/Sleep
         # changes the DBM action overlay, not these already-produced tables.
-        rows = insights.joined_rows(state, context.output['DBMFinal'][0], kind)
-        rows = _filter_rows(scoped(rows, payload, 'WHCode', attributes=state,
-                                  preserve_join_multiplicity=True), payload)
+        rows = insights.joined_rows(state, context.dbm, kind, filter_owners=True)
+        rows = predicate.select(scoped(rows, payload, 'WHCode', attributes=state,
+                                       preserve_join_multiplicity=True))
         values = insights.project(rows, kind)
-    return envelope(data=scalar_json_rows(values))
+    return envelope(data=insight_payload(values, kind))

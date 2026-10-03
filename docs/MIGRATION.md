@@ -3975,3 +3975,312 @@ consumer owners using P21 and the retained call inventory, then port only its
 read contracts against the same publication. Required proof is complete branch
 responses, auth/scope, actual controls/client exports and performance; missing
 oracle comparison remains a shared blocker. Research follows Guided disposition.
+
+
+BPR implementation checkpoint88c434d pushed to origin/main. Guided whole-page
+source reconciliation started in GUIDED_PAGE_CONTRACT.md, reusing P21. Five tabs
+are enabled; Custom Screens is commented out. Two ExcessInventory routes are
+missing; nine existing insight handlers reconstruct whole publication. Captured
+child/parent effect dependencies, age/horizon payload quirks and shared export
+ref dependency for source attribution before any mutation. No Guided code changed
+or deployed yet. Authenticated Guided entry renders five tab buttons; chart
+readiness is not yet proved by that initial observation. SQL connectivity remains
+a shared blocker, not a reason to stop independent contract integration work.
+
+
+Guided batch in worktree: insight_read.py now loads each branch's named native
+BTR images, DBMMaster only for DBM charts, NMS only for chronic grid, and applies
+the same approved hierarchy projection. Nine handlers use this selective context;
+projection/filter/paging logic remains unchanged. Seven focused tests pass for
+wire/projections and required dependency/checksum failure behavior. The first
+new test invocation lacked Django setup, the second lacked the test-only secret;
+normal repository test bootstrap fixed both before the passing run.
+Canonical chronic configuration is corrected from11 hand-authored columns to9
+visible SQL/type rows, including positions, labels, alignment and NULL omission.
+Shared GridViewTable export ref is verified connected; no frontend repair needed.
+No serving deployment or Guided acceptance yet; all work remains one page batch.
+
+Guided selective native readback completed against all13 retained independently
+compared results: complete object/value/order equality, not counts only. Receipt
+chain for f3-insight-export-002 is reconciled to f3-insight-comparison-004 and the
+compressed export digest is verified. Proof selective-native.json is under
+f3-stage2-guided-batch-001. Hierarchy was explicitly disabled for this native
+unscoped comparison to match the retained boundary; scoped/projected wire and
+browser proof remain required.
+The first probe measured availability ageing10.9–17.5s. Repeated attribute and
+snapshot scans in insights.py were replaced with native-key indexes preserving
+input list order, duplicate bags, NULL key behavior and the same projection.
+All13 complete outputs remain equal (indexed-native.json), with availability
+requests0.63–0.90s in that modern-only observation. These timings are not a matched
+legacy/API/browser performance claim. Seven focused tests pass after the change.
+Worktree only; no new image, service restart or per-interaction delivery. Remaining
+Guided batch work is filter source ownership/configuration proof, excess history
+provenance/disposition, then consolidated scoped API/browser/restart verification.
+Lean-code-orchestrator applied as complex integration with direct primary ownership;
+no helper was needed for these bounded read changes. Goal remains active.
+
+Guided dependency reconciliation update (3 October): one bounded read-only helper
+checked Excess history ownership. The registered full-prefix population contains
+only the June17 current-day Excess projection (85 rows); June6/7 projections belong
+to independent shallow trials and cannot be concatenated into that history.
+The missing dependency is a provenance-bound Excess history for the accepted full
+chain. Existing accepted daily facts and the current report producer must be
+assessed before deciding whether an additive historical report projection fits
+the authorized read boundary. The helper's investigation boundary is not itself
+a new permission restriction. No history was synthesized or published.
+
+The legacy recovery chat 01a0f7c6-1050-7741-b80a-a7f10ca0d04d reports successful
+CHECKDB and normal legacy startup after the human's elevated SQL restart, with
+no subsequent823 observed. This is a reported dependency recovery, not a local
+matched-oracle check or parity receipt. Earlier18456/823 failures remain evidence
+of their attempts; do not carry them forward as an assumed current outage.
+The serving legacy October8,2025 snapshot is not the Fresh June17 input. Reuse
+the retained June17 independent setup for outstanding comparisons; no live legacy
+data mutation, calculation replay, or service restart follows from this update.
+Guided remains the active coherent batch, undeployed and not accepted.
+
+Guided filter implementation checkpoint (worktree only): insight_filters.py now
+resolves predicates against the exact native join owners before aggregation,
+including DBMMaster parent ownership, per-attribute OR/cross-attribute AND,
+parent-location duplicate multiplicity, the six-standard-group activation gate,
+and missing/ambiguous source columns even on empty populations. All nine existing
+handlers use it; ageing applies it after each snapshot join. Raw owner metadata
+is stripped before chronic grid serialization. No frontend or F2 mutation.
+The chronic chart processor's explicit null-to-empty-List conversion was also
+restored; this is distinct from its scalar SQL boundary, which remains null.
+
+Fresh oracle recovery is now independently checked: restricted owned connection
+and SELECT1 PASS in f3-stage2-guided-batch-001/oracle-recovery-check.json. The same
+bundle's check_filter_sql_schema.py / filter-sql-schema-check.json executes all468
+captured cases over session-temp empty native schemas:340 compile,128 fail SQL,
+and all468 agree with the adapter's classification. No persistent SQL writes or
+engine replay. This proves source-column/error classification only, not filtered
+values, scope, HTTP error envelopes or browser parity. The13 original unfiltered
+queries remain byte-identical after adding captured-filter operands to the query
+extractor. Fourteen focused insight tests pass; diff whitespace checks pass.
+Next proof must compare full filtered outputs on the separately retained modern
+and legacy populations, then finish wire/configuration/history reconciliation and
+the consolidated3005 page QA. In particular, invalid-filter wire behavior still
+needs verification; current PublicationUnavailable handling is not claimed equal
+to the canonical processor's status500 response. Batch remains undeployed.
+
+Guided populated filter proof: filtered-native-modern.json and
+filtered-native-comparison.json in f3-stage2-guided-batch-001 preserve the first
+468-case comparison over separately retained native modern/legacy terminal rows.
+It found four availability-ageing mismatches: rejected rows created date groups
+with zero counts. insights.py now creates a date group only when join/filter
+multiplicity is positive. The regression test covers total exclusion.
+filtered-native-modern-002.json and filtered-native-comparison-002.json pass all468
+cases against the preserved SQL results (340 value results,128 SQL failures).
+No failed evidence was replaced, no engine replay or persistent SQL write occurred.
+This boundary remains native/unscoped: the request roster's scope labels do not
+constitute authenticated or projected-hierarchy proof.
+
+Read-only canonical HTTP AvailabilityTrend invalid-filter observation confirms
+HTTP500 with the standard eight-field null/error envelope; retained in
+legacy-invalid-filter-http.json. InsightFilterUnavailable now maps only Guided
+filter SQL failures to that envelope; missing publication data retains503.
+Fifteen focused tests pass, including both HTTP failure classes. No deployment.
+
+Excess reconciliation confirms pinned producer retention is90 days (StdSettingsPre)
+with current-date replacement. The existing June17 report does not establish the
+prior history/opening population. The literal .dbo identifier probe was rejected
+by the Fresh SQL guard before execution (excess-identifier-syntax.json); despite
+its generic SQL_ERROR label, it is NOT evidence that canonical SQL is invalid.
+Do not repair that identifier or conflate independent shallow trials with history.
+Remaining Guided batch proof: authenticated/projected scopes, complete wire/config
+and history disposition, then consolidated controls/exports/restart/performance.
+
+Guided scoped modern export completed: filtered-scoped-modern.json retains468
+cases using the configured approved hierarchy supplement and explicit permission
+IDs. Independent SQL comparison stopped before execution because another process
+holds the Fresh oracle lease. Read-only lock inspection confirms session130,
+host PID5292; do not interrupt it or claim the comparison ran. The prepared
+compare_filtered_scoped.py uses independent SQL hierarchy projection/auth CTEs.
+Canonical GET GetUIConfig?reportName=ChronicUnavailability returns200 and exactly
+matches all nine metadata rows (chronic-config-http.json).
+
+Direct user approval to question call_bEZzSUkIR32TJ5lhNiuxhyFI:
+"Approve this preview history input". Exact scope: declare empty Excess history
+before June6 for the selected preview; derive June6–17 report rows from each
+engine's OWN accepted outputs, then compare with the identical declared opening.
+This is a new preview input, not evidence that legacy historical rows were empty.
+F2 calculations, state and receipts remain unchanged. Read-only traversal verified
+the selected terminal run's complete12-day accepted predecessor chain, beginning
+029ea9e2-165b-48f0-a016-4b2851cedc7e onJune6 and ending the pinnedJune17 run.
+Use the existing Excess producer/typed per-run projection owner; preserve June17
+and all independent shallow trials. Do not mix those trials into the chain.
+No history has yet been published. Approval clears the missing-opening decision,
+not implementation, independent comparison, or UI acceptance.
+
+Approved-history implementation is now in the Guided worktree batch.
+software-architecture-reasoning and one bounded Sol review confirmed reuse of
+existing per-run ExcessProjection/ExcessInventoryRow. excess_history.py validates
+the exact consecutive accepted12-day chain, input/output/production/parity and
+predecessor identities, explicit opening and producer. Its publication operation
+requires a pinned independent comparison and runs atomically across all12 days;
+existing projections are validated, never replaced. Native rationed reports and
+each day's own DBM standards supply the existing producer. The read operation
+checks all projection metadata and native source/row digests, including zero days.
+Startup admission integration remains to be wired; no history publication occurred.
+
+Canonical BPR/01. ImportData.sql copies BPR-local attribute bags from Importer.
+Thus both Guided Excess trends must join historical rows against the SELECTED
+TERMINAL closing/importer attributes, not each prior day's or BTR's attributes.
+Only the previously approved terminal hierarchy fields may be supplemented.
+excess_insights.py implements the separate count-white and sum-all aggregates,
+NULL handling and BIGINT overflow boundary. Actual-DLL filter captures for both
+Excess methods are retained as GuidedExcessSku/Value-filters.json (52 each).
+Twenty-one focused tests pass across history boundaries, aggregates and existing
+Guided changes. Transactional PostgreSQL rollback/retry, independent12-day report
+comparison, admission/route wiring and consolidated browser proof remain required.
+These additions are not serving, accepted, or a new status queue.
+
+Guided scoped comparison resumed after the other owner released the lease:
+filtered-scoped-comparison.json PASS for all468 cases using independent SQL
+hierarchy/auth joins. This is explicit scope-contract proof, not leaf login.
+Both Excess API routes are wired in the worktree with selected Importer attributes,
+strict date cutoff and source filters. Optional pinned history settings now extend
+admission to all12 run/projection identities and startup readback; absent input
+denies these routes. Bulk chain queries exclude input payload/large manifests,
+and duplicate within-operation chain lookups were removed without dropping checks.
+Configured HTTP/query-count and unaffected-route performance remain to measure.
+
+History candidate:770 rows with daily counts8/42/53/52/67/67/69/78/79/85/85/85;
+all12 modern output digests and row digests/counts verified. Canonical producer SQL
+over each day's OWN accepted legacy facts passes all12 complete comparisons in
+excess-history-comparison-001/receipt.json, SHA256
+370ff3064aebf3620725fca940c3d0d24e77ab67ee6459d9f6289b6641b98138.
+The approved manifest is excess-history-input.json, SHA256
+f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
+No calculation replay or persistent SQL writes occurred. History remains unpublished.
+
+PostgreSQL transaction protocol proof passes in retained owned database
+test_freshvcf_guided_history_20261003_002: injected middle failure rolls back new
+days while preserving the existing terminal; full retry is idempotent and keeps
+CalculationRun/terminal projection metadata unchanged. history-postgres-tests-003.txt
+records6 passing tests (two history transaction tests plus four reused producer
+tests). Earlier001 failed dynamic module registration before DB tests;002 hit a
+UUID/string assertion mismatch after correct rollback. Both are preserved.
+Thirty-three focused admission/Guided/history tests pass after wiring.
+
+Canonical live Excess HTTP probes initially used Fresh-only permission IDs and
+failed the known missing-ID auth fallback. With actual legacy permission ID1
+(read via GetAllPermissionsAdmin), both methods return200, including a populated
+SKU result. Thus the literal omitted-database .dbo form executes in the canonical
+runtime; no SQL repair is required. Those October2025 responses prove execution/
+wire behavior only, not matchedJune17 values. Existing probe files remain retained.
+
+Bounded independent review found one HTTP gap: Excess date/BIGINT overflow escaped
+the canonical responseMessage envelope. The Excess branch now maps OverflowError
+to HTTP500/envelope while retaining overflow checks; its focused HTTP regression
+passes. No other material persistence/security issue was found. The review does
+not replace configured query/time, matched-performance or browser proof.
+
+Approved history has now been published atomically using the pinned manifest and
+independent receipt. history-publication.json records PASS_PUBLISHED_HISTORY_READBACK:
+12 days/770 rows, idempotent retry, all pre-existing projections unchanged (including
+June17 and independent shallow trials), and accepted run metadata unchanged.
+read_history validated every native source/row digest after publication. No F2
+calculation replay or serving rebuild/restart occurred. Current serving image is
+still the BPR checkpoint; the new routes/settings remain worktree-only until the
+coherent Guided deployment. Remaining: Excess trend/filter/wire comparisons over
+this history, configured admission/API diagnostics, full page controls/downloads,
+restart and matched performance. Stage2 remains active and unaccepted.
+
+### Stage2 safe-stop handoff — 3 October 2026
+
+Human stop instruction relayed by command-centre thread
+01a0f7c6-1050-7741-b80a-a7f10ca0d04d after deployment began. Stop expansion and
+preserve a partial checkpoint. Existing goal is PAUSED, not complete. No new
+page, exhaustive browser loop, benchmark campaign or later stage is authorized
+by this handoff. Resume only on a new explicit human instruction.
+
+Checkpoint: the single commit containing this handoff, based on88c434d; resolve
+its immutable SHA with `git log -1 --format=%H -- docs/MIGRATION.md` at handoff.
+The final chat reports that actual SHA after commit/push. This self-reference
+avoids embedding a necessarily stale self-hash. Runtime source/config is the
+Guided batch in this checkpoint, not the preceding BPR image.
+Serving MTA image:
+sha256:526ebe525ca7ea1b4c90e7fd475d3dc1eec6166a40161983477a117f7b302da8.
+Container a7a583ea16a86197fe507013927db9df859b13574f25257b129b4fc5a922e9e8
+is running. compose.preview.yaml includes the approved history manifest mount;
+4GiB/2CPU/restart=no, two workers/180s, no MTA host port. Only MTA was recreated;
+frontend/user-service/MTO/Redis/PostgreSQL and protected services were unchanged.
+No schema change. Preview remains localhost:3005, no3004 cutover.
+Startup admitted June17 run ac1612c8-0e49-4155-83c3-f59f41422293,
+output bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d,
+admission34a99fa5de6f70c2e7384283d083f6011558ac92c5927e627f4fd322d97044a7.
+
+Published preview input is D:/freshvcf-build/inputs/excess-history-input-v1.json,
+SHA256 f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
+It declares empty pre-June6 history ONLY for this preview and binds12 accepted
+June6–17 own-output projections,770 typed rows. It is not proof of empty legacy
+history. Publication/retry preserved all existing projections and F2 run metadata.
+No engine replay or calculated legacy-output copying occurred.
+
+Completed proof, all under D:/freshvcf-build/evidence/f3-stage2-guided-batch-001:
+- filtered-scoped-comparison.json:468 complete independent scoped/filter cases.
+- excess-trend-comparison.json:110 independent trend/filter/horizon cases PASS,
+  including declared order. Together578 cases; not578 UI interactions.
+- excess-history-comparison-001/receipt.json:12 own-output/770-row comparisons.
+- history-publication.json: atomic publication/readback and idempotent retry;
+  history-postgres-tests-003.txt:6 PostgreSQL transaction/producer tests pass.
+- Existing13 native output proofs, canonical nine-column chronic configuration,
+  distinct NULL/empty responses and overflow envelope regression retained.
+- unit-suite-final.txt:270 tests,268 pass; two pre-existing Expedite fixture
+  failures remain (test_expedite_chart_native_scope_and_source_flaw_unavailable,
+  test_expedite_count_direction_and_unavailable_detail_contract,503vs200).
+  Guided fixture/provenance failures corrected; original source/output pins
+  remain, with evidence-bound adaptations registered in consumer-reuse.json.
+- Baseline verification:376 pinned resources unchanged; git diff check passes.
+- build.txt and startup admission above establish deployment readiness.
+- guided-gateway.json: actual authenticated3005 requests, all11 Guided routes
+  and BPR count each return200 twice. This bounded stabilization check records
+  complete bodies, not an independent gateway-value comparison. Modern-only
+  observed times:Excess2.80–3.06s, BPR count0.82–0.87s; these are NOT matched
+  performance acceptance. No latency threshold or checksum relaxation inferred.
+- Browser signed in through the existing preview account. Availability Trend
+  rendered six location-type series; Agen legend toggled hidden and restored.
+  browser-handoff.png retains the final view. Other Guided browser controls
+  were not tested after deployment; no blanket UI QA claim.
+
+Exact remaining Stage2 exits for a newly authorized bounded task:
+1. Guided active item: finish actual five-tab interactions (horizons/ageing,
+   chart/table/legend controls, Chronic grid/filter/layout/paging and downloads,
+   DBM panels/link, Excess dual horizons), complete gateway wire/value checks,
+   real authorized leaf-actor proof, configured query-count/unaffected-route
+   overhead diagnostic and frozen matched API/browser performance. The deployment
+   startup/readback is proved; persisted-layout/restart interactions remain open.
+   Inherited ageing handler and stale Excess horizon behavior are source-mapped,
+   not implicitly repaired or waived. Next-day/general lifecycle behavior of the
+   preview-specific history manifest is unproved and outside this bounded batch.
+2. BPR remains partial: independent52-case grid/count/analytics/export and CSV
+   cells, actual browser CSV receipt, leaf login, matched timings, deferred drag/
+   resize/split/multiselect/filter/historical/concurrency controls, and the
+   inherited Reset Layout ordering disposition. SQL is now locally healthy and
+   Guided comparisons succeeded: the old18456/823 outage is no longer a reason
+   to defer feasible BPR independent proof. Do not repeat its existing UI work.
+3. Planning remains user-directed deferred: exports USER-VERIFIED WORKING,
+   not a broken-product diagnosis; outstanding custom NMS provenance/disposition,
+   child SQL/filtered-count wire proof, residual controls/real leaf and matched
+   performance. Prior exact presentation/empty-request-history approvals transfer
+   only within their recorded scope. No expediting or remarks writes.
+4. RRR/DBM/BTR/Buffer Trends earlier residual exits remain as already recorded:
+   layout/history/selection interactions, inherited BTR fresh-reload disposition,
+   authorized actor and matched performance gaps. Reuse completed RRR/BTR files
+   and DBM positive action/own-next-day/restoration receipts; no trial reset.
+5. Research has not been opened in this Guided batch: whole-page contract and
+   graph/grid selection/date/horizon/filter/config/layout/export QA still owed,
+   reusing existing native history/BPR proofs. Do not infer it is covered by
+   Guided or open it before explicit Guided disposition.
+6. Reconcile these existing page exits into one Stage2 completion assessment.
+   Stages3–5, positive logistics/remark histories, new workflow writes, MTO changes
+   and3004 cutover remain excluded. This checkpoint is not Stage2 acceptance.
+
+Owned processes: build and gateway commands terminated; all SQL comparisons
+terminated and exclusive leases exited; no owned temporary worker is running.
+The bounded review helper completed (overflow finding fixed before build).
+Retained test DB test_freshvcf_guided_history_20261003_002 is preserved; no drop,
+reset, volume cleanup or other task process interruption. The authenticated
+Guided tab is retained for handoff. Goal stays paused; no automatic continuation.

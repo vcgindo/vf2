@@ -45,4 +45,6 @@ urlpatterns = [
     path('ChronicUnavailabilityGridViewData', partial(views.insight_data, kind='chronic-grid')),
     path('AvailabilityTrend', partial(views.insight_data, kind='availability-trend')),
     path('AvailabilityAgeing', partial(views.insight_data, kind='availability-ageing')),
+    path('ExcessInventorySku', partial(views.insight_data, kind='excess-sku')),
+    path('ExcessInventoryValue', partial(views.insight_data, kind='excess-value')),
 ]
