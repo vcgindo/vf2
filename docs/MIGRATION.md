@@ -4,7 +4,13 @@ Baseline date: 3 October 2026. Implementation checkpoint: `2d0cfde95606aef58a486
 
 ## Authority and current instruction
 
-This is the **only migration status tracker**. Page implementation remains **PAUSED**, not complete. On 3 October 2026 the human authorized a separate bounded Stage 2 shared-dataset preparation goal. Its active exit is dataset readiness or a precise consolidated blocker: assess the eight retained Demo backups, preserve source tables, bulk-load owned PostgreSQL staging, map actual consumer tables and prove representative authenticated reads through an explicit fixture boundary. Engines, accepted F1/F2 state, authentication permissions, serving instances, replay and Stages 3–5 remain excluded. No page-by-page implementation is authorized. Required proof is source identity/consistency, complete mapped values/NULLs/duplicates and relationships, consolidated inventory coverage and operational handoff.
+This is the **only migration status tracker**. Whole-page implementation remains
+**PAUSED**, not complete. The separately authorized Stage2 dataset preparation
+and bounded four-page availability correction are complete for the scope below:
+RRR/BPR/BTR/DBM populated browser grids, counts, local filters and restricted reads
+on3005. Engines, accepted F1/F2 state, replay, authentication permissions, other
+pages and Stages3–5 were not changed. The isolated fixture remains serving after
+window008's successful admission, security and protected-resource checks.
 
 The previous 4,286-line tracker is preserved byte-for-byte in [the historical snapshot](archive/MIGRATION_2026-10-03_2d0cfde.md), SHA256 `a913419e34a3318d7ca09f11b163295c9d695b55d99e3060e87c23fadc84242b`. It contains provenance and exact earlier approvals, **not active instructions or a second queue**. Do not load the whole archive routinely; consult the relevant passage only when an unresolved contract requires it.
 
@@ -20,56 +26,61 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Four-page visible-data delivery — blocked; normal3005 restored
+### Four-page visible-data delivery — PASS; fixture serving on3005
 
-Human instructions verified in command-centre chat
-`01a100e2-7943-7102-9760-62d9e492ecd9`, latest turn
-`01a101b6-2669-7a33-a2c2-45e0f8629fc9`, simplify the active goal: show genuine
-April7 VM records in the existing RRR, BPR, BTR and DBM pages on3005 through real
-fixture login, with basic filtering/navigation and representative source-backed
-identities. This superseded the initial RRR-only goal wording, including its
-larger graph/layout/export acceptance gate. The bounded follow-up stops at
-the evidenced availability blocker below; no later migration work is resumed.
+The direct human instruction in this chat authorized closing only the current
+3005 availability blocker. Window008 completed that bounded exit on3 October2026.
+Full page implementation remains paused. This is visible dataset availability,
+not whole-page, Stage2, F3, engine parity or matched performance acceptance.
 
-RRR was visible through real fixture login: count8063, first5000 rows and an
-11-row local SKU filter. BPR was visible with50 rows of97097 and a one-row SKU
-filter matching the retained SQL source. Its fixture-only reader now streams
-the frozen inputs, selects only consumed ration/trend fields, counts without
-retaining display bags and bounds the final join to the selected page keys.
-The immutable source/consumer dataset was not reloaded or changed.
+Reused the sealed April7 VM dataset, existing typed consumer schema, mapping,
+loader, fixture admission, page contracts and all unaffected proofs. No source
+extraction, reload, engine/replay/F1/F2 mutation or permission change occurred.
+The BTR execution plan showed repeated full scans/sorts of97k-row relations.
+Seven exact normalized join-expression indexes were added only to the owned
+fixture database; the fixture-only `enable_nestloop=off` override was removed.
+SQL predicates, parameters, bags, values and ordering are unchanged. Full sampled
+tech/eco responses and counts equal the retained slow result. The index tool
+validates manifest/database, exact index definitions and frozen identity.
 
-**Unmet exit: BTR concurrent browser count/grid calls still exceed the unchanged
-60-second gateway limit and occupy both workers.** Single-worker diagnostics
-returned both grids in55.6s and count in28.5s, but do not certify the browser
-path. The fixture-only BTR planner variant remains an unaccepted availability
-candidate. DBM's earlier authenticated API proof remains valid evidence; a
-four-page consolidated browser pass was not completed. User-reported403s were
-confirmed in repeated GetAllReports requests from permission-forbidden pages;
-the failing user's account was not established, so their exact attribution is
-unresolved. No authentication bypass or permission modification was made.
+| Page | Browser population | Local SKU filter | Restricted API count |
+|---|---|---|---|
+| RRR |5000 of8063 |11 rows for21101151051000 |809 |
+| BPR |50 of97097 |1 row for23102164028000 |5076 |
+| BTR |5000 of97299; both inventory views |Retained21101050051000 rows |5082 in each branch |
+| DBM |5000 of11158 |13 rows for21101149051000 |1036 |
 
-Windows005/006/007 are preserved. Window005 exposed concurrent BPR worker OOM;
-006 removed OOM but its grid timed out;007 proved BPR visible after bounding the
-final join, then exposed BTR's actual concurrent browser blocker. All three
-restored normalJune17 and disabled fixture actors. Window007 additionally proved
-real normal-account GetAllReports and GetLastRunDate return200 (17Jun2026).
-Protected services, accepted publication and existing grants are unchanged.
-The controlled browser was logged out of its disabled fixture session.
-Focused affected suite:47 tests pass. No full page/Stage2/F3 acceptance claim.
+Real broad-account browser login, navigation and filters passed. All four
+restricted count/grid APIs returned200; forged scope did not expand any count.
+Concurrent authenticated BTR requests at the actual5000-row page size returned
+200: both grids35.965s and count42.903s, below the unchanged60-second gateway.
+Peak MTA memory was2.20GiB with zero OOM events. Seven focused BTR tests passed;
+Django check, migration drift check and migration
+plan passed (no model migrations). Independent bounded review found no blockers.
+No claim replaces the retained broader suite's two pre-existing Expedite failures.
 
-On success commit/push and leave only the isolated MTA fixture configuration on
-3005 with dedicated read/layout actors enabled and business actions disabled;
-report URL/login retrieval and exact normal restoration. On failure/interruption
-restore June17 and disable fixture actors. Existing grants/frontend/gateway/auth/
-MTO and3002/3003/3004 remain unchanged. F1/F2 engines/state are strictly off limits.
-No dataset reload/full revalidation, generic infrastructure, timeout increase,
-reduced source population, other pages or Stages3–5. Exhaustive graph/layout/export
-QA, legacy parity and matched performance remain unverified later obligations;
-they do not gate this visible-data delivery. Retry only actual failures.
+403 attribution: normal `fresh.preview@vectorflow.local` is intentionally absent
+from fixture policy and returns `fixture_actor_scope_denied`; dedicated broad/
+restricted actors pass. The frontend's existing forbidden-page navbar can repeat
+GetAllReports after a403, masking that cause. Window007 lacks actor identity, so
+its human session cannot be retrospectively attributed. Window008 proves the
+supported fixture accounts work, normal/unauthenticated access remains denied,
+and Apply/Sleep remain disabled. No authentication/permission bypass was added.
 
-The preparation goal ended at pushed5260ab4; preserve its historical
-`BLOCKED_CONSUMER_READINESS` receipt. This is the same new integration goal,
-updated in place; visible data does not mean full Stage2 acceptance.
+Current service: isolated April7 fixture on3005, dedicated read/layout actors
+are enabled. Use `stage2.broad@vectorflow.local` (or the restricted actor); retrieve
+its existing password from the local fixture secret file identified in the
+handoff. Ordinary preview accounts are not fixture accounts. Protected services,
+accepted publication and existing grants passed the window's unchanged checks.
+F1/F2 engines/state, other pages and Stages3–5 remain outside this delivery.
+
+Current consolidated proof:
+`D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002/visible-availability-validation.json`.
+Window008 retains browser text/screenshots, scope/security and concurrent gateway
+receipts, runtime resource evidence and `serving-handoff.json`. Windows001–007
+and the former blocked consolidated receipt remain preserved. To restore normal
+June17 and disable the fixture actors:
+`D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 008`.
 
 ### Bounded Stage 2 dataset preparation — consolidated consumer blocker
 
@@ -234,7 +245,7 @@ Excess input: `D:/freshvcf-build/inputs/excess-history-input-v1.json`, SHA256 `f
 
 ## Next bounded task — preparation, not execution authorization
 
-The human proposes a new Stage 2-only task with sufficient matched data for frontend testing. The dataset has **not** been accepted as ready. Before implementation resumes:
+The four-page dataset availability exit is accepted as recorded above; broader page implementation remains paused. Before a separately authorized whole-page continuation:
 
 1. Reuse the retained page inventory and above residual ledger. Identify only missing page inputs/scenarios; do not repeat a full discovery programme.
 2. Prefer the existing approved catalogue/population and retained history/trials. Define a finite fixture manifest covering required positive, empty, NULL, scoped and historical UI branches. Record exact missing facts and ownership before any loading.

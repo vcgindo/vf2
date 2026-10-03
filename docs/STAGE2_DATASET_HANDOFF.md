@@ -5,13 +5,14 @@
 ## Identity and source
 
 Current dataset: `stage2-vm-dataset-20261003-002`. Source preservation, staging,
-consumer mapping and the explicit fixture boundary are complete. **Four-page
-availability remains blocked.** The subsequent bounded correction made RRR and
-BPR browser-visible; BTR's concurrent browser count/grid requests still exceed
-the unchanged60-second gateway limit. NormalJune17 serving has been restored.
-The original `dataset-validation.json` and windows001–004 remain historical
-evidence, not a new readiness claim. The follow-up is consolidated in
-`visible-availability-validation.json` and windows005–007 under the same root.
+consumer mapping, explicit fixture admission and **four-page visible availability
+are complete**. Window008 proved RRR/BPR/BTR/DBM populated browser grids, local
+filters, restricted reads and BTR concurrency. The April7 fixture is serving on
+3005 for human inspection. This certifies only the four-page availability scope;
+whole-page behavior, remaining reports and later-stage acceptance remain open.
+Windows001–007 and their failures remain preserved. Current consolidated result:
+`visible-availability-validation.json`; historical through007 result:
+`visible-availability-validation-through007.json`.
 
 Evidence root: `D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002`.
 Manifest SHA256: `afe42593ca2abdf5e2395433ac70834723f4eac1dfa5a2982192c7688906b836`.
@@ -127,7 +128,7 @@ The accounts have only Stage2 read/navigation grants and their own layout state.
 The broad actor sees only native catalogue memberships; NULL/unrepresented
 hierarchies remain denied.
 
-## Verified outcome and blocker
+## Historical outcome and blocker — windows001–004
 
 `dataset-validation.json` records `BLOCKED_CONSUMER_READINESS` and
 `dataset_ready:false`. Window004 proved populated DBM count/grid/history reads,
@@ -176,7 +177,10 @@ Run, in order:
    proves a bounded zero-insert retry without replacing the complete mapping.
 5. `python -m tools.stage2_vm_freeze` after completed load proof.
    Run `python -m tools.stage2_fixture_indexes` for the three owned pair-history
-   indexes required by the retained DailyDataGraph timeout evidence. It verifies
+   indexes required by the retained DailyDataGraph timeout evidence. Also run
+   `python -m tools.stage2_btr_indexes` for the seven exact normalized BTR join
+   indexes proved in window008. Both tools validate their isolated database and
+   exact index definitions; row data remains immutable. The history tool verifies
    exact index definitions and unchanged freeze identity; no row writes occur.
 6. Prepare the native catalogue with `python -m tools.stage2_vm_permissions`,
    and create disabled fixture accounts with `python tools/stage2_fixture_accounts.py create`.
@@ -213,46 +217,56 @@ limits, not missing synthetic replacements or permission bypasses. Source data
 is preserved for later authorized integration. This handoff does not certify
 API value parity, whole-page behavior, performance parity or Stages3–5.
 
-## Bounded four-page follow-up and current operation
+## Four-page availability and current operation — window008 PASS
 
-The separately authorized availability follow-up stopped at window007's BTR
-browser blocker. RRR showed8063 total records,5000 on its first page and11 after
-a local SKU filter. BPR showed97097 total records,50 on its first page and one
-after a local SKU filter. Representative SKU/location values were checked in
-the retained read-only SQL clones (`source-samples.json`). BPR's exact native
-empty transit and five remark rows are explicitly bound to frozen staging;
-this does not enable populated remark history or write workflows.
+Window008 uses the same immutable April7 dataset. Seven fixture-only indexes
+match the existing case-insensitive, trailing-space-normalized BTR joins, with
+run/image keys included. Removing the former forced full-scan planner override
+preserves SQL predicates, parameters, rows and ordering. Complete sampled
+tech/eco values and counts match the retained result. No schema/model migration,
+source reload or engine execution occurred.
 
-BTR's fixture planner choices preserve SQL predicates/parameters and returned
-the same sampled rows as the earlier successful slow diagnostic. They are not
-accepted for concurrent browser availability: count/grid both timed out and
-queued metadata requests. Do not enable the fixture for human use on this proof.
-DBM's earlier count11158/restricted1036 and history/security receipts are reused;
-the latest four-page browser pass did not reach DBM.47 focused tests passed.
-Graphs, full filters, export/layout, parity and matched performance remain
-unverified obligations in the existing inventory/tracker. No later stage began.
+Real browser proof: RRR5000/8063 with11 filtered rows; BPR50/97097 with1 filtered
+row; BTR5000/97299 in both inventory views with a working SKU filter; DBM5000/11158
+with13 filtered rows. The restricted actor sees RRR809, BPR5076, BTR5082 per branch
+and DBM1036. All four restricted grids/counts returned200, and forged scope did
+not expand any count. Apply/Sleep, normal-preview and unauthenticated denials
+remain enforced. Concurrent BTR5000-row grid/count requests returned200 in35.965s
+and42.903s under the unchanged60-second gateway and4GiB service limits.
 
-The human reported403s; repeated GetAllReports403 requests were observed from
-permission-forbidden pages. That user's account was not identified, so do not
-claim a resolved root cause. Dedicated fixture login did show RRR/BPR. After
-restoration, a real normal-account login proved GetAllReports200 and June17
-GetLastRunDate200; fixture actors are disabled. The controlled browser was
-logged out. Existing actor grants and protected service identities are unchanged.
+Use `http://localhost:3005/login` with `stage2.broad@vectorflow.local` for the full
+native catalogue, or `stage2.restricted@vectorflow.local` for the retained limited
+scope. Their existing passwords are the `broad.password` / `restricted.password`
+fields in `D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`.
+Do not copy passwords into Git. Select **Show All** if a page opens its filter
+dialog; RRR/BTR/DBM default to5000 rows and BPR to50.
 
-Current URL: `http://localhost:3005/login` (normalJune17). Use the existing local
-normal preview login, `fresh.preview@vectorflow.local`; its verified password
-is `PREVIEW_PASSWORD` in `D:/freshvcf-build/preview/preview.env`. Do not copy it
-into Git or reports. Fixture credentials remain separately in
-`D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json` and are disabled.
+Normal preview credentials intentionally fail fixture admission. The exact API
+reason is `fixture_actor_scope_denied`; the inherited frontend may repeatedly
+call GetAllReports on its forbidden page. Sign out and use the dedicated fixture
+account. Window007's original human identity was not captured and is not guessed.
+Authentication and existing permissions were not changed.
 
-Exact restoration, already completed and verified:
+The successful controlled window leaves only the isolated MTA fixture selected,
+with dedicated read/layout actors enabled and business actions disabled. Other
+preview services,3002/3003/3004 and accepted F1/F2 state remain unchanged.
+`fixture-window-008/serving-handoff.json` records the admitted runtime identity.
+
+Exact normalJune17 restoration (also disables fixture actors):
 
 ```powershell
-D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 007
+D:/freshvcf-build/venv/Scripts/python.exe tools/stage2_fixture_window.py restore --attempt 008
 ```
 
-`serve --attempt <new-id>` is a bounded25-minute browser verification lease.
-It restores normalMTA and disables actors unless an explicit four-page visible
-proof succeeds. A later authorized retry must use a new attempt, preserve all
-prior receipts and reuse the existing manifest/mapping; never reload the dataset
-or run engines to address this read-path blocker.
+The existing bounded `serve` window restores automatically on failure/interruption
+unless a successful four-page proof is present. Future retries must use a new
+attempt and retain earlier receipts. `tools/stage2_availability_probe.py` can be
+passed to Python stdin inside the existing user-service for the four restricted
+count/grid and forged-scope checks; `stage2_visible_probe.py` retains the action,
+normal-account and unauthenticated denials. Browser proof remains separate.
+
+Seven focused BTR tests, Django check, no-drift migration check/plan and independent
+review passed. Full export/layout/history/filter semantics, matched legacy
+performance, remaining pages and workflows are not certified by availability.
+The original `dataset-validation.json` remains historical; current availability
+and scope limits are consolidated in `visible-availability-validation.json`.
