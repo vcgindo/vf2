@@ -48,6 +48,9 @@ def selected_run():
     Full verification remains in read_outputs/publication and publication/startup
     acceptance. Routine selective readers verify the images they actually use.
     """
+    from mta.presentation import fixture
+    if fixture.enabled():
+        return fixture.selected_run()
     identifier = settings.VF_MTA_PUBLISHED_RUN
     expected = settings.VF_MTA_PUBLISHED_DIGEST
     if not identifier or not expected:
@@ -65,6 +68,9 @@ def selected_run():
 
 
 def publication():
+    from mta.presentation import fixture
+    if fixture.enabled():
+        raise PublicationUnavailable('fixture_whole_publication_unavailable')
     run = selected_run()
     output = read_outputs(run)
     dbm, _ = command_state(run, output['DBMFinal'][0])
@@ -96,7 +102,9 @@ def permission_catalogue():
     if hashlib.sha256(raw).hexdigest() != expected:
         raise PublicationUnavailable('permission_catalogue_identity_mismatch')
     value = json.loads(raw)
-    if value.get('version') != 'block1-permissions-v1':
+    from mta.presentation import fixture
+    expected_version = 'legacy-ui-fixture-permissions-v1' if fixture.enabled() else 'block1-permissions-v1'
+    if value.get('version') != expected_version:
         raise PublicationUnavailable('unsupported_permission_catalogue')
     for kind in ('products', 'locations'):
         records = value[kind]['records']

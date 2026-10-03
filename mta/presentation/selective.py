@@ -5,6 +5,9 @@ from mta.presentation.context import PublicationUnavailable
 
 
 def image_metadata(run, path):
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import image_metadata as fixture_metadata
+        return fixture_metadata(run,path)
     item = run.production_manifest.get('images', {}).get(path)
     if not item or item['image'] != path or item['table'] not in CATALOG['tables']:
         raise PublicationUnavailable('selected_report_image_not_published:' + path)
@@ -15,7 +18,10 @@ def image_metadata(run, path):
 
 
 def image_rows(run, path):
-    return load_image(run, image_metadata(run, path))
+    item=image_metadata(run,path)
+    if getattr(run,'kind',None)=='LEGACY_UI_FIXTURE' and item['count']>1000000:
+        raise PublicationUnavailable('fixture_bounded_history_reader_required:'+path)
+    return load_image(run,item)
 
 
 def image_field(run, path, field):

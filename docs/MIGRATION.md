@@ -20,7 +20,80 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Bounded Stage 2 dataset preparation — stopped at consolidated blocker
+### Bounded Stage 2 dataset preparation — consolidated consumer blocker
+
+The human supplied VM-extracted backups at `E:/vflow_backup_dump` in the review
+chat on 3 October 2026. Active work now verifies/freezes/restores the available
+Importer/BPR/BTR originals in **new** owned resources and prepares their staging
+and mapping independently. The human subsequently confirmed DBM copying complete;
+its stable original was hash-pinned and restored separately after preserving an
+interrupted capture. All four API sources share 7 April 2026 LastBatchRun dates.
+Interface/IntermediateDB/Vendor/Distributor are conditional source dependencies,
+not automatic readiness gates; any required missing input must name an actual
+Stage 2 consumer. None may be borrowed from synthetic sources. Exit remains
+dataset readiness or a consolidated evidenced blocker. Required proof includes
+hashes, usable restores, source dates/identity/coverage, bounded capacity, typed
+bulk readback and actual consumer mappings. No engine, accepted-state, permission,
+serving or page changes under the initial scope. The existing app goal is active.
+
+**Bounded authorization amendment (3 October 2026):** verified human instruction
+in command-centre chat `01a100e2-7943-7102-9760-62d9e492ecd9`, turn
+`01a100e3-6258-7bf1-a9d0-f191636ed24f`, authorizes its relayed grant: dedicated
+local fixture actors through existing account/auth mechanisms, new actor-owned
+MTA read/navigation and layout grants using the original 9-product/60-location
+catalogue; preserve source IDs, NULL/empty semantics and existing accounts/grants.
+No VM passwords/sessions or invented memberships. Catalogue collisions require
+isolated fixture configuration/storage. Implement only explicit fixture admission
+and representative real authenticated API reads/scope denial. If needed, switch
+only MTA on3005 temporarily after recording image/config/database/publication and
+exact restoration; restore June17/catalogue/actions-disabled on every exit and
+prove protected resources unchanged. Preserve gateway/frontend/auth/MTO services.
+Fixture accounts must have no normal-publication access and be disabled outside
+the test window; credentials remain outside Git/logs. Keep4GiB/2CPU/two workers/180s/
+restart=no. Engine changes/execution, F1/F2 mutation, business actions, page-by-page
+work, performance campaigns and Stages3–5 remain excluded. Active exit remains
+dataset readiness or a precise additional blocker; no new queue.
+
+**Bounded preparation stopped at a consolidated blocker; dataset readiness is
+withheld.** All303 source tables /91,645,123 rows are preserved. The73-table
+Stage2 union /56,500,041 rows passed full staging readback;60 consumer images
+/52,760,538 rows and six projections /965,475 rows passed full typed source/target
+comparison. Manifest `afe42593ca2abdf5e2395433ac70834723f4eac1dfa5a2982192c7688906b836`
+is sealed. Database `test_freshvcf_stage2_vm_20261003_002`, fixture run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, remains explicitly non-production.
+A zero-insert retry passed;396 relations are immutable. Three fixture-owned
+pair-history indexes preserve the same frozen identity.
+
+Window004 proves native DBM counts11158 broad /1036 restricted, populated grids,
+forged-scope non-expansion, a populated history drill-down, Apply/Sleep403 and
+normal-preview-actor403. Research/historical-availability/BPR/remarks/Planning
+Expedite remain explicitly503. Existing accounts/grants are unchanged. Both
+fixture actors are disabled, real login denial is proved, and normal June17
+image/configuration/admission plus all protected services are restored.
+
+**Blocking contract:** existing `RRRDataCount` over this native population
+returns gateway504 after60seconds (windows003 and004). RRR grid, BTR and
+fulfillment checks following it were not executed; do not claim their acceptance.
+Further RRR presentation-query diagnosis/correction is a separate authorized
+boundary, not page implementation or an engine change. Other declared native
+ancillary/history adapter gaps and39 static UI metadata differences remain in
+the handoff. No timeout increase, API assertion waiver or performance campaign.
+
+Earlier windows are retained:001 exposed the fixture DBM quadratic join;
+subject-bag partitioning now uses the unchanged selector and passes exact
+bag/NULL/missing/accepted/predicate equivalence.002 exposed pair-history scans;
+owned indexes resolved that check (window003 history200 in4seconds). All four
+windows restored normal service.37 focused tests pass; the broader19-test HTTP
+suite retains exactly two pre-existing Expedite failures. No engine execution,
+F1/F2 mutation, replay, frontend implementation or Stages3-5 work occurred.
+
+Consolidated receipt: `D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002/dataset-validation.json`
+(`BLOCKED_CONSUMER_READINESS`). Manifest, mappings, repeatable loaders and exact
+operation/restoration steps are in [the operational handoff](STAGE2_DATASET_HANDOFF.md).
+The requested stop-at-readiness-or-blocker boundary is reached; no adjacent work
+is active. Page implementation remains paused.
+
+The following describes the preserved, superseded first candidate:
 
 On 3 October the human corrected source authority to `F:/VFlow_Source_Backup`
 in review chat `01a0f7c6-1050-7741-b80a-a7f10ca0d04d`. No original populated

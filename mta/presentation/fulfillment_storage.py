@@ -27,6 +27,9 @@ def _read(run,receipt):
 
 
 def read_fulfillment(run,*,output):
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import projection_rows
+        return dict(summary=projection_rows(run,FulfillmentSummaryRow),details=projection_rows(run,FulfillmentDetailRow))
     receipt=FulfillmentProjection.objects.get(run=run)
     if (receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)) or
         receipt.calculation_digest!=Checkpoint.objects.get(run=run,name='CalculationOutputs').digest):

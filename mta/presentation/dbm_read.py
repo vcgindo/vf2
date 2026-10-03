@@ -36,13 +36,25 @@ def _section(run):
     return resolve(run.production_manifest['closing']['dbm'])
 
 
-def dbm_context(*, history=False):
+def dbm_context(*, history=False, pair=None, payload=None):
     run = selected_run()
+    if history and getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        if pair is None:raise PublicationUnavailable('fixture_history_pair_required')
+        from datetime import timedelta
+        from mta.presentation.fixture import pair_rows
+        cutoff=run.business_date-timedelta(days=90)
+        state={name:(image_rows(run,'closing/dbm/'+name) if name in ('LastBatchRunTbl','ReasonCodes') else
+            pair_rows(run,'closing/dbm/'+name,*pair,cutoff=cutoff if name in ('DailyConsumption','SuspendHistory','SuggestionsLog') else None)) for name in HISTORY_TABLES}
+        importer={name:image_rows(run,'closing/importer/'+name) for name in SCOPE_TABLES}
+        return SimpleNamespace(run=run,business_date=run.business_date,dbm=state,output={'ClosingState':[{'importer':importer}]})
     if run.commands.exists():
         state, _ = command_state(run, _section(run))
     else:
         tables = HISTORY_TABLES if history else GRID_TABLES
         state = {name: image_rows(run, 'closing/dbm/' + name) for name in tables}
+        if not history and getattr(run,'kind',None)=='LEGACY_UI_FIXTURE':
+            from mta.presentation.fixture import grid_subjects
+            state=grid_subjects(state,payload)
     # History authorization is Importer-owned; grid authorization is DBM-owned.
     importer = {name: image_rows(run, 'closing/importer/' + name)
                 for name in SCOPE_TABLES} if history else None

@@ -1,115 +1,210 @@
-# Stage 2 shared dataset handoff — source blocked
+# Stage 2 shared VM dataset handoff
 
-3 October 2026. This is an operational handoff, not a second status tracker.
-Current status is maintained only in `docs/MIGRATION.md`.
+3 October 2026. Operational reference; `docs/MIGRATION.md` is the sole status tracker.
 
-## Result
+## Identity and source
 
-Dataset readiness is **not established**. The human's corrected source is
-`F:/VFlow_Source_Backup`. Matching local Demo database names was insufficient:
-the local 1,240-row population is explicitly documented as synthetic. It cannot
-be silently used as the preserved original population.
+Current dataset: `stage2-vm-dataset-20261003-002`. Source preservation, staging,
+consumer mapping and the explicit DBM fixture boundary are complete. **Overall
+dataset readiness is withheld:** the existing RRR count consumer times out at
+the unchanged60-second gateway limit. The task stops at this consolidated blocker.
 
-The preserved deployed API configuration names `Demo_Importer_1`, `Demo_BPR_1`,
-`Demo_DBM_1`, `Demo_BTR_1`. Its preserved engine Settings.bat names unsuffixed
-`Demo_Importer`, `Demo_BPR`, `Demo_DBM`, `Demo_BTR`, `Demo_Interface`,
-`Demo_IntermediateDB`, `Demo_Vendor`, `Demo_Distributor`, plus separate Demo_Users.
-The suffix relationship and populated snapshot must be reconciled from original
-data evidence; neither configuration alone supplies that data. Demo_Users and
-all authentication data remain outside the dataset load.
+Evidence root: `D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002`.
+Manifest SHA256: `afe42593ca2abdf5e2395433ac70834723f4eac1dfa5a2982192c7688906b836`.
+PostgreSQL database: `test_freshvcf_stage2_vm_20261003_002` in
+`freshvcf-test-postgres-1`. Consumer partition:
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, business date **7 April 2026**.
 
-The bounded inventory found no SQL `.bak`, `.bacpac`, `.mdf`, `.ndf`, or `.ldf`
-population under the preserved root. The `.bak` candidates are Celery scheduler
-state. Listings of `27092026/MTA - Copy.7z`, `deployed-demo/MTA/V6.zip` and
-`deployed-demo/MTA/BackEndAPI/Gulfoil QA.zip` contain no database backups.
-Report CSV/ZIP files and application/schema sources exist; they do not establish
-the complete eight-database population, histories or relationships. This is a
-bounded finding, not a claim about archives elsewhere.
+The human supplied original VM backups in `E:/vflow_backup_dump`, matching the
+preserved deployed API's four `_1` database names. The eight configured historical
+engine roles were assessed. Interface, IntermediateDB, Vendor and Distributor
+are conditional dependencies, not automatic UI gates; none was borrowed from
+synthetic sources. Authentication data/passwords/sessions were not imported.
 
-Evidence: preserved reconstruction runbook line 307 states databases were not
-copied. `F:/VFlow_Local/LOCAL_STACK_RUNBOOK.md` lines 54–56 explicitly identify
-the local Demo closure as synthetic and distinguish it from former feeds. No
-excluded `F:/new_vflow` source was accessed; its name occurs only in that lineage
-documentation.
+| Source | Preserved tables / rows | Selected staging tables / rows |
+|---|---:|---:|
+| Importer | 136 / 4,244,445 | 17 / 541,651 |
+| BPR | 78 / 12,019,317 | 18 / 1,526,483 |
+| BTR | 22 / 12,473,563 | 22 / 12,473,563 |
+| DBM | 67 / 62,907,798 | 16 / 41,958,344 |
+| Total | 303 / 91,645,123 | 73 / 56,500,041 |
 
-## Preserved candidate and proof
+All four full backups passed header/filelist inspection, RESTORE VERIFYONLY and
+actual restoration into exclusively owned, read-only
+`VFTEST_Fresh_S2_VM_20261003_002_<role>` databases. They lack SQL backup checksums;
+that fact is retained, not misreported as checksum verification. SHA256 pins,
+SQL types, counts and source dates are in the manifest. LastBatchRun agrees on
+7 April across all four sources; this is observed date consistency, not a claim
+that independently captured backups were a single transactional snapshot.
 
-External evidence root:
-`D:/freshvcf-build/evidence/stage2-shared-dataset-20261003-001`.
+The first three backups have frozen owned copies. DBM's original completed copy
+is pinned by SHA256 `c0042264452f9bf73f4504e47d6257a67266701fa79a7d859f613990aa71e9ba`
+and a read-only restored clone. The earlier interrupted DBM capture remains
+preserved with its different hash; it was never used as source. See
+`dbm-capture-reconciliation.json`.
 
-| Artifact | What it establishes |
-|---|---|
-| `source-reconciliation.json` | Corrected authority, configuration hashes, bounded archive inventory and rejection of candidate lineage. |
-| `dataset-manifest.json` | Eight local backup hashes, SQL backup headers, table/column types, counts, date ranges, extraction ordinals and portable-file/value hashes. Not original-source acceptance. |
-| `tables/` | Gzip JSONL exports retaining typed decimal/date representations, NULLs, empty strings and duplicate rows. Source columns and SQL types live in the manifest. |
-| `staging-validation.json` | Complete ordered row hashes and column NULL counts for 523 staging tables / 280,651 rows, verified after PostgreSQL COPY. Not count-only proof. |
-| `mapping.json` | Explicit source→existing typed target columns for 102 operational images and six report projection families; image counts/digests and projection readback digests. One absent source binding: `closing/orders/OrderIdentity`. |
-| `permission-compatibility.json` | All 200 SKU and 20 location native hierarchies are LOCAL_ALL triples; zero matches against unchanged modern catalogue. |
-| `source-checks.json` | 1,240 BPR/rationed rows have no positive GIT; Importer InTransitData is empty. No supplement approval transfer or positive-logistics claim. |
+The prior `stage2-shared-dataset-20261003-001` candidate and commit `f85ee2e`
+remain quarantined evidence. Its local Demo population was synthetic. Its loaders
+remain under SOURCE HOLD; use only the new VM tools. No old source rows were
+mixed into this dataset.
 
-All eight backups passed SHA256/size checks and SQL RESTORE VERIFYONLY WITH
-CHECKSUM. Backup times span 11:17:02–11:17:04 on 3 October as recorded by SQL
-Server. Four main LastBatchRun dates agree on 8 October 2025. This is bounded
-date consistency, not proof of a coordinated original application snapshot.
+## Transfer and coverage contracts
 
-`EnvironmentConfiguration` (47 rows) remains only in the retained original
-backup, because it can contain runtime credentials and is not a Stage 2 report
-input. No credentials or data dumps are committed to Git. Datetime2 staging is
-text with its original SQL type/scale declared, preserving SQL's seventh
-fractional digit. Extraction ordinal preserves this frozen export's ordering;
-it does not invent a source business sort or claim heap order is contractual.
+`dataset-manifest.json` plus `manifest-seal.json` own immutable input identity.
+`mapping.json` records every source/target column, typed wire representation,
+source-only columns, image/projection receipt and exported-table disposition.
+`staging-validation.json` and `dataset-validation.json` consolidate proof.
+Raw data and credentials stay outside Git.
 
-## Coverage of the rejected candidate
+The bounded loader streams compressed JSONL into typed PostgreSQL COPY staging.
+Datetime2 uses declared text preservation where needed to retain SQL Server's
+seventh fractional digit. Every export ordinal, value digest, NULL vector and
+row count is checked; duplicates are retained. The extraction ordinal pins this
+export's order, not an invented legacy business ordering. Every consumer copy
+rechecks full source values against the sealed manifest, then checks every mapped
+target value. It does not execute either engine or manufacture producer receipts.
 
-Reuse `docs/audit-2026-10-01/PAGE_INTERACTION_INVENTORY.csv`; its hash is recorded
-in the dataset manifest. No new page implementation or browser QA was started.
+The selected roster maps 60 consumer images and six projection families into the
+existing modern schema:52,760,538 image rows and965,475 projection rows, all
+fully read back. Ancillary/configuration/permission/rationing exports
+without an admitted adapter remain explicitly staging-only. All other source
+tables remain intact in backups/read-only clones. `DistributorList` and synthetic
+`OrderIdentity` are not current presentation reads and are not fabricated.
+Planning Expedite's `closing/bpr/BPRMaster` remains in the preserved original
+backup/clone, outside this mapped roster; that ancillary-dependent path is not
+claimed as fixture-ready.
 
-| Existing family | Data present | Limitation |
-|---|---|---|
-| RRR | Rationed/BPR rows; 755 Pick rows; direct PickBand/PickPost copies | Authenticated scope has zero members; no serving proof. |
-| DBM/current/daily history | 1,240 master rows, suspension data and reference tables | Current Suggestions, SuggestionsLog and DailyConsumption empty; no positive recommendation/history scenario. |
-| BTR / Buffer Trends | 1,240 wide trend rows and D1–D90 date columns | Wide snapshots do not prove deep daily fact history. |
-| Planning | Existing Excess, fulfilment and expedite report populations | No source OrderIdentity; no new workflows; all scope reads blocked. |
-| BPR | 1,240 BPR rows and retained configuration | No authenticated read proof; candidate provenance rejected. |
-| Guided | 413 Chronic rows; availability/DBM trend inputs; 55 Excess rows | BTR BPR has only one ReportDate; no multi-day history coverage. |
-| Research | Existing BTR snapshots/attributes | No page/API readiness proof; RationingHistory empty. |
+Source observations:
 
-Every family is blocked for accepted fixture use by source lineage and permission
-membership. Relationships, representative authenticated APIs, fixture admission,
-loader retry/failure injection and complete consumer coverage remain unproved.
-Empty scenarios are preserved, never replaced with fabricated positive data.
+- Importer/BPR: 2,189 SKUs, 235 locations and 97,097 current pairs. Their master
+  key bags agree. BTR has 97,299 snapshot pairs and 202 native differences from
+  BPR, retained without repair. Each checked population has its own attributes.
+- DBM: 11,158 Suggestions, 1,962,935 SuggestionsLog rows and 31,040,788 daily
+  consumption rows spanning 365 dates, 8 April 2025–7 April 2026.
+- BTR BPR: 8,483,003 rows over 90 dates, 8 January–7 April 2026.
+  RationingHistory: 2,882,051 rows, preserved separately in staging.
+- Excess: 921,651 rows over 90 dates; Pick report: 8,063 rows with no missing
+  required band values. Native BPR contains 2,567 positive-GIT rows, empty
+  Importer InTransitData and five remarks. No June17 empty-data exception transfers.
+- Native AdminBPR metadata has 81 columns; 39 differ from the retained static
+  UI configuration. This is preserved evidence, not UI/configuration parity.
 
-## Resources and operation
+The existing page inventory CSV is reused and hash-pinned. Data coverage is not
+whole-page acceptance. No page-by-page frontend implementation was commenced.
 
-- Read-only SQL clones: `VFTEST_Fresh_S2_20261003_001_` followed by Importer,
-  BPR, DBM, BTR, Interface, IntermediateDB, Vendor or Distributor. Owned files:
-  `D:/freshvcf-build/sqlserver/stage2-shared-dataset-20261003-001`.
-- PostgreSQL: `test_freshvcf_stage2_dataset_20261003_001` in the existing owned
-  `freshvcf-test-postgres-1`; no host port was added. Source schemas are
-  `stage_demo_<role>_1`; modern tables use the repository's mta/mta_state schemas.
-- Partition ID `f9db3dfc-efc3-488d-af2f-a88e8b2c68ee` has kind
-  `LEGACY_UI_FIXTURE`, status `FIXTURE_BLOCKED`, empty parity/output acceptance,
-  no production manifest, predecessor, checkpoints or commands. It is not
-  selectable by normal production admission. Projection rows were copied
-  directly; no modern-producer receipts were fabricated.
-- One-off workers used restart=no, 4 GiB memory/swap and 2 CPUs on the private
-  test network. The consumer load committed before the stop took effect; its
-  final successful output was collected. No worker remains running.
-- Existing Django migrations were applied normally to the owned database.
-  Django check, makemigrations --check and migration plan passed. No model/schema
-  changes were made. F1/F2 data and all serving containers were untouched.
+## Explicit fixture boundary
 
-The retained tools are `tools/stage2_dataset.py` (backup assessment/export),
-`tools/stage2_dataset_load.py` (bulk typed staging COPY/readback), and
-`tools/stage2_consumer_load.py` (bounded source-to-consumer copy/readback).
-They now fail immediately with SOURCE HOLD. Do not remove that guard merely to
-retry this candidate. Code is retained as work-in-progress for a reconciled source;
-repeatable readiness and serving are not claimed.
+The run remains `LEGACY_UI_FIXTURE/FIXTURE_BLOCKED`, with empty output/production
+acceptance, parity, checkpoints, commands, predecessor and completion fields.
+The status intentionally prevents ordinary production admission even when the
+separate fixture dataset is usable. `stage2_owner.consumer_publication` binds
+finalized consumer receipts. Immutable-table triggers protect copied rows and
+receipts; only actor-owned layout preferences remain writable.
 
-No dataset-selection switch was made, so there is no serving restoration step.
-Do not delete/reset these resources or repopulate 3005. Resume only after original
-populated backups are supplied/located with lineage and API/engine bindings, or
-the human explicitly revises source scope. Create separately owned replacement
-resources, recheck mappings and permissions without changing permission grants,
-then implement the minimal explicit fixture-admission boundary and consolidated
-API/coverage validation. Stages 3–5 and page-by-page frontend work remain excluded.
+`mta/presentation/fixture.py` requires a separately pinned fixture policy,
+manifest, consumer roster, native catalogue and actor list. Production identity,
+hierarchy/terminal/history supplements and actions must be unset/disabled.
+Normal production admission and calculation services remain separate. Pair-based
+daily-history reads use relational filtering; unbounded eager images exceeding
+one million rows fail closed. Imported rows never imply engine success/parity.
+
+The human's bounded grant was verified in command-centre chat
+`01a100e2-7943-7102-9760-62d9e492ecd9`, turn
+`01a100e3-6258-7bf1-a9d0-f191636ed24f`. Two dedicated local actors use existing
+account mechanisms and native source IDs/values: `stage2.broad@vectorflow.local`
+and `stage2.restricted@vectorflow.local`. The restricted scope is product4 /
+location25; no existing actor, grant or authentication business contract changes.
+Both remain disabled outside the controlled window.
+
+Credentials are retained only in the local secret file
+`D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`. The user-facing
+login address for an authorized fixture window is `http://localhost:3005/login`.
+The accounts have only Stage2 read/navigation grants and their own layout state.
+The broad actor sees only native catalogue memberships; NULL/unrepresented
+hierarchies remain denied.
+
+## Verified outcome and blocker
+
+`dataset-validation.json` records `BLOCKED_CONSUMER_READINESS` and
+`dataset_ready:false`. Window004 proved populated DBM count/grid/history reads,
+11158 broad versus1036 restricted Suggestions, forged-body scope non-expansion,
+Apply/Sleep403, and403 for the unchanged normal preview actor. Five explicitly
+unavailable native ancillary/history readers returned503. No business action
+transaction or engine was executed.
+
+`RRRDataCount` returned504 after60seconds in windows003 and004. Its existing
+full-population presentation query needs a separately bounded diagnosis and
+correction before readiness can be asserted. RRR grid, BTR and fulfillment
+checks after that failure were not executed. Do not interpret mapped data as
+their API acceptance or commence frontend implementation from this receipt.
+
+Every window restored the original June17 image/configuration/admission and
+proved protected resources unchanged. Both dedicated actors are disabled;
+`fixture-window-004/disabled-login-proof.json` proves real login denial.
+The zero-insert retry and immutable guards on396 relations passed.37 focused
+tests pass; the broader HTTP adapter suite has17 passes and the same two
+pre-existing Expedite failures, recorded in `code-proof.json`.
+
+Windows001–004 are retained. Fixture-only subject partitioning resolved the
+initial DBM join timeout without changing its selector output; duplicate/NULL/
+missing/accepted/weighted-predicate equivalence is tested. Three owned history
+indexes resolved the history scan timeout, with frozen identity unchanged.
+Neither correction changes either calculation engine or the gateway timeout.
+
+## Repeatable operation
+
+Use `D:/freshvcf-build/venv/Scripts/python.exe` locally. Source tools are fixed to
+this dataset's owned resources; they never reset a database or overwrite an
+unfinished source export. `stage2_vm_dataset.py reconcile` idempotently reconciles
+the completed DBM capture; `seal` verifies immutable final identity. Capture/export
+cannot mutate a sealed dataset.
+
+The one-time database worker uses the existing private test network, no ports,
+4GiB memory/swap, 2CPUs and restart=no. Mount this checkout at `/app:ro` and the
+evidence root at `/dataset`. Supply isolated database settings outside Git.
+Run, in order:
+
+1. `python tools/stage2_vm_load.py` (or `--role DBM` for an explicitly recorded
+   remaining role), then `python tools/stage2_vm_load.py --finalize`.
+2. Apply existing Django migrations normally to the owned database; never fake.
+3. `python tools/stage2_vm_consumer_load.py`.
+4. `python tools/stage2_vm_consumer_load.py --verify-binding closing/dbm/LastBatchRunTbl`
+   proves a bounded zero-insert retry without replacing the complete mapping.
+5. `python -m tools.stage2_vm_freeze` after completed load proof.
+   Run `python -m tools.stage2_fixture_indexes` for the three owned pair-history
+   indexes required by the retained DailyDataGraph timeout evidence. It verifies
+   exact index definitions and unchanged freeze identity; no row writes occur.
+6. Prepare the native catalogue with `python -m tools.stage2_vm_permissions`,
+   and create disabled fixture accounts with `python tools/stage2_fixture_accounts.py create`.
+7. Build the separate `freshvcf-stage2-fixture:20261003` image. The normal image
+   tag is retained. `python tools/stage2_fixture_window.py prepare` renders and
+   verifies exact-image/environment/mount/network/resource restoration before
+   any serving switch. With that pinned policy and native catalogue supplied as
+   the worker's fixture settings, run `python -m tools.stage2_fixture_integrity`
+   to prove immutable rows and rejection of mixed or mismatched selections.
+8. `python tools/stage2_fixture_window.py prove --attempt <new-three-digit-id>` performs only the
+   MTA switch, real encrypted-password/cookie login and bounded API checks, then
+   disables accounts and restores normal MTA in `finally`. Each attempt uses a
+   new evidence directory; failed receipts are preserved.
+9. `python tools/stage2_vm_validate.py --window fixture-window-004` reproduces
+   the delivered consolidated blocker and completed source/mapping/boundary/
+   restoration proof. A later authorized correction must preserve these attempts
+   and use its own new window; failed route assertions must not be waived.
+
+During a later separately authorized UI window, reuse the prepared Compose
+fixture override and account enable operation after the exact restoration
+preflight. On exit run `stage2_fixture_window.py restore --attempt <recorded>`.
+It disables the actors first, restores only MTA's original image/configuration,
+then checks readiness/admission and protected resources. Existing frontend,
+gateway/auth, MTO and all3002/3003/3004 services are not restarted. There is no
+new public port, serving database reset or automatic cutover.
+
+## Explicit limits
+
+Research Insights and historical availability still call production-only whole
+output; BPR/remarks and Planning GIT/overview/Expedite need native ancillary
+adapters. Guided availability needs a bounded daily-history reader, and Guided
+Excess retains its production history contract. These are honest API adapter
+limits, not missing synthetic replacements or permission bypasses. Source data
+is preserved for later authorized integration. This handoff does not certify
+API value parity, whole-page behavior, performance parity or Stages3–5.

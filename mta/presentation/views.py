@@ -80,6 +80,12 @@ def endpoint(method, *, public=False):
                 payload = json.loads(request.body.decode('utf-8') or '{}')
                 if not isinstance(payload, dict):
                     raise ValueError('JSON body must be an object')
+                from mta.presentation import fixture
+                if fixture.enabled() and not public:
+                    if not fixture.actor_allowed(identity(request),payload):
+                        return JsonResponse({'error':'fixture_actor_scope_denied'},status=403)
+                    if function.__name__ == 'dbm_action':
+                        return JsonResponse({'error':'demo_read_only'},status=403)
                 return function(request, payload, *args, **kwargs)
             except InsightFilterUnavailable:
                 # Canonical Guided controller: HTTP500 and responseMessage null fields.
@@ -183,7 +189,11 @@ def last_run_date(request, payload):
 
 
 def dbm_filtered(context, payload):
-    rows = dbm_rows(context.dbm, predicate=dbm_predicate(payload,context.dbm))
+    reader=dbm_rows
+    if getattr(getattr(context,'run',None),'kind',None)=='LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import dbm_grid_rows
+        reader=dbm_grid_rows
+    rows = reader(context.dbm, predicate=dbm_predicate(payload,context.dbm))
     rows = [dict(r, WHCode=r['LocCode'], WhCode=r['LocCode'], WHName=r['LocName'],
                  ParentWhCode=r.get('PWhCode')) for r in rows]
     rows = scoped(rows, payload, 'LocCode',
@@ -197,7 +207,7 @@ def dbm_data(request, payload, *, count=False):
     paging = _pagination(payload)
     if paging is None:
         raise ValueError('invalid_pagination')
-    rows = dbm_filtered(dbm_context(), payload)
+    rows = dbm_filtered(dbm_context(payload=payload), payload)
     if count:
         return envelope(record_count=str(len(rows)))
     page, size = paging
@@ -450,7 +460,7 @@ def history_graph(request, payload):
         raise ValueError('SKUCode_and_WHCode_required')
     if not payload.get('product_permissions') or not payload.get('location_permissions'):
         return envelope(data=[])
-    context = dbm_context(history=True)
+    context = dbm_context(history=True,pair=(sku,location))
     products, locations = scope(payload, attributes=context.output['ClosingState'][0]['importer'])
     if sku not in products or location not in locations:
         return envelope(data=[])

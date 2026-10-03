@@ -13,6 +13,14 @@ def inputs(output,bands):
 
 
 def read_pick_post(run,*,output,bands=None):
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import projection_rows
+        if bands is None:bands=read_pick_bands(run)
+        source=inputs(output,bands)
+        rows=projection_rows(run,PickPostRow)
+        if len(source)!=len(rows) or any(any(a[n]!=b[n] for n in FIELDS[:3]) for a,b in zip(source,rows)):
+            raise ValueError('Fixture post-ration source ordinal identity differs')
+        return [{**a,**b} for a,b in zip(source,rows)]
     if bands is None: bands=read_pick_bands(run)
     source=inputs(output,bands); receipt=PickPostProjection.objects.get(run=run)
     if receipt.source_digest!=digest(source) or receipt.producers_digest!=digest(SOURCE_HASHES):

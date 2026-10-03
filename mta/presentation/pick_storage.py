@@ -43,6 +43,10 @@ def native_rows(run, rows):
 
 def read_pick_bands(run):
     """Only relational rows/metadata; no trace or synthetic fallback."""
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import projection_rows
+        return [{**row,**{field:str(row[field]) for field in BAND_FIELDS}}
+                for row in projection_rows(run,PickBand)]
     receipt = PickProjection.objects.get(run=run)
     if receipt.version != 1:
         raise ValueError('Unsupported Pick projection version')

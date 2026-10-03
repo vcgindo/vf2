@@ -39,6 +39,9 @@ def selected_pairs(payload):
 
 @transaction.atomic
 def submit(payload, actor, operation):
+    from mta.presentation import fixture
+    if fixture.enabled():
+        raise ActionDenied('demo_read_only')
     if not settings.VF_MTA_ACTIONS_ENABLED:
         raise ActionDenied('demo_read_only')
     selected = selected_pairs(payload)

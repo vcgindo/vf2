@@ -16,6 +16,9 @@ def inputs(output,bands):
 
 
 def read_expedite(run,*,output,bands=None):
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import projection_rows
+        return projection_rows(run,ExpediteRow)
     if bands is None: bands=read_pick_bands(run)
     receipt=ExpediteProjection.objects.get(run=run)
     if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,bands)):

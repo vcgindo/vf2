@@ -40,6 +40,9 @@ CONFIG_SETTINGS = (
 
 def binding():
     """Bounded metadata/file identity; no operational rows or input snapshot."""
+    from mta.presentation import fixture
+    if fixture.enabled():
+        return fixture.binding()
     run = selected_run()
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     files = list((Path(__file__).resolve().parents[1] / 'config').glob('*.json'))
@@ -70,6 +73,9 @@ def binding():
 
 def verify(run):
     """Reuse native readback and the existing consumer validators once."""
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import verify as verify_fixture
+        return verify_fixture(run)
     from mta.runtime.services import read_outputs
     from mta.runtime.temporal import command_state
     from mta.presentation import hierarchy

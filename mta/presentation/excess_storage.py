@@ -14,6 +14,9 @@ def inputs(output, business_date):
 
 
 def read_excess(run, *, output):
+    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import projection_rows
+        return projection_rows(run,ExcessInventoryRow,report_date=str(run.business_date))
     receipt = ExcessProjection.objects.get(run=run)
     if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)):
         raise ValueError('Excess projection source identity differs')
