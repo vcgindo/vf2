@@ -202,11 +202,16 @@ def read_rrr(run, payload, *, paging, count=False):
     # Correlated bounded joins prevent PostgreSQL from expanding the complete
     # estate before selecting the small produced Pick bag. OFFSET 0 is only a
     # planner fence: it removes no occurrence and introduces no tie-break.
-    joins = ' FROM A JOIN LATERAL (SELECT * FROM S WHERE '+equal('A."SKUCode"','S."SKUCode"')+' AND '+equal('A."WhCode"','S."WhCode"')+' OFFSET 0) S ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+' OFFSET 0) B ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM C WHERE '+equal('A."SKUCode"','C."SKUCode"')+' OFFSET 0) C ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM D WHERE '+equal('A."WhCode"','D."WHCode"')+' OFFSET 0) D ON TRUE'
-    joins += ' LEFT JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+' OFFSET 0) sla ON TRUE'
+    # The native VM fixture has 97k positions and 8k Pick subjects. Its retained
+    # plan rescanned 97k-row relations for each subject behind these fences.
+    # Allow PostgreSQL to flatten the identical joins for this fixture; retain
+    # every predicate, LEFT join, duplicate and the existing final ORDER BY.
+    fence='' if getattr(run,'kind',None)=='LEGACY_UI_FIXTURE' else ' OFFSET 0'
+    joins = ' FROM A JOIN LATERAL (SELECT * FROM S WHERE '+equal('A."SKUCode"','S."SKUCode"')+' AND '+equal('A."WhCode"','S."WhCode"')+fence+') S ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+fence+') B ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM C WHERE '+equal('A."SKUCode"','C."SKUCode"')+fence+') C ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM D WHERE '+equal('A."WhCode"','D."WHCode"')+fence+') D ON TRUE'
+    joins += ' LEFT JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+fence+') sla ON TRUE'
     joins += ' JOIN P ON A."SKUCode"=P.column1 JOIN L ON A."WhCode"=L.column1'
     if filters.children:
         joins += (' JOIN D parent ON '+equal('A."ParentWhCode"','parent."WHCode"')+' AND ('+

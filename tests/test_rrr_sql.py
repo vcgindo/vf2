@@ -4,6 +4,8 @@ import os
 import re
 import unittest
 from unittest.mock import patch
+from unittest.mock import MagicMock
+from types import SimpleNamespace
 
 os.environ.setdefault('VF_SECRET_KEY','unit-only')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','vectorflow.settings')
@@ -16,6 +18,30 @@ from mta.presentation.context import PublicationUnavailable
 
 
 class RrrSqlTest(unittest.TestCase):
+    def test_fixture_removes_only_zero_offset_fences(self):
+        from mta.presentation import rrr_sql
+        from mta.presentation.context import PermissionCodes
+        queries=[]
+        band=dict(sku_code='a',location_code='x',parent_location_code='p',
+            to_black='1',to_red='2',to_yellow='3',to_green='4',to_blue='5')
+        for kind in ('DAILY_CHAIN','LEGACY_UI_FIXTURE'):
+            cursor=MagicMock();cursor.fetchone.side_effect=[None,(7,)]
+            with patch.object(rrr_sql,'image_rows',return_value=[]), \
+                patch.object(rrr_sql.hierarchy,'selected_manifest',return_value=None), \
+                patch.object(rrr_sql,'rrr_predicate'), \
+                patch.object(rrr_sql,'scope',return_value=(PermissionCodes({'a':2}),PermissionCodes({'x':1}))), \
+                patch.object(rrr_sql,'read_pick_bands',return_value=[band,band]), \
+                patch.object(rrr_sql,'image_query',side_effect=lambda r,p:('SELECT * FROM retained_relation',['run',p])), \
+                patch.object(rrr_sql.connection,'cursor') as factory:
+                factory.return_value.__enter__.return_value=cursor
+                self.assertEqual(rrr_sql.read_rrr(SimpleNamespace(kind=kind),{},paging=(1,5),count=True),7)
+            queries.append(cursor.execute.call_args_list)
+        self.assertEqual(queries[0][0],queries[1][0])
+        before,after=(items[1].args for items in queries)
+        self.assertEqual(before[0].count(' OFFSET 0'),5)
+        self.assertEqual(before[0].replace(' OFFSET 0',''),after[0])
+        self.assertEqual(before[1],after[1])
+
     def test_like_patterns_match_retained_evaluator(self):
         for pattern in ('%Leaf%','B%','[Pp]ro_uct','%Other','[%]','a_b','%'):
             for value in ('B1 Product','Leaf','Leaf  ','Other','%','a_b','acb'):

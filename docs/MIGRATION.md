@@ -20,6 +20,57 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Four-page visible-data delivery — blocked; normal3005 restored
+
+Human instructions verified in command-centre chat
+`01a100e2-7943-7102-9760-62d9e492ecd9`, latest turn
+`01a101b6-2669-7a33-a2c2-45e0f8629fc9`, simplify the active goal: show genuine
+April7 VM records in the existing RRR, BPR, BTR and DBM pages on3005 through real
+fixture login, with basic filtering/navigation and representative source-backed
+identities. This superseded the initial RRR-only goal wording, including its
+larger graph/layout/export acceptance gate. The bounded follow-up stops at
+the evidenced availability blocker below; no later migration work is resumed.
+
+RRR was visible through real fixture login: count8063, first5000 rows and an
+11-row local SKU filter. BPR was visible with50 rows of97097 and a one-row SKU
+filter matching the retained SQL source. Its fixture-only reader now streams
+the frozen inputs, selects only consumed ration/trend fields, counts without
+retaining display bags and bounds the final join to the selected page keys.
+The immutable source/consumer dataset was not reloaded or changed.
+
+**Unmet exit: BTR concurrent browser count/grid calls still exceed the unchanged
+60-second gateway limit and occupy both workers.** Single-worker diagnostics
+returned both grids in55.6s and count in28.5s, but do not certify the browser
+path. The fixture-only BTR planner variant remains an unaccepted availability
+candidate. DBM's earlier authenticated API proof remains valid evidence; a
+four-page consolidated browser pass was not completed. User-reported403s were
+confirmed in repeated GetAllReports requests from permission-forbidden pages;
+the failing user's account was not established, so their exact attribution is
+unresolved. No authentication bypass or permission modification was made.
+
+Windows005/006/007 are preserved. Window005 exposed concurrent BPR worker OOM;
+006 removed OOM but its grid timed out;007 proved BPR visible after bounding the
+final join, then exposed BTR's actual concurrent browser blocker. All three
+restored normalJune17 and disabled fixture actors. Window007 additionally proved
+real normal-account GetAllReports and GetLastRunDate return200 (17Jun2026).
+Protected services, accepted publication and existing grants are unchanged.
+The controlled browser was logged out of its disabled fixture session.
+Focused affected suite:47 tests pass. No full page/Stage2/F3 acceptance claim.
+
+On success commit/push and leave only the isolated MTA fixture configuration on
+3005 with dedicated read/layout actors enabled and business actions disabled;
+report URL/login retrieval and exact normal restoration. On failure/interruption
+restore June17 and disable fixture actors. Existing grants/frontend/gateway/auth/
+MTO and3002/3003/3004 remain unchanged. F1/F2 engines/state are strictly off limits.
+No dataset reload/full revalidation, generic infrastructure, timeout increase,
+reduced source population, other pages or Stages3–5. Exhaustive graph/layout/export
+QA, legacy parity and matched performance remain unverified later obligations;
+they do not gate this visible-data delivery. Retry only actual failures.
+
+The preparation goal ended at pushed5260ab4; preserve its historical
+`BLOCKED_CONSUMER_READINESS` receipt. This is the same new integration goal,
+updated in place; visible data does not mean full Stage2 acceptance.
+
 ### Bounded Stage 2 dataset preparation — consolidated consumer blocker
 
 The human supplied VM-extracted backups at `E:/vflow_backup_dump` in the review

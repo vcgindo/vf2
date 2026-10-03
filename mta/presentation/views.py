@@ -244,9 +244,24 @@ def bpr_selected(payload, *, mode='grid'):
     from mta.presentation.bpr_read import bpr_context
     from mta.presentation.bpr_filters import BprPredicate
     context = bpr_context()
-    model = ReadModel(context.output, context.ancillary)
+    fixture=getattr(context.run,'kind',None)=='LEGACY_UI_FIXTURE'
+    model = ReadModel(context.output, context.ancillary, bounded_page=fixture)
     importer = context.output['ClosingState'][0]['importer']
     predicate = BprPredicate(payload, importer['LocationAttributeData'], export=mode == 'export')
+    if fixture:
+        # Keep the exact native join/filter/scope multiplicities without holding
+        # three copied full-population display bags in each concurrent reader.
+        from mta.presentation.bpr import sort_rows
+        products,locations=scope(payload,attributes=importer)
+        source=model.joined(count=mode=='count',final=mode=='export')
+        def weight(row):
+            return (permission_multiplicity(products,row.get('SKUCode')) *
+                    permission_multiplicity(locations,row.get('WHCode')) * predicate(row))
+        if mode=='count':
+            # The count caller only asks len(); no display rows are needed.
+            return model,range(sum(weight(row) for row in source))
+        rows=[row for row in source for _ in range(weight(row))]
+        return model,rows if mode=='export' else sort_rows(rows)
     source = (model.count_rows() if mode == 'count' else
               list(model.joined(final=True)) if mode == 'export' else model.candidates())
     rows = scoped(source, payload, 'WHCode', attributes=importer, preserve_join_multiplicity=True)

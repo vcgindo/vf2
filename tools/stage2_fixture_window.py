@@ -164,9 +164,49 @@ def prove():
         restore()
 
 
+def serve():
+    """Bounded browser verification lease; retain only explicit successful proof."""
+    if WINDOW.exists():raise ValueError('Preserve window attempt; use a new identity')
+    verify_restoration_plan()
+    WINDOW.mkdir()
+    for name in ('fixture-serving.json','compose.fixture.json','compose.restore.json'):
+        (WINDOW/name).write_bytes((DEST/name).read_bytes())
+    before=dict(mta=runtime(inspect(MTA)),protected=protected(),ready=ready())
+    atomic(WINDOW/'window-before.json',before)
+    retained=False
+    try:
+        compose('compose.fixture.json')
+        admission=ready();atomic(WINDOW/'fixture-readiness.json',admission)
+        accounts('enable')
+        print('Fixture ready for browser verification; restore automatically after 25 minutes without successful proof',flush=True)
+        deadline=time.monotonic()+1500
+        while time.monotonic()<deadline:
+            proof=WINDOW/'visible-data-proof.json'
+            if proof.exists():
+                value=json.loads(proof.read_text())
+                if value.get('status')!='PASS':raise ValueError('Visible-data verification failed')
+                if set(value.get('pages',{}))!={'RRR','BPR','BTR','DBM'}:raise ValueError('Four-page proof required')
+                if any(not page.get('visible_rows') for page in value['pages'].values()):raise ValueError('Visible records required')
+                if not value.get('real_login') or not value.get('filter_verified'):raise ValueError('Login/filter proof required')
+                security=json.loads((WINDOW/'visible-security-proof.json').read_text())
+                if security.get('status')!='PASS' or not security.get('actions_disabled'):raise ValueError('Fixture security proof required')
+                if protected()!=before['protected']:raise ValueError('Protected resources changed')
+                if ready()!=admission:raise ValueError('Fixture admission changed')
+                atomic(WINDOW/'serving-handoff.json',dict(status='SERVING_FOR_HUMAN_INSPECTION',
+                    ready=admission,mta=runtime(inspect(MTA)),protected_unchanged=True,
+                    restoration='python tools/stage2_fixture_window.py restore --attempt '+WINDOW.name[-3:]))
+                retained=True
+                print('Four-page proof accepted; fixture remains available on3005',flush=True)
+                return
+            time.sleep(2)
+        raise TimeoutError('Browser verification lease expired')
+    finally:
+        if not retained:restore()
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation',choices=['prepare','prove','restore'])
+    parser.add_argument('operation',choices=['prepare','prove','serve','restore'])
     parser.add_argument('--attempt',default='001')
     args=parser.parse_args()
     if not args.attempt.isdigit() or len(args.attempt)!=3:raise ValueError('Three-digit explicit attempt required')

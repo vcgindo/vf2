@@ -21,6 +21,24 @@ from mta.presentation.rrr_export import csv_chunks
 
 
 class BprBatchTests(unittest.TestCase):
+    def test_fixture_streaming_keeps_scope_filter_and_duplicate_results(self):
+        from mta.presentation.context import PermissionCodes
+        from mta.presentation.views import bpr_selected
+        self.importer['SkuLocAttributeData']=[dict(SKUCode='337',LocCode='AG515802')]*2
+        self.ancillary['BPRReport_RemarkDetails']=[dict(SKUCode='337',WhCode='AG515802',
+            RemarkDate='2026-04-07T12:00:00',Remark=value) for value in ('first','tied')]
+        for wanted in ('337','missing'):
+            payload={'filters':{'productFilter':{'filters':[self.item('sku',wanted)]}}}
+            for mode in ('count','grid','analytics','export'):
+                results=[]
+                for kind in ('DAILY_CHAIN','LEGACY_UI_FIXTURE'):
+                    context=SimpleNamespace(run=SimpleNamespace(kind=kind),output=self.output,ancillary=self.ancillary)
+                    with patch('mta.presentation.bpr_read.bpr_context',return_value=context), \
+                        patch('mta.presentation.views.scope',return_value=(PermissionCodes({'337':2}),PermissionCodes({'AG515802':3}))):
+                        model,rows=bpr_selected(payload,mode=mode)
+                        results.append(len(rows) if mode=='count' else model.page(rows,1,5) if mode=='grid' else list(rows))
+                self.assertEqual(*results)
+
     def test_bpr_config_exposes_canonical_graph_tags_and_types(self):
         from mta.presentation.legacy_ui import bpr_ui_columns
         rows = bpr_ui_columns()
@@ -132,6 +150,7 @@ class BprBatchTests(unittest.TestCase):
             return client.post('/api/mta/'+route, json.dumps(payload), content_type='application/json',
                 **({'HTTP_X_VECTORFLOW_IDENTITY':'{"id":"unit"}'} if authenticated else {}))
         with patch('mta.presentation.bpr_read.bpr_context', return_value=SimpleNamespace(
+                run=SimpleNamespace(kind='DAILY_CHAIN'),
                 output=self.output,ancillary=self.ancillary)), \
              patch('mta.presentation.views.scoped', side_effect=lambda rows,*a,**k:rows) as scoped, \
              patch('mta.presentation.views.selected_run',return_value=object()), \

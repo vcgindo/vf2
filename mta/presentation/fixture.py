@@ -102,6 +102,72 @@ def pair_rows(run,path,sku,location,cutoff=None):
         return [{name:wire_value(v,kind) for (name,column,kind),v in zip(fields,row)} for row in cur.fetchall()]
 
 
+def bpr_ancillary(run):
+    """Two explicit native ancillary bags from sealed, frozen typed staging."""
+    from datetime import date,datetime
+    from decimal import Decimal
+    selected,_=binding()
+    if run.pk!=selected.pk:unavailable('ancillary_run_changed')
+    populations={
+        'InTransitData':('Demo_Importer_1','SKUCode WhCode ParentWhCode CurrentLocationCode LRCode OrderNo CreationDate GateOutDate InTransitQty TransporterCode Ageing ETA TLT SLT Remark ReportDate'.split()),
+        'BPRReport_RemarkDetails':('Demo_BPR_1','SKUCode WhCode Remark Username RemarkDate'.split())}
+    result={}
+    with connection.cursor() as cur:
+        cur.execute('SELECT manifest_sha256 FROM stage2_owner.manifest')
+        if cur.fetchall()!=[(policy()['manifest_sha256'],)]:unavailable('ancillary_manifest_changed')
+        for name,(source,fields) in populations.items():
+            cur.execute('SELECT values_sha256,row_count FROM stage2_owner.tables WHERE source=%s AND table_name=%s',[source,name])
+            receipt=cur.fetchone()
+            if not receipt:unavailable('ancillary_source_missing:'+name)
+            # This fixture's native populations are0 and5 rows. Refuse a broader
+            # population without an explicit new bounded adapter decision.
+            if receipt[1]>(0 if name=='InTransitData' else 5):unavailable('ancillary_population_changed:'+name)
+            quote=connection.ops.quote_name
+            cur.execute('SELECT * FROM '+quote('stage_'+source.lower())+'.'+quote('dbo__'+name)+' ORDER BY vf_source_ordinal')
+            if [column[0] for column in cur.description]!=['vf_source_ordinal',*fields]:unavailable('ancillary_columns_changed:'+name)
+            rows=[];checksum=hashlib.sha256()
+            for ordinal,record in enumerate(cur.fetchall()):
+                if record[0]!=ordinal:unavailable('ancillary_ordinal_changed:'+name)
+                raw=[v.isoformat() if isinstance(v,(date,datetime)) else str(v) if isinstance(v,Decimal) else v for v in record[1:]]
+                checksum.update((json.dumps(raw,ensure_ascii=False,separators=(',',':'),allow_nan=False)+'\n').encode())
+                rows.append(dict(zip(fields,record[1:])))
+            if (checksum.hexdigest(),len(rows))!=receipt:unavailable('ancillary_values_changed:'+name)
+            result[name]=rows
+    return result
+
+
+def bpr_image_rows(run,path):
+    """Read BPR's seven frozen inputs, reusing the completed full-value proof."""
+    from django.db import transaction
+    from mta.runtime.relational_state import table_sql,quote
+    allowed={'closing/importer/'+name for name in ('SkuAttributeData','LocationAttributeData','SkuLocAttributeData')}
+    allowed.update(('reports/bpr/BPR_Table','reports/bpr/vf_RationedReqReport',
+        'closing/dbm/SKULocStandardAttributes','closing/btr/BufferTrendPhysicalInv'))
+    if path not in allowed:unavailable('bpr_input_outside_boundary')
+    # bpr_context first calls bpr_ancillary, which binds the immutable tables,
+    # finalized manifest and receipt roster. No cached or recalculated rows.
+    item=image_metadata(run,path);fields=item['fields'];rows=[]
+    if path=='reports/bpr/vf_RationedReqReport':
+        used={'SKUCode','WhCode','VirtualNorm','PhysicalInventoryColorSequence',
+              'PhysicalInventoryPen','DispatchPen','PhysicalInventoryColor','DispatchColor'}
+        fields=[field for field in fields if field[0] in used]
+    if path=='closing/btr/BufferTrendPhysicalInv':
+        # BPR uses availability/count fields, never the ninety daily colours.
+        # Retain every source row and all fields used by its joins/filters.
+        daily={f'D{i}' for i in range(1,91)}
+        fields=[field for field in fields if field[0] not in daily]
+    with transaction.atomic():
+        with connection.connection.cursor(name='fixture_bpr_input') as cur:
+            cur.itersize=1000
+            cur.execute('SELECT vf_ordinal,'+','.join(quote(c) for _,c,_ in fields)+' FROM '+table_sql(item['table'])+
+                ' WHERE vf_run_id=%s AND vf_image=%s ORDER BY vf_ordinal',[run.pk,path])
+            for ordinal,record in enumerate(cur):
+                if record[0]!=ordinal:unavailable('bpr_input_ordinal_changed')
+                rows.append({name:wire_value(value,kind) for (name,column,kind),value in zip(fields,record[1:])})
+    if len(rows)!=item['count']:unavailable('bpr_input_count_changed')
+    return rows
+
+
 def receipt(run,binding):
     if not enabled() or run.pk!=selected_run().pk:unavailable('not_selected')
     value=policy()

@@ -43,7 +43,8 @@ def sort_rows(rows, *, projected=False):
 
 
 class ReadModel:
-    def __init__(self, output, ancillary):
+    def __init__(self, output, ancillary, *, bounded_page=False):
+        self.bounded_page = bounded_page
         # These are required consumer inputs, not optional fallback fixtures.
         self.transit = index(ancillary['InTransitData'], 'SKUCode', 'WhCode')
         self.remarks = latest_remarks(ancillary['BPRReport_RemarkDetails'])
@@ -59,9 +60,11 @@ class ReadModel:
         self.trend = index(native(output['BTRFinal'][0]['BufferTrendPhysicalInv'],
                                   'BTR/BufferTrendPhysicalInv'), 'SKUCode','WhCode')
 
-    def joined(self, *, count=False, final=False):
+    def joined(self, *, count=False, final=False, keys=None):
         for a in self.base:
             key = sql_key(a['SKUCode'],a['WhCode'])
+            if keys is not None and key not in keys:
+                continue
             standard = self.standard.get(key, [])
             populations = (
                 self.ration.get(key,[]) or [{}], standard if count else standard or [{}],
@@ -144,7 +147,7 @@ class ReadModel:
             raise ValueError('positive pagination is required by deployed BPR')
         selected_keys = Counter(row['_key'] for row in selected[(page-1)*size:page*size])
         rows = []
-        for row in self.joined(final=True):
+        for row in self.joined(final=True, keys=selected_keys if self.bounded_page else None):
             multiplicity = selected_keys[row['_key']]
             if not multiplicity:
                 continue

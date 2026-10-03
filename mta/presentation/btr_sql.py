@@ -5,8 +5,9 @@ distinct from grid's five-field requirement projection. No whole-run reader,
 other-branch grid work, calculation, cache, or new ordering for tied keys.
 """
 from collections import defaultdict
+from contextlib import nullcontext
 
-from django.db import connection
+from django.db import connection, transaction
 
 from mta.presentation import btr, hierarchy
 from mta.presentation.btr_filters import BtrPredicate, unavailable
@@ -98,8 +99,11 @@ def read_btr(run, payload, *, paging, count=False, export=False):
         return (iter(()), dates) if export else result
 
     ctes, params = [], []
+    # Permit column pruning separately for key selection and wide display rows
+    # in the sealed fixture; materializing all ninety days spills both passes.
+    inline = 'NOT MATERIALIZED ' if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' else ''
     def add(alias, query, values):
-        ctes.append(alias + ' AS (' + query + ')')
+        ctes.append(alias + ' AS ' + inline + '(' + query + ')')
         params.extend(values)
     def image(alias, path):
         query, values = image_query(run, path)
@@ -163,7 +167,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
         local_ctes, values = list(ctes), list(params)
         for alias, table in (('A', 'BPPTrend' + trend), ('btd', 'BufferTrend' + trend)):
             query, bound = image_query(run, 'closing/btr/' + table)
-            local_ctes.append(alias + ' AS (' + query + ')')
+            local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')
             values.extend(bound)
         if count:
             query = 'WITH ' + ','.join(local_ctes) + ' SELECT count(*) FROM A' + joins + auth + ' WHERE ' + where
@@ -195,13 +199,23 @@ def read_btr(run, payload, *, paging, count=False, export=False):
             values.extend(filters.children + (filters.params if export else [paging[1]]))
             if export:
                 return iter_rows(query, values), dates
-        with connection.cursor() as cursor:
+        fixture = getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE'
+        with transaction.atomic() if fixture else nullcontext(), connection.cursor() as cursor:
+            if fixture:
+                # This sealed population's LIMIT row estimate otherwise selects
+                # repeated scans of 97k-row CTEs. Scope the planner choice to this
+                # read transaction; retain the exact joins, bags and ordering.
+                cursor.execute('SHOW enable_nestloop')
+                previous_nestloop = cursor.fetchone()[0]
+                cursor.execute('SET LOCAL enable_nestloop = off')
             cursor.execute(query, values)
             if count:
                 result['TechCount' if name == 'tech' else 'EcoCount'] = str(cursor.fetchone()[0])
             else:
                 names = [c[0] for c in cursor.description]
                 result[name] = [{n: '' if v is None else str(v) for n, v in zip(names, row)} for row in cursor.fetchall()]
+            if fixture:
+                cursor.execute("SELECT set_config('enable_nestloop', %s, true)", [previous_nestloop])
     return result
 
 
