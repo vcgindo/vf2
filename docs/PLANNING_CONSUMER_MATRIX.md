@@ -55,6 +55,15 @@ Evidence: `D:/freshvcf-build/evidence/planning-prepared-20261005-001/`
 `source-schema.json`, `derived-source-comparison.json`, `april-request-history.json`.
 PostgreSQL prepared-row equality and complete endpoint/order proofs remain required.
 
+The two source relations are `PlanningBprMasterRow` (one importer source ordinal;
+five canonical fields) and `PlanningGitMasterRow` (one rationed/standard ordinal
+pair; 17 canonical fields). Both retain raw values plus prepared SKU/location/
+parent comparison keys. They remove repeated master derivation for GIT,
+overview and genuine Expedite parent dependencies. They are not complete grid
+or chart occurrence relations; the separate display/filter grains above remain
+required. `PlanningSourceProjection` holds only source/recipe/count/checksum
+metadata and seals both masters together. Imported image bindings stay unchanged.
+
 ## Shared constraints and verification
 
 Stable string matching is resolved once during preparation. Retain raw display

@@ -19,21 +19,28 @@ class Command(BaseCommand):
                             help='Apply the additive sealed Guided DBM and Chronic grid relations')
         parser.add_argument('--guided-history-preparation', action='store_true',
                             help='Apply the additive sealed Guided history occurrence relations')
+        parser.add_argument('--planning-sources', action='store_true',
+                            help='Apply only the two additive Planning source masters after Guided history')
 
     def handle(self, *args, **options):
         if not fixture.enabled():
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0026_guided_history_covering_index' if options['guided_history_preparation'] else
+        target = ('0027_planning_derived_sources' if options['planning_sources'] else
+                  '0026_guided_history_covering_index' if options['guided_history_preparation'] else
                   '0022_guided_chronic_prepared_candidates' if options['guided_preparation'] else
                   '0020_bpr_prepared_seals' if options['bpr_preparation'] else
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['planning_sources'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0027_planning_derived_sources' for migration, backwards in plan):
+            raise CommandError('Planning source migration requires the existing Guided history baseline')
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
+                *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
                 *(['0018_guided_history_date_index'] if options['guided_history_index'] or options['bpr_preparation'] or options['guided_preparation'] or options['guided_history_preparation'] else []),
                 *(['0019_bpr_prepared_candidates', '0020_bpr_prepared_seals']
                   if options['bpr_preparation'] or options['guided_preparation'] or options['guided_history_preparation'] else []),

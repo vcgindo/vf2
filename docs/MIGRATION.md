@@ -69,6 +69,24 @@ ingredients, not request-time readers or completed prepared-table delivery.
 No schema migration, serving code deployment or source mutation occurred at
 this checkpoint. The coherent prepared storage/read batch remains active.
 
+Typed source-storage checkpoint: migration0027 adds only Planning BPR/GIT master
+rows and their separate immutable receipt. `prepare_planning_sources` loaded
+97,097/2,567 rows in14.535s using the qualified queries. `verify_planning_sources.py`
+proves exact complete PostgreSQL readback against each derivation, including
+source ordinals/multiplicity, stable repeat verification and15 guarded mutation
+attempts (insert without build, insert after seal, update/delete/truncate on all
+three relations). Check and migration-state check pass; no pending migrations.
+Evidence: `prepared-source-proof-final.txt` in the Planning evidence directory.
+
+The initial ordinary migrate created empty DDL before fixture migration-history
+recording rejected it. Recovery verified no rows and exact owned guards, reversed
+only the empty unrecorded0027 objects, then applied the real migration atomically
+through existing `migrate_btr_fixture --planning-sources`. No fake migration or
+source reset; fixture admission/freeze digest unchanged. Recovery script retained
+externally. Owned proof containers were serial,4GiB/2CPU, no ports/restart, removed
+on exit. Serving application code is still unchanged; prepared consumer joins,
+SQL readers, April-history admission and frontend/performance proof remain active.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

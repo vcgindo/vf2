@@ -545,3 +545,66 @@ class PickPostRow(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_pick_post_ordinal')]
+
+
+class PlanningSourceProjection(models.Model):
+    """Separate receipt for canonical derived masters; never an imported image."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    bpr_count = models.PositiveBigIntegerField()
+    bpr_digest = models.CharField(max_length=64)
+    git_count = models.PositiveBigIntegerField()
+    git_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningBprMasterRow(models.Model):
+    """One occurrence per retained importer MasterData row."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    source_ordinal = models.BigIntegerField()
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    parent_key = models.TextField(null=True)
+    SKUCode = models.CharField(max_length=50)
+    WHCode = models.CharField(max_length=50)
+    Norm = models.IntegerField()
+    ParentWhCode = models.CharField(max_length=50, null=True)
+    SKUIntroDate = models.DateField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'source_ordinal'], name='planning_bpr_source_ordinal')]
+        indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_bpr_source_keys')]
+
+
+class PlanningGitMasterRow(models.Model):
+    """One rationed/standard occurrence; flags do not multiply the source bag."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    rationed_ordinal = models.BigIntegerField()
+    standard_ordinal = models.BigIntegerField()
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    parent_key = models.TextField(null=True)
+    Status = models.CharField(max_length=50, null=True)
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+    Tags = models.CharField(max_length=50, null=True)
+    ParentWhCode = models.CharField(max_length=50, null=True)
+    Norm = models.IntegerField(null=True)
+    VirtualNorm = models.IntegerField(null=True)
+    Stock = models.IntegerField(null=True)
+    Git = models.IntegerField(null=True)
+    PhysicalInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PhysicalInventoryColor = models.CharField(max_length=10, null=True)
+    PipelineInventoryPen = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+    PipelineInventoryColor = models.CharField(max_length=10, null=True)
+    Req = models.IntegerField(null=True)
+    Price = models.IntegerField(null=True)
+    IsParent = models.BooleanField(null=True)
+    IsReceiving = models.BooleanField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'rationed_ordinal', 'standard_ordinal'],
+                                               name='planning_git_source_ordinals')]
+        indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_git_source_keys'),
+                   models.Index(fields=['run', 'parent_key', 'sku_key'], name='planning_git_parent_keys')]
