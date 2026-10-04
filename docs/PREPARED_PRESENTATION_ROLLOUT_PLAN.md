@@ -120,15 +120,48 @@ plus failure/retry without a partial serving set. Use existing serving selection
 and controlled restart/admission initially; improve the transition mechanism only
 if this proof identifies a concrete need. 3004 cutover remains a separate decision.
 
-## Recommended next execution contract
+## Proposed single batch execution contract
 
-Start with BPR grid/count only: one end-to-end observation, the smallest typed
-preparation/reader correction justified by it, exact affected output comparison,
-minimal frontend work only if actual duplication exists, and one delivered UI
-check on 3005. Check Research's reuse of the BPR grid response without extending
-into its graph implementation. The identity mapper is not a performance task.
-If the existing BPR reader already meets the accepted development experience,
-record that result and retain it; do not add storage to satisfy a pattern.
+The human proposes preparing the frontend integration in one implementation
+batch followed by one bounded connected-UI validation pass. On explicit dispatch
+of that instruction, this section supersedes the BPR-only recommendation and
+per-screen stopping rule above for that batch only. All other boundaries remain.
+Planning and the executor are still stopped until the human dispatches the task.
+
+The controller recommends an exact four-surface batch to remove the previous
+ambiguity between the rollout's five families and the conversational four areas:
+
+1. BPR grid/count: `GetBPRData` and `GetBPRDataCount`; compatibility with existing
+   Research BPR grid requests, without implementing Research graphs or widening
+   fixture permissions.
+2. DBM current grid/count: `DBMData` and `DBMDataCount`; preserve the existing
+   command-bearing path, with no new Apply/Sleep trial or action activation.
+3. RRR grid/count: `RRRData` and `RRRDataCount`.
+4. Buffer Trends graph/table: `GetBufferTrendGraphData` and the existing Absolute/
+   Percentage, Self/Parent, horizon and filter consumers of that response.
+
+Guided, Research graphs, all Planning categories, color-band variants, exports,
+history dialogs and other endpoints are excluded from this batch, except an
+existing unaffected compatibility check when a shared helper changes. They are
+still in the overall rollout; no executor may silently select them into item 4.
+
+Implement through the four fixed items without stopping for a new permission
+question after each one. Use one short batch entry in MIGRATION.md recording the
+affected endpoints, exact overhead, expected values and dependencies. Keep basic
+correctness checks during implementation; deploy one coherent batch to 3005 and
+perform one targeted final UI pass per included surface. Leave efficient readers
+and identity mappers unchanged with supporting evidence. Do not add storage to
+make all four implementations uniform.
+
+Preserve configured page sizes/fields. A 5,000-row check applies where the real
+UI workload selects it; a chart is checked for its actual requested series and
+horizon. Freeze complete before-results for changed paths, compare full affected
+outputs and one scoped/range case, and add later-page/count checks where changed.
+Correct only attributable failures and rerun only their affected checks. Deliver
+commit/push, coherent deployment identity, rollback and each surface's result.
+If a required input is unavailable or excluded work is indispensable, report the
+precise dependency and partial delivery; do not call all four complete or expand
+the scope. Do not start daily integration after this batch.
 
 No executor prompt or implementation goal is created by this planning document.
 

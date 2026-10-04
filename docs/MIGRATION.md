@@ -32,8 +32,13 @@ The human accepts the BTR snapshot/typed reader at `806a239` as the development
 baseline for extending the method to other UI surfaces. Research and the proposed
 sequence are in [the rollout plan](PREPARED_PRESENTATION_ROLLOUT_PLAN.md).
 Planning exit: identify existing readers/producers, scoped presentation slices
-and debt before daily input/publication integration. Proposed next slice is BPR
-grid/count, with Research grid compatibility only. No implementation goal,
+and debt before daily input/publication integration. The human subsequently
+proposes one implementation batch and a bounded final UI-validation pass. The
+controller's revised recommended batch is BPR grid/count, DBM current grid/count,
+RRR grid/count and Buffer Trends graph/table; Research BPR-grid compatibility only.
+Guided/Research graphs and Planning are later work, not an open-ended fourth item.
+This proposal replaces the BPR-only recommendation, not the execution pause.
+No implementation goal,
 executor resumption, application-wide acceptance, daily integration or cutover
 is authorized by this planning update. Earlier bounded-task stops remain in force.
 
