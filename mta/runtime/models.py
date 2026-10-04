@@ -790,3 +790,44 @@ class PlanningGitOccurrence(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_planning_git_occurrence')]
+
+
+class PlanningExpediteGridProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    rows_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningExpediteGridOccurrence(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    direction = models.CharField(max_length=8)
+    branch = models.CharField(max_length=16)
+    ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    standard_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_description_ordinal = models.PositiveBigIntegerField(null=True)
+    location_description_ordinal = models.PositiveBigIntegerField(null=True)
+    parent_description_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_ordinal = models.PositiveBigIntegerField(null=True)
+    location_ordinal = models.PositiveBigIntegerField(null=True)
+    pair_ordinal = models.PositiveBigIntegerField(null=True)
+    master_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_description = models.TextField(null=True)
+    location_description = models.TextField(null=True)
+    parent_description = models.TextField(null=True)
+    sl1 = models.TextField(null=True)
+    sl2 = models.TextField(null=True)
+    sl3 = models.TextField(null=True)
+    sl4 = models.TextField(null=True)
+    sl5 = models.TextField(null=True)
+    ll1 = models.TextField(null=True)
+    ll2 = models.TextField(null=True)
+    ll3 = models.TextField(null=True)
+    ll4 = models.TextField(null=True)
+    ll5 = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','direction','branch','ordinal'],name='fresh_plan_expedite_grid_ord')]

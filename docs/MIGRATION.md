@@ -196,6 +196,25 @@ wire cases remain required. No deployment or browser/performance acceptance yet.
 Expedite preparation/read, overview, complete wire comparisons and delivery remain
 active within the unchanged six-destination objective.
 
+Active item: Expedite's four grid occurrence grains. Parent dispatch and child
+dispatch use LEFT source matches; parent availability also requires the exact
+derived parent BPR master; child availability uses INNER matches with LEFT parent
+description. Prepare source/filter ordinals and display hierarchy once, keeping
+request/transit overlays separate. Required proof is complete occurrence bags
+against the existing selectors, followed by scoped wire/filter/page proof.
+
+Expedite grid storage checkpoint: migration0032 after0031 adds one explicitly
+direction/branch-keyed occurrence relation and separate immutable receipt.
+Independent source-bag proof passes parent dispatch1,030/availability1,443 and
+child dispatch1,030/availability2,746. The loader persisted6,249 references in
+2.09s. Complete SQL readback for every branch,10 mutation-denial checks and stable
+repeat verification pass, with unchanged source digest. Four admission tests,
+Django check/model-state/migration-plan checks pass. Evidence:
+`expedite-preparation-proof.txt`, `expedite-grid-{load,storage-proof}.txt` in the
+Planning evidence directory. These are prepared inputs, not completed readers:
+live filters/scopes, response serialization, April request-history admission,
+Expedite charts/custom/counts, overview and all delivery gates remain open.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 
