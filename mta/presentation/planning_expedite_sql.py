@@ -29,7 +29,7 @@ DISPLAY.update({p+str(i):'H.'+p+str(i) for p in ('sl','ll') for i in (1,2,3)})
 FIELDS = [*ALIASES,*DISPLAY]
 
 
-def selected_parent(run,payload,*,child=False):
+def selected_parent(run,payload,*,child=False,count_direction=None):
     """One complete scope/filter relation shared by paging and nested transit."""
     importer, manifest = _projected_attributes(run)
     if manifest:
@@ -57,7 +57,7 @@ def selected_parent(run,payload,*,child=False):
         else:
             ctes.append(alias+'(code,weight) AS (SELECT NULL::text,0::bigint WHERE FALSE)')
     joins = (' FROM H JOIN mta.fresh_mta_expediterow A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal '
-             'JOIN P ON P.code=A."SKUCode" JOIN L ON L.code=A.'+quote('ParentWhCode' if child else 'WhCode')+' '
+             'JOIN P ON P.code=A."SKUCode" JOIN L ON L.code=A.'+quote('ParentWhCode' if child and count_direction!='parent' else 'WhCode')+' '
              'LEFT JOIN S ON S.vf_ordinal=H.standard_ordinal')
     for alias,table,ordinal in [('B','SkuLocAttributeData','pair_ordinal'),('C','SkuAttributeData','sku_ordinal'),('D','LocationAttributeData','location_ordinal')]:
         if alias not in filters.owners and not (child and alias=='D' and filters.children): continue
@@ -71,6 +71,14 @@ def selected_parent(run,payload,*,child=False):
     params.extend(filters.params)
     columns = {alias:'A.'+quote(field) for alias,field in ALIASES.items()}
     columns.update(DISPLAY)
+    if count_direction is not None:
+        if not child or count_direction not in ('parent','child'):
+            raise ValueError('Invalid Expedite count grain')
+        # Child dispatch LEFT matches become the canonical count INNER grain;
+        # child availability already has that grain, with no parent-master join.
+        where += ' AND '+ ' AND '.join('H.'+field+' IS NOT NULL' for field in
+            ('standard_ordinal','sku_description_ordinal','location_description_ordinal','sku_ordinal','location_ordinal','pair_ordinal'))
+        where += ' AND '+key('A."PipelineInventoryColor"')+" IN ('red','black')"
     if child:
         columns.update(sap='A."RationedQty"',ec='A."ParentPipelineInventoryColor"',rlt='A."RLT"')
         columns.update({p+str(i):'H.'+p+str(i) for p in ('sl','ll') for i in (4,5)})
@@ -80,6 +88,22 @@ def selected_parent(run,payload,*,child=False):
                 +','.join(value+' AS '+quote(alias) for alias,value in columns.items())+joins+
                 " WHERE H.direction='"+('child' if child else 'parent')+"' AND "+where)
     return 'WITH '+','.join(ctes)+' '+selected,params
+
+
+def counts(run,payload):
+    direction=str(payload.get('type','')).casefold()
+    if direction not in ('parent','child'):
+        raise ValueError('Unsupported Expedite direction')
+    availability=(payload.get('filters') or {}).get('availabilityFilter') or {}
+    if any(item.get('attributeName','').lower()=='norm' for item in availability.get('filters',[])):
+        raise PublicationUnavailable('expedite_count_norm_filter_contract_unverified')
+    selected,params=selected_parent(run,payload,child=True,count_direction=direction)
+    result=dict(expediteDispatches=0,createAvailabilityAtParent=0)
+    with connection.cursor() as c:
+        c.execute('WITH selected AS ('+selected+') SELECT branch,sum(weight)::integer FROM selected GROUP BY branch',params)
+        for branch,total in c.fetchall():
+            result['expediteDispatches' if branch=='dispatch' else 'createAvailabilityAtParent']=total
+    return result
 
 
 def parent_grid(run,payload):

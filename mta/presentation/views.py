@@ -360,6 +360,10 @@ def export_data(request, payload):
 
 @endpoint('POST')
 def planning_overview(request, payload):
+    from mta.presentation import fixture
+    if fixture.enabled():
+        from mta.presentation.planning_overview_sql import counts as prepared_counts
+        return envelope(data=prepared_counts(selected_run(),payload),message='')
     from mta.presentation.planning_read import planning_overview_context
     from mta.presentation.planning_overview import counts
     if not _no_active_filters(payload):
@@ -444,6 +448,10 @@ def planning_grid(request, payload, *, count=False):
         from mta.presentation.git_read import grid
         return envelope(data=grid(payload, count=count))
     if str(payload.get('category','')).casefold()=='expedite' and count:
+        from mta.presentation import fixture
+        if fixture.enabled():
+            from mta.presentation.planning_expedite_sql import counts as prepared_counts
+            return envelope(data=prepared_counts(selected_run(),payload))
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
         from mta.presentation.expedite_read import expedite_context

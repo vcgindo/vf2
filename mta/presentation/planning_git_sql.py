@@ -13,7 +13,7 @@ from mta.runtime.models import PlanningGitMasterRow
 from mta.runtime.relational_state import quote
 
 
-def grid(run,payload,*,count=False):
+def grid(run,payload,*,count=False,overview=False):
     from mta.presentation.git_read import validate_filters,NORMAL_COLUMNS
     from mta.presentation.excess_read import pagination
     kind=str(payload.get('type','')).lower()
@@ -29,6 +29,9 @@ def grid(run,payload,*,count=False):
         raise PublicationUnavailable('LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120; combined child grid unavailable')
     filters=GridFilters(payload,'git',PlanningGitMasterRow)
     where=filters.compile()
+    if overview:
+        if not count:raise ValueError('Overview requires GIT count')
+        where+=' AND H.grid_eligible'
     products,locations=scope(payload,attributes=importer)
     config=[dict(header=h,colCode=c,colPosition=p) for h,c,p in NORMAL_COLUMNS]
     if not products or not locations:

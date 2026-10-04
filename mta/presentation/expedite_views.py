@@ -5,7 +5,7 @@ from mta.presentation.permissions import permission_multiplicity
 from mta.presentation.excess import checked_integer
 
 
-def counts(output,rows,kind,*,products,locations):
+def counts(output,rows,kind,*,products,locations,matches=None):
     if kind not in ('parent','child'): raise ValueError('Unsupported Expedite direction')
     closing=output['ClosingState'][0]; imp=closing['importer']
     standard=index(closing['dbm']['SKULocStandardAttributes'],'SKUCode','WhCode')
@@ -22,7 +22,8 @@ def counts(output,rows,kind,*,products,locations):
         weight=permission_multiplicity(products,row['SKUCode'])*permission_multiplicity(
             locations,row['WhCode'] if kind=='parent' else row['ParentWhCode'])
         if not weight: continue
-        for _ in product(standard.get(key,[]),sku_desc.get(sk,[]),loc_desc.get(wc,[]),
+        for slsa,sd,ld,pd,sa,la,pair_row in product(standard.get(key,[]),sku_desc.get(sk,[]),loc_desc.get(wc,[]),
                 loc_desc.get(sql_key(row['ParentWhCode']),[]) or [None],sku.get(sk,[]),loc.get(wc,[]),pair.get(key,[])):
-            result[target]=checked_integer(result[target]+weight)
+            filter_weight=matches(dict(row,Tags=slsa.get('Tags')),pair_row,sa,la) if matches else 1
+            result[target]=checked_integer(result[target]+weight*filter_weight)
     return result

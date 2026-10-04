@@ -279,6 +279,31 @@ source-reference cases. All six shared-parent regression cases pass unchanged
 (`expedite-parent-child-shared-regression.txt`). This is not independent legacy
 wire or frontend acceptance; no serving rebuild/restart has occurred.
 
+Expedite count reader now reuses the prepared child occurrence grain with exact
+INNER dimension eligibility and critical PipelineInventoryColor restriction,
+using WhCode scope for parent and ParentWhCode for child. It does not use parent
+master multiplicity or mistake child grid availability2746 for canonical count1443.
+The fixture count route is wired; live supported filter joins remain multiplicity-
+preserving. Norm-filter qualification remains explicitly unavailable. Fourteen
+source-reference cases pass (six broad/leaf/empty and eight SKU/Stock/ForChildren/
+custom cases across both directions), plus15 focused unit tests. Evidence:
+`expedite-count-proof.txt`, `expedite-count-filter-proof.txt`. No new storage or
+source mutation was needed. This proves the internal count read, not independent
+legacy filtered wire acceptance. Next active item is overview's exact ten-count
+grain mapping; remaining Expedite chart/custom and delivery exits remain required.
+
+Prepared overview is now wired for the fixture: GIT review uses its INNER pair
+eligibility, Expedite uses dispatch count grains, Excess/Fulfillment reuse exact
+normal review counts, and custom totals read scoped typed facts without metadata
+joins. Empty transporter total is backed by the retained empty shipment source.
+All ten string-valued totals match the existing source reference for broad,
+restricted and empty scopes (`overview-reader-proof.txt`). Broad GIT parent/child
+1627/1627, Expedite1030/1030/custom1030, Excess9871/9871 and Fulfillment12720/12720
+are verified. This removes the positive-GIT terminal-only dependency in the
+checkout; it is not deployed or independent legacy wire/performance acceptance.
+Active next item is the remaining Expedite chart/custom read batch, followed by
+consolidated independent wire, frontend, deployment/restoration and handoff gates.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

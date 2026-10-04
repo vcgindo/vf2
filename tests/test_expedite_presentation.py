@@ -57,5 +57,19 @@ class ExpediteTest(unittest.TestCase):
                          dict(expediteDispatches=0,createAvailabilityAtParent=0))
         self.assertEqual(counts(output,rows,'child',products=None,locations={'LP001'})['expediteDispatches'],6)
 
+    def test_count_filter_join_multiplicity_and_critical_eligibility(self):
+        imp=dict(SKUDescriptionTbl=[dict(SKUCode='337')],
+            SiteDescriptionTbl=[dict(WHCode='AG515802'),dict(WHCode='LP001')],
+            SkuAttributeData=[dict(SKUCode='337')],LocationAttributeData=[dict(WHCode='AG515802')],
+            SkuLocAttributeData=[dict(SKUCode='337',LocCode='AG515802')])
+        output={'ClosingState':[dict(importer=imp,dbm=dict(SKULocStandardAttributes=[self.standard]))]}
+        row=self.produce()[0]
+        rows=[row,dict(row,RationedQty=0),dict(row,RationedQty=0,PipelineInventoryColor='Green')]
+        self.assertEqual(counts(output,rows,'child',products=None,locations={'LP001'},matches=lambda *args:3),
+                         dict(expediteDispatches=3,createAvailabilityAtParent=3))
+        imp['SkuLocAttributeData']=[]
+        self.assertEqual(counts(output,rows,'child',products=None,locations={'LP001'}),
+                         dict(expediteDispatches=0,createAvailabilityAtParent=0))
+
 
 if __name__=='__main__': unittest.main()
