@@ -27,6 +27,23 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Active: Guided DBM suggestion-tab performance delivery
+
+Human authorization4October after satisfactory BPR delivery at`194ade6`:
+implement [one bounded plan](GUIDED_DBM_PRESENTATION_PLAN.md) for the existing
+Guided DBM Norm Suggestions tab's location/pie/SKU/ageing panels together.
+Prepare common stable daily join occurrences once; live scope/filter SQL returns
+the existing grouped contracts. Preserve description-join differences, source
+matching, multiplicity, NULL/types/order and existing frontend chart/table behavior.
+Research identifies source-context loading8.57s and Python joins3.44s of12.87s
+for the current pie request; three output groups. This is not UI acceptance.
+Active item: qualify common/description occurrence grain and retain affected
+before results, then implement all four readers. Unmet exit: complete values,
+focused PostgreSQL/build proofs,3005 deployment and three matched full-tab UI
+pairs with modern median below legacy; commit/push and report daily-producer debt.
+No other Guided screens/main DBM or adjacent optimization is authorized.
+MIGRATION.md remains the sole status tracker; preserve accepted BPR/BTR/F1/F2.
+
 ### Complete: singular BPR UI-performance delivery
 
 The bounded 4 October BPR exit passes from starting checkpoint `a4c64eb`.
