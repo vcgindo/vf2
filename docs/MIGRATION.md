@@ -58,6 +58,17 @@ matrix, binding new derived outputs separately to sealed inputs. PostgreSQL,
 wire/order, frontend and performance exits remain unproved. Invalid combined
 GIT child and unpaged Expedite parent contracts retain their explicit dependencies.
 
+Preparation implementation now includes `planning_source_sql.py`: bounded,
+fixture-bound BPR/GIT derivation SELECTs with explicit native target conversions
+and source occurrence references. Read-only execution on the actual PostgreSQL
+fixture matches every retained SQL field and duplicate occurrence for both
+masters (97,097/2,567), recorded in `source-pg-comparison.json` and compressed
+`planning-source-pg.json.gz` under the same evidence directory. Five focused
+conversion/length/fixture-boundary tests pass. These SELECTs are preparation
+ingredients, not request-time readers or completed prepared-table delivery.
+No schema migration, serving code deployment or source mutation occurred at
+this checkpoint. The coherent prepared storage/read batch remains active.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 
