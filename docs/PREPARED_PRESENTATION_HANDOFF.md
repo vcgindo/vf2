@@ -44,8 +44,7 @@ The old modal tests needed their fixture's actual SKU/location keys and a stable
 mock date; earlier failed build/test/observer outputs remain in evidence.
 
 The following timed observations belong to frontend002, before the user
-removed early loading. Frontend003 is functionally checked without further
-performance resampling; both first-visible modal observations had the eight-series
+removed early loading. Frontend003 was initially functionally checked; both first-visible modal observations had the eight-series
 graph and details, with no loading strip. `ready-opening-functional.jsonl` and
 `ready-opening-*.png` retain that proof. These earlier timings remain evidence,
 not a new timing claim for003.
@@ -67,14 +66,32 @@ DBM shell metric was unavailable because its dialog root had zero height. Initia
 layout records selected a hidden chart slider; corrected records explicitly use
 the visible modal slider. All raw observations are retained.
 
-**Precise remaining gate:** BTR final click→HTTP completion2.631762s, followed by
-HTTP completion→usable graph0.910238s, totals3.542s. Both exceed the corresponding
-original stages (1.455550s to graph response, then0.641450s including the former
-date request). Gateway logs show only one successful graph request in the final
-window, with no run-date request or token refresh. They do not distinguish API
-service time from client dispatch/transport. A separately bounded follow-up must
-attribute and reduce these remaining stages; no root cause or speedup is claimed
-from SQL-count reduction alone. This plan stops here without further sampling.
+**Authorized follow-up and remaining gate:**
+The authorized5October follow-up used one deployed003 diagnostic and one final
+matched opening pair, with no code change or speculative optimization. Diagnostic:
+2.379s to observed chart,2.106s to HTTP completion, no token/date retry. A separate
+native profile preserved the exact response and15 queries:0.364s SQL of2.365s
+including profiler/first-request initialization. Reader checksum work was
+substantial; this does not attribute the serving browser request.
+Final modern003 had the selected pair,14-day horizon and eight-series chart at
+1.008s (HTTP0.919s), below2.097s retained baseline. This is a chart observation,
+not a claim that the modal transition and all interaction work finished then.
+The final legacy observer stopped at5.671s while **No data to display** remained:
+its predicate only excluded **No Data Available**. Legacy later rendered, but its
+exact completion was missed and modern began before that completion was proved.
+Therefore the final pair cannot close the required completed comparison.
+No further sample is authorized. Preserve the build; a separately authorized
+comparison must require populated chart legends, absence of either empty overlay,
+and a completed interactive modal. Do not infer another code bottleneck.
+Evidence: `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/followup-validation.json`,
+raw traces and screenshots. The subsequent modern horizon interaction passed
+and restored14. `validation.json` includes the follow-up evidence.
+The browser interruption before the diagnostic terminated its budget controller:
+its exact named Windows jobs were absent and PostgreSQL identity/limits were
+explicitly restored from the saved receipt, errors[]. The final window restored
+normally, errors[]. See `resource-followup-001/budget-recovery-result.json` and
+`resource-final-003/budget-result.json`. No graph sample was consumed by that
+interruption; no serving services or databases were replaced.
 
 Deployment uses `compose.daily-graph.json` after the existing fixture, portfolio,
 BPR, Guided, Guided-export and Guided-corrected overlays. Current tags:
@@ -89,7 +106,7 @@ Selected fixture remains`bfd75b4b-a9df-4a08-82d3-852e3324b623`, date2026-04-07,
 BTR generation`e5bdac30-bbd9-45d8-a93d-84a645fad73c`, admission digest
 `5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`.
 Users should refresh3005 to load the new bundle; no browser zoom change is needed.
-All resource windows report RESTORED/errors[];21 protected containers and F1/F2,
+Follow-up restoration is described above. The retained21-container isolation proof and F1/F2,
 permissions, source rows, engines and other serving ports remain unchanged.
 
 ## Guided Insights fixture preparation and serving

@@ -124,3 +124,20 @@ usable. This supersedes the immediate-loading-shell requirement: keep the dialog
 closed while fetching and open it with the prepared response/date. Retain request
 identity, close/new-selection protection, errors, exact values and the responsive
 correction. This amendment does not authorize further performance resampling.
+
+## Authorized bounded BTR follow-up (5 October 2026)
+
+Direct human authorization in controller thread01a1037c-5d96-7700-87a8-89a575f6c9f8
+authorizes one diagnostic opening on deployed003/current, pair21101153051000/
+P015_1004, broad actor,14days. Separate input/dispatch, auth/retries, gateway/API
+SQL and non-SQL, response, React preparation and completed chart; retain observer
+limitations and all earlier evidence. No early loading strip.
+If the trace satisfies the retained gates, make no speculative edit. Otherwise
+make one smallest correction justified by the dominant measured stage inside the
+existing graph request/handler/modal. No cache, table, resource increase, chart
+replacement, broad rewrite, engine/permission/data/formula or Planning changes.
+Run only affected proofs/build and deploy if changed. One final matched
+legacy/modern opening pair is authorized under the existing restoration limits.
+Modern must beat2.097s and matched legacy; no more resampling. On success commit/
+push and finish; otherwise hand off the exact unmet operation and stop.
+This narrowly supersedes the exhausted-test stop rule for this follow-up only.

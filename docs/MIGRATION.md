@@ -27,7 +27,7 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Stopped at unmet exit: shared Daily Data Graph performance and responsive sizing
+### Stopped: completed BTR comparison remains unproved
 
 The bounded [Daily Data Graph contract](DAILY_DATA_GRAPH_MODAL_PLAN.md) and
 user-authorized responsive addendum are implemented and deployed on3005.
@@ -47,21 +47,39 @@ errors;21 protected containers unchanged. Evidence and operational details:
 `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/validation.json`.
 
 Timings below are retained from frontend002, before the user-requested removal
-of early loading. Frontend003 has no new timing acceptance claim.
+of early loading. Frontend003 follow-up observations and their acceptance limitation are below.
 
 | Bounded observation | Modern before | Modern002 | Matched legacy | Former loading |
 |---|---:|---:|---:|---:|
 | DBM row graph |2.360s|1.227s|9.820s|0.308s|
 | BTR row graph |2.097s|3.542s|6.159s|1.152s|
 
-**Unmet exit: BTR is slower than its retained modern baseline.** Final BTR
-click-to-HTTP-completion is2.632s, followed by0.910s to usable graph. There is no
-second run-date request. The plan's single BTR repeat was already used for an
-incomplete legacy observation; its modern10.889s token-refresh result is retained
-and does not replace the earlier2.097s baseline. No further resampling or broader
-optimization is authorized by this plan. Required follow-up: separately bound
-attribution and reduction of BTR's remaining request/dispatch/render time. This
-is a deployed implementation checkpoint, **not full performance acceptance**.
+**Unmet exit: completed matched BTR comparison remains unproved.**
+The authorized5October follow-up used one deployed003 diagnostic and one final
+matched opening pair, with no code change or speculative optimization. Diagnostic:
+2.379s to observed chart,2.106s to HTTP completion, no token/date retry. A separate
+native profile preserved the exact response and15 queries:0.364s SQL of2.365s
+including profiler/first-request initialization. Reader checksum work was
+substantial; this does not attribute the serving browser request.
+Final modern003 had the selected pair,14-day horizon and eight-series chart at
+1.008s (HTTP0.919s), below2.097s retained baseline. This is a chart observation,
+not a claim that the modal transition and all interaction work finished then.
+The final legacy observer stopped at5.671s while **No data to display** remained:
+its predicate only excluded **No Data Available**. Legacy later rendered, but its
+exact completion was missed and modern began before that completion was proved.
+Therefore the final pair cannot close the required completed comparison.
+No further sample is authorized. Preserve the build; a separately authorized
+comparison must require populated chart legends, absence of either empty overlay,
+and a completed interactive modal. Do not infer another code bottleneck.
+Evidence: `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/followup-validation.json`,
+raw traces and screenshots. The subsequent modern horizon interaction passed
+and restored14. `validation.json` includes the follow-up evidence.
+The browser interruption before the diagnostic terminated its budget controller:
+its exact named Windows jobs were absent and PostgreSQL identity/limits were
+explicitly restored from the saved receipt, errors[]. The final window restored
+normally, errors[]. See `resource-followup-001/budget-recovery-result.json` and
+`resource-final-003/budget-result.json`. No graph sample was consumed by that
+interruption; no serving services or databases were replaced.
 F1/F2, engines, data, permissions and completed Guided remain unchanged. The
 Guided review automation remains paused; no adjacent page work has started.
 
