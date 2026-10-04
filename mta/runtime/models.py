@@ -665,3 +665,50 @@ class PlanningFulfillmentGridRow(PlanningGridOccurrence):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='planning_fulfill_grid_ordinal')]
         indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_fulfill_grid_keys')]
+
+
+class PlanningChartProjection(models.Model):
+    """Separate sealed description-membership and post-aggregate display grains."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    member_count = models.PositiveBigIntegerField()
+    member_digest = models.CharField(max_length=64)
+    display_count = models.PositiveBigIntegerField()
+    display_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningChartMember(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    family = models.CharField(max_length=24)
+    direction = models.CharField(max_length=8)
+    ordinal = models.PositiveBigIntegerField()
+    group_ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    description_ordinal = models.PositiveBigIntegerField()
+    code = models.TextField(null=True)
+    description = models.TextField(null=True)
+    band = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','family','direction','ordinal'],name='fresh_planning_chart_member')]
+        indexes = [models.Index(fields=['run','family','direction','group_ordinal'],name='fresh_plan_chart_member_group')]
+
+
+class PlanningChartDisplay(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    family = models.CharField(max_length=24)
+    direction = models.CharField(max_length=8)
+    ordinal = models.PositiveBigIntegerField()
+    group_ordinal = models.PositiveBigIntegerField()
+    attribute_ordinal = models.PositiveBigIntegerField()
+    h1 = models.TextField(null=True)
+    h2 = models.TextField(null=True)
+    h3 = models.TextField(null=True)
+    h4 = models.TextField(null=True)
+    h5 = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','family','direction','ordinal'],name='fresh_planning_chart_display')]
+        indexes = [models.Index(fields=['run','family','direction','group_ordinal'],name='fresh_plan_chart_display_group')]

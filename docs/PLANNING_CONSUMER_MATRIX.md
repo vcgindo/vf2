@@ -40,6 +40,18 @@ Preserve duplicates and target conversions. Neither operation runs either engine
 Derived rows receive their own source-bound receipt; the imported receipt roster
 must not be modified to pretend those outputs were imported.
 
+Excess/Fulfillment chart preparation uses two distinct typed relations.
+`PlanningChartMember` is one fact/description occurrence, separately keyed by
+Excess, Fulfillment summary or Fulfillment detail and product/location direction.
+It retains source ordinals, grouping identity and raw code/description/band;
+live scope selects the first eligible occurrence before choosing display values.
+`PlanningChartDisplay` resolves each grouping identity to its exact attribute
+occurrences and hierarchy fields. It joins only after scoped SQL aggregation,
+so attribute multiplicity cannot inflate COUNT/SUM. The independent source facts
+remain authoritative for numeric values and order identities. A separate
+immutable `PlanningChartProjection` seals these two populations; neither normal
+grid membership nor a precomputed per-user total substitutes for these grains.
+
 Read-only qualification against the retained owned SQL databases
 `VFTEST_Fresh_S2_VM_20261003_002_Importer` and `_BPR` established complete
 five-field BPR master bag equality (97,097 occurrences) and complete 17-field GIT

@@ -119,6 +119,28 @@ directory (`grid-reader-proof*.txt`). This closes no whole-page/browser gate;
 chart/custom/GIT/Expedite preparation, April request-history admission, deployment
 and all six end-to-end journeys remain outstanding under the same active goal.
 
+Active next item: prepare Excess/Fulfillment chart membership at the separate
+description-before-aggregation grain. Required proof is exact complete chart
+datasets and response ordering against the retained selectors, including scoped
+totals and attribute duplicate expansion after aggregation. The normal-grid
+occurrences cannot supply this grain because their other INNER dimensions would
+change eligibility. Keep source facts unchanged and filters ignored as deployed.
+
+Chart implementation checkpoint: migration0029 adds the separate typed chart
+membership/display grains and immutable receipt. Preparation loaded65,694
+members and6,068 displays in29.58s with unchanged fixture source digest.
+All16 complete ordered chart datasets (eight broad/eight populated restricted)
+match the retained independent selectors, first for preparation and then through
+the SQL aggregate reader. Counts/sums remain live and permission weighted;
+display attribute expansion follows aggregation. Existing response formatters
+are reused; fixture graph endpoints are connected in the checkout only.
+19 focused tests pass; Django check/model state/migration plan are clean.
+Full source readback of all12 membership/display datasets and15 mutation-denial
+checks passed; repeat verification took1.10s without writes. Evidence: `chart-preparation-proof.txt`, `chart-load.txt`,
+`chart-reader-proof.txt`, `chart-storage-proof.txt` in the Planning directory.
+No serving deployment or browser acceptance yet. Custom grids and all
+GIT/Expedite consumers remain required; the six-destination goal stays active.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

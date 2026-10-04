@@ -21,6 +21,8 @@ class Command(BaseCommand):
                             help='Apply the additive sealed Guided history occurrence relations')
         parser.add_argument('--planning-sources', action='store_true',
                             help='Apply only the two additive Planning source masters after Guided history')
+        parser.add_argument('--planning-charts', action='store_true',
+                            help='Apply only Planning chart ingredients after normal grids')
         parser.add_argument('--planning-grids', action='store_true',
                             help='Apply only the normal Planning grid occurrences after source masters')
 
@@ -29,7 +31,8 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0028_planning_normal_grid_occurrences' if options['planning_grids'] else
+        target = ('0029_planning_chart_ingredients' if options['planning_charts'] else
+                  '0028_planning_normal_grid_occurrences' if options['planning_grids'] else
                   '0027_planning_derived_sources' if options['planning_sources'] else
                   '0026_guided_history_covering_index' if options['guided_history_preparation'] else
                   '0022_guided_chronic_prepared_candidates' if options['guided_preparation'] else
@@ -37,6 +40,9 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['planning_charts'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0029_planning_chart_ingredients' for migration, backwards in plan):
+            raise CommandError('Planning charts require the normal-grid baseline')
         if options['planning_grids'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name != '0028_planning_normal_grid_occurrences' for migration, backwards in plan):
             raise CommandError('Planning grids require the prepared source baseline')
@@ -47,6 +53,7 @@ class Command(BaseCommand):
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
                 *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
+                *(['0029_planning_chart_ingredients'] if options['planning_charts'] else []),
                 *(['0028_planning_normal_grid_occurrences'] if options['planning_grids'] else []),
                 *(['0018_guided_history_date_index'] if options['guided_history_index'] or options['bpr_preparation'] or options['guided_preparation'] or options['guided_history_preparation'] else []),
                 *(['0019_bpr_prepared_candidates', '0020_bpr_prepared_seals']

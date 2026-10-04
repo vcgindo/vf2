@@ -385,6 +385,13 @@ def planning_context(payload):
 
 @endpoint('POST')
 def planning_graph(request,payload):
+    category = str(payload.get('category', '')).casefold()
+    if category in ('excessinventory', 'orderfulfillment'):
+        from mta.presentation import fixture
+        if fixture.enabled():
+            from mta.presentation.planning_chart_sql import graph
+            return envelope(data=graph(selected_run(), payload,
+                                       'excess' if category == 'excessinventory' else 'fulfillment'), message='')
     if payload.get('category') == 'git':
         from mta.presentation.git_read import graph
         return envelope(data=graph(payload), message='')
