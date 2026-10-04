@@ -26,7 +26,36 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### BTR query/access-path performance — consolidated blocker; accepted runtime retained
+Latest human override: STOP benchmark-copy/recovery/repopulation and copy-readback
+work. Preserve partial artifacts without deletion. Advance the same BTR task using
+existing legacy SQL and existing Fresh PostgreSQL databases, with authorized
+temporary reversible resource matching on BOTH (including serving PostgreSQL),
+then restore original settings. This supersedes copy prerequisites and the earlier
+fixed-serving-allocation restriction for the benchmark window only. No data reset,
+reload, replay or infrastructure expansion. Future replication or replacement
+infrastructure decisions require prior explicit human approval. Immediate exit:
+verify existing legacy availability and deliver comparable heavy-data BTR timings,
+reusing retained identities/correctness proof without full table rescanning.
+
+Prepared next intervention (planning only): [BTR daily reporting-layer assessment](BTR_DAILY_REPORTING_PLAN.md).
+The human requests BTR-specific design aligned to the existing daily refresh.
+Build validated report generations after successful daily output publication;
+preserve engine state, live permissions, exact report semantics and atomic
+generation selection. This is not active implementation authorization or a second
+queue. Existing-database resource matching and legacy availability remain
+the active item; its baseline feeds the proposed architecture decision.
+
+### BTR query/access-path performance — BLOCKED at legacy launch; resource matching authorized
+
+Latest human instruction on4 October2026 authorizes necessary reversible resource
+changes to the existing local development SQL Server for the bounded matched BTR
+benchmark, despite other hosted databases. This supersedes earlier shared-SQL
+resource restrictions below; their presence no longer blocks the comparison.
+Capture/restore original settings, prefer online changes, preserve all database
+contents and credentials, measure competing activity, and keep serving3005 fixed.
+Use the simplest valid arrangement, retaining already-created copies/evidence;
+the BTR plan defines exact limits and recovery. Comparative parity remains an
+evidence gate, not an assumed result of this authorization.
 
 4 October2026: the human in the successor control chat authorizes the next bounded
 [BTR performance intervention](BTR_READ_PERFORMANCE_PLAN.md) from accepted timeout
@@ -68,28 +97,63 @@ These are bounded diagnostics, not comparable median/p95 acceptance.
 The initial stopped-legacy finding is **resolved**: after the human started it,
 3002 and5153 returned HTTP200; the pinned canonical DLL returned both BTR counts
 97299 from the retained VM clones. Do not repeat the old availability blocker.
-The matched-resource boundary remains unresolved: the Windows SQL instance hosts
-61 other user databases; Fresh PostgreSQL serves3005 from its existing data
-directory. Neither process may be resized under the amendment. An independently
-enforced comparison needs at least an owned SQL instance and retained-data restore;
-a Fresh budget different from serving3005 also needs an independent PostgreSQL
-copy. These copies/restores and storage authorization are explicitly outside the
-current amendment. The SQL clone files
-allocate14.20GiB and the PostgreSQL fixture is22.86GiB before copy/working overhead;
-D: had8.88GiB free. Host32GB/16 logical CPUs and Docker15.46GiB are capacity
-observations, not permission to allocate all resources or evidence of actual use.
-No common enforced budget was guessed; matched performance remains **UNPROVED**.
+The earlier shared-SQL/copy authorization blocker is superseded by the explicit
+approvals above. Use the existing Windows SQL instance and the owned PostgreSQL
+copy; do not start another SQL restore. The modern fixture is22.86GiB before
+copy/working overhead. Host32GB/16 logical CPUs and Docker15.46GiB are capacity
+observations, not evidence of comparable actual use. Matched performance remains
+**UNPROVED** until copy equivalence, effective budgets and complete measurements pass.
 
-Required next decision: authorize and provision the required benchmark database
-copy/storage, or explicitly change that acceptance prerequisite. Further query
-work must preserve the now-demonstrated tied-row contract; no tie-break, relaxed
-comparison, storage redesign or resource increase is inferred. No deployable
-candidate exists for new browser/overlap/restart/rollback acceptance. The prior
-accepted image and its bounded proofs remain in force, not a new performance pass.
-Current source restoration passed14 focused BTR tests; runtime/admission/protected
-state and grants were rechecked unchanged. Consolidated evidence and rejected
-candidates: `D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/validation.json`.
+The copy programme is stopped by the latest human direction. Only the owned
+verification pg_dump was cancelled; its controller exited and the partial-copy
+PostgreSQL container was stopped. No recovery, further readback or cleanup is
+required or permitted. Data/evidence remain preserved under the approvedC: path.
+Existing source identities and complete API responses are reused directly.
+
+Active exit: restore existing legacy availability, then measure the accepted reader
+on existing databases with temporary3GiB/2CPU database ceilings and4GiB/2CPU
+application ceilings. Fresh MTA already has that application budget. The common
+HTTP client runs in the existing gateway container, with response processing
+outside request timing. No new service/database/port is created. PostgreSQL's
+original1GiB/1CPU limits are captured before mutation and restored by the resource
+watchdog on success, error, stop or heartbeat loss. Do not open the resource window
+until both APIs are reachable. Matched performance remains UNPROVED.
+
+Legacy3002/5153 and the old API PID were absent at06:02 local on4 October. The
+resource smoke check restored SQL limits after rejecting the missing API PID.
+The human explicitly approved relaunch via call_KBF0Tke70PwWSjgOue5abPUw; automatic
+approval review nevertheless rejected the unchanged launch as "blocked by policy",
+including after the latest scope correction. No rejected command started services.
+Existing Fresh native readiness is HTTP200. Legacy launch remains an external
+execution blocker; do not seek the same human permission again.
+
+Existing-stack runner check: full grid HTTP200 in19.03s and concurrent count
+HTTP200 in8.81s, both responses strictly equal to retained accepted bodies.
+This single pair used original serving limits and is not matched performance.
+Evidence: `existing-client-check/`. PowerShell7.6.5 supports the launch arguments,
+both runtime files exist and the canonical DLL hash matches; the policy denial
+occurs before shell execution and creates no launch log. No ordinary invocation
+error has been identified. `legacy-relaunch-blocker.json` retains that distinction.
+`existing-resource-restoration.json` confirms original serving limits, cleared SQL
+job ceilings and both owned copy containers stopped. No resource window is open.
+
+No query/index correction is accepted. The prior accepted image and bounded proofs
+remain in force, not a new performance pass. The source is restored to7b40ba6;
+14 focused BTR tests and6 scoped comparator tests pass. Evidence, rejected
+candidates and runtime checks remain in
+`D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/`.
 Operational disposition: [dataset handoff](STAGE2_DATASET_HANDOFF.md).
+
+The first valid full-grid canonical API comparison found a pre-existing response
+mismatch:93 Category alias-order strings per5000-row branch, with matching row
+positions and other fields. The human subsequently approved a narrow Category
+alias-multiset comparison (duplicate multiplicity preserved, original strings
+retained), solely for this April7 fixture. The full comparison passes with186
+declared ordering qualifications and zero other differences. Exact string
+equality is not claimed. Source, authority and scope are in `LEGACY_EXCEPTIONS.md`.
+Counts remain97299/97299. The malformed first probe's missing horizonFilter caused
+application status500 and was corrected in the request only. Source/serving image
+remain accepted7b40ba6. The comparison/copy work is active, not a performance pass.
 
 ### Report contention correction — PASS for bounded overlap; stopped for review
 

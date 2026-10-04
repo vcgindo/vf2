@@ -544,3 +544,39 @@ SHA256 f7a03468227d2b5ef97fc28fec951ec8f373852ed906c9754d50269b75b84154.
 Its independent comparison covers770 rows/all producer fields. No synthetic
 zero dates, unrelated shallow trials, F2 mutations or general history lifecycle
 acceptance follow from this approval. Publication and browser proof remain separate.
+
+## BTR VM category alias order — narrow human-approved presentation exception
+
+4 October2026 full-data consumer comparison, pinned deployed DLL
+`0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`,
+BORProcessor source `80ceb4916ca4cd8567384a4598858cef55f8574007662b025aee237f20ab9298`.
+The April7 retained VM fixture, broad native scope, both branches, page1/5000 and
+all90 days returns5000 aligned SKU/location positions per branch. Each branch has
+93 Category string differences: for example canonical `DN|BR` versus Fresh
+`BR|DN`. All other compared row fields and the labels/envelope match. Exact full
+response equality therefore fails. Direct human reply to
+`call_AGGtUEgL9nSvOJpm7AQWemMi` subsequently approves this Category-order exception
+for the retained April7 fixture only: compare alias multisets with exact duplicate
+multiplicity, retain/report original strings, and keep all other fields, types
+and row ordering strict. This is qualified presentation equivalence, not exact
+string equality, and does not transfer to normal publications or other reports.
+
+Canonical `cteCatDes` uses `STRING_AGG(d.categoryalias,'|')` after STRING_SPLIT
+and a CategoryColDescription join, with no WITHIN GROUP ordering clause. Fresh
+`btr.category_alias_text` preserves the persisted category-code sequence. The
+standalone canonical aggregate returns the latter ordering in the retained probe,
+whereas the full canonical grid returns the former for affected groups. Its
+default repeat and MAXDOP1 diagnostic matched each other; this does not prove
+identical-request instability or authorize changing the application ordering rule.
+
+Evidence: `D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/`,
+`legacy-full-grid-002.json.gz`, `legacy-grid-field-differences.json`, and
+`category-order-source-proof.json`. The first direct request omitted the required
+empty horizonFilter object and returned application status500 inside HTTP200;
+that malformed probe is retained separately and is not an availability claim.
+No response rewriting, output exclusion, legacy repair, fixture mutation or
+F1/F2 change is authorized. `parity/btr_benchmark_contract.py` applies only the
+approved evidence-comparison rule, pinned to this manifest/date/BTR route. The
+retained full comparison passes with186 declared ordering qualifications and
+zero other differences; original responses remain retained. Focused tests reject
+duplicate loss, case/whitespace/type changes, reordered rows and scope transfer.

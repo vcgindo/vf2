@@ -6,6 +6,32 @@ contract; `docs/MIGRATION.md` remains the only status tracker.
 
 ## Starting point and objective
 
+### Latest human override: existing databases only
+
+The human directs stopping database replication, recovery/repopulation and
+copy-verification work and advancing with the EXISTING legacy SQL Server and
+EXISTING Fresh PostgreSQL databases. This supersedes all copy/restore approvals
+and isolation prerequisites below for continuation. Safely stop owned copy/scan
+jobs, preserve partial artifacts inertly, and do not delete or finish them as a
+benchmark prerequisite. Reuse retained data identity and response comparisons.
+
+Temporary reversible CPU/memory resource matching is authorized on both existing
+database runtimes, including the PostgreSQL instance serving3005. Capture original
+settings/effective limits, apply comparable hardware-appropriate budgets, alternate
+legacy/Fresh measurements and restore original settings afterward or on failure.
+No data/schema reset, reload, volume replacement, engine replay, grant changes or
+shared Docker/WSL restart. Use online resource controls where supported. A new
+disruptive infrastructure choice beyond this resource configuration requires
+explicit human approval. Observe background workloads without killing unrelated
+processes. Verify existing legacy application availability and measure BTR now;
+copy completion and full database rescanning are not required.
+
+Future replication/restores, replacement infrastructure or similar scope expansion
+must receive explicit human approval BEFORE adoption. Do not infer that permission
+from a performance objective or superseded copy approvals. Current priority is
+the actual matched-resource comparison, preserving correctness and the existing
+bounded BTR scope. Reporting-layer implementation remains unopened.
+
 ### Human clarification: performance authority
 
 The human clarified that the full original VM dataset governs reporting scale
@@ -61,7 +87,49 @@ index or SQL rewrite as the predetermined answer.
 
 ## Scope and exclusions
 
+### Latest human amendment: existing development SQL Server
+
+The human explicitly authorizes using and making necessary reversible benchmark
+resource changes to the existing local development SQL Server instance, despite
+its other hosted databases. This supersedes the shared-SQL resource-change
+prohibition below for this bounded BTR comparison. The presence of61 other
+databases is no longer an authorization blocker or a reason by itself to require
+a separate SQL restore. Prefer the simplest valid setup; inspect already-started
+copy work before changing direction and preserve completed copies/evidence.
+
+Capture original SQL CPU/affinity/memory settings and effective limits, choose
+hardware-appropriate comparable budgets, apply reversible settings, and restore
+original settings after the benchmark window (also on failure/interruption).
+A SQL service restart is authorized only if indispensable to apply the selected
+settings; prefer online changes, drain benchmark work first, and verify recovery.
+This permission does not authorize deleting/resetting other databases, changing
+their contents or credentials, killing unrelated sessions, or restarting shared
+Docker/WSL. Observe competing activity; an idle database consumes no query CPU,
+but active background workloads must be measured and cannot be ignored in a
+parity claim. Match enforceable resource opportunity, not merely setting labels.
+
+The approved modern benchmark copy/resource configuration remains available;
+serving3005 keeps its existing allocation and accepted image. Use the existing
+canonical legacy app against the verified retained VM clones; no new public port,
+engine execution or semantic change. Comparable application budgets, alternating
+runs, full-output equivalence and legacy/Fresh median/p95/throughput/error gates
+remain mandatory. Do not stop at the superseded shared-instance blocker; execute
+the comparison and continue correct bounded query/index work as needed. Report
+the measured outcome honestly if parity is not achieved. All other scope and data
+protections remain, including the45GiB cap for any approved copies retained.
+
 ### Human amendment: matched benchmark resources
+
+### Subsequent copy authorization
+
+Direct human approval in this executor chat on4 October2026 authorizes owned
+benchmark database copies under `C:/freshvcf-btr-benchmark`, capped at45GiB:
+restore the four retained legacy databases and consistently copy the modern
+fixture. This supersedes only the prohibition on these copies/restores and their
+named storage. Use isolated serial benchmark resources and no new host ports;
+shared SQL Server, serving3005, authentication permissions and F1/F2 remain
+unchanged. Verify source identities and complete data equivalence before treating
+the copies as comparable. All correctness and matched-performance gates remain.
 
 On4 October2026 the human authorizes resource matching for this bounded legacy
 versus Fresh benchmark. This supersedes the fixed-budget prohibition ONLY for
@@ -163,6 +231,13 @@ query/index candidates; the accepted3005 image remains the rollback baseline.
    unaffected proof; no repeated provenance inventory or additional plan layers.
 
 ## Required proof and stopping boundary
+
+The direct human reply `call_AGGtUEgL9nSvOJpm7AQWemMi` approves only the retained
+April7 fixture's Category alias-order exception recorded in LEGACY_EXCEPTIONS.
+Compare exact alias multisets including duplicate multiplicity, retain original
+strings, and keep every other field/type/row position strict. This changes only
+the scoped evidence comparison; it does not authorize rewriting responses or
+transferring the exception to normal publications.
 
 - Compare baseline and candidate with identical dataset/date/scopes, full5000-row
   BTR requests, branches/horizons/filters, resources and request patterns. Use five

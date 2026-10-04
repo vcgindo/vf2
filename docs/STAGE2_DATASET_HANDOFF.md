@@ -6,6 +6,36 @@ Updated 4 October 2026. Operational reference; `docs/MIGRATION.md` is the sole s
 
 ### BTR performance investigation: no successor deployed
 
+The latest human direction stops copy/recovery/full-copy verification. The owned
+verification job was cancelled and the partial-copy PostgreSQL container stopped;
+all data/evidence remain preserved inertly. Copy tools are archived in the external
+evidence directory with `stopped-` prefixes; none is a benchmark prerequisite.
+
+Use existing SQL Server and existing Fresh PostgreSQL. Temporary resource matching
+on both databases is authorized, followed by restoration. The intended window is
+3GiB/2CPU per database and4GiB/2CPU per application. `tools/btr_windows_budget.py`
+captures original PostgreSQL limits before online changes, restores them and its
+Windows limits on stop/error/deadline/heartbeat loss, and records outcomes.
+`tools/btr_matched_benchmark.py` uses the existing services and gateway as a common
+HTTP client; it creates no stack, copy, port or credential. Native API evidence is
+separate from browser/application-cold acceptance. Open the window only after both
+APIs are reachable.
+
+Legacy3002/5153 are currently stopped. The human approved their existing relaunch,
+but automatic approval review rejected it as "blocked by policy", with no further
+reason. The operator must use the existing launcher; do not ask for the same
+permission again or substitute an unavailable legacy comparison. Fresh native
+readiness returns HTTP200. `docs/MIGRATION.md` owns the current blocker/status.
+
+Full legacy/Fresh BTR output comparison now identifies93 Category alias-order
+differences per branch on page1/5000, with other fields/positions matching.
+See the exact human-approved Category-order disposition in `LEGACY_EXCEPTIONS.md`.
+Comparison now passes with186 declared order qualifications and zero other
+differences; original response strings remain unchanged. This is distinct
+from the rejected optimization candidates and remains in the parity denominator.
+Provisioning does not waive that complete-response requirement. Current status
+and subsequent proof remain in `MIGRATION.md`.
+
 The4 October query investigation retains MTA image
 `sha256:761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a`
 and the restoration commands below. No engine, import, index/schema, permissions,
@@ -18,22 +48,9 @@ Its attempted ordering adjustment also failed. Narrow materialization and count
 multiplicity aggregation regressed query time. All candidates are rejected and
 retained outside Git; do not deploy or reuse their fast samples as acceptance.
 
-Legacy is now running:3002/5153 respond, canonical DLL identity matches, and the
-heavy-data BTR count endpoint returns97299 for both branches. The old stopped-service
-blocker is resolved. Resource-matched performance remains unproved: SQL Server is
-shared with61 other databases, and the PostgreSQL data directory serves3005.
-Owned benchmark-process limits cannot isolate database resource opportunity within
-those serving/shared processes. At least an independent SQL restore needs separate
-authority and storage. A Fresh budget different from serving3005 additionally
-needs its own PostgreSQL copy (14.20GiB allocated SQL files and22.86GiB PostgreSQL
-fixture respectively, before
-overhead; only8.88GiB free onD: at inspection). Do not mount the active PostgreSQL
-data directory into another server or change shared SQL limits.
-
-The next concrete dependency is authorization/provisioning of the required benchmark
-database copy and storage. A resource budget must then be selected from
-measured headroom and enforced equally, with serving3005 unchanged. No synthetic
-or SQL-only timing substitutes for the required matched full-data application test.
+The earlier canonical legacy measurements returned97299 counts for both branches.
+They remain correctness evidence, not current availability or performance proof.
+No synthetic or SQL-only timing substitutes for matched application measurements.
 The known BTR SPA profile-link limitation remains unchanged.
 
 Evidence: `D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/`:
