@@ -27,7 +27,32 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Stopped: completed BTR comparison remains unproved
+### Stopped: completed BTR comparison misses retained baseline
+
+The user-authorized replacement comparison is complete, with the corrected
+observer and matching SQL/PG3GiB/2CPU, API4GiB/2CPU caps. Same pair
+21101153051000/P015_1004, April7 fixture, broad scope,14days,1280x720.
+Modern completed modal: **2.788s**; legacy: **10.443s**; retained modern baseline:
+**2.097s**. Both eight-series charts, settled transitions, selected pair, populated
+legends and enabled controls were observed. Both horizon controls changed to15
+and restored14. Modern wins this legacy observation but **fails the baseline gate**.
+Modern HTTP completed at1.895840s, followed by0.892160s to completed-modal
+observation. These bounds include browser-tool overhead, not direct React timing.
+Unrelated DBM graph requests completed on3005 during the comparison window;
+quiet application load is therefore not proved. No token/date retry appears for
+the measured modern BTR opening. This is one bounded observation, not a latency
+distribution. The earlier baseline uses an earlier chart readiness criterion;
+it was not weakened or replaced by the favorable1.008s incomplete-transition trace.
+
+No application change, deploy or speculative correction was made. All comparison
+limits restored, errors[]. Evidence: `replacement-validation.json`,
+`replacement-{legacy,modern003}.json/.png`, `replacement-interactions.json`,
+`replacement-gateway.txt`, `resource-replacement-001/budget-result.json` under
+`D:/freshvcf-build/evidence/daily-graph-modal-20261004-001`.
+The full ready-only modal remains deployed. The authorized comparison is finished;
+overall performance acceptance remains open at the2.097s completed BTR gate.
+
+### Earlier Daily Data Graph implementation and retained observations
 
 The bounded [Daily Data Graph contract](DAILY_DATA_GRAPH_MODAL_PLAN.md) and
 user-authorized responsive addendum are implemented and deployed on3005.
@@ -55,6 +80,8 @@ of early loading. Frontend003 follow-up observations and their acceptance limita
 | BTR row graph |2.097s|3.542s|6.159s|1.152s|
 
 **Unmet exit: completed matched BTR comparison remains unproved.**
+The historical incomplete comparison below is superseded by the completed
+replacement observation above; its raw evidence remains retained.
 The authorized5October follow-up used one deployed003 diagnostic and one final
 matched opening pair, with no code change or speculative optimization. Diagnostic:
 2.379s to observed chart,2.106s to HTTP completion, no token/date retry. A separate

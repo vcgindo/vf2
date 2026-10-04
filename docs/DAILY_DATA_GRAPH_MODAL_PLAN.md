@@ -141,3 +141,10 @@ legacy/modern opening pair is authorized under the existing restoration limits.
 Modern must beat2.097s and matched legacy; no more resampling. On success commit/
 push and finish; otherwise hand off the exact unmet operation and stop.
 This narrowly supersedes the exhausted-test stop rule for this follow-up only.
+
+## Replacement comparison authorization (5 October 2026)
+
+Direct user instruction: "authorised to run the remaining BTR matches".
+Run the remaining legacy/modern BTR comparison with the corrected completed-modal
+observer and the existing matched resource/restoration limits. Retain all earlier
+results. No implementation change or expanded benchmark is implied.

@@ -7,6 +7,15 @@ implementation and operational evidence, not acceptance of all F3 workflows.
 
 ## Daily Data Graph checkpoint — 5 October 2026
 
+Latest authorized replacement: modern completed modal2.788s versus legacy10.443s.
+Both charts and horizon interactions pass with the corrected observer, and all
+resource limits restored/errors[]. The2.097s retained modern baseline gate is
+not met. Unrelated DBM requests occurred during the window; quiet application
+load is not proved. No code/deployment change or further sample. See
+`replacement-validation.json` in the evidence root below; MIGRATION.md records
+the current disposition. Earlier incomplete observations remain historical.
+
+
 Scope: DBM Norm Suggestions and BTR row icons only, under
 [DAILY_DATA_GRAPH_MODAL_PLAN.md](DAILY_DATA_GRAPH_MODAL_PLAN.md). The implementation
 is deployed; **BTR performance acceptance remains open**. MIGRATION.md owns status.
