@@ -1,0 +1,107 @@
+# Daily Data Graph — bounded shared-route performance delivery
+
+Authorized 4 October 2026. Start from completed Guided delivery `396a62c`.
+Execution contract: this file. Only status tracker: `docs/MIGRATION.md`.
+This is a new bounded goal, not a continuation of the completed Guided rollout.
+No numeric token budget is supplied.
+
+## Outcome and boundary
+
+Reduce row-icon click-to-usable Daily Data Graph time on these two existing
+3005 pages: `/mta/dbm/dbm-norm-suggestions` and
+`/mta/insights-and-trends/buffer-trend-report`. Open the modal promptly with
+honest loading feedback; also reduce actual graph readiness time. Opening an
+empty shell alone is not delivery.
+
+Permitted changes: the two click handlers, shared DailyDataGraphModal and its
+existing data type/state plumbing, `DailyDataGraph` endpoint, selected-pair
+DBM history reader and narrowly necessary request-local source resolution.
+Shared changes must retain other callers' existing contracts. Optional run-date
+input may retain the existing fallback for callers outside these two pages.
+
+Preserve selected-run identity, live permissions, DBM command freshness,
+six response populations, types/NULLs/duplicates/source order, exact FULL OUTER
+date matching, norm history and suspension semantics. Existing legacy date-gap
+and chart formulas are not permission to repair business behavior. Retain
+F1/F2, accepted BPR/BTR/Guided reads and the existing chart component.
+
+## Established evidence
+
+Both pages await `DailyDataGraph` before opening the shared modal. The modal
+then fetches last-run date separately although the response already has RunDate.
+Fixture history is already pair-bounded; it does not use Guided Availability's
+prepared relation. Its source is DBM consumption/suspension/norm/suggestion
+history, not BPR colour history.
+
+Controller native deployed endpoint observations (not browser acceptance):
+SKU21101138001000/P016_1001:0.789s,19570 bytes; SKU21101153051000/P015_1004:
+0.371s,20534 bytes. Both execute58 SQL calls and return91 StockData records.
+These warm-order single observations do not prove multi-second backend delay.
+Repeated image/receipt resolution and the sequential date request are concrete
+work to remove; do not assert chart rendering dominates without a trace.
+
+## One implementation pass
+
+1. Record the active item and unmet exit in MIGRATION.md. Capture one existing
+   modal-opening trace per modern page and its matched legacy counterpart.
+   Use the same pairs above, actor scope, selected data and default14-day horizon.
+   Separate click-to-shell, DailyDataGraph wait, last-run-date wait and usable
+   chart. Reuse existing tooling; no new measurement framework or load matrix.
+2. Open the modal shell immediately, with loading/error state and no stale row's
+   graph. Populate it when the selected request completes. Close or a newer
+   selection must prevent an older completion from replacing/reopening it.
+   Use local request identity/cancellation facilities already available, not a
+   new request manager. Apply to both click handlers.
+3. Pass DailyDataGraph.RunDate through existing state to the modal. In these
+   two flows, eliminate the extra last-run-date request and its dependency.
+   Use the same date-format/timezone behavior; do not substitute host date.
+4. Resolve validated fixture source metadata/receipt inputs once per request
+   and reuse them across named pair reads. Keep integrity checks and denied
+   responses intact; no global cache or weakening of publication admission.
+   Preserve normal and command-bearing read behavior. Keep pair/date filtering
+   in SQL. Add at most a targeted pair/date index only if the captured plan
+   demonstrates it is needed, with required migration checks.
+5. Derive unchanged90-day chart ingredients once per response/run date;
+   horizon/suspension interaction selects those ingredients. Consolidate
+   unnecessary intermediate state/effect work and stabilize chart options
+   where needed. Preserve first-match/duplicate handling, gap values, ordering,
+   rounding, tooltips and norm/suspension results exactly. Do not move tiny
+   chart loops to the API merely to change their location.
+
+No new materialized table is authorized: this route already reads a small
+selected-pair history. If the trace contradicts that evidence or the bounded
+corrections fail, report the exact remaining operation and required decision;
+do not start a second architecture/profiling project or silently expand scope.
+
+## Proof and closure
+
+Use complete before/after endpoint values for both selected pairs and one
+restricted/denied scope check. Focus frontend checks on loading, failure,
+close/selection races, eliminating the extra date request, and unchanged default
+and one changed-horizon chart values. Reuse affected tests; add only missing
+meaningful cases. Run affected backend tests, frontend build and required checks
+if schema changes. Do not repeat unrelated passing proofs.
+
+Deploy on3005 using existing authorized preview deployment procedures. Then
+perform one completed modern/legacy comparison per entry point, with the same
+pairs/scope/horizon and enforceably matched resources through the existing
+bounded restoration mechanism. Compare with retained pre-change modern traces
+too. Require prompt visible loading feedback and lower click-to-usable graph
+time than before and matched legacy; report both separately. Do not use shell
+opening as chart completion. At most one extra pair per entry point is allowed
+only for an identified noisy/inconclusive observation, preserving all results.
+If parity inputs cannot match or timing exit fails, report that precise gap and
+stop rather than claiming success or expanding benchmarks. Restore resource
+limits after the comparison, including failures.
+
+Commit/push the bounded implementation, update MIGRATION.md and the existing
+handoff with actual timings, exact proof and limitations. Stop at delivery or
+an evidenced unmet exit; do not begin another UI family.
+
+## Explicit exclusions
+
+No new reporting tables, giant snapshots, caches/frameworks/services/registries,
+integer keys, chart/grid replacement, ingestion/schedulers, automatic activation,
+database copies/reset/repopulation, new facts/date or engine rules, resource
+increases, DBM Apply/Sleep changes, other report optimization or3004 cutover.
+The completed Guided review stays paused; this plan does not activate a job.
