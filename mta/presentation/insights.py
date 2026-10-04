@@ -74,37 +74,33 @@ def availability_ageing(rows, snapshots, minimum_age, *, predicate=None):
 
 def joined_rows(btr, dbm, kind, *, filter_owners=False):
     table = 'ChronicUnavalabilityData' if kind.startswith('chronic') else 'DBMNormSuggestionsData'
-    chronic_loc = None
-    if kind == 'chronic-loc':
-        chronic_loc = dict(
-            skus=_native_index(btr['SkuAttributeData'], lambda r: r['SKUCode']),
-            locations=_native_index(btr['LocationAttributeData'], lambda r: r['WHCode']),
-            pairs=_native_index(btr['SkuLocAttributeData'], _key),
-            descriptions=_native_index(btr['SiteDescriptionTbl'], lambda r: r['WHCode']))
+    skus = _native_index(btr['SkuAttributeData'], lambda r: r['SKUCode'])
+    locations = _native_index(btr['LocationAttributeData'], lambda r: r['WHCode'])
+    pairs = _native_index(btr['SkuLocAttributeData'], _key)
+    if kind.endswith('loc'):
+        descriptions = _native_index(btr['SiteDescriptionTbl'], lambda r: r['WHCode'])
+    elif kind.endswith('sku'):
+        descriptions = _native_index(btr['SKUDescriptionTbl'], lambda r: r['SKUCode'])
+    else:
+        descriptions = None
+    masters = (_native_index(dbm['DBMMaster'], _key)
+               if table == 'DBMNormSuggestionsData' else None)
     result = []
     for row in btr[table]:
         sku, loc = _key(row)
-        if chronic_loc is not None:
-            populations = [
-                chronic_loc['skus'].get(sku, []),
-                chronic_loc['locations'].get(loc, []),
-                chronic_loc['pairs'].get((sku, loc), []) or [{}],
-            ]
-        else:
-            populations = [
-                [r for r in btr['SkuAttributeData'] if r['SKUCode'] == sku],
-                [r for r in btr['LocationAttributeData'] if r['WHCode'] == loc],
-                [r for r in btr['SkuLocAttributeData'] if _key(r) == (sku, loc)] or [{}],
-            ]
+        populations = [
+            skus.get(sku, []),
+            locations.get(loc, []),
+            pairs.get((sku, loc), []) or [{}],
+        ]
         if kind.endswith('loc'):
-            populations.append(chronic_loc['descriptions'].get(loc, []) if chronic_loc is not None
-                               else [r for r in btr['SiteDescriptionTbl'] if r['WHCode'] == loc])
+            populations.append(descriptions.get(loc, []))
         elif kind.endswith('sku'):
-            populations.append([r for r in btr['SKUDescriptionTbl'] if r['SKUCode'] == sku])
+            populations.append(descriptions.get(sku, []))
         else:
             populations.append([{}])
-        populations.append([r for r in dbm['DBMMaster'] if _key(r) == (sku, loc)]
-                           if table == 'DBMNormSuggestionsData' else [{}])
+        populations.append(masters.get((sku, loc), [])
+                           if masters is not None else [{}])
         for sa, la, sla, description, master in product(*populations):
             value = {**row, 'WHCode': loc, 'ParentWhCode': master.get('ParentWhCode', row.get('ParentWhCode')),
                      '_sku': sa, '_loc': la, '_description': description}
@@ -125,13 +121,18 @@ def _max(rows, owner, name):
 
 
 def chronic_grid(btr, nms, *, filter_owners=False):
+    descriptions = _native_index(nms, _key)
+    locations = _native_index(btr['LocationAttributeData'], lambda r: r['WHCode'])
+    skus = _native_index(btr['SkuAttributeData'], lambda r: r['SKUCode'])
+    pairs = _native_index(btr['SkuLocAttributeData'], _key)
     result = []
     for row in btr['ChronicUnavalabilityData']:
+        key = _key(row)
         populations = (
-            [r for r in nms if _key(r) == _key(row)] or [{}],
-            [r for r in btr['LocationAttributeData'] if r['WHCode'] == _key(row)[1]] or [{}],
-            [r for r in btr['SkuAttributeData'] if r['SKUCode'] == row['SKUCode']] or [{}],
-            [r for r in btr['SkuLocAttributeData'] if _key(r) == _key(row)] or [{}],
+            descriptions.get(key, []) or [{}],
+            locations.get(key[1], []) or [{}],
+            skus.get(row['SKUCode'], []) or [{}],
+            pairs.get(key, []) or [{}],
         )
         for n, la, sa, sla in product(*populations):
             result.append({'SKUCode': row['SKUCode'], 'WHCode': _key(row)[1],

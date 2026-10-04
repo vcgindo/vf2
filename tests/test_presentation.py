@@ -78,22 +78,20 @@ class PresentationTest(unittest.TestCase):
             payload['product_permissions']=[]
             self.assertIsNone(self.post('ChronicUnavailabilityGridViewData',payload,**IDENTITY).json()['data'])
 
-    def test_history_routes_use_native_trend_columns_and_selected_pairs(self):
-        master=[dict(SKUCode='337',WhCode='AG515802',ParentWhCode='LDC006')]
-        context=SimpleNamespace(output={'BTRFinal':[ATTRIBUTES],'BPRReports':[{'vf_RationedReqReport':master}]})
-        payload=dict(product_permissions=[71001],location_permissions=[72001],days=12,bufferTrendType='eco',
-            data=[dict(SKUCode='337',WhCode='AG515802')])
-        with patch('mta.presentation.views.publication',return_value=context), \
-             patch('mta.presentation.context.permission_catalogue',return_value=CATALOGUE), \
-             patch('mta.presentation.views.history_rows',side_effect=AssertionError('wrong historical population')), \
-             patch('mta.presentation.views.history_native.research_rows',return_value=[{'Type':'Parent'}]) as research, \
-             patch('mta.presentation.views.history_native.historical_availability',return_value=[{'availability_01_30':0}]) as historical:
-            self.assertEqual(self.post('GetResearchInsightData',payload,**IDENTITY).json()['data'],[{'Type':'Parent'}])
-            self.assertEqual(research.call_args.args,(ATTRIBUTES,master,payload['data']))
-            response=self.client.generic('GET','/api/mta/GetHistroricalAvailabilityBPRData',json.dumps(payload),
-                content_type='application/json',**IDENTITY)
-            self.assertEqual(response.json()['data'],[{'availability_01_30':0}])
-            historical.assert_called_once_with(ATTRIBUTES,products={'337'},locations={'AG515802'})
+    def test_history_routes_use_selected_readers_without_whole_publication(self):
+        run = object()
+        payload = dict(product_permissions=[71001], location_permissions=[72001],
+                       data=[dict(SKUCode='337', WhCode='AG515802')])
+        with patch('mta.presentation.views.selected_run', return_value=run), \
+             patch('mta.presentation.views.publication', side_effect=AssertionError('whole publication')), \
+             patch('mta.presentation.research_read.read_research', return_value=[{'Type':'Parent'}]) as research, \
+             patch('mta.presentation.research_read.read_historical_availability', return_value=[{'availability_01_30':0}]) as historical:
+            self.assertEqual(self.post('GetResearchInsightData', payload, **IDENTITY).json()['data'], [{'Type':'Parent'}])
+            research.assert_called_once_with(run, payload)
+            response = self.client.generic('GET', '/api/mta/GetHistroricalAvailabilityBPRData', json.dumps(payload),
+                                           content_type='application/json', **IDENTITY)
+            self.assertEqual(response.json()['data'], [{'availability_01_30':0}])
+            historical.assert_called_once_with(run, payload)
 
     def test_graph_uses_explicit_selected_run_without_whole_publication(self):
         run = object()

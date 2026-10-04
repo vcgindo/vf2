@@ -42,12 +42,18 @@ def custom_grid(payload):
     from mta.presentation.context import scope
     from mta.presentation.excess_read import CUSTOM_COLUMNS, pagination
     from mta.presentation.expedite_custom import custom_rows
-    context = expedite_context()
+    context = expedite_context(include_master=False, custom=True)
     paging = pagination(payload)
     products, locations = scope(payload, attributes=context.importer)
     try:
+        from mta.presentation.legacy_ui import BPR_UI_CONFIG
+        visible_attributes = [row for row in BPR_UI_CONFIG
+                              if row.get('Visible') and 'attr' in row['Col_Code'].lower()]
         rows = custom_rows(context.rows, nms=context.nms, products=products,
-                           locations=locations, paging=paging, stable_producer_order=True)
+                           locations=locations, paging=paging, stable_producer_order=True,
+                           bpr_rows=context.bpr_rows,
+                           site_descriptions=context.importer['SiteDescriptionTbl'],
+                           visible_dynamic_attributes=visible_attributes)
     except ValueError as exc:
         raise PublicationUnavailable(str(exc)) from exc
     # The deployed custom handler deserializes SQL JSON as an object: numeric
@@ -93,15 +99,19 @@ def child_grid(payload):
                                     for h, c, p in PARENT_COLUMNS])
 
 
-def expedite_context():
+def expedite_context(*, include_master=True, custom=False):
     run = selected_run()
-    importer = {name: image_rows(run, 'closing/importer/'+name) for name in (
-        'MasterData', 'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
-        'SKUDescriptionTbl', 'SiteDescriptionTbl')}
+    fixture = run.kind == 'LEGACY_UI_FIXTURE'
+    names = ['SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
+             'SKUDescriptionTbl', 'SiteDescriptionTbl']
+    if include_master or not fixture:
+        names.append('MasterData')
+    importer = {name: image_rows(run, 'closing/importer/'+name) for name in names}
     standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
-    native = dict(BPRReports=[{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}],
-                  ClosingState=[dict(importer=importer, dbm={'SKULocStandardAttributes': standards},
-                                     btr={'ExpediteDispatches': image_rows(run, 'closing/btr/ExpediteDispatches')})])
+    native = dict(ClosingState=[dict(importer=importer, dbm={'SKULocStandardAttributes': standards})])
+    if include_master or not fixture:
+        native['BPRReports'] = [{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}]
+        native['ClosingState'][0]['btr'] = {'ExpediteDispatches': image_rows(run, 'closing/btr/ExpediteDispatches')}
     try:
         rows = read_expedite(run, output=native)
     except ExpediteProjection.DoesNotExist as exc:
@@ -112,11 +122,21 @@ def expedite_context():
             importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
-    ancillary = terminal_ancillary(run)
-    masters = image_rows(run, 'closing/bpr/BPRMaster')
+    # Count/custom consume no BPR master or remarks. Their availability must not
+    # depend on unrelated parent/child workflow inputs.
+    masters = image_rows(run, 'closing/bpr/BPRMaster') if include_master else None
+    if include_master:
+        if run.kind == 'LEGACY_UI_FIXTURE':
+            from mta.presentation.fixture import bpr_ancillary
+            ancillary = bpr_ancillary(run)
+        else:
+            ancillary = terminal_ancillary(run)
+    else:
+        ancillary = None
     output = {**native, 'ClosingState': [{**native['ClosingState'][0],
                                         'importer': importer, 'bpr': {'BPRMaster': masters}}]}
     return SimpleNamespace(run=run, rows=rows, importer=importer, standards=standards,
                            masters=masters, native_output=native, output=output,
+                           bpr_rows=image_rows(run, 'reports/bpr/BPR_Table') if custom else None,
                            nms=image_rows(run, 'closing/consumer_context/NMSAllItems'),
-                           remarks=ancillary['BPRReport_RemarkDetails'])
+                           remarks=ancillary['BPRReport_RemarkDetails'] if ancillary is not None else None)

@@ -1,3 +1,4 @@
+import { settleRequestPair } from "../../requestPair"
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { AgGridReactProps } from 'ag-grid-react'
 import { GridRef } from '../../../../../VectorFlow/types/MDM'
@@ -182,16 +183,10 @@ const useResearchInsights = () => {
     useEffect(() => {
         async function getBPRRowData() {
             resetState()
-            await getRecordCount(currentFilter)
-            await getRowData(currentFilter, 1)
+            await getCountAndRowData(currentFilter)
             await getRIUiConfig();
         }
-        try {
-
-            getBPRRowData()
-        } catch (err: any) {
-            notifyError(err)
-        }
+        getBPRRowData().catch((err: any) => notifyError(err))
     }, [])
 
     const customCellRenderers = useMemo(() => ({
@@ -267,9 +262,7 @@ const useResearchInsights = () => {
         setRecordCount(countData.data.recordCount)
     }
 
-    const getRowData = async (filter: any, pageNo: number , pageSize?:number) => {
-        notifyLoader("Loading Grid Data")
-        const rowData = await getBPRData({
+    const readRowData = (filter: any, pageNo: number, pageSize?: number) => getBPRData({
             id: 1,
             name: "",
             fields: [],
@@ -279,9 +272,27 @@ const useResearchInsights = () => {
                 recordsPerPage: pageSize || userPageSize|| parseInt(RESEARCHINSIGHT_ROWS_PER_PAGE || '50')
             }
         })
+
+    const getRowData = async (filter: any, pageNo: number, pageSize?: number) => {
+        notifyLoader("Loading Grid Data")
+        const rowData = await readRowData(filter, pageNo, pageSize)
         toast.dismiss()
         notifySuccess("Data Loaded Successfully")
         setResearchInsightsRowData(rowData.data.data)
+    }
+
+    const getCountAndRowData = async (filter: any) => {
+        const toastId = notifyLoader("Loading Grid Data")
+        try {
+            const { grid } = await settleRequestPair(
+                () => getRecordCount(filter),
+                () => readRowData(filter, 1)
+            )
+            setResearchInsightsRowData(grid.data.data)
+            notifySuccess("Data Loaded Successfully")
+        } finally {
+            toast.dismiss(toastId)
+        }
     }
 
     const onApplyFilter = async (filter: any) => {
@@ -289,8 +300,7 @@ const useResearchInsights = () => {
         setCurrentFilter(filter)
         setCurrGridPage(1)
         try {
-            await getRecordCount(filter)
-            await getRowData(filter, 1)
+            await getCountAndRowData(filter)
         } catch (err: any) {
             notifyError(err)
         }

@@ -20,17 +20,21 @@ def terminal_git_reports(rationed, ancillary):
 
 def planning_overview_context():
     run = selected_run()
-    ancillary = terminal_ancillary(run)
+    if run.kind == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import bpr_ancillary
+        ancillary = bpr_ancillary(run)
+    else:
+        ancillary = terminal_ancillary(run)
+    rationed = image_rows(run, 'reports/bpr/vf_RationedReqReport')
+    reports = terminal_git_reports(rationed, ancillary)
     importer = {name: image_rows(run, 'closing/importer/' + name) for name in (
         'MasterData', 'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
         'SKUDescriptionTbl', 'SiteDescriptionTbl')}
     standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
-    rationed = image_rows(run, 'reports/bpr/vf_RationedReqReport')
     native = dict(BPRReports=[{'vf_RationedReqReport': rationed}], ClosingState=[dict(
         importer=importer, dbm={'SKULocStandardAttributes': standards},
         orders={'SpikeOrderData': image_rows(run, 'closing/orders/SpikeOrderData')},
         btr={'ExpediteDispatches': image_rows(run, 'closing/btr/ExpediteDispatches')})])
-    reports = terminal_git_reports(rationed, ancillary)
     reports.update(excess=read_excess(run, output=native), expedite=read_expedite(run, output=native),
                    fulfillment=read_fulfillment(run, output=native)['summary'])
     try:

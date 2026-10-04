@@ -1,3 +1,4 @@
+import { settleRequestPair } from "../../requestPair"
 import { useEffect, useState,useMemo,useRef } from "react"
 import { fulfillmentFailureMessage } from './fulfillmentFailure';
 import { expediteFailureMessage } from './expediteFailure';
@@ -560,11 +561,12 @@ const usePlanning = ()=>{
                             recordsPerPage:GITFromParentuserPageSize
                         }
                     }
-                    const count = await getPlanningDataGridCount(body)
+                    const { count, grid: result } = await settleRequestPair(
+                        () => getPlanningDataGridCount(body), () => getPlanningDataGrid(body)
+                    )
                     setTotalRows(count.data.data[0].locationwise)
                     setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data[0].locationwise})
 
-                    const result = await getPlanningDataGrid(body);
                     setCurrentView('grid');
                     setCurrentCategory(category);
                     setCurrentGridData(result.data.data);
@@ -703,13 +705,15 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        const count = await getPlanningDataGridCount(body)
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         setTotalRows(count.data.data[0].locationwise)
                         totalTempCount = count.data.data[0].locationwise
                         setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data[0].locationwise})
                     }
-                    const result = await getPlanningDataGrid(body);
                     setCurrentGridData(result.data.data);
                     if(fromPagination){
                         setTotalRows(planningCounts.parentMonitorCount)
@@ -731,8 +735,11 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        const count = await getPlanningDataGridCount(body)
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         const {locationwise,transporterwise} = count.data.data[0]
                         const tempTab =tab?tab:currentTab
                         if(tempTab==="locationWise"){
@@ -746,7 +753,6 @@ const usePlanning = ()=>{
                             totalTempCount = transporterwise
                         }
                     }
-                    const result = await getPlanningDataGrid(body);
                     setCurrentGridData(result.data.data);
                     if(fromPagination){
                         setTotalRows(planningCounts.childMonitorCount)
@@ -768,8 +774,11 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        const count = await getPlanningDataGridCount(body)
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         const {createAvailabilityAtParent,expediteDispatches} = count.data.data
                         const tempTab =tab?tab:currentTab
                         if(tempTab==="createAvailabilityAtParent"){
@@ -784,7 +793,6 @@ const usePlanning = ()=>{
                         }
                     }
                     
-                    const result = await getPlanningDataGrid(body);
                     const uiConfig = result.data.data.uiConfig;
                     const {createAvailabilityAtParent,createAvailabilityAtParentwip,createAvailabilityAtParenttransit,expediteDispatches,expediteDispatcheswip,expediteDispatchestransit} = result.data.data.data;
                     // const customData = {
@@ -816,9 +824,12 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        body.paginationParameter.pageNumber  = 1
-                        const count = await getPlanningDataGridCount(body)
+                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         const {createAvailabilityAtParent,expediteDispatches} = count.data.data
                         const tempTab =tab?tab:currentTab
                         if(tempTab==="createAvailabilityAtParent"){
@@ -833,7 +844,6 @@ const usePlanning = ()=>{
                         }
                         setCurrentPage(1)
                     }
-                    const result = await getPlanningDataGrid(body);
                     const {createAvailabilityAtParent,expediteDispatches} = result.data.data.data;
                     const uiConfig = result.data.data.uiConfig;
                     const customData = {"createAvailabilityAtParent":{"data":createAvailabilityAtParent,"uiConfig":uiConfig},"expediteDispatches":{"data":expediteDispatches,"uiConfig":uiConfig}};
@@ -858,16 +868,18 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        body.paginationParameter.pageNumber  = 1
-                        const count = await getPlanningDataGridCount(body)
+                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         setTotalRows(count.data.data)
                         setCurrentPage(1)
                         setPlanningCounts({...planningCounts,reviewExcessInventoryCount:count.data.data})
                         totalTempCount = count.data.data
                         // setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data})
                     }
-                    const result = await getPlanningDataGrid(body);
                     if(fromPagination){
                         setTotalRows(planningCounts.reviewExcessInventoryCount)
                         totalTempCount = planningCounts.reviewExcessInventoryCount
@@ -889,16 +901,18 @@ const usePlanning = ()=>{
                             recordsPerPage:pageSize || currentUserPageSize || rowsPerPage
                         }
                     }
-                    if(!fromPagination){
-                        body.paginationParameter.pageNumber  = 1
-                        const count = await getPlanningDataGridCount(body)
+                    if (!fromPagination) body.paginationParameter.pageNumber = 1
+                    const { count, grid: result } = await settleRequestPair(
+                        () => fromPagination ? Promise.resolve(null) : getPlanningDataGridCount(body),
+                        () => getPlanningDataGrid(body)
+                    )
+                    if(!fromPagination && count){
                         setTotalRows(count.data.data)
                         totalTempCount = count.data.data
                         setCurrentPage(1)
                         setPlanningCounts({...planningCounts,reviewOrderFulfillmentCount:count.data.data})
                         // setPlanningCounts({...planningCounts,parentMonitorCount:count.data.data})
                     }
-                    const result = await getPlanningDataGrid(body);
                     if(fromPagination){
                         totalTempCount = planningCounts.reviewOrderFulfillmentCount
                         setTotalRows(planningCounts.reviewOrderFulfillmentCount)

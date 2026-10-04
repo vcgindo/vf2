@@ -110,7 +110,7 @@ class ChronicLocationLookupTests(unittest.TestCase):
         self.assertEqual(projected[0]['countSku'], 16)
         self.assertEqual(projected[1]['countSku'], 1)
 
-    def test_other_join_kinds_do_not_use_chronic_location_indexes(self):
+    def test_other_join_kinds_retain_their_own_description_contract(self):
         state = {
             'ChronicUnavalabilityData': [chronic('S1', 'L1')],
             'SkuAttributeData': [{'SKUCode': 'S1'}],
@@ -118,8 +118,7 @@ class ChronicLocationLookupTests(unittest.TestCase):
             'SkuLocAttributeData': [],
             'SKUDescriptionTbl': [{'SKUCode': 'S1', 'SKUDescription': 'one'}],
         }
-        with patch.object(insights, '_native_index', side_effect=AssertionError('unexpected index')):
-            rows = insights.joined_rows(state, {}, 'chronic-sku', filter_owners=True)
+        rows = insights.joined_rows(state, {}, 'chronic-sku', filter_owners=True)
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['_description']['SKUDescription'], 'one')
 

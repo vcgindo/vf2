@@ -42,14 +42,51 @@ Phase1 complete: the portfolio matrix in the existing plan covers every included
 implemented endpoint/tab, field/type contract, source grain, live semantics and
 serving choice; retained receipt counts distinguish wiring defects from absent
 BPRMaster/GIT-master dependencies. Frontend request owners/workloads are mapped.
-Active phase2: freeze affected before-results, correct selective history/Research
-and ancillary wiring, and remove evidenced repeated broad scans/joins using
-existing typed inputs. No new table/preparation is currently justified. Required
+Phase2 complete: froze affected before-results, corrected selective history/Research
+and ancillary wiring, and removed evidenced repeated broad scans/joins using
+existing typed inputs. No new table/preparation is currently justified. A bounded
+Guided history EXPLAIN identifies the BPR history sequential scan as 30.8s of a
+31.8s query (8.48m retained rows; nine-day request). The one run/image/date covering
+index and its normal migration preserve source rows, scopes and aggregates.
+Required
 proof is complete affected output equivalence (or attributable prior unavailable
 path plus independent source-contract proof), scoped/range cases and focused tests.
-Then integrate/inspect the portfolio without renewed permission per screen. Reuse typed
-projections, prepare only repeated expensive work, retain bounded live/request
-reads and preserve commands/permissions. MIGRATION.md is the only status tracker.
+Guided index correction proved: migration0018 applied through the existing atomic
+fixture metadata-guard command; no pending migrations/model drift, index valid,
+875732992 added bytes, fixture binding/freeze unchanged. One post-change plan uses
+an index-only BPR scan, zero heap fetches,176.7ms per worker versus30826.3ms before;
+complete query14277.0ms, with residual sorting/joins (not a UI latency acceptance).
+Twelve complete retained-data Research/historical/Guided/Excess comparisons pass,
+including broad/restricted scopes and nine-/three-day windows; PostgreSQL
+VALUES differentials also pass. No further history optimization is opened.
+Seven full-population Guided lookup comparisons pass, every field/occurrence/order;
+9871 current-date Excess rows match the old full-history reader;1030 populated
+custom Expedite rows match the canonical query contract over retained inputs.
+Phase3 complete: one frontend integration batch, limited to evidenced duplicate
+Guided/Buffer Trends work and independent Research/Planning count-grid sequencing.
+Required exit: preserved request bodies/error behavior, focused frontend checks/build,
+then one coherent deployment and bounded module API/browser inspection.
+TypeScript, four request-pair tests and production backend/frontend builds pass.
+Phase4 complete for the bounded implementation/inspection batch: changed3005
+backend/frontend deployed;23 expected authenticated/security gateway statuses
+plus two Planning graph200 responses and full bodies retained. Admission and
+selected BTR generation are unchanged;21 protected container identities remain
+unchanged. BPR50/97097, RRR5000/8063, DBM5000/11158, BTR5000/97299,
+Research5000/97097 with selected history, Guided trend/Chronic charts, Buffer
+Trends30-day chart and Planning Excess5000/9871 loaded in the browser. This is
+bounded module inspection, not exhaustive interaction or matched latency acceptance.
+Desktop BPR visibility was additionally verified at1280x720; the default narrow
+browser viewport does not make this inherited desktop layout usable.
+Residuals: broad Guided responses remain15–34s in single observations; Research
+calendar opens the system month rather than the publication month. No further
+history optimization, workflow, daily-ingestion integration or whole-F3 acceptance
+is implied. Operational details/limits: [batch handoff](PREPARED_PRESENTATION_HANDOFF.md).
+Planning overview/GIT remain unavailable:2567 positive-GIT rows and no retained
+GoodsInTransitMaster; BPRMaster is also absent for dependent Expedite consumers.
+Evidence: `D:/freshvcf-build/evidence/prepared-portfolio-20261004-001`.
+The authorized batch is delivered with the above residuals. Further source,
+latency or calendar corrections must use this same tracker and exact contracts;
+no adjacent migration/workflow phase is started. MIGRATION.md is the only tracker.
 Required exit: available included paths implemented and connected on3005, complete
 affected value proofs, bounded module UI inspection, committed/pushed delivery,
 rollback and explicit coverage/dependencies. The accepted BTR baseline is retained.

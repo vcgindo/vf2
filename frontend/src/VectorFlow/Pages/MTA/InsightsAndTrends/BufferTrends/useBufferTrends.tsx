@@ -207,7 +207,6 @@ const useBufferTrends = () => {
             }
             setSummaryData(result.data?.data?.summary);
             setAvailability(result.data?.data?.avail);
-            setGraphData(getGraphDataWithTotal(result.data));
             notifySuccess("Graph Details Fetched Successfully")
             
         } catch (error) {

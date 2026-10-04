@@ -229,9 +229,27 @@ def rrr_data(request, payload, *, count=False):
 
 @endpoint('POST')
 def bpr_remark_history(request, payload):
-    """Canonical empty terminal history; no remark-write workflow implied."""
+    """Read the retained remark bag; no remark-write workflow implied."""
+    run = selected_run()
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.fixture import bpr_ancillary
+        from mta.presentation.selective import image_rows
+        from mta.presentation.rrr import sql_key
+        rows = bpr_ancillary(run)['BPRReport_RemarkDetails']
+        attributes = {name: image_rows(run, 'closing/importer/' + name)
+                      for name in ('SkuAttributeData', 'LocationAttributeData')}
+        products, locations = scope(payload, attributes=attributes)
+        selected = sql_key(payload.get('skucode', ''), payload.get('whcode', ''))
+        rows = [row for row in rows if sql_key(row['SKUCode'], row['WhCode']) == selected
+                and row['SKUCode'] in products and row['WhCode'] in locations]
+        # Deployed BPRProcessor.GetRemarkDetails: RemarkDate DESC, NULL omission.
+        # Stable source occurrence order is retained for equal dates.
+        rows.sort(key=lambda row: (row['RemarkDate'] is not None, row['RemarkDate']), reverse=True)
+        return envelope(data=[{alias: (value.isoformat() if field == 'RemarkDate' else value)
+            for alias, field in (('r', 'Remark'), ('rd', 'RemarkDate'), ('un', 'Username'))
+            if (value := row[field]) is not None} for row in rows])
     from mta.presentation.terminal_supplement import terminal_ancillary
-    rows = terminal_ancillary(selected_run())['BPRReport_RemarkDetails']
+    rows = terminal_ancillary(run)['BPRReport_RemarkDetails']
     # The admitted supplement proves only initial emptiness. Do not silently
     # extend this reader to populated history or other selected publications.
     if rows != []:
@@ -409,7 +427,7 @@ def planning_grid(request, payload, *, count=False):
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
         from mta.presentation.expedite_read import expedite_context
-        context=expedite_context()
+        context=expedite_context(include_master=False)
         rows=context.rows
         products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
         return envelope(data=expedite_counts(context.output,rows,str(payload.get('type','')).casefold(),
@@ -509,17 +527,14 @@ def buffer_trends(request, payload):
 
 @endpoint('POST')
 def research_insights(request, payload):
-    context = publication()
-    state=context.output['BTRFinal'][0]; products,locations=scope(payload,attributes=state)
-    master=context.output['BPRReports'][0]['vf_RationedReqReport']
-    return envelope(data=history_native.research_rows(state,master,payload.get('data'),
-        products=products,locations=locations),message='')
+    from mta.presentation.research_read import read_research
+    return envelope(data=read_research(selected_run(), payload), message='')
 
 
 @endpoint('GET')
 def historical_availability(request, payload):
-    state=publication().output['BTRFinal'][0]; products,locations=scope(payload,attributes=state)
-    return envelope(data=history_native.historical_availability(state,products=products,locations=locations),message='')
+    from mta.presentation.research_read import read_historical_availability
+    return envelope(data=read_historical_availability(selected_run(), payload), message='')
 
 
 @endpoint('POST')
@@ -527,6 +542,16 @@ def insight_data(request, payload, *, kind):
     from mta.presentation.insight_read import insight_context
     from mta.presentation.insight_filters import InsightPredicate
     from mta.presentation.insight_response import insight_payload
+    from mta.presentation import fixture
+    if fixture.enabled() and (kind.startswith('availability-') or kind.startswith('excess-')):
+        run = selected_run()
+        from mta.presentation.insight_history_sql import read_history
+        try:
+            return envelope(data=scalar_json_rows(read_history(run, payload, kind)))
+        except OverflowError:
+            if kind.startswith('excess-'):
+                return envelope(status=500)
+            raise
     context = insight_context(kind)
     state = context.state
     predicate = InsightPredicate(payload, state['LocationAttributeData'], kind=kind)

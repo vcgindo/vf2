@@ -3,7 +3,7 @@
  import { toast } from "react-toastify";
 import useBPRFilter from "../../../../../hooks/useBPRFilter";
 import { useUserData } from "../../../../../context";
-import {useGetChronicUnavailabilityLoc,useGetChronicUnavailabilitySku, useGetChronicUnavailabilityGridView} from "../../../../Services/MTA/InsightsAndTrends";
+import { useGetChronicUnavailabilityGridView } from "../../../../Services/MTA/InsightsAndTrends";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../../redux/store/store";
 
@@ -24,8 +24,6 @@ const ref = useRef()
 const {state:currentFilter,setState:setCurrentFilter,onDelete,defaultFilters} = useBPRFilter()
 
 
-const {mutateAsync:getChronicUnavailabilityLoc} = useGetChronicUnavailabilityLoc() || {} ;
-const {mutateAsync:getChronicUnavailabilitySku} = useGetChronicUnavailabilitySku() || {};
 const {mutateAsync:getChronicUnavailabilityGrid} = useGetChronicUnavailabilityGridView() || {};
 const [chroniceRowData,setChronicRowData] = useState<Array<any>>([])
 
@@ -67,68 +65,21 @@ const GUIDEDINSIGHT_ROWS_PER_PAGE = EnvConfig['GUIDEDINSIGHT_ROWS_PER_PAGE'];
                     
     }
 
-    const fetchAndUpdateChartData=async(currentFilter?:any, horison?:any, ageing?:any)=>{
-       try{
-        const body:any=
-           {filters:currentFilter,
-           }
-        
-         const toastId = notifyLoader('Loading Chart Data');
-        //  const result = await getChronicUnavailabilityGrid(body)
-        let result;
-        if (currentTab === 'availabilitytrend') {
-          body.horison=horison;
-          toast.dismiss(toastId);
-            // result = await getAvaialabilityTrend (body);
-          } 
-          if (currentTab === 'chronicunavailability') {
-            const s1 = await getChronicUnavailabilitySku(body);
-            const s2 = await getChronicUnavailabilityLoc(body);
-            result = {...s1,...s2};
-          }
-          if (currentTab === 'availabilityageingtrend') {
-            body.horison=horison;
-            body.ageing=ageing;
-            toast.dismiss(toastId);
-            // result = await getAvaialabilityAgeing(body);
-          }
-         if(currentTab==='excessinventorytrend'){
-            body.horison=horison;
-            // const r1= await getExcessInventorySku(body);
-            // const r2 = await getExcessInventoryValue(body);
-            // result = {...r1, ...r2};
-            toast.dismiss(toastId);
-         }
-
-          if(result){
-            setCurrentGridData(result.data.data);
-          setChronicRowData(result.data.data);
-          toast.dismiss(toastId);
-          notifySuccess("Chart Details Fetched Successfully");
-          }
-                
-       }
-       catch(err){
-        console.log(err)
-       }
-    }
-
     const onViewChange = (view:string) => {
          const activeTab = currentTab;
          if(activeTab){
                setCurrentTab(currentTab);
           } 
           setCurrentView(view);
-          fetchAndUpdateGridData();
+          if (view === "grid") {
+            fetchAndUpdateGridData();
+          }
     }
 
     const  onApplyFilter = async(currentFilter?:any, filter?:any)=>{
 
         if (currentView==="chart") {
             setCurrentFilter(currentFilter)
-            if (currentTab !== 'dbmnormsuggestions') {
-              fetchAndUpdateChartData(currentFilter, horizon, ageing)
-            }
           }
           else{
             setCurrentFilter(currentFilter)

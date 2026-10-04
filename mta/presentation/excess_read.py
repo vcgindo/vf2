@@ -31,9 +31,11 @@ def excess_context(*, custom=False):
     importer = {name: image_rows(run, 'closing/importer/' + name) for name in (
         'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
         'SKUDescriptionTbl', 'SiteDescriptionTbl')}
-    standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
-    native = dict(BPRReports=[{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}],
-        ClosingState=[dict(importer=importer, dbm={'SKULocStandardAttributes': standards})])
+    fixture = run.kind == 'LEGACY_UI_FIXTURE'
+    standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes') if custom or not fixture else None
+    native = dict(ClosingState=[dict(importer=importer, dbm={'SKULocStandardAttributes': standards})])
+    if not fixture:
+        native['BPRReports'] = [{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}]
     try:
         rows = read_excess(run, output=native)
     except ExcessProjection.DoesNotExist as exc:

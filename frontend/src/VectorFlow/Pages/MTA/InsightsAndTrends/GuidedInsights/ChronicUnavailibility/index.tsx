@@ -8,6 +8,7 @@ import { coldefs1, coldefs2 } from "./colDef";
 import { chartParams1, chartParams2} from './chartParams'
 import { generateChartOptions } from '../../../../../../helpers/utils'
 import OverlayLoader from "../../../../../../VectorFlow/Pages/MTO/Common/Loader";
+import { settleRequestPair } from "../../../requestPair";
 
 const ChronicUnavailabilityCharts = ({filter}:{filter:any}) => {
 
@@ -27,9 +28,14 @@ const ChronicUnavailabilityCharts = ({filter}:{filter:any}) => {
 
     useEffect(() => {
         const fetchDBMNormSuggestionData = async ()=>{
-          const ChronicUnavailabilityLocs =  await  ChronicUnavailabilityLoc();
+          const {
+            count: ChronicUnavailabilityLocs,
+            grid: ChronicUnavailabilitySkus,
+          } = await settleRequestPair(
+            () => ChronicUnavailabilityLoc(),
+            () => ChronicUnavailabilitySku(),
+          );
           SetChronicUnavailabilityLocD(ChronicUnavailabilityLocs?.data?.data);
-          const ChronicUnavailabilitySkus = await ChronicUnavailabilitySku();
           SetActiveDBMSuggestionData(ChronicUnavailabilitySkus?.data?.data);
          
         }

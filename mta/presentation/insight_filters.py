@@ -28,6 +28,7 @@ class InsightPredicate:
         if not isinstance(filters, dict):
             raise ValueError('invalid_filter_groups')
         self.constraints, self.children, self.locations = [], [], locations
+        self.sql_terms = []
         self.parent_owner = '_master' if kind in ('loc', 'sku', 'pie', 'ageing') else '_a'
         if not any(filters.get(group) is not None for group in (
                 'availabilityFilter', 'supplyChainFilter', 'coverageFilter',
@@ -81,18 +82,25 @@ class InsightPredicate:
             if len(candidates) != 1:
                 unavailable(('ambiguous' if candidates else 'missing') + ' column ' + field)
             table, name = candidates[0]
-            return lambda row: row[table].get(name)
+            getter = lambda row: row[table].get(name)
+            getter.column = (table, name)
+            return getter
 
         def clause(getter, op, wanted):
             if op not in OPERATORS: unavailable('unknown deployed operator')
             def matched(row):
                 try: return compare(getter(row), op, wanted)
                 except PublicationUnavailable as exc: unavailable(str(exc).partition(':')[2])
+            matched.term = ('compare', getter.column, op, wanted)
             return matched
 
+        def add(matched, term=None):
+            self.constraints.append(matched)
+            self.sql_terms.append(matched.term if term is None else term)
+
         def in_list(getter, values):
-            self.constraints.append(lambda row: any(sql_key(getter(row)) == sql_key(value)
-                and sql_key(value) is not None for value in values))
+            add(lambda row: any(sql_key(getter(row)) == sql_key(value)
+                and sql_key(value) is not None for value in values), ('in', getter.column, values))
 
         def grouped(entries, mapper):
             groups = defaultdict(list)
@@ -100,7 +108,8 @@ class InsightPredicate:
             for attribute, specs in groups.items():
                 getter = mapper(attribute)
                 predicates = [clause(getter, p.get('operator'), p['value']) for p in specs]
-                self.constraints.append(lambda row, predicates=predicates: any(p(row) for p in predicates))
+                add(lambda row, predicates=predicates: any(p(row) for p in predicates),
+                    ('or', [p.term for p in predicates]))
 
         supply = defaultdict(list)
         for item in items('supplyChainFilter'):
@@ -124,10 +133,10 @@ class InsightPredicate:
         for item in items('availabilityFilter'):
             name = item['attributeName'].lower()
             if name in ('norm','stock','git','availability','virtualnorm'):
-                self.constraints.append(clause(get(None, name),
+                add(clause(get(None, name),
                                                item.get('operator'), item['value']))
             elif name == 'category':
-                self.constraints.append(clause(get(category_owner, 'category'), item.get('operator'), item['value']))
+                add(clause(get(category_owner, 'category'), item.get('operator'), item['value']))
             elif name in ('pic','ohic','pipo,seasonality'): lists[name].append(item['value'])
         for name, owner, field in (('pic',None,'pic'),
                 ('ohic',None,'ohic'),('pipo,seasonality',None,'Tags')):
@@ -138,7 +147,8 @@ class InsightPredicate:
             if item.get('type') == 'colorcount':
                 names = ['BlackCount','RedCount'] if item['attributeName'] == 'black/red' else [item['attributeName']+'Count']
                 predicates = [clause(get(None, name), item.get('operator'), item['value']) for name in names]
-                self.constraints.append(lambda row, predicates=predicates: any(p(row) for p in predicates))
+                add(lambda row, predicates=predicates: any(p(row) for p in predicates),
+                    ('or', [p.term for p in predicates]))
         coverage = [p['value'] for p in items('coverageFilter') if p['attributeName'].lower() == 'coverage']
         if coverage: in_list(get(None, 'coverage'), coverage)
 

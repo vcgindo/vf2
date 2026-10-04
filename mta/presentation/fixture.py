@@ -194,6 +194,18 @@ def projection_rows(run,model,*,report_date=None):
     fields=item['fields']
     if item.get('model')!=model.__name__ or len(item['wire'])!=len(fields):unavailable('projection_contract_changed')
     if fields!=[f.name for f in model._meta.fields if f.name not in ('id','run','ordinal')]:unavailable('projection_columns_changed')
+    if report_date is not None:
+        # Admission binds the full loader checksum and immutable table guards.
+        # A current-day consumer must not transfer/hash every historical date.
+        selected, _ = binding()
+        if selected.pk != run.pk:unavailable('projection_selected_run_changed')
+        records = model.objects.filter(run=run,ReportDate=report_date).order_by('ordinal').values_list('ordinal',*fields)
+        rows=[]; previous=-1
+        for record in records.iterator(chunk_size=1000):
+            if not previous < record[0] < item['count']:unavailable('projection_selected_ordinal_changed')
+            previous=record[0]
+            rows.append({name:wire_value(v,kind) for name,kind,v in zip(fields,item['wire'],record[1:])})
+        return rows
     rows=[];h=hashlib.sha256(b'[');count=0
     for ordinal,record in enumerate(model.objects.filter(run=run).order_by('ordinal').values_list('ordinal',*fields).iterator(chunk_size=1000)):
         if record[0]!=ordinal:unavailable('projection_ordinal_changed')

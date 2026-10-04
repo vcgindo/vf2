@@ -58,11 +58,17 @@
     },
     "mta/presentation/insights.py": {
       "from_sha256": "1a439ff33352e1a737ca3e5180fffbc96c9386eaaaa61ca28bf984526647fb78",
-      "sha256": "c76a02614010b9b559c211cdf27b32d2f184b40209f2e61537948f348912ca66",
-      "scope": "F3.2 Guided raw source filters, indexed duplicate-preserving joins and scoped snapshots; original source/output pins retained; no calculation/state change",
-      "evidence": "D:/freshvcf-build/evidence/f3-stage2-guided-batch-001/filtered-scoped-comparison.json",
-      "evidence_sha256": "bdbdcdc2268a1c62691a61d686bfafa5ef77a9f0d4069a4d79b247d1c4317d77",
-      "acceptance": "PASS_PROJECTED_SCOPED_FILTER_VALUES; not whole F3 acceptance"
+      "sha256": "b21193f6f559729166005ef801aaa3073edae0941e10b7c2ab0511f8b5b89708",
+      "scope": "F3.2 Guided occurrence-preserving lookup indexes; all seven retained full-population joins match previous consumer field/order output; original source/output pins retained; no calculation/state change",
+      "evidence": "D:/freshvcf-build/evidence/prepared-portfolio-20261004-001/lookup-comparison.json",
+      "evidence_sha256": "663ba67797165e2eb31c4b1f8d4ab5e703ce59779786c8db96a18cda032200f5",
+      "acceptance": "PASS_PROJECTED_SCOPED_FILTER_VALUES; PASS_COMPLETE_RETAINED_JOIN_VALUES_ORDER; not whole F3 acceptance",
+      "previous_adaptation": {
+        "sha256": "c76a02614010b9b559c211cdf27b32d2f184b40209f2e61537948f348912ca66",
+        "evidence": "D:/freshvcf-build/evidence/f3-stage2-guided-batch-001/filtered-scoped-comparison.json",
+        "evidence_sha256": "bdbdcdc2268a1c62691a61d686bfafa5ef77a9f0d4069a4d79b247d1c4317d77",
+        "acceptance": "PASS_PROJECTED_SCOPED_FILTER_VALUES; not whole F3 acceptance"
+      }
     },
     "mta/presentation/legacy_ui.py": {
       "from_sha256": "b370aefde21fb2baf7cb004f102e38ec76c826698ae7900d7395bb80b2eddc6c",

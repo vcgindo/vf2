@@ -1,7 +1,10 @@
 """Read-only terminal history envelope and admission guards."""
+import inspect
 import json
 import os
 import unittest
+from datetime import datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -13,6 +16,25 @@ from mta.presentation.context import PublicationUnavailable
 
 
 class BprRemarkHistoryTests(unittest.TestCase):
+    def test_fixture_remarks_select_native_pair_date_order_and_scope(self):
+        from mta.presentation.views import bpr_remark_history
+        rows = [dict(SKUCode='A', WhCode='X', Remark='first', Username=None,
+                     RemarkDate=datetime(2026, 5, 4, 12, 44, 24)),
+                dict(SKUCode='A', WhCode='X', Remark='second', Username='fixture',
+                     RemarkDate=datetime(2026, 5, 7, 16, 19, 57)),
+                dict(SKUCode='B', WhCode='X', Remark='outside', Username=None, RemarkDate=None)]
+        payload = dict(skucode='a ', whcode='x')
+        with patch('mta.presentation.views.selected_run', return_value=SimpleNamespace(kind='LEGACY_UI_FIXTURE')), \
+             patch('mta.presentation.fixture.bpr_ancillary', return_value={'BPRReport_RemarkDetails': rows}), \
+             patch('mta.presentation.selective.image_rows', return_value=[]), \
+             patch('mta.presentation.views.scope', return_value=({'A'}, {'X'})) as scope:
+            response = inspect.unwrap(bpr_remark_history)(None, payload)
+            self.assertEqual(json.loads(response.content)['data'], [
+                dict(r='second', rd='2026-05-07T16:19:57', un='fixture'),
+                dict(r='first', rd='2026-05-04T12:44:24')])
+            scope.return_value = ({'B'}, {'X'})
+            self.assertEqual(json.loads(inspect.unwrap(bpr_remark_history)(None, payload).content)['data'], [])
+
     def test_empty_history_and_guards(self):
         client = Client()
         payload = dict(skucode='337', whcode='AG515802', forwardUsers=True)

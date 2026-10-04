@@ -16,10 +16,12 @@ def fulfillment_context(*, custom=False):
     importer = {name: image_rows(run, 'closing/importer/' + name) for name in (
         'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
         'SKUDescriptionTbl', 'SiteDescriptionTbl')}
-    native = dict(BPRReports=[{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}],
-        ClosingState=[dict(importer=importer,
+    native = dict(ClosingState=[dict(importer=importer)])
+    if run.kind != 'LEGACY_UI_FIXTURE':
+        native['BPRReports'] = [{'vf_RationedReqReport': image_rows(run, 'reports/bpr/vf_RationedReqReport')}]
+        native['ClosingState'][0].update(
             dbm={'SKULocStandardAttributes': image_rows(run, 'closing/dbm/SKULocStandardAttributes')},
-            orders={'SpikeOrderData': image_rows(run, 'closing/orders/SpikeOrderData')})])
+            orders={'SpikeOrderData': image_rows(run, 'closing/orders/SpikeOrderData')})
     try:
         rows = read_fulfillment(run, output=native)
     except FulfillmentProjection.DoesNotExist as exc:
