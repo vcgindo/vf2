@@ -476,7 +476,7 @@ def btr_data(request, payload, *, count=False):
     if paging is None:
         raise ValueError('invalid_pagination')
     data = read_btr(run, payload, paging=paging, count=count)
-    if horizon is not None:
+    if horizon is not None and data.get('displayPrepared') is not True:
         data = prepare_display(data, horizon)
     return envelope(data=data)
 

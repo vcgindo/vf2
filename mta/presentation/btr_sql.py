@@ -77,6 +77,11 @@ class BtrFilters(Filters):
 def read_btr(run, payload, *, paging, count=False, export=False):
     from mta.presentation import btr_reporting
     generation = btr_reporting.selected_generation(run)
+    if generation is not None and generation.version == 2:
+        from mta.presentation.btr_snapshot import read_snapshot, reference_generation
+        if not count and not export and payload.get('displayPrepared') is True:
+            return read_snapshot(run, generation, payload, paging)
+        generation = reference_generation(run, generation)
     columns = tuple(f'D{i}' for i in range(1, 91)) if export else btr.horizon_columns(run.business_date.isoformat(), payload)
     attributes = {name: image_rows(run, 'closing/btr/' + name)
                   for name in ('SkuAttributeData', 'LocationAttributeData')}

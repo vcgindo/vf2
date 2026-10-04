@@ -1,5 +1,99 @@
 # BTR reporting trial — operational handoff
 
+## Current ready-snapshot trial — 4 October 2026
+
+Open `http://localhost:3005/mta/insights-and-trends/buffer-trend-report` with the
+existing `stage2.broad@vectorflow.local` fixture account (credentials remain in
+`D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`). The normal
+`fresh.preview@vectorflow.local` actor remains denied this fixture; no grant changed.
+
+The unchanged April7 fixture/run is `stage2-vm-dataset-20261003-002` /
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`. Selected snapshot:
+`e5bdac30-bbd9-45d8-a93d-84a645fad73c` (generation version2),97299 rows per branch.
+The generation's source digest is
+`5517272bbb84f80e95b1bc3db45dac4b2f08a161edaf337467cafa2b6b037b57`;
+typed-row digest is
+`ee0bcf8aad5b98636db5051f132782667d6cab1417633f30538b66c918fec60d`.
+It was built once in1213.73 seconds. Rows/indexes add461586432 bytes (440.2MiB).
+No engine, source facts, F1/F2 state, grants, other services or new date were changed.
+
+Migrations0016/0017 add `BtrPresentationRow`, immutable-generation guards and
+covering indexes for live scope expansion. Display cells use typed number/text
+alternatives; source filter values retain SQL NULL/types separately. Stored source
+ordinals preserve occurrences; normalized SKU/location keys preserve canonical
+two-pass paging without a new business tie-break. Build time performs the retained
+joins and JS-compatible display mapping, including cumulative available/empty-day
+summaries. Default Availability is stored; ranges use two prefix differences.
+Grid requests read this table directly and the existing prepared-response frontend
+uses those values. Entitlements remain live. Counts, raw clients and exports retain
+the pinned version1 reference generation; startup verifies both generations.
+
+Repeatable preparation, in the configured existing fixture MTA environment:
+
+```text
+python manage.py migrate_btr_fixture
+python manage.py build_btr_snapshot --evidence /owned-evidence/new-build-receipt.json
+```
+
+Do not rerun preparation merely for another timing: the matching READY generation
+is reused after verification. A new build commits rows/READY atomically; interrupted
+BUILDING attempts remain attributable. Serial VACUUM of this derived table completes
+visibility for the covering indexes, within existing resources. No scheduler,
+ingestion, automatic activation or general production refresh is implemented.
+
+Evidence and exact compose overrides:
+`D:/freshvcf-build/evidence/btr-ready-snapshot-20261004-001`.
+Current backend image is
+`sha256:8b218cd3cc5adfb94b6b70772d622f0eadf0756ba5db3041916bbd8e25fe71b2`.
+The unchanged frontend is
+`sha256:f88d22416ab5b5b50a30479c1684449eb020dd29d8feb1bdd7399c2d02df0e91`.
+Admission is `5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`.
+Only the authorized MTA/frontend pair was recreated; protected containers/resources
+were unchanged (`deploy-verified.json`). The deployment wrapper initially expected
+an extra readiness field; `check-result.json` verifies the actual digest-only
+readiness contract without another restart.
+
+To restore the previous image pair and generation, from this checkout:
+
+```powershell
+D:/freshvcf-build/venv/Scripts/python.exe `
+  D:/freshvcf-build/evidence/btr-ready-snapshot-20261004-001/deploy.py rollback
+```
+
+This uses `compose.rollback.json`, backend image `a7c58a5097357be81b44a710fdc6c9588b50a810facc99029e1365887a8c91f2`
+and generation `3242710a-7478-4668-b9ed-b7af543e4f84`. It stops/starts only the same
+preview pair and verifies the prior admission. Leave additive schema/data intact;
+rollback requires no reverse migration, deletion or source reload. The snapshot can
+be selected again using `compose.snapshot.json`; keep selection explicit.
+
+Focused proof is in `proof-result.json`, with retained complete response bodies:
+both full5000 first/later pages, full5000 shorter range, scoped/empty/filter/error
+contracts, broad counts and one100-row export. Seven focused local tests passed;
+PostgreSQL migration/check/drift/guard proofs passed. Existing JS-mapper and unchanged
+frontend build/tests are reused. Gateway tests preserve restricted scope against
+forged IDs and retain the normal actor's403. The first default read exposed wide
+scope scans (67.92s);0017 corrected that access path without rebuilding the data.
+An initial parallel VACUUM exceeded existing shared memory; serial maintenance
+passed without increasing resources. These are retained failures, not green trials.
+
+The single UI observation per view used broad scope,90 days,5000 rows and1280x720.
+All three screenshots show populated grids/counts. Pipeline action-to-observed-ready
+was14.53s. Exact On-Hand/Both elapsed times are UNPROVED because browser waits failed;
+their later observations bound completion at32.47s/30.45s but are not latency results.
+Retained equivalent before screenshots have no precise baseline timings/request
+counts. Therefore no speedup or p95 acceptance is claimed. API request counts were
+4/2/1 for On-Hand/Pipeline/Both respectively (one grid request each; count on the
+first view). Grid bodies were16.65MB/16.65MB/33.31MB, with proxy temporary-file
+buffering. Remaining queries, serialization, transfer and rendering still cause
+visible delay. No compression, count consolidation, hidden-grid changes or further
+benchmark/optimization campaign was opened. Stop here for human review; status is
+owned by [MIGRATION.md](MIGRATION.md).
+
+## Retained version1 reference design and historical deployment notes
+
+The following explains the preserved predecessor. Its older deployment commands
+are historical; use the exact current/rollback overrides above for this trial.
+
 This is the bounded BTR reporting-layer experiment. Acceptance status lives only
 in [MIGRATION.md](MIGRATION.md). The trial uses existing textual product/location
 keys and source ordinals; it does not change calculations, engine state, grants,

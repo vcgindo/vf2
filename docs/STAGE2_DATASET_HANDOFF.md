@@ -4,7 +4,20 @@ Updated 4 October 2026. Operational reference; `docs/MIGRATION.md` is the sole s
 
 ## Current login/profile delivery and operation
 
-### BTR performance investigation: no successor deployed
+### Current BTR consumer selection
+
+The April7 shared dataset now has a separate typed BTR presentation snapshot,
+`e5bdac30-bbd9-45d8-a93d-84a645fad73c`, serving the existing3005 prepared-grid path.
+There are97299 rows per branch. Source fixture/run identity, engines, accepted F1/F2
+state and grants are unchanged. Use the existing fixture account for this data;
+the normal preview actor remains denied. Current images, migrations0016/0017,
+one-time preparation, evidence, observed delays and exact rollback instructions are
+in [the BTR operational handoff](BTR_REPORTING_HANDOFF.md#current-ready-snapshot-trial--4-october-2026).
+This is a ready-snapshot trial, not a daily refresh implementation or a demonstrated
+speedup. No benchmark/resource-matching window remains active. The following older
+investigation is historical and does not authorize another campaign.
+
+### Historical pre-reporting performance investigation
 
 The latest human direction stops copy/recovery/full-copy verification. The owned
 verification job was cancelled and the partial-copy PostgreSQL container stopped;

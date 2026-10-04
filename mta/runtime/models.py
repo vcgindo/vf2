@@ -80,6 +80,58 @@ class BtrJoinReference(models.Model):
                                                name='fresh_btr_reference_branch')]
 
 
+class BtrPresentationRow(models.Model):
+    """One prepared grid join occurrence; never a replacement calculation fact."""
+    generation = models.ForeignKey(BtrReportingGeneration, on_delete=models.PROTECT)
+    branch = models.CharField(max_length=4)
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    a_ordinal = models.BigIntegerField()
+    btd_ordinal = models.BigIntegerField(null=True)
+    e_ordinal = models.BigIntegerField(null=True)
+    sla_ordinal = models.BigIntegerField(null=True)
+    sa_ordinal = models.BigIntegerField(null=True)
+    la_ordinal = models.BigIntegerField(null=True)
+    b_ordinal = models.BigIntegerField(null=True)
+    parent_location_type = models.TextField(null=True)
+    availability = models.FloatField(null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['generation', 'branch', 'sku_key', 'location_key'],
+                                name='fresh_btr_presentation_keys'),
+                   models.Index(fields=['generation', 'sa_ordinal'],
+                                include=['filter_sa_skucode', 'filter_sa_sl1', 'filter_sa_sl2', 'filter_sa_sl3'],
+                                condition=models.Q(sa_ordinal__isnull=False), name='fresh_btr_snapshot_sku_scope'),
+                   models.Index(fields=['generation', 'la_ordinal'],
+                                include=['filter_la_whcode', 'filter_la_ll1', 'filter_la_ll2', 'filter_la_ll3'],
+                                condition=models.Q(la_ordinal__isnull=False), name='fresh_btr_snapshot_loc_scope')]
+        constraints = [models.CheckConstraint(condition=models.Q(branch__in=['tech', 'eco']),
+                                               name='fresh_btr_presentation_branch')]
+
+
+# Finite repeated BTR columns, registered as ordinary Django fields/migrations.
+from django.contrib.postgres.fields import ArrayField
+from mta.presentation.btr_snapshot_fields import (
+    TEXT_FIELDS as _BTR_TEXT, DISPLAY_FIELDS as _BTR_DISPLAY,
+    FILTER_FIELDS as _BTR_FILTER, display_field as _btr_display_field,
+    filter_field as _btr_filter_field,
+)
+for _field in _BTR_TEXT:
+    BtrPresentationRow.add_to_class(_btr_display_field(_field, 'text'), models.TextField())
+for _field in _BTR_DISPLAY:
+    BtrPresentationRow.add_to_class(_btr_display_field(_field, 'number'), models.FloatField(null=True))
+    BtrPresentationRow.add_to_class(_btr_display_field(_field, 'text'), models.TextField(null=True))
+for _owner, _fields in _BTR_FILTER.items():
+    for _field, _kind in _fields.items():
+        BtrPresentationRow.add_to_class(_btr_filter_field(_owner, _field),
+            models.DecimalField(max_digits=38, decimal_places=10, null=True)
+            if _kind == 'numeric' else models.TextField(null=True))
+for _field in ('available_prefix', 'empty_prefix'):
+    BtrPresentationRow.add_to_class(_field, ArrayField(models.PositiveSmallIntegerField(), size=91))
+for _field in ('nonfinite_fields', 'nonfinite_tokens'):
+    BtrPresentationRow.add_to_class(_field, ArrayField(models.TextField(), default=list))
+
+
 class Checkpoint(models.Model):
     run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT, related_name='checkpoints')
     name = models.CharField(max_length=100)

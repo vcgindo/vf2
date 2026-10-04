@@ -40,8 +40,8 @@ ORDINALS = {'A': 'a_ordinal', 'btd': 'btd_ordinal', 'E': 'e_ordinal',
 ROW_FIELDS = ('branch', 'export', 'sku_code', 'location_code', 'sku_key', 'location_key', *ORDINALS.values())
 
 
-def source_identity(run):
-    return dict(version=VERSION, run=str(run.pk), kind=run.kind, date=str(run.business_date),
+def source_identity(run, version=VERSION):
+    return dict(version=version, run=str(run.pk), kind=run.kind, date=str(run.business_date),
                 input_digest=run.input_digest, output_digest=run.output_digest,
                 production_digest=run.production_digest,
                 images={role: image_metadata(run, path) for role, path in SOURCES.items()})
@@ -55,9 +55,9 @@ def selected_generation(run):
         generation = BtrReportingGeneration.objects.get(pk=UUID(identifier), status='READY')
     except (ValueError, BtrReportingGeneration.DoesNotExist) as exc:
         raise PublicationUnavailable('btr_reporting_generation_not_ready') from exc
-    if (generation.run_id != run.pk or generation.version != VERSION or
+    if (generation.run_id != run.pk or generation.version not in (VERSION, 2) or
             generation.source_kind != run.kind or generation.business_date != run.business_date or
-            generation.source_digest != digest(source_identity(run))):
+            generation.source_digest != digest(source_identity(run, generation.version))):
         raise PublicationUnavailable('btr_reporting_generation_source_mismatch')
     return generation
 
@@ -72,6 +72,9 @@ def admission_identity(run):
 
 
 def rows_identity(generation):
+    if generation.version == 2:
+        from mta.presentation.btr_snapshot import rows_identity as snapshot_identity
+        return snapshot_identity(generation)
     checksum = hashlib.sha256()
     count = 0
     for row in BtrJoinReference.objects.filter(generation=generation).order_by('id').values_list(*ROW_FIELDS).iterator(chunk_size=2000):
@@ -83,6 +86,11 @@ def rows_identity(generation):
 def verify_generation(generation):
     if generation.status != 'READY' or rows_identity(generation) != (generation.row_count, generation.rows_digest):
         raise PublicationUnavailable('btr_reporting_rows_changed')
+    if generation.version == 2:
+        # Counts/exports still consume this immutable predecessor. Keep their
+        # full startup readback proof when the prepared grid is selected.
+        from mta.presentation.btr_snapshot import reference_generation
+        verify_generation(reference_generation(generation.run, generation))
 
 
 def _duplicates(run):
@@ -197,7 +205,7 @@ def build_selected():
 
 
 def eligible_request(generation, products, locations):
-    return generation is not None and generation.eligible and all(
+    return generation is not None and generation.version == VERSION and generation.eligible and all(
         count == 1 for codes in (products, locations) for count in codes.multiplicities.values())
 
 

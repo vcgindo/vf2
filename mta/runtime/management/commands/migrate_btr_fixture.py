@@ -15,16 +15,16 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        plan = MigrationExecutor(connection).migration_plan([('fresh_mta', '0015_btr_reporting_truncate_guard')])
+        plan = MigrationExecutor(connection).migration_plan([('fresh_mta', '0017_btr_snapshot_scope_indexes')])
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
-                '0015_btr_reporting_truncate_guard') for migration, backwards in plan):
+                '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes') for migration, backwards in plan):
             raise CommandError('Only forward additive BTR migrations are allowed')
         with transaction.atomic():
             with connection.cursor() as cursor:
                 for table in ('django_migrations', 'django_content_type'):
                     cursor.execute('ALTER TABLE mta.' + table + ' DISABLE TRIGGER stage2_immutable')
-            call_command('migrate', 'fresh_mta', '0015_btr_reporting_truncate_guard',
+            call_command('migrate', 'fresh_mta', '0017_btr_snapshot_scope_indexes',
                          interactive=False, stdout=self.stdout)
             with connection.cursor() as cursor:
                 for table in ('django_migrations', 'django_content_type'):

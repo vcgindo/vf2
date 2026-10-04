@@ -26,34 +26,80 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Latest direction: BTR ready snapshot trial — checkpoint and branch authorized
+### Latest direction: BTR ready snapshot trial — delivered for human review
 
-The user now authorizes the fresh
+The user authorized the fresh
 [BTR ready snapshot trial](BTR_READY_SNAPSHOT_TRIAL_PLAN.md). It supersedes earlier
-BTR plan/addendum execution instructions for this intervention. First preserve
-the current deployed reporting/frontend work in an explicitly staged checkpoint
-commit, reconcile its delivery status from retained evidence, then create
-`codex/btr-ready-snapshot-trial` from that checkpoint and implement on that branch.
+BTR plan/addendum execution instructions for this intervention. The prior deployed
+reporting/frontend work was preserved in a checkpoint, its status reconciled from
+retained evidence, and `codex/btr-ready-snapshot-trial` created for this implementation.
 The new plan is a scope contract, not a second status tracker.
 
-Active objective: build complete typed BTR presentation rows ONCE from the existing
-April7 heavy fixture, then connect the existing API/frontend to read them directly.
+Delivered objective: complete typed BTR presentation rows prepared ONCE from the
+existing April7 heavy fixture, connected to the existing API/frontend for direct reads.
 Live permissions, filters, paging and exact display semantics remain required.
 Full daily ingestion/calculation/scheduling/automatic activation are DEFERRED;
 the builder simulates only the retained day's presentation preparation. No engine
 replay, new facts/date, database copies, integer keys or renewed benchmark campaign.
-Unmet exit: committed checkpoint/branch, prepared snapshot, direct UI consumption,
-focused correctness and brief practical UI comparison on3005, committed/pushed
-delivery with rollback. No new implementation completion is claimed yet.
+The bounded implementation/verification/deployment exit is complete. The trial
+remains on3005 for human review; no speedup or whole-application acceptance is
+claimed. Stop here. Daily refresh and any further optimization need a new direction.
 
 Preserved reporting/frontend implementation commit: `97b9b07655ec9cba88c787a44f8beae1097485e3`.
 Plan/tracker checkpoint: `d9c600e`. Active branch: `codex/btr-ready-snapshot-trial`,
 created from that commit with a clean worktree. No prior code, dataset or evidence
-was reset/deleted. The snapshot row schema/build/direct reader are the active item;
-required proof is limited to the new plan. Prior default grid source uniqueness
-qualification and accepted invalid-filter guards will be reused, not weakened.
+was reset/deleted. This branch carries the snapshot implementation and handoff;
+proof is limited to the new plan. Prior default grid source uniqueness
+qualification and accepted invalid-filter guards were reused without weakening.
 
-Latest human override: STOP benchmark-copy/recovery/repopulation and copy-readback
+Snapshot implementation is on the trial branch: BtrPresentationRow and migration
+0016 define typed display/filter cells, source ordinals and cumulative daily
+summaries, reusing the existing generation immutability guards. The bounded builder
+and prepared reader are implemented. Seven focused display/summary tests pass.
+PostgreSQL Django check, migration drift/plan and actual migrations0016/0017 pass in
+the existing fixture database; admission and source guards are unchanged. The single
+heavy build is READY and selected: `e5bdac30-bbd9-45d8-a93d-84a645fad73c`,
+194598 rows (97299 per branch),1213.73 seconds. First/later full5000-row comparisons
+pass for both branches. The first request took67.92s: scope discovery scanned the
+wide new table. Migration0017 adds two narrow covering scope indexes; serial VACUUM
+completed after default parallel maintenance hit the existing64MiB shared-memory
+cap. EXPLAIN now shows index-only scope scans. No data rebuild or resource increase.
+Final added storage is461586432 bytes (440.2MiB). All16 focused proof observations
+pass: complete first/later5000 rows per branch, shorter range5000, restricted/empty,
+filters and retained errors, counts and100-row bounded export. Immutable-row and
+truncate guards pass. Prepared reads use only the new typed presentation relation;
+count/raw/export retain the pinned version1 path. Existing JS mapper equivalence
+and unchanged frontend build/tests were reused. Seven affected local tests pass.
+
+Current backend image: `8b218cd3cc5adfb94b6b70772d622f0eadf0756ba5db3041916bbd8e25fe71b2`.
+Frontend stays `f88d22416ab5b5b50a30479c1684449eb020dd29d8feb1bdd7399c2d02df0e91`.
+Admission: `5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`.
+Only the authorized preview pair was recreated. Protected containers/allocations,
+source/run identity, grants and F1/F2 are unchanged. Legacy3002/5153 were listening
+and needed no relaunch. Broad/restricted gateway reads pass; forged scope cannot
+expand access and the normal preview actor retains403.
+
+All three UI views visibly show5000 rows per branch,97299 counts and7-Apr-2026.
+One observation each,90-day/broad/1280x720: Pipeline14.53s to observed usable state.
+On-Hand/Both exact timings remain UNPROVED after browser-tool wait failures; later
+observations confirm completed grids without repeating the actions. Retained before
+screenshots lack precise timings/request counts, so no speedup or p95 claim is made.
+Observed API request counts were4/2/1 (one grid each), with16.65MB/16.65MB/33.31MB grid
+bodies and proxy temporary-file buffering. Visible delay remains; no further
+optimization/benchmark tranche was opened. This is dataset/presentation readiness,
+not latency acceptance or general daily orchestration.
+
+Evidence: `D:/freshvcf-build/evidence/btr-ready-snapshot-20261004-001` (`proof-result.json`,
+`deploy-verified.json`, `gateway-smoke/result.json`, `browser-observations.json`).
+[Operational handoff](BTR_REPORTING_HANDOFF.md#current-ready-snapshot-trial--4-october-2026)
+contains the repeatable builder, migrations, selected images and exact rollback.
+The source snapshot is unchanged; rollback selects the preserved prior image and
+generation without deleting data or reversing migrations. Delivery branch:
+`codex/btr-ready-snapshot-trial`; implementation and handoff form one coherent
+trial checkpoint. Remain stopped for human review.
+The goal service reported no active goal; a matching goal was created without a budget.
+
+Historical override before this snapshot trial: STOP benchmark-copy/recovery/repopulation and copy-readback
 work. Preserve partial artifacts without deletion. Advance the same BTR task using
 existing legacy SQL and existing Fresh PostgreSQL databases, with authorized
 temporary reversible resource matching on BOTH (including serving PostgreSQL),
@@ -66,7 +112,7 @@ reusing retained identities/correctness proof without full table rescanning.
 
 ### Preserved BTR reporting/frontend checkpoint — deployed trial, performance unproved
 
-LATEST HUMAN OVERRIDE (4 October): frontend implementation is the active
+HISTORICAL INSTRUCTION (superseded by the ready-snapshot trial): frontend implementation was the active
 intervention. The c4 runner stopped at completed pair22 and temporary limits were
 restored, as evidenced below. Remaining benchmark/cold/load campaigns are DEFERRED
 and no longer prerequisites. Partial performance evidence is not acceptance.
