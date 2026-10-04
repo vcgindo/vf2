@@ -42,118 +42,93 @@ The human requests BTR-specific design aligned to the existing daily refresh.
 Build validated report generations after successful daily output publication;
 preserve engine state, live permissions, exact report semantics and atomic
 generation selection. This is not active implementation authorization or a second
-queue. Existing-database resource matching and legacy availability remain
-the active item; its baseline feeds the proposed architecture decision.
+queue. The bounded existing-database benchmark has reached the consolidated
+blocker below; its baseline feeds the proposed architecture decision.
 
-### BTR query/access-path performance — BLOCKED at legacy launch; resource matching authorized
+### BTR query/access-path performance — consolidated blocker; no successor deployed
 
-Latest human instruction on4 October2026 authorizes necessary reversible resource
-changes to the existing local development SQL Server for the bounded matched BTR
-benchmark, despite other hosted databases. This supersedes earlier shared-SQL
-resource restrictions below; their presence no longer blocks the comparison.
-Capture/restore original settings, prefer online changes, preserve all database
-contents and credentials, measure competing activity, and keep serving3005 fixed.
-Use the simplest valid arrangement, retaining already-created copies/evidence;
-the BTR plan defines exact limits and recovery. Comparative parity remains an
-evidence gate, not an assumed result of this authorization.
+The bounded intervention stops at its authorized consolidated-blocker exit. No
+safe query/index improvement was established. Accepted source7b40ba6 and MTA image
+761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a remain serving.
+Performance parity and broader Stage2 acceptance are **not achieved**.
 
-4 October2026: the human in the successor control chat authorizes the next bounded
-[BTR performance intervention](BTR_READ_PERFORMANCE_PLAN.md) from accepted timeout
-checkpoint `7b40ba6`. Reduce evidenced BTR grid/count SQL work using query/index
-corrections, proving both branches, complete output contracts, normal-publication
-compatibility and comparable before/after latency. Preserve the full fixture,
-resource limits, identity isolation, F1/F2 and protected services. Deploy on3005,
-commit/push and stop with consolidated proof or an exact blocker. No storage/read-
-model redesign, unrelated report/UI work or broader Stage2–5 continuation.
-This narrowly supersedes the latency pause below; the linked contract specifies
-the acceptance boundary, not a second status queue.
-The prior bounded goal is closed; the new goal contains only this contract.
-Human clarification: the full VM dataset and equivalent canonical legacy versus
-Fresh application journeys govern BTR performance acceptance. Fresh before/after
-is diagnostic; normal F1/F2 publication checks are functional regressions only,
-not a scale benchmark or renewed engine-parity exercise. Preserve the current
-candidate and proof; apply the amended plan's matched-performance gate, or record
-the exact unavailable comparison as UNPROVED without weakening it.
-Human resource amendment on4 October2026 authorizes hardware-informed matched
-CPU/memory budgets for exclusively owned isolated benchmark processes only, as
-detailed in the BTR plan. Verify effective allocations and host headroom; alternate
-legacy/Fresh runs under comparable database/application budgets. Keep serving3005,
-shared infrastructure and protected services unchanged. Report matched-resource
-parity separately from existing fixed-limit deployment behavior. The rejected
-key-prefix candidate's correctness failures remain evidence, not a speedup claim.
-No query/index correction is accepted. The unfiltered key-prefix candidate matched
-eight complete heavy-fixture grid/count responses (broad/restricted, first/later
-pages) and104 independent normal-publication checks, with14 unchanged declared
-legacy flaws. It nevertheless failed10/30 adversarial **actual-reader** cases:
-nine normal and one fixture case changed tied row selection/values. Example:
-page1/size1 returned D90=11 before and10 after. A source-order-preserving semijoin
-variant also failed its SQL edge check. Both are rejected; source was restored to
-`7b40ba6`, and no candidate image, schema/index or data mutation was deployed.
-Narrow normalized-key materialization was slower (count approximately3.52/4.96s
-to9.48/10.17s; grid exceeded55s). A subsequent duplicate-multiplicity count
-aggregation returned the same97299 counts but regressed1.12/1.88s to3.42/3.44s.
-These are bounded diagnostics, not comparable median/p95 acceptance.
+The latest human override was followed: copy/recovery/full-copy verification was
+stopped, only the owned scan cancelled, and both owned copy containers stopped.
+Partial data and evidence remain inert; no recovery or deletion occurred. Existing
+legacy SQL and existing Fresh PostgreSQL supplied the actual comparison. Future
+replication/replacement infrastructure requires prior explicit human approval.
 
-The initial stopped-legacy finding is **resolved**: after the human started it,
-3002 and5153 returned HTTP200; the pinned canonical DLL returned both BTR counts
-97299 from the retained VM clones. Do not repeat the old availability blocker.
-The earlier shared-SQL/copy authorization blocker is superseded by the explicit
-approvals above. Use the existing Windows SQL instance and the owned PostgreSQL
-copy; do not start another SQL restore. The modern fixture is22.86GiB before
-copy/working overhead. Host32GB/16 logical CPUs and Docker15.46GiB are capacity
-observations, not evidence of comparable actual use. Matched performance remains
-**UNPROVED** until copy equivalence, effective budgets and complete measurements pass.
+The existing legacy launch issue was resolved;3002/5153 became available and both
+native APIs returned200 from the same HTTP client in the existing gateway. The
+benchmark temporarily enforced3GiB/2CPU per database and4GiB/2CPU per application.
+SQL's own resource view reported cpu_rate200 and3072MiB throughout the measured
+boundary snapshots. No active SQL request was observed at those boundaries.
+Shared host load, Windows-versus-Linux memory accounting, storage and cache
+conditions are retained qualifications; no disk cache was flushed.
 
-The copy programme is stopped by the latest human direction. Only the owned
-verification pg_dump was cancelled; its controller exited and the partial-copy
-PostgreSQL container was stopped. No recovery, further readback or cleanup is
-required or permitted. Data/evidence remain preserved under the approvedC: path.
-Existing source identities and complete API responses are reused directly.
+Five warmups followed by30 alternating measured paired grid/count journeys per
+engine completed at concurrency1, using both branches/all90days/page1/5000 and
+the same broad scope. Request timing includes full response transfer; compression
+and evidence processing occur afterward. Full responses were retained and checked.
 
-Active exit: restore existing legacy availability, then measure the accepted reader
-on existing databases with temporary3GiB/2CPU database ceilings and4GiB/2CPU
-application ceilings. Fresh MTA already has that application budget. The common
-HTTP client runs in the existing gateway container, with response processing
-outside request timing. No new service/database/port is created. PostgreSQL's
-original1GiB/1CPU limits are captured before mutation and restored by the resource
-watchdog on success, error, stop or heartbeat loss. Do not open the resource window
-until both APIs are reachable. Matched performance remains UNPROVED.
+| Existing reader | Median paired journey | p95 | Journeys/second | Errors |
+|---|---:|---:|---:|---:|
+| Canonical legacy |12.728s|19.228s|0.07072|0/30|
+| Fresh accepted reader |13.976s|22.020s|0.06788|0/30|
 
-Legacy3002/5153 and the old API PID were absent at06:02 local on4 October. The
-resource smoke check restored SQL limits after rejecting the missing API PID.
-The human explicitly approved relaunch via call_KBF0Tke70PwWSjgOue5abPUw; automatic
-approval review nevertheless rejected the unchanged launch as "blocked by policy",
-including after the latest scope correction. No rejected command started services.
-Existing Fresh native readiness is HTTP200. Legacy launch remains an external
-execution blocker; do not seek the same human permission again.
+Fresh is9.81% slower at median,14.52% slower at p95 and4.01% lower in throughput.
+This measured scope fails the no-worse performance gate. It is a baseline result,
+not a query optimization or a full API/browser performance certification.
+All120 measured responses passed their full contracts: Fresh strictly; legacy grid
+Category alias order only under the exact human-approved April7 multiset exception,
+including duplicate multiplicity. Original strings remain retained; types, other
+values and row positions are strict. Counts remain97299 in both branches.
 
-Existing-stack runner check: full grid HTTP200 in19.03s and concurrent count
-HTTP200 in8.81s, both responses strictly equal to retained accepted bodies.
-This single pair used original serving limits and is not matched performance.
-Evidence: `existing-client-check/`. PowerShell7.6.5 supports the launch arguments,
-both runtime files exist and the canonical DLL hash matches; the policy denial
-occurs before shell execution and creates no launch log. No ordinary invocation
-error has been identified. `legacy-relaunch-blocker.json` retains that distinction.
-`existing-resource-restoration.json` confirms original serving limits, cleared SQL
-job ceilings and both owned copy containers stopped. No resource window is open.
+The first concurrency4 warmup was interrupted by a resource-observer prelogin
+timeout. SQL Server logged insufficient memory in its default pool at06:51:11;
+its3GiB job ceiling was reached. Response evidence was not saved before that
+observer failure, so concurrency4 is UNPROVED. The recorder is corrected to save
+responses first; the failed attempt is not reclassified as a passing measurement.
+SQL's configured max-server-memory remained its original unrestricted setting;
+future c4 testing must account for internal buffer/non-buffer headroom within the
+same total ceiling. No speculative capacity increase or infrastructure replacement
+was performed. Application-cold/browser performance remains unproved as well.
 
-No query/index correction is accepted. The prior accepted image and bounded proofs
-remain in force, not a new performance pass. The source is restored to7b40ba6;
-14 focused BTR tests and6 scoped comparator tests pass. Evidence, rejected
-candidates and runtime checks remain in
-`D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/`.
-Operational disposition: [dataset handoff](STAGE2_DATASET_HANDOFF.md).
+Bounded query experiments remain rejected:
+- Key-prefix paging matched eight complete heavy responses and104 strict normal
+  cases (14 retained declared flaws), but changed values/tied selection in10/30
+  actual-reader adversarial cases, including D90=11 becoming10. A semijoin variant
+  also failed ordering. Neither can be deployed.
+- Normalized materialization regressed counts from approximately3.52/4.96s to
+  9.48/10.17s and timed out the grid at55s.
+- Duplicate-multiplicity count aggregation preserved97299 counts but regressed
+  approximately1.12/1.88s to3.42/3.44s.
+These diagnostics do not certify all possible query designs; they establish that
+none of the bounded candidates is a correct demonstrated improvement.
 
-The first valid full-grid canonical API comparison found a pre-existing response
-mismatch:93 Category alias-order strings per5000-row branch, with matching row
-positions and other fields. The human subsequently approved a narrow Category
-alias-multiset comparison (duplicate multiplicity preserved, original strings
-retained), solely for this April7 fixture. The full comparison passes with186
-declared ordering qualifications and zero other differences. Exact string
-equality is not claimed. Source, authority and scope are in `LEGACY_EXCEPTIONS.md`.
-Counts remain97299/97299. The malformed first probe's missing horizonFilter caused
-application status500 and was corrected in the request only. Source/serving image
-remain accepted7b40ba6. The comparison/copy work is active, not a performance pass.
+Restoration passed: exact accepted image/runtime, admission, selected catalogue,
+protected state, original PostgreSQL1GiB/1CPU (2GiB memory+swap), and grant digest
+92579e9b054da03d9e170b91ca3037d35c6d7a8ae757179a9a28a6b7658d264a.
+SQL/API temporary job limits were cleared with no restoration errors, and SQL
+requests drained. No calculation, replay, serving dataset write, grant/index/schema
+change, new image or reporting projection was deployed. Prior accepted browser,
+export/security/overlap/restart/rollback proofs remain applicable to the unchanged
+image; no new candidate acceptance is claimed. Fourteen focused restored-reader
+checks and six scoped comparator tests pass; the unrelated prior suite failures
+remain as recorded below.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/3005-btr-performance-20261004-001/matched-consolidated-result.json`.
+It binds `existing-matched-001/observations.jsonl`, `summary-c1.json`, full bodies
+and comparisons, `existing-budget-001/budget-result.json`, SQL memory evidence,
+`matched-final-runtime.json`, grants and rejected candidate receipts. Earlier
+`validation.json` is historical and its copy prerequisites are superseded.
+
+Next decision: review the prepared BTR daily reporting-layer assessment as a
+separately authorized storage/read-model intervention. Reuse existing databases,
+full response contracts, normal-publication proof and the measured baseline.
+Do not implement it, resume copy work, or open broader Stage2–5 under this exit.
+Operational details: [dataset handoff](STAGE2_DATASET_HANDOFF.md).
 
 ### Report contention correction — PASS for bounded overlap; stopped for review
 

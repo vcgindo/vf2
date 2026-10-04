@@ -128,7 +128,7 @@ def resources():
     return result
 
 
-def series(name, budget_directory, measured):
+def series(name, budget_directory, measured, concurrencies=(1,4)):
     from parity.legacy_isolation import exclusive_replay
     os.environ['VFTEST_PROFILE']='fresh'
     root=ROOT/name;root.mkdir(exist_ok=False)
@@ -153,7 +153,7 @@ def series(name, budget_directory, measured):
     records=[]
     try:
         with exclusive_replay(validate_schema=False):
-            for concurrency in (1,4):
+            for concurrency in concurrencies:
                 for number in range(5+measured):
                     # Alternate first engine to reduce monotonic host/cache bias.
                     for engine in (('legacy','fresh') if number%2==0 else ('fresh','legacy')):
@@ -166,26 +166,34 @@ def series(name, budget_directory, measured):
                         invocation='namespace={"__name__":"btr_http_client"}; exec('+repr(source)+',namespace); namespace["client"]('+repr(config)+')'
                         raw=subprocess.check_output(['docker','exec','-i',CLIENT,'python','-'],
                                                     input=invocation.encode(),timeout=210)
-                        after=resources()
-                        (root/(sample+'-resources.json')).write_text(json.dumps(dict(before=before,after=after),indent=2))
                         observations=json.loads(raw)
                         for observation in observations:
                             (root/observation['body']).write_bytes(base64.b64decode(observation.pop('compressed_body')))
+                        # Preserve every response before ancillary monitoring:
+                        # a resource-counter failure cannot erase request evidence.
+                        (root/(sample+'-requests.json')).write_text(json.dumps(observations,indent=2))
+                        try:
+                            after=resources()
+                        except Exception as exc:
+                            after=dict(error=repr(exc),at=time.time())
+                        (root/(sample+'-resources.json')).write_text(json.dumps(dict(before=before,after=after),indent=2))
                         comparisons=check_outputs(root,observations)
                         (root/(sample+'-comparison.json')).write_text(json.dumps(comparisons,indent=2))
                         record=dict(sample=sample,engine=engine,concurrency=concurrency,
                                     warmup=number<5,requests=observations,
                                     valid=all(c['status'].startswith('PASS') for c in comparisons)
-                                      and all(o['http_status']==200 and o['error'] is None for o in observations))
+                                      and all(o['http_status']==200 and o['error'] is None for o in observations),
+                                    resource_observation_valid='error' not in after)
                         records.append(record)
                         with (root/'observations.jsonl').open('a') as output:output.write(json.dumps(record)+'\n')
                         print(sample, 'valid='+str(record['valid']),
                               'max_seconds='+str(round(max(o['seconds'] for o in observations),3)),flush=True)
                         # Invalid full responses block comparability, never drop failures.
                         if not record['valid']:raise RuntimeError('Full response or request failure; retained in '+sample)
+                        if not record['resource_observation_valid']:raise RuntimeError('Resource observation failed; responses retained in '+sample)
                         assert not (budget/'budget-result.json').exists(), 'Resource window ended during sample'
         summary=[]
-        for concurrency in (1,4):
+        for concurrency in concurrencies:
             for engine in ('legacy','fresh'):
                 batches=[r for r in records if r['concurrency']==concurrency and r['engine']==engine and not r['warmup']]
                 batch_durations=[max(o['seconds'] for o in r['requests']) for r in batches]
@@ -207,7 +215,8 @@ if __name__=='__main__':
     parser.add_argument('operation',choices=('prepare','client','series'))
     parser.add_argument('--name');parser.add_argument('--budget-directory')
     parser.add_argument('--measured',type=int,default=30)
+    parser.add_argument('--concurrency',type=int,choices=(1,4),nargs='+',default=[1,4])
     args=parser.parse_args()
     if args.operation=='prepare':prepare()
     elif args.operation=='client':client(json.load(sys.stdin))
-    else:series(args.name,args.budget_directory,args.measured)
+    else:series(args.name,args.budget_directory,args.measured,args.concurrency)

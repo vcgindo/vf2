@@ -21,11 +21,27 @@ HTTP client; it creates no stack, copy, port or credential. Native API evidence 
 separate from browser/application-cold acceptance. Open the window only after both
 APIs are reachable.
 
-Legacy3002/5153 are currently stopped. The human approved their existing relaunch,
-but automatic approval review rejected it as "blocked by policy", with no further
-reason. The operator must use the existing launcher; do not ask for the same
-permission again or substitute an unavailable legacy comparison. Fresh native
-readiness returns HTTP200. `docs/MIGRATION.md` owns the current blocker/status.
+The existing-database series reached a consolidated blocker. Thirty measured
+concurrency1 pairs per engine followed five warmups: legacy median12.728s/p9519.228s,
+Fresh13.976s/22.020s, zero request failures, full contract checks passing under the
+approved Category-order qualification. Fresh is9.81% slower at median and14.52%
+slower at p95. This fails the measured performance gate; no successor is deployed.
+
+Concurrency4 remains unproved: SQL logged insufficient memory at its temporary
+3GiB ceiling and a post-request observer connection timed out. The recorder now
+saves responses before ancillary counters, but the lost batch is not a pass.
+The watchdog restored all original limits; exact serving runtime/admission/catalogue,
+protected state and grants passed final verification. No window remains open.
+SQL/API job ceilings are cleared; PostgreSQL is back to1GiB/1CPU and2GiB total
+memory+swap. Both owned copy containers remain stopped, with data preserved.
+
+`matched-consolidated-result.json` in the evidence directory is the final receipt;
+`existing-matched-001/summary-c1.json` and its full bodies/counters retain the result.
+A future approved concurrency run can select `--concurrency 4`; first ensure SQL
+buffer allocation leaves headroom inside its total limit. Do not rerun accepted
+single-journey evidence merely to replace slower samples. Browser/cold acceptance
+and a deployable optimization are still absent. The reporting-layer plan is a
+separate decision, not implementation authority.
 
 Full legacy/Fresh BTR output comparison now identifies93 Category alias-order
 differences per branch on page1/5000, with other fields/positions matching.
