@@ -228,6 +228,75 @@ publication activation and3004 cutover require their later scope.
 
 ## Source references
 
+## Portfolio serving contract (4 October 2026)
+
+This is the fixed contract denominator, not a status queue. All rows bind the
+April7 run `bfd75b4b-a9df-4a08-82d3-852e3324b623`, dataset
+`stage2-vm-dataset-20261003-002`, immutable consumer receipts and source manifest.
+Exact source field names/types are the retained receipt `fields`/`wire` rosters;
+normal publications use the same named operational images and producer-owned
+typed projections. They must not consume imported fixture results as engine facts.
+Response fields/types below bind the existing named response functions/configs,
+including their complete dynamic D1–D90 and attribute families, not a new schema.
+Missing/denied contracts remain in this denominator.
+
+Every reader retains live authenticated scope, duplicate permission memberships,
+native NULL/number/string rules and existing filter errors. Stable daily source
+rows may be reused; scopes, selected pairs/horizons, filters, aggregates and pages
+remain request dependent. DBM command overlays remain live on normal publications;
+the April fixture still denies actions. Source order/occurrences are preserved;
+no invented tie-break, empty fallback or transferred June supplement is allowed.
+
+| Endpoint(s), consumer/tab | Grain and exact existing response contract | Authoritative inputs / stable ingredients | Serving decision and request semantics |
+|---|---|---|---|
+| `GetBPRData`, `GetBPRDataCount`; BPR and Research grid | Candidate-key page followed by final join bag; `bpr_response.response_row`, existing BPR config, numeric/string/NULL fields and all SKU/loc attributes; count is separate standard/remark join grain | BPR_Table/vf_RationedReqReport97097, standards97464, importer dimensions, BufferTrendPhysicalInv97299, native remarks5, transit0 | Retain typed fixture SQL and identity frontend mapper; normal ReadModel retained. Scope/filter/count/two-pass page before packaging. No new display table. |
+| `GetAnalyticsData` (`name=BPR`); BPR colour summary | One14-field OnHand/Pipeline colour-count object, `ReadModel.analytics` | Same candidate bag, without final trend/remark multiplication | Remove only evidenced unnecessary wide preparation; live scope/filter aggregate, not grid-page counts. |
+| `GetRemarkDetails`; BPR history | Existing remark history contract; real native rows, never terminal-empty substitution | April Demo_BPR_1.BPRReport_RemarkDetails5; normal terminal supplement remains run-bound | Connect retained fixture ancillary through existing bounded adapter, preserve existing selection/order and actor scope after canonical-source check; no writes. |
+| `DBMData`, `DBMDataCount`; suggestions | Suggestion join occurrence, `dbm.dbm_rows` fields, RN and omitted NULLs; count before page | Suggestions11158, DBMMaster97097, native attributes/descriptions/reasons, NormAcceptance0 | Existing bounded pair reader and command owner; retain efficient paths, eliminate only measured repeated work. No frozen actionable snapshot. |
+| `RRRData`, `RRRDataCount`; replenishment | Canonical pick-band occurrence, `rrr_types.selected_rrr_response`; count and page preserve existing SQL order | PickBand8063, rationed report, typed attributes/standards | Retain existing selective SQL and direct frontend assignments. No duplicate projection. |
+| `GetExportDataAsync` RRR/BPR/BTR | Existing `*_export.selected_headers`/CSV wire fields; full scoped/filter-selected export grain, actor-owned layout | Same producers; BTR version1 references remain selected for export | Retain supported distinct export readers unless a changed ingredient requires proof. No new export family. |
+| `GetBTRData`, `GetBTRDataCount`; On-Hand/Pipeline/Both | Prepared TEXT/SCALAR/Dn/CDn fields, Availability and sparse nonfinite descriptors;97000+ source rows per branch, configured5000 page | Accepted snapshot `e5bdac30-bbd9-45d8-a93d-84a645fad73c`,97299/branch; version1 count/export | Reuse accepted typed reader unchanged. No rebuild or schema standardization. |
+| `GetBufferTrendGraphData`; Buffer Trends tech/eco | `history_native.graph_response`: daily absolute/percentage series, summary and avail strings; selected1–90 days | Typed BufferTrendPhysicalInv/Dispatch97299 each, dates1, BTR dimensions | Retain SQL aggregation and inherited filter/overflow behavior. Live scope/filter/horizon. |
+| `DailyDataGraph`; shared BPR/RRR/DBM/BTR pair history | `daily_history.daily_graph` series and exact number/date/null meanings | DBM pair-selected DailyConsumption31m, SuspendHistory8.48m, SuggestionsLog1.96m, current pair state/reasons | Retain bounded pair reads/cutoff and permission denial; never load whole histories. |
+| `GetResearchInsightData`; Research Self/Child/Parent tech/eco | UNION-distinct selected pair/relationship rows: Type,Pen,SKUCode,Whcode,ChildCode/ParentWhCode,Age,BRAge,D1–D90; NULL omission | BufferTrendPhysicalInv/Dispatch plus rationed parent mapping | Replace inappropriate whole publication with selected typed input relations; preserve Self/Child/Parent permission ownership and union/order contract. |
+| `GetHistroricalAvailabilityBPRData`; historical availability | One availability_01_30/31_60/61_90 numeric object, `history_native.historical_availability` | Physical colour history and BTR SKU/location attributes; deliberately no pair join | Bounded SQL aggregation, same decimal/rounding contract, live scope; do not substitute pair-specific stored values. |
+| `AvailabilityTrend`; Guided trend | Date/location-type percentage rows; integer truncation, chronological order, omitted NULL location type | BTR.BPR8483003 plus BTR dimensions | Bound source date/scope before read; use existing typed history, not new daily copies. Preserve full filter owner semantics and non-Black denominator. |
+| `AvailabilityAgeing`; Guided age trend | Date/black/red/white counts, `insights.availability_ageing` | Same history plus current BTRSnapshotForUI97299 age | Same typed history strategy; current snapshot qualifies historical rows, preserve duplicate snapshot joins and ambiguous-filter errors. |
+| `ChronicUnavailabilityLoc`, `ChronicUnavailabilitySku`; Guided charts | Location/SKU aggregate count/description/hierarchy fields, `insights.project` | ChronicUnavalabilityData3340, BTR dimensions/descriptions | Reuse native rows; indexed in-memory joins only where repeated scans are evidenced, preserving bag order/filter ownership. |
+| `ChronicUnavailabilityGridViewData`; Guided grid | `chronic_grid_payload`, existing9-column UI config/aliases | Chronic3340 and NMSAllItems97097 plus BTR dimensions | Reuse typed sources; bound/index joins. Existing grid-local filtering/pagination remains; no invented server page behavior. |
+| `DBMNormSuggestionLoc`, `DBMNormSuggestionSKUs`, `DBMNormSuggestionPie`, `DBMNormSuggestionAgeing`; Guided suggestion views | `insights.project`/`insight_payload`: location/SKU counts, suggestion count, four age bands; established numeric/string omission | Daily DBMNormSuggestionsData97097 + DBMMaster and BTR dimensions | Reuse daily rows; replace quadratic lookup scans with occurrence-preserving indexes if measured. These daily insights do not become command-overlay state. |
+| `ExcessInventorySku`, `ExcessInventoryValue`; Guided excess history | Date/location type countSku or BIGINT value, `excess_insights.project` | Existing ExcessInventoryRow921651 (retained multi-date projection), importer dimensions | Connect April history from its own receipt, not June chain supplement; date/scope-select existing typed projection. Preserve white-only SKU count and all-colour value semantics. |
+| `GetPlanningDataCount`; Planning overview | Four category objects/ten distinct string counts, `planning_overview.counts` | Existing Excess/Fulfillment/Expedite, importer dimensions/standards; GIT source and ancillary obligations | Reuse projections; exact GIT source required even if other counts are available. Missing source is an explicit dependency, not an empty count. |
+| Planning `GetPlanningDataGrid`, `GetPlanningDataGridCount`, `GetPlanningDataGraph`, `GetPlanningDataCustom`: excessInventory | Existing `excess_grid`, `excess_views.chart_response`, custom columns; normal rn vs custom RN/null distinctions | Current ReportDate slice of ExcessInventoryRow, importer attrs/desc, standards, NMS for custom | Reuse typed projection and push date selection ahead of transfer; preserve normal/custom filters, pagination, join order and graph aggregates. |
+| Same Planning endpoints: orderFulfillment | `fulfillment_grid`, charts and custom response; summary/detail grains stay distinct | FulfillmentSummary12720, Detail10256, importer dimensions/NMS | Reuse typed projections; eliminate irrelevant source reconstruction only within immutable receipt guards. Preserve pending/due detail and normal/custom rules. |
+| Same Planning endpoints: expedite parent/child/custom | Existing expedite grids/counts/charts, receiving-label exception only in its approved scope | ExpediteRow4722, PickPost8063, importer dimensions, NMS, remarks; BPRMaster required by current reader | Connect available shared ancillary; classify exact absent BPRMaster/other source before narrowing context. Do not substitute another master or activate action trials. |
+| Same Planning endpoints: git parent/child/custom | Existing zero/native-invalid query contracts in `git_read`; no newly ported logistics behavior | InTransitData0, GoodsInTransitTransporterMaster0; GoodsInTransitMaster not in retained table/receipt roster | Existing read consumers included, but zero logistics requires actual source proof. No new positive logistics workflow or fabricated empty master. |
+| Shared metadata/navigation/layout reads | Existing permissions/configuration/description/run-date/state envelopes | Admitted run, native catalogues, actor-owned saved layout | Retain existing request ownership and grants. Only redundant frontend requests may be removed; no permission expansion. |
+
+Initial exact dependencies: the sealed roster contains no
+`closing/bpr/BPRMaster` and no GoodsInTransitMaster source table. It does contain
+native April remarks, zero transit/transporter, all Guided BPR/Excess histories,
+NMS and the listed projections. Therefore whole-publication/June-supplement
+failures for Research, Guided history and native remarks are wiring problems,
+not permission to declare those data missing. Planning dependencies are assessed
+per actual field use; available categories must continue independently.
+
+No new derived table is justified at this contract boundary. First reuse typed
+rows, bound history/date selection, and eliminate proven quadratic joins. Added
+preparation cost/storage is zero unless subsequent measured evidence justifies
+one narrow preparation, recorded before implementation in MIGRATION.md.
+
+Frontend workload binding: checked-in environment sets5000 for DBM/RRR/BTR,
+Research, Guided and Planning; BPR has no page-size key and therefore defaults50
+unless the served environment supplies one. BTR horizon90, Buffer Trends30,
+Research10 and Guided9/age1 are existing defaults. UI proof records actual values.
+`DBMAnalytics`/`RRRAnalytics` are frontend service declarations without current
+modern routes; they are not silently counted as implemented APIs or new business
+ports. Shared DailyDataGraph and client XLSX exports retain their existing
+per-consumer null/default contracts. Available frontend corrections are duplicate
+Guided ownership, independent Research/Planning count-grid sequencing and duplicate
+Buffer Trends array conversion; efficient BPR/RRR/BTR paths remain unchanged.
+
 - Baseline and open obligations: [MIGRATION.md](MIGRATION.md), [BTR handoff](BTR_REPORTING_HANDOFF.md).
 - Typed BTR builder/reader: [btr_snapshot.py](../mta/presentation/btr_snapshot.py); generation selection: [btr_reporting.py](../mta/presentation/btr_reporting.py).
 - Current route dispatch and reconstruction: [views.py](../mta/presentation/views.py), [context.py](../mta/presentation/context.py), [dbm_read.py](../mta/presentation/dbm_read.py).

@@ -38,8 +38,16 @@ Included: BPR, DBM, RRR, BTR/Buffer Trends, Guided/Research and existing Plannin
 reads, related histories and supported exports. Use available retained producers;
 record exact missing inputs instead of dropping contracts or inventing data.
 
-Active phase: establish the complete contract and serving decisions once, then
-implement without stopping for renewed permission per screen. Reuse typed
+Phase1 complete: the portfolio matrix in the existing plan covers every included
+implemented endpoint/tab, field/type contract, source grain, live semantics and
+serving choice; retained receipt counts distinguish wiring defects from absent
+BPRMaster/GIT-master dependencies. Frontend request owners/workloads are mapped.
+Active phase2: freeze affected before-results, correct selective history/Research
+and ancillary wiring, and remove evidenced repeated broad scans/joins using
+existing typed inputs. No new table/preparation is currently justified. Required
+proof is complete affected output equivalence (or attributable prior unavailable
+path plus independent source-contract proof), scoped/range cases and focused tests.
+Then integrate/inspect the portfolio without renewed permission per screen. Reuse typed
 projections, prepare only repeated expensive work, retain bounded live/request
 reads and preserve commands/permissions. MIGRATION.md is the only status tracker.
 Required exit: available included paths implemented and connected on3005, complete
