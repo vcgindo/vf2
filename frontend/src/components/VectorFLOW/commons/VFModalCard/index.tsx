@@ -1,6 +1,6 @@
 import { Dialog, Transition } from "@headlessui/react";
 import "./styles.css";
-import { Fragment, ReactNode} from "react";
+import { Fragment, ReactNode, CSSProperties} from "react";
 
 import {
   SCModalContent,
@@ -25,6 +25,8 @@ interface VFModalProps {
   backgroundColor?:string;
   zoom?:string;
   absolute?: boolean;
+  panelStyle?: CSSProperties;
+  contentStyle?: CSSProperties;
 }
 
 
@@ -40,7 +42,7 @@ const VFModalCard = ({
   headerTextColor,
   backgroundColor,
   zoom = '1',
-  absolute
+  absolute, panelStyle, contentStyle
 }: VFModalProps) => {
 
 
@@ -71,7 +73,7 @@ const VFModalCard = ({
                   leaveFrom="opa translate-y-0"
                   leaveTo="opacity-0 tranlate"
                 >
-                  <Dialog.Panel className="modal-forced--block">
+                  <Dialog.Panel className="modal-forced--block" style={panelStyle}>
                     <Dialog.Title as="h3" className="modal-title-forced" style={{backgroundColor:headerBgColor, boxShadow:'0px 5px 10px 0px rgba(110, 107, 107,0.11)', position:'relative', zIndex:'10'}}>
                     <VFHeaderWrapper headerBgColor={headerBgColor} absolute={absolute}>
                       <SCHeader>
@@ -87,7 +89,7 @@ const VFModalCard = ({
                       }
                       </VFHeaderWrapper>
                     </Dialog.Title>
-                    <SCWrapperContent paddingLeftAndRight={paddingLeftAndRight} backgroundColor={backgroundColor} >
+                    <SCWrapperContent style={contentStyle} paddingLeftAndRight={paddingLeftAndRight} backgroundColor={backgroundColor} >
                        {children}
                     </SCWrapperContent>
                   </Dialog.Panel>

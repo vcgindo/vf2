@@ -27,6 +27,44 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Stopped at unmet exit: shared Daily Data Graph performance and responsive sizing
+
+The bounded [Daily Data Graph contract](DAILY_DATA_GRAPH_MODAL_PLAN.md) and
+user-authorized responsive addendum are implemented and deployed on3005.
+User amendment5October removes the early loading strip in deployed frontend003.
+Both entry points now remain closed during fetch and first appeared with the
+eight-series graph and details in the functional browser checks. They reject
+stale completions, reuse response
+RunDate, and retain chart/source semantics. Fixture history resolves validated
+metadata once per request:58 to15 SQL calls. Both selected responses and the
+restricted response remain byte-for-byte identical after deployment.
+
+Proof:21 backend tests,10 frontend tests, TypeScript and production build pass.
+Both DBM/BTR layouts pass CSS1280x720,1680x971 and1713x971; bounded body scrolling
+keeps the close button reachable. All five resource windows restored without
+errors;21 protected containers unchanged. Evidence and operational details:
+[handoff](PREPARED_PRESENTATION_HANDOFF.md),
+`D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/validation.json`.
+
+Timings below are retained from frontend002, before the user-requested removal
+of early loading. Frontend003 has no new timing acceptance claim.
+
+| Bounded observation | Modern before | Modern002 | Matched legacy | Former loading |
+|---|---:|---:|---:|---:|
+| DBM row graph |2.360s|1.227s|9.820s|0.308s|
+| BTR row graph |2.097s|3.542s|6.159s|1.152s|
+
+**Unmet exit: BTR is slower than its retained modern baseline.** Final BTR
+click-to-HTTP-completion is2.632s, followed by0.910s to usable graph. There is no
+second run-date request. The plan's single BTR repeat was already used for an
+incomplete legacy observation; its modern10.889s token-refresh result is retained
+and does not replace the earlier2.097s baseline. No further resampling or broader
+optimization is authorized by this plan. Required follow-up: separately bound
+attribution and reduction of BTR's remaining request/dispatch/render time. This
+is a deployed implementation checkpoint, **not full performance acceptance**.
+F1/F2, engines, data, permissions and completed Guided remain unchanged. The
+Guided review automation remains paused; no adjacent page work has started.
+
 ### Complete: bounded Guided Insights prepared-presentation delivery
 
 The bounded whole-page contract covers all five visible tabs and the Chronic

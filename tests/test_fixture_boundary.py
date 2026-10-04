@@ -64,6 +64,40 @@ class FixtureBoundaryTest(unittest.TestCase):
             with self.assertRaisesRegex(context.PublicationUnavailable,'image_contract_changed'):
                 fixture.image_metadata(SimpleNamespace(),path)
 
+    def test_batch_image_metadata_keeps_receipt_and_schema_validation(self):
+        path='closing/dbm/DBMMaster'
+        item=dict(image=path,table='DBM/DBMMaster',
+                  fields=[['SKUCode','SKUCode','str']],
+                  provenance={'manifest_sha256':'source'})
+        cursor=unittest.mock.MagicMock()
+        cursor.fetchall.return_value=[(path,json.dumps(item))]
+        run=SimpleNamespace(pk='fixture',kind='LEGACY_UI_FIXTURE')
+        with patch.object(fixture,'policy',return_value={'manifest_sha256':'source','run_id':'fixture'}), \
+             patch.object(fixture,'enabled',return_value=True), \
+             patch.object(fixture.connection,'cursor') as factory:
+            factory.return_value.__enter__.return_value=cursor
+            self.assertEqual(fixture.image_metadata_batch(run,[path,path]),{path:item})
+        cursor.execute.assert_called_once()
+        self.assertEqual(cursor.execute.call_args.args[1],[[path]])
+
+    def test_batch_metadata_rejects_missing_changed_or_unselected_sources(self):
+        path='closing/dbm/DBMMaster'
+        item=dict(image=path,table='DBM/DBMMaster',fields=[['SKUCode','SKUCode','str']],
+                  provenance={'manifest_sha256':'source'})
+        run=SimpleNamespace(pk='fixture',kind='LEGACY_UI_FIXTURE')
+        cases=[([],run,'binding_unavailable'),
+               ([(path,{**item,'provenance':{'manifest_sha256':'changed'}})],run,'source_manifest_changed'),
+               ([(path,{**item,'image':'wrong'})],run,'image_contract_changed'),
+               ([(path,item)],SimpleNamespace(pk='other',kind='LEGACY_UI_FIXTURE'),'not_selected')]
+        for rows,selected,error in cases:
+            with self.subTest(error=error), \
+                 patch.object(fixture,'policy',return_value={'manifest_sha256':'source','run_id':'fixture'}), \
+                 patch.object(fixture,'enabled',return_value=True), \
+                 patch.object(fixture.connection,'cursor') as factory:
+                factory.return_value.__enter__.return_value.fetchall.return_value=rows
+                with self.assertRaisesRegex(context.PublicationUnavailable,error):
+                    fixture.image_metadata_batch(selected,[path])
+
     def test_post_pick_fixture_keeps_source_columns_and_checks_identity(self):
         from mta.presentation import pick_post_storage
         names=pick_post_storage.FIELDS[:3]

@@ -17,8 +17,8 @@ def image_metadata(run, path):
     return item
 
 
-def image_rows(run, path):
-    item=image_metadata(run,path)
+def image_rows(run, path, *, metadata=None):
+    item=metadata if metadata is not None else image_metadata(run,path)
     if getattr(run,'kind',None)=='LEGACY_UI_FIXTURE' and item['count']>1000000:
         raise PublicationUnavailable('fixture_bounded_history_reader_required:'+path)
     return load_image(run,item)

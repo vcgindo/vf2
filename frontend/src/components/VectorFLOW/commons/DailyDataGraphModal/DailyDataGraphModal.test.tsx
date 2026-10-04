@@ -9,6 +9,7 @@ import {select} from 'react-select-event'
 import { Provider } from "react-redux";
 import {store} from '../../../../redux/store/store'
 
+jest.mock('../../../../hooks/useGetLastRunData', () => ({__esModule:true, default:()=>({date:'07 Apr 2026'})}));
 const queryClient = setupReactQuery();
 
 const dummyRowData = {
@@ -173,8 +174,8 @@ const dummyprops = {
     suggestionData:GetDailyDataMockResponse.data.SuggestionHistoryData,
     monitoringData:GetDailyDataMockResponse.data.MonitoringData,
     isModalOpen:true,
-    skuKey:'sc',
-    whKey:'wc'
+    skuKey:'SKUCode',
+    whKey:'WhName'
 }
 
 jest.mock("ag-charts-react", () => ({

@@ -14,7 +14,7 @@ import {
 
  import {type NormChangeHistory, DailyDataChart } from '../../../../VectorFlow/types/BPR';
 //  import {enIN} from 'date-fns/locale';
- import { useEffect, useState } from "react";
+ import { useMemo, useState } from "react";
 
 import VFRangeSlider from '../VFRangeSlider'
 import Select from 'react-select'
@@ -28,6 +28,8 @@ import { useUserData } from "../../../../context";
 import useGetLastRunData from "../../../../hooks/useGetLastRunData";
 import Tooltip from '../../../../../src/VectorFlow/Pages/MTO/Common/Tooltip';
 interface DailyDataGraphModalProps{
+  status?:'loading' | 'ready' | 'error',
+  runDate?:string,
   rowData:any,
   chartData:any[]
   normChangeData:any,
@@ -44,11 +46,11 @@ interface NormData{
   date:string
 }
 
-const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,masterData,isModalOpen,monitoringData,skuKey,whKey}:DailyDataGraphModalProps) => {
+const LoadedDailyDataGraph = ({runDate,rowData,chartData,normChangeData,suggestionData,masterData,isModalOpen,monitoringData,skuKey,whKey}:DailyDataGraphModalProps) => {
 
   const {user} = useUserData()
   const themeUi = user.user.theme_ui;
-  const {date:lastRunDate} = useGetLastRunData()
+  const {date:lastRunDate} = useGetLastRunData(runDate)
 
     const dispatch = useDispatch();
     const suspensionOptions = [
@@ -61,9 +63,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
 
     const [horizon,setHorizon] = useState<number>(14);
     const [suspensionType,setSuspensionType] = useState('')
-    const [normData,setNormData] = useState<any[]>([])
-    const [adjustedChartData,setadjustedChartData] = useState<any[]>([]);
-    const [missingData, setMissingData] = useState<any[]>([]);
+
 
 
     const fillNotAvailableDates = (data:any)=>{
@@ -171,29 +171,13 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
       };
 
       const newData = [startPoint, ...data, endPoint];
-      console.log("newData", newData);
+
       return newData;
     };
     
-    useEffect(()=>{
-      if(lastRunDate)
-        setMissingData(fillNotAvailableDates(chartData))
-    }, [lastRunDate, chartData])
-
-    const generateChartOptions = () => {
-        useEffect(()=>{
-         {
-            const lastIndex = missingData.length - 1;
-            // Calculate the start index based on the horizon
-            const startIndex = Math.max(0, lastIndex - horizon + 1);  
-
-            const newadjustedChartData = missingData.slice(startIndex, lastIndex + 1)
-
-            // if(newadjustedChartData.length){
-            //   newadjustedChartData = addBoundaryDataPoints(newadjustedChartData);
-            // }
-            
-            setadjustedChartData(newadjustedChartData)
+    const missingData = useMemo<any[]>(() => Number.isNaN(new Date(lastRunDate).getTime()) ? [] : fillNotAvailableDates(chartData), [lastRunDate, chartData]);
+    const fullNormData = useMemo(() => {
+            const newadjustedChartData = missingData;
             const sortedNormChangeData = normChangeData
               ? [...normChangeData].sort(
                   (a: NormChangeHistory, b: NormChangeHistory) => 
@@ -224,7 +208,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                 }
                   
                 return {date:dailyData.dt,norm:tempNorm};
-            }).slice(startIndex, lastIndex + 1);
+            });
     
           
             // let prevValueNormValue = parseInt(chartData?.[0]?.['bz'], 10) || 0
@@ -249,11 +233,14 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
               // prevValueNormValue = parseInt(newadjustedChartData[index]['bz'],10)
               return normObj
             })
-            setNormData(updateNormData)
-          }
-        },[horizon, missingData])
+            return updateNormData;
+    }, [missingData, normChangeData, masterData]);
+    const adjustedChartData = useMemo(() => missingData.slice(Math.max(0, missingData.length - horizon)), [missingData, horizon]);
+    const normData = useMemo(() => fullNormData.slice(Math.max(0, fullNormData.length - horizon)), [fullNormData, horizon]);
+    const boundedNormData = useMemo(() => addBoundaryDataPoints(normData), [normData]);
+    const boundedChartData = useMemo(() => addBoundaryDataPointsADJ(adjustedChartData), [adjustedChartData]);
 
-
+    const chartOptions = useMemo(() => {
         function generateSuspensionReasons(rrs:number,grs:number,rrc:number,grc:number){
           const suspensionReasons:Array<string> = [];
           suspensionMessages.forEach((obj:{Key:number,Value:string})=>{
@@ -366,7 +353,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
           //   return ""
           // }      
 
-          const allDates = addBoundaryDataPoints(normData).map((data: any) => new Date(data['date']).getTime());
+          const allDates = boundedNormData.map((data: any) => new Date(data['date']).getTime());
           
           
           const firstDate = allDates[0];
@@ -425,7 +412,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'normRed',
                   yName: '',
-                  data: addBoundaryDataPoints(normData),
+                  data: boundedNormData,
                   type: 'area',
                   // strokeWidth: 3,
                   fill: '#ED4A4A',
@@ -443,7 +430,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'normYellow',
                   yName: '',
-                  data: addBoundaryDataPoints(normData),
+                  data: boundedNormData,
                   type: 'area',
                   // strokeWidth: 3,
                   stacked: true,
@@ -461,7 +448,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'normGreen',
                   yName: '',
-                  data: addBoundaryDataPoints(normData),
+                  data: boundedNormData,
                   type: 'area',
                   // strokeWidth: 3,
                   stacked: true,
@@ -479,7 +466,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'normBlue',
                   yName: '',
-                  data: addBoundaryDataPoints(normData),
+                  data: boundedNormData,
                   type: 'area',
                   // strokeWidth: 3,
                   fill: '#355FD3',
@@ -497,7 +484,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'git',
                   yName: 'GIT',
-                  data: addBoundaryDataPointsADJ(adjustedChartData),
+                  data: boundedChartData,
                   type: 'bar',
                   fill: '#8137BC',
                   tooltip: {
@@ -509,7 +496,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'rp',
                   yName: 'Receipts',
-                  data: addBoundaryDataPointsADJ(adjustedChartData),
+                  data: boundedChartData,
                   type: 'bar',
                   fill: '#67B6E8',
                   tooltip: {
@@ -521,7 +508,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'cs',
                   yName: 'Consumption',
-                  data: addBoundaryDataPointsADJ(adjustedChartData),
+                  data: boundedChartData,
                   type: 'bar',
                   fill: '#EDB04D',
                   tooltip: {
@@ -533,7 +520,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   xName: 'Date',
                   yKey: 'stk',
                   yName: 'Stock',
-                  data: addBoundaryDataPointsADJ(adjustedChartData),
+                  data: boundedChartData,
                   type: 'line',
                   stroke: '#5D148B',
                   tooltip: {
@@ -553,7 +540,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   avoidCollisions: true,
                   formatter: (params: any) => {
                       const date = new Date(params.value);
-                      const allDates = addBoundaryDataPoints(normData).map((data: any) => new Date(data['date']).getTime());
+                      const allDates = boundedNormData.map((data: any) => new Date(data['date']).getTime());
                       
                       const firstDate = allDates[0];
                       const lastDate = allDates[allDates.length - 1];
@@ -584,7 +571,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
           xName:'Date',
           yKey: 'upwardStockBasedNorm',
           yName:'',
-          data: addBoundaryDataPoints(normData),
+          data: boundedNormData,
           type:'area',
           // strokeWidth: 3,
           fill:'#808080',
@@ -600,7 +587,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
           xName:'Date',
           yKey: 'downwardStockBasedNorm',
           yName:'',
-          data:addBoundaryDataPoints(normData),
+          data:boundedNormData,
           type:'area',
           // strokeWidth: 3,
           fill:'#808080',
@@ -617,7 +604,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
           xName:'Date',
           yKey: 'upwardConsumptionBasedNorm',
           yName:'',
-          data:addBoundaryDataPoints(normData),
+          data:boundedNormData,
           type:'area',
           // strokeWidth: 3,
           fill:'#808080',
@@ -634,7 +621,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
           xName:'Date',
           yKey: 'downwardConsumptionBasedNorm',
           yName:'',
-          data:addBoundaryDataPoints(normData),
+          data:boundedNormData,
           type:'area',
           // strokeWidth: 3,
           fill:'#808080',
@@ -651,9 +638,9 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
         if(suspensionType === 'downwardConsumptionBased') options['series'].push(downwardConsumptionBasedOptions);
 
 
-        return options;
+        return {...options, padding: {right: 30}};
 
-    }
+    }, [boundedNormData, boundedChartData, missingData, suggestionData, suspensionType]);
 
     const getMonitoringDate = () => {
         if(monitoringData?.length == 0){
@@ -674,13 +661,10 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
     
    
     return(
-        <VFModalCard openModal={isModalOpen} closeModal={()=>dispatch(TOGGLE_GRAPH_MODAL(false))} headerIcon='' headerText="Daily Data Graph" headerBgColor="white" headerTextColor="black" paddingLeftAndRight={27} closeIcon={"/assets/img/VectorFLOW/NMS/close-dark.svg"}>
+        <VFModalCard panelStyle={{width:"min(1400px, calc(100vw - 48px))", maxWidth:"calc(100vw - 48px)", minWidth:0, maxHeight:"calc(100vh - 48px)", overflow:"hidden"}} contentStyle={{overflowY:"auto", maxHeight:"calc(100vh - 112px)", minHeight:0}} openModal={isModalOpen} closeModal={()=>dispatch(TOGGLE_GRAPH_MODAL(false))} headerIcon='' headerText="Daily Data Graph" headerBgColor="white" headerTextColor="black" paddingLeftAndRight={27} closeIcon={"/assets/img/VectorFLOW/NMS/close-dark.svg"}>
             <SCSeasonalityContainer>
             <SCChartContainer>
-              <AgCharts options={{
-                ...generateChartOptions(),
-                padding: { right: 30}
-              }} />
+              <AgCharts options={chartOptions} />
             </SCChartContainer>
                 <SCSeasonalityStatusDetails>
                   <SCSeasonalityDetailsTitle themeUi={themeUi}>
@@ -688,7 +672,7 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
                   </SCSeasonalityDetailsTitle>
                   <SCSeasonalityDetailsBody>
                     <SCText fontSize={14} fontWeight={400} style={{textAlign:'center'}}>Select Horizon</SCText>
-                    <div style={{marginTop:'0px'}}><VFRangeSlider min={0} max={90} milestones={[-1,0,90]} strictMode={false} width={324} defaultValue={horizon} handleChange={onChangeHorizon} showTriangle={false} /></div>
+                    <div style={{marginTop:'0px'}}><VFRangeSlider min={0} max={90} milestones={[-1,0,90]} strictMode={false} width={324} fluid defaultValue={horizon} handleChange={onChangeHorizon} showTriangle={false} /></div>
                     <SCHorizontalDivider/>
                     <SCDataRow>
                         <SCText fontSize={16} fontWeight={300}>Norm Change History :</SCText>
@@ -796,4 +780,16 @@ const DailyDataGraphModal = ({rowData,chartData,normChangeData,suggestionData,ma
 
 }
 
+const DailyDataGraphModal = (props: DailyDataGraphModalProps) => {
+  const dispatch = useDispatch();
+  if (props.status === 'loading') return null;
+  if (props.status === 'error') {
+    return <VFModalCard panelStyle={{width:"min(1400px, calc(100vw - 48px))", maxWidth:"calc(100vw - 48px)", minWidth:0, maxHeight:"calc(100vh - 48px)", overflow:"hidden"}} contentStyle={{overflowY:"auto", maxHeight:"calc(100vh - 112px)", minHeight:0}} openModal={props.isModalOpen} closeModal={() => dispatch(TOGGLE_GRAPH_MODAL(false))} headerIcon="" headerText="Daily Data Graph" closeIcon="/assets/img/VectorFLOW/NMS/close-dark.svg">
+      <div style={{padding: 32}} role="alert">
+        Unable to load this graph. Close and try again.
+      </div>
+    </VFModalCard>;
+  }
+  return <LoadedDailyDataGraph {...props} />;
+};
 export default DailyDataGraphModal;

@@ -5,13 +5,14 @@ import { UPDATE_LAST_RUN_DATE } from '../redux/actions/MTA'
 import { useDispatch } from 'react-redux'
 
 
-const useGetlastRunData = ()=>{
+const useGetlastRunData = (providedDate?:string)=>{
    const dispatch = useDispatch();
     const {mutateAsync:getLastRunDate} = useGetLastRunDate()
 
     const [lastRunDate,setLastRunDate] = useState<string >("Loading")
 
    useEffect(()=>{
+        if (providedDate !== undefined) return;
         (async()=>{
             try{
                 const {data} = await getLastRunDate()
@@ -22,11 +23,11 @@ const useGetlastRunData = ()=>{
                 setLastRunDate('Date Unavailable')
             }
         })()
-   },[])
+   },[providedDate])
 
 
     return {
-        date:lastRunDate
+        date:providedDate ?? lastRunDate
     }
         
 }

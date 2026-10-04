@@ -105,3 +105,22 @@ integer keys, chart/grid replacement, ingestion/schedulers, automatic activation
 database copies/reset/repopulation, new facts/date or engine rules, resource
 increases, DBM Apply/Sleep changes, other report optimization or3004 cutover.
 The completed Guided review stays paused; this plan does not activate a job.
+
+## Authorized responsive addendum (5 October 2026)
+
+The user also requests correction of the same modal's cramped desktop layout.
+Bound the dialog to the viewport, keep a flexible chart and a sufficient details
+column, and size the slider to its containing panel without breakpoint zoom.
+Small optional shared-component props must preserve other callers. Keep values,
+chart semantics and the existing layout/content; no redesign or device matrix.
+Verify both DBM and BTR at CSS1280x720 and desktop widths on either side of1688,
+including1713, with reachable controls and no horizontal overflow or overlapping
+fields. These layout checks do not add performance trials.
+
+## User amendment: open the completed modal (5 October 2026)
+
+The user rejects the thin early-loading strip and requests the full modal once
+usable. This supersedes the immediate-loading-shell requirement: keep the dialog
+closed while fetching and open it with the prepared response/date. Retain request
+identity, close/new-selection protection, errors, exact values and the responsive
+correction. This amendment does not authorize further performance resampling.

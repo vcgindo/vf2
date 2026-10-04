@@ -2,6 +2,7 @@
 
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createReducer } from '@reduxjs/toolkit';
+import { RESOLVE_DAILY_DATA } from '../../actions/MTA';
 import { BPRFilterState } from '../../../VectorFlow/types/BPR';
 import { DailyDataGraph, MTAStore } from '../../../VectorFlow/types/MTA';
 import {TOGGLE_GRAPH_MODAL,TOGGLE_NORM_CHANGE_HISTORY_TABLE,UPDATE_PLANNING_DATA,UPDATE_DAILY_DATA, UPDATE_GRID_STATE,UPDATE_LAST_RUN_DATE , UPDATE_ENV_CONFIG , UPDATE_MTA_VF_MULTI_FILTER} from '../../actions/MTA';
@@ -9,6 +10,7 @@ import {TOGGLE_GRAPH_MODAL,TOGGLE_NORM_CHANGE_HISTORY_TABLE,UPDATE_PLANNING_DATA
 
 const toggleDailyDataGraphModal=(state:any,action:PayloadAction<boolean>)=>{
     state.showDailyDataGraphModal = action.payload
+    if (!action.payload) state.dailyData.requestId = undefined;
 }
 
 const toggleNormChangeHistoryTable = (state:any,action:PayloadAction<boolean>)=>{
@@ -59,6 +61,12 @@ const mtaReducer = (initialState:MTAStore) => createReducer(initialState, (build
       .addCase(TOGGLE_GRAPH_MODAL,toggleDailyDataGraphModal)
       .addCase(TOGGLE_NORM_CHANGE_HISTORY_TABLE,toggleNormChangeHistoryTable)
       .addCase(UPDATE_DAILY_DATA,setDailyData)
+      .addCase(RESOLVE_DAILY_DATA, (state, action) => {
+        if (action.payload.requestId && action.payload.requestId === state.dailyData.requestId) {
+          state.dailyData = action.payload;
+          state.showDailyDataGraphModal = true;
+        }
+      })
       .addCase(UPDATE_GRID_STATE,updateGridState)
       .addCase(UPDATE_PLANNING_DATA,updatePlanningdata)
       .addCase(UPDATE_LAST_RUN_DATE,updateLastRunDate)

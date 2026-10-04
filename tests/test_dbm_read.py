@@ -48,6 +48,25 @@ class DBMReadTest(unittest.TestCase):
         self.assertEqual(context.output['ClosingState'][0]['importer']['SkuAttributeData'],
                          ['closing/importer/SkuAttributeData'])
 
+    def test_fixture_history_resolves_each_source_metadata_once_per_request(self):
+        run = self.run_value()
+        run.kind = 'LEGACY_UI_FIXTURE'
+        paths = {'closing/dbm/' + name for name in HISTORY_TABLES} | {
+            'closing/importer/' + name for name in SCOPE_TABLES}
+        metadata = {path: {'image': path} for path in paths}
+        with patch('mta.presentation.dbm_read.selected_run', return_value=run), \
+             patch('mta.presentation.fixture.image_metadata_batch', return_value=metadata) as resolve, \
+             patch('mta.presentation.dbm_read.image_rows', side_effect=lambda r,p,metadata=None: [metadata]) as read, \
+             patch('mta.presentation.fixture.pair_rows', side_effect=lambda r,p,*pair,**kw: [kw['metadata']]) as pair_read:
+            context = dbm_context(history=True, pair=('sku','location'))
+        resolve.assert_called_once()
+        self.assertEqual(set(resolve.call_args.args[1]), paths)
+        self.assertEqual(len(read.call_args_list), 4)
+        self.assertEqual(len(pair_read.call_args_list), 7)
+        self.assertTrue(all(call.kwargs['metadata'] is metadata[call.args[1]]
+                            for call in [*read.call_args_list,*pair_read.call_args_list]))
+        self.assertEqual(set(context.dbm), set(HISTORY_TABLES))
+
     def test_committed_actions_keep_full_dbm_digest_validation(self):
         opening = {n: [] for n in GRID_TABLES}
         opening['UnrelatedState'] = [{'value': 'must participate in action digest'}]

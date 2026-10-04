@@ -3,35 +3,27 @@ import styled from "styled-components";
 import * as globalStyles from '../../../../styles/global'
 
 export const SCSeasonalityContainer = styled.div`
-    padding-top:20px;
-    padding-bottom:20px;
+    padding:20px 0;
     display:flex;
+    gap:24px;
     width:100%;
-    height:100%;
-
-    @media (min-width:1024px) and (max-width:1688px){
-        width:1000px;
-        height:100%;
-    } 
-    
-`
-
+    min-width:0;
+    align-items:flex-start;
+    @media (max-width:800px) { flex-direction:column; }
+`;
 export const SCChartContainer = styled.div`
-    margin-right:33px;
-    //width:81%;
-    width:90%;
-    height:90%;
-`
-
+    flex:1 1 0;
+    min-width:0;
+    width:100%;
+    height:400px;
+`;
 export const SCSeasonalityStatusDetails = styled.div`
-    width:20%;
-    height:100%;
+    flex:0 0 340px;
+    min-width:0;
+    width:340px;
+    max-width:100%;
     box-shadow: -6px 6px 16px #0000000F;
-    @media (min-width:1024px) and (max-width:1688px){
-        zoom:0.7;
-    }
-    
-`
+`;
 export const SCSeasonalityDetailsTitle = styled.div<{themeUi:string}>`
     background-color:${(props)=>props.themeUi==="PUREELEGANCE"?'black':globalStyles.chooseThemeColor[props.themeUi].color1};
     // background-color:#292C2E;
@@ -55,6 +47,8 @@ export const SCText = styled.p<{fontWeight:number,fontSize:number,hideDefaultMar
     font-size:${props => props.fontSize}px;
     margin:${props => props.hideDefaultMargin ? 0 : 12}px 0px;
     white-space: nowrap;
+    text-overflow:ellipsis;
+    min-width:0;
     overflow:hidden;
 `
 
@@ -63,9 +57,7 @@ export const SCSeasonalityDetailsBody = styled.div`
     flex-direction:column;
     // height:77%;
     padding:8px;
-    @media (min-width:1024px) and (max-width:1688px){
-        zoom:0.8;
-    } 
+
 `
 
 export const SCCheckBoxRow = styled.div`
@@ -76,7 +68,7 @@ export const SCCheckBoxContainer = styled.div`
     display:inherit;
     align-items:center;
     margin-right:20px;
-    
+
 `
 
 export const SCHorizontalDivider = styled.hr`
@@ -89,11 +81,12 @@ export const SCDataRow = styled.div`
     display:flex;
     justify-content:space-evenly;
     align-items:center;
-    
+
 `
 
 export const SCDataNode = styled.div`
-    width:151px;
+    flex:1 1 0;
+    min-width:0;
 
 `
 export const SCVerticalDivider = styled.div`

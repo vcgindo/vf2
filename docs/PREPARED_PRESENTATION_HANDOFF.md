@@ -5,6 +5,93 @@ The scope is the read-only reporting batch in
 [MIGRATION.md](MIGRATION.md) is the sole status tracker. This document records
 implementation and operational evidence, not acceptance of all F3 workflows.
 
+## Daily Data Graph checkpoint — 5 October 2026
+
+Scope: DBM Norm Suggestions and BTR row icons only, under
+[DAILY_DATA_GRAPH_MODAL_PLAN.md](DAILY_DATA_GRAPH_MODAL_PLAN.md). The implementation
+is deployed; **BTR performance acceptance remains open**. MIGRATION.md owns status.
+
+Following the user amendment5October, the handlers clear the prior graph and
+keep the dialog closed during the fetch. The full modal opens with response data
+and RunDate available; the early loading strip is removed. Existing Redux
+modal state carries a request identity; close invalidates it and a newer selection
+supersedes it. Completion never reopens a closed modal. Errors remain explicit.
+RunDate is formatted from the response's local calendar date; these two flows no
+longer request GetLastRunDate on modal mount. Other callers retain that fallback.
+The90-day chart inputs are derived once and horizon changes slice the retained
+values. First-match duplicates, the inherited year predicate, norm ties, rounding,
+suspension bits, tooltips and boundary points remain unchanged.
+
+The fixture-only history reader batches validated receipts within one request,
+preserving source/policy checks and ordinary/command-bearing readers. No cache,
+index, schema, prepared table, source reload or calculation change was introduced.
+The shared modal now has a viewport-bounded panel, a flexible chart and340px
+details column, a panel-sized slider, and a bounded scrolling body. Its local
+breakpoint zoom is removed. Optional modal/slider props leave other callers' sizing
+unchanged. At1280x720 the content scrolls vertically; close remains visible. At
+1680x971 and1713x971 all details fit. The original desktop overflow was reproduced
+at CSS1713/visual scale1: slider right1395.56 vs panel right1225.25. Screenshot
+pixels alone did not establish the user's browser zoom.
+
+Evidence root: `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001`.
+`validation.json` consolidates exact comparisons, timings, six layout checks and
+five restored resource windows. `backend/native-postdeploy.json.gz` retains full
+responses for both selected pairs and restricted scope:58→15 SQL calls and the
+same hashes/bytes. Backend21 tests, frontend10 tests and TypeScript pass. Production
+build passes with retained lint/Browserslist warnings; the layout detector's ten
+Roboto warnings were retained under the unchanged visual-contract requirement.
+The old modal tests needed their fixture's actual SKU/location keys and a stable
+mock date; earlier failed build/test/observer outputs remain in evidence.
+
+The following timed observations belong to frontend002, before the user
+removed early loading. Frontend003 is functionally checked without further
+performance resampling; both first-visible modal observations had the eight-series
+graph and details, with no loading strip. `ready-opening-functional.jsonl` and
+`ready-opening-*.png` retain that proof. These earlier timings remain evidence,
+not a new timing claim for003.
+
+| Entry and pair | Before modern | Modern002 | Matched legacy | Former loading |
+|---|---:|---:|---:|---:|
+| DBM21101138001000/P016_1001 |2.360s|1.227s|9.820s|0.308s|
+| BTR21101153051000/P015_1004 |2.097s|3.542s|6.159s|1.152s|
+
+These are individual bounded browser observations at the same14-day horizon,
+retained April7 data, broad scopes and matched SQL/PG3GiB/2CPU and API4GiB/2CPU
+limits. They are not distributions, cold-start or load acceptance. The first DBM
+after observation was1.289s vs legacy5.307s; the permitted DBM repeat verified the
+final body-height correction. The first legacy BTR observation ended prematurely
+at the observer's iteration cap; its one permitted repeat completed10.177s legacy
+and10.889s modern, including an observed401/token refresh on modern. That slow
+repeat does not erase the complete2.097s original modern baseline. The initial
+DBM shell metric was unavailable because its dialog root had zero height. Initial
+layout records selected a hidden chart slider; corrected records explicitly use
+the visible modal slider. All raw observations are retained.
+
+**Precise remaining gate:** BTR final click→HTTP completion2.631762s, followed by
+HTTP completion→usable graph0.910238s, totals3.542s. Both exceed the corresponding
+original stages (1.455550s to graph response, then0.641450s including the former
+date request). Gateway logs show only one successful graph request in the final
+window, with no run-date request or token refresh. They do not distinguish API
+service time from client dispatch/transport. A separately bounded follow-up must
+attribute and reduce these remaining stages; no root cause or speedup is claimed
+from SQL-count reduction alone. This plan stops here without further sampling.
+
+Deployment uses `compose.daily-graph.json` after the existing fixture, portfolio,
+BPR, Guided, Guided-export and Guided-corrected overlays. Current tags:
+`freshvcf-preview-mta:daily-graph-20261005-001` and
+`freshvcf-preview-frontend:daily-graph-20261005-003`. The height correction and subsequent user-requested ready-only opening
+deployments recreated frontend only. Rollback tags remain
+`freshvcf-preview-mta:guided-corrected-20261004-002` and
+`freshvcf-preview-frontend:guided-export-20261004-001`; use the same overlay chain
+and `up -d --no-deps --no-build` only for the intended service(s). Backend startup
+must finish publication admission before browser checks. No reload/replay is needed.
+Selected fixture remains`bfd75b4b-a9df-4a08-82d3-852e3324b623`, date2026-04-07,
+BTR generation`e5bdac30-bbd9-45d8-a93d-84a645fad73c`, admission digest
+`5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`.
+Users should refresh3005 to load the new bundle; no browser zoom change is needed.
+All resource windows report RESTORED/errors[];21 protected containers and F1/F2,
+permissions, source rows, engines and other serving ports remain unchanged.
+
 ## Guided Insights fixture preparation and serving
 
 The subsequent whole-page Guided contract is

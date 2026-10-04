@@ -21,6 +21,9 @@ export interface PlanningCategory {
 }
 
 export interface DailyDataGraph {
+    requestId?:string,
+    status?:'loading' | 'ready' | 'error',
+    runDate?:string,
     normChangeData:any,
     chartData:any,
     masterData:any,

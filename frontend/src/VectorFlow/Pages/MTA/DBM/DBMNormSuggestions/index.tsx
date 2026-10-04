@@ -99,7 +99,7 @@ const [isDisabled, setIsDisabled]= useState<boolean>(true)
         <DBMLayout>
           <div style={{ height: "70vh" }}>
             {showDailyDataGraphModal && (
-              <DailyDataGraphModal
+              <DailyDataGraphModal key={dailyData.requestId} status={dailyData.status} runDate={dailyData.runDate}
                 rowData={dailyData.rowData}
                 chartData={dailyData.chartData}
                 normChangeData={dailyData.normChangeData}

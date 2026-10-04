@@ -85,10 +85,10 @@ def freeze_state():
     return dict(triggers=triggers,function=function)
 
 
-def pair_rows(run,path,sku,location,cutoff=None):
+def pair_rows(run,path,sku,location,cutoff=None,*,metadata=None):
     """Read only a named pair from frozen relational history, retaining bags."""
     from mta.runtime.relational_state import table_sql,quote
-    item=image_metadata(run,path)
+    item=metadata if metadata is not None else image_metadata(run,path)
     fields=item['fields'];columns={name.casefold():column for name,column,kind in fields}
     sku_column=columns['skucode']
     location_column=next(columns[k] for k in ('whcode','loccode') if k in columns)
@@ -237,13 +237,37 @@ def receipt(run,binding):
     return item
 
 
-def image_metadata(run,path):
-    item=receipt(run,path)
+def _validate_image_metadata(path,item):
     expected='/'.join(CATALOG['bindings'].get(path,[]))
     if item.get('image')!=path or item.get('table')!=expected or expected not in CATALOG['tables']:unavailable('image_contract_changed')
     allowed={name for name,kind in CATALOG['tables'][item['table']]}
     if any(source!=target or target not in allowed for source,target,kind in item['fields']):unavailable('image_columns_changed')
     return item
+
+
+def image_metadata(run,path):
+    return _validate_image_metadata(path,receipt(run,path))
+
+
+def image_metadata_batch(run,paths):
+    """Resolve named receipts for the request's already admitted fixture run."""
+    paths=tuple(dict.fromkeys(paths))
+    value=policy()
+    if (not enabled() or getattr(run,'kind',None)!='LEGACY_UI_FIXTURE' or
+            str(run.pk)!=str(value['run_id'])):unavailable('not_selected')
+    with connection.cursor() as cur:
+        cur.execute('SELECT binding,metadata FROM stage2_owner.consumer_receipts WHERE binding = ANY(%s)',[list(paths)])
+        rows=cur.fetchall()
+    items={binding:json.loads(raw) if isinstance(raw,str) else raw for binding,raw in rows}
+    if set(items)!=set(paths):
+        missing=next(path for path in paths if path not in items)
+        unavailable('binding_unavailable:'+missing)
+    result={}
+    for path in paths:
+        item=items[path]
+        if item['provenance']['manifest_sha256']!=value['manifest_sha256']:unavailable('source_manifest_changed')
+        result[path]=_validate_image_metadata(path,item)
+    return result
 
 
 def projection_rows(run,model,*,report_date=None):

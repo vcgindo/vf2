@@ -1,3 +1,4 @@
+import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { type DailyDataGraph } from "../../../../types/MTA";
 
@@ -495,29 +496,8 @@ const useBTR = () => {
         }
     };
 
-    const onOpenDailyDataGraph = useCallback(async (params:any) => {
-            const payload:any = {
-                SKUCode:params.data['SKUCode'],
-                WHCode:params.data['WhCode']
-            }
-            const result = await getDailyData(payload)
-            const data = result.data.data[0];
-            const dailyData:DailyDataGraph = {
-                rowData:params.data,
-                chartData:data['StockData'],
-                normChangeData:data['NormChangeHistoryData'],
-                masterData:data['MasterData']?.[0],
-                suggestionData:data['SuggestionHistoryData'] ? data['SuggestionHistoryData'] : [],
-                monitoringData:data['MonitoringData']
-            }
+    const onOpenDailyDataGraph = useCallback((params:any) => loadDailyData(dispatch, getDailyData, params.data, 'WhCode'), [dispatch, getDailyData]);
 
-
-
-            dispatch(UPDATE_DAILY_DATA(dailyData));
-            dispatch(TOGGLE_GRAPH_MODAL(true));
-        }, [getDailyData, dispatch]);
-
-    
     const CustomHeader = useMemo(() => ({
         dailydatagraph: {
             width: 45,

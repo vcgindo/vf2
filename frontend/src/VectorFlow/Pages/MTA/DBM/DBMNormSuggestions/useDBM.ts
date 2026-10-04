@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { useState,useMemo,useEffect,useRef } from "react"
 import { AgGridReactProps } from "ag-grid-react"
 import { useGetDBMData,useGetDBMDataCount,useGetDBMApplySelectedNorm, useGetDBMUpdateSleepTbl} from "../../../../Services/MTA/DBM"
@@ -147,26 +149,7 @@ const useDBM =()=>{
         }
     }, [internalRef, gridState]);
 
-    const onOpenDailyDataGraph = async (params:any) => {
-        const payload:any = {
-            SKUCode:params.data['SKUCode'],
-            WHCode:params.data['LocCode']
-        }
-        const result = await getDailyData(payload)
-        const data = result.data.data[0];
-        const dailyData:DailyDataGraph = {
-            rowData:params.data,
-            chartData:data['StockData'] ? data['StockData'] : [],
-            normChangeData:data['NormChangeHistoryData'] ? data['NormChangeHistoryData'] : [],
-            masterData:data['MasterData'][0],
-            suggestionData:data['SuggestionHistoryData'] ? data['SuggestionHistoryData'] : [],
-            monitoringData:data['MonitoringData']
-        }
-    
-        dispatch(UPDATE_DAILY_DATA(dailyData));
-        dispatch(TOGGLE_GRAPH_MODAL(true));
-
-    }
+    const onOpenDailyDataGraph = useCallback((params:any) => loadDailyData(dispatch, getDailyData, params.data, 'LocCode'), [dispatch, getDailyData]);
 
     const refetchAfter = ()=>{
         getDataCount(currentFilter);

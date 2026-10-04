@@ -9,6 +9,7 @@ interface VFRangeSliderProps {
   max:number
   strictMode:boolean
   width:number
+  fluid?:boolean
   defaultValue:number
   showTriangle:boolean
   handleChange:(number:number)=>void
@@ -17,7 +18,7 @@ interface VFRangeSliderProps {
 }
 
 
-const VFRangeSlider: React.FC<VFRangeSliderProps> = ({ milestones,min,max,strictMode,width,defaultValue,showTriangle,handleChange,labelValueFormatter, style }) => {
+const VFRangeSlider: React.FC<VFRangeSliderProps> = ({ milestones,min,max,strictMode,width,defaultValue,showTriangle,handleChange,labelValueFormatter, style, fluid }) => {
   const [value, setValue] = useState<number>(defaultValue);
   const [currMileStoneIndex,setCurrMileStoneIndex] = useState<number>(0)
 
@@ -58,7 +59,7 @@ const VFRangeSlider: React.FC<VFRangeSliderProps> = ({ milestones,min,max,strict
 
 
   return (
-    <RangeSliderContainer style={{width, ...style}}>
+    <RangeSliderContainer style={{width: fluid ? '100%' : width, ...style}}>
 
         <RangeSliderInput
             theme={themeUi}
@@ -74,7 +75,7 @@ const VFRangeSlider: React.FC<VFRangeSliderProps> = ({ milestones,min,max,strict
             style={{width:value===0?0:((value / range) * multiplier) + 6}}
         /> */}
         {/* <RangeProgressBackground/> */}
-        <ValueLabel left={((value / range) * multiplier) -3} top={showTriangle?32:20}>{valueFormatter()}</ValueLabel>
+        <ValueLabel style={fluid ? {left:`calc(${value / range * 100}% - ${value / range * 20 + 3}px)`} : undefined} left={((value / range) * multiplier) -3} top={showTriangle?32:20}>{valueFormatter()}</ValueLabel>
         {showTriangle && (
             <ToolTipTriangle 
                 style={{left:((value / range) * multiplier) + 1.5}}
@@ -84,7 +85,7 @@ const VFRangeSlider: React.FC<VFRangeSliderProps> = ({ milestones,min,max,strict
             <MilestonesContainer>
                 {milestones.map((milestone:number,index:number)=>{
                     if(milestone!==milestones[currMileStoneIndex]){
-                        return <MilestoneLabel style={{left:((milestone / range) * multiplier) + 6.5,top:!showTriangle?-7:5}} key={index}>{milestone}</MilestoneLabel>
+                        return <MilestoneLabel style={{left:fluid ? `calc(${milestone / range * 100}% - ${milestone / range * 20 - 6.5}px)` : ((milestone / range) * multiplier) + 6.5,top:!showTriangle?-7:5}} key={index}>{milestone}</MilestoneLabel>
                     }
                 })}
         </MilestonesContainer>
