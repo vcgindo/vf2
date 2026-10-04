@@ -161,6 +161,17 @@ Evidence: `custom-{preparation,reader,storage}-proof.txt`, `custom-load.txt` in
 the Planning evidence directory. Active next item is the remaining GIT/Expedite
 preparation/read batch; all six browser/performance/deployment exits remain open.
 
+GIT shipment-only boundary now separates qualified empty transporter consumers
+from positive aggregate GIT. Canonical transporter INSERT requires InTransitData;
+the admitted April source is empty. All four child chart SQL datasets and custom
+SQL begin from transporter rows, so these branches may return their existing empty
+envelopes after source and scope admission. Actual fixture read confirms the four
+sections and zero custom rows (`git-empty-shipment-proof.txt`). Positive parent
+grid/location counts remain unavailable pending preparation, not changed to zero.
+Three terminal admission tests pass after correcting their stale run mocks to
+carry DAILY_CHAIN kind. No native ordinary-publication behavior or serving deploy
+changed. Full independent wire/browser proof remains outstanding.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

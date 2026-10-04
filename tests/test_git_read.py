@@ -16,7 +16,7 @@ class GitAdmissionTests(unittest.TestCase):
     def test_every_consumer_requires_explicit_terminal_admission(self):
         for consumer in (git_read.grid, git_read.custom, git_read.graph):
             with self.subTest(consumer=consumer.__name__), \
-                 patch.object(git_read, 'selected_run', return_value=object()), \
+                 patch.object(git_read, 'selected_run', return_value=SimpleNamespace(kind="DAILY_CHAIN")), \
                  patch.object(git_read, 'terminal_ancillary', side_effect=PublicationUnavailable('scope_mismatch')), \
                  patch.object(git_read, 'image_rows', side_effect=AssertionError('read before admission')), \
                  self.assertRaisesRegex(PublicationUnavailable, 'scope_mismatch'):
@@ -25,7 +25,7 @@ class GitAdmissionTests(unittest.TestCase):
     def test_positive_or_nonempty_transit_is_never_reported_as_empty(self):
         for rationed, transit in (([dict(GIT=1)], []), ([dict(GIT=0)], [dict(SKUCode='337')])):
             with self.subTest(rationed=rationed, transit=transit), \
-                 patch.object(git_read, 'selected_run', return_value=object()), \
+                 patch.object(git_read, 'selected_run', return_value=SimpleNamespace(kind="DAILY_CHAIN")), \
                  patch.object(git_read, 'terminal_ancillary', return_value=dict(InTransitData=transit)), \
                  patch.object(git_read, 'image_rows', return_value=rationed), \
                  self.assertRaisesRegex(PublicationUnavailable, 'nonempty_transit'):
@@ -40,3 +40,4 @@ class GitAdmissionTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+

@@ -82,14 +82,14 @@ def grid(payload, *, count=False):
 
 
 def custom(payload):
-    terminal_context(payload)
+    transporter_context(payload)
     pagination(payload)
     # GetCustomGridData ignores filters and type, including filters: [].
     return dict(data=[], uiConfig=[dict(header=h, colCode=c, colPosition=p) for h,c,p in CUSTOM_COLUMNS])
 
 
 def graph(payload):
-    terminal_context(payload)
+    transporter_context(payload)
     if str(payload.get('type', '')).lower() != 'child':
         raise PublicationUnavailable('selected_git_parent_graph_not_implemented_by_legacy')
     # Four empty typed SQL datasets passed to actual GetGoodsInTransitResponse.
@@ -98,3 +98,26 @@ def graph(payload):
         dict(header='LL'+str(i), colCode='ll'+str(i), colPosition=0) for i in range(1,6)])
         for section in ('maxTechBlackRedColumn', 'delayDaysStatisticalBox')}
         for group in ('locationWise', 'transporterWise')})
+
+
+def transporter_context(payload):
+    """April empty shipment consumers are independent of positive aggregate GIT.
+
+    The canonical transporter INSERT starts from InTransitData INNER JOINs.
+    Its empty admitted April source proves these transporter-based charts/custom
+    rows empty. It does not prove location grid/count or aggregate GIT empty.
+    """
+    run = selected_run()
+    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
+        return terminal_context(payload)
+    from mta.presentation.fixture import bpr_ancillary
+    from mta.presentation.planning_sources import admitted_sources
+    from mta.presentation.bpr_sql import _projected_attributes
+    admitted_sources(run)
+    if bpr_ancillary(run)['InTransitData']:
+        raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
+    attributes, manifest = _projected_attributes(run)
+    if manifest:
+        raise PublicationUnavailable('planning_transporter_native_hierarchy_required')
+    products, locations = scope(payload, attributes=attributes)
+    return SimpleNamespace(run=run, attributes=attributes, products=products, locations=locations)
