@@ -26,6 +26,17 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Prepared presentation rollout planning
+
+The human accepts the BTR snapshot/typed reader at `806a239` as the development
+baseline for extending the method to other UI surfaces. Research and the proposed
+sequence are in [the rollout plan](PREPARED_PRESENTATION_ROLLOUT_PLAN.md).
+Planning exit: identify existing readers/producers, scoped presentation slices
+and debt before daily input/publication integration. Proposed next slice is BPR
+grid/count, with Research grid compatibility only. No implementation goal,
+executor resumption, application-wide acceptance, daily integration or cutover
+is authorized by this planning update. Earlier bounded-task stops remain in force.
+
 ### BTR typed reader — delivered and verified
 
 Human-authorized follow-up to the delivered snapshot trial: remove SQL JSON
