@@ -141,6 +141,26 @@ checks passed; repeat verification took1.10s without writes. Evidence: `chart-pr
 No serving deployment or browser acceptance yet. Custom grids and all
 GIT/Expedite consumers remain required; the six-destination goal stays active.
 
+Active item: custom Excess/Fulfillment occurrence preparation and SQL readers.
+The retained NMS image has97,097 rows, so an empty-source shortcut is invalid.
+Resolve NMS/parent-description/standard matches once, preserve independent fact
+and source ordinals, then scope/order/page before selected display expansion.
+Fulfillment's conflicting-NMS ordering denial remains mandatory. Required proof:
+complete scoped ordered custom responses, NULL omission, paging and that denial.
+
+Custom-grid checkpoint: additive migration0030 (after0029, reversible guard SQL)
+and repeatable preparation loaded9,871 Excess/12,720 Fulfillment occurrences in
+12.07s. All source-reference bags and complete storage readback match;15 mutation
+attempts are denied and repeat verification is unchanged. Ten complete ordered
+responses pass against existing consumers: full exports, page2, populated restricted,
+empty and past-end cases. The retained population has no unmatched NMS and no
+conflicting custom ordering keys, so this data does not exercise the ambiguity
+denial branch. Ten focused admission/read tests and Django check/model/migration
+checks pass. Fixture custom endpoints are wired in the checkout, not deployed.
+Evidence: `custom-{preparation,reader,storage}-proof.txt`, `custom-load.txt` in
+the Planning evidence directory. Active next item is the remaining GIT/Expedite
+preparation/read batch; all six browser/performance/deployment exits remain open.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

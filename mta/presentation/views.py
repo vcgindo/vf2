@@ -509,6 +509,11 @@ def planning_custom(request, payload):
         raise PublicationUnavailable('selected_planning_custom_branch_not_yet_connected')
     from mta.presentation.excess_read import excess_context, custom_grid, pagination
     paging = pagination(payload)
+    from mta.presentation import fixture
+    if fixture.enabled():
+        from mta.presentation.planning_custom_sql import custom_grid as prepared_custom_grid
+        return envelope(data=prepared_custom_grid(selected_run(), payload, paging,
+                        family='fulfillment' if payload['category'] == 'orderFulfillment' else 'excess'))
     if payload.get('category') == 'orderFulfillment':
         from mta.presentation.fulfillment_read import fulfillment_context, custom_grid as fulfillment_custom_grid
         return envelope(data=fulfillment_custom_grid(fulfillment_context(custom=True),payload,paging))

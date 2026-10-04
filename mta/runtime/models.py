@@ -712,3 +712,42 @@ class PlanningChartDisplay(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','family','direction','ordinal'],name='fresh_planning_chart_display')]
         indexes = [models.Index(fields=['run','family','direction','group_ordinal'],name='fresh_plan_chart_display_group')]
+
+
+class PlanningCustomProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    excess_count = models.PositiveBigIntegerField()
+    excess_digest = models.CharField(max_length=64)
+    fulfillment_count = models.PositiveBigIntegerField()
+    fulfillment_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningCustomOccurrence(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    nms_ordinal = models.PositiveBigIntegerField(null=True)
+    parent_description_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    parent_description = models.TextField(null=True)
+
+    class Meta:
+        abstract = True
+
+
+class PlanningExcessCustomRow(PlanningCustomOccurrence):
+    standard_ordinal = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_plan_excess_custom_ord')]
+        indexes = [models.Index(fields=['run','sku_key','location_key'],name='fresh_plan_excess_custom_key')]
+
+
+class PlanningFulfillmentCustomRow(PlanningCustomOccurrence):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_plan_fulfill_custom_ord')]
+        indexes = [models.Index(fields=['run','sku_key','location_key'],name='fresh_plan_fulfill_custom_key')]
