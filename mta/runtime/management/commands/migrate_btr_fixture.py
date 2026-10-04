@@ -21,6 +21,8 @@ class Command(BaseCommand):
                             help='Apply the additive sealed Guided history occurrence relations')
         parser.add_argument('--planning-sources', action='store_true',
                             help='Apply only the two additive Planning source masters after Guided history')
+        parser.add_argument('--planning-git', action='store_true',
+                            help='Apply only GIT occurrences after custom grids')
         parser.add_argument('--planning-custom', action='store_true',
                             help='Apply only Planning custom occurrences after chart ingredients')
         parser.add_argument('--planning-charts', action='store_true',
@@ -33,7 +35,8 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0030_planning_custom_occurrences' if options['planning_custom'] else
+        target = ('0031_planning_git_occurrences' if options['planning_git'] else
+                  '0030_planning_custom_occurrences' if options['planning_custom'] else
                   '0029_planning_chart_ingredients' if options['planning_charts'] else
                   '0028_planning_normal_grid_occurrences' if options['planning_grids'] else
                   '0027_planning_derived_sources' if options['planning_sources'] else
@@ -43,6 +46,9 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['planning_git'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0031_planning_git_occurrences' for migration, backwards in plan):
+            raise CommandError('Planning GIT requires the custom baseline')
         if options['planning_custom'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name != '0030_planning_custom_occurrences' for migration, backwards in plan):
             raise CommandError('Planning custom requires the chart baseline')
@@ -59,6 +65,7 @@ class Command(BaseCommand):
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
                 *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
+                *(['0031_planning_git_occurrences'] if options['planning_git'] else []),
                 *(['0030_planning_custom_occurrences'] if options['planning_custom'] else []),
                 *(['0029_planning_chart_ingredients'] if options['planning_charts'] else []),
                 *(['0028_planning_normal_grid_occurrences'] if options['planning_grids'] else []),

@@ -172,6 +172,30 @@ Three terminal admission tests pass after correcting their stale run mocks to
 carry DAILY_CHAIN kind. No native ordinary-publication behavior or serving deploy
 changed. Full independent wire/browser proof remains outstanding.
 
+Active item: positive GIT location preparation/read. Preserve count's LEFT pair
+join and grid's INNER pair eligibility in one explicit occurrence relation with
+an eligibility flag. Bind exact derived master/source ordinals, description and
+filter-owner matches; scoped counts and parent grid paging remain live.
+Empty admitted transit proves the transporter LEFT join's NULL occurrence and
+empty details only. Required proof includes independent complete occurrence bags,
+scoped count/grid values and canonical integer penetration sort; no repaired
+combined child SQL or invented tie-order acceptance.
+
+GIT implementation checkpoint: migration0031 adds a sealed location occurrence
+relation and receipt after0030. Independent source-join bag comparison proves
+1,627 count occurrences, all grid eligible in this retained dataset. Preparation
+took0.47s. Full SQL readback and10 mutation-denial checks pass; repeat verification
+preserves source/recipe/digest. Positive parent grid and parent/child location
+counts now use prepared references, live direction-specific scopes/filters and
+SQL paging in the checkout. All1,627 parent rows, page2, empty scope, empty transit
+details and inherited child207/8120 denial pass internal checks. Seven admission
+tests and Django model/migration checks pass. Evidence: `git-preparation-proof.txt`,
+`git-storage-proof.txt`, `git-reader-proof.txt`, `git-load.txt` in Planning evidence.
+This is not independent legacy wire/order parity; that proof and scoped filtered
+wire cases remain required. No deployment or browser/performance acceptance yet.
+Expedite preparation/read, overview, complete wire comparisons and delivery remain
+active within the unchanged six-destination objective.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

@@ -751,3 +751,42 @@ class PlanningFulfillmentCustomRow(PlanningCustomOccurrence):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_plan_fulfill_custom_ord')]
         indexes = [models.Index(fields=['run','sku_key','location_key'],name='fresh_plan_fulfill_custom_key')]
+
+
+class PlanningGitProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    rows_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningGitOccurrence(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    rationed_ordinal = models.PositiveBigIntegerField()
+    standard_ordinal = models.PositiveBigIntegerField()
+    sku_description_ordinal = models.PositiveBigIntegerField()
+    location_description_ordinal = models.PositiveBigIntegerField()
+    parent_description_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_ordinal = models.PositiveBigIntegerField()
+    location_ordinal = models.PositiveBigIntegerField()
+    pair_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_description = models.TextField(null=True)
+    location_description = models.TextField(null=True)
+    parent_description = models.TextField(null=True)
+    grid_eligible = models.BooleanField()
+    sl1 = models.TextField(null=True)
+    sl2 = models.TextField(null=True)
+    sl3 = models.TextField(null=True)
+    sl4 = models.TextField(null=True)
+    sl5 = models.TextField(null=True)
+    ll1 = models.TextField(null=True)
+    ll2 = models.TextField(null=True)
+    ll3 = models.TextField(null=True)
+    ll4 = models.TextField(null=True)
+    ll5 = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_planning_git_occurrence')]
