@@ -27,21 +27,23 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Active: Guided DBM suggestion-tab performance delivery
+### Active: whole Guided Insights prepared-presentation delivery
 
-Human authorization4October after satisfactory BPR delivery at`194ade6`:
-implement [one bounded plan](GUIDED_DBM_PRESENTATION_PLAN.md) for the existing
-Guided DBM Norm Suggestions tab's location/pie/SKU/ageing panels together.
-Prepare common stable daily join occurrences once; live scope/filter SQL returns
-the existing grouped contracts. Preserve description-join differences, source
-matching, multiplicity, NULL/types/order and existing frontend chart/table behavior.
+Human authorization4October after satisfactory BPR delivery at`194ade6`, expanded
+from DBM-only to ALL FIVE visible tabs of the Guided URL: implement
+[one whole-page plan](GUIDED_PRESENTATION_PLAN.md) covering Availability Trend,
+Chronic charts/grid, Availability Ageing, DBM four panels and Excess two panels.
+The earlier DBM-only execution boundary is superseded. Reuse shared typed dimensions
+and contracts; choose family-specific preparation/read corrections from measured
+work, preserving source grains, live scope/filter, NULL/types/multiplicity/order
+and existing frontend/chart/table contracts. Hidden Custom Screens is not included.
 Research identifies source-context loading8.57s and Python joins3.44s of12.87s
 for the current pie request; three output groups. This is not UI acceptance.
-Active item: qualify common/description occurrence grain and retain affected
-before results, then implement all four readers. Unmet exit: complete values,
-focused PostgreSQL/build proofs,3005 deployment and three matched full-tab UI
-pairs with modern median below legacy; commit/push and report daily-producer debt.
-No other Guided screens/main DBM or adjacent optimization is authorized.
+Active item: qualify family occurrence grain and retain affected before results,
+then implement all required11readers/minimal frontend batch. Unmet exit: complete
+values, focused PostgreSQL/build proofs,3005 deployment and three paired whole-page
+walks with per-tab/Chronic-grid modern medians below legacy; commit/push and report
+costs/daily-producer debt. Main DBM/other URLs/new daily pipeline remain excluded.
 MIGRATION.md remains the sole status tracker; preserve accepted BPR/BTR/F1/F2.
 
 ### Complete: singular BPR UI-performance delivery

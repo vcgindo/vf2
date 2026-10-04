@@ -1,5 +1,10 @@
 # Guided DBM suggestion presentation — bounded performance delivery
 
+SUPERSEDED execution boundary: the human expanded authorization to the whole
+Guided page. `GUIDED_PRESENTATION_PLAN.md` is now the sole execution contract.
+This file retains DBM-specific researched facts/semantic details only; its old
+sequence, acceptance boundary and exclusions do not govern current execution.
+
 Authorized by the human on 4 October 2026 after satisfactory BPR delivery.
 Starting checkpoint: `194ade6`, clean and pushed. Preserve accepted BPR/BTR.
 This file is the execution contract; `docs/MIGRATION.md` is the ONLY status tracker.
