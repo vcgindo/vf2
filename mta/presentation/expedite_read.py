@@ -23,6 +23,10 @@ def parent_grid(payload):
     from mta.presentation.context import scope
     from mta.presentation.excess_read import pagination
     from mta.presentation.expedite_parent import parent_filter, parent_rows
+    run = selected_run()
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.planning_expedite_sql import parent_grid as prepared_parent_grid
+        return prepared_parent_grid(run, payload)
     context = expedite_context()
     paging = pagination(payload)
     if paging is None:

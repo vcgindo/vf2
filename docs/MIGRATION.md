@@ -36,9 +36,9 @@ committed8f1bd27. Daily Data Graph implementation is delivered at01b75fa; its
 72ms historical completed-modal baseline gap is **deferred/unaccepted**, not passed.
 No further modal edit or benchmark belongs to this Planning goal.
 
-Active step: freeze one consumer/source/grain matrix for GIT parent/child,
-Expedite parent/child, Excess and Fulfillment, including landing counts and existing
-supported grids/charts/subtabs/details/exports. Unmet exit: qualified exact sources,
+Active step: finish the prepared Expedite read batch using the frozen six-area
+consumer/source/grain matrix, including landing counts and existing supported
+grids/charts/subtabs/details/exports. Unmet exit: qualified exact sources,
 prepared typed ingredients and SQL reads, existing frontend wiring, complete-value
 and bounded matched browser proofs, deployment/restoration and six-area handoff.
 Boundary: retainedApril7 data and existing preparation guards; no new facts,
@@ -224,10 +224,39 @@ and string-valued output, and still denies nonempty NMS when those inputs are
 missing. Eight focused parent tests pass, including duplicate collapse, distinct
 NULL/space groups, remark-dependent Pick joins and past-end paging. This is
 reference implementation only, not SQL/wire parity or serving acceptance.
-Active item remains the prepared Expedite reader: qualify the retained full Pick
-report's ParentStockForRationing, prepare this separate nested grain, and prove
-complete responses before wiring. PickPostRow is insufficient for this field.
-No serving, schema, source data, engine or permission changes were made.
+The retained full Pick source is now qualified below; PickPostRow alone is
+insufficient for ParentStockForRationing.
+
+Parent Expedite prepared read: migration0033 after0032 adds typed NMS/remark
+base occurrences, grid/Pick matches and a separate immutable receipt, with
+reversible build/seal SQL. The actual frozen8063-row Pick staging source passes
+full-column checksum verification (`4a5583e805d564dd57f03117f43e7ba7f671e54f0f436b371cab2bca011bc229`).
+Preparation persisted97100 bases and5 matches in9.87s; full EXCEPT ALL readback,
+15 mutation-denial checks and repeat verification in1.78s pass. Django checks,
+model-state and migration plan are clean; source admission/guards are unchanged.
+Evidence: `expedite-transit-{schema-check,migrate,load,storage-proof}.txt` in the
+Planning evidence directory. No imported source or prior migration was changed.
+
+The fixture parent route now selects the prepared SQL reader. Main grids retain
+scoped/filter-weighted rows, NULL omission, decimal string scales, ambiguity
+denial and paging; nested results use the full eligible CTE before paging. Six
+complete source-reference comparisons pass (full1030/1443, page2, leaf78/161,
+empty, past-end and SKU filter), and six independent nested-source-join bag
+comparisons pass. Canonical nested dispatch returns97097 rows even with empty
+scope; availability transit is0. Preserve that inherited output; do not silently
+scope/page it. Nested SQL has no ORDER BY: bag proof is explicitly not independent
+legacy wire/order acceptance. Evidence: `expedite-parent-reader-proof-corrected.txt`
+and `expedite-transit-reader-proof-final.txt`; initial failed probe transcripts
+are retained. Twenty-three focused tests pass, including route selection and
+admission denial. Seven additional complete filter comparisons pass for Stock,
+Tags (empty result), location type, ignored ForChildren, hierarchy and inactive/
+active custom attributes (`expedite-parent-filter-proof.txt`). Together these are
+13 source-reference response cases, not independent legacy API acceptance.
+Active item remains the Expedite reader batch: independent legacy wire proof,
+April request-history admission/child reads and remaining charts/custom/counts.
+Overview, before/final browser comparisons, deployment and restoration remain
+required. Serving has not been rebuilt or restarted; engines, accepted F1/F2 and
+authentication permissions remain unchanged.
 
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet

@@ -831,3 +831,46 @@ class PlanningExpediteGridOccurrence(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','direction','branch','ordinal'],name='fresh_plan_expedite_grid_ord')]
+
+
+class PlanningExpediteTransitProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    pick_digest = models.CharField(max_length=64)
+    base_count = models.PositiveBigIntegerField()
+    base_digest = models.CharField(max_length=64)
+    match_count = models.PositiveBigIntegerField()
+    match_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningExpediteTransitBase(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    nms_ordinal = models.PositiveBigIntegerField()
+    remark_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_code = models.TextField(null=True)
+    location_code = models.TextField(null=True)
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    rlt = models.IntegerField(null=True)
+    remark = models.TextField(null=True)
+    remark_key = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_exp_transit_base_ord')]
+
+
+class PlanningExpediteTransitMatch(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    base_ordinal = models.PositiveBigIntegerField()
+    branch = models.CharField(max_length=16)
+    grid_ordinal = models.PositiveBigIntegerField()
+    pick_ordinal = models.PositiveBigIntegerField(null=True)
+    parent_stock = models.IntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_exp_transit_match_ord')]
+        indexes = [models.Index(fields=['run','branch','grid_ordinal'],name='plan_exp_transit_grid')]
