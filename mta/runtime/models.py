@@ -608,3 +608,60 @@ class PlanningGitMasterRow(models.Model):
                                                name='planning_git_source_ordinals')]
         indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_git_source_keys'),
                    models.Index(fields=['run', 'parent_key', 'sku_key'], name='planning_git_parent_keys')]
+
+
+class PlanningGridProjection(models.Model):
+    """Receipt for the two normal-grid occurrence grains, excluding charts/custom."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    excess_count = models.PositiveBigIntegerField()
+    excess_digest = models.CharField(max_length=64)
+    fulfillment_count = models.PositiveBigIntegerField()
+    fulfillment_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningGridOccurrence(models.Model):
+    """Shared columns only; each consumer has a distinct typed physical relation."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    fact_ordinal = models.BigIntegerField()
+    sku_description_ordinal = models.BigIntegerField()
+    location_description_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    pair_ordinal = models.BigIntegerField()
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    parent_key = models.TextField(null=True)
+    sku_description = models.TextField(null=True)
+    location_description = models.TextField(null=True)
+    sl1 = models.TextField(null=True)
+    sl2 = models.TextField(null=True)
+    sl3 = models.TextField(null=True)
+    sl4 = models.TextField(null=True)
+    sl5 = models.TextField(null=True)
+    ll1 = models.TextField(null=True)
+    ll2 = models.TextField(null=True)
+    ll3 = models.TextField(null=True)
+    ll4 = models.TextField(null=True)
+    ll5 = models.TextField(null=True)
+
+    class Meta:
+        abstract = True
+
+
+class PlanningExcessGridRow(PlanningGridOccurrence):
+    parent_description_ordinal = models.BigIntegerField(null=True)
+    parent_description = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='planning_excess_grid_ordinal')]
+        indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_excess_grid_keys')]
+
+
+class PlanningFulfillmentGridRow(PlanningGridOccurrence):
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='planning_fulfill_grid_ordinal')]
+        indexes = [models.Index(fields=['run', 'sku_key', 'location_key'], name='planning_fulfill_grid_keys')]

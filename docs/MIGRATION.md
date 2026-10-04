@@ -101,6 +101,24 @@ called by HTTP and are not yet persisted occurrence tables. Next: persist these
 qualified grains alongside the remaining GIT/Expedite/chart/custom ingredients,
 then wire SQL consumers. Ordering/wire/browser acceptance remains unproved.
 
+Normal-grid implementation: migration0028 has persisted and sealed9,871 Excess
+and12,720 Fulfillment occurrences. Complete SQL EXCEPT ALL readback, repeat
+checksum verification and15 insert/update/delete/truncate guard checks pass;
+the fixture source digest is unchanged. The fixture grid/count API now calls
+the prepared reader in the checkout, with live permission bags, canonical
+filters, SQL pagination and selected-pair Fulfillment details. It is not deployed.
+Complete ordered Python-reference comparisons pass for both full grids,
+page2, populated restricted scopes224/647, empty scopes, product/location,
+numeric, hierarchy, child and coverage filters. A custom-only activation mismatch
+was corrected to preserve the existing ignored-filter contract; evidence retains
+the failed proof.25 existing/admission tests and3 filter tests pass. The final
+readback after removal of a redundant slow date predicate, activated custom-filter
+case and Django migration checks passed:25 complete ordered grid/count cases,
+system check clean, no model drift and no pending migrations. Evidence is under the same Planning
+directory (`grid-reader-proof*.txt`). This closes no whole-page/browser gate;
+chart/custom/GIT/Expedite preparation, April request-history admission, deployment
+and all six end-to-end journeys remain outstanding under the same active goal.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

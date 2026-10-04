@@ -16,6 +16,12 @@ DIMENSIONS = (
 )
 
 
+def recipe_digest():
+    import inspect
+    from mta.serialization import digest
+    return digest(dict(version=1, dimensions=DIMENSIONS, query=inspect.getsource(grid_occurrences)))
+
+
 def grid_occurrences(run, family):
     """Return typed source occurrences with display and filter-owner references."""
     if family not in ('excess', 'fulfillment'):

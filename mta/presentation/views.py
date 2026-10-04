@@ -454,6 +454,17 @@ def planning_grid(request, payload, *, count=False):
         paging = _pagination(payload)
     if paging is None and not (excess or fulfillment):
         raise ValueError('invalid_pagination')
+    if excess or fulfillment:
+        from mta.presentation import fixture
+        if fixture.enabled():
+            from mta.presentation.planning_grid_sql import read_grid
+            projected = read_grid(selected_run(), payload,
+                                  family='excess' if excess else 'fulfillment',
+                                  paging=paging, count=count)
+            if count:
+                return envelope(data=projected)
+            return envelope(data={'data': projected,
+                                  'uiConfig': fulfillment_grid_config() if fulfillment else excess_grid_config()})
     context,rows=planning_context(payload)
     details=detail_aliases(rows['details']) if fulfillment else []
     if fulfillment:
