@@ -26,7 +26,7 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### BTR typed reader — deployed; response-observation proof remains open
+### BTR typed reader — delivered and verified
 
 Human-authorized follow-up to the delivered snapshot trial: remove SQL JSON
 packaging and per-row decoding from the prepared grid reader only. The selected
@@ -38,16 +38,19 @@ row/field after the change. Seven affected tests, Django check and backend build
 pass. The one On-Hand5000 EXPLAIN took773.097ms, with no final wide sort.
 Backend-only deployment preserves frontend container/image, generation and
 admission `5c90ae58…`; rollback restores `8b218cd3cc5a…` with the same version2
-snapshot. The grid rendered and scrolled; observed completion was5.132s including
-tool round trips (earlier observed6.967s), not a controlled speedup claim.
-Consolidated remaining proof gap: the browser tool exposes no response bodies;
-the bounded outgoing-response observer did not reconstruct the chunked5000-row
-response. Its retries were verification failures, not benchmark samples. Thus
-actual UI-response `displayPrepared=true`/5000 rows is not independently captured;
-the footer and direct-reader comparisons alone do not close that explicit exit.
-Stop this correction at the deployed checkpoint; no additional optimization or
-schema/data work is justified by this instrumentation gap. Required next proof
-is one supported browser network-body observation paired with usable rendering.
+snapshot. Final browser-triggered On-Hand/page1/Show All/90-day observation:
+complete backend HTTP200 response, `displayPrepared=true`,5000 tech/0 eco rows,
+17564034 bytes; response captured5.467s after click and rendered grid observed
+by7.815s, followed by responsive scrolling. These include tool/capture overhead;
+they are not a controlled speedup or p95 claim. The earlier5.132s/6.967s grid-only
+observations remain qualified, not substituted for this complete proof.
+The instrumentation gap is closed: the original packet observer lost large
+response fragments. A temporary64MiB capture ring within the unchanged4GiB
+container limit reconstructed the chunked response. Small readiness responses
+validated the observer first. Failed capture retries remain evidence, not
+benchmark samples. No diagnostic process, grant or service remains running.
+Implementation checkpoint `91562a4` is pushed. The bounded correction is complete;
+stop here without further optimization, benchmark expansion or adjacent work.
 Evidence: `D:/freshvcf-build/evidence/btr-typed-reader-20261004-001`.
 
 ### Latest direction: BTR ready snapshot trial — delivered for human review

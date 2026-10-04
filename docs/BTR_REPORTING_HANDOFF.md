@@ -19,17 +19,22 @@ One retained EXPLAIN (`plan.json`) took773.097ms for On-Hand5000. Its top node i
 a nested loop after page selection, with no final wide sort; a narrow internal
 sort remains. These single observations do not certify p95 or legacy speedup.
 
-UI: On-Hand, Show All, page1,90 days, page size5000 rendered and scrolled. Retained
-`ui-grid.jpg` and `ui-observation.json` record the observation. One observed grid
-completion was5.132s, including tool round trips; an earlier observation was6.967s.
-The response-body proof remains open: browser tooling has no response inspection,
-and external read-only packet reconstruction failed. Retries were confined to
-this verification defect; no extra benchmark matrix was run. Do not represent
-the grid footer as independent proof of the actual response's prepared flag or
-5000-row population. Direct-reader complete response equality is proved above.
-Observer processes were stopped; no diagnostic service or permission change was
-left behind. Complete one supported network-body/UI observation to close this
-remaining proof, rather than changing the reader again without a measured defect.
+UI proof is complete: On-Hand, Show All, page1,90 days,5000 rows rendered and
+scrolled. `ui-response.json` records the complete browser-triggered backend HTTP200
+response: `displayPrepared=true`,5000 tech/0 eco rows,17564034 bytes. It was captured
+5.467s after the click; the usable grid was observed by7.815s (`ui-complete.json`,
+`ui-complete-state.txt`, `ui-complete.jpg`). Timing includes tool/capture overhead
+and does not establish a controlled legacy speedup. The wide response still
+requires serialization, transfer and rendering; this correction makes no promise
+of instant display. Earlier5.132s/6.967s grid-only observations remain retained.
+
+Initial packet reconstruction lost response fragments. The corrected read-only
+observer used a temporary64MiB packet ring within the unchanged4GiB container
+limit, after validating small readiness responses. It captured only outgoing
+backend responses; request credentials were not retained. Verification retries
+were not benchmark samples. The observer exited; no extra service, permission or
+resource-limit change remains. Implementation `91562a4` is pushed; this closes
+the bounded follow-up without authorizing another optimization tranche.
 
 Backend image: `sha256:31f08919bd25dfd6f62561ea46fd74d2f7ad935df2749804fa9f57944e901c90`.
 Use the base preview compose, existing fixture overlay, then this evidence root's
