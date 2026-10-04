@@ -12,6 +12,7 @@ from django.core.management import call_command
 from django.db import connection, transaction, DatabaseError
 from mta.presentation import fixture
 from mta.presentation.planning_source_sql import source_queries
+from mta.presentation.planning_sources import admitted_sources
 from mta.runtime.management.commands.prepare_planning_sources import SOURCES
 from mta.runtime.planning_source_schema import verify_guards
 from mta.runtime.models import PlanningSourceProjection
@@ -23,6 +24,7 @@ def verify():
     verify_guards(connection)
     source, queries = source_queries(run)
     assert source == before
+    admitted = admitted_sources(run)
     result = {}
     with connection.cursor() as cursor:
         for name, model, fields, ordinals, _ in SOURCES:
@@ -37,7 +39,12 @@ def verify():
                            [*params, run.pk])
             extra = cursor.fetchone()[0]
             assert (missing, extra) == (0, 0), (name, missing, extra)
-            result[name] = dict(missing=missing, extra=extra)
+            relation, relation_params = admitted[name]
+            cursor.execute('SELECT count(*) FROM (' + relation + ') admitted', relation_params)
+            count = cursor.fetchone()[0]
+            assert count == getattr(PlanningSourceProjection.objects.get(run=run),
+                                    name.split('_')[0] + '_count')
+            result[name] = dict(missing=missing, extra=extra, admitted_count=count)
     # Rollback even if a guard is broken: these tests can never persist a mutation.
     guarded = []
     for model in [item[1] for item in SOURCES] + [PlanningSourceProjection]:

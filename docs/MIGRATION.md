@@ -87,6 +87,20 @@ externally. Owned proof containers were serial,4GiB/2CPU, no ports/restart, remo
 on exit. Serving application code is still unchanged; prepared consumer joins,
 SQL readers, April-history admission and frontend/performance proof remain active.
 
+Prepared source reader now checks fixture/day, source/recipe receipt and exact
+immutable guards before exposing run-bound typed SQL relations. No broad source
+reconstruction occurs in this boundary. Nine focused tests pass, including
+missing/changed receipt, wrong run/day/kind and guard drift; actual PostgreSQL
+admission/readback passes in `prepared-source-reader-proof.txt`.
+The separate Excess/Fulfillment normal-grid preparation queries now resolve
+stable dimension matches, raw display ingredients, normalized keys and all
+filter/source ordinals once. Complete fact-and-display bag comparison against
+existing selectors passes for9,871 current-day Excess and12,720 Fulfillment
+summary occurrences (`grid-preparation-reference.txt`). These queries are not
+called by HTTP and are not yet persisted occurrence tables. Next: persist these
+qualified grains alongside the remaining GIT/Expedite/chart/custom ingredients,
+then wire SQL consumers. Ordering/wire/browser acceptance remains unproved.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

@@ -8,25 +8,19 @@ from django.db import connection, transaction
 
 from mta.presentation import fixture
 from mta.presentation.planning_source_sql import (
-    BPR_FIELDS, GIT_FIELDS, bpr_master_query, git_master_query,
-    source_queries, validate_target_lengths,
+    BPR_FIELDS, GIT_FIELDS,
+    source_queries, validate_target_lengths, recipe_digest,
 )
 from mta.presentation.rrr_sql import key
 from mta.runtime.models import PlanningBprMasterRow, PlanningGitMasterRow, PlanningSourceProjection
 from mta.runtime.planning_source_schema import verify_guards
 from mta.runtime.relational_state import quote
-from mta.serialization import canonical_parts, digest
+from mta.serialization import canonical_parts
 
 SOURCES = (
     ('bpr_master', PlanningBprMasterRow, BPR_FIELDS, ('source_ordinal',), 'WHCode'),
     ('git_master', PlanningGitMasterRow, GIT_FIELDS, ('rationed_ordinal', 'standard_ordinal'), 'WhCode'),
 )
-
-
-def recipe_digest():
-    return digest(dict(version=1, bpr=bpr_master_query('MASTER'),
-                       git=git_master_query('RATIONED', 'STANDARD'),
-                       key=key('SOURCE'), bpr_fields=BPR_FIELDS, git_fields=GIT_FIELDS))
 
 
 def rows_receipt(run, model, fields, ordinals):

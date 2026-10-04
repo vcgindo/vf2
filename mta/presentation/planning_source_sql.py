@@ -15,6 +15,14 @@ GIT_FIELDS = ('Status', 'SKUCode', 'WhCode', 'Tags', 'ParentWhCode', 'Norm',
               'PipelineInventoryColor', 'Req', 'Price', 'IsParent', 'IsReceiving')
 
 
+def recipe_digest():
+    from mta.presentation.rrr_sql import key
+    from mta.serialization import digest
+    return digest(dict(version=1, bpr=bpr_master_query('MASTER'),
+                       git=git_master_query('RATIONED', 'STANDARD'),
+                       key=key('SOURCE'), bpr_fields=BPR_FIELDS, git_fields=GIT_FIELDS))
+
+
 def source_queries(run):
     """Bind preparation SELECTs to the existing admitted fixture images.
 
