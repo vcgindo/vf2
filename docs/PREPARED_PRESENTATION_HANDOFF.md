@@ -5,6 +5,50 @@ The scope is the read-only reporting batch in
 [MIGRATION.md](MIGRATION.md) is the sole status tracker. This document records
 implementation and operational evidence, not acceptance of all F3 workflows.
 
+## BPR fixture preparation and serving
+
+The bounded BPR correction uses the same April 7 run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`. Evidence is in
+`D:/freshvcf-build/evidence/bpr-ui-performance-20261004-001`.
+Migrations 0019/0020 add one typed native candidate relation and an immutable
+receipt. It retains all six source occurrence ordinals, raw filter/display
+owners, nullable standard presence, unrounded numeric pens and normalized
+lookup keys. Permissions, filters, parent multiplicity, key-bag paging,
+latest remark ties and trend availability remain live. Count and analytics
+retain their separate grains. Calculation state and the export reader are unchanged.
+
+With the existing base, fixture and portfolio Compose files, append
+`compose.bpr.json` from this evidence directory. Run `python manage.py
+migrate_btr_fixture --bpr-preparation`, then `python manage.py prepare_bpr_fixture`.
+Both are bounded to the owned fixture. Preparation is atomic and refuses partial
+or mismatched existing rows. Repetition verifies the complete typed digest;
+`--verify-only` cannot insert. The retained preparation produced 97,097 occurrences
+in 75.44 seconds including container startup, using 65,232,896 bytes including indexes
+and receipt. The source binding is unchanged. INSERT after sealing, UPDATE,
+DELETE and TRUNCATE are denied. No normal run or engine publication is prepared.
+
+`VF_BPR_PREPARED=1` explicitly enables only fixture grid/count/analytics and the
+retained AdminBPR configuration. The latter restores all 29 canonical column
+definitions instead of the older 19-column static UI projection; ordered values,
+types and NULL omissions match the authenticated canonical API. Normal-publication
+configuration and export behavior remain unchanged. Missing source/schema/receipt,
+altered guards and unsupported hierarchy opt-in fail closed. Query-local JIT-off
+avoids measured compilation overhead and restores the caller's setting on both
+success and failure. It is not a PostgreSQL-wide setting change.
+
+Deploy only `mta` with `--no-deps --no-build`, then wait for startup admission and
+`/readyz`. Roll back to the prior portfolio MTA image
+`sha256:12568efc81d6b15af95e693b7c1f7f1667bff5d05154e0d0b230625060f0c027`
+using the base/fixture/portfolio overlays without `compose.bpr.json`; the old
+reader ignores this additive relation. Retain its rows and migrations on rollback.
+Do not reset source data, accounts, F1/F2 or the unchanged BTR generation.
+
+Future daily publication remains explicit debt: connect this finite preparation
+to accepted daily outputs and prove refresh/retry/retention before enabling it
+for normal publications. This one-time fixture loader is not a daily scheduler
+or acceptance of that later producer integration. Current browser performance
+status and the bounded three-pair result belong in MIGRATION.md.
+
 ## Implementation
 
 The existing immutable April 7 fixture and BTR reporting generation are reused.

@@ -11,6 +11,28 @@ is resumed; daily ingestion integration and other application work remain paused
 
 ## Accepted method and its limits
 
+### Singular BPR performance acceptance — 4 October2026
+
+From `a4c64eb`, compare actual canonical legacy3002 BPR and modern3005 BPR on
+the retained April7 heavy data, identical authenticated scope/filter/columns and
+5000-row page. Use existing page-size controls. Record provenance, resource
+limits/contention, one matched before journey, all gating requests and completed
+responses, SQL/API/transfer/browser costs, dismissed loading and responsive scroll.
+Make one smallest measured BPR-only correction. A single narrow typed daily
+presentation projection is permitted only if reusable preparation dominates and
+a query/index correction is insufficient; preserve live scopes/filters/counts,
+NULLs/types/duplicates/order and run binding. Record one-time cost/storage and
+future daily producer debt; no new pipeline, cache, framework or integer keys.
+Prove all fields/occurrences/order of the5000-row before/after response plus one
+restricted/filter case and count contract; preserve export behavior. Run focused
+checks and real PostgreSQL migration verification if applicable. Deploy changed
+3005 services only. Run exactly three paired completed-screen observations,
+alternating stack order without concurrent measurement jobs. Modern median must
+be lower; retain raw timings/body sizes/scroll proof. Inconclusive or slower means
+UNPROVED, not additional favourable sampling. Commit/push and record rollback and
+the exact next decision. No other-report work, resource escalation, copies,
+engines/state/fact/date changes, workflows, MTO or3004 cutover.
+
 Prepare reusable report values once from authoritative outputs, store them as
 typed relational rows, and serve the existing UI through selective typed reads.
 Apply live authorization, filtering, canonical ordering and paging before

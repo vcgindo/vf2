@@ -33,6 +33,55 @@ class CalculationRun(models.Model):
         constraints = [models.UniqueConstraint(fields=['input_digest', 'execution_revision'], name='fresh_run_identity')]
 
 
+class BprNumericField(models.DecimalField):
+    """Unconstrained PostgreSQL numeric, retaining every native pen digit."""
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('max_digits', 1000)
+        kwargs.setdefault('decimal_places', 500)
+        super().__init__(*args, **kwargs)
+
+    def db_type(self, connection):
+        return 'numeric'
+
+
+class BprPreparedProjection(models.Model):
+    """Immutable receipt for one complete fixture-only native candidate bag."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    schema_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class BprPreparedRow(models.Model):
+    """Typed pre-auth/filter candidate occurrence; source ordinals retain bags."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    a_ordinal = models.BigIntegerField()
+    v_ordinal = models.BigIntegerField(null=True)
+    s_ordinal = models.BigIntegerField(null=True)
+    c_ordinal = models.BigIntegerField(null=True)
+    d_ordinal = models.BigIntegerField(null=True)
+    b_ordinal = models.BigIntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='fresh_bpr_prepared_ordinal')]
+        indexes = [models.Index(fields=['run', 'sku_key', 'location_key'],
+                                name='fresh_bpr_prepared_keys')]
+
+
+from mta.presentation.bpr_prepared_fields import FIELDS as _BPR_FIELDS, field_name as _bpr_field_name
+for _owner, _fields in _BPR_FIELDS.items():
+    for _field, _kind in _fields.items():
+        _factory = {'text': models.TextField, 'bigint': models.BigIntegerField,
+                    'numeric': BprNumericField}[_kind]
+        BprPreparedRow.add_to_class(_bpr_field_name(_owner, _field), _factory(null=True))
+
+
 class BtrReportingGeneration(models.Model):
     """Immutable derived BTR references, never calculation or permission state."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -136,6 +136,63 @@ def bpr_ancillary(run):
     return result
 
 
+def bpr_ui_columns():
+    """Bounded retained AdminBPR configuration, including the native type bag.
+
+    DLL-matched UIConfigProcessor selects visible report columns and LEFT JOINs
+    types on report/name. FOR JSON PATH omits NULL properties; no position sort.
+    """
+    from datetime import date, datetime
+    from decimal import Decimal
+    binding()
+    populations = (
+        ('Demo_BPR_1', 'ui_ReportConfigurations', 2139,
+         'ReportName Col_Code Col_Position Header Visible CellAlignment Value TagID'.split()),
+        ('Demo_Importer_1', 'ui_ReportColumnTypes', 2114,
+         'ReportName ColCode DataType'.split()),
+    )
+    bags = []
+    with connection.cursor() as cur:
+        cur.execute('SELECT manifest_sha256 FROM stage2_owner.manifest')
+        if cur.fetchall() != [(policy()['manifest_sha256'],)]:
+            unavailable('BPR_ui_manifest_changed')
+        for source, table, limit, fields in populations:
+            cur.execute('SELECT values_sha256,row_count FROM stage2_owner.tables '
+                        'WHERE source=%s AND table_name=%s', [source, table])
+            receipt = cur.fetchone()
+            if not receipt or receipt[1] > limit:
+                unavailable('BPR_ui_population_changed:' + table)
+            quote = connection.ops.quote_name
+            cur.execute('SELECT * FROM ' + quote('stage_' + source.lower()) + '.' +
+                        quote('dbo__' + table) + ' ORDER BY vf_source_ordinal')
+            if [c[0] for c in cur.description] != ['vf_source_ordinal', *fields]:
+                unavailable('BPR_ui_columns_changed:' + table)
+            rows, checksum = [], hashlib.sha256()
+            for ordinal, record in enumerate(cur.fetchall()):
+                if record[0] != ordinal:
+                    unavailable('BPR_ui_ordinal_changed:' + table)
+                raw = [v.isoformat() if isinstance(v, (date, datetime)) else
+                       str(v) if isinstance(v, Decimal) else v for v in record[1:]]
+                checksum.update((json.dumps(raw, ensure_ascii=False, separators=(',', ':'),
+                                            allow_nan=False) + '\n').encode())
+                rows.append(dict(zip(fields, record[1:])))
+            if (checksum.hexdigest(), len(rows)) != receipt:
+                unavailable('BPR_ui_values_changed:' + table)
+            bags.append(rows)
+    from mta.presentation.rrr import sql_key
+    columns, types = bags
+    output = []
+    for row in columns:
+        if not row['Visible'] or sql_key(row['ReportName']) != sql_key('AdminBPR'):
+            continue
+        matches = [t for t in types if sql_key(t['ReportName'], t['ColCode']) ==
+                   sql_key(row['ReportName'], row['Col_Code'])] or [{}]
+        for match in matches:
+            output.append({k: v for k, v in {**{k: v for k, v in row.items() if k != 'TagID'},
+                                            'DataType': match.get('DataType')}.items() if v is not None})
+    return output
+
+
 def bpr_image_rows(run,path):
     """Read BPR's seven frozen inputs, reusing the completed full-value proof."""
     from django.db import transaction

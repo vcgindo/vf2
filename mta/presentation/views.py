@@ -154,6 +154,10 @@ def ui_config(request, payload):
     if name == 'NormSuggestion':
         return envelope(data=ui_state.dbm_columns())
     if name == 'AdminBPR':
+        from mta.presentation.fixture import enabled as fixture_enabled
+        if fixture_enabled() and settings.VF_BPR_PREPARED:
+            from mta.presentation.fixture import bpr_ui_columns
+            return envelope(data=bpr_ui_columns())
         from mta.presentation.legacy_ui import bpr_ui_columns
         return envelope(data=bpr_ui_columns())
     if name not in UI_CONFIGS:
@@ -290,6 +294,11 @@ def bpr_selected(payload, *, mode='grid'):
 def bpr_analytics(request, payload):
     if payload.get('name') != 'BPR':
         raise PublicationUnavailable('selected_analytics_report_not_connected')
+    from django.conf import settings
+    from mta.presentation.fixture import enabled as fixture_enabled
+    if fixture_enabled() and settings.VF_BPR_PREPARED:
+        from mta.presentation.bpr_prepared import read_bpr
+        return envelope(data=read_bpr(selected_run(), payload, analytics=True))
     model, rows = bpr_selected(payload, mode='analytics')
     return envelope(data=model.analytics(rows))
 
@@ -304,7 +313,11 @@ def bpr_data(request, payload, *, count=False):
             raise ValueError('positive_BPR_pagination_required')
     from mta.presentation.fixture import enabled as fixture_enabled
     if fixture_enabled():
-        from mta.presentation.bpr_sql import read_bpr
+        from django.conf import settings
+        if settings.VF_BPR_PREPARED:
+            from mta.presentation.bpr_prepared import read_bpr
+        else:
+            from mta.presentation.bpr_sql import read_bpr
         rows = read_bpr(selected_run(), payload, count=count,
             paging=None if count else (paging['pageNumber'], paging['recordsPerPage']))
         if count:

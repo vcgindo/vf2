@@ -27,6 +27,64 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Complete: singular BPR UI-performance delivery
+
+The bounded 4 October BPR exit passes from starting checkpoint `a4c64eb`.
+The same retained April 7 dataset, effective authenticated scopes, empty filters,
+29 configured columns, column widths and 5,000-row page were compared on legacy
+3002 and modern 3005. Modern used 127.0.0.1 to isolate browser cookies, with the
+same serving port and application. Exactly three paired completed-screen trials
+ran in legacy/modern, modern/legacy, legacy/modern order:
+
+| Pair | Legacy seconds | Modern seconds |
+|---|---:|---:|
+| 1 | 15.322 | 4.958 |
+| 2 | 9.068 | 5.232 |
+| 3 | 7.893 | 4.961 |
+| Median | 9.068 | 4.961 |
+
+Modern's median is 45.29% lower. All four gating responses (grid, count,
+configuration, layout) completed successfully before the recorded screen exit;
+each screen displayed 5,000/97,097. Pair 1 legacy includes three initial 401s and
+its ordinary token-refresh retries; those costs and responses are retained.
+PageDown changed rendered rows in pair 1 on both stacks; later repeated PageDown
+kept the same position on both. Final Ctrl-End settled at row 4,999 on both.
+No extra favorable load samples were taken. This is the agreed bounded browser
+comparison, not universal latency, p95 or load-test acceptance.
+
+One immutable typed relation prepares the six native candidate joins once.
+It preserves raw filter owners, original ordinals, nullable matched-standard
+presence and numeric pens. Live scope/filter/raw ordering precedes key-bag paging;
+final selected keys expand every occurrence before remark/trend joins. Count and
+analytics retain their distinct grains. The retained fixture has 97,097 unique
+candidate keys, while differential tests also prove duplicates and missing joins.
+Query-local JIT-off removes measured 3,254 ms compilation from a 3,379 ms prepared
+query and restores the prior setting on success/failure. Native broad read fell
+from 14.10 s to 1.41 s; this diagnostic excludes the full browser/gateway path.
+The fixture now serves its retained 29-column AdminBPR configuration instead of
+the earlier 19-column static projection, matching every canonical ordered value
+and type. No frontend code, normal admission, permissions or export reader changed.
+
+Migrations 0019/0020, complete typed readback/repeat verification and mutation-guard
+rejections pass. Added storage: 65,232,896 bytes; initial command: 75.44 s.
+Exact ordered 5,000-row and six-row restricted wire/count/analytics comparisons,
+11 focused PostgreSQL tests, Django checks/migration plan, source baseline and
+independent focused review pass. Only MTA was recreated; 22 other container
+identities remain unchanged. The resource window (databases 3 GiB/2 CPU, APIs
+4 GiB/2 CPU) is RESTORED without errors; PostgreSQL is back to 1 GiB/1 CPU.
+These are existing shared database services, not independently isolated load rigs.
+
+Evidence: `D:/freshvcf-build/evidence/bpr-ui-performance-20261004-001/`
+`consolidated-bpr-result.json`, `prepared-validation.json`, `final-reader-proof.json`,
+`ui-config-comparison.json` and `resource-window-final/budget-result.json`.
+Serving image: `freshvcf-preview-mta:bpr-prepared-20261004-001`, immutable identity
+`sha256:a8733a685bb53c9449dcafb2d2453a0b7b0171214de9655fdab5d4bb45c152fa`.
+Run, fixture admission and BTR generation are unchanged. See
+[operational handoff](PREPARED_PRESENTATION_HANDOFF.md) for preparation and rollback.
+Stop here: no adjacent report optimization or normal daily publication integration
+is opened. Daily preparation/refresh remains explicit later producer work; this
+exit does not accept all remaining BPR workflows or the broader F3 programme.
+
 ### Holistic prepared presentation batch authorized
 
 The human accepts the BTR snapshot/typed reader at `806a239` as the development
