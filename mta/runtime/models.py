@@ -874,3 +874,27 @@ class PlanningExpediteTransitMatch(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_exp_transit_match_ord')]
         indexes = [models.Index(fields=['run','branch','grid_ordinal'],name='plan_exp_transit_grid')]
+
+
+class PlanningExpediteCustomProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    rows_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningExpediteCustomOccurrence(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    nms_ordinal = models.PositiveBigIntegerField(null=True)
+    bpr_ordinal = models.PositiveBigIntegerField(null=True)
+    parent_description_ordinal = models.PositiveBigIntegerField(null=True)
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    parent_description = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_expedite_custom_ord')]

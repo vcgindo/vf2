@@ -11,6 +11,8 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
+        parser.add_argument('--planning-expedite-custom', action='store_true',
+                            help='Apply only custom Expedite references after transit ingredients')
         parser.add_argument('--planning-expedite-transit', action='store_true',
                             help='Apply only parent Expedite nested transit ingredients after grid occurrences')
         parser.add_argument('--bpr-preparation', action='store_true',
@@ -39,7 +41,8 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0033_planning_expedite_transit' if options['planning_expedite_transit'] else
+        target = ('0034_planning_expedite_custom' if options['planning_expedite_custom'] else
+                  '0033_planning_expedite_transit' if options['planning_expedite_transit'] else
                   '0032_planning_expedite_grid_occurrences' if options['planning_expedite_grids'] else
                   '0031_planning_git_occurrences' if options['planning_git'] else
                   '0030_planning_custom_occurrences' if options['planning_custom'] else
@@ -52,6 +55,9 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['planning_expedite_custom'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0034_planning_expedite_custom' for migration, backwards in plan):
+            raise CommandError('Planning Expedite custom requires the transit baseline')
         if options['planning_expedite_transit'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name != '0033_planning_expedite_transit' for migration, backwards in plan):
             raise CommandError('Planning Expedite transit requires the grid baseline')
@@ -79,6 +85,7 @@ class Command(BaseCommand):
                 *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
                 *(['0032_planning_expedite_grid_occurrences'] if options['planning_expedite_grids'] else []),
                 *(['0033_planning_expedite_transit'] if options['planning_expedite_transit'] else []),
+                *(['0034_planning_expedite_custom'] if options['planning_expedite_custom'] else []),
                 *(['0031_planning_git_occurrences'] if options['planning_git'] else []),
                 *(['0030_planning_custom_occurrences'] if options['planning_custom'] else []),
                 *(['0029_planning_chart_ingredients'] if options['planning_charts'] else []),

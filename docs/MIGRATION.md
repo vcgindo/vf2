@@ -304,6 +304,21 @@ checkout; it is not deployed or independent legacy wire/performance acceptance.
 Active next item is the remaining Expedite chart/custom read batch, followed by
 consolidated independent wire, frontend, deployment/restoration and handoff gates.
 
+Custom Expedite prepared read is now implemented and wired for the fixture.
+Additive migration0034 after0033 stores exact LEFT NMS/BPR/parent-description
+references and a separate immutable receipt; it does not reuse normal-grid
+eligibility. Preparation persisted1030 occurrences in0.78s. SQL applies live
+parent-location scope, checks conflicting native sort keys, then pages/serializes
+the selected rows with native aliases, numeric values and NULL omission.
+Five complete source-reference comparisons pass: full1030, page2=50, leaf400,
+empty and past-end. Full EXCEPT ALL readback,10 mutation-denial checks and
+repeat verification0.12s pass;16 focused tests and Django model/migration checks
+pass. Evidence: `expedite-custom-{schema-check,migrate,reader-proof,storage-proof}.txt`
+in the Planning evidence directory. Source admission/guards remain unchanged.
+These checks do not establish independent legacy wire or browser performance.
+Active next item is Expedite chart preparation/read, followed by the consolidated
+delivery gates. Serving has not been rebuilt or restarted.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

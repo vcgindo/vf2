@@ -42,6 +42,10 @@ def parent_grid(payload):
 
 
 def custom_grid(payload):
+    run = selected_run()
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.planning_expedite_custom_sql import custom_grid as prepared_custom_grid
+        return prepared_custom_grid(run,payload)
     from decimal import Decimal
     from mta.presentation.context import scope
     from mta.presentation.excess_read import CUSTOM_COLUMNS, pagination
