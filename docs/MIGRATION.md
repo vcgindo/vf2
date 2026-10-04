@@ -27,6 +27,38 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Active: six-destination Planning prepared-presentation delivery
+
+Direct human instruction verified in controller thread01a1037c-5d96-7700-87a8-89a575f6c9f8,
+turn01a108ed-b51d-7832-8ac3-401e3b308a87, selects Planning as the next objective.
+Execution contract: [Planning plan](PLANNING_PRESENTATION_RESEARCH_PLAN.md),
+committed8f1bd27. Daily Data Graph implementation is delivered at01b75fa; its
+72ms historical completed-modal baseline gap is **deferred/unaccepted**, not passed.
+No further modal edit or benchmark belongs to this Planning goal.
+
+Active step: freeze one consumer/source/grain matrix for GIT parent/child,
+Expedite parent/child, Excess and Fulfillment, including landing counts and existing
+supported grids/charts/subtabs/details/exports. Unmet exit: qualified exact sources,
+prepared typed ingredients and SQL reads, existing frontend wiring, complete-value
+and bounded matched browser proofs, deployment/restoration and six-area handoff.
+Boundary: retainedApril7 data and existing preparation guards; no new facts,
+engine/state/auth/action changes, copies/restores, framework/cache or3004cutover.
+The new Planning goal was created successfully with no numeric budget.
+
+Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
+covers all six destinations and their existing supported reads/exports. Read-only
+retained SQL comparison proves complete derived BPR master bag97,097 and GIT
+master bag2,567 equal to actual retained tables, with duplicate multiplicity.
+April OpenExpediteRequests exists and is genuinely empty; its independent
+acquisition is retained, not admitted through the June17 exception. Evidence:
+`D:/freshvcf-build/evidence/planning-prepared-20261005-001/derived-source-comparison.json`
+and `source-schema.json`. No engine or database mutation occurred.
+Next active step: implement the coherent typed preparation/read batch using this
+matrix, binding new derived outputs separately to sealed inputs. PostgreSQL,
+wire/order, frontend and performance exits remain unproved. Invalid combined
+GIT child and unpaged Expedite parent contracts retain their explicit dependencies.
+
+
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 
 Fixture history now reads selected-pair producer attributes under the existing
