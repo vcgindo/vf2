@@ -1,5 +1,45 @@
 # BTR reporting trial — operational handoff
 
+## Typed-reader follow-up — 4 October 2026
+
+The prepared grid reader now selects flat typed columns and constructs the
+response dictionary directly. SQL JSONB construction/concatenation and per-row
+JSON decoding are removed. Both canonical paging passes remain; the ordered
+bounded page drives a lateral typed-row lookup. No schema/index/data refresh or
+frontend change is required. Counts/exports remain on their existing reader.
+
+Evidence root: `D:/freshvcf-build/evidence/btr-typed-reader-20261004-001`.
+`before-*.json.gz` freeze the prior deployed reader; `after-*.json.gz` and
+`after-receipt.json` prove complete ordered responses for5000 rows per branch
+and20 per branch under restricted permissions and a seven-day range. JSON
+numbers compare numerically (JavaScript's single Number type); strings, NULLs,
+field presence, arrays/row order and sparse descriptors compare strictly.
+Seven affected tests and Django check passed; backend build succeeded.
+One retained EXPLAIN (`plan.json`) took773.097ms for On-Hand5000. Its top node is
+a nested loop after page selection, with no final wide sort; a narrow internal
+sort remains. These single observations do not certify p95 or legacy speedup.
+
+UI: On-Hand, Show All, page1,90 days, page size5000 rendered and scrolled. Retained
+`ui-grid.jpg` and `ui-observation.json` record the observation. One observed grid
+completion was5.132s, including tool round trips; an earlier observation was6.967s.
+The response-body proof remains open: browser tooling has no response inspection,
+and external read-only packet reconstruction failed. Retries were confined to
+this verification defect; no extra benchmark matrix was run. Do not represent
+the grid footer as independent proof of the actual response's prepared flag or
+5000-row population. Direct-reader complete response equality is proved above.
+Observer processes were stopped; no diagnostic service or permission change was
+left behind. Complete one supported network-body/UI observation to close this
+remaining proof, rather than changing the reader again without a measured defect.
+
+Backend image: `sha256:31f08919bd25dfd6f62561ea46fd74d2f7ad935df2749804fa9f57944e901c90`.
+Use the base preview compose, existing fixture overlay, then this evidence root's
+`compose.typed.json`. Recreate **mta only**, with `up -d --no-deps --no-build mta`.
+Rollback uses the same command with `compose.rollback.json`, restoring backend
+`8b218cd3cc5a…` and the same version2 generation `e5bdac30-bbd9-45d8-a93d-84a645fad73c`.
+Wait for `/readyz` after the unchanged startup integrity check. Do not use the
+older trial rollback below for this reader-only reversal. Frontend image/container,
+snapshot digest, memory/CPU limits, permissions and other services are preserved.
+
 ## Current ready-snapshot trial — 4 October 2026
 
 Open `http://localhost:3005/mta/insights-and-trends/buffer-trend-report` with the

@@ -213,19 +213,24 @@ def _attributes(generation):
     return result
 
 
-def _display_sql(columns):
-    pairs = []
+def _display_projection(columns):
+    fields, slots = [], []
     for name in (*TEXT_FIELDS, *SCALAR_FIELDS, *columns, *('C' + c for c in columns)):
+        slots.append((name, len(fields), name in TEXT_FIELDS))
         if name in TEXT_FIELDS:
-            value = 'S.' + quote(display_field(name, 'text'))
+            fields.append(display_field(name, 'text'))
         else:
-            number, text = ('S.' + quote(display_field(name, kind)) for kind in ('number', 'text'))
-            value = ('CASE WHEN ' + number + ' IS NOT NULL THEN to_jsonb(' + number + ') WHEN ' +
-                     '%s=ANY(S.nonfinite_fields) THEN \'null\'::jsonb ELSE to_jsonb(coalesce(' + text + ",'')) END")
-            # Fixed internal field names only; no request text enters SQL here.
-            value = value.replace('%s', "'" + name + "'")
-        pairs.append("'" + name + "'," + value)
-    return ' || '.join('jsonb_build_object(' + ','.join(pairs[i:i+40]) + ')' for i in range(0, len(pairs), 40))
+            fields.extend(display_field(name, kind) for kind in ('number', 'text'))
+    return ','.join('S.' + quote(field) for field in fields), slots
+
+
+def _display_row(values, slots, nonfinite):
+    row = {}
+    for name, index, text_only in slots:
+        value = values[index]
+        row[name] = value if text_only or value is not None else (
+            None if name in nonfinite else values[index + 1] if values[index + 1] is not None else '')
+    return row
 
 
 def range_availability(available, empty, horizon, columns):
@@ -275,6 +280,7 @@ def read_snapshot(run, generation, payload, paging):
     # only two summary differences, never decode 182 prefix cells per grid row.
     summary = ','.join('0' if default_range or left > right else
         f'S.{field}[{right + 1}]-S.{field}[{left}]' for field in ('available_prefix', 'empty_prefix'))
+    projection, slots = _display_projection(columns)
     for branch in ('tech', 'eco'):
         if selected_name not in (branch, 'both'):
             continue
@@ -283,17 +289,20 @@ def read_snapshot(run, generation, payload, paging):
         # LIMIT. Permission overlap multiplies selected keys, exactly as before.
         local.append('selected AS (SELECT S.sku_key,S.location_key FROM S' + auth + ' WHERE ' + where + parent +
                      ' ORDER BY ' + order + ' LIMIT %s OFFSET %s)')
-        local.append('page AS (SELECT S.id FROM selected T JOIN S ON S.sku_key=T.sku_key AND S.location_key=T.location_key'
+        local.append('page AS (SELECT S.id,S.sku_key,S.location_key FROM selected T JOIN S ON S.sku_key=T.sku_key AND S.location_key=T.location_key'
                      ' WHERE TRUE' + parent + ' ORDER BY ' + order + ' LIMIT %s)')
-        sql = ('WITH ' + ','.join(local) + ' SELECT ' + _display_sql(columns) +
+        # Keep the ordered, bounded page as the outer relation. OFFSET 0 prevents
+        # flattening this typed lookup into a wide join before page selection.
+        sql = ('WITH ' + ','.join(local) + ' SELECT display.* FROM page CROSS JOIN LATERAL (SELECT ' + projection +
                ',S.availability,' + summary + ',S.nonfinite_fields,S.nonfinite_tokens'
-               ' FROM page JOIN S ON S.id=page.id ORDER BY ' + order)
+               ' FROM S WHERE S.id=page.id OFFSET 0) display ORDER BY '
+               'page.sku_key NULLS FIRST,page.location_key NULLS FIRST')
         values = params + [generation.pk, branch] + filters.params + filters.children + [paging[1], (paging[0]-1)*paging[1]] + filters.children + [paging[1]]
         with connection.cursor() as cursor:
             cursor.execute(sql, values)
-            for index, (row, default, available, empty, fields, tokens) in enumerate(cursor.fetchall()):
-                if isinstance(row, str):
-                    row = json.loads(row)
+            for index, values in enumerate(cursor.fetchall()):
+                default, available, empty, fields, tokens = values[-5:]
+                row = _display_row(values, slots, fields)
                 availability = default if default_range else btr_display._availability(available, horizon - empty)
                 row['Availability'] = availability if availability is not None and math.isfinite(availability) else None
                 if row['Availability'] is None:

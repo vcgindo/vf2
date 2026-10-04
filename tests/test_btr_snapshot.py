@@ -10,7 +10,7 @@ import django
 django.setup()
 
 from mta.presentation.btr_display import prepare_display
-from mta.presentation.btr_snapshot import prepared_values, range_availability
+from mta.presentation.btr_snapshot import prepared_values, range_availability, _display_projection, _display_row
 from mta.presentation.btr_snapshot_fields import TEXT_FIELDS, DISPLAY_FIELDS, DAILY_FIELDS, display_field
 
 
@@ -28,6 +28,11 @@ class SnapshotSummaryTests(unittest.TestCase):
                         name in columns or name in tuple('C' + c for c in columns)}
             expected = prepare_display({'tech': [deepcopy(selected)], 'eco': []}, horizon)
             row = expected['tech'][0]
+            projection, slots = _display_projection(columns)
+            stored_fields = [part.removeprefix('S.').strip('"') for part in projection.split(',')]
+            actual_row = _display_row(tuple(prepared[f] for f in stored_fields), slots, prepared['nonfinite_fields'])
+            self.assertEqual(actual_row, {name: row[name] for name in selected})
+            self.assertNotIn('json', projection.lower())
             for name in selected:
                 text = prepared[display_field(name, 'text')]
                 number = prepared.get(display_field(name, 'number'))

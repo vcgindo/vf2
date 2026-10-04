@@ -26,6 +26,30 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### BTR typed reader — deployed; response-observation proof remains open
+
+Human-authorized follow-up to the delivered snapshot trial: remove SQL JSON
+packaging and per-row decoding from the prepared grid reader only. The selected
+April7 generation, data, frontend, permissions, two-pass paging and response
+semantics remain fixed. Counts/exports, engines, schema/resources and other
+services are excluded. This supersedes the trial stop only for this correction.
+Complete: frozen both-branch5000 and restricted seven-day20 responses match every
+row/field after the change. Seven affected tests, Django check and backend build
+pass. The one On-Hand5000 EXPLAIN took773.097ms, with no final wide sort.
+Backend-only deployment preserves frontend container/image, generation and
+admission `5c90ae58…`; rollback restores `8b218cd3cc5a…` with the same version2
+snapshot. The grid rendered and scrolled; observed completion was5.132s including
+tool round trips (earlier observed6.967s), not a controlled speedup claim.
+Consolidated remaining proof gap: the browser tool exposes no response bodies;
+the bounded outgoing-response observer did not reconstruct the chunked5000-row
+response. Its retries were verification failures, not benchmark samples. Thus
+actual UI-response `displayPrepared=true`/5000 rows is not independently captured;
+the footer and direct-reader comparisons alone do not close that explicit exit.
+Stop this correction at the deployed checkpoint; no additional optimization or
+schema/data work is justified by this instrumentation gap. Required next proof
+is one supported browser network-body observation paired with usable rendering.
+Evidence: `D:/freshvcf-build/evidence/btr-typed-reader-20261004-001`.
+
 ### Latest direction: BTR ready snapshot trial — delivered for human review
 
 The user authorized the fresh

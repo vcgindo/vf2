@@ -151,3 +151,16 @@ remaining request/display work. They are not unfinished scope by themselves.
 If a concrete contract prevents direct prepared reads, report the exact affected
 case and smallest proposed correction. Do not silently widen the task. Future
 daily refresh integration is explicitly deferred.
+
+## Authorized typed-reader follow-up
+
+Remove only the prepared-grid SQL JSON intermediate and per-row JSON decoding.
+Read typed columns and map the existing response directly; preserve two-pass
+paging, ordering, permissions, values/types and sparse nonfinite descriptors.
+Keep narrow page selection ahead of wide projection where the planner permits.
+Freeze current both-branch5000 and small scoped/range outputs before editing;
+compare every row/field, run affected tests/check/backend build, inspect one plan,
+and observe one completed On-Hand5000-row modern UI response and usable grid.
+Deploy only the backend, retain its previous image and current generation for
+rollback, update the existing handoff, commit/push and stop. No schema/data/index,
+frontend, count/export, legacy-service or resource changes; no benchmark expansion.
