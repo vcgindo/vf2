@@ -5,6 +5,180 @@ The scope is the read-only reporting batch in
 [MIGRATION.md](MIGRATION.md) is the sole status tracker. This document records
 implementation and operational evidence, not acceptance of all F3 workflows.
 
+## Guided Insights fixture preparation and serving
+
+The subsequent whole-page Guided contract is
+[GUIDED_PRESENTATION_PLAN.md](GUIDED_PRESENTATION_PLAN.md). Its evidence directory
+is `D:/freshvcf-build/evidence/guided-presentation-20261004-001` and its current
+browser acceptance status is recorded only in MIGRATION.md. It supersedes the
+earlier portfolio batch's history-optimization exclusion for these eleven reads.
+
+Migration0021 adds one typed daily DBM occurrence relation and immutable receipt.
+The grain is suggestion × SKU × location × optional pair × master occurrence;
+raw keys, NULL equality and source ordinals are preserved. Endpoint-specific
+description bags remain live joins. Permissions, parent weights and filters are
+applied before aggregation. Native decimal-string attributes remain text so their
+MAX and wire behavior match the retained consumer; they are not rounded or
+reinterpreted numerically. The retained97097 rows took28.925s to prepare and use
+52379648 bytes including indexes and the receipt. Its source binding remains
+`4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73`;
+prepared row digest is
+`b161d0abe38510a463a70882acea6f9717137cea20fea035178a3974d7d21856`.
+
+Append `compose.guided.json` from that directory after the existing base, fixture,
+portfolio and BPR overlays. With that isolated configuration, run
+`python manage.py migrate_btr_fixture --guided-preparation`, then
+`python manage.py prepare_guided_dbm_fixture`. A repeated command verifies the
+complete sealed bag without replacing it; `--verify-only --verify-mutation-guards`
+checks readback and exact mutation-denial messages. The owned fixture contains
+no normal run, so the normal-owner live insertion probe is explicitly unavailable;
+the installed guard body is checked and requires LEGACY_UI_FIXTURE/FIXTURE_BLOCKED.
+No engine runs or source facts are created by this command.
+
+`VF_GUIDED_PREPARED=1` routes the seven daily fixture reads through the new SQL
+paths. Missing DBM receipt/schema/source or altered guards fail closed. Approved
+hierarchy supplements retain the existing projected reader. Chronic charts use bounded
+typed SQL with their distinct INNER-description grain. The grid correction below
+prepares its LEFT-NMS occurrences. Query-local planner settings restore on success
+and roll back on failure. The initial history occurrence-count reader preserved
+outputs but failed browser latency acceptance. It is replaced by narrow
+shared Availability and separate Excess serving ingredients; scope, supported
+filters, horizon and minimum age remain live. No permission-specific cache is used.
+Frontend request and display transformations remain unchanged.
+
+Deploy only `mta` with `--no-deps --no-build` and wait for `/readyz` admission.
+Rollback uses the same first four overlays without `compose.guided.json`, restoring
+`freshvcf-preview-mta:bpr-prepared-20261004-001` (immutable image
+`sha256:a8733a685bb53c9449dcafb2d2453a0b7b0171214de9655fdab5d4bb45c152fa`).
+Retain migration0021 and its sealed rows; the earlier image ignores them. Selected
+April7 run, BTR generation, BPR switch, accounts and source facts stay unchanged.
+
+Daily producer integration remains debt: normal accepted publication must supply
+and atomically prepare its own daily suggestion occurrences, bind its own receipt,
+and prove refresh/retry/retention before this fixture path can be generalized.
+This implementation neither schedules refresh nor copies legacy calculations into
+accepted F1/F2 state. Complete before/after results cover all11 broad reads and
+four restricted family cases; native timings alone are not browser acceptance.
+
+The failed whole-page timing pass prompted a narrower Chronic grid preparation.
+Migration0022 adds its own sealed3340-row occurrence relation, built in8.191s,
+using1384448 bytes including indexes and receipt. It retains the five original
+source ordinals and11 grid output fields, without copying wide filter attributes.
+Broad reads use only prepared rows and live permission weights. Supported filters
+join only the required immutable source-owner ordinals; parent eligibility remains
+live. Exact broad/restricted output, two PostgreSQL differential tests, retry and
+seven exact-message mutation guard probes pass. Receipt-insert/normal-owner live
+probes are not claimed. Source binding is unchanged; row digest is
+`c71e9444fb8e41f256f36aafef1972836dc4d8cd9950a443583e8ab308d5c13f`.
+The existing `migrate_btr_fixture --guided-preparation` now includes0022; run
+`prepare_guided_chronic_fixture`, or `--verify-only --verify-mutation-guards`
+to verify the sealed retained population. No new calculation or source data is
+created. The corrected deployment and browser results are in MIGRATION.md.
+
+History preparation uses migrations0023–0026. Apply them with
+`python manage.py migrate_btr_fixture --guided-history-preparation`, then run
+`python manage.py prepare_guided_history_fixture`. Availability Trend and Ageing
+share narrow typed fact × SKU × location × optional pair occurrences. Snapshot
+eligibility references use original snapshot ordinals, including duplicate eligible
+snapshots; unmatched history remains available to Trend and excluded from Ageing
+by its existing INNER eligibility. Excess has a separate importer-owned occurrence
+relation. No integer business-key dictionary, per-user cache or per-horizon copy
+is introduced. The retained BPR source contains8,483,003 rows, so this is a full
+one-time historical preparation rather than a daily97,000-row projection.
+
+Ordinary history SQL equality, source occurrence order and source NULL exclusion
+are preserved. Endpoint scope/permission weights, parent filters, arbitrary
+supported raw-owner filters, horizon and minimum age remain live. Broad reads
+avoid rebuilding stable source joins; filtered owners are reached by original
+ordinals. The explicit fixture switch and source/schema/guard checks gate these
+readers. Normal publication and approved hierarchy projection retain their prior
+paths. A repeat or `--verify-only` streams and verifies both sealed families and
+the snapshot references; it never replaces an existing sealed population.
+
+0024 records the explicit correction to the initial0023 guard/receipt contract.
+0025 moves repeated fixture/seal checks to a statement trigger under the owned
+run lock, retaining a cheap per-row run-identity check and immutable-row guards.
+The first two uncommitted attempts were stopped for NULL-join correctness and
+repeated row-guard cost respectively; their absence of committed rows was checked.
+The completed build took1700.176s under1GiB/1CPU and committed8,483,003
+Availability rows plus97,299 snapshot references and920,774 Excess rows.
+Before the covering-index correction, their total relation sizes are respectively
+1,940,742,144,43,376,640 and213,090,304 bytes. Availability's complete digest is
+`45cbc4e841ed23ca81f66fc80d45c542a21ad89324f80c3d54e196ad9e2e15c0`;
+Excess is`6376cf626c560a7e3a0f64a6854ba0340413bb94e427ee404101cc0ad8427095`.
+Build, storage and configured-output evidence is retained in
+`D:/freshvcf-build/evidence/guided-history-prepared-20261004`.
+0026 adds the840,966,144-byte`fresh_guided_avail_cover` index on run/date,
+including the permission codes, location type, colour, source order and snapshot
+anchor needed by both broad Availability reads. Raw-owner filters still use
+their original source-ordinal joins. The index changes no stored values and can
+remain installed when reverting application code. Its observed build wall time
+was approximately209s, separately from the1700.176s historical row preparation.
+Daily incremental preparation, producer integration and retention remain future
+work; no scheduler or production calculation boundary is changed here.
+
+Guided XLSX export uses an explicit opt-in on the shared chart-table component;
+unrelated Planning/MTO callers retain their previous handler. Guided chart tables
+and the Chronic toolbar obtain AG Grid's workbook blob synchronously and trigger
+a native anchor click during the user's click task. This avoids the asynchronous
+compressed-download path implicated by the failed clicks. The workbook is an
+uncompressed ZIP, so file size increases; there is no new server transfer.
+The scoped frontend image is `freshvcf-preview-frontend:guided-export-20261004-001`,
+`sha256:893c1672179651413144cf1ac3a95d5414313ec3c8339cbb3c68204fde53e7ac`.
+Append `compose.guided-export.json` after the existing overlays and recreate only
+frontend with `--no-deps --no-build`. Its limits remain128MiB/0.5CPU, restart=no.
+The user confirmed DBM location export after refresh. The retained80,368-byte
+workbook is a valid uncompressed XLSX and all129 rows ×25 columns match the
+retained response in displayed order (`dbm-location-xlsx-validation.json`).
+The in-app browser still cannot capture this download. Four focused helper/
+component tests cover the Guided opt-in and unchanged shared default. The user
+also confirms Chronic grid XLSX downloads. Its file was not independently located
+for cell validation. The separate Chronic location-chart workbook is65,323 bytes,
+with all91 rows ×26 columns matching the retained response; these are distinct
+evidence claims in`export-runtime-validation.json`.
+For frontend rollback select the prior immutable image
+`sha256:37643d580475db6fac763bad2c9a091afbfebc52cd62f17d66a3e912ff5fbb7f`
+and recreate only frontend with the same configuration.
+
+The final correction appends`compose.guided-corrected.json` after
+`compose.guided-export.json`, retaining all earlier base/fixture/portfolio/BPR/
+Guided overlays. It selects`freshvcf-preview-mta:guided-corrected-20261004-002`,
+immutable image`sha256:7b31f6da2c336301e26729ed3599434d051f965d1effa31dbbd3fc4a2229626d`.
+Recreate only MTA with`--no-deps --no-build`. Its unchanged full startup
+admission takes minutes on the heavy fixture; wait for`/readyz` before sending
+consumer requests. Do not weaken admission or treat that startup interval as
+request latency. Final readiness reports the original admission digest.
+The service remains4GiB/2CPU, restart=no, with no host-port mapping.
+
+To revert only the corrected history/grid backend while retaining the passing
+first Guided batch, omit`compose.guided-corrected.json`; the previous image is
+`sha256:b2a4baa2c5fe5b0f5d8414af85e70ffea121e57c287f06abd57a90fce552b16e`.
+Retain all additive prepared tables/indexes and existing fixture rows. The
+pre-Guided rollback described above remains available. Neither rollback changes
+accounts, source data, accepted calculation state or the BPR/BTR selections.
+
+Final evidence includes`deployed-corrected-proof/corrected-exact-comparison.json`
+(eight complete affected broad/restricted responses),
+`browser-corrected-trials.jsonl`(24 completed screens),
+`browser-corrected-request-correlation.json`(all12 modern request windows),
+`browser-corrected-legacy-correlation.json`(all12 legacy windows),
+`browser-corrected-medians.json`and`resource-window-final-003/budget-result.json`.
+`guided-final-validation.json` consolidates the bounded result and its limits.
+The retained failed landing-heading click is separately identified as navigation
+instrumentation failure. It did not initiate a report request. No completed
+report observation was replaced. Resource restoration has no errors;21 other
+retained serving containers are unchanged. Final age2/horizon8 browser evidence
+is`corrected-age2-horizon8.txt`and its screenshot.
+
+History full-stream repeat readback reproduces both sealed digests. Seven
+rolled-back mutation probes reject sealed insert, row update/delete/truncate,
+snapshot update and receipt update/delete without changed counts. Receipt-insert
+and normal-owner live probes are not claimed. Prepared history PostgreSQL2/2,
+fallback5/5, Django/schema/migration-enabled checks and production builds pass.
+The four frontend export tests pass; the TypeScript check retains the same three
+pre-existing useBTR errors. Existing independent legacy ordering differences and
+daily producer integration remain explicitly bounded residuals in MIGRATION.md.
+
 ## BPR fixture preparation and serving
 
 The bounded BPR correction uses the same April 7 run

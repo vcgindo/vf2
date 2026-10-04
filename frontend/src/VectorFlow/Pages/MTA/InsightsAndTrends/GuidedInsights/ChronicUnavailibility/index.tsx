@@ -97,6 +97,7 @@ const ChronicUnavailabilityCharts = ({filter}:{filter:any}) => {
                     <Allotment.Pane minSize={440} preferredSize={'50%'}>
 
                         <VFCharts     
+                            useSynchronousExcelExport
                             height={'95%'}
                             chartParams={chartParams1}
                             colDefs={coldefs1}
@@ -110,6 +111,7 @@ const ChronicUnavailabilityCharts = ({filter}:{filter:any}) => {
                     <Allotment.Pane minSize={440} preferredSize={'50%'} >
                         
                         <VFCharts     
+                            useSynchronousExcelExport
                             height={'95%'}
                             chartParams={chartParams2}
                             colDefs={coldefs2}

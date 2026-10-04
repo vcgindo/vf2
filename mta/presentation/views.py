@@ -556,6 +556,23 @@ def insight_data(request, payload, *, kind):
     from mta.presentation.insight_filters import InsightPredicate
     from mta.presentation.insight_response import insight_payload
     from mta.presentation import fixture
+    from mta.presentation.chronic_sql import native_fixture
+    if fixture.enabled() and settings.VF_GUIDED_PREPARED and kind in (
+            'loc', 'sku', 'pie', 'ageing', 'chronic-loc', 'chronic-sku', 'chronic-grid') and native_fixture(selected_run()):
+        run = selected_run()
+        if kind == 'chronic-grid':
+            from mta.presentation.guided_chronic import read_guided_chronic
+            values = read_guided_chronic(run, payload)
+        elif kind.startswith('chronic-'):
+            from mta.presentation.chronic_sql import read_chronic
+            values = read_chronic(run, payload, kind)
+        else:
+            from mta.presentation.guided_dbm import read_guided_dbm
+            from mta.presentation.selective import image_rows
+            attributes = {name: image_rows(run, 'closing/btr/' + name)
+                          for name in ('SkuAttributeData', 'LocationAttributeData')}
+            values = read_guided_dbm(run, payload, kind, attributes)
+        return envelope(data=insight_payload(values, kind))
     if fixture.enabled() and (kind.startswith('availability-') or kind.startswith('excess-')):
         run = selected_run()
         from mta.presentation.insight_history_sql import read_history

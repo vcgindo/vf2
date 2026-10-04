@@ -35,6 +35,14 @@ def read_history(run, payload, kind):
         raise PublicationUnavailable(str(exc)) from exc
     predicate = InsightPredicate(payload, attributes['LocationAttributeData'], kind=kind)
     products, locations = scope(payload, attributes=attributes)
+    if run.kind == 'LEGACY_UI_FIXTURE' and not manifest and products and locations:
+        from mta.presentation.guided_history_prepared import read_prepared
+        prepared_rows = read_prepared(
+            run, cutoff, predicate, products, locations, kind,
+            minimum_age=(int(payload.get('ageing', 1))
+                         if kind == 'availability-ageing' else None))
+        if prepared_rows is not None:
+            return _result(prepared_rows, kind)
     ctes, params, wires = [], [], {}
     def add(alias, query, values, fields):
         ctes.append(alias + ' AS (' + query + ')'); params.extend(values)
@@ -88,6 +96,14 @@ def read_history(run, payload, kind):
         where = ' AND '.join(term(t) for t in predicate.sql_terms) or 'TRUE'
     except PublicationUnavailable as exc:
         unavailable(str(exc).partition(':')[2])
+
+    def references(node, alias):
+        if node[0] == 'or':
+            return any(references(child, alias) for child in node[1])
+        return node[1][0] == alias
+
+    pair_predicate = any(references(node, '_pair') for node in predicate.sql_terms)
+    snapshot_predicate = any(references(node, '_snapshot') for node in predicate.sql_terms)
     if not products or not locations:
         return []
     for alias, codes in (('P', products), ('L', locations)):
@@ -95,16 +111,42 @@ def read_history(run, payload, kind):
         params.extend(v for code in sorted(codes) for v in (code, codes.multiplicities[code]))
     source_location = '_a.' + quote('WhCode' if excess else 'WHCode')
     joins = (' FROM _a JOIN _sku ON _a."SKUCode"=_sku."SKUCode"'
-        ' JOIN _location ON _a."WhCode"=_location."WHCode"'
-        ' LEFT JOIN _pair ON _a."SKUCode"=_pair."SKUCode" AND _a."WhCode"=_pair."LocCode"'
-        ' JOIN P ON _a."SKUCode"=P.column1 JOIN L ON _a."WhCode"=L.column1')
+        ' JOIN _location ON _a."WhCode"=_location."WHCode"')
+    pair_weight = ''
+    if pair_predicate:
+        joins += (' LEFT JOIN _pair ON _a."SKUCode"=_pair."SKUCode"'
+                  ' AND _a."WhCode"=_pair."LocCode"')
+    else:
+        # A raw LEFT JOIN is one occurrence for a miss and one per matching
+        # pair row.  Carry that exact bag weight without sorting every fact
+        # occurrence against the complete pair relation.
+        ctes.append('_pair_occurrence AS MATERIALIZED (SELECT "SKUCode","LocCode",count(*) AS vf_count'
+                    ' FROM _pair GROUP BY "SKUCode","LocCode")')
+        joins += (' LEFT JOIN _pair_occurrence ON _a."SKUCode"=_pair_occurrence."SKUCode"'
+                  ' AND _a."WhCode"=_pair_occurrence."LocCode"')
+        pair_weight = '*coalesce(_pair_occurrence.vf_count,1)'
+    joins += (' JOIN P ON _a."SKUCode"=P.column1'
+              ' JOIN L ON _a."WhCode"=L.column1')
+    minimum_age = None
+    snapshot_weight = ''
+    if kind == 'availability-ageing':
+        minimum_age = int(payload.get('ageing', 1))
+    if minimum_age is not None and not snapshot_predicate:
+        ctes.append('_snapshot_occurrence AS MATERIALIZED (SELECT "SKUCode","WhCode",count(*) AS vf_count'
+                    ' FROM _snapshot WHERE "AgePhysicalInv">=%s'
+                    ' GROUP BY "SKUCode","WhCode")')
+        params.append(minimum_age)
+        joins += (' JOIN _snapshot_occurrence ON _a."SKUCode"=_snapshot_occurrence."SKUCode"'
+                  ' AND _a."WhCode"=_snapshot_occurrence."WhCode"')
+        snapshot_weight = '*_snapshot_occurrence.vf_count'
     if predicate.children:
         # The native predicate returns parent-join multiplicity, not EXISTS.
         joins += (' JOIN _location parent ON ' + equal('_a."ParentWhCode"', 'parent."WHCode"') + ' AND (' +
             ' OR '.join(equal('parent."LocationType"', '%s') for _ in predicate.children) + ')')
         params.extend(predicate.children)
     joins = joins.replace('_a."WhCode"', source_location)
-    weight = '(P.column2::bigint*L.column2::bigint)'
+    weight = ('(P.column2::bigint*L.column2::bigint' + pair_weight +
+              snapshot_weight + ')')
     day = '_a."ReportDate"'
     colour = '_a."PhysicalInventoryColor"'
     first_occurrence = "min(lpad(_a.vf_ordinal::text,20,'0')||lpad(_location.vf_ordinal::text,20,'0'))"
@@ -114,9 +156,11 @@ def read_history(run, payload, kind):
             colour + ' IS NOT NULL THEN ' + weight + ' ELSE 0 END),0))')
         group = ' GROUP BY ' + day + ',_location."LocationType" HAVING count(' + colour + ')>0 ORDER BY ' + day + ',' + first_occurrence
     elif kind == 'availability-ageing':
-        joins += (' JOIN _snapshot ON _a."SKUCode"=_snapshot."SKUCode" AND _a."WhCode"=_snapshot."WhCode"'
-                  ' AND _snapshot."AgePhysicalInv">=%s')
-        params.append(int(payload.get('ageing', 1)))
+        if snapshot_predicate:
+            joins += (' JOIN _snapshot ON _a."SKUCode"=_snapshot."SKUCode"'
+                      ' AND _a."WhCode"=_snapshot."WhCode"'
+                      ' AND _snapshot."AgePhysicalInv">=%s')
+            params.append(minimum_age)
         selected = day + ',' + ','.join('sum(CASE WHEN ' + colour + "='" + c + "' THEN " + weight +
                                        ' ELSE 0 END)' for c in ('Black','Red','White'))
         group = ' GROUP BY ' + day + ' ORDER BY ' + day
@@ -130,6 +174,10 @@ def read_history(run, payload, kind):
         cursor.execute('WITH ' + ','.join(ctes) + ' SELECT ' + selected + joins.replace('_a."WhCode"', source_location) + ' WHERE ' + where + group,
                        params + compiler.params)
         rows = cursor.fetchall()
+    return _result(rows, kind)
+
+
+def _result(rows, kind):
     result = []
     for row in rows:
         if kind == 'availability-trend':

@@ -20,7 +20,8 @@ const VFCharts = (props:any) =>{
         colDefs,
         rowData,
         chartProps,
-        containerStyle
+        containerStyle,
+        useSynchronousExcelExport = false
     } = props;
 
     const {palette, chartType, defaultColForChart, graphInfo, title, customizedStyles=defaultStyles, downloadName } = chartParams
@@ -154,6 +155,7 @@ const VFCharts = (props:any) =>{
                 rowData={rowData} 
                 chartProps={chartProps}
                 gridSpecificChartOptions={gridSpecificChartOptions}
+                useSynchronousExcelExport={useSynchronousExcelExport}
                 />
     
     </SCChartContainer>

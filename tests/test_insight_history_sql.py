@@ -264,6 +264,34 @@ class InsightHistorySqlPostgresTests(unittest.TestCase):
         ])
         self.assertEqual(self.read(payload, 'availability-ageing'), expected)
 
+    def test_availability_trend_unfiltered_pair_occurrence_weight(self):
+        payload = {'horizon': 5, 'ageing': 'ignored-by-trend', 'filters': {}}
+        expected = self.expected_availability(payload, 'availability-trend')
+        self.assertEqual(self.read(payload, 'availability-trend'), expected)
+
+    def test_availability_ageing_snapshot_predicate_uses_raw_occurrences(self):
+        payload = {'horizon': 5, 'ageing': 4, 'filters': {}}
+        predicate = SimpleNamespace(children=[], sql_terms=[
+            ('compare', ('_snapshot', 'AgePhysicalInv'), 'greaterthan', '4'),
+        ])
+        state = dict(BPR=self.bpr, SkuAttributeData=self.skus,
+                     LocationAttributeData=self.locations_rows,
+                     SkuLocAttributeData=self.pairs)
+        joined = [row for row in insights.availability_rows(
+            state, filter_owners=True)
+            if date.fromisoformat(row['ReportDate']) > date(2026, 6, 12)]
+
+        def selected_weight(row):
+            return (permission_multiplicity(self.products, row['SKUCode']) *
+                    permission_multiplicity(self.locations, row['WhCode']) *
+                    (row['_snapshot']['AgePhysicalInv'] > 4))
+
+        expected = insights.availability_ageing(
+            joined, self.snapshots, 4, predicate=selected_weight)
+        with patch.object(insight_history_sql, 'InsightPredicate',
+                          return_value=predicate):
+            self.assertEqual(self.read(payload, 'availability-ageing'), expected)
+
     def test_excess_aggregates_match_project_with_values_fact_relation(self):
         excess_rows = [
             self.excess_row('SKU', 'LOC', 'White', 10, '2026-06-16'),
@@ -314,6 +342,12 @@ class InsightHistorySqlPostgresTests(unittest.TestCase):
                 self.assertEqual(expected, expected_explicit)
                 self.assertEqual(actual, expected)
 
+        unfiltered = {'horison': 5, 'filters': {}}
+        actual = self.read_excess(unfiltered, 'excess-value', excess_rows)
+        expected = self.expected_excess(
+            unfiltered, 'excess-value', excess_rows, value=True)
+        self.assertEqual(actual, expected)
+
     @staticmethod
     def importer_row(table, source):
         names = {name for name, _ in CATALOG['tables'][table]}
@@ -343,7 +377,9 @@ class InsightHistorySqlPostgresTests(unittest.TestCase):
             def __exit__(cursor_self, *args):
                 return cursor_self.manager.__exit__(*args)
 
-            def execute(cursor_self, query, params):
+            def execute(cursor_self, query, params=None):
+                if query.startswith('SET LOCAL '):
+                    return cursor_self.cursor.execute(query, params)
                 if target not in query:
                     raise AssertionError('excess fact relation was not selected')
                 return cursor_self.cursor.execute(

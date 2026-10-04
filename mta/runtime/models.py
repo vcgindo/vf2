@@ -82,6 +82,157 @@ for _owner, _fields in _BPR_FIELDS.items():
         BprPreparedRow.add_to_class(_bpr_field_name(_owner, _field), _factory(null=True))
 
 
+class GuidedDbmPreparedProjection(models.Model):
+    """Immutable source receipt for one fixture daily-suggestion occurrence bag."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    schema_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class GuidedDbmPreparedRow(models.Model):
+    """Common native occurrence before endpoint descriptions, auth, or filters."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    a_ordinal = models.BigIntegerField()
+    s_ordinal = models.BigIntegerField()
+    l_ordinal = models.BigIntegerField()
+    p_ordinal = models.BigIntegerField(null=True)
+    m_ordinal = models.BigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='fresh_guided_dbm_ordinal')]
+        indexes = [models.Index(fields=['run', 'a_skucode', 'a_whcode'],
+                                name='fresh_guided_dbm_keys')]
+
+
+from mta.presentation.guided_dbm_fields import FIELDS as _GUIDED_DBM_FIELDS, field_name as _guided_dbm_field_name
+for _owner, _fields in _GUIDED_DBM_FIELDS.items():
+    for _field, _kind in _fields.items():
+        _factory = {'text': models.TextField, 'bigint': models.BigIntegerField}[_kind]
+        GuidedDbmPreparedRow.add_to_class(_guided_dbm_field_name(_owner, _field), _factory(null=True))
+
+
+class GuidedChronicPreparedProjection(models.Model):
+    """Immutable source receipt for the fixture Chronic grid occurrence bag."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    schema_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class GuidedChronicPreparedRow(models.Model):
+    """Prepared grid output plus exact retained filter-owner occurrences."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    a_ordinal = models.BigIntegerField()
+    n_ordinal = models.BigIntegerField(null=True)
+    l_ordinal = models.BigIntegerField(null=True)
+    s_ordinal = models.BigIntegerField(null=True)
+    p_ordinal = models.BigIntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='fresh_guided_chronic_ordinal')]
+        indexes = [models.Index(fields=['run', 'skucode', 'location'],
+                                name='fresh_guided_chronic_keys')]
+
+
+from mta.presentation.guided_chronic_fields import OUTPUTS as _GUIDED_CHRONIC_OUTPUTS
+for _field, _kind in _GUIDED_CHRONIC_OUTPUTS.items():
+    _factory = {'text': models.TextField, 'bigint': models.BigIntegerField}[_kind]
+    GuidedChronicPreparedRow.add_to_class(_field, _factory(null=True))
+
+
+class GuidedHistoryPreparedProjection(models.Model):
+    """Immutable receipt for one fixture history occurrence family."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    family = models.CharField(max_length=16)
+    source_digest = models.CharField(max_length=64)
+    schema_digest = models.CharField(max_length=64, null=True)
+    rows_digest = models.CharField(max_length=64, null=True)
+    row_count = models.PositiveBigIntegerField()
+    reference_count = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'family'],
+                                               name='fresh_guided_history_family')]
+
+
+class GuidedAvailabilityHistoryRow(models.Model):
+    """BPR fact and exact stable attribute/pair occurrence ordinals."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    fact_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    pair_ordinal = models.BigIntegerField(null=True)
+    snapshot_anchor_ordinal = models.BigIntegerField(null=True)
+    report_date = models.DateField()
+    sku_code = models.TextField(null=True)
+    location_code = models.TextField(null=True)
+    parent_location_code = models.TextField(null=True)
+    location_type = models.TextField(null=True)
+    physical_inventory_color = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='fresh_guided_availability_ordinal')]
+        indexes = [models.Index(fields=['run', 'report_date'],
+                                name='fresh_guided_avail_date'),
+                   models.Index(fields=['run', 'report_date'],
+                                include=['sku_code', 'location_code',
+                                         'location_type',
+                                         'physical_inventory_color', 'ordinal',
+                                         'snapshot_anchor_ordinal'],
+                                name='fresh_guided_avail_cover')]
+
+
+class GuidedAvailabilitySnapshotReference(models.Model):
+    """Prepared exact key-to-current-snapshot occurrence and live age."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    snapshot_anchor_ordinal = models.BigIntegerField()
+    snapshot_ordinal = models.BigIntegerField()
+    age_physical_inventory = models.BigIntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=['run', 'snapshot_anchor_ordinal', 'snapshot_ordinal'],
+            name='fresh_guided_snapshot_reference')]
+        indexes = [models.Index(fields=['run', 'snapshot_anchor_ordinal',
+                                       'age_physical_inventory'],
+                                name='fresh_guided_snapshot_age')]
+
+
+class GuidedExcessHistoryRow(models.Model):
+    """Excess fact and exact importer attribute/pair occurrence ordinals."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.BigIntegerField()
+    fact_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    pair_ordinal = models.BigIntegerField(null=True)
+    report_date = models.DateField()
+    sku_code = models.TextField(null=True)
+    location_code = models.TextField(null=True)
+    parent_location_code = models.TextField(null=True)
+    location_type = models.TextField(null=True)
+    physical_inventory_color = models.TextField(null=True)
+    amount = models.BigIntegerField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='fresh_guided_excess_history_ordinal')]
+        indexes = [models.Index(fields=['run', 'report_date'],
+                                name='fresh_guided_excess_date')]
+
+
 class BtrReportingGeneration(models.Model):
     """Immutable derived BTR references, never calculation or permission state."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -6,6 +6,7 @@ import { useUserData } from "../../../../context";
 import { SideBarDef } from 'ag-grid-enterprise';
 import { useState } from "react";
 import { GridFilterWrapper, TextBtn } from "../../../../VectorFlow/Pages/MTO/Common/VFPagination/styles";
+import { exportGridAsExcel } from "../../../../helpers/exportGridAsExcel";
 
 
 const VFChartsTable = (props:any)=>{
@@ -21,6 +22,7 @@ const VFChartsTable = (props:any)=>{
         chartType,
         downloadName,
         gridSpecificChartOptions,
+        useSynchronousExcelExport = false,
     } = props;
 
 
@@ -47,9 +49,14 @@ const VFChartsTable = (props:any)=>{
     const getChartToolbarItems:any = () => ['chartDownload'];
 
     const handleExportExcel = () => {
-        gridRef?.current?.api?.exportDataAsExcel({
-            fileName: (downloadName ? downloadName.replace(/[^a-zA-Z0-9-_ %]/g, '').replace(/ /g, '_') : 'export') + '.xlsx'        
-        });
+        const api = gridRef?.current?.api;
+        if (!api) return;
+        const fileName = (downloadName ? downloadName.replace(/[^a-zA-Z0-9-_ %]/g, '').replace(/ /g, '_') : 'export') + '.xlsx';
+        if (useSynchronousExcelExport) {
+            exportGridAsExcel(api, fileName);
+            return;
+        }
+        api.exportDataAsExcel({ fileName });
     };
 
     const sideBar:SideBarDef = {

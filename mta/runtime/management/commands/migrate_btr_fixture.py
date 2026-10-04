@@ -15,22 +15,40 @@ class Command(BaseCommand):
                             help='Apply the additive typed BPR candidate relation and seals')
         parser.add_argument('--guided-history-index', action='store_true',
                             help='Apply only the additive Guided history date index after BTR migrations')
+        parser.add_argument('--guided-preparation', action='store_true',
+                            help='Apply the additive sealed Guided DBM and Chronic grid relations')
+        parser.add_argument('--guided-history-preparation', action='store_true',
+                            help='Apply the additive sealed Guided history occurrence relations')
 
     def handle(self, *args, **options):
         if not fixture.enabled():
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0020_bpr_prepared_seals' if options['bpr_preparation'] else
+        target = ('0026_guided_history_covering_index' if options['guided_history_preparation'] else
+                  '0022_guided_chronic_prepared_candidates' if options['guided_preparation'] else
+                  '0020_bpr_prepared_seals' if options['bpr_preparation'] else
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
-                *(['0018_guided_history_date_index'] if options['guided_history_index'] or options['bpr_preparation'] else []),
+                *(['0018_guided_history_date_index'] if options['guided_history_index'] or options['bpr_preparation'] or options['guided_preparation'] or options['guided_history_preparation'] else []),
                 *(['0019_bpr_prepared_candidates', '0020_bpr_prepared_seals']
-                  if options['bpr_preparation'] else [])) for migration, backwards in plan):
+                  if options['bpr_preparation'] or options['guided_preparation'] or options['guided_history_preparation'] else []),
+                *(['0021_guided_dbm_prepared_candidates']
+                  if options['guided_preparation'] or options['guided_history_preparation'] else []),
+                *(['0022_guided_chronic_prepared_candidates']
+                  if options['guided_preparation'] or options['guided_history_preparation'] else []),
+                *(['0023_guided_history_prepared_occurrences']
+                  if options['guided_history_preparation'] else []),
+                *(['0024_guided_history_receipt_verification']
+                  if options['guided_history_preparation'] else []),
+                *(['0025_guided_history_statement_guard']
+                  if options['guided_history_preparation'] else []),
+                *(['0026_guided_history_covering_index']
+                  if options['guided_history_preparation'] else [])) for migration, backwards in plan):
             raise CommandError('Only allowlisted forward reporting migrations are allowed')
         with transaction.atomic():
             with connection.cursor() as cursor:

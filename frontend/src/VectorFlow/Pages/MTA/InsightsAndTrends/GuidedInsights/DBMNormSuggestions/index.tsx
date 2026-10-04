@@ -178,6 +178,7 @@ const DBMNormSuggestions = ({ filter }: { filter: any }) => {
             <Allotment>
               <Allotment.Pane preferredSize={"48%"}>
                 <VFCharts
+                  useSynchronousExcelExport
                   height={"95%"}
                   chartParams={chartParams1}
                   colDefs={coldefs1}
@@ -213,6 +214,7 @@ const DBMNormSuggestions = ({ filter }: { filter: any }) => {
             <Allotment>
               <Allotment.Pane preferredSize={"48%"}>
                 <VFCharts
+                  useSynchronousExcelExport
                   height={"95%"}
                   chartParams={chartParams3}
                   colDefs={coldefs3}
@@ -223,6 +225,7 @@ const DBMNormSuggestions = ({ filter }: { filter: any }) => {
               </Allotment.Pane>
               <Allotment.Pane preferredSize={"48%"}>
                 <VFCharts
+                  useSynchronousExcelExport
                   height={"95%"}
                   chartParams={chartParams4}
                   colDefs={coldefs4}

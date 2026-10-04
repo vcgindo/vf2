@@ -31,6 +31,7 @@ import { Skeleton } from "../../../../../../components/commons/styled";
 import ConfirmationDataModal from "../../../DBM/DBMNormSuggestions/ConfirmationModal";
 import MTAVFMultiFilter from "../../../Common/MTAVFMultiFilter";
 import { UIColumnConfigName } from "../../../../../../helpers/Enum";
+import { exportGridAsExcel } from "../../../../../../helpers/exportGridAsExcel";
 
 interface ActionToolBarProps {
   view: string;
@@ -505,9 +506,9 @@ const ActionToolBar = ({
   };
 
     const handleGIExportExcel = () => {
-      ref?.current?.api?.exportDataAsExcel({
-          fileName:  'ChronicUnavailabilityexport.xlsx', 
-      });
+      const api = ref?.current?.api;
+      if (!api) return;
+      exportGridAsExcel(api, 'ChronicUnavailabilityexport.xlsx');
   };
 
   const renderFloatingTab = () => {

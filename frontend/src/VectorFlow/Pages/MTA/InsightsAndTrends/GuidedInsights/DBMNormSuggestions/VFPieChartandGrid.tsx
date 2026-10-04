@@ -217,6 +217,7 @@ const PieChartandGrid = (props:any) => {
                 rowData={rowData} 
                 chartProps={chartProps}
                 gridSpecificChartOptions={pieChartOptions}
+                useSynchronousExcelExport
                 />
     
         </SCChartContainer>

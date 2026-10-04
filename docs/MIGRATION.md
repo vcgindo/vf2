@@ -27,24 +27,104 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Active: whole Guided Insights prepared-presentation delivery
+### Complete: bounded Guided Insights prepared-presentation delivery
 
-Human authorization4October after satisfactory BPR delivery at`194ade6`, expanded
-from DBM-only to ALL FIVE visible tabs of the Guided URL: implement
-[one whole-page plan](GUIDED_PRESENTATION_PLAN.md) covering Availability Trend,
-Chronic charts/grid, Availability Ageing, DBM four panels and Excess two panels.
-The earlier DBM-only execution boundary is superseded. Reuse shared typed dimensions
-and contracts; choose family-specific preparation/read corrections from measured
-work, preserving source grains, live scope/filter, NULL/types/multiplicity/order
-and existing frontend/chart/table contracts. Hidden Custom Screens is not included.
-Research identifies source-context loading8.57s and Python joins3.44s of12.87s
-for the current pie request; three output groups. This is not UI acceptance.
-Active item: qualify family occurrence grain and retain affected before results,
-then implement all required11readers/minimal frontend batch. Unmet exit: complete
-values, focused PostgreSQL/build proofs,3005 deployment and three paired whole-page
-walks with per-tab/Chronic-grid modern medians below legacy; commit/push and report
-costs/daily-producer debt. Main DBM/other URLs/new daily pipeline remain excluded.
-MIGRATION.md remains the sole status tracker; preserve accepted BPR/BTR/F1/F2.
+The bounded whole-page contract covers all five visible tabs and the Chronic
+grid on the retained April7 fixture. It preserves the existing frontend,
+permissions, source values/types/NULLs/multiplicity/order, F1/F2 and accepted
+BPR/BTR. Hidden Custom Screens, main DBM commands, daily production integration,
+other pages and Stages3–5 remain excluded. This bounded delivery does not close
+the broader Stage2 page ledger or establish independent legacy ordering parity.
+
+The initial three paired walks had four failed consumers. Human correction
+froze passing DBM and Chronic charts, authorized shared typed Availability
+preparation and separate Chronic-grid/Excess corrections, then one final
+three-pair trial of only those four consumers. All corrected trials complete.
+
+| Consumer | Legacy median seconds | Modern median seconds | Evidence |
+|---|---:|---:|---|
+| Availability Trend | 16.541 | 3.494 | Final corrected three pairs; PASS |
+| Chronic charts | 4.970 | 1.427 | Original passing three pairs; frozen |
+| Chronic grid | 3.957 | 2.923 | Final corrected three pairs; PASS |
+| Availability Ageing | 14.663 | 4.077 | Final corrected three pairs; PASS |
+| DBM four panels | 16.583 | 3.222 | Original passing three pairs; frozen |
+| Excess two panels | 3.533 | 2.137 | Final corrected three pairs; PASS |
+
+Final pairs alternate legacy/modern, modern/legacy, legacy/modern at horizon9,
+age1, equivalent broad scopes, DBs3GiB/2CPU and APIs4GiB/2CPU. Pair1 enters the
+known Guided route from the landing page; pairs2–3 use tab transitions. All24
+observed screens complete, and all24 legacy/modern windows contain successful
+gating HTTP responses. No passing view was rebenchmarked. One earlier heading click
+did not navigate from the landing page; its46.16s harness failure is retained
+separately, not represented as a report response or discarded successful sample.
+The original failed36-observation walk, including its censored Ageing wait and
+overlapping early user traffic, remains retained. No favorable report resampling.
+Window003 restored original PostgreSQL1GiB/1CPU/swap2GiB and Windows job limits
+without errors. Only MTA and frontend container identities changed;21 other
+retained serving containers are unchanged.
+
+Daily DBM preparation0021 seals97,097 occurrences (28.925s;52,379,648 bytes).
+Chronic charts retain their efficient typed SQL. Chronic grid0022 seals3,340
+occurrences (8.191s;1,384,448 bytes), preserving its LEFT-NMS grain separately
+from chart INNER-description eligibility. Shared Availability0023–0025 seals
+8,483,003 history occurrences plus97,299 snapshot references; separate Excess
+contains920,774 importer-owned occurrences. The full build took1700.176s at
+1GiB/1CPU. Before the added covering index, their relation sizes were
+1,940,742,144 /43,376,640 /213,090,304 bytes. Index0026 adds840,966,144 bytes.
+Source ordinals preserve filter owners and snapshot eligibility; no integer
+business-key dictionary or per-user/horizon cache was introduced. Scope,
+arbitrary supported filters, horizon, minimum age and aggregation remain live.
+
+The original request-built history joins and first prepared heap-scan candidate
+preserved output but failed latency. The measured Availability plan scanned the
+full1.294GB heap for roughly849k qualifying rows. The covering run/date index
+carries the fields required for broad permission joins, aggregation and ordering.
+Before-index Trend/Age diagnostics55.759/36.597s fell to6.459/1.286s at1CPU;
+the browser results above, rather than those diagnostics, establish the exit.
+Two uncommitted loader attempts were stopped for NULL-join eligibility and
+repeated per-row seal checks. Explicit corrective migrations preserve ordinary
+SQL NULL exclusion and move invariant seal validation to a statement guard.
+
+All15 original integrated broad/restricted responses matched completely. After
+the corrections, all8 affected decorated endpoint cases again match every
+field/type/omission/occurrence/order. Prepared PostgreSQL differentials cover
+duplicates, NULL exclusion, snapshot eligibility, permission/parent weights,
+grouped raw-owner filters and nondefault dates/age. History prepared2/2 and
+fallback5/5 pass; daily family proofs remain retained. Full streamed repeated
+readback reproduces both history digests; all7 history mutation probes reject
+without changed rows. Django/schema/migration-enabled checks and builds pass.
+The wider historical suite's two unrelated Expedite failures remain unclaimed.
+
+The bounded browser inspection covers all panels/full chart tables, Chronic
+expansion/local filtering3340→76→3340, age/horizon refresh and a restricted
+one-series Depot actor. Affected restricted endpoint reads pass on the final
+image. The deployed final reader also renders age2/horizon8 after refresh.
+Existing Chronic group ordering and DBM pie ordering differ from legacy; the
+correction preserves the prior modern order exactly. This is an inherited
+source-disposition item, not an independent legacy-order parity claim or waiver.
+
+Guided-only synchronous AG Grid XLSX download is deployed; unrelated shared
+callers retain their original path. User confirms both DBM and Chronic grid
+downloads. DBM location workbook80,368 bytes has all129×25 cells exact; Chronic
+location-chart workbook65,323 bytes has all91×26 cells exact. Grid download is
+user-confirmed but its separate workbook was not located for cell validation.
+In-app download-event capture remains unavailable. Four focused frontend tests
+pass; TypeScript retains only the same three pre-existing useBTR errors.
+
+Corrected MTA image`7b31f6da2c336301e26729ed3599434d051f965d1effa31dbbd3fc4a2229626d`
+and frontend`893c1672179651413144cf1ac3a95d5414313ec3c8339cbb3c68204fde53e7ac`
+serve3005. Readiness confirms unchanged admission
+`5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`,
+selected run`bfd75b4b-a9df-4a08-82d3-852e3324b623` and BTR generation
+`e5bdac30-bbd9-45d8-a93d-84a645fad73c`. Rollback, preparation costs and daily
+producer/refresh/retry/retention debt are in the existing operational handoff.
+No scheduler, calculation replay, permission change or3004 cutover occurred.
+
+Evidence roots: `D:/freshvcf-build/evidence/guided-presentation-20261004-001`
+(original/final trials, response comparisons, exports, restoration and deployment;
+consolidated`guided-final-validation.json`)
+and`D:/freshvcf-build/evidence/guided-history-prepared-20261004`
+(build/repeat digests, migrations, indexes, diagnostics and guards).
 
 ### Complete: singular BPR UI-performance delivery
 
