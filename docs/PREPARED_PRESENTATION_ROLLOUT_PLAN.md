@@ -2,8 +2,11 @@
 
 Prepared 4 October 2026 from the current repository and retained runtime evidence.
 The user accepts the delivered BTR snapshot and typed reader as the baseline for
-extending presentation efficiency to other UI surfaces. This document proposes
-the sequence; it does not start implementation or resume paused application work.
+extending presentation efficiency to other UI surfaces. The human now authorizes
+one holistic reporting-contract and implementation batch, frontend integration,
+then module-by-module inspection. This supersedes both the BPR-only rollout and
+the later four-screen restriction. Only this read-only presentation intervention
+is resumed; daily ingestion integration and other application work remain paused.
 `docs/MIGRATION.md` remains the only status tracker.
 
 ## Accepted method and its limits
@@ -29,29 +32,33 @@ include verification overhead. These are an accepted development baseline,
 not a universal speed target, controlled legacy speedup or whole-page acceptance.
 The one observed typed SQL plan took 0.77s and removed the final wide sort.
 
-## Research findings and proposed order
+## Reporting families in the holistic contract
 
-The order below is a recommendation from code structure, not a measured ranking
-of current screen latency. Confirm the selected screen's bottleneck once at its
-slice entry; do not launch a whole-application benchmark or inventory programme.
-Existing route and contract inventories remain references, not new work queues.
+These families are one contract and implementation batch, not successive
+independent designs or a measured latency ranking. Reuse the current implemented
+read routes in `mta/presentation/urls.py` and retained screen maps to bind the exact
+endpoint/tab inventory once. Inspect known reconstruction paths and use one
+targeted trace only where the actual work is unclear. Do not launch a fresh
+whole-application discovery or benchmark programme.
 
-| Order and surface | Observed current path | Proposed bounded intervention |
+| Family | Observed current path | Implementation direction within the batch |
 |---|---|---|
-| 1. BPR grid and its count | Fixture uses `bpr_sql.py`; normal output uses Python `ReadModel` reconstruction. `mapBPRRowData` is an identity function. | Prepare only repeated display joins/types if one trace warrants it; otherwise improve the existing typed SQL reader. Use the same prepared population for count predicates where semantics match. Include a targeted Research grid compatibility check because it uses BPR APIs. No remarks/logistics writes or analytics redesign. |
-| 2. DBM current suggestions grid and count | Fixture bounds selected inputs, then `dbm_filtered` joins/scopes/numbers the population in Python before paging; count repeats this path. Frontend count/grid pairing is already concurrent. | Persist stable daily suggestion display fields only if needed; use selective typed reads/counts. Preserve immediate Apply/Sleep visibility through the existing command owner; never display a frozen daily snapshot after a command changes state. Do not reopen positive action trials without missing evidence. |
-| 3. RRR and supported related grids | `rrr_sql.py` already scopes/filters/pages typed operational rows and consumes `PickProjection`; frontend assigns returned rows directly. | Retain this reader unless one trace finds a specific remaining join, count or request bottleneck. Reuse persisted Pick data. Do not manufacture another table simply to copy the BTR design. Color-band variants require their own predicate/output check before reuse. |
-| 4. Buffer Trends, then Guided and Research | Buffer Trends has a selective SQL graph reader. Guided loads named history tables and performs joins/aggregates in Python. Research graph routes call whole `publication()`, which is denied for the heavy fixture. | Replace whole-population reconstruction with selected typed history reads. Prepare reusable per-day/per-product-location ingredients, not all filter combinations. Reuse BPR grid and BTR history producers where their contracts agree. One graph/tab family at a time. Preserve inherited total/percentage behavior unless a specific semantic change is separately approved. |
-| 5. Planning overview and category read views | Pick, Excess, Fulfillment, Expedite and PickPost already have run-linked typed projections; several readers load/verify broad bags before selecting. | Reuse these rows, push selection/count/page to SQL, and avoid repeated request reconstruction where measured. Work on one category's overview/grid/detail/graph journey at a time; do not replace existing producers. |
+| BPR and dependent Research grid | Fixture uses `bpr_sql.py`; normal output uses Python `ReadModel` reconstruction. `mapBPRRowData` is an identity function. | Use existing typed SQL or prepare repeated display joins/types where warranted. Keep grid/count/analytics/export relationships explicit; different response grains need not use identical rows. Research reuses the BPR grid contract. No remarks/logistics writes. |
+| DBM current suggestions and daily-history reads | Fixture bounds selected inputs, then `dbm_filtered` joins/scopes/numbers the population in Python before paging; count repeats this path. Frontend count/grid pairing is already concurrent. | Persist stable daily suggestion display fields only if needed; use selective typed reads/counts and pair-selected history. Preserve immediate Apply/Sleep visibility through the existing command owner; never display a frozen daily snapshot after a command changes state. No new action trial or action activation. |
+| RRR | `rrr_sql.py` already scopes/filters/pages typed operational rows and consumes `PickProjection`; frontend assigns returned rows directly. | Retain this reader unless there is a specific remaining join, count or request bottleneck. Reuse persisted Pick data; no duplicate table. Shared histories and supported exports remain in the contract. Missing color-band/other route implementations are not new business-porting work in this batch. |
+| BTR, Buffer Trends, Guided and Research graphs | Accepted BTR grid already uses prepared typed reads; its counts/exports retain a reference reader. Buffer Trends has a selective SQL graph reader. Guided loads named history tables and performs joins/aggregates in Python. Research graph routes call whole `publication()`, which is denied for the heavy fixture. | Preserve the BTR baseline. Share exact compatible history ingredients, replace whole-population reconstruction with selected typed reads, and prepare reusable per-day/per-product-location values where needed. Support all existing implemented graph/tab contracts with available authoritative inputs. Keep missing-input failures explicit. Preserve inherited total/percentage behavior unless a semantic change is separately approved. |
+| Planning overview and existing category read views | Pick, Excess, Fulfillment, Expedite and PickPost already have run-linked typed projections; several readers load/verify broad bags before selecting. | Reuse existing rows, push selection/count/page to SQL where exact semantics permit, and eliminate repeated request reconstruction. Cover existing overview/grid/detail/graph readers together; do not replace producers or add missing workflow/logistics facts. |
 | Later application reads | BOR/supplier reports, logistics and workflow screens have separate source/state obligations in the existing application ledger. MTO is retained as a direct port. | Apply selective typed reads after their canonical producers and live workflows are connected. Daily immutable snapshots cannot replace editable masters, requests, remarks, permissions or workflow state. No blanket MTO refactor. |
 
-## Boundary for every presentation slice
+## Boundary for the complete batch
 
-Before editing, name one surface, its run/date/population, current requests,
-producer-owned inputs, stable preparation, request-dependent work and live state.
-Inspect the whole journey: preparation/storage, SQL, API packaging, transfer,
-frontend requests/transforms, and usable rendering. Change only the demonstrated
-overhead. A quick query alone does not close a UI slice.
+Before editing application code, name all included surfaces/endpoints and their
+run/date/population, producer-owned inputs, stable preparation, request-dependent
+work and live state in one contract. Include grid/count, related existing graphs,
+history and supported read exports; do not silently exclude a consumer because
+it is harder. Classify genuine missing inputs with source evidence and continue
+available dependencies. Cover preparation/storage, SQL, API packaging, transfer,
+frontend requests/transforms and usable rendering from the outset.
 
 Use the existing heavy dataset and databases. Freeze the old affected outputs;
 then implement the smallest complete change. Validate full ordered field/value
@@ -61,18 +68,19 @@ Include count/next-page/export comparison only when that contract is changed.
 Use a first/later-page comparison when selection/order is changed. Reuse passing
 producer and engine receipts; never replay calculations just to measure reads.
 
-Finish with affected tests/checks/build, one completed browser response at the
+Finish the batch with affected tests/checks/build, one completed browser response at the
 actual configured page size, usable grid/chart and the affected interaction.
 Observe one equivalent legacy load when that surface lacks comparable retained
 evidence; do not reduce rows/columns to claim improvement. Hold date, population,
 scope, filters, branch, page and resource conditions comparable, or state the
 limitation. Record the actual API wait/transfer and browser completion; a page
 counter or retained old grid is not response-completion evidence. No repeated
-warmup/sample/concurrency campaign for these development slices. This does not
+warmup/sample/concurrency campaign for this development batch. This does not
 declare the older formal application-performance obligation satisfied.
 
-Deliver one committed/pushed slice and its 3005 handoff, with rollback and an
-honest user-facing result, then stop. Do not move to another screen automatically.
+Deliver one committed/pushed coherent batch and its 3005 handoff, with rollback
+and honest module results, then stop. Do not stop and request renewed permission
+after each report; do not start daily integration after the batch.
 No generic reporting framework, cache, service, registry, integer product/location
 key migration, grid replacement, new port, database copy/repopulation or resource
 increase. A new table requires the repository's normal Django migration checks,
@@ -120,50 +128,103 @@ plus failure/retry without a partial serving set. Use existing serving selection
 and controlled restart/admission initially; improve the transition mechanism only
 if this proof identifies a concrete need. 3004 cutover remains a separate decision.
 
-## Proposed single batch execution contract
+## Authorized holistic execution contract
 
-The human proposes preparing the frontend integration in one implementation
-batch followed by one bounded connected-UI validation pass. On explicit dispatch
-of that instruction, this section supersedes the BPR-only recommendation and
-per-screen stopping rule above for that batch only. All other boundaries remain.
-Planning and the executor are still stopped until the human dispatches the task.
+This replaces the per-screen sequence and four-screen proposal. The authorized
+sequence is foundation across the portfolio, reporting implementation across the
+portfolio, frontend integration across the portfolio, then module inspection.
+It is not permission to build generic infrastructure or to replace every report
+with a wide snapshot. Keep each phase's proof in MIGRATION.md before advancing.
 
-The controller recommends an exact four-surface batch to remove the previous
-ambiguity between the rollout's five families and the conversational four areas:
+### 1 Establish the complete reporting contract
 
-1. BPR grid/count: `GetBPRData` and `GetBPRDataCount`; compatibility with existing
-   Research BPR grid requests, without implementing Research graphs or widening
-   fixture permissions.
-2. DBM current grid/count: `DBMData` and `DBMDataCount`; preserve the existing
-   command-bearing path, with no new Apply/Sleep trial or action activation.
-3. RRR grid/count: `RRRData` and `RRRDataCount`.
-4. Buffer Trends graph/table: `GetBufferTrendGraphData` and the existing Absolute/
-   Percentage, Self/Parent, horizon and filter consumers of that response.
+Use the existing endpoint/screen inventory to add one compact contract matrix
+here: endpoint and consumer, exact row/series grain and fields/types, source
+run/date/digest, reusable producer/preparation, daily versus live values,
+authorization/filter/count/page/export rules, and serving choice. The three
+choices are existing typed projection, narrowly prepared repeated work, or
+bounded live/request-dependent read. Record the relationship between fixture
+and normal output sources without copying fixture outputs into engine state.
 
-Guided, Research graphs, all Planning categories, color-band variants, exports,
-history dialogs and other endpoints are excluded from this batch, except an
-existing unaffected compatibility check when a shared helper changes. They are
-still in the overall rollout; no executor may silently select them into item 4.
+Cover BPR/DBM/RRR and all existing read-only BTR, Buffer Trends, Guided, Research
+and Planning consumers enumerated above, including shared histories and existing
+read exports. Unimplemented BOR/supplier/MDM/logistics workflows and MTO changes
+remain excluded. Every existing included consumer must receive an explicit
+contract; it cannot disappear through a runtime permission denial. Do not change
+grants to run a denied screen. Distinguish absent input, incompatible source,
+missing reader wiring and genuinely undefined legacy behavior. Available retained
+producer data authorizes correcting read wiring; it does not authorize fabricating
+missing data or overriding accepted input/supplement boundaries.
 
-Implement through the four fixed items without stopping for a new permission
-question after each one. Use one short batch entry in MIGRATION.md recording the
-affected endpoints, exact overhead, expected values and dependencies. Keep basic
-correctness checks during implementation; deploy one coherent batch to 3005 and
-perform one targeted final UI pass per included surface. Leave efficient readers
-and identity mappers unchanged with supporting evidence. Do not add storage to
-make all four implementations uniform.
+Exit: complete portfolio contract and explicit dependency decisions, not a new
+framework design. Start implementation immediately after this compact matrix;
+do not spend repeated turns inventorying already mapped producers and routes.
 
-Preserve configured page sizes/fields. A 5,000-row check applies where the real
-UI workload selects it; a chart is checked for its actual requested series and
-horizon. Freeze complete before-results for changed paths, compare full affected
-outputs and one scoped/range case, and add later-page/count checks where changed.
-Correct only attributable failures and rerun only their affected checks. Deliver
-commit/push, coherent deployment identity, rollback and each surface's result.
-If a required input is unavailable or excluded work is indispensable, report the
-precise dependency and partial delivery; do not call all four complete or expand
-the scope. Do not start daily integration after this batch.
+### 2 Implement one coherent reporting foundation
 
-No executor prompt or implementation goal is created by this planning document.
+Read and rewrite only the preparation/read paths required by that contract.
+Reuse existing typed operational rows/projections, shared exact source ingredients
+and the proven BTR typed-reader pattern. Prepare repeated display joins/conversions
+once from the existing heavy April 7 outputs, using bounded streaming/batches and
+one repeatable preparation entry point only if preparation is needed. Do not
+replay the engine, change source data or build a new loader/publication service.
+
+Where a new narrow typed table is justified, preserve provenance, duplicate
+occurrences, strings/numbers/NULL/nonfinite values and existing order. Do not create
+one table per endpoint by default or materialize every filter/permission/horizon
+combination. Scope/filter/page before response packaging; avoid SQL JSON building
+and per-row decoding. Counts/exports retain their distinct canonical grains and
+wire contracts. Reuse current permission and command mechanisms; do not freeze
+entitlements, actionable DBM state or mutable facts until the next refresh.
+
+Freeze affected full before-results and perform focused backend output checks
+while implementing; do not postpone correctness to the browser pass. Reuse
+passing F1/F2/projection receipts. A new schema change needs normal migration
+checks and rollback planning. Record one preparation's time/storage, where added,
+so the batch does not conceal multiplication of BTR's 20-minute/440MiB cost.
+
+Exit: all available required reporting paths and preparation delivered together,
+with complete affected output checks. Preserve BTR's accepted run/generation and
+behavior; do not rebuild it without an attributable dependency. Efficient paths
+may be retained unchanged with evidence, not rewritten for uniformity.
+
+### 3 Connect the existing frontend in one batch
+
+Integrate the agreed ready-data responses across the included frontend consumers.
+Remove proven duplicated calculations, conversion/copy loops, redundant requests
+and grid rebuilding; retain cell formatting, selection and user interactions.
+Do not replace grids or introduce a shared frontend framework. BPR's identity
+mapper and RRR's direct assignments need no cosmetic rewrite. A ready-value
+marker is useful only if existing contracts need an explicit compatible opt-in;
+do not create a new metadata/descriptor protocol.
+
+Run the affected frontend/backend builds and focused integration checks. Prepare
+one coherent 3005 deployment with the previous backend/frontend images and selected
+presentation data retained for rollback. Deploy only the changed preview services;
+protect 3002/3003/3004 and shared infrastructure. Do not silently switch business
+date or selected run to make an unavailable screen look populated.
+
+Exit: available included consumers connected to the reporting contract on3005,
+not separate per-module releases requiring renewed controller approval.
+
+### 4 Inspect and correct module by module
+
+Run one bounded final UI pass over the fixed inventory. Check completed response,
+actual configured row population/series/horizon, displayed values and one affected
+interaction per module. Related tabs with different contracts need their affected
+branch checked; do not multiply every possible combination into a benchmark
+matrix. Compare count/later page/export only where affected. Keep frontend response
+wait/transfer and usable rendering visible; old rows/page labels are not proof.
+
+Correct attributable integration defects, rerun only failed or newly affected
+checks, and reuse passing evidence. Do not resume unrelated known legacy flaws
+or the prior application-wide test/benchmark protocol. An impossible check needs
+its exact input/permission/source disposition; no synthetic replacement or new
+positive action trial. Finish with commit/push, deployment identity, rollback,
+contract coverage versus implemented/validated coverage, and concrete remaining
+upstream debt. Do not claim all screens delivered if an available required path
+remains unfinished. Stop after this batch; daily ingestion, scheduling, automatic
+publication activation and3004 cutover require their later scope.
 
 ## Source references
 

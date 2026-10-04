@@ -5,7 +5,8 @@ Baseline date: 3 October 2026. Implementation checkpoint: `2d0cfde95606aef58a486
 ## Authority and current instruction
 
 This is the **only migration status tracker**. Whole-page implementation remains
-**PAUSED**, not complete. The separately authorized Stage2 dataset preparation
+**PAUSED**, not complete, except the bounded holistic presentation batch below.
+The separately authorized Stage2 dataset preparation
 and bounded four-page availability correction are complete for the scope below:
 RRR/BPR/BTR/DBM populated browser grids, counts, local filters and restricted reads
 on3005. Engines, accepted F1/F2 state, replay, authentication permissions, other
@@ -26,21 +27,27 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Prepared presentation rollout planning
+### Holistic prepared presentation batch authorized
 
 The human accepts the BTR snapshot/typed reader at `806a239` as the development
-baseline for extending the method to other UI surfaces. Research and the proposed
-sequence are in [the rollout plan](PREPARED_PRESENTATION_ROLLOUT_PLAN.md).
-Planning exit: identify existing readers/producers, scoped presentation slices
-and debt before daily input/publication integration. The human subsequently
-proposes one implementation batch and a bounded final UI-validation pass. The
-controller's revised recommended batch is BPR grid/count, DBM current grid/count,
-RRR grid/count and Buffer Trends graph/table; Research BPR-grid compatibility only.
-Guided/Research graphs and Planning are later work, not an open-ended fourth item.
-This proposal replaces the BPR-only recommendation, not the execution pause.
-No implementation goal,
-executor resumption, application-wide acceptance, daily integration or cutover
-is authorized by this planning update. Earlier bounded-task stops remain in force.
+baseline and now authorizes the [holistic reporting plan](PREPARED_PRESENTATION_ROLLOUT_PLAN.md):
+complete reporting contracts across existing read-only MTA consumers, one coherent
+reporting implementation, one frontend integration batch, then module inspection
+and attributable fixes. This supersedes the BPR-only and four-screen proposals.
+Included: BPR, DBM, RRR, BTR/Buffer Trends, Guided/Research and existing Planning
+reads, related histories and supported exports. Use available retained producers;
+record exact missing inputs instead of dropping contracts or inventing data.
+
+Active phase: establish the complete contract and serving decisions once, then
+implement without stopping for renewed permission per screen. Reuse typed
+projections, prepare only repeated expensive work, retain bounded live/request
+reads and preserve commands/permissions. MIGRATION.md is the only status tracker.
+Required exit: available included paths implemented and connected on3005, complete
+affected value proofs, bounded module UI inspection, committed/pushed delivery,
+rollback and explicit coverage/dependencies. The accepted BTR baseline is retained.
+Real daily ingestion/engine replay/scheduler/automatic activation, new workflow
+porting, MTO and3004 cutover remain outside this authorization. Broader whole-page
+acceptance remains paused; this entry resumes only the described presentation batch.
 
 ### BTR typed reader — delivered and verified
 
