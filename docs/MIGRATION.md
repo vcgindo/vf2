@@ -71,6 +71,10 @@ Therefore the final pair cannot close the required completed comparison.
 No further sample is authorized. Preserve the build; a separately authorized
 comparison must require populated chart legends, absence of either empty overlay,
 and a completed interactive modal. Do not infer another code bottleneck.
+The corrected read-only observer is retained as `corrected-modal-observer.cjs`
+in the evidence directory. Ten offline cases pass, including rejection of the
+actual premature legacy stop, stale pair, missing legends, transition and disabled
+controls. No live opening or application change was used for this correction.
 Evidence: `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/followup-validation.json`,
 raw traces and screenshots. The subsequent modern horizon interaction passed
 and restored14. `validation.json` includes the follow-up evidence.
