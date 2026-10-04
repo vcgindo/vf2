@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { type DailyDataGraph } from "../../../../types/MTA";
 
 
@@ -6,7 +6,7 @@ import { VFFloatingTabItemProps } from "../../../../../components/VectorFLOW/com
 import HorizontalSplitView from "./HorizontalSplitView"
 
 import VerticalSplitView from "./VerticalSplitView"
-import { getColumnsForExcelExport, mapBTRRowData, mapBTRRowDataToColDefs, MainMenuItemsCustomization, getColumnDefinationsMTA, DownloadExcel, DownloadExcelMTA , CsvExportMTA} from "../../../../../helpers/utils"
+import { getColumnsForExcelExport, mapBTRRowDataToColDefs, MainMenuItemsCustomization, getColumnDefinationsMTA, DownloadExcel, DownloadExcelMTA , CsvExportMTA} from "../../../../../helpers/utils"
 
 import { useGetBTRDataCount, useGetBTRData } from "../../../../../VectorFlow/Services/MTA/InsightsAndTrends/BTR"
 
@@ -45,6 +45,7 @@ import { format } from "date-fns"
 import { useGetState } from "../../../../Services/MTA/Common/UserUIConfig"
 import { GridRef } from "../../../../../VectorFlow/types/MDM"
 import BTRColorCellRenderer from "./BTRColorCellRenderer";
+import { displayRows } from "./displayRows";
 
 const useBTR = () => {
 
@@ -105,17 +106,40 @@ const useBTR = () => {
     const [userPageSizeTechForBoth , setuserPageSizeTechForBoth]  = useState<number>(BTR_ROWS_PER_PAGE?parseInt(BTR_ROWS_PER_PAGE):50) 
     const [userPageSizeEcoForBoth , setUserPageSizeEcoBoth]  = useState<number>(BTR_ROWS_PER_PAGE?parseInt(BTR_ROWS_PER_PAGE):50) 
 
-    const { mutateAsync: getBTRData, isLoading } = useGetBTRData()
+    const { mutateAsync: getBTRData } = useGetBTRData()
 
-    const { data: countData, mutateAsync: getBTRDataCount, isLoading: isBTRCountLoading } = useGetBTRDataCount()
+    const { mutateAsync: fetchBTRDataCount } = useGetBTRDataCount()
 
     const { mutateAsync: getUiConfig, isLoading: isUIConfigLoading, isError } = useGetUIConfigData();
 
     const { mutateAsync: getState, isLoading: isSavedDataLoading } = useGetState();
 
-    const ecoTotalRows = useMemo(() => { return countData?.data.data.EcoCount }, [isBTRCountLoading])
-
-    const techTotalRows = useMemo(() => { return countData?.data.data.TechCount }, [isBTRCountLoading])
+    const [countData, setCountData] = useState<any>();
+    const ecoTotalRows = countData?.EcoCount;
+    const techTotalRows = countData?.TechCount;
+    const requestVersion = useRef({ tech: 0, eco: 0, count: 0, layout: 0, config: 0 });
+    const [pending, setPending] = useState({ tech: false, eco: false, count: false });
+    const mounted = useRef(true);
+    useEffect(() => {
+        mounted.current = true;
+        return () => { mounted.current = false; };
+    }, []);
+    const getBTRDataCount = async (payload: any) => {
+        const version = ++requestVersion.current.count;
+        setPending(value => ({ ...value, count: true }));
+        try {
+            const response = await fetchBTRDataCount(payload);
+            if (mounted.current && version === requestVersion.current.count) setCountData(response.data.data);
+        } catch (error) {
+            if (mounted.current && version === requestVersion.current.count) {
+                setCountData(undefined);
+                notifyError(error instanceof Error ? error.message : String(error));
+            }
+        } finally {
+            if (mounted.current && version === requestVersion.current.count)
+                setPending(value => ({ ...value, count: false }));
+        }
+    };
 
     const [dateLabels, setDateLabels] = useState<any>()
 
@@ -136,6 +160,24 @@ const useBTR = () => {
     const [techMasterUIConfig, setTechMasterUIConfig] = useState<any>([]);
     const [ecoMasterUIConfig, setEcoMasterUIConfig] = useState<any>([]);
     const [isDisabled, setIsDisabled]= useState<boolean>(true)
+
+    const actorPublication = `${user.user.id}:${user.user.email}:${lastRunDate || ''}`;
+    const previousActorPublication = useRef(actorPublication);
+    const hasAppliedFilter = useRef(false);
+    useEffect(() => {
+        if (previousActorPublication.current === actorPublication) return;
+        previousActorPublication.current = actorPublication;
+        Object.keys(requestVersion.current).forEach(key => { requestVersion.current[key as keyof typeof requestVersion.current]++; });
+        configRequest.current = null;
+        setInitialColumnState(undefined);
+        setTechGridState(undefined);
+        setEcoGridState(undefined);
+        setTechRowData([]);
+        setEcoRowData([]);
+        setCountData(undefined);
+        setPending({ tech: false, eco: false, count: false });
+        if (hasAppliedFilter.current) onApplyFilter(currFilter, true);
+    }, [actorPublication]);
 
     const RowsPerPageCurrTab = currentTab?.value === "on-hand"?userPageSizeTech:currentTab?.value === "pipeline"?userPageSizeEco:rowsPerPage 
     const savePageSizeTech = async( pageSize:number)=>{
@@ -256,44 +298,45 @@ const useBTR = () => {
         }
     };
 
-    const getBPRUiConfig = async () => {
-        try {
-            const response = await getUiConfig(UIColumnConfigName.BuffertrendReport);
-            setInitialColumnState(response.data.data);
-        } catch (err: any) {
-            notifyError("Something Went Wrong")
-        }
-    }
+    // Report definitions are reused only within this mounted actor/publication.
+    // Saved layouts still refresh on tab entry so external saves remain visible.
+    const configRequest = useRef<Promise<void> | null>(null);
+    const getBPRUiConfig = (force = false) => {
+        if (!force && initialColumnState) return Promise.resolve();
+        if (configRequest.current) return configRequest.current;
+        const version = ++requestVersion.current.config;
+        const request = (async () => {
+            try {
+                const response = await getUiConfig(UIColumnConfigName.BuffertrendReport);
+                if (mounted.current && version === requestVersion.current.config)
+                    setInitialColumnState(response.data.data);
+            } catch (error) {
+                if (mounted.current && version === requestVersion.current.config) notifyError("Something Went Wrong");
+            } finally {
+                if (version === requestVersion.current.config) configRequest.current = null;
+            }
+        })();
+        configRequest.current = request;
+        return request;
+    };
 
     const getUserColumnConfig = async () => {
-
-        if (currentTab.id === "1") {
-            const stateData = await getState({ "reportname": UserUIColumnConfigName.BTROnHand });
-
-            
-            if (stateData.data.data.length !== 0) {
-                const parsedContent = JSON.parse(stateData.data.data)
-                setTechGridState(parsedContent)
-                
-            } else {
-                console.log("State Data not available for BTROnHand");
-            }
+        const tab = currentTab.id;
+        if (tab !== "1" && tab !== "2") return;
+        const version = ++requestVersion.current.layout;
+        try {
+            const response = await getState({ reportname: tab === "1" ? UserUIColumnConfigName.BTROnHand : UserUIColumnConfigName.BTRPipeline });
+            if (!mounted.current || version !== requestVersion.current.layout) return;
+            const state = response.data.data.length ? JSON.parse(response.data.data) : undefined;
+            if (tab === "1") setTechGridState(state);
+            else setEcoGridState(state);
+        } catch (error) {
+            if (mounted.current && version === requestVersion.current.layout) notifyError(error instanceof Error ? error.message : String(error));
         }
-
-        if (currentTab.id === "2") {
-            const stateData = await getState({ "reportname": UserUIColumnConfigName.BTRPipeline });
-            if (stateData.data.data.length !== 0) {
-                const parsedContent = JSON.parse(stateData.data.data)
-
-                setEcoGridState(parsedContent)
-        
-            } else {
-                console.log("State Data not available BTRPipeline");
-            }
-        }
-    }
+    };
 
     const onResetCallback = async () => {
+        await getBPRUiConfig(true);
         if (currentTab.id === "1") {
 
             setTechGridState({
@@ -312,90 +355,43 @@ const useBTR = () => {
         
     }
 
-    const getDataTech = async (filter: any, pageNumber: number  , pageSize?:number) => {
-        const payload = {
-            id: 0,
-            name: 'tech',
-            fields: [],
-            filters: filter,
-            paginationParameter: {
-                pageNumber: pageNumber,
-                recordsPerPage: pageSize || userPageSizeTech
-            },
-            ISExport:"0"
-        }
-        const loaderId = notifyLoader("Loading data")
+    const fetchRows = async (name: 'tech' | 'eco' | 'both', filter: any, pageNumber: number, pageSize: number) => {
+        const branches: Array<'tech' | 'eco'> = name === 'both' ? ['tech', 'eco'] : [name];
+        const versions = { ...requestVersion.current };
+        branches.forEach(branch => { versions[branch] = ++requestVersion.current[branch]; });
+        setPending(value => ({ ...value, ...Object.fromEntries(branches.map(branch => [branch, true])) }));
+        const current = (branch: 'tech' | 'eco') => mounted.current && versions[branch] === requestVersion.current[branch];
+        const loaderId = notifyLoader("Loading data");
         try {
-            const data = await getBTRData(payload)
-            console.log("data Tech::",data) // to see the large btr data in console
-            setTechRowData(mapBTRRowData(data.data.data.tech, horizon))
-            setDateLabels(data.data.data.labels[0])
-        } catch (err: any) {
-            notifyError(err)
-            setTechRowData([])
-            setEcoRowData([])
+            const response = await getBTRData({ id: 0, name, fields: [], filters: filter,
+                paginationParameter: { pageNumber, recordsPerPage: pageSize }, ISExport: "0",
+                displayPrepared: true, displayHorizon: horizon });
+            const data = response.data.data;
+            branches.forEach(branch => {
+                if (current(branch)) {
+                    const rows = displayRows(data, branch, horizon);
+                    if (branch === 'tech') setTechRowData(rows);
+                    else setEcoRowData(rows);
+                }
+            });
+            if (branches.some(current)) setDateLabels((previous: any) => _.isEqual(previous, data.labels[0]) ? previous : data.labels[0]);
+        } catch (error) {
+            if (branches.some(current)) notifyError(error instanceof Error ? error.message : String(error));
+            branches.forEach(branch => {
+                if (current(branch)) {
+                    if (branch === 'tech') setTechRowData([]);
+                    else setEcoRowData([]);
+                }
+            });
         } finally {
-            toast.dismiss(loaderId)
+            if (mounted.current) setPending(value => ({ ...value,
+                ...Object.fromEntries(branches.filter(current).map(branch => [branch, false])) }));
+            toast.dismiss(loaderId);
         }
-
-    }
-
-    const getDataEco = async (filter: any, pageNumber: number , pageSize?:number) => {
-        
-        const payload = {
-            id: 0,
-            name: 'eco',
-            fields: [],
-            filters: filter,
-            paginationParameter: {
-                pageNumber: pageNumber,
-                recordsPerPage: pageSize ||  userPageSizeEco
-            },
-            ISExport:"0"
-        }
-        const loaderId = notifyLoader("Loading data")
-        try {
-            const data = await getBTRData(payload)
-            console.log("data Eco::",data) // to see the large btr data in console
-            setEcoRowData(mapBTRRowData(data.data.data.eco, horizon))
-            setDateLabels(data.data.data.labels[0])
-        } catch (err: any) {
-            notifyError(err)
-            setTechRowData([])
-            setEcoRowData([])
-        } finally {
-            toast.dismiss(loaderId)
-        }
-    }
-
-    const getData = async (filter: any, pageNumber: number) => {
-        const payload = {
-            id: 0,
-            name: 'both',
-            fields: [],
-            filters: filter,
-            paginationParameter: {
-                pageNumber: pageNumber,
-                recordsPerPage: RowsPerPageCurrTab
-            },
-            ISExport:"0"
-        }
-        const loaderId = notifyLoader("Loading data")
-        try {
-            const data = await getBTRData(payload)
-            console.log("data for Both Eco and Tech::",data) // to see the large btr data in console
-            setEcoRowData(mapBTRRowData(data.data.data.eco, horizon))
-            setTechRowData(mapBTRRowData(data.data.data.tech, horizon))
-            setDateLabels(data.data.data.labels[0])
-        } catch (err: any) {
-            notifyError(err)
-            setTechRowData([])
-            setEcoRowData([])
-        } finally {
-            toast.dismiss(loaderId)
-        }
-
-    }
+    };
+    const getDataTech = (filter: any, page: number, size?: number) => fetchRows('tech', filter, page, size || userPageSizeTech);
+    const getDataEco = (filter: any, page: number, size?: number) => fetchRows('eco', filter, page, size || userPageSizeEco);
+    const getData = (filter: any, page: number) => fetchRows('both', filter, page, RowsPerPageCurrTab);
 
     // useEffect(() => {
     //     const payload = {
@@ -431,7 +427,11 @@ const useBTR = () => {
         return tempFilter
     }
 
-    const onApplyFilter = async (filter: BPRFilterState) => {
+    const onApplyFilter = async (filter: BPRFilterState, refreshConfig = false) => {
+        hasAppliedFilter.current = true;
+        requestVersion.current.tech++;
+        requestVersion.current.eco++;
+        setPending(value => ({ ...value, tech: false, eco: false }));
         setCurrFilter(filter)
         setCurrentPageTech(1)
         setCurrentPageEco(1)
@@ -452,7 +452,7 @@ const useBTR = () => {
         if(currentTab?.value === "on-hand") getDataTech(tempFilter, 1)
         else if(currentTab?.value === "pipeline") getDataEco(tempFilter, 1)
         else getData(tempFilter, 1)
-        getBPRUiConfig()
+        getBPRUiConfig(refreshConfig)
     }
 
 
@@ -463,7 +463,14 @@ const useBTR = () => {
 
     const toggleVerticalView = (isVertical: boolean) => setVerticalView(isVertical)
 
-    const toggleCurrentTab = (tab: VFFloatingTabItemProps) => setCurrentTab(tab)
+    const toggleCurrentTab = (tab: VFFloatingTabItemProps) => {
+        if (tab.id === currentTab.id) return;
+        requestVersion.current.tech++;
+        requestVersion.current.eco++;
+        requestVersion.current.layout++;
+        setPending(value => ({ ...value, tech: false, eco: false }));
+        setCurrentTab(tab);
+    }
 
     const Extras = () => {
         if (dateLabels) {
@@ -488,8 +495,7 @@ const useBTR = () => {
         }
     };
 
-    const onOpenDailyDataGraph = async (params:any) => {
-        console.log(params,"params")
+    const onOpenDailyDataGraph = useCallback(async (params:any) => {
             const payload:any = {
                 SKUCode:params.data['SKUCode'],
                 WHCode:params.data['WhCode']
@@ -505,14 +511,14 @@ const useBTR = () => {
                 monitoringData:data['MonitoringData']
             }
 
-            console.log("dailyDataaa",dailyData);
+
 
             dispatch(UPDATE_DAILY_DATA(dailyData));
             dispatch(TOGGLE_GRAPH_MODAL(true));
-        }
+        }, [getDailyData, dispatch]);
 
     
-    const CustomHeader = {
+    const CustomHeader = useMemo(() => ({
         dailydatagraph: {
             width: 45,
             minWidth: 45,
@@ -563,43 +569,7 @@ const useBTR = () => {
         VirtualNorm: {
             pinned: 'left',
         },
-    };
-useEffect(() => {
-    if (techInternalRef && techGridState?.columns) {
-        setTimeout(() => {
-            const result = techInternalRef?.api.applyColumnState({
-                state: techGridState.columns,
-                applyOrder: true
-            });
-
-            techInternalRef.api.sizeColumnsToFit();
-
-            if (!result) {
-                console.error("Failed to apply column state", result);
-            }
-        }, 2000);
-    }
-}, [techInternalRef, techGridState]);
-
-
-useEffect(() => {
-    if (ecoInternalRef && ecoGridState?.columns) {
-        setTimeout(() => {
-            const result = ecoInternalRef?.api.applyColumnState({
-                state: ecoGridState.columns,
-                applyOrder: true
-            });
-
-            ecoInternalRef.api.sizeColumnsToFit();
-
-            if (!result) {
-                console.error("Failed to apply column state", result);
-            }
-        }, 2000);
-    }
-}, [ecoInternalRef, ecoGridState]);
-
-
+    }), [onOpenDailyDataGraph]);
     const techColDefs = useMemo((): Array<ColDef> => {
         if (initialColumnState) {
             const colDefs = getColumnDefinationsMTA(initialColumnState, CustomHeader, Extras());
@@ -612,7 +582,7 @@ useEffect(() => {
             const result = colDefs.filter((r: any) => (!r.colId?.startsWith('D') || r.colId === 'DailyDataGraph') || (r.colId.startsWith('D') && parseInt(r.colId.slice(1)) > 90 - horizon))
             return result;
         } else return [];
-    }, [techRowData, currentTab, verticalView, dateLabels]);
+    }, [initialColumnState, CustomHeader, horizon, dateLabels]);
 
     const ecoColDefs = useMemo((): Array<ColDef> => {
         if (initialColumnState) {
@@ -634,40 +604,49 @@ useEffect(() => {
             const result = colDefs.filter((r: any) => (!r.colId?.startsWith('D')) || (r.colId.startsWith('D') && parseInt(r.colId.slice(1)) > 90 - horizon))
             return result;
         } else return [];
-    }, [ecoRowData, dateLabels, verticalView, currentTab]);
+    }, [initialColumnState, CustomHeader, horizon, dateLabels, verticalView, currentTab.id]);
 
 
-  useEffect(() => {
-    if (initialColumnState) {
-        getUserColumnConfig();  
-        if(currentTab.id === "1" && techColDefs?.length)     getDataTech(currFilter , 1);
-        if(currentTab.id === "2"  )     getDataEco(currFilter , 1);
-        if(currentTab.id === "3" )     getData(currFilter , 1)
-        } 
-    },[]);
-    
+    const configReady = Boolean(initialColumnState);
     useEffect(() => {
-    if (initialColumnState) {
-        getUserColumnConfig();  
-        if(currentTab.id === "1" && techColDefs?.length)     getDataTech(currFilter , 1);
-        if(currentTab.id === "2"  )     getDataEco(currFilter , 1);
-        if(currentTab.id === "3" )     getData(currFilter , 1)
-        } 
-    },[currentTab]);
+        if (initialColumnState) getUserColumnConfig();
+        // Refresh on tab entry/initial readiness; Reset must not reload a saved layout.
+    }, [currentTab.id, configReady]);
 
-    useEffect(() => {
-    if (initialColumnState) {
-        if (currentTab.id === "1" && techColDefs.length && techInternalRef?.api) {
-            setTechMasterUIConfig(techInternalRef?.api.getColumnState());
+    // Readiness, not row replacement or an arbitrary delay, restores each layout.
+    const restoredLayout = useRef<{ tech?: any, eco?: any }>({});
+    const defaultLayoutApi = useRef<{ tech?: any, eco?: any }>({});
+    const restoreLayout = (branch: 'tech' | 'eco', api: any, columns: any[], state: any) => {
+        if (!api || api.isDestroyed?.() || !columns.length) return;
+        // Capture defaults before saved state is applied, including on grid-ready
+        // races. Row refreshes must not turn a saved layout into the Reset target.
+        if (defaultLayoutApi.current[branch] !== api) {
+            defaultLayoutApi.current[branch] = api;
+            if (branch === 'tech') setTechMasterUIConfig(api.getColumnState());
+            else setEcoMasterUIConfig(api.getColumnState());
         }
-    }
-    }, [techInternalRef, techColDefs, currentTab]);
+        if (!state?.columns) return;
+        const previous = restoredLayout.current[branch];
+        if (previous?.api === api && previous?.columns === columns && previous?.state === state) return;
+        if (api.applyColumnState({ state: state.columns, applyOrder: true })) {
+            api.sizeColumnsToFit();
+            restoredLayout.current[branch] = { api, columns, state };
+        }
+    };
+    useEffect(() => {
+        if (currentTab.id === "1") restoreLayout('tech', techInternalRef?.api, techColDefs, techGridState);
+    }, [techInternalRef, techColDefs, techGridState, currentTab.id]);
+    useEffect(() => {
+        if (currentTab.id === "2") restoreLayout('eco', ecoInternalRef?.api, ecoColDefs, ecoGridState);
+    }, [ecoInternalRef, ecoColDefs, ecoGridState, currentTab.id]);
 
     useEffect(() => {
-        if (currentTab.id === "3" && ecoColDefs.length && ecoInternalRef?.api) {
-            setEcoMasterUIConfig(ecoInternalRef?.api.getColumnState());
-        }
-    }, [ecoInternalRef, ecoColDefs, currentTab]);
+        if (!initialColumnState) return;
+        if (currentTab.id === "1") getDataTech(currFilter, 1);
+        else if (currentTab.id === "2") getDataEco(currFilter, 1);
+        else getData(currFilter, 1);
+        // A tab change fetches rows; receiving configuration/rows must not refetch.
+    }, [currentTab.id]);
 
     const renderView = () => {
         switch (currentTab.id) {
@@ -692,6 +671,7 @@ useEffect(() => {
                             paginationPageSize={parseInt(BTR_ROWS_PER_PAGE || '100')}
                             maintainColumnOrder
                             onGridReady={(params) => setTechInternalRef(params)}
+                            onNewColumnsLoaded={(params) => restoreLayout('tech', params.api, techColDefs, techGridState)}
                             onFilterChanged={() => {
                                 const filterModel = techRef?.current?.api?.getFilterModel();
                                 if (filterModel && Object.keys(filterModel).length > 0) {
@@ -732,6 +712,7 @@ useEffect(() => {
                             paginationPageSize={parseInt(BTR_ROWS_PER_PAGE || '100')}
                             maintainColumnOrder
                             onGridReady={(params) => setEcoInternalRef(params)}
+                            onNewColumnsLoaded={(params) => restoreLayout('eco', params.api, ecoColDefs, ecoGridState)}
                             onFilterChanged={() => {
                                 const filterModel = ecoRef?.current?.api?.getFilterModel();
                                 if (filterModel && Object.keys(filterModel).length > 0) {
@@ -823,6 +804,7 @@ useEffect(() => {
     // }
 
     const onExportToExcelCallBack = async (pageNumber: number, page: string) => {
+        if (pending.tech || pending.eco || pending.count) return;
         const tempFilter = getPreparedFilter(currFilter)
         const headersData = (page === 'on-hand') ? (techRef?.current?.api?.getColumnState() || []) : (ecoRef?.current?.api?.getColumnState() || []);
         const colDefs = (page === 'on-hand') ? techColDefs : ecoColDefs;
@@ -874,7 +856,7 @@ useEffect(() => {
         tempRef,
         currentTab,
         verticalView,
-        isLoading: isLoading || isBTRCountLoading || isUIConfigLoading || isSavedDataLoading,
+        isLoading: pending.tech || pending.eco || pending.count || isUIConfigLoading || isSavedDataLoading,
         isError,
         techColDefs,
         techTotalRows,

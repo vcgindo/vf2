@@ -33,6 +33,53 @@ class CalculationRun(models.Model):
         constraints = [models.UniqueConstraint(fields=['input_digest', 'execution_revision'], name='fresh_run_identity')]
 
 
+class BtrReportingGeneration(models.Model):
+    """Immutable derived BTR references, never calculation or permission state."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    version = models.PositiveIntegerField(default=1)
+    source_digest = models.CharField(max_length=64)
+    source_kind = models.CharField(max_length=24)
+    business_date = models.DateField()
+    status = models.CharField(max_length=16, default='BUILDING')
+    lineage = models.JSONField(default=dict)
+    eligible = models.BooleanField(default=False)
+    qualification = models.JSONField(default=dict)
+    row_count = models.PositiveBigIntegerField(default=0)
+    rows_digest = models.CharField(max_length=64, blank=True)
+    failure = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'version', 'source_digest'],
+            condition=models.Q(status='READY'), name='fresh_btr_ready_source')]
+
+
+class BtrJoinReference(models.Model):
+    """A complete stable join bag; ordinals identify rows, never sort priority."""
+    generation = models.ForeignKey(BtrReportingGeneration, on_delete=models.PROTECT)
+    branch = models.CharField(max_length=4)
+    export = models.BooleanField()
+    sku_code = models.TextField(null=True)
+    location_code = models.TextField(null=True)
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    a_ordinal = models.BigIntegerField()
+    btd_ordinal = models.BigIntegerField(null=True)
+    e_ordinal = models.BigIntegerField(null=True)
+    sla_ordinal = models.BigIntegerField(null=True)
+    sa_ordinal = models.BigIntegerField(null=True)
+    la_ordinal = models.BigIntegerField(null=True)
+    b_ordinal = models.BigIntegerField(null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['generation', 'branch', 'export', 'sku_key', 'location_key'],
+                                name='fresh_btr_reference_keys')]
+        constraints = [models.CheckConstraint(condition=models.Q(branch__in=['tech', 'eco']),
+                                               name='fresh_btr_reference_branch')]
+
+
 class Checkpoint(models.Model):
     run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT, related_name='checkpoints')
     name = models.CharField(max_length=100)

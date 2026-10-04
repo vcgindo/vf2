@@ -5,6 +5,7 @@ distinct from grid's five-field requirement projection. No whole-run reader,
 other-branch grid work, calculation, cache, or new ordering for tied keys.
 """
 from collections import defaultdict
+import logging
 from django.db import connection
 
 from mta.presentation import btr, hierarchy
@@ -74,6 +75,8 @@ class BtrFilters(Filters):
 
 
 def read_btr(run, payload, *, paging, count=False, export=False):
+    from mta.presentation import btr_reporting
+    generation = btr_reporting.selected_generation(run)
     columns = tuple(f'D{i}' for i in range(1, 91)) if export else btr.horizon_columns(run.business_date.isoformat(), payload)
     attributes = {name: image_rows(run, 'closing/btr/' + name)
                   for name in ('SkuAttributeData', 'LocationAttributeData')}
@@ -90,6 +93,10 @@ def read_btr(run, payload, *, paging, count=False, export=False):
                 raise PublicationUnavailable('LEG-BTR-EXPORT-MISSING-SLA: deployed export has no sla join')
     BtrPredicate(payload, attributes['LocationAttributeData'], count=count or export)
     products, locations = scope(payload, attributes=attributes)
+    reporting = btr_reporting.eligible_request(generation, products, locations)
+    if generation:
+        logging.getLogger(__name__).info('BTR reader=%s generation=%s count=%s export=%s',
+            'reporting' if reporting else 'accepted-fallback', generation.pk, count, export)
     result = {'TechCount': '0', 'EcoCount': '0'} if count else {'tech': [], 'eco': []}
     if not count:
         dates = image_rows(run, 'closing/btr/BufferTrendDates')
@@ -114,7 +121,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
             add(alias + 'hierarchy', 'VALUES ' + ','.join(['(%s,%s,%s,%s)'] * len(rows)),
                 [v for ordinal, row in enumerate(rows) for v in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)])])
             fields = [n for n, _ in CATALOG['tables']['BTR/' + table] if n not in [prefix + str(i) for i in (1, 2, 3)]]
-            add(alias, 'SELECT ' + ','.join('N.' + quote(n) for n in fields) + ',' +
+            add(alias, 'SELECT ' + ('N.vf_ordinal,' if reporting else '') + ','.join('N.' + quote(n) for n in fields) + ',' +
                 ','.join('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1, 2, 3)) +
                 ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1', [])
         else:
@@ -128,7 +135,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
     requirement_fields = ('SKUCode', 'WhCode', 'ParentWhCode', 'Norm', 'VirtualNorm')
     if export:
         requirement_fields += ('Stock', 'GIT', 'DispatchColor', 'PhysicalInventoryColor')
-    add('E', 'SELECT ' + ('*' if count else ','.join(quote(n) for n in requirement_fields)) + ' FROM R', [])
+    add('E', 'SELECT ' + ('*' if count else ('vf_ordinal,' if reporting else '') + ','.join(quote(n) for n in requirement_fields)) + ' FROM R', [])
     for alias, codes in (('P', products), ('L', locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         add(alias, 'VALUES ' + ','.join(['(%s)'] * len(members)), members)
@@ -177,13 +184,26 @@ def read_btr(run, payload, *, paging, count=False, export=False):
             query, bound = image_query(run, 'closing/btr/' + table)
             local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')
             values.extend(bound)
+        if reporting:
+            local_ctes.append('J AS NOT MATERIALIZED (SELECT * FROM ' + btr_reporting.REF_TABLE +
+                              ' WHERE generation_id=%s AND branch=%s AND export=%s)')
+            values.extend([generation.pk, name, export])
+            selected_where = btr_reporting.substitute_keys(where)
+            selected_auth = ' JOIN P ON J.sku_key=' + key('P.column1') + ' JOIN L ON J.location_key=' + key('L.column1')
+            selected_order = 'J.sku_key NULLS FIRST,J.location_key NULLS FIRST'
+            selected_from = btr_reporting.reference_from(selected_where, parent_join=parent_join)
         if count:
             query = 'WITH ' + ','.join(local_ctes) + ' SELECT count(*) FROM A' + joins + auth + ' WHERE ' + where
+            if reporting:
+                query = 'WITH ' + ','.join(local_ctes) + ' SELECT count(*) FROM ' + selected_from + selected_auth + ' WHERE ' + selected_where
             values.extend(filters.children + filters.params)
         else:
             if not export:
                 selected = 'SELECT A."SKUCode",A."WhCode" FROM A' + joins + auth + ' WHERE ' + where + \
                     ' ORDER BY ' + order + ' LIMIT %s OFFSET %s'
+                if reporting:
+                    selected = 'SELECT J.sku_code AS "SKUCode",J.location_code AS "WhCode" FROM ' + selected_from + selected_auth + \
+                        ' WHERE ' + selected_where + ' ORDER BY ' + selected_order + ' LIMIT %s OFFSET %s'
                 local_ctes.append('selected AS (' + selected + ')')
                 values.extend(filters.children + filters.params + [paging[1], (paging[0] - 1) * paging[1]])
             projection = [('Source', "'" + name + "'"), ('Category', 'cd.column2'), ('Availability', 'NULL'),
@@ -205,7 +225,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
                 ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1') + \
                 (auth + ' WHERE ' + where if export else '') + ' ORDER BY ' + order + ('' if export else ' LIMIT %s')
             values.extend(filters.children + (filters.params if export else [paging[1]]))
-            if not export and getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+            if not export and (reporting or getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE'):
                 # Sort the narrow final join bag before fetching its daily
                 # values. All joins, selected-key multiplicity and both LIMITs
                 # remain unchanged; source ordinals identify rows, not tie-breaks.
@@ -217,10 +237,24 @@ def read_btr(run, payload, *, paging, count=False, export=False):
                     ' LEFT JOIN ld ON ' + equal('A."WhCode"', 'ld."WHCode"') + \
                     ' LEFT JOIN ld pld ON ' + equal('E."ParentWhCode"', 'pld."WHCode"') + \
                     ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1')
-                local_ctes.append('final_keys AS (SELECT A.vf_ordinal AS ao,btd.vf_ordinal AS bo,' +
-                    key('A."SKUCode"') + ' AS sort_sku,' + key('A."WhCode"') + ' AS sort_loc,' +
+                identities = 'A.vf_ordinal AS ao,btd.vf_ordinal AS bo,'
+                sorting = key('A."SKUCode"') + ' AS sort_sku,' + key('A."WhCode"') + ' AS sort_loc,'
+                final_order = order
+                if reporting:
+                    narrow = [(alias, btr_reporting.substitute_keys(value)) for alias, value in narrow]
+                    reference = btr_reporting.reference_from(','.join(value for _, value in narrow) + ' E.', parent_join=parent_join)
+                    # The selected bag is still rejoined by textual normalized keys.
+                    final_from = ' FROM selected t JOIN J ON ' + key('t."SKUCode"') + '=J.sku_key AND ' + key('t."WhCode"') + '=J.location_key' + reference[1:] + \
+                        ' LEFT JOIN sd ON ' + equal('J.sku_code', 'sd."SKUCode"') + \
+                        ' LEFT JOIN ld ON ' + equal('J.location_code', 'ld."WHCode"') + \
+                        ' LEFT JOIN ld pld ON ' + equal('E."ParentWhCode"', 'pld."WHCode"') + \
+                        ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1')
+                    identities = 'J.a_ordinal AS ao,J.btd_ordinal AS bo,'
+                    sorting = 'J.sku_key AS sort_sku,J.location_key AS sort_loc,'
+                    final_order = selected_order
+                local_ctes.append('final_keys AS (SELECT ' + identities + sorting +
                     ','.join(value + ' AS ' + quote(alias) for alias, value in narrow) +
-                    final_from + ' ORDER BY ' + order + ' LIMIT %s)')
+                    final_from + ' ORDER BY ' + final_order + ' LIMIT %s)')
                 fetched = ','.join(quote(column) for column in columns)
                 query = ('WITH ' + ','.join(local_ctes) + ' SELECT ' + ','.join(
                     (('AD.' + quote(alias)) if alias in columns else
@@ -232,6 +266,15 @@ def read_btr(run, payload, *, paging, count=False, export=False):
                     ' FROM btd WHERE vf_ordinal=K.bo OFFSET 0) TD ON TRUE' + \
                     ' ORDER BY K.sort_sku NULLS FIRST,K.sort_loc NULLS FIRST')
             if export:
+                if reporting:
+                    projection = [(alias, btr_reporting.substitute_keys(value)) for alias, value in projection]
+                    reference = btr_reporting.reference_from(','.join(value for _, value in projection) + selected_where + ' E.', parent_join=parent_join)
+                    query = 'WITH ' + ','.join(local_ctes) + ' SELECT ' + ','.join(value + ' AS ' + quote(alias) for alias, value in projection) + \
+                        ' FROM ' + reference + ' LEFT JOIN sd ON ' + equal('J.sku_code', 'sd."SKUCode"') + \
+                        ' LEFT JOIN ld ON ' + equal('J.location_code', 'ld."WHCode"') + \
+                        ' LEFT JOIN ld pld ON ' + equal('E."ParentWhCode"', 'pld."WHCode"') + \
+                        ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1') + selected_auth + \
+                        ' WHERE ' + selected_where + ' ORDER BY ' + selected_order
                 return iter_rows(query, values), dates
         # Grid lookups retain their native planner choices. The measured full
         # count uses a serial merge plan over narrow covering indexes, confined

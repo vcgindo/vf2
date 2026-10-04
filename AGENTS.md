@@ -34,6 +34,19 @@ Run focused affected proofs; broaden only for relevant change or failure.
 Commit/push at logical phase exits or requested checkpoints. Never infer a goal
 token budget. A checkpoint or imported code is not acceptance.
 
+User-directed controller planning rule (4 October 2026): scope every report or
+performance slice end to end from the outset: publication/refresh, storage and
+reporting views, SQL/access paths, API assembly and serialization, transfer,
+frontend requests and transformations, and usable grid rendering/interactions.
+The controller owns this holistic scope and must not wait for user-observed
+slowness to add browser performance to the plan. Define matched-data/resource
+legacy comparisons and click-to-usable-screen acceptance before implementation;
+backend timings alone cannot close a user-facing performance trial. Investigate
+each layer, changing only measured bottlenecks within the authorized boundary.
+For the current BTR slice, retain daily refresh, existing databases/frontend
+contracts and the explicit deferral of integer product/location keys. This rule
+does not authorize unrelated redesign or database replication.
+
 ## Synthetic independence
 
 Retain the approved 200-SKU/20-location catalogue, names, hierarchy and scopes.

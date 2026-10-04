@@ -46,7 +46,8 @@ const VerticalSplitView = (props: SplitViewProps) => {
     const staticTableColDefs = useMemo<any>(() => {
         if (!techTable.columnDefs) return []
         const colDefs = techTable.columnDefs.filter((col: any) => col.colId && ['dailydatagraph','Category', "LocationName", "Norm", "SKUCode", "SKUDescription", "Tags", "VirtualNorm", "RN", "pc", "pn", "WhCode"].includes(col.colId));
-        const newColDef = colDefs.map((colDef: any) => {
+        const newColDef = colDefs.map((source: any) => {
+            const colDef = { ...source };
             if (colDef.colId === "Category" || colDef.colId ==="dailydatagraph") {
                 colDef.pinned = "left";
                 colDef.minWidth =  80;
@@ -64,7 +65,8 @@ const VerticalSplitView = (props: SplitViewProps) => {
     const techTableColDefs = useMemo<any>(() => {
         if (!techTable.columnDefs) return []
         const colDefs = techTable.columnDefs.filter((col: any) => col.colId && !['dailydatagraph','Category', "LocationName", "Norm", "SKUCode", "SKUDescription", "Tags", "VirtualNorm", "RN", "pc", "pn","WhCode"].includes(col.colId));
-        const newColDef = colDefs.map((colDef: any) => {
+        const newColDef = colDefs.map((source: any) => {
+            const colDef = { ...source };
             colDef.pinned = false;
             colDef.filter=false;
             return colDef;
@@ -75,13 +77,14 @@ const VerticalSplitView = (props: SplitViewProps) => {
     const ecoTableColDefs = useMemo<any>(() => {
         if (!ecoTable.columnDefs) return []
         const colDefs = ecoTable.columnDefs.filter((col: any) => col.colId && !['dailydatagraph','Category', "LocationName", "Norm", "SKUCode", "SKUDescription", "Tags", "VirtualNorm", "RN", "pc", "pn","WhCode"].includes(col.colId));
-        const newColDef = colDefs.map((colDef: any) => {
+        const newColDef = colDefs.map((source: any) => {
+            const colDef = { ...source };
             colDef.pinned = false;
             colDef.filter=false;
             return colDef;
         });
         return newColDef
-    }, [techTable.columnDefs]);
+    }, [ecoTable.columnDefs]);
 
     const handleChange = (sizes: Array<number>) => {
         setLockBtnPosition(sizes[0])

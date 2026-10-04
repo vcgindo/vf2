@@ -47,6 +47,12 @@ def prepare():
 
 def client(config):
     """Runs inside the identical client process boundary for either API."""
+    stop_file = Path('/tmp/btr-benchmark-stop-after-pair.json')
+    if stop_file.exists():
+        stop = json.loads(stop_file.read_text())
+        if (stop.get('series') == config['series'] and
+                int(config['sample'].split('-')[1]) > stop['last_pair']):
+            raise SystemExit('Human-directed benchmark stop after completed pair; restore resource window')
     payload = json.dumps(config['payload']).encode()
     count = config['concurrency']*2
     barrier = threading.Barrier(count)
@@ -79,7 +85,11 @@ def client(config):
     for observation in observations:
         body=observation.pop('content')
         observation['sha256']=hashlib.sha256(body).hexdigest()
-        observation['compressed_body']=base64.b64encode(gzip.compress(body)).decode('ascii')
+        # Evidence compression is outside every request timer. Fast lossless
+        # compression avoids spending the bounded resource window archiving
+        # four identical full-size responses; the decoded body/hash are fixed.
+        observation['evidence_gzip_level']=1
+        observation['compressed_body']=base64.b64encode(gzip.compress(body,compresslevel=1)).decode('ascii')
     print(json.dumps(observations), flush=True)
 
 
@@ -128,7 +138,7 @@ def resources():
     return result
 
 
-def series(name, budget_directory, measured, concurrencies=(1,4)):
+def series(name, budget_directory, measured, concurrencies=(1,4), *, fresh_label='fresh'):
     from parity.legacy_isolation import exclusive_replay
     os.environ['VFTEST_PROFILE']='fresh'
     root=ROOT/name;root.mkdir(exist_ok=False)
@@ -137,8 +147,12 @@ def series(name, budget_directory, measured, concurrencies=(1,4)):
     windows=[item for item in ready if 'pid' in item]
     postgres=[item for item in ready if item.get('container')==PG]
     assert len(windows)==2 and all(item['cpu_rate']==1250 for item in windows)
-    assert sorted(item['memory_bytes'] for item in windows)==[3*1024**3,4*1024**3]
-    assert len(postgres)==1 and postgres[0]['memory_bytes']==3*1024**3 and postgres[0]['nano_cpus']==2*10**9
+    configuration=json.loads((budget/'config.json').read_text())
+    database_budget=configuration.get('postgres_memory_bytes',3*1024**3)
+    assert sorted(item['memory_bytes'] for item in windows)==sorted([database_budget,4*1024**3])
+    sql_target=next(t for t in configuration['targets'] if Path(t['executable']).name.lower()=='sqlservr.exe')
+    assert sql_target['memory_bytes']==database_budget
+    assert len(postgres)==1 and postgres[0]['memory_bytes']==database_budget and postgres[0]['nano_cpus']==2*10**9
     assert not (budget/'budget-result.json').exists(), 'Resource window already ended'
     policy=json.loads(Path('D:/freshvcf-build/evidence/stage2-vm-dataset-20261003-002/fixture-serving.json').read_text())
     actor=next(a for a in policy['actors'] if 'broad' in a['email'])
@@ -180,6 +194,7 @@ def series(name, budget_directory, measured, concurrencies=(1,4)):
                         comparisons=check_outputs(root,observations)
                         (root/(sample+'-comparison.json')).write_text(json.dumps(comparisons,indent=2))
                         record=dict(sample=sample,engine=engine,concurrency=concurrency,
+                                    reader=fresh_label if engine=='fresh' else 'legacy',
                                     warmup=number<5,requests=observations,
                                     valid=all(c['status'].startswith('PASS') for c in comparisons)
                                       and all(o['http_status']==200 and o['error'] is None for o in observations),
@@ -216,7 +231,21 @@ if __name__=='__main__':
     parser.add_argument('--name');parser.add_argument('--budget-directory')
     parser.add_argument('--measured',type=int,default=30)
     parser.add_argument('--concurrency',type=int,choices=(1,4),nargs='+',default=[1,4])
+    parser.add_argument('--fresh-label', choices=('accepted','reporting','fresh'), default='fresh')
+    parser.add_argument('--evidence-root', type=Path)
     args=parser.parse_args()
+    if args.evidence_root:
+        # Reference responses remain the retained full-population contract.
+        evidence_root=args.evidence_root
+        evidence_root.mkdir(exist_ok=True)
+        reference=ROOT/'fixture-contract'
+        ROOT=evidence_root
+        if not (ROOT/'fixture-contract').exists():
+            import shutil
+            (ROOT/'fixture-contract').mkdir()
+            for route in ROUTES:
+                name='broad-first-'+route+'-baseline.json.gz'
+                shutil.copyfile(reference/name,ROOT/'fixture-contract'/name)
     if args.operation=='prepare':prepare()
     elif args.operation=='client':client(json.load(sys.stdin))
-    else:series(args.name,args.budget_directory,args.measured,args.concurrency)
+    else:series(args.name,args.budget_directory,args.measured,args.concurrency,fresh_label=args.fresh_label)

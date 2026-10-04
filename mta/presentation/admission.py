@@ -39,6 +39,14 @@ CONFIG_SETTINGS = (
 
 
 def binding():
+    run, identity = native_binding()
+    if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
+        from mta.presentation.btr_reporting import admission_identity
+        identity = digest(dict(native=identity, btr=admission_identity(run)))
+    return run, identity
+
+
+def native_binding():
     """Bounded metadata/file identity; no operational rows or input snapshot."""
     from mta.presentation import fixture
     if fixture.enabled():
@@ -116,12 +124,18 @@ def admit():
     _admitted = None
     run, before = binding()
     verify(run)
+    if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
+        from mta.presentation.btr_reporting import selected_generation, verify_generation
+        verify_generation(selected_generation(run))
     _, after = binding()
     if before != after:
         raise PublicationUnavailable('publication_changed_during_admission')
     _admitted = after
-    return dict(run_id=str(run.pk), business_date=str(run.business_date),
-                output_digest=run.output_digest, admission_digest=after)
+    result = dict(run_id=str(run.pk), business_date=str(run.business_date),
+                  output_digest=run.output_digest, admission_digest=after)
+    if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
+        result['btr_reporting_generation'] = settings.VF_BTR_REPORTING_GENERATION
+    return result
 
 
 def require_admission():

@@ -15,6 +15,12 @@ VF_MTA_PUBLISHED_RUN = os.environ.get('VF_MTA_PUBLISHED_RUN', '')
 VF_MTA_PUBLISHED_DIGEST = os.environ.get('VF_MTA_PUBLISHED_DIGEST', '')
 VF_MTA_FIXTURE_FILE = os.environ.get('VF_MTA_FIXTURE_FILE', '')
 VF_MTA_FIXTURE_SHA256 = os.environ.get('VF_MTA_FIXTURE_SHA256', '')
+VF_BTR_REPORTING_GENERATION = os.environ.get('VF_BTR_REPORTING_GENERATION', '')
+if VF_BTR_REPORTING_GENERATION:
+    LOGGING = {'version': 1, 'disable_existing_loggers': False,
+        'handlers': {'btr_console': {'class': 'logging.StreamHandler'}},
+        'loggers': {'mta.presentation.btr_sql': {
+            'handlers': ['btr_console'], 'level': 'INFO', 'propagate': False}}}
 VF_MTA_PERMISSIONS_FILE = os.environ.get('VF_MTA_PERMISSIONS_FILE', '')
 VF_MTA_PERMISSIONS_SHA256 = os.environ.get('VF_MTA_PERMISSIONS_SHA256', '')
 VF_MTA_HIERARCHY_FILE = os.environ.get('VF_MTA_HIERARCHY_FILE', '')

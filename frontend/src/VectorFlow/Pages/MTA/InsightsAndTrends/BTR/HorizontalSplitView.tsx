@@ -1,4 +1,4 @@
-import { useRef,useState} from 'react'
+import { useMemo,useRef,useState} from 'react'
 import { AgGridReact, AgGridReactProps } from "ag-grid-react"
 import { Allotment } from "allotment"
 import useViewPort from "../../../../../hooks/useViewPort"
@@ -82,17 +82,14 @@ const HorizontalSplitView = (props:SplitViewProps)=>{
    
     const {screenHeight} = useViewPort()
 
-    if(techTable.columnDefs)
-    {   
-            techTable.columnDefs.forEach((item :any)=> {
-                if ('field' in item && (item.field === 'WhCode' || item.field === 'Whcode' || item.field === 'LocationName' || item.field === 'Norm' || item.field === 'VirtualNorm' || item.field === 'Availability' || item.field === 'Norm' || item.field === 'VirtualNorm'  || item.field === 'Category' || item.field === 'SKUCode' || item.field === 'SKUDescription' || item.field === 'Tags')) {
-                    item.pinned = 'left';
-                    item.width = 50;
-                }
-                item.filter=false;
-            
-            });
-    }
+    const columnDefs = useMemo(() => techTable.columnDefs?.map((source: any) => {
+        const item = { ...source, filter: false };
+        if (['WhCode', 'Whcode', 'LocationName', 'Norm', 'VirtualNorm', 'Availability', 'Category', 'SKUCode', 'SKUDescription', 'Tags'].includes(item.field)) {
+            item.pinned = 'left';
+            item.width = 50;
+        }
+        return item;
+    }), [techTable.columnDefs]);
 
     const defaultColDef = {
         floatingFilter: false,
@@ -131,7 +128,7 @@ const HorizontalSplitView = (props:SplitViewProps)=>{
                                 tooltipMouseTrack={true}
                                 tooltipShowDelay={100}
                                 // tooltipHideDelay={100000}
-                                columnDefs={techTable.columnDefs}
+                                columnDefs={columnDefs}
                                 rowData={techTable.rowData}                                
                                 onBodyScroll={(params)=>onBodyScroll(params,1)}
                                 defaultColDef={defaultColDef}
@@ -169,7 +166,7 @@ const HorizontalSplitView = (props:SplitViewProps)=>{
                                 tooltipMouseTrack={true}
                                 tooltipShowDelay={100}
                                 // tooltipHideDelay={100000}
-                                columnDefs={techTable.columnDefs}
+                                columnDefs={columnDefs}
                                 rowData={ecoTable.rowData}                             
                                 onBodyScroll={(params)=>onBodyScroll(params,2)}
                                 defaultColDef={defaultColDef}

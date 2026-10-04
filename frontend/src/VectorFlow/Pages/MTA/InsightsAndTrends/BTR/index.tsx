@@ -62,7 +62,8 @@ const BufferTrendReport = () => {
                 onResetCallback: onResetCallback
             }}
         >
-            <div style={{zoom:0.9,marginLeft:'10px'}}>
+            <div style={{zoom:0.9,marginLeft:'10px'}}
+                {...(isLoading ? { inert: '' } as any : {})}>
                 <ActionToolBar 
                     view={'grid'} 
                     setCurrentTab={''} 
@@ -135,8 +136,11 @@ const BufferTrendReport = () => {
                         </ToggleViewBtnWrapper>
                     )}
                 </BTRLayoutTabsWrapper>
-                {isLoading && <OverlayLoader />}
-                {!isLoading && renderView()}
+                {isLoading && <OverlayLoader message="Loading data" />}
+                <div aria-busy={isLoading} style={{ display: 'contents' }}
+                    {...(isLoading ? { inert: '' } as any : {})}>
+                    {renderView()}
+                </div>
                 <div style={{ display: 'none' }}>
                     <VFTable
                         ref={tempRef}

@@ -469,11 +469,16 @@ def planning_custom(request, payload):
 @endpoint('POST')
 def btr_data(request, payload, *, count=False):
     from mta.presentation.btr_sql import read_btr
+    from mta.presentation.btr_display import display_horizon, prepare_display
+    horizon = None if count else display_horizon(payload)
     run = selected_run()
     paging = _pagination(payload)
     if paging is None:
         raise ValueError('invalid_pagination')
-    return envelope(data=read_btr(run, payload, paging=paging, count=count))
+    data = read_btr(run, payload, paging=paging, count=count)
+    if horizon is not None:
+        data = prepare_display(data, horizon)
+    return envelope(data=data)
 
 
 @endpoint('POST')

@@ -22,7 +22,7 @@ ROUTES = (('RRRData', 5000), ('RRRDataCount', 5000),
 
 
 def run(phase):
-    root = Path('/proof') / phase
+    root = Path(os.environ.get('PROFILE_EVIDENCE_ROOT', '/proof')) / phase
     root.mkdir(exist_ok=False)
     credentials = json.load(open('/run/secrets/stage2-fixture-accounts.json'))
     authenticated = login(credentials['broad'])
