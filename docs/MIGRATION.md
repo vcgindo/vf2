@@ -26,6 +26,30 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Latest direction: BTR ready snapshot trial — checkpoint and branch authorized
+
+The user now authorizes the fresh
+[BTR ready snapshot trial](BTR_READY_SNAPSHOT_TRIAL_PLAN.md). It supersedes earlier
+BTR plan/addendum execution instructions for this intervention. First preserve
+the current deployed reporting/frontend work in an explicitly staged checkpoint
+commit, reconcile its delivery status from retained evidence, then create
+`codex/btr-ready-snapshot-trial` from that checkpoint and implement on that branch.
+The new plan is a scope contract, not a second status tracker.
+
+Active objective: build complete typed BTR presentation rows ONCE from the existing
+April7 heavy fixture, then connect the existing API/frontend to read them directly.
+Live permissions, filters, paging and exact display semantics remain required.
+Full daily ingestion/calculation/scheduling/automatic activation are DEFERRED;
+the builder simulates only the retained day's presentation preparation. No engine
+replay, new facts/date, database copies, integer keys or renewed benchmark campaign.
+Unmet exit: committed checkpoint/branch, prepared snapshot, direct UI consumption,
+focused correctness and brief practical UI comparison on3005, committed/pushed
+delivery with rollback. No new implementation completion is claimed yet.
+
+Preserved reporting/frontend implementation commit: `97b9b07655ec9cba88c787a44f8beae1097485e3`.
+The plan/tracker documentation is committed next; the trial branch begins at that
+documentation checkpoint. No prior code, dataset or evidence was reset/deleted.
+
 Latest human override: STOP benchmark-copy/recovery/repopulation and copy-readback
 work. Preserve partial artifacts without deletion. Advance the same BTR task using
 existing legacy SQL and existing Fresh PostgreSQL databases, with authorized
@@ -37,19 +61,121 @@ infrastructure decisions require prior explicit human approval. Immediate exit:
 verify existing legacy availability and deliver comparable heavy-data BTR timings,
 reusing retained identities/correctness proof without full table rescanning.
 
-Prepared next intervention (planning only): [BTR daily reporting-layer assessment](BTR_DAILY_REPORTING_PLAN.md).
-The human requests BTR-specific design aligned to the existing daily refresh.
-Build validated report generations after successful daily output publication;
-preserve engine state, live permissions, exact report semantics and atomic
-generation selection. This is not active implementation authorization or a second
-queue. The bounded existing-database benchmark has reached the consolidated
-blocker below; its baseline feeds the proposed architecture decision.
+### Preserved BTR reporting/frontend checkpoint — deployed trial, performance unproved
 
-### BTR query/access-path performance — consolidated blocker; no successor deployed
+LATEST HUMAN OVERRIDE (4 October): frontend implementation is the active
+intervention. The c4 runner stopped at completed pair22 and temporary limits were
+restored, as evidenced below. Remaining benchmark/cold/load campaigns are DEFERRED
+and no longer prerequisites. Partial performance evidence is not acceptance.
+Complete the frontend addendum, focused verification and deployment to3005 with
+rollback. This supersedes the older benchmark-first sequencing.
 
-The bounded intervention stops at its authorized consolidated-blocker exit. No
+Controller frontend assessment (4 October): the existing BTR plan now contains an
+[addendum](BTR_DAILY_REPORTING_PLAN.md#addendum-remove-btr-frontend-work-from-the-report-journey-4-october-2026)
+covering full-row conversion/Availability calculation, grid remounts and repeated
+configuration/layout work. This records the requested inspection and proposed
+bounded intervention. The retained backend-only benchmark is the before evidence;
+no whole-journey performance acceptance is claimed.
+
+The human explicitly authorizes the [BTR daily reporting slice](BTR_DAILY_REPORTING_PLAN.md)
+following the5d7ef83 benchmark handoff. Implement/test additive typed BTR reporting
+tables and a daily publication-bound builder using EXISTING textual product/location
+keys; integer dimension keys are excluded and deferred for later review. Cover both
+branches, exact grid/count/export contracts, live scopes, atomic generation selection,
+daily retry/rollback and full-heavy-dataset performance against legacy and accepted
+Fresh. Use existing databases/services only; no copying programme. Bounded3005
+trial/migrations and reversible resource matching are authorized. Commit/push one
+proved result or restore the accepted reader and report the exact failed gate, then
+stop. Prior query-only tranche is dispositioned below; broader Stage2–5 stays paused.
+
+Correctness/lifecycle gate passed for the bounded trial: heavy fixture grids/counts,
+first/later and restricted/empty/filter/horizon cases, both restricted5082-row exports,
+118 normal read comparisons (including14 retained error responses), normal exports,
+and30 adversarial tie cases through the accepted-reader fallback. Private-build
+visibility, failed-build rollback/retry/idempotency, immutable PostgreSQL guards,
+exact-generation admission and accepted-selection rollback passed. No engine work.
+
+Migrations0013–0015 are applied in existing fixture and normal databases. Fixture
+metadata migration guards were restored atomically; admission/source freeze stayed
+unchanged. Full April7 generation3242710a-7478-4668-b9ed-b7af543e4f84 has389196
+references (97299 per branch/grid-or-export), built in74.5s, adding110MiB. Normal
+generationbb0b0859-431d-426b-a71b-9629692c8357 has4960 references.
+
+3005 now runs the correctness-verified **UNACCEPTED TRIAL**, using explicit generation
+selection and non-overlapping MTA restart. Startup and browser request logs show
+the reporting reader. Both browser branches render April7 data; user reports little
+visible speedup. Preliminary offline12.0→1.9s counts and16.0→9.2s grids are diagnostic,
+not acceptance. The superseding active exit is the finite frontend proof below.
+Human explicitly permits this correct opt-in trial to remain for inspection if only
+performance is unproved; no whole-page or performance acceptance is implied.
+
+First3GiB matched resource window failed legacy SQL pool memory before valid samples;
+all resource settings restored, failed bodies retained. A4GiB common database window
+uses SQL2560MiB buffer cap plus1536MiB non-buffer headroom, within observed host headroom.
+That window's30 measured c1 paired grid/count journeys passed complete response
+comparison: legacy median14.04s/p9521.30s versus reporting Fresh10.45s/19.95s;
+throughput0.0647 versus0.0874 journeys/s. These are native API observations only,
+with shared-host variability retained. The c4 series stopped at18 measured batches;
+accepted Fresh
+at the same4GiB budget remains unproved and is explicitly deferred under the
+human's benchmark scope limit. Do not launch another accepted-Fresh matrix.
+Evidence: `D:/freshvcf-build/evidence/btr-reporting-20261004-001`.
+
+Frontend implementation is active under the superseding direct human instruction.
+The benchmark runner stopped after pair22:18 measured c4 batches/72 journeys per
+stack, all responses valid. Resource helper reported RESTORED with no errors;
+actual PostgreSQL1GiB/1CPU and SQL original memory settings were independently
+checked. Full c4 protocol was truncated by human direction, not passed. Cold,
+three-burst, extra baseline and attribution campaigns are DEFERRED, not prerequisites.
+
+The active exit is the narrow BTR frontend correction: maintain mounted same-view
+grids under a truthful overlay, reject stale responses, stabilize column/layout
+work, reuse actor/publication-bound config and supply display-ready values through
+an explicit BTR-only opt-in response. Default raw APIs/exports retain their contract.
+Availability and conversion move to the serving path with focused equivalence to
+the existing JS mapper; request-specific preparation is not claimed as eliminated
+system-wide. No new schema/cache/framework or benchmark campaign.
+
+Required proof: focused affected tests/build, one representative before/after
+On-Hand/Pipeline/Both browser capture at existing5000-row size, affected
+paging/filter/layout/error/race/export smoke checks, safe existing3005 deployment
+and rollback handoff, commit/push. Reuse prior backend correctness/migration proofs.
+No whole-journey performance acceptance is claimed from partial native API timings.
+
+Preserved implementation checkpoint: the reporting layer and BTR display opt-in
+are deployed on3005. Seven focused frontend tests, TypeScript check and production
+build pass (`frontend-tests-final.log`, `frontend-typecheck.log`,
+`display-build-003.log`); five presenter/route tests and complete5000-row comparisons
+per branch at90/7 days pass. The first fixture harness failure was Windows UTF-8
+decoding; its correction did not modify source data. Impeccable reports no findings.
+
+`display-deploy-result.json` proves identical admission
+6da166e120fce96e567a7007caed410943864071004f4a6b5b302218b652a40b and only MTA/frontend
+replacement. Current MTA image a7c58a5097357be81b44a710fdc6c9588b50a810facc99029e1365887a8c91f2;
+frontend f88d22416ab5b5b50a30479c1684449eb020dd29d8feb1bdd7399c2d02df0e91.
+Exact previous image pair is retained in `compose.display-rollback.json`.
+
+Authenticated On-Hand/Pipeline/Both display5000 rows and97299 counts; vertical and
+horizontal split render. Page2 changes rows, Depot filter resets page1/count86243,
+local SKU filter/clear and Save/Reset Layout pass. CSV completed HTTP200:86243 rows,
+108 columns,21112927 downloaded bytes, SHA256
+867fe5f5503721ffb5ce03080efdd95047af74be0b8dcecf37eeb9f2b30c8513
+(`display-csv-receipt.json`). This is bounded export smoke, not a new value-parity
+suite. Prepared gateway reads preserve broad/restricted scope, ignore forged grants,
+and deny the normal-preview actor (`display-gateway-smoke/result.json`). Legacy
+3002/5153 remained listening. Race/error behavior is covered by focused tests.
+
+Before/after screenshots are retained for each view. Exact click-to-usable timings
+and request-count attribution were not captured; no browser speed improvement or
+whole-page acceptance is claimed. This old intervention is checkpointed, superseded
+by the new ready-snapshot contract above; do not reopen its deferred campaigns.
+
+### Prior BTR query/access-path tranche — consolidated blocker at5d7ef83
+
+That bounded intervention stopped at its authorized consolidated-blocker exit. No
 safe query/index improvement was established. Accepted source7b40ba6 and MTA image
-761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a remain serving.
+761719e96c0f95ccdb5f0ad79f7e96125b172ab79fafac72e3a3790615bc952a remained serving
+at that checkpoint; the reporting trial above is the current serving status.
 Performance parity and broader Stage2 acceptance are **not achieved**.
 
 The latest human override was followed: copy/recovery/full-copy verification was
