@@ -215,6 +215,20 @@ Planning evidence directory. These are prepared inputs, not completed readers:
 live filters/scopes, response serialization, April request-history admission,
 Expedite charts/custom/counts, overview and all delivery gates remain open.
 
+Expedite reader contract correction: pinned `ExpediteFromParent` SQL confirms
+nonempty NMS drives the parent nested transit results independently of empty
+shipments. Dispatch LEFT joins its filtered/scoped CTE through remarks;
+availability INNER joins it, both before grid paging. The reference reader now
+supports explicit remark/Pick inputs, preserves GROUP BY before NULL substitution
+and string-valued output, and still denies nonempty NMS when those inputs are
+missing. Eight focused parent tests pass, including duplicate collapse, distinct
+NULL/space groups, remark-dependent Pick joins and past-end paging. This is
+reference implementation only, not SQL/wire parity or serving acceptance.
+Active item remains the prepared Expedite reader: qualify the retained full Pick
+report's ParentStockForRationing, prepare this separate nested grain, and prove
+complete responses before wiring. PickPostRow is insufficient for this field.
+No serving, schema, source data, engine or permission changes were made.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

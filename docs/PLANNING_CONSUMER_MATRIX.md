@@ -26,6 +26,18 @@ destinations are reused. Source qualification is not acceptance of derived rows.
 
 ## Derived source qualification
 
+Parent Expedite's nested `expediteDispatchestransit` is not the shipment bag.
+The pinned `ExpediteFromParent` SQL starts from all NMS rows, LEFT joins remarks,
+then LEFT joins the complete scoped/filtered dispatch CTE through those remarks
+and LEFT joins `vf_PickListReport` for `ParentStockForRationing`. The availability
+variant INNER joins its complete CTE through remarks. Both GROUP BY original
+nullable remark, RLT, SKU/location and parent stock, before substituting a space
+for NULL remark; pagination applies only to the main grids. The handler converts
+all retained values to strings and omits NULL properties. No nested result order
+is specified. Empty InTransitData therefore cannot establish empty parent nested
+results. The prepared reader must retain this separate grain and qualify its
+Pick report source; `PickPostRow` alone lacks `ParentStockForRationing`.
+
 Canonical `F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateGoodsInTransitMaster.sql`
 inserts one occurrence per positive-GIT rationed row INNER JOIN importer standard
 attribute match. Status is the empty string; Tags/Price come from standards;

@@ -32,8 +32,39 @@ def parent_filter(payload, importer):
         raise PublicationUnavailable('LEG-EXPEDITE-PARENT-FILTER-INVALID-SQL:'+str(exc).partition(':')[2]) from exc
 
 
-def parent_rows(rows, importer, standards, masters, *, nms, products, locations, paging, matches=None):
-    if nms:
+def parent_transit_rows(nms, remarks, pick, selected, *, availability=False):
+    """Reference for the deployed cte_intransit/cte_avilatparentintransit.
+
+    `selected` is the complete filtered/scoped CTE, before paging. Dispatch
+    LEFT joins that CTE through remarks; availability INNER joins it. GROUP BY
+    uses the original nullable remark, before ISNULL converts it to a space.
+    SQL specifies no result ordering here; callers must not claim ordered parity.
+    """
+    remark_index = index(remarks, 'SKUCode', 'WhCode')
+    selected_index = index(selected, 'sc', 'wc')
+    pick_index = index(pick, 'SKUCode', 'WhCode')
+    result, seen = [], set()
+    for item in nms:
+        for remark in remark_index.get(sql_key(item['SKUCode'], item['WhCode']), []) or [{}]:
+            matches = selected_index.get(sql_key(remark.get('SKUCode'), remark.get('WhCode')), [])
+            for chosen in matches or ([] if availability else [{}]):
+                for stock in pick_index.get(sql_key(chosen.get('sc'), chosen.get('wc')), []) or [{}]:
+                    raw = dict(skucode=item['SKUCode'], whcode=item['WhCode'],
+                               slt=stock.get('ParentStockForRationing'), eta=item.get('RLT'),
+                               remarks=remark.get('Remark'))
+                    group = tuple(sql_key(value) if isinstance(value, str) else value
+                                  for value in raw.values())
+                    if group in seen:
+                        continue
+                    seen.add(group)
+                    raw['remarks'] = raw['remarks'] if raw['remarks'] is not None else ' '
+                    result.append({key: str(value) for key, value in raw.items() if value is not None})
+    return result
+
+
+def parent_rows(rows, importer, standards, masters, *, nms, products, locations, paging, matches=None,
+                remarks=None, pick=None):
+    if nms and (remarks is None or pick is None):
         raise ValueError('parent_expedite_nonempty_transit_consumer_unavailable')
     result = dict(expediteDispatches=[], expediteDispatchestransit=[],
                   createAvailabilityAtParent=[], createAvailabilityAtParenttransit=[])
@@ -86,6 +117,12 @@ def parent_rows(rows, importer, standards, masters, *, nms, products, locations,
             order = (a.get('BRAge') or 0, sk, wc, parent)
             grouped[target].extend((order, dict(values)) for _ in range(weight))
     page, size = paging
+    if nms:
+        for target, transit_target, availability in (
+                ('expediteDispatches', 'expediteDispatchestransit', False),
+                ('createAvailabilityAtParent', 'createAvailabilityAtParenttransit', True)):
+            result[transit_target] = parent_transit_rows(
+                nms, remarks, pick, [row for _, row in grouped[target]], availability=availability)
     for target, values in grouped.items():
         # Do not invent a tie-break when metadata duplicates disagree.
         seen = {}
