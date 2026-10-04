@@ -47,8 +47,11 @@ focused correctness and brief practical UI comparison on3005, committed/pushed
 delivery with rollback. No new implementation completion is claimed yet.
 
 Preserved reporting/frontend implementation commit: `97b9b07655ec9cba88c787a44f8beae1097485e3`.
-The plan/tracker documentation is committed next; the trial branch begins at that
-documentation checkpoint. No prior code, dataset or evidence was reset/deleted.
+Plan/tracker checkpoint: `d9c600e`. Active branch: `codex/btr-ready-snapshot-trial`,
+created from that commit with a clean worktree. No prior code, dataset or evidence
+was reset/deleted. The snapshot row schema/build/direct reader are the active item;
+required proof is limited to the new plan. Prior default grid source uniqueness
+qualification and accepted invalid-filter guards will be reused, not weakened.
 
 Latest human override: STOP benchmark-copy/recovery/repopulation and copy-readback
 work. Preserve partial artifacts without deletion. Advance the same BTR task using
