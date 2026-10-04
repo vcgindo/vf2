@@ -41,7 +41,7 @@ def dbm_context(*, history=False, pair=None, payload=None):
     if history and getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
         if pair is None:raise PublicationUnavailable('fixture_history_pair_required')
         from datetime import timedelta
-        from mta.presentation.fixture import image_metadata_batch,pair_rows
+        from mta.presentation.fixture import image_metadata_batch,pair_rows,history_scope_rows
         cutoff=run.business_date-timedelta(days=90)
         dbm_paths={name:'closing/dbm/'+name for name in HISTORY_TABLES}
         scope_paths={name:'closing/importer/'+name for name in SCOPE_TABLES}
@@ -49,7 +49,8 @@ def dbm_context(*, history=False, pair=None, payload=None):
         state={name:(image_rows(run,path,metadata=metadata[path]) if name in ('LastBatchRunTbl','ReasonCodes') else
             pair_rows(run,path,*pair,cutoff=cutoff if name in ('DailyConsumption','SuspendHistory','SuggestionsLog') else None,
                 metadata=metadata[path])) for name,path in dbm_paths.items()}
-        importer={name:image_rows(run,path,metadata=metadata[path]) for name,path in scope_paths.items()}
+        importer={name:history_scope_rows(run,path,code,metadata=metadata[path])
+                  for (name,path),code in zip(scope_paths.items(),pair)}
         return SimpleNamespace(run=run,business_date=run.business_date,dbm=state,output={'ClosingState':[{'importer':importer}]})
     if run.commands.exists():
         state, _ = command_state(run, _section(run))

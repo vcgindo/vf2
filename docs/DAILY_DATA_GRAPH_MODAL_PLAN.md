@@ -148,3 +148,21 @@ Direct user instruction: "authorised to run the remaining BTR matches".
 Run the remaining legacy/modern BTR comparison with the corrected completed-modal
 observer and the existing matched resource/restoration limits. Retain all earlier
 results. No implementation change or expanded benchmark is implied.
+
+## Selected-pair permission correction authorization (5 October 2026)
+
+Verified direct human instruction in controller thread01a1037c-5d96-7700-87a8-89a575f6c9f8,
+turn01a108c6-5fbc-7340-8b0c-816d37d96e34: "authorise the agent for unblocking task."
+Implement a fixture-only selected-pair producer-attribute permission reader using
+existing immutable admission/receipt guards and unchanged permission expansion.
+Preserve invalid IDs, canonical comparisons, NULL denial, duplicate eligibility,
+run/day binding, denied response, ordinary/command paths and complete graph bytes.
+No cache, table, framework, actions, engine, permission grant or Planning changes.
+Keep ready-only modal, date reuse, races and responsive behavior. Capture one
+actual serving-request diagnostic with SQL/non-SQL and chart observations; do not
+mislabel observer delay as React work. Run affected correctness proofs/build,
+deploy3005 and one final matched BTR pair with existing limits/restoration.
+Report both earlier chart-ready and settled interactive times; preserve2.097s
+baseline. Require quiet user traffic or explicitly qualify interference, without
+interrupting services. No resampling/matrix. Commit/push and hand off, stopping at
+pass or exact unmet gate; do not weaken integrity if selective equivalence fails.

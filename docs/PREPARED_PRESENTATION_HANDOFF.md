@@ -443,3 +443,28 @@ BPR also rendered its configured50-row page of97097. Desktop visibility was
 verified at1280x720 (`browser-bpr-desktop.png`), then the temporary viewport was
 reset. The other retained screenshots use the default narrow browser viewport;
 DOM receipts establish their loaded data, not responsive-layout acceptance.
+
+
+## Daily Data Graph selected-scope correction,5October2026
+
+Current backend: `freshvcf-preview-mta:daily-graph-scope-20261005-001`, image
+`sha256:30edcdbf605853f17c8912ad5114b65f5142d4150513c4302cb433d5af3b03bc`.
+Frontend remains `freshvcf-preview-frontend:daily-graph-20261005-003`:
+full modal opens after response readiness, without the thin loading strip.
+Selected fixture/run/admission unchanged. Normal Gunicorn, no profiler;
+backend4GiB/2CPU, restart=no, no host ports.
+
+Deployment: external `daily-graph-modal-20261004-001/deploy-scope.ps1` without
+`-Profile`, retaining base, fixture, portfolio, BPR, Guided, export, corrected
+Guided and Daily Graph overlays, then `compose.scope.json`. Recreate only mta;
+wait for readyz200. Rollback uses that chain ending at `compose.daily-graph.json`,
+omitting scope and scope-profile overlays. Do not reset data or other services.
+
+24 focused tests pass; independent review has no findings. Both selected full
+responses and restricted response are byte-exact in `backend/scope-deployed.json.gz`.
+Final matched BTR: chart-ready1.843s, settled2.169s; legacy11.888s.
+Both horizon controls work. Token renewal occurred inside modern's measurement
+and is included. Retained2.097s baseline missed by72ms; performance acceptance
+remains unmet. All caps restored without errors; temporary viewport reset.
+`scope-validation.json` consolidates proof and limitations. No further sampling
+under the one-pair amendment; MIGRATION.md remains the only status tracker.

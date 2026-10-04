@@ -57,14 +57,16 @@ class DBMReadTest(unittest.TestCase):
         with patch('mta.presentation.dbm_read.selected_run', return_value=run), \
              patch('mta.presentation.fixture.image_metadata_batch', return_value=metadata) as resolve, \
              patch('mta.presentation.dbm_read.image_rows', side_effect=lambda r,p,metadata=None: [metadata]) as read, \
+             patch('mta.presentation.fixture.history_scope_rows', side_effect=lambda r,p,code,metadata: [metadata]) as scope_read, \
              patch('mta.presentation.fixture.pair_rows', side_effect=lambda r,p,*pair,**kw: [kw['metadata']]) as pair_read:
             context = dbm_context(history=True, pair=('sku','location'))
         resolve.assert_called_once()
         self.assertEqual(set(resolve.call_args.args[1]), paths)
-        self.assertEqual(len(read.call_args_list), 4)
+        self.assertEqual(len(read.call_args_list), 2)
+        self.assertEqual([c.args[2] for c in scope_read.call_args_list], ['sku','location'])
         self.assertEqual(len(pair_read.call_args_list), 7)
         self.assertTrue(all(call.kwargs['metadata'] is metadata[call.args[1]]
-                            for call in [*read.call_args_list,*pair_read.call_args_list]))
+                            for call in [*read.call_args_list,*pair_read.call_args_list,*scope_read.call_args_list]))
         self.assertEqual(set(context.dbm), set(HISTORY_TABLES))
 
     def test_committed_actions_keep_full_dbm_digest_validation(self):

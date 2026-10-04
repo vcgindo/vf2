@@ -27,7 +27,43 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Stopped: completed BTR comparison misses retained baseline
+### Daily Data Graph correction delivered; baseline gate remains unmet
+
+Fixture history now reads selected-pair producer attributes under the existing
+admission/receipt/freeze contract. Scope ID validation, hierarchy expansion,
+NULL denial, duplicate eligibility and ordinary/command paths are unchanged.
+24 focused tests pass; independent review has no findings. Both selected full
+responses and the restricted response are byte-exact after deployment.
+
+Final authorized BTR pair: **2.169s modern /11.888s legacy** fully settled.
+Modern chart-ready was1.843s; legacy valid chart-ready was11.888s. Same retained
+April7 pair21101153051000/P015_1004, broad scope,14days,1280x720;
+SQL/PG3GiB/2CPU, APIs4GiB/2CPU. Both horizon controls changed15 and restored14.
+The retained **2.097s baseline gate remains unmet by72ms**. Its earlier readiness
+criterion remains qualified; the favorable incomplete1.008s trace is not a
+replacement baseline. One pair is not a latency distribution.
+
+Modern gateway recorded graph401, normal token renewal200, retried graph200.
+The2.169s includes renewal, without subtraction or resampling. No unrelated
+requests appear in the bounded gateway window; host-wide idleness is not proved.
+HTTP completion1.483766s leaves0.685234s to completed observation, including
+chart/modal transition and observer overhead, not isolated React work.
+Actual serving profiling found2.092s SQL of2.384s backend, with selected attribute
+reads0.028s. Profiler overhead included; initial instrumentation miss retained.
+Profiler removed, normal two-worker Gunicorn restored. Backend scope-20261005-001
+serves with unchanged frontend003 full-ready opening and no early strip.
+All resource caps restored with errors[]; temporary viewport reset.
+No engines, accepted F1/F2, auth grants, source data or adjacent pages changed.
+
+Consolidated evidence: `D:/freshvcf-build/evidence/daily-graph-modal-20261004-001/`
+`scope-validation.json`, `scope-final-{legacy,modern}.json/.png`,
+`scope-final-interactions.json`, `scope-final-gateway.txt`,
+`scope-serving-summary.json`, `backend/scope-deployed.json.gz`,
+`resource-scope-final-001/budget-result.json`.
+Stop at this precise unmet gate; no further sampling or adjacent implementation
+under this amendment. Operational details are in the presentation handoff.
+
+### Earlier replacement comparison (before selected-scope correction)
 
 The user-authorized replacement comparison is complete, with the corrected
 observer and matching SQL/PG3GiB/2CPU, API4GiB/2CPU caps. Same pair

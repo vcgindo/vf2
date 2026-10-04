@@ -102,6 +102,36 @@ def pair_rows(run,path,sku,location,cutoff=None,*,metadata=None):
         return [{name:wire_value(v,kind) for (name,column,kind),v in zip(fields,row)} for row in cur.fetchall()]
 
 
+def history_scope_rows(run,path,code,*,metadata):
+    """Selected producer attributes under the existing frozen-read contract.
+
+    The serving AdmittedApplication binds loader receipts and immutable guards
+    on every request. Like pair_rows, this reads that admitted image selectively;
+    it does not replace producer hierarchy with catalogue membership. Keep exact
+    code equality: scope's final code membership is case/space sensitive even
+    though its hierarchy comparisons are not. Retain duplicate attribute rows.
+    """
+    from mta.runtime.relational_state import table_sql,quote
+    allowed={
+        'closing/importer/SkuAttributeData':('SKUCode','SL1','SL2','SL3'),
+        'closing/importer/LocationAttributeData':('WHCode','LL1','LL2','LL3'),
+    }
+    if path not in allowed:unavailable('history_scope_outside_boundary')
+    item=_validate_image_metadata(path,metadata)
+    required=allowed[path]
+    fields=[field for field in item['fields'] if field[0] in required]
+    if len(fields)!=4 or {f[0] for f in fields}!=set(required):
+        unavailable('history_scope_columns_changed')
+    key=next(column for name,column,kind in fields if name==required[0])
+    with connection.cursor() as cur:
+        cur.execute('SELECT '+','.join(quote(column) for name,column,kind in fields)+
+            ' FROM '+table_sql(item['table'])+
+            ' WHERE vf_run_id=%s AND vf_image=%s AND '+quote(key)+'=%s ORDER BY vf_ordinal',
+            [run.pk,path,code])
+        return [{name:wire_value(value,kind) for (name,column,kind),value in zip(fields,row)}
+                for row in cur.fetchall()]
+
+
 def bpr_ancillary(run):
     """Two explicit native ancillary bags from sealed, frozen typed staging."""
     from datetime import date,datetime
