@@ -258,6 +258,27 @@ Overview, before/final browser comparisons, deployment and restoration remain
 required. Serving has not been rebuilt or restarted; engines, accepted F1/F2 and
 authentication permissions remain unchanged.
 
+Child Expedite request-source admission now uses a separately pinned April
+qualification, `baseline/planning-april-empty-requests-v1.json` (SHA256
+`0cec4bea850da03b9e57d59fe114a15d68fb60254637988451b609995757a33c`).
+Read-only requalification verifies the owned BPR clone is READ_ONLY, its backup
+owner matches the sealed dataset, all nine source columns match and the table
+is empty. It also reconciles the earlier acquisition bytes. The imported roster
+and June17 exception remain unchanged. Missing/changed bytes, fixture source,
+run, day or manifest deny admission. Evidence: `april-request-admission-proof.txt`.
+
+The child fixture route uses prepared grid occurrences with ParentWhCode scope,
+live ForChildren multiplicity, numeric fields, NULLs, ETA and empty admitted
+request/transit overlays. It does not load the parent BPR master or NMS. Existing
+Norm-filter denial remains. Six complete grid cases and seven filter cases pass
+against the source reference (full1030 dispatch/2746 availability, leaf400/1404);
+23 focused tests pass. Evidence: `expedite-child-reader-proof.txt` and
+`expedite-child-filter-proof.txt`. Unpaged export data and positive ForChildren
+(484/1516 rows) also pass (`expedite-child-export-proof.txt`), giving15 child
+source-reference cases. All six shared-parent regression cases pass unchanged
+(`expedite-parent-child-shared-regression.txt`). This is not independent legacy
+wire or frontend acceptance; no serving rebuild/restart has occurred.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 

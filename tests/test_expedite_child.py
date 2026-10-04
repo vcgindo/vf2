@@ -70,7 +70,8 @@ class ChildGridTests(unittest.TestCase):
         run = SimpleNamespace(pk='ac1612c8-0e49-4155-83c3-f59f41422293',
             business_date=date(2026, 6, 17),
             output_digest='bd1c522f3df299d2fc3841aed7f66d48e4307e6967450b2d8a5463dc7867d33d')
-        with patch('mta.presentation.expedite_read.expedite_context', return_value=SimpleNamespace(run=run)):
+        with patch('mta.presentation.expedite_read.expedite_context', return_value=SimpleNamespace(run=run)), \
+                patch('mta.presentation.expedite_read.selected_run', return_value=run):
             with override_settings(VF_MTA_PREVIEW_EMPTY_EXPEDITE_HISTORY=False):
                 with self.assertRaisesRegex(PublicationUnavailable, 'history_not_admitted'):
                     child_grid({})

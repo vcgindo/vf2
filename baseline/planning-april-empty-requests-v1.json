@@ -1,0 +1,99 @@
+{
+  "version": "planning-april-empty-requests-v1",
+  "run_id": "bfd75b4b-a9df-4a08-82d3-852e3324b623",
+  "business_date": "2026-04-07",
+  "fixture_source_digest": "4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73",
+  "manifest_sha256": "afe42593ca2abdf5e2395433ac70834723f4eac1dfa5a2982192c7688906b836",
+  "source": {
+    "database": "VFTEST_Fresh_S2_VM_20261003_002_BPR",
+    "backup_sha256": "c15dc63dbbd6161cb6c540673829c373a550a10b2ec65e43198757e7fa396747",
+    "source": "Demo_BPR_1"
+  },
+  "table": "dbo.OpenExpediteRequests",
+  "columns": [
+    {
+      "name": "SKUCode",
+      "type": "nvarchar",
+      "max_length": 100,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "WhCode",
+      "type": "nvarchar",
+      "max_length": 100,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "ParentWhCode",
+      "type": "nvarchar",
+      "max_length": 100,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "Request",
+      "type": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "RequestDate",
+      "type": "datetime",
+      "max_length": 8,
+      "precision": 23,
+      "scale": 3,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "Action",
+      "type": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "ActionDate",
+      "type": "datetime",
+      "max_length": 8,
+      "precision": 23,
+      "scale": 3,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "UserId",
+      "type": "nvarchar",
+      "max_length": -1,
+      "precision": 0,
+      "scale": 0,
+      "is_nullable": true,
+      "is_identity": false
+    },
+    {
+      "name": "ETA",
+      "type": "datetime",
+      "max_length": 8,
+      "precision": 23,
+      "scale": 3,
+      "is_nullable": true,
+      "is_identity": false
+    }
+  ],
+  "rows": [],
+  "acquisition_sha256": "0aeb5e2b97699d7516bf15850a1d1b0aa450522e362a765bd413615f1fb3c3c1",
+  "read_only": true
+}

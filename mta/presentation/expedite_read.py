@@ -84,6 +84,10 @@ def child_grid(payload):
     if any(item.get('attributeName', '').lower() == 'norm'
            for item in availability.get('filters', [])):
         raise PublicationUnavailable('child_expedite_norm_filter_contract_unverified')
+    run = selected_run()
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+        from mta.presentation.planning_expedite_sql import child_grid as prepared_child_grid
+        return prepared_child_grid(run,payload)
     context = expedite_context()
     # Direct human approval on 3 October 2026 establishes an initial empty
     # application history ONLY here. It is not a claim about legacy history.
