@@ -5,7 +5,7 @@ import { DailyDataGraph } from '../../../../VectorFlow/types/MTA';
 
 // Request identity belongs to the existing modal state. Closing invalidates it;
 // a subsequent selection replaces it before either network response can finish.
-export async function loadDailyData(dispatch: any, getDailyData: any, rowData: any, whKey: string, skuKey: string = 'SKUCode') {
+export async function loadDailyData(dispatch: any, getDailyData: any, rowData: any, whKey: string, skuKey = 'SKUCode') {
   const pending: DailyDataGraph = {
     requestId: nanoid(), status: 'loading', rowData,
     chartData: [], normChangeData: [], masterData: undefined,

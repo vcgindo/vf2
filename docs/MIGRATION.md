@@ -148,6 +148,27 @@ latency001 frontend until a successful build/deployment. Browser replacement
 CAPTCHA confirmation is pending after the first challenge was rejected; no
 post-correction Excess/Fulfillment/modal browser acceptance is claimed.
 
+### Planning delivery matrix (current, partial)
+
+This table summarizes the checkpoints below; it does not replace their exact
+proof boundaries. Evidence root: `planning-prepared-20261005-001`.
+
+| Destination | Prepared/read-wired and connected function | UI performance / remaining dependency |
+| --- | --- | --- |
+| GIT From Parent | Sealed occurrences; connected1627-row location grid and genuinely empty selected shipment details | Connected timing includes observer overhead; completed matched performance not accepted |
+| GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Combined Grid View retains canonical SQL207/8120 failure; no invented empty-grid success |
+| Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; unpaged SQL156 dependency retained |
+| Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Chart formatter ambiguity remains explicit; no chart performance success. Independent ordered-wire gate remains open |
+| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency002 deployed; final corrected browser check pending login |
+| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete JIT-corrected page/nested proof passes. Shared ready-only row-modal wiring tested; latency003 build/deployment and final browser checks pending |
+
+All six have retained source/reader proofs as detailed below, but these do not
+establish complete independent legacy ordered-wire parity. The16 Expedite SQL
+chart bags and same-input DLL formatter comparisons pass; differing SQL sequences
+and pre/post UNION order remain unresolved. No new ordering exception is inferred.
+The final matched resource window restored limits with zero errors. Full goal
+closure remains unproved; confirmed graphs/exports must not be repeatedly tested.
+
 Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
 covers all six destinations and their existing supported reads/exports. Read-only
 retained SQL comparison proves complete derived BPR master bag97,097 and GIT
