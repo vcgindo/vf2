@@ -70,6 +70,17 @@ A further latency correction needs an attributable decomposition of this request
 expanded-view acceptance separately needs a scope decision because the retained
 page has no such control. Stop this bounded pass here; no adjacent page opens.
 
+Retained-trace follow-up (no new requests): before-request-timing.jsonl records
+the filtered API at0.865s; buffer-final-request-timing.jsonl records1.092s, both
+200/4605 transferred bytes. The227ms API increase accounts for the223ms observed
+screen increase; the residual screen/observation interval is226ms before versus
+222ms final. This attributes the remaining gap to the request path, not a
+demonstrated chart-render regression. Admission/dimension setup and SQL execution
+are not separately timed in these traces; no root cause or index fix is claimed.
+One focused filtered-API correction/final observation extension has been requested
+because the plan's finite measurement allowance is consumed. It is not yet
+authorized. RRR and all serving code remain unchanged.
+
 `buffer-delivery.json`, `buffer-filter-final.json`, final chart/control screenshots,
 AX states and `buffer-final-request-timing.jsonl` consolidate this continuation
 under the existing evidence root. The previously failed/nonimproving observations
