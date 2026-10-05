@@ -65,8 +65,8 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
         query, values = image_query(run, path)
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
-    ctes.append('A AS NOT MATERIALIZED (SELECT H.*,' + ','.join(a_selections())
-                + ' FROM H CROSS JOIN LATERAL (SELECT * FROM R WHERE R.vf_ordinal=H.rationed_ordinal OFFSET 0) R'
+    ctes.append('A AS (SELECT H.*,' + ','.join(a_selections())
+                + ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal'
                 + ' JOIN mta.' + quote(PickBand._meta.db_table)
                 + ' K ON K.run_id=H.run_id AND K.ordinal=H.band_ordinal)')
     for alias, codes in (('P', products), ('L', locations)):
@@ -96,27 +96,13 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
     selected = ('count(*)' if count else ','.join(
         ('COALESCE(' + value + ",'-')" if name in NULL_DASH else value) + ' AS ' + quote(name)
         for name, value in columns))
-    order = ('dispatch_color_sequence NULLS FIRST,dispatch_pen DESC NULLS LAST,'
-             'location_key,sku_key,ordinal')
-    if count:
-        query = 'WITH ' + ','.join(ctes) + ' SELECT count(*)' + joins + ' WHERE ' + where
-    else:
-        # Qualify exact occurrences (including permission/parent multiplicity)
-        # before sorting/paging. Only selected occurrences reconstruct wide fields.
-        qualified = ('SELECT A.ordinal,A.dispatch_color_sequence,A.dispatch_pen,'
-                     'A.location_key,A.sku_key' + joins + ' WHERE ' + where
-                     + ' ORDER BY ' + ','.join('A.' + part for part in order.split(',')))
+    query = 'WITH ' + ','.join(ctes) + ' SELECT ' + selected + joins + ' WHERE ' + where
+    if not count:
+        query += (' ORDER BY A.dispatch_color_sequence NULLS FIRST,'
+                  ' A.dispatch_pen DESC NULLS LAST,A.location_key,A.sku_key,A.ordinal')
         if paging is not None:
-            qualified += ' LIMIT %s OFFSET %s'
+            query += ' LIMIT %s OFFSET %s'
             params.extend((paging[1], (paging[0]-1)*paging[1]))
-        ctes.append('Q AS MATERIALIZED (' + qualified + ')')
-        reconstruction = (' FROM Q JOIN A ON A.ordinal=Q.ordinal'
-                          ' JOIN S ON S.vf_ordinal=A.standard_ordinal'
-                          ' JOIN B ON B.vf_ordinal=A.pair_ordinal'
-                          ' JOIN C ON C.vf_ordinal=A.sku_ordinal'
-                          ' JOIN D ON D.vf_ordinal=A.location_ordinal')
-        query = ('WITH ' + ','.join(ctes) + ' SELECT ' + selected + reconstruction
-                 + ' ORDER BY ' + ','.join('Q.' + part for part in order.split(',')))
     with connection.cursor() as cursor:
         cursor.execute(query, params)
         if count:

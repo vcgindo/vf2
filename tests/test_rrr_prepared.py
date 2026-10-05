@@ -125,7 +125,7 @@ class RrrPreparedTests(unittest.TestCase):
                 relation='SELECT * FROM prepared WHERE run_id=%s', relation_params=['fixture'])
         self.assertEqual(result, 7)
         sql, params = cursor.execute.call_args.args
-        self.assertIn('CROSS JOIN LATERAL (SELECT * FROM R WHERE R.vf_ordinal=H.rationed_ordinal OFFSET 0) R', sql)
+        self.assertIn('JOIN R ON R.vf_ordinal=H.rationed_ordinal', sql)
         self.assertIn('JOIN S ON S.vf_ordinal=A.standard_ordinal', sql)
         self.assertIn('JOIN B ON B.vf_ordinal=A.pair_ordinal', sql)
         self.assertIn('JOIN C ON C.vf_ordinal=A.sku_ordinal', sql)

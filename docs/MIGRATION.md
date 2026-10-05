@@ -27,15 +27,16 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Research accepted; RRR bounded continuation checkpoint
+### Goal paused; prior RRR restored
 
-Direct human instruction: deliver Research end to end, then stop and wait for
-approval to proceed. Research's bounded current-modern delivery is deployed on
-3005 and verified; the human has accepted Research and instructed “Proceed with RRR.”
-RRR is now the sole active report. Buffer remains pending separate approval.
-The wider three-report goal remains incomplete.
-The authoritative boundary remains the retained April7 fixture and normal
-resources under D:/freshvcf-build/research/RESEARCH_RRR_BUFFER_TRENDS_PLAN.md.
+The human now instructs: “pause the goal and revert the RRR to previous commit”
+because the prior version felt better. The goal is paused; Buffer continuation
+is stopped before any Buffer code or serving change. Restore the RRR reader and
+its affected test to08f58e4, the parent of2e74a36. Research's accepted behavior,
+existing schemas, prepared memberships, source facts and serving flags remain.
+The retained April7 fixture and normal resources still govern the separately
+authorized rollback. Earlier RRR timing/proof and human usability acceptance are
+historical evidence, not authorization to retain the reverted candidate.
 
 | Research requirement | Verified result |
 |---|---|
@@ -78,7 +79,7 @@ in [the presentation handoff](PREPARED_PRESENTATION_HANDOFF.md).
 
 RRR's existing prepared activation(VF_RRR_PREPARED=1) remains serving. Its retained
 14-case/full8063-row ordering/page/CSV proof and observations are preserved;
-page2 performance remains unaccepted at the bounded continuation checkpoint below. The explicit human
+the automated page2 speedup remains unproved, separate from human usability acceptance. The explicit human
 “choose cardinal” amendment(controller turn01a10c8d-427f-7e11-9bdb-99e14705ada5)
 approves only the retained occurrence ordinal after four canonical sort keys.
 Full typed bags,counts,NULLs,scopes and first-four-key order remain strict; no
@@ -88,9 +89,11 @@ Buffer's implementation,23-case history-family proofs and observations remain
 preserved; residual controls and its corrective filtered observation are pending.
 These retained changes are not whole-page acceptance. No adjacent work is active.
 
-RRR continuation is deployed and correctness-verified; its page-transition
-performance exit remains unresolved. Research remains human accepted and Buffer
-remains pending separate approval. The human's current approximately2-second RRR
+Historical candidate2e74a36 was deployed and correctness-verified. The human
+accepted its usability and authorized Buffer, then subsequently requested this
+rollback to the prior version. Its automated page-transition benchmark discrepancy
+remains retained and unaccepted as a speedup proof; the table below describes
+the reverted candidate, not the current serving rollback. The human's current approximately2-second RRR
 observation is retained as runtime evidence; it does not silently waive the
 bounded page-transition criterion or imply a different dataset/scope/page size.
 
@@ -117,10 +120,11 @@ serving request cost2.593s; a focused two-request deployed diagnostic returned
 exact broad grid/count in3.429/1.521s, with body transfer only0.009s. These traces
 and the human's2-second observation show variability, but do not establish its
 cause or prove a persistent intrinsic regression. No unmeasured index, resource,
-gateway or grid redesign was introduced. Resolving attribution or an explicit
-human performance acceptance decision is required to close this exit; data and
-ordering need no correction. Stop at this review checkpoint; do not start Buffer
-or resample for a favorable result.
+gateway or grid redesign was introduced. The human has explicitly accepted current RRR usability and directed moving on;
+this closes its delivery exit without relabeling the failed automated observation.
+No further RRR optimization or sampling is authorized. The controller’s later
+page2 observer failed on accessibility diff/footer formatting; it is not a
+slow-page measurement. Data and ordering need no correction.
 
 Evidence: `rrr-continuation-delivery.json`, full `rrr-continuation-proof.log`,
 `rrr-continuation-tests.log`, browser JSON/grid/page2/filter screenshots, deployed
@@ -128,6 +132,19 @@ phase diagnostic and body-free request trace under the existing evidence root.
 The candidate/deployed reader SHA256 is
 `76776daeeb97324e45af8c7087e637c443c471548652a731af29453ce1b8e09b`.
 Earlier ordering, receipt and failed performance proofs remain unchanged.
+
+**Rollback complete; goal paused:** RRR reader/test are restored exactly to08f58e4
+(Git reader blobc237a1f9ce745b0acb340c825a456a18ea0cc845). Backend
+`freshvcf-preview-mta:rrr-rollback-08f58e4-20261005-001` is serving on3005;
+configuration identity`sha256:abe3866ebbf9e0c59bb40f7a438e04c83502f0693e0270387fc897df2e0cbe70`.
+All31 focused tests, build/startup admission and runtime readyz pass with the
+unchanged admission5c90ae58…3e7.48 protected containers, frontend identity,
+ports/restart/resource caps are unchanged. Source facts, schema, memberships,
+flags, permissions and calculations are unchanged; no new report benchmark or
+reload ran. `rrr-rollback-receipt.json` and its logs consolidate the rollback.
+Research remains accepted. Buffer is paused before any new implementation or
+serving change; its retained work and the reverted2e74a36 evidence are preserved.
+No goal work is active until the human explicitly resumes it.
 
 **Current Planning result:** the bounded April7 prepared-presentation delivery is
 closed by the final six-destination matrix below, including the user's current
