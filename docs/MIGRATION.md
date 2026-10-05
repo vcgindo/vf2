@@ -27,16 +27,53 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Goal paused; prior RRR restored
+### Buffer Trends bounded pass; filtered performance criterion remains open
 
-The human now instructs: “pause the goal and revert the RRR to previous commit”
-because the prior version felt better. The goal is paused; Buffer continuation
-is stopped before any Buffer code or serving change. Restore the RRR reader and
-its affected test to08f58e4, the parent of2e74a36. Research's accepted behavior,
-existing schemas, prepared memberships, source facts and serving flags remain.
-The retained April7 fixture and normal resources still govern the separately
-authorized rollback. Earlier RRR timing/proof and human usability acceptance are
-historical evidence, not authorization to retain the reverted candidate.
+The human now instructs: “begin with the Buffer, we keep this version of RRR.”
+Resume only Buffer Trends (Tech/Eco chart page). Retain RRR's restored08f58e4
+reader, delivered in203bc68, and Research's accepted behavior. No renewed RRR
+optimization, sampling or audit. The retained April7 fixture and normal resources
+remain the boundary under RESEARCH_RRR_BUFFER_TRENDS_PLAN.md.
+
+Buffer active exit: reuse sealed graph memberships and23-case history-family
+proof, retained Tech/Eco observations and request/response contracts. Finish the
+remaining supported populated filter, absolute/percentage switching, expanded
+view, summary/availability and existing horizon semantics. Confirm the deployed
+path once and correct only a measured missing defect. Preserve colour/NULL/bag
+semantics, optional parent multiplicity and inherited invalid filter failures;
+no new matrix, baseline, legacy/resource/modal campaign, engines, auth or RRR
+changes. Complete required affected verification/deployment, restore temporary
+instrumentation, consolidate the three-report handoff and commit/push.
+
+The bounded continuation is now finished. No additional reader, schema or
+frontend mutation was justified. The deployed history reader matches the retained
+proof source (SHA256f410476b…2bbe); RRR remains exactly08f58e4. Research is unchanged.
+
+| Buffer requirement | Final bounded result |
+|---|---|
+| Complete graph data | Reuse all23 exact history-family responses, including nine Buffer broad/restricted/filter/empty cases. No values, types, NULLs, duplicates, source or membership changed. |
+| Tech/Eco usable screen | Retained30-day observations: Tech20.689→9.546s; Eco17.644→12.797s. Reuse these passing observations; no fresh timing campaign. |
+| Supported populated filter | Eco/SKU21101151051000/30days/Absolute: retained before1.091s, first after1.326s, final attributable observer correction1.314s. Correct seven-series chart,353 Black summary,100% Black and0% availability. **Improvement criterion is unmet.** |
+| Controls/summary/horizon | Both broad Tech/Eco modes toggle Absolute/Percentage using loaded data. Summaries and91.78/94.74% availability match retained responses. Submitting1day while in Percentage refreshes the chart to07-Apr-2026,100 Total,12 Black summary and0% availability; Absolute then shows12 Total. No stale30-day plot or doubled Total. This is a functional check, not another horizon benchmark. |
+| Expanded view | No existing expansion control exists in either retained chart component or visible page. The unlabeled floating-tab button is its indicator, not an expansion action. Coverage is unavailable; no new UI feature was invented. |
+| Operation | Current admission5c90ae58…3e7 and readyz pass;48 protected containers unchanged. Nginx restored exactly to SHA256d1a70598…dc2a. Reuse the11-test integrated frontend proof; no code/schema change requires a new build or migration. |
+
+**Consolidated Buffer blocker:** the strict requirement that every changed
+latency journey improve over its own before is not satisfied for
+`GetBufferTrendGraphData`, Eco/30days/SKU21101151051000. Final screen readiness
+is1.314s versus1.091s before (+223ms); the single traced API request returns200,
+4605 transferred bytes and costs1.092s upstream. The remaining approximately222ms
+includes browser/control/observation overhead and is not a measured render-only
+duration. Complete output correctness is proved. No favourable resampling,
+unexplained index, weakened acceptance or additional resource change follows.
+A further latency correction needs an attributable decomposition of this request;
+expanded-view acceptance separately needs a scope decision because the retained
+page has no such control. Stop this bounded pass here; no adjacent page opens.
+
+`buffer-delivery.json`, `buffer-filter-final.json`, final chart/control screenshots,
+AX states and `buffer-final-request-timing.jsonl` consolidate this continuation
+under the existing evidence root. The previously failed/nonimproving observations
+remain retained. RRR203bc68 is kept at the human's explicit instruction.
 
 | Research requirement | Verified result |
 |---|---|
@@ -86,7 +123,7 @@ Full typed bags,counts,NULLs,scopes and first-four-key order remain strict; no
 physical/virtual priority is invented. Original314/132 tied positions remain
 retained. Earlier preparation failures rolled back and are preserved.
 Buffer's implementation,23-case history-family proofs and observations remain
-preserved; residual controls and its corrective filtered observation are pending.
+preserved; the current bounded controls and filtered result are recorded above.
 These retained changes are not whole-page acceptance. No adjacent work is active.
 
 Historical candidate2e74a36 was deployed and correctness-verified. The human
@@ -133,7 +170,7 @@ The candidate/deployed reader SHA256 is
 `76776daeeb97324e45af8c7087e637c443c471548652a731af29453ce1b8e09b`.
 Earlier ordering, receipt and failed performance proofs remain unchanged.
 
-**Rollback complete; goal paused:** RRR reader/test are restored exactly to08f58e4
+**Completed rollback retained:** RRR reader/test are restored exactly to08f58e4
 (Git reader blobc237a1f9ce745b0acb340c825a456a18ea0cc845). Backend
 `freshvcf-preview-mta:rrr-rollback-08f58e4-20261005-001` is serving on3005;
 configuration identity`sha256:abe3866ebbf9e0c59bb40f7a438e04c83502f0693e0270387fc897df2e0cbe70`.
@@ -142,9 +179,9 @@ unchanged admission5c90ae58…3e7.48 protected containers, frontend identity,
 ports/restart/resource caps are unchanged. Source facts, schema, memberships,
 flags, permissions and calculations are unchanged; no new report benchmark or
 reload ran. `rrr-rollback-receipt.json` and its logs consolidate the rollback.
-Research remains accepted. Buffer is paused before any new implementation or
-serving change; its retained work and the reverted2e74a36 evidence are preserved.
-No goal work is active until the human explicitly resumes it.
+Research remains accepted. The new human instruction resumes Buffer only.
+Its retained work and the reverted2e74a36 evidence are preserved; this rollback
+remains the fixed RRR serving version throughout Buffer delivery.
 
 **Current Planning result:** the bounded April7 prepared-presentation delivery is
 closed by the final six-destination matrix below, including the user's current

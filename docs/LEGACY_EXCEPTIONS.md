@@ -337,9 +337,18 @@ Receipt `f3-stage2-buffer-trends-serving-001/receipt.json`, SHA256
 screenshots and source hashes. The hook, page and both chart components match
 the pinned reuse revision66a77735 after line-ending normalization. These are
 inherited frontend flaws, not evidence of a Django calculation/report mismatch.
-They remain unresolved acceptance blockers: no approval to repair frontend or
-waive chart accuracy is inferred. Backend responses must not compensate by
-changing true counts, percentages, date ranges or legacy comparison assertions.
+At that historical checkpoint they were unresolved acceptance blockers. The
+human-authorized Research/RRR/Buffer presentation batch subsequently corrected
+the hook: copy the nested response, add Total once, and match `Percentage` in the
+new-response effect. Existing request-race tests pass. On5-Oct-2026 the retained
+April7 fixture's Eco/SKU21101151051000 chart shows Total100 in Percentage rather
+than200; submitting1day in that mode plots only07-Apr-2026 with12 Black summary,
+then Absolute shows12 Total. Screenshots/AX states are in
+`research-rrr-buffer-trends-20261005-001/buffer-one-day-*-final.*`.
+This closes these two frontend defect dispositions for that fixture; it does not
+waive the remaining filtered performance or absent expanded-view coverage.
+Backend responses do not compensate by changing counts, percentages, date ranges
+or legacy comparison assertions. Historical receipts remain unchanged.
 
 ## Planning Excess — source-invalid filters and independent custom population
 

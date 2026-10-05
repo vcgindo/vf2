@@ -21,6 +21,16 @@ future authorization are recorded only in MIGRATION.md.
 
 ## Research / RRR / Buffer Trends operations — 5 October 2026
 
+The latest bounded Buffer continuation reuses the deployed prepared graph reader
+and its23-case full-response proof; no new image, schema or preparation is needed.
+`buffer-delivery.json` consolidates the remaining functional controls, supported
+filter observation and runtime/restoration evidence. Tech/Eco timings improved;
+the filtered latency criterion remains unmet (1.314s versus1.091s before). The
+retained chart page has no expansion control. MIGRATION.md records these exact
+limits; do not infer complete performance acceptance or open another page.
+Keep the current RRR rollback image and all three explicit serving flags. Research
+remains accepted. The user's Excel confirmations remain the export evidence.
+
 This bounded reader batch uses the retained April7 fixture run
 `bfd75b4b-a9df-4a08-82d3-852e3324b623`, source digest
 `4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73`.
