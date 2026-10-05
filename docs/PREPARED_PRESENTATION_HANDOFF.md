@@ -63,6 +63,24 @@ matching sealed receipt. These flags neither enable business actions nor alter
 authentication. Ready-only Research modal loading reuses the existing shared
 request identity and response RunDate behavior.
 
+RRR reads the same sealed occurrence membership through ordinal lookups. Its
+qualified narrow relation applies live filters and all permission/parent join
+multiplicity before the existing sort and page boundary; the outer reader then
+reconstructs wide display fields for only the selected occurrences. Scope and
+parent joins are not reapplied during reconstruction, which preserves their
+exact multiplicity. Count uses the same qualification without paging; CSV uses
+the same unpaged reader. This adds no schema, preparation or cached filter pages.
+The continuation proof compares all14 retained cases, exact accepted ordinal
+responses/CSV bytes and the full8063-row partition (5000 plus3063).
+The deployed backend configuration identity is `sha256:7b3e7c2896eb15134b6804e06e88a05c6eaa9ad532e5560c96c227a32e684d7a`;
+the frontend image is unchanged. `rrr-continuation-delivery.json` records the
+owned containers, normal caps, admission and48 protected-resource comparison.
+`rrr-continuation-request-timing.jsonl` retains body-free requests; nginx is
+restored to SHA256d1a70598…dc2a. Do not rerun preparation or reload the fixture
+for this reader correction. Its performance acceptance is recorded only in
+MIGRATION.md, including the retained unsuccessful transition observation.
+
+
 Research's initial grid uses the existing BPR normalized-key index for bounded
 page reconstruction. A lateral lookup with OFFSET0 prevents flattening into a
 second wide whole-estate scan; it retains every matching occurrence and selected

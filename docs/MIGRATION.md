@@ -27,12 +27,13 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Research delivery checkpoint — approval required before the next report
+### Research accepted; RRR bounded continuation checkpoint
 
 Direct human instruction: deliver Research end to end, then stop and wait for
 approval to proceed. Research's bounded current-modern delivery is deployed on
-3005 and verified. RRR and Buffer remain pending; do not continue them without
-explicit human approval. The wider three-report goal is incomplete at this stop.
+3005 and verified; the human has accepted Research and instructed “Proceed with RRR.”
+RRR is now the sole active report. Buffer remains pending separate approval.
+The wider three-report goal remains incomplete.
 The authoritative boundary remains the retained April7 fixture and normal
 resources under D:/freshvcf-build/research/RESEARCH_RRR_BUFFER_TRENDS_PLAN.md.
 
@@ -77,7 +78,7 @@ in [the presentation handoff](PREPARED_PRESENTATION_HANDOFF.md).
 
 RRR's existing prepared activation(VF_RRR_PREPARED=1) remains serving. Its retained
 14-case/full8063-row ordering/page/CSV proof and observations are preserved;
-page2 performance is failed and its delivery remains pending. The explicit human
+page2 performance remains unaccepted at the bounded continuation checkpoint below. The explicit human
 “choose cardinal” amendment(controller turn01a10c8d-427f-7e11-9bdb-99e14705ada5)
 approves only the retained occurrence ordinal after four canonical sort keys.
 Full typed bags,counts,NULLs,scopes and first-four-key order remain strict; no
@@ -86,6 +87,47 @@ retained. Earlier preparation failures rolled back and are preserved.
 Buffer's implementation,23-case history-family proofs and observations remain
 preserved; residual controls and its corrective filtered observation are pending.
 These retained changes are not whole-page acceptance. No adjacent work is active.
+
+RRR continuation is deployed and correctness-verified; its page-transition
+performance exit remains unresolved. Research remains human accepted and Buffer
+remains pending separate approval. The human's current approximately2-second RRR
+observation is retained as runtime evidence; it does not silently waive the
+bounded page-transition criterion or imply a different dataset/scope/page size.
+
+| RRR requirement | Bounded result |
+|---|---|
+| Exact data/count/filter/export |14 retained cases pass. Complete approved ordinal responses and CSV bytes are exact; full8063 occurrences partition into5000 plus3063 without loss/repetition. Broad/restricted/filter/empty cases retained. |
+| Reader correction | Qualify narrow occurrence keys through live filters and permission/parent multiplicity before paging, then reconstruct only selected wide rows by source ordinal. Reader page2 diagnostic5.311→2.497s; SQL plan avoids whole rationed-source scan and wide pre-page spill. No source/recipe/receipt/schema/auth change. |
+| Initial full usable grid/count | Corrected matched readiness9.367→3.733s,5000 of8063. First-after-deploy stricter12.033s observation remains retained and is not a pass; the normal serving correction is not a cold-start guarantee. |
+| Supported SKU filter |21101151051000,11 rows/count,4.170s. Retained before22.581s is an upper bound from a failed one-row expectation, not an exact completion. |
+| Page transition | **Unresolved**: retained before3.744s(API3.388s), corrected after6.204s(API4.355s). Earlier stricter after4.529s had API2.593s. No passing transition speedup is claimed. |
+| Operation/proof |31 focused tests, backend build/startup admission and deployed candidate hash pass. Same source/admission;48 protected containers and all resource limits unchanged. Frontend unchanged. No schema checks needed for this read-only SQL change. Nginx restored byte-exact. |
+
+The first continuation observer incorrectly required the dismissing “Loading Grid
+Data” toast to disappear, whereas the retained before included that nonblocking
+toast after grid/count readiness. One explicit observer correction used matching
+populated grid, headings and page/count conditions; screenshots show no blocking
+modal. Both original observations and corrected results are preserved. The
+corrected initial grid improved, but the corrected transition still failed.
+
+**Consolidated remaining blocker:** broad `RRRData`, page2/5000/filter{}, returns
+3063 rows with an approximately7.2MB JSON response. The latest captured request
+cost4.355s and screen was observed usable6.204s after click. Earlier identical
+serving request cost2.593s; a focused two-request deployed diagnostic returned
+exact broad grid/count in3.429/1.521s, with body transfer only0.009s. These traces
+and the human's2-second observation show variability, but do not establish its
+cause or prove a persistent intrinsic regression. No unmeasured index, resource,
+gateway or grid redesign was introduced. Resolving attribution or an explicit
+human performance acceptance decision is required to close this exit; data and
+ordering need no correction. Stop at this review checkpoint; do not start Buffer
+or resample for a favorable result.
+
+Evidence: `rrr-continuation-delivery.json`, full `rrr-continuation-proof.log`,
+`rrr-continuation-tests.log`, browser JSON/grid/page2/filter screenshots, deployed
+phase diagnostic and body-free request trace under the existing evidence root.
+The candidate/deployed reader SHA256 is
+`76776daeeb97324e45af8c7087e637c443c471548652a731af29453ce1b8e09b`.
+Earlier ordering, receipt and failed performance proofs remain unchanged.
 
 **Current Planning result:** the bounded April7 prepared-presentation delivery is
 closed by the final six-destination matrix below, including the user's current
