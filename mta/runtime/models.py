@@ -898,3 +898,51 @@ class PlanningExpediteCustomOccurrence(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_expedite_custom_ord')]
+
+
+class PlanningExpediteChartProjection(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    pick_digest = models.CharField(max_length=64)
+    member_count = models.PositiveBigIntegerField()
+    member_digest = models.CharField(max_length=64)
+    prepost_count = models.PositiveBigIntegerField()
+    prepost_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PlanningExpediteChartMember(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    direction = models.CharField(max_length=8)
+    family = models.CharField(max_length=16)
+    ordinal = models.PositiveBigIntegerField()
+    scope_ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    master_ordinal = models.PositiveBigIntegerField(null=True)
+    description_ordinal = models.PositiveBigIntegerField()
+    location_ordinal = models.PositiveBigIntegerField(null=True)
+    code = models.TextField(null=True)
+    code_key = models.TextField(null=True)
+    description = models.TextField(null=True)
+    description_key = models.TextField(null=True)
+    logisticslocation = models.TextField(null=True)
+    ll1 = models.TextField(null=True)
+    ll2 = models.TextField(null=True)
+    ll3 = models.TextField(null=True)
+    ll4 = models.TextField(null=True)
+    ll5 = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','direction','family','ordinal'],name='plan_exp_chart_member_ord')]
+
+
+class PlanningExpeditePrepostMember(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    scope_ordinal = models.PositiveBigIntegerField()
+    fact_ordinal = models.PositiveBigIntegerField()
+    multiplicity = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_exp_prepost_member_ord')]

@@ -69,6 +69,18 @@ supersedes the parent denial treatment below only; it is an intentional
 presentation difference, not exact legacy parity. Calculated values, quantities,
 permissions, persisted state and F2 remain unchanged.
 
+April7 retained-fixture qualification (5 October2026): on run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, complete canonical broad/restricted chart
+bags match the prepared datasets. Actual deployed-DLL calls reproduce the same
+flaw: reversing only unordered critical rows changes all103 broad receiving
+labels in both directions. The approved parent amendment changes only those
+receiving labels to their own joined location labels (103 broad,6 restricted);
+all other formatter fields remain exact. Evidence:
+`D:/freshvcf-build/evidence/planning-prepared-20261005-001/expedite-chart-canonical/formatter-comparison.json`.
+This demonstrates transfer of the existing parent-only presentation amendment;
+it grants no child-label repair or SQL tie-order exception. Child ambiguity is
+still unavailable, and SQL sequence differences remain an acceptance gap.
+
 The same approval permits custom Expedite paging by persisted producer SKUCode,
 WhCode and ParentWhCode, retaining native missing/NULL display fields and duplicate
 bags. Native NMS identities are not filled. Conflicting values for the same

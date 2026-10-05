@@ -319,6 +319,49 @@ These checks do not establish independent legacy wire or browser performance.
 Active next item is Expedite chart preparation/read, followed by the consolidated
 delivery gates. Serving has not been rebuilt or restarted.
 
+Expedite chart membership qualification now passes all six exact source-join
+bags: parent critical1030, receiving4722, nil-stock2746, chronic2473; child
+critical20 and receiving4722. Parent pre/post uses2416 source/target Pick pairs
+with explicit child-location multiplicities representing4186080 joined rows.
+The canonical child match is location-only, not SKU/location. Complete independent
+Python source-bag comparisons pass (`expedite-chart-members-complete-proof.txt`).
+Additive migration0035 now stores15713 chart memberships and2416 pre/post
+matches under immutable source/recipe/Pick-bound receipts. Preparation took7.82s;
+seven complete EXCEPT ALL readbacks,15 mutation-denial checks, repeat verification
+and Django model/migration checks pass (`expedite-chart-storage-proof.txt`).
+Live scoped SQL aggregates now match complete existing source-reader datasets
+for broad, populated restricted and empty scopes, including pre/post totals.
+The initially selected restricted case was empty; its replacement proves parent
+critical2/receiving8 and child receiving8. Broad reads took0.59s parent/0.49s
+child in this functional proof, not a matched browser benchmark. Eleven focused
+admission/chart tests pass. Fixture graph routing now selects these prepared
+reads; production calculation/publication paths remain unchanged.
+
+Independent retained read-only SQL proves all16 broad/restricted chart bags
+equal in every value, NULL and multiplicity. Four actual deployed-DLL formatter
+comparisons are exact on their identical ordered datasets. Reversing only broad
+critical rows changes all103 receiving labels for both directions, reproducing
+the known flaw on April7. The existing parent-only own-location label exception
+transfers to this same transformation: all differences are receiving labels;
+quantities, other fields and state remain identical. Child ambiguity denial is
+preserved. Broad SQL sequences differ, and pre/post UNION order differs; this
+is recorded, not accepted through a new implicit tie-order exception. Ordered
+wire/browser acceptance remains open. Evidence: `expedite-chart-reader-proof-002.txt`,
+`expedite-chart-reader-restricted-proof.txt`, `expedite-chart-canonical/comparison.json`
+and `expedite-chart-canonical/formatter-comparison.json`. Serving remains unchanged.
+The integrated Expedite backend checkpoint passes32 focused tests, including
+fixture routing without full context reconstruction and preserved child-label
+denial (`expedite-backend-unit.txt`). Preparation/read wiring is complete for
+this batch; full ordered-wire and six-destination delivery acceptance are not.
+Active next item is consolidated remaining wire/dependency qualification and
+the bounded before/final frontend deployment proof. Keep the above chart-order
+gap and inherited child/unpaged SQL defects explicit in the final disposition.
+
+Checkpoint cadence: retain existing commits, accumulate the remaining chart and
+backend integration work, and commit/push at the coherent backend milestone after
+focused proof. Individual reader proofs/tracker updates do not trigger commits.
+Later checkpoints are integrated frontend/deployment and final validated delivery.
+
 
 ### Daily Data Graph correction delivered; baseline gate remains unmet
 
