@@ -630,3 +630,16 @@ enforces the run/source/date/family boundary. Tests reject changed values/types,
 duplicate loss, explicit-order reversal and scope transfer. Retained evidence:
 `planning-prepared-20261005-001/acceptance-continuation/order-acceptance.json`.
 Six broad comparisons pass with the exception; six leaf comparisons remain strict.
+
+## April7 Parent nested transit order — separately approved exception
+
+Direct reply `call_rXDWYB4DZf82Ch7YyyoH5EEa` approves unordered comparison only for
+`GetPlanningDataGrid`, Parent, `expediteDispatchestransit`, on run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623` and its pinned April7 source digest.
+Canonical `cte_intransit` has no ORDER BY. Independent retained READ_ONLY SQL
+and modern capture contain the same97097 complete string-valued rows, including
+NULL omission and duplicate multiplicity, in different sequences. Both sequences
+remain retained. No values, types, fields, duplication or other order is waived.
+`compare_parent_transit` enforces the exact boundary separately from chart rules.
+Evidence: `planning-prepared-20261005-001/parent-independent-sql/approved-transit-comparison.json`.
+This is a comparison exception, not a change to serving queries or UI ordering.

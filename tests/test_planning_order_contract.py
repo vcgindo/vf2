@@ -1,5 +1,5 @@
 import unittest
-from parity.planning_order_contract import compare,RUN,SOURCE
+from parity.planning_order_contract import compare,compare_parent_transit,RUN,SOURCE
 
 class PlanningOrderContractTests(unittest.TestCase):
     def compare(self,a,b,**kw):
@@ -18,3 +18,16 @@ class PlanningOrderContractTests(unittest.TestCase):
         self.assertEqual(self.compare(a,a[::-1],family='critical')['status'],'PASS_APPROVED_ORDER_EXCEPTION')
         for kw in (dict(run_id='other'),dict(source_digest='other'),dict(business_date='2026-04-08'),dict(family='pre_post')):
             with self.assertRaises(ValueError):self.compare(a,a,**kw)
+
+    def test_nested_exception_preserves_fields_types_and_duplicates(self):
+        args=dict(run_id=RUN,source_digest=SOURCE,business_date='2026-04-07',
+                  route='GetPlanningDataGrid',kind='parent',array='expediteDispatchestransit')
+        a=[dict(skucode='A',eta='3'),dict(skucode='B',remarks=' '),dict(skucode='A',eta='3')]
+        self.assertEqual(compare_parent_transit(a,[a[1],a[0],a[2]],**args)['status'],
+                         'PASS_APPROVED_NESTED_ORDER_EXCEPTION')
+        for b in (a[:2],[dict(a[0],eta=3),*a[1:]],
+                  [dict(a[0],slt=None),*a[1:]], [a[0],dict(a[1],remarks=''),a[2]]):
+            self.assertEqual(compare_parent_transit(a,b,**args)['status'],'FAIL')
+        for key,value in [('run_id','other'),('source_digest','other'),('business_date','2026-04-08'),
+                          ('route','Other'),('kind','child'),('array','createAvailabilityAtParenttransit')]:
+            with self.assertRaises(ValueError):compare_parent_transit(a,a,**dict(args,**{key:value}))

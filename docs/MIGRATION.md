@@ -103,6 +103,18 @@ Canonical nested SQL has no ORDER BY; chart exception does not transfer. A separ
 narrow nested-array order decision is pending direct human reply. No application
 code, data or resource limits were changed for this read-only proof.
 
+That decision is now approved by direct reply
+`call_rXDWYB4DZf82Ch7YyyoH5EEa`. The separate evidence-only
+`compare_parent_transit` comparator binds exact run/source/date/route/direction and
+array name. All97097 broad nested rows pass with zero missing/extra occurrences;
+original sequences and capture hashes are retained in
+`parent-independent-sql/approved-transit-comparison.json`. Four focused comparator
+tests pass, including rejection of numeric/string changes, NULL versus omitted
+fields, whitespace changes, duplicate loss and transfer to any other boundary.
+This closes the named broad Parent nested-order gate with an explicit exception;
+it does not certify independent restricted/filtered SQL cases not yet captured.
+No serving code, query, UI order, dataset or authentication changed.
+
 ### Delivered report-defect correction amendment — 5 October 2026
 
 Direct human instruction verified in controller thread

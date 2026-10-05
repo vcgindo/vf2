@@ -31,3 +31,23 @@ def compare(legacy, fresh, *, run_id, source_digest, business_date, kind, family
     strict = [encode(row) for row in legacy] == [encode(row) for row in fresh]
     return dict(status='PASS_STRICT' if strict else 'PASS_APPROVED_ORDER_EXCEPTION',
                 explicit_order_keys=list(keys),rows=len(legacy),strict_equal=strict)
+
+
+def compare_parent_transit(legacy, fresh, *, run_id, source_digest, business_date,
+                          route, kind, array):
+    """Separate human approval call_rXDWYB4DZf82Ch7YyyoH5EEa; evidence only.
+
+    Canonical cte_intransit has no ORDER BY. Missing properties remain different
+    from explicit NULL, and strings remain different from numeric values.
+    """
+    if (run_id, source_digest, business_date, route, kind, array) != (
+            RUN, SOURCE, '2026-04-07', 'GetPlanningDataGrid', 'parent',
+            'expediteDispatchestransit'):
+        raise ValueError('Parent nested-array exception does not cover this boundary')
+    encode = lambda row: json.dumps(row, sort_keys=True, ensure_ascii=False, allow_nan=False)
+    left, right = [encode(row) for row in legacy], [encode(row) for row in fresh]
+    missing, extra = Counter(left)-Counter(right), Counter(right)-Counter(left)
+    return dict(status='FAIL' if missing or extra else
+                'PASS_STRICT' if left == right else 'PASS_APPROVED_NESTED_ORDER_EXCEPTION',
+                rows=len(legacy), missing=sum(missing.values()), extra=sum(extra.values()),
+                strict_equal=left == right)
