@@ -1,7 +1,7 @@
 import { settleRequestPair } from "../../requestPair"
 import { useEffect, useState,useMemo,useRef } from "react"
 import { fulfillmentFailureMessage } from './fulfillmentFailure';
-import { expediteFailureMessage } from './expediteFailure';
+import { expediteFailureMessage, expediteChartFailureMessage } from './expediteFailure';
 import { gitFailureMessage } from './gitFailure';
 import { excessFailureMessage } from './excessFailure';
 import { toast } from "react-toastify";
@@ -72,6 +72,7 @@ const usePlanning = ()=>{
 
     const [currentGridData,setCurrentGridData] = useState<any>();
     const [fulfillmentError,setFulfillmentError] = useState<string | null>(null);
+    const [chartError,setChartError] = useState<string | null>(null);
 
     const [currentTab,setCurrentTab] = useState<string>('');
 
@@ -548,6 +549,8 @@ const usePlanning = ()=>{
     }
 
     const handlePlanningQuadrantClick = async (category:string) => {
+        setChartError(null);
+        setFulfillmentError(null);
         try {
             switch(category){
                 case 'GITFromParent':{
@@ -670,6 +673,15 @@ const usePlanning = ()=>{
             
         } catch (error:any) {
             toast.dismiss();
+            if (category === 'ExpediteToChild') {
+                const message = expediteChartFailureMessage(error);
+                setChartError(message);
+                setFulfillmentError(message);
+                setCurrentGraphData(undefined);
+                setCurrentTab('expediteDispatches');
+                setIsSelectCategoryOpen(false);
+                return;
+            }
             notifyError(error.message)
         }
 
@@ -995,6 +1007,7 @@ const usePlanning = ()=>{
 
 
     const onGoBack = () => {
+        setChartError(null);
         setFulfillmentError(null);
         setCurrentFilter({
             supplyChainFilter:{
@@ -1053,9 +1066,8 @@ const usePlanning = ()=>{
     }
 
     const onViewChange = async (view: string) => {
-        // P4a: the failed combined child GRID does not invalidate its separately
-        // loaded canonical chart. Returning to grid will fetch/fail explicitly.
-        if((currentCategory==='GITToChild' || currentCategory==='ExpediteToChild') && view==='chart') setFulfillmentError(null);
+        // A grid request cannot clear a separately failed chart on return.
+        if((currentCategory==='GITToChild' || currentCategory==='ExpediteToChild') && view==='chart') setFulfillmentError(chartError);
         const tabsList = getFloatingTabsList(view);
         if (currentTab === '') {
             if (tabsList.length > 0) {

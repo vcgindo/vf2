@@ -36,14 +36,37 @@ committed8f1bd27. Daily Data Graph implementation is delivered at01b75fa; its
 72ms historical completed-modal baseline gap is **deferred/unaccepted**, not passed.
 No further modal edit or benchmark belongs to this Planning goal.
 
-Active step: finish the prepared Expedite read batch using the frozen six-area
-consumer/source/grain matrix, including landing counts and existing supported
-grids/charts/subtabs/details/exports. Unmet exit: qualified exact sources,
+Active step: connect and deploy the prepared Planning backend and the minimum
+existing frontend contract wiring on3005, including landing counts and valid
+grids/charts/subtabs/details/exports. Human priority correction relayed by the
+controller on5 October supersedes further modern-before testing and sequencing
+that would hold connection behind remaining independent wire/order proofs.
+Preserve existing baseline evidence; no further pre-connection modern timing,
+failure captures or retries. Inspect connected usable screens first, then the
+already bounded final comparison against retained legacy baselines. Unmet exit: qualified exact sources,
 prepared typed ingredients and SQL reads, existing frontend wiring, complete-value
 and bounded matched browser proofs, deployment/restoration and six-area handoff.
 Boundary: retainedApril7 data and existing preparation guards; no new facts,
 engine/state/auth/action changes, copies/restores, framework/cache or3004cutover.
 The new Planning goal was created successfully with no numeric budget.
+
+Connected deployment checkpoint (5 October): images
+`freshvcf-preview-mta:planning-connected-20261005-001` and
+`freshvcf-preview-frontend:planning-connected-20261005-001` are now serving3005.
+Backend startup admission and `/readyz` pass with admission digest
+`5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`;
+the selected April7 fixture and existing BTR generation remain unchanged.
+Frontend production build passed with inherited lint warnings. All21 protected
+containers retained their identities/configured limits; the two replaced
+containers retained their ports, limits and restart policy. Browser landing
+counts show GIT1627/1627, Expedite1030/1030, Excess9871 and Fulfillment12720.
+The minimal child Expedite chart error state exposes existing Grid View/Go Back
+and preserves the chart failure across grid toggles; no ambiguous labels are
+repaired. UI detector found no findings in the two changed files. Evidence:
+`planning-prepared-20261005-001/{build-connected.txt,admission-connected.txt,deploy-connected-receipt.json}`.
+This is connection/readiness, not six-destination functional/performance closure.
+Active next step: inspect connected destinations and their supported grids/details,
+then retain the bounded final comparison and precise unavailable dependencies.
 
 Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
 covers all six destinations and their existing supported reads/exports. Read-only
@@ -353,9 +376,12 @@ The integrated Expedite backend checkpoint passes32 focused tests, including
 fixture routing without full context reconstruction and preserved child-label
 denial (`expedite-backend-unit.txt`). Preparation/read wiring is complete for
 this batch; full ordered-wire and six-destination delivery acceptance are not.
-Active next item is consolidated remaining wire/dependency qualification and
-the bounded before/final frontend deployment proof. Keep the above chart-order
-gap and inherited child/unpaged SQL defects explicit in the final disposition.
+Active next item is necessary API/frontend contract connection, affected build/
+admission checks and deployment to3005, followed by connected-screen inspection
+and the bounded final comparison. Keep chart-order and inherited child/unpaged
+SQL dependencies explicit; they do not block connecting valid consumers.
+The preserved baseline observations are `browser-before-trials.json` in the
+Planning evidence directory. No more modern-before captures are authorized.
 
 Checkpoint cadence: retain existing commits, accumulate the remaining chart and
 backend integration work, and commit/push at the coherent backend milestone after
