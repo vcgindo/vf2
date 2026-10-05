@@ -111,8 +111,17 @@ original sequences and capture hashes are retained in
 `parent-independent-sql/approved-transit-comparison.json`. Four focused comparator
 tests pass, including rejection of numeric/string changes, NULL versus omitted
 fields, whitespace changes, duplicate loss and transfer to any other boundary.
-This closes the named broad Parent nested-order gate with an explicit exception;
-it does not certify independent restricted/filtered SQL cases not yet captured.
+This closes the named broad Parent nested-order gate with an explicit exception.
+The populated restricted case is now independently captured against the same
+canonical SQL and owned READ_ONLY sources. Its resolved permissions `[4]`/`[25]`
+match the serving fixture actor policy and retained modern capture. All78 dispatch
+and161 availability rows match strictly in order, including decimal string scale;
+availability transit remains identically empty. All97097 nested dispatch rows
+pass the separately approved exception with zero missing/extra occurrences.
+Both original sequences and hashes remain in
+`parent-independent-sql-restricted/{raw-sql.json.gz,approved-transit-comparison.json,main-grid-comparison.json}`.
+This proves these broad and populated restricted cases, not untested filtered SQL
+variants or other consumers. The overall goal remains unproved.
 No serving code, query, UI order, dataset or authentication changed.
 
 ### Delivered report-defect correction amendment — 5 October 2026

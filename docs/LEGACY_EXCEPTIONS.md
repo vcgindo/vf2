@@ -642,4 +642,8 @@ NULL omission and duplicate multiplicity, in different sequences. Both sequences
 remain retained. No values, types, fields, duplication or other order is waived.
 `compare_parent_transit` enforces the exact boundary separately from chart rules.
 Evidence: `planning-prepared-20261005-001/parent-independent-sql/approved-transit-comparison.json`.
+The populated restricted actor (`products=[4]`, `locations=[25]`) also passes with
+97097 rows and zero missing/extra occurrences; its original sequences and hashes
+are in `parent-independent-sql-restricted/approved-transit-comparison.json`.
+Its78 dispatch/161 availability main rows remain strictly ordered comparisons.
 This is a comparison exception, not a change to serving queries or UI ordering.
