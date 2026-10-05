@@ -89,6 +89,20 @@ support, or the deferred historical modal baseline. Full goal remains unproved;
 next audit must reconcile those exact remaining consumer contracts without
 repeating this completed measurement pass.
 
+Independent Parent SQL audit (same retained owned READ_ONLY databases, no engine
+or persistent write): `parent-independent-sql/broad.sql` is the pinned deployed
+query with only database/table and already-resolved scope bindings. Source owner
+files and sealed manifest are verified. The complete1030 dispatch and1443
+availability grid rows match ordered modern values after preserving JSON decimal
+scale in the canonical string conversion. Both branches' row bags are exact.
+The97097 dispatch nested rows match every field/value/duplicate, but their sequence
+differs; availability nested rows are identically empty. This replaces the earlier
+Python-only evidence gap for the broad case, not restricted/filtered SQL coverage.
+Evidence: `parent-independent-sql/{raw-sql.json.gz,comparison.json,main-grid-comparison.json}`.
+Canonical nested SQL has no ORDER BY; chart exception does not transfer. A separate
+narrow nested-array order decision is pending direct human reply. No application
+code, data or resource limits were changed for this read-only proof.
+
 ### Delivered report-defect correction amendment — 5 October 2026
 
 Direct human instruction verified in controller thread
