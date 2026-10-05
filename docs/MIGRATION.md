@@ -152,9 +152,8 @@ HTTP responses, including nested order details. One gateway observation measured
 Excess grid1.141s (prior5.671s), Fulfillment grid1.324s (prior3.446s); count requests
 were2.353s/1.052s. These serial API observations do not prove concurrent browser
 completion. Evidence: `build-latency-003-repair.txt`, `deploy-latency-receipt.json`,
-`latency003-api-summary.json`. Browser replacement
-CAPTCHA confirmation is pending after the first challenge was rejected; no
-post-correction Excess/Fulfillment/modal browser acceptance is claimed.
+`latency003-api-summary.json`. Subsequent browser results and resolved login
+are recorded below; no complete performance acceptance is claimed.
 
 Resolved login blocker (5 October): the user approved the replacement CAPTCHA;
 login succeeded as the existing broad fixture reader. Corrected Excess and
@@ -171,18 +170,39 @@ converts sc to a number; the new caller omitted the previous `.toString()` conve
 An exact string-key gateway request succeeds with complete graph data and RunDate
 (`fulfillment-modal-api.json`). The smallest caller correction restores only that
 conversion while retaining the original row object and shared ready-only loader.
-Its frontend build is running (`build-modal-caller-repair.txt`); deployment and
-one attributable modal recheck remain required. Auth/permissions/source unchanged.
+Its frontend build, deployment and attributable modal recheck completed as
+recorded below (`build-modal-caller-repair.txt`). Auth/permissions/source unchanged.
 
-Historical acceptance blocker: the corrected browser checks required an authenticated
-3005 session. The surviving tab was rechecked at `/login`; the replacement CAPTCHA
-has not been approved after the rejected first challenge. This same dependency
-has persisted across three consecutive continuation turns while independent build,
-deployment, API verification and handoff work finished. No live job remains to
-wait for. Resume with approval of that challenge or a user-completed sign-in,
-then perform only the bounded Excess/Fulfillment grid and row-modal checks.
-The independent inherited SQL/formatter/order dependencies in the matrix remain
-unaccepted; CAPTCHA approval does not waive them. Delivery remains partial.
+Final caller deployment checkpoint: frontend image
+`sha256:725f04d6d8b9117188bea286fdb28d33b4730c2371d311ad357a4d337b01637c`
+passed production build and frontend-only deployment; readyz and21 protected
+resource checks pass. Authenticated selected-row modal recheck succeeds for
+21125076009000/P064, displaying the real eight-series chart, current Norm135700,
+location Ghilot Satellite Plant and working14→30day horizon. Gateway logs show
+DailyDataGraph200; the response carries April7 RunDate. Evidence:
+`fulfillment-modal-final.txt/.png`, `build-modal-caller-repair.txt`.
+The8.192s automation upper bound establishes functionality, not minimum latency
+or matched performance. Original row identity/race/ready-only tests remain valid.
+The CAPTCHA/login dependency is resolved; do not request it again for this session.
+
+Consolidated remaining decisions after the bounded pass:
+- Performance: Excess's final observer used a wrong formatted count; Fulfillment's
+  observer timed out despite matching visible content. Modal's one attributable
+  repair recheck is functional but8.192s. No valid final matched usable-screen
+  claim exists for these paths. The plan permits at most one diagnostic/recheck
+  for a failed/noisy consumer; another measurement/investigation requires an
+  explicit bounded amendment, or these gates must remain deferred/unaccepted.
+- Canonical semantics: GIT child combined grid SQL207/8120, Expedite child label
+  ambiguity and parent unpaged SQL156 remain explicit unavailable contracts.
+  Decide deferral versus separately authorized correction; no silent legacy repair.
+- Exact acceptance: prepared-reader/source bags and full modern responses are
+  proved; complete independent ordered-wire parity remains open, including
+  Expedite SQL sequence/pre-post UNION order. Same-input DLL formatter proof and
+  equal bags cannot waive this requirement. A precise ordering disposition or
+  separately bounded reference-comparison authorization is needed.
+All available corrections are deployed; accepted graphs/exports are reused.
+No resource window remains active. Operational instructions are in
+PREPARED_PRESENTATION_HANDOFF.md. Delivery is partial and the goal is not achieved.
 
 ### Planning delivery matrix (current, partial)
 
@@ -195,7 +215,7 @@ proof boundaries. Evidence root: `planning-prepared-20261005-001`.
 | GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Combined Grid View retains canonical SQL207/8120 failure; no invented empty-grid success |
 | Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; unpaged SQL156 dependency retained |
 | Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Chart formatter ambiguity remains explicit; no chart performance success. Independent ordered-wire gate remains open |
-| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency003 deployed and complete gateway response proved; final corrected browser check pending login |
+| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency003 deployed and complete gateway response proved; corrected browser grid proved; final timing invalid (observer), performance unaccepted |
 | Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete JIT-corrected page/nested proof passes. Shared ready-only row-modal wiring tested; latency003 built/deployed with complete gateway response proof; final browser checks pending |
 
 All six have retained source/reader proofs as detailed below, but these do not

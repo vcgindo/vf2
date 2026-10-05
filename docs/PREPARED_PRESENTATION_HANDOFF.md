@@ -468,3 +468,47 @@ and is included. Retained2.097s baseline missed by72ms; performance acceptance
 remains unmet. All caps restored without errors; temporary viewport reset.
 `scope-validation.json` consolidates proof and limitations. No further sampling
 under the one-pair amendment; MIGRATION.md remains the only status tracker.
+
+## Planning prepared delivery, 5 October 2026
+
+The Planning additions preserve the April7 fixture run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, source digest
+`4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73`
+and admission digest
+`5c90ae58f6478f7b1805f534f95fbe0de241a5280c4422ec70f28467221bf3e7`.
+Database: `test_freshvcf_stage2_vm_20261003_002`. No engine replay is needed.
+The consumer grains are fixed in PLANNING_CONSUMER_MATRIX.md; current acceptance
+and precise unresolved dependencies are exclusively in MIGRATION.md.
+
+Migrations0027–0035 add sealed typed source/display/occurrence relations;
+0036 adds the Excess run/date covering index. Existing source rows are unchanged.
+Preparation commands, in dependency order, are `prepare_planning_sources`,
+`prepare_planning_grids`, `prepare_planning_charts`, `prepare_planning_custom`,
+`prepare_planning_git`, `prepare_planning_expedite_grids`,
+`prepare_planning_expedite_transit`, `prepare_planning_expedite_custom`, and
+`prepare_planning_expedite_charts`. Each supports `--verify-only` and binds the
+configured fixture and immutable receipt. The existing fixture is already prepared:
+use verification when operationally needed, not a reload. Normal fresh databases
+use real Django migrations; this sealed fixture uses the exact forward allowlist
+in `migrate_btr_fixture`. Never fake history or disable source guards manually.
+
+Serving images use `planning-grid-latency-20261005-003` for backend/frontend.
+The final frontend caller repair has immutable image ID
+`sha256:725f04d6d8b9117188bea286fdb28d33b4730c2371d311ad357a4d337b01637c`;
+the tag was rebuilt, so use the retained deployment receipt for exact identity.
+External operational scripts are under
+`D:/freshvcf-build/evidence/planning-prepared-20261005-001`:
+`deploy-planning-latency.ps1` retains the existing overlay chain and deploys only
+the owned backend/frontend; `deploy-modal-caller.ps1` deploys frontend only.
+`check-latency-deploy.py` verifies readiness, selected admission and21 protected
+resources. Keep existing ports, restart policy and resource limits. Rollback only
+the affected image using the retained connected/latency image checkpoint; leave
+additive prepared rows/indexes and source data intact. Do not reset the database.
+
+Evidence includes complete source/storage/reader comparisons, scoped cases,
+`latency003-api-summary.json`, corrected-grid screenshots and
+`fulfillment-modal-final.txt/.png`. The latter proves selected SKU21125076009000
+at P064, real chart data and14→30day horizon. API timings are not browser timings.
+Observer failures and the8.192s modal observation remain retained and unaccepted
+as performance proof. User-confirmed Excess/Fulfillment graphs and XLSX exports
+are reused. Daily refresh automation remains outside this one-time preparation.
