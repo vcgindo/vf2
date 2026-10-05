@@ -40,14 +40,15 @@ ORDINALS = {'A': 'a_ordinal', 'btd': 'btd_ordinal', 'E': 'e_ordinal',
 ROW_FIELDS = ('branch', 'export', 'sku_code', 'location_code', 'sku_key', 'location_key', *ORDINALS.values())
 
 
-def source_identity(run, version=VERSION):
+def source_identity(run, version=VERSION, *, metadata=None):
     return dict(version=version, run=str(run.pk), kind=run.kind, date=str(run.business_date),
                 input_digest=run.input_digest, output_digest=run.output_digest,
                 production_digest=run.production_digest,
-                images={role: image_metadata(run, path) for role, path in SOURCES.items()})
+                images={role: image_metadata(run, path) if metadata is None else metadata[path]
+                        for role, path in SOURCES.items()})
 
 
-def selected_generation(run):
+def selected_generation(run, *, metadata=None):
     identifier = getattr(settings, 'VF_BTR_REPORTING_GENERATION', '')
     if not identifier:
         return None
@@ -57,13 +58,13 @@ def selected_generation(run):
         raise PublicationUnavailable('btr_reporting_generation_not_ready') from exc
     if (generation.run_id != run.pk or generation.version not in (VERSION, 2) or
             generation.source_kind != run.kind or generation.business_date != run.business_date or
-            generation.source_digest != digest(source_identity(run, generation.version))):
+            generation.source_digest != digest(source_identity(run, generation.version, metadata=metadata))):
         raise PublicationUnavailable('btr_reporting_generation_source_mismatch')
     return generation
 
 
-def admission_identity(run):
-    generation = selected_generation(run)
+def admission_identity(run, *, metadata=None):
+    generation = selected_generation(run, metadata=metadata)
     if generation is None:
         return None
     return dict(id=str(generation.pk), source=generation.source_digest, rows=generation.rows_digest,

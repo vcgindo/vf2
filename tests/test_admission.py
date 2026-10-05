@@ -13,6 +13,7 @@ import django
 django.setup()
 from django.test import RequestFactory, override_settings
 from mta.presentation import admission
+from mta.presentation import btr_reporting, fixture
 from mta.presentation.context import PublicationUnavailable
 from vectorflow.urls import ready
 
@@ -120,6 +121,61 @@ class AdmissionTest(unittest.TestCase):
             app = admission.AdmittedApplication(downstream)
             self.assertEqual(app(environ, start), [b'exact existing response'])
             downstream.assert_called_once_with(environ, start)
+
+    def test_receipt_batch_is_confined_to_exact_buffer_route(self):
+        downstream = Mock(return_value=[b'unchanged'])
+        with patch.object(admission, 'admit'), patch.object(admission.logger, 'warning'), \
+                patch.object(admission.connections, 'close_all'), \
+                patch.object(admission, 'require_admission') as require:
+            app = admission.AdmittedApplication(downstream)
+            app({'PATH_INFO': '/api/mta/GetBufferTrendGraphData',
+                 'HTTP_X_BUFFER_RECEIPTS': 'false'}, Mock())
+            require.assert_called_once_with(buffer_receipts=True)
+            for path in ('/api/mta/RRRData', '/api/mta/GetResearchInsightData',
+                         '/api/mta/GetBufferTrendGraphData/','/api/mta/GetBufferTrendGraphDataOther'):
+                require.reset_mock()
+                app({'PATH_INFO': path, 'HTTP_X_BUFFER_RECEIPTS': 'true'}, Mock())
+                require.assert_called_once_with()
+
+    @override_settings(VF_BTR_REPORTING_GENERATION='selected')
+    def test_batch_follows_native_validation_and_default_is_unchanged(self):
+        self.run.kind = 'LEGACY_UI_FIXTURE'
+        metadata = {path: {'image': path} for path in btr_reporting.SOURCES.values()}
+        calls = []
+        def native():
+            calls.append('validated'); return self.run, 'native'
+        def batch(run, paths):
+            self.assertEqual(calls, ['validated'])
+            self.assertIs(run, self.run)
+            self.assertEqual(tuple(paths), tuple(btr_reporting.SOURCES.values()))
+            calls.append('batch'); return metadata
+        with patch.object(admission, 'native_binding', side_effect=native), \
+                patch.object(fixture, 'image_metadata_batch', side_effect=batch) as batched, \
+                patch.object(btr_reporting, 'admission_identity', return_value={'source': 'same'}) as identity:
+            before = admission.binding()
+            identity.assert_called_once_with(self.run)
+            batched.assert_not_called()
+            calls.clear(); identity.reset_mock()
+            self.assertEqual(admission.binding(buffer_receipts=True), before)
+            identity.assert_called_once_with(self.run, metadata=metadata)
+        with patch.object(admission, 'native_binding', side_effect=PublicationUnavailable('run_changed')), \
+                patch.object(fixture, 'image_metadata_batch') as batched:
+            with self.assertRaisesRegex(PublicationUnavailable, 'run_changed'):
+                admission.binding(buffer_receipts=True)
+            batched.assert_not_called()
+
+    @override_settings(VF_BTR_REPORTING_GENERATION='selected')
+    def test_failed_batch_revokes_admission_without_fallback(self):
+        self.run.kind = 'LEGACY_UI_FIXTURE'
+        for reason in ('not_selected', 'binding_unavailable', 'source_manifest_changed', 'image_columns_changed'):
+            admission._admitted = 'old'
+            with patch.object(admission, 'native_binding', return_value=(self.run, 'native')), \
+                    patch.object(fixture, 'image_metadata_batch', side_effect=PublicationUnavailable(reason)), \
+                    patch.object(btr_reporting, 'admission_identity') as identity:
+                with self.assertRaisesRegex(PublicationUnavailable, reason):
+                    admission.require_admission(buffer_receipts=True)
+                self.assertIsNone(admission._admitted)
+                identity.assert_not_called()
 
     def test_database_connectivity_alone_is_not_readiness(self):
         with patch('vectorflow.urls.connection.cursor') as cursor:

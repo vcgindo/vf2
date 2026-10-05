@@ -27,7 +27,139 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Buffer metadata batch deployed; screen performance acceptance remains open
+### Buffer work closed by human; rejected candidate checkpoint
+
+On6October2026 the human instructed: **commit the work and close the goal**.
+This authorizes one source/documentation checkpoint of the rejected candidate,
+superseding the prior no-commit stop only for that checkpoint. Work is CLOSED BY
+HUMAN AND UNACCEPTED; implementation and performance investigation do not resume.
+The restored3005 runtime remains on0ea5690. The goal tool has no cancelled/closed
+status and remains paused; closure is not successful performance acceptance.
+
+The direct human instruction of6October2026 in controller chat
+01a1037c-5d96-7700-87a8-89a575f6c9f8 now authorizes one integrated delivery:
+existing membership-key broad joins and source-grain colour normalization;
+Buffer-route-only batching of13 admission receipts after validated selected run;
+nine complete frozen responses/two403denials and affected integrity proofs;
+normal-resource3005 deployment and one fixed three-journey native screen pass.
+This superseded the diagnostic-only stop **for this package only**. On6October
+the human explicitly ordered: **restore the prior runtime and end the goal**.
+The package is STOPPED AND UNACCEPTED. Unmet exit: broad graph latency. No new
+tables/IDs/schema/indexes, preparation/data mutation, cache,
+permission changes, frontend redesign, engine/F1/F2 or adjacent report work.
+Accepted Research and restored RRR remain preserved. The original1.091s failed
+comparison remains unresolved; unmatched native improvement is UNPROVED.
+
+Implementation gate:55 focused tests PASS; complete nine frozen responses and
+two separate WSGI403denials PASS, identical admission digest with60→9SQL and
+14→1selected-run resolutions. Eight attributable run/roster/source/missing
+receipt/prepared-recipe/guard drift injections reject; no database mutation.
+PostgreSQL VALUES proof preserves permission weight6, optional-parent weight2,
+NULL LEFT-pair and unknown/leading-space colour exclusions. Initial harness
+mistakenly expected a leading-space colour to match; failure retained, corrected
+by retaining that exclusion and adding a separate mixed-case trailing-space cell.
+The horizontal source-normalization candidate had incidental broad proof costs
+19/16seconds; the smaller vertical-cell aggregate also preserved exact values but
+was slower. One bounded architecture helper assessed that query structure; no
+profiling/EXPLAIN or expanded journey matrix. Three native predecessor
+measurements are retained at unchanged
+resources/viewport:6.818sTech,5.339sEco,1.230sfilteredEco (trusted event→fresh
+chart/summary DOM). They do not relabel the original failed tool comparison.
+
+Final candidate screen gate FAILED: Tech50.411s versus6.818s before, at identical
+body5739bytes and normal resources. Eco returned HTTP504 at the60-second gateway
+deadline; the frontend subsequently displayed stale Tech values91.78% under the
+Eco tab. That is NOT fresh Eco readiness even though the presence-only observer
+saw a chart/summary. The fixed filtered after-check was CANCELLED by the human's
+stop instruction, not run or inferred. All failed observations remain retained;
+no valid slow result was repeated. The candidate is rejected, not partially
+accepted or a deployed improvement. The original1.091s comparison remains FAILED.
+
+Rollback: restore exactly the previously serving
+`freshvcf-preview-mta:buffer-metadata-batch-20261006-001` (0ea5690), original
+compose overlay and byte-identical frontend nginx/index; remove temporary
+frontend probe and reload the browser without it. Restoration verification PASS:
+prior image and all eight runtime source hashes restored, identical admission
+5c90ae58…3e7/readyz200, unchanged resource caps/ports/restart policies and49 protected
+containers. Nginx/index are byte-identical; browser reload contains only
+`/static/js/main.6231405b.js`, with no observer script. Rejected implementation
+changes are preserved in this requested checkpoint and remain undeployed. No
+further implementation, deployment or investigation follows closure.
+Correctness/count/drift proof and rejected SQL source are
+retained externally under `buffer-four-step`; preserve Research/RRR/F1/F2/data/
+permissions and protected services. The only precise blocker is the rejected
+aggregate query's broad latency/timeout; its PostgreSQL plan subcost is unproved.
+
+[Stopped candidate and verified operational handoff](D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001/buffer-four-step/HANDOFF.md).
+
+### Preserved final consolidated assessment
+
+Latest direct human instruction (6 October2026 local time), verified in controller
+chat01a1037c-5d96-7700-87a8-89a575f6c9f8, authorized one **last consolidated**
+Buffer frontend/API/gateway/backend/database assessment. That superseded the
+earlier diagnostic stop only for this finite pass; it did not authorize another
+implementation. The assessment is **COMPLETE**; the subsequent implementation
+authorization is recorded above.
+Exactly three graph requests were collected: broad Tech and Eco at30days, and
+Eco/SKU21101151051000/Absolute. No graph request was repeated. No further
+diagnostic stage, extension request, correction or acceptance resample follows.
+
+| Final diagnostic boundary | Tech | Eco | Eco/SKU |
+|---|---:|---:|---:|
+| Browser network interval |6391.10ms|7911.90ms|2639.90ms|
+| Native click capture→chart/summary DOM |Unavailable after selector failure|7949.70ms|2712.40ms|
+| DOM plus two RAF callbacks, a paint opportunity |Unavailable|7994.40ms|2834.90ms|
+| MTA total / outer admission |6266.88 /342.38ms|7792.83 /431.57ms|2327.21 /1275.64ms|
+| Scoped graph SQL execute |5529.88ms|6885.77ms|324.79ms|
+| MTA SQL count: outer / endpoint / reader |60 /3 /16|60 /3 /16|60 /3 /16|
+
+These are single instrumented observations, not new acceptance baselines or
+projected savings. Broad scope is dominated by graph SQL; the fixed filter is
+dominated by outer admission. Gateway local work is108.57/105.56/280.91ms;
+browser load→ready DOM is32.60ms for Eco and53.90ms for the filter. The filter
+has one59ms long task; no Eco long task was reported. React phases, complete
+canvas animation/compositor paint and PostgreSQL CPU/IO/lock subdivisions remain
+unavailable. All200 responses have correct charts/summaries. The failed Tech
+selector observation and pre-request probe setup failure remain retained;
+Tech was not resubmitted. The Eco probe reload selected its tab before Show All,
+so this is not the retained auto-submit journey's matched acceptance timing.
+Full-page pixel captures clip summary values; Eco also shows the theme panel.
+They do not prove unobstructed usable paint. Complete DOM values are retained;
+no screenshot-driven request or acceptance claim follows.
+
+The earlier1.091→1.810s screen comparison cannot isolate an application
+regression: retained same-request traces give73→666ms invocation-to-request,
+865→838ms API and153→306ms response-to-observation. Its failed acceptance is
+preserved, not waived. Reader43→16SQL leaves the outer60SQL, including13 BTR
+source receipts repeatedly resolving selected run, and broad aggregation intact.
+The full low-overhead image/checksum boundary is99–151ms; older full-profiler
+figures cannot justify a saving claim. Source row fetch, checksum, live scopes,
+all SQL, serialization, transfer, initial dependencies and native browser work
+are consolidated with inclusive/exclusive boundaries and residuals in the report.
+
+Recommended **implementation package for human choice only**: optimize broad
+graph SQL using existing normalized membership keys and source-grain colour
+normalization; batch the13 exact BTR admission receipts after validated selected
+run, preserving outer/prepared guards and the identical source identity. Existing
+prepared layers suffice for this first package; no new table or surrogate-ID
+migration is justified. Page-local repeated LocationType reuse is secondary.
+Shared admission effects require confinement or affected admission proof; no
+Research/RRR page audit or integrity relocation follows. Exact nine responses,
+two403denials, run/source/recipe/guard drift, NULL/duplicate/parent/bareOR semantics
+and a reliable fixed native screen comparison are required before acceptance.
+No implementation occurred under this diagnostic authorization.
+
+Restoration PASS: nginx/index/gateway settings/MTA WSGI byte-exact, probes removed,
+browser reloaded without probe and viewport reset; same admission5c90ae58…3e7,
+Buffer/Research/RRR sources and all50 container configurations/identities remain
+unchanged, including47 outside the three instrumented services. Deployed0ea5690
+andf6ecf34 remain. No diagnostic-only commit. The sole current unmet exit remains
+actual screen performance acceptance; the later four-step package owns that exit.
+
+[Final consolidated assessment and ranked proof boundary](D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001/buffer-consolidated-final/FINAL_ASSESSMENT.md)
+contains three complete layer tables, raw same-request evidence pointers,
+instrumentation failures/limits and restoration. Earlier delivery and diagnostic
+notes below are retained history, not another authorized queue.
 
 The human now instructs: “begin with the Buffer, we keep this version of RRR.”
 Resume only Buffer Trends (Tech/Eco chart page). Retain RRR's restored08f58e4

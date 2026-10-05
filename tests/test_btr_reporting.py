@@ -15,14 +15,37 @@ from mta.presentation.context import PermissionCodes, PublicationUnavailable
 
 
 class ReportingSelectionTests(unittest.TestCase):
+    def test_batched_source_identity_is_exact_and_checks_generation_digest(self):
+        from datetime import date
+        from mta.serialization import digest
+        run = SimpleNamespace(pk=uuid4(), kind='LEGACY_UI_FIXTURE', business_date=date(2026,4,7),
+                              input_digest='input', output_digest='output', production_digest='production')
+        metadata = {path: {'image': path, 'count': i, 'fields': [['D1','D1','string']]}
+                    for i, path in enumerate(reporting.SOURCES.values())}
+        with patch.object(reporting, 'image_metadata', side_effect=lambda run,path: metadata[path]) as individual:
+            original = reporting.source_identity(run, 2)
+            self.assertEqual(individual.call_count, 13)
+            individual.reset_mock()
+            self.assertEqual(reporting.source_identity(run, 2, metadata=metadata), original)
+            individual.assert_not_called()
+        generation = SimpleNamespace(run_id=run.pk, version=2, source_kind=run.kind,
+            business_date=run.business_date, source_digest=digest(original))
+        with override_settings(VF_BTR_REPORTING_GENERATION=str(uuid4())), \
+                patch.object(reporting.BtrReportingGeneration.objects, 'get', return_value=generation):
+            self.assertIs(reporting.selected_generation(run, metadata=metadata), generation)
+            changed = dict(metadata)
+            path = next(iter(changed)); changed[path] = dict(changed[path], count=999)
+            with self.assertRaisesRegex(PublicationUnavailable, 'source_mismatch'):
+                reporting.selected_generation(run, metadata=changed)
+
     def test_ambiguous_sources_and_permission_bags_keep_accepted_reader(self):
         singleton = PermissionCodes({'sku': 1})
         repeated = PermissionCodes({'sku': 2})
         self.assertFalse(reporting.eligible_request(None, singleton, singleton))
-        self.assertFalse(reporting.eligible_request(SimpleNamespace(eligible=False), singleton, singleton))
-        self.assertFalse(reporting.eligible_request(SimpleNamespace(eligible=True), repeated, singleton))
-        self.assertFalse(reporting.eligible_request(SimpleNamespace(eligible=True), singleton, repeated))
-        self.assertTrue(reporting.eligible_request(SimpleNamespace(eligible=True), singleton, singleton))
+        self.assertFalse(reporting.eligible_request(SimpleNamespace(version=reporting.VERSION, eligible=False), singleton, singleton))
+        self.assertFalse(reporting.eligible_request(SimpleNamespace(version=reporting.VERSION, eligible=True), repeated, singleton))
+        self.assertFalse(reporting.eligible_request(SimpleNamespace(version=reporting.VERSION, eligible=True), singleton, repeated))
+        self.assertTrue(reporting.eligible_request(SimpleNamespace(version=reporting.VERSION, eligible=True), singleton, singleton))
 
     def test_unselected_reader_never_queries_reporting_tables(self):
         with override_settings(VF_BTR_REPORTING_GENERATION=''), patch.object(reporting.BtrReportingGeneration.objects, 'get') as get:

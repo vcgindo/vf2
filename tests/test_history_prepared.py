@@ -209,7 +209,7 @@ class HistoryPreparedBranchTest(unittest.TestCase):
             def __enter__(self): return self
             def __exit__(self, *args): return False
             def execute(self, sql, params): captured.update(sql=sql, params=params)
-            def fetchone(self): return (0,) * 6
+            def fetchall(self): return [(0, 'D90', *((0,) * 6))]
         filters = SimpleNamespace(children=[], params=['7','7'])
         class Codes(set):
             def __init__(self, value):
@@ -223,6 +223,24 @@ class HistoryPreparedBranchTest(unittest.TestCase):
                 dates=[{'D90':'2026-04-07'}])
         self.assertIn('WHERE A."BlackCount">%s OR A."RedCount">%s', captured['sql'])
         self.assertNotIn('WHERE (A."BlackCount"', captured['sql'])
+
+    def test_grouped_empty_graph_keeps_requested_days_and_null_counts(self):
+        class Cursor:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def execute(self, *args): pass
+            def fetchall(self): return []
+        from mta.presentation.context import PermissionCodes
+        columns = ('D89', 'D90')
+        with patch.object(history_prepared_sql, 'image_query', return_value=('SELECT * FROM source', [])), \
+                patch.object(history_prepared_sql, '_dimension_ctes', return_value=([], [])), \
+                patch.object(history_prepared_sql.connection, 'cursor', return_value=Cursor()), \
+                patch.object(history_prepared_sql.history_native, 'graph_response', side_effect=lambda rows,dates:rows):
+            result = history_prepared_sql.read_graph(self.run, {}, columns=columns,
+                filters=SimpleNamespace(children=[], params=[]), where='FALSE', attributes={},
+                manifest=None, products=PermissionCodes({'S':1}), locations=PermissionCodes({'W':1}), dates=[])
+        self.assertEqual(result, [dict(D=column, **{alias:None for alias,_ in
+            history_prepared_sql.history_native.COLOURS}) for column in columns])
 
 
 if __name__ == '__main__':

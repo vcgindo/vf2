@@ -38,11 +38,20 @@ CONFIG_SETTINGS = (
 )
 
 
-def binding():
+def binding(*, buffer_receipts=False):
     run, identity = native_binding()
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
-        from mta.presentation.btr_reporting import admission_identity
-        identity = digest(dict(native=identity, btr=admission_identity(run)))
+        from mta.presentation.btr_reporting import SOURCES, admission_identity
+        if buffer_receipts and getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+            from mta.presentation import fixture
+            # native_binding has already validated the selected run, immutable
+            # guards and receipt roster. Resolve these exact named receipts in
+            # one validated read; retain the same per-image identity fields.
+            metadata = fixture.image_metadata_batch(run, SOURCES.values())
+            btr = admission_identity(run, metadata=metadata)
+        else:
+            btr = admission_identity(run)
+        identity = digest(dict(native=identity, btr=btr))
     return run, identity
 
 
@@ -138,13 +147,13 @@ def admit():
     return result
 
 
-def require_admission():
+def require_admission(*, buffer_receipts=False):
     """Fail closed on changed identity; do not revalidate inside a request."""
     global _admitted
     if _admitted is None:
         raise PublicationUnavailable('publication_not_admitted')
     try:
-        _, current = binding()
+        _, current = binding(buffer_receipts=True) if buffer_receipts else binding()
         if current != _admitted:
             raise PublicationUnavailable('publication_admission_changed_restart_required')
     except (OperationalError, InterfaceError):
@@ -176,7 +185,10 @@ class AdmittedApplication:
     def __call__(self, environ, start_response):
         if environ.get('PATH_INFO', '').startswith('/api/mta/'):
             try:
-                require_admission()
+                if environ.get('PATH_INFO') == '/api/mta/GetBufferTrendGraphData':
+                    require_admission(buffer_receipts=True)
+                else:
+                    require_admission()
             except Exception:
                 connections.close_all()
                 response = JsonResponse({'error': 'publication_not_admitted'}, status=503)
