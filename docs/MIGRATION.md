@@ -87,6 +87,23 @@ Whole-goal delivery remains partial: independent ordered-wire disposition and
 matched usable-screen performance gaps below remain; positive shipments are
 outside this fixture's proof. No engine/state/auth change or replay occurred.
 
+Retained-evidence completion audit after deployment (no runtime queries or new
+benchmark): `report-corrections/formatted-order-audit.json` applies the approved
+own-label correction to both retained source datasets, then compares complete
+formatted arrays without sorting. All8 restricted arrays and all4 Pre/Post
+arrays match in order. Thus SQL Pre/Post UNION position is not a remaining
+formatted-wire blocker. Six broad arrays still fail ordered equality: Parent
+critical first differs at index0, receiving20, nil-stock15 and chronic12; Child
+critical0 and receiving20 (zero-based). Existing exact bag proofs remain distinct
+from ordered acceptance. No new tie-break or order waiver was introduced.
+The retained prepared capture SHA256 is
+`ab2ed01fadbcd0201e1d56f4eeb8fa5cca9c5cc82811850cff1e2fba194c54fe`.
+These six arrays and the matrix's matched-performance gaps are the consolidated
+remaining acceptance dependencies; not a reason to repeat passing exports or
+change source calculations. The bounded plan requires stopping after this pass;
+an exact ordering disposition and authority for any further matched measurements
+are needed before those remaining acceptance claims can be made.
+
 ### Completed focused performance investigation — 5 October 2026
 
 Direct human authorization in this thread extends the exhausted measurement
@@ -298,7 +315,8 @@ Consolidated remaining decisions after the bounded pass:
   unrelated invalid filters remain outside that proof.
 - Exact acceptance: prepared-reader/source bags and full modern responses are
   proved; complete independent ordered-wire parity remains open, including
-  Expedite SQL sequence/pre-post UNION order. Same-input DLL formatter proof and
+  the six broad Expedite arrays listed above. Pre/Post wire order now passes
+  retained-evidence comparison. Same-input DLL formatter proof and
   equal bags cannot waive this requirement. A precise ordering disposition or
   separately bounded reference-comparison authorization is needed.
 All available corrections are deployed; accepted graphs/exports are reused.
@@ -321,8 +339,9 @@ proof boundaries. Evidence root: `planning-prepared-20261005-001`.
 
 All six have retained source/reader proofs as detailed below, but these do not
 establish complete independent legacy ordered-wire parity. The16 Expedite SQL
-chart bags and same-input DLL formatter comparisons pass; differing SQL sequences
-and pre/post UNION order remain unresolved. No new ordering exception is inferred.
+chart bags and same-input DLL formatter comparisons pass; six broad formatted SQL sequences
+remain unresolved. Pre/Post formatted order passes the retained audit above.
+No new ordering exception is inferred.
 The final matched resource window restored limits with zero errors. Full goal
 closure remains unproved; confirmed graphs/exports must not be repeatedly tested.
 
