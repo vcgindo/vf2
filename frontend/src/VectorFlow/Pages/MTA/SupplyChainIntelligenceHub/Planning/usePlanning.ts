@@ -1,5 +1,6 @@
+import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { settleRequestPair } from "../../requestPair"
-import { useEffect, useState,useMemo,useRef } from "react"
+import { useEffect, useState,useMemo,useRef,useCallback } from "react"
 import { fulfillmentFailureMessage } from './fulfillmentFailure';
 import { expediteFailureMessage, expediteChartFailureMessage } from './expediteFailure';
 import { gitFailureMessage } from './gitFailure';
@@ -9,10 +10,10 @@ import { VFPaginationProps } from "../../../../../components/VectorFLOW/commons/
 import { notifyError, notifyLoader, notifySuccess } from "../../../../../helpers/notify";
 import { useGetDailyData } from "../../../../../VectorFlow/Services/MTA/SupplyChainIntelligenceHub/BPR";
 import { useGetPlanningDataCount,useGetPlanningDataGraph, useGetPlanningDataGrid, useGetPlanningDataGridCount } from "../../../../Services/MTA/SupplyChainIntelligenceHub/Planning";
-import { PlanningCategory, PlanningCounts, DailyDataGraph } from "../../../../types/MTA"
+import { PlanningCategory, PlanningCounts } from "../../../../types/MTA"
 import {useSelector,useDispatch} from 'react-redux';
 import { type RootState } from "../../../../../redux/store/store";
-import {TOGGLE_GRAPH_MODAL,UPDATE_DAILY_DATA, UPDATE_PLANNING_DATA} from '../../../../../redux/actions/MTA';
+import {UPDATE_PLANNING_DATA} from '../../../../../redux/actions/MTA';
 import { AgGridReactProps } from 'ag-grid-react';
 import useBPRFilter from "../../../../../hooks/useBPRFilter";
 import { GridRef } from "../../../../../VectorFlow/types/MDM";
@@ -1091,25 +1092,9 @@ const usePlanning = ()=>{
         }
     }
 
-    const onOpenDailyDataGraph = async (params:any) => {
-        const payload:any = {
-            SKUCode:params.data['sc'].toString(),
-            WHCode:params.data['wc']
-        }
-        const result = await getDailyData(payload)
-        const data = result.data.data[0];
-        const dailyData:DailyDataGraph = {
-            rowData:params.data,
-            chartData:data['StockData'] ? data['StockData'] : [],
-            normChangeData:data['NormChangeHistoryData'] ? data['NormChangeHistoryData'] : [],
-            masterData:data['MasterData'][0],
-            suggestionData:data['SuggestionHistoryData'] ? data['SuggestionHistoryData'] : [],
-            monitoringData:data['MonitoringData']
-        }
-
-        dispatch(UPDATE_DAILY_DATA(dailyData));
-        dispatch(TOGGLE_GRAPH_MODAL(true));
-    }
+    const onOpenDailyDataGraph = useCallback((params:any) =>
+        loadDailyData(dispatch, getDailyData, params.data, 'wc', 'sc'),
+        [dispatch, getDailyData]);
 
 
 

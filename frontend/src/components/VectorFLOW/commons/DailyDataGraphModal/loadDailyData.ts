@@ -5,7 +5,7 @@ import { DailyDataGraph } from '../../../../VectorFlow/types/MTA';
 
 // Request identity belongs to the existing modal state. Closing invalidates it;
 // a subsequent selection replaces it before either network response can finish.
-export async function loadDailyData(dispatch: any, getDailyData: any, rowData: any, whKey: string) {
+export async function loadDailyData(dispatch: any, getDailyData: any, rowData: any, whKey: string, skuKey: string = 'SKUCode') {
   const pending: DailyDataGraph = {
     requestId: nanoid(), status: 'loading', rowData,
     chartData: [], normChangeData: [], masterData: undefined,
@@ -14,7 +14,7 @@ export async function loadDailyData(dispatch: any, getDailyData: any, rowData: a
   dispatch(TOGGLE_GRAPH_MODAL(false));
   dispatch(UPDATE_DAILY_DATA(pending));
   try {
-    const result = await getDailyData({ SKUCode: rowData.SKUCode, WHCode: rowData[whKey] });
+    const result = await getDailyData({ SKUCode: rowData[skuKey], WHCode: rowData[whKey] });
     const data = result.data.data[0];
     // Date-only parsing retains the local calendar semantics of GetLastRunDate.
     const runDate = format(parseISO(data.RunDate), 'dd MMM yyyy');

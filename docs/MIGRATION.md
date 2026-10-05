@@ -123,6 +123,31 @@ This closes the bounded shared/parent correction checkpoint, not matched legacy
 performance acceptance. Active next: diagnose and correct normal Excess grid,
 then Fulfillment grid and its selected-row modal. Passing graphs/exports stay frozen.
 
+Excess grid correction is deployed in backend latency002. The measured prepared
+page query spent about3s in parallel JIT compilation; query-local JIT disable
+retains all5000 captured row positions/fields and restores the caller setting.
+Complete response proof passes in0.904s versus4.53s in the profiled prior read;
+seven focused grid/filter tests pass. Startup admission and21 protected-resource
+checks pass. Its connected browser exit is deferred pending reauthentication:
+the surviving3005 tab is now at login after interruption. No browser timing is
+claimed. Continue independent Fulfillment diagnosis while that check is pending.
+Fulfillment's measured page SQL spends625ms of696ms in JIT; extending the same
+query-local correction preserves the complete5000-row page and nested order
+details against the retained HTTP response (0.822s direct read, caller JIT restored).
+Deployment/browser exit remains pending. The next independent allowed edit is
+the Fulfillment row-modal caller: reuse existing request identity/RunDate/ready-only
+shared loading, preserving selected sc/wc keys and the original row object.
+The Planning caller now uses shared `loadDailyData` with explicit sc/wc aliases;
+the modal receives request identity/status/RunDate. Both targeted frontend suites
+pass (7tests), including unchanged close/new-selection behavior and original-row
+identity. The initial test invocation passed both files but was stopped during
+unrelated whole-frontend coverage collection; the same files then completed with
+coverage disabled. Backend grid/filter tests also pass (7tests).
+Candidate latency003 build is running; serving remains latency002 backend and
+latency001 frontend until a successful build/deployment. Browser replacement
+CAPTCHA confirmation is pending after the first challenge was rejected; no
+post-correction Excess/Fulfillment/modal browser acceptance is claimed.
+
 Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
 covers all six destinations and their existing supported reads/exports. Read-only
 retained SQL comparison proves complete derived BPR master bag97,097 and GIT

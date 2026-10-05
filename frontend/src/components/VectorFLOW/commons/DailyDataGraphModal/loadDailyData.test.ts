@@ -7,6 +7,16 @@ const makeStore = () => configureStore({ reducer: mtaReducer({showDailyDataGraph
 const response = (stock:number) => ({data:{data:[{RunDate:'2026-04-07', StockData:[{stk:stock}], MasterData:[{nm:3}]}]}});
 const deferred = () => { let resolve:any; let reject:any; const promise = new Promise((yes,no)=>{resolve=yes;reject=no;}); return {promise,resolve,reject}; };
 
+it('uses Planning code aliases while retaining the selected row and response date', async () => {
+  const store=makeStore(); const fetch=jest.fn(async()=>response(7));
+  const row={sc:'337',wc:'AG515802',wcd:'Location description'};
+  await loadDailyData(store.dispatch,fetch,row,'wc','sc');
+  expect(fetch).toHaveBeenCalledWith({SKUCode:'337',WHCode:'AG515802'});
+  expect(store.getState().dailyData.rowData).toBe(row);
+  expect(store.getState().dailyData.runDate).toBe('07 Apr 2026');
+  expect(store.getState().showDailyDataGraphModal).toBe(true);
+});
+
 it('keeps the modal closed until its response and date are ready', async () => {
   const store=makeStore(); const request=deferred(); const fetch=jest.fn(()=>request.promise);
   const pending=loadDailyData(store.dispatch,fetch,{SKUCode:'sku',LocCode:'loc'},'LocCode');

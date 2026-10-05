@@ -1,7 +1,7 @@
 """SQL reads of sealed normal-grid occurrences; live scope/filter/page only."""
 from collections import defaultdict
 
-from django.db import connection
+from django.db import connection, transaction
 from mta.presentation.context import PublicationUnavailable, scope
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.planning_grids import admitted_grids
@@ -130,10 +130,16 @@ def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None)
         sql += ' WHERE rn BETWEEN %s AND %s'
         params.extend(((page-1)*size+1, page*size))
     sql += ' ORDER BY rn'
-    with connection.cursor() as cursor:
+    with transaction.atomic(), connection.cursor() as cursor:
+        # Compilation dominates both measured prepared-page queries. Keep this
+        # local to the page query and restore an outer caller's JIT setting.
+        cursor.execute("SELECT current_setting('jit')")
+        previous_jit = cursor.fetchone()[0]
+        cursor.execute('SET LOCAL jit=off')
         cursor.execute(sql, params)
         names = [d[0] for d in cursor.description]
         rows = storage([dict(zip(names, values)) for values in cursor.fetchall()])
+        cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
     for row in rows:
         row.update(WHCode=row['WhCode'], Requirement=row['RequiredQty' if family == 'excess' else 'TotalReq'],
                    PhysicalColor=row['PhysicalInventoryColor'], PipelineColor=row['PipelineInventoryColor'],
