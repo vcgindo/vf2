@@ -143,8 +143,16 @@ pass (7tests), including unchanged close/new-selection behavior and original-row
 identity. The initial test invocation passed both files but was stopped during
 unrelated whole-frontend coverage collection; the same files then completed with
 coverage disabled. Backend grid/filter tests also pass (7tests).
-Candidate latency003 build is running; serving remains latency002 backend and
-latency001 frontend until a successful build/deployment. Browser replacement
+Candidate latency003 initially failed the redundant-default-type lint rule; the
+annotation was removed without behavior change and the production rebuild passed.
+Both latency003 images are now serving3005. Startup admission preserves the
+selected run/digest/BTR generation and all21 protected resources are unchanged.
+Deployed broad-actor counts and complete5000-row responses equal the retained
+HTTP responses, including nested order details. One gateway observation measured
+Excess grid1.141s (prior5.671s), Fulfillment grid1.324s (prior3.446s); count requests
+were2.353s/1.052s. These serial API observations do not prove concurrent browser
+completion. Evidence: `build-latency-003-repair.txt`, `deploy-latency-receipt.json`,
+`latency003-api-summary.json`. Browser replacement
 CAPTCHA confirmation is pending after the first challenge was rejected; no
 post-correction Excess/Fulfillment/modal browser acceptance is claimed.
 
