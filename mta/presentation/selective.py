@@ -39,8 +39,8 @@ def image_field(run, path, field):
     return [wire_value(value,kind) for _,value in rows]
 
 
-def image_query(run, path):
+def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
-    item = image_metadata(run, path)
+    item = metadata if metadata is not None else image_metadata(run, path)
     return ('SELECT * FROM ' + table_sql(item['table']) +
             ' WHERE vf_run_id=%s AND vf_image=%s'), [run.pk, path]

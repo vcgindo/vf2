@@ -93,10 +93,12 @@ def read_research(run, payload):
     return history_native.research_rows(state, masters, data, products=products, locations=locations)
 
 
-def _dimension_ctes(run, attributes, manifest):
+def _dimension_ctes(run, attributes, manifest, *, metadata=None):
     ctes, params = [], []
     for alias, table, prefix in (('sa','SkuAttributeData','SL'), ('la','LocationAttributeData','LL')):
-        query, values = image_query(run, 'closing/btr/' + table)
+        path = 'closing/btr/' + table
+        query, values = image_query(run, path,
+            **({} if metadata is None else {'metadata': metadata[path]}))
         if not manifest:
             ctes.append(alias + ' AS (' + query + ')'); params.extend(values); continue
         ctes.append(alias + 'native AS (' + query + ')'); params.extend(values)
@@ -188,16 +190,22 @@ def read_availability_bands(run, payload):
     return [result]
 
 
-def read_graph(run, payload, *, columns, filters, where, attributes, manifest, products, locations, dates):
+def read_graph(run, payload, *, columns, filters, where, attributes, manifest, products, locations, dates,
+               metadata=None):
     if not products or not locations:
         return history_native.graph_response([dict(D=c, **{a:None for a,_ in history_native.COLOURS})
                                               for c in columns], dates)
     family = 'dispatch' if str(payload.get('bufferTrendType','tech')).lower() == 'eco' else 'physical'
     path = 'BufferTrendDispatch' if family == 'dispatch' else 'BufferTrendPhysicalInv'
-    a, params = image_query(run, 'closing/btr/' + path)
-    sla, sla_params = image_query(run, 'closing/btr/SkuLocAttributeData')
+    path = 'closing/btr/' + path
+    pair_path = 'closing/btr/SkuLocAttributeData'
+    a, params = image_query(run, path,
+        **({} if metadata is None else {'metadata': metadata[path]}))
+    sla, sla_params = image_query(run, pair_path,
+        **({} if metadata is None else {'metadata': metadata[pair_path]}))
     ctes = ['A AS (' + a + ')', 'sla AS (' + sla + ')']; params += sla_params
-    dim_ctes, dim_params = _dimension_ctes(run, attributes, manifest); ctes += dim_ctes; params += dim_params
+    dim_ctes, dim_params = _dimension_ctes(run, attributes, manifest,
+        **({} if metadata is None else {'metadata': metadata})); ctes += dim_ctes; params += dim_params
     for alias, codes in (('P',products),('L',locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         ctes.append(alias + ' AS (VALUES ' + ','.join(['(%s)'] * len(members)) + ')'); params.extend(members)

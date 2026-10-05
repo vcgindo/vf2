@@ -4,6 +4,7 @@ Authority: SCIH f709a448 / deployed DLL0222eb96. Preserve the filter call gate,
 join multiplicity and unparenthesized BlackCount OR RedCount expression.
 """
 from collections import defaultdict
+from django.conf import settings
 from django.db import connection
 from mta.presentation import hierarchy
 from mta.presentation.context import PublicationUnavailable, permission_catalogue, scope
@@ -106,7 +107,18 @@ def read_graph(run, payload):
         where = filters.compile()
     except PublicationUnavailable as exc:
         unavailable(str(exc).partition(':')[2])
-    attributes = {name: image_rows(run, 'closing/btr/' + name)
+    metadata = None
+    if (getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' and
+            getattr(settings, 'VF_HISTORY_REPORTS_PREPARED', False)):
+        from mta.presentation.fixture import image_metadata_batch
+        history = ('BufferTrendDispatch' if str(payload.get('bufferTrendType', 'tech')).lower() == 'eco'
+                   else 'BufferTrendPhysicalInv')
+        metadata = image_metadata_batch(run, ['closing/btr/' + name for name in
+            ('SkuAttributeData', 'LocationAttributeData', 'BufferTrendDates', 'SkuLocAttributeData', history)])
+    def rows(name):
+        path = 'closing/btr/' + name
+        return image_rows(run, path, **({} if metadata is None else {'metadata': metadata[path]}))
+    attributes = {name: rows(name)
                   for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
@@ -115,12 +127,13 @@ def read_graph(run, payload):
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
     products, locations = scope(payload, attributes=attributes)
-    dates = image_rows(run, 'closing/btr/BufferTrendDates')
+    dates = rows('BufferTrendDates')
     from mta.presentation import history_prepared_sql
     if history_prepared_sql.admitted(run) is not None:
         return history_prepared_sql.read_graph(run, payload, columns=columns, filters=filters,
             where=where, attributes=attributes, manifest=manifest,
-            products=products, locations=locations, dates=dates)
+            products=products, locations=locations, dates=dates,
+            **({} if metadata is None else {'metadata': metadata}))
     if not products or not locations:
         return graph_response([dict(D=c, **{a: None for a, _ in COLOURS}) for c in columns], dates)
     ctes, values = [], []

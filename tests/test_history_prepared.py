@@ -98,6 +98,27 @@ class HistoryPreparedAdmissionTest(unittest.TestCase):
             with self.assertRaisesRegex(PublicationUnavailable, 'receipt_missing_or_changed'):
                 history_prepared_sql.admitted(self.run)
 
+    @override_settings(VF_HISTORY_REPORTS_PREPARED=True)
+    def test_ready_receipt_still_denies_run_source_recipe_and_guard_drift(self):
+        receipt = SimpleNamespace(status='READY', source_digest='source',
+                                  dimension_digest='dimensions', recipe_digest='recipe')
+        for changed in ('run', 'source', 'dimensions', 'recipe', 'guards'):
+            with self.subTest(changed=changed), \
+                 patch.object(history_prepared_sql.HistoryPreparedProjection.objects, 'filter') as query, \
+                 patch.object(history_prepared_sql.fixture, 'binding', return_value=(
+                     SimpleNamespace(pk='wrong') if changed == 'run' else self.run,
+                     'changed' if changed == 'source' else 'source')), \
+                 patch.object(history_prepared_sql, 'source_signatures',
+                              return_value='changed' if changed == 'dimensions' else 'dimensions'), \
+                 patch.object(history_prepared_sql, 'recipe_digest',
+                              return_value='changed' if changed == 'recipe' else 'recipe'), \
+                 patch.object(history_prepared_sql, 'verify_guards',
+                              side_effect=ValueError('changed') if changed == 'guards' else None) as guards:
+                query.return_value.first.return_value = receipt
+                with self.assertRaises(PublicationUnavailable):
+                    history_prepared_sql.admitted(self.run)
+                guards.assert_called_once()
+
 
 class HistoryPreparedBranchTest(unittest.TestCase):
     def setUp(self):
@@ -143,6 +164,43 @@ class HistoryPreparedBranchTest(unittest.TestCase):
             self.assertEqual(kwargs['where'], 'TRUE')
             self.assertEqual(kwargs['attributes'], attributes)
             self.assertEqual(kwargs['dates'], dates)
+
+    @override_settings(VF_HISTORY_REPORTS_PREPARED=True)
+    def test_buffer_batches_only_named_request_images_and_keeps_live_scope(self):
+        for family, history in (('eco', 'BufferTrendDispatch'), ('tech', 'BufferTrendPhysicalInv')):
+            paths = ['closing/btr/' + name for name in ('SkuAttributeData', 'LocationAttributeData',
+                'BufferTrendDates', 'SkuLocAttributeData', history)]
+            metadata = {path: object() for path in paths}
+            attributes = {'SkuAttributeData': [{'SKUCode':'x', 'SL1':None}],
+                          'LocationAttributeData': [{'WHCode':'A', 'LL1':None}]}
+            dates = [{'D90':'2026-04-07'}]
+            def rows(run, path, *, metadata):
+                self.assertIs(metadata, items[path])
+                return dates if path.endswith('BufferTrendDates') else attributes[path.rsplit('/',1)[1]]
+            items = metadata
+            with self.subTest(family=family), \
+                 patch.object(history_prepared_sql.fixture, 'image_metadata_batch', return_value=metadata) as batch, \
+                 patch.object(buffer_trends_sql, 'image_rows', side_effect=rows) as images, \
+                 patch.object(buffer_trends_sql.hierarchy, 'selected_manifest', return_value=None), \
+                 patch.object(buffer_trends_sql, 'scope', return_value=({'x'},{'A'})) as scope, \
+                 patch.object(history_prepared_sql, 'admitted', return_value=object()) as admission, \
+                 patch.object(history_prepared_sql, 'read_graph', return_value={'prepared':True}) as prepared:
+                payload = {'days':1, 'bufferTrendType':family}
+                self.assertEqual(buffer_trends_sql.read_graph(self.run, payload), {'prepared':True})
+                batch.assert_called_once_with(self.run, paths)
+                self.assertEqual(images.call_count, 3)
+                scope.assert_called_once_with(payload, attributes=attributes)
+                admission.assert_called_once_with(self.run)
+                self.assertIs(prepared.call_args.kwargs['metadata'], metadata)
+
+    @override_settings(VF_HISTORY_REPORTS_PREPARED=True)
+    def test_buffer_batch_failure_does_not_fall_back(self):
+        with patch.object(history_prepared_sql.fixture, 'image_metadata_batch',
+                          side_effect=PublicationUnavailable('fixture_source_manifest_changed')), \
+             patch.object(buffer_trends_sql, 'image_rows') as images:
+            with self.assertRaisesRegex(PublicationUnavailable, 'source_manifest_changed'):
+                buffer_trends_sql.read_graph(self.run, {'days':1})
+            images.assert_not_called()
 
     def test_prepared_graph_keeps_bare_black_or_red_precedence(self):
         captured = {}

@@ -22,27 +22,52 @@ future authorization are recorded only in MIGRATION.md.
 
 ## Research / RRR / Buffer Trends operations — 5 October 2026
 
-The latest focused Buffer correction (6 October local time) uses the existing
-normalized membership index for key-filtered graph requests. Unfiltered SQL,
-predicate structure, multiplicity and live scope decisions remain unchanged.
-All nine complete frozen Buffer responses, two empty HTTP denials,15 focused
-tests and query-boundary checks pass. No schema or preparation change is needed.
-`buffer-delivery.json` consolidates this with the retained Research and RRR proofs.
-The one final filtered trial is1.853s versus1.091s before: performance acceptance
-remains open despite the proved index path. The retained chart page has no
-expansion control. MIGRATION.md records these exact limits; do not infer full
-acceptance or open another page. User Excel confirmations remain export evidence.
+The latest authorized Buffer correction (6 October2026) batches its five named
+image receipts once through existing validated fixture.image_metadata_batch.
+It passes that metadata to existing full image and prepared SQL readers. Shared
+helper defaults, full source-image checksums, live scopes/NULL/duplicate weights,
+outer admission and complete prepared source/recipe/guard checks remain intact.
+It retains f6ecf34's existing normalized membership-key access correction.
 
-Current `compose.batch.json` selects
-`freshvcf-preview-mta:buffer-indexed-keys-20261005-002`, runtime image identity
-`sha256:6cdb9a3e37dda19b3d629541bc567af6e56eb9fd3f11fd699ce63c6f8faeea67`
-(build configuration52ae144f…c8e0). `buffer-deploy.ps1 deploy` uses the complete
-existing overlay chain and replaces only MTA. Startup admission and readyz retain
-5c90ae58…3e7; frontend and48 protected containers are unchanged. Keep all three
-explicit serving flags. RRR reader remains the08f58e4 source/blob/hash described
-above; Research remains accepted. To restore the prior backend, select the
-retained rrr-rollback-08f58e4-20261005-001 tag in this same owned overlay and use
-the same MTA-only deployment path. Do not change source, memberships or flags.
+Current MTA image: `freshvcf-preview-mta:buffer-metadata-batch-20261006-001`,
+runtime identity`sha256:d01235e0171f736d19b6bc12462686b5f01480bd3391a8254bd4b5bec2299fba`.
+Build output configuration: `sha256:0120e2eaea3716bdea035a5dddd8c84d1a142f3ddf6eb52ae23023cb5327c567`.
+Prepared reader SHA256`03ef9949e47d8cc4e0b8834cd10b868f0c368a174b5af168ca02beed67eb84e3`;
+Buffer reader`6ed8b08a5a18e3a63fc52ebd35d77e18c46d7f8c1e39dbba74176c9d0f84a978`;
+selective helper`b7d4fa5725733c0c50a7538b73c29437a16ac35c169eaa4829886ca774aba56f`.
+RRR's preserved reader SHA256`7867c9805513f6f2d88f0200053dda916695f5d219ccbaa439ce27a7c80042ea`.
+Research reader/default helper behavior is preserved. No frontend build or migration.
+
+Nine full Buffer responses/two empty-scope403denials,33focused tests, Django check,
+run/source/recipe/guard denial and NULL/multiplicity tests pass. Filtered reader
+SQL calls43→16, individual metadata7→0; all seven repeated reader-side run checks
+removed, while prepared admission remains. SQL/bindings remain byte-exact for
+unfiltered and bareOR cases. Source/recipe/admission identities remain unchanged.
+The readyz proof and final restoration receipt verify49other containers unchanged
+and normal4GiB/2CPU MTA resources. Nginx is restored byte-exact to original
+SHA256d1a705988a46aa053660a56d7c0a4f2a7eb9a20b3e25c6660c8e4e04e464dc2a.
+
+One final screen observation:1.810s versus1.091s before; API0.838s versus0.865s
+before,200/4605bytes. The complete seven-series/353Black/100%Black/0%availability
+screen is correct, but screen improvement remains unaccepted. The correlated
+non-API972ms comprises666ms before gateway request start and306ms after response;
+actual UI event dispatch/render timing is not isolated. No favourable resample,
+profiler or new benchmark matrix. Retained broad Tech20.689→9.546s and
+Eco17.644→12.797s observations are reused with unchanged unfiltered SQL. Missing
+expanded-view control remains unavailable, with no invented feature.
+
+External proof/handoff prefix`buffer-batch-*` and consolidated`buffer-delivery.json`
+live in the three-report evidence folder below. Earlier delivery is preserved in
+`buffer-delivery-pre-metadata-batch.json`; same-request diagnosis remains in
+`buffer-path-diagnostic/FINDINGS.md`. Use `buffer-deploy.ps1` for the full overlay
+chain and MTA-only deployment; no data preparation/reload follows a restart.
+To roll back only this metadata correction when authorized, select retained
+`freshvcf-preview-mta:buffer-indexed-keys-20261005-002` in this same owned overlay
+(`compose.pre-metadata-batch.json` retains that binding), then deploy MTA only.
+The earlier08f58e4 rollback tag above remains a separate retained prior target.
+Do not replace fixture data, memberships, flags or other services. Verify unchanged
+readyz/admission/resources after an authorized rollback. Status/next authorization
+belong only to MIGRATION.md.
 
 This bounded reader batch uses the retained April7 fixture run
 `bfd75b4b-a9df-4a08-82d3-852e3324b623`, source digest

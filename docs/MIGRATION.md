@@ -27,7 +27,7 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Buffer indexed-filter correction deployed; performance acceptance remains open
+### Buffer metadata batch deployed; screen performance acceptance remains open
 
 The human now instructs: “begin with the Buffer, we keep this version of RRR.”
 Resume only Buffer Trends (Tech/Eco chart page). Retain RRR's restored08f58e4
@@ -45,41 +45,51 @@ no new matrix, baseline, legacy/resource/modal campaign, engines, auth or RRR
 changes. Complete required affected verification/deployment, restore temporary
 instrumentation, consolidate the three-report handoff and commit/push.
 
-The subsequently authorized focused investigation/correction/final check is
-finished (6 October2026 local time). A measured filtered aggregate cost1.034s in
+The prior indexed-filter investigation/correction/final check finished before
+the newly authorized metadata batching continuation (6 October2026 local time). A measured filtered aggregate cost1.034s in
 the diagnostic; EXPLAIN showed a parallel scan of the dispatch membership despite
 the SKU predicate. The reader now qualifies stored normalized membership keys
 through the existing buffer_graph_member_keys index before ordinal history
 fetches. Only requests with an existing SKU/location key predicate use this path.
 Unfiltered SQL is byte-identical to08f58e4; the bare OR predicate/parameter order
 is unchanged. No schema, preparation, frontend or permission mutation occurred.
-Deployed reader SHA25698af535b…1b7a; RRR remains exactly08f58e4 and Research unchanged.
+That indexed candidate reader SHA25698af535b…1b7a is retained. The current
+metadata-batch prepared reader is03ef9949…84e3; RRR remains exactly08f58e4 and
+Research unchanged. The five Buffer reader images now use one validated batch.
+Full dimension/date checksums and all outer/prepared admission checks remain.
 
 | Buffer requirement | Final bounded result |
 |---|---|
 | Complete graph data | All nine complete frozen Buffer broad/restricted/filter/empty responses revalidated exactly on the final candidate. Both empty-scope HTTP403 denials remain separate from the frozen empty reader results. Reuse unchanged Research cases from the23-case family proof. No values, types, NULLs, duplicates, source or membership changed. |
 | Tech/Eco usable screen | Retained30-day observations: Tech20.689→9.546s; Eco17.644→12.797s. Reuse these passing observations; no fresh timing campaign. |
-| Supported populated filter | Eco/SKU21101151051000/30days/Absolute: retained before1.091s; earlier failed1.326/1.314s retained; one final indexed-candidate trial1.853s. Correct seven-series chart,353 Black summary,100% Black and0% availability. **Improvement criterion is unmet.** |
+| Supported populated filter | Eco/SKU21101151051000/30days/Absolute: retained before1.091s; earlier failed1.326/1.314s retained; indexed trial1.853s retained; one authorized metadata-batch trial1.810s. API0.838s versus0.865s before. Correct seven-series chart,353 Black summary,100% Black and0% availability. **Screen improvement criterion remains unmet.** |
 | Controls/summary/horizon | Both broad Tech/Eco modes toggle Absolute/Percentage using loaded data. Summaries and91.78/94.74% availability match retained responses. Submitting1day while in Percentage refreshes the chart to07-Apr-2026,100 Total,12 Black summary and0% availability; Absolute then shows12 Total. No stale30-day plot or doubled Total. This is a functional check, not another horizon benchmark. |
 | Expanded view | No existing expansion control exists in either retained chart component or visible page. The unlabeled floating-tab button is its indicator, not an expansion action. Coverage is unavailable; no new UI feature was invented. |
-| Operation | Backend build/startup admission,15 focused tests, query-boundary proof and nine-response PostgreSQL proof pass. Current admission5c90ae58…3e7 and readyz pass;48 protected containers unchanged. Nginx restored exactly to SHA256d1a70598…dc2a. Reuse unchanged11-test integrated frontend proof; no frontend build or migration needed. |
+| Operation | Backend build/startup admission,33 focused tests, Django check, unchanged SQL/bindings and nine-response PostgreSQL proof pass. Reader lookup counts43→16SQL,7→0individual metadata; seven repeated selected-run checks removed. Current admission5c90ae58…3e7 and readyz pass;49 protected containers unchanged. Nginx restored exactly to SHA256d1a70598…dc2a. Reuse unchanged11-test integrated frontend proof; no frontend build or migration needed. |
 
-**Consolidated Buffer blocker:** the strict requirement that every changed
-latency journey improve over its own before is not satisfied for
-`GetBufferTrendGraphData`, Eco/30days/SKU21101151051000. Final screen readiness
-is1.853s versus1.091s before (+762ms); the one final traced API request returns200,
-4605 transferred bytes and costs1.467s (1.466s upstream). The remaining386ms
-includes browser/control/observation overhead, not a measured render-only duration.
-The index access path is proved, but its complete deployed latency improvement
-is not. Further correction needs attributable gateway/admission/assembly/SQL
-timing for this same path; cause of the residual cost/variation is not established.
-Complete output correctness remains proved. No favourable resampling, weakened
-acceptance or resource increase follows. The explicit focused allowance is
-consumed; stop at this consolidated blocker. Expanded-view coverage remains
-unavailable because the retained page has no such control; no feature was added.
-No adjacent page opens and the goal is not claimed complete.
+**Consolidated Buffer blocker after metadata batching:** the strict screen
+improvement exit remains unmet for `GetBufferTrendGraphData`, Eco/30days/
+SKU21101151051000/Absolute. The one authorized final trial was ready at1.810s
+versus1.091s before; API200/4605bytes took0.838s versus0.865s before and1.467s in
+the indexed candidate. These are single observations, not percentile/minimum or
+statistical claims. Correlated nginx end1791228122.014 and request0.838s place
+request start666ms after browser control invocation1791228120510; the usable
+screen was observed306ms after the response. The972ms combined non-API interval
+includes browser control/dispatch and observation/paint/scheduling. It is not an
+isolated rendering measurement; the DOM observer successfully saw chart removal
+and the refreshed complete seven-series/353/100%/0% screen, with no retry.
 
-Goal disposition (6 October2026): **BLOCKED**, pending a direct human decision
+The smallest next boundary is to align actual browser event dispatch and usable
+screen observation before attributing this gap to frontend rendering or opening
+another backend correction. This is a recommendation for human direction, not
+authorization for another trial. No larger dimension/checksum/hierarchy change,
+new preparation layer/table, ID pilot or adjacent report follows. The final
+measurement allowance is consumed. Preserve all earlier failures and the latest
+result; no favourable resampling, resource increase or weakened acceptance.
+Existing expanded-view coverage remains unavailable because the retained chart
+has no such control. Stop at this consolidated blocker; goal is not complete.
+
+Prior goal disposition (6 October2026): **BLOCKED**, pending a direct human decision
 on the already-requested bounded layered profile/correction/final-screen extension.
 The same missing authorization has persisted for three consecutive goal turns;
 the approved final trial is terminal and its allowance consumed. The latest
@@ -88,15 +98,92 @@ trial. No runtime request, serving mutation or adjacent report work follows this
 status update. Preserve the deployed correction and all retained failed timings;
 this is a consolidated blocker, not completed performance acceptance.
 
-Read-only follow-up afterf6ecf34: the gateway's MTA interceptor performs two
+Authorized implementation continuation (6 October2026), now **DELIVERED AND
+STOPPED AT THE SCREEN CRITERION**: direct human
+controller request “Issue the necessary instruction to the agent to carry on your
+recommendation” permits one Buffer-only request-local metadata batch correction,
+affected proof/build/deploy and one matched screen check. Active unmet exit is
+filtered latency against retained1.091s. Resolve only the Buffer reader's named
+receipts once; preserve outer/prepared admission, source/recipe/guards, full image
+checksums and live scopes. No dimension/checksum/hierarchy redesign or other report
+work. Prove nine full responses/two403denials, drift/NULL/multiplicity boundaries
+and reduced reader lookup counts, then fixed Eco/30days/SKU/Absolute readiness.
+The implementation/proof/build/deployment and one final trial are terminal.
+Nine complete responses/two403denials,33focused tests, source/recipe/guard drift
+denial, NULL/multiplicity cases, unchanged unfiltered/bareOR SQL/bindings and
+43→16reader query counts pass. Shared helper defaults are unchanged; RRR/Research
+source preservation and normal readiness/resources are proved. No schema change.
+Current imagefreshvcf-preview-mta:buffer-metadata-batch-20261006-001, runtime
+sha256:d01235e0171f736d19b6bc12462686b5f01480bd3391a8254bd4b5bec2299fba.
+External consolidated buffer-delivery.json, buffer-batch-proof/query-counts/
+query-boundaries/final-timing/deploy/restoration receipts retain the final result.
+The earlier diagnostic is retained below as evidence, not another active queue.
+The transient proof-draft quoting failure and command import-path failure were
+corrected before their terminal proof; no application/serving failure or timed
+retry followed. Three rejected CAPTCHA entries were retained separately; keyboard
+entry completed the approved login, with no authentication mutation.
+Stop at the integrated result; no further trial/correction without direction.
+
+Diagnostic-only continuation (6 October2026) is **COMPLETE; STOP FOR HUMAN
+DIRECTION**. The direct human request in controller chat01a1037c-5d96-7700-87a8-
+89a575f6c9f8 authorized one attributable request decomposition, then a stop.
+This superseded missing authority only for diagnosis; no correction or benchmark
+was authorized. Preserve f6ecf34, Research and restored08f58e4 RRR.
+
+One Eco/30days/SKU21101151051000/Absolute request returned200 with the same
+353 Black/100% Black/0% availability/seven-series screen. Gateway and MTA share
+correlation buffer-diag-45fb89173691484491c01f6795d339dc. Nginx observed3.542s,
+gateway3.536s (3.397s forwarding), MTA3.192s. **Instrumented diagnostic durations
+include substantial Python profiling overhead; these are not acceptance timings
+or projected speedups.** Within MTA: outer admission699ms; three complete image
+reads/checks1227ms; permission scope574ms; prepared-history admission335ms;
+prepared graph read240ms, including one176ms aggregate. Nested timings must not
+be summed. MTA executed106SQL statements/481ms; gateway4/26ms. Gateway JSON
+decode/render were each below1ms. Transfer body4605bytes, MTA body5492bytes.
+
+Repeated work proved:23selected-run checks produce69run/checkpoint/command
+queries;20individual metadata receipts across13unique images plus one existing
+batch;2fixture bindings;47policy reads;36digests;30354hierarchy triple calls.
+The three complete source-image digests alone consumed1038ms under profiling.
+Do not equate these profiled costs with the prior uninstrumented1.467s request.
+The browser's initial readiness locator timed out; a later DOM snapshot recovered
+that same response without another request. Precise browser readiness and isolated
+socket/queue/transfer costs remain unavailable; no diagnostic retry or favourable
+resample occurred. A fresh default-viewport tab replaced the lost retained tab,
+so browser timing is not a matched comparison.
+
+Recommended first candidate, awaiting human direction: Buffer-only request-local
+named metadata batching using fixture.image_metadata_batch and passing validated
+metadata into its existing image/SQL readers. Preserve outer admission, prepared
+source/recipe/guard validation, full source-image checksums and live scopes; do
+not alter shared RRR/Research readers or introduce a generic cache. Full-width
+dimension reconstruction/checksum and hierarchy normalization are larger measured
+follow-up candidates, not authorized corrections. Existing sealed graph membership
+and typed source rows suffice for this next step; no missing background trend table
+is justified. Moving integrity checks to startup needs explicit boundary review.
+
+Restoration PASS: exact original gateway settings/MTA WSGI/nginx restored and
+observer modules removed. Normal MTA readyz has the unchanged5c90ae58…3e7 admission;
+gateway listener ready. All50container identities/configurations/statuses match
+the fresh snapshot, including resource/port/restart limits;47outside the three
+instrumented resources unchanged. Buffer98af535b…1b7a and RRR7867c980…42ea source
+hashes remain exact. No application/schema/index/table/data/auth/resource mutation.
+Full findings and same-request raw traces/restoration receipt are in
+[D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001/buffer-path-diagnostic/FINDINGS.md](D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001/buffer-path-diagnostic/FINDINGS.md).
+No diagnostic-only commit was made, per controller instruction. Performance
+acceptance remains blocked; stop before any correction or another performance trial.
+
+Historical read-only follow-up afterf6ecf34 (before the later diagnostic and
+implementation authorizations): the gateway's MTA interceptor performs two
 authenticated permission-ID lookups, then forwards the request and decodes the
 response. The retained pre-correction profile contains seven image-metadata
 lookups and nine selected-run checks; fixture.image_metadata_batch already
 provides a validated named-receipt batch primitive. These are possible next
 measurement boundaries, not demonstrated causes of the final1.467s request.
-No timings from separate requests are subtracted to infer gateway cost. A bounded
-layered profile/correction/final-screen extension is now requested and pending;
-no further runtime request or serving mutation is authorized by this follow-up.
+No timings from separate requests are subtracted to infer gateway cost. At that point the layered correction/final-screen extension remained unapproved.
+The later diagnostic and implementation authorizations above superseded that
+wait only within their bounded scope; both are now terminal. No further correction
+or trial follows this historical note.
 
 Retained-trace follow-up (no new requests): before-request-timing.jsonl records
 the filtered API at0.865s; buffer-final-request-timing.jsonl records1.092s, both
