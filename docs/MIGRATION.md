@@ -134,9 +134,9 @@ claimed. Continue independent Fulfillment diagnosis while that check is pending.
 Fulfillment's measured page SQL spends625ms of696ms in JIT; extending the same
 query-local correction preserves the complete5000-row page and nested order
 details against the retained HTTP response (0.822s direct read, caller JIT restored).
-Deployment/browser exit remains pending. The next independent allowed edit is
-the Fulfillment row-modal caller: reuse existing request identity/RunDate/ready-only
-shared loading, preserving selected sc/wc keys and the original row object.
+The subsequent deployed correction also reuses existing request identity, RunDate
+and ready-only shared loading in the Fulfillment row-modal caller, preserving
+selected sc/wc keys and the original row object. Its browser exit remains pending.
 The Planning caller now uses shared `loadDailyData` with explicit sc/wc aliases;
 the modal receives request identity/status/RunDate. Both targeted frontend suites
 pass (7tests), including unchanged close/new-selection behavior and original-row
@@ -156,6 +156,16 @@ completion. Evidence: `build-latency-003-repair.txt`, `deploy-latency-receipt.js
 CAPTCHA confirmation is pending after the first challenge was rejected; no
 post-correction Excess/Fulfillment/modal browser acceptance is claimed.
 
+Current acceptance blocker: the corrected browser checks require an authenticated
+3005 session. The surviving tab was rechecked at `/login`; the replacement CAPTCHA
+has not been approved after the rejected first challenge. This same dependency
+has persisted across three consecutive continuation turns while independent build,
+deployment, API verification and handoff work finished. No live job remains to
+wait for. Resume with approval of that challenge or a user-completed sign-in,
+then perform only the bounded Excess/Fulfillment grid and row-modal checks.
+The independent inherited SQL/formatter/order dependencies in the matrix remain
+unaccepted; CAPTCHA approval does not waive them. Delivery remains partial.
+
 ### Planning delivery matrix (current, partial)
 
 This table summarizes the checkpoints below; it does not replace their exact
@@ -167,8 +177,8 @@ proof boundaries. Evidence root: `planning-prepared-20261005-001`.
 | GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Combined Grid View retains canonical SQL207/8120 failure; no invented empty-grid success |
 | Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; unpaged SQL156 dependency retained |
 | Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Chart formatter ambiguity remains explicit; no chart performance success. Independent ordered-wire gate remains open |
-| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency002 deployed; final corrected browser check pending login |
-| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete JIT-corrected page/nested proof passes. Shared ready-only row-modal wiring tested; latency003 build/deployment and final browser checks pending |
+| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency003 deployed and complete gateway response proved; final corrected browser check pending login |
+| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete JIT-corrected page/nested proof passes. Shared ready-only row-modal wiring tested; latency003 built/deployed with complete gateway response proof; final browser checks pending |
 
 All six have retained source/reader proofs as detailed below, but these do not
 establish complete independent legacy ordered-wire parity. The16 Expedite SQL
