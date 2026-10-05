@@ -425,9 +425,9 @@ def planning_graph(request,payload):
             products,locations=scope(payload,attributes=context.output['ClosingState'][0]['importer'])
             tables=expedite_chart_queries(context.output,rows,pick,kind,products=products,locations=locations)
         try:
-            # Explicit 3 October presentation exception: parent receiving labels
-            # belong to their own persisted location, not the last critical row.
-            values=expedite_chart_response(tables,kind,receiving_own_label=kind=='parent')
+            # Parent (3 October) and child (5 October) presentation corrections:
+            # receiving labels belong to their own verified joined location.
+            values=expedite_chart_response(tables,kind,receiving_own_label=True)
         except ValueError as exc:
             if str(exc)!='Legacy Expedite receiving LogisticsLocation depends on unordered critical rows': raise
             raise PublicationUnavailable('LEG-EXPEDITE-UNORDERED-LABEL: chart response unavailable; no legacy repair applied') from exc

@@ -25,8 +25,6 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:raise PublicationUnavailable('planning_git_native_hierarchy_required')
     validate_filters(payload,SimpleNamespace(attributes=importer),child_count=count and kind=='child')
-    if kind=='child' and not count:
-        raise PublicationUnavailable('LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120; combined child grid unavailable')
     filters=GridFilters(payload,'git',PlanningGitMasterRow)
     where=filters.compile()
     if overview:
@@ -35,7 +33,7 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     products,locations=scope(payload,attributes=importer) if resolved_scope is None else resolved_scope[2:]
     config=[dict(header=h,colCode=c,colPosition=p) for h,c,p in NORMAL_COLUMNS]
     if not products or not locations:
-        return [dict(locationwise=0,**({'transporterwise':0} if kind=='child' else {}))] if count else dict(data=[],uiConfig=config)
+        return [dict(locationwise=0,**({'transporterwise':0} if kind=='child' else {}))] if count else combined_grid(kind,[],config)
     ctes=['H AS ('+occurrence+')','A AS ('+master+')'];params.extend(values)
     for alias,codes in (('P',products),('L',locations)):
         members=sorted(codes)
@@ -78,4 +76,17 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
         for field,value in row.items():
             if isinstance(value,Decimal):row[field]=float(value)
         row.update(AgeingOrder=None,transit=[])
-    return dict(data=rows,uiConfig=config)
+    return combined_grid(kind,rows,config)
+
+
+def combined_grid(kind,rows,config):
+    """Keep the independently admitted empty shipment grain separate.
+
+    The caller rejects nonempty InTransitData before this assembly. No aggregate
+    GIT row supplies TransporterCode/OrderNo/InTransitQty or a shipment SKU.
+    The existing child frontend consumes two independent data/uiConfig objects.
+    """
+    location = dict(data=rows,uiConfig=config)
+    if kind == 'parent':
+        return location
+    return dict(locationWise=location,transporterWise=dict(data=[],uiConfig=[]))

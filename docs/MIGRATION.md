@@ -27,6 +27,66 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Delivered report-defect correction amendment — 5 October 2026
+
+Direct human instruction verified in controller thread
+01a1037c-5d96-7700-87a8-89a575f6c9f8,turn01a10b0a-e95f-7981-a326-8a42eb9c1c3b,
+authorizes only: GIT child combined SQL207/8120 field/grain correction; Expedite
+parent unpaged SQL156 separator correction (same-branch proven Norm owner only if
+SQL209 encountered); and child receiving-chart own joined-location labels.
+This supersedes the prior repair prohibition for those exact report contracts.
+Active exit: establish retained combined-grid ownership/grains once, implement
+all unblocked corrections using prepared ingredients, prove complete affected
+values/NULLs/duplicates/order and scoped/empty cases, deploy3005 and verify actual
+affected UI/full-data consumers, then commit/push coherent delivery. Label these
+intentional corrected contracts separately from legacy parity. Any unresolved
+cross-grain or order choice must be stated, not invented. No new benchmark,
+unrelated retest, engine/state/auth change, source reload or resource increase.
+The existing six-destination objective remains; this is not a replacement goal.
+
+Delivered backend: `freshvcf-preview-mta:planning-report-corrections-20261005-001`.
+Frontend remains `planning-grid-latency-20261005-003`. Startup admission and readyz
+pass with the same run/date/admission digest; all22 other containers are unchanged.
+Backend ports, restart policy and4GiB/2CPU limits are unchanged. No schema change.
+
+GIT child now returns separate location/transporter objects: all1627 aggregate
+location occurrences survive the genuinely empty shipment source. A populated
+parent-location leaf returns67 exact rows; paging, duplicates, values and empty
+scopes pass. Nonempty shipment sources remain rejected. Shipment quantity/order/
+transporter fields belong to GoodsInTransitTransporterMaster, not the aggregate
+GoodsInTransitMaster. No aggregate SKU supplies grouped shipment details. This
+closes the retained empty-shipment fixture, not general positive-shipment support.
+
+Parent unpaged reads preserve the valid paged selection and explicit branch/RN
+order without a page predicate. Complete reference proof: broad1030 dispatch/
+1443 availability, leaf78/161, empty0/0; the independent97097 dispatch transit
+rows and zero availability transit rows are retained. The original reference's
+SQL156 behavior remains default; correction is explicit opt-in. SQL209 was not
+encountered or repaired. Browser and export use paged requests; the unpaged
+consumer is proved through actual authenticated HTTP with pagination omitted.
+
+Child receiving labels use their own verified joined row. Pinned DLL-input
+comparison changes only102 broad/6 leaf labels and preserves every other field.
+Critical-row reversal cannot change receiving labels; each retained receiving
+code has one own label. Canonical receiving order is retained. Frontend stable
+total-count sorting has a19/19 tie at the broad tenth-row cutoff; the retained
+modern/reference top10 match exactly, without a general ordering waiver.
+Pre/Post transformation indexes by state and emits fixed colour bands, so UNION
+position cannot swap the values. Independent full SQL sequence acceptance remains.
+
+Validation:34 focused tests pass, database checks show no migration drift/plan.
+Eight authenticated broad/restricted3005 API responses match complete direct-reader
+expected responses, including order. Independent source proofs above establish
+changed semantics; gateway/direct-reader equality alone is not legacy parity.
+Browser verifies1627 GIT rows, zero transporter rows,103 Child receiving table
+rows and1030 Parent dispatch rows. Existing performance/export proofs are reused;
+no new benchmark. Evidence: `planning-prepared-20261005-001/report-corrections/`
+contains full responses, source/read proofs, ordering inspection, build/admission/
+deployment receipts and screenshots. Historical legacy failures remain retained.
+Whole-goal delivery remains partial: independent ordered-wire disposition and
+matched usable-screen performance gaps below remain; positive shipments are
+outside this fixture's proof. No engine/state/auth change or replay occurred.
+
 ### Completed focused performance investigation — 5 October 2026
 
 Direct human authorization in this thread extends the exhausted measurement
@@ -233,9 +293,9 @@ Consolidated remaining decisions after the bounded pass:
   claim exists for these paths. The plan permits at most one diagnostic/recheck
   for a failed/noisy consumer; another measurement/investigation requires an
   explicit bounded amendment, or these gates must remain deferred/unaccepted.
-- Canonical semantics: GIT child combined grid SQL207/8120, Expedite child label
-  ambiguity and parent unpaged SQL156 remain explicit unavailable contracts.
-  Decide deferral versus separately authorized correction; no silent legacy repair.
+- Canonical semantics: the three named defects are corrected for the retained
+  fixture under the5 October amendment above. Positive shipment behavior and
+  unrelated invalid filters remain outside that proof.
 - Exact acceptance: prepared-reader/source bags and full modern responses are
   proved; complete independent ordered-wire parity remains open, including
   Expedite SQL sequence/pre-post UNION order. Same-input DLL formatter proof and
@@ -253,9 +313,9 @@ proof boundaries. Evidence root: `planning-prepared-20261005-001`.
 | Destination | Prepared/read-wired and connected function | UI performance / remaining dependency |
 | --- | --- | --- |
 | GIT From Parent | Sealed occurrences; connected1627-row location grid and genuinely empty selected shipment details | Connected timing includes observer overhead; completed matched performance not accepted |
-| GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Combined Grid View retains canonical SQL207/8120 failure; no invented empty-grid success |
-| Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; unpaged SQL156 dependency retained |
-| Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Chart formatter ambiguity remains explicit; no chart performance success. Independent ordered-wire gate remains open |
+| GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Corrected combined grid displays1627 rows; transporter grid is genuinely empty. Positive shipments unproved; no new performance claim |
+| Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; corrected unpaged1030/1443 response proved through authenticated HTTP |
+| Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Own-location labels corrected; chart and103-row table render. Independent ordered-wire/performance gates remain open |
 | Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page/gateway proof passes; final modern usable grid3.058s. Equivalent legacy grid timing remains unproved |
 | Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete page/nested/gateway proof passes. Ready-only modal/horizon functions proved; final modern grid5.058s,modal1.322s. Equivalent legacy comparisons remain unproved |
 

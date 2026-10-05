@@ -110,8 +110,6 @@ def parent_grid(run,payload):
     from mta.presentation.expedite_read import PARENT_COLUMNS
     from mta.presentation.excess_read import pagination
     paging = pagination(payload)
-    if paging is None:
-        raise PublicationUnavailable('LEG-EXPEDITE-PARENT-UNPAGED-SQL156: legacy empty-success; NOT_PARITY')
     selected, params = selected_parent(run,payload)
     with transaction.atomic(), connection.cursor() as c:
         # Compilation dominates this bounded prepared-row query. Preserve the
@@ -126,8 +124,15 @@ def parent_grid(run,payload):
         query = ('WITH selected AS ('+selected+'), numbered AS (SELECT branch,'
             'row_number() OVER (PARTITION BY branch ORDER BY age DESC,sk DESC NULLS LAST,lk DESC NULLS LAST,pk DESC NULLS LAST,ordinal,copies.copy_ordinal) AS rn,'
             +','.join(map(quote,FIELDS))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) '
-            'SELECT * FROM numbered WHERE rn BETWEEN %s AND %s ORDER BY branch,rn')
-        c.execute(query,[*params,(paging[0]-1)*paging[1]+1,paging[0]*paging[1]])
+            'SELECT * FROM numbered')
+        query_params = list(params)
+        if paging is not None:
+            query += ' WHERE rn BETWEEN %s AND %s'
+            query_params.extend(((paging[0]-1)*paging[1]+1,paging[0]*paging[1]))
+        # Authorized SQL156 correction: the unpaged branch keeps the same
+        # selected population and explicit order, without a page predicate.
+        query += ' ORDER BY branch,rn'
+        c.execute(query,query_params)
         names = [column[0] for column in c.description]
         rows = [dict(zip(names,row)) for row in c.fetchall()]
         c.execute("SELECT set_config('jit',%s,true)",[previous_jit])

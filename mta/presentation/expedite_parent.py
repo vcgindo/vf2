@@ -63,14 +63,14 @@ def parent_transit_rows(nms, remarks, pick, selected, *, availability=False):
 
 
 def parent_rows(rows, importer, standards, masters, *, nms, products, locations, paging, matches=None,
-                remarks=None, pick=None):
+                remarks=None, pick=None, corrected_unpaged=False):
     if nms and (remarks is None or pick is None):
         raise ValueError('parent_expedite_nonempty_transit_consumer_unavailable')
     result = dict(expediteDispatches=[], expediteDispatchestransit=[],
                   createAvailabilityAtParent=[], createAvailabilityAtParenttransit=[])
     # Both unpaged SELECTs have a canonical missing separator. Their GetDataSet
     # failure falls through to the empty-list response; caller owns wire proof.
-    if paging is None:
+    if paging is None and not corrected_unpaged:
         return result
     standard = index(standards, 'SKUCode', 'WhCode')
     master = index(masters, 'SKUCode', 'WHCode')
@@ -116,7 +116,7 @@ def parent_rows(rows, importer, standards, masters, *, nms, products, locations,
                 values[field] = format(Decimal(str(value)), f'.{scale}f') if scale is not None else str(value)
             order = (a.get('BRAge') or 0, sk, wc, parent)
             grouped[target].extend((order, dict(values)) for _ in range(weight))
-    page, size = paging
+    page, size = paging if paging is not None else (None, None)
     if nms:
         for target, transit_target, availability in (
                 ('expediteDispatches', 'expediteDispatchestransit', False),
@@ -132,5 +132,5 @@ def parent_rows(rows, importer, standards, masters, *, nms, products, locations,
             seen[key] = row
         values.sort(key=lambda item: (item[0][0], *[(v is not None, v or ()) for v in item[0][1:]]), reverse=True)
         result[target] = [dict(rn=str(i), **row) for i, (_, row) in enumerate(values, 1)
-                          if (page-1)*size+1 <= i <= page*size]
+                          if paging is None or (page-1)*size+1 <= i <= page*size]
     return result

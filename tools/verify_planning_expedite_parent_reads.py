@@ -49,6 +49,9 @@ def main():
              ('empty',dict(product_permissions=[],location_permissions=[]),(1,50),{}),
              ('past-end',broad,(99999,50),{}),
              ('sku',broad,(1,100000),dict(productFilter=dict(filters=[dict(attributeName='sku',value=selected['SKUCode'])])))]
+    if '--unpaged-only' in sys.argv:
+        cases = [('full-unpaged',broad,None,{}),('leaf-unpaged',leaf,None,{}),
+                 ('empty-unpaged',dict(product_permissions=[],location_permissions=[]),None,{})]
     if '--filters-only' in sys.argv:
         loc = next(row for row in importer['LocationAttributeData'] if row['WHCode']==selected['WhCode'])
         filter_cases = [
@@ -62,10 +65,13 @@ def main():
         cases = [(label,broad,(1,100000),filters) for label,filters in filter_cases]
     results = []
     for label,permissions,paging,filters in cases:
-        payload = dict(**permissions,filters=filters,paginationParameter=dict(pageNumber=paging[0],recordsPerPage=paging[1]))
+        payload = dict(**permissions,filters=filters)
+        if paging is not None:
+            payload['paginationParameter']=dict(pageNumber=paging[0],recordsPerPage=paging[1])
         products,locations = scope(payload,attributes=importer)
         expected = parent_rows(facts,importer,standards,masters,nms=nms,products=products,locations=locations,
-                               paging=paging,matches=parent_filter(payload,importer),remarks=remarks,pick=pick)
+                               paging=paging,matches=parent_filter(payload,importer),remarks=remarks,pick=pick,
+                               corrected_unpaged='--unpaged-only' in sys.argv)
         actual = parent_grid(run,payload)['data']
         for name in expected:
             if name.endswith('transit'):

@@ -5,6 +5,30 @@ The scope is the read-only reporting batch in
 [MIGRATION.md](MIGRATION.md) is the sole status tracker. This document records
 implementation and operational evidence, not acceptance of all F3 workflows.
 
+## Planning report correction deployment — 5 October 2026
+
+3005 serves backend `freshvcf-preview-mta:planning-report-corrections-20261005-001`
+with the existing `planning-grid-latency-20261005-003` frontend. The owned compose
+override and build/admit/deploy script are under
+`D:/freshvcf-build/evidence/planning-prepared-20261005-001/report-corrections/`.
+Startup admission and readyz retain the April7 fixture and admission digest;
+deployment receipt verifies22 other containers unchanged and normal backend caps.
+No data reload, schema migration, credential or permission change is needed.
+
+GIT To Child Grid View now shows1627 location rows with separately empty
+transporter/shipment details. Parent unpaged HTTP reads return complete1030/1443
+branches; browser/export continue to use their existing paged requests. Child
+receiving chart and expanded103-row table use each receiving location's own label.
+Eight broad/restricted authenticated API captures preserve complete reader output.
+34 focused tests, complete source/reference checks, browser screenshots and
+ordering inspection are retained alongside the deployment receipts.
+
+This is a corrected retained-fixture contract, not legacy failed-query parity.
+Nonempty shipment inputs remain unavailable; no positive shipment facts were
+invented. Independent full SQL ordering and matched performance dispositions
+remain as recorded in MIGRATION.md. Prior passing graph/export/performance proofs
+are reused, and the historical modal baseline gate stays deferred/unaccepted.
+
 ## Daily Data Graph checkpoint — 5 October 2026
 
 Latest authorized replacement: modern completed modal2.788s versus legacy10.443s.

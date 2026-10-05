@@ -26,6 +26,13 @@ class ParentExpediteTest(unittest.TestCase):
         self.assertNotIn('sd', row)
         self.assertNotIn('p', row)
 
+    def test_corrected_unpaged_is_explicit_and_keeps_complete_population(self):
+        self.assertEqual(self.read(paging=None)['expediteDispatches'],[])
+        all_rows=self.read(rows=[self.row]*25,paging=None,corrected_unpaged=True)['expediteDispatches']
+        self.assertEqual(len(all_rows),25)
+        self.assertEqual(all_rows[:20],self.read(rows=[self.row]*25)['expediteDispatches'])
+        self.assertEqual([r['rn'] for r in all_rows],[str(i) for i in range(1,26)])
+
     def test_zero_ration_requires_parent_master_and_keeps_duplicates(self):
         self.row['RationedQty'] = 0
         self.assertEqual(self.read()['createAvailabilityAtParent'], [])

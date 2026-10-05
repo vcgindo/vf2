@@ -592,3 +592,26 @@ approved evidence-comparison rule, pinned to this manifest/date/BTR route. The
 retained full comparison passes with186 declared ordering qualifications and
 zero other differences; original responses remain retained. Focused tests reject
 duplicate loss, case/whitespace/type changes, reordered rows and scope transfer.
+
+
+## 5 October 2026 — authorized retained Planning report corrections
+
+Direct human instruction in controller turn01a10b0a-e95f-7981-a326-8a42eb9c1c3b
+supersedes the repair prohibition only for these report defects. On April7 fixture
+run bfd75b4b-a9df-4a08-82d3-852e3324b623, GIT child retains1627 aggregate location
+occurrences and independently empty shipments. Shipment fields belong to
+GoodsInTransitTransporterMaster; aggregate master rows cannot supply transporter,
+order, quantity or grouped shipment SKU. Nonempty shipment inputs still fail
+closed; this is not general positive-shipment acceptance. Parent unpaged SQL156
+is corrected by retaining valid selection/order without pagination. Unrelated
+SQL209/filter defects remain unchanged. Child receiving LogisticsLocation now
+comes from its own joined row, not the last critical row. Pinned DLL dataset
+proof changes only labels and proves critical-order independence.
+
+Evidence: planning-prepared-20261005-001/report-corrections contains complete
+broad/scoped/empty proofs and authenticated gateway captures. Historical failed
+SQL and original DLL outputs are preserved. These are intentional corrected
+contracts, not parity with concealed SQL failures or incorrect legacy labels.
+The retained receiving top10 matches including its cutoff tie; independent full
+SQL sequence acceptance remains unresolved. No calculation exception is implied.
+See MIGRATION.md for current status.

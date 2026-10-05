@@ -75,3 +75,19 @@ class ExpediteChartsTest(unittest.TestCase):
         reversed_tables = dict(tables, critical=list(reversed(tables['critical'])))
         reordered = response(reversed_tables, 'parent', receiving_own_label=True)
         self.assertEqual(receiving, reordered['data']['expediteDispatches']['maxPipelineInvBlackRedSKUWithRationedQuantityAvailableAtParentuiconfig']['data'])
+
+    def test_child_own_receiving_label_only_and_critical_order_independent(self):
+        from mta.presentation.expedite_charts import response_from_dataset
+        tables=queries(self.output,[self.row],[self.pick],'parent',products=None,locations=None)
+        tables['critical'].append(dict(tables['critical'][0],LogisticsLocation='Other'))
+        legacy=response_from_dataset(tables,'child')
+        corrected=response(tables,'child',receiving_own_label=True)
+        key='maxPipelineInvBlackRedSKUWithRationedQuantityAvailableAtParentuiconfig'
+        receiving=lambda value:value['data']['expediteDispatches'][key]['data']
+        restored=deepcopy(corrected)
+        for actual,old in zip(receiving(restored),receiving(legacy)):
+            actual['LogisticsLocation']=old['LogisticsLocation']
+        self.assertEqual(restored,legacy)
+        reverse=dict(tables,critical=list(reversed(tables['critical'])))
+        self.assertEqual(receiving(corrected),receiving(response(reverse,'child',receiving_own_label=True)))
+        self.assertEqual(receiving(corrected)[0]['LogisticsLocation'],tables['receiving'][0]['LogisticsLocation'])

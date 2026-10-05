@@ -35,13 +35,33 @@ def main():
     assert page==all_rows[50:100]
     assert all(r['transit']==[] and r['AgeingOrder'] is None for r in all_rows)
     assert grid(run,dict(type='parent',product_permissions=[],location_permissions=[]))['data']==[]
-    try:grid(run,dict(payload,type='child'))
-    except PublicationUnavailable as e:assert '207/8120' in str(e)
-    else:raise AssertionError('invalid combined child SQL was hidden')
+    combined=grid(run,dict(payload,type='child'))
+    child_rows=combined['locationWise']['data']
+    assert child_rows==all_rows  # Broad directional scopes both contain all retained codes.
+    assert combined['transporterWise']['data']==[]
+    child_page=grid(run,dict(payload,type='child',paginationParameter=dict(pageNumber=2,recordsPerPage=50)))
+    assert child_page['locationWise']['data']==child_rows[50:100]
+    assert grid(run,dict(type='child',product_permissions=[],location_permissions=[]))['locationWise']['data']==[]
+    # A populated leaf must authorize on the parent location, not the receiving location.
+    chosen=next(r for r in child_rows if r['pwc'] and r['pwc']!=r['wc'])
+    leaf={}
+    for key,kind,table,code,prefix,value in (
+        ('product_permissions','products','SkuAttributeData','SKUCode','SL',chosen['sc']),
+        ('location_permissions','locations','LocationAttributeData','WHCode','LL',chosen['pwc'])):
+        attr=next(r for r in attrs[table] if r[code]==value)
+        leaf[key]=[next(r['id'] for r in catalogue[kind]['records'] if all(r['level_'+str(i)]==attr[prefix+str(i)] for i in (1,2,3)))]
+    leaf_products,leaf_locations=scope(leaf,attributes=attrs)
+    expected_leaf=[]
+    for row in child_rows:
+        weight=permission_multiplicity(leaf_products,row['sc'])*permission_multiplicity(leaf_locations,row['pwc'])
+        for _ in range(weight):expected_leaf.append(dict(row,rn=len(expected_leaf)+1))
+    actual_leaf=grid(run,dict(leaf,type='child'))['locationWise']['data']
+    assert actual_leaf==expected_leaf and actual_leaf
     from django.core.management import call_command
     call_command('check');call_command('makemigrations',check=True,dry_run=True);call_command('migrate',plan=True)
     assert binding()[1]==source
     print(json.dumps(dict(status='PASS',counts=expected,parent_rows=len(all_rows),parent_digest=digest(all_rows),
-                         qualification='Scope/page/internal values only; independent legacy wire comparison still required')))
+                         child_rows=len(child_rows),child_leaf_rows=len(actual_leaf),
+                         qualification='Corrected separate-grain child contract; complete accepted location values, scope and paging; not legacy failed-query parity')))
 
 if __name__=='__main__':main()

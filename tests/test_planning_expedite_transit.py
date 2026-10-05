@@ -46,9 +46,24 @@ class TransitAdmissionTests(unittest.TestCase):
         self.guards.side_effect = ValueError('changed')
         with self.assertRaisesRegex(PublicationUnavailable,'guards_changed'): subject.admit(self.run)
 
-    def test_unpaged_parent_stays_unavailable_before_any_read(self):
-        with self.assertRaisesRegex(PublicationUnavailable,'UNPAGED-SQL156'): parent_grid(self.run,{})
-        self.receipts.assert_not_called()
+    def test_unpaged_parent_uses_complete_same_relation_and_order(self):
+        from mta.presentation import planning_expedite_sql as reader
+        with patch.object(reader,'selected_parent',return_value=('SELECT source_rows', ['fixture'])) as selected, \
+                patch.object(reader.transaction,'atomic'), patch.object(reader.connection,'cursor') as cursor, \
+                patch.object(reader,'transit_rows',return_value=[]) as transit:
+            c=cursor.return_value.__enter__.return_value
+            c.fetchone.side_effect=[('on',),None]
+            c.description=[('branch',),('rn',),('sc',)]
+            c.fetchall.return_value=[('dispatch',1,'001'),('availability',1,'002')]
+            result=parent_grid(self.run,{})
+            statements=[args.args for args in c.execute.call_args_list]
+            query,params=next(item for item in statements if 'SELECT * FROM numbered' in item[0])
+            self.assertNotIn('rn BETWEEN',query)
+            self.assertTrue(query.endswith(' ORDER BY branch,rn'))
+            self.assertEqual(params,['fixture'])
+            self.assertEqual(result['data']['expediteDispatches'],[{'rn':'1','sc':'001'}])
+            self.assertEqual(result['data']['createAvailabilityAtParent'],[{'rn':'1','sc':'002'}])
+            self.assertEqual(transit.call_count,2)
 
     def test_tags_belong_to_standard_attributes(self):
         filters = ExpediteFilters({},'expedite-parent',ExpediteRow)

@@ -64,15 +64,15 @@ class ChartAdmissionTests(unittest.TestCase):
             formatter.assert_called_once_with({'tables':'prepared'},'parent',receiving_own_label=True)
             context.assert_not_called()
 
-    def test_child_label_ambiguity_remains_unavailable(self):
+    def test_child_uses_authorized_own_receiving_label(self):
         from mta.presentation import views
         with patch.object(subject.fixture,'enabled',return_value=True), \
                 patch.object(views,'selected_run',return_value=self.run), \
                 patch('mta.presentation.planning_expedite_chart_sql.queries',return_value={}), \
-                patch.object(views,'expedite_chart_response',side_effect=ValueError('Legacy Expedite receiving LogisticsLocation depends on unordered critical rows')) as formatter:
-            with self.assertRaisesRegex(PublicationUnavailable,'LEG-EXPEDITE-UNORDERED-LABEL'):
-                inspect.unwrap(views.planning_graph)(None,dict(category='expedite',type='child',filters={}))
-            formatter.assert_called_once_with({},'child',receiving_own_label=False)
+                patch.object(views,'expedite_chart_response',return_value={'data':'corrected'}) as formatter:
+            result=inspect.unwrap(views.planning_graph)(None,dict(category='expedite',type='child',filters={}))
+            self.assertEqual(json.loads(result.content)['data'],{'data':'corrected'})
+            formatter.assert_called_once_with({},'child',receiving_own_label=True)
 
 
 if __name__=='__main__':unittest.main()

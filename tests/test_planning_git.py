@@ -13,6 +13,16 @@ from mta.presentation.context import PublicationUnavailable
 
 
 class PlanningGitTests(unittest.TestCase):
+    def test_child_combined_keeps_location_occurrences_separate_from_empty_shipments(self):
+        from mta.presentation.planning_git_sql import combined_grid
+        row={'g':7,'sc':'001','AgeingOrder':None,'transit':[]}
+        rows=[row,dict(row)]
+        actual=combined_grid('child',rows,[{'colCode':'g'}])
+        self.assertEqual(actual['locationWise']['data'],[row,row])
+        self.assertEqual(actual['transporterWise']['data'],[])
+        self.assertNotIn('tc',actual['locationWise']['data'][0])
+        self.assertEqual(combined_grid('child',[],[])['locationWise']['data'],[])
+
     def setUp(self):
         self.run = SimpleNamespace(pk='fixture', kind='LEGACY_UI_FIXTURE', business_date='2026-04-07')
         self.receipt = SimpleNamespace(source_digest='source', recipe_digest='recipe')
