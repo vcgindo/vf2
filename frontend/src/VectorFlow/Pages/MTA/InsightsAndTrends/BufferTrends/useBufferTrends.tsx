@@ -1,4 +1,4 @@
-import { useEffect, useState} from 'react'
+import { useEffect, useRef, useState} from 'react'
 import { notifyError,notifySuccess } from '../../../../../helpers/notify'
 import { toast } from "react-toastify";
 import { useGetBufferTrendsGraph } from "../../../../Services/MTA/InsightsAndTrends/BufferTrends";
@@ -27,6 +27,8 @@ const useBufferTrends = () => {
     const [horizonDays,setHorizondays]=useState(30);
     const [summaryData, setSummaryData]=useState([]);
     const[availability, setAvailability]=useState(0.0);
+    const requestId = useRef(0);
+    useEffect(() => () => { requestId.current += 1; }, []);
    
     const {mutateAsync:getBufferTrendsGraph,isLoading} = useGetBufferTrendsGraph();
 
@@ -52,7 +54,7 @@ const useBufferTrends = () => {
 
     const getGraphDataWithTotal = (data:any) => {   
 
-        const obj = {...data};
+        const obj = {...data, data: {...data.data}};
         obj.data.absolute = data?.data?.absolute.map((item: any) => ({
             ...item,
             total: Object.values(item).reduce((acc: number, value: any) => {
@@ -77,6 +79,7 @@ const useBufferTrends = () => {
     }
 
     const BufferTrendsDataLoad = async () => {
+        const selectedRequest = ++requestId.current;
         try {
             setCurrentView('chart');
             setCurrentTab(currentTab);
@@ -88,6 +91,7 @@ const useBufferTrends = () => {
                 filters:multiFilterState
             }           
             const result:any = await getBufferTrendsGraph(body)
+            if (selectedRequest !== requestId.current) return;
             setIsSelectCategoryOpen(false);
             // setCurrentGraphData(result.data?.data?.absolute);
             // setSummaryData(result.data?.data?.summary);
@@ -100,6 +104,7 @@ const useBufferTrends = () => {
         
             
         } catch (error) {
+            if (selectedRequest !== requestId.current) return;
             toast.dismiss();
             console.log(error);
             notifyError("Something Went Wrong")
@@ -111,17 +116,17 @@ const useBufferTrends = () => {
         const { absolute, percentage, summary, avail } = graphData.data;
         if (currentPageTab === 'Absolute' && absolute.length !== 0) {
             setCurrentGraphData(absolute);
-        } else if (currentPageTab === 'percentage' && percentage.length !== 0) {
+        } else if (currentPageTab === 'Percentage' && percentage.length !== 0) {
             setCurrentGraphData(percentage);
         }
         if(summary.length!==0) {
             setSummaryData(summary);
         }
         setAvailability(avail);
-    }, [graphData]);
+    }, [graphData, currentPageTab]);
     
    const onFloatingTabChange = (tab:any) =>{
-
+     if (tab.value !== currentTab) requestId.current += 1;
      setCurrentTab(tab.value);
      updateGraphState(1, 'pen', { label: currentPageTab, value: currentPageTab });
     //  setHorizondays(30);
@@ -185,6 +190,7 @@ const useBufferTrends = () => {
     }
 
     const handleApplyFilter = async(params:any)=>{
+        const selectedRequest = ++requestId.current;
         setMultiFilterState(params); 
         try {
             setCurrentView('chart');
@@ -197,19 +203,14 @@ const useBufferTrends = () => {
                 filters:params
             }           
             const result:any = await getBufferTrendsGraph(body)
+            if (selectedRequest !== requestId.current) return;
             const processedData = getGraphDataWithTotal(result.data);
             setIsSelectCategoryOpen(false);
             setGraphData(processedData);
-            if (currentPageTab === 'Percentage') {
-                setCurrentGraphData(processedData?.data?.percentage);
-            } else {
-                setCurrentGraphData(processedData?.data?.absolute);
-            }
-            setSummaryData(result.data?.data?.summary);
-            setAvailability(result.data?.data?.avail);
             notifySuccess("Graph Details Fetched Successfully")
             
         } catch (error) {
+            if (selectedRequest !== requestId.current) return;
             toast.dismiss();
             console.log(error);
             notifyError("Something Went Wrong")

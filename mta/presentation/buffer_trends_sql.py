@@ -116,6 +116,11 @@ def read_graph(run, payload):
         raise PublicationUnavailable(str(exc)) from exc
     products, locations = scope(payload, attributes=attributes)
     dates = image_rows(run, 'closing/btr/BufferTrendDates')
+    from mta.presentation import history_prepared_sql
+    if history_prepared_sql.admitted(run) is not None:
+        return history_prepared_sql.read_graph(run, payload, columns=columns, filters=filters,
+            where=where, attributes=attributes, manifest=manifest,
+            products=products, locations=locations, dates=dates)
     if not products or not locations:
         return graph_response([dict(D=c, **{a: None for a, _ in COLOURS}) for c in columns], dates)
     ctes, values = [], []

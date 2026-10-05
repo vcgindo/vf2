@@ -19,8 +19,7 @@ import { toast } from 'react-toastify'
 import { useSelector, useDispatch } from 'react-redux'
 
 import { RootState } from '../../../../../redux/store/store'
-import { type DailyDataGraph } from "../../../../types/MTA";
-import { TOGGLE_GRAPH_MODAL, UPDATE_DAILY_DATA } from '../../../../../redux/actions/MTA';
+import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import useBPRFilter from '../../../../../hooks/useBPRFilter'
 import { defaultAgGridSideBarForBPR } from '../../../../../helpers/BPRConstants'
 import { ColDef } from 'ag-grid-enterprise'
@@ -183,8 +182,7 @@ const useResearchInsights = () => {
     useEffect(() => {
         async function getBPRRowData() {
             resetState()
-            await getCountAndRowData(currentFilter)
-            await getRIUiConfig();
+            await Promise.all([getCountAndRowData(currentFilter), getRIUiConfig()]);
         }
         getBPRRowData().catch((err: any) => notifyError(err))
     }, [])
@@ -625,23 +623,7 @@ const useResearchInsights = () => {
 
 
     const onOpenDailyDataGraph = async (params: any) => {
-        const payload: any = {
-            SKUCode: params.data['SKUCode'],
-            WHCode: params.data['WHCode']
-        }
-        const result = await getDailyData(payload)
-        const data = result.data.data[0];
-        const dailyData: DailyDataGraph = {
-            rowData: params.data,
-            chartData: data['StockData'],
-            normChangeData: data['NormChangeHistoryData'],
-            masterData: data['MasterData'][0],
-            suggestionData: data['SuggestionHistoryData'] ? data['SuggestionHistoryData'] : [],
-            monitoringData: data['MonitoringData']
-        }
-
-        dispatch(UPDATE_DAILY_DATA(dailyData));
-        dispatch(TOGGLE_GRAPH_MODAL(true));
+        await loadDailyData(dispatch, getDailyData, params.data, 'WHCode');
     }
 
     // const ResearchInsightsColumns = useMemo(() => {

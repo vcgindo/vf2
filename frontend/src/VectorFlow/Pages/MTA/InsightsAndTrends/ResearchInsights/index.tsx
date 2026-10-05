@@ -147,7 +147,7 @@ const ResearchInsights = ()=>{
         
             <ResearchInsightsLayout>
             {
-                showDailyDataGraphModal && <DailyDataGraphModal rowData={dailyData.rowData} chartData={dailyData.chartData} normChangeData={dailyData.normChangeData} masterData={dailyData.masterData} isModalOpen={showDailyDataGraphModal} suggestionData={dailyData.suggestionData} monitoringData={dailyData.monitoringData} skuKey={'SKUCode'} whKey={'WHName'} />
+                showDailyDataGraphModal && <DailyDataGraphModal key={dailyData.requestId} status={dailyData.status} runDate={dailyData.runDate} rowData={dailyData.rowData} chartData={dailyData.chartData} normChangeData={dailyData.normChangeData} masterData={dailyData.masterData} isModalOpen={showDailyDataGraphModal} suggestionData={dailyData.suggestionData} monitoringData={dailyData.monitoringData} skuKey={'SKUCode'} whKey={'WHName'} />
             }
             {
                 showNormChangeHistoryTable && <NormChangeHistoryTable data={dailyData.normChangeData} />

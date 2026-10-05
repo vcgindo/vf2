@@ -5,6 +5,95 @@ The scope is the read-only reporting batch in
 [MIGRATION.md](MIGRATION.md) is the sole status tracker. This document records
 implementation and operational evidence, not acceptance of all F3 workflows.
 
+## Research / RRR / Buffer Trends operations — 5 October 2026
+
+This bounded reader batch uses the retained April7 fixture run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, source digest
+`4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73`.
+Full response/CSV evidence and owned build/deploy scripts are outside Git at
+`D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001`.
+Deployment/acceptance status belongs exclusively to MIGRATION.md.
+
+RRR stores exact rationed/Pick/standard/dimension occurrence references. Research
+stores selected-owner/master/history references and a separate physical-history
+availability grain. Buffer charts store physical/dispatch graph memberships with
+their original LEFT pair multiplicity. Ninety-day values remain in the retained
+typed source rows. Normalized owner keys support indexed selection; ordinal joins
+retrieve original values without rewriting them. Live scopes, filters, ordering,
+UNION-distinct assembly and permission multiplicities remain consumer-specific.
+
+Use the existing owned compose bindings and normal resource caps. The schema
+commands permit only their exact additive reporting migration after the earlier
+reporting chain:
+
+```text
+python manage.py migrate_btr_fixture --rrr-preparation
+python manage.py migrate_btr_fixture --history-report-preparation
+python manage.py migrate_btr_fixture --research-availability-index
+python manage.py migrate_btr_fixture --research-critical-path
+python manage.py prepare_rrr
+python manage.py prepare_history_reports
+python manage.py prepare_rrr --verify-only
+python manage.py prepare_history_reports --verify-only
+python manage.py prepare_research_availability
+python manage.py prepare_research_availability --verify-only
+```
+
+Preparation creates absent populations atomically or verifies existing sealed
+populations; it never replaces them. The batch's `prepare-compare-batch.py` wraps
+both preparations and the strict full-response/CSV check in one transaction,
+rolling back the new memberships on failure. Immutable receipts bind source,
+dimensions, recipe, row counts and streaming reconstruction digests. A recipe or
+source mismatch requires investigation; do not delete a seal or regenerate data.
+The independent history-family path is `prepare-history-compare.py`: it validates
+all23 frozen Research/Buffer responses before committing that family independently.
+`prepare-rrr-ordinal.py` uses the human-approved final occurrence-ordinal tie-break
+and proves complete equal-key bags and the global sequence/page partition before
+committing RRR. Both harnesses restore the connection's default
+transaction mode before the post-commit verifier acquires its validation lock.
+Preparation collects statistics on its own membership tables after insertion;
+source tables and resource limits are unchanged.
+
+`VF_RRR_PREPARED`, `VF_HISTORY_REPORTS_PREPARED` and
+`VF_RESEARCH_AVAILABILITY_PREPARED` are explicit fixture serving flags in the
+owned `compose.batch.json`. Preserve the existing RRR activation; its delivery
+status remains separate from Research. Defaults are false; unrelated
+runs retain native readers. Enabled fixture readers fail closed without their
+matching sealed receipt. These flags neither enable business actions nor alter
+authentication. Ready-only Research modal loading reuses the existing shared
+request identity and response RunDate behavior.
+
+Research's initial grid uses the existing BPR normalized-key index for bounded
+page reconstruction. A lateral lookup with OFFSET0 prevents flattening into a
+second wide whole-estate scan; it retains every matching occurrence and selected
+copy. Availability fields still come from the original physical-history rows,
+and live scopes, filters, remarks and final ordering remain unchanged. This SQL
+access-path correction adds no schema or calculation state.
+Migration0039 adds a covering index for the original physical-history lookup
+keys, source ordinal and three availability fields. It avoids loading the wide
+90-day history heap for each page occurrence. It changes no values or row grain;
+the allowlisted fixture migration verifies unchanged source/admission guards.
+
+Migrations0040–0042 add sealed per-occurrence availability bands, the partial
+BPR count-key index and the exact native SKU/location/ordinal Norm Change history
+index. Band preparation stores six integer counts per existing availability
+membership, preserving97,299 occurrences and exact case-sensitive source codes.
+Live permission weights are applied at read time. Full streaming source/prepared
+readback is required before sealing; repeat execution verifies without replacing
+rows. Separate immutable guards and receipt bind the accepted membership digest,
+fixture source and recipe. `research-critical-proof.log` and
+`research-modal-index-proof.log` retain migration/source/response and denied-write
+proofs. This supplement does not rewrite the existing history receipt or facts.
+Research passes requestId, status and response runDate through its shared modal;
+the modal opens only after all data is ready and does not refetch the run date.
+
+Before admitting a new image, run Django check, migration drift check/plan, the
+allowlisted schema operations and complete comparisons. `batch.ps1 -Action admit`
+checks candidate startup; `-Action deploy` replaces only owned3005 MTA/frontend
+services at existing caps. Restore any temporary nginx timing configuration
+byte-exact after the bounded browser pass. Never use this script to cut over3004,
+reload sources, run calculations or change auth services.
+
 ## Planning report correction deployment — 5 October 2026
 
 3005 serves backend `freshvcf-preview-mta:planning-report-corrections-20261005-001`

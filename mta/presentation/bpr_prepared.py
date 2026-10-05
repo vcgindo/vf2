@@ -134,8 +134,13 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
     query, values = image_query(run, 'closing/btr/BufferTrendPhysicalInv')
     add('T', query, values)
     select = ','.join(value + ' AS ' + quote(name) for name, value in projection())
-    joins = (' FROM prepared R JOIN selected_counts K ON R.sku_key=K.sku_key'
-        ' AND R.location_key=K.location_key' + remarks_join +
+    # Reconstruct only selected keys through the existing normalized-key index.
+    # OFFSET 0 keeps PostgreSQL from flattening this bounded lookup back into a
+    # second whole-estate scan of the wide candidate relation. It does not limit
+    # occurrences: every matching row and every selected-key copy is retained.
+    joins = (' FROM selected_counts K CROSS JOIN LATERAL (SELECT * FROM prepared candidate'
+        ' WHERE candidate.sku_key=K.sku_key AND candidate.location_key=K.location_key'
+        ' OFFSET 0) R' + remarks_join +
         ' LEFT JOIN T ON R.sku_key=' + key('T."SKUCode"') + ' AND R.location_key=' +
         key('T."WhCode"') + ' CROSS JOIN LATERAL generate_series(1,K.copies) copy_ordinal')
     return ('WITH ' + ','.join(ctes) + ' SELECT ' + select + joins + ' ORDER BY ' +

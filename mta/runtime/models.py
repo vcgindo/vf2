@@ -71,7 +71,10 @@ class BprPreparedRow(models.Model):
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
                                                name='fresh_bpr_prepared_ordinal')]
         indexes = [models.Index(fields=['run', 'sku_key', 'location_key'],
-                                name='fresh_bpr_prepared_keys')]
+                                name='fresh_bpr_prepared_keys'),
+                   models.Index(fields=['run', 'sku_key', 'location_key'],
+                                condition=models.Q(s_ordinal__isnull=False),
+                                name='fresh_bpr_count_keys')]
 
 
 from mta.presentation.bpr_prepared_fields import FIELDS as _BPR_FIELDS, field_name as _bpr_field_name
@@ -390,6 +393,44 @@ class PickBand(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='fresh_pick_band_ordinal')]
+
+
+class RrrPreparedProjection(models.Model):
+    """Immutable receipt for the retained RRR join membership."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    dimension_digest = models.CharField(max_length=64)
+    pick_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    rows_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class RrrPreparedMembership(models.Model):
+    """One exact Pick/source/dimension occurrence before live scope and filters."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    band_ordinal = models.PositiveBigIntegerField()
+    rationed_ordinal = models.BigIntegerField()
+    standard_ordinal = models.BigIntegerField()
+    pair_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    left_pair_ordinal = models.BigIntegerField(null=True)
+    sku_key = models.TextField()
+    location_key = models.TextField()
+    parent_key = models.TextField(null=True)
+    virtual = models.BooleanField()
+    dispatch_color_sequence = models.BigIntegerField(null=True)
+    dispatch_pen = BprNumericField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='rrr_prepared_member_ordinal')]
+        indexes = [
+            models.Index(fields=['run', 'sku_key', 'location_key'], name='rrr_prepared_scope_keys'),
+            models.Index(fields=['run', 'dispatch_color_sequence', 'dispatch_pen'], name='rrr_prepared_order'),
+        ]
 
 
 class ExcessProjection(models.Model):
@@ -948,3 +989,131 @@ class PlanningExpeditePrepostMember(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='plan_exp_prepost_member_ord')]
+
+
+class HistoryPreparedProjection(models.Model):
+    """Ready-only receipt for the retained Research and Buffer Trends grains."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    status = models.CharField(max_length=16, default='READY')
+    source_digest = models.CharField(max_length=64)
+    dimension_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    research_master_count = models.PositiveBigIntegerField()
+    research_master_digest = models.CharField(max_length=64)
+    research_history_count = models.PositiveBigIntegerField()
+    research_history_digest = models.CharField(max_length=64)
+    availability_count = models.PositiveBigIntegerField()
+    availability_digest = models.CharField(max_length=64)
+    graph_count = models.PositiveBigIntegerField()
+    graph_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(status='READY'),
+                                               name='history_prepared_ready_only')]
+
+
+class ResearchPreparedMasterReference(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    owner_sku_key = models.TextField()
+    owner_location_key = models.TextField()
+    rationed_ordinal = models.BigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'], name='research_master_ref_ordinal')]
+        indexes = [models.Index(fields=['run','owner_sku_key','owner_location_key'],
+                                name='research_master_ref_owner')]
+
+
+class ResearchPreparedHistoryReference(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    owner_sku_key = models.TextField()
+    owner_location_key = models.TextField()
+    family = models.CharField(max_length=16)
+    history_ordinal = models.BigIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['run','ordinal'], name='research_history_ref_ordinal'),
+            models.CheckConstraint(condition=models.Q(family__in=['physical','dispatch']),
+                                   name='research_history_ref_family'),
+        ]
+        indexes = [models.Index(fields=['run','owner_sku_key','owner_location_key','family'],
+                                name='research_history_ref_owner')]
+
+
+class ResearchAvailabilityMembership(models.Model):
+    """Physical history x SKU x location occurrences; deliberately no pair join."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    history_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    sku_key = models.TextField()
+    location_key = models.TextField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'], name='research_availability_member_ord')]
+        indexes = [models.Index(fields=['run','sku_key','location_key'],
+                                name='research_availability_keys')]
+
+
+class BufferGraphPreparedMembership(models.Model):
+    """Raw graph history and dimension occurrence membership before live filters."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    family = models.CharField(max_length=16)
+    history_ordinal = models.BigIntegerField()
+    sku_ordinal = models.BigIntegerField()
+    location_ordinal = models.BigIntegerField()
+    pair_ordinal = models.BigIntegerField(null=True)
+    sku_key = models.TextField()
+    location_key = models.TextField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['run','ordinal'], name='buffer_graph_member_ordinal'),
+            models.CheckConstraint(condition=models.Q(family__in=['physical','dispatch']),
+                                   name='buffer_graph_member_family'),
+        ]
+        indexes = [models.Index(fields=['run','family','sku_key','location_key'],
+                                name='buffer_graph_member_keys')]
+
+
+class ResearchAvailabilityBandProjection(models.Model):
+    """Ready-only receipt for per-occurrence Research availability counts."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    status = models.CharField(max_length=16, default='READY')
+    source_digest = models.CharField(max_length=64)
+    membership_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    rows_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(status='READY'),
+                                               name='research_availability_band_ready')]
+
+
+class ResearchAvailabilityBand(models.Model):
+    """Six band counts at the exact existing availability occurrence grain."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    history_ordinal = models.BigIntegerField()
+    sku_code = models.TextField()
+    location_code = models.TextField()
+    black_01_30 = models.PositiveSmallIntegerField()
+    recognized_01_30 = models.PositiveSmallIntegerField()
+    black_31_60 = models.PositiveSmallIntegerField()
+    recognized_31_60 = models.PositiveSmallIntegerField()
+    black_61_90 = models.PositiveSmallIntegerField()
+    recognized_61_90 = models.PositiveSmallIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'],
+                                               name='research_availability_band_ord')]
+        indexes = [models.Index(fields=['run','sku_code','location_code'],
+                                name='research_avail_band_scope')]

@@ -11,6 +11,14 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
+        parser.add_argument('--research-critical-path', action='store_true',
+                            help='Apply only Research bands, count and modal indexes after 0039')
+        parser.add_argument('--research-availability-index', action='store_true',
+                            help='Apply only the narrow Research availability covering index')
+        parser.add_argument('--history-report-preparation', action='store_true',
+                            help='Apply only additive Research/Buffer memberships after RRR')
+        parser.add_argument('--rrr-preparation', action='store_true',
+                            help='Apply only the additive sealed RRR membership after Planning')
         parser.add_argument('--planning-excess-index', action='store_true',
                             help='Apply only the Excess run/date covering index after Planning charts')
         parser.add_argument('--planning-expedite-charts', action='store_true',
@@ -45,7 +53,11 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0036_planning_excess_date_index' if options['planning_excess_index'] else
+        target = ('0042_research_norm_history_index' if options['research_critical_path'] else
+                  '0039_research_availability_cover' if options['research_availability_index'] else
+                  '0038_history_prepared_memberships' if options['history_report_preparation'] else
+                  '0037_rrr_prepared_membership' if options['rrr_preparation'] else
+                  '0036_planning_excess_date_index' if options['planning_excess_index'] else
                   '0035_planning_expedite_charts' if options['planning_expedite_charts'] else
                   '0034_planning_expedite_custom' if options['planning_expedite_custom'] else
                   '0033_planning_expedite_transit' if options['planning_expedite_transit'] else
@@ -61,6 +73,20 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['research_critical_path'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name not in ('0040_research_availability_bands', '0041_research_count_index',
+                                          '0042_research_norm_history_index')
+                for migration, backwards in plan):
+            raise CommandError('Research critical path requires the complete 0039 baseline')
+        if options['research_availability_index'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0039_research_availability_cover' for migration, backwards in plan):
+            raise CommandError('Research availability index requires the complete history baseline')
+        if options['history_report_preparation'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0038_history_prepared_memberships' for migration, backwards in plan):
+            raise CommandError('History report preparation requires the complete RRR baseline')
+        if options['rrr_preparation'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0037_rrr_prepared_membership' for migration, backwards in plan):
+            raise CommandError('RRR preparation requires the complete Planning baseline')
         if options['planning_excess_index'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name != '0036_planning_excess_date_index' for migration, backwards in plan):
             raise CommandError('Planning Excess index requires the Planning chart baseline')
@@ -94,6 +120,11 @@ class Command(BaseCommand):
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
+                *(['0040_research_availability_bands', '0041_research_count_index',
+                   '0042_research_norm_history_index'] if options['research_critical_path'] else []),
+                *(['0039_research_availability_cover'] if options['research_availability_index'] else []),
+                *(['0038_history_prepared_memberships'] if options['history_report_preparation'] else []),
+                *(['0037_rrr_prepared_membership'] if options['rrr_preparation'] else []),
                 *(['0036_planning_excess_date_index'] if options['planning_excess_index'] else []),
                 *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
                 *(['0032_planning_expedite_grid_occurrences'] if options['planning_expedite_grids'] else []),

@@ -5,6 +5,7 @@ import { MainService } from '../module-main/services/api'
 
 export const setupAxios = () => {
   let isRefreshingToken = false
+  let isRedirectingForbidden = false
   const requestQueue: any = []
 
   const processQueue = (token: any) => {
@@ -51,7 +52,10 @@ export const setupAxios = () => {
     }
 
     if (errorResp.status === 403) {
-      window.location.href = '/permission-forbidden?URLPermission=true'
+      if (window.location.pathname !== '/permission-forbidden' && !isRedirectingForbidden) {
+        isRedirectingForbidden = true
+        window.location.href = '/permission-forbidden?URLPermission=true'
+      }
       return errorResp
     }
 

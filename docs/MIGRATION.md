@@ -27,6 +27,66 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Research delivery checkpoint — approval required before the next report
+
+Direct human instruction: deliver Research end to end, then stop and wait for
+approval to proceed. Research's bounded current-modern delivery is deployed on
+3005 and verified. RRR and Buffer remain pending; do not continue them without
+explicit human approval. The wider three-report goal is incomplete at this stop.
+The authoritative boundary remains the retained April7 fixture and normal
+resources under D:/freshvcf-build/research/RESEARCH_RRR_BUFFER_TRENDS_PLAN.md.
+
+| Research requirement | Verified result |
+|---|---|
+| Complete initial page | 5000 configured rows,97097 count, headings/configuration and93.53/93.96/91.78 availability bands visible. Usable screen13.481→5.867s. |
+| Current daily modal | Full eight-series chart,14-day horizon and selected SKU/location/Norm details populated;5.136→4.156s. Shared request identity/status/response RunDate are wired. No early loading strip. |
+| Selected self/child/parent Tech/Eco history | Reuse unchanged exact source/reference proof and deployed Update2.655s observation. The earlier2.418s observation still included loading and does not prove complete readiness. |
+| Values/scopes/filter/empty output | All14 full frozen Research responses and six shared BPR grid/count/analytics responses match exactly. Preserve every field,type,NULL,duplicate and order. |
+| PostgreSQL preparation |97,299 exact per-occurrence availability rows pass full streaming source/readback and repeat verify(created=false). No existing history receipt or source fact replaced. |
+| Schema/guards/operation | Django check, migration drift/plan, migrations0037–0042 and PostgreSQL proof pass. Sealed writes and disabled-guard admission are denied. Source/admission unchanged;48 protected containers unchanged. |
+| Affected verification |11 PostgreSQL tests,17 preparation tests and seven modal frontend tests pass. Retained integrated frontend11-test proof is reused.376 pinned baseline resources unchanged. |
+| Builds/deployment | Backend/frontend builds and startup admission pass; readyz retains admission5c90ae58…3e7. Temporary nginx instrumentation restored byte-exact to SHA256d1a70598…dc2a. |
+| Downloads | Reuse the user's existing confirmations; no export exploration. |
+
+Research corrections use the existing normalized BPR keys for bounded selected
+page reconstruction;0039 covers physical-history availability without wide heap
+lookups.0040 prepares six integer band counts per existing availability membership
+with original case-sensitive SKU/location codes and exact occurrence grain;
+live permission weights remain request-owned.0041 covers the existing count
+predicate (239ms diagnostic SQL,index-only,zero heap fetches).0042 indexes the
+modal's measured native pair/source-order Norm Change history scan. The Research
+caller uses the existing ready-only loader and supplies its three shared props.
+No calculation engine,input fact,accepted F1/F2 state,auth permission,resource cap,
+legacy benchmark or other serving service changed.
+
+Timings are single bounded current-modern browser observations, not percentile,
+minimum-latency or historical synthetic/legacy claims. The rejected12.273s,
+15.505s and10.070s closures remain retained. Final observer failures also remain:
+an exact-text selector expired; a fixed-count loop ended before readiness and its
+timing assignment failed; the first modal observer wrongly required an untruncated
+location label. The successful full-state observations above follow those specific
+observer corrections. Do not count failed observers as usable-screen measurements.
+
+Evidence root: D:/freshvcf-build/evidence/research-rrr-buffer-trends-20261005-001.
+`research-delivery.json` consolidates results and image identities;
+`research-final-reader-proof.json`, `research-critical-proof.log` and
+`research-modal-index-proof.log` retain complete response/source/guard proof;
+`research-final-browser.json`, final grid/modal screenshots and body-free request
+timing retain current UI evidence. The operational commands and serving flags are
+in [the presentation handoff](PREPARED_PRESENTATION_HANDOFF.md).
+
+RRR's existing prepared activation(VF_RRR_PREPARED=1) remains serving. Its retained
+14-case/full8063-row ordering/page/CSV proof and observations are preserved;
+page2 performance is failed and its delivery remains pending. The explicit human
+“choose cardinal” amendment(controller turn01a10c8d-427f-7e11-9bdb-99e14705ada5)
+approves only the retained occurrence ordinal after four canonical sort keys.
+Full typed bags,counts,NULLs,scopes and first-four-key order remain strict; no
+physical/virtual priority is invented. Original314/132 tied positions remain
+retained. Earlier preparation failures rolled back and are preserved.
+Buffer's implementation,23-case history-family proofs and observations remain
+preserved; residual controls and its corrective filtered observation are pending.
+These retained changes are not whole-page acceptance. No adjacent work is active.
+
 **Current Planning result:** the bounded April7 prepared-presentation delivery is
 closed by the final six-destination matrix below, including the user's current
 confirmation of all Excel downloads. Earlier partial/unproved/active statements

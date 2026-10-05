@@ -44,6 +44,9 @@ def read_research(run, payload):
     data = payload.get('data')
     if not isinstance(data, list) or not data:
         raise ValueError('Selected research data required')
+    from mta.presentation import history_prepared_sql
+    if history_prepared_sql.admitted(run) is not None:
+        return history_prepared_sql.read_research(run, payload)
     selected = {sql_key(row['SKUCode'], row['WhCode']) for row in data}
     state = attributes(run)
     products, locations = scope(payload, attributes=state)
@@ -56,6 +59,9 @@ def read_research(run, payload):
 
 def read_historical_availability(run, payload):
     """Three date bands use the source's no-pair-attribute join grain."""
+    from mta.presentation import history_prepared_sql
+    if history_prepared_sql.admitted(run) is not None:
+        return history_prepared_sql.read_historical_availability(run, payload)
     state = attributes(run)
     products, locations = scope(payload, attributes=state)
     if not products or not locations:

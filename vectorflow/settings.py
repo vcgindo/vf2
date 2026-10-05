@@ -18,6 +18,9 @@ VF_MTA_FIXTURE_SHA256 = os.environ.get('VF_MTA_FIXTURE_SHA256', '')
 VF_BTR_REPORTING_GENERATION = os.environ.get('VF_BTR_REPORTING_GENERATION', '')
 VF_BPR_PREPARED = os.environ.get('VF_BPR_PREPARED', '') == '1'
 VF_GUIDED_PREPARED = os.environ.get('VF_GUIDED_PREPARED', '') == '1'
+VF_RRR_PREPARED = os.environ.get('VF_RRR_PREPARED', '') == '1'
+VF_HISTORY_REPORTS_PREPARED = os.environ.get('VF_HISTORY_REPORTS_PREPARED', '') == '1'
+VF_RESEARCH_AVAILABILITY_PREPARED = os.environ.get('VF_RESEARCH_AVAILABILITY_PREPARED', '') == '1'
 if VF_BTR_REPORTING_GENERATION:
     LOGGING = {'version': 1, 'disable_existing_loggers': False,
         'handlers': {'btr_console': {'class': 'logging.StreamHandler'}},

@@ -227,7 +227,7 @@ const useRRR =()=>{
         setCurrFilter(filter);
         try {
           notifyLoader("Loading Grid Data");
-          const { count: rowDataCount, grid: rowData } = await settleRequestPair(
+          const [{ count: rowDataCount, grid: rowData }] = await Promise.all([settleRequestPair(
             () => getRRRDataCount({
               filters: filter,
               paginationParameter: { pageNumber: 1, recordsPerPage: rowsPerPage },
@@ -241,11 +241,10 @@ const useRRR =()=>{
                 ),
               },
             })
-          );
+          ), getRRRUiConfig()]);
 
           // setRecordCount(rowData.data.recordCount)
           setRRRDataCount(rowDataCount?.data?.recordCount)
-          await getRRRUiConfig();
           setCurrFilter(filter);
           setCurrentPage(1);
           if(rowData.data.data && Array.isArray(rowData.data.data))setRRRRowData(rowData?.data?.data);

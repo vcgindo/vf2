@@ -137,6 +137,11 @@ class Filters:
 
 
 def read_rrr(run, payload, *, paging, count=False):
+    from mta.presentation.rrr_prepared_sql import admitted_relation, read_prepared
+    prepared = admitted_relation(run)
+    if prepared is not None:
+        return read_prepared(run, payload, paging=paging, count=count,
+                             relation=prepared[0], relation_params=prepared[1])
     importer = {name:image_rows(run,'closing/importer/'+name)
                 for name in ('SkuAttributeData','LocationAttributeData')}
     try:
