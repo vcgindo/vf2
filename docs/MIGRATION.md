@@ -79,6 +79,25 @@ consumed; stop at this consolidated blocker. Expanded-view coverage remains
 unavailable because the retained page has no such control; no feature was added.
 No adjacent page opens and the goal is not claimed complete.
 
+Goal disposition (6 October2026): **BLOCKED**, pending a direct human decision
+on the already-requested bounded layered profile/correction/final-screen extension.
+The same missing authorization has persisted for three consecutive goal turns;
+the approved final trial is terminal and its allowance consumed. The latest
+CAPTCHA approval permits that login challenge, not an additional performance
+trial. No runtime request, serving mutation or adjacent report work follows this
+status update. Preserve the deployed correction and all retained failed timings;
+this is a consolidated blocker, not completed performance acceptance.
+
+Read-only follow-up afterf6ecf34: the gateway's MTA interceptor performs two
+authenticated permission-ID lookups, then forwards the request and decodes the
+response. The retained pre-correction profile contains seven image-metadata
+lookups and nine selected-run checks; fixture.image_metadata_batch already
+provides a validated named-receipt batch primitive. These are possible next
+measurement boundaries, not demonstrated causes of the final1.467s request.
+No timings from separate requests are subtracted to infer gateway cost. A bounded
+layered profile/correction/final-screen extension is now requested and pending;
+no further runtime request or serving mutation is authorized by this follow-up.
+
 Retained-trace follow-up (no new requests): before-request-timing.jsonl records
 the filtered API at0.865s; buffer-final-request-timing.jsonl records1.092s, both
 200/4605 transferred bytes. The227ms API increase accounts for the223ms observed
