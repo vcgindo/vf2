@@ -27,6 +27,207 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Operational family 1 - BOR functionally accepted; delivery closing (6 October 2026)
+
+CAPTCHA/login succeeded. Direct human approved existing BOR navigation permission10
+for only Stage2FixtureReader. The original missing-menu cause was this nine-grant
+role, not absent frontend code: listMenu/app-routes contained BOR and the sidebar
+correctly filtered user.url_permission. Applied the one grant; protected scopes,
+memberships and other-role grants unchanged (bor-navigation-grant.json). Normal
+Planning > sidebar Buyer Order Report > Show All now reaches1196 rows,7Apr2026.
+Finite browser proof passes local SKU filter(two rows),100-row page2, saved layout
+request and reload, browser remark submission/history/reload with earlier remark
+preserved. Page size resets5000 on reload by existing local-state contract.
+CSV UI click returned200/202869bytes but the automated browser download event
+timed out30s. Direct human subsequently confirmed all BOR functionality works
+and instructed commit/close/move next. Record that as human functional acceptance,
+not an automated saved-download proof. Show All-to-first-visible-row was2976ms
+including tool overhead; native-event latency and matched browser performance
+remain UNPROVED. No favorable repeats or passing backend-proof reruns.
+Evidence: browser-finite-proof.json, browser-correlated-gateway.log and screenshots
+under bor-family-20261006-001. Strict tied-order failures below remain unresolved;
+no human tie waiver, altered assertion or invented tie-break. Direct human
+functional acceptance authorizes a substantial delivery commit and closure of
+this implementation family with these qualifications; it does not establish
+strict sequence/performance parity. Existing quote-literal limitation remains
+as LEG-BOR-UNESCAPED-LITERAL. BOR-OA is explicitly released next; supplier
+allocation remains pending. Reuse all passing schema/source/API/restart proofs.
+
+### Operational family 2 - BOR colour-band source qualification active
+
+Controller relayed direct human release after visible BOR navigation. BOR-OA is
+now the sole active implementation family, under the unfinished existing goal
+(no false completion or numeric budget). Unmet exit: qualify supplier OPENING
+before normal-BOR refresh, exact typed source/consumer joins, own remarks/export,
+then affected relational/API/browser/restart proof and substantial commit/push.
+Do not substitute the normal-BOR snapshot or gate non-MTO off. Boundary is guide4.2
+routes and unchanged screen; engine/F1/F2/daily publication/auth policy/other
+families remain excluded. Reuse prior evidence; no new inventory programme.
+
+Controller source-extension decision removes the approval wait for BOR only:
+publish exact captured April SupplierDispatchReq1196/all30columns, SOB97, MOQ1496,
+and immutable remarks27 into new BOR-owned typed relations bound to the unchanged
+fixture run/date/native digest/capture hashes. Separate typed live remarks are
+authorized. Existing source tables/roster/guards/selection/global admission stay
+unchanged; no engine input/replay/F1/F2 change. Active exit is snapshot consumer
+config/grid/count/analytics/export/remarks/reload/restart, full comparisons,
+affected BPR/isolation, finite native usable-screen timings and integrated
+commit/push. Modern Black producer and daily refresh remain UNRESOLVED for the
+separate daily-publication tranche; snapshot acceptance cannot close them.
+
+Implementation and isolated proof complete so far: typed four-bag sources/full
+capture hashes, sealed1196 typed memberships, separate live remarks, consumer
+SQL/config/export/remark routes. Native SQL comparison matches every1196 row,
+field/type/NULL/duplicate as bags, both actor counts/analytics, config27 and all10
+initial histories. Actual pinned DLL filter wrapper plus MSSQL proves20 finite
+filter/page/error cases; pages1/2 are exact ordered matches. CSV matches25 headers
+and1196 complete data-cell rows as bags. Strict supplier-tie sequence failures
+remain preserved and UNRESOLVED; a narrow April BOR ordering disposition is pending.
+No tie-break or comparison assertion has been changed. Diagnostic tie-disposition.json
+finds8groups/18rows,4grid-group permutations (9positions) and5export-group
+permutations (10positions); no100-row boundary crossing, and configured5000 loads
+all1196. Custom page sizes can cut a tie and are not covered by that diagnosis.
+
+Migration-enabled PostgreSQL proof (schema-proof-005) passes exact source readback,
+rollback/retry, guard/recipe/source drift, extra-trigger denial, append-only history,
+trusted actor/omitted remark versus explicit NULL failure. Selected-run rollback
+workflow proves latest-timestamp multiplicity, denial and no retained test writes;
+full prepared reconstruction matches both EXCEPT ALL directions. Candidate001
+startup/BPR regression passed with exact restored Buffer file hashes; candidate002
+also passed after final null/guard corrections and is deployed to preview MTA only.
+All49 other container identities/start times unchanged; environment/mounts/limits/
+ports/command retained. Real gateway config/grid/count/analytics/export/history
+passes; one authenticated verification remark persists, forged body actor ignored,
+restricted forged scope stays zero. Gateway CSV bytes match the candidate capture.
+MTA-only restart and real gateway readback passed: authenticated live remark,
+count1196 and April7 selection survive. Terminal relational receipt confirms
+original native/freeze digests,1196 prepared digest, one separate live remark and
+all protected containers/restored Buffer source hashes unchanged. Evidence under
+D:/freshvcf-build/evidence/bor-family-20261006-001; no browser acceptance claim.
+
+Publication recovery completed: exact empty0043 schema/guards matched the owned
+migration-test database, with no incoming FK/view dependencies. Direct unapply
+removed only six empty tables and their owned objects; original relation inventory,
+fixture binding/freeze digest and metadata guards stayed unchanged. Earlier failed
+attempts are retained. Guarded43–45 migration then passed; four bags and1196 stable
+memberships were sealed, exact readback/retry verified. First candidate read returns
+count1196/grid100 plus config/analytics (not independent parity). Evidence:
+recovery-result.json and publication-003.log under bor-family-20261006-001.
+Browser journey and direct human functional acceptance are recorded above.
+Integrated commit/push is authorized; exact automated-download/timing and tied
+ordering limitations remain qualified. The earlier Windows URL-detection issue
+is resolved by CUA and is not an active blocker.
+
+Direct controller implementation instruction supersedes the guide's research-only
+restriction for BOR alone. Buffer executor is idle/closed at pushed972bca8;
+its terminal handoff verifies3005 restored to0ea5690. Rejected Buffer source must
+not be introduced by the BOR build. Preserve both untracked implementation guides.
+
+Enabled scope: BORUIConfig, BORData/BORDataCount, BORAnalytics, actual BOR export,
+AddBORRemark/GetBORRemarkDetails and existing shared screen dependencies. Source
+authority is pinned deployed BORProcessor/analytics/SQL; normal post-refresh BOR
+and vendor/topmost SupplierDispatchReq mapping must be qualified before publication.
+BOR-OA, other families, frontend, engine/state rules and daily scheduler excluded.
+Allowed changes: narrow typed calculated publication/stable presentation references,
+live typed actor-owned remark history, exact APIs, local migrations and owned3005
+integration. No serving selection switch/reset/repopulation or admission expansion.
+
+Unmet exit: source qualification, complete output/denial/drift and affected BPR
+proofs; migration-enabled PostgreSQL checks; build; one final native navigation,
+config/grid/count/analytics/filter/page/layout/export/remark/history/reload journey;
+restart/readback; integrated commit/push. Native event through usable populated
+screen is the performance boundary, including gateway/auth/admission, SQL/fetch,
+assembly/serialization, transfer/parse and rendering. Missing modern BOR route
+means no valid before baseline, not a speed improvement. Normal resources only;
+unexplained seconds-long stable preparation is an escalation, not acceptance.
+No next family starts before controller release.
+
+Earlier source qualification boundary (6 October; source extension now authorized): selected serving run remains
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`, April7, native source digest
+`4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73`.
+Read-only PostgreSQL proof finds no staged BOR/supplier/SOB/MOQ tables and no
+BOR/supplier consumer receipts. The retained original backup manifest records
+SupplierDispatchReq1196, SOBData97, MOQData1496 and BORReport_RemarkDetails27,
+all outside the loaded consumer union. Separate F2 calculations cannot be attached
+to this fixture or substituted for these missing inputs.
+
+Deployed IL also requires ReqTopOfBlack/CumulativeTOBlack, absent from modern
+r1_bor and the pinned GenSupplierWiseReq.sql (identical preserved backup hash
+fae0668e…16a9b). The retained April SupplierDispatchReq schema has both fields.
+This is an unresolved producer/consumer version boundary, not authority for zero
+defaults, omitted fields or new calculations (see LEG-BOR-PRODUCER-CONSUMER-BLACK).
+Deployed count uses the same selector as grid; recovered older count inner-join
+behavior must NOT be ported. Live remark keys are SKU/WH/supplier, actor name is
+gateway-injected, one server-local timestamp applies to the batch, and all latest
+ties survive. Existing27 history rows cannot be replaced by an empty initial bag.
+
+Smallest proposed remedy for controller decision: authorize an explicitly
+fixture-only additive BOR source/history binding from those exact retained four
+tables into BOR-owned typed relations, preserving existing selection, frozen
+source receipts and guards, and retaining a separate append-only live overlay.
+This would prove consumer compatibility only, never modern calculation parity.
+Modern calculated publication still needs a qualified source/version for the two
+Black columns; this does not preclude a separately qualified retained UI source.
+No serving copy, migration, build/deployment, endpoint or frontend change occurred.
+Goal remains incomplete; no next family, partial delivery commit or push.
+Evidence: `D:/freshvcf-build/evidence/bor-family-20261006-001/source-qualification.json`
+and targeted deployed IL extracts alongside its read-only reproducible probe.
+
+Controller-directed finite read-only follow-up completed: existing READ_ONLY
+`VFTEST_Fresh_S2_VM_20261003_002_BPR`, sealed manifestafe42593…b836,
+backupc15dc63d…6747 / set39876A5C-C711-45EC-B0F4-70F5F4443BF7, LastBatchRunTbl
+April7. All1196 complete SupplierDispatchReq rows captured with typed columns
+and digests; both Black fields are owned by this table, NOT NULL int, default0,
+not computed. Each has398 positive /798 zero /0NULL values, range0–52659,
+sum965049. All1196 source rows have a same-clone requirement pair. No SQL module
+references these fields/table; pinned and preserved producer files contain no
+Black definition. No per-row calculation date/run exists. Positive values refute
+an all-default population; freshness or why individual zero values arose cannot
+be proved. The27 retained remarks date February2025 and are history, not assumed
+April writes. Setup attempt failed before first read (ODBC timeout property);
+corrected once, completed one source capture, and retained both attempts.
+
+Disposition: exact April snapshot BOR values ARE available for fixture consumer
+verification, subject to a narrow source-binding extension. Modern future producer
+mapping remains unresolved independently; it must not be used to label the
+retained UI facts unavailable. Smallest missing authority is additive import of
+only these four frozen bags to BOR-owned typed relations bound to the existing
+fixture, plus independently mutable append-only BOR remarks; no existing frozen
+receipt/trigger/selection/admission replacement or engine input. Preserve stored
+SLS attributes and full Black values verbatim. Scoped grid/count/analytics/export
+can then be implemented/proved against identical retained independent inputs.
+Evidence: `bor-family-20261006-001/retained-rows/receipt.json` and full compressed
+bags; [bounded disposition/design](D:/freshvcf-build/evidence/bor-family-20261006-001/DISPOSITION.md).
+
+Blocked audit: the same source-copy authorization boundary persists across three
+goal turns. Current controller state was checked; its latest instruction authorizes
+only the completed bounded read and independent contract/design, not source loading.
+Those independent steps are complete. BOR remains the sole selected family and
+is not delivered; that former authorization block is superseded by the active source-extension decision above. No
+additional source investigation or automatic retry is justified.
+
+Focused human supplier-parent clue checked at controller direction: all1196
+retained BOR rows satisfy canonical TopMostNodes (same SKU absent at parent in
+BPRMaster); no missing master or unexplained supplier membership.668 rows match
+explicit SOB/MOQ supplier triples and528 use uncovered-pair parent fallback.
+1159 suppliers equal the parent (overlaps the explicit group). Current
+r1_supplier_input.py184–239 and engine.py116–122 implement this linkage; neither
+uses LocationType!='Plant'. Vendor output remains independently filtered.
+Evidence `bor-family-20261006-001/linkage.json` preserves the full matching row
+bag and exact frozen BOR value check. This resolves membership, not the missing
+Black producer or source-copy authority. No BOR-OA substitution, engine replay,
+data/admission/runtime mutation or expanded inventory occurred.
+
+Controller's batch-trace amendment retained: RunCoreBPR.bat64 invokes the pinned
+GenSupplierWiseReq; BPR_DBCreation.sql1488–1517 omits both Black columns.
+The retained23September2026 log610–611 records BORDataCount failing with
+Invalid column name for both Black fields. This is direct evidence of a prior
+API/schema mismatch, not proof the April snapshot values are invalid or zero.
+Supplied BTR attribute/history anchors do not compute Black fields. Exact excerpts
+and hashes: `bor-family-20261006-001/producer-version-anchors.json`. No new search,
+formula, source extension or runtime change; production mapping remains blocked
+separately from the available fixture-only presentation path.
+
 ### Buffer work closed by human; rejected candidate checkpoint
 
 On6October2026 the human instructed: **commit the work and close the goal**.

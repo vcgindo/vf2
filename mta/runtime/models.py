@@ -33,6 +33,72 @@ class CalculationRun(models.Model):
         constraints = [models.UniqueConstraint(fields=['input_digest', 'execution_revision'], name='fresh_run_identity')]
 
 
+class BorSourceReceipt(models.Model):
+    """Bounded checksum metadata for four immutable retained consumer bags."""
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    bor_digest = models.CharField(max_length=64)
+    sob_digest = models.CharField(max_length=64)
+    moq_digest = models.CharField(max_length=64)
+    history_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class BorSourceRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='bor_source_ordinal')]
+
+
+class BorSobRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='bor_sob_ordinal')]
+
+
+class BorMoqRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='bor_moq_ordinal')]
+
+
+class BorInitialRemark(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='bor_initial_remark_ordinal')]
+
+
+class BorLiveRemark(models.Model):
+    """Application history; never changes immutable run images or commands."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    actor_id = models.CharField(max_length=256)
+
+
+from mta.presentation.bor_contract import FIELDS as _BOR_FIELDS
+for _model, _table in ((BorSourceRow, 'SupplierDispatchReq'), (BorSobRow, 'SOBData'),
+        (BorMoqRow, 'MOQData'), (BorInitialRemark, 'BORReport_RemarkDetails'),
+        (BorLiveRemark, 'BORReport_RemarkDetails')):
+    for _name, _kind in _BOR_FIELDS[_table].items():
+        _field = {
+            'text50': lambda: models.CharField(max_length=50),
+            'nullable50': lambda: models.CharField(max_length=50, null=True),
+            'nullable100': lambda: models.CharField(max_length=100, null=True),
+            'nullable_text': lambda: models.TextField(null=True),
+            'int': models.IntegerField, 'float': models.FloatField,
+            'datetime': models.DateTimeField,
+        }[_kind]()
+        _model.add_to_class(_name, _field)
+
+
 class BprNumericField(models.DecimalField):
     """Unconstrained PostgreSQL numeric, retaining every native pen digit."""
     def __init__(self, *args, **kwargs):
@@ -83,6 +149,36 @@ for _owner, _fields in _BPR_FIELDS.items():
         _factory = {'text': models.TextField, 'bigint': models.BigIntegerField,
                     'numeric': BprNumericField}[_kind]
         BprPreparedRow.add_to_class(_bpr_field_name(_owner, _field), _factory(null=True))
+
+
+class BorPreparedReceipt(models.Model):
+    run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    rows_digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class BorPreparedRow(models.Model):
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    sku_key = models.TextField(null=True)
+    location_key = models.TextField(null=True)
+    supplier_key = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run','ordinal'], name='bor_prepared_ordinal')]
+        indexes = [models.Index(fields=['run','sku_key','location_key'],name='bor_prepared_pair')]
+
+
+from mta.presentation.bor_prepared_fields import FIELDS as _BOR_PREPARED_FIELDS, field_name as _bor_field_name
+for _owner,_fields in _BOR_PREPARED_FIELDS.items():
+    BorPreparedRow.add_to_class(_owner.lower()+'_ordinal',models.BigIntegerField(null=True))
+    for _name,_kind in _fields.items():
+        BorPreparedRow.add_to_class(_bor_field_name(_owner,_name),
+            {'text':models.TextField,'bigint':models.BigIntegerField,
+             'numeric':BprNumericField,'float':models.FloatField}[_kind](null=True))
 
 
 class GuidedDbmPreparedProjection(models.Model):

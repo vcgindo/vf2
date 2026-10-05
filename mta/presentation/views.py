@@ -151,6 +151,11 @@ def report_paths(request, payload):
 @endpoint('GET')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
+    if name == 'BuyerOrderReport':
+        from mta.presentation.bor_sources import admitted_sources
+        from mta.presentation.bor_configuration import configuration, ui_columns
+        admitted_sources()
+        return envelope(data=ui_columns(configuration()))
     if name == 'NormSuggestion':
         return envelope(data=ui_state.dbm_columns())
     if name == 'AdminBPR':
@@ -303,6 +308,52 @@ def bpr_analytics(request, payload):
     return envelope(data=model.analytics(rows))
 
 
+@endpoint('GET')
+def bor_ui_config(request, payload):
+    from mta.presentation.bor_sources import admitted_sources
+    from mta.presentation.bor_configuration import configuration, ui_columns
+    admitted_sources()
+    return envelope(data=ui_columns(configuration()))
+
+
+@endpoint('POST')
+def bor_data(request, payload, *, count=False):
+    from mta.presentation.bor_sql import read_bor
+    from mta.presentation.bor_configuration import configuration, wire_rows
+    from django.db import DatabaseError
+    try:
+        rows = read_bor(payload, count=count)
+        return envelope(record_count=str(rows)) if count else envelope(data=wire_rows(rows, configuration()))
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
+@endpoint('GET')
+def bor_analytics(request, payload):
+    from mta.presentation.bor_sql import read_bor
+    from django.db import DatabaseError
+    try:
+        return envelope(data=read_bor(payload, analytics=True))
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
+@endpoint('POST')
+def bor_remark(request, payload, *, history=False):
+    from mta.presentation import bor_remarks
+    from django.db import DatabaseError
+    try:
+        return envelope(data=bor_remarks.history(payload) if history else bor_remarks.append(payload, identity(request)))
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
 @endpoint('POST')
 def bpr_data(request, payload, *, count=False):
     from mta.presentation.bpr_response import response_row
@@ -333,6 +384,21 @@ def bpr_data(request, payload, *, count=False):
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+    if payload.get('reportName') == 'BOR':
+        from mta.presentation.bor_sql import read_bor, projection, BorQueryError
+        from mta.presentation.bor_configuration import configuration
+        try:
+            rows = read_bor(payload, export=True)
+        except PublicationUnavailable:
+            raise
+        except (BorQueryError, ValueError, KeyError, TypeError):
+            return envelope(status=500)
+        state = ui_state.get_layout(identity(request)['id'], 'BOR')
+        headers = selected_headers(state, [n for n, _ in projection()],
+                                   configuration=configuration()['columns'])
+        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment'
+        return response
     if payload.get('reportName') not in ('RRR', 'BTR', 'BPR'):
         raise PublicationUnavailable('selected_report_export_not_connected')
     run = selected_run()

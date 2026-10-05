@@ -1,0 +1,1979 @@
+{
+  "run_id": "bfd75b4b-a9df-4a08-82d3-852e3324b623",
+  "business_date": "2026-04-07",
+  "sources": [
+    {
+      "source": "Demo_BPR_1",
+      "table": "ui_ReportConfigurations",
+      "file_sha256": "a0b37fcf0719d2d88b0af53564af1c078c6cccd5ef76dc111f55a60cd0048908",
+      "values_sha256": "8321656053f4d1db587e357811f771cefaccdcec101dce405da6055e492b5b9f",
+      "row_count": 2139
+    },
+    {
+      "source": "Demo_Importer_1",
+      "table": "ui_ReportColumnTypes",
+      "file_sha256": "3e7e46f7fbd62d9350673260e0960319edbaeb83b58855290ef1768fb86ac228",
+      "values_sha256": "e012a2a42123dd252bfb14f082d90ebf1e88156426000b3773db402e15f7d029",
+      "row_count": 2114
+    }
+  ],
+  "columns": [
+    {
+      "source_ordinal": 189,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUCode",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 190,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUDesc",
+      "Col_Position": 2,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 191,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "WHCode",
+      "Col_Position": 3,
+      "Header": "Location Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 192,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "WHDescription",
+      "Col_Position": 4,
+      "Header": "Location Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 193,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "DispatchReq",
+      "Col_Position": 5,
+      "Header": "Dispatch Quantity",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 194,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "EcoCol",
+      "Col_Position": 6,
+      "Header": "Pipeline Inv. Color",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 195,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "Requirement",
+      "Col_Position": 7,
+      "Header": "Requirement",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 196,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "TechCol",
+      "Col_Position": 8,
+      "Header": "On hand Inv. Color",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 197,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SupplierCode",
+      "Col_Position": 6,
+      "Header": "Supplier Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 198,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SuppDesc",
+      "Col_Position": 7,
+      "Header": "Supp Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 199,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SOB",
+      "Col_Position": 11,
+      "Header": "SOB",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 200,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ReqTopOfRed",
+      "Col_Position": 8,
+      "Header": "TOR",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 201,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ReqTopOfYellow",
+      "Col_Position": 9,
+      "Header": "TOY",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 202,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ReqTopOfGreen",
+      "Col_Position": 10,
+      "Header": "TOG",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 203,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ReqTopOfBlue",
+      "Col_Position": 11,
+      "Header": "TOB",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 204,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "MOQ",
+      "Col_Position": 16,
+      "Header": "MOQ",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 205,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "GIT",
+      "Col_Position": 17,
+      "Header": "GIT",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 206,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "Stock",
+      "Col_Position": 18,
+      "Header": "Stock",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 207,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SpikeThreshold",
+      "Col_Position": 19,
+      "Header": "Spike Threshold",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 208,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "PSOThreshold",
+      "Col_Position": 20,
+      "Header": "PSO Threshold",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 209,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "StockForReqCalc",
+      "Col_Position": 21,
+      "Header": "Stock For Req Calc",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 210,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "DispatchPen",
+      "Col_Position": 12,
+      "Header": "Dispatch Pen",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 211,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "DispatchColor",
+      "Col_Position": 23,
+      "Header": "Dispatch Color",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 212,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "DirectSpikeOverdue",
+      "Col_Position": 13,
+      "Header": "Direct Spike Overdue",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 213,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SpikeOverdueAtParent",
+      "Col_Position": 14,
+      "Header": "Spike Overdue At Parent",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 214,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "PSO",
+      "Col_Position": 26,
+      "Header": "PSO",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 215,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "RelPSO",
+      "Col_Position": 15,
+      "Header": "Relevant PSO And CNR",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 216,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ResidualChildrenSnP",
+      "Col_Position": 16,
+      "Header": "Residual Children Spike/PSO/CNR",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 217,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SnPToNetOff",
+      "Col_Position": 29,
+      "Header": "Spike/PSO To Net Off",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 218,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SnPNettedOff",
+      "Col_Position": 30,
+      "Header": "Spike/PSO Netted Off",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 219,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ResidualSnP",
+      "Col_Position": 17,
+      "Header": "Residual Spike/PSO/CNR",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 220,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "EcoStockForNormReq",
+      "Col_Position": 32,
+      "Header": "Pipeline Inv. Stock For Norm Req",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 221,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "NormReq",
+      "Col_Position": 33,
+      "Header": "Norm Req",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 222,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "BlueReq",
+      "Col_Position": 37,
+      "Header": "Blue Req",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 223,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "Norm",
+      "Col_Position": 99,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 224,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "VirtualNorm",
+      "Col_Position": 18,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 225,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "sl1",
+      "Col_Position": 99,
+      "Header": "FG/PM",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 226,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "sl2",
+      "Col_Position": 99,
+      "Header": "Product Type",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 227,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "sl3",
+      "Col_Position": 99,
+      "Header": "Vendor",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 228,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "sl4",
+      "Col_Position": 99,
+      "Header": "SL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 229,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "sl5",
+      "Col_Position": 99,
+      "Header": "SL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 230,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ll1",
+      "Col_Position": 99,
+      "Header": "Loc Type",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 231,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ll2",
+      "Col_Position": 99,
+      "Header": "Business",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 232,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ll3",
+      "Col_Position": 99,
+      "Header": "Zone",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 233,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ll4",
+      "Col_Position": 99,
+      "Header": "LL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 234,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ll5",
+      "Col_Position": 99,
+      "Header": "LL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 235,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 236,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 237,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr3",
+      "Col_Position": 99,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 238,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 239,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr5",
+      "Col_Position": 99,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 240,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 241,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "Left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 242,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 243,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 244,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 245,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr11",
+      "Col_Position": 99,
+      "Header": "ABCxFMS",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 246,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 247,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 248,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 249,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKULocAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 250,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 251,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 252,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr3",
+      "Col_Position": 99,
+      "Header": "Unit Pack Size",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 253,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 254,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr5",
+      "Col_Position": 99,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 255,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 256,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 257,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 258,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 259,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 260,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr11",
+      "Col_Position": 99,
+      "Header": "ABCxFMS",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 261,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 262,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 263,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 264,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SKUAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 265,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 266,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 267,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr3",
+      "Col_Position": 99,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 268,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 269,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr5",
+      "Col_Position": 99,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 270,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 271,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 272,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 273,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 274,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 275,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 276,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 277,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 278,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 279,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "LocAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 280,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "CumulativeTOR",
+      "Col_Position": 99,
+      "Header": "TOR",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 281,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "CumulativeTOY",
+      "Col_Position": 99,
+      "Header": "TOY",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 282,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "CumulativeTOG",
+      "Col_Position": 99,
+      "Header": "TOG",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 283,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "CumulativeTOB",
+      "Col_Position": 99,
+      "Header": "TOB",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1046,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "Remark",
+      "Col_Position": 19,
+      "Header": "Lastest Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1118,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "remarks",
+      "Col_Position": 20,
+      "Header": "Enter New Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1120,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "rh",
+      "Col_Position": 21,
+      "Header": "Remark History",
+      "Visible": true,
+      "CellAlignment": "center    ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2042,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr1",
+      "Col_Position": 99,
+      "Header": "SLSAttr1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2043,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr2",
+      "Col_Position": 99,
+      "Header": "SLSAttr2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2044,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr3",
+      "Col_Position": 99,
+      "Header": "SLSAttr3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2045,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr4",
+      "Col_Position": 99,
+      "Header": "SLSAttr4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2046,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr5",
+      "Col_Position": 99,
+      "Header": "SLSAttr5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2047,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr6",
+      "Col_Position": 99,
+      "Header": "SLSAttr6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2048,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr7",
+      "Col_Position": 99,
+      "Header": "SLSAttr7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2049,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr8",
+      "Col_Position": 99,
+      "Header": "SLSAttr8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2050,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr9",
+      "Col_Position": 99,
+      "Header": "SLSAttr9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2051,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr10",
+      "Col_Position": 99,
+      "Header": "SLSAttr10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2052,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr11",
+      "Col_Position": 99,
+      "Header": "SLSAttr11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2053,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr12",
+      "Col_Position": 99,
+      "Header": "SLSAttr12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2054,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr13",
+      "Col_Position": 99,
+      "Header": "SLSAttr13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2055,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr14",
+      "Col_Position": 99,
+      "Header": "SLSAttr14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2056,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "SLSAttr15",
+      "Col_Position": 99,
+      "Header": "SLSAttr15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2137,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "ReqTopOfBlack",
+      "Col_Position": 99,
+      "Header": "TOBLack",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2138,
+      "ReportName": "BuyerOrderReport",
+      "Col_Code": "CumulativeTOBlack",
+      "Col_Position": 99,
+      "Header": "CumulativeTOBlack",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    }
+  ],
+  "types": [
+    {
+      "source_ordinal": 128,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 129,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUDesc",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 130,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "WHCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 131,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "WHDescription",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 132,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "DispatchReq",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 133,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "EcoCol",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 134,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "Requirement",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 135,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "TechCol",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 136,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SupplierCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 137,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SuppDesc",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 138,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SOB",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 139,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ReqTopOfRed",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 140,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ReqTopOfYellow",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 141,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ReqTopOfGreen",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 142,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ReqTopOfBlue",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 204,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 205,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 206,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 207,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 208,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 209,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 210,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 211,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 212,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 213,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 214,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 215,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "CumulativeTOR",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 216,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "CumulativeTOY",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 217,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "CumulativeTOG",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 218,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "CumulativeTOB",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 384,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 385,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 386,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 387,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 388,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 389,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 390,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 391,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 392,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 393,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 394,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 395,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 396,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 397,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 398,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 399,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "LocAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 423,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "MOQ",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 424,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "GIT",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 425,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "Stock",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 426,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SpikeThreshold",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 427,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "PSOThreshold",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 428,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "StockForReqCalc",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 429,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "DispatchPen",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 430,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "DispatchColor",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 431,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "DirectSpikeOverdue",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 432,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SpikeOverdueAtParent",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 433,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "PSO",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 434,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "RelPSO",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 435,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ResidualChildrenSnP",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 436,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SnPToNetOff",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 437,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SnPNettedOff",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 438,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ResidualSnP",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 439,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "EcoStockForNormReq",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 440,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "NormReq",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 441,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "BlueReq",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 442,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "Norm",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 443,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "VirtualNorm",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 444,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "sl1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 445,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "sl2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 446,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "sl3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 447,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "sl4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 448,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "sl5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 449,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ll1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 450,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ll2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 451,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ll3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 452,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ll4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 453,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ll5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 454,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 455,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 456,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 457,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 458,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 459,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 460,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 461,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 462,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 463,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 464,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 465,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 466,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 467,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 468,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKULocAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 469,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 470,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 471,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SKUAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1206,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "remarks",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1208,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "rh",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1250,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "Remark",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1984,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1985,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1986,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1987,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1988,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1989,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1990,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1991,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1992,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1993,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1994,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1995,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1996,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1997,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1998,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "SLSAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 2112,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "ReqTopOfBlack",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 2113,
+      "ReportName": "BuyerOrderReport",
+      "ColCode": "CumulativeTOBlack",
+      "DataType": "Number"
+    }
+  ]
+}

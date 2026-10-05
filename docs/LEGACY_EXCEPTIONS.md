@@ -1,5 +1,75 @@
 # Legacy behavior and explicit exceptions
 
+## LEG-BOR-APRIL-SUPPLIER-TIES — unresolved ordering, no exception yet
+
+Exact April7 fixture bfd75b4b-a9df-4a08-82d3-852e3324b623, native digest
+4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73:
+deployed DLL0222eb96 getBORSelectQuery/GetBORData orders DispatchColorSequence,
+DispatchPen DESC, SKUCode, WHCode; export reverses only the last two keys.
+Neither adds SupplierCode. Independent complete1196-row comparison preserves all
+values/types/NULLs/duplicates but strict sequences differ first at grid index343
+for SKU729939070711/locationP064/color-sequence1/penetration100: suppliers102117
+and101679 exchange positions. Export first difference is index387 for that pair.
+Original arrays and strict failures remain in bor-family-20261006-001/
+comparison-consumers-002.json, oracle-consumers-002.json and modern-consumers-002.json.
+The raw selector is pinned in select.il.txt; native-csv-001.json preserves the
+actual deployed CsvHelper output. No ordering assertion is waived. A requested
+April-only tied-group comparison decision remains pending; an existing Expedite
+exception does not transfer to BOR. No algorithm/query/tie-break change.
+
+## LEG-BOR-UNESCAPED-LITERAL — unsafe native input remains NOT_PARITY
+
+Deployed BOR remark append/history concatenate quoted values without escaping
+(BPRProcessor IL96894–97156, DLL0222eb96). The modern parameterized paths deny
+apostrophe-containing input with503/unavailable rather than execute arbitrary SQL.
+This is explicitly NOT_PARITY: a benign unescaped value such as O'Brien normally
+reaches the native swallowed-provider-error result, while other crafted strings
+can parse differently. No universal native outcome is claimed and no injection
+behavior is reproduced. Typed PostgreSQL test_bor_sources records denied input,
+no append and preserved source/history state. This does not excuse differences in
+ordinary remarks, actor ownership, NULL handling or timestamp multiplicity.
+
+## LEG-BOR-PRODUCER-CONSUMER-BLACK — unresolved, no exception approved
+
+6 October 2026 BOR qualification: pinned deployed DLL0222eb96…346,
+`BORProcessor.getBORSelectQuery` IL17196–17261, requires SupplierDispatchReq
+ReqTopOfBlack and CumulativeTOBlack. The canonical GenSupplierWiseReq.sql
+SHA256 `fae0668e77fb3e149f62301f4e5e3cda1c1b546180a66f8262ca899644f16a9b`
+(identical preserved counterpart) inserts no Black columns; modern
+`calculate_bor` emits only red/yellow/green/blue bands. No inferred zeros,
+cross-band derivation, column omission or engine change is authorized.
+
+Affected contracts: complete BOR grid/count/export and typed calculated
+publication. The original April7 backup SupplierDispatchReq contains1196 rows
+with both Black columns. Those rows and its SOB97/MOQ1496/remarks27 populations
+are outside the selected fixture's loaded input union; read-only PostgreSQL
+qualification confirms no source tables/receipts. Selected run is
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`; no other run's results may fill this gap.
+Producer-time SKULocAtt01–15 (SLSAttr aliases) also remain distinct from the
+current E.c1–15 consumer join (SKULocAttr aliases). No snapshot substitution.
+This records a source-version conflict, not accepted parity or a legacy repair.
+Evidence and file hashes: `D:/freshvcf-build/evidence/bor-family-20261006-001/source-qualification.json`.
+
+Bounded retained-source follow-up: the exact existing READ_ONLY April7 clone
+contains1196 complete BOR rows; each Black field has398 positive and798 zero
+values, noNULLs, sum965049. Both have schema default0 and no computed definition.
+No retained SQL module references the fields/table; no per-row calculation run/date
+exists. These are usable retained snapshot presentation facts after an explicitly
+bounded consumer-source extension, not evidence for the missing modern formula.
+Do not label the entire UI source unavailable because the producer mapping is
+missing; do not claim fresh computation or explain individual zero values without
+evidence. Receipt: `D:/freshvcf-build/evidence/bor-family-20261006-001/retained-rows/receipt.json`.
+
+Additional direct failure evidence: retained
+`F:/VFlow_Local/local-config/ErrorLog/2392026_Logs.txt`610–611, dated23September2026,
+records Get BOR Data Count failing with Invalid column name for ReqTopOfBlack
+and CumulativeTOBlack. RunCoreBPR.bat64 invokes GenSupplierWiseReq and pinned
+BPR_DBCreation.sql1488–1517 defines no Black fields. Supplied downstream BTR
+attribute updates and rationing-history reads do not supply their producer.
+This confirms a prior API/schema mismatch; it does not invalidate the April
+positive stored values, justify zero-fill, or identify the prevailing producer.
+Exact source hashes/excerpts: `D:/freshvcf-build/evidence/bor-family-20261006-001/producer-version-anchors.json`.
+
 Do not repair legacy algorithms or add invented ordering to make tests pass.
 These known risks remain visible; neither is permission for blanket exclusions.
 
