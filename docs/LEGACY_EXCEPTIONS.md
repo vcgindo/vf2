@@ -615,3 +615,18 @@ contracts, not parity with concealed SQL failures or incorrect legacy labels.
 The retained receiving top10 matches including its cutoff tie; independent full
 SQL sequence acceptance remains unresolved. No calculation exception is implied.
 See MIGRATION.md for current status.
+
+## April7 Expedite chart ordering — approved bounded comparison exception
+
+Direct reply `call_038051c3721a4d7f8a5a28f8ddf66e93` approves only this retained
+April7 fixture's six chart-query sequences. Parent/Child critical queries have
+no ORDER BY, so their complete row bags may be compared. Parent/Child receiving
+queries preserve ParentwiseCount DESC, MaxPipelineInv DESC; Parent nil-stock and
+chronic preserve counts DESC. Reordering is allowed only within equal explicit
+keys. Every field, scalar type, NULL and duplicate count remains strict. Retain
+original arrays; this does not alter queries/UI, invent a tie-break, waive other
+reports or transfer to another run/date/source. `parity/planning_order_contract.py`
+enforces the run/source/date/family boundary. Tests reject changed values/types,
+duplicate loss, explicit-order reversal and scope transfer. Retained evidence:
+`planning-prepared-20261005-001/acceptance-continuation/order-acceptance.json`.
+Six broad comparisons pass with the exception; six leaf comparisons remain strict.

@@ -27,6 +27,68 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Active bounded acceptance continuation — 5 October 2026
+
+Direct user reply `call_3680e1b171264b7490c914d82254602f` authorizes one bounded
+continuation for the six remaining broad Expedite ordering differences and only
+missing matched legacy/3005 usable-screen comparisons. This supersedes the prior
+stop/no-new-benchmark boundary for those checks. Preserve strict comparisons,
+all data, source SQL, engine/state/auth boundaries and existing resource limits.
+First establish whether differing order violates explicit canonical ORDER BY or
+is an unresolved tie/unspecified sequence; never invent a tie-break to fit a capture.
+Then run only missing matched journeys with restoration, reuse passing surfaces,
+and record precise evidence or the semantic decision needed. The historical modal
+baseline gate stays deferred/unaccepted. MIGRATION.md remains the sole tracker.
+
+Ordering disposition approved by direct reply
+`call_038051c3721a4d7f8a5a28f8ddf66e93`: the six exact April7 query families may
+compare full typed duplicate-preserving bags only inside equal explicit ORDER BY
+keys, or across the complete result for the two critical queries without ORDER BY.
+No serving response/query changes. Evidence-only `planning_order_contract.py`
+binds run/source/date/family; three tests reject value/type/NULL/multiplicity,
+explicit-order and boundary changes. `acceptance-continuation/order-acceptance.json`
+passes all six broad cases under that exception and all six leaf cases strictly.
+This resolves the six named sequence blockers, not every other report's order.
+
+The continuation's first Windows launch lacked SeDebugPrivilege and changed no
+limits. The authorized elevated launch succeeded; its heartbeat expiry restored
+SQL/API/PostgreSQL budgets with zero errors. Browser runtime was reset during the
+continuation; prior files are retained, not rerun. Temporary nginx request logging
+was restored byte-exact (`acceptance-continuation/restoration.json`). A separately
+identified resumed resource window continues only the missing observations.
+
+The resumed window is now RESTORED with zero errors. The bounded continuation
+records these single click-to-usable observations (seconds, automation overhead
+included), reusing named retained matching journeys rather than resampling them:
+
+| Journey | Legacy | Modern3005 | Qualification |
+| --- | ---: | ---: | --- |
+| GIT parent entry/grid | 6.799 | 6.048 | 1627 rows, configured5000 page |
+| GIT child chart | 4.362 | 2.873 | Genuine empty shipment charts |
+| Expedite parent chart | 13.064 | 3.629 | Approved own-label correction |
+| Expedite child chart | 4.265 | 2.984 | Approved own-label correction |
+| Excess grid | 26.242 | 3.058 | 5000 of9871; corrected legacy observer |
+| Fulfillment grid | >55.100, observed ready by89.611 | 5.058 | 5000 of12720; legacy exact completion time unknown |
+| Parent dispatch grid | 31.328 | 14.122 | 1030 rows; full nested response retained |
+| Parent availability grid | 21.476 | 9.264 | 1443 rows; modern still materially slow |
+
+GIT child's corrected1627-row grid takes2.796s; invalid legacy combined SQL means
+there is no valid equivalent legacy populated-grid timing. The first legacy
+Excess observer failed only its comma-formatted total check; retain it separately,
+not as first-usable timing. Legacy Fulfillment stayed loading at55.1s and the same
+request later populated; no retry or falsely precise time. Evidence and source
+pointers: `acceptance-continuation/consolidated.json`, raw browser snapshots,
+screenshots and both restored resource receipts. Existing passing charts/exports
+remain reused. No performance code change was made in this continuation.
+
+This closes the six named chart-order discrepancies under the explicit exception
+and supplies the missing bounded observations above. It does not confer general
+independent ordered-wire acceptance on other consumers (notably Parent's97097
+nested transit rows, whose retained proof is a bag comparison), positive shipment
+support, or the deferred historical modal baseline. Full goal remains unproved;
+next audit must reconcile those exact remaining consumer contracts without
+repeating this completed measurement pass.
+
 ### Delivered report-defect correction amendment — 5 October 2026
 
 Direct human instruction verified in controller thread
