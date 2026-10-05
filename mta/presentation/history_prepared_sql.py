@@ -6,7 +6,7 @@ from mta.presentation import fixture, hierarchy, history_native
 from mta.presentation.context import permission_catalogue, scope, PublicationUnavailable
 from mta.presentation.history_preparation import RUN_ID, recipe_digest, source_signatures, verify_guards
 from mta.presentation.rrr import sql_key
-from mta.presentation.rrr_sql import equal
+from mta.presentation.rrr_sql import equal, key
 from mta.presentation.selective import image_metadata, image_query, image_rows
 from mta.runtime.models import (
     BufferGraphPreparedMembership, HistoryPreparedProjection,
@@ -202,12 +202,24 @@ def read_graph(run, payload, *, columns, filters, where, attributes, manifest, p
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         ctes.append(alias + ' AS (VALUES ' + ','.join(['(%s)'] * len(members)) + ')'); params.extend(members)
     table = 'mta.' + quote(BufferGraphPreparedMembership._meta.db_table)
+    source_keys = ((key('A."SKUCode"'), 'M.sku_key'),
+                   (key('A."WhCode"'), 'M.location_key'))
+    indexed_filter = any(source in where for source, _ in source_keys)
     joins = (' FROM (SELECT * FROM ' + table + ' WHERE run_id=%s AND family=%s) M'
              + ' JOIN A ON A.vf_ordinal=M.history_ordinal'
              + ' JOIN sa ON sa.vf_ordinal=M.sku_ordinal JOIN la ON la.vf_ordinal=M.location_ordinal'
              + ' LEFT JOIN sla ON sla.vf_ordinal=M.pair_ordinal'
-             + ' JOIN P ON ' + equal('A."SKUCode"','P.column1')
-             + ' JOIN L ON ' + equal('A."WhCode"','L.column1'))
+             + ' JOIN P ON ' + ('M.sku_key=' + key('P.column1') if indexed_filter
+                               else equal('A."SKUCode"','P.column1'))
+             + ' JOIN L ON ' + ('M.location_key=' + key('L.column1') if indexed_filter
+                               else equal('A."WhCode"','L.column1')))
+    # The sealed graph recipe stores these exact SQL-normalized source keys.
+    # Qualify the indexed membership before fetching wide history rows. Keep the
+    # original predicate structure, including the canonical unparenthesized OR.
+    # Leave the already measured unfiltered Tech/Eco access path unchanged.
+    if indexed_filter:
+        for source, prepared in source_keys:
+            where = where.replace(source, prepared)
     child_params = []
     if filters.children:
         joins += (' JOIN la parent ON ' + equal('A."ParentWhCode"','parent."WHCode"') + ' AND ('

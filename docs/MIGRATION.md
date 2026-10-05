@@ -27,7 +27,7 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Buffer Trends bounded pass; filtered performance criterion remains open
+### Buffer indexed-filter correction deployed; performance acceptance remains open
 
 The human now instructs: “begin with the Buffer, we keep this version of RRR.”
 Resume only Buffer Trends (Tech/Eco chart page). Retain RRR's restored08f58e4
@@ -45,46 +45,63 @@ no new matrix, baseline, legacy/resource/modal campaign, engines, auth or RRR
 changes. Complete required affected verification/deployment, restore temporary
 instrumentation, consolidate the three-report handoff and commit/push.
 
-The bounded continuation is now finished. No additional reader, schema or
-frontend mutation was justified. The deployed history reader matches the retained
-proof source (SHA256f410476b…2bbe); RRR remains exactly08f58e4. Research is unchanged.
+The subsequently authorized focused investigation/correction/final check is
+finished (6 October2026 local time). A measured filtered aggregate cost1.034s in
+the diagnostic; EXPLAIN showed a parallel scan of the dispatch membership despite
+the SKU predicate. The reader now qualifies stored normalized membership keys
+through the existing buffer_graph_member_keys index before ordinal history
+fetches. Only requests with an existing SKU/location key predicate use this path.
+Unfiltered SQL is byte-identical to08f58e4; the bare OR predicate/parameter order
+is unchanged. No schema, preparation, frontend or permission mutation occurred.
+Deployed reader SHA25698af535b…1b7a; RRR remains exactly08f58e4 and Research unchanged.
 
 | Buffer requirement | Final bounded result |
 |---|---|
-| Complete graph data | Reuse all23 exact history-family responses, including nine Buffer broad/restricted/filter/empty cases. No values, types, NULLs, duplicates, source or membership changed. |
+| Complete graph data | All nine complete frozen Buffer broad/restricted/filter/empty responses revalidated exactly on the final candidate. Both empty-scope HTTP403 denials remain separate from the frozen empty reader results. Reuse unchanged Research cases from the23-case family proof. No values, types, NULLs, duplicates, source or membership changed. |
 | Tech/Eco usable screen | Retained30-day observations: Tech20.689→9.546s; Eco17.644→12.797s. Reuse these passing observations; no fresh timing campaign. |
-| Supported populated filter | Eco/SKU21101151051000/30days/Absolute: retained before1.091s, first after1.326s, final attributable observer correction1.314s. Correct seven-series chart,353 Black summary,100% Black and0% availability. **Improvement criterion is unmet.** |
+| Supported populated filter | Eco/SKU21101151051000/30days/Absolute: retained before1.091s; earlier failed1.326/1.314s retained; one final indexed-candidate trial1.853s. Correct seven-series chart,353 Black summary,100% Black and0% availability. **Improvement criterion is unmet.** |
 | Controls/summary/horizon | Both broad Tech/Eco modes toggle Absolute/Percentage using loaded data. Summaries and91.78/94.74% availability match retained responses. Submitting1day while in Percentage refreshes the chart to07-Apr-2026,100 Total,12 Black summary and0% availability; Absolute then shows12 Total. No stale30-day plot or doubled Total. This is a functional check, not another horizon benchmark. |
 | Expanded view | No existing expansion control exists in either retained chart component or visible page. The unlabeled floating-tab button is its indicator, not an expansion action. Coverage is unavailable; no new UI feature was invented. |
-| Operation | Current admission5c90ae58…3e7 and readyz pass;48 protected containers unchanged. Nginx restored exactly to SHA256d1a70598…dc2a. Reuse the11-test integrated frontend proof; no code/schema change requires a new build or migration. |
+| Operation | Backend build/startup admission,15 focused tests, query-boundary proof and nine-response PostgreSQL proof pass. Current admission5c90ae58…3e7 and readyz pass;48 protected containers unchanged. Nginx restored exactly to SHA256d1a70598…dc2a. Reuse unchanged11-test integrated frontend proof; no frontend build or migration needed. |
 
 **Consolidated Buffer blocker:** the strict requirement that every changed
 latency journey improve over its own before is not satisfied for
 `GetBufferTrendGraphData`, Eco/30days/SKU21101151051000. Final screen readiness
-is1.314s versus1.091s before (+223ms); the single traced API request returns200,
-4605 transferred bytes and costs1.092s upstream. The remaining approximately222ms
-includes browser/control/observation overhead and is not a measured render-only
-duration. Complete output correctness is proved. No favourable resampling,
-unexplained index, weakened acceptance or additional resource change follows.
-A further latency correction needs an attributable decomposition of this request;
-expanded-view acceptance separately needs a scope decision because the retained
-page has no such control. Stop this bounded pass here; no adjacent page opens.
+is1.853s versus1.091s before (+762ms); the one final traced API request returns200,
+4605 transferred bytes and costs1.467s (1.466s upstream). The remaining386ms
+includes browser/control/observation overhead, not a measured render-only duration.
+The index access path is proved, but its complete deployed latency improvement
+is not. Further correction needs attributable gateway/admission/assembly/SQL
+timing for this same path; cause of the residual cost/variation is not established.
+Complete output correctness remains proved. No favourable resampling, weakened
+acceptance or resource increase follows. The explicit focused allowance is
+consumed; stop at this consolidated blocker. Expanded-view coverage remains
+unavailable because the retained page has no such control; no feature was added.
+No adjacent page opens and the goal is not claimed complete.
 
 Retained-trace follow-up (no new requests): before-request-timing.jsonl records
 the filtered API at0.865s; buffer-final-request-timing.jsonl records1.092s, both
 200/4605 transferred bytes. The227ms API increase accounts for the223ms observed
 screen increase; the residual screen/observation interval is226ms before versus
 222ms final. This attributes the remaining gap to the request path, not a
-demonstrated chart-render regression. Admission/dimension setup and SQL execution
-are not separately timed in these traces; no root cause or index fix is claimed.
-One focused filtered-API correction/final observation extension has been requested
-because the plan's finite measurement allowance is consumed. It is not yet
-authorized. RRR and all serving code remain unchanged.
+demonstrated chart-render regression. These pre-correction traces did not separate
+admission/dimension setup and SQL execution. The focused profile subsequently
+identified the membership scan above; it is a diagnostic, not another browser
+baseline or percentile claim. The first proof harness incorrectly compared
+authenticated empty-scope denial against unwrapped frozen reader responses;
+that failure and original harness are retained. Its correction asserts the403
+boundary separately and preserves exact reader comparison. The first unrestricted
+key-join candidate is also retained; the final build confines the new path to
+existing key predicates to preserve already measured unfiltered Tech/Eco SQL.
 
-`buffer-delivery.json`, `buffer-filter-final.json`, final chart/control screenshots,
-AX states and `buffer-final-request-timing.jsonl` consolidate this continuation
-under the existing evidence root. The previously failed/nonimproving observations
-remain retained. RRR203bc68 is kept at the human's explicit instruction.
+`buffer-delivery.json` consolidates the latest three-report handoff, with the
+initial pass preserved in buffer-delivery-initial-pass.json. Focused profile,
+before/indexed SQL plans, query-boundary proof,15-test log, nine-response proof,
+final browser JSON/screenshot and buffer-indexed-final-request-timing.jsonl are
+under the same evidence root. A subsequent /api/user/logout/ request occurs after
+the measurement; no403 occurred in the matched graph request and no attribution
+to this reader is inferred. RRR203bc68's implementation is kept exactly; the
+current backend image contains only the additional bounded Buffer correction.
 
 | Research requirement | Verified result |
 |---|---|

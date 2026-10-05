@@ -11,7 +11,8 @@ At the human's request, RRR now uses the prior08f58e4 reader, not2e74a36's
 narrow qualification/page reconstruction. The rollback backend is
 `freshvcf-preview-mta:rrr-rollback-08f58e4-20261005-001`, configuration identity
 `sha256:abe3866ebbf9e0c59bb40f7a438e04c83502f0693e0270387fc897df2e0cbe70`.
-The existing `compose.batch.json` points to it; `rrr-rollback.ps1` retains the
+That tag is retained as the prior backend rollback target. The current Buffer
+image below preserves this exact RRR reader; `rrr-rollback.ps1` retains the
 complete overlay chain and deploys only MTA. Frontend, selected fixture and
 serving flags are unchanged. No preparation or schema rollback is required.
 `rrr-rollback-receipt.json` records31 focused tests, startup admission, runtime
@@ -21,15 +22,27 @@ future authorization are recorded only in MIGRATION.md.
 
 ## Research / RRR / Buffer Trends operations — 5 October 2026
 
-The latest bounded Buffer continuation reuses the deployed prepared graph reader
-and its23-case full-response proof; no new image, schema or preparation is needed.
-`buffer-delivery.json` consolidates the remaining functional controls, supported
-filter observation and runtime/restoration evidence. Tech/Eco timings improved;
-the filtered latency criterion remains unmet (1.314s versus1.091s before). The
-retained chart page has no expansion control. MIGRATION.md records these exact
-limits; do not infer complete performance acceptance or open another page.
-Keep the current RRR rollback image and all three explicit serving flags. Research
-remains accepted. The user's Excel confirmations remain the export evidence.
+The latest focused Buffer correction (6 October local time) uses the existing
+normalized membership index for key-filtered graph requests. Unfiltered SQL,
+predicate structure, multiplicity and live scope decisions remain unchanged.
+All nine complete frozen Buffer responses, two empty HTTP denials,15 focused
+tests and query-boundary checks pass. No schema or preparation change is needed.
+`buffer-delivery.json` consolidates this with the retained Research and RRR proofs.
+The one final filtered trial is1.853s versus1.091s before: performance acceptance
+remains open despite the proved index path. The retained chart page has no
+expansion control. MIGRATION.md records these exact limits; do not infer full
+acceptance or open another page. User Excel confirmations remain export evidence.
+
+Current `compose.batch.json` selects
+`freshvcf-preview-mta:buffer-indexed-keys-20261005-002`, runtime image identity
+`sha256:6cdb9a3e37dda19b3d629541bc567af6e56eb9fd3f11fd699ce63c6f8faeea67`
+(build configuration52ae144f…c8e0). `buffer-deploy.ps1 deploy` uses the complete
+existing overlay chain and replaces only MTA. Startup admission and readyz retain
+5c90ae58…3e7; frontend and48 protected containers are unchanged. Keep all three
+explicit serving flags. RRR reader remains the08f58e4 source/blob/hash described
+above; Research remains accepted. To restore the prior backend, select the
+retained rrr-rollback-08f58e4-20261005-001 tag in this same owned overlay and use
+the same MTA-only deployment path. Do not change source, memberships or flags.
 
 This bounded reader batch uses the retained April7 fixture run
 `bfd75b4b-a9df-4a08-82d3-852e3324b623`, source digest
