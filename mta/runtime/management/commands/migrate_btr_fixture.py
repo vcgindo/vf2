@@ -11,6 +11,8 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
+        parser.add_argument('--planning-excess-index', action='store_true',
+                            help='Apply only the Excess run/date covering index after Planning charts')
         parser.add_argument('--planning-expedite-charts', action='store_true',
                             help='Apply only Expedite chart ingredients after custom references')
         parser.add_argument('--planning-expedite-custom', action='store_true',
@@ -43,7 +45,8 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0035_planning_expedite_charts' if options['planning_expedite_charts'] else
+        target = ('0036_planning_excess_date_index' if options['planning_excess_index'] else
+                  '0035_planning_expedite_charts' if options['planning_expedite_charts'] else
                   '0034_planning_expedite_custom' if options['planning_expedite_custom'] else
                   '0033_planning_expedite_transit' if options['planning_expedite_transit'] else
                   '0032_planning_expedite_grid_occurrences' if options['planning_expedite_grids'] else
@@ -58,6 +61,9 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['planning_excess_index'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name != '0036_planning_excess_date_index' for migration, backwards in plan):
+            raise CommandError('Planning Excess index requires the Planning chart baseline')
         if options['planning_expedite_charts'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name != '0035_planning_expedite_charts' for migration, backwards in plan):
             raise CommandError('Planning Expedite charts require the custom baseline')
@@ -88,6 +94,7 @@ class Command(BaseCommand):
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
+                *(['0036_planning_excess_date_index'] if options['planning_excess_index'] else []),
                 *(['0027_planning_derived_sources'] if options['planning_sources'] else []),
                 *(['0032_planning_expedite_grid_occurrences'] if options['planning_expedite_grids'] else []),
                 *(['0033_planning_expedite_transit'] if options['planning_expedite_transit'] else []),

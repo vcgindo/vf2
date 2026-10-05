@@ -68,6 +68,61 @@ This is connection/readiness, not six-destination functional/performance closure
 Active next step: inspect connected destinations and their supported grids/details,
 then retain the bounded final comparison and precise unavailable dependencies.
 
+Priority amendment: direct human feedback in controller turn
+`01a10998-32f1-73a3-96af-053ae78f2a58` confirms Excess and Fulfillment graphs and
+Excel downloads working on3005. Freeze those passing surfaces; no further graph
+or export proofs. Prioritize measured connected-grid latency, in order:
+Expedite From Parent / `createAvailabilityAtParent` (the existing label is
+“Create Availability At Parent”), Excess normal grid, Fulfillment normal grid.
+Use the deployed prepared relations, one attributable trace and focused proof/
+connected correction check per changed grid. Preserve configured5000-row paging,
+complete values/nested fields, live scopes/filters and existing contract order.
+The observed late column-config request rendered previous-grid headings before
+the new definitions arrived; its bounded frontend correction is building.
+No additional baseline campaign. Child GIT has1627 aggregate location occurrences
+but genuinely empty transporter/shipment data. Its displayed default charts are
+shipment-based; Grid View requests the inherited invalid combined207/8120
+consumer and fails explicitly. This contract dependency is not an empty dataset
+and cannot be silently repaired. Continue the three independent grid corrections.
+
+Further direct human additions relayed by the controller retain the same goal:
+fix the initial Planning landing latency and Fulfillment grid row-icon Daily Data
+Graph latency, without reopening accepted overview graphs/exports or DBM/BTR
+modal work. Active shared/parent correction: the connected landing reload took
+24.6s (automation upper bound). Its one backend trace found seven repeated
+producer-attribute/permission expansions (about3.1s combined of8.6s profiled
+overview work). Reuse that exact request-local expansion across ten totals;
+retain each consumer's admission and count grain. Parent Expedite's configured
+5000-row request retains1030 dispatch rows,1443 availability rows and97097 nested
+transit rows (8.97MB JSON). Trace found0.67s JIT compilation in the main page query
+and1.07s sorting the unchanged nested transit output. Disable only that query's
+JIT with transactional restoration; compress only the Planning grid endpoint's
+unchanged JSON. No row/field removal, scope change or new persisted population.
+Excess/Fulfillment grid corrections and the selected-row modal remain required
+after the shared/parent exit; bounded read-only modal caller diagnosis may proceed
+independently. Resource-final-002 restored all limits with zero restoration errors.
+
+Shared/parent correction checkpoint: latency001 images are deployed and ready;
+all21 protected resources are unchanged. Generated additive migration0036 adds
+`fresh_excess_run_date (run_id, ReportDate) INCLUDE (SKUCode, WhCode)` and was
+applied through the exact guarded fixture allowlist. Django check, model-state
+check, migration plan, physical index validity and source guard checks pass.
+The traced landing custom-count query now uses the index:338ms versus3863ms,
+removing the historical921652-row scan. Complete ten-total reference checks
+pass for broad, leaf and empty scopes, retaining string types and multiplicity.
+One connected landing reload reached all visible totals in3.691s versus the
+retained24.641s observation (automation upper bounds, normal restored limits).
+Parent availability grid displayed1443rows with correct headings at4.921s after
+Grid View, retaining5000-page configuration; loader toast dismissal was observed
+separately and is not a clean timing. Complete parent response proof preserved
+every field/order and97097 nested transit rows; JIT setting restoration passes.
+Evidence: `excess-index-{migration,proof}.txt`, `overview-index-proof.txt`,
+`landing-latency-after.{json,png}`, `parent-grid-latency-after.{json,png}` and
+`parent-correction-proof.txt` under the Planning evidence directory.
+This closes the bounded shared/parent correction checkpoint, not matched legacy
+performance acceptance. Active next: diagnose and correct normal Excess grid,
+then Fulfillment grid and its selected-row modal. Passing graphs/exports stay frozen.
+
 Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
 covers all six destinations and their existing supported reads/exports. Read-only
 retained SQL comparison proves complete derived BPR master bag97,097 and GIT

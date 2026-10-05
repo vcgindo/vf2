@@ -13,7 +13,7 @@ from mta.runtime.models import PlanningGitMasterRow
 from mta.runtime.relational_state import quote
 
 
-def grid(run,payload,*,count=False,overview=False):
+def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     from mta.presentation.git_read import validate_filters,NORMAL_COLUMNS
     from mta.presentation.excess_read import pagination
     kind=str(payload.get('type','')).lower()
@@ -22,7 +22,7 @@ def grid(run,payload,*,count=False,overview=False):
     occurrence,params=admitted_git(run)['row'];params=list(params)
     master,values=admitted_sources(run)['git_master']
     if bpr_ancillary(run)['InTransitData']:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
-    importer,manifest=_projected_attributes(run)
+    importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:raise PublicationUnavailable('planning_git_native_hierarchy_required')
     validate_filters(payload,SimpleNamespace(attributes=importer),child_count=count and kind=='child')
     if kind=='child' and not count:
@@ -32,7 +32,7 @@ def grid(run,payload,*,count=False,overview=False):
     if overview:
         if not count:raise ValueError('Overview requires GIT count')
         where+=' AND H.grid_eligible'
-    products,locations=scope(payload,attributes=importer)
+    products,locations=scope(payload,attributes=importer) if resolved_scope is None else resolved_scope[2:]
     config=[dict(header=h,colCode=c,colPosition=p) for h,c,p in NORMAL_COLUMNS]
     if not products or not locations:
         return [dict(locationwise=0,**({'transporterwise':0} if kind=='child' else {}))] if count else dict(data=[],uiConfig=config)

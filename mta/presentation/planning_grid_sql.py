@@ -63,9 +63,9 @@ class GridFilters(Filters):
         return ' AND '.join(self.where) or 'TRUE'
 
 
-def read_grid(run, payload, *, family, paging, count=False):
+def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None):
     relation, relation_params = admitted_grids(run)[family]
-    importer, manifest = _projected_attributes(run)
+    importer, manifest = _projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:
         raise PublicationUnavailable('planning_grid_native_hierarchy_required')
     if family == 'excess':
@@ -82,7 +82,7 @@ def read_grid(run, payload, *, family, paging, count=False):
         where = filters.compile()
     except PublicationUnavailable as exc:
         raise PublicationUnavailable('LEG-' + family.upper() + '-FILTER-INVALID-SQL:' + str(exc).partition(':')[2]) from exc
-    products, locations = scope(payload, attributes=importer)
+    products, locations = scope(payload, attributes=importer) if resolved_scope is None else resolved_scope[2:]
     if not products or not locations:
         return 0 if count else []
     ctes, params = ['H AS (' + relation + ')'], list(relation_params)

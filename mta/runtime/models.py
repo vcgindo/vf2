@@ -426,6 +426,8 @@ class ExcessInventoryRow(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run','ordinal'],name='fresh_excess_ordinal')]
+        indexes = [models.Index(fields=['run', 'ReportDate'],
+                               include=['SKUCode', 'WhCode'], name='fresh_excess_run_date')]
 
 
 class FulfillmentProjection(models.Model):

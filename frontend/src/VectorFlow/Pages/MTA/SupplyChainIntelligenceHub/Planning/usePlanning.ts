@@ -196,10 +196,12 @@ const usePlanning = ()=>{
     const {mutateAsync: getUIConfig}  = useGetUIConfigData();
 
     const [gridColDefs,setGridColDefs] = useState<any>([]);
+    const columnRequest = useRef(0);
 
     const getAllUIConfig = async(category:string,tab:string) => {
-
-        
+        const request = ++columnRequest.current;
+        setGridColDefs([]);
+        if (!category) return;
         let coldefs:any = [];
         try {
             switch (category) {
@@ -282,10 +284,11 @@ const usePlanning = ()=>{
             }
             }
         } catch (error: any) {
+            if (request !== columnRequest.current) return;
             console.log(error);
             notifyError(error);
         }
-        setGridColDefs(coldefs?.data?.data);
+        if (request === columnRequest.current) setGridColDefs(coldefs?.data?.data ?? []);
     }
 
 
@@ -296,11 +299,14 @@ const usePlanning = ()=>{
             currentCategory:currentCategory,
             currentView:currentView
         }))  
-        if(currentView==='grid'){
-            getAllUIConfig(currentCategory,currentTab);
-        }
-
     },[currentCategory,currentTab,currentView])
+
+    // Resolve columns alongside destination data, before the grid opens. A late
+    // response from the previous destination must never relabel the new rows.
+    useEffect(()=>{
+        getAllUIConfig(currentCategory,currentTab);
+        return () => { columnRequest.current++; };
+    },[currentCategory,currentTab])
 
    
     const getFloatingTabsList = (view:string) => {

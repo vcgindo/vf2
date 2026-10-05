@@ -1,7 +1,7 @@
 """SQL parent Expedite grid over prepared occurrences and nested-transit matches."""
 from copy import deepcopy
 from decimal import Decimal
-from django.db import connection
+from django.db import connection, transaction
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.context import PublicationUnavailable, scope
 from mta.presentation.expedite_parent import parent_filter
@@ -29,9 +29,9 @@ DISPLAY.update({p+str(i):'H.'+p+str(i) for p in ('sl','ll') for i in (1,2,3)})
 FIELDS = [*ALIASES,*DISPLAY]
 
 
-def selected_parent(run,payload,*,child=False,count_direction=None):
+def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scope=None):
     """One complete scope/filter relation shared by paging and nested transit."""
-    importer, manifest = _projected_attributes(run)
+    importer, manifest = _projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:
         raise PublicationUnavailable('planning_expedite_native_hierarchy_required')
     if child:
@@ -45,7 +45,7 @@ def selected_parent(run,payload,*,child=False,count_direction=None):
         supply['filters'] = [item for item in supply['filters'] if item.get('attributeName','').lower() != 'forchildren']
     filters = ExpediteFilters(filtered,'expedite-parent',ExpediteRow)
     where = filters.compile()
-    products, locations = scope(payload,attributes=importer)
+    products, locations = scope(payload,attributes=importer) if resolved_scope is None else resolved_scope[2:]
     relation, params = admitted_expedite_grids(run)['row']; params = list(params)
     standard, values = image_query(run,'closing/dbm/SKULocStandardAttributes')
     ctes = ['H AS ('+relation+')','S AS NOT MATERIALIZED ('+standard+')'];params.extend(values)
@@ -90,14 +90,14 @@ def selected_parent(run,payload,*,child=False,count_direction=None):
     return 'WITH '+','.join(ctes)+' '+selected,params
 
 
-def counts(run,payload):
+def counts(run,payload,*,resolved_scope=None):
     direction=str(payload.get('type','')).casefold()
     if direction not in ('parent','child'):
         raise ValueError('Unsupported Expedite direction')
     availability=(payload.get('filters') or {}).get('availabilityFilter') or {}
     if any(item.get('attributeName','').lower()=='norm' for item in availability.get('filters',[])):
         raise PublicationUnavailable('expedite_count_norm_filter_contract_unverified')
-    selected,params=selected_parent(run,payload,child=True,count_direction=direction)
+    selected,params=selected_parent(run,payload,child=True,count_direction=direction,resolved_scope=resolved_scope)
     result=dict(expediteDispatches=0,createAvailabilityAtParent=0)
     with connection.cursor() as c:
         c.execute('WITH selected AS ('+selected+') SELECT branch,sum(weight)::integer FROM selected GROUP BY branch',params)
@@ -113,7 +113,12 @@ def parent_grid(run,payload):
     if paging is None:
         raise PublicationUnavailable('LEG-EXPEDITE-PARENT-UNPAGED-SQL156: legacy empty-success; NOT_PARITY')
     selected, params = selected_parent(run,payload)
-    with connection.cursor() as c:
+    with transaction.atomic(), connection.cursor() as c:
+        # Compilation dominates this bounded prepared-row query. Preserve the
+        # caller's setting, including callers that already own a transaction.
+        c.execute("SELECT current_setting('jit')")
+        previous_jit = c.fetchone()[0]
+        c.execute('SET LOCAL jit=off')
         c.execute('WITH selected AS ('+selected+') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk '
                   'HAVING count(DISTINCT ROW('+','.join(map(quote,FIELDS))+'))>1 LIMIT 1',params)
         if c.fetchone():
@@ -125,6 +130,7 @@ def parent_grid(run,payload):
         c.execute(query,[*params,(paging[0]-1)*paging[1]+1,paging[0]*paging[1]])
         names = [column[0] for column in c.description]
         rows = [dict(zip(names,row)) for row in c.fetchall()]
+        c.execute("SELECT set_config('jit',%s,true)",[previous_jit])
     result = dict(expediteDispatches=[],createAvailabilityAtParent=[])
     for row in rows:
         target = 'expediteDispatches' if row.pop('branch') == 'dispatch' else 'createAvailabilityAtParent'

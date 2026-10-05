@@ -18,6 +18,10 @@ def counts(run,payload):
     importer,manifest=_projected_attributes(run)
     if manifest:raise PublicationUnavailable('planning_overview_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
+    # All ten totals share this request's actor and producer attributes. Reuse
+    # that exact permission expansion; each consumer retains its own admission,
+    # direction, eligibility and multiplicity. Nothing survives the request.
+    resolved_scope=(importer,manifest,products,locations)
     custom=dict(expedite=0,excess=0,fulfillment=0)
     if products and locations:
         ctes,params=[],[]
@@ -40,10 +44,10 @@ def counts(run,payload):
     git={};expedite={}
     for direction in ('parent','child'):
         selected=dict(payload,type=direction)
-        git[direction]=git_grid(run,selected,count=True,overview=True)[0]['locationwise']
-        expedite[direction]=expedite_counts(run,selected)['expediteDispatches']
-    excess=read_grid(run,payload,family='excess',paging=None,count=True)
-    fulfillment=read_grid(run,payload,family='fulfillment',paging=None,count=True)
+        git[direction]=git_grid(run,selected,count=True,overview=True,resolved_scope=resolved_scope)[0]['locationwise']
+        expedite[direction]=expedite_counts(run,selected,resolved_scope=resolved_scope)['expediteDispatches']
+    excess=read_grid(run,payload,family='excess',paging=None,count=True,resolved_scope=resolved_scope)
+    fulfillment=read_grid(run,payload,family='fulfillment',paging=None,count=True,resolved_scope=resolved_scope)
     return [dict(category='git/wip',parentCount=str(git['parent']),childCount=str(git['child']),custom='0'),
         dict(category='expedite',parentCount=str(expedite['parent']),childCount=str(expedite['child']),custom=str(custom['expedite'])),
         dict(category='excessInventory',reviewCount=str(excess),custom=str(custom['excess'])),
