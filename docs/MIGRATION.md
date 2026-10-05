@@ -27,6 +27,47 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
+### Completed focused performance investigation — 5 October 2026
+
+Direct human authorization in this thread extends the exhausted measurement
+allowance for one focused investigation and final measurement of Planning Excess,
+Fulfillment and the selected-row Daily Data Graph modal. Reuse the deployed
+prepared data, accepted chart/export proofs and retained reference evidence.
+Trace request/query/serialization/transfer/frontend rendering before changing a
+measured bottleneck; preserve full5000-row pages, values, nested rows, scopes,
+ordering, engines and permissions. The exit is a corrected observable final
+usable-screen measurement with request attribution and restored resource limits,
+or a precise evidenced blocker. This amendment supersedes only the prior repeat
+measurement restriction for these three paths. SQL defects, ambiguous labels and
+independent ordered-wire parity remain unaccepted and outside this amendment.
+
+The authorized pass is complete. Retained backend profiles measure count readers
+at0.934s Excess/0.664s Fulfillment and selected modal read at0.215s; no new SQL
+or index bottleneck justifies a speculative change. Final authenticated3005
+observations at1280x720 under the existing matched-resource caps:
+
+| Path | Click to usable screen, automation upper bound | Correlated request times |
+| --- | --- | --- |
+| Excess normal grid |3.058s;5000 rows,total9871 |count1.601s,grid2.073s,columns2.266s |
+| Fulfillment normal grid |5.058s;5000 rows,total12720 |count1.465s,grid2.993s,columns2.570s |
+| Fulfillment selected modal |1.322s;SKU21125076009000/P064,eight series,14-day slider |DailyDataGraph0.597s |
+
+These are single observable modern measurements, not percentiles or matched
+legacy improvements. Retained legacy destination timings cover chart entry,
+not these grid toggles, and cannot be substituted. No code change was justified
+by this trace; the existing deployed correction remains. Request timings include
+gateway work; the residual includes rendering and automation observation and is
+not a pure frontend CPU measurement. Existing complete-response proofs are reused.
+The first Excess observer incorrectly required `SKU Code` rather than the actual
+`SKU code`, timed out and reset the browser tool. Its requests succeeded after a
+normal token refresh; the failed observation is retained, not reported as latency.
+One corrected full-snapshot observation avoids both casing and AX-diff pitfalls.
+Both resource windows restored with zero errors; temporary body-free nginx timing
+configuration was restored byte-for-byte. No image/data/auth changes occurred.
+Evidence: `planning-prepared-20261005-001/performance-extension/consolidated.json`,
+request log, raw browser observations/screenshots, restoration receipts and
+`profile-focused-extension.json` in the parent evidence directory.
+
 ### Active: six-destination Planning prepared-presentation delivery
 
 Direct human instruction verified in controller thread01a1037c-5d96-7700-87a8-89a575f6c9f8,
@@ -186,7 +227,7 @@ or matched performance. Original row identity/race/ready-only tests remain valid
 The CAPTCHA/login dependency is resolved; do not request it again for this session.
 
 Consolidated remaining decisions after the bounded pass:
-- Performance: Excess's final observer used a wrong formatted count; Fulfillment's
+- Performance (superseded for modern observations by the authorized amendment above): Excess's final observer used a wrong formatted count; Fulfillment's
   observer timed out despite matching visible content. Modal's one attributable
   repair recheck is functional but8.192s. No valid final matched usable-screen
   claim exists for these paths. The plan permits at most one diagnostic/recheck
@@ -215,8 +256,8 @@ proof boundaries. Evidence root: `planning-prepared-20261005-001`.
 | GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Combined Grid View retains canonical SQL207/8120 failure; no invented empty-grid success |
 | Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; unpaged SQL156 dependency retained |
 | Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Chart formatter ambiguity remains explicit; no chart performance success. Independent ordered-wire gate remains open |
-| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page proof passes; latency003 deployed and complete gateway response proved; corrected browser grid proved; final timing invalid (observer), performance unaccepted |
-| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete JIT-corrected page/nested proof passes. Shared ready-only row-modal wiring tested; latency003 built/deployed with complete gateway response proof; grid and repaired modal/horizon browser functions proved; final timing/performance unaccepted |
+| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page/gateway proof passes; final modern usable grid3.058s. Equivalent legacy grid timing remains unproved |
+| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete page/nested/gateway proof passes. Ready-only modal/horizon functions proved; final modern grid5.058s,modal1.322s. Equivalent legacy comparisons remain unproved |
 
 All six have retained source/reader proofs as detailed below, but these do not
 establish complete independent legacy ordered-wire parity. The16 Expedite SQL

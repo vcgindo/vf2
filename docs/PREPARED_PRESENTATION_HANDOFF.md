@@ -512,3 +512,13 @@ at P064, real chart data and14→30day horizon. API timings are not browser timi
 Observer failures and the8.192s modal observation remain retained and unaccepted
 as performance proof. User-confirmed Excess/Fulfillment graphs and XLSX exports
 are reused. Daily refresh automation remains outside this one-time preparation.
+
+The human-authorized focused extension on5 October supplies valid modern
+usable-screen observations: Excess3.058s,Fulfillment5.058s,selected modal1.322s.
+See `planning-prepared-20261005-001/performance-extension/consolidated.json` for
+request correlation and resource restoration. Existing5000-row pages and totals
+are preserved. These are automation upper bounds, not matched legacy grid gains;
+legacy chart-entry timings are not equivalent reference journeys. The failed
+Excess observer/casing check is retained separately. No application code or image
+changed during this investigation; temporary nginx instrumentation was restored
+byte-for-byte and both resource windows report RESTORED with zero errors.
