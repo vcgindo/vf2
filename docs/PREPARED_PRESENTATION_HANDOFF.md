@@ -516,7 +516,8 @@ use verification when operationally needed, not a reload. Normal fresh databases
 use real Django migrations; this sealed fixture uses the exact forward allowlist
 in `migrate_btr_fixture`. Never fake history or disable source guards manually.
 
-Serving images use `planning-grid-latency-20261005-003` for backend/frontend.
+The earlier latency checkpoint used `planning-grid-latency-20261005-003` for
+backend/frontend. The final backend and operational overlay are recorded below.
 The final frontend caller repair has immutable image ID
 `sha256:725f04d6d8b9117188bea286fdb28d33b4730c2371d311ad357a4d337b01637c`;
 the tag was rebuilt, so use the retained deployment receipt for exact identity.
@@ -546,3 +547,77 @@ legacy chart-entry timings are not equivalent reference journeys. The failed
 Excess observer/casing check is retained separately. No application code or image
 changed during this investigation; temporary nginx instrumentation was restored
 byte-for-byte and both resource windows report RESTORED with zero errors.
+
+## Final Planning operational handoff, 5 October 2026
+
+The finite April7 six-destination batch is delivered on3005 with its exact approved
+report/order exceptions. The user currently confirms all Excel downloads and
+instructs no further exploration. Reuse that confirmation, the accepted graphs
+and the retained full-response proofs; no new export/benchmark campaign is needed.
+Current status and the six-destination matrix are exclusively in MIGRATION.md.
+This does not accept other-date/positive-shipment behavior, action workflows or
+the deferred historical Daily Data Graph baseline.
+
+Final backend: `freshvcf-preview-mta:planning-report-corrections-20261005-001`,
+immutable image `sha256:fb08d8e5ede9ec7fde36e432836d3db5d1c44b0a2e34c948c79b3513127acaf4`.
+Frontend remains `freshvcf-preview-frontend:planning-grid-latency-20261005-003`,
+immutable image `sha256:725f04d6d8b9117188bea286fdb28d33b4730c2371d311ad357a4d337b01637c`.
+`report-corrections/deploy-receipt.json` proves admission, readiness, unchanged
+ports/restart/caps and22 protected containers unchanged. Backend4GiB/2CPU,
+two workers, restart=no, no host mapping; only the existing frontend3005 endpoint
+is exposed. PostgreSQL returns to its normal1GiB/1CPU budget. All comparison
+windows restored without errors; nginx was restored byte-exact.
+
+Use `report-corrections/deploy.ps1 -Action deploy` only for an authorized redeploy
+of this checkpoint; it retains the complete existing overlay chain and changes
+only the owned MTA service. Its `build`/`admit` actions are separate. Do not run
+deployment or preparation merely to consume the already-serving fixture.
+For a coordinated rollback, use the earlier latency003 backend image from
+`deploy-latency-receipt.json` with the same fixture/portfolio/BPR/Guided/modal
+overlay chain, omitting only the final report-corrections image overlay.
+Retain the current frontend unless its caller change is separately rolled back.
+Recheck readyz/admission after any authorized rollback; that earlier backend
+restores the known child-GIT/unpaged-Parent/label limitations. Leave additive
+prepared rows/indexes, sealed source data and other services intact.
+
+Preparation is already complete and source-bound. The nine commands listed
+above are the repeatable one-time loader path, not a daily scheduler. Use their
+`--verify-only` mode when verification is operationally required; never change
+the fixture run/date/source/admission to load a different population implicitly.
+Retained build costs (single functional observations, not throughput guarantees):
+
+| Preparation | Population | Recorded seconds |
+| --- | --- | ---: |
+| Sources | BPR97097 / GIT2567 |14.535 |
+| Normal grids | Excess9871 / Fulfillment12720 | Sealed load/readback retained; no total inferred |
+| Excess/Fulfillment chart grains |65694 members /6068 displays |29.58 |
+| Excess/Fulfillment custom |9871 /12720 |12.07 |
+| GIT locations |1627 |0.47 |
+| Expedite grids |6249 across four grains |2.09 |
+| Parent nested transit ingredients |97100 bases /5 matches |9.87 |
+| Expedite custom |1030 |0.78 |
+| Expedite chart/prepost |15713 members /2416 pairs |7.82 |
+
+Source/grain map: PLANNING_CONSUMER_MATRIX.md. Preparation/storage and mutation-
+denial proofs, Django migration checks, builds and complete reader comparisons
+are retained under `planning-prepared-20261005-001`; no source roster was replaced
+by a derived receipt. Migrations0027–0036 are real applied migrations, not faked.
+Current-reference proofs cover broad/restricted, meaningful filter/page and
+affected NULL/duplicate/order behavior; native SQL/DLL proofs are additionally
+retained for the qualified sources, Expedite charts and broad/restricted Parent.
+Do not describe this as all-endpoint independent legacy HTTP parity.
+
+`acceptance-continuation/consolidated.json` closes the bounded matched observations;
+`performance-extension/consolidated.json` supplies the modern Excess/Fulfillment/
+selected-modal request attribution. Parent grids remain relatively slow, while
+improving over their retained legacy observations. These single automation upper
+bounds do not establish percentiles or minimum possible latency. No passing
+journey needs resampling. Fulfillment legacy grid was loading at55.1s and observed
+ready by89.611s; its exact completion remains unknown.
+
+Remaining dependencies are precise: real April shipment inputs are empty, so
+positive transporter/shipment behavior is unproved; inherited invalid Norm/filter
+SQL stays explicitly denied; daily publication/refresh/retry/retention integration,
+request/action workflows, other datasets and3004cutover remain separate work.
+The historical modal baseline is deferred/unaccepted. None requires a new dataset,
+calculation replay, permission change or further work in this closed bounded batch.

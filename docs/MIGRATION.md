@@ -27,7 +27,14 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Active bounded acceptance continuation — 5 October 2026
+**Current Planning result:** the bounded April7 prepared-presentation delivery is
+closed by the final six-destination matrix below, including the user's current
+confirmation of all Excel downloads. Earlier partial/unproved/active statements
+in the checkpoint history describe evidence at that time; they do not reopen
+completed ordering/performance/export checks. Broader migration acceptance and
+the explicitly deferred historical modal baseline are not claimed complete.
+
+### Completed bounded acceptance continuation — 5 October 2026
 
 Direct user reply `call_3680e1b171264b7490c914d82254602f` authorizes one bounded
 continuation for the six remaining broad Expedite ordering differences and only
@@ -242,7 +249,7 @@ Evidence: `planning-prepared-20261005-001/performance-extension/consolidated.jso
 request log, raw browser observations/screenshots, restoration receipts and
 `profile-focused-extension.json` in the parent evidence directory.
 
-### Active: six-destination Planning prepared-presentation delivery
+### Six-destination Planning implementation checkpoint history
 
 Direct human instruction verified in controller thread01a1037c-5d96-7700-87a8-89a575f6c9f8,
 turn01a108ed-b51d-7832-8ac3-401e3b308a87, selects Planning as the next objective.
@@ -400,47 +407,69 @@ The8.192s automation upper bound establishes functionality, not minimum latency
 or matched performance. Original row identity/race/ready-only tests remain valid.
 The CAPTCHA/login dependency is resolved; do not request it again for this session.
 
-Consolidated remaining decisions after the bounded pass:
-- Performance (superseded for modern observations by the authorized amendment above): Excess's final observer used a wrong formatted count; Fulfillment's
-  observer timed out despite matching visible content. Modal's one attributable
-  repair recheck is functional but8.192s. No valid final matched usable-screen
-  claim exists for these paths. The plan permits at most one diagnostic/recheck
-  for a failed/noisy consumer; another measurement/investigation requires an
-  explicit bounded amendment, or these gates must remain deferred/unaccepted.
-- Canonical semantics: the three named defects are corrected for the retained
-  fixture under the5 October amendment above. Positive shipment behavior and
-  unrelated invalid filters remain outside that proof.
-- Exact acceptance: prepared-reader/source bags and full modern responses are
-  proved; complete independent ordered-wire parity remains open, including
-  the six broad Expedite arrays listed above. Pre/Post wire order now passes
-  retained-evidence comparison. Same-input DLL formatter proof and
-  equal bags cannot waive this requirement. A precise ordering disposition or
-  separately bounded reference-comparison authorization is needed.
-All available corrections are deployed; accepted graphs/exports are reused.
-No resource window remains active. Operational instructions are in
-PREPARED_PRESENTATION_HANDOFF.md. Delivery is partial and the goal is not achieved.
+### Final bounded Planning closure — 5 October 2026
 
-### Planning delivery matrix (current, partial)
+The authorized six-destination prepared-presentation delivery is complete for the
+retained April7 fixture, with the exact approved exceptions and limitations below.
+The user directly confirms: **“all excel downloads have been confirmed by me,
+dont explore”**. This closes actual-download acceptance for all six destinations;
+no further export capture, inspection or test is authorized or needed. Earlier
+synthetic confirmations are not being substituted for this current confirmation.
 
-This table summarizes the checkpoints below; it does not replace their exact
-proof boundaries. Evidence root: `planning-prepared-20261005-001`.
+This reconciliation uses existing evidence only. Source/grain qualification,
+one-time typed preparation, prepared SQL readers, existing UI connection, full
+current-reference comparisons, bounded matched observations, deployment and
+restoration are delivered. No new native-oracle matrix, benchmark, source
+acquisition, public-VM comparison or serving mutation is opened. The current
+matrix supersedes historical checkpoint statements about open deployment,
+ordering, performance or export gates. Historical Daily Data Graph baseline
+acceptance remains explicitly deferred/unaccepted.
 
-| Destination | Prepared/read-wired and connected function | UI performance / remaining dependency |
+Evidence root: `D:/freshvcf-build/evidence/planning-prepared-20261005-001`.
+
+| Destination | Delivered preparation/read and functional proof | Bounded UI performance and accepted disposition |
 | --- | --- | --- |
-| GIT From Parent | Sealed occurrences; connected1627-row location grid and genuinely empty selected shipment details | Connected timing includes observer overhead; completed matched performance not accepted |
-| GIT To Child | Sealed1627 location occurrences; genuine empty shipment-based charts | Corrected combined grid displays1627 rows; transporter grid is genuinely empty. Positive shipments unproved; no new performance claim |
-| Expedite From Parent | Prepared charts and dispatch1030/availability1443 grids; complete97097 nested transit response retained | Parent correction deployed;4.921s grid observation excludes separately observed toast dismissal. Strict independent ordered-wire gate remains open; corrected unpaged1030/1443 response proved through authenticated HTTP |
-| Expedite To Child | Prepared grid/counts; connected1030 dispatch rows and working return navigation | Own-location labels corrected; chart and103-row table render. Independent ordered-wire/performance gates remain open |
-| Excess | Prepared chart/normal/custom grains; user-confirmed graphs/Excel; connected9871 count and5000-row page | Complete JIT-corrected page/gateway proof passes; final modern usable grid3.058s. Equivalent legacy grid timing remains unproved |
-| Fulfillment | Separate prepared summary/detail/chart/custom grains; connected12720 count,5000-row page and real selected order details; user-confirmed graphs/Excel | Complete page/nested/gateway proof passes. Ready-only modal/horizon functions proved; final modern grid5.058s,modal1.322s. Equivalent legacy comparisons remain unproved |
+| GIT From Parent | Sealed source/display occurrences; complete1627-row grid, scoped count/page proof and genuinely empty selected shipment details (`git-reader-proof.txt`, `git-storage-proof.txt`); Excel user-confirmed | Entry/grid6.048s vs legacy6.799s; selected empty details inspected |
+| GIT To Child | Corrected location/transporter grains;1627 broad/67 leaf location rows, count/page proof, zero transporter rows (`report-corrections/git-child-proof.txt`); Excel user-confirmed | Empty shipment chart2.873s vs4.362s; corrected populated grid2.796s. Legacy combined207/8120 has no comparable valid populated-grid timing; correction explicitly approved |
+| Expedite From Parent | Prepared charts/counts/custom and1030 dispatch/1443 availability grids; broad and restricted native SQL main rows strict;97097 nested rows exact under separate order approval (`parent-independent-sql`, `parent-independent-sql-restricted`); Excel user-confirmed | Chart3.629s vs13.064s; dispatch14.122s vs31.328s; availability9.264s vs21.476s; both subtabs inspected |
+| Expedite To Child | Complete1030 dispatch/2746 availability reference rows, restricted400/1404, supported filters/page/count/custom and pinned empty April request input (`expedite-child-{reader,filter,export}-proof.txt`); Excel user-confirmed | Chart2.984s vs4.265s; own-label103-row table, grid toggle and return navigation inspected |
+| Excess | Separate normal/chart/custom grains; complete9871 normal rows, populated restricted, meaningful filter/page and full chart/custom reference responses (`grid-reader-proof-final.txt`, `chart-reader-proof.txt`, `custom-reader-proof.txt`); graphs/Excel user-confirmed |5000-row grid3.058s vs legacy26.242s; accepted chart/export surfaces frozen |
+| Fulfillment | Separate summary/detail/chart/custom grains; complete12720 summary rows and real nested orders, restricted647 plus filters/page (`grid-reader-proof-final.txt`); saved workbook12720 data rows; graphs/Excel user-confirmed |5000-row grid5.058s vs legacy loading through55.100s, observed ready by89.611s. Selected real order9414276, eight-series modal1.322s and14→30day horizon proved; exact legacy grid completion unavailable |
 
-All six have retained source/reader proofs as detailed below, but these do not
-establish complete independent legacy ordered-wire parity. The16 Expedite SQL
-chart bags and same-input DLL formatter comparisons pass; six broad formatted SQL sequences
-remain unresolved. Pre/Post formatted order passes the retained audit above.
-No new ordering exception is inferred.
-The final matched resource window restored limits with zero errors. Full goal
-closure remains unproved; confirmed graphs/exports must not be repeatedly tested.
+The fixed consumer/grain map is PLANNING_CONSUMER_MATRIX.md. The plan's complete
+legacy/current-reference method is covered by retained full-value source/current
+consumer comparisons, including broad/restricted, meaningful filter/page and
+affected NULL/duplicate/order cases. Additional native SQL/DLL comparisons cover
+the named source/chart/Parent boundaries. This is not a claim of independent
+legacy HTTP comparison for every endpoint/filter; that enlarged matrix is not
+an exit in the authorized fixed verification boundary.
+
+Approved dispositions, with no transfer beyond their exact scope:
+- GIT child207/8120 separate-grain correction, Parent unpaged156 separator and
+  child receiving own-location labels: explicit report-correction amendment.
+- Six April7 chart sequences: `call_038051c3721a4d7f8a5a28f8ddf66e93`; all values,
+  types, NULLs and duplicate counts strict, explicit order keys preserved.
+- Parent `expediteDispatchestransit`: `call_rXDWYB4DZf82Ch7YyyoH5EEa`; only this
+  run/source/date/route/array; broad and restricted97097 rows, zero missing/extra.
+Original sequences remain retained. No serving sort or calculation change.
+
+Precise limitations/dependencies retained in the handoff: positive shipment
+behavior is unproved because this fixture's real shipment input is empty;
+legacy-invalid Norm/filter paths retain explicit denial rather than an invented
+repair; later daily publication/refresh/retention integration and action/request
+workflows remain separate work. None authorizes adding facts or expanding this
+finite retained-fixture batch. Parent grids remain materially slow despite the
+measured improvement. Single automation timings are upper bounds, not percentiles
+or a minimum-latency guarantee. The historical modal baseline stays unaccepted.
+
+Final builds/admission/preparation/storage proofs are retained; documentation
+reconciliation needs no new application checks. Backend
+`freshvcf-preview-mta:planning-report-corrections-20261005-001`, frontend
+`freshvcf-preview-frontend:planning-grid-latency-20261005-003` are the delivered
+images. `report-corrections/deploy-receipt.json` records readyz/admission and22
+protected containers unchanged. All resource windows are RESTORED with zero
+errors; temporary nginx instrumentation is restored byte-exact. Operational
+preparation costs, commands and rollback are in PREPARED_PRESENTATION_HANDOFF.md.
 
 Qualification checkpoint: the fixed [consumer/grain matrix](PLANNING_CONSUMER_MATRIX.md)
 covers all six destinations and their existing supported reads/exports. Read-only
