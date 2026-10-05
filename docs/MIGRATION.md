@@ -27,7 +27,7 @@ Canonical authority: deployed DLL/BAT/SQL/config at `F:/VFlow_Local/local-runtim
 
 ## Programme status
 
-### Operational family 1 - BOR functionally accepted; delivery closing (6 October 2026)
+### Operational family 1 - BOR functionally accepted; committed96cb55a and pushed (6 October 2026)
 
 CAPTCHA/login succeeded. Direct human approved existing BOR navigation permission10
 for only Stage2FixtureReader. The original missing-menu cause was this nine-grant
@@ -53,16 +53,80 @@ strict sequence/performance parity. Existing quote-literal limitation remains
 as LEG-BOR-UNESCAPED-LITERAL. BOR-OA is explicitly released next; supplier
 allocation remains pending. Reuse all passing schema/source/API/restart proofs.
 
-### Operational family 2 - BOR colour-band source qualification active
+### Operational family 2 - BOR colour-band implemented and functionally verified (6 October 2026)
 
-Controller relayed direct human release after visible BOR navigation. BOR-OA is
-now the sole active implementation family, under the unfinished existing goal
-(no false completion or numeric budget). Unmet exit: qualify supplier OPENING
-before normal-BOR refresh, exact typed source/consumer joins, own remarks/export,
-then affected relational/API/browser/restart proof and substantial commit/push.
-Do not substitute the normal-BOR snapshot or gate non-MTO off. Boundary is guide4.2
-routes and unchanged screen; engine/F1/F2/daily publication/auth policy/other
-families remain excluded. Reuse prior evidence; no new inventory programme.
+Direct human instructed set goal/implement next; BOR-OA delivery is complete
+within the exact fixture and qualifications below. Supplier allocation is unopened.
+Goal has no numeric budget. Source qualified once: retained opening-stage
+BORWithOrderAllocation3098, separate initially empty BORReport_OARemarkDetails,
+required vf_ReqCalculation97097 projected as ordinal/SKU/Wh/AdvAllocDone/ParentWh.
+Reuse existing immutable attributes/descriptions/ColorSequence and permission bags.
+No normal-BOR substitution or engine changes. Additive0046/0047 and owned migration
+PostgreSQL proof passed, source readback/retry/guards passed. Selected April fixture
+now has sealed3098 stable occurrences; unchanged native digest. Active dispatch
+condition1 yields1199 business rows. API count deliberately omits description and
+remark joins. Count's C=ColorSequence/s=SkuAttributeData alias flaw is preserved.
+API CSV uses full band-priority RN ordering; non-MTO batch CSV's different order
+is a separate contract, not silently substituted for the frontend API export.
+
+Direct human approved BOR colour-band navigation grant to the existing isolated
+Stage2FixtureReader role; applied only existing permission81. All product/location
+scopes, memberships and other-role grants unchanged (navigation-grant.json).
+Direct human approved this exact April fixture's bounded tied-order qualification:
+53 groups/512 tied rows,458 RN differences, ties crossing100-row boundaries at
+100/200/400/600/700. All1199 business rows/types/NULLs/duplicates and explicit key
+sequence match; original strictRN/page failures remain retained. No tie-break or
+SQL ordering change; qualify only membership within equal-key groups. Bind this
+approval to source-receipt.json, ordering-boundary.json and comparison-consumers-001
+under D:/freshvcf-build/evidence/boroa-family-20261006-001; not a general waiver.
+
+Complete consumer comparison passes under exactly that approved qualification
+(approved-consumer-comparison-002.json), retaining failed strict001 evidence.
+CSV has1199 rows/39 selected headers; complete cells and headers match pinned
+CsvHelper, with the same qualified tied order. Prepared EXCEPT ALL both directions
+is zero; rollback remarks prove timestamp ties expand grid but not count,
+authenticated attribution, native nullable/failure behavior and no retained writes.
+Image002 overlays only BOR-OA changes on verified normal-BOR base; startup
+preflight passed with BPR/BOR and restored Buffer hashes unchanged. Build001 failed
+on bare image-hash FROM syntax and is preserved. Only preview MTA recreated;56
+other containers unchanged, same4GiB/2CPU/2workers/noports/restart=no.
+Gateway checks passed: config41, count1199, grid, exact CSV cells/headers,
+unauthenticated denial, restricted forged-scope denial, and trusted remark actor.
+The unchanged frontend reaches BOR-OA via the visible menu, displays1199 rows,
+filters locally to one SKU, pages100 rows to page2, saves layout (SaveState200),
+and submits/displays separate BOR-OA remark history. Browser CSV returned200/
+247468bytes; automated download event timed out20s, then direct human confirmed
+"CSV downloads successfully" (call_BS5RREnSaOoXzGFg5cdy9GjU). This is human
+functional download acceptance, not an automated saved-file assertion.
+Restart readback passed: both gateway/browser remarks survive with correct actor,
+count1199 and April7 selection preserved. Browser reload shows1199 rows and
+retained headers; page size resets5000 by existing local-state behavior.
+Click-to-native-event timing and matched legacy browser performance remain
+UNPROVED: the first visibility wait used a SKU absent from the visible initial
+BOR-OA rows; no favorable repeat or backend-only performance claim. This closes
+bounded functional delivery, not whole-application or strict performance parity.
+The retained custom-SKU count error and apostrophe-literal NOT_PARITY boundary
+are documented in LEGACY_EXCEPTIONS.md. Earlier strict ordering failures remain.
+Evidence: gateway-002.json, gateway-restart-001.json, restart-identity.json,
+browser-finite-proof.json, browser-correlated-gateway.log and screenshots under
+the same evidence root. Gateway001 records connection refusal during startup;
+002 passed after admission. No data/service reset was used.
+
+Migration register: runtime0046 (depends0045) creates seven typed source,
+requirement, initial/live remark and prepared receipt/row models;0047 (depends0046)
+installs reversible immutable/build/append guards via RunSQL. Both are required
+on fresh databases and now immutable applied identities. Django check, migration
+plan, makemigrations --check and owned PostgreSQL migration-enabled proof passed.
+The12 focused BOROA/BOR/RRR tests and376-resource pinned identity check passed.
+For this exact admitted fixture, use migrate_btr_fixture --boroa-snapshot, then
+prepare_boroa_sources --directory <retained-capture-directory> and
+prepare_boroa_membership; both prepare commands support --verify-only and reject
+changed inputs/receipts. Do not rerun producers or substitute normal-BOR state.
+Serving image: freshvcf-preview-mta:boroa-snapshot-20261006-002, layered on the
+verified normal-BOR image to retain restored Buffer files. Final source differs
+from the tested image only by removal of one trailing empty line, verified in
+final-source-versus-image.json. Prepared sources are additive only. Supplier allocation, MDM, MTO/daily publication, engine/F1/F2,
+other services and excluded checkouts remain outside scope. Guide remains untracked.
 
 Controller source-extension decision removes the approval wait for BOR only:
 publish exact captured April SupplierDispatchReq1196/all30columns, SOB97, MOQ1496,

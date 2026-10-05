@@ -726,3 +726,37 @@ The populated restricted actor (`products=[4]`, `locations=[25]`) also passes wi
 are in `parent-independent-sql-restricted/approved-transit-comparison.json`.
 Its78 dispatch/161 availability main rows remain strictly ordered comparisons.
 This is a comparison exception, not a change to serving queries or UI ordering.
+
+
+## LEG-BOROA-APRIL-RN-TIES - explicitly approved bounded comparison qualification
+
+Direct human reply to call_O27BVOUnwvUYcWT8ic8bKy1P approved April BOR-OA tie
+qualification. Source: pinned DLL getSelectQueryBORColorBandWise RN keys (IL109305),
+run bfd75b4b-a9df-4a08-82d3-852e3324b623/date2026-04-07/native digest
+4cbef69cbe8d75d64e5e9cdfc5b023d31770c318214c01c1d29912b6509a3f73,
+BORWithOrderAllocation captured digest141ac5aff9f44e1f0fb4a16215bd95f0a8b340fc67cfd8da01ceac3eec0a20a6.
+All1199 business rows match;53 groups/512 rows tied,458 RN assignments differ.
+Four cohorts cross100-row page boundaries100/200/400/600/700. Acceptance may compare
+complete equal-key business-row bags without generatedRN and qualify within-tie
+page membership; explicit ordering keys, all actual business fields/types/NULLs,
+duplicate counts, source/filter/scope and non-tied page membership remain strict.
+No runtime tie-break, oracle replacement or removal of failed strict comparisons.
+Evidence:
+D:/freshvcf-build/evidence/boroa-family-20261006-001/ordering-boundary.json and
+comparison-consumers-001.json. No transfer to other dates/families or calculations.
+
+## LEG-BOROA-COUNT-ATTRIBUTE-ALIAS - retained canonical failure
+
+Pinned DLL BOROrderAllocationReportDataCount IL110379 aliases ColorSequence C,
+IL110387 aliases SKU attributes s, while BOROA filter compilation uses c for SKU
+custom attributes. SKU-custom predicates therefore reference missing colour-table
+columns; product hierarchy uses unqualified sl fields and resolves normally. Preserve the source failure; do not redirect count's c to s.
+Grid uses C=SkuAttributeData. Same April source/scope as above; no assertion waived.
+
+## LEG-BOROA-UNESCAPED-LITERAL - unavailable unsafe legacy literal behavior
+
+Pinned AddBOROARemark/GetBOROARemarkDetails concatenate raw quoted strings
+(IL98740-99006). BOR-OA denies apostrophe-containing remark/key values with503;
+this is NOT_PARITY, not an exact emulation of arbitrary SQL fragments. Omitted
+nullable remarks and explicitNULL distinctions retain the native tested behavior.
+No normal-BOR approval is transferred to this boundary and no unsafe SQL executes.

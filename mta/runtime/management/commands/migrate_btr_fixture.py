@@ -11,6 +11,8 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
+        parser.add_argument('--boroa-snapshot', action='store_true',
+                            help='Apply only additive BOR-OA source, live history and prepared relations after 0045')
         parser.add_argument('--bor-snapshot', action='store_true',
                             help='Apply only additive BOR snapshot, live history and prepared relations after 0042')
         parser.add_argument('--research-critical-path', action='store_true',
@@ -55,7 +57,8 @@ class Command(BaseCommand):
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0045_bor_prepared_guards' if options['bor_snapshot'] else
+        target = ('0047_boroa_guards' if options['boroa_snapshot'] else
+                  '0045_bor_prepared_guards' if options['bor_snapshot'] else
                   '0042_research_norm_history_index' if options['research_critical_path'] else
                   '0039_research_availability_cover' if options['research_availability_index'] else
                   '0038_history_prepared_memberships' if options['history_report_preparation'] else
@@ -76,6 +79,10 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['boroa_snapshot'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name not in ('0046_boroa_snapshot_and_prepared', '0047_boroa_guards')
+                for migration, backwards in plan):
+            raise CommandError('BOR-OA snapshot requires the complete 0045 baseline')
         if options['bor_snapshot'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name not in ('0043_bor_snapshot_sources', '0044_bor_prepared_membership',
                                           '0045_bor_prepared_guards') for migration, backwards in plan):
@@ -127,6 +134,7 @@ class Command(BaseCommand):
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
+                *(['0046_boroa_snapshot_and_prepared', '0047_boroa_guards'] if options['boroa_snapshot'] else []),
                 *(['0043_bor_snapshot_sources', '0044_bor_prepared_membership',
                    '0045_bor_prepared_guards'] if options['bor_snapshot'] else []),
                 *(['0040_research_availability_bands', '0041_research_count_index',

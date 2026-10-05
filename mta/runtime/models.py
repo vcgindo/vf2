@@ -1213,3 +1213,6 @@ class ResearchAvailabilityBand(models.Model):
                                                name='research_availability_band_ord')]
         indexes = [models.Index(fields=['run','sku_code','location_code'],
                                 name='research_avail_band_scope')]
+
+# Additive BOR-OA publication models; calculation models above remain unchanged.
+from mta.runtime.boroa_models import (BorOaSourceReceipt, BorOaSourceRow, BorOaRequirement, BorOaInitialRemark, BorOaLiveRemark, BorOaPreparedReceipt, BorOaPreparedRow)

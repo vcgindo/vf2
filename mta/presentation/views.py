@@ -151,6 +151,11 @@ def report_paths(request, payload):
 @endpoint('GET')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
+    if name == 'BOR_OA':
+        from mta.presentation.boroa_sources import admitted_sources
+        from mta.presentation.boroa_configuration import configuration, ui_columns
+        admitted_sources()
+        return envelope(data=ui_columns(configuration()))
     if name == 'BuyerOrderReport':
         from mta.presentation.bor_sources import admitted_sources
         from mta.presentation.bor_configuration import configuration, ui_columns
@@ -330,6 +335,32 @@ def bor_data(request, payload, *, count=False):
         return envelope(status=500)
 
 
+@endpoint('POST')
+def boroa_data(request, payload, *, count=False):
+    from mta.presentation.boroa_sql import read_boroa
+    from django.db import DatabaseError
+    try:
+        rows = read_boroa(payload, count=count)
+        # Getresponse returns an empty string for SQL's NULL JSON scalar.
+        return envelope(data=[{'count': rows}]) if count else envelope(data=rows if rows else '')
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
+@endpoint('POST')
+def boroa_remark(request, payload, *, history=False):
+    from mta.presentation import boroa_remarks
+    from django.db import DatabaseError
+    try:
+        return envelope(data=boroa_remarks.history(payload) if history else boroa_remarks.append(payload, identity(request)))
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
 @endpoint('GET')
 def bor_analytics(request, payload):
     from mta.presentation.bor_sql import read_bor
@@ -384,6 +415,21 @@ def bpr_data(request, payload, *, count=False):
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+    if payload.get('reportName') == 'BOROA':
+        from mta.presentation.boroa_sql import read_boroa, projection
+        from mta.presentation.boroa_configuration import configuration
+        from django.db import DatabaseError
+        try:
+            rows = read_boroa(payload, export=True)
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return envelope(status=500)
+        state = ui_state.get_layout(identity(request)['id'], 'BORColorBandwise')
+        headers = selected_headers(state, ['RN', *[n for n, _ in projection()]], configuration=configuration()['columns'])
+        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment'
+        return response
     if payload.get('reportName') == 'BOR':
         from mta.presentation.bor_sql import read_bor, projection, BorQueryError
         from mta.presentation.bor_configuration import configuration

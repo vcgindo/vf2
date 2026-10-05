@@ -1,0 +1,1693 @@
+{
+  "sources": [
+    {
+      "source": "Demo_BPR_1",
+      "table": "ui_ReportConfigurations",
+      "values_sha256": "8321656053f4d1db587e357811f771cefaccdcec101dce405da6055e492b5b9f",
+      "row_count": 2139
+    },
+    {
+      "source": "Demo_Importer_1",
+      "table": "ui_ReportColumnTypes",
+      "values_sha256": "e012a2a42123dd252bfb14f082d90ebf1e88156426000b3773db402e15f7d029",
+      "row_count": 2114
+    }
+  ],
+  "columns": [
+    {
+      "source_ordinal": 964,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUCode",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 965,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUDescription",
+      "Col_Position": 2,
+      "Header": "SKU Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 966,
+      "ReportName": "BOR_OA",
+      "Col_Code": "WhCode",
+      "Col_Position": 3,
+      "Header": "Location Code",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 967,
+      "ReportName": "BOR_OA",
+      "Col_Code": "WHDescription",
+      "Col_Position": 4,
+      "Header": "Location Description",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 968,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SupplierCode",
+      "Col_Position": 5,
+      "Header": "SupplierCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 969,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SupplierDesc",
+      "Col_Position": 6,
+      "Header": "SupplierDesc",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 970,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Norm",
+      "Col_Position": 7,
+      "Header": "Norm ",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 971,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Stock",
+      "Col_Position": 10,
+      "Header": "Stock",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 972,
+      "ReportName": "BOR_OA",
+      "Col_Code": "VirtualNorm",
+      "Col_Position": 9,
+      "Header": "Virtual Norm",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 973,
+      "ReportName": "BOR_OA",
+      "Col_Code": "GIT",
+      "Col_Position": 11,
+      "Header": "GIT/ Pending",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 974,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ParentLeftoverStock",
+      "Col_Position": 12,
+      "Header": "Parent Leftover Stock",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 975,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Requirement",
+      "Col_Position": 13,
+      "Header": "Requirement",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 976,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Req_TOB",
+      "Col_Position": 14,
+      "Header": "Req TOB",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 977,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Req_TOR",
+      "Col_Position": 15,
+      "Header": "Req TOR",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 978,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Req_TOY",
+      "Col_Position": 16,
+      "Header": "Req TOY",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 979,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Req_TOG",
+      "Col_Position": 17,
+      "Header": "Req TOG",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 980,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Req_TOBlue",
+      "Col_Position": 18,
+      "Header": "Req TOBlue",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 981,
+      "ReportName": "BOR_OA",
+      "Col_Code": "DispatchQty",
+      "Col_Position": 19,
+      "Header": "Final Requirment Qty",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 982,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Dispatch_TOB",
+      "Col_Position": 20,
+      "Header": "Final Req TOB",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 983,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Dispatch_TOR",
+      "Col_Position": 21,
+      "Header": "Final Req TOR",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 984,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Dispatch_TOY",
+      "Col_Position": 22,
+      "Header": "Final Req TOY",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 985,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Dispatch_TOG",
+      "Col_Position": 23,
+      "Header": "Final Req TOG",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 986,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Dispatch_ToBlue",
+      "Col_Position": 24,
+      "Header": "Final Req ToBlue",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 987,
+      "ReportName": "BOR_OA",
+      "Col_Code": "DispatchColor",
+      "Col_Position": 25,
+      "Header": "Dispatch Color",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 988,
+      "ReportName": "BOR_OA",
+      "Col_Code": "AdvAllocDone",
+      "Col_Position": 26,
+      "Header": "Adv Allocation",
+      "Visible": true,
+      "CellAlignment": "right     ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 989,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr1",
+      "Col_Position": 66,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "right     ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 990,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr2",
+      "Col_Position": 67,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 991,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr3",
+      "Col_Position": 68,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 992,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr4",
+      "Col_Position": 69,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 993,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr5",
+      "Col_Position": 70,
+      "Header": "c5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 994,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 995,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 996,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 997,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 998,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 999,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1000,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1001,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1002,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1003,
+      "ReportName": "BOR_OA",
+      "Col_Code": "LocAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1004,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1005,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1006,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr3",
+      "Col_Position": 99,
+      "Header": "c3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1007,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr4",
+      "Col_Position": 31,
+      "Header": "Open PO",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1008,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr5",
+      "Col_Position": 99,
+      "Header": "CDC Norms",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1009,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr6",
+      "Col_Position": 99,
+      "Header": "c6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1010,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr7",
+      "Col_Position": 99,
+      "Header": "Filling Line",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1011,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr8",
+      "Col_Position": 8,
+      "Header": "SO Qty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1012,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr9",
+      "Col_Position": 27,
+      "Header": "Continuous Black(With Plant WIP)",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1013,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr10",
+      "Col_Position": 28,
+      "Header": "Continuous Black and Red(With Plant WIP)",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1014,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr11",
+      "Col_Position": 99,
+      "Header": "Velocity - Depot",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1015,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr12",
+      "Col_Position": 29,
+      "Header": "Continuous Black(Without Plant WIP)",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1016,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr13",
+      "Col_Position": 30,
+      "Header": "Continuous Black and Red(Without Plant WIP)",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1017,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1018,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKULocAttr15",
+      "Col_Position": 99,
+      "Header": "Average Receipt MTD",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1019,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr1",
+      "Col_Position": 99,
+      "Header": "c1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1020,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr2",
+      "Col_Position": 99,
+      "Header": "c2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1021,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr3",
+      "Col_Position": 99,
+      "Header": "Unit Pack Size",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1022,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr4",
+      "Col_Position": 99,
+      "Header": "c4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1023,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr5",
+      "Col_Position": 99,
+      "Header": "Class",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1024,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr6",
+      "Col_Position": 99,
+      "Header": "Velocity - India",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1025,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr7",
+      "Col_Position": 99,
+      "Header": "c7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1026,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr8",
+      "Col_Position": 99,
+      "Header": "c8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1027,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr9",
+      "Col_Position": 99,
+      "Header": "c9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1028,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr10",
+      "Col_Position": 99,
+      "Header": "c10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1029,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr11",
+      "Col_Position": 99,
+      "Header": "c11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1030,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr12",
+      "Col_Position": 99,
+      "Header": "c12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1031,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr13",
+      "Col_Position": 99,
+      "Header": "c13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1032,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr14",
+      "Col_Position": 99,
+      "Header": "c14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1033,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SKUAttr15",
+      "Col_Position": 99,
+      "Header": "c15",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1035,
+      "ReportName": "BOR_OA",
+      "Col_Code": "sl1",
+      "Col_Position": 99,
+      "Header": "FG/PM",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1036,
+      "ReportName": "BOR_OA",
+      "Col_Code": "sl2",
+      "Col_Position": 99,
+      "Header": "Product Type",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1037,
+      "ReportName": "BOR_OA",
+      "Col_Code": "sl3",
+      "Col_Position": 99,
+      "Header": "Vendor",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1038,
+      "ReportName": "BOR_OA",
+      "Col_Code": "sl4",
+      "Col_Position": 99,
+      "Header": "SL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1039,
+      "ReportName": "BOR_OA",
+      "Col_Code": "sl5",
+      "Col_Position": 99,
+      "Header": "SL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1040,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ll1",
+      "Col_Position": 99,
+      "Header": "Loc Type",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1041,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ll2",
+      "Col_Position": 99,
+      "Header": "Business",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1042,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ll3",
+      "Col_Position": 99,
+      "Header": "Zone",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1043,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ll4",
+      "Col_Position": 99,
+      "Header": "LL4",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1044,
+      "ReportName": "BOR_OA",
+      "Col_Code": "ll5",
+      "Col_Position": 99,
+      "Header": "LL5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1119,
+      "ReportName": "BOR_OA",
+      "Col_Code": "Remark",
+      "Col_Position": 32,
+      "Header": "Latest Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1121,
+      "ReportName": "BOR_OA",
+      "Col_Code": "remarks",
+      "Col_Position": 33,
+      "Header": "Enter New Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 1122,
+      "ReportName": "BOR_OA",
+      "Col_Code": "rh",
+      "Col_Position": 34,
+      "Header": "Remark History",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2027,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr1",
+      "Col_Position": 99,
+      "Header": "SLSAttr1",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2028,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr2",
+      "Col_Position": 99,
+      "Header": "SLSAttr2",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2029,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr3",
+      "Col_Position": 99,
+      "Header": "SLSAttr3",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2030,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr4",
+      "Col_Position": 99,
+      "Header": "Open PO",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2031,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr5",
+      "Col_Position": 99,
+      "Header": "SLSAttr5",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2032,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr6",
+      "Col_Position": 99,
+      "Header": "SLSAttr6",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2033,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr7",
+      "Col_Position": 99,
+      "Header": "SLSAttr7",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2034,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr8",
+      "Col_Position": 99,
+      "Header": "SLSAttr8",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2035,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr9",
+      "Col_Position": 99,
+      "Header": "SLSAttr9",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2036,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr10",
+      "Col_Position": 99,
+      "Header": "SLSAttr10",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2037,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr11",
+      "Col_Position": 99,
+      "Header": "SLSAttr11",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2038,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr12",
+      "Col_Position": 99,
+      "Header": "SLSAttr12",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2039,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr13",
+      "Col_Position": 99,
+      "Header": "SLSAttr13",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2040,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr14",
+      "Col_Position": 99,
+      "Header": "SLSAttr14",
+      "Visible": false,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    },
+    {
+      "source_ordinal": 2041,
+      "ReportName": "BOR_OA",
+      "Col_Code": "SLSAttr15",
+      "Col_Position": 99,
+      "Header": "Average Receipt MTD",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": "*Error*",
+      "TagID": null
+    }
+  ],
+  "types": [
+    {
+      "source_ordinal": 952,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 953,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUDescription",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 954,
+      "ReportName": "BOR_OA",
+      "ColCode": "WhCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 955,
+      "ReportName": "BOR_OA",
+      "ColCode": "WHDescription",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 956,
+      "ReportName": "BOR_OA",
+      "ColCode": "SupplierCode",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 957,
+      "ReportName": "BOR_OA",
+      "ColCode": "SupplierDesc",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 958,
+      "ReportName": "BOR_OA",
+      "ColCode": "Norm",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 959,
+      "ReportName": "BOR_OA",
+      "ColCode": "Stock",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 960,
+      "ReportName": "BOR_OA",
+      "ColCode": "VirtualNorm",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 961,
+      "ReportName": "BOR_OA",
+      "ColCode": "GIT",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 962,
+      "ReportName": "BOR_OA",
+      "ColCode": "ParentLeftoverStock",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 963,
+      "ReportName": "BOR_OA",
+      "ColCode": "Requirement",
+      "DataType": "Number"
+    },
+    {
+      "source_ordinal": 964,
+      "ReportName": "BOR_OA",
+      "ColCode": "Req_TOB",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 965,
+      "ReportName": "BOR_OA",
+      "ColCode": "Req_TOR",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 966,
+      "ReportName": "BOR_OA",
+      "ColCode": "Req_TOY",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 967,
+      "ReportName": "BOR_OA",
+      "ColCode": "Req_TOG",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 968,
+      "ReportName": "BOR_OA",
+      "ColCode": "Req_TOBlue",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 969,
+      "ReportName": "BOR_OA",
+      "ColCode": "DispatchQty",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 970,
+      "ReportName": "BOR_OA",
+      "ColCode": "Dispatch_TOB",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 971,
+      "ReportName": "BOR_OA",
+      "ColCode": "Dispatch_TOR",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 972,
+      "ReportName": "BOR_OA",
+      "ColCode": "Dispatch_TOY",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 973,
+      "ReportName": "BOR_OA",
+      "ColCode": "Dispatch_TOG",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 974,
+      "ReportName": "BOR_OA",
+      "ColCode": "Dispatch_ToBlue",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 975,
+      "ReportName": "BOR_OA",
+      "ColCode": "DispatchColor",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1158,
+      "ReportName": "BOR_OA",
+      "ColCode": "AdvAllocDone",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1159,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1160,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1161,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1162,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1163,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1164,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1165,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1166,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1167,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1168,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1169,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1170,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1171,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1172,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1173,
+      "ReportName": "BOR_OA",
+      "ColCode": "LocAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1174,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1175,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1176,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1177,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1178,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1179,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1180,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1181,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1182,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1183,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1184,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1185,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1186,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1187,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1188,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKULocAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1189,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1190,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1191,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1192,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1193,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1194,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1195,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1196,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1197,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1198,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1199,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1207,
+      "ReportName": "BOR_OA",
+      "ColCode": "Remark",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1209,
+      "ReportName": "BOR_OA",
+      "ColCode": "remarks",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1210,
+      "ReportName": "BOR_OA",
+      "ColCode": "rh",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1234,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1235,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1236,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1237,
+      "ReportName": "BOR_OA",
+      "ColCode": "SKUAttr15",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1239,
+      "ReportName": "BOR_OA",
+      "ColCode": "sl1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1240,
+      "ReportName": "BOR_OA",
+      "ColCode": "sl2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1241,
+      "ReportName": "BOR_OA",
+      "ColCode": "sl3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1242,
+      "ReportName": "BOR_OA",
+      "ColCode": "sl4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1243,
+      "ReportName": "BOR_OA",
+      "ColCode": "sl5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1244,
+      "ReportName": "BOR_OA",
+      "ColCode": "ll1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1245,
+      "ReportName": "BOR_OA",
+      "ColCode": "ll2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1246,
+      "ReportName": "BOR_OA",
+      "ColCode": "ll3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1247,
+      "ReportName": "BOR_OA",
+      "ColCode": "ll4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1248,
+      "ReportName": "BOR_OA",
+      "ColCode": "ll5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1969,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr1",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1970,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr2",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1971,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr3",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1972,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr4",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1973,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr5",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1974,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr6",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1975,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr7",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1976,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr8",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1977,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr9",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1978,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr10",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1979,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr11",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1980,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr12",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1981,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr13",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1982,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr14",
+      "DataType": "String"
+    },
+    {
+      "source_ordinal": 1983,
+      "ReportName": "BOR_OA",
+      "ColCode": "SLSAttr15",
+      "DataType": "String"
+    }
+  ],
+  "environment": [
+    {
+      "ConfigKey": "BOROA_DISPATCH_CONDITION",
+      "ConfigValue": "1",
+      "Category": "ClientSpecific"
+    }
+  ]
+}
