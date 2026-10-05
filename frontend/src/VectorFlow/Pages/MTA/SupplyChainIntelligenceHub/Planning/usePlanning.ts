@@ -1093,7 +1093,9 @@ const usePlanning = ()=>{
     }
 
     const onOpenDailyDataGraph = useCallback((params:any) =>
-        loadDailyData(dispatch, getDailyData, params.data, 'wc', 'sc'),
+        loadDailyData(dispatch, (payload:any) => getDailyData({
+            ...payload, SKUCode: payload.SKUCode.toString(),
+        }), params.data, 'wc', 'sc'),
         [dispatch, getDailyData]);
 
 

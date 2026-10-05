@@ -156,7 +156,25 @@ completion. Evidence: `build-latency-003-repair.txt`, `deploy-latency-receipt.js
 CAPTCHA confirmation is pending after the first challenge was rejected; no
 post-correction Excess/Fulfillment/modal browser acceptance is claimed.
 
-Current acceptance blocker: the corrected browser checks require an authenticated
+Resolved login blocker (5 October): the user approved the replacement CAPTCHA;
+login succeeded as the existing broad fixture reader. Corrected Excess and
+Fulfillment grids visibly render5000 rows with totals9871/12720 and correct
+headings. Their final timing observations are invalid: Excess used an incorrect
+comma-formatted pager selector; Fulfillment's observer timed out despite reporting
+the matching12720 element visible. Retain functional screenshots/text only, no
+speed claim or favorable resampling. `excess-final-browser.*` and
+`fulfillment-final-browser.*` retain those results.
+
+The selected Fulfillment row21125076009000/P064 shows real order9414276 but its
+modal returned HTTP400. Diagnosis found existing Planning `parseFloatAllNumericStrings`
+converts sc to a number; the new caller omitted the previous `.toString()` conversion.
+An exact string-key gateway request succeeds with complete graph data and RunDate
+(`fulfillment-modal-api.json`). The smallest caller correction restores only that
+conversion while retaining the original row object and shared ready-only loader.
+Its frontend build is running (`build-modal-caller-repair.txt`); deployment and
+one attributable modal recheck remain required. Auth/permissions/source unchanged.
+
+Historical acceptance blocker: the corrected browser checks required an authenticated
 3005 session. The surviving tab was rechecked at `/login`; the replacement CAPTCHA
 has not been approved after the rejected first challenge. This same dependency
 has persisted across three consecutive continuation turns while independent build,
