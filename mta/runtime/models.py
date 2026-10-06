@@ -1233,7 +1233,7 @@ from mta.runtime.mdm_daily_models import (MdmDailyInputCapture, MdmDailyInputOcc
     MdmDailyInputTask, MdmDailyInputHistory, MdmDailySkuArchive, MdmDailyLocationArchive,
     MdmDailySkuLocAddArchive, MdmDailySkuLocModifyArchive, MdmDailySkuLocRemoveArchive,
     MdmPairExclusionSource, MdmPairExclusion, MdmDailyPairExclusion)
-from mta.runtime.publication_models import (DailySourceReceipt, DailyColorSequence,
+from mta.runtime.publication_models import (DailySourceReceipt, DailyColorSequence, DailyOpeningSob,
     DailyUiPublication, DailyUiPublicationAttempt)
 from mta.runtime.daily_request_models import (DailyRequestOwner, DailyOpenRequest,
     DailyRequestCapture, DailyCapturedRequest)

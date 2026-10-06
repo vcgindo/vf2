@@ -40,6 +40,10 @@ def image_field(run, path, field):
     selected = [entry for entry in item['fields'] if entry[0] == field]
     if len(selected) != 1:
         raise PublicationUnavailable('selected_metadata_column_not_published')
+    from mta.presentation.daily_preparation import production_branch
+    from mta.presentation import daily_opening_sob
+    if production_branch(run) and path == daily_opening_sob.PATH:
+        return [row[field] for row in daily_opening_sob.read(run, item)]
     _, column, kind = selected[0]
     with connection.cursor() as cursor:
         cursor.execute('SELECT vf_ordinal,'+quote(column)+' FROM '+table_sql(item['table'])+
@@ -54,6 +58,9 @@ def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
     from mta.presentation.daily_preparation import production_branch
+    from mta.presentation import daily_opening_sob
+    if production_branch(run) and path == daily_opening_sob.PATH:
+        return daily_opening_sob.query(run)
     from mta.presentation import daily_transit
     if production_branch(run) and path in daily_transit.MODELS:
         return daily_transit.query(run, path)

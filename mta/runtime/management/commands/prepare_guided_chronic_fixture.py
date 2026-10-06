@@ -8,11 +8,11 @@ from django.db import DatabaseError, connection, transaction
 
 from mta.presentation import fixture
 from mta.presentation.guided_chronic_fields import SOURCES, OUTPUTS, schema_digest
-from mta.presentation.selective import image_query
+from mta.presentation.selective import image_query, image_metadata
 from mta.runtime.guided_chronic_schema import verify_guards
 from mta.runtime.models import (CalculationRun, GuidedChronicPreparedProjection,
                                 GuidedChronicPreparedRow)
-from mta.runtime.relational_state import quote
+from mta.runtime.relational_state import quote, CATALOG
 from mta.serialization import canonical_parts
 
 
@@ -43,8 +43,17 @@ def insert_query(run):
         'P': {'SKUCode': 'str', 'LocCode': 'str'},
     }
     for owner, path in SOURCES.items():
-        item = fixture.image_metadata(run, path)
+        item = image_metadata(run, path)
         published = {name: wire for name, _, wire in item['fields']}
+        if getattr(run, 'kind', None) == 'DAILY_CHAIN' and item['count'] == 0:
+            # Empty images deliberately have no scalar wire-type observations.
+            # Validate the fixed physical relation instead; do not add rows.
+            native = dict(CATALOG['tables'][item['table']])
+            allowed = {'int': {'int', 'bigint'},
+                       'str': {'nvarchar', 'varchar', 'nchar', 'xml', 'decimal', 'numeric', 'float', 'real'}}
+            if any(native.get(name) not in allowed[wire] for name, wire in required[owner].items()):
+                raise CommandError('Guided Chronic empty source schema differs: ' + owner)
+            published = required[owner]
         if any(published.get(name) != wire for name, wire in required[owner].items()):
             raise CommandError('Guided Chronic prepared source field/wire differs: ' + owner)
         query, params = image_query(run, path)
@@ -117,7 +126,8 @@ def verify_mutation_guards(run):
 
 def prepare(*, run=None, verify_only=False, verify_mutations=False):
     if connection.vendor != 'postgresql': raise CommandError('Guided Chronic preparation requires PostgreSQL')
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False): raise CommandError('Guided prepared trial switch is disabled')
+    from mta.presentation.daily_preparation import production_branch
+    if not production_branch(run) and not getattr(settings, 'VF_GUIDED_PREPARED', False): raise CommandError('Guided prepared trial switch is disabled')
     if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
         raise CommandError('Guided Chronic preparation requires native fixture hierarchy')
     with transaction.atomic():

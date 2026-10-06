@@ -38,6 +38,12 @@ def bands_query(run):
     from mta.presentation.pick_storage import read_pick_bands
     bands = read_pick_bands(run)
     if not bands:
+        if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+            # read_pick_bands has verified the real zero-row producer receipt.
+            # Keep the native INNER join grain; never manufacture a Pick row.
+            kinds = ('bigint', 'text', 'text', 'text', *(['bigint'] * 5))
+            return ('SELECT ' + ','.join('NULL::' + kind + ' AS column' + str(i)
+                                        for i, kind in enumerate(kinds, 1)) + ' WHERE FALSE'), []
         raise ValueError('RRR preparation requires the published Pick population')
     query = 'VALUES ' + ','.join(['(%s,%s,%s,%s,%s,%s,%s,%s,%s)'] * len(bands))
     values = []
@@ -128,11 +134,14 @@ def a_selections():
     return selections
 
 
-def recipe_digest():
-    return digest(dict(version=1, sources=SOURCES,
+def recipe_digest(run=None):
+    retained = dict(version=1, sources=SOURCES,
                        membership=inspect.getsource(membership_query),
                        validation=inspect.getsource(validate_positions),
-                       virtual=inspect.getsource(a_selections)))
+                       virtual=inspect.getsource(a_selections))
+    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+        retained.update(version=2, bands=inspect.getsource(bands_query))
+    return digest(retained)
 
 
 FORWARD = r"""

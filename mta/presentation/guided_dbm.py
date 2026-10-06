@@ -154,7 +154,7 @@ def read_guided_dbm(run, payload, kind, attributes):
     daily = production_branch(run)
     if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
         raise ValueError('Guided DBM prepared reader requires an admitted source run')
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False):
+    if not daily and not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
     if daily:
         from mta.presentation.daily_preparation import source_digest as daily_source_digest

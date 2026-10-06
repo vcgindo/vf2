@@ -21,7 +21,7 @@ def invoke(args, label):
         proc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT)
     print(f'{label}: exit {proc.returncode}; {target}')
     if proc.returncode:
-        print('\n'.join(target.read_text().splitlines()[-22:]))
+        print('\n'.join(target.read_text(encoding='utf-8').splitlines()[-22:]))
     return proc.returncode
 
 

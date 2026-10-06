@@ -121,7 +121,7 @@ def read_guided_chronic(run, payload):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily: raise ValueError('guided_chronic_admitted_run_required')
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False):
+    if not daily and not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
     from mta.presentation import fixture, hierarchy
     try: manifest = hierarchy.selected_manifest(run)

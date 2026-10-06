@@ -62,7 +62,7 @@ class Command(BaseCommand):
             verify_guards(connection)
             assert_unchanged(run, source)
             dimension_digest, pick_digest = source_signatures(run)
-            recipe = recipe_digest()
+            recipe = recipe_digest(run)
             receipt = RrrPreparedProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:

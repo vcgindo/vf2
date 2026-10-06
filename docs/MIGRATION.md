@@ -18,9 +18,10 @@ SKU–location pairs run for90 days on owned3006, one4GiB/2CPU worker per day.
 The90-day facts must be legitimately generated/registered through the retained
 ledger contract; shorter facts cannot be repeated and accepted F2 runs cannot
 be rewritten. Stop at the first unaccepted day and preserve all attempts.
-Current gate: **NOT SATISFIED**. Ten-pair smoke day one was initiated and failed
-at typed supplier-source readback; the preserved failure is recorded below.
-No successor or90-day execution has begun.
+Current gate: **NOT SATISFIED**. Ten-pair day one now passes31 independent
+comparisons and all18 included preparation layers. Selection is denied by the
+missing permission catalogue and exact hierarchy/access binding. No successor,
+usable UI acceptance or90-day execution has begun; all failed attempts remain.
 
 Verified human controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` explicitly
 disposes the BOR producer blockers by deferring BOR and BOROA **only from the
@@ -40,6 +41,112 @@ ledger-reconciled supplement, complete source initialization and GIT serving,
 then execute the already authorized day-one/successor acceptance and UI journey.
 This does not authorize new facts outside those conventions or change the
 smoke-to90-day gate. Preserve and report the first actual unaccepted failure.
+
+### Active boundary — synthetic access and activation (decision pending)
+
+Day one is independently accepted and the full18-layer preparation is READY on
+serving image `sources-008`. `smoke-day1-ready-retention-001.txt` verifies all31
+PASS comparisons, all18 complete layer receipts, the12 original successful
+layer receipts unchanged, and attempts1/2 FAILED plus attempt3 READY. Seal:
+`bb780b979223dec3d4960cdd85611f7c7b76a3860579215c5d106bf02f46d791`.
+The accepted run remains `63c71fa7-944d-4547-a80f-2316a580d3c7`.
+
+Source-specific SOB correction and remaining preparation guard corrections are
+closed by these proofs. Guided builders/readers now keep the fixture opt-in
+switch on fixtures and use existing admitted daily guards for production.
+Builders use selective daily metadata; legitimate empty Chronic/NMS bags validate
+the pinned physical schema. RRR verifies its actual empty Pick receipt and uses
+a typed zero-row SQL relation, retaining fixture empty denial and missing-source
+denial. The fixture RRR recipe remains unchanged; the daily recipe binds this
+new relation. Focused SQL/guard/publication tests pass6 (`daily-empty-preparation-002`)
+and15 related local tests pass. No calculation or comparison change occurred.
+Preparation001/002 failures remain recorded;003 reached READY without changing
+its source/configuration/coordinator identity or any successful row population.
+
+`smoke-day1-selection-check-001.log` denies activation with
+`permission_catalogue_not_configured`. The owned shell has no catalogue binding;
+its cloned test actors still hold April permission IDs. Native SL1–3/LL1–3 remain
+NULL, exactly as independently accepted. The prior presentation hierarchy
+supplement is pinned to June17 and cannot silently transfer to this timeline.
+Two scoped human decisions are pending: (1) use the exact registered catalogue
+and presentation-only hierarchy for each run-bound3006 synthetic day, with
+isolated user2 roots71001/72001 and user3 restricted71003/72003; (2) an append-only
+activation binding retaining the original READY seal, revalidating all18 layers
+under the new access binding, with no in-place identity rewrite or recalculation.
+The proposed catalogue bytes and exact actor/run plan are retained as
+`proposed-smoke-permissions-001.json` and `proposed-smoke-access-binding-001.json`.
+The restricted smoke membership would be only6120/DP010290; broad membership is
+all10 pairs. Nothing has changed in grants, catalogue settings, hierarchy inputs
+or selection. Protected3005 service identities/configuration remain unchanged.
+
+This is a real access/admission boundary, not permission to waive readiness,
+report UI acceptance, move to the90-day run or replace the registered catalogue.
+The active goal remains open. Exact produced-shipment SQL verification now passes
+(`smoke-day1-transit-sql-001/receipt.json`, SHA256
+`55bb0ac8e684e26132ebed298e5424981f63d717d611ed0eba19ae6ec37864b4`).
+The canonical validator/transporter SQL matches both pure processors and actual
+persisted sources:15 validated,0 rejected,15 transporter occurrences, all fields,
+typed NULLs and duplicates. Export/run/base/supplement/SQL hashes are pinned;
+only connection-local temporary tables were used. No engine day was rerun.
+
+### Closed correction — remaining daily preparation guards
+
+Day one now passes all31 independent comparisons with no qualifications
+(`smoke-day1-oracle-002/replay.json`), recorded by `smoke-day1-parity-admission-001.log`.
+The exact SOB correction is proved. Active unmet exit is the six failed included
+preparation layers. Bound the correction to fixture-only Guided switch leakage
+and RRR's rejection of a verified empty produced Pick relation. Preserve all
+existing publication/source/configuration identities,12 successful layer receipts,
+failed attempts and the accepted calculation. Do not reconfigure or reset rows.
+Prove admitted daily versus disabled fixture behavior, missing/invalid source
+denial, typed zero-row RRR SQL and retry/reuse of partial preparation.
+
+### Closed correction — exact opening supplier representation
+
+The first smoke failure is preserved. The continuing goal now addresses only
+that source-storage defect: retain the original SOB scalar representation
+alongside its canonical float in a run/ordinal-owned typed table. Keep F2 storage,
+calculation, registered inputs, comparisons, MOQ and protected3005 unchanged.
+Required proof: exact duplicate/NULL/string/numeric roundtrip, canonical numeric
+SQL projection, immutable/running-owner guards, atomic rollback, fresh PostgreSQL
+migration and a new attempt using the existing frozen MDM retry contract. Do not
+advance the successor until the corrected first day independently qualifies.
+
+Correction implemented: additive0066 creates DailyOpeningSob with canonical float
+and exact wire text;0067 reuses running-owner/pre-receipt/immutable guards.
+Generic F2 tables/catalogue and MOQ remain unchanged. Focused PostgreSQL proof
+`opening-sob-postgres-004.log` passes9 tests; earlier001/002 failures were test
+fixture omissions (business date and unique run identity), preserved. Review
+found empty-image metadata and unsupported Decimal conversion gaps; both were
+fixed and tested. Check, migration drift/plan and all380 input pins pass. The
+migrations are applied only on3006, which now serves `sources-006`;005 was built
+but never deployed. All protected service identities/configuration are unchanged.
+
+The explicit frozen-capture retry completed day one as run
+`63c71fa7-944d-4547-a80f-2316a580d3c7`, preserving failed root
+`6e791497-49cc-43d8-b25e-88297b37ebae`. Full frozen input equality is proved in
+`smoke-day1-committed-readback-001.txt`. There are515 production images,3 exact
+opening SOB and MOQ rows,15 raw/validated/transporter occurrences, zero rejected
+shipments and the declared empty request/BPR remark populations. Its own single
+suggestion generated its own retained-policy Apply action. Output digest:
+`f14806c1397661e2380ae59282db86bd1b5ca629351a61e73a3b09a407a2388b`.
+
+The initial independent oracle receipt001 records a harness FileNotFoundError:
+only the exported manifest directory was copied, leaving referenced trace files
+behind. Exact existing trace files were then copied without changing the manifest
+or any calculation; archive checksum verification passed. Oracle002 is the
+bounded verification retry and passed all31 comparisons without qualifications. No modern recalculation occurred for that observer fix.
+
+First actual preparation attempt (`smoke-day1-preparation-001.log`) is INCOMPLETE:
+12/18 included layers succeeded. Guided history/DBM/chronic are disabled by the
+owned serving configuration; RRR rejects the genuine empty Pick population;
+Expedite transit/charts consequently lack RRR preparation. Both the partial
+publication and all layer receipts remain intact. Enabling Guided changes the
+bound configuration identity, so no configuration rebind or identity waiver has
+been performed. No run has been selected and no successor or UI acceptance is
+claimed. These are now concrete remaining readiness boundaries, not missing
+synthetic facts.
+
 
 ### Active extension — missing daily sources and pair exclusions
 

@@ -34,7 +34,7 @@ def fields_for(node, alias):
 def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False) or (not daily and not fixture.enabled()):
+    if not daily and (not getattr(settings, 'VF_GUIDED_PREPARED', False) or not fixture.enabled()):
         return None
     if daily:
         from mta.presentation.daily_preparation import source_digest

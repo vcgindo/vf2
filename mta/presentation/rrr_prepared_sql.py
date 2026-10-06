@@ -38,7 +38,7 @@ def admitted_relation(run):
     if (selected.pk != run.pk
             or (run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07')
             or receipt.source_digest != source or receipt.dimension_digest != dimensions
-            or receipt.pick_digest != pick or receipt.recipe_digest != recipe_digest()):
+            or receipt.pick_digest != pick or receipt.recipe_digest != recipe_digest(run)):
         raise PublicationUnavailable('rrr_prepared_receipt_missing_or_changed')
     return ('SELECT * FROM mta.' + quote(RrrPreparedMembership._meta.db_table)
             + ' WHERE run_id=%s', [run.pk])

@@ -17,7 +17,8 @@ COLOR_PATH = 'metadata/bpr/ColorSequence'
 
 def recipe_digest():
     from mta.presentation.daily_transit import recipe_digest as transit_recipe
-    return digest(dict(version=2, writer=inspect.getsource(write_sources),
+    from mta.presentation.daily_opening_sob import recipe_digest as sob_recipe
+    return digest(dict(version=3, writer=inspect.getsource(write_sources), sob=sob_recipe(),
                        transit=transit_recipe()))
 
 
@@ -32,6 +33,10 @@ def write_sources(run, output, *, opening=None):
         rows = prior.get('supplier', {}).get(name)
         if rows is not None:
             path = 'opening/supplier/' + name
+            if name == 'SOBData':
+                from mta.presentation.daily_opening_sob import save
+                images[path] = save(run, rows)
+                continue
             images[path] = save_image(run, path, 'closing/supplier/' + name, rows)
             if load_image(run, images[path]) != storage(rows):
                 raise ValueError('Supplier opening typed readback differs: ' + name)
@@ -90,6 +95,9 @@ def image_metadata(run, path):
 
 def image_rows(run, path):
     item = image_metadata(run, path)
+    from mta.presentation import daily_opening_sob
+    if path == daily_opening_sob.PATH:
+        return daily_opening_sob.read(run, item)
     from mta.presentation import daily_transit
     if path in daily_transit.MODELS:
         return daily_transit.read_rows(run, path, item)

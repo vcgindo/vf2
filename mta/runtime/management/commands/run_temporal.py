@@ -25,6 +25,7 @@ class Command(BaseCommand):
         parser.add_argument('--automatic-actions', action='store_true')
         parser.add_argument('--mdm-source', help='Explicit owned MDM source ID for each daily capture')
         parser.add_argument('--mdm-source-digest', help='Expected immutable MDM source digest')
+        parser.add_argument('--mdm-retry', help='Failed day-one run whose frozen MDM capture must be reused')
         parser.add_argument('--bpr-remark-horizon', type=int,
                             help='Explicit native daily BPR remark retention setting')
         parser.add_argument('--shipment-input',type=Path,
@@ -37,6 +38,9 @@ class Command(BaseCommand):
         if bool(shipment_path)!=bool(shipment_sha):
             raise CommandError('Shipment supplement and expected digest must be supplied together')
         source_id, source_digest = options.get('mdm_source'), options.get('mdm_source_digest')
+        retry_id = options.get('mdm_retry')
+        if retry_id and not source_id:
+            raise CommandError('Frozen MDM retry requires an explicit bound source')
         if bool(source_id) != bool(source_digest):
             raise CommandError('MDM source ID and expected digest must be supplied together')
         if source_id:
@@ -47,6 +51,11 @@ class Command(BaseCommand):
                 raise CommandError('Owned MDM source identity differs') from error
             if options.get('bpr_remark_horizon') is None:
                 raise CommandError('MDM daily publication requires explicit BPR remark horizon')
+            if retry_id:
+                from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+                if not MdmDailyInputCapture.objects.filter(run_id=retry_id, source=mdm_source,
+                        run__status='FAILED', run__predecessor__isnull=True).exists():
+                    raise CommandError('Frozen retry is not a failed root of this source')
         elif options.get('bpr_remark_horizon') is not None:
             raise CommandError('BPR remark horizon override requires an explicit MDM source')
         target=options['evidence'];target.mkdir(parents=True,exist_ok=False)
@@ -111,6 +120,9 @@ class Command(BaseCommand):
                         business_date=day['business_date'],base_artifact_sha256=options['sha256'])
                     receipt['shipment_supplement_sha256']=shipment_sha
                 capture_arguments = {'mdm_source': mdm_source} if mdm_source is not None else {}
+                if retry_id and index == 0:
+                    capture_arguments = {'mdm_retry': retry_id}
+                    receipt['retry_of'] = str(retry_id)
                 run=execute_day(day=day,profile=profile,execution_revision=options['revision'],
                     predecessor=previous,opening=None if previous else dict(state=case['opening'],
                         opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),

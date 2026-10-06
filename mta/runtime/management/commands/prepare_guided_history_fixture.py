@@ -58,9 +58,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql': raise CommandError('Guided history preparation requires PostgreSQL')
-        if not getattr(settings, 'VF_GUIDED_PREPARED', False): raise CommandError('Guided prepared trial switch is disabled')
+        if not options.get('run_id') and not getattr(settings, 'VF_GUIDED_PREPARED', False):
+            raise CommandError('Guided prepared trial switch is disabled')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, admission = command_binding(options.get('run_id'))
+        from mta.presentation.daily_preparation import production_branch
+        if not production_branch(run) and not getattr(settings, 'VF_GUIDED_PREPARED', False):
+            raise CommandError('Guided prepared trial switch is disabled')
         if run.kind not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and run.status != 'FIXTURE_BLOCKED'):
             raise CommandError('Guided history preparation requires the blocked fixture')
         started = time.monotonic()

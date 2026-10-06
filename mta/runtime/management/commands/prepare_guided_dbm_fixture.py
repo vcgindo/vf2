@@ -8,7 +8,7 @@ from django.db import DatabaseError, connection, transaction
 
 from mta.presentation import fixture
 from mta.presentation.guided_dbm_fields import SOURCES, FIELDS, field_name, schema_digest
-from mta.presentation.selective import image_query
+from mta.presentation.selective import image_query, image_metadata
 from mta.runtime.guided_dbm_schema import verify_guards
 from mta.runtime.models import (CalculationRun, GuidedDbmPreparedProjection,
                                 GuidedDbmPreparedRow)
@@ -30,7 +30,7 @@ def raw_equal(left, right):
 def insert_query(run):
     ctes, values = [], []
     for owner, path in SOURCES.items():
-        item = fixture.image_metadata(run, path)
+        item = image_metadata(run, path)
         published = {name: {'str': 'text', 'int': 'bigint'}[wire]
                      for name, _, wire in item['fields'] if wire in ('str', 'int')}
         for name, kind in FIELDS[owner].items():
@@ -125,7 +125,8 @@ def verify_mutation_guards(run):
 def prepare(*, run=None, verify_only=False, verify_mutations=False):
     if connection.vendor != 'postgresql':
         raise CommandError('Guided DBM prepared relation requires PostgreSQL')
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False):
+    from mta.presentation.daily_preparation import production_branch
+    if not production_branch(run) and not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise CommandError('Guided prepared trial switch is disabled')
     if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
         raise CommandError('Guided DBM preparation requires native fixture hierarchy')

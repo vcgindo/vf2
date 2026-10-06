@@ -23,6 +23,8 @@ class MdmRunnerTests(unittest.TestCase):
         command = runner.Command()
         with self.assertRaisesRegex(CommandError, 'supplied together'):
             command.handle(mdm_source='source')
+        with self.assertRaisesRegex(CommandError, 'explicit bound source'):
+            command.handle(mdm_retry='failed-run')
         source = SimpleNamespace(pk='owned', digest='d'*64)
         with patch.object(MdmSource.objects, 'get', return_value=source), \
                 self.assertRaisesRegex(CommandError, 'explicit BPR remark horizon'):
@@ -68,3 +70,24 @@ class MdmRunnerTests(unittest.TestCase):
         self.assertEqual(calls[0]['profile']['daily_publication_config']['bpr_remark_horizon'], 90)
         self.assertEqual(receipt['mdm_source']['digest'], source.digest)
         self.assertTrue(all(day['status']=='COMPUTED_NOT_YET_PARITY' for day in receipt['days']))
+
+    def test_frozen_retry_routes_first_day_without_recapturing_source(self):
+        artifact = Path('D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-input-v1.json')
+        source = SimpleNamespace(pk='owned-mdm-test', digest='d'*64)
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        with TemporaryDirectory() as directory, \
+                patch.object(MdmSource.objects, 'get', return_value=source), \
+                patch.object(MdmDailyInputCapture.objects, 'filter') as captures, \
+                patch('mta.mdm.daily_source.require_binding'), \
+                patch.object(runner, 'execute_day', side_effect=RuntimeError('stop after routing')) as execute:
+            captures.return_value.exists.return_value = True
+            target = Path(directory)/'retry'
+            with self.assertRaisesRegex(RuntimeError, 'stop after routing'):
+                runner.Command(stdout=io.StringIO()).handle(input=artifact,
+                    sha256=hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                    revision='frozen-retry-unit', evidence=target, through=0, exceptions=None,
+                    automatic_actions=False, mdm_source=source.pk, mdm_source_digest=source.digest,
+                    bpr_remark_horizon=90, mdm_retry='failed-root')
+            self.assertEqual(execute.call_args.kwargs['mdm_retry'], 'failed-root')
+            self.assertNotIn('mdm_source', execute.call_args.kwargs)
+            self.assertEqual(json.loads((target/'execution.json').read_text())['days'][0]['retry_of'], 'failed-root')

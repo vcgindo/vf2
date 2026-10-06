@@ -22,6 +22,21 @@ class DailyColorSequence(models.Model):
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'], name='daily_color_sequence_ord')]
 
 
+class DailyOpeningSob(models.Model):
+    """Exact source scalar plus canonical numeric projection, owned by occurrence."""
+    run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    SKUCode = models.TextField(null=True)
+    WHCode = models.TextField(null=True)
+    SupplierCode = models.TextField(null=True)
+    SOB = models.FloatField(null=True)
+    sob_wire = models.TextField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
+                                               name='daily_opening_sob_ordinal')]
+
+
 class DailyUiPublication(models.Model):
     run = models.OneToOneField(CalculationRun, primary_key=True, on_delete=models.PROTECT)
     output_digest = models.CharField(max_length=64)
