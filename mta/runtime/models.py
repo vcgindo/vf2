@@ -1216,3 +1216,7 @@ class ResearchAvailabilityBand(models.Model):
 
 # Additive BOR-OA publication models; calculation models above remain unchanged.
 from mta.runtime.boroa_models import (BorOaSourceReceipt, BorOaSourceRow, BorOaRequirement, BorOaInitialRemark, BorOaLiveRemark, BorOaPreparedReceipt, BorOaPreparedRow)
+
+from mta.runtime.mdm_models import (MdmSource, MdmSkuAttributes, MdmSkuDescription,
+    MdmDraft, MdmDraftMaster, MdmDraftSku, MdmTask, MdmSubTask, MdmSkuRequested,
+    MdmSkuHistory, MdmSkuApproved, MdmSkuUploadLog, MdmSkuUse)

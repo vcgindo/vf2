@@ -53,7 +53,14 @@ class MTA_INTERCEPTOR:
         data['product_permissions'] = product_permissions
         data['location_permissions'] = location_permissions
         data['user'] = user_dict
-        if(forwardUsers): data['all_users'] = getAllUserDetails(request=request,application_id=application_id)
+        # Task assignees must come from the existing authenticated eligibility
+        # owner even if the browser omits forwardUsers or supplies all_users.
+        mdm_submit = request.path.rstrip('/').rsplit('/', 1)[-1] in (
+            'AddMasterData', 'ModifyMasterData', 'RemoveMasterData')
+        if mdm_submit:
+            data.pop('all_users', None)
+        if forwardUsers or mdm_submit:
+            data['all_users'] = getAllUserDetails(request=request,application_id=application_id)
         
         bounded_read = bounded_mta_read(request)
         stream = streams_mta_read(request) or bool(int(data.get("stream", 0)))
@@ -123,4 +130,13 @@ class MTA_INTERCEPTOR:
                 )
                 response.close()
                 return error
+        # Approved SKU-only compatibility boundary: the retained history screen
+        # consumes two lists, while the pinned master1 API emits a direct array.
+        if (request.path.rstrip('/').endswith('/GetSkuLoc')
+                and str(data.get('masterId')) == '1' and response.status_code == 200):
+            body = response.json()
+            if isinstance(body.get('data'), list):
+                body['data'] = {'sku': body['data'], 'loc': []}
+                response.close()
+                return JsonResponse(body)
         return response

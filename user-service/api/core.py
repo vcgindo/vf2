@@ -12,6 +12,7 @@ from api.common.api_varibale import APIVariable
 from common.user_role import UserRole
 import copy
 from api_gateway.service_config.config import service_map
+from api.mdm_navigation import with_mdm_menu_aliases
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
@@ -155,7 +156,7 @@ class ResponseUser:
                 for role_id in self.user["role_id"]:
                     for permission_id in role_id["permission_id"]:
                         url_permission.append(permission_id["url"].strip())
-            self.result["url_permission"] = list(set(url_permission))
+            self.result["url_permission"] = with_mdm_menu_aliases(url_permission)
         if self.feature_permission:
             features_list = []
             all_features = FeatureMaster.objects.filter(is_active = True)
@@ -304,7 +305,7 @@ class ResponseProfile:
             for role_id in self.user["role_id"]:
                 for permission_id in role_id["permission_id"]:
                     url_permission.append(permission_id["url"].strip())
-        self.result["url_permission"] = list(set(url_permission))
+        self.result["url_permission"] = with_mdm_menu_aliases(url_permission)
 
         features_list = []
         all_features = FeatureMaster.objects.filter(is_active = True)

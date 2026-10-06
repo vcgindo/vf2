@@ -1,17 +1,141 @@
 # Fresh VectorFLOW migration — current baseline
 
-Baseline date: 3 October 2026. Implementation checkpoint: `2d0cfde95606aef58a486e186bde1558802ef542` (pushed).
+Baseline date: 6 October 2026. Latest verified delivery: BOR-OA `b5ee354` (pushed).
 
 ## Authority and current instruction
 
-This is the **only migration status tracker**. Whole-page implementation remains
-**PAUSED**, not complete, except the bounded holistic presentation batch below.
-The separately authorized Stage2 dataset preparation
-and bounded four-page availability correction are complete for the scope below:
-RRR/BPR/BTR/DBM populated browser grids, counts, local filters and restricted reads
-on3005. Engines, accepted F1/F2 state, replay, authentication permissions, other
-pages and Stages3–5 were not changed. The isolated fixture remains serving after
-window010's successful admission, security and protected-resource checks.
+This is the **only migration status tracker**. Direct human instruction, verified
+in controller chat01a1037c-5d96-7700-87a8-89a575f6c9f8 on6October2026, releases
+one MTA MDM tranche: SKU(master1), then Location(master2), then SKU–Location(master3).
+This supersedes stale active/paused programme wording only for these three families.
+The operational-report sequence is STOPPED after BOR-OA; supplier allocation and
+all later reports remain pending. Other five MDM families, daily publication,
+whole-stack implementation and3004 cutover are not released.
+Accepted BOR/BOR-OA, restored Buffer/RRR, other report receipts, F1/F2 and MTO remain
+protected, including exact fixture/order/download/performance qualifications below.
+The contract map is MTA_MDM_IMPLEMENTATION_GUIDE.md; it is not a second queue.
+
+### SKU / master1 — human functionally accepted; checkpoint closure
+
+One goal, no numeric budget: deliver SKU, Location and SKU–Location end to end on
+the unchanged frontend and3005, with typed workflow persistence, exact approval/
+master/input effects and verified integrated delivery. Location and SKU–Location
+follow SKU checkpoint commit/push as one combined remaining package. Direct human
+instruction was verified in controller chat01a1037c-5d96-7700-87a8-89a575f6c9f8,
+turn01a10eb1-2db4-7573-947c-7ef82151f693: "the MDM SKU has turned out well from what
+I valideted on UI"; close SKU and move to Location and SKU–Location together.
+SKU functional delivery is accepted with the exact evidence and limitations below.
+Do not repeat passing SKU tests, UI trials, benchmarks or audits. This acceptance
+does not claim every retained defect was repaired or every observation passed.
+Local SKU implementation now covers typed owners, current reads, drafts, task
+submission/review/status/download/history and a bounded approved-input adapter;
+it is deployed and human-functionally accepted. Migration0051 adds the two measured normalized
+SKU lookup indexes; initial installation analyzes their tables before first reads.
+Unpaged current SKU reads/downloads use the human-approved complete-bag ordering
+qualification; every paged response retains exact-order assertions. Approved narrow
+task actor checks are recorded in LEG-MDM-TASK-ACTOR-GAPS.
+The first native workflow fixture was disqualified after source review found
+incorrect cleanup redirection and undrained SQL errors. Preserve native-workflow
+and native-workflow-review-002; no acceptance relies on its PASS claim. Corrected
+native approval SQL and complete modern partial/final relational rows match in
+review-002; source-map.json limits that evidence to its extracted approval boundary.
+Schema-007 passed all15 focused tests (43.232s), including scoped full bags/exact
+pages, drafts, actor denials, partial add, modify/delete inputs, revision binding,
+history cutoff and native database-clock rounding. The independent canonical input
+SQL comparison matches all5 complete81-column rows. Baseline verification retains376
+pinned identities. The SKU-only history gateway response adapter is human-approved
+and deployed (LEG-MDM-SKU-HISTORY-WIRE). CSV parsing/progress-dispatch fixes were
+approved and deployed (LEG-MDM-UPLOAD-TRANSPORT); four candidate gateway/upload
+tests pass. Five conditional menu aliases are approved and deployed
+(LEG-MDM-MENU-ALIASES), with two focused tests passing; menu visibility still needs
+browser reconciliation. Automated browser coverage retains gaps under the human
+functional acceptance; the frontend Excel-only CSV precheck is a retained limit.
+Installation applied real migrations0048–0051 and pinned source data. Recovery of
+the first interrupted migration removed only six verified empty, unrecorded0048
+tables under exact schema/ownership checks before real migration. All396 existing
+fixture guards remain enabled and the frozen-run mutation probe remains denied.
+Initial preview images: MTA5a93013491b8, userbf8ab01a07ec; only those two services
+were recreated, preserving21 other containers and the April7 selected run. Evidence:
+schema-007.log, sku-input-native/oracle-packet.json, preview-install-result.json,
+post-install-freeze.json and deployment-result.json in the SKU evidence directory.
+Latest images: MTA908997c1ff10 (direct draft pagination correction), user2850effc8745
+(approved gateway/menu/upload adapters). Each follow-up recreation preserved22
+other containers. The pinned draft controller binds direct PaginationParameter;
+browser draft reopen exposed an erroneous nested-body port. Corrected schema-009
+focused PostgreSQL/client proof passes; schema-008 test-fixture admission failure
+is retained. Startup admission preserves run/digest; canonical direct-body draft
+CRUD and retained task readback after restart pass (canonical-draft-postrestart.json).
+Live gateway proof matches complete2189/1042 scoped bags, exact first/terminal pages,
+denies unauthenticated access and ignores forged scopes. Browser broad SKU current
+grid/filter and invalid-weight validation/draft-save are visible; user confirmed
+SKU export downloads. Gateway mixed modify task3_20261006061232 is retained with
+canonical pending effects and unchanged1042 current rows. Its earlier wrapped
+draft-read calls remain disqualified; the direct-body rerun passes. Unit suite:464 run,
+448 passed,13 skipped,3 pre-existing failures (two Expedite and stale BOR unsupported
+export expectation). A green full suite is not claimed.
+No Location/SKU–Location implementation opened.
+SKU MasterMapper enables add/modify/remove;25 UI_MDMConfig fields and complete
+Importer SKUAttributeData/SKUDescriptionTbl bags (2,189 rows each) are pinned in
+D:/freshvcf-build/evidence/mdm-sku-20261006-001/source-receipt.json. The deployed
+DLL has immediate add publication and partial approval effects absent from recovered
+C#; modify/delete promotion is qualified to its separate canonical consumer and
+proved as approved input in owned tests, without daily execution.
+Native statement/call partial commits must be preserved, not silently made atomic.
+Human approved draft owner checks for read/count/provided-ID append, recorded as
+LEG-MDM-DRAFT-OWNER-READ-APPEND. Human-approved isolated MDM access has been applied:
+navigation1–7,22 added to Stage2FixtureReader; Stage2MdmApprover assigned only to
+broad user2, restricted user3 is requester. Credentials/scopes/other accounts were
+verified unchanged (identity-grant.json). No other permission changes authorized.
+Permitted writes: missing narrow typed relations in owned Fresh PostgreSQL application
+state, isolated non-delivery workflow tests and existing preview services necessary
+for MDM. Frozen stage bags, admission guards, selected run and accepted inputs/results
+are not editable masters. No engine changes or accepted-day replay.
+
+### Active remaining package — Location then SKU–Location
+
+After SKU checkpoint commit/push, implement master2 identities/scopes/effects, then
+dependent master3 in one bounded package. Reuse proven SKU plumbing; qualify only
+new configured fields/types/NULLs/duplicates/order, location/product scopes,
+parents/source owners, configured operation/review effects, owned-test approved
+input mapping and changed failure/retry behavior. Required affected Django,
+migration and build checks remain. Perform one integrated unchanged-frontend3005
+workflow/reload/restart proof and bounded event-to-usable observations for materially
+changed paths. Correct real failures and recheck only the affected boundary.
+No separate exhaustive Location campaign, new benchmark programme, routine human
+checkpoint or repeated SKU acceptance. Commit/push the verified combined package,
+then STOP at the three-family handoff. No other families or daily/demo work.
+
+Retained SKU limitations: frontend CSV selection reaches an Excel-only precheck;
+backend CSV/XLSX text-cell validation matches (upload-gateway-proof-003.json).
+Native draft other-owner/not-found DELETE is bodylessHTTP304; retained gateway JSON
+decoding surfacesHTTP500 without mutation (gateway-workflow/status-matrix.json).
+History excludes later-today entries by canonical midnight cutoff. MDM menu
+visibility remains unreconciled in this browser despite approved conditional
+aliases. These are recorded limitations, not silently passing checks or permission
+to repair further legacy behavior. User confirmed SKU export download in
+call_04ea8b66063b4ea682ca0df8100ce7cb item1. Latest deployment receipts:
+deployment-draft-result.json and deployment-upload-result.json under the SKU
+evidence directory. Existing direct routes, human UI acceptance and retained
+receipts close SKU's functional checkpoint.
+
+Original readiness exits (retain unobserved parts honestly under human acceptance):
+(1) navigation/config/current grid
+shows the complete configured field set and normal page size, accurate count/filter/
+page controls; (2) online/upload validation shows actual progress and valid/invalid
+rows; (3) draft save/reload/change/delete preserves owned rows and state; (4) submit/
+review/mixed decisions displays correct task/row status and operable controls; (5)
+requester status/history/download reflects only canonical approved effects; (6)
+restart/reload preserves those states. Capture one finite final event-to-usable
+journey per materially changed path at unchanged resources, decomposing auth/admission,
+SQL/assembly/transfer/frontend/render where observable. No absent-modern baseline,
+arbitrary target, reduced payload or favorable repeat; retain tool/AX overhead and
+unavailable native paint boundaries. One attributable correction/recheck only;
+unresolved seconds-long costs require exact attribution and escalation.
+Mandatory proof: focused workflow/permissions/correctness, Django check, migration
+plan and makemigrations --check, fresh migration-enabled owned PostgreSQL/rollback,
+applicable pinned source identity; build/deploy/source identity/readyz, unchanged
+selected-run and protected services. No real notification delivery or credential
+changes. Commit at verified family exits, stop after the three-family handoff.
 
 The previous 4,286-line tracker is preserved byte-for-byte in [the historical snapshot](archive/MIGRATION_2026-10-03_2d0cfde.md), SHA256 `a913419e34a3318d7ca09f11b163295c9d695b55d99e3060e87c23fadc84242b`. It contains provenance and exact earlier approvals, **not active instructions or a second queue**. Do not load the whole archive routinely; consult the relevant passage only when an unresolved contract requires it.
 

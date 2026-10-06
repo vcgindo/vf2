@@ -760,3 +760,101 @@ Pinned AddBOROARemark/GetBOROARemarkDetails concatenate raw quoted strings
 this is NOT_PARITY, not an exact emulation of arbitrary SQL fragments. Omitted
 nullable remarks and explicitNULL distinctions retain the native tested behavior.
 No normal-BOR approval is transferred to this boundary and no unsafe SQL executes.
+
+
+## LEG-MDM-DRAFT-OWNER-READ-APPEND - approved narrow ownership exception
+
+Pinned DLL DraftProcessor.GetDraftCount IL21424–21504 and GetDraftDetails
+IL23097–23299 accept only draft ID (plus pagination for details); their SQL has
+no requester predicate. DraftController IL160059–160228 does not pass an actor.
+AddMasterDraft supplied-ID append branch also has no owner predicate, while
+ModifyMasterDraft/DeleteMasterDraft explicitly check DraftInstance.userId.
+This conflicts with the new tranche's owned draft read/write acceptance.
+Do not claim actor-denial parity. Exact source
+snippets/strings are in mdm-sku-20261006-001/draft.il.txt and draft-strings.json.
+Direct human reply to call_Mz37jsXw2plmDe3DDwJljyxJ item1 on6October2026:
+"Approve narrow draft ownership checks". Enforce owner on read/count/provided-ID
+append, retaining the native successful owner flow. This is an intentional
+deviation limited to those three checks; no other legacy repair is authorized.
+
+## LEG-MDM-SKU-MODIFY-MARKER - corrected qualification, no exception
+
+The first qualification incorrectly equated task header Actiontype2 with the
+staged row marker. Pinned InsertSKUMaster IL50354–50366 calls the getValues overload
+whose IL56494–56515 emits literal Reverted0,ActionType1,Approved0 for BOTH add and
+modify. Canonical
+NMSImportData.sql (SHA256 c86d014b1f7ee921821f83936a53d1d4da566ba9b2558db9252853260c3c3801)
+overlays ActionType1 and deletes ActionType0. Approved SKU modifications normally
+reach this ActionType1 overlay and DO change master values at the daily boundary.
+Do not use header Actiontype2 as the approved-input marker. Archive/clear consumes
+approved staging;
+NMSTaskStatusUpdate.sql (99836bcf74c618350924bf02e21dea30cbe4cc9d6022f859f5c1c6cfca10dbe8)
+advances approved-history subtasks2/3 to4/5 and parent7 independently of successful
+master application, including when NMSActive disables import. Full bounded
+DLL/BAT/SQL qualification is mdm-sku-20261006-001/contract.md. Adapter verification
+is confined to owned revision/input tests; no production/daily/demo run is released.
+
+## LEG-MDM-TASK-ACTOR-GAPS - approved narrow task access exception
+
+Pinned submission accepts supplied TaskId without owner validation; approval
+PostMasterAfterApproved IL81868–82400 updates by taskId/SKU without checking acting
+reviewer assignment; DeleteTaskProcessor IL90228–90354 accepts no actor and deletes
+history/temp/header/subtasks. Download IL84101–86580 trusts supplied ApproverId;
+TaskMasterHistory IL90655–91055 ignores caller scope. The draft ownership approval
+does not cover these task endpoints. Evidence: mdm-sku-20261006-001/task-wire.md.
+Approved narrow exception: requester-only task append/delete; assigned-row reviewer
+and submitted-product scope for decisions; requester or selected acting reviewer
+for downloads; current SKU scope for history. Deny other actors with403, preserving
+successful authorized wire shapes, source calculation and status/failure behavior.
+Direct human reply call_kh5dPo7oujWIY7JUspAONbrS item0 on6October2026:
+"Approve narrow MDM task actor checks". This authorizes only the stated guards;
+draft, ordering, transaction and calculation contracts remain separately governed.
+
+## LEG-MDM-SKU-UNPAGED-ORDER - approved exact-family qualification
+
+Pinned current SKU query computes ROW_NUMBER(sc DESC) but its unpaged outer SELECT
+neither uses RN nor orders results. SQL Server removes the unused window; native
+unpaged order varies with scope/access path. Modern complete row bags match for
+all2,189 broad and1,042 restricted records. Strict unpaged order failed at742 and
+1,038 positions; every100-row page (including empty terminal pages) matched exactly.
+Original failures schema-001/002/003 and native/modern complete bags remain under
+mdm-sku-20261006-001. Human reply call_zXrNT7N0MmY734I0z7Oy3J46 item0:
+"Approve SKU unpaged ordering qualification". Unpaged current read/download may
+compare complete bags only for this SKU boundary. Exact page order and complete
+field/type/NULL/multiplicity checks remain required. No other family/task/draft
+ordering exception transfers and no invented sorting tie-break is added.
+
+## LEG-MDM-SKU-HISTORY-WIRE - approved gateway shape adapter
+
+Pinned GetSkuLocProcessor master1 (IL91417–91687) returns data as a direct
+SKUCode array. Retained DataModificationHistory/useDataModificationHistory.ts
+reads data.sku/data.loc; the retained gateway provides no response adapter.
+Direct human approval call_d242e2987b96420fa241a55c123555df item0:
+"Approve SKU history response adapter". Only the authenticated gateway's
+successful GetSkuLoc master1 response wraps that array as {sku: rows, loc: []}.
+The native service response, current hierarchy scope, DISTINCT SKU grain,
+modify-task predicate and90-day through today's-midnight cutoff remain unchanged.
+This does not authorize a same-day history repair or another family's adapter.
+
+## LEG-MDM-MENU-ALIASES - approved conditional navigation aliases
+
+Retained NavbarMenu/listMenu.tsx uses five /masters-interceptor routes, while
+the existing MTA permissions authorize /mta/master-data-management routes.
+NavbarMenu's exact URL checks therefore hide MDM despite those grants; direct
+routes work. Human reply call_afa0d7ddadba48b791143b5fd0b6e2f0 item0:
+"Approve conditional MDM menu aliases". Login/profile responses may add only
+the matching control-panel, saved-drafts, task-pending, task-status and
+data-modification-history interceptor alias when its exact MTA route is granted.
+Stored grants, credentials, product/location scopes and MTO access stay unchanged.
+The retained application selector still checks the underlying application route.
+
+## LEG-MDM-UPLOAD-TRANSPORT - approved CSV and progress compatibility repairs
+
+Retained read_uploaded_master_file sends CSV to openpyxl and raises BadZipFile.
+GetUploadProgressView uses async get under synchronous DRF APIView dispatch,
+which raises a coroutine/Response assertion; its cached model also retains stale
+progress. The unchanged frontend offers these upload/polling paths. Human reply
+call_04ea8b66063b4ea682ca0df8100ce7cb item0: "Approve CSV and progress fixes".
+Use pandas.read_csv(dtype=str) only for CSV, retain Excel parsing and cell cleanup,
+and make progress get synchronous with a fresh typed progress-row read per poll.
+Validation rules, scopes, response fields and frontend behavior remain unchanged.

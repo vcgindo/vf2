@@ -16,7 +16,10 @@ def read_uploaded_master_file(uploaded_file: UploadedFile):
             tmp.write(chunk)
     
         tmp.seek(0)
-        master_df = pd.read_excel(tmp, engine='openpyxl', dtype=str)
+        if uploaded_file.name.lower().endswith('.csv'):
+            master_df = pd.read_csv(tmp, dtype=str)
+        else:
+            master_df = pd.read_excel(tmp, engine='openpyxl', dtype=str)
         master_df.replace(
             to_replace=r'^\s*(null|nan|na|n/a)\s*$',
             value=None,

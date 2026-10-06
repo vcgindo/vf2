@@ -11,6 +11,7 @@ INSTALLED_APPS = ['django.contrib.contenttypes', 'mta.runtime']
 MIDDLEWARE = ['django.middleware.security.SecurityMiddleware']
 ROOT_URLCONF = 'vectorflow.urls'
 MTA_TRUSTED_GATEWAY_HEADER = os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity')
+VF_MDM_SOURCE_DIGEST = os.environ.get('VF_MDM_SOURCE_DIGEST', '')
 VF_MTA_PUBLISHED_RUN = os.environ.get('VF_MTA_PUBLISHED_RUN', '')
 VF_MTA_PUBLISHED_DIGEST = os.environ.get('VF_MTA_PUBLISHED_DIGEST', '')
 VF_MTA_FIXTURE_FILE = os.environ.get('VF_MTA_FIXTURE_FILE', '')

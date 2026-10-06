@@ -1,0 +1,116 @@
+{
+  "BPR/SKUAttributeData": {
+    "columns": [
+      "SKUCode",
+      "ElephantOrderCapping",
+      "Weight",
+      "Volume",
+      "SL1",
+      "SL2",
+      "SL3",
+      "SL4",
+      "SL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 2189,
+    "sha256": "56a80a5791094b1779b74ab386112fcd2a6c592b76f4cc0f4ba80000b7222718"
+  },
+  "BPR/SKUDescriptionTbl": {
+    "columns": [
+      "SKUCode",
+      "SKUDescription"
+    ],
+    "rows": 2189,
+    "sha256": "53a3bc564f5d15ecfd436a5f6609eeee7d9386146460ba095e2ca139cb4b2ce8"
+  },
+  "BTR/SKUAttributeData": {
+    "columns": [
+      "SKUCode",
+      "ElephantOrderCapping",
+      "Weight",
+      "Volume",
+      "SL1",
+      "SL2",
+      "SL3",
+      "SL4",
+      "SL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 1965,
+    "sha256": "8383a00e19feee56212b2797e999cee3c7266dfe673bb0743599bd49603af2b3"
+  },
+  "BTR/SKUDescriptionTbl": {
+    "columns": [
+      "SKUCode",
+      "SKUDescription"
+    ],
+    "rows": 1965,
+    "sha256": "1670537a88ddcb0479abe8741200cc5140ce511cf139675b602ecb7c50b9ae15"
+  },
+  "DBM/SKUAttributeData": {
+    "columns": [
+      "SKUCode",
+      "ElephantOrderCapping",
+      "Weight",
+      "Volume",
+      "SL1",
+      "SL2",
+      "SL3",
+      "SL4",
+      "SL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 2189,
+    "sha256": "517799d9110c68dcbbe302b6b0dc46599f49f6378b41bd2a8181d771d65011d2"
+  },
+  "DBM/SKUDescriptionTbl": {
+    "columns": [
+      "SKUCode",
+      "SKUDescription"
+    ],
+    "rows": 2189,
+    "sha256": "21ef9efac39807a5357733ef8589ea2679e82f697bcc653f4f9dbd2530749f0b"
+  }
+}

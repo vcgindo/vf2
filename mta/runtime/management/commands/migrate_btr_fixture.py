@@ -1,4 +1,4 @@
-"""Apply allowlisted reporting migrations and restore fixture guards atomically."""
+"""Apply allowlisted additive migrations and restore fixture guards atomically."""
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
@@ -11,6 +11,10 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
+        parser.add_argument('--mdm-sku', action='store_true',
+                            help='Apply only additive SKU application/workflow relations after 0047')
+        parser.add_argument('--recover-unrecorded-mdm-sku', action='store_true',
+                            help='Recover only the six empty, unrecorded tables from the failed ordinary 0048 attempt')
         parser.add_argument('--boroa-snapshot', action='store_true',
                             help='Apply only additive BOR-OA source, live history and prepared relations after 0045')
         parser.add_argument('--bor-snapshot', action='store_true',
@@ -53,11 +57,14 @@ class Command(BaseCommand):
                             help='Apply only the normal Planning grid occurrences after source masters')
 
     def handle(self, *args, **options):
+        if options['recover_unrecorded_mdm_sku'] and not options['mdm_sku']:
+            raise CommandError('Unrecorded SKU recovery requires --mdm-sku')
         if not fixture.enabled():
             raise CommandError('Use ordinary migrate for normal publications')
         before = fixture.binding()[1]
         seal = digest(fixture.freeze_state())
-        target = ('0047_boroa_guards' if options['boroa_snapshot'] else
+        target = ('0051_mdm_sku_lookup_indexes' if options['mdm_sku'] else
+                  '0047_boroa_guards' if options['boroa_snapshot'] else
                   '0045_bor_prepared_guards' if options['bor_snapshot'] else
                   '0042_research_norm_history_index' if options['research_critical_path'] else
                   '0039_research_availability_cover' if options['research_availability_index'] else
@@ -79,6 +86,11 @@ class Command(BaseCommand):
                   '0018_guided_history_date_index' if options['guided_history_index']
                   else '0017_btr_snapshot_scope_indexes')
         plan = MigrationExecutor(connection).migration_plan([('fresh_mta', target)])
+        if options['mdm_sku'] and any(backwards or migration.app_label != 'fresh_mta'
+                or migration.name not in ('0048_mdm_sku_application_owner','0049_mdm_sku_tasks',
+                                         '0050_mdm_sku_delete_eligibility','0051_mdm_sku_lookup_indexes')
+                for migration, backwards in plan):
+            raise CommandError('SKU application migration requires the complete 0047 baseline')
         if options['boroa_snapshot'] and any(backwards or migration.app_label != 'fresh_mta'
                 or migration.name not in ('0046_boroa_snapshot_and_prepared', '0047_boroa_guards')
                 for migration, backwards in plan):
@@ -134,6 +146,8 @@ class Command(BaseCommand):
         if any(backwards or migration.app_label != 'fresh_mta' or migration.name not in (
                 '0013_btr_reporting_references', '0014_btr_reporting_immutability',
                 '0015_btr_reporting_truncate_guard', '0016_btr_presentation_rows', '0017_btr_snapshot_scope_indexes',
+                *(['0048_mdm_sku_application_owner','0049_mdm_sku_tasks',
+                   '0050_mdm_sku_delete_eligibility','0051_mdm_sku_lookup_indexes'] if options['mdm_sku'] else []),
                 *(['0046_boroa_snapshot_and_prepared', '0047_boroa_guards'] if options['boroa_snapshot'] else []),
                 *(['0043_bor_snapshot_sources', '0044_bor_prepared_membership',
                    '0045_bor_prepared_guards'] if options['bor_snapshot'] else []),
@@ -169,6 +183,8 @@ class Command(BaseCommand):
                   if options['guided_history_preparation'] else [])) for migration, backwards in plan):
             raise CommandError('Only allowlisted forward reporting migrations are allowed')
         with transaction.atomic():
+            if options['recover_unrecorded_mdm_sku']:
+                self.recover_unrecorded_sku()
             with connection.cursor() as cursor:
                 for table in ('django_migrations', 'django_content_type'):
                     cursor.execute('ALTER TABLE mta.' + table + ' DISABLE TRIGGER stage2_immutable')
@@ -179,4 +195,45 @@ class Command(BaseCommand):
                     cursor.execute('ALTER TABLE mta.' + table + ' ENABLE TRIGGER stage2_immutable')
             if fixture.binding()[1] != before or digest(fixture.freeze_state()) != seal:
                 raise CommandError('Fixture admission or freeze changed; migration rolled back')
-        self.stdout.write('Reporting migrations applied; fixture admission and source guards unchanged')
+        self.stdout.write('Additive migrations applied; fixture admission and source guards unchanged')
+
+    def recover_unrecorded_sku(self):
+        """One explicit failed-DDL recovery; never fake a migration or drop data."""
+        executor=MigrationExecutor(connection)
+        if any(app=='fresh_mta' and name>='0048' for app,name in executor.loader.applied_migrations):
+            raise CommandError('SKU recovery requires no recorded 0048 or later migration')
+        state=executor.loader.project_state([('fresh_mta','0048_mdm_sku_application_owner')])
+        models=[state.apps.get_model('fresh_mta',name) for name in
+            ('MdmDraftSku','MdmDraftMaster','MdmDraft','MdmSkuAttributes','MdmSkuDescription','MdmSource')]
+        tables=[model._meta.db_table for model in models]
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname='mta' AND tablename LIKE 'fresh_mta_mdm%'")
+            if {row[0] for row in cursor.fetchall()}!=set(tables):
+                raise CommandError('SKU recovery table set differs from the failed 0048 attempt')
+            cursor.execute('LOCK TABLE '+','.join('mta.'+connection.ops.quote_name(table) for table in tables)+' IN ACCESS EXCLUSIVE MODE')
+            for model in models:
+                table=model._meta.db_table
+                description=connection.introspection.get_table_description(cursor,table)
+                if {col.name for col in description}!={field.column for field in model._meta.local_fields}:
+                    raise CommandError('SKU recovery columns differ: '+table)
+                cursor.execute("""SELECT attname,format_type(atttypid,atttypmod),NOT attnotnull
+                    FROM pg_attribute WHERE attrelid=%s::regclass AND attnum>0 AND NOT attisdropped""",['mta.'+table])
+                actual={name:(kind,nullable) for name,kind,nullable in cursor.fetchall()}
+                expected={field.column:(field.db_type(connection).replace('varchar(','character varying(').replace(', ',','),field.null)
+                    for field in model._meta.local_fields}
+                if actual!=expected:
+                    raise CommandError('SKU recovery column types or nullability differ: '+table)
+                cursor.execute('SELECT count(*) FROM mta.'+connection.ops.quote_name(table))
+                if cursor.fetchone()[0]:
+                    raise CommandError('SKU recovery refuses nonempty table: '+table)
+            cursor.execute("""SELECT count(*) FROM pg_constraint c
+                JOIN pg_class target ON target.oid=c.confrelid
+                JOIN pg_namespace n ON n.oid=target.relnamespace
+                JOIN pg_class origin ON origin.oid=c.conrelid
+                JOIN pg_namespace origin_ns ON origin_ns.oid=origin.relnamespace
+                WHERE c.contype='f' AND n.nspname='mta' AND target.relname=ANY(%s)
+                AND NOT (origin_ns.nspname='mta' AND origin.relname=ANY(%s))""",[tables,tables])
+            if cursor.fetchone()[0]:
+                raise CommandError('SKU recovery refuses an external foreign-key dependency')
+            for table in tables:
+                cursor.execute('DROP TABLE mta.'+connection.ops.quote_name(table))

@@ -1,8 +1,28 @@
 from functools import partial
 from django.urls import path
 from mta.presentation import views
+from mta.presentation import mdm_views
 
 urlpatterns = [
+    path('GetMasterUIConfiguration', mdm_views.configuration),
+    path('GetCount', partial(mdm_views.current, count=True)),
+    path('GetMasterData', mdm_views.current),
+    path('allDrafts', mdm_views.all_drafts),
+    path('draftCount/<str:draft_id>', mdm_views.draft_count),
+    path('draft', mdm_views.draft),
+    path('draft/<str:draft_id>', mdm_views.draft),
+    path('AddMasterData', partial(mdm_views.submit,action=1)),
+    path('ModifyMasterData', partial(mdm_views.submit,action=2)),
+    path('RemoveMasterData', partial(mdm_views.submit,action=3)),
+    path('GetTaskStatusData', mdm_views.task_list),
+    path('GetTaskPendingForReviewData', partial(mdm_views.task_list,pending=True)),
+    path('GetTaskCount/<str:task_id>', mdm_views.task_count),
+    path('GetTaskDetails', mdm_views.task_details),
+    path('GetTaskDetailsDownloadData', partial(mdm_views.task_details,download=True)),
+    path('GetTaskMastersHistory', mdm_views.task_history),
+    path('GetSkuLoc', mdm_views.history_skus),
+    path('PostMasterAfterApproved', mdm_views.approve),
+    path('DeleteTask', mdm_views.delete_task),
     path('GetAllPermmision', views.all_permissions),
     path('LocationType', views.location_types),
     path('SKUDesc', partial(views.descriptions, kind='sku')),
