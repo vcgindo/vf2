@@ -40,15 +40,14 @@ ORDINALS = {'A': 'a_ordinal', 'btd': 'btd_ordinal', 'E': 'e_ordinal',
 ROW_FIELDS = ('branch', 'export', 'sku_code', 'location_code', 'sku_key', 'location_key', *ORDINALS.values())
 
 
-def source_identity(run, version=VERSION, *, metadata=None):
+def source_identity(run, version=VERSION):
     return dict(version=version, run=str(run.pk), kind=run.kind, date=str(run.business_date),
                 input_digest=run.input_digest, output_digest=run.output_digest,
                 production_digest=run.production_digest,
-                images={role: image_metadata(run, path) if metadata is None else metadata[path]
-                        for role, path in SOURCES.items()})
+                images={role: image_metadata(run, path) for role, path in SOURCES.items()})
 
 
-def selected_generation(run, *, metadata=None):
+def selected_generation(run):
     identifier = getattr(settings, 'VF_BTR_REPORTING_GENERATION', '')
     if not identifier:
         return None
@@ -58,13 +57,13 @@ def selected_generation(run, *, metadata=None):
         raise PublicationUnavailable('btr_reporting_generation_not_ready') from exc
     if (generation.run_id != run.pk or generation.version not in (VERSION, 2) or
             generation.source_kind != run.kind or generation.business_date != run.business_date or
-            generation.source_digest != digest(source_identity(run, generation.version, metadata=metadata))):
+            generation.source_digest != digest(source_identity(run, generation.version))):
         raise PublicationUnavailable('btr_reporting_generation_source_mismatch')
     return generation
 
 
-def admission_identity(run, *, metadata=None):
-    generation = selected_generation(run, metadata=metadata)
+def admission_identity(run):
+    generation = selected_generation(run)
     if generation is None:
         return None
     return dict(id=str(generation.pk), source=generation.source_digest, rows=generation.rows_digest,
@@ -145,14 +144,11 @@ def _populate(run, generation):
                     ','.join(expressions) + ' FROM A' + joins, values + [generation.pk, branch, export])
 
 
-def build_selected():
-    """Post-admission command, separate from execute_day; never rewrites accepted output."""
-    if not transaction.get_autocommit():
+def _build(run, *, admission=None, allow_outer=False):
+    """Build one explicit immutable source identity; selection is the caller's concern."""
+    outer = not transaction.get_autocommit()
+    if outer and not allow_outer:
         raise ValueError('BTR builder requires its own transaction boundary')
-    from mta.presentation.admission import binding, verify
-    run, admission = binding()
-    # Builder uses the same admission as serving, before deriving any rows.
-    verify(run)
     lineage = source_identity(run)
     source = digest(lineage)
     lock = int(source[:15], 16)
@@ -171,7 +167,8 @@ def build_selected():
             source_kind=run.kind, business_date=run.business_date, lineage=lineage)
         with transaction.atomic():
             with connection.cursor() as cursor:
-                cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+                if not outer:
+                    cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
                 cursor.execute("SET LOCAL statement_timeout='60s'")
                 cursor.execute("SET LOCAL work_mem='32MB'")
             problems = _duplicates(run)
@@ -187,7 +184,11 @@ def build_selected():
                 if any(counts.get(name, 0) != count for name, count in expected.items()):
                     raise PublicationUnavailable('btr_reporting_reference_population_mismatch')
             generation.row_count, generation.rows_digest = rows_identity(generation)
-            if binding()[1] != admission or source_identity(run) != lineage:
+            if admission is not None:
+                from mta.presentation.admission import binding
+                if binding()[1] != admission:
+                    raise PublicationUnavailable('btr_source_changed_during_build')
+            if source_identity(run) != lineage:
                 raise PublicationUnavailable('btr_source_changed_during_build')
             generation.eligible = not problems
             generation.qualification = dict(duplicate_groups=problems, populations=counts, ambiguous_reader='accepted')
@@ -203,6 +204,24 @@ def build_selected():
     finally:
         with connection.cursor() as cursor:
             cursor.execute('SELECT pg_advisory_unlock(%s)', [lock])
+
+
+def build_run(run):
+    """Prepare an unselected accepted daily run without consulting global selection."""
+    if (getattr(run, 'kind', None) != 'DAILY_CHAIN' or
+            getattr(run, 'status', None) != 'SUCCEEDED' or
+            not getattr(run, 'production_digest', None)):
+        raise PublicationUnavailable('btr_daily_source_run_not_accepted')
+    return _build(run, allow_outer=True)
+
+
+def build_selected():
+    """Post-admission command, separate from execute_day; never rewrites accepted output."""
+    from mta.presentation.admission import binding, verify
+    run, admission = binding()
+    # Fixture/selected behavior remains bound to the same serving admission.
+    verify(run)
+    return _build(run, admission=admission)
 
 
 def eligible_request(generation, products, locations):

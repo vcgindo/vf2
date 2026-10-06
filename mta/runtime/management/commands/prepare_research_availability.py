@@ -74,22 +74,21 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Research availability preparation requires PostgreSQL')
-        run, source = fixture.binding()
-        if str(run.pk) != RUN_ID or getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' \
-                or str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and (str(run.pk) != RUN_ID or str(run.business_date) != '2026-04-07')):
             raise CommandError('Research availability preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             membership_count, membership_digest = accepted_history_source(run, source)
-            current, current_source = fixture.binding()
-            if current.pk != run.pk or current_source != source:
-                raise CommandError('Research availability admission changed before preparation')
+            assert_unchanged(run, source)
             receipt = ResearchAvailabilityBandProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
@@ -124,9 +123,7 @@ class Command(BaseCommand):
                     raise CommandError('Research availability band receipt differs')
             else:
                 ResearchAvailabilityBandProjection.objects.create(run=run, **expected)
-            final, final_source = fixture.binding()
-            if final.pk != run.pk or final_source != source:
-                raise CommandError('Research availability admission changed before commit')
+            assert_unchanged(run, source)
             final_count, final_digest = accepted_history_source(run, source)
             if (final_count, final_digest) != (membership_count, membership_digest):
                 raise CommandError('Accepted history prepared source changed before commit')

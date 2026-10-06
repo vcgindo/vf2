@@ -122,7 +122,7 @@ def verify_mutation_guards(run):
     return dict(rejected=rejected, normal_owner_guard=normal_status)
 
 
-def prepare(*, verify_only=False, verify_mutations=False):
+def prepare(*, run=None, verify_only=False, verify_mutations=False):
     if connection.vendor != 'postgresql':
         raise CommandError('Guided DBM prepared relation requires PostgreSQL')
     if not getattr(settings, 'VF_GUIDED_PREPARED', False):
@@ -131,11 +131,17 @@ def prepare(*, verify_only=False, verify_mutations=False):
         raise CommandError('Guided DBM preparation requires native fixture hierarchy')
     with transaction.atomic():
         verify_guards(connection)
-        run, source = fixture.binding()
+        fixture_run = run is None
+        if fixture_run:
+            run, source = fixture.binding()
+        else:
+            from mta.presentation.daily_preparation import source_digest
+            source = source_digest(run)
         CalculationRun.objects.select_for_update().get(pk=run.pk)
-        run_after_lock, source_after_lock = fixture.binding()
-        if run.pk != run_after_lock.pk or source != source_after_lock:
-            raise CommandError('Guided DBM source changed before preparation')
+        if fixture_run:
+            run_after_lock, source_after_lock = fixture.binding()
+            if run.pk != run_after_lock.pk or source != source_after_lock:
+                raise CommandError('Guided DBM source changed before preparation')
         schema = schema_digest()
         receipt = GuidedDbmPreparedProjection.objects.filter(run=run).first()
         if receipt:
@@ -161,9 +167,13 @@ def prepare(*, verify_only=False, verify_mutations=False):
                 run=run, source_digest=source, schema_digest=schema,
                 rows_digest=rows_digest, row_count=count)
             created = True
-        final_run, final_source = fixture.binding()
-        if final_run.pk != run.pk or final_source != source:
-            raise CommandError('Guided DBM source changed before commit')
+        if fixture_run:
+            final_run, final_source = fixture.binding()
+            if final_run.pk != run.pk or final_source != source:
+                raise CommandError('Guided DBM source changed before commit')
+        else:
+            from mta.presentation.daily_preparation import assert_unchanged
+            assert_unchanged(run, source)
         verify_guards(connection)
         mutations = verify_mutation_guards(run) if verify_mutations else []
         return dict(run_id=str(run.pk), source_digest=source, schema_digest=schema,
@@ -177,7 +187,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
         parser.add_argument('--verify-mutation-guards', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
-        self.stdout.write(json.dumps(prepare(verify_only=options['verify_only'],
+        run = CalculationRun.objects.get(pk=options['run_id']) if options.get('run_id') else None
+        self.stdout.write(json.dumps(prepare(run=run, verify_only=options['verify_only'],
             verify_mutations=options['verify_mutation_guards']), sort_keys=True))

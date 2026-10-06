@@ -20,8 +20,17 @@ SOURCES = (
 
 def source_signatures(run):
     """Bind the recipe to exact admitted native dimensions and Pick projection."""
-    dimensions = fixture.image_metadata_batch(run, [path for _, path in SOURCES])
-    pick = fixture.receipt(run, 'projection/PickBand')
+    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+        from mta.presentation.daily_preparation import source_digest
+        from mta.presentation.selective import image_metadata
+        from mta.runtime.models import PickProjection
+        source_digest(run)
+        dimensions = {path: image_metadata(run, path) for _, path in SOURCES}
+        pick = PickProjection.objects.filter(run=run).values(
+            'version','calculation_digest','rows_digest','row_count','provenance').get()
+    else:
+        dimensions = fixture.image_metadata_batch(run, [path for _, path in SOURCES])
+        pick = fixture.receipt(run, 'projection/PickBand')
     return digest(dimensions), digest(pick)
 
 
@@ -200,6 +209,8 @@ def verify_guards(connection):
         cursor.execute('SELECT p.proname,p.prosrc,p.prolang=l.oid,p.prosecdef FROM pg_proc p '
                        "JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.lanname='plpgsql' "
                        "WHERE n.nspname='mta' AND p.proname=ANY(%s) AND p.pronargs=0", [list(bodies)])
+        from mta.runtime.daily_prepared_schema import installed_bodies
+        bodies = installed_bodies(connection, bodies)
         if {name: tuple(row) for name, *row in cursor.fetchall()} != {
                 name: (body, True, False) for name, body in bodies.items()}:
             raise ValueError('RRR prepared function contract differs')

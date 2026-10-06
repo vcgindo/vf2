@@ -48,11 +48,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Planning source preparation requires PostgreSQL')
-        run, initial_source = fixture.binding()
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, initial_source = command_binding(options.get('run_id'))
         start = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
@@ -88,8 +90,9 @@ class Command(BaseCommand):
                     raise CommandError('Planning prepared source receipt differs')
             else:
                 PlanningSourceProjection.objects.create(run=run, **expected)
-            current, final_source = fixture.binding()
-            if current.pk != run.pk or final_source != source:
-                raise CommandError('Planning source admission changed before commit')
+            try:
+                assert_unchanged(run, source)
+            except Exception as exc:
+                raise CommandError('Planning source admission changed before commit') from exc
         self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
                                          seconds=time.monotonic()-start, **expected), sort_keys=True))

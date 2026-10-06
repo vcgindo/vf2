@@ -6,7 +6,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from mta.presentation import fixture
-from mta.presentation.planning_expedite_custom_preparation import custom_occurrences, recipe_digest
+from mta.presentation.planning_expedite_custom_preparation import custom_occurrences, production_custom_occurrences, recipe_digest, production_recipe_digest
 from mta.runtime.models import PlanningExpediteCustomProjection, PlanningExpediteCustomOccurrence
 from mta.runtime.planning_expedite_custom_schema import verify_guards
 from mta.runtime.relational_state import quote
@@ -48,19 +48,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Planning Expedite custom preparation requires PostgreSQL')
-        run, source = fixture.binding()
-        if str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
             raise CommandError('Planning Expedite customs require retained April input')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before grid preparation')
+            assert_unchanged(run, source)
             receipt = PlanningExpediteCustomProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
@@ -70,7 +71,8 @@ class Command(BaseCommand):
                 with connection.cursor() as c:
                     c.execute("SELECT set_config('fresh.planning_expedite_custom_build',%s,true)", [str(run.pk)])
                     model = PlanningExpediteCustomOccurrence
-                    query, params = custom_occurrences(run)
+                    builder = production_custom_occurrences if run.kind == 'DAILY_CHAIN' else custom_occurrences
+                    query, params = builder(run)
                     fields = [f for f in fields_for(model) if f != 'ordinal']
                     order = ['fact_ordinal','nms_ordinal','bpr_ordinal','parent_description_ordinal']
                     c.execute('INSERT INTO mta.'+quote(model._meta.db_table)+' (run_id,ordinal,'
@@ -82,13 +84,13 @@ class Command(BaseCommand):
                 count, checksum = readback(run, model)
                 values[family + '_count'] = count
                 values['rows_digest'] = checksum
-            expected = dict(source_digest=source, recipe_digest=recipe_digest(), **values)
+            recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
+            expected = dict(source_digest=source, recipe_digest=recipe, **values)
             if receipt:
                 if any(getattr(receipt, name) != value for name, value in expected.items()):
                     raise CommandError('Planning Expedite custom receipt differs')
             else:
                 PlanningExpediteCustomProjection.objects.create(run=run, **expected)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before commit')
+            assert_unchanged(run, source)
         self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
                                          seconds=time.monotonic()-started, **expected), sort_keys=True))

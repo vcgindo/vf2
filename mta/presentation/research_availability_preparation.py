@@ -161,6 +161,8 @@ def verify_guards(connection):
             "WHERE n.nspname='mta' AND p.proname=ANY(%s) AND p.pronargs=0",
             [list(bodies)],
         )
+        from mta.runtime.daily_prepared_schema import installed_bodies
+        bodies = installed_bodies(connection, bodies)
         if {name: tuple(row) for name, *row in cursor.fetchall()} != {
                 name: (body, True, False) for name, body in bodies.items()}:
             raise ValueError('Research availability band function contract differs')

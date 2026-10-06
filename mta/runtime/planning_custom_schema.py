@@ -76,6 +76,8 @@ def verify_guards(connection):
         c.execute('SELECT p.proname,p.prosrc,p.prolang=l.oid,p.prosecdef FROM pg_proc p '
                   "JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.lanname='plpgsql' "
                   "WHERE n.nspname='mta' AND p.proname=ANY(%s) AND p.pronargs=0", [list(bodies)])
+        from mta.runtime.daily_prepared_schema import installed_bodies
+        bodies = installed_bodies(connection, bodies)
         if {name: tuple(row) for name, *row in c.fetchall()} != {
                 name: (body, True, False) for name, body in bodies.items()}:
             raise ValueError('Planning custom function contract differs')

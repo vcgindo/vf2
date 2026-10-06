@@ -6,6 +6,97 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Active scope — daily publication steps1 and2 on isolated3006
+
+**Steps1&2 connection checkpoint verified; full readiness blocked by the exact source gaps below.**
+Direct human steps1&2 authorization was verified in controller
+01a1037c-5d96-7700-87a8-89a575f6c9f8, turn01a10f07-beaf-7d93-8978-55bb5b841b9d.
+The credit pause (turn01a10f19-60ca-7cc1-9d04-f2b0d538ecaa) was revoked by direct
+human resume turn01a10f1b-406c-79c0-91cf-aab0510e3088. Same goal, no numeric budget.
+Contract map: DAILY_PREPARED_PUBLICATION_IMPLEMENTATION_GUIDE.md, narrowed to
+steps1&2 by that instruction. This is the sole status tracker.
+
+Step1: owned shell on **http://localhost:3006**, separate PostgreSQL database
+`daily_3006`, identity/MTO schemas, Redis, writable runtime and private config at
+`D:/freshvcf-build/daily-3006/compose.json`. All containers restart=no; only frontend
+maps127.0.0.1:3006. MTA remains4GiB/2CPU. Reused accepted frontend/auth/MTO images;
+frontend change is only the compiled websocket address3005→3006. Two existing
+local test identities/grants were imported without credential reset or business
+data. Real normal login/CAPTCHA succeeded as user2, Stage2 broad reader. No daily
+run, MDM source, publication or selection exists; health200, readyz503 and report
+API503 are verified and intentional. MTO schema/startup is not MTO acceptance.
+
+Step2: execute_day optionally captures one consistent three-family MDM snapshot,
+composes canonical MasterDataRaw statement order, persists exact occurrences and
+configuration, and retries from the frozen capture. Successful finish_run archives,
+clears and transitions only captured rows/tasks atomically with typed output;
+one captured RunDateTime supplies archive/task timestamps across failure/retry;
+later approvals remain. Failed calculations retain queues/capture. Legacy partial
+workflow effects versus this required transaction placement are documented in
+LEGACY_EXCEPTIONS.md. Unsupported pair-grain DBM exclusion transitions fail before
+capture/run binding; no location-level approximation was introduced.
+
+Typed daily supplement publishes opening supplier SOB/MOQ and BPR ColorSequence
+with exact readback, types, ordinals, NULLs and duplicates. Existing relational
+masters/history/projections remain their owners; F2 output digest/manifest and
+calculation SQL are unchanged. Explicit production preparation connects the finite
+20-layer roster, with16 command branches, BTR builder and DBM source validation.
+Fixture predicates and dynamic recipe drift checks remain strict. Before the
+daily changes, admission.py, btr_reporting.py and history_prepared_sql.py were
+restored from actual accepted3005 image1192c35d8d17; an abandoned candidate
+optimization is not accepted behavior. Original source copies/hashes are retained
+in the evidence directory. New guards require
+an explicit unselected daily-build owner; existing count/seal/immutability guards
+remain. A separate UI receipt records per-layer success/failure, commits successful
+rows and retry identity together, and seals only the complete roster. Engine
+SUCCEEDED never supplies parity PASS or UI readiness. Selection validation is
+explicit and leaves prior config untouched on failure.
+
+**Unmet readiness exits, explicit blockers:**
+- BPR remarks and an owned shipment ledger are absent; aggregate GIT cannot stand
+  in for shipment facts. Nonempty Planning transit remains unqualified.
+- Normal BOR's full refreshed SupplierDispatchReq/remarks are absent, including
+  unqualified ReqTopOfBlack/CumulativeTOBlack. No zero/default/copied April field.
+- Lower-level BOROA computes24 of41 allocation fields, but does not publish the
+  full opening relation: ParentLeftoverStock, DispatchPen and SKULocAtt01..15 are
+  missing. Independent BOROARequirement and OA remarks also lack daily owners.
+  SOB/MOQ inputs and existing closing dimensions do not replace these relations.
+- Daily Expedite request rows have no published owner; child reads fail explicitly.
+- Pair-grain DBM exclusion changes cannot be represented by current WhCode-only
+  engine exclusions. Approved non-NULL DBMActive modifications and genuinely new
+  inactive pair additions are rejected before consumption. Existing-pair additions
+  discarded by native anti-join remain supported. No engine contract change.
+
+Proofs completed:22 focused shell/composition/temporal tests;8 migration-enabled
+MDM tests;4 publication failure/retry/guard/typed-source tests; actual BPR/Planning/
+history SQL builder test with duplicate and NULL ingredients. Builder test first
+failed on three omitted BTR dimension images in its test setup; exact roster fix
+passed, preserving runtime assertions. PostgreSQL migrations0053–0057 installed;
+Django check, makemigrations --check and empty migration plan pass. All376 pinned
+resources unchanged (identity, not parity). The real execute_day frozen-retry
+wiring test and4 serving opt-in/dynamic recipe regression checks also pass. Final
+image `freshvcf-daily3006-mta:connections-004` was built, deployed and restarted
+only on the owned3006 stack. Read-only restart proof confirms health200, readiness
+503, zero business runs/publications/selections, and unchanged protected3005.
+Normal login and an authenticated reload were verified before that final MTA
+restart; the later browser reload returned the normal login screen, so no claim
+of session persistence across that final reload is made. Auth/frontend services
+were not restarted or replaced.
+
+Evidence: `D:/freshvcf-build/evidence/daily-publication-3006-20261006-001`.
+Includes preserved failing probes, source overlays, private bootstrap receipts,
+protected service snapshots, SQL tests and login-success.png. Protected3005
+container IDs/start times/config/mounts and selected fixture/MDM source identity
+remain unchanged. No serving3005 write/restart/config mutation was issued.
+
+Do not execute step3 ten-pair smoke, step4 report acceptance, step5 full1240 demo,
+MTO acceptance, new families, scheduler or3004 cutover. The source gaps mean this
+package is not full daily publication acceptance. The commit containing this entry is the substantial bounded connection package;
+stop at this handoff without adjacent work. The broader goal remains incomplete
+because the source/engine boundaries above cannot be filled under this scope.
+
+### Preserved completed MDM authorization
+
 This is the **only migration status tracker**. Direct human instruction, verified
 in controller chat01a1037c-5d96-7700-87a8-89a575f6c9f8 on6October2026, releases
 one MTA MDM tranche: SKU(master1), then Location(master2), then SKU–Location(master3).

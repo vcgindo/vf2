@@ -32,10 +32,14 @@ def source_queries(run):
     from mta.presentation import fixture
     from mta.presentation.selective import image_query
     from mta.presentation.context import PublicationUnavailable
-    selected, source_digest = fixture.binding()
-    if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or
-            selected.pk != run.pk or str(run.business_date) != '2026-04-07'):
-        raise PublicationUnavailable('planning_preparation_requires_retained_april_fixture')
+    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+        from mta.presentation.daily_preparation import source_digest as daily_source_digest
+        source_digest = daily_source_digest(run)
+    else:
+        selected, source_digest = fixture.binding()
+        if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or
+                selected.pk != run.pk or str(run.business_date) != '2026-04-07'):
+            raise PublicationUnavailable('planning_preparation_requires_retained_april_fixture')
     master, master_params = image_query(run, 'closing/importer/MasterData')
     rationed, rationed_params = image_query(run, 'reports/bpr/vf_RationedReqReport')
     standard, standard_params = image_query(run, 'closing/dbm/SKULocStandardAttributes')

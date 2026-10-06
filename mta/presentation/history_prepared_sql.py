@@ -18,7 +18,11 @@ from mta.runtime.relational_state import CATALOG, quote, wire_value
 
 def admitted(run):
     """Serve only explicit fixture opt-in; enabled missing sources fail closed."""
-    if str(getattr(run, 'pk', '')) != RUN_ID or getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
+        return None
+    if run.kind == 'LEGACY_UI_FIXTURE' and str(getattr(run, 'pk', '')) != RUN_ID:
         return None
     if not getattr(settings, 'VF_HISTORY_REPORTS_PREPARED', False):
         return None
@@ -26,7 +30,11 @@ def admitted(run):
     if receipt is None:
         raise PublicationUnavailable('history_prepared_receipt_missing_or_changed')
     try:
-        selected, source = fixture.binding()
+        if daily:
+            from mta.presentation.daily_preparation import source_digest
+            selected, source = run, source_digest(run)
+        else:
+            selected, source = fixture.binding()
         dimensions = source_signatures(run)
         verify_guards(connection)
     except (ValueError, PublicationUnavailable) as exc:
@@ -203,9 +211,7 @@ def read_graph(run, payload, *, columns, filters, where, attributes, manifest, p
         **({} if metadata is None else {'metadata': metadata[path]}))
     sla, sla_params = image_query(run, pair_path,
         **({} if metadata is None else {'metadata': metadata[pair_path]}))
-    # A is consumed twice: once by live filters, once by the selected daily
-    # values. Do not materialize the entire wide history before qualification.
-    ctes = ['A AS NOT MATERIALIZED (' + a + ')', 'sla AS (' + sla + ')']; params += sla_params
+    ctes = ['A AS (' + a + ')', 'sla AS (' + sla + ')']; params += sla_params
     dim_ctes, dim_params = _dimension_ctes(run, attributes, manifest,
         **({} if metadata is None else {'metadata': metadata})); ctes += dim_ctes; params += dim_params
     for alias, codes in (('P',products),('L',locations)):
@@ -215,50 +221,33 @@ def read_graph(run, payload, *, columns, filters, where, attributes, manifest, p
     source_keys = ((key('A."SKUCode"'), 'M.sku_key'),
                    (key('A."WhCode"'), 'M.location_key'))
     indexed_filter = any(source in where for source, _ in source_keys)
-    history_join = ' JOIN A ON A.vf_ordinal=M.history_ordinal'
     joins = (' FROM (SELECT * FROM ' + table + ' WHERE run_id=%s AND family=%s) M'
-             + history_join
+             + ' JOIN A ON A.vf_ordinal=M.history_ordinal'
              + ' JOIN sa ON sa.vf_ordinal=M.sku_ordinal JOIN la ON la.vf_ordinal=M.location_ordinal'
              + ' LEFT JOIN sla ON sla.vf_ordinal=M.pair_ordinal'
-             + ' JOIN P ON M.sku_key=' + key('P.column1')
-             + ' JOIN L ON M.location_key=' + key('L.column1'))
+             + ' JOIN P ON ' + ('M.sku_key=' + key('P.column1') if indexed_filter
+                               else equal('A."SKUCode"','P.column1'))
+             + ' JOIN L ON ' + ('M.location_key=' + key('L.column1') if indexed_filter
+                               else equal('A."WhCode"','L.column1')))
     # The sealed graph recipe stores these exact SQL-normalized source keys.
     # Qualify the indexed membership before fetching wide history rows. Keep the
     # original predicate structure, including the canonical unparenthesized OR.
+    # Leave the already measured unfiltered Tech/Eco access path unchanged.
     if indexed_filter:
         for source, prepared in source_keys:
             where = where.replace(source, prepared)
-    # History existence is also enforced by the final colour join. If no live
-    # predicate/parent consumes A, qualify solely on the narrow sealed references
-    # here and fetch the history once below, rather than scanning it twice.
-    if 'A.' not in where and not filters.children:
-        joins = joins.replace(history_join, '')
     child_params = []
     if filters.children:
         joins += (' JOIN la parent ON ' + equal('A."ParentWhCode"','parent."WHCode"') + ' AND ('
                   + ' OR '.join(equal('parent."LocationType"','%s') for _ in filters.children) + ')')
         child_params.extend(filters.children)
-    # Keep the complete occurrence bag, including LEFT-pair and parent matches.
-    # DISTINCT is used only to fetch/normalize each source history row once;
-    # joining those values back to occurrences restores its exact multiplicity.
-    ctes.append('occurrences AS MATERIALIZED (SELECT M.history_ordinal' + joins + ' WHERE ' + where + ')')
-    cells = ','.join('(' + str(i) + ", '" + column + "', A." + quote(column) + ')'
-                     for i, column in enumerate(columns))
-    ctes.append('colours AS MATERIALIZED (SELECT A.vf_ordinal,V.position,V.day,' +
-                key('V.raw_colour') + ' AS colour' +
-                ' FROM A JOIN (SELECT DISTINCT history_ordinal FROM occurrences) S'
-                ' ON A.vf_ordinal=S.history_ordinal CROSS JOIN LATERAL (VALUES ' + cells +
-                ') V(position,day,raw_colour))')
-    projection = ','.join("count(*) FILTER (WHERE C.colour='" + colour.lower() + "')::integer"
-                          for _, colour in history_native.COLOURS)
+    projection = ','.join('sum(CASE WHEN ' + equal('A.' + quote(column), "'" + colour + "'")
+        + ' THEN 1 ELSE 0 END)::integer' for column in columns for _, colour in history_native.COLOURS)
     with connection.cursor() as cursor:
-        cursor.execute('WITH ' + ','.join(ctes) + ' SELECT C.position,C.day,' + projection
-                       + ' FROM occurrences O JOIN colours C ON C.vf_ordinal=O.history_ordinal'
-                       + ' GROUP BY C.position,C.day ORDER BY C.position',
+        cursor.execute('WITH ' + ','.join(ctes) + ' SELECT ' + projection + joins
+                       + ' WHERE ' + where,
                        params + [run.pk, family] + child_params + filters.params)
-        totals = {row[1]: row[2:] for row in cursor.fetchall()}
-    # An empty occurrence bag has no grouped rows; the original ungrouped SUM
-    # returns NULL per colour, rather than a missing day or an integer zero.
-    counts = [dict(D=column, **{alias:totals.get(column, (None,)*6)[j]
-              for j,(alias,_) in enumerate(history_native.COLOURS)}) for column in columns]
+        totals = cursor.fetchone()
+    counts = [dict(D=column, **{alias:totals[i*6+j] for j,(alias,_) in enumerate(history_native.COLOURS)})
+              for i,column in enumerate(columns)]
     return history_native.graph_response(counts, dates)

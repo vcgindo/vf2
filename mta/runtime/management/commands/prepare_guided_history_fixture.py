@@ -54,20 +54,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql': raise CommandError('Guided history preparation requires PostgreSQL')
         if not getattr(settings, 'VF_GUIDED_PREPARED', False): raise CommandError('Guided prepared trial switch is disabled')
-        run, admission = fixture.binding()
-        if run.kind != 'LEGACY_UI_FIXTURE' or run.status != 'FIXTURE_BLOCKED':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, admission = command_binding(options.get('run_id'))
+        if run.kind not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and run.status != 'FIXTURE_BLOCKED'):
             raise CommandError('Guided history preparation requires the blocked fixture')
         started = time.monotonic()
         with transaction.atomic():
             verify_guards(connection)
             type(run).objects.select_for_update().get(pk=run.pk)
-            locked_run, locked_source = fixture.binding()
-            if (locked_run.pk, locked_source) != (run.pk, admission):
-                raise CommandError('Guided history source changed before preparation')
+            assert_unchanged(run, admission)
             receipts = {item.family:item for item in GuidedHistoryPreparedProjection.objects.filter(run=run)}
             if receipts:
                 if set(receipts) != {'availability','excess'}:
@@ -103,9 +103,7 @@ class Command(BaseCommand):
                     reference_count=item['references'])
                 for family, item in families.items()
             ])
-            final_run, final_source = fixture.binding()
-            if (final_run.pk, final_source) != (run.pk, admission):
-                raise CommandError('Guided history source changed before commit')
+            assert_unchanged(run, admission)
         self.stdout.write(json.dumps(dict(status='PASS', created=True, families=families,
                                          seconds=time.monotonic()-started), sort_keys=True))
 

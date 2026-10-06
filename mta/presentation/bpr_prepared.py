@@ -149,8 +149,10 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
 
 def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     from mta.presentation import fixture
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
-        raise ValueError('BPR prepared reader is fixture-only')
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
+        raise ValueError('BPR prepared reader requires an admitted source run')
     if not count and not analytics and (not isinstance(paging, tuple) or len(paging) != 2 or
             any(type(value) is not int or value < 1 for value in paging)):
         raise ValueError('positive_BPR_pagination_required')
@@ -158,9 +160,17 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     BprPredicate(payload, importer['LocationAttributeData'])
     if manifest:
         raise PublicationUnavailable('BPR_prepared_hierarchy_supplement_not_bound')
-    selected, source_digest = fixture.binding()
+    if daily:
+        from mta.presentation.daily_preparation import ancillary_rows, source_digest as daily_source_digest
+        source_digest = daily_source_digest(run)
+        ancillary = ancillary_rows(run)
+    else:
+        selected, source_digest = fixture.binding()
+        if selected.pk != run.pk:
+            raise PublicationUnavailable('BPR_prepared_receipt_missing_or_changed')
+        ancillary = fixture.bpr_ancillary(run)
     receipt = BprPreparedProjection.objects.filter(run_id=run.pk).first()
-    if selected.pk != run.pk or receipt is None or receipt.source_digest != source_digest or \
+    if receipt is None or receipt.source_digest != source_digest or \
             receipt.schema_digest != schema_digest():
         raise PublicationUnavailable('BPR_prepared_receipt_missing_or_changed')
     from mta.runtime.bpr_prepared_schema import verify_guards
@@ -168,8 +178,7 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
         verify_guards(connection)
     except ValueError as exc:
         raise PublicationUnavailable('BPR_prepared_guards_changed') from exc
-    ancillary = fixture.bpr_ancillary(run)
-    if ancillary['InTransitData']:
+    if not daily and ancillary['InTransitData']:
         raise PublicationUnavailable('nonempty_BPR_transit_wire_not_yet_validated')
     query, params = _build(run, payload, importer, ancillary, paging, count=count, analytics=analytics)
     if query is None:

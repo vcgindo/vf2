@@ -2,19 +2,26 @@
 from django.db import connection
 from mta.presentation import fixture
 from mta.presentation.context import PublicationUnavailable
-from mta.presentation.planning_expedite_transit_preparation import pick_source, recipe_digest
+from mta.presentation.planning_expedite_transit_preparation import pick_binding, recipe_digest, production_recipe_digest
 from mta.runtime.models import PlanningExpediteTransitProjection
 from mta.runtime.planning_expedite_transit_schema import verify_guards
 
 
 def admit(run):
-    selected, source = fixture.binding()
-    if (selected.pk != run.pk or getattr(run,'kind',None) != 'LEGACY_UI_FIXTURE'
-            or str(run.business_date) != '2026-04-07'):
-        raise PublicationUnavailable('planning_expedite_transit_wrong_fixture')
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if daily:
+        from mta.presentation.daily_preparation import source_digest
+        selected, source = run, source_digest(run)
+    else:
+        selected, source = fixture.binding()
+        if (selected.pk != run.pk or getattr(run,'kind',None) != 'LEGACY_UI_FIXTURE'
+                or str(run.business_date) != '2026-04-07'):
+            raise PublicationUnavailable('planning_expedite_transit_wrong_fixture')
     receipt = PlanningExpediteTransitProjection.objects.filter(run=run).first()
-    if (receipt is None or receipt.source_digest != source or receipt.recipe_digest != recipe_digest()
-            or receipt.pick_digest != pick_source()):
+    recipe = production_recipe_digest() if daily else recipe_digest()
+    if (receipt is None or receipt.source_digest != source or receipt.recipe_digest != recipe
+            or receipt.pick_digest != pick_binding(run)):
         raise PublicationUnavailable('planning_expedite_transit_receipt_missing_or_changed')
     try:
         verify_guards(connection)

@@ -6,8 +6,8 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from mta.presentation import fixture
-from mta.presentation.planning_expedite_chart_preparation import members, prepost_members, recipe_digest
-from mta.presentation.planning_expedite_transit_preparation import pick_source
+from mta.presentation.planning_expedite_chart_preparation import members, prepost_members, production_prepost_members, recipe_digest, production_recipe_digest
+from mta.presentation.planning_expedite_transit_preparation import pick_binding
 from mta.runtime.models import PlanningExpediteChartProjection, PlanningExpediteChartMember, PlanningExpeditePrepostMember
 from mta.runtime.planning_expedite_chart_schema import verify_guards
 from mta.runtime.relational_state import quote
@@ -48,18 +48,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Planning Expedite chart requires PostgreSQL')
-        run, source = fixture.binding()
-        if str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
             raise CommandError('Planning Expedite chart requires retained April input')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
-            pick_digest = pick_source(verify_values=True)
+            pick_digest = pick_binding(run, verify_values=True)
             receipt = PlanningExpediteChartProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
@@ -71,7 +73,8 @@ class Command(BaseCommand):
                     for family,model in MODELS:
                         grains = GRAINS if family=='member' else [(None,None)]
                         for direction,grain in grains:
-                            query,params = members(run,direction,grain) if family=='member' else prepost_members(run)
+                            prepost = production_prepost_members if run.kind == 'DAILY_CHAIN' else prepost_members
+                            query,params = members(run,direction,grain) if family=='member' else prepost(run)
                             fields=[f for f in fields_for(model) if f not in ('ordinal','direction','family')]
                             order=['scope_ordinal','fact_ordinal','master_ordinal','description_ordinal','location_ordinal'] if family=='member' else ['scope_ordinal','fact_ordinal']
                             extra_columns='direction,family,' if family=='member' else ''
@@ -82,13 +85,13 @@ class Command(BaseCommand):
             values = {}
             for family,model in MODELS:
                 values[family+'_count'],values[family+'_digest'] = readback(run,model)
-            expected = dict(source_digest=source,recipe_digest=recipe_digest(),pick_digest=pick_digest,**values)
+            recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
+            expected = dict(source_digest=source,recipe_digest=recipe,pick_digest=pick_digest,**values)
             if receipt:
                 if any(getattr(receipt,name) != value for name,value in expected.items()):
                     raise CommandError('Planning Expedite chart receipt differs')
             else:
                 PlanningExpediteChartProjection.objects.create(run=run,**expected)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning source admission changed; preparation rolled back')
+            assert_unchanged(run, source)
         self.stdout.write(json.dumps(dict(status='PASS',created=receipt is None,
                                          seconds=time.monotonic()-started,**expected),sort_keys=True))

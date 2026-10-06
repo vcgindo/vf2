@@ -118,7 +118,9 @@ def build_query(run, payload, attributes):
 
 
 def read_guided_chronic(run, payload):
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE': raise ValueError('fixture_chronic_grid_required')
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily: raise ValueError('guided_chronic_admitted_run_required')
     if not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
     from mta.presentation import fixture, hierarchy
@@ -126,7 +128,12 @@ def read_guided_chronic(run, payload):
     except hierarchy.HierarchyUnavailable as exc: raise PublicationUnavailable(str(exc)) from exc
     if manifest:
         raise PublicationUnavailable('chronic_SQL_hierarchy_supplement_not_bound')
-    selected, source = fixture.binding(); receipt = GuidedChronicPreparedProjection.objects.filter(run_id=run.pk).first()
+    if daily:
+        from mta.presentation.daily_preparation import source_digest
+        selected, source = run, source_digest(run)
+    else:
+        selected, source = fixture.binding()
+    receipt = GuidedChronicPreparedProjection.objects.filter(run_id=run.pk).first()
     if selected.pk != run.pk or receipt is None or receipt.source_digest != source or receipt.schema_digest != schema_digest():
         raise PublicationUnavailable('Guided_Chronic_prepared_receipt_missing_or_changed')
     try: verify_guards(connection)

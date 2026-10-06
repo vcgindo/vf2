@@ -13,7 +13,10 @@ def counts(run,payload):
     from mta.presentation.legacy_ui import _no_active_filters
     if not _no_active_filters(payload):
         raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
-    if bpr_ancillary(run)['InTransitData']:
+    from mta.presentation.daily_preparation import production_branch
+    transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
+             if production_branch(run) else bpr_ancillary(run)['InTransitData'])
+    if transit:
         raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
     importer,manifest=_projected_attributes(run)
     if manifest:raise PublicationUnavailable('planning_overview_native_hierarchy_required')

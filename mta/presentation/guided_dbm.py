@@ -150,12 +150,19 @@ def build_query(run, payload, kind, attributes):
 
 def read_guided_dbm(run, payload, kind, attributes):
     """Return the existing small raw projection contract from the sealed bag."""
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
-        raise ValueError('Guided DBM prepared reader is fixture-only')
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
+        raise ValueError('Guided DBM prepared reader requires an admitted source run')
     if not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
-    from mta.presentation import fixture
-    selected, source_digest = fixture.binding()
+    if daily:
+        from mta.presentation.daily_preparation import source_digest as daily_source_digest
+        source_digest = daily_source_digest(run)
+        selected = run
+    else:
+        from mta.presentation import fixture
+        selected, source_digest = fixture.binding()
     receipt = GuidedDbmPreparedProjection.objects.filter(run_id=run.pk).first()
     if selected.pk != run.pk or receipt is None or receipt.source_digest != source_digest or \
             receipt.schema_digest != schema_digest():

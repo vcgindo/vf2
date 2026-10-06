@@ -22,6 +22,11 @@ SOURCES = {
 
 
 def source_signatures(run):
+    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+        from mta.presentation.daily_preparation import source_digest
+        from mta.presentation.selective import image_metadata
+        source_digest(run)
+        return digest({path: image_metadata(run, path) for path in SOURCES.values()})
     return digest(fixture.image_metadata_batch(run, list(SOURCES.values())))
 
 
@@ -177,6 +182,8 @@ def verify_guards(connection):
         cursor.execute('SELECT p.proname,p.prosrc,p.prolang=l.oid,p.prosecdef FROM pg_proc p '
                        "JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.lanname='plpgsql' "
                        "WHERE n.nspname='mta' AND p.proname=ANY(%s) AND p.pronargs=0", [list(bodies)])
+        from mta.runtime.daily_prepared_schema import installed_bodies
+        bodies = installed_bodies(connection, bodies)
         if {name: tuple(row) for name, *row in cursor.fetchall()} != {
                 name: (body, True, False) for name, body in bodies.items()}:
             raise ValueError('History prepared function contract differs')

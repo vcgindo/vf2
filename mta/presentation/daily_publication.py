@@ -1,0 +1,153 @@
+"""Finite, explicit daily UI preparation; never selects a calculated run.
+
+Each layer owns its immutable typed receipt. A failed attempt keeps all existing
+receipts and diagnostics and can reuse unchanged successes. Engine acceptance
+and human UI acceptance remain separate from preparation readiness.
+"""
+import inspect
+import json
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+from mta.runtime.models import CalculationRun, DailyUiPublication, DailyUiPublicationAttempt
+from mta.serialization import digest
+from mta.presentation.context import PublicationUnavailable
+
+CONFIG_NAMES = ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256',
+    'VF_MTA_ACTIONS_ENABLED', 'VF_MTA_ACTION_TIME_ZONE', 'VF_BPR_PREPARED',
+    'VF_GUIDED_PREPARED', 'VF_RRR_PREPARED', 'VF_HISTORY_REPORTS_PREPARED',
+    'VF_RESEARCH_AVAILABILITY_PREPARED')
+
+
+def configuration_identity():
+    from pathlib import Path
+    import hashlib
+    root = Path(__file__).resolve().parents[1] / 'config'
+    return digest(dict(settings={name:getattr(settings, name) for name in CONFIG_NAMES},
+        configs={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.glob('*.json'))}))
+
+
+def recipe_identity():
+    from mta.presentation import daily_preparation
+    return digest(dict(roster=daily_preparation.REQUIRED_LAYERS,
+        coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare)))
+
+
+def source_identity(run):
+    from mta.presentation.daily_sources import receipt
+    source = receipt(run)
+    return digest(dict(input=run.input_digest, output=run.output_digest,
+        production=run.production_digest, manifest=run.production_manifest,
+        daily_sources=source.images_digest, daily_recipe=source.recipe_digest))
+
+
+def seal_identity(publication):
+    return digest(dict(run=str(publication.run_id), output=publication.output_digest,
+        source=publication.source_digest, configuration=publication.configuration_digest,
+        recipe=publication.recipe_digest, layers=publication.layers))
+
+
+def bounded(value):
+    if len(json.dumps(value, default=str)) > 65536:
+        raise ValueError('Daily UI metadata exceeded its finite bound')
+    return value
+
+
+def prepare(run_id, *, expected_output_digest):
+    """Explicit offline operation. Successful layers are reused, never rebuilt.
+
+    A session advisory lock serializes preparation for this run without holding
+    one transaction across all layers. Failed-layer rows roll back independently.
+    """
+    from django.db import connection
+    from mta.presentation.daily_preparation import REQUIRED_LAYERS, prepare_layer, verify_layer
+    if not transaction.get_autocommit():
+        raise ValueError('Daily UI preparation owns its transaction boundaries')
+    run = CalculationRun.objects.get(pk=run_id)
+    if run.kind != 'DAILY_CHAIN' or run.status != 'SUCCEEDED' or run.output_digest != expected_output_digest:
+        raise PublicationUnavailable('explicit_completed_daily_run_required')
+    if str(run.pk) == str(settings.VF_MTA_PUBLISHED_RUN):
+        raise PublicationUnavailable('selected_run_cannot_be_prepared')
+    lock = int.from_bytes(run.pk.bytes[:8], 'big', signed=True)
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT pg_try_advisory_lock(%s)', [lock])
+        if not cursor.fetchone()[0]:
+            raise PublicationUnavailable('daily_preparation_already_running')
+    try:
+        identities = dict(output_digest=run.output_digest, source_digest=source_identity(run),
+            configuration_digest=configuration_identity(), recipe_digest=recipe_identity())
+        publication, created = DailyUiPublication.objects.get_or_create(run=run, defaults=identities)
+        if any(getattr(publication, key) != value for key, value in identities.items()):
+            raise PublicationUnavailable('daily_publication_identity_changed')
+        if publication.status == 'READY':
+            require_ready(run, verify_rows=True)
+            return publication
+        attempt = DailyUiPublicationAttempt.objects.create(publication=publication)
+        layers = dict(publication.layers)
+        results = {}
+        try:
+            for name in REQUIRED_LAYERS:
+                try:
+                    with transaction.atomic():
+                        with connection.cursor() as cursor:
+                            cursor.execute("SELECT set_config('fresh.daily_publication_build', %s, true)", [str(run.pk)])
+                        if name in layers and layers[name].get('status') == 'READY':
+                            verify_layer(run, name, layers[name]['receipt'])
+                            result = layers[name]
+                        else:
+                            result = dict(status='READY', receipt=bounded(prepare_layer(run, name)))
+                            verify_layer(run, name, result['receipt'])
+                        layers[name] = result
+                        # Commit the reusable identity with its sealed rows.
+                        # A killed worker must not leave an undiscoverable layer.
+                        publication.layers = bounded(layers)
+                        publication.save(update_fields=['layers'])
+                except Exception as exc:
+                    result = dict(status='FAILED', error_type=type(exc).__name__, error=str(exc)[:2000])
+                    # A previously successful receipt that fails verification
+                    # must not be represented as ready on a retry.
+                    layers[name] = result
+                results[name] = result
+                attempt.layers = bounded(results)
+                attempt.save(update_fields=['layers'])
+            with transaction.atomic():
+                publication.layers = bounded(layers)
+                complete = set(layers) == set(REQUIRED_LAYERS) and all(v['status']=='READY' for v in layers.values())
+                publication.status = 'READY' if complete else 'INCOMPLETE'
+                publication.sealed_at = timezone.now() if complete else None
+                publication.seal_digest = seal_identity(publication) if complete else ''
+                publication.save(update_fields=['layers','status','sealed_at','seal_digest'])
+                attempt.status = 'READY' if complete else 'FAILED'
+                attempt.completed_at = timezone.now()
+                attempt.save(update_fields=['status','completed_at'])
+        except Exception:
+            attempt.status = 'FAILED'
+            attempt.completed_at = timezone.now()
+            attempt.save(update_fields=['status','completed_at'])
+            raise
+        return publication
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT pg_advisory_unlock(%s)', [lock])
+
+
+def require_ready(run, *, verify_rows=False):
+    from mta.presentation.daily_preparation import REQUIRED_LAYERS, verify_layer
+    publication = DailyUiPublication.objects.filter(run=run, status='READY').first()
+    if publication is None:
+        raise PublicationUnavailable('daily_ui_publication_not_ready')
+    if (publication.output_digest != run.output_digest or publication.source_digest != source_identity(run)
+            or publication.configuration_digest != configuration_identity()
+            or publication.recipe_digest != recipe_identity()
+            or set(publication.layers) != set(REQUIRED_LAYERS)
+            or any(value.get('status') != 'READY' for value in publication.layers.values())
+            or publication.seal_digest != seal_identity(publication)):
+        raise PublicationUnavailable('daily_ui_publication_seal_mismatch')
+    if verify_rows:
+        for name in REQUIRED_LAYERS:
+            verify_layer(run, name, publication.layers[name]['receipt'])
+    if str(settings.VF_MTA_PUBLISHED_RUN) == str(run.pk):
+        generation=publication.layers.get('btr',{}).get('receipt',{}).get('generation')
+        if not generation or settings.VF_BTR_REPORTING_GENERATION != generation:
+            raise PublicationUnavailable('daily_ui_btr_generation_selection_mismatch')
+    return publication

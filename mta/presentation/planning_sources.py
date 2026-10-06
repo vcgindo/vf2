@@ -16,10 +16,15 @@ def admitted_sources(run):
     reads verify immutable guards and the recipe/source receipt, as the existing
     BPR prepared reader does. Permission/filter decisions remain with consumers.
     """
-    selected, source = fixture.binding()
-    if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or selected.pk != run.pk
-            or str(run.business_date) != '2026-04-07'):
-        raise PublicationUnavailable('planning_sources_wrong_fixture')
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        from mta.presentation.daily_preparation import source_digest
+        source = source_digest(run)
+    else:
+        selected, source = fixture.binding()
+        if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or selected.pk != run.pk
+                or str(run.business_date) != '2026-04-07'):
+            raise PublicationUnavailable('planning_sources_wrong_fixture')
     receipt = PlanningSourceProjection.objects.filter(run_id=run.pk).first()
     if receipt is None or receipt.source_digest != source or receipt.recipe_digest != recipe_digest():
         raise PublicationUnavailable('planning_sources_receipt_missing_or_changed')

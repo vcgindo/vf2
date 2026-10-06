@@ -245,11 +245,17 @@ def rrr_data(request, payload, *, count=False):
 def bpr_remark_history(request, payload):
     """Read the retained remark bag; no remark-write workflow implied."""
     run = selected_run()
-    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+    daily = (getattr(run, 'kind', None) == 'DAILY_CHAIN' and
+             getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' or daily:
         from mta.presentation.fixture import bpr_ancillary
         from mta.presentation.selective import image_rows
         from mta.presentation.rrr import sql_key
-        rows = bpr_ancillary(run)['BPRReport_RemarkDetails']
+        if not daily:
+            rows = bpr_ancillary(run)['BPRReport_RemarkDetails']
+        else:
+            from mta.presentation.daily_preparation import ancillary_row
+            rows = ancillary_row(run, 'BPRReport_RemarkDetails')
         attributes = {name: image_rows(run, 'closing/importer/' + name)
                       for name in ('SkuAttributeData', 'LocationAttributeData')}
         products, locations = scope(payload, attributes=attributes)

@@ -6,7 +6,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from mta.presentation import fixture
-from mta.presentation.planning_chart_preparation import chart_ingredients, FAMILIES, recipe_digest
+from mta.presentation.planning_chart_preparation import chart_ingredients, production_chart_ingredients, FAMILIES, recipe_digest, production_recipe_digest
 from mta.runtime.models import PlanningChartProjection, PlanningChartMember, PlanningChartDisplay
 from mta.runtime.planning_chart_schema import verify_guards
 from mta.runtime.relational_state import quote
@@ -49,19 +49,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Planning chart preparation requires PostgreSQL')
-        run, source = fixture.binding()
-        if str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
             raise CommandError('Planning charts require retained April input')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before chart preparation')
+            assert_unchanged(run, source)
             receipt = PlanningChartProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
@@ -72,7 +73,8 @@ class Command(BaseCommand):
                     c.execute("SELECT set_config('fresh.planning_chart_build',%s,true)", [str(run.pk)])
                     for family in FAMILIES:
                         for direction in ('sku', 'location'):
-                            queries = chart_ingredients(run, family, direction)
+                            builder = production_chart_ingredients if run.kind == 'DAILY_CHAIN' else chart_ingredients
+                            queries = builder(run, family, direction)
                             for grain, model in MODELS:
                                 query, params = queries['members' if grain == 'member' else 'displays']
                                 fields = [name for name in fields_for(model) if name not in ('family','direction')]
@@ -85,13 +87,13 @@ class Command(BaseCommand):
                 count, checksum = readback(run, model)
                 values[family + '_count'] = count
                 values[family + '_digest'] = checksum
-            expected = dict(source_digest=source, recipe_digest=recipe_digest(), **values)
+            recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
+            expected = dict(source_digest=source, recipe_digest=recipe, **values)
             if receipt:
                 if any(getattr(receipt, name) != value for name, value in expected.items()):
                     raise CommandError('Planning chart receipt differs')
             else:
                 PlanningChartProjection.objects.create(run=run, **expected)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before commit')
+            assert_unchanged(run, source)
         self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
                                          seconds=time.monotonic()-started, **expected), sort_keys=True))

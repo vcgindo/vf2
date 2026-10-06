@@ -5,6 +5,7 @@ Nonempty logistics are not published by this adapter. Source-invalid queries
 remain attributable unavailable responses, not fabricated successful results.
 """
 from types import SimpleNamespace
+from django.conf import settings
 
 from mta.presentation import hierarchy
 from mta.presentation.context import selected_run, permission_catalogue, scope, PublicationUnavailable
@@ -32,6 +33,10 @@ def terminal_context(payload):
     if run.kind == 'LEGACY_UI_FIXTURE':
         from mta.presentation.fixture import bpr_ancillary
         ancillary = bpr_ancillary(run)
+    elif (run.kind == 'DAILY_CHAIN' and
+          getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+        from mta.presentation.daily_preparation import ancillary_rows
+        ancillary = ancillary_rows(run)
     else:
         ancillary = terminal_ancillary(run)
     terminal_git_reports(image_rows(run, 'reports/bpr/vf_RationedReqReport'), ancillary)
@@ -118,7 +123,10 @@ def transporter_context(payload):
     from mta.presentation.planning_sources import admitted_sources
     from mta.presentation.bpr_sql import _projected_attributes
     admitted_sources(run)
-    if bpr_ancillary(run)['InTransitData']:
+    from mta.presentation.daily_preparation import production_branch
+    transit = (__import__('mta.presentation.daily_preparation', fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
+               if production_branch(run) else bpr_ancillary(run)['InTransitData'])
+    if transit:
         raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
     attributes, manifest = _projected_attributes(run)
     if manifest:

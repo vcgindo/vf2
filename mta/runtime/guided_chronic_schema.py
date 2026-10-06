@@ -75,5 +75,7 @@ def verify_guards(connection):
                        ['mta', list(functions)])
         actual_functions = {name: (body, language, security)
                             for name, body, language, security in cursor.fetchall()}
+        from mta.runtime.daily_prepared_schema import installed_bodies
+        functions = installed_bodies(connection, functions)
         if actual_functions != {name: (body, True, False) for name, body in functions.items()}:
             raise ValueError('Guided Chronic prepared immutable function contract differs')

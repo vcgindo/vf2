@@ -21,7 +21,10 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     paging=pagination(payload)
     occurrence,params=admitted_git(run)['row'];params=list(params)
     master,values=admitted_sources(run)['git_master']
-    if bpr_ancillary(run)['InTransitData']:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
+    from mta.presentation.daily_preparation import production_branch
+    transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
+             if production_branch(run) else bpr_ancillary(run)['InTransitData'])
+    if transit:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
     importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:raise PublicationUnavailable('planning_git_native_hierarchy_required')
     validate_filters(payload,SimpleNamespace(attributes=importer),child_count=count and kind=='child')

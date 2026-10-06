@@ -156,7 +156,10 @@ def child_grid(run,payload):
     from mta.presentation.excess_read import pagination
     from mta.presentation.planning_expedite_requests import empty_requests
     from mta.presentation.fixture import bpr_ancillary
-    if empty_requests(run) or bpr_ancillary(run)['InTransitData']:
+    from mta.presentation.daily_preparation import production_branch
+    transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
+             if production_branch(run) else bpr_ancillary(run)['InTransitData'])
+    if empty_requests(run) or transit:
         raise PublicationUnavailable('child_expedite_requires_approved_empty_request_and_transit_inputs')
     selected,params=selected_parent(run,payload,child=True)
     fields=[*FIELDS,'sap','ec','rlt','sl4','sl5','ll4','ll5']

@@ -9,7 +9,7 @@ from django.db import connection, transaction
 from mta.presentation import fixture
 from mta.presentation.bpr_prepared_fields import SOURCES, FIELDS, field_name, schema_digest
 from mta.presentation.rrr_sql import equal, key
-from mta.presentation.selective import image_query
+from mta.presentation.selective import image_metadata, image_query
 from mta.runtime.models import CalculationRun, BprPreparedProjection, BprPreparedRow
 from mta.runtime.bpr_prepared_schema import verify_guards
 from mta.runtime.relational_state import CATALOG, PG_TYPES, quote
@@ -25,7 +25,7 @@ def insert_query(run):
     """Same six native candidate left joins as BPR; never auth or projection."""
     ctes, values = [], []
     for owner, path in SOURCES.items():
-        item = fixture.image_metadata(run, path)
+        item = image_metadata(run, path)
         native = dict(CATALOG['tables'][item['table']])
         published = {name: PG_TYPES[native[column]] for name, column, wire_kind in item['fields']}
         for name, kind in FIELDS[owner].items():
@@ -82,19 +82,29 @@ def rows_receipt(run):
     return count, checksum.hexdigest()
 
 
-def prepare(*, verify_only=False):
+def prepare(*, run=None, verify_only=False):
     if connection.vendor != 'postgresql':
         raise CommandError('BPR prepared relation requires PostgreSQL')
     if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
         raise CommandError('BPR preparation requires native hierarchy; supplement is read-time only')
     with transaction.atomic():
         verify_guards(connection)
-        run, source = fixture.binding()
+        fixture_run = run is None
+        if fixture_run:
+            run, source = fixture.binding()
+        else:
+            from mta.presentation.daily_preparation import source_digest
+            source = source_digest(run)
         # Serialize builds and insert guards against the same retained identity.
         CalculationRun.objects.select_for_update().get(pk=run.pk)
-        run_after_lock, source_after_lock = fixture.binding()
-        if run.pk != run_after_lock.pk or source != source_after_lock:
-            raise CommandError('BPR prepared source changed before preparation')
+        if fixture_run:
+            run_after_lock, source_after_lock = fixture.binding()
+            if run.pk != run_after_lock.pk or source != source_after_lock:
+                raise CommandError('BPR prepared source changed before preparation')
+        else:
+            from mta.presentation.daily_preparation import source_digest
+            if source_digest(run) != source:
+                raise CommandError('BPR prepared source changed before preparation')
         schema = schema_digest()
         receipt = BprPreparedProjection.objects.filter(run=run).first()
         if receipt:
@@ -119,9 +129,14 @@ def prepare(*, verify_only=False):
             receipt = BprPreparedProjection.objects.create(run=run, source_digest=source,
                 schema_digest=schema, rows_digest=rows_digest, row_count=count)
             created = True
-        final_run, final_source = fixture.binding()
-        if final_run.pk != run.pk or final_source != source:
-            raise CommandError('BPR prepared source changed before commit')
+        if fixture_run:
+            final_run, final_source = fixture.binding()
+            if final_run.pk != run.pk or final_source != source:
+                raise CommandError('BPR prepared source changed before commit')
+        else:
+            from mta.presentation.daily_preparation import source_digest
+            if source_digest(run) != source:
+                raise CommandError('BPR prepared source changed before commit')
         verify_guards(connection)
         return dict(run_id=str(run.pk), source_digest=source, schema_digest=schema,
                     rows_digest=receipt.rows_digest, row_count=receipt.row_count,
@@ -134,7 +149,11 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true',
                             help='Verify the complete existing receipt; never insert rows.')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
-        result = prepare(verify_only=options['verify_only'])
+        run = None
+        if options.get('run_id'):
+            run = CalculationRun.objects.get(pk=options['run_id'])
+        result = prepare(run=run, verify_only=options['verify_only'])
         self.stdout.write(json.dumps(result, sort_keys=True))

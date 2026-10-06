@@ -4,6 +4,62 @@ This build is not the application served on3004. An isolated F3 work-in-progress
 preview is available on3005; it is NOT full F3 acceptance or a3004 cutover.
 Do not run copied historical startup scripts.
 
+## Isolated daily-publication shell on3006 (6 October2026)
+
+The accepted April fixture remains on **http://localhost:3005**. The separately
+owned **http://localhost:3006** shell is for the authorized daily connection work.
+It has no selected run or business dataset: MTA health is200, readiness and report
+requests are503. Normal login was verified as `stage2.broad@vectorflow.local`;
+the existing password remains in
+`D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`. The restricted
+identity was also preserved. Use normal CAPTCHA login, without credential reset.
+
+Owned deployment config/secrets are outside Git under
+`D:/freshvcf-build/daily-3006/`; compose project is `freshvcf-daily3006`, database
+`daily_3006`, volume `freshvcf-daily3006_daily-db`, network
+`freshvcf-daily3006_daily`. Separate identity and MTO schemas and Redis prevent
+writes into3005. Only the frontend maps127.0.0.1:3006. All restart policies are
+`no`; MTA remains4GiB/2CPU. No whole-database or calculated-row copy was used.
+
+Use `D:/freshvcf-build/venv/Scripts/python.exe tools/daily_stack_verify.py --label NEW_LABEL`
+for read-only shell/isolation proof. This initial-shell check deliberately requires
+zero daily runs/publications and must not be reused as a later populated-run check.
+Focused commands run through `tools/daily_stack_check.py --label NEW_LABEL` followed
+by `manage.py` and its arguments; they use only the owned3006 database. Labels
+cannot overwrite earlier evidence. Do not run `daily_stack_setup.py prepare`
+against existing configuration or import the identities again.
+
+Future daily input entry remains `mta.runtime.temporal.execute_day`, with explicit
+`mdm_source` for a fresh capture or `mdm_retry` naming a failed capture. A retry
+uses a new execution revision and the same frozen request. No scheduler or latest
+run selection exists. Unsupported pair-grain DBMActive exclusion changes fail
+before consuming queues. See LEGACY_EXCEPTIONS.md for the exact boundary.
+
+After a separately authorized genuine daily execution and independent parity
+acceptance, prepare explicitly with `manage.py prepare_daily_ui --run-id UUID
+--output-digest DIGEST`. An incomplete result exits unsuccessfully and retains
+per-layer diagnostics and reusable successful rows. Once the complete roster is
+ready, `manage.py check_daily_selection --run-id UUID --output-digest DIGEST`
+validates parity/source/config/row seals and prints the matching selection fields.
+It does not write config or restart anything. Apply those fields together only
+to the owned3006 config, alongside its exact permissions/catalogue bindings, then
+start the owned MTA process with admission enabled. Never insert a parity PASS,
+reuse April qualification, or select an earlier run to fill an empty grid.
+
+Current blockers are BPR remarks, a genuine shipment ledger, normal BOR Black/full
+supplier sources, full opening BOROA allocation/requirements/remarks, daily
+Expedite request rows and pair-grain MDM exclusions. The lower-level BOROA result
+does not provide all41 allocation fields; opening SOB/MOQ cannot substitute it.
+Therefore no complete publication can currently be selected. MTO startup here
+does not establish MTO business acceptance.
+
+The next10-pair smoke is **not released by steps1&2**. Its handoff must first pin
+owned attempt/registered inputs, exact scope and source-gap disposition. Then use
+the existing execute_day boundary, prove complete readback and each layer's exact
+result, failure/retry and unchanged selection; do not broaden to1240 pairs or
+report/browser acceptance without the next authorization. Current source and
+evidence status is only in `docs/MIGRATION.md`.
+
 ## Current three-family MDM preview (6 October 2026)
 
 The current3005 selection is the isolated April7 fixture run

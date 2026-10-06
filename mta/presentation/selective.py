@@ -8,6 +8,11 @@ def image_metadata(run, path):
     if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
         from mta.presentation.fixture import image_metadata as fixture_metadata
         return fixture_metadata(run,path)
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run) and (path == 'metadata/bpr/ColorSequence' or
+            path.startswith('opening/supplier/') or path.startswith('sources/')):
+        from mta.presentation.daily_sources import image_metadata as daily_metadata
+        return daily_metadata(run, path)
     item = run.production_manifest.get('images', {}).get(path)
     if not item or item['image'] != path or item['table'] not in CATALOG['tables']:
         raise PublicationUnavailable('selected_report_image_not_published:' + path)
@@ -18,6 +23,12 @@ def image_metadata(run, path):
 
 
 def image_rows(run, path, *, metadata=None):
+    from mta.presentation.daily_preparation import production_branch
+    if (production_branch(run) and
+            (path == 'metadata/bpr/ColorSequence' or path.startswith('opening/supplier/')
+             or path.startswith('sources/'))):
+        from mta.presentation.daily_sources import image_rows as daily_rows
+        return daily_rows(run, path)
     item=metadata if metadata is not None else image_metadata(run,path)
     if getattr(run,'kind',None)=='LEGACY_UI_FIXTURE' and item['count']>1000000:
         raise PublicationUnavailable('fixture_bounded_history_reader_required:'+path)
@@ -42,5 +53,10 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run) and path == 'metadata/bpr/ColorSequence':
+        from mta.runtime.models import DailyColorSequence
+        return ('SELECT ordinal AS vf_ordinal,"Color","SequenceNo" FROM mta.' +
+                quote(DailyColorSequence._meta.db_table) + ' WHERE run_id=%s'), [run.pk]
     return ('SELECT * FROM ' + table_sql(item['table']) +
             ' WHERE vf_run_id=%s AND vf_image=%s'), [run.pk, path]

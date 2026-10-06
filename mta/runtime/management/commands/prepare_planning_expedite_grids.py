@@ -48,19 +48,20 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('Planning Expedite grid preparation requires PostgreSQL')
-        run, source = fixture.binding()
-        if str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
             raise CommandError('Planning Expedite grids require retained April input')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before grid preparation')
+            assert_unchanged(run, source)
             receipt = PlanningExpediteGridProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
@@ -91,7 +92,6 @@ class Command(BaseCommand):
                     raise CommandError('Planning Expedite grid receipt differs')
             else:
                 PlanningExpediteGridProjection.objects.create(run=run, **expected)
-            if fixture.binding()[1] != source:
-                raise CommandError('Planning admission changed before commit')
+            assert_unchanged(run, source)
         self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
                                          seconds=time.monotonic()-started, **expected), sort_keys=True))

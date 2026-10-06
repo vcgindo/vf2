@@ -7,7 +7,8 @@ from copy import deepcopy
 from datetime import date, datetime
 import uuid
 
-from django.db import transaction
+from django.db import connection, transaction
+from django.conf import settings
 
 from mta.planning.engine import calculate_current_day
 from mta.runtime.models import CalculationRun, RunCommand
@@ -88,15 +89,23 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     return event
 
 
-def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None, report_exceptions=None):
+def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
+                report_exceptions=None, mdm_source=None, mdm_retry=None):
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
         raise ValueError('Explicit execution revision required')
     if (predecessor is None)==(opening is None):raise ValueError('Exactly one initial opening or persisted predecessor required')
+    if mdm_source is not None and mdm_retry is not None:
+        raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
     today=date.fromisoformat(day['business_date'])
     with transaction.atomic():
+        if mdm_source is not None or mdm_retry is not None:
+            # Must be the transaction's first statement. Queue rows, histories,
+            # task headers and subtasks then share one PostgreSQL snapshot.
+            with connection.cursor() as cursor:
+                cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
         parent=None
         if predecessor is not None:
             parent=CalculationRun.objects.select_for_update().get(pk=predecessor.pk)
@@ -119,8 +128,71 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             opening_date=initial['opening_date']
             if date.fromisoformat(opening_date)>=today:raise ValueError('Opening must precede current facts')
             lineage=dict(opening_identity=initial['identity'],opening_digest=digest(initial))
+        publication_opening = ({'supplier': deepcopy(prior['supplier'])}
+            if profile.get('daily_publication') or
+               getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False) else None)
         raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
                  lineage=lineage,report_exceptions=storage(report_exceptions or {}))
+        capture_snapshot=None; origin_capture=None; request_digest=None
+        if mdm_source is not None or mdm_retry is not None:
+            from mta.mdm.daily_input import (apply_refresh_setting, capture_configuration,
+                capture_pending_conflicts, capture_prune_candidates, compose,
+                select_capture)
+            request_digest=digest(raw)
+            nms_active, task_horizon = capture_configuration(prior['importer_settings'])
+            if mdm_retry is not None:
+                from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+                origin_capture=MdmDailyInputCapture.objects.select_for_update().select_related('run').get(
+                    run_id=getattr(mdm_retry,'pk',mdm_retry))
+                from mta.runtime.mdm_models import MdmSource
+                MdmSource.objects.select_for_update().get(pk=origin_capture.source_id)
+                repeated=MdmDailyInputCapture.objects.select_related('run').filter(
+                    source_id=origin_capture.source_id,request_digest=request_digest,
+                    run__execution_revision=execution_revision).first()
+                if repeated is not None:
+                    if repeated.origin_id!=origin_capture.pk:
+                        raise ValueError('Daily run identity drift')
+                    read_outputs(repeated.run)
+                    return repeated.run
+                active_leaf_ids=list(MdmDailyInputCapture.objects.filter(
+                    source_id=origin_capture.source_id,status='CAPTURED',retries__isnull=True)
+                    .values_list('run_id',flat=True))
+                if (origin_capture.run.status!='FAILED' or origin_capture.status!='CAPTURED'
+                        or active_leaf_ids!=[origin_capture.run_id]
+                        or origin_capture.request_digest!=request_digest):
+                    raise ValueError('MDM retry does not match this failed daily request')
+                origin_raw=read_input(origin_capture.run)
+                capture_snapshot=deepcopy(origin_raw.get('mdm_input'))
+                if not capture_snapshot or capture_snapshot['revision_digest']!=origin_capture.revision_digest:
+                    raise ValueError('Failed MDM capture input drift')
+                if capture_snapshot['nms_active']!=nms_active:
+                    raise ValueError('NMSActive changed for frozen MDM retry')
+                if capture_snapshot['configuration']['task_status_log_horizon']!=task_horizon:
+                    raise ValueError('TaskStatusLogHorizon changed for frozen MDM retry')
+            else:
+                from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+                from mta.runtime.mdm_models import MdmSource
+                mdm_source=MdmSource.objects.select_for_update().get(pk=mdm_source.pk)
+                repeated=MdmDailyInputCapture.objects.select_related('run').filter(
+                    source=mdm_source,request_digest=request_digest,
+                    run__execution_revision=execution_revision).first()
+                if repeated is not None:
+                    if repeated.run.predecessor_id!=(parent.pk if parent else None):
+                        raise ValueError('Daily run identity drift')
+                    read_outputs(repeated.run)
+                    return repeated.run
+                capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
+                    task_status_log_horizon=task_horizon)
+            # The caller's current full raw feed is the new run's base.  The
+            # predecessor remains immutable and supplies closing state only.
+            base_master=raw['day']['raw_master']
+            composed=compose(capture_snapshot,base_master,last_run_date=opening_date)
+            if origin_capture is None:
+                capture_snapshot=capture_pending_conflicts(capture_snapshot,mdm_source,composed)
+                capture_snapshot=capture_prune_candidates(capture_snapshot,mdm_source,today)
+            raw['day']['raw_master']=storage(composed)
+            apply_refresh_setting(prior['importer_settings'], capture_snapshot)
+            raw['mdm_input']=capture_snapshot
         source_digest=digest(raw)
         existing=CalculationRun.objects.filter(input_digest=source_digest,execution_revision=execution_revision).first()
         if existing is not None:
@@ -146,13 +218,17 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 return run
         else:
             run=CalculationRun.objects.create(**fields)
+        if capture_snapshot is not None:
+            from mta.mdm.daily_input import bind_capture
+            bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
     try:
         result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
             lambda source:(calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
         if [r['boundary'] for r in result['MajorBoundaries']]!=list(BOUNDARIES):
             raise ValueError('Incomplete daily boundary roster')
         result['Lineage']=[lineage]
-        return finish_run(run,result,expected_digest=source_digest)
+        return finish_run(run,result,expected_digest=source_digest,
+                          publication_opening=publication_opening)
     except Exception as error:
         fail_run(run,error)
         raise

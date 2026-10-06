@@ -38,7 +38,7 @@ def read_outputs(run):
     return outputs
 
 
-def finish_run(run, output, *, expected_digest):
+def finish_run(run, output, *, expected_digest, publication_opening=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     with transaction.atomic():
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
@@ -67,10 +67,18 @@ def finish_run(run, output, *, expected_digest):
             write_expedite(run,output,bands=selected_bands(output['CalculationOutputs']))
             from mta.presentation.pick_post_storage import write_pick_post
             write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
+            from django.conf import settings
+            if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
+                from mta.presentation.daily_sources import write_sources
+                write_sources(run, output, opening=publication_opening)
         for name, rows in output.items():
             fields = (persist_trace(run, name, rows) if run.kind == 'DAILY_CHAIN'
                       else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))
             Checkpoint.objects.create(run=run, name=name, **fields)
+        # Consuming captured MDM rows is part of the same committed boundary.
+        # A readback/storage failure leaves both queues and run unconsumed.
+        from mta.mdm.daily_input import finalize_consumption
+        finalize_consumption(run)
         run.status = 'SUCCEEDED'
         run.output_roster = sorted(output)
         run.output_digest = digest(output)

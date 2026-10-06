@@ -47,20 +47,20 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--verify-only', action='store_true',
                             help='Verify the sealed membership without inserting rows.')
+        parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
         if connection.vendor != 'postgresql':
             raise CommandError('RRR preparation requires PostgreSQL')
-        run, source = fixture.binding()
-        if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or str(run.business_date) != '2026-04-07':
+        from mta.presentation.daily_preparation import command_binding, assert_unchanged
+        run, source = command_binding(options.get('run_id'))
+        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07'):
             raise CommandError('RRR preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
             type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
-            current, current_source = fixture.binding()
-            if current.pk != run.pk or current_source != source:
-                raise CommandError('RRR admission changed before preparation')
+            assert_unchanged(run, source)
             dimension_digest, pick_digest = source_signatures(run)
             recipe = recipe_digest()
             receipt = RrrPreparedProjection.objects.filter(run=run).first()
@@ -93,9 +93,7 @@ class Command(BaseCommand):
                     raise CommandError('RRR prepared receipt differs')
             else:
                 RrrPreparedProjection.objects.create(run=run, **expected)
-            final, final_source = fixture.binding()
-            if final.pk != run.pk or final_source != source:
-                raise CommandError('RRR admission changed before commit')
+            assert_unchanged(run, source)
             verify_guards(connection)
         self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
                                          seconds=time.monotonic()-started, **expected), sort_keys=True))

@@ -16,19 +16,27 @@ def admitted_relation(run):
     """Return None only when this run has never opted into prepared RRR."""
     if not settings.VF_RRR_PREPARED:
         return None
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or not getattr(run, 'pk', None):
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if ((getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily)
+            or not getattr(run, 'pk', None)):
         return None
     receipt = RrrPreparedProjection.objects.filter(run_id=run.pk).first()
     if receipt is None:
         raise PublicationUnavailable('rrr_prepared_receipt_required')
     try:
-        selected, source = fixture.binding()
+        if daily:
+            from mta.presentation.daily_preparation import source_digest
+            source = source_digest(run)
+            selected = run
+        else:
+            selected, source = fixture.binding()
         dimensions, pick = source_signatures(run)
         verify_guards(connection)
     except (ValueError, PublicationUnavailable) as exc:
         raise PublicationUnavailable('rrr_prepared_admission_changed') from exc
-    if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or selected.pk != run.pk
-            or str(run.business_date) != '2026-04-07'
+    if (selected.pk != run.pk
+            or (run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07')
             or receipt.source_digest != source or receipt.dimension_digest != dimensions
             or receipt.pick_digest != pick or receipt.recipe_digest != recipe_digest()):
         raise PublicationUnavailable('rrr_prepared_receipt_missing_or_changed')

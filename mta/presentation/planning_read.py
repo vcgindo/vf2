@@ -1,5 +1,6 @@
 """Named operational inputs and checked persisted report projections only."""
 from types import SimpleNamespace
+from django.conf import settings
 from mta.presentation.context import selected_run, permission_catalogue, PublicationUnavailable
 from mta.presentation.selective import image_rows
 from mta.presentation import hierarchy
@@ -23,6 +24,10 @@ def planning_overview_context():
     if run.kind == 'LEGACY_UI_FIXTURE':
         from mta.presentation.fixture import bpr_ancillary
         ancillary = bpr_ancillary(run)
+    elif (run.kind == 'DAILY_CHAIN' and
+          getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+        from mta.presentation.daily_preparation import ancillary_rows
+        ancillary = ancillary_rows(run)
     else:
         ancillary = terminal_ancillary(run)
     rationed = image_rows(run, 'reports/bpr/vf_RationedReqReport')

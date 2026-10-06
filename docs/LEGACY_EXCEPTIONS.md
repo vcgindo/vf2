@@ -1,5 +1,53 @@
 # Legacy behavior and explicit exceptions
 
+## DAILY-MDM-CONSUMPTION — authorized transactional reconciliation, 6 October2026
+
+The steps1&2 daily-publication instruction requires a failed calculation to retain
+its captured approved inputs and never mark them consumed. Canonical
+`Engine/ImportMasterDataComponents.bat:6-36` invokes NMSImportData, archival,
+clear and task-status scripts as separate sqlcmd operations before later daily
+calculation. They can therefore leave partial workflow effects if a later script
+or calculation fails; the batch is not one database transaction.
+
+The connection captures immutable input occurrences before calculation and defers
+the exact archive/clear/task writes to finish_run's existing atomic successful
+typed-publication transaction. This is the explicitly required failure policy,
+not a claim of legacy partial-failure parity. Native successful statement order,
+NULLs/duplicates, inclusive15-day archive horizon (StdSettingsPre.bat:86) and
+captured TaskStatusLogHorizon remain. Later queue approvals/task completions are
+not captured retroactively. One frozen RunDateTime supplies archive Input_Date
+and task DBUpdatedDate across retries (NMSArchiveInputData.sql:9-10 and
+NMSTaskStatusUpdate.sql:15-16); physical consumption audit time remains separate.
+Sources: NMSImportData.sql:2-581,
+NMSArchiveInputData.sql:9-51, NMSClearInputTables.sql:2-43,
+NMSTaskStatusUpdate.sql:71-154,288-346,397-434. Existing no-MDM F2 runs/receipts
+and calculations remain unchanged. A frozen retry creates a distinct attempt.
+
+## DAILY-MDM-PAIR-EXCLUSIONS — unsupported, fail closed
+
+Canonical NMSImportData.sql:474-499 adds/removes `(SKUCode,WhCode)` Exclusions
+from approved pair DBMActive changes. Current engine input
+`mta/application/r1_input.py:146-159` is unique WhCode-only. No pair-to-location
+collapse or new engine state is authorized. Reject before run/capture binding
+when an approved pair modification has non-NULL DBMActive, or an approved inactive
+pair addition survives the native incoming-master anti-join (SQL:30-40).
+An inactive addition for an already-existing pair is discarded natively and does
+not trigger that exclusion tail. Queues remain intact on rejection. These cases
+are unavailable, not accepted daily parity; an exact typed engine-boundary change
+requires separate scope authorization.
+
+## DAILY-SOURCE-GAPS — no inherited April/terminal supplements
+
+The new3006 shell publishes only genuine opening SOB/MOQ and BPR ColorSequence
+in addition to existing durable daily sources. BPR remarks/shipment ledger,
+normal BOR full supplier/Black fields and remarks, full opening BOROA and its
+independent requirements/remarks, and daily Expedite request sources remain
+unavailable. BOROA's existing lower-level result supplies24 of41 allocation
+fields; missing fields are ParentLeftoverStock, DispatchPen and SKULocAtt01..15.
+BOROARequirement has independent SKUCode/WhCode/AdvAllocDone/ParentWhCode grain.
+No empty/zero defaults, fixture copies, tie exceptions or other-day source inputs
+are transferred. Preparation reports failures and cannot seal the full roster.
+
 ## LEG-BOR-APRIL-SUPPLIER-TIES — unresolved ordering, no exception yet
 
 Exact April7 fixture bfd75b4b-a9df-4a08-82d3-852e3324b623, native digest

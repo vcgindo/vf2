@@ -1,5 +1,6 @@
 """Selective, checksum-verified persisted inputs for Expedite consumers."""
 from types import SimpleNamespace
+from django.conf import settings
 
 from mta.presentation import hierarchy
 from mta.presentation.context import selected_run, permission_catalogue, PublicationUnavailable
@@ -141,6 +142,10 @@ def expedite_context(*, include_master=True, custom=False):
         if run.kind == 'LEGACY_UI_FIXTURE':
             from mta.presentation.fixture import bpr_ancillary
             ancillary = bpr_ancillary(run)
+        elif (run.kind == 'DAILY_CHAIN' and
+              getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+            from mta.presentation.daily_preparation import ancillary_rows
+            ancillary = ancillary_rows(run)
         else:
             ancillary = terminal_ancillary(run)
     else:

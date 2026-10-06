@@ -10,6 +10,9 @@ SOURCE_SHA = '0cec4bea850da03b9e57d59fe114a15d68fb60254637988451b609995757a33c'
 
 
 def empty_requests(run):
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        raise PublicationUnavailable('planning_expedite_request_source_not_published')
     selected, source_digest = fixture.binding()
     try:
         raw = SOURCE.read_bytes()

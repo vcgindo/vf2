@@ -32,11 +32,17 @@ def fields_for(node, alias):
 
 
 def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None):
-    if not getattr(settings, 'VF_GUIDED_PREPARED', False) or not fixture.enabled():
+    from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
+    if not getattr(settings, 'VF_GUIDED_PREPARED', False) or (not daily and not fixture.enabled()):
         return None
-    selected, source = fixture.binding()
-    if selected.pk != run.pk:
-        raise PublicationUnavailable('Guided history prepared run differs')
+    if daily:
+        from mta.presentation.daily_preparation import source_digest
+        source = source_digest(run)
+    else:
+        selected, source = fixture.binding()
+        if selected.pk != run.pk:
+            raise PublicationUnavailable('Guided history prepared run differs')
     try:
         verify_guards(connection)
     except ValueError as exc:

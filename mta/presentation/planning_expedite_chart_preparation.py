@@ -58,7 +58,41 @@ def prepost_members(run):
         ' WHERE T."WhCode" IS NOT NULL AND T."ParentWhCode" IS NOT NULL AND NOT '+equal('T."WhCode"','T."ParentWhCode"')),[]
 
 
+def production_prepost_members(run):
+    """Compact exact parent child-location multiplicity, before live permissions.
+
+    Parent's CTE groups SKU/location after joining children on location only.
+    The outer report joins that grouped pair back to every matching Pick row.
+    Retain source and target ordinals separately; no SKU condition on children.
+    """
+    from mta.presentation.planning_expedite_transit_preparation import pick_source,PICK_TABLE
+    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
+        from mta.presentation.planning_expedite_transit_preparation import production_pick_query
+        pick, params = production_pick_query(run)
+        return ('WITH P AS (' + pick + '), children AS ('
+            'SELECT '+key('"ParentWhCode"')+' AS location_key,count(*)::bigint AS multiplicity FROM P '
+            'WHERE "ParentWhCode" IS NOT NULL GROUP BY '+key('"ParentWhCode"')+') '
+            'SELECT S.vf_source_ordinal AS scope_ordinal,T.vf_source_ordinal AS fact_ordinal,C.multiplicity '
+            'FROM P S JOIN children C ON '+key('S."WhCode"')+'=C.location_key '
+            'JOIN P T ON '+equal('S."SKUCode"','T."SKUCode"')+' AND '+equal('S."WhCode"','T."WhCode"')+
+            ' WHERE T."WhCode" IS NOT NULL AND T."ParentWhCode" IS NOT NULL AND NOT '+equal('T."WhCode"','T."ParentWhCode"')),params
+    pick_source(verify_values=True)
+    return ('WITH P AS (SELECT * FROM '+PICK_TABLE+'), children AS ('
+        'SELECT '+key('"ParentWhCode"')+' AS location_key,count(*)::bigint AS multiplicity FROM P '
+        'WHERE "ParentWhCode" IS NOT NULL GROUP BY '+key('"ParentWhCode"')+') '
+        'SELECT S.vf_source_ordinal AS scope_ordinal,T.vf_source_ordinal AS fact_ordinal,C.multiplicity '
+        'FROM P S JOIN children C ON '+key('S."WhCode"')+'=C.location_key '
+        'JOIN P T ON '+equal('S."SKUCode"','T."SKUCode"')+' AND '+equal('S."WhCode"','T."WhCode"')+
+        ' WHERE T."WhCode" IS NOT NULL AND T."ParentWhCode" IS NOT NULL AND NOT '+equal('T."WhCode"','T."ParentWhCode"')),[]
+
+
 def recipe_digest():
     import inspect
     from mta.serialization import digest
     return digest(dict(version=1,members=inspect.getsource(members),prepost=inspect.getsource(prepost_members)))
+
+
+def production_recipe_digest():
+    import inspect
+    from mta.serialization import digest
+    return digest(dict(version=2,members=inspect.getsource(members),prepost=inspect.getsource(production_prepost_members)))

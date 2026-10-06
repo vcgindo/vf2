@@ -64,6 +64,9 @@ def selected_run():
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
     if run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
         raise PublicationUnavailable('publication_acceptance_required')
+    if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
+        from mta.presentation.daily_publication import require_ready
+        require_ready(run)
     return run
 
 
