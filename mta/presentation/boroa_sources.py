@@ -44,6 +44,8 @@ def verify_values(run):
     return result
 
 def admitted_sources():
+    from mta.presentation.daily_preparation import require_report
+    require_report('boroa')
     from mta.runtime.boroa_source_schema import verify_guards
     run,source=native_binding();receipt=BorOaSourceReceipt.objects.filter(run=run).first()
     expected=dict(source_digest=source,recipe_digest=source_recipe(),**{DIGEST_FIELDS[n]:v[1] for n,v in PINS.items()})

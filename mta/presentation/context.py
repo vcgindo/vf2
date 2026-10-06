@@ -51,6 +51,8 @@ def selected_run():
     from mta.presentation import fixture
     if fixture.enabled():
         return fixture.selected_run()
+    from mta.presentation.daily_preparation import roster_identity
+    roster_identity()
     identifier = settings.VF_MTA_PUBLISHED_RUN
     expected = settings.VF_MTA_PUBLISHED_DIGEST
     if not identifier or not expected:

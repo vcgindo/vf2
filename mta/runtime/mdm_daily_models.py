@@ -50,6 +50,37 @@ class MdmDailyInputOccurrence(models.Model):
             name='mdm_daily_occurrence_identity')]
 
 
+class MdmPairExclusionSource(models.Model):
+    """Explicit owner of the validated importer Exclusions bag, including empty."""
+    source = models.OneToOneField(MdmSource, on_delete=models.PROTECT,
+                                  related_name='pair_exclusion_source')
+    digest = models.CharField(max_length=64)
+    row_count = models.PositiveBigIntegerField()
+    provenance = models.JSONField()
+
+
+class MdmPairExclusion(models.Model):
+    source = models.ForeignKey(MdmSource, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('source', 'ordinal'),
+                                               name='mdm_pair_exclusion_ordinal')]
+
+
+class MdmDailyPairExclusion(models.Model):
+    capture = models.ForeignKey(MdmDailyInputCapture, on_delete=models.PROTECT)
+    ordinal = models.PositiveBigIntegerField()
+    SKUCode = models.CharField(max_length=50, null=True)
+    WhCode = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('capture', 'ordinal'),
+                                               name='mdm_daily_exclusion_ordinal')]
+
+
 class MdmDailyInputTask(models.Model):
     """A native task/subtask transition selected with the captured queue revision."""
     capture = models.ForeignKey(MdmDailyInputCapture, on_delete=models.PROTECT,

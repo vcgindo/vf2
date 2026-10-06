@@ -54,6 +54,18 @@ def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
     from mta.presentation.daily_preparation import production_branch
+    from mta.presentation import daily_transit
+    if production_branch(run) and path in daily_transit.MODELS:
+        return daily_transit.query(run, path)
+    if production_branch(run) and path in (
+            'sources/bpr/BPRReport_RemarkDetails',
+            'sources/bor/BORReport_RemarkDetails',
+            'sources/boroa/BORReport_OARemarkDetails'):
+        from mta.presentation.ancillary_live import image_query as remark_query
+        return remark_query(run, path)
+    if production_branch(run) and path == 'sources/planning/OpenExpediteRequests':
+        from mta.presentation.daily_requests import query
+        return query(run)
     if production_branch(run) and path == 'metadata/bpr/ColorSequence':
         from mta.runtime.models import DailyColorSequence
         return ('SELECT ordinal AS vf_ordinal,"Color","SequenceNo" FROM mta.' +

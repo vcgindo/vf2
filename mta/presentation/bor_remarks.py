@@ -6,6 +6,7 @@ from django.db import connection,transaction,DatabaseError
 from mta.presentation.bor_sources import admitted_sources
 from mta.presentation.bor_sql import remark_query
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.context import selected_run
 from mta.presentation.rrr_sql import equal
 from mta.runtime.models import BorLiveRemark
 
@@ -19,7 +20,14 @@ def _literal(value, *, nullable=False):
 
 
 def append(payload,actor):
-    run,_=admitted_sources()
+    run=selected_run()
+    from mta.presentation.daily_preparation import production_branch
+    daily=production_branch(run)
+    if daily:
+        from mta.presentation import ancillary_live
+        ancillary_live.image_metadata(run,ancillary_live.PATHS[ancillary_live.BOR])
+    else:
+        run,_=admitted_sources()
     rows=payload.get('data')
     if not isinstance(rows,list) or not rows or not isinstance(rows[0],dict):
         raise ValueError('native BOR batch invalid')
@@ -43,6 +51,11 @@ def append(payload,actor):
     # UTC-labelled rows so wire history retains that legacy naive timestamp.
     now=datetime.now(ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE)).replace(microsecond=0,tzinfo=timezone.utc)
     try:
+        if daily:
+            return ancillary_live.append(ancillary_live.BOR,[dict(
+                SKUCode=row['skucode'],WhCode=row['whcode'],SupplierCode=row['suppliercode'],
+                Remark=row.get('remark'),Username=username) for row in values],
+                actor_id=actor['id'],timestamp=now)
         with transaction.atomic():
             with connection.cursor() as c:
                 c.execute("SELECT set_config('fresh.bor_actor',%s,true)",[str(actor['id'])])
@@ -57,7 +70,13 @@ def append(payload,actor):
 
 
 def history(payload):
-    run,_=admitted_sources()
+    run=selected_run()
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        from mta.presentation import ancillary_live
+        ancillary_live.image_metadata(run,ancillary_live.PATHS[ancillary_live.BOR])
+    else:
+        run,_=admitted_sources()
     values=[_literal(payload.get(n),nullable=True) for n in ('skucode','whcode','spc')]
     sql,params=remark_query(run)
     sql='SELECT "Remark","RemarkDate","Username" FROM ('+sql+') M WHERE '+ ' AND '.join(

@@ -74,7 +74,8 @@ def validate_filters(payload, context, *, child_count=False):
 
 def grid(payload, *, count=False):
     run = selected_run()
-    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+    from mta.presentation.daily_preparation import production_branch
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' or production_branch(run):
         from mta.presentation.planning_git_sql import grid as prepared_grid
         return prepared_grid(run, payload, count=count)
     context = terminal_context(payload)

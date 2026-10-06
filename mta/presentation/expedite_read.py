@@ -90,7 +90,8 @@ def child_grid(payload):
            for item in availability.get('filters', [])):
         raise PublicationUnavailable('child_expedite_norm_filter_contract_unverified')
     run = selected_run()
-    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
+    from mta.presentation.daily_preparation import production_branch
+    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' or production_branch(run):
         from mta.presentation.planning_expedite_sql import child_grid as prepared_child_grid
         return prepared_child_grid(run,payload)
     context = expedite_context()

@@ -16,7 +16,7 @@ from mta.presentation.context import PublicationUnavailable
 CONFIG_NAMES = ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256',
     'VF_MTA_ACTIONS_ENABLED', 'VF_MTA_ACTION_TIME_ZONE', 'VF_BPR_PREPARED',
     'VF_GUIDED_PREPARED', 'VF_RRR_PREPARED', 'VF_HISTORY_REPORTS_PREPARED',
-    'VF_RESEARCH_AVAILABILITY_PREPARED')
+    'VF_RESEARCH_AVAILABILITY_PREPARED', 'VF_MTA_SYNTHETIC_ROSTER')
 
 
 def configuration_identity():
@@ -29,8 +29,12 @@ def configuration_identity():
 
 def recipe_identity():
     from mta.presentation import daily_preparation
-    return digest(dict(roster=daily_preparation.REQUIRED_LAYERS,
-        coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare)))
+    from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql
+    return digest(dict(roster=daily_preparation.roster_identity(),
+        layers=daily_preparation.required_layers(),
+        coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare),
+        daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in
+            (expedite_child_sources, planning_expedite_sql, planning_git_sql)}))
 
 
 def source_identity(run):
@@ -42,7 +46,9 @@ def source_identity(run):
 
 
 def seal_identity(publication):
-    return digest(dict(run=str(publication.run_id), output=publication.output_digest,
+    from mta.presentation.daily_preparation import roster_identity
+    return digest(dict(run=str(publication.run_id), roster=roster_identity(),
+        output=publication.output_digest,
         source=publication.source_digest, configuration=publication.configuration_digest,
         recipe=publication.recipe_digest, layers=publication.layers))
 
@@ -60,7 +66,7 @@ def prepare(run_id, *, expected_output_digest):
     one transaction across all layers. Failed-layer rows roll back independently.
     """
     from django.db import connection
-    from mta.presentation.daily_preparation import REQUIRED_LAYERS, prepare_layer, verify_layer
+    from mta.presentation.daily_preparation import required_layers, prepare_layer, verify_layer
     if not transaction.get_autocommit():
         raise ValueError('Daily UI preparation owns its transaction boundaries')
     run = CalculationRun.objects.get(pk=run_id)
@@ -74,6 +80,7 @@ def prepare(run_id, *, expected_output_digest):
         if not cursor.fetchone()[0]:
             raise PublicationUnavailable('daily_preparation_already_running')
     try:
+        layers_required = required_layers()
         identities = dict(output_digest=run.output_digest, source_digest=source_identity(run),
             configuration_digest=configuration_identity(), recipe_digest=recipe_identity())
         publication, created = DailyUiPublication.objects.get_or_create(run=run, defaults=identities)
@@ -86,7 +93,7 @@ def prepare(run_id, *, expected_output_digest):
         layers = dict(publication.layers)
         results = {}
         try:
-            for name in REQUIRED_LAYERS:
+            for name in layers_required:
                 try:
                     with transaction.atomic():
                         with connection.cursor() as cursor:
@@ -112,7 +119,8 @@ def prepare(run_id, *, expected_output_digest):
                 attempt.save(update_fields=['layers'])
             with transaction.atomic():
                 publication.layers = bounded(layers)
-                complete = set(layers) == set(REQUIRED_LAYERS) and all(v['status']=='READY' for v in layers.values())
+                complete = set(layers) == set(layers_required) and all(
+                    v['status']=='READY' for v in layers.values())
                 publication.status = 'READY' if complete else 'INCOMPLETE'
                 publication.sealed_at = timezone.now() if complete else None
                 publication.seal_digest = seal_identity(publication) if complete else ''
@@ -132,19 +140,20 @@ def prepare(run_id, *, expected_output_digest):
 
 
 def require_ready(run, *, verify_rows=False):
-    from mta.presentation.daily_preparation import REQUIRED_LAYERS, verify_layer
+    from mta.presentation.daily_preparation import required_layers, verify_layer
+    layers_required = required_layers()
     publication = DailyUiPublication.objects.filter(run=run, status='READY').first()
     if publication is None:
         raise PublicationUnavailable('daily_ui_publication_not_ready')
     if (publication.output_digest != run.output_digest or publication.source_digest != source_identity(run)
             or publication.configuration_digest != configuration_identity()
             or publication.recipe_digest != recipe_identity()
-            or set(publication.layers) != set(REQUIRED_LAYERS)
+            or set(publication.layers) != set(layers_required)
             or any(value.get('status') != 'READY' for value in publication.layers.values())
             or publication.seal_digest != seal_identity(publication)):
         raise PublicationUnavailable('daily_ui_publication_seal_mismatch')
     if verify_rows:
-        for name in REQUIRED_LAYERS:
+        for name in layers_required:
             verify_layer(run, name, publication.layers[name]['receipt'])
     if str(settings.VF_MTA_PUBLISHED_RUN) == str(run.pk):
         generation=publication.layers.get('btr',{}).get('receipt',{}).get('generation')

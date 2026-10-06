@@ -10,7 +10,8 @@ from mta.presentation.daily_sources import recipe_digest
 from mta.serialization import digest
 
 
-@override_settings(VF_MTA_DAILY_PUBLICATION=True, VF_MTA_PUBLISHED_RUN='', VF_MTA_PUBLISHED_DIGEST='')
+@override_settings(VF_MTA_DAILY_PUBLICATION=True, VF_MTA_PUBLISHED_RUN='', VF_MTA_PUBLISHED_DIGEST='',
+                   VF_MTA_SYNTHETIC_ROSTER='')
 class DailyPublicationTests(TransactionTestCase):
     # Immutable projection triggers deliberately forbid flush. Each test owns
     # its explicit rollback boundary except the transaction-owner orchestration.

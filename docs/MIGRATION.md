@@ -6,6 +6,117 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Conditional execution gate — 6 October2026
+
+Verified direct human controller turn `01a10f57-803d-7641-9a11-4ececb9ce44b`
+authorizes the same-catalogue ten-pair smoke **after** the current source/readiness
+package is proved. This supersedes the prepare-only restriction below. Smoke
+must prove day one/successor, independent acceptance, full finite readiness and
+usable BPR/BTR/DBM hydration, with explicit dispositions for other reports.
+Only after that passes without a blocking prerequisite may the retained1240
+SKU–location pairs run for90 days on owned3006, one4GiB/2CPU worker per day.
+The90-day facts must be legitimately generated/registered through the retained
+ledger contract; shorter facts cannot be repeated and accepted F2 runs cannot
+be rewritten. Stop at the first unaccepted day and preserve all attempts.
+Current gate: **NOT SATISFIED**; no smoke or90-day execution has begun.
+
+Verified human controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` explicitly
+disposes the BOR producer blockers by deferring BOR and BOROA **only from the
+3006 synthetic demo**. Implement an instance-scoped versioned18-layer roster
+(`core-without-bor-v1`) and deny its excluded endpoints; retain the default20
+layers and3005 fixture behavior. Bind roster identity in configuration/recipe/
+readiness receipts. This supersedes the all20-layer condition only for these two
+families. No invented Black/attribute values and no further search campaign.
+All included layers still require genuine sources, parity and useful hydration.
+The pending BOR-source question is superseded by this scoped disposition.
+
+### Active extension — missing daily sources and pair exclusions
+
+Direct human reply `call_xLagXahyoNffJ6OsZIgBssSz` on6October2026 authorizes
+missing-source implementation beyond checkpoint `a0c402b`. This supersedes only
+the stop-at-checkpoint restriction below. Continue the existing goal without a
+numeric budget. Implement missing daily report sources and canonical SKU/location
+pair exclusion state, preserving3005 and existing calculation rules. Smoke and
+90-day execution now follow the conditional gate above. No MTO extension, new
+port, unapproved scope relaxation or legacy repair.
+
+Active item: qualify and implement the missing source boundaries listed below.
+Unmet exit: genuine stage-owned typed sources and consumer wiring for the finite
+report roster, plus pair-grain exclusion transitions through the existing day
+boundary. Proof: exact canonical SQL/producer mapping, full typed values/NULLs/
+duplicates/order on bounded connector cases, persistence/readback/retry and
+readiness failure guards, required migration checks, unchanged old-mode/F2
+contracts and protected3005. Use owned3006 test resources only. Missing external
+facts must have an explicit input owner; never substitute aggregate GIT, copied
+April outputs, fabricated empty populations or Black-field defaults. Record any
+unresolved canonical producer precisely and continue independent authorized work.
+
+Implementation progress (not readiness acceptance): pair-grain exclusion owner,
+frozen request/remark captures, transactional consumption and database guards
+are implemented through migrations0058–0063. `source-final-postgres-005.log`
+records27 passing focused PostgreSQL tests, including failed-run retry against
+the frozen captures. Django check and migration drift/plan checks pass;
+24 affected local tests and376 pinned-resource identity checks pass. Migrations
+0058–0063 applied to the owned serving3006 database (`sources-serving-migrate-001.log`).
+The versioned18-layer roster has focused default-preservation, excluded-route,
+configuration/recipe identity and seal checks (`roster-contract-002.log`).
+Image `freshvcf-daily3006-mta:sources-002` is deployed only on3006, with the
+explicit `core-without-bor-v1` setting. `sources-restart-001.json` verifies healthy
+startup, unready reports, zero selected/daily data and unchanged protected3005
+identities/configuration. `sources-roster-serving-001.json` verifies all18 layers,
+BOR/BOROA503 and applied0063 on the actual serving image. This is source-boundary
+deployment, not complete publication or UI acceptance.
+
+Pure canonical transit import/report processors are implemented with four
+passing focused tests. Independent SQL comparison `transit-sql-004` matches
+the complete typed connector bags (3 validated rows,1 rejection,8 transporter
+rows), with no permanent SQL writes. Earlier harness failures001–003 are retained.
+Typed raw/validated occurrences, canonical transporter rows and diagnostics now
+publish atomically under the same daily run; current standard attributes retain
+their actual NULLs. Migrations0064–0065 and their guards pass PostgreSQL tests;
+`transit-integration-postgres-003.log` passes16 affected integration/roster/retry
+tests. Django check, migration drift and plan pass (`transit-schema-check-001`).
+Migrations0064–0065 are now applied on3006 (`transit-serving-migrate-001.log`).
+Image `freshvcf-daily3006-mta:sources-003` includes the123 recorded overlays and
+the registered derivative manifest; the owned MTA alone was recreated.
+`sources-integrated-restart-002.json` verifies startup/unready state and protected
+services. No selected run, publication or MDM source exists.
+
+The integrated source/guard/roster/retry suite passes36 PostgreSQL tests
+(`sources-integrated-006.log`). Current pure transit code also passes the repeated
+independent canonical comparison `transit-sql-005`. Child Expedite scalar/nested
+sources pass exact SQL consumer-string comparison `expedite-child-sources-sql-002`;
+the original slash-escaping mismatch is preserved in001 and fixed without
+relaxing assertions. Its native latest-request tie is demonstrated
+nondeterministic and remains denied. Actual PostgreSQL child assembly passes
+`child-expedite-integration-002.log`;001 is a retained test-fixture type error.
+Positive parent GIT duplicate join cardinality and AgeingOrder-before-paging pass
+actual PostgreSQL queries (`git-positive-postgres-002.log`);001 failed only at
+test teardown after assertions passed. These bounded proofs do not establish
+real-data/API/browser acceptance. GIT custom/charts/transporter-count qualification
+remains open; the inherited invalid child transporter query stays unavailable.
+The nonempty GIT readiness guard remains enforced. Child Expedite now uses its
+captured request/transit sources, with recipe identity bound into the daily seal.
+The seven-field retained shipment ledger lacks the wider raw
+transport metadata. `DAILY_SHIPMENT_INPUT_CONTRACT.md` proposes explicit new
+synthetic metadata conventions; approval is pending, and no supplement has been
+generated. No smoke calculation, daily publication or usable UI hydration is
+claimed. The same-catalogue ten-pair derivative is now registered as
+`ten-pair-input-v1.json`, SHA256
+`7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc`.
+Its table-by-table receipt and unchanged ledger validator prove10 identities,
+280 facts and263 shipments across12 days. Baseline verification now covers378
+pinned resources. MDM/actor binding and the genuine execution/admission command
+remain within this phase.
+
+Controller instruction verified against direct human turn
+01a10f47-5f29-7fa3-a70c-18c4e38ceb92 additionally requires a runnable retained-
+catalogue ten-pair smoke packet/command, including actual parent dependency
+counts, fixed opening/day-one/successor boundaries, actor/config/source identity
+and genuine parity admission path. Prepare only; do not execute the smoke.
+Finish the integrated package, affected proof, owned3006 build/restart and one
+commit/push; unresolved producers require exact evidence and a bounded decision.
+
 ### Active scope — daily publication steps1 and2 on isolated3006
 
 **Steps1&2 connection checkpoint verified; full readiness blocked by the exact source gaps below.**

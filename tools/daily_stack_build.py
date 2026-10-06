@@ -44,11 +44,11 @@ def mta(tag):
     build.mkdir(exist_ok=False)
     tracked = subprocess.check_output(['git','diff','--name-only','d17925c','--','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
     new = subprocess.check_output(['git','ls-files','--others','--exclude-standard','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
-    files = sorted(set(tracked+new))
+    files = sorted(set(tracked+new+['baseline/manifest.json']))
     manifest = {}
     for name in files:
         path = ROOT/name
-        if not path.is_file() or path.suffix != '.py':
+        if not path.is_file() or (path.suffix != '.py' and name != 'baseline/manifest.json'):
             raise ValueError('Unexpected overlay file: '+name)
         dest = build/name
         dest.parent.mkdir(parents=True,exist_ok=True)

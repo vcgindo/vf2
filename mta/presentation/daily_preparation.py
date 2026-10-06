@@ -45,7 +45,6 @@ GUIDED_IMAGES = (
 
 # These sources do not currently have a qualified producer in execute_day.
 MISSING_PRODUCERS = {
-    'bpr_remarks': 'BPRReport_RemarkDetails',
     'shipment_ledger': 'InTransitData',
     'bor_black': ('ReqTopOfBlack', 'CumulativeTOBlack'),
     'boroa_opening': 'BORWithOrderAllocation',
@@ -59,6 +58,29 @@ REQUIRED_LAYERS = (
     'research_availability', 'guided_history', 'guided_dbm', 'guided_chronic',
     'bor', 'boroa',
 )
+
+SYNTHETIC_ROSTER = 'core-without-bor-v1'
+SYNTHETIC_REQUIRED_LAYERS = tuple(
+    name for name in REQUIRED_LAYERS if name not in ('bor', 'boroa'))
+
+
+def roster_identity():
+    value = getattr(settings, 'VF_MTA_SYNTHETIC_ROSTER', '')
+    if value not in ('', SYNTHETIC_ROSTER):
+        raise PublicationUnavailable('unsupported_daily_synthetic_roster:' + str(value))
+    return value
+
+
+def required_layers():
+    return (SYNTHETIC_REQUIRED_LAYERS if roster_identity() == SYNTHETIC_ROSTER
+            else tuple(REQUIRED_LAYERS))
+
+
+def require_report(report):
+    roster = roster_identity()
+    if roster == SYNTHETIC_ROSTER and report in ('bor', 'boroa'):
+        raise PublicationUnavailable(
+            'synthetic_roster_report_unavailable:' + report + ':' + roster)
 
 DBM_IMAGES = tuple('closing/dbm/' + name for name in (
     'DBMMaster', 'Suggestions', 'NormAcceptanceTbl', 'SKUDescriptionTbl',
@@ -263,12 +285,22 @@ def _require_ancillary(run, layer):
             raise PublicationUnavailable('planning_git_nonempty_shipment_ledger_not_qualified')
     elif layer == 'planning_expedite_transit':
         ancillary_row(run, 'BPRReport_RemarkDetails')
+    elif layer == 'planning_expedite_grids':
+        from mta.presentation.selective import image_rows
+        requests = image_rows(run, 'sources/planning/OpenExpediteRequests')
+        transit = ancillary_row(run, 'InTransitData')
+        from mta.presentation.expedite_child_sources import projections
+        # Both sources are independently owned and typed. Reject native TOP(1)
+        # ambiguity before sealing, rather than inventing a request winner.
+        projections(requests, transit)
 
 
 def prepare_layer(run, name):
     """Build one explicit finite layer; callers own retry/readiness state."""
     if name not in REQUIRED_LAYERS:
         raise ValueError('Unknown daily preparation layer: ' + str(name))
+    if name not in required_layers():
+        raise PublicationUnavailable('daily_layer_excluded_by_synthetic_roster:' + name)
     source_digest(run)
     if name == 'dbm_sources':
         return _dbm_result(run)
@@ -284,6 +316,10 @@ def prepare_layer(run, name):
 
 def verify_layer(run, name, receipt):
     """Verify an unchanged successful layer without rebuilding it."""
+    if name not in REQUIRED_LAYERS:
+        raise ValueError('Unknown daily preparation layer: ' + str(name))
+    if name not in required_layers():
+        raise PublicationUnavailable('daily_layer_excluded_by_synthetic_roster:' + name)
     if not isinstance(receipt, dict):
         raise PublicationUnavailable(name + '_daily_receipt_source_changed')
     source = source_digest(run)

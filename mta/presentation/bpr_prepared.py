@@ -61,7 +61,8 @@ def _prepared_query(run):
             ' WHERE run_id=%s'), [run.pk]
 
 
-def _build(run, payload, importer, ancillary, paging=None, *, count=False, analytics=False):
+def _build(run, payload, importer, ancillary, paging=None, *, count=False, analytics=False,
+           live_remarks=False):
     ctes, params = [], []
     def add(alias, query, values):
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
@@ -89,11 +90,19 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
     auth = ' JOIN P ON R.sku_key=' + key('P.code') + ' JOIN L ON R.location_key=' + key('L.code')
 
     if not analytics:
-        rows = [dict(ordinal=i, **{name: row[name] for name in
-            ('SKUCode', 'WhCode', 'RemarkDate', 'Remark')})
-            for i, row in enumerate(ancillary['BPRReport_RemarkDetails'])]
-        query, values = _values_cte(rows, ('ordinal', 'SKUCode', 'WhCode', 'RemarkDate', 'Remark'),
-                                    {'ordinal': '::bigint', 'RemarkDate': '::timestamp'})
+        if live_remarks:
+            from mta.presentation import ancillary_live
+            source, values = ancillary_live.image_query(
+                run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
+            query = ('SELECT vf_ordinal AS ordinal,"SKUCode","WhCode","RemarkDate","Remark"'
+                     ' FROM (' + source + ') daily_bpr_remarks')
+        else:
+            rows = [dict(ordinal=i, **{name: row[name] for name in
+                ('SKUCode', 'WhCode', 'RemarkDate', 'Remark')})
+                for i, row in enumerate(ancillary['BPRReport_RemarkDetails'])]
+            query, values = _values_cte(
+                rows, ('ordinal', 'SKUCode', 'WhCode', 'RemarkDate', 'Remark'),
+                {'ordinal': '::bigint', 'RemarkDate': '::timestamp'})
         add('remarks', query, values)
         add('latest_dates', 'SELECT ' + key('"SKUCode"') + ' AS sku_key,' + key('"WhCode"') +
             ' AS loc_key,max("RemarkDate") AS latest FROM remarks GROUP BY 1,2', [])
@@ -180,7 +189,10 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
         raise PublicationUnavailable('BPR_prepared_guards_changed') from exc
     if not daily and ancillary['InTransitData']:
         raise PublicationUnavailable('nonempty_BPR_transit_wire_not_yet_validated')
-    query, params = _build(run, payload, importer, ancillary, paging, count=count, analytics=analytics)
+    from mta.presentation.ancillary_live import serving_live
+    query, params = _build(
+        run, payload, importer, ancillary, paging, count=count, analytics=analytics,
+        live_remarks=serving_live(run))
     if query is None:
         if analytics:
             return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline')

@@ -99,6 +99,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
+    publication_enabled = bool(profile.get('daily_publication') or
+                               getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
     today=date.fromisoformat(day['business_date'])
     with transaction.atomic():
         if mdm_source is not None or mdm_retry is not None:
@@ -129,14 +131,13 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if date.fromisoformat(opening_date)>=today:raise ValueError('Opening must precede current facts')
             lineage=dict(opening_identity=initial['identity'],opening_digest=digest(initial))
         publication_opening = ({'supplier': deepcopy(prior['supplier'])}
-            if profile.get('daily_publication') or
-               getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False) else None)
+            if publication_enabled else None)
         raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
                  lineage=lineage,report_exceptions=storage(report_exceptions or {}))
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
             from mta.mdm.daily_input import (apply_refresh_setting, capture_configuration,
-                capture_pending_conflicts, capture_prune_candidates, compose,
+                capture_pending_conflicts, capture_prune_candidates, compose, compose_pair_exclusions,
                 select_capture)
             request_digest=digest(raw)
             nms_active, task_horizon = capture_configuration(prior['importer_settings'])
@@ -186,13 +187,28 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             # The caller's current full raw feed is the new run's base.  The
             # predecessor remains immutable and supplies closing state only.
             base_master=raw['day']['raw_master']
+            if origin_capture is None:
+                capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
             composed=compose(capture_snapshot,base_master,last_run_date=opening_date)
             if origin_capture is None:
                 capture_snapshot=capture_pending_conflicts(capture_snapshot,mdm_source,composed)
                 capture_snapshot=capture_prune_candidates(capture_snapshot,mdm_source,today)
             raw['day']['raw_master']=storage(composed)
+            raw['day']['exclusions']=deepcopy(capture_snapshot['pair_exclusions'])
             apply_refresh_setting(prior['importer_settings'], capture_snapshot)
             raw['mdm_input']=capture_snapshot
+        if publication_enabled:
+            from mta.presentation.daily_requests import snapshot as request_snapshot
+            from mta.presentation.ancillary_live import snapshot_all
+            raw['request_inputs'] = (deepcopy(origin_raw.get('request_inputs'))
+                if origin_capture is not None else request_snapshot())
+            raw['remark_inputs'] = (deepcopy(origin_raw.get('remark_inputs', {}))
+                if origin_capture is not None else snapshot_all(
+                    business_date=today,
+                    bpr_remark_horizon=profile.get('daily_publication_config', {}).get('bpr_remark_horizon')))
+            # Optional explicit external shipment facts stay in the immutable
+            # day input; absence remains unavailable, never an empty population.
+            publication_opening['shipment_input'] = raw['day'].get('shipment_input')
         source_digest=digest(raw)
         existing=CalculationRun.objects.filter(input_digest=source_digest,execution_revision=execution_revision).first()
         if existing is not None:
@@ -221,6 +237,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         if capture_snapshot is not None:
             from mta.mdm.daily_input import bind_capture
             bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
+        if publication_enabled:
+            from mta.presentation.daily_requests import bind as bind_requests
+            from mta.presentation.ancillary_live import bind_snapshots
+            bind_requests(run, raw['request_inputs'])
+            bind_snapshots(run, raw['remark_inputs'])
     try:
         result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
             lambda source:(calculate_current_day(source),str(run.pk)),raw['report_exceptions'])

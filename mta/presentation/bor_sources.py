@@ -69,6 +69,8 @@ def verify_values(run):
 
 
 def admitted_sources():
+    from mta.presentation.daily_preparation import require_report
+    require_report('bor')
     run,source=native_binding()
     receipt=BorSourceReceipt.objects.filter(run=run).first()
     expected={'source_digest':source,'recipe_digest':recipe_digest(),

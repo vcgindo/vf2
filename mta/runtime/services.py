@@ -68,7 +68,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             from mta.presentation.pick_post_storage import write_pick_post
             write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
             from django.conf import settings
-            if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
+            if publication_opening is not None or getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
                 from mta.presentation.daily_sources import write_sources
                 write_sources(run, output, opening=publication_opening)
         for name, rows in output.items():

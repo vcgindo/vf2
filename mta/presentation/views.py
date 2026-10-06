@@ -4,7 +4,7 @@ Identity is asserted only by the private authenticated user-service gateway;
 the MTA service must not be exposed on a public/host port.
 """
 from copy import deepcopy
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 import json
 from pathlib import Path
@@ -63,6 +63,11 @@ def identity(request):
     except (ValueError, TypeError):
         return None
     return value if isinstance(value, dict) and value.get('id') is not None else None
+
+
+def _require_report(report):
+    from mta.presentation.daily_preparation import require_report
+    require_report(report)
 
 
 def endpoint(method, *, public=False):
@@ -152,11 +157,13 @@ def report_paths(request, payload):
 def ui_config(request, payload):
     name = request.GET.get('reportName')
     if name == 'BOR_OA':
+        _require_report('boroa')
         from mta.presentation.boroa_sources import admitted_sources
         from mta.presentation.boroa_configuration import configuration, ui_columns
         admitted_sources()
         return envelope(data=ui_columns(configuration()))
     if name == 'BuyerOrderReport':
+        _require_report('bor')
         from mta.presentation.bor_sources import admitted_sources
         from mta.presentation.bor_configuration import configuration, ui_columns
         admitted_sources()
@@ -254,8 +261,9 @@ def bpr_remark_history(request, payload):
         if not daily:
             rows = bpr_ancillary(run)['BPRReport_RemarkDetails']
         else:
-            from mta.presentation.daily_preparation import ancillary_row
-            rows = ancillary_row(run, 'BPRReport_RemarkDetails')
+            from mta.presentation import ancillary_live
+            rows = ancillary_live.image_rows(
+                run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
         attributes = {name: image_rows(run, 'closing/importer/' + name)
                       for name in ('SkuAttributeData', 'LocationAttributeData')}
         products, locations = scope(payload, attributes=attributes)
@@ -265,7 +273,15 @@ def bpr_remark_history(request, payload):
         # Deployed BPRProcessor.GetRemarkDetails: RemarkDate DESC, NULL omission.
         # Stable source occurrence order is retained for equal dates.
         rows.sort(key=lambda row: (row['RemarkDate'] is not None, row['RemarkDate']), reverse=True)
-        return envelope(data=[{alias: (value.isoformat() if field == 'RemarkDate' else value)
+        if daily:
+            for row in rows:
+                if row['RemarkDate'] is not None:
+                    stamp = datetime.fromisoformat(row['RemarkDate'])
+                    row['RemarkDate'] = stamp.astimezone(timezone.utc).replace(
+                        tzinfo=None).isoformat(
+                            timespec='milliseconds' if stamp.microsecond else 'seconds')
+        return envelope(data=[{alias: (value.isoformat() if field == 'RemarkDate' and
+                                        hasattr(value, 'isoformat') else value)
             for alias, field in (('r', 'Remark'), ('rd', 'RemarkDate'), ('un', 'Username'))
             if (value := row[field]) is not None} for row in rows])
     from mta.presentation.terminal_supplement import terminal_ancillary
@@ -277,11 +293,30 @@ def bpr_remark_history(request, payload):
     return envelope(data=[])
 
 
+@endpoint('POST')
+def bpr_remark(request, payload):
+    """Canonical AddRemark for the explicitly initialized daily live owner."""
+    from django.db import DatabaseError
+    from mta.presentation import bpr_remarks
+    try:
+        return envelope(data=bpr_remarks.append(payload, identity(request)))
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
 def bpr_selected(payload, *, mode='grid'):
     from mta.presentation.bpr import ReadModel
     from mta.presentation.bpr_read import bpr_context
     from mta.presentation.bpr_filters import BprPredicate
     context = bpr_context()
+    if (getattr(context.run, 'kind', None) == 'DAILY_CHAIN' and
+            getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+        from mta.presentation import ancillary_live
+        context.ancillary = {**context.ancillary,
+            'BPRReport_RemarkDetails': ancillary_live.image_rows(
+                context.run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)}
     fixture=getattr(context.run,'kind',None)=='LEGACY_UI_FIXTURE'
     model = ReadModel(context.output, context.ancillary, bounded_page=fixture)
     importer = context.output['ClosingState'][0]['importer']
@@ -321,6 +356,7 @@ def bpr_analytics(request, payload):
 
 @endpoint('GET')
 def bor_ui_config(request, payload):
+    _require_report('bor')
     from mta.presentation.bor_sources import admitted_sources
     from mta.presentation.bor_configuration import configuration, ui_columns
     admitted_sources()
@@ -329,6 +365,7 @@ def bor_ui_config(request, payload):
 
 @endpoint('POST')
 def bor_data(request, payload, *, count=False):
+    _require_report('bor')
     from mta.presentation.bor_sql import read_bor
     from mta.presentation.bor_configuration import configuration, wire_rows
     from django.db import DatabaseError
@@ -343,6 +380,7 @@ def bor_data(request, payload, *, count=False):
 
 @endpoint('POST')
 def boroa_data(request, payload, *, count=False):
+    _require_report('boroa')
     from mta.presentation.boroa_sql import read_boroa
     from django.db import DatabaseError
     try:
@@ -357,6 +395,7 @@ def boroa_data(request, payload, *, count=False):
 
 @endpoint('POST')
 def boroa_remark(request, payload, *, history=False):
+    _require_report('boroa')
     from mta.presentation import boroa_remarks
     from django.db import DatabaseError
     try:
@@ -369,6 +408,7 @@ def boroa_remark(request, payload, *, history=False):
 
 @endpoint('GET')
 def bor_analytics(request, payload):
+    _require_report('bor')
     from mta.presentation.bor_sql import read_bor
     from django.db import DatabaseError
     try:
@@ -381,6 +421,7 @@ def bor_analytics(request, payload):
 
 @endpoint('POST')
 def bor_remark(request, payload, *, history=False):
+    _require_report('bor')
     from mta.presentation import bor_remarks
     from django.db import DatabaseError
     try:
@@ -422,6 +463,7 @@ def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
     if payload.get('reportName') == 'BOROA':
+        _require_report('boroa')
         from mta.presentation.boroa_sql import read_boroa, projection
         from mta.presentation.boroa_configuration import configuration
         from django.db import DatabaseError
@@ -437,6 +479,7 @@ def export_data(request, payload):
         response['Content-Disposition'] = 'attachment'
         return response
     if payload.get('reportName') == 'BOR':
+        _require_report('bor')
         from mta.presentation.bor_sql import read_bor, projection, BorQueryError
         from mta.presentation.bor_configuration import configuration
         try:

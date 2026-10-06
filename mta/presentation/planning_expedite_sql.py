@@ -157,12 +157,16 @@ def child_grid(run,payload):
     from mta.presentation.planning_expedite_requests import empty_requests
     from mta.presentation.fixture import bpr_ancillary
     from mta.presentation.daily_preparation import production_branch
+    daily = production_branch(run)
     transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
-             if production_branch(run) else bpr_ancillary(run)['InTransitData'])
-    if empty_requests(run) or transit:
+             if daily else bpr_ancillary(run)['InTransitData'])
+    requests = empty_requests(run)
+    if not daily and (requests or transit):
         raise PublicationUnavailable('child_expedite_requires_approved_empty_request_and_transit_inputs')
+    from mta.presentation.expedite_child_sources import projections
+    nested = projections(requests, transit)
     selected,params=selected_parent(run,payload,child=True)
-    fields=[*FIELDS,'sap','ec','rlt','sl4','sl5','ll4','ll5']
+    fields=[*FIELDS,'sap','ec','rlt','sl4','sl5','ll4','ll5','pk']
     with connection.cursor() as c:
         c.execute('WITH selected AS ('+selected+') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk '
                   'HAVING count(DISTINCT ROW('+','.join(map(quote,fields))+'))>1 LIMIT 1',params)
@@ -180,7 +184,9 @@ def child_grid(run,payload):
     for row in rows:
         target='expediteDispatches' if row.pop('branch')=='dispatch' else 'createAvailabilityAtParent'
         rlt=row.pop('rlt')
-        row.update(remark=None,intransit='[]',eta=None if rlt is None else
+        parent = row.pop('pk')
+        row.update(nested(row['sc'], row['wc'], parent))
+        row.update(eta=None if rlt is None else
                    (datetime.combine(run.business_date,time())+timedelta(days=rlt)).isoformat())
         for field in ('pip','pin','p'):
             if row[field] is not None:row[field]=float(row[field])

@@ -136,6 +136,11 @@ def projection():
 
 def remark_query(run):
     fields='"SKUCode","WhCode","SupplierCode","Remark","Username","RemarkDate"'
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        from mta.presentation import ancillary_live
+        return ancillary_live.image_query(run,ancillary_live.PATHS[ancillary_live.BOR],
+            include_live=ancillary_live.serving_live(run))
     return ('SELECT '+fields+' FROM mta.'+quote(BorInitialRemark._meta.db_table)+' WHERE run_id=%s UNION ALL SELECT '+
         fields+' FROM mta.'+quote(BorLiveRemark._meta.db_table)+' WHERE run_id=%s',[run.pk,run.pk])
 

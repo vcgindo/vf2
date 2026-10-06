@@ -2260,6 +2260,18 @@
       "role": "captured effective importer profile",
       "sha256": "0250358fec1d9fe00595b8fe2363ef7fcd48801b7351c48889689e5e48d24437",
       "bytes": 1465
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-input-v1.json",
+      "role": "authorized same-catalogue ten-pair derivative; facts and opening only, not acceptance",
+      "sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+      "bytes": 248518
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-reduction-v1.json",
+      "role": "exact table-by-table ten-pair derivative provenance",
+      "sha256": "2991f82c0caa452c8a83fbdfc5e80f730c794303b01985a104cff73370d0541b",
+      "bytes": 56193
     }
   ],
   "reuse": {

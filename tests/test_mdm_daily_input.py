@@ -8,7 +8,8 @@ django.setup()
 
 from mta.application.r1_importer_master import RAW_COLUMNS
 from mta.mdm.daily_input import (SCHEMA, SQL_DIGEST, CONSUMER_ORDER,
-                                 apply_refresh_setting, capture_configuration, compose)
+                                 apply_refresh_setting, capture_configuration, compose,
+                                 compose_pair_exclusions)
 from mta.serialization import digest
 
 
@@ -44,7 +45,7 @@ def pair_add(sku, location):
 
 
 def snapshot(*, sku=(), location=(), additions=(), modifications=(), removals=(),
-             active=True):
+             exclusions=(), active=True):
     rows = {'sku': {'attributes': [], 'descriptions': [], 'approved': list(sku)},
         'location': {'attributes': [], 'descriptions': [], 'approved': list(location)},
         'skuloc': {'attributes': [], 'additions': list(additions),
@@ -52,7 +53,12 @@ def snapshot(*, sku=(), location=(), additions=(), modifications=(), removals=()
     result = {'schema': SCHEMA, 'source_id': 1, 'source_digest': 's' * 64,
         'sql_digest': SQL_DIGEST, 'nms_active': active,
         'consumer_order': list(CONSUMER_ORDER), 'revision_digests': {},
-        'rows': rows, 'occurrences': [], 'tasks': []}
+        'rows': rows,
+        'pair_exclusion_opening': {'digest': digest(list(exclusions)),
+            'row_count': len(exclusions), 'rows': list(exclusions)},
+        'pair_exclusions_post_nms': list(exclusions),
+        'pair_exclusions': list(exclusions),
+        'occurrences': [], 'tasks': []}
     result['revision_digest'] = digest(result)
     return result
 
@@ -94,29 +100,44 @@ class DailyMdmCompositionTests(unittest.TestCase):
             additions=[pair_add('NEW', 'LOC')]), [], last_run_date='2026-10-05')
         self.assertEqual(result, [])
 
-    def test_new_pair_dbm_off_fails_closed_at_unrepresented_exclusion_tail(self):
+    def test_new_pair_dbm_off_updates_pair_exclusions(self):
         added = pair_add('NEW', 'LOC'); added['DBMActive'] = False
-        with self.assertRaisesRegex(ValueError, 'pair-grain DBM exclusion'):
-            compose(snapshot(additions=[added]), [], last_run_date='2026-10-05')
+        result = compose_pair_exclusions(snapshot(additions=[added]), [])
+        self.assertEqual(result['pair_exclusions'],
+                         [{'SKUCode': 'NEW', 'WhCode': 'LOC'}])
 
     def test_existing_pair_discards_dbm_off_add_before_exclusion_tail(self):
         existing = blank(SKUCode='EXISTING', WhCode='LOC')
         added = pair_add('EXISTING', 'LOC'); added['DBMActive'] = False
-        result = compose(snapshot(additions=[added]), [existing],
-                         last_run_date='2026-10-05')
-        self.assertEqual(len(result), 1)
-        self.assertEqual((result[0]['SKUCode'], result[0]['WhCode']),
-                         ('EXISTING', 'LOC'))
+        result = compose_pair_exclusions(snapshot(additions=[added]), [existing])
+        self.assertEqual(result['pair_exclusions'], [])
 
-    def test_approved_dbm_modification_fails_closed_for_on_and_off(self):
-        for active in (False, True):
-            modified = pair_add('EXISTING', 'LOC')
-            modified['DBMActive'] = active
-            with self.subTest(active=active), self.assertRaisesRegex(
-                    ValueError, 'pair-grain DBM exclusion'):
-                compose(snapshot(modifications=[modified]),
-                        [blank(SKUCode='EXISTING', WhCode='LOC')],
-                        last_run_date='2026-10-05')
+    def test_modification_off_adds_and_on_removes_pair(self):
+        off = pair_add('EXISTING', 'LOC'); off['DBMActive'] = False
+        added = compose_pair_exclusions(snapshot(modifications=[off]), [])
+        self.assertEqual(added['pair_exclusions'],
+                         [{'SKUCode': 'EXISTING', 'WhCode': 'LOC'}])
+        on = pair_add('EXISTING', 'LOC'); on['DBMActive'] = True
+        removed = compose_pair_exclusions(snapshot(modifications=[on],
+            exclusions=[{'SKUCode': 'EXISTING', 'WhCode': 'LOC'}]), [])
+        self.assertEqual(removed['pair_exclusions'], [])
+
+    def test_post_nms_duplicates_are_evidence_then_validation_distincts(self):
+        first = pair_add('NEW', 'LOC'); first['DBMActive'] = False
+        second = dict(first); second['id'] = 2
+        result = compose_pair_exclusions(snapshot(additions=[first, second]), [])
+        self.assertEqual(len(result['pair_exclusions_post_nms']), 2)
+        self.assertEqual(result['pair_exclusions'],
+                         [{'SKUCode': 'NEW', 'WhCode': 'LOC'}])
+
+    def test_partial_null_rejects_whole_validated_exclusion_bag(self):
+        modified = pair_add(None, 'LOC'); modified['DBMActive'] = False
+        result = compose_pair_exclusions(snapshot(modifications=[modified],
+            exclusions=[{'SKUCode': 'KEEP', 'WhCode': 'LOC'}]), [])
+        self.assertEqual(result['pair_exclusions_post_nms'], [
+            {'SKUCode': 'KEEP', 'WhCode': 'LOC'},
+            {'SKUCode': None, 'WhCode': 'LOC'}])
+        self.assertEqual(result['pair_exclusions'], [])
 
     def test_location_add_statement_preserves_duplicate_occurrences(self):
         result = compose(snapshot(location=[approved_location('LOC', 1, 1),

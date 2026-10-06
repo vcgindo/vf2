@@ -11,7 +11,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
 os.environ.setdefault('VF_SECRET_KEY', 'unit-test-only-not-a-serving-secret')
 import django
 django.setup()
-from django.test import Client
+from django.test import Client, override_settings
 from mta.presentation.context import PublicationUnavailable
 
 
@@ -52,3 +52,17 @@ class BprRemarkHistoryTests(unittest.TestCase):
             self.assertEqual(read().status_code, 503)
             ancillary.side_effect = PublicationUnavailable('terminal_ancillary_supplement_scope_mismatch')
             self.assertEqual(read().status_code, 503)
+
+    @override_settings(VF_MTA_DAILY_PUBLICATION=True)
+    def test_daily_history_formats_captured_timestamp_as_native_naive_wall_time(self):
+        from mta.presentation.views import bpr_remark_history
+        rows = [dict(SKUCode='A', WhCode='X', Remark='daily', Username='user',
+                     RemarkDate='2026-10-06T08:09:10.123000+00:00')]
+        with patch('mta.presentation.views.selected_run',
+                   return_value=SimpleNamespace(kind='DAILY_CHAIN')), \
+                patch('mta.presentation.ancillary_live.image_rows', return_value=rows), \
+                patch('mta.presentation.selective.image_rows', return_value=[]), \
+                patch('mta.presentation.views.scope', return_value=({'A'}, {'X'})):
+            response = inspect.unwrap(bpr_remark_history)(None, dict(skucode='a', whcode='x'))
+        self.assertEqual(json.loads(response.content)['data'], [
+            dict(r='daily', rd='2026-10-06T08:09:10.123', un='user')])

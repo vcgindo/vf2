@@ -7,7 +7,7 @@ successful publication boundary.
 from copy import deepcopy
 from datetime import datetime, time, timedelta
 
-from django.db import connection
+from django.db import connection, transaction
 from mta.application.r1_importer_master import RAW_COLUMNS
 from mta.mdm.clock import database_now
 from mta.mdm.location import ALIASES as LOCATION_ALIASES
@@ -131,6 +131,122 @@ def _revision_digest(source, family, rows):
                    'family': family, 'rows': clean})
 
 
+def _pair_exclusion_digest(rows):
+    return digest([{'SKUCode': row.get('SKUCode'), 'WhCode': row.get('WhCode')}
+                   for row in rows])
+
+
+def _validated_pair_exclusions(rows):
+    """ValidateExclusions.sql:19-61 final bag after the NMS mutation stage."""
+    trimmed = [{'SKUCode': (row.get('SKUCode').strip(' ')
+                            if row.get('SKUCode') is not None else None),
+                'WhCode': (row.get('WhCode').strip(' ')
+                           if row.get('WhCode') is not None else None)}
+               for row in rows]
+    trimmed = [row for row in trimmed
+               if not (row['SKUCode'] is None and row['WhCode'] is None)]
+    # One NULL is a native whole-table rejection. An empty bag is retained as
+    # an explicitly installed empty source, never inferred from missing rows.
+    if any(row['SKUCode'] is None or row['WhCode'] is None for row in trimmed):
+        return []
+    result = []
+    by_key = {}
+    for row in trimmed:
+        key = (sql_key(row['SKUCode']), sql_key(row['WhCode']))
+        previous = by_key.get(key)
+        if previous is None:
+            by_key[key] = row
+            result.append(row)
+        elif previous != row:
+            # SQL DISTINCT under the deployed case-insensitive collation does
+            # not define which differently-cased representative survives.
+            raise ValueError('SOURCE_ORDER_AMBIGUITY: exclusion DISTINCT representative')
+    return result
+
+
+def _capture_pair_exclusions(source):
+    from mta.runtime.mdm_daily_models import (MdmPairExclusion,
+        MdmPairExclusionSource)
+    owner = MdmPairExclusionSource.objects.select_for_update().filter(source=source).first()
+    if owner is None:
+        raise ValueError('pair exclusion source is unavailable; explicit bootstrap required')
+    rows = list(MdmPairExclusion.objects.select_for_update().filter(source=source)
+                .order_by('ordinal').values('SKUCode', 'WhCode'))
+    if owner.row_count != len(rows) or owner.digest != _pair_exclusion_digest(rows):
+        raise ValueError('pair exclusion source identity drift')
+    if _validated_pair_exclusions(rows) != rows:
+        raise ValueError('pair exclusion opening is not the validated canonical bag')
+    return {'digest': owner.digest, 'row_count': owner.row_count, 'rows': storage(rows)}
+
+
+@transaction.atomic
+def install_pair_exclusions(source, rows, *, provenance):
+    """Install one explicitly supplied, validated opening; never infer empty."""
+    import json
+    from mta.runtime.mdm_daily_models import MdmPairExclusion, MdmPairExclusionSource
+    from mta.runtime.mdm_models import MdmSource
+    MdmSource.objects.select_for_update().get(pk=source.pk)
+    if (not isinstance(provenance, dict) or not provenance
+            or len(json.dumps(provenance)) > 16384):
+        raise ValueError('Bounded explicit exclusion provenance required')
+    if not isinstance(rows, list) or any(
+            not isinstance(row, dict) or set(row) != {'SKUCode', 'WhCode'}
+            or any(value is not None and (not isinstance(value, str) or len(value) > 50)
+                   for value in row.values()) for row in rows):
+        raise ValueError('Canonical pair exclusion fields required')
+    if _validated_pair_exclusions(rows) != rows:
+        raise ValueError('Opening must already be the validated canonical exclusion bag')
+    if (MdmPairExclusionSource.objects.filter(source=source).exists()
+            or MdmPairExclusion.objects.filter(source=source).exists()):
+        raise ValueError('Pair exclusion opening already installed')
+    owner = MdmPairExclusionSource.objects.create(source=source,
+        digest=_pair_exclusion_digest(rows), row_count=len(rows), provenance=provenance)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_pair_bootstrap',%s,true)", [str(source.pk)])
+    MdmPairExclusion.objects.bulk_create([MdmPairExclusion(source=source,
+        ordinal=ordinal, **row) for ordinal, row in enumerate(rows, 1)])
+    return owner
+
+
+def compose_pair_exclusions(snapshot, incoming_master):
+    """Apply NMSImportData 474-499, then ValidateExclusions 19-61."""
+    if snapshot['schema'] != SCHEMA or digest({k: v for k, v in snapshot.items()
+            if k != 'revision_digest'}) != snapshot['revision_digest']:
+        raise ValueError('MDM daily input revision drift')
+    result = deepcopy(snapshot)
+    opening = deepcopy(result['pair_exclusion_opening']['rows'])
+    if not result['nms_active']:
+        post_nms = opening
+    else:
+        if any('SKUCode' not in row or 'WhCode' not in row for row in incoming_master):
+            raise ValueError('pair exclusion composition requires MasterDataRaw keys')
+        key = lambda row: (sql_key(row.get('SKUCode')), sql_key(row.get('WhCode')))
+        initial_keys = {key(row) for row in incoming_master if None not in key(row)}
+        candidates = []
+        for row in result['rows']['skuloc']['additions']:
+            pair_key = key(row)
+            if row['Approved'] and row['DBMActive'] is False and pair_key not in initial_keys:
+                candidates.append({'SKUCode': row.get('SKUCode'),
+                                   'WhCode': row.get('WhCode')})
+        modifications = [row for row in result['rows']['skuloc']['modifications']
+                         if row['Approved']]
+        candidates.extend({'SKUCode': row.get('SKUCode'), 'WhCode': row.get('WhCode')}
+                          for row in modifications if row['DBMActive'] is False)
+        opening_keys = {key(row) for row in opening if None not in key(row)}
+        candidates = [row for row in candidates
+            if key(row) not in opening_keys]
+        post_nms = [*opening, *candidates]
+        enabled = {key(row) for row in modifications
+                   if row['DBMActive'] is True and None not in key(row)}
+        post_nms = [row for row in post_nms
+                    if key(row) not in enabled]
+    result['pair_exclusions_post_nms'] = storage(post_nms)
+    result['pair_exclusions'] = storage(_validated_pair_exclusions(post_nms))
+    result.pop('revision_digest', None)
+    result['revision_digest'] = digest(result)
+    return storage(result)
+
+
 def _task_snapshot(source):
     families = (('sku', MdmSkuHistory), ('location', MdmLocationHistory),
                 ('skuloc', MdmSkuLocHistory))
@@ -173,6 +289,7 @@ def select_capture(source, *, nms_active, task_status_log_horizon):
     # before reading this revision so long calculations and retries retain the
     # same native archive/task timestamp.
     run_timestamp = database_now()
+    pair_exclusion_opening = _capture_pair_exclusions(source)
     rows = (_snapshot_sets(source) if nms_active else
         {'sku': {'attributes': [], 'descriptions': [], 'approved': []},
          'location': {'attributes': [], 'descriptions': [], 'approved': []},
@@ -198,6 +315,9 @@ def select_capture(source, *, nms_active, task_status_log_horizon):
                           'task_status_log_horizon': task_status_log_horizon,
                           'run_timestamp': storage(run_timestamp)},
         'revision_digests': revisions, 'rows': rows,
+        'pair_exclusion_opening': pair_exclusion_opening,
+        'pair_exclusions_post_nms': deepcopy(pair_exclusion_opening['rows']),
+        'pair_exclusions': deepcopy(pair_exclusion_opening['rows']),
         'occurrences': occurrences,
         # NMSTaskStatusUpdate runs later in the main BAT even when NMSActive=0.
         'tasks': _task_snapshot(source), 'history_transitions': [],
@@ -364,18 +484,6 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
     existing = {pair(row) for row in result}
     pair_adds = [row for row in rows['skuloc']['additions']
                  if row['Approved'] and pair(row) not in existing]
-    # NMSImportData.sql:474-499 mutates pair-grain Exclusions after composing
-    # MasterDataRaw.  The accepted Python calculation input owns only a
-    # WhCode-grain replenishment_exclusions list, so these exact native
-    # transitions cannot be represented without changing engine semantics.
-    # Fail before calculation and consumption; the surrounding capture
-    # transaction therefore leaves every approved queue row intact.
-    exclusion_adds = [row for row in pair_adds if row['DBMActive'] is False]
-    exclusion_modifications = [row for row in rows['skuloc']['modifications']
-                               if row['Approved'] and row['DBMActive'] is not None]
-    if exclusion_adds or exclusion_modifications:
-        raise ValueError('unsupported pair-grain DBM exclusion transition '
-                         '(NMSImportData.sql:474-499)')
     for staged in pair_adds:
         row = blank()
         for name in ('SKUCode', 'WhCode', 'Norm', 'MinNorm', 'RLT', 'RCP', 'GCP',
@@ -513,7 +621,8 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
 
 def bind_capture(run, snapshot, *, request_digest, origin=None):
     from mta.runtime.mdm_daily_models import (MdmDailyInputCapture,
-        MdmDailyInputHistory, MdmDailyInputOccurrence, MdmDailyInputTask)
+        MdmDailyInputHistory, MdmDailyInputOccurrence, MdmDailyInputTask,
+        MdmDailyPairExclusion)
     capture = MdmDailyInputCapture.objects.create(run=run,
         source_id=snapshot['source_id'], origin=origin, request_digest=request_digest,
         revision_digest=snapshot['revision_digest'], sql_digest=snapshot['sql_digest'],
@@ -530,7 +639,30 @@ def bind_capture(run, snapshot, *, request_digest, origin=None):
         history_digest=row['history_digest']) for row in snapshot['tasks']])
     MdmDailyInputHistory.objects.bulk_create([MdmDailyInputHistory(capture=capture,
         **row) for row in snapshot['history_transitions']])
+    MdmDailyPairExclusion.objects.bulk_create([MdmDailyPairExclusion(
+        capture=capture, ordinal=ordinal, SKUCode=row.get('SKUCode'),
+        WhCode=row.get('WhCode'))
+        for ordinal, row in enumerate(snapshot['pair_exclusions'], 1)])
     return capture
+
+
+def _lock_pair_exclusion_opening(snapshot, capture):
+    from mta.runtime.mdm_daily_models import (MdmDailyPairExclusion,
+        MdmPairExclusion, MdmPairExclusionSource)
+    owner = MdmPairExclusionSource.objects.select_for_update().get(source=capture.source)
+    current = list(MdmPairExclusion.objects.select_for_update()
+                   .filter(source=capture.source).order_by('ordinal')
+                   .values('SKUCode', 'WhCode'))
+    opening = snapshot['pair_exclusion_opening']
+    if (owner.digest != opening['digest'] or owner.row_count != opening['row_count']
+            or current != opening['rows'] or _pair_exclusion_digest(current) != owner.digest):
+        raise ValueError('captured pair exclusion opening changed before consumption')
+    typed = list(MdmDailyPairExclusion.objects.select_for_update()
+                 .filter(capture=capture).order_by('ordinal')
+                 .values('SKUCode', 'WhCode'))
+    if typed != snapshot['pair_exclusions']:
+        raise ValueError('typed daily pair exclusion state differs from capture')
+    return owner, typed
 
 
 def finalize_consumption(run):
@@ -545,6 +677,9 @@ def finalize_consumption(run):
     snapshot = read_input(run).get('mdm_input')
     if not snapshot or snapshot['revision_digest'] != capture.revision_digest:
         raise ValueError('MDM capture/run input identity drift')
+    exclusion_owner, final_exclusions = _lock_pair_exclusion_opening(snapshot, capture)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
     now = database_now()
     run_timestamp = datetime.fromisoformat(snapshot['configuration']['run_timestamp'])
     archive_models = None
@@ -643,5 +778,14 @@ def finalize_consumption(run):
         # Header is first in the roster and therefore deleted last.
         for model, pks in reversed(candidate_rows):
             model.objects.filter(pk__in=pks).delete()
+    from mta.runtime.mdm_daily_models import MdmPairExclusion
+    MdmPairExclusion.objects.filter(source=capture.source).delete()
+    MdmPairExclusion.objects.bulk_create([MdmPairExclusion(
+        source=capture.source, ordinal=ordinal, SKUCode=row.get('SKUCode'),
+        WhCode=row.get('WhCode'))
+        for ordinal, row in enumerate(final_exclusions, 1)])
+    exclusion_owner.digest = _pair_exclusion_digest(final_exclusions)
+    exclusion_owner.row_count = len(final_exclusions)
+    exclusion_owner.save(update_fields=['digest', 'row_count'])
     capture.status = 'CONSUMED'; capture.consumed_at = now
     capture.save(update_fields=['status', 'consumed_at'])

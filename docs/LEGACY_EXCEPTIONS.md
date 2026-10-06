@@ -23,7 +23,19 @@ NMSArchiveInputData.sql:9-51, NMSClearInputTables.sql:2-43,
 NMSTaskStatusUpdate.sql:71-154,288-346,397-434. Existing no-MDM F2 runs/receipts
 and calculations remain unchanged. A frozen retry creates a distinct attempt.
 
-## DAILY-MDM-PAIR-EXCLUSIONS — unsupported, fail closed
+## DAILY-MDM-PAIR-EXCLUSIONS — original boundary and authorized extension
+
+The original steps1&2 boundary below is superseded by direct approval
+`call_xLagXahyoNffJ6OsZIgBssSz` to implement canonical pair exclusion state.
+The extension owns a distinct typed Importer `(SKUCode,WhCode)` population;
+it does not replace or approximate the separate WhCode-only replenishment
+exclusions. NMSImportData.sql474–499 statement order and
+ValidateExclusions.sql19–61 validation feed the existing day exclusion input.
+Explicit source initialization, captured revisions, frozen retries and atomic
+successful consumption are required. Ambiguous collation representatives remain
+unavailable; no tie-break or default-empty source is inferred.
+
+Historical checkpoint limitation:
 
 Canonical NMSImportData.sql:474-499 adds/removes `(SKUCode,WhCode)` Exclusions
 from approved pair DBMActive changes. Current engine input
@@ -37,6 +49,18 @@ are unavailable, not accepted daily parity; an exact typed engine-boundary chang
 requires separate scope authorization.
 
 ## DAILY-SOURCE-GAPS — no inherited April/terminal supplements
+
+The missing-source extension adds explicit typed request/remark owners and
+shipment publication. It does not authorize missing external shipment metadata
+or restoration of prior SLT/Price. Canonical ImportMasterDataComponents initializes
+the current standard-attribute population every day; only actual produced
+current values may supply the new transit processors. The retained seven-field
+ledger alone cannot supply all12 InTransitDataRaw fields. Its proposed wider
+synthetic metadata contract remains separately gated.
+Direct controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` permits only BOR
+and BOROA to be omitted from the versioned3006 synthetic roster. Their endpoints
+remain unavailable; default20-layer and3005 fixture behavior stay unchanged.
+The description below records the original steps1&2 source boundary.
 
 The new3006 shell publishes only genuine opening SOB/MOQ and BPR ColorSequence
 in addition to existing durable daily sources. BPR remarks/shipment ledger,

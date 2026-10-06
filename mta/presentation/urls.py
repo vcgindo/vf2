@@ -41,6 +41,7 @@ urlpatterns = [
     path('RRRData', views.rrr_data),
     path('RRRDataCount', partial(views.rrr_data, count=True)),
     path('GetBPRData', views.bpr_data),
+    path('AddRemark', views.bpr_remark),
     path('GetRemarkDetails', views.bpr_remark_history),
     path('GetAnalyticsData', views.bpr_analytics),
     path('GetBPRDataCount', partial(views.bpr_data, count=True)),
