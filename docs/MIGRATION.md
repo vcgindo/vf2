@@ -1,6 +1,8 @@
 # Fresh VectorFLOW migration — current baseline
 
-Baseline date: 6 October 2026. Latest verified delivery: BOR-OA `b5ee354` (pushed).
+Baseline date: 6 October 2026. Location/SKU–Location combined delivery is verified
+below; the commit containing this entry is its closure checkpoint. SKU `0b04411` is pushed and human
+UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
@@ -73,7 +75,7 @@ canonical pending effects and unchanged1042 current rows. Its earlier wrapped
 draft-read calls remain disqualified; the direct-body rerun passes. Unit suite:464 run,
 448 passed,13 skipped,3 pre-existing failures (two Expedite and stale BOR unsupported
 export expectation). A green full suite is not claimed.
-No Location/SKU–Location implementation opened.
+Location/SKU–Location combined delivery is verified below.
 SKU MasterMapper enables add/modify/remove;25 UI_MDMConfig fields and complete
 Importer SKUAttributeData/SKUDescriptionTbl bags (2,189 rows each) are pinned in
 D:/freshvcf-build/evidence/mdm-sku-20261006-001/source-receipt.json. The deployed
@@ -91,9 +93,9 @@ state, isolated non-delivery workflow tests and existing preview services necess
 for MDM. Frozen stage bags, admission guards, selected run and accepted inputs/results
 are not editable masters. No engine changes or accepted-day replay.
 
-### Active remaining package — Location then SKU–Location
+### Location and SKU–Location — combined delivery verified
 
-After SKU checkpoint commit/push, implement master2 identities/scopes/effects, then
+SKU checkpoint `0b04411` is committed/pushed. Implement master2 identities/scopes/effects, then
 dependent master3 in one bounded package. Reuse proven SKU plumbing; qualify only
 new configured fields/types/NULLs/duplicates/order, location/product scopes,
 parents/source owners, configured operation/review effects, owned-test approved
@@ -104,6 +106,60 @@ changed paths. Correct real failures and recheck only the affected boundary.
 No separate exhaustive Location campaign, new benchmark programme, routine human
 checkpoint or repeated SKU acceptance. Commit/push the verified combined package,
 then STOP at the three-family handoff. No other families or daily/demo work.
+
+Combined implementation, integrated browser and restart/readback exits are proved.
+This package is closed at the three-family handoff. Source qualification identified the
+two distinct Location deletion guards (direct location and parent location), plus
+SKU–Location's independent current/eligibility/staging owners and delayed daily
+effects. Preserve them without normalizing those owners. Keep the accepted SKU
+source receipt immutable. New family raw bags
+have their own pinned installation receipts linked to the same application
+source identity; shared draft/task headers retain native multi-master
+identity without repopulating SKU or frozen report rows. Family business rows stay
+in narrow typed tables. Only the two new family contracts and their changed shared
+dispatch paths require new proof; the accepted SKU implementation is reused.
+Shared dispatch and typed Location/SKU–Location relations are implemented. Fresh
+PostgreSQL migration0052, Django checks and focused shared/family workflow tests
+pass (schema-001/002/005/006; schema-002's source-owner installation error was
+corrected). Both canonical approved-input SQL comparisons match five complete
+rows. Source-owner captures remain separate: only Importer Location populations
+are operational; other owner captures are retained evidence. Current reads match
+all six complete scoped bags/counts and tested first100 pages exactly. The human
+approved unpaged-only ordering qualification in call_9QfAPeRqplgZiMfwKfKiZrJE
+item0; strict failures and full rows remain preserved. Qualified comparison:
+qualified-current-comparison.json. Preview migration/source installation passed:
+SKU state/frozen report state unchanged;396 fixture guards enabled. Both services
+were deployed with22 other running containers unchanged and identical admission.
+Browser Location234-row grid/filter and SKU–Location961-row scoped grid/filter
+work; latter confirm-to-visible-rows observation2.330s. User confirmed both Excel
+downloads in call_zEEeOOxGNsw5HOKlL7jiPyGS item0. Browser Location add and
+SKU–Location modify approvals completed; gateway readback/downloads and unchanged
+current bags pass. Review exposed new/old JSON text and native A-qualified old
+projection defects, documented in LEG-MDM-FAMILY-REVIEW-OLD. Proof008 passes the
+native projection correction. Human call_eIJMnXR1wG9XdpXTiFUBpX8n item0 approved
+only Location modify-review history values; focused proof009 passes. The corrected
+candidate is deployed. Location modify now shows actionable review and both rows
+were approved in the browser; the reviewer queue is empty. Final restart preserves
+all30 checked MDM tables exactly, frozen digest d40a9b711a1b,396 enabled guards,
+selected run/admission, service configuration and22 other running containers.
+Post-restart authenticated readback reopens both requester drafts, retrieves all
+three task downloads/statuses, and matches complete6/5,076 current bags unchanged.
+All three reviewed tasks retain canonical parent Pending with reviewer
+Approved - DB update Pending. Browser session/reload and both history family
+selectors work; Location has no options for today's tasks under the native midnight
+cutoff. Final images: MTA1192c35d8d17, user1c226612541b. All31 overlaid source files
+match the candidate. Baseline verify retains376 pinned identities. Receipts:
+restart-result.json, workflow-before/after-restart.json, readyz-after-restart.json,
+gateway-final/final-postrestart.json, browser-observations.json and
+final-source-image.json. This closes only the qualified three-family delivery;
+retained native download old-value defects, mixed-family drafts and menu visibility
+are not reported as repaired. STOP at this handoff after commit/push. Evidence is under
+D:/freshvcf-build/evidence/mdm-location-skuloc-20261006-001. A narrow extension of
+the approved scope guards to Location decisions/history and both scopes for
+SKU–Location was directly approved in call_gIWwZjTVAlJCQTBBsDtsy1dH item0.
+The Location-only gateway history array adapter was separately approved in
+call_UzVFxn5XOksXp90eX1ChNLTT item0. Both are deployed with their narrow
+scope recorded in LEGACY_EXCEPTIONS.md.
 
 Retained SKU limitations: frontend CSV selection reaches an Excel-only precheck;
 backend CSV/XLSX text-cell validation matches (upload-gateway-proof-003.json).

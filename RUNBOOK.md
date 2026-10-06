@@ -4,6 +4,49 @@ This build is not the application served on3004. An isolated F3 work-in-progress
 preview is available on3005; it is NOT full F3 acceptance or a3004 cutover.
 Do not run copied historical startup scripts.
 
+## Current three-family MDM preview (6 October 2026)
+
+The current3005 selection is the isolated April7 fixture run
+`bfd75b4b-a9df-4a08-82d3-852e3324b623`. SKU, Location and SKU–Location are the
+released MDM families. Later sections retain older preview provenance; they do
+not authorize replacing this selected run or starting daily publication.
+
+Verified test actors are `stage2.broad@vectorflow.local` (reviewer, user2) and
+`stage2.restricted@vectorflow.local` (requester, user3). Existing passwords remain
+in `D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`, outside Git.
+Use normal login/CAPTCHA; do not reset credentials or expand scopes.
+
+Direct MTA routes under `/mta/master-data-management/` are
+`control-panel/view-modify`, `control-panel/add`, `control-panel/delete`,
+`saved-drafts`, `task-pending`, `task-status` and `data-modification-history`.
+Choose the family in the unchanged field picker, then apply a filter or Show All.
+The broad account's installed current populations are234 Location and97,097
+SKU–Location rows; requester3 sees6 and5,076 respectively. Browser grid filters
+work and both new-family Excel exports are human-confirmed. The retained menu
+visibility gap remains documented; use the direct routes.
+
+Location/SKU–Location approvals persist typed pending inputs. Their current grids
+remain unchanged until the canonical daily consumer executes; this tranche does
+not authorize that execution. History's selector excludes later-today tasks by
+the retained midnight cutoff. Mixed-family drafts remain unqualified. Location
+modify-review old values use the explicitly approved history correction;
+Location and SKU–Location modify downloads retain the native old-value defect
+documented in `docs/LEGACY_EXCEPTIONS.md`.
+
+Current image tags: `freshvcf-preview-mta:mdm-families-20261006-003` and
+`freshvcf-preview-user:mdm-families-20261006-001`. Migration0052 is additive and
+already applied; do not alter applied migrations or reinstall family source rows.
+Builds overlay only MDM onto the accepted SKU image because unrelated HEAD report
+changes are not an accepted serving baseline. Each service retains its own
+Compose config chain from its container labels. Never assemble a new chain from
+historical examples or build whole HEAD for deployment.
+
+Evidence and guarded deployment/restart scripts are in
+`D:/freshvcf-build/evidence/mdm-location-skuloc-20261006-001`. Refer to
+`docs/MIGRATION.md` for the current acceptance status. Restart only the owned MTA
+container and allow startup admission to finish before requesting routes; never
+restart shared Docker/WSL, reset a database, or replace3004.
+
 ## Open the isolated F3 preview
 
 Use **http://127.0.0.1:3005/login**. The loopback host deliberately differs from

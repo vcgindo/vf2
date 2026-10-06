@@ -858,3 +858,81 @@ call_04ea8b66063b4ea682ca0df8100ce7cb item0: "Approve CSV and progress fixes".
 Use pandas.read_csv(dtype=str) only for CSV, retain Excel parsing and cell cleanup,
 and make progress get synchronous with a fresh typed progress-row read per poll.
 Validation rules, scopes, response fields and frontend behavior remain unchanged.
+
+## LEG-MDM-MIXED-DRAFT-PROJECTION - unqualified native mixed-family read
+
+Pinned DLL DraftProcessor.GetDraftDetails IL23138–23145 concatenates download
+columns across all nonempty-grid family mappings into one SQL projection while
+assigning a single unordered @MASTERID. GetDraftCount IL21457 assigns (rather than
+appends) its dynamic SELECT for each mapped family without ORDER BY. A mixed-family
+draft therefore has no qualified cross-family read/count contract in this port.
+The three-family extension retains separate typed draft rows and exact single-
+family reads; it does not invent a winning family or claim mixed-family parity.
+Mixed-family count/projection requests are explicitly incomparable. This is a
+recorded limitation, not approval to repair native mixed-family behavior.
+
+## LEG-MDM-FAMILY-SCOPES - approved Location and SKU–Location actor checks
+
+Human reply call_gIWwZjTVAlJCQTBBsDtsy1dH item0 on6October2026:
+"Approve family-specific scope checks". Extend the earlier assigned-reviewer
+decision checks and scoped history reads to the relevant Location scope for
+master2 and both product/location scopes for master3. Other actors receive403
+before mutation. Authorized response shapes and business effects stay unchanged.
+This is the narrow repair of native omitted checks described in
+LEG-MDM-TASK-ACTOR-GAPS; no calculation, ownership or ordering exception transfers.
+
+## LEG-MDM-LOCATION-HISTORY-WIRE - approved master2 gateway adapter
+
+Pinned GetSkuLocProcessor master2 (IL91417–91687) returns a direct WHCode array.
+The unchanged DataModificationHistory screen requires data.sku/data.loc. Human
+reply call_UzVFxn5XOksXp90eX1ChNLTT item0 on6October2026:
+"Approve Location history adapter". At the authenticated gateway, wrap only a
+successful master2 array as {sku: [], loc: rows}. The native MTA response, scope,
+90-day window and today's-midnight cutoff remain unchanged. Master3 is unaffected.
+
+## LEG-MDM-LOCATION-SKULOC-UNPAGED-ORDER - approved current-read qualification
+
+Pinned master2/master3 GetData outer queries do not order unpaged results; their
+unused ROW_NUMBER/RANK expressions do not define the wire sequence. Human reply
+call_9QfAPeRqplgZiMfwKfKiZrJE item0 on6October2026:
+"Approve these two unpaged ordering qualifications". Only Location and SKU–Location
+unpaged current reads/downloads may compare complete row bags. Exact fields,
+NULLs, duplicate multiplicity, counts and paged order/membership remain required.
+Proof004 retains strict failures and complete native/modern rows: Location scopes
+234/9/6 rows match as bags with231/8/6 changed positions; SKU–Location scopes
+97,097/7,851/5,076 match with94,140/4,913/3,123 changed positions. All tested first
+100-row pages match exactly. This does not claim every possible page was tested,
+authorize a sort/tie-break, or transfer to task/draft/history responses.
+Evidence: mdm-location-skuloc-20261006-001/{location,skuloc}/current-comparison-004.json.
+Location's original capture with an added outer ORDER BY is explicitly disqualified;
+only its exact v2 capture is used. Proof003 was stopped during costly unittest
+large-list diff formatting (not OOM); proof004 retained strict assertions with
+compact diagnostics. No runtime resource increase or business-rule change occurred.
+
+## LEG-MDM-FAMILY-REVIEW-OLD - retained native review/download projection
+
+Pinned DLL GetTaskDetails IL78840–78856 (Location) and download IL84595–84611
+reuse A-qualified requested columns inside the correlated B-history subquery.
+Location modify `old` therefore repeats requested values. SKU–Location download
+IL84851–84983 has the same defect; its review IL79227–79369 correctly projects
+separate A/B values, cast to VARCHAR(max) with NULL represented as empty text.
+All these `new`/`old` properties are JSON text, not nested objects. Correlated
+duplicate source rows yield comma-separated object fragments without brackets;
+no uniqueness or repair is invented. The first browser trial exposed our object
+serialization mismatch. The new-family projections now retain this native text
+contract, action-specific RN direction and original flawed old-value semantics.
+Focused PostgreSQL proof008 and native-review-json-text.json cover the correction.
+This record does not authorize changing accepted SKU. The following explicit
+approval supersedes preservation only for Location modify-review old values.
+
+## LEG-MDM-LOCATION-REVIEW-OLD - approved review-only old-value correction
+
+Human reply call_eIJMnXR1wG9XdpXTiFUBpX8n item0 on6October2026:
+"Approve Location review old-value repair". The browser reproduced the native
+defect above: requested values in both columns caused automatic rejection with
+"No modifications made in this record" and disabled approval. Only master2
+modify-review old JSON now projects matching history fields. Text shape, NULL
+omission, duplicate subquery multiplicity, actor/location scope and approval
+effects stay unchanged. Location downloads and SKU–Location downloads retain
+their native A-qualified old projection. No other family or calculation repair
+is authorized. Evidence: location-modify-native-old.png and focused proof009.

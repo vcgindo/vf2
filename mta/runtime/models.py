@@ -1219,4 +1219,12 @@ from mta.runtime.boroa_models import (BorOaSourceReceipt, BorOaSourceRow, BorOaR
 
 from mta.runtime.mdm_models import (MdmSource, MdmSkuAttributes, MdmSkuDescription,
     MdmDraft, MdmDraftMaster, MdmDraftSku, MdmTask, MdmSubTask, MdmSkuRequested,
-    MdmSkuHistory, MdmSkuApproved, MdmSkuUploadLog, MdmSkuUse)
+    MdmSkuHistory, MdmSkuApproved, MdmSkuUploadLog, MdmSkuUse,
+    MdmFamilySource, MdmLocationAttributes, MdmLocationDescription,
+    MdmLocationRequested, MdmLocationHistory, MdmLocationApproved,
+    MdmDraftLocation, MdmLocationUploadLog, MdmLocationUse)
+
+from mta.runtime.mdm_skuloc_models import (MdmSkuLocCurrent, MdmSkuLocPair,
+    MdmSkuLocMasterPair, MdmSkuLocAddRequested, MdmSkuLocModifyRequested,
+    MdmSkuLocRemoveRequested, MdmSkuLocHistory, MdmSkuLocAddApproved,
+    MdmSkuLocModifyApproved, MdmSkuLocRemoveApproved, MdmDraftSkuLoc)

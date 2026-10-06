@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 
-from mta.mdm import drafts, sku, task_reads, tasks
+from mta.mdm import drafts, families, task_reads, tasks
 from mta.mdm.source import source
 from mta.presentation.views import endpoint, identity
 
@@ -27,15 +27,18 @@ def response(*, data=None, record_count=None, message=None, status=200, http_sta
 
 @endpoint('POST')
 def configuration(request, payload):
-    source()
-    return response(data=sku.configuration(drafts.value(payload, 'screenType')))
+    installed = source()
+    screen = drafts.value(payload, 'screenType')
+    return response(data=[row for master_id in families.installed_ids(installed)
+        for row in families.module(master_id).configuration(screen)])
 
 
 @endpoint('POST')
 def current(request, payload, *, count=False):
     installed = source()
     try:
-        result = sku.read(installed, payload, count=count)
+        families.require_installed(installed, payload['id'])
+        result = families.module(payload['id']).read(installed, payload, count=count)
     except (DatabaseError, KeyError, ValueError, InvalidOperation):
         # The native SQL helper catches failures and returns empty count/null data.
         result = '' if count else None
@@ -88,7 +91,9 @@ def draft(request, draft_id=None):
 def submit(request,payload,action):
     installed=source()
     try:
-        return JsonResponse(tasks.submit(installed,payload,identity(request),action),encoder=MdmEncoder)
+        master_id = drafts.value(payload, 'id')
+        families.require_installed(installed, master_id)
+        return JsonResponse(families.module(master_id, 'tasks').submit(installed,payload,identity(request),action),encoder=MdmEncoder)
     except task_reads.TaskDenied as exc:
         return JsonResponse({'error':str(exc)},status=403)
     except (DatabaseError,ValueError,TypeError,KeyError,IndexError,InvalidOperation):
@@ -106,16 +111,19 @@ def task_list(request,payload,pending=False):
 @endpoint('GET')
 def task_count(request,payload,task_id):
     installed=source()
-    if task_reads.header(installed,task_id) is None:
+    task = task_reads.header(installed,task_id)
+    if task is None:
         return response(status=204,message='Task not present')
-    return response(record_count=json.dumps([{'masterId':1,'recordcount':task_reads.count(installed,task_id,identity(request))}],separators=(',',':')))
+    master_id = int(task.MasterId)
+    return response(record_count=json.dumps([{'masterId':master_id,'recordcount':families.module(master_id, 'reads').count(installed,task_id,identity(request))}],separators=(',',':')))
 
 
 @endpoint('POST')
 def task_details(request,payload,download=False):
     installed=source()
     try:
-        data=task_reads.details(installed,payload,identity(request),download=download)
+        task = task_reads.header(installed,drafts.value(payload,'taskId'))
+        data = None if task is None else families.module(task.MasterId, 'reads').details(installed,payload,identity(request),download=download)
         return response(data=data,status=200 if data is not None else 204)
     except task_reads.TaskDenied as exc:
         return JsonResponse({'error':str(exc)},status=403)
@@ -127,7 +135,9 @@ def task_details(request,payload,download=False):
 def task_history(request,payload):
     installed=source()
     try:
-        data=task_reads.history(installed,payload,identity(request))
+        master_id = drafts.value(payload,'masterId')
+        families.require_installed(installed, master_id)
+        data=families.module(master_id, 'reads').history(installed,payload,identity(request))
         return response(data=data,message='No tasks found which is Approved/Rejected by approver' if data is None else None)
     except task_reads.TaskDenied as exc:
         return JsonResponse({'error':str(exc)},status=403)
@@ -139,7 +149,9 @@ def task_history(request,payload):
 def history_skus(request,payload):
     installed=source()
     try:
-        return response(data=task_reads.history_skus(installed,payload))
+        master_id = drafts.value(payload,'masterId')
+        families.require_installed(installed, master_id)
+        return response(data=families.module(master_id, 'reads').history_skus(installed,payload))
     except (DatabaseError,ValueError,TypeError,KeyError) as exc:
         return response(status=500,message='Error '+str(exc))
 
@@ -148,7 +160,10 @@ def history_skus(request,payload):
 def approve(request,payload):
     installed=source()
     try:
-        return JsonResponse(tasks.approve(installed,payload,identity(request)),encoder=MdmEncoder)
+        task = task_reads.header(installed,drafts.value(payload,'taskId'))
+        if task is None:
+            raise task_reads.TaskDenied('task_reviewer_required')
+        return JsonResponse(families.module(task.MasterId, 'tasks').approve(installed,payload,identity(request)),encoder=MdmEncoder)
     except task_reads.TaskDenied as exc:
         return JsonResponse({'error':str(exc)},status=403)
     except (DatabaseError,ValueError,TypeError,KeyError,IndexError,InvalidOperation):
@@ -159,7 +174,10 @@ def approve(request,payload):
 def delete_task(request,payload):
     installed=source()
     try:
-        tasks.delete(installed,request.GET.get('taskId'),identity(request))
+        task_id = request.GET.get('taskId')
+        task_reads.require_requester(installed,task_id,identity(request))
+        task = task_reads.header(installed,task_id)
+        families.module(task.MasterId, 'tasks').delete(installed,task_id,identity(request))
     except task_reads.TaskDenied as exc:
         return JsonResponse({'error':str(exc)},status=403)
     except DatabaseError:

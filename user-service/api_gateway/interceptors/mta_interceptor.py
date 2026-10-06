@@ -130,13 +130,15 @@ class MTA_INTERCEPTOR:
                 )
                 response.close()
                 return error
-        # Approved SKU-only compatibility boundary: the retained history screen
-        # consumes two lists, while the pinned master1 API emits a direct array.
+        # Separately approved SKU and Location compatibility boundaries: the
+        # retained history screen consumes two lists; native masters 1/2 emit arrays.
         if (request.path.rstrip('/').endswith('/GetSkuLoc')
-                and str(data.get('masterId')) == '1' and response.status_code == 200):
+                and str(data.get('masterId')) in ('1', '2') and response.status_code == 200):
             body = response.json()
             if isinstance(body.get('data'), list):
-                body['data'] = {'sku': body['data'], 'loc': []}
+                rows = body['data']
+                body['data'] = ({'sku': rows, 'loc': []} if str(data.get('masterId')) == '1'
+                                else {'sku': [], 'loc': rows})
                 response.close()
                 return JsonResponse(body)
         return response

@@ -1,0 +1,116 @@
+{
+  "BPR/LocationAttributeData": {
+    "columns": [
+      "WHCode",
+      "LocationType",
+      "LogisticsLocation",
+      "LL1",
+      "LL2",
+      "LL3",
+      "LL4",
+      "LL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 235,
+    "sha256": "83c24f0eaf22efab08df4d8e22958a19b85d1e61d4d21c10866c6efc43a0f03c"
+  },
+  "BPR/SiteDescriptionTbl": {
+    "columns": [
+      "WHCode",
+      "WHDescription"
+    ],
+    "rows": 235,
+    "sha256": "a9c4593b44632b0a328b0991caac12881993ed5618a3028128d94e43431f758c"
+  },
+  "BTR/LocationAttributeData": {
+    "columns": [
+      "WHCode",
+      "WhType",
+      "IsChild",
+      "IsParent",
+      "LocationType",
+      "LogisticsLocation",
+      "LL1",
+      "LL2",
+      "LL3",
+      "LL4",
+      "LL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 210,
+    "sha256": "8ddc905a65bab7e5fa48ec8501eb282b91dcfbec7032f5a2a5add42a9f813492"
+  },
+  "BTR/SiteDescriptionTbl": {
+    "columns": [
+      "WHCode",
+      "WHDescription"
+    ],
+    "rows": 210,
+    "sha256": "104839662a94de587f751720a64881050898d363b7c5c2165d3bcb56252f94ab"
+  },
+  "DBM/LocationAttributeData": {
+    "columns": [
+      "WHCode",
+      "LocationType",
+      "LogisticsLocation",
+      "LL1",
+      "LL2",
+      "LL3",
+      "LL4",
+      "LL5",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6",
+      "c7",
+      "c8",
+      "c9",
+      "c10",
+      "c11",
+      "c12",
+      "c13",
+      "c14",
+      "c15"
+    ],
+    "rows": 235,
+    "sha256": "83c24f0eaf22efab08df4d8e22958a19b85d1e61d4d21c10866c6efc43a0f03c"
+  },
+  "DBM/SiteDescriptionTbl": {
+    "columns": [
+      "WHCode",
+      "WHDescription"
+    ],
+    "rows": 235,
+    "sha256": "a9c4593b44632b0a328b0991caac12881993ed5618a3028128d94e43431f758c"
+  }
+}
