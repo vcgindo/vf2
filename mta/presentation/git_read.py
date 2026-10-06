@@ -92,6 +92,16 @@ def grid(payload, *, count=False):
 
 
 def custom(payload):
+    run = selected_run()
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        from mta.presentation.bpr_sql import _projected_attributes
+        from mta.presentation.daily_git_custom import custom as daily_custom
+        importer, manifest = _projected_attributes(run)
+        if manifest:
+            raise PublicationUnavailable('daily_git_custom_native_hierarchy_required')
+        products, locations = scope(payload, attributes=importer)
+        return daily_custom(run, products, locations, pagination(payload))
     transporter_context(payload)
     pagination(payload)
     # GetCustomGridData ignores filters and type, including filters: [].
@@ -99,6 +109,18 @@ def custom(payload):
 
 
 def graph(payload):
+    run = selected_run()
+    from mta.presentation.daily_preparation import production_branch
+    if production_branch(run):
+        if str(payload.get('type', '')).lower() != 'child':
+            raise PublicationUnavailable('selected_git_parent_graph_not_implemented_by_legacy')
+        from mta.presentation.bpr_sql import _projected_attributes
+        from mta.presentation.daily_git_read import graph as daily_graph
+        importer, manifest = _projected_attributes(run)
+        if manifest:
+            raise PublicationUnavailable('daily_git_chart_native_hierarchy_required')
+        products, locations = scope(payload, attributes=importer)
+        return daily_graph(run, products, locations)
     transporter_context(payload)
     if str(payload.get('type', '')).lower() != 'child':
         raise PublicationUnavailable('selected_git_parent_graph_not_implemented_by_legacy')

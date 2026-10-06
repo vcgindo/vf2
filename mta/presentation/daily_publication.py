@@ -29,12 +29,14 @@ def configuration_identity():
 
 def recipe_identity():
     from mta.presentation import daily_preparation
-    from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql
+    from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
+    from mta.presentation import daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read
     return digest(dict(roster=daily_preparation.roster_identity(),
         layers=daily_preparation.required_layers(),
         coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare),
         daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in
-            (expedite_child_sources, planning_expedite_sql, planning_git_sql)}))
+            (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count,
+             daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)}))
 
 
 def source_identity(run):

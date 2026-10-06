@@ -1,7 +1,9 @@
-# Proposed daily shipment metadata supplement
+# Approved daily shipment metadata supplement
 
-This is a proposed external-input contract, not an implemented or accepted
-source. It does not authorize generation. Quantities, dispatch/receipt dates,
+Direct human controller turn `01a10f97-2ef5-79f0-b382-5400f80144ab` approved
+these conventions on6October2026 for isolated3006 synthetic smoke/demo use only.
+Generation is authorized; implementation and consumer acceptance still require
+the proofs below. Quantities, dispatch/receipt dates,
 catalogue identities and calculations remain exactly as registered.
 
 Parent artifact: `F:/vflow_integrated/.local-stage7/block3-sizeable/v1/sizeable-input.json`,
@@ -12,7 +14,7 @@ dispatch_date, receipt_date and git_duration_days. The pinned generator
 does not assign the remaining raw shipment fields. Absent keys cannot silently
 be treated as NULL or renamed into different business meanings.
 
-## Proposed explicit synthetic conventions
+## Approved explicit synthetic conventions
 
 For each business date, retain every original ledger occurrence satisfying
 `dispatch_date <= business_date < receipt_date`, in original ledger order.
@@ -34,8 +36,8 @@ Populate the canonical raw input as follows:
 | ReportDate | The business date of this input slice |
 
 Every convention beyond the seven-field ledger is a **new declared synthetic
-fact**, not a discovered legacy value. It requires explicit approval before an
-immutable supplement is generated or registered. No catalogue is regenerated.
+fact**, not a discovered legacy value. The approval above permits the immutable
+supplement to be generated and registered. No catalogue is regenerated.
 
 The four-row transporter directory is the retained
 `case.opening.consumer_context.GoodsInTransitTransporterMaster` population;

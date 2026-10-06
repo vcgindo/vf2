@@ -15,6 +15,7 @@ def invoke(args, label):
     cmd=['docker','compose','-f',str(OWNER/'compose.json'),'run','--rm','--no-deps','-T']
     for folder in ['mta','vectorflow','tests','baseline']:
         cmd+=['-v',str(ROOT/folder)+':/app/'+folder+':ro']
+    cmd+=['-v',str(EVIDENCE)+':/evidence:ro']
     cmd+=['--entrypoint','python','mta',*args]
     with target.open('w',encoding='utf-8') as log:
         proc=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT)

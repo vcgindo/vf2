@@ -280,9 +280,9 @@ def _require_ancillary(run, layer):
     if layer == 'bpr':
         ancillary_rows(run)
     elif layer == 'planning_git':
-        transit = ancillary_row(run, 'InTransitData')
-        if transit:
-            raise PublicationUnavailable('planning_git_nonempty_shipment_ledger_not_qualified')
+        ancillary_row(run, 'InTransitData')
+        from mta.presentation.daily_git_preparation import validate_ready
+        validate_ready(run)
     elif layer == 'planning_expedite_transit':
         ancillary_row(run, 'BPRReport_RemarkDetails')
     elif layer == 'planning_expedite_grids':

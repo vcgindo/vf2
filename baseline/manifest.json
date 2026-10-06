@@ -2272,6 +2272,18 @@
       "role": "exact table-by-table ten-pair derivative provenance",
       "sha256": "2991f82c0caa452c8a83fbdfc5e80f730c794303b01985a104cff73370d0541b",
       "bytes": 56193
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-shipment-input-v1.json",
+      "role": "Approved isolated3006 synthetic shipment metadata supplement; exact ledger-derived ten-pair input",
+      "sha256": "dee26721ff67a7e09cb70dde849a43976a0132ea71a3a3402705a55b393664ae",
+      "bytes": 74661
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-shipment-input-receipt-v1.json",
+      "role": "Approved shipment supplement generation and complete ledger reconciliation receipt",
+      "sha256": "c8e723417f7233d46f8b00b2155062b2b08c97de7a90dfa28145768cc410530b",
+      "bytes": 5295
     }
   ],
   "reuse": {

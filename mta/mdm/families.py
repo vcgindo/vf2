@@ -22,6 +22,11 @@ def require_installed(source, master_id):
     master_id = int(master_id)
     if master_id not in NAMES:
         raise ValueError('MDM family is not delivered')
+    from mta.mdm.daily_source import SCHEMA, require_binding
+    if source.receipt.get('schema') == SCHEMA:
+        require_binding(source,artifact_sha256=source.receipt['artifact_sha256'],
+                        artifact_schema=source.receipt['artifact_schema'])
+        return
     if master_id != 1:
         expected = import_module('mta.mdm.' + NAMES[master_id] + '_source').SOURCE_DIGEST
         if not MdmFamilySource.objects.filter(source=source, master_id=master_id, digest=expected).exists():

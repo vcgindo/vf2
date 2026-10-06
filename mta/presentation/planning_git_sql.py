@@ -66,7 +66,7 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     config=[dict(header=h,colCode=c,colPosition=p) for h,c,p in NORMAL_COLUMNS]
     if not products or not locations:
         return [dict(locationwise=0,**({'transporterwise':0} if kind=='child' else {}))] if count else combined_grid(kind,[],config)
-    if daily and transit and kind=='child':
+    if daily and transit and kind=='child' and not count:
         # The deployed combined child transporter SELECT is invalid (207/8120):
         # it reads OrderNo/TransporterCode/InTransitQty from GoodsInTransitMaster.
         # A valid location half must not be returned with a fabricated sibling.
@@ -98,7 +98,11 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
         with connection.cursor() as c:
             c.execute('WITH '+','.join(ctes)+' SELECT COALESCE(sum(P.weight*L.weight),0)'+joins+' WHERE '+where,params)
             total=int(c.fetchone()[0])
-        return [dict(locationwise=total,**({'transporterwise':0} if kind=='child' else {}))]
+        transporter_total=0
+        if daily and transit and kind=='child':
+            from mta.presentation.daily_git_count import count as transporter_count
+            transporter_total=transporter_count(run,payload,products,locations)
+        return [dict(locationwise=total,**({'transporterwise':transporter_total} if kind=='child' else {}))]
     aliases=dict(st='Status',sc='SKUCode',wc='WhCode',t='Tags',pwc='ParentWhCode',n='Norm',vn='VirtualNorm',stk='Stock',g='Git',pip='PhysicalInventoryPen',pic='PhysicalInventoryColor',plp='PipelineInventoryPen',plc='PipelineInventoryColor',rq='Req',pr='Price')
     columns={alias:'A.'+quote(field) for alias,field in aliases.items()}
     columns.update(skd='H.sku_description',wcd='H.location_description',prn='H.parent_description',

@@ -18,7 +18,9 @@ SKU–location pairs run for90 days on owned3006, one4GiB/2CPU worker per day.
 The90-day facts must be legitimately generated/registered through the retained
 ledger contract; shorter facts cannot be repeated and accepted F2 runs cannot
 be rewritten. Stop at the first unaccepted day and preserve all attempts.
-Current gate: **NOT SATISFIED**; no smoke or90-day execution has begun.
+Current gate: **NOT SATISFIED**. Ten-pair smoke day one was initiated and failed
+at typed supplier-source readback; the preserved failure is recorded below.
+No successor or90-day execution has begun.
 
 Verified human controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` explicitly
 disposes the BOR producer blockers by deferring BOR and BOROA **only from the
@@ -29,6 +31,15 @@ readiness receipts. This supersedes the all20-layer condition only for these two
 families. No invented Black/attribute values and no further search campaign.
 All included layers still require genuine sources, parity and useful hydration.
 The pending BOR-source question is superseded by this scoped disposition.
+
+Direct human controller turn `01a10f97-2ef5-79f0-b382-5400f80144ab` approves the
+exact `DAILY_SHIPMENT_INPUT_CONTRACT.md` metadata conventions for3006 synthetic
+use and instructs initiation of the smoke after the known source/serving proofs.
+The pending shipment input approval is resolved. Generate/register the immutable
+ledger-reconciled supplement, complete source initialization and GIT serving,
+then execute the already authorized day-one/successor acceptance and UI journey.
+This does not authorize new facts outside those conventions or change the
+smoke-to90-day gate. Preserve and report the first actual unaccepted failure.
 
 ### Active extension — missing daily sources and pair exclusions
 
@@ -80,7 +91,7 @@ Migrations0064–0065 are now applied on3006 (`transit-serving-migrate-001.log`)
 Image `freshvcf-daily3006-mta:sources-003` includes the123 recorded overlays and
 the registered derivative manifest; the owned MTA alone was recreated.
 `sources-integrated-restart-002.json` verifies startup/unready state and protected
-services. No selected run, publication or MDM source exists.
+services. At that checkpoint no selected run, publication or MDM source existed.
 
 The integrated source/guard/roster/retry suite passes36 PostgreSQL tests
 (`sources-integrated-006.log`). Current pure transit code also passes the repeated
@@ -93,14 +104,14 @@ nondeterministic and remains denied. Actual PostgreSQL child assembly passes
 Positive parent GIT duplicate join cardinality and AgeingOrder-before-paging pass
 actual PostgreSQL queries (`git-positive-postgres-002.log`);001 failed only at
 test teardown after assertions passed. These bounded proofs do not establish
-real-data/API/browser acceptance. GIT custom/charts/transporter-count qualification
-remains open; the inherited invalid child transporter query stays unavailable.
-The nonempty GIT readiness guard remains enforced. Child Expedite now uses its
+real-data/API/browser acceptance. At that checkpoint GIT custom/charts/transporter-count qualification
+remained open; the inherited invalid child transporter query stays unavailable.
+The nonempty GIT readiness guard remained enforced at that checkpoint. Child Expedite now uses its
 captured request/transit sources, with recipe identity bound into the daily seal.
 The seven-field retained shipment ledger lacks the wider raw
-transport metadata. `DAILY_SHIPMENT_INPUT_CONTRACT.md` proposes explicit new
-synthetic metadata conventions; approval is pending, and no supplement has been
-generated. No smoke calculation, daily publication or usable UI hydration is
+transport metadata. `DAILY_SHIPMENT_INPUT_CONTRACT.md` now records the approved
+explicit synthetic metadata conventions; generation is now complete below. No smoke
+calculation, daily publication or usable UI hydration is
 claimed. The same-catalogue ten-pair derivative is now registered as
 `ten-pair-input-v1.json`, SHA256
 `7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc`.
@@ -109,13 +120,58 @@ Its table-by-table receipt and unchanged ledger validator prove10 identities,
 pinned resources. MDM/actor binding and the genuine execution/admission command
 remain within this phase.
 
-Controller instruction verified against direct human turn
-01a10f47-5f29-7fa3-a70c-18c4e38ceb92 additionally requires a runnable retained-
-catalogue ten-pair smoke packet/command, including actual parent dependency
-counts, fixed opening/day-one/successor boundaries, actor/config/source identity
-and genuine parity admission path. Prepare only; do not execute the smoke.
-Finish the integrated package, affected proof, owned3006 build/restart and one
-commit/push; unresolved producers require exact evidence and a bounded decision.
+Integrated source checkpoint (6 October2026): child-transporter count matches
+12 canonical SQL cases including native filters (`git-count-sql-004`). GIT charts
+match all four canonical datasets and actual DLL assembly (`git-charts-sql-004`).
+Custom serving matches exact duplicate occurrences against canonical SQL and
+PostgreSQL; unequal same-key ordering groups remain explicitly unavailable for
+paged and unpaged responses (`git-custom-crossproof-001.json`,
+`git-serving-postgres-005.log`). The coordinator now validates sealed sources
+instead of blanket-denying positive transit. The inherited invalid child grid
+remains unavailable. These are bounded connector proofs, not browser acceptance.
+
+The pure83-field NMS snapshot producer matches the extracted canonical SQL
+(`daily-nms-snapshot-sql-003`). It is deliberately not inserted into calculation:
+the registered smoke has NMSActive=0 and an explicitly empty prior snapshot.
+
+The approved shipment supplement is registered as `ten-pair-shipment-input-v1.json`,
+SHA256 `dee26721ff67a7e09cb70dde849a43976a0132ea71a3a3402705a55b393664ae`.
+All12 daily slices reconcile to the retained shipment ledger. Baseline identity
+verification covers380 resources. The source installer passed complete typed
+readback, artifact/configuration binding and rollback proofs. Owned MDM source1
+is installed with digest `22d7d9dc2e6966cab5e23373d35355c25fa04c5d4274bc115fde6a28b241e708`;
+its request and BPR remark owners are explicitly fresh. Public test actor/scopes
+are recorded in `smoke-actor-binding-001.json`. No credentials were changed.
+
+Image `freshvcf-daily3006-mta:sources-004` is deployed only on3006; its139 overlays
+are recorded in `mta-build-sources-004.json`. Django check and affected integrated
+PostgreSQL serving/publication tests pass (`smoke-integrated-gates-001.log`).
+Protected service identities, start times, configuration and mounts were verified
+unchanged. No schema changes were introduced after applied0065.
+
+**First smoke failure — preserved, no continuation.** The actual ten-pair day-one
+command used execute_day, the registered base/supplement, source1, native90-day
+BPR remark horizon and unchanged automatic action policy. Run
+`6e791497-49cc-43d8-b25e-88297b37ebae` (6 June2026) is FAILED with
+`Operational state value/type/multiplicity drift: opening/supplier/SOBData`.
+The approved input carries SOB as string `100.0000`; its canonical relational
+column is float, whose string readback is `100.0`. The exact checksum correctly
+rejects that wire representation loss. Calculated production-state readback
+passed before this ancillary opening-source write; no engine-rule divergence
+has been asserted. The smallest proposed remedy is a source-specific typed
+representation preserving the exact opening SOB wire value, without changing
+inputs, calculation, canonical SQL, or comparison assertions. It is not yet
+implemented or retried.
+
+`smoke-day1-modern-001.log`, copied immutable `smoke-day1-modern-001/` and
+`smoke-day1-rollback-001.txt` preserve the command result and source identity.
+Rollback readback confirms all301 operational-state tables contain zero rows,
+zero DailySourceReceipts and an empty run output digest. Frozen attempt captures
+remain for diagnosis. No successor, parity admission, selected publication,
+usable UI acceptance or90-day run is claimed. The active exit is unresolved at
+this attributable source-storage failure; preserve this attempt before any
+bounded remedy. Earlier prepare-only instructions are superseded by the verified
+execution authority above.
 
 ### Active scope — daily publication steps1 and2 on isolated3006
 
