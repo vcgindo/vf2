@@ -1,0 +1,28 @@
+{
+  "schema": "fresh-offline-temporal-scenarios-v1",
+  "scenario_sha256": "120ca4c8b6363627e339519fa2816883e81e46b768071ee6266232645d6ad52a",
+  "catalogue_sha256": "2ecf4e079807e00d0f809abedde1303640910ca82faeb5b8e56671b22d5de0ff",
+  "generator_dependencies": {
+    "tools/generate_temporal_scenario.py": "d20265b4432b4d854ef0a3c831017a0a72f57bb51f38b8ffc98152afede97a06",
+    "tools/reduce_daily_smoke.py": "c7c8dfbb6f652506d6f48e0b964fc755584f105b5c02e0e810e8fcdd67891ecd",
+    "tools/prepare_daily_shipment_input.py": "48851a12a62522130a9a5e04387c21a013aede00ec401198a144941934e9ae1b",
+    "parity/temporal_ledger.py": "ed7c059eb5f22ac1b6da4b9c3c1eca3b0a5d1a90fc861adc18aad9002f8ab05e",
+    "mta/serialization.py": "43fd4589cee1fde426057eca11b12edc5a873c0c622778e53bef2b640cd5510e"
+  },
+  "scenarios": {
+    "full": {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json",
+      "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56",
+      "pairs": 1240,
+      "days": 21,
+      "execution_through": 20
+    },
+    "trial": {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/trial-input.json",
+      "sha256": "a7e12b4a0ea39c4e0122076df8f6a6268e749dca73a51387278878511281993f",
+      "pairs": 10,
+      "days": 21,
+      "execution_through": 2
+    }
+  }
+}

@@ -2284,6 +2284,48 @@
       "role": "Approved shipment supplement generation and complete ledger reconciliation receipt",
       "sha256": "c8e723417f7233d46f8b00b2155062b2b08c97de7a90dfa28145768cc410530b",
       "bytes": 5295
+    },
+    {
+      "path": "F:/freshvcf/baseline/synthetic-temporal-business-v1.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "120ca4c8b6363627e339519fa2816883e81e46b768071ee6266232645d6ad52a",
+      "bytes": 952
+    },
+    {
+      "path": "F:/freshvcf/baseline/synthetic-rlt-4-7-v1.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "497f150113e449726cb598bb116cdd86987312404444be286903a1bd7a51c48a",
+      "bytes": 1583
+    },
+    {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/catalogue.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "2ecf4e079807e00d0f809abedde1303640910ca82faeb5b8e56671b22d5de0ff",
+      "bytes": 2621742
+    },
+    {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56",
+      "bytes": 56588334
+    },
+    {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/trial-input.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "a7e12b4a0ea39c4e0122076df8f6a6268e749dca73a51387278878511281993f",
+      "bytes": 510231
+    },
+    {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/business-ledger.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "d878da403c07197ff60f91f880ea1b528e2893c0e77c6d44f3b271e74d08bcb6",
+      "bytes": 7073682
+    },
+    {
+      "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/trial-reduction.json",
+      "role": "approved21day synthetic scenario input; not calculation acceptance",
+      "sha256": "a14a98237b1761ff846617e8c99a1a75ad1f980c342c4916bfffb0be8712afa0",
+      "bytes": 41828
     }
   ],
   "reuse": {

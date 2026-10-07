@@ -1,0 +1,20 @@
+{
+  "schema": "fresh-synthetic-business-spec-v1",
+  "approval": "call_20bfc654f3364f6a86e035b492365e46",
+  "version": "rlt4-7-replenishment-v1",
+  "catalogue_sha256": "2ecf4e079807e00d0f809abedde1303640910ca82faeb5b8e56671b22d5de0ff",
+  "parent_sha256": "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546",
+  "seed": 337515802,
+  "first_day": "2026-06-06",
+  "days": 21,
+  "warmup_days": 21,
+  "weekday_factors": ["1.00", "1.05", "1.10", "1.00", "1.20", "0.75", "0.40"],
+  "week_factors": ["1.00", "1.10", "0.95"],
+  "promotion": {"first_indices": [7, 8, 9], "first_factor": "1.50", "second_indices": [14, 15, 16], "second_factor": "0.70"},
+  "action_policy": "own-recommendations-apply-eligible-retained-sleep-v1",
+  "supply": "fixed-recursive-base-whole-lot-parent-stock-limited",
+  "unserved_demand": "lost-sales",
+  "terminal_supply": "all-dispatches-received-by-terminal-date",
+  "daily_sources": true,
+  "bpr_remark_horizon": 90
+}

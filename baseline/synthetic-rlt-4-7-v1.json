@@ -1,0 +1,53 @@
+{
+  "assignment": {
+    "distribution": [
+      {
+        "pairs": 312,
+        "rlt_days": 4
+      },
+      {
+        "pairs": 299,
+        "rlt_days": 5
+      },
+      {
+        "pairs": 296,
+        "rlt_days": 6
+      },
+      {
+        "pairs": 333,
+        "rlt_days": 7
+      }
+    ],
+    "kind": "deterministic_shift_of_retained_assignments",
+    "mapping": {
+      "1": 4,
+      "2": 5,
+      "3": 6,
+      "4": 7
+    },
+    "maximum_rlt_days": 7,
+    "minimum_rlt_days": 4
+  },
+  "catalogue_artifact": {
+    "bytes": 2621742,
+    "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/catalogue.json",
+    "sha256": "2ecf4e079807e00d0f809abedde1303640910ca82faeb5b8e56671b22d5de0ff"
+  },
+  "disposition": "Catalogue amendment only. Generate and validate new 21-day facts, transit/receipts, opening and actions before execution; never reuse unchanged 12-day ledger with changed RLT. Accepted runs and original artifact untouched.",
+  "horizon": {
+    "all_pairs_same_execution_dates": true,
+    "execution_days": 21,
+    "formula": "3 * max(population.RLT)",
+    "per_pair_duration_forbidden": true
+  },
+  "human_direction_date": "2026-10-07",
+  "pair_count": 1240,
+  "retained_fields": "All raw_master fields other than RLT, occurrence order and identities remain byte-value equivalent",
+  "schema": "fresh-synthetic-rlt-contract-v1",
+  "sku_count": 200,
+  "source_artifact": {
+    "path": "F:/vflow_integrated/.local-stage7/block3-sizeable/v1/sizeable-input.json",
+    "sha256": "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546"
+  },
+  "version": "rlt-4-7-v1"
+}
