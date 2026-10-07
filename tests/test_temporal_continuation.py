@@ -37,6 +37,20 @@ class Successors:
 
 
 class TemporalContinuationTests(unittest.TestCase):
+    def test_identical_complete_sources_need_no_transition(self):
+        current={'mta/application/a.py':'same',
+                 **{path:'same-runner' for path in RUNNER_PATHS}}
+        result=validate_source_transition({'files':dict(current)},current)
+        self.assertEqual(result['schema'],'fresh-modern-successor-source-identity-v1')
+        self.assertEqual(result['before_digest'],mapping_digest(current))
+        self.assertEqual(result['before_digest'],result['after_digest'])
+        self.assertEqual(result['changes'],[])
+        for changed in ({**current,'mta/application/a.py':'changed'},
+                        {**current,'mta/application/new.py':'added'},
+                        {k:v for k,v in current.items() if k!='mta/application/a.py'}):
+            with self.assertRaisesRegex(ValueError,'Unreviewed engine/application'):
+                validate_source_transition({'files':current},changed)
+
     def test_continuation_rejects_frozen_root_retry_before_any_io(self):
         with self.assertRaisesRegex(CommandError,'cannot reuse a failed root'):
             Command().handle(continue_from=Path('accepted'),mdm_retry='failed')

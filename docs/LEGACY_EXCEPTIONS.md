@@ -1042,3 +1042,19 @@ Independent session-temp SQL proof matches the full Norm output on both days:
 June6 zero rows and June7 one6120/LP001 row, in
 `daily-publication-3006-20261006-001/rrr-colour-day{1,2}-producer-{001,002}.json`.
 These receipts establish the bounded producer values, not API/UI acceptance.
+
+## LEG-LOCAL3006-GUIDED-HISTORY-DEFERRED — explicit synthetic gate disposition
+
+Direct human controller decision `01a1153f-9cb1-7573-93e0-8c6b5a6ebbab`
+defers Guided Excess rolling history only from3006 synthetic smoke/demo
+acceptance after stopping the separate history reproduction. This is an
+acceptance exclusion, not a legacy calculation repair or history parity.
+The exact `guided-excess-history-deferred-v1` setting guards only
+ExcessInventorySku/ExcessInventoryValue on daily_3006 DAILY_CHAIN runs using
+core-without-bor-v1. It returns503 with an attributable deferred error, never
+empty/positive invented history or a different timeline. The default is off;
+3005 and current-day calculated Excess projections remain unchanged.
+Four guard tests and the deployed broad/restricted endpoint proof pass in
+`daily-publication-3006-20261006-001/history-disposition-serving-001.log`;
+selected smoke seals, Planning/RRR admissions and protected services are
+unchanged. No completed date from the stopped reproduction is claimed.

@@ -37,6 +37,12 @@ def validate_source_transition(previous_source, current_files):
     previous_files = previous_source.get('files')
     if not isinstance(previous_files, dict) or not previous_files:
         raise ValueError('Continuation source manifest is incomplete')
+    if previous_files == current_files:
+        identity = mapping_digest(previous_files)
+        return dict(schema='fresh-modern-successor-source-identity-v1',
+            before_digest=identity, after_digest=identity,
+            unchanged_semantics_digest=identity,
+            reviewed_non_execution_digest=mapping_digest([]), changes=[])
     changes = [dict(path=path, before=previous_files.get(path), after=current_files.get(path))
                for path in sorted(set(previous_files) | set(current_files))
                if previous_files.get(path) != current_files.get(path)]

@@ -795,6 +795,9 @@ def historical_availability(request, payload):
 
 @endpoint('POST')
 def insight_data(request, payload, *, kind):
+    if kind in ('excess-sku', 'excess-value') and settings.VF_MTA_GUIDED_EXCESS_DISPOSITION:
+        from mta.presentation.daily_history_disposition import guard
+        guard(selected_run(), kind)
     from mta.presentation.insight_read import insight_context
     from mta.presentation.insight_filters import InsightPredicate
     from mta.presentation.insight_response import insight_payload

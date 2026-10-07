@@ -6,6 +6,107 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Final scoped3006 closure and offline handoff — 7 October2026
+
+Direct human controller turn `01a11547-89ce-7522-a223-34c1b23740b3` changes the
+remaining objective to conclude the current smoke/publication implementation,
+provide the offline90-day handoff and STOP. This supersedes the earlier automatic
+conditional90-day release. The existing goal closes only for this revised scope.
+The following is the current disposition; older investigation/status paragraphs
+below are retained evidence and do not reopen work.
+
+- **Verified:** June6–7 ten-pair daily calculation, typed persisted predecessor
+  carry-forward and31 independent comparisons per day;18-layer preparation,
+  append-only access/publication, selected-run preservation, broad/restricted
+  usable BPR/BTR/DBM delivery and affected scoped Planning/RRR reads, controls,
+  downloaded cells and isolated restart. Current DBM is genuinely empty; this
+  smoke does not claim a new positive Apply/Sleep UI trial.
+- **Explicit qualifications:** BOR/BOROA and Guided Excess rolling history are
+  deferred only for3006 synthetic acceptance, not accepted as parity. RRR colour
+  runs under the approved3006-only IsMTOEnvironment=0 invocation exception.
+  Canonical GIT child SQL207 denial and unresolved native ordering qualifications
+  remain; broad Fulfillment custom is NOT_PARITY. No whole-page performance or
+  full-stack/MTO acceptance is claimed.
+- **Final changed guard:** image `freshvcf-daily3006-mta:history-deferred-001`
+  returns503 `guided_excess_history_deferred_for_3006_synthetic_demo` for both
+  history endpoints and both actors, with no fabricated data. Four focused
+  guard tests passed. `history-disposition-serving-001.log` also confirms the
+  unchanged June7 run/output/seal/activation and Planning/RRR admissions.
+  `history-disposition-protected-001.json` confirms3006 ready and all protected
+  service identities/configuration/start times unchanged, including3005.
+- **Stopped campaign:** run `d61dcaaf-5b5a-4d0b-bcbd-4d6f9bbdf067` is FAILED due
+  to the human-requested interruption, with zero committed output rows across
+  384 referencing relations. No completed history reproduction day, positive
+  history result, June7 continuation or oracle replay is claimed. Preserve the
+  attempts, logs and provisioned unique empty oracle schemas; do not resume.
+
+Retained selected run: `17f0eb84-7b6d-40e9-a288-9441a4d7a860`, June7;
+output `e9777b060d27a77584fcc20734e5f1daba7fab38f8e1eaf99bec907cc278233f`;
+seal `5193ab3a1aa38966575a53fb4280804db9ffbd55ddcd82d8e010a4137bf98f18`;
+activation `aeb37f036674a0048acf071bde37e62f76c07817e921114334d9973f7986cc96`.
+Implementation checkpoint144ea39 and this final disposition commit are the code
+handoff. Day-one/day-two oracle receipts, `report-extensions-browser-001.json`,
+`planning-consumer-sql-005/receipt.json`, RRR producer/consumer receipts and
+`report-extensions-restart-readback-001.log` remain the accepted proof; no passing
+campaign was repeated. All evidence is under
+`D:/freshvcf-build/evidence/daily-publication-3006-20261006-001`.
+
+**Offline90-day phase remains UNEXECUTED, and no complete runnable90-day runner
+is supplied by this closure.** Reuse these entry points after its bounded
+preparation phase, not by launching the examples against accepted resources:
+
+- Modern: `python manage.py run_temporal <registered-input> --sha256 <sha>
+  --revision <attempt-id> --evidence <new-folder> --through <zero-based-day>
+  --automatic-actions`, adding `--continue-from <accepted-execution-folder>`
+  for exactly one successor. This retains `execute_day` as production boundary.
+  The existing `tools/daily_stack_check.py --label <unique> ...` is a bounded
+  owned worker wrapper, not a90-day orchestrator. Its serving environment and
+  mounted source set must be deliberately frozen for the new scenario.
+- Legacy: `python -m parity.replay_temporal --artifact <same-input>
+  --expected-sha <sha> --modern-execution <execution-folder>
+  --destination <new-folder> --through <day> --automatic-actions`, adding
+  `--continue-from <accepted-replay-folder>`. Bind a verified exclusively owned
+  unique VFTEST_Fresh namespace and lease first; never use/reset accepted smoke
+  or stopped-history databases. `tools/history_oracle.py` is retained evidence
+  of the stopped two-day namespace, NOT the90-day runner.
+- Use each engine's own persisted predecessor, existing
+  `own-recommendations-daily-apply-retained-sleep-v1` action policy and unchanged
+  complete typed comparison contracts (including values, NULLs, duplicate/order
+  semantics, histories and post-action state). Preserve exact approved flaws;
+  no new qualification is implied. Capture31 comparison outcomes, code/input
+  hashes and resource/transaction results daily. One4GiB/2CPU worker per day;
+  stop on first unaccepted failure. Preserve failures and accepted prefix;
+  explicitly identify retries and never silently replay accepted days.
+- Inputs: retained1240-pair artifact SHA
+  `0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546`,
+  catalogue SHA `18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356`,
+  generator source `parity/block3_sizeable.py` pinned at
+  `66a77735d3f3f9a9becf4c87a08ae7827900cf84` in read-only retained repository.
+  The artifact contains12 days, NOT90. Preserve its original and accepted F2
+  receipts. `docs/DAILY_SHIPMENT_INPUT_CONTRACT.md` pins the approved shipment
+  metadata conventions; no later generator version is implicitly accepted.
+- **Missing prerequisite:** a newly generated and registered ledger-conserving
+  90-day input contract for the same catalogue/pairs, opening, facts, shipment
+  supplement and required daily sources. Existing `parity/temporal_ledger.py`
+  requires exactly3x maximum RLT (12 days here);90 simulation days must be
+  explicitly represented without changing RLT or repeating the12-day facts.
+  Existing source/MDM/publication bindings and two-run Planning/RRR extensions
+  cannot silently be reused for a new90-day population.
+- **Runner readiness remains unproved:** multi-day prefix validation currently
+  rejects successors on every prefix run, and parity receipt SHA binding uses
+  the composed execution file; resolve/test these continuation boundaries in
+  the subsequent scripted phase before unattended execution. The narrow exact
+  source-map identity correction here has seven passing focused tests; it is
+  not proof of a90-day resumable runner. No runner work is opened by this handoff.
+
+Use `D:/freshvcf-build/venv/Scripts/python.exe` on the host, with new owned input,
+runtime and external evidence folders under `D:/freshvcf-build`. The existing
+compose is `D:/freshvcf-build/daily-3006/compose.json`. Do not overwrite accepted
+folders, secrets, publication seals or serving selection. After the later run,
+review its retained summary/failures before separately publishing an accepted
+terminal run and performing the finite UI check.90 days, full-stack/MTO
+acceptance and any3004 cutover remain pending, not achieved.
+
 ### 3005 recovery and bounded container cleanup — 7 October2026
 
 Direct human request authorized restoring3005 and removing safe redundant Fresh
@@ -41,19 +142,13 @@ SKU–location pairs run for90 days on owned3006, one4GiB/2CPU worker per day.
 The90-day facts must be legitimately generated/registered through the retained
 ledger contract; shorter facts cannot be repeated and accepted F2 runs cannot
 be rewritten. Stop at the first unaccepted day and preserve all attempts.
-Current gate: **NOT SATISFIED**. Ten-pair day one now passes31 independent
-comparisons and all18 included preparation layers. The approved access binding
-is activated and day one is selected on3006. BPR positive-transit wire verification now passes after the approved SQL/
-PostgreSQL recovery below. Broad/restricted day-one BPR/BTR/DBM hydration is
-verified (10/1 scoped BPR and BTR rows; genuine empty current DBM). Successor
-June7 run `17f0eb84-7b6d-40e9-a288-9441a4d7a860` independently passes all31
-comparisons in `smoke-day2-oracle-001`; `smoke-day2-parity-001` attaches that proof
-while preserving the original day-one receipt link. Active unmet exit is
-successor usable UI proof; its full18-layer preparation, append-only access
-activation and isolated restart/readback pass below. This boundary permits only
-owned3006 resources, unchanged native
-report populations and the approved run-bound hierarchy. No90-day execution has
-begun; all failed attempts and the original day-one seal remain preserved.
+Current disposition: **SCOPED TWO-DAY SMOKE/PUBLICATION CLOSED**, with the
+explicit exclusions below. Successor usable UI and restart proof are complete.
+The direct human closure instruction in controller turn
+`01a11547-89ce-7522-a223-34c1b23740b3` supersedes automatic release into90-day
+execution: conclude this stint and hand off90 days to a later offline scripted
+phase. No90-day execution or script-development programme is started here.
+This is not full-population, whole-application, MTO or cutover acceptance.
 
 Verified human controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` explicitly
 disposes the BOR producer blockers by deferring BOR and BOROA **only from the
@@ -405,13 +500,37 @@ not promote restricted custom. Those exclusions are not parity or whole-page
 performance acceptance. Browser scope/interactions/export and owned restart
 proof are retained in `report-extensions-browser-001.json`.
 
-Active item now: the directly approved separate June6–7 full1240-pair history
-reproduction. Required proof is positive native Excess, independent SQL on each
-engine's own predecessor, and typed/readable history confined to those two dates.
-Use the unchanged registered parent artifact and one4GiB/2CPU worker per day;
-preserve both accepted smoke runs/seals and pre-June6 unknown history. No prior
-June17 rows may be borrowed. No90-day execution begins until the smoke gate is
-satisfied; the new two-day trial is not a waiver of remaining readiness.
+History reproduction is STOPPED/UNRESOLVED by the direct human request verified
+in controller turn `01a1153c-8a68-7462-a509-1fd68e997453`. Subsequent direct
+decision `01a1153f-9cb1-7573-93e0-8c6b5a6ebbab`, clarified in its conversation,
+defers ONLY Guided Excess rolling history from the3006 synthetic smoke gate.
+Keep its serving response truthfully unavailable; no invented history, default
+empty opening or borrowed June17 output. Current-day Excess projections remain.
+NoJune7 reproduction, retry, new history resources, research or reader work is
+authorized until the human revisits the stopped campaign. This is deferred,
+not history acceptance. The final serving disposition and safe-stop accounting
+are complete as recorded in the closure below; no history continuation is open.
+
+Checkpoint144ea39 is pushed. New oracle namespace
+`VFTEST_Fresh_History20261007_001_*` is provisioned from pinned DDL under its own
+disabled execution principal and D:-owned files, leaving accepted smoke oracle
+databases intact (`history-oracle-provision-001.log`). Initial modern attempt001
+stopped before run creation because it inherited serving publication mode and
+the frozen artifact has no BPR remark horizon. No rows were created and smoke
+identities remain unchanged (`history-attempt001-retention-001.log`). Preserve
+that failure. Attempt002 uses worker-only publication flag0, retaining the exact
+original profile/input/action policy; history publication follows independent
+proof. A minimal continuation correction accepts only identical complete source
+maps, keeping the earlier exact reviewed-delta guard unchanged. Seven focused
+tests pass including changed/added/removed source rejection. Attempt002 captures
+this correction before day one. Human stop interrupted attempt002; run
+`d61dcaaf-5b5a-4d0b-bcbd-4d6f9bbdf067` was markedFAILED only after verifying
+zero output rows across384 referencing relations. Worker exit137 followed the
+explicit stop, not an inferred OOM. No completed reproduction date or positive
+history output is established; no oracle replay orJune7 occurred. Inputs,
+logs, stopped attempt and provisioned empty oracle schemas are preserved.
+`history-stop-final-001.json` verifies3006 ready and protected services unchanged;
+`history-stop-retention-001.log` verifies smoke runs/seals/activations unchanged.
 
 This is a real access/admission boundary, not permission to waive readiness,
 report UI acceptance, move to the90-day run or replace the registered catalogue.
