@@ -19,10 +19,39 @@ CONTRACTS = (*BOUNDARIES, *('calculation/'+name for name in (
     'master/norm_change_export_remaining','master/bpr_master','emitted-reports')
 
 
+def verify_preserved_summary(root, existing, summary, entry, replay):
+    """Keep an accepted prefix link only after rechecking its exact old proof."""
+    if existing.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
+        raise CommandError('Existing prefix is not accepted')
+    if {k:v for k,v in existing.items() if k not in ('receipt','sha256')} != {
+            k:v for k,v in summary.items() if k not in ('receipt','sha256')}:
+        raise CommandError('Existing prefix comparison summary differs')
+    path = (root / existing['receipt']).resolve()
+    if not path.is_relative_to(root):
+        raise CommandError('Existing prefix receipt is outside evidence root')
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != existing['sha256']:
+        raise CommandError('Existing prefix receipt digest differs')
+    prior = json.loads(raw)
+    if (prior['input_sha256'] != replay['input_sha256']
+            or prior['action_policy'] != replay['action_policy']
+            or prior['status'] not in ('PASS', 'COMPLETE_WITH_LEGACY_FLAWS')):
+        raise CommandError('Existing prefix receipt identity differs')
+    index = existing['day_index']
+    if index >= len(prior['days']):
+        raise CommandError('Existing prefix receipt lacks day')
+    old = prior['days'][index]
+    for field in ('day_index','date','status','modern_run','modern_output_digest','comparisons'):
+        if old[field] != entry[field]:
+            raise CommandError('Existing prefix day proof differs: '+field)
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--replay', type=Path, required=True)
         parser.add_argument('--modern-execution', type=Path, required=True)
+        parser.add_argument('--preserve-existing', action='store_true',
+                            help='Verify and retain accepted prefix receipt links unchanged')
 
     def handle(self, *args, **options):
         root = Path(os.environ['VF_EVIDENCE_ROOT']).resolve().parent
@@ -71,7 +100,7 @@ class Command(BaseCommand):
                 if (str(run.pk) != entry['modern_run'] or run.output_digest != entry['modern_output_digest']
                         or run.output_digest != current['output_digest'] or run.input_digest != current['input_digest']
                         or run.business_date.isoformat() != entry['date']
-                        or run.execution_revision != modern['revision']):
+                        or run.execution_revision != current.get('execution_revision', modern['revision'])):
                     raise CommandError('Compared run/output identity differs')
                 read_outputs(run)
                 qualified = any(row['status'] == 'LEGACY_FLAW' for row in checks)
@@ -84,6 +113,9 @@ class Command(BaseCommand):
                     boundaries=list(BOUNDARIES), comparisons={**dict.fromkeys(expected,'NOT_RUN'),
                         **{row['contract']:row['status'] for row in checks}},
                     legacy_flaw_is_parity=False)
+                if options.get('preserve_existing') and getattr(run, 'parity_summary', None):
+                    verify_preserved_summary(root, run.parity_summary, summary, entry, replay)
+                    continue
                 # Prefix evidence remains on disk. Updating its link after a
                 # longer same-run comparison never mutates any original receipt.
                 run.parity_summary = summary

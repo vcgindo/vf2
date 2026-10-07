@@ -128,7 +128,8 @@ def prepare(*, run=None, verify_only=False, verify_mutations=False):
     if connection.vendor != 'postgresql': raise CommandError('Guided Chronic preparation requires PostgreSQL')
     from mta.presentation.daily_preparation import production_branch
     if not production_branch(run) and not getattr(settings, 'VF_GUIDED_PREPARED', False): raise CommandError('Guided prepared trial switch is disabled')
-    if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
+    from mta.presentation.daily_activation import native_verification_with_access
+    if (getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', '')) and not native_verification_with_access(run, verify_only):
         raise CommandError('Guided Chronic preparation requires native fixture hierarchy')
     with transaction.atomic():
         verify_guards(connection)

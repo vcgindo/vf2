@@ -19,11 +19,15 @@ CONFIG_NAMES = ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256',
     'VF_RESEARCH_AVAILABILITY_PREPARED', 'VF_MTA_SYNTHETIC_ROSTER')
 
 
-def configuration_identity():
+def configuration_identity(*, access=None):
     from pathlib import Path
     import hashlib
     root = Path(__file__).resolve().parents[1] / 'config'
-    return digest(dict(settings={name:getattr(settings, name) for name in CONFIG_NAMES},
+    values = {name:getattr(settings, name) for name in CONFIG_NAMES}
+    if access is not None:
+        values.update({name: access[name] for name in
+            ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256')})
+    return digest(dict(settings=values,
         configs={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.glob('*.json'))}))
 
 
@@ -148,12 +152,14 @@ def require_ready(run, *, verify_rows=False):
     if publication is None:
         raise PublicationUnavailable('daily_ui_publication_not_ready')
     if (publication.output_digest != run.output_digest or publication.source_digest != source_identity(run)
-            or publication.configuration_digest != configuration_identity()
             or publication.recipe_digest != recipe_identity()
             or set(publication.layers) != set(layers_required)
             or any(value.get('status') != 'READY' for value in publication.layers.values())
             or publication.seal_digest != seal_identity(publication)):
         raise PublicationUnavailable('daily_ui_publication_seal_mismatch')
+    if publication.configuration_digest != configuration_identity():
+        from mta.presentation.daily_activation import require_activation
+        require_activation(run, publication)
     if verify_rows:
         for name in layers_required:
             verify_layer(run, name, publication.layers[name]['receipt'])

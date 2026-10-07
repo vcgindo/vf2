@@ -1,5 +1,6 @@
 from django.urls import path
 from api.view import *
+from api.view.captcha_policy import FixtureCaptchaPolicyView
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
@@ -9,6 +10,7 @@ app_name = "api_user"
 urlpatterns = [
     path("register/", UserRegistrationView.as_view(), name="register"),
     path("login/", UserLoginView.as_view(), name="login"),
+    path("captcha-policy/", FixtureCaptchaPolicyView.as_view(), name="captcha-policy"),
     path("profile/", UserProfileView.as_view(), name="profile"),
     path("role/", RolesView.as_view(), name="roles"),
     path("all-role/", GetAllRolesView.as_view(), name="all roles"),

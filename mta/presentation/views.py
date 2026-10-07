@@ -249,6 +249,19 @@ def rrr_data(request, payload, *, count=False):
 
 
 @endpoint('POST')
+def rrr_colour_data(request, payload, *, count=False):
+    from mta.presentation.daily_rrr_read import read
+    from django.db import DatabaseError
+    try:
+        rows = read(selected_run(), payload, count=count)
+        return envelope(data=[{'count': rows}]) if count else envelope(data=rows if rows else '')
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
+@endpoint('POST')
 def bpr_remark_history(request, payload):
     """Read the retained remark bag; no remark-write workflow implied."""
     run = selected_run()
@@ -442,7 +455,6 @@ def bpr_data(request, payload, *, count=False):
             raise ValueError('positive_BPR_pagination_required')
     from mta.presentation.fixture import enabled as fixture_enabled
     if fixture_enabled():
-        from django.conf import settings
         if settings.VF_BPR_PREPARED:
             from mta.presentation.bpr_prepared import read_bpr
         else:
@@ -455,13 +467,31 @@ def bpr_data(request, payload, *, count=False):
     model, rows = bpr_selected(payload, mode='count' if count else 'grid')
     if count:
         return envelope(record_count=str(len(rows)))
-    return envelope(data=[response_row(row) for row in model.page(rows, paging['pageNumber'], paging['recordsPerPage'])])
+    daily = settings.VF_MTA_DAILY_PUBLICATION and selected_run().kind == 'DAILY_CHAIN'
+    return envelope(data=[response_row(row, daily_transit=daily)
+        for row in model.page(rows, paging['pageNumber'], paging['recordsPerPage'])])
 
 
 @endpoint('POST')
 def export_data(request, payload):
     from mta.presentation.rrr_sql import read_rrr
     from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+    if payload.get('reportName') == 'RRROA':
+        from mta.presentation.daily_rrr_read import read, projection
+        from mta.presentation.legacy_ui import RRR_OA_UI_CONFIG
+        from django.db import DatabaseError
+        try:
+            rows = read(selected_run(), payload, export=True)
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return envelope(status=500)
+        state = ui_state.get_layout(identity(request)['id'], 'RRRColorBandWise')
+        headers = selected_headers(state, ['RN', *[n for n, _ in projection()]],
+                                   configuration=RRR_OA_UI_CONFIG)
+        response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment'
+        return response
     if payload.get('reportName') == 'BOROA':
         _require_report('boroa')
         from mta.presentation.boroa_sql import read_boroa, projection
@@ -521,6 +551,10 @@ def export_data(request, payload):
 
 @endpoint('POST')
 def planning_overview(request, payload):
+    from mta.presentation.daily_planning_extension import enabled
+    if enabled(selected_run()):
+        from mta.presentation.daily_planning.dispatch import read
+        return envelope(data=read(selected_run(),payload,'overview'),message='')
     from mta.presentation import fixture
     if fixture.enabled():
         from mta.presentation.planning_overview_sql import counts as prepared_counts
@@ -550,6 +584,10 @@ def planning_context(payload):
 
 @endpoint('POST')
 def planning_graph(request,payload):
+    from mta.presentation.daily_planning_extension import enabled
+    if enabled(selected_run()):
+        from mta.presentation.daily_planning.dispatch import read
+        return envelope(data=read(selected_run(),payload,'graph'),message='')
     category = str(payload.get('category', '')).casefold()
     if category in ('excessinventory', 'orderfulfillment'):
         from mta.presentation import fixture
@@ -604,6 +642,10 @@ def planning_graph(request,payload):
 
 @endpoint('POST')
 def planning_grid(request, payload, *, count=False):
+    from mta.presentation.daily_planning_extension import enabled
+    if enabled(selected_run()):
+        from mta.presentation.daily_planning.dispatch import read
+        return envelope(data=read(selected_run(),payload,'grid',count=count))
     if payload.get('category') == 'expedite' and payload.get('type') == 'child' and not count:
         from mta.presentation.expedite_read import child_grid
         return envelope(data=child_grid(payload))
@@ -672,6 +714,10 @@ def planning_grid(request, payload, *, count=False):
 
 @endpoint('POST')
 def planning_custom(request, payload):
+    from mta.presentation.daily_planning_extension import enabled
+    if enabled(selected_run()):
+        from mta.presentation.daily_planning.dispatch import read
+        return envelope(data=read(selected_run(),payload,'custom'))
     if payload.get('category') == 'expedite':
         from mta.presentation.expedite_read import custom_grid as expedite_custom_grid
         return envelope(data=expedite_custom_grid(payload))

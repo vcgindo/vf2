@@ -12,6 +12,8 @@ from mta.runtime.services import read_outputs
 from mta.runtime.validation_storage import export_run
 from parity.output_archive import OutputArchive
 from mta.serialization import digest
+from mta.runtime.temporal_continuation import (composed_prefix, copy_prefix_evidence,
+    successor_index, validate_accepted_prefix, validate_source_transition)
 
 
 class Command(BaseCommand):
@@ -31,6 +33,8 @@ class Command(BaseCommand):
         parser.add_argument('--shipment-input',type=Path,
                             help='Registered standalone approved shipment supplement')
         parser.add_argument('--shipment-sha256')
+        parser.add_argument('--continue-from',type=Path,
+                            help='Accepted execution folder; execute exactly its next day')
 
     def handle(self,*args,**options):
         mdm_source = None
@@ -39,6 +43,9 @@ class Command(BaseCommand):
             raise CommandError('Shipment supplement and expected digest must be supplied together')
         source_id, source_digest = options.get('mdm_source'), options.get('mdm_source_digest')
         retry_id = options.get('mdm_retry')
+        continuation_path = options.get('continue_from')
+        if continuation_path and retry_id:
+            raise CommandError('Successor continuation cannot reuse a failed root capture')
         if retry_id and not source_id:
             raise CommandError('Frozen MDM retry requires an explicit bound source')
         if bool(source_id) != bool(source_digest):
@@ -58,17 +65,15 @@ class Command(BaseCommand):
                     raise CommandError('Frozen retry is not a failed root of this source')
         elif options.get('bpr_remark_horizon') is not None:
             raise CommandError('BPR remark horizon override requires an explicit MDM source')
-        target=options['evidence'];target.mkdir(parents=True,exist_ok=False)
+        target=options['evidence']
         source_root=Path(__file__).resolve().parents[4]
-        source_files={str(p.relative_to(source_root)):hashlib.sha256(p.read_bytes()).hexdigest()
+        source_files={p.relative_to(source_root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
                       for p in sorted((source_root/'mta').rglob('*.py'))}
         for name in ('temporal_ledger.py','temporal_policy.py','report_flaws.py','output_archive.py'):
             path=source_root/'parity'/name
-            source_files[str(path.relative_to(source_root))]=hashlib.sha256(path.read_bytes()).hexdigest()
+            source_files[path.relative_to(source_root).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
         catalog=source_root/'baseline/production-state-schema.json'
-        source_files[str(catalog.relative_to(source_root))]=hashlib.sha256(catalog.read_bytes()).hexdigest()
-        (target/'source.json').write_text(json.dumps(dict(execution_revision=options['revision'],
-            files=source_files),indent=2),encoding='utf-8')
+        source_files[catalog.relative_to(source_root).as_posix()]=hashlib.sha256(catalog.read_bytes()).hexdigest()
         raw=options['input'].read_bytes()
         if hashlib.sha256(raw).hexdigest()!=options['sha256']:
             raise CommandError('Registered external artifact hash differs')
@@ -108,11 +113,59 @@ class Command(BaseCommand):
         if exceptions:
             from parity.report_flaws import validate_scope
             validate_scope(exceptions,options['sha256'])
-        previous=None;receipts=[]
-        for index in range(through+1):
+        previous=None;receipts=[];start=0;continuation=None;source_transition=None
+        if continuation_path:
+            continuation_path=continuation_path.resolve()
+            try:
+                previous_execution=json.loads((continuation_path/'execution.json').read_text())
+                previous_source=json.loads((continuation_path/'source.json').read_text())
+            except (OSError,ValueError,TypeError) as error:
+                raise CommandError('Continuation evidence is incomplete') from error
+            try:
+                successor_index(previous_execution,through,case)
+            except ValueError as error:
+                raise CommandError(str(error)) from error
+            if (previous_execution.get('artifact_sha256')!=options['sha256']
+                    or previous_execution.get('artifact_days')!=len(case['days'])
+                    or previous_execution.get('action_policy')!=policy
+                    or previous_execution.get('report_exceptions',{})!=exceptions
+                    or previous_source.get('execution_revision')!=previous_execution.get('revision')):
+                raise CommandError('Continuation input/policy/span identity differs')
+            expected_mdm=(dict(id=str(mdm_source.pk),digest=mdm_source.digest,
+                bpr_remark_horizon=options['bpr_remark_horizon']) if mdm_source is not None else None)
+            if previous_execution.get('mdm_source')!=expected_mdm:
+                raise CommandError('Continuation MDM source/horizon identity differs')
+            prior_shipments={row.get('shipment_supplement_sha256')
+                             for row in previous_execution['days']}
+            if prior_shipments!={shipment_sha}:
+                raise CommandError('Continuation shipment supplement identity differs')
+            try:
+                source_transition=validate_source_transition(previous_source,source_files)
+                previous=validate_accepted_prefix(continuation_path,previous_execution,case)
+            except (KeyError,ValueError,OSError) as error:
+                raise CommandError(str(error)) from error
+            receipts=composed_prefix(previous_execution)
+            start=len(receipts)
+
+        target.mkdir(parents=True,exist_ok=False)
+        if continuation_path:
+            try:
+                copied=copy_prefix_evidence(continuation_path,target,previous_execution)
+            except (ValueError,OSError) as error:
+                raise CommandError(str(error)) from error
+            continuation=dict(path=str(continuation_path/'execution.json'),
+                sha256=hashlib.sha256((continuation_path/'execution.json').read_bytes()).hexdigest(),
+                source_sha256=hashlib.sha256((continuation_path/'source.json').read_bytes()).hexdigest(),
+                copied_prefix_evidence=copied)
+        source_record=dict(execution_revision=options['revision'],files=source_files)
+        if source_transition is not None:source_record['transition']=source_transition
+        (target/'source.json').write_text(json.dumps(source_record,indent=2),encoding='utf-8')
+
+        for index in range(start,through+1):
             started=time.monotonic()
             day={**deepcopy(case['days'][index]),**deepcopy(case['static_day'])}
-            receipt=dict(day_index=index,date=day['business_date'],status='RUNNING',input_sha256=options['sha256'])
+            receipt=dict(day_index=index,date=day['business_date'],status='RUNNING',
+                         input_sha256=options['sha256'],execution_revision=options['revision'])
             try:
                 if shipment_path:
                     from mta.presentation.daily_shipment_input import load_day
@@ -165,5 +218,7 @@ class Command(BaseCommand):
                     requested_days=through+1,artifact_days=len(case['days']),
                     **({'mdm_source': dict(id=str(mdm_source.pk), digest=mdm_source.digest,
                         bpr_remark_horizon=options['bpr_remark_horizon'])} if mdm_source is not None else {}),
-                    action_policy=policy,report_exceptions=exceptions,days=receipts),indent=2),encoding='utf-8')
+                    action_policy=policy,report_exceptions=exceptions,
+                    **({'continuation':continuation} if continuation else {}),
+                    days=receipts),indent=2),encoding='utf-8')
                 self.stdout.write(json.dumps(receipt));self.stdout.flush()

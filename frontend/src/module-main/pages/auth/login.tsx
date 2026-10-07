@@ -14,6 +14,7 @@ import { loadCaptchaEnginge, LoadCanvasTemplateNoReload, validateCaptcha } from 
 import { useGetAllEnvironmentConfiguration } from "../../../VectorFlow/Services/MTA/MDM";
 import { useDispatch } from "react-redux";
 import { UPDATE_ENV_CONFIG } from "../../../redux/actions/MTA";
+import { fixtureCaptchaExempt } from './fixture-captcha-policy';
 
 function LoginContainer() {
   const { t } = useTranslation();
@@ -44,10 +45,11 @@ function LoginContainer() {
     formState: { errors },
   } = form;
 
-  const { mutate: mutateLogin,isLoading } = useLoginAccount();
+  const { mutateAsync: mutateLogin,isLoading } = useLoginAccount();
   // const [remember, setRemember] = useState(true);
   const recaptchaRef: any = useRef();
   const [captchaInput, setCaptchaInput] = useState("");
+  const checkingCaptcha = useRef(false);
   const dispatch = useDispatch();
   const {mutateAsync : getAllEnvConfiguration} = useGetAllEnvironmentConfiguration();
   const getAllEnvironmentConfiguration = async () => {
@@ -65,16 +67,20 @@ function LoginContainer() {
   };
 
   const onSave = async () => {
-    if (!captchaInput || !validateCaptcha(captchaInput)) {
+    if (checkingCaptcha.current || isLoading) return;
+    const formData = { ...getValues() };
+    checkingCaptcha.current = true;
+    try {
+    const exempt = await fixtureCaptchaExempt(formData.email);
+    if (!exempt && (!captchaInput || !validateCaptcha(captchaInput))) {
       notifyError("Invalid Captcha. Please try again.");
       setCaptchaInput("");
       return;
     }
   
-    const formData = getValues();  
     formData.password = await hashPassword(formData.password);
   
-    mutateLogin(formData, {
+    await mutateLogin(formData, {
       onSuccess: (data: any) => {
         if (data?.status !== 200) {
           if (data.response.msg === 'User is inactive please contact admin') {
@@ -104,7 +110,10 @@ function LoginContainer() {
         loadCaptchaEnginge(6);
         setCaptchaInput("");
       },
-    }); 
+    }).catch(() => undefined); // onError above retains the existing notification.
+    } finally {
+      checkingCaptcha.current = false;
+    }
   };
   
 

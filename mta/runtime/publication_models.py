@@ -54,6 +54,31 @@ class DailyUiPublication(models.Model):
                                                name='daily_ui_publication_status')]
 
 
+class DailyUiActivation(models.Model):
+    """Append-only access binding; the native publication seal remains unchanged."""
+    publication = models.OneToOneField(DailyUiPublication, primary_key=True,
+        on_delete=models.PROTECT)
+    publication_seal = models.CharField(max_length=64)
+    configuration_digest = models.CharField(max_length=64)
+    permissions_digest = models.CharField(max_length=64)
+    hierarchy_digest = models.CharField(max_length=64)
+    layers_digest = models.CharField(max_length=64)
+    activation_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class DailyPlanningExtension(models.Model):
+    """Immutable, separately admitted reader for the two approved smoke runs."""
+    publication = models.OneToOneField(DailyUiPublication, primary_key=True,
+        on_delete=models.PROTECT)
+    publication_seal = models.CharField(max_length=64)
+    activation_digest = models.CharField(max_length=64)
+    source_digest = models.CharField(max_length=64)
+    reader_digest = models.CharField(max_length=64)
+    extension_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class DailyUiPublicationAttempt(models.Model):
     publication = models.ForeignKey(DailyUiPublication, on_delete=models.PROTECT, related_name='attempts')
     started_at = models.DateTimeField(auto_now_add=True)

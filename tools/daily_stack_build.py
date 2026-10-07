@@ -44,11 +44,19 @@ def mta(tag):
     build.mkdir(exist_ok=False)
     tracked = subprocess.check_output(['git','diff','--name-only','d17925c','--','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
     new = subprocess.check_output(['git','ls-files','--others','--exclude-standard','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
-    files = sorted(set(tracked+new+['baseline/manifest.json']))
+    # The base image may predate unchanged, committed reader dependencies.
+    # Ship the exact roster bound by the append-only Planning receipt as well.
+    planning_roster = ROOT/'mta/presentation/daily_planning/dependencies.json'
+    bound = (['mta/presentation/'+name for name in json.loads(planning_roster.read_text())]
+             if planning_roster.exists() else [])
+    files = sorted(set(tracked+new+bound+['baseline/manifest.json']))
     manifest = {}
     for name in files:
         path = ROOT/name
-        if not path.is_file() or (path.suffix != '.py' and name != 'baseline/manifest.json'):
+        metadata = {'baseline/manifest.json',
+                    'mta/presentation/daily_planning/dependencies.json',
+                    'mta/presentation/daily_planning/origins.json'}
+        if not path.is_file() or (path.suffix != '.py' and name not in metadata):
             raise ValueError('Unexpected overlay file: '+name)
         dest = build/name
         dest.parent.mkdir(parents=True,exist_ok=True)

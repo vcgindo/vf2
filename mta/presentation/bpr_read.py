@@ -35,6 +35,6 @@ def bpr_context():
     output = dict(BPRReports=[reports], ClosingState=[dict(importer=importer,
         dbm={'SKULocStandardAttributes': reader(run, 'closing/dbm/SKULocStandardAttributes')})],
         BTRFinal=[{'BufferTrendPhysicalInv': reader(run, 'closing/btr/BufferTrendPhysicalInv')}])
-    if not fixture and any(row['GIT'] != 0 for row in reports['BPR_Table']):
+    if not fixture and not daily and any(row['GIT'] != 0 for row in reports['BPR_Table']):
         raise PublicationUnavailable('terminal_empty_transit_conflicts_with_published_git')
     return SimpleNamespace(run=run, output=output, ancillary=ancillary)

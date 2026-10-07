@@ -6,6 +6,29 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### 3005 recovery and bounded container cleanup — 7 October2026
+
+Direct human request authorized restoring3005 and removing safe redundant Fresh
+containers. Active stack is `freshvcf-preview`, with required database container
+`freshvcf-test-postgres-1`. The database was stopped. Started it, waited for
+startup recovery, then started existing MTA and waited for publication admission.
+Gateway `/readyz` returns200 with identity_database/mta/mta_catalogue true;
+login and referenced JS/CSS return200. No rebuild or data reset was performed.
+This proves service recovery, not new report/UI acceptance.
+
+Removed48 stopped BOR/MDM proof/install containers after confirming their
+writable changes were confined to mounted paths with retained host sources,
+and archiving their logs, metadata and hashes. No images, volumes or external
+evidence were deleted. Stopped jobs were not consuming running-container RAM.
+F2 attempts, benchmark containers and other stacks remain. A concurrent3006
+one-off disappeared outside our deletion list and is recorded separately.
+
+Evidence: `D:/freshvcf-build/evidence/preview-recovery-cleanup-20261007-001/`,
+including `archive-manifest.json`, `removal-result.json`,
+`identity-retention.json`, `frontend-assets.json` and `readiness-final.json`.
+The bounded recovery/cleanup exit is satisfied; existing acceptance obligations
+remain unchanged.
+
 ### Conditional execution gate — 6 October2026
 
 Verified direct human controller turn `01a10f57-803d-7641-9a11-4ececb9ce44b`
@@ -19,9 +42,18 @@ The90-day facts must be legitimately generated/registered through the retained
 ledger contract; shorter facts cannot be repeated and accepted F2 runs cannot
 be rewritten. Stop at the first unaccepted day and preserve all attempts.
 Current gate: **NOT SATISFIED**. Ten-pair day one now passes31 independent
-comparisons and all18 included preparation layers. Selection is denied by the
-missing permission catalogue and exact hierarchy/access binding. No successor,
-usable UI acceptance or90-day execution has begun; all failed attempts remain.
+comparisons and all18 included preparation layers. The approved access binding
+is activated and day one is selected on3006. BPR positive-transit wire verification now passes after the approved SQL/
+PostgreSQL recovery below. Broad/restricted day-one BPR/BTR/DBM hydration is
+verified (10/1 scoped BPR and BTR rows; genuine empty current DBM). Successor
+June7 run `17f0eb84-7b6d-40e9-a288-9441a4d7a860` independently passes all31
+comparisons in `smoke-day2-oracle-001`; `smoke-day2-parity-001` attaches that proof
+while preserving the original day-one receipt link. Active unmet exit is
+successor usable UI proof; its full18-layer preparation, append-only access
+activation and isolated restart/readback pass below. This boundary permits only
+owned3006 resources, unchanged native
+report populations and the approved run-bound hierarchy. No90-day execution has
+begun; all failed attempts and the original day-one seal remain preserved.
 
 Verified human controller turn `01a10f5f-ded8-75a2-9273-69e683285f44` explicitly
 disposes the BOR producer blockers by deferring BOR and BOROA **only from the
@@ -42,7 +74,17 @@ then execute the already authorized day-one/successor acceptance and UI journey.
 This does not authorize new facts outside those conventions or change the
 smoke-to90-day gate. Preserve and report the first actual unaccepted failure.
 
-### Active boundary — synthetic access and activation (decision pending)
+### Active boundary — synthetic access and activation (approved, implementation open)
+
+Direct human approval in this chat on6 October2026: “Approve both pending3006
+access/hierarchy and append-only activation decisions exactly as proposed.”
+The existing goal is resumed. Implement the exact catalogue/scopes and run-bound
+presentation supplement below; preserve the original publication seal and3005.
+Append-only activation must revalidate all18 existing layers without rewriting
+sealed rows or recalculating day one. Required exit remains scoped usable UI,
+successor-day independent smoke/carry-forward, then the previously authorized
+conditional90-day run. No new catalogue, permission expansion, calculation change
+or weakening of the smoke gate is authorized.
 
 Day one is independently accepted and the full18-layer preparation is READY on
 serving image `sources-008`. `smoke-day1-ready-retention-001.txt` verifies all31
@@ -68,7 +110,7 @@ its source/configuration/coordinator identity or any successful row population.
 its cloned test actors still hold April permission IDs. Native SL1–3/LL1–3 remain
 NULL, exactly as independently accepted. The prior presentation hierarchy
 supplement is pinned to June17 and cannot silently transfer to this timeline.
-Two scoped human decisions are pending: (1) use the exact registered catalogue
+The two approved scoped decisions are: (1) use the exact registered catalogue
 and presentation-only hierarchy for each run-bound3006 synthetic day, with
 isolated user2 roots71001/72001 and user3 restricted71003/72003; (2) an append-only
 activation binding retaining the original READY seal, revalidating all18 layers
@@ -77,17 +119,357 @@ The proposed catalogue bytes and exact actor/run plan are retained as
 `proposed-smoke-permissions-001.json` and `proposed-smoke-access-binding-001.json`.
 The restricted smoke membership would be only6120/DP010290; broad membership is
 all10 pairs. Nothing has changed in grants, catalogue settings, hierarchy inputs
-or selection. Protected3005 service identities/configuration remain unchanged.
+or selection at the proposal checkpoint.
+
+Approval implementation: additive migrations0068/0069 introduce an append-only
+activation receipt; original publication seal/configuration/layers are never
+rewritten. Activation `13b5d5fd02b746759b3595f36ad31a09413e9876dd400e7c40c931300955e4df`
+revalidated all18 layers. `smoke-day1-activation-001.log`, selection-check002 and
+`smoke-day1-activation-retention-001.json` prove the original seal unchanged,
+native hierarchy NULLs retained and exact broad10/restricted1 business pair scope.
+The broad attribute catalogue also includes external parentPL001; this does not
+add a business pair. Earlier probe's mistaken10-location-attribute assertion is
+preserved separately; no catalogue or business assertion was relaxed.
+The catalogue SHA remains18df4d8e…4c356; day-one hierarchy SHA is
+`2a5b2b54e6864eae82f4bcc2ea68d6ed5faba1638f13bc02f8f0d780e7b131e0`.
+Exact two-account changes are in `smoke-access-applied-001.json`; credentials,
+other grants and3005 are untouched. Ten focused PostgreSQL tests pass, plus
+Django check, migration check/plan and applied migration verification. Independent
+activation review found no actionable defect.
+
+External interruption: all owned3006 services were observed stopped with Exit255.
+The controller independently confirmed the shared interruption and human-directed
+3005 recovery. Only the existing3006 stack was started here; no shared restart,
+reset or other-task operation occurred. Original snapshots and interruption
+evidence are retained. StartedAt can no longer support uninterrupted-service
+claims; compare original container/image/config/mount identities separately.
+
+Serving image activation-003 admits day one, BTR broad10/restricted1 and genuine
+post-Apply DBM empty. BPR's terminal-only empty-transit guard is limited to
+terminal mode; the daily positive-transit serializer is connected. Actual serving
+grid/count/analytics return200 for both scopes, with10/1 grid rows
+(`smoke-day1-bpr-serving-003.json`). This is not independent SQL or browser proof.
+Earlier failed attempts004/005 remain preserved. SQL recovery and exact positive
+BPR wire proof are now verified by receipt SHA256
+`3c1e7d46879ac4e9e55ab0cf0901425e0d070e9471af7013070058d001d54e38`
+under `D:/freshvcf-build/evidence/sql-validation-recovery-20261006-001/bpr-transit-wire-after-postgres/receipt.json`.
+All10 projects/15 occurrences and the empty scalar boundary pass. Reuse this proof.
+Browser verification remains incomplete; successor and90-day execution remain
+unstarted. Existing owned3006 services were started without recreation; readiness
+and all18 layers pass with the same run/output/seal. Direct human CAPTCHA approval
+`call_9X9YxjtxIYYgUV9AbU4BkHBz` was used successfully: landing-page displays
+Stage2 VM broad reader. No3005 service action occurred here.
+Do not claim usable UI or full smoke acceptance.
+
+`smoke-day1-serving-restart-001.json` verifies all18 layers in the rebuilt serving
+container, original seal/configuration/layers and retained attempt fields,
+selected run/output and gateway identity/MTA readiness. Observer-only failures
+(wrong health response key and mismatched attempt projection fields) are recorded
+in that receipt; neither changed application state or acceptance criteria.
+Original3005 container/image/config/mount identities match, but HostConfig hashes
+for frontend/MTA/user-service differ after the external interruption; disposition
+remains open in `activation-protected-config-001.json`. Do not claim full protected
+configuration equivalence from the narrower matches.
+
+Successor implementation review identified the oracle's exact all-source
+continuation guard:16 current pinned source files differ from accepted oracle002.
+All514 pinned files have now been located and preserved byte-for-byte in the
+owned `runtime/oracle002-pinned-sources.zip`, SHA256
+`887c0fe8ab0ab5bcab551f924c36deda22a17feb6385a3ab15a7c38578d41575`.
+`oracle-prefix-source-archive-001.json` verifies the exact file set and every hash
+against the original manifest. Use this immutable source set for continuation;
+runtime setup and canonical-resource validation remain required. This is source
+availability proof, not SQL execution or successor acceptance. Never bypass the
+source guard or recalculate accepted day one. The owned oracle runtime now passes
+the exact514-file source guard and76 canonical SQL pins. Successor orchestration
+implementation is active: one new day using the accepted persisted predecessor,
+per-day execution revisions and unchanged prior parity links. Successor attempt002
+is running after the pre-calculation failure below. `record_parity --preserve-existing` verifies the old receipt hash and
+complete matching day proof before retaining its link; focused linkage tests pass.
+
+Authenticated broad browser hydration is proved by `smoke-bpr-browser-001.*`,
+`smoke-btr-browser-onhand-001.txt`, `smoke-btr-browser-pipeline-001.*` and
+`smoke-dbm-browser-001.*`: BPR10 with positive shipment detail, BTR10 in both
+branches, DBM's genuine post-Apply empty current suggestions, all dated6June.
+These are bounded smoke UI observations, not whole-page or matched-performance
+acceptance. Restricted login succeeded after an explicitly approved replacement
+CAPTCHA; BPR and BTR each render only6120/DP010290, and DBM renders its expected
+empty current result (`smoke-*-browser-restricted-001.*`). BPR selection displays
+that pair's two shipment occurrences. Both logins and their failed CAPTCHA attempt
+are retained; no browser business action was performed.
+
+First successor attempt `smoke-day2-modern-001` failed before calculation/run/capture
+creation: canonical closing settings omit TaskStatusLogHorizon, which the new MDM
+connector needs. Day one's frozen MDM input already records the exact value7;
+its capture is CONSUMED and the database reports no successors. The narrow
+connector correction carries that verified frozen value only into an ephemeral
+capture-settings copy when a successor's closing projection omits it. Present
+settings remain authoritative; roots, duplicates, malformed settings and capture
+integrity/source mismatches still fail. ClosingState, engine algorithms, action
+policy and oracle source remain unchanged. Sixteen focused tests and affected
+PostgreSQL consumption/retry checks pass. Independent review also confirmed
+retry-origin/source locking precedes configuration resolution. The reviewed
+transition digest is `9ef812281175fc21b3556bf981ad1416105149bffb19b04c47a1c95dd2d20895`.
+Fresh attempt002 uses revision `a258f15+successor-002`;001 remains unchanged.
+
+Successor002 completed June7 and independently passed all31 comparisons
+(`smoke-day2-oracle-001`). Its original day-one parity link was retained through
+`record_parity --preserve-existing`. Preparation001 retained15 successful layers:
+Guided DBM rejected an all-NULL integer source labelled str by the native manifest,
+and two Expedite consumers needed the RRR projection built later in that attempt.
+The narrow DBM guard now permits that observation only for a canonical integer
+column whose entire verified field is NULL; populated mismatches and fixture
+behavior remain denied. No stored values, algorithms or comparisons changed.
+Preparation002 is READY with all18 layers, seal
+`5193ab3a1aa38966575a53fb4280804db9ffbd55ddcd82d8e010a4137bf98f18`.
+Run-bound append-only activation is
+`aeb37f036674a0048acf071bde37e62f76c07817e921114334d9973f7986cc96`.
+`smoke-day2-seal-retention-001` verifies both full layer sets, typed successor
+readback, predecessor linkage, and the unchanged day-one seal/parity receipt.
+Serving image successor-001 is selected on3006. Initial admission correctly
+denied the stale predecessor BTR generation; selection002 corrected only that
+selection to `ee5890ce-f9d6-4d06-a101-38fc9a108ab8`, and readyz now passes both
+identity and MTA dependencies. No3005 resource was changed by these operations.
+Successor restricted browser verification is complete below; broader included
+report proof remains open. `smoke-day2-restart-001.json` records successful owned MTA restart,
+all18 layers verified from the serving image, preserved selection and original
+day-one seal, ready identity/MTA dependencies, and4GiB/2CPU/restart=no isolation.
+The focused PostgreSQL Guided DBM four-reader differential also passes
+(`smoke-day2-guided-differential-001`). The90-day gate remains unsatisfied.
+
+7October successor restricted browser proof now passes: BPR one6120/DP010290
+row and two shipment occurrences; BTR on-hand/pipeline one scoped row; DBM genuine
+zero current Suggestions, all labelled7June. Evidence `smoke-day2-*-restricted-001`.
+Direct human controller turn `01a1149a-d80d-74a0-8e3c-6be987f5e6f9` authorizes a
+temporary3006-only fixture-account CAPTCHA exemption. Active bounded item is
+that login change, with remaining included-report smoke held open. Existing
+CAPTCHA is a client-only react-simple-captcha gate, not a server challenge route.
+Server-owned explicit policy must decide the exemption; passwords, normal login,
+actors/scopes/sessions remain unchanged. Default/off/nonfixture/other-instance
+cases must retain enforcement; required proof is focused guard/login tests and
+actual3006 UI login. No protected deployment changes or global auth repair.
+
+The server-authorized client policy is implemented and independently reviewed.
+Backend4 guard tests and frontend5 policy/login tests pass, including immutable
+credential snapshot and duplicate-submit prevention through the awaited login.
+Owned user-service image `captcha-001` has the explicit local toggle/instance
+enabled. `captcha-policy-http-001.json` verifies both exact live fixture identities
+and other-account/wrong-or-missing-origin denials; an exemption-off transient
+worker also denies. Existing middleware retains no-store/must-revalidate/no-cache.
+Frontend captcha-003 is built/deployed only on3006. Initial captcha-002 browser
+verification exposed an expired cookie rejected by existing middleware before
+the policy; the dedicated unauthenticated fetch now omits credentials. Normal
+login/middleware are unchanged. Five focused frontend tests pass after that fix,
+and the production build passes under4GiB/2CPU. Actual UI proof rejects a wrong
+fixture password, then logs in user2 with the correct password and CAPTCHA blank
+(`captcha-password-rejection-001`, `captcha-exempt-login-001`). Nonfixture policy
+denials and retained client CAPTCHA are verified; fixture credentials, identities
+and product/location grants retain their before/after hashes. Protected3005
+identities remain unchanged across policy deployment (`captcha-protected-retention-001`).
+This narrow login item is complete; active work returns to broader successor
+BPR/BTR/DBM and included-report smoke, before the conditional90-day gate.
+Exact settings/restoration are in `docs/DAILY_3006_CAPTCHA.md`. This exception
+does not alter normal password authentication or permission state.
+
+Successor broad BPR/BTR now render all10 June7 rows and DBM shows the genuine
+empty current Suggestions (`smoke-day2-*-broad-001`). Planning is the active
+unmet included-report exit: actual browser counts/grid fail503. The focused
+`smoke-day2-planning-diagnosis-001.log` reproduces overview
+`planning_nonempty_transit_projection_not_published` and GIT grid/count
+`fixture_not_selected`. Preserve this failure and original seals; investigate
+only read-time daily routing/hierarchy integration. No recipe guard weakening,
+source repopulation or90-day execution is permitted by this diagnosis. Other
+included reports may be inspected independently while this boundary is resolved.
+
+The bounded admission review confirms the Planning readers' hierarchy guards
+are part of the original recipe digest. An unhashed adapter must not silently
+bypass them. A decision is pending for a separate append-only, per-publication
+Planning serving extension, bound to the unchanged seal, activation, source,
+access identities and exact adapter code; preserve legacy-invalid child-grid
+denial. No implementation or deployment of that extension has occurred.
+
+Independent successor screen inspection: Research renders10 rows and loads
+selected6120/DP010290 insights; standard RRR count/grid return200 with the
+accepted empty population. Guided availability, ageing, Chronic and four DBM
+requests return200. Guided Excess instead returns503
+`excess_history_input_not_configured`: its daily route still requires the
+June17-only terminal history manifest. Do not treat its blank charts as valid
+empty history or substitute today's prepared rows for the requested horizon.
+RRR colour-band count returns500 and has no matching native route; it is not
+accepted by standard RRR proof. Research's calendar opens at the host month
+(October) while the grid reportsJune7; no calendar-date acceptance is claimed.
+Evidence: `smoke-day2-research-broad-001`, `smoke-day2-rrr-broad-001`,
+`smoke-day2-guided-*-001`, `smoke-day2-guided-diagnosis-001`,
+`smoke-day2-rrr-colour-failure-001` under the existing evidence directory.
+These dispositions keep the smoke gate open;90-day execution has not started.
+Buffer Trends also hydrates the June7 on-hand view with seven chart series,
+summary and100% overall availability; its request returns200
+(`smoke-day2-buffer-trends-broad-001`). This is bounded hydration proof, not
+full-horizon or matched-performance acceptance. All serving resources and both
+original publication seals were left unchanged during this diagnostic pass.
+
+Independent continuation diagnosis is complete for Guided Excess and RRR
+colour-band; neither admits a serving-only correction under the current source
+contract. `smoke-day2-included-source-diagnosis-001.log` confirms both accepted
+days have zero current-day Excess rows and zero prepared Excess references,
+but no historical Excess operational image. The builder selects only the
+current run; this cannot certify the requested rolling horizon. The registered
+smoke artifact contains no Excess opening. A decision is pending for an explicit
+empty pre-June6 opening **only for these two smoke runs**, plus append-only
+chain/history admission and independent consumer proof. The June17-only prior
+exception remains separate; no empty opening has been inferred or installed.
+
+RRR colour-band is a distinct source boundary: the pinned API reads
+`RRR_OrderAllocation`; neither native endpoint nor a typed allocation image or
+catalogue table exists. Pinned `OrderAllocBasedReports.bat:10` enables its
+producer only under `IsMTOEnvironment=1`, while this registered smoke opening
+sets that value to0. `smoke-included-source-contract-001.json` verifies all four
+relevant BAT/SQL hashes against the baseline and records the actual setting.
+A decision is pending for an explicit unavailable disposition in this MTA-only
+synthetic demo, with attributable UI/API denial instead of a gateway500/blank
+grid. This is **not yet an approved deferral**. Do not turn on MTO rules, reuse
+standard RRR emptiness, invent a calculated allocation source or change3005.
+
+The preceding three proposals are superseded by direct human controller turn
+`01a114e7-a015-7cb2-917a-275fb398c6c8`, verified in this task. Planning's bounded
+append-only serving extension is approved. Active implementation exit: both
+smoke runs retain their original seals/activations; exact daily/hierarchy readers
+are separately admitted and usable under both scopes, retaining legacy-invalid
+child-grid denial. This permits only owned3006 serving/schema resources.
+RRR colour-band is required: human approves changing only its producer gate to
+permit the unchanged synthetic IsMTOEnvironment=0 scenario, with versioned
+additive provenance and exact producer formula semantics; no whole-scenario
+toggle, accepted-run rewrite or canonical gating-parity claim. Source feasibility
+assessment proceeds independently while Planning is implemented.
+Guided Excess's empty-opening proposal is rejected. Assess retained authoritative
+history and the extent of reproduction first; do not recompute accepted days or
+undertake substantial reproduction/HC rechecks without the next precise decision.
+The human clarified that HC was speech transcription for history, with no new
+pre-June6 artifact supplied. Preserve missing-history denial and quantify
+what the two known zero-current days can actually supply. Smoke and90-day gates
+stay open. No passing proofs or broad inventories need repeating.
+
+7 October continuation: the human approved `call_8REcN22NCsyS1zHDq804iDio`:
+“Approve two-day reproduction and coverage-bounded history.” This permits a
+separate owned June6–7 timeline using the unchanged1240-pair retained artifact,
+one bounded worker per day, with independent SQL comparisons and proved
+positivity before serving only explicitly covered dates. Pre-June6 remains
+unknown. Existing smoke runs/seals/activations remain unchanged; this is not
+90-day execution approval or a waived smoke gate. The June5 opening lacks
+the calculated rationed-report fields required by CollectExcessInventoryDetails;
+four raw June6 stock-above-Norm positions are candidates, not yet proved Excess.
+Planning/RRR remain the active implementation boundary before this trial.
+
+Planning probe003 completed scoped reads and retained canonical child-grid
+denial; its Expedite post-colour source failure is corrected by joining typed
+PickPost through the producing band occurrence and verifying the complete bag.
+Probe004 passes all four affected broad/restricted parent/child chart reads,
+two focused occurrence tests pass, and rollback verifies unchanged original
+publication/activation records. Independent Expedite proof now matches all16
+complete source/result bags and all4 pinned-DLL API responses; three native
+intermediate dataset order differences remain recorded, not waived as ordered
+parity (`planning-expedite-day2-sql-001/002`, `source-bags-001`). RRR colour
+producer proofs pass for both days and16 independent day-two consumer cases.
+Typed receipts/rows and Planning extensions are installed append-only for both
+smoke runs, preserving complete original run/publication/activation records.
+
+Serving image `report-extensions-002` passes deployed reader admission, selected
+June7 run/seal/activation retention and RRR broad1/restricted0 readback
+(`report-extensions-serving-readback-003.log`). Initial image001 retained an
+older base-image `boroa_configuration.py`; admission correctly denied it. The
+build now includes the entire receipt-bound dependency roster, without changing
+the receipt or loosening validation. Both deployment attempts remain retained.
+Protected service identities/configuration/start times remain unchanged and
+3006 readyz passes (`report-extensions-deploy-verification-002.json`). Restricted
+browser RRR renders genuine0 rows; Planning overview renders June7 fulfillment1
+and its usable grid shows6120/DP010290. Broad RRR renders6120/LP001, total1.
+Owned MTA restart readback passes both reader admissions and unchanged original
+identities (`report-extensions-restart-readback-001.log`); protected services
+remain unchanged (`report-extensions-restart-protected-001.json`).
+Broad fulfillment also renders10 rows, filters toDP010290 and clears back to10;
+its Excel download is saved. RRR location filtering/clear passes and the browser
+CSV's22 visible cells match the retained expected row (`rrr-colour-browser-export-001`).
+Broad Expedite child pre/post renders100% Green in both states, matching the
+independent SQL/pinned-DLL proof (`planning-expedite-broad-chart-001.png`).
+GIT child charts load; its canonical invalid standard grid shows explicit
+failure and its custom view correctly reports no joined rows, retaining the
+independent summary count. Product filter offers Business/Category/Family.
+Baseline verification passes380 pinned resources (`report-extensions-baseline-001.log`).
+The bounded Planning/RRR extension package is closed with explicit source-flaw
+dispositions: `planning-consumer-sql-005/receipt.json` passes29 complete
+comparisons, including actual pinned-DLL chart assembly and browser XLSX10x23
+cells, without persistent SQL writes or engine replay. GIT combined child grid
+remains denied by native SQL207; broad Fulfillment custom remains NOT_PARITY
+for unequal rows sharing unresolved native ROW_NUMBER keys, and this proof does
+not promote restricted custom. Those exclusions are not parity or whole-page
+performance acceptance. Browser scope/interactions/export and owned restart
+proof are retained in `report-extensions-browser-001.json`.
+
+Active item now: the directly approved separate June6–7 full1240-pair history
+reproduction. Required proof is positive native Excess, independent SQL on each
+engine's own predecessor, and typed/readable history confined to those two dates.
+Use the unchanged registered parent artifact and one4GiB/2CPU worker per day;
+preserve both accepted smoke runs/seals and pre-June6 unknown history. No prior
+June17 rows may be borrowed. No90-day execution begins until the smoke gate is
+satisfied; the new two-day trial is not a waiver of remaining readiness.
 
 This is a real access/admission boundary, not permission to waive readiness,
 report UI acceptance, move to the90-day run or replace the registered catalogue.
-The active goal remains open. Exact produced-shipment SQL verification now passes
+Historical blocked status (superseded by verified recovery and login above):
+the goal was blocked after three consecutive turns with the external SQL
+dependency unresolved, then resumed. In the first resumed audit, new attempt005
+again terminates with SQL823/OS21 on the same master.mdf; its receipt is preserved.
+The last observed browser was at3006/login with empty fields. A subsequent
+read-only attempt to recover that exact tab returned "Tab not found"; the old
+challenge is no longer available, and no replacement was generated. The controller
+reports its SQL restart failed for lack of ServiceControl permission before any
+service mutation. Oracle work remains quiescent until an actual restart and
+successful catalogue/readability verification. The same external blockers
+persisted for three resumed goal turns, so the goal is blocked again; further
+acceptance requires SQL recovery or browser approval. Keep the full smoke and
+conditional90-day obligations; this is not
+acceptance or a reduced scope.
+Exact produced-shipment SQL verification now passes
 (`smoke-day1-transit-sql-001/receipt.json`, SHA256
 `55bb0ac8e684e26132ebed298e5424981f63d717d611ed0eba19ae6ec37864b4`).
 The canonical validator/transporter SQL matches both pure processors and actual
 persisted sources:15 validated,0 rejected,15 transporter occurrences, all fields,
 typed NULLs and duplicates. Export/run/base/supplement/SQL hashes are pinned;
 only connection-local temporary tables were used. No engine day was rerun.
+
+### SQL validation dependency diagnosis — 6 October2026
+
+User requested resolution of running MSSQLLaunchpad/stopped SQLPBENGINE.
+Read-only probe connects to local SQL17.0.1000.7, but querying sys.databases
+still fails823/OS21 at master.mdf offset0x21e000 on I:. Windows can see the
+file and NTFS reports the volume healthy; that does not prove SQL file reads.
+PolyBase engine/data movement are stopped, while the database engine and
+Launchpad run. Starting PolyBase is not proof of this catalogue-read recovery.
+Evidence: `D:/freshvcf-build/evidence/sql-validation-recovery-20261006-001/diagnosis.json`.
+Direct human reply approved the coordinated shared MSSQLSERVER restart. The
+administrator-elevated restart succeeded; previously running SQLSERVERAGENT and
+MSSQLLaunchpad were restored. Catalogue reads now succeed, all Fresh databases
+report ONLINE, and the exclusive oracle lease, all eight schema guards and
+restricted-principal owned-Importer SELECT pass. PolyBase remains stopped and
+was not needed for these proofs. `restart.json`, `catalogue-after.json` and
+`fresh-oracle-after.json` preserve these results in the same evidence directory.
+The exact BPR transit-wire validator was attempted in `bpr-transit-wire/` and
+failed at the modern read: PostgreSQL host `postgres` could not resolve. The
+existing3006 stack is stopped with Exit255, observed before any attempt to start
+it. SQL connectivity/schema recovery is proved; end-to-end wire acceptance
+remains unproved. Separate approval was requested to start only the existing
+3006 PostgreSQL container and rerun the unchanged validator with a new receipt.
+Direct human reply then approved starting only existing3006 PostgreSQL. That
+container started without recreation; all other3006 serving containers remain
+stopped. The unchanged validator now passes `PASS_ACCEPTED_DAY1_BPR_TRANSIT_WIRE`:
+10 projects,15 transit occurrences,10 positive projects, exact nested raw/parsed
+wire equality and the empty boundary. Receipt:
+`D:/freshvcf-build/evidence/sql-validation-recovery-20261006-001/bpr-transit-wire-after-postgres/receipt.json`.
+`resolution.json` pins its digest and `services-after.txt` records container state.
+**SQL validation blocker resolved for this exact accepted-day-one proof.**
+PolyBase remains stopped; it was not required. No SQL populations, engine results
+or application code changed; earlier failed attempts remain. Browser/CAPTCHA,
+successor smoke and conditional90-day acceptance remain outstanding.
 
 ### Closed correction — remaining daily preparation guards
 

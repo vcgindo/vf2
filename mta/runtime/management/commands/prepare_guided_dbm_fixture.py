@@ -8,7 +8,7 @@ from django.db import DatabaseError, connection, transaction
 
 from mta.presentation import fixture
 from mta.presentation.guided_dbm_fields import SOURCES, FIELDS, field_name, schema_digest
-from mta.presentation.selective import image_query, image_metadata
+from mta.presentation.selective import image_query, image_metadata, image_field
 from mta.runtime.guided_dbm_schema import verify_guards
 from mta.runtime.models import (CalculationRun, GuidedDbmPreparedProjection,
                                 GuidedDbmPreparedRow)
@@ -34,6 +34,14 @@ def insert_query(run):
         published = {name: {'str': 'text', 'int': 'bigint'}[wire]
                      for name, _, wire in item['fields'] if wire in ('str', 'int')}
         for name, kind in FIELDS[owner].items():
+            # Operational manifests use str when every value is NULL. Accept
+            # that observation only for a native integer column proven NULL;
+            # never coerce a populated text value or change the stored image.
+            if (getattr(run, 'kind', None) == 'DAILY_CHAIN'
+                    and kind == 'bigint' and published.get(name) == 'text'
+                    and dict(CATALOG['tables'][item['table']]).get(name) in ('int', 'bigint')
+                    and all(value is None for value in image_field(run, path, name))):
+                published[name] = kind
             if published.get(name) != kind:
                 raise CommandError('Guided DBM prepared source field/type differs: ' + owner + '.' + name)
         sql, params = image_query(run, path)
@@ -128,7 +136,8 @@ def prepare(*, run=None, verify_only=False, verify_mutations=False):
     from mta.presentation.daily_preparation import production_branch
     if not production_branch(run) and not getattr(settings, 'VF_GUIDED_PREPARED', False):
         raise CommandError('Guided prepared trial switch is disabled')
-    if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
+    from mta.presentation.daily_activation import native_verification_with_access
+    if (getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', '')) and not native_verification_with_access(run, verify_only):
         raise CommandError('Guided DBM preparation requires native fixture hierarchy')
     with transaction.atomic():
         verify_guards(connection)

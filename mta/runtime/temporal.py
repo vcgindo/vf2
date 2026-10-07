@@ -136,17 +136,21 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                  lineage=lineage,report_exceptions=storage(report_exceptions or {}))
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
-            from mta.mdm.daily_input import (apply_refresh_setting, capture_configuration,
+            from mta.mdm.daily_input import (apply_refresh_setting,
                 capture_pending_conflicts, capture_prune_candidates, compose, compose_pair_exclusions,
                 select_capture)
             request_digest=digest(raw)
-            nms_active, task_horizon = capture_configuration(prior['importer_settings'])
+            configuration_source=mdm_source
             if mdm_retry is not None:
                 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
                 origin_capture=MdmDailyInputCapture.objects.select_for_update().select_related('run').get(
                     run_id=getattr(mdm_retry,'pk',mdm_retry))
                 from mta.runtime.mdm_models import MdmSource
-                MdmSource.objects.select_for_update().get(pk=origin_capture.source_id)
+                configuration_source=MdmSource.objects.select_for_update().get(pk=origin_capture.source_id)
+            from mta.runtime.mdm_configuration import capture_configuration_for_day
+            nms_active, task_horizon = capture_configuration_for_day(
+                prior['importer_settings'], predecessor=parent, source=configuration_source)
+            if mdm_retry is not None:
                 repeated=MdmDailyInputCapture.objects.select_related('run').filter(
                     source_id=origin_capture.source_id,request_digest=request_digest,
                     run__execution_revision=execution_revision).first()

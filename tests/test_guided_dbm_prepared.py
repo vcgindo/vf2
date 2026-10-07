@@ -19,8 +19,31 @@ from mta.runtime.relational_state import quote
 
 
 class GuidedDbmPreparedTests(unittest.TestCase):
+    def test_daily_all_null_integer_observation_preserves_native_type(self):
+        from mta.runtime.management.commands import prepare_guided_dbm_fixture as builder
+        from django.core.management.base import CommandError
+        run = SimpleNamespace(kind='DAILY_CHAIN', pk='test-run')
+        item = dict(table='BTR/DBMNormSuggestionsData', count=2,
+                    fields=[['SuggestionGenerationAge', 'SuggestionGenerationAge', 'str']])
+        with patch.object(builder, 'SOURCES', {'A': 'closing/btr/DBMNormSuggestionsData'}), \
+                patch.object(builder, 'FIELDS', {'A': {'SuggestionGenerationAge': 'bigint'}}), \
+                patch.object(builder, 'image_metadata', return_value=item), \
+                patch.object(builder, 'image_query', return_value=('SELECT NULL', [])), \
+                patch.object(builder, 'image_field', return_value=[None, None]) as values:
+            query, _ = builder.insert_query(run)
+            self.assertIn('A."SuggestionGenerationAge"', query)
+            self.assertNotIn('COALESCE(A."SuggestionGenerationAge"', query)
+            for invalid in ([None, '1'], [None, 1]):
+                values.return_value = invalid
+                with self.assertRaises(CommandError):
+                    builder.insert_query(run)
+            values.return_value = [None, None]
+            run.kind = 'LEGACY_UI_FIXTURE'
+            with self.assertRaises(CommandError):
+                builder.insert_query(run)
+
     def test_reader_requires_fixture_and_explicit_trial_switch(self):
-        with self.assertRaisesRegex(ValueError, 'fixture-only'):
+        with self.assertRaisesRegex(ValueError, 'requires an admitted source run'):
             guided_dbm.read_guided_dbm(SimpleNamespace(kind='DAILY_CHAIN'), {}, 'pie', {})
         run = SimpleNamespace(kind='LEGACY_UI_FIXTURE')
         with patch.object(guided_dbm.settings, 'VF_GUIDED_PREPARED', False, create=True):

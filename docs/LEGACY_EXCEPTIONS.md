@@ -1008,3 +1008,37 @@ omission, duplicate subquery multiplicity, actor/location scope and approval
 effects stay unchanged. Location downloads and SKU–Location downloads retain
 their native A-qualified old projection. No other family or calculation repair
 is authorized. Evidence: location-modify-native-old.png and focused proof009.
+
+## LEG-LOCAL3006-FIXTURE-CAPTCHA — temporary approved login exception
+
+Direct human controller turn `01a1149a-d80d-74a0-8e3c-6be987f5e6f9`,7October2026,
+requests temporary suspension of the CAPTCHA login route. Scope is only the
+owned localhost3006 instance and existing Stage2 broad/restricted accounts2/3.
+The retained `frontend/src/module-main/pages/auth/login.tsx` uses client-only
+react-simple-captcha; `user-service/api/view/auth.py` has no server CAPTCHA
+challenge validation. The implementation must therefore expose a server-owned,
+default-off exemption policy and condition only the frontend CAPTCHA gate on
+that policy. Existing password authentication, rate limiting, inactive/deleted
+account rejection, sessions and permissions remain authoritative. Other
+accounts, password-reset/change flows and protected instances are excluded.
+This is a temporary local testing exception, not legacy CAPTCHA parity or a
+claim that the original server validated CAPTCHA. Enablement/restoration and
+focused proof are recorded with the active item in `docs/MIGRATION.md`.
+
+## LEG-LOCAL3006-RRR-COLOUR-GATE — approved isolated producer invocation
+
+Direct human controller turn `01a114e7-a015-7cb2-917a-275fb398c6c8` approves
+invoking the existing RRR colour-band producer for the two accepted owned3006
+smoke runs while their scenario remains IsMTOEnvironment=0. The deployed
+OrderAllocBasedReports.bat gates that producer on IsMTOEnvironment=1. This is
+an explicit gate exception, not unchanged canonical gating parity. Pinned
+GenerateRRR_OrderAllocation.sql SHA4f034a2fab598d87683d5ab0457cf6af49460de67dbf42ad856a1dc3cdd26e7b
+still governs all formulas, NULLs, multiplicities and UNION semantics. Other
+MTO gates, original accepted input/output/parity records, publication seals and
+3005 remain unchanged. Additive source rows and their receipt bind this exception.
+Complete order/advance inputs are empty in the selected smoke; positive order
+allocation mapping is not established and must be denied, never manufactured.
+Independent session-temp SQL proof matches the full Norm output on both days:
+June6 zero rows and June7 one6120/LP001 row, in
+`daily-publication-3006-20261006-001/rrr-colour-day{1,2}-producer-{001,002}.json`.
+These receipts establish the bounded producer values, not API/UI acceptance.

@@ -85,7 +85,8 @@ def rows_receipt(run):
 def prepare(*, run=None, verify_only=False):
     if connection.vendor != 'postgresql':
         raise CommandError('BPR prepared relation requires PostgreSQL')
-    if getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', ''):
+    from mta.presentation.daily_activation import native_verification_with_access
+    if (getattr(settings, 'VF_MTA_HIERARCHY_FILE', '') or getattr(settings, 'VF_MTA_HIERARCHY_SHA256', '')) and not native_verification_with_access(run, verify_only):
         raise CommandError('BPR preparation requires native hierarchy; supplement is read-time only')
     with transaction.atomic():
         verify_guards(connection)

@@ -40,6 +40,8 @@ urlpatterns = [
     path('DBMUpdateSleepTbl', partial(views.dbm_action, operation='SLEEP')),
     path('RRRData', views.rrr_data),
     path('RRRDataCount', partial(views.rrr_data, count=True)),
+    path('GetRRROrderAllocationReportData', views.rrr_colour_data),
+    path('GetRRRAllocationReportDataCount', partial(views.rrr_colour_data, count=True)),
     path('GetBPRData', views.bpr_data),
     path('AddRemark', views.bpr_remark),
     path('GetRemarkDetails', views.bpr_remark_history),

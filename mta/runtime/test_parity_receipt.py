@@ -41,6 +41,40 @@ class ParityReceiptTest(SimpleTestCase):
                 self.assertEqual(run.parity_summary['boundaries'],list(BOUNDARIES))
                 self.assertLess(len(json.dumps(run.parity_summary)),4096)
                 self.assertFalse(run.parity_summary['legacy_flaw_is_parity'])
+                # A composed successor receipt has a new outer revision, but
+                # the accepted prefix retains its actual execution revision.
+                retained = json.loads(json.dumps(run.parity_summary))
+                original_path = root/'original-replay.json'
+                original_path.write_bytes(replay_path.read_bytes())
+                run.parity_summary['receipt'] = original_path.name
+                retained['receipt'] = original_path.name
+                modern['revision'] = 'successor-revision'
+                modern['days'][0]['execution_revision'] = 'revision'
+                modern_path.write_text(json.dumps(modern),encoding='utf-8')
+                replay['modern_execution_sha256'] = hashlib.sha256(modern_path.read_bytes()).hexdigest()
+                replay_path.write_text(json.dumps(replay),encoding='utf-8')
+                run.save.reset_mock()
+                Command().handle(replay=replay_path,modern_execution=modern_path,preserve_existing=True)
+                self.assertEqual(run.parity_summary,retained)
+                run.save.assert_not_called()
+                original_bytes = original_path.read_bytes()
+                original_path.write_bytes(original_bytes+b' ')
+                with self.assertRaisesMessage(CommandError,'receipt digest differs'):
+                    Command().handle(replay=replay_path,modern_execution=modern_path,preserve_existing=True)
+                original_path.write_bytes(original_bytes)
+                run.parity_summary['comparisons']['controls']='FAIL'
+                with self.assertRaisesMessage(CommandError,'comparison summary differs'):
+                    Command().handle(replay=replay_path,modern_execution=modern_path,preserve_existing=True)
+                run.parity_summary=retained
+                modern['days'][0]['execution_revision']='wrong'
+                modern_path.write_text(json.dumps(modern),encoding='utf-8')
+                replay['modern_execution_sha256']=hashlib.sha256(modern_path.read_bytes()).hexdigest()
+                replay_path.write_text(json.dumps(replay),encoding='utf-8')
+                with self.assertRaisesMessage(CommandError,'Compared run/output identity differs'):
+                    Command().handle(replay=replay_path,modern_execution=modern_path,preserve_existing=True)
+                modern['days'][0]['execution_revision']='revision'
+                modern_path.write_text(json.dumps(modern),encoding='utf-8')
+                replay['modern_execution_sha256']=hashlib.sha256(modern_path.read_bytes()).hexdigest()
                 checks[8]['contract']='replacement'
                 replay_path.write_text(json.dumps(replay),encoding='utf-8')
                 with self.assertRaisesMessage(CommandError,'Incomplete comparison roster'):
