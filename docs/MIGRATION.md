@@ -6,6 +6,86 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### One-day timing diagnostic — complete, 7 October 2026
+
+Human controller turn `01a11653-59a8-7a73-aaf2-e3bdfa57df47` authorizes one
+separately owned June6 full1240-pair sample per engine, timing only, no retries,
+no optimization and no full-run continuation. Human reply to
+`call_lDPb9t3C9iwNQzQY4qyhuzlT` permits mandatory capture overhead and existing
+trace files, measured separately. Both single invocations succeeded under4GiB/
+2CPU, sequentially, with no warmups/retries. Actions, external comparisons/RRR
+proof, extra exports, report preparation, UI and serving selection were omitted.
+
+Evidence: `D:/freshvcf-build/diagnostics/dayperf-001/` — `timing.json`,
+`timing.csv`, `comparison.txt`, individual timers/launch receipts and normal
+traces. Same frozen input `ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56`.
+Fresh PostgreSQL server `freshvcf-daily3006-dayperf001-postgres` preserves the
+required database name daily_3006 without touching the serving database. New
+legacy namespace `VFTEST_Fresh_Offline_56a8be5f7d21ee10_*` uses the normal lease.
+Modern immutable image `0408073029940316a695ff4384cacaace211269500fbd4a90c6e0963018abfe2`;
+run `de80d048-2447-4c34-9bb7-170e729db0b7` is SUCCEEDED. Wrappers are external;
+all frozen full-run source pins remain unchanged before and after execution.
+
+| Measurement | Modern | Legacy |
+|---|---:|---:|
+| Normal day boundary wall seconds | 407.433 | 294.698 |
+| Launch-through-exit seconds | 411.876 | 303.361 |
+| Python process CPU seconds; excludes database CPU | 391.055 | 72.734 |
+| Peak memory bytes | RSS2,076,938,240; cgroup2,065,244,160 | Windows job commit3,367,776,256 |
+
+Modern top three exclusive wall buckets: output trace compression/hash/write
+113.452s, DBM99.808s and checksum87.730s. Selected capture buckets total259.152s
+(63.6%); typed writes/commit29.440s, relational readback3.513s. Legacy DBM SQL
+27.139s; importer/loading with embedded captures109.694s; unassigned boundary
+assembly/checks/early loading/readbacks67.270s; normalization25.261s and intercepted
+SQL snapshots24.084s. Nested spans are subtracted, including generator yields.
+
+This is a diagnostic, not parity/performance acceptance. Modern persists typed
+state/projections/traces; legacy retains normal rollback and embedded capture.
+Some snapshots remain inside calculation/import buckets. Database resources,
+worker memory metrics and CPU scheduling differ; shared SQL and host/cache load
+are uncontrolled. No pure-calculation or whole-engine speed ratio follows.
+Protected running container IDs/images/start times are unchanged. Preserve
+diagnostic resources/evidence. Full-run human hold remains in force; no further
+execution or optimization is opened by this result.
+
+### Full run on human hold — day-three legacy capture failure, 7 October 2026
+
+STOPPED by direct human controller turn `01a11650-2e28-7e01-8ed0-b9cc54cedf51`.
+No execution, retry, resume, publication or corrective code/config/data change is
+authorized. Investigation used existing receipts/logs and targeted read-only
+PostgreSQL status queries only; no new proof or execution was launched.
+
+`temporal-full-001` day3 (June8) failed in `legacy-002-a001` with Python
+MemoryError, worker exit3, after221.023seconds. Exact traceback:
+`parity/adapters/legacy/temporal_day.py:421`, `result['delivery'] = _plain(full)`;
+`_plain` line43 failed in `json.loads(json.dumps(value, default=_json))` while
+decoding. The connected delivery calculation had returned; post-policy legacy
+APPLY and durable capture writes had not been reached. This is capture
+normalization memory exhaustion, not demonstrated SQL/calculation/parity failure.
+Resource receipt: limit4,294,967,296bytes, peak job4,296,015,872bytes,2CPUs.
+No OS OOM-kill or storage-corruption claim follows. The adapter reached its
+finally rollback path and propagated the original MemoryError; no separate SQL
+state audit was performed. Only failed receipt.json and source.json exist for
+this legacy attempt; no complete day3 capture/closing archive exists.
+
+Modern day3 run `df0f9187-f157-4fa5-8cdd-51a1f2ee8d90` is durably SUCCEEDED,
+output `a4122554deee9692e427fa4b0b0f23dc42e400b0b94081122b68c0c5d92b28`.
+Real APPLY command8 is persisted for three suggestions. Its parity_summary is
+empty and there is no persisted successor. No compare-002 attempt exists.
+The last contiguous accepted prefix is June6–7: each accepted.json/replay PASS,
+31comparisons and RRR proof PASS. Day3 is computed modern state, not accepted parity.
+Summary records unselected publication and protected services unchanged.
+
+Evidence root: `D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001`;
+`legacy-002-a001/receipt.json`, `legacy-002-a001.log`,
+`legacy-002-a001.resources.json`, `modern-002-a001/execution.json`,
+`summary-a001.json`. Preserve every attempt and accepted receipt.
+Smallest proposed next decision: authorize a bounded legacy capture-memory
+investigation/correction of the whole-result JSON roundtrip, retaining conversion
+semantics, every captured field and4GiB limit. A later separately authorized retry
+must reuse modern day3 and retain failed legacy001; no such retry is authorized now.
+
 ### Bounded daily timing diagnostic — 7 October 2026
 
 DIAGNOSTIC COMPLETE; no optimization or instrumented execution authorized.
