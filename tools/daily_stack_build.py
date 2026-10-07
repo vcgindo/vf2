@@ -42,29 +42,33 @@ def frontend():
 def mta(tag):
     build = OWNER/'build'/('mta-'+tag)
     build.mkdir(exist_ok=False)
-    tracked = subprocess.check_output(['git','diff','--name-only','d17925c','--','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
-    new = subprocess.check_output(['git','ls-files','--others','--exclude-standard','mta','vectorflow'],cwd=ROOT,text=True).splitlines()
+    tracked = subprocess.check_output(['git','diff','--name-only','d17925c','--','mta','vectorflow','parity'],cwd=ROOT,text=True).splitlines()
+    new = subprocess.check_output(['git','ls-files','--others','--exclude-standard','mta','vectorflow','parity'],cwd=ROOT,text=True).splitlines()
     # The base image may predate unchanged, committed reader dependencies.
     # Ship the exact roster bound by the append-only Planning receipt as well.
     planning_roster = ROOT/'mta/presentation/daily_planning/dependencies.json'
     bound = (['mta/presentation/'+name for name in json.loads(planning_roster.read_text())]
              if planning_roster.exists() else [])
-    files = sorted(set(tracked+new+bound+['baseline/manifest.json']))
+    scenario_metadata = [p.relative_to(ROOT).as_posix() for p in (ROOT/'baseline').glob('*.json')]
+    runtime = [p.relative_to(ROOT).as_posix() for folder in ('mta','parity','vectorflow')
+               for p in (ROOT/folder).rglob('*.py')]
+    configs = [p.relative_to(ROOT).as_posix() for p in (ROOT/'mta/config').glob('*.json')]
+    files = sorted(set(tracked+new+bound+runtime+configs+['baseline/manifest.json']+scenario_metadata))
     manifest = {}
     for name in files:
         path = ROOT/name
-        metadata = {'baseline/manifest.json',
+        metadata = {*scenario_metadata,*configs, 'baseline/manifest.json',
                     'mta/presentation/daily_planning/dependencies.json',
                     'mta/presentation/daily_planning/origins.json'}
         if not path.is_file() or (path.suffix != '.py' and name not in metadata):
             raise ValueError('Unexpected overlay file: '+name)
-        dest = build/name
+        dest = build/'overlay'/name
         dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(path,dest)
         manifest[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     call('docker','image','tag',BASE,'freshvcf-daily3006-mta:accepted-base')
-    (build/'Dockerfile').write_text('FROM freshvcf-daily3006-mta:accepted-base\n' + ''.join(
-        'COPY --chown=10001:10001 '+name+' /app/'+name+'\n' for name in files))
+    (build/'Dockerfile').write_text('FROM freshvcf-daily3006-mta:accepted-base\n'
+        'COPY --chown=10001:10001 overlay/ /app/\n')
     call('docker','build','-t','freshvcf-daily3006-mta:'+tag,str(build))
     (EVIDENCE/('mta-build-'+tag+'.json')).write_text(json.dumps(dict(base=BASE,files=manifest),indent=2))
 

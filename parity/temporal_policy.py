@@ -8,9 +8,19 @@ threshold, Norm calculation, invented cooling rule or generated external fact.
 from datetime import date, datetime
 
 POLICY = 'own-recommendations-daily-apply-retained-sleep-v1'
+ELIGIBLE_SLEEP_POLICY = 'own-recommendations-apply-eligible-retained-sleep-v1'
+POLICIES = (POLICY, ELIGIBLE_SLEEP_POLICY)
+
+
+def policy_for_case(case):
+    value = case.get('profile', {}).get('synthetic_action_policy', POLICY)
+    if value not in POLICIES:
+        raise ValueError('Unrecognized explicit action policy')
+    return value
 
 
 def commands_for_day(case, index, own_suggestions):
+    policy = policy_for_case(case)
     today = case['days'][index]['business_date']
     date.fromisoformat(today)
     keys = [(r['SKUCode'], r.get('WhCode', r.get('WHCode'))) for r in own_suggestions]
@@ -25,6 +35,13 @@ def commands_for_day(case, index, own_suggestions):
         if datetime.fromisoformat(event['timestamp']).date().isoformat()!=today:
             raise ValueError('Retained Sleep SQL DATE must equal its declared trial day')
         selected = {tuple(key) for key in event['selected']}
+        if policy == ELIGIBLE_SLEEP_POLICY:
+            # Approved new-scenario variant. The retained strict policy above
+            # still fails on absent targets. Never import the other engine's
+            # eligible identities or manufacture a suggestion to enable Sleep.
+            selected &= available
+            if not selected:
+                continue
         if not selected <= available or selected & sleeping:
             raise ValueError('Retained Sleep event lacks unique own suggestions')
         sleeping |= selected

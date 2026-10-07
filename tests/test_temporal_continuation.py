@@ -21,7 +21,7 @@ from mta.runtime.management.commands.record_parity import CONTRACTS
 from mta.runtime.temporal import BOUNDARIES, KIND
 from mta.runtime.temporal_continuation import (RUNNER_PATHS, composed_prefix,
     copy_prefix_evidence, mapping_digest, validate_accepted_prefix,
-    validate_source_transition, successor_index)
+    validate_source_transition, successor_index, execution_lineage, _accepted_receipt)
 from mta.serialization import digest
 from parity.temporal_policy import POLICY
 
@@ -37,6 +37,43 @@ class Successors:
 
 
 class TemporalContinuationTests(unittest.TestCase):
+    def test_original_receipt_stays_bound_to_verified_execution_ancestor(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            first, second = root/'first', root/'second'
+            first.mkdir(); second.mkdir()
+            old = dict(artifact_sha256='input', artifact_days=3, action_policy=POLICY,
+                       revision='first', days=[dict(day_index=0, run_id='one')])
+            old_path = first/'execution.json'
+            old_path.write_text(json.dumps(old))
+            (first/'source.json').write_text('{"files":{"engine":"frozen"}}')
+            source_sha = hashlib.sha256((first/'source.json').read_bytes()).hexdigest()
+            old_sha = hashlib.sha256(old_path.read_bytes()).hexdigest()
+            new = {**old, 'revision':'second',
+                   'days':composed_prefix(old)+[dict(day_index=1, run_id='two')],
+                   'continuation':dict(path=str(old_path), sha256=old_sha, source_sha256=source_sha)}
+            new_path = second/'execution.json'
+            new_path.write_text(json.dumps(new))
+            receipt = dict(modern_execution_sha256=old_sha, input_sha256='input',
+                           action_policy=POLICY, status='PASS')
+            proof = root/'proof.json'; proof.write_text(json.dumps(receipt))
+            summary = dict(receipt='proof.json', sha256=hashlib.sha256(proof.read_bytes()).hexdigest())
+            with patch.dict(os.environ, {'VF_EVIDENCE_ROOT':str(root/'runtime')}):
+                self.assertEqual(_accepted_receipt(summary, second, new), receipt)
+                (first/'source.json').write_text('{"files":{"engine":"changed"}}')
+                with self.assertRaisesRegex(ValueError, 'ancestor source identity'):
+                    execution_lineage(second, new)
+                (first/'source.json').write_text('{"files":{"engine":"frozen"}}')
+                new['days'][0]['run_id'] = 'substituted'
+                new_path.write_text(json.dumps(new))
+                with self.assertRaisesRegex(ValueError, 'unchanged accepted prefix'):
+                    execution_lineage(second, new)
+                new['days'][0]['run_id'] = 'one'
+                new_path.write_text(json.dumps(new))
+                old_path.write_text(json.dumps({**old, 'revision':'tampered'}))
+                with self.assertRaisesRegex(ValueError, 'ancestor identity'):
+                    execution_lineage(second, new)
+
     def test_identical_complete_sources_need_no_transition(self):
         current={'mta/application/a.py':'same',
                  **{path:'same-runner' for path in RUNNER_PATHS}}

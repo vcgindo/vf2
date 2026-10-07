@@ -222,7 +222,8 @@ def _adjust_blue(row):
 
 
 def norm_rrr_colour_rows(*, rationed_report, requirement_bands, bpr_master,
-                         advance_stock_allocations, order_capabilities, context):
+                         advance_stock_allocations, order_capabilities, context,
+                         scope_validator=validate_smoke_source):
     """Return complete RRR_OrderAllocation Norm rows; row order is unspecified.
 
     Exact duplicate final rows collapse like the source ``UNION``. Unequal rows
@@ -235,7 +236,7 @@ def norm_rrr_colour_rows(*, rationed_report, requirement_bands, bpr_master,
         _complete(row, _BAND_INPUT_FIELDS, "r1_requirement_band")
     for row in bpr_master:
         _complete(row, ("SKUCode", "WHCode"), "BPRMaster")
-    validate_smoke_source(context, requirement_bands, order_capabilities)
+    scope_validator(context, requirement_bands, order_capabilities)
 
     bands = []
     for source in requirement_bands:

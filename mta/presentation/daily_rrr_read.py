@@ -51,8 +51,14 @@ def projection():
 
 
 def read(run, payload, *, count=False, export=False):
-    from mta.presentation.daily_rrr_storage import read as read_source
-    from mta.runtime.daily_rrr_models import DailyRrrColourRow
+    from django.conf import settings
+    from mta.presentation.offline_rrr import VERSION as OFFLINE_VERSION
+    if getattr(settings, 'VF_MTA_RRR_COLOUR_EXTENSION', '') == OFFLINE_VERSION:
+        from mta.presentation.offline_rrr import read_published as read_source
+        from mta.runtime.offline_rrr_models import OfflineRrrColourRow as DailyRrrColourRow
+    else:
+        from mta.presentation.daily_rrr_storage import read as read_source
+        from mta.runtime.daily_rrr_models import DailyRrrColourRow
     read_source(run)
     importer = {name: image_rows(run, 'closing/importer/'+name)
                 for name in ('SkuAttributeData', 'LocationAttributeData')}

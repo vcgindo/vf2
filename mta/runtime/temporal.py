@@ -23,6 +23,15 @@ BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
             'final-suggestions','post-rule-reports','btr-insights','closing-state')
 
 
+def daily_sources_enabled(profile):
+    """Explicit captured input overrides a serving default, including false."""
+    if 'daily_publication' in profile:
+        if type(profile['daily_publication']) is not bool:
+            raise ValueError('daily_publication must be an explicit boolean')
+        return profile['daily_publication']
+    return bool(getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
+
+
 def command_state(run, state, *, through_date=None):
     """Verify every action's before/after chain; never mutate completed output."""
     state=deepcopy(state)
@@ -99,8 +108,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
-    publication_enabled = bool(profile.get('daily_publication') or
-                               getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
+    publication_enabled = daily_sources_enabled(profile)
     today=date.fromisoformat(day['business_date'])
     with transaction.atomic():
         if mdm_source is not None or mdm_retry is not None:

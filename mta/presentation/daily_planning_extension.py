@@ -12,9 +12,14 @@ RUNS = frozenset(('63c71fa7-944d-4547-a80f-2316a580d3c7',
                   '17f0eb84-7b6d-40e9-a288-9441a4d7a860'))
 ROUTES = ('overview', 'grid', 'graph', 'custom')
 VERSION = 'daily-planning-smoke-v1'
+OFFLINE_VERSION = 'daily-planning-offline-v1'
 
 
 def enabled(run):
+    if getattr(settings, 'VF_MTA_PLANNING_EXTENSION', '') == OFFLINE_VERSION:
+        from mta.runtime.offline_scenario import require_run
+        require_run(run)
+        return True
     return (getattr(settings, 'VF_MTA_PLANNING_EXTENSION', '') == VERSION
             and str(run.pk) in RUNS and run.kind == 'DAILY_CHAIN')
 
@@ -54,7 +59,7 @@ def values(run):
     result = dict(publication_seal=publication.seal_digest,
         activation_digest=activation.activation_digest,
         source_digest=source_identity(run), reader_digest=reader_digest())
-    result['extension_digest'] = digest(dict(version=VERSION, routes=ROUTES,
+    result['extension_digest'] = digest(dict(version=settings.VF_MTA_PLANNING_EXTENSION, routes=ROUTES,
         run=str(run.pk), date=str(run.business_date), output=run.output_digest,
         permissions=activation.permissions_digest, hierarchy=activation.hierarchy_digest,
         base_recipe=publication.recipe_digest, **result))

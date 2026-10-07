@@ -67,10 +67,13 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             write_expedite(run,output,bands=selected_bands(output['CalculationOutputs']))
             from mta.presentation.pick_post_storage import write_pick_post
             write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
-            from django.conf import settings
-            if publication_opening is not None or getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
+            # execute_day captured these inputs before calculation. A serving
+            # environment flag must not independently enable an uncaptured write.
+            if publication_opening is not None:
                 from mta.presentation.daily_sources import write_sources
                 write_sources(run, output, opening=publication_opening)
+                from mta.presentation.offline_rrr import write as write_offline_rrr
+                write_offline_rrr(run, output)
         for name, rows in output.items():
             fields = (persist_trace(run, name, rows) if run.kind == 'DAILY_CHAIN'
                       else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))

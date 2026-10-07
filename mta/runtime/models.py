@@ -1242,3 +1242,5 @@ from mta.runtime.ancillary_models import (RemarkOwner, RemarkCapture,
     BprCapturedRemark, BorCapturedRemark, BorOaCapturedRemark)
 from mta.runtime.daily_transit_models import DailyTransitRaw, DailyTransitRow
 from mta.runtime.daily_rrr_models import DailyRrrColourReceipt, DailyRrrColourRow
+
+from mta.runtime.offline_rrr_models import OfflineRrrColourSource, OfflineRrrColourRow

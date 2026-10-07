@@ -1,10 +1,14 @@
 """Execute retained external daily facts using only this engine's persisted state."""
 from copy import deepcopy
+import argparse
 import gzip
 import hashlib
 import json
 from pathlib import Path
 import time
+import gc
+import subprocess
+import sys
 
 from django.core.management.base import BaseCommand, CommandError
 from mta.runtime.temporal import execute_day, record_command, command_state
@@ -35,6 +39,11 @@ class Command(BaseCommand):
         parser.add_argument('--shipment-sha256')
         parser.add_argument('--continue-from',type=Path,
                             help='Accepted execution folder; execute exactly its next day')
+        parser.add_argument('--computation-only', action='store_true',
+                            help='Independent modern capture: no parity or UI acceptance is implied')
+        parser.add_argument('--bounded-one-day', action='store_true',
+                            help='One day with isolated predecessor verification and released unused inputs')
+        parser.add_argument('--verify-prefix-only', action='store_true', help=argparse.SUPPRESS)
 
     def handle(self,*args,**options):
         mdm_source = None
@@ -102,9 +111,9 @@ class Command(BaseCommand):
             configured['bpr_remark_horizon'] = horizon
         if options['automatic_actions']:
             from parity.temporal_ledger import validate
-            from parity.temporal_policy import POLICY, commands_for_day
+            from parity.temporal_policy import policy_for_case, commands_for_day
             validate(artifact)
-            policy=POLICY
+            policy=policy_for_case(case)
         else:
             policy='retained-fixed-actions'
         through=options['through'] if options['through'] is not None else len(case['days'])-1
@@ -113,6 +122,17 @@ class Command(BaseCommand):
         if exceptions:
             from parity.report_flaws import validate_scope
             validate_scope(exceptions,options['sha256'])
+        if options.get('bounded_one_day'):
+            # Release the full artifact before a verifier subprocess shares this
+            # worker's memory limit. Prefix validation needs dates/policy only.
+            selected_day = {**deepcopy(case['days'][through]), **deepcopy(case['static_day'])}
+            case = dict(case=case['case'], opening=case['opening'] if through == 0 else None,
+                opening_date=case['opening_date'],profile=profile,
+                commands=deepcopy(case['commands']),static_day={},
+                days=[selected_day if i == through else {'business_date':row['business_date']}
+                      for i,row in enumerate(case['days'])])
+            del artifact, raw, selected_day
+            gc.collect()
         previous=None;receipts=[];start=0;continuation=None;source_transition=None
         if continuation_path:
             continuation_path=continuation_path.resolve()
@@ -131,6 +151,8 @@ class Command(BaseCommand):
                     or previous_execution.get('report_exceptions',{})!=exceptions
                     or previous_source.get('execution_revision')!=previous_execution.get('revision')):
                 raise CommandError('Continuation input/policy/span identity differs')
+            if previous_execution.get('computation_only',False) != options.get('computation_only',False):
+                raise CommandError('Continuation verification mode differs')
             expected_mdm=(dict(id=str(mdm_source.pk),digest=mdm_source.digest,
                 bpr_remark_horizon=options['bpr_remark_horizon']) if mdm_source is not None else None)
             if previous_execution.get('mdm_source')!=expected_mdm:
@@ -141,11 +163,30 @@ class Command(BaseCommand):
                 raise CommandError('Continuation shipment supplement identity differs')
             try:
                 source_transition=validate_source_transition(previous_source,source_files)
-                previous=validate_accepted_prefix(continuation_path,previous_execution,case)
+                if options.get('bounded_one_day') and not options.get('verify_prefix_only'):
+                    result = subprocess.run([sys.executable, *sys.argv, '--verify-prefix-only'],
+                        check=True, capture_output=True, text=True)
+                    verified = json.loads(result.stdout)
+                    from mta.runtime.models import CalculationRun
+                    previous = CalculationRun.objects.get(pk=verified['predecessor_id'])
+                    if str(previous.pk) != previous_execution['days'][-1]['run_id']:
+                        raise ValueError('Isolated predecessor verification identity differs')
+                else:
+                    previous=validate_accepted_prefix(continuation_path,previous_execution,case,
+                        require_parity=not options.get('computation_only',False))
             except (KeyError,ValueError,OSError) as error:
                 raise CommandError(str(error)) from error
             receipts=composed_prefix(previous_execution)
             start=len(receipts)
+
+        if options.get('verify_prefix_only'):
+            if not continuation_path:
+                raise CommandError('Prefix verification requires a continuation')
+            self.stdout.write(json.dumps(dict(predecessor_id=str(previous.pk))))
+            return
+        if options.get('bounded_one_day'):
+            if through != start:
+                raise CommandError('Bounded worker must execute exactly one new day')
 
         target.mkdir(parents=True,exist_ok=False)
         if continuation_path:
@@ -193,6 +234,14 @@ class Command(BaseCommand):
                 commands=(commands_for_day(case,index,output['DBMFinal'][0]['Suggestions'])
                           if options['automatic_actions'] else
                           [c for c in case['commands'] if c['after_day']==index])
+                if options['automatic_actions']:
+                    intended = {tuple(key) for event in case['commands']
+                        if event['after_day']==index and event['operation']=='SLEEP'
+                        for key in event['selected']}
+                    actual = {tuple(key) for event in commands if event['operation']=='SLEEP'
+                              for key in event['selected']}
+                    receipt['action_coverage'] = dict(sleep_intended=sorted(intended),
+                        sleep_exercised=sorted(actual), sleep_not_exercised=sorted(intended-actual))
                 # Export/checksums are complete. Commands independently verify
                 # persisted outputs; do not hold another entire trace meanwhile.
                 del output
@@ -219,6 +268,7 @@ class Command(BaseCommand):
                     **({'mdm_source': dict(id=str(mdm_source.pk), digest=mdm_source.digest,
                         bpr_remark_horizon=options['bpr_remark_horizon'])} if mdm_source is not None else {}),
                     action_policy=policy,report_exceptions=exceptions,
+                    computation_only=options.get('computation_only',False),
                     **({'continuation':continuation} if continuation else {}),
                     days=receipts),indent=2),encoding='utf-8')
                 self.stdout.write(json.dumps(receipt));self.stdout.flush()

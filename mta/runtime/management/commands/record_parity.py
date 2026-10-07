@@ -52,6 +52,8 @@ class Command(BaseCommand):
         parser.add_argument('--modern-execution', type=Path, required=True)
         parser.add_argument('--preserve-existing', action='store_true',
                             help='Verify and retain accepted prefix receipt links unchanged')
+        parser.add_argument('--daily-source-proof',type=Path,
+                            help='Independent offline RRR SQL proof for the new terminal day')
 
     def handle(self, *args, **options):
         root = Path(os.environ['VF_EVIDENCE_ROOT']).resolve().parent
@@ -69,8 +71,8 @@ class Command(BaseCommand):
             raise CommandError('Receipt is not a completed qualified comparison')
         expected = list(CONTRACTS)
         if modern['action_policy'] != 'retained-fixed-actions':
-            from parity.temporal_policy import POLICY
-            if modern['action_policy'] != POLICY:
+            from parity.temporal_policy import POLICIES
+            if modern['action_policy'] not in POLICIES:
                 raise CommandError('Unrecognized action policy')
             expected += ['own-action-selection', 'post-action-state']
         qualified_run = any(day['status'] == 'PASS_WITH_LEGACY_FLAWS' for day in replay['days'])
@@ -103,6 +105,11 @@ class Command(BaseCommand):
                         or run.execution_revision != current.get('execution_revision', modern['revision'])):
                     raise CommandError('Compared run/output identity differs')
                 read_outputs(run)
+                if modern['action_policy'] != 'retained-fixed-actions':
+                    from mta.runtime.validation_storage import read_input
+                    from parity.temporal_policy import policy_for_case
+                    if policy_for_case({'profile': read_input(run)['profile']}) != modern['action_policy']:
+                        raise CommandError('Compared action policy differs from captured run input')
                 qualified = any(row['status'] == 'LEGACY_FLAW' for row in checks)
                 expected_status = 'DIVERGENCE' if failed else 'PASS_WITH_LEGACY_FLAWS' if qualified else 'PASS'
                 if entry['status'] != expected_status:
@@ -113,6 +120,15 @@ class Command(BaseCommand):
                     boundaries=list(BOUNDARIES), comparisons={**dict.fromkeys(expected,'NOT_RUN'),
                         **{row['contract']:row['status'] for row in checks}},
                     legacy_flaw_is_parity=False)
+                from mta.runtime.offline_rrr_models import OfflineRrrColourSource
+                if not failed and OfflineRrrColourSource.objects.filter(run=run).exists():
+                    from mta.presentation.offline_rrr import proof_identity, require_proof
+                    if run.parity_summary.get('offline_rrr_proof'):
+                        summary['offline_rrr_proof']=require_proof(run)
+                    elif options.get('daily_source_proof') and index==len(replay['days'])-1:
+                        summary['offline_rrr_proof']=proof_identity(run,options['daily_source_proof'])
+                    else:
+                        raise CommandError('Each offline day needs independent source acceptance')
                 if options.get('preserve_existing') and getattr(run, 'parity_summary', None):
                     verify_preserved_summary(root, run.parity_summary, summary, entry, replay)
                     continue

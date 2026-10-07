@@ -22,7 +22,7 @@ PICK = ROOT/'Ration_Scripts/GenerateBifurcationOfRationedReq.sql'
 PICK_SHA = '8da7fde0a88fd29a8c1f3af0d92ff578be50262f1b5605be8421a1686c45f0b5'
 
 
-def source(archive_path, expected_output):
+def source(archive_path, expected_output, *, offline_context=None):
     archive = OutputArchive(archive_path)
     archive.verify(expected_output)
     capabilities = {row['capability']: row['rows'] for row in archive['CalculationOutputs']}
@@ -31,6 +31,11 @@ def source(archive_path, expected_output):
     bands = capabilities['r1_requirement_band']
     context = dict(run_id=archive.manifest['run_id'], instance_port=3006,
         synthetic=True, is_mto_environment=0, order_capabilities_complete=True)
+    extra = {}
+    if offline_context is not None:
+        from mta.presentation.offline_rrr import validate_scope
+        context.update(offline_context)
+        extra['scope_validator'] = validate_scope
     orders = {name: capabilities[name] for name in ('r1_order_route', 'r1_order_bpp')}
     # This proof rejects all order/advance populations; it does not infer a
     # general AllocatedOrders or vf_ReqCalculation mapping for positive orders.
@@ -39,7 +44,7 @@ def source(archive_path, expected_output):
     orders['AllocatedOrders'] = []
     result = norm_rrr_colour_rows(rationed_report=rationed, requirement_bands=bands,
         bpr_master=masters, advance_stock_allocations=[], order_capabilities=orders,
-        context=context)
+        context=context, **extra)
     return archive, capabilities, rationed, masters, bands, result
 
 
@@ -63,8 +68,9 @@ def canonical_sql():
     return pick, sql
 
 
-def verify(archive_path, expected_output):
-    archive, capabilities, rationed, masters, bands, modern = source(archive_path, expected_output)
+def verify(archive_path, expected_output, *, offline_context=None):
+    archive, capabilities, rationed, masters, bands, modern = source(
+        archive_path, expected_output, offline_context=offline_context)
     pick_sql, report_sql = canonical_sql()
     with connection('VFTEST_BPR') as db:
         for name, table, rows in (
@@ -107,6 +113,7 @@ def verify(archive_path, expected_output):
                 row['RationedCasePacks'] = str(Decimal(str(row['RationedCasePacks'])).normalize())
     actual, expected = Counter(map(digest, modern)), Counter(map(digest, legacy))
     return dict(run_id=archive.manifest['run_id'], output_digest=expected_output,
+        offline_context=offline_context,
         producer_sha256=SOURCE_SQL_SHA256, pick_sha256=PICK_SHA,
         gate='approved-MTO0-exception-not-canonical-gating-parity',
         status='PASS' if actual == expected else 'FAIL',

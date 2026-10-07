@@ -6,6 +6,156 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Active package — offline21-day validation implementation (7 October2026)
+
+Current exit status: Steps1–3 implementation and bounded package acceptance PASS.
+The ten-pair three-day trial,93 comparisons, daily source/readback proof,
+terminal18-layer publication, finite browser checks, command retry and restoration
+are verified. Original selection is restored. Integrated commit/push and handoff
+are the remaining closure steps. The chronology below
+retains earlier failures and their resolutions; it is not a new queue.
+
+Direct human controller turn `01a11575-2b20-7ec3-bda7-2eea6a6c3035` approves
+`OFFLINE_TEMPORAL_VALIDATION_IMPLEMENTATION_PLAN.md`. A NEW bounded goal owns
+this package; the preceding smoke goal stays closed. No90-day continuation.
+
+Step1 integration/proof DEFERRED until the approved scenario supplies new immutable
+source/run identities and the three-day trial. Bounded changes now implemented:
+explicit daily source-mode precedence and immutable continuation ancestor checks
+(11 focused tests PASS). Read-only review confirms successor calculations use
+ClosingState/actions only; expensive prepared layers are already separate.
+Remaining concrete Step1 boundary: versioned new-scenario Planning/RRR admission
+without invalidating the hardcoded two-run reader/producer pins.
+Step1 scope: qualify and implement the production execution/source/preparation/
+selection boundary and safe continuation. Unmet exit: explicit captured source
+configuration, multi-day own-predecessor/receipt validation, deferred preparation
+without lost canonical daily sources, and guarded terminal admission commands.
+Allowed mutations: this checkout and owned3006/new uniquely owned oracle trial
+resources. Preserve all accepted runs/seals and3005/3002/3003/3004. Proof: focused
+changed-boundary tests and the fresh10pair3day package trial; no full1240pair run.
+Step2 parameters APPROVED (direct reply `call_20bfc654f3364f6a86e035b492365e46`);
+Step2 COMPLETE: frozen, registered ledger-conserving scenario from exact amended catalogue
+committed/pushed at `9c2218d` (scenario checkpoint only, not package acceptance),
+SHA2ecf4e079807e00d0f809abedde1303640910ca82faeb5b8e56671b22d5de0ff, all1240pairs
+on the same21dates. Settle material business parameters together before freeze.
+Step1 resumes with new source identities available. Step3 INTEGRATION ACTIVE:
+human-operated PowerShell preflight/run/resume/summary/terminal
+publication with automatic complete parity/evidence and verified small trial.
+Full21day execution, MTO integration and cutover remain outside this package.
+Scenario evidence: `D:/freshvcf-build/synthetic/rlt-4-7-v1/` contains
+`scenario-validation-001.json` and `scenario-reproducibility-001.json`.
+Identical independent generations004/005; registered004 full SHA
+`ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56`, trial SHA
+`a7e12b4a0ea39c4e0122076df8f6a6268e749dca73a51387278878511281993f`.
+Full input has26040 execution pair-dates,52080 ledger dates including warm-up,
+48144 shipments. Trial contains all21 dates but execution is limited to3;
+its10pairs cover RLT4/5/6/7. The original12day artifact still validates unchanged.
+Sixteen focused tests pass for source-mode, continuation ancestor identity,
+approved eligible-Sleep behavior and physical ledger rejection cases.
+Step3 integration now includes exact candidate-image/runtime-byte verification,
+bounded modern Docker and gated Windows legacy workers (4GiB/two CPUs),
+independent legacy capture/retained comparison, daily typed RRR source and
+terminal-only publication/restoration commands. The original selected image stays
+unchanged. PostgreSQL additive migrations0074/0075 and a separately owned fresh
+schema passed;35 focused tests pass;387 pinned baseline resources verify.
+Active proof: fresh `temporal-smoke-001`, ten retained pairs over June6–8, under
+`D:/freshvcf-build/daily-3006/runtime/offline-temporal-smoke-001`.
+No acceptance is claimed until all three days,31 comparisons/day,daily source
+proofs, terminal preparation/UI and original-selection restoration pass.
+No full1240-pair engine execution is authorized in this implementation turn.
+Trial stopped: modern June6 run `b04181d3-cc75-4b7e-9a28-f71d861f8fad`
+committed with three real APPLY selections; it remains COMPUTED_NOT_YET_PARITY.
+Legacy attempt001 failed its unchanged declared opening identity assertion.
+Readonly owned BPR metadata subsequently showed Seed1/Increment1/LastValueNULL;
+the artifact declares LastValue1. Diagnose the fresh SQL loader state before any
+retry; do not relax its assertion or replay the successful modern day.
+External blocker: SQL823/OS21 on I:/master.mdf persists after the user's restore
+confirmation. A later runtime check found all3005/3006 containers stopped255 and
+protected services with changed start times. No task-issued stop/shared restart,
+selection or configuration replacement occurred. Await owner restoration and
+reconcile exact serving identity before continuation. Evidence:
+`external-runtime-incident-001.json` in the trial folder; all failed attempts remain.
+The whole unit suite ran570 tests:6 failures,19 errors,14 skips. All25 failing
+test names also reproduce from untouched9f69467 in an isolated source export;
+there are no new failing names. This is NOT a green whole suite. Focused35 pass.
+Offline inspection found and corrected an unexercised runner argument defect:
+record_parity expects execution.json rather than its folder. Five focused runner
+tests pass, including the exact argument and reuse after a legacy failure. Original
+runner SHA3c3f6d083d72734ccf22d68128fed829f2803fd1128dfb94a7b25b60fc2a7718
+is retained as `frozen-runner-001.py`; current pins differ ONLY for that host runner.
+The complete runner-only transition is APPROVED by direct reply
+`call_YuWeGF0oMf7XIT15hu0ZnYmU`: execution.json argument, declared used SQL
+identity-counter initialization with zero retained order rows, and exact transition
+pin enforcement. `runner-transition.json` preserves the original package/source
+and binds the revised host runner; six focused runner tests pass.
+SQL catalogue access now passes following owning-environment restoration.
+`external-recovery-snapshot-001.json` confirms identical protected container IDs,
+images, config, host configuration and mounts; only start times changed externally.
+Existing owned3006 containers were started without recreation/configuration change.
+The original protected-before snapshot remains immutable; its strict start-time
+gate will still report the external incident rather than silently certify equality.
+Resume the same three-day trial, reusing modern June6 and retaining failed legacy001.
+Resumed trial now has June6–8 accepted:31 complete comparisons per day and each
+independent daily RRR source proof PASS. Modern June6 was reused; legacy002
+succeeded. Terminal run `b7154c88-2fc9-42c0-a79d-50fb26dfd59f`, output
+`c7b087f1b9a2a6700fffabb6979e942769a10f29c3e3a25b0829f04b615829dd`.
+`complete-prefix-a001.log` verifies all three accepted days and typed daily source
+readback PASS. RRR has zero rows on all three days; no positive RRR claim.
+Invocation still exits FAILED at the original strict protected-service start-time
+gate, retained in `summary-a002.json`. `post-trial-recovery-check-001.json` proves
+exact equality with the recovered snapshot throughout the resumed trial.
+Bounded external-recovery baseline qualification is pending direct approval;
+do not erase the original snapshot or silently weaken this gate. Original3006
+selection readiness passed; no terminal selection occurred. Terminal preparation,
+UI verification/restoration and integrated commit/push remain open. Full21-day
+execution remains unexecuted. The affected runner/continuation/action/source-mode
+suite passes24 tests, including changed-runtime rejection under the approved
+runner-only transition.
+Recovery baseline qualification is APPROVED in controller human turn
+`01a115f2-5d87-7c73-a163-e1012432582c` (verified directly). Exact resumed preservation
+checks now use the retained recovered snapshot, rejecting any non-start-time
+difference from the original. `summary-a003.json` completes with no failure and
+protected services unchanged; all accepted captures were reused, not recalculated.
+Terminal preparation attempt001 exposed two missing RRR prerequisites; its own
+later layer created the prerequisite. Existing retry reused successful layers,
+and attempt002 sealed all18 READY, seal
+`b27f835963fe3034547b4faca3bb579b5c0a0ccdc43d994a31480cbbad5d8e5f`.
+Access activation, offline reader admission and selection-check all pass unselected.
+First selection attempt was restored because the host runner checked HTTP before
+the new process listened. Original selection/config readiness subsequently PASS.
+The exact runner-only bounded readiness wait and restoration-summary correction
+is implemented (nine focused tests PASS), pending matching-pins transition approval
+before retry. Current3006 CAPTCHA approval is also pending for the browser proof.
+Publication readiness/restoration correction approved via `call_8901ef0489874f3eb50cde5a7bbd2dcb`;
+final status-output correction approved via `call_25635c48ea194beea36e921c10267c5a`.
+Selected terminal admission and real broad-account browser checks pass:
+BPR10rows plus three LDC001 shipment occurrences, BTR10rows in both On-Hand and
+Pipeline views, DBM0current suggestions after real APPLY, RRR0rows and colour-band0rows.
+BPR/BTR/DBM/RRR display8June; colour-band has no date label in the retained UI.
+The colour-band menu click did not navigate; its documented direct route loaded
+successfully. No positive colour-band or complete-navigation acceptance is claimed.
+Browser receipts: `terminal-browser-001.json`, `terminal-browser-rrr-001.json`,
+`terminal-browser-colour-final-001.json`. Original configuration restored exactly,
+readyzPASS and protected snapshot equalityPASS (`final-preservation-001.json`).
+Repeated publication after restoration exposed immutable selection receipt reuse:
+the identical tuple had already selected successfully before FileExistsError.
+Original selection restored again. Host-only correction now rejects different
+receipts before serving mutation and reuses identical bytes; ten runner tests pass.
+This final retry transition is pending approval before the command is reverified.
+Baseline verification passes387resources; affected suite passed27tests before the
+new receipt-reuse test. Whole-suite baseline limitations above remain explicit.
+Final selection-retry transition APPROVED via `call_553572c19b1e487eb83e11582c9e721f`.
+The actual PowerShell publish command now exits0 with SELECTED; RestorePrevious
+exits0 with original readyzPASS. Final PowerShell preflight, combined Resume and
+summary all exit0. No engine day was recomputed. `final-summary-001.json` reports
+all three accepted dates and previous selection restored; `summary-a004.json`
+records no failure and exact recovered protected-service preservation.
+Final focused31 tests PASS; pinned387resources unchanged. Evidence remains under
+`D:/freshvcf-build/daily-3006/runtime/offline-temporal-smoke-001`; runtime image
+`sha256:0408073029940316a695ff4384cacaace211269500fbd4a90c6e0963018abfe2`.
+Full21-day/1240-pair execution remains unexecuted and reserved for human operation.
+
+
 ### Final scoped3006 closure and offline handoff — 7 October2026
 
 Direct human controller turn `01a11547-89ce-7522-a223-34c1b23740b3` changes the

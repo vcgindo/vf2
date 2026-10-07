@@ -132,8 +132,9 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
         from parity.report_flaws import validate_scope
         validate_scope(limitation,expected_sha,verify_sources=True)
     if automatic_actions:
-        from parity.temporal_policy import POLICY, commands_for_day
-        if modern.get('action_policy')!=POLICY:raise ValueError('Action trial policy differs')
+        from parity.temporal_policy import policy_for_case, commands_for_day
+        policy = policy_for_case(case)
+        if modern.get('action_policy')!=policy:raise ValueError('Action trial policy differs')
     elif modern.get('action_policy','retained-fixed-actions')!='retained-fixed-actions':
         raise ValueError('Fixed replay cannot certify automatic actions')
     through=len(case['days'])-1 if through is None else through
@@ -141,7 +142,7 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
         raise ValueError('Requested span lacks matching modern output')
     record=dict(status='RUNNING',input_sha256=expected_sha,modern_execution_sha256=sha(modern_execution/'execution.json'),
                 requested_days=through+1,artifact_days=len(case['days']),databases=MAPPING,days=[],
-                action_policy=POLICY if automatic_actions else 'retained-fixed-actions')
+                action_policy=policy if automatic_actions else 'retained-fixed-actions')
     record['report_limitation_digest']=digest(limitation)
     sources=source_files()
     (destination/'source.json').write_text(json.dumps(dict(

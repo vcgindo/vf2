@@ -68,7 +68,39 @@ def successor_index(execution, through, case):
     return through
 
 
-def _accepted_receipt(summary, previous, execution):
+def execution_lineage(previous, execution):
+    """Resolve immutable execution ancestors, preserving each original proof link."""
+    root = Path(os.environ['VF_EVIDENCE_ROOT']).resolve().parent
+    path = (previous / 'execution.json').resolve()
+    current = execution
+    result = {}
+    while True:
+        if not path.is_relative_to(root) or path in result:
+            raise ValueError('Execution lineage escaped its owner or contains a cycle')
+        raw = path.read_bytes()
+        if json.loads(raw) != current:
+            raise ValueError('Execution lineage content differs')
+        result[path] = file_sha(path)
+        link = current.get('continuation')
+        if not link:
+            break
+        parent_path = Path(link['path']).resolve()
+        if not parent_path.is_relative_to(root) or file_sha(parent_path) != link['sha256']:
+            raise ValueError('Execution ancestor identity differs')
+        if file_sha(parent_path.parent / 'source.json') != link.get('source_sha256'):
+            raise ValueError('Execution ancestor source identity differs')
+        parent = json.loads(parent_path.read_bytes())
+        prefix = composed_prefix(parent)
+        if (not prefix or len(prefix) >= len(current['days'])
+                or prefix != composed_prefix(current)[:len(prefix)]
+                or any(parent.get(key) != current.get(key) for key in
+                       ('artifact_sha256', 'artifact_days', 'action_policy', 'report_exceptions', 'mdm_source'))):
+            raise ValueError('Execution ancestor is not the unchanged accepted prefix')
+        path, current = parent_path, parent
+    return frozenset(result.values())
+
+
+def _accepted_receipt(summary, previous, execution, *, execution_hashes=None):
     root = Path(os.environ['VF_EVIDENCE_ROOT']).resolve().parent
     receipt_path = (root / summary.get('receipt', '')).resolve()
     if not receipt_path.is_relative_to(root) or not receipt_path.is_file():
@@ -77,7 +109,9 @@ def _accepted_receipt(summary, previous, execution):
     if hashlib.sha256(receipt_bytes).hexdigest() != summary.get('sha256'):
         raise ValueError('Accepted parity receipt bytes differ')
     receipt = json.loads(receipt_bytes)
-    if (receipt.get('modern_execution_sha256') != file_sha(previous / 'execution.json')
+    if execution_hashes is None:
+        execution_hashes = execution_lineage(previous, execution)
+    if (receipt.get('modern_execution_sha256') not in execution_hashes
             or receipt.get('input_sha256') != execution['artifact_sha256']
             or receipt.get('action_policy') != execution['action_policy']
             or receipt.get('status') not in ('PASS', 'COMPLETE_WITH_LEGACY_FLAWS')):
@@ -85,7 +119,7 @@ def _accepted_receipt(summary, previous, execution):
     return receipt
 
 
-def validate_accepted_prefix(previous, execution, case):
+def validate_accepted_prefix(previous, execution, case, *, require_parity=True):
     """Validate every persisted prefix fact before returning its last run."""
     from mta.runtime.management.commands.record_parity import CONTRACTS
     from mta.runtime.models import CalculationRun
@@ -100,11 +134,12 @@ def validate_accepted_prefix(previous, execution, case):
         raise ValueError('Continuation requires one complete retained prefix')
     expected = list(CONTRACTS)
     if execution['action_policy'] != 'retained-fixed-actions':
-        from parity.temporal_policy import POLICY
-        if execution['action_policy'] != POLICY:
+        from parity.temporal_policy import policy_for_case
+        if execution['action_policy'] != policy_for_case(case):
             raise ValueError('Continuation action policy differs')
         expected += ['own-action-selection', 'post-action-state']
     prior = None
+    execution_hashes = execution_lineage(previous, execution)
     for index, current in enumerate(days):
         expected_revision = current.get('execution_revision', execution.get('revision'))
         if (current.get('day_index') != index
@@ -165,28 +200,36 @@ def validate_accepted_prefix(previous, execution, case):
                     or event.after_digest != row.get('after')):
                 raise ValueError('Continuation command identity differs')
 
-        summary = run.parity_summary
-        receipt = _accepted_receipt(summary, previous, execution)
-        if index >= len(receipt.get('days', [])):
-            raise ValueError('Accepted parity receipt lacks prefix day')
-        accepted = receipt['days'][index]
-        checks = accepted.get('comparisons', [])
-        statuses = {row['contract']: row['status'] for row in checks}
-        accepted_status = ('PASS_WITH_LEGACY_FLAWS'
-                           if any(row['status'] == 'LEGACY_FLAW' for row in checks) else 'PASS')
-        if ([row.get('contract') for row in checks] != expected
-                or not independent_contracts_pass(checks)
-                or accepted.get('status') != accepted_status
-                or accepted.get('day_index') != index or accepted.get('date') != current['date']
-                or accepted.get('modern_run') != str(run.pk)
-                or accepted.get('modern_output_digest') != run.output_digest
-                or summary.get('status') != accepted_status or summary.get('day_index') != index
-                or summary.get('artifact_sha256') != execution['artifact_sha256']
-                or summary.get('boundaries') != list(BOUNDARIES)
-                or summary.get('comparisons') != statuses
-                or summary.get('legacy_flaw_is_parity') is not False):
-            raise ValueError('Existing parity acceptance differs from full receipt')
-        if run.successors.filter(status__in=('RUNNING', 'SUCCEEDED')).exists():
+        if require_parity:
+            summary = run.parity_summary
+            if summary.get('offline_rrr_proof'):
+                from mta.presentation.offline_rrr import require_proof
+                require_proof(run)
+            receipt = _accepted_receipt(summary, previous, execution,
+                                        execution_hashes=execution_hashes)
+            if index >= len(receipt.get('days', [])):
+                raise ValueError('Accepted parity receipt lacks prefix day')
+            accepted = receipt['days'][index]
+            checks = accepted.get('comparisons', [])
+            statuses = {row['contract']: row['status'] for row in checks}
+            accepted_status = ('PASS_WITH_LEGACY_FLAWS'
+                               if any(row['status'] == 'LEGACY_FLAW' for row in checks) else 'PASS')
+            if ([row.get('contract') for row in checks] != expected
+                    or not independent_contracts_pass(checks)
+                    or accepted.get('status') != accepted_status
+                    or accepted.get('day_index') != index or accepted.get('date') != current['date']
+                    or accepted.get('modern_run') != str(run.pk)
+                    or accepted.get('modern_output_digest') != run.output_digest
+                    or summary.get('status') != accepted_status or summary.get('day_index') != index
+                    or summary.get('artifact_sha256') != execution['artifact_sha256']
+                    or summary.get('boundaries') != list(BOUNDARIES)
+                    or summary.get('comparisons') != statuses
+                    or summary.get('legacy_flaw_is_parity') is not False):
+                raise ValueError('Existing parity acceptance differs from full receipt')
+        successors = run.successors.filter(status__in=('RUNNING', 'SUCCEEDED'))
+        if index + 1 < len(days):
+            successors = successors.exclude(pk=days[index + 1]['run_id'])
+        if successors.exists():
             raise ValueError('Accepted prefix already has an active successor')
         prior = run
     return prior
