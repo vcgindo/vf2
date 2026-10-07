@@ -113,7 +113,8 @@ def _verify_source(receipt_path, receipt, current=None):
             or digest(value.get('files')) != value.get('files_digest')):
         raise ValueError('Legacy source dependency receipt differs')
     if current is not None and value['files'] != current:
-        raise ValueError('Legacy capture dependencies changed')
+        from mta.runtime.offline_transition import legacy_sources
+        legacy_sources(receipt_path, receipt, value['files'], current)
     return value['files']
 
 
@@ -146,10 +147,13 @@ def _predecessor(case, index, receipt_path, receipt_sha, input_sha, policy, sour
     if (prior.get('status') != 'CAPTURED' or prior.get('day_index') != index - 1
             or prior.get('date') != case['days'][index - 1]['business_date']
             or prior.get('input_sha256') != input_sha
-            or prior.get('action_policy') != policy
-            or prior.get('source_files_digest') != sources_digest):
+            or prior.get('action_policy') != policy):
         raise ValueError('Legacy predecessor is not the contiguous same-contract capture')
-    _verify_source(path, prior)
+    current_sources = _authority().source_files()
+    _verify_source(path, prior, current_sources if digest(current_sources)==sources_digest else None)
+    if prior.get('source_files_digest') != sources_digest:
+        from mta.runtime.offline_transition import legacy_sources
+        legacy_sources(path,prior,_verify_source(path,prior),current_sources)
     closing_path = _capture_file(path, prior, 'closing_path', 'closing_sha256')
     authority = _authority()
     closing = authority.load_gzip(closing_path)
@@ -247,9 +251,11 @@ def capture_one(artifact, expected_sha, destination, day_index, previous=None):
 
 
 def _capture_lineage(receipt_path, receipt_sha):
-    lineage = []
+    lineage = []; seen = set()
     path, receipt = _read_capture(receipt_path, receipt_sha)
     while True:
+        if path in seen:raise ValueError('Legacy capture lineage cycle')
+        seen.add(path)
         lineage.append((path, receipt))
         predecessor = receipt.get('predecessor')
         if predecessor is None:
@@ -263,7 +269,7 @@ def _capture_lineage(receipt_path, receipt_sha):
 
 
 def _compare_retained(*, artifact, expected_sha, modern_execution,
-                      legacy_receipt, legacy_receipt_sha256, destination):
+                      legacy_receipt, legacy_receipt_sha256, destination, accepted_prefix=None):
     """Compare an immutable legacy capture lineage to retained modern outputs."""
     artifact = Path(artifact)
     modern_execution = Path(modern_execution).resolve()
@@ -279,13 +285,16 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
     policy = policy_for_case(case)
     current_sources = authority.source_files()
     lineage = _capture_lineage(legacy_receipt, legacy_receipt_sha256)
+    from mta.runtime.offline_transition import transition as readiness_transition
+    readiness = readiness_transition()
     transition_receipt=lineage[-1][1].get('source_transition')
     transition=(_repair_transition(transition_receipt['path'],transition_receipt['sha256'],
-                current_sources,expected_sha) if transition_receipt else None)
+                current_sources,expected_sha) if transition_receipt and readiness is None else None)
     if transition and len(lineage)!=3:raise ValueError('Repair comparison is terminal at day three')
     if len(lineage) > len(case['days']):
         raise ValueError('Legacy capture exceeds the frozen horizon')
     for path, capture in lineage:
+        _bound_namespace(capture['namespace'])
         if (capture['input_sha256'] != expected_sha or capture['action_policy'] != policy
                 or capture['date'] != case['days'][capture['day_index']]['business_date']):
             raise ValueError('Legacy capture input/action/date lineage differs')
@@ -297,6 +306,15 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
             or modern.get('action_policy') != policy
             or len(modern.get('days', [])) < len(lineage)):
         raise ValueError('Modern retained execution input/action/span differs')
+    prefix = []
+    if accepted_prefix is not None:
+        from parity.accepted_prefix import verify_prefix
+        prefix = verify_prefix(accepted_prefix, modern, lineage)
+    if readiness is not None:
+        modern_source = json.loads((modern_execution/'source.json').read_text(encoding='utf-8'))
+        if (modern_source.get('files') not in [*readiness['modern_before'], readiness['modern_after']]
+                or modern_source.get('execution_revision') != modern.get('revision')):
+            raise ValueError('Readiness modern capture source differs')
     limitation = modern.get('report_exceptions', {})
     if limitation:
         from parity.report_flaws import validate_scope
@@ -305,12 +323,13 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
         'status': 'RUNNING', 'input_sha256': expected_sha,
         'modern_execution_sha256': _sha(modern_path),
         'requested_days': len(lineage), 'artifact_days': len(case['days']),
-        'databases': lineage[-1][1]['namespace'], 'days': [],
+        'databases': lineage[-1][1]['namespace'], 'days': prefix,
         'action_policy': policy, 'report_limitation_digest': digest(limitation),
         'legacy_capture_receipt': {'path': str(Path(legacy_receipt).resolve()),
                                    'sha256': legacy_receipt_sha256},
     }
-    for index, (receipt_path, capture) in enumerate(lineage):
+    for index in range(len(prefix),len(lineage)):
+        receipt_path,capture=lineage[index]
         entry = {'day_index': index, 'date': capture['date'], 'status': 'RUNNING',
                  'opening_digest': (digest(case['opening']) if index == 0
                                     else lineage[index - 1][1]['closing_digest']),
@@ -377,6 +396,10 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
         )
         if not success:
             break
+        # A fresh worker compares one day; compatibility callers also release it.
+        del legacy, actual, post
+        import gc
+        gc.collect()
     _write_json_exclusive(destination / 'replay.json', record)
     _write_json_exclusive(destination / 'source.json', {
         'schema': 'fresh-offline-retained-comparison-source-v1',
@@ -386,13 +409,14 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
 
 
 def compare_retained(artifact, expected_sha, modern_execution,
-                     legacy_capture, destination):
+                     legacy_capture, destination, accepted_prefix=None):
     """Runner-facing comparison API using the terminal capture receipt path."""
     legacy_capture = Path(legacy_capture).resolve()
     return _compare_retained(
         artifact=artifact, expected_sha=expected_sha,
         modern_execution=modern_execution, legacy_receipt=legacy_capture,
         legacy_receipt_sha256=_sha(legacy_capture), destination=destination,
+        accepted_prefix=accepted_prefix,
     )
 
 

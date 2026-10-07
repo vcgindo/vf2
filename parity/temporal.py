@@ -8,8 +8,7 @@ from copy import deepcopy
 import hashlib
 import json
 
-BOUNDARIES = ('controls', 'final-bpr-bluezone', 'dbm-imported', 'final-suspensions',
-              'final-suggestions', 'post-rule-reports', 'btr-insights', 'closing-state')
+from mta.runtime.receipt_integrity import BOUNDARIES
 
 
 def fingerprint(value, path=''):

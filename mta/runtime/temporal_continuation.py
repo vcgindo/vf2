@@ -43,6 +43,10 @@ def validate_source_transition(previous_source, current_files):
             before_digest=identity, after_digest=identity,
             unchanged_semantics_digest=identity,
             reviewed_non_execution_digest=mapping_digest([]), changes=[])
+    from mta.runtime.offline_transition import modern_sources
+    approved = modern_sources(previous_files, current_files)
+    if approved is not None:
+        return approved
     changes = [dict(path=path, before=previous_files.get(path), after=current_files.get(path))
                for path in sorted(set(previous_files) | set(current_files))
                if previous_files.get(path) != current_files.get(path)]
@@ -232,6 +236,7 @@ def validate_accepted_prefix(previous, execution, case, *, require_parity=True):
         if successors.exists():
             raise ValueError('Accepted prefix already has an active successor')
         prior = run
+        del output, state, action, db_commands
     return prior
 
 

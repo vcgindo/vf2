@@ -148,7 +148,8 @@ class OfflineTemporalTest(unittest.TestCase):
         destination = self.root / 'comparison'
         with patch.object(offline, '_registered_artifact'), \
              patch.object(offline, '_authority', return_value=authority), \
-             patch('parity.temporal.legacy_states', return_value={'opening': []}):
+             patch('parity.temporal.legacy_states', return_value={'opening': []}), \
+             patch('parity.legacy_isolation.MAPPING', self.namespace):
             record = offline.compare_retained(
                 self.artifact, self.artifact_sha, modern,
                 capture_dir / 'receipt.json', destination)
@@ -182,7 +183,8 @@ class OfflineTemporalTest(unittest.TestCase):
         destination = self.root / 'divergence'
         with patch.object(offline, '_registered_artifact'), \
              patch.object(offline, '_authority', return_value=authority), \
-             patch('parity.temporal.legacy_states', return_value={'opening': []}):
+             patch('parity.temporal.legacy_states', return_value={'opening': []}), \
+             patch('parity.legacy_isolation.MAPPING', self.namespace):
             record = offline.compare_retained(
                 self.artifact, self.artifact_sha, modern,
                 capture_dir / 'receipt.json', destination)

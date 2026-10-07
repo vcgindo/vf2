@@ -52,6 +52,11 @@ def owned(execution_id):
 
 def require_package_sources(folder, package):
     current = sources()
+    approved = readiness_package(folder, package)
+    if approved is not None:
+        if current != approved['sources']:
+            raise ValueError('Readiness candidate source files differ')
+        return os.environ['VF_OFFLINE_READINESS_SHA256']
     if current == package['sources']:
         return None
     transition = load(folder/'runner-transition.json')
@@ -109,8 +114,104 @@ def require_package_sources(folder, package):
     return sha(folder/'runner-transition.json')
 
 
+def readiness_package(folder, package):
+    from mta.runtime.offline_transition import transition
+    value = transition()
+    if value is None:
+        return None
+    if (package['execution_id'] != value['execution_id']
+            or sha(folder/'package.json') != value['package_sha256']
+            or package['sources'] != value['before_sources']
+            or package['image'] != value['before_image']
+            or package['databases'] != value['databases']
+            or package['input']['sha256'] != value['input_sha256']
+            or sha(folder/value['worker_compose']['path']) != value['worker_compose']['sha256']):
+        raise ValueError('Readiness original package or worker identity differs')
+    expected = load(folder/'worker-compose.json')
+    expected['services']['mta']['image'] = value['after_image']
+    if load(folder/value['worker_compose']['path']) != expected:
+        raise ValueError('Readiness worker must preserve original isolation and resources')
+    for index in range(len(value['modern_retained'])):
+        retained_modern(folder,index)
+    return {**package, 'image':value['after_image'], 'sources':value['after_sources']}
+
+
+def retained_modern(folder, index):
+    from mta.runtime.offline_transition import transition
+    value = transition()
+    if value and index < len(value['modern_retained']):
+        anchor = value['modern_retained'][index]
+        path = Path(anchor['execution']['path']).resolve().parent
+        if (Path(anchor['execution']['path']).resolve() != path/'execution.json'
+                or Path(anchor['sources']['path']).resolve() != path/'source.json'):
+            raise ValueError('Retained modern counterpart paths differ')
+        for name in ('execution','sources'):
+            item = anchor[name]
+            if sha(item['path']) != item['sha256']:
+                raise ValueError('Retained modern identity changed')
+        if load(path/'execution.json')['days'][-1]['day_index'] != index:
+            raise ValueError('Retained modern counterpart differs')
+        return path
+    return latest(folder,'modern-%03d-*'%index,'execution.json',
+        passing=lambda r:r['days'][-1]['status']=='COMPUTED_NOT_YET_PARITY')
+
+
+def require_release(options, kind):
+    from mta.runtime.offline_transition import transition
+    if transition() and not getattr(options,'release_'+kind,False):
+        raise ValueError('Readiness hold: subsequent human release required for '+kind)
+
+
+def retained_legacy(folder, index):
+    from mta.runtime.offline_transition import transition
+    value = transition()
+    if value and index < len(value['legacy_retained']):
+        anchor = value['legacy_retained'][index]
+        path = Path(anchor['path'])
+        if sha(path) != anchor['sha256']:
+            raise ValueError('Retained legacy receipt changed')
+        return path.parent
+    return latest(folder,'legacy-%03d-*'%index,'receipt.json',passing=lambda r:r.get('status')=='CAPTURED')
+
+
+def prefix_receipts(folder, through):
+    from mta.runtime.offline_transition import transition
+    value = transition()
+    result = []
+    for index in range(through):
+        path = latest(folder,'compare-%03d-*'%index,'accepted.json',passing=lambda r:r.get('status')=='PASS')
+        if path is None:
+            raise ValueError('Accepted prefix has a gap')
+        def bound(file):
+            return dict(path=str(file.resolve()),sha256=sha(file))
+        accepted = bound(path/'accepted.json')
+        if value and index < len(value['accepted_prefix']):
+            anchor = value['accepted_prefix'][index]
+            if accepted != anchor:
+                raise ValueError('Original accepted prefix anchor changed')
+        item = load(path/'accepted.json')
+        if value and index >= len(value['accepted_prefix']):
+            from mta.runtime.offline_transition import SHA_ENV
+            if item.get('transition_sha256') != os.environ[SHA_ENV]:
+                raise ValueError('New accepted receipt lacks matching readiness transition')
+        result.append(dict(day_index=index,accepted=accepted,replay=bound(path/'replay.json'),
+            rrr=bound(path/'rrr-source.json'),execution=bound(Path(item['modern'])/'execution.json')))
+    return result
+
+
 def protected_baseline(folder):
     original = load(folder/'protected-before.json')
+    from mta.runtime.offline_transition import transition
+    approved = transition()
+    if approved:
+        anchor = approved['protected_baseline']
+        path = folder/anchor['path']
+        if sha(path) != anchor['sha256'] or approved['original_protected_sha256'] != sha(folder/'protected-before.json'):
+            raise ValueError('Readiness protected baseline changed')
+        current = load(path)
+        if any(current.get(name) != row for name,row in original.items()):
+            raise ValueError('Readiness baseline changed an originally protected service')
+        return current
     path = folder/'approved-recovery-baseline.json'
     if not path.exists():
         return original
@@ -146,12 +247,22 @@ def bounded_legacy_command(args,log):
         result=run(args,stdout=stream,cwd=ROOT)
     save(Path(log).with_suffix('.resources.json'),result)
     if result['returncode']:
+        if result['returncode']==4:
+            raise ComparisonFailure(f'Comparison failed; retained log: {log}')
         raise RuntimeError(f"Bounded legacy worker failed ({result['returncode']}); retained log: {log}")
 
 
 def worker(folder, args, log, *, extra_env=None):
-    cmd = ['docker','compose','-f',folder/'worker-compose.json','run','--rm','--no-deps','-T']
-    for key,value in (extra_env or {}).items():
+    from mta.runtime.offline_transition import transition, PATH_ENV, SHA_ENV
+    approved = transition()
+    compose = folder/(approved['worker_compose']['path'] if approved else 'worker-compose.json')
+    if approved and sha(compose) != approved['worker_compose']['sha256']:
+        raise ValueError('Readiness worker compose changed')
+    env = dict(extra_env or {})
+    if approved:
+        env.update({PATH_ENV:container_path(os.environ[PATH_ENV]),SHA_ENV:os.environ[SHA_ENV]})
+    cmd = ['docker','compose','-f',compose,'run','--rm','--no-deps','-T']
+    for key,value in env.items():
         cmd += ['-e',key+'='+value]
     command([*cmd,'--entrypoint','python','mta','manage.py',*args], log)
 
@@ -177,7 +288,16 @@ def preflight(options):
     validation = validate(artifact)
     for name,expected in pins['generator_dependencies'].items():
         if sha(ROOT/name)!=expected:
-            raise ValueError('Frozen generator dependency changed: '+name)
+            # The registered artifact was not regenerated. The approved
+            # refinement only appended rows_digest to this shared module;
+            # all original generator functions remain byte-identical.
+            folder=owned(options.execution_id)
+            original=load(folder/'package.json') if (folder/'package.json').exists() else None
+            effective=readiness_package(folder,original) if original else None
+            if (name!='mta/serialization.py' or effective is None
+                    or original['sources'].get(name)!=expected
+                    or sha(ROOT/name)!=effective['sources'].get(name)):
+                raise ValueError('Frozen generator dependency changed: '+name)
     compose = load(OWNER/'compose.json')
     svc = compose['services']['mta']
     if (compose['name']!='freshvcf-daily3006' or svc.get('restart')!='no'
@@ -214,12 +334,43 @@ def preflight(options):
     if free<required:
         raise ValueError(f'Insufficient evidence storage: {free} bytes free; {required} required')
     master=artifact['case']['static_day']['raw_master']
-    return dict(status='PASS',scenario=options.scenario,input=item,image=image,
+    result = dict(status='PASS',scenario=options.scenario,input=item,image=image,
         population=dict(pairs=len(master),skus=len({r['SKUCode'] for r in master}),locations=len({r['WhCode'] for r in master})),
         requested_dates=[d['business_date'] for d in artifact['case']['days'][:item['execution_through']+1]],
         registry_sha256=sha(REGISTRY),sources=sources(),compose_sha256=sha(OWNER/'compose.json'),
         execution_id=options.execution_id,databases=dict(isolation.MAPPING),
         storage_free_bytes=free,storage_required_bytes=required,ledger=validation)
+    folder = owned(options.execution_id)
+    if (folder/'package.json').exists():
+        original = load(folder/'package.json')
+        effective = readiness_package(folder,original) or original
+        require_package_sources(folder,original)
+        for key in ('scenario','input','image','registry_sha256','compose_sha256','execution_id','databases'):
+            if effective[key] != result[key]:
+                raise ValueError('Preflight retained package identity differs: '+key)
+        result['continuation'] = summary(folder)
+        if readiness_package(folder,original):
+            count=len(result['continuation']['accepted_dates'])
+            if not count:raise ValueError('Readiness requires the retained accepted prefix')
+            previous=retained_modern(folder,count-1)
+            source=load(folder/'mdm-source.json')
+            log=next_attempt(folder,'readiness-prefix-check').with_suffix('.log')
+            if count==len(result['requested_dates']):
+                args=['verify_offline_terminal','--execution',container_path(previous),
+                    '--input',container_path(folder/'input.json'),'--scenario',effective['scenario'],
+                    '--owner',options.execution_id]
+            else:
+                args=['run_temporal',container_path(folder/'input.json'),'--sha256',item['sha256'],
+                    '--revision','readiness-check-only','--evidence',container_path(folder/'unused-preflight-target'),
+                    '--through',str(count),'--continue-from',container_path(previous),
+                    '--automatic-actions','--bounded-one-day','--verify-prefix-only',
+                    '--mdm-source',str(source['id']),'--mdm-source-digest',source['digest'],
+                    '--bpr-remark-horizon','90']
+            worker(folder,args,log)
+            result['persisted_prefix_proof']=dict(log=str(log),sha256=sha(log),result=last_json(log))
+            from tools.daily_stack_setup import snapshot
+            if snapshot()!=protected_baseline(folder):raise ValueError('Readiness protected services changed')
+    return result
 
 
 def initialize(options):
@@ -228,11 +379,12 @@ def initialize(options):
     if folder.exists():
         if not options.resume:
             raise ValueError('Execution exists: inspect summary and use explicit -Resume')
-        prior = load(folder/'package.json')
+        original = load(folder/'package.json')
+        prior = readiness_package(folder,original) or original
         for key in ('scenario','input','image','registry_sha256','sources','compose_sha256','execution_id','databases'):
             if prior[key]!=result[key]:
                 if key == 'sources':
-                    require_package_sources(folder, prior)
+                    require_package_sources(folder, original)
                     continue
                 raise ValueError('Resume frozen identity differs: '+key)
         return folder,prior
@@ -267,8 +419,7 @@ def last_json(log):
 
 
 def modern_day(folder, package, index, previous, mode):
-    existing=latest(folder,'modern-%03d-*'%index,'execution.json',
-        passing=lambda r:r['days'][-1]['status']=='COMPUTED_NOT_YET_PARITY')
+    existing=retained_modern(folder,index)
     if existing:
         if load(existing/'execution.json').get('computation_only',False)!=(mode=='modern-only'):
             raise ValueError('Existing modern verification mode differs')
@@ -296,6 +447,7 @@ def modern_day(folder, package, index, previous, mode):
 
 
 def legacy_step(options):
+    require_release(options,'calculations')
     folder=owned(options.execution_id); package=load(folder/'package.json')
     require_package_sources(folder, package)
     isolation=bind_namespace(options.execution_id)
@@ -305,7 +457,7 @@ def legacy_step(options):
     from parity.offline_temporal import capture_one
     previous=None
     for index in range(options.day+1):
-        prior=latest(folder,'legacy-%03d-*'%index,'receipt.json',passing=lambda r:r.get('status')=='CAPTURED')
+        prior=retained_legacy(folder,index)
         if prior:
             previous=prior/'receipt.json'
             continue
@@ -376,7 +528,12 @@ def compare_step(options):
     from parity.offline_temporal import compare_retained
     modern=Path(options.modern); legacy=Path(options.legacy)
     target=Path(options.destination)
-    compare_retained(Path(package['input']['path']),package['input']['sha256'],modern,legacy,target)
+    day = load(modern/'execution.json')['days'][-1]
+    if (modern.resolve() != retained_modern(folder,day['day_index']).resolve()
+            or legacy.resolve() != (retained_legacy(folder,day['day_index'])/'receipt.json').resolve()):
+        raise ValueError('Comparison counterpart differs from retained target')
+    compare_retained(Path(package['input']['path']),package['input']['sha256'],modern,legacy,target,
+                    accepted_prefix=prefix_receipts(folder,day['day_index']))
     replay=load(target/'replay.json')
     if replay['status'] not in ('PASS','COMPLETE_WITH_LEGACY_FLAWS'):
         raise ComparisonFailure('Independent temporal comparison failed')
@@ -395,6 +552,7 @@ def compare_step(options):
 
 
 def execute(options):
+    require_release(options,'calculations')
     started=time.monotonic()
     folder,package=initialize(options)
     with execution_lock(folder):
@@ -448,6 +606,7 @@ def execution_lock(folder):
 
 
 def execute_locked(options,folder,package):
+    require_release(options,'calculations')
     mode_path=folder/'mode.json'
     if mode_path.exists():
         if load(mode_path)['mode']!=options.mode:
@@ -458,20 +617,23 @@ def execute_locked(options,folder,package):
         save(mode_path,dict(mode=options.mode))
     previous=None
     for index in range(package['input']['execution_through']+1):
-        modern=latest(folder,'modern-%03d-*'%index,'execution.json',
-            passing=lambda r:r['days'][-1]['status']=='COMPUTED_NOT_YET_PARITY')
+        modern=retained_modern(folder,index)
         if options.mode in ('combined','modern-only'):
             modern=modern_day(folder,package,index,previous,options.mode)
-        legacy=latest(folder,'legacy-%03d-*'%index,'receipt.json',passing=lambda r:r.get('status')=='CAPTURED')
+        legacy=retained_legacy(folder,index)
         if options.mode in ('combined','legacy-only') and legacy is None:
             legacy=next_attempt(folder,'legacy-%03d'%index)
             bounded_legacy_command([PYTHON,__file__,'legacy-step','--execution-id',options.execution_id,
-                '--day',str(index),'--destination',legacy],legacy.with_suffix('.log'))
+                '--day',str(index),'--destination',legacy,'--release-calculations'],legacy.with_suffix('.log'))
         if options.mode in ('combined','compare-retained'):
             if modern is None or legacy is None:
                 raise ValueError('Both independently retained captures are required')
             accepted=latest(folder,'compare-%03d-*'%index,'accepted.json',passing=lambda r:r.get('status')=='PASS')
             if accepted is not None:
+                from parity.accepted_prefix import verify_prefix
+                from parity.offline_temporal import _capture_lineage
+                verify_prefix(prefix_receipts(folder,index+1),load(modern/'execution.json'),
+                    _capture_lineage(legacy/'receipt.json',sha(legacy/'receipt.json')),require_next=False)
                 saved=load(accepted/'accepted.json')
                 if (saved['replay_sha256']!=sha(accepted/'replay.json')
                         or saved['rrr_sha256']!=sha(accepted/'rrr-source.json')
@@ -479,13 +641,12 @@ def execute_locked(options,folder,package):
                     raise ValueError('Accepted comparison files or counterpart identity changed')
             if accepted is None:
                 target=next_attempt(folder,'compare-%03d'%index)
-                command([PYTHON,__file__,'compare-step','--execution-id',options.execution_id,
+                bounded_legacy_command([PYTHON,__file__,'compare-step','--execution-id',options.execution_id,
                     '--modern',modern,'--legacy',legacy/'receipt.json','--destination',target],target.with_suffix('.log'))
                 worker(folder,['record_parity','--replay',container_path(target/'replay.json'),
                     '--modern-execution',container_path(modern/'execution.json'),'--preserve-existing',
                     '--daily-source-proof',container_path(target/'rrr-source.json')],target/'accept.log')
-                save(target/'accepted.json',dict(status='PASS',modern=str(modern),legacy=str(legacy),
-                    replay_sha256=sha(target/'replay.json'),rrr_sha256=sha(target/'rrr-source.json')))
+                accept_comparison(target,modern,legacy)
         previous=modern
         print(json.dumps(dict(day=index+1,mode=options.mode,status='COMPLETE')),flush=True)
     if options.mode in ('combined','compare-retained'):
@@ -496,6 +657,41 @@ def execute_locked(options,folder,package):
     if snapshot()!=protected_baseline(folder):
         raise ValueError('Protected service snapshot changed')
     print(json.dumps(summary(folder),indent=2))
+
+
+def accept_comparison(target,modern,legacy):
+    from mta.runtime.offline_transition import transition,SHA_ENV
+    value=dict(status='PASS',modern=str(modern),legacy=str(legacy),
+        replay_sha256=sha(target/'replay.json'),rrr_sha256=sha(target/'rrr-source.json'))
+    if transition():value['transition_sha256']=os.environ[SHA_ENV]
+    save(target/'accepted.json',value)
+
+
+def compare_next(options):
+    """Exactly one already-calculated counterpart; never starts either engine."""
+    from mta.runtime.offline_transition import transition
+    value=transition()
+    if value is None:raise ValueError('Comparison-only readiness requires a pinned transition')
+    folder=owned(options.execution_id)
+    with execution_lock(folder):
+        package=load(folder/'package.json');require_package_sources(folder,package)
+        index=len(value['accepted_prefix'])
+        state=summary(folder)
+        if len(state['accepted_dates'])!=index:
+            raise ValueError('Comparison-only target is not the anchored next unaccepted day')
+        if index>=len(value['modern_retained']) or index>=len(value['legacy_retained']):
+            raise ValueError('Comparison-only target has no pinned retained counterparts')
+        modern=retained_modern(folder,index);legacy=retained_legacy(folder,index)
+        target=next_attempt(folder,'compare-%03d'%index)
+        bounded_legacy_command([PYTHON,__file__,'compare-step','--execution-id',options.execution_id,
+            '--modern',modern,'--legacy',legacy/'receipt.json','--destination',target],target.with_suffix('.log'))
+        worker(folder,['record_parity','--replay',container_path(target/'replay.json'),
+            '--modern-execution',container_path(modern/'execution.json'),'--preserve-existing',
+            '--daily-source-proof',container_path(target/'rrr-source.json')],target/'accept.log')
+        accept_comparison(target,modern,legacy)
+        from tools.daily_stack_setup import snapshot
+        if snapshot()!=protected_baseline(folder):raise ValueError('Protected service snapshot changed')
+        print(json.dumps(summary(folder),indent=2))
 
 
 def readiness(log):
@@ -534,9 +730,38 @@ def retain_selection(path, value):
         save(path,value)
 
 
+def prepare_terminal(folder, args):
+    """One ordinary retry only for the known RRR prerequisite ordering failure."""
+    log = next_attempt(folder,'prepare').with_suffix('.log')
+    try:
+        worker(folder,['prepare_daily_ui',*args],log)
+    except RuntimeError:
+        before = last_json(log)
+        failed = {k for k,v in before.get('layers',{}).items() if v.get('status')!='READY'}
+        allowed = {'planning_expedite_transit','planning_expedite_charts'}
+        if (before.get('status')!='INCOMPLETE' or not failed or not failed <= allowed
+                or before['layers'].get('rrr',{}).get('status')!='READY'
+                or any(before['layers'][k].get('error_type')!='DoesNotExist'
+                       or before['layers'][k].get('error')!='RrrPreparedProjection matching query does not exist.'
+                       for k in failed)):
+            raise
+        retry = next_attempt(folder,'prepare').with_suffix('.log')
+        worker(folder,['prepare_daily_ui',*args],retry)
+        after = last_json(retry)
+        if (after.get('status')!='READY' or any(after['layers'].get(k)!=v
+                for k,v in before['layers'].items() if v['status']=='READY')):
+            raise ValueError('Terminal preparation retry changed successful layers')
+        return after
+    result = last_json(log)
+    if result.get('status')!='READY':raise ValueError('Terminal preparation is incomplete')
+    return result
+
+
 def publish(options):
+    if not options.restore:require_release(options,'publication')
     folder=owned(options.execution_id); package=load(folder/'package.json')
     require_package_sources(folder, package)
+    package = readiness_package(folder,package) or package
     if options.restore:
         selected=load(folder/'selection.json')
         if sha(OWNER/'compose.json')!=selected['selected_compose_sha256']:
@@ -561,9 +786,7 @@ def publish(options):
         '--input',container_path(folder/'input.json'),'--scenario',package['scenario'],'--owner',package['execution_id']],prooflog)
     terminal=last_json(prooflog)
     args=['--run-id',terminal['run_id'],'--output-digest',terminal['output_digest']]
-    preparelog=next_attempt(folder,'prepare').with_suffix('.log')
-    worker(folder,['prepare_daily_ui',*args],preparelog)
-    prepared=last_json(preparelog)
+    prepared=prepare_terminal(folder,args)
     original=load(OWNER/'compose.json')
     oldenv=original['services']['mta']['environment']
     hierarchy=load(OWNER/'inputs'/Path(oldenv['VF_MTA_HIERARCHY_FILE']).name)
@@ -587,7 +810,9 @@ def publish(options):
     candidate=deepcopy(original)
     candidate['services']['mta']['image']=package['image']
     env=candidate['services']['mta']['environment']
-    env.update(load(folder/'worker-compose.json')['services']['mta']['environment'])
+    from mta.runtime.offline_transition import transition
+    approved = transition()
+    env.update(load(folder/(approved['worker_compose']['path'] if approved else 'worker-compose.json'))['services']['mta']['environment'])
     env.update(access)
     env.update({key:value for key,value in selection.items() if key.startswith('VF_')})
     if not (folder/'previous-compose.json').exists():
@@ -653,6 +878,21 @@ def summary(folder):
     captures=[dict(path=str(p),status=load(p)['status'],error=load(p).get('error'))
               for p in sorted(folder.glob('legacy-*/receipt.json'))]
     mode=load(folder/'mode.json')['mode'] if (folder/'mode.json').exists() else 'combined'
+    from mta.runtime.offline_transition import transition, PATH_ENV, SHA_ENV
+    approved=transition()
+    suffix=(f" -Image {approved['after_image']} -TransitionFile {os.environ[PATH_ENV]} -TransitionSha256 {os.environ[SHA_ENV]}"
+            if approved else '')
+    if accepted:
+        from parity.accepted_prefix import verify_prefix
+        from parity.offline_temporal import _capture_lineage
+        descriptors=prefix_receipts(folder,len(accepted))
+        capture=retained_legacy(folder,len(accepted)-1)/'receipt.json'
+        bind_namespace(package['execution_id'])
+        verify_prefix(descriptors,load(descriptors[-1]['execution']['path']),
+            _capture_lineage(capture,sha(capture)),require_next=False)
+    later=[i for i in range(len(accepted),package['input']['execution_through']+1)
+           if latest(folder,'compare-%03d-*'%i,'accepted.json',passing=lambda r:r.get('status')=='PASS')]
+    if later:raise ValueError('Accepted summary has a gap')
     return dict(execution_id=package['execution_id'],scenario=package['scenario'],
         runner_transition_sha256=sha(folder/'runner-transition.json') if (folder/'runner-transition.json').exists() else None,
         population=package['population'],requested_dates=package['requested_dates'],accepted_dates=accepted,
@@ -663,7 +903,12 @@ def summary(folder):
             'BOR/BOROA and Guided Excess rolling history deferred',
             'Retained GIT SQL207 and native ordering limitations remain; no new exclusions'],
         publication=publication_state(folder),
-        next_safe_command=f"./tools/Invoke-TemporalValidation.ps1 -ExecutionId {package['execution_id']} -Scenario {package['scenario']} -Mode {mode} -Resume",
+        next_safe_command=(f"./tools/Test-TemporalValidationPreflight.ps1 -ExecutionId {package['execution_id']} -Scenario {package['scenario']}"+suffix if approved else
+            f"./tools/Invoke-TemporalValidation.ps1 -ExecutionId {package['execution_id']} -Scenario {package['scenario']} -Mode {mode} -Resume"+suffix),
+        after_human_release_command=f"./tools/Invoke-TemporalValidation.ps1 -ExecutionId {package['execution_id']} -Scenario {package['scenario']} -Mode {mode} -Resume -ReleaseCalculations"+suffix,
+        next_day_index=len(accepted) if len(accepted)<len(package['requested_dates']) else None,
+        calculated_only_dates=sorted({r['date'] for r in rows if r['calculation']=='COMPUTED_NOT_YET_PARITY'}-set(accepted)),
+        execution_hold='Requires subsequent direct human release; preflight does not release calculation or publication',
         required_days=package['input']['execution_through']+1,attempts=rows,
         comparisons=[dict(path=str(p),status=load(p)['status']) for p in sorted(folder.glob('compare-*/replay.json'))],
         selection='No selection implied; terminal publication is a separate command')
@@ -688,7 +933,7 @@ def publication_state(folder):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation',choices=['preflight','run','summary','legacy-step','compare-step','publish'])
+    parser.add_argument('operation',choices=['preflight','run','summary','legacy-step','compare-step','compare-next','publish'])
     parser.add_argument('--scenario-manifest',type=Path,default=REGISTRY)
     parser.add_argument('--scenario',choices=['trial','full'],default='trial')
     parser.add_argument('--execution-id',required=True)
@@ -700,9 +945,22 @@ def main():
     parser.add_argument('--modern',type=Path)
     parser.add_argument('--legacy',type=Path)
     parser.add_argument('--restore',action='store_true')
+    parser.add_argument('--release-calculations',action='store_true')
+    parser.add_argument('--release-publication',action='store_true')
+    parser.add_argument('--transition-file',type=Path)
+    parser.add_argument('--transition-sha256')
     options=parser.parse_args()
+    if bool(options.transition_file)!=bool(options.transition_sha256):
+        raise ValueError('Transition file and trusted SHA256 must be supplied together')
+    if options.transition_file:
+        from mta.runtime.offline_transition import PATH_ENV,SHA_ENV,transition
+        os.environ[PATH_ENV]=str(options.transition_file.resolve())
+        os.environ[SHA_ENV]=options.transition_sha256
+        transition()
     if options.operation=='preflight':
         result=preflight(options)
+        folder=owned(options.execution_id)
+        if folder.exists():save(next_attempt(folder,'preflight').with_suffix('.json'),result)
         print(json.dumps({k:v for k,v in result.items() if k not in ('sources','databases','ledger')},indent=2))
     elif options.operation=='summary':
         print(json.dumps(summary(owned(options.execution_id)),indent=2))
@@ -710,6 +968,8 @@ def main():
         legacy_step(options)
     elif options.operation=='compare-step':
         compare_step(options)
+    elif options.operation=='compare-next':
+        compare_next(options)
     elif options.operation=='publish':
         with execution_lock(owned(options.execution_id)):
             publish(options)

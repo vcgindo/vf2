@@ -11,12 +11,7 @@ from mta.runtime.services import read_outputs
 from mta.runtime.temporal import BOUNDARIES
 from parity.replay_temporal import independent_contracts_pass
 
-CONTRACTS = (*BOUNDARIES, *('calculation/'+name for name in (
-    'pick_remaining','additional_master','stock','routes','order_bpp','advance_stock',
-    'git_advance','requirements','bands','pso_ration','normal_ration','bifurcation',
-    'supplier_bor','bor_oa','logistic_pick')),
-    'master/dbm_master','master/norm_change_export','master/importer_master',
-    'master/norm_change_export_remaining','master/bpr_master','emitted-reports')
+from parity.accepted_prefix import CONTRACTS
 
 
 def verify_preserved_summary(root, existing, summary, entry, replay):

@@ -6,6 +6,67 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Offline-run readiness handoff — complete, 7 October 2026
+
+Human controller turn `01a11738-0fd8-75e1-b7d3-3e1bb367d19c` authorized this
+bounded readiness goal. Prior qualified closure `99d4854`/`b884ff7` remains
+complete; matched-resource performance remains UNPROVED. Full calculation and
+publication remain held pending their separate subsequent direct human releases.
+All bounded exits passed; the commit containing this section is the integrated
+readiness handoff. No further execution follows from this closure.
+
+Implemented guarded next-unaccepted-day comparison in the operator runner.
+Each comparison uses a fresh Windows worker capped at4GiB/two CPUs; accepted
+prefixes are verified by exact receipt/input/action/source identities rather than
+reloading their full populations. Exact31-contract roster and independent RRR
+remain required. Tamper, gaps, wrong counterparts, first failure and release
+holds stop execution. `compare-next` only accepts an explicitly pinned retained
+next day and returns without calculating. Original package/pins/failed attempts
+remain untouched; source compatibility is an exact versioned transition.
+
+Candidate image: `sha256:c2cf4f14c4a8a58cc4010a0875b9eaee9e0be635d0a26499606f537467f578ff`.
+Final transition: `D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-v1/transition-a005.json`,
+SHA256 `601684d09e37ea21eafe7b3f2e468b9fe3fd208794d0355dff51d024c7c99e60`.
+All earlier transition attempts are retained. `package.json` remains unchanged.
+The original registry dependency for `mta/serialization.py` admits only the
+approved exact before/after hash (99d4854 appended `rows_digest`); the frozen
+artifact and all other generator dependencies are unchanged.
+
+Retained day3 comparison-only proof: `compare-002-a001/replay.json` all31 PASS,
+independent `rrr-source.json` PASS; original modern run
+`df0f9187-f157-4fa5-8cdd-51a1f2ee8d90` and approved external
+`refinement/integrated-001/legacy-day3-repair-a001` were used. Peak comparison job
+memory2,818,605,056 bytes under4,294,967,296; no accepted day was recalculated.
+The first pre-population attempt exposed an incorrect cross-representation
+post-action digest check; fixed to verify the legacy digest against its pinned
+legacy receipt while retaining full value comparisons and modern identity.
+The first preflight exposed the approved serialization hash transition; fixed
+without changing the scenario registry. All failed attempts remain preserved.
+
+Owned PostgreSQL identity/source/run checks passed before additive0076–0078
+migrations; Django check, makemigrations check and migration plan passed.
+`readiness-v1/preservation.json` proves all three original calculation/action
+rows unchanged, original two parity summaries/receipts unchanged and only day3
+parity attached. Current accepted dates are June6–8; no calculated-only day;
+next index3 is June9. The same1240 pairs/21 days June6–26 and frozen input SHA
+`ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56` remain pinned.
+28 focused tests, four PowerShell syntax checks,387 baseline identities and
+live calculation/publication/compare-next hold guards passed. Exact operator
+preflight a002 returned PASS, verified all three persisted days/actions and
+identified the original June8 run as next predecessor. Protected-service
+snapshots match exactly. Evidence: `readiness-v1/readiness-result.json`,
+`operator-preflight-a002.log`, `readiness-prefix-check-a001.log` and
+`protected-after.json`.
+
+`docs/OFFLINE_TEMPORAL_VALIDATION_RUNBOOK.md` gives exact executable numbered
+steps1–4 now, then STOP; H1–H4 require calculation release and H5–H8 require
+separate publication release. It distinguishes full validation capture/actions
+from the89.9s production probe, uses terminal-only expensive preparation with
+one exact known RRR-prerequisite retry, and separates recovery/restoration.
+BOR/BOROA/Guided Excess history deferrals, RRR MTO0 exception, authentication,
+scopes, original seal and3005/current3006 selection remain protected. No new
+calculation day, full-run resume, activation, benchmark or browser work occurred.
+
 ### Integrated daily execution refinement — complete with approved qualification
 
 Bounded goal is complete in executor chat `01a10dd1-f170-7232-a731-568fd524a163`,

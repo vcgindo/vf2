@@ -87,7 +87,7 @@ class OfflineRunnerTests(unittest.TestCase):
                 runner.save(target/'rrr-source.json',{'status':'PASS'})
             with patch.object(runner,'latest',side_effect=latest), \
                     patch.object(runner,'modern_day',return_value=modern), \
-                    patch.object(runner,'command',side_effect=compare), \
+                    patch.object(runner,'bounded_legacy_command',side_effect=compare), \
                     patch.object(runner,'worker') as worker, \
                     patch.object(runner,'container_path',side_effect=lambda p:str(p)), \
                     patch.object(runner,'summary',return_value={}), \
