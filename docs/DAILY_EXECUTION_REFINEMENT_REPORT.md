@@ -1,7 +1,10 @@
 # Daily execution refinement: evidence and limits
 
-7 October 2026. Execution status and remaining exits are recorded in
-[MIGRATION.md](MIGRATION.md). This report does not authorize full-run continuation.
+7 October 2026. Implementation `99d4854` is pushed. The user approved qualified
+closure in reply to `call_SVuvxiw9ToTlqD50vcsbxKbf`: matched-resource legacy
+performance remains UNPROVED; the full run and serving publication stay held.
+[MIGRATION.md](MIGRATION.md) is the authoritative status. This report does not
+authorize further execution.
 
 ## Implementation
 

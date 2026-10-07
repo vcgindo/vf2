@@ -6,15 +6,16 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### Integrated daily execution refinement — correctness complete; performance qualification pending
+### Integrated daily execution refinement — complete with approved qualification
 
-Explicit goal remains active in executor chat `01a10dd1-f170-7232-a731-568fd524a163`,
+Bounded goal is complete in executor chat `01a10dd1-f170-7232-a731-568fd524a163`,
 without a token budget. Human controller turn `01a116b3-02eb-77f3-b730-2ea5d466e9c2`
 authorized `MODERN_DAILY_EXECUTION_OPTIMIZATION_PLAN.md`. Implementation and the
-bounded correctness exercise are complete. Remaining closure decision: the
-matched-resource legacy performance target is UNPROVED; unequal database resources
-and capture/persistence boundaries prohibit a matched end-to-end speed claim.
-Do not silently waive that gate or resume the held full run.
+bounded correctness exercise are complete. Human reply to `call_SVuvxiw9ToTlqD50vcsbxKbf` explicitly approves qualified
+closure: matched-resource legacy performance remains UNPROVED. Unequal database
+resources and capture/persistence boundaries prohibit a matched end-to-end speed
+claim. The full run and serving publication remain held. Implementation commit
+`99d4854` is pushed; no further execution follows from this closure.
 
 Evidence root: `D:/freshvcf-build/refinement/integrated-001/`. The separate owned
 PostgreSQL has no host port and is limited to 1 GiB/one CPU. Workers are bounded
@@ -70,8 +71,9 @@ and [complete-flow coverage](DAILY_EXECUTION_COVERAGE.md).
 Operator instruction: execute only steps1–3 in
 `OFFLINE_TEMPORAL_VALIDATION_RUNBOOK.md`, then stop. Verified production and
 validation commands are explicitly reference-only. Full-run H1–H8 remain held.
-Commit/push the substantive implementation and this qualified handoff; closing
-the unproved performance gate requires a consolidated human disposition.
+The substantive implementation is pushed at `99d4854`; this closure records the
+human disposition without converting the unproved performance target into a pass.
+Stop here. A new execution or performance scope requires a new human decision.
 
 ### One-day timing diagnostic — complete, 7 October 2026
 
