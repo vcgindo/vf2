@@ -6,6 +6,77 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Bounded daily timing diagnostic — 7 October 2026
+
+DIAGNOSTIC COMPLETE; no optimization or instrumented execution authorized.
+Human controller turn `01a11649-6ded-73a1-9f3b-0f9b83e7a305` requested this
+read-only probe. Scope: completed June7/day2 of `temporal-full-001`, same frozen
+input `ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56`,
+1240 pairs/200 SKUs/13 participating locations within the retained catalogue.
+Modern run `64805a9b-b67a-47df-aef0-8902b6120edd` uses its own predecessor
+`662cb1a4-a372-4c27-bba7-46ae1488f9d1`; legacy uses its own day000 capture.
+Both applied the same six independently produced suggestions in one APPLY event;
+all31 comparisons PASS. Modern worker is4GiB/2CPU; legacy job receipt confirms
+4GiB/2CPU. Database-server resource consumption is outside those worker limits.
+
+Evidence root E = `D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001`.
+
+| Timing boundary | Modern seconds | Legacy seconds | Evidence / interpretation |
+|---|---:|---:|---|
+| Recorded day wrapper | 447.981 | 347.001 | E/modern-001-a001/execution.json and E/legacy-001-a001/receipt.json. Different inclusive boundaries; not a matched pure-calculation comparison. |
+| Run row creation to completion timestamp | 300.935227 | UNMEASURED | Read-only query of the exact modern run's created_at11:37:11.046834Z and completed_at11:42:11.982061Z. Nested within447.981; includes binding, core calculation, relational publication/readback, consumer projections and trace serialization. Excludes earlier input capture and later commit/exports/actions. Wall-clock interval, not a stage timer. |
+| Input/import and predecessor reconstruction | UNMEASURED | UNMEASURED | Modern temporal.execute_day and chain importer/daily/supplier stages; legacy temporal_day loading and canonical importer scripts. |
+| Core requirement/Pick/RRR, BPR, DBM and BTR individually | UNMEASURED | UNMEASURED | Modern chain.calculate_day: execute_calculation/rationed_report, constructor_then_late, selected_stages, btr_stages. Legacy adapter records ordered canonical script identities, not their durations. |
+| Persistence/readback and daily source publication | UNMEASURED | UNMEASURED | Modern services.finish_run/save_daily/read_daily and source writers; legacy SQL state writes and capture queries. |
+| Real action transitions | UNMEASURED | UNMEASURED | Modern record_command/command_state; legacy post-policy APPLY receipts. Included in each wrapper, not separately timed. |
+| Capture/compression/hash/checks | UNMEASURED | UNMEASURED | Modern persist_trace/export_run/OutputArchive.verify/read_outputs/action gzip; legacy capture/closing gzip and digests. Included differently in wrapper timers. |
+| Worker startup and pre-loop verification | UNMEASURED | UNMEASURED | Neither wrapper measures process startup; modern accepted-prefix preflight occurs before its day timer. Legacy timer includes artifact/source/predecessor validation. |
+| External parity/RRR proof/acceptance | UNMEASURED | UNMEASURED | E/compare-001-a001 contains results, not separate duration timers. File timestamps are not treated as stage measurements. |
+
+The wrapper difference is100.980seconds, but no calculation-speed verdict follows.
+The modern interval outside its recorded run lifecycle is147.045773seconds by
+subtraction; it is an unallocated residual across both before/after work, not an
+identified bottleneck. Do not add either nested interval to447.981. The previously
+reported approximate12m30validation/27m36whole-day intervals are not validated
+stage timers and are excluded from this baseline.
+
+Top-three measured modern stage costs and matched legacy equivalents: NOT
+IDENTIFIABLE from retained evidence. Trace metadata has counts/digests but no
+durations. Largest compressed traces are DBMStages25,884,099bytes,
+BTRStages5,921,966bytes and MajorBoundaries5,025,419bytes; these are storage sizes,
+not timing ranks. Timing/check instrumentation overhead is unmeasured and remains
+inside the aggregate wrappers. No full trace decompression or live profiling ran.
+
+Smallest next measurement proposal, requiring a later explicit decision after
+the current full run terminates: one separately owned matched June6–7 reproduction,
+June6 solely to establish each engine's own predecessor, June7 as the measured day;
+same frozen population/actions and4GiB/2CPU workers. Add only scalar monotonic
+start/end timers at the listed existing owners, nesting calculation subspans and
+reporting exclusive totals to prevent double counting. On legacy, time existing
+SQL dispatch separately from before/after capture queries, without editing SQL.
+Time startup, import, persistence, export/hash, actions and external comparison
+separately. No profiler/tracing framework or row payload logging. Preserve all31
+comparisons, source proofs and outputs; overhead must be disclosed as unmeasured
+unless that later decision also authorizes a control run. Do not replay accepted
+days or modify the running full execution.
+
+At most three conditional optimization candidates, not implementation approvals:
+1. If repeated immutable readback/hash validation dominates, reuse verified data
+   only inside the same immutable boundary. Prove unchanged tamper rejection,
+   transaction rollback, action-before/after digests and all31 comparisons.
+2. If trace construction/serialization dominates, reduce simultaneous copies or
+   stream existing traces. Prove identical values, NULLs, types, duplicate order,
+   digests and complete external evidence under the same memory limit.
+3. If a calculation stage dominates, optimize only that measured stage's repeated
+   lookup/join work. Prove canonical ordering, duplicate multiplicity, all31
+   comparisons, action state and next-opening identity; no formula changes.
+
+Only this unpinned tracker section was changed. The seven inspected execution
+owners match the full run's frozen source hashes. No running process, image,
+configuration, input, policy, SQL namespace or accepted receipt was changed.
+Probe stops at this finding and proposal; no optimization campaign is open.
+
+
 ### Active package — offline21-day validation implementation (7 October2026)
 
 Current exit status: Steps1–3 implementation and bounded package acceptance PASS.
