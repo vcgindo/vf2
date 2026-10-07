@@ -6,6 +6,29 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### DBM33.7s diagnostic — stopped on setup failure, 7 October2026
+
+Latest human amendment `01a1176f-0cc3-7b00-8a47-1367d41057db` permits one
+offline June6 day per engine solely to profile DBM, sequentially, with unchanged
+frozen1240-pair input and4GiB/twoCPU workers. It supersedes the earlier
+native-opening-only restriction. No repeats, tuning, parity campaigns,
+non-DBM investigation, accepted-run writes, full continuation or publication.
+
+Active exit remains unmet: the detailed modern/legacy DBM samples and attribution
+were not obtained. Standard isolated PostgreSQL setup failed because Docker's
+predefined network address pools are fully subnetted. Stopped at first failure
+without retry or infrastructure repair, as instructed. Zero engine invocations,
+SQL namespaces or serving changes. The reserved owned volume exists, but no
+probe container/network was created; all evidence/resources are preserved.
+Protected-service snapshots match exactly. A usable permitted network and human
+continuation decision are the next prerequisite; do not infer a full-run release.
+
+Evidence: `D:/freshvcf-build/diagnostics/dbm-33733-001/{evidence.json,postgres-setup.log,setup-failure.json}`.
+Report: `docs/DBM_33733_DIAGNOSTIC.md`. Retained33.733s has no measured substages;
+no unsupported hotspot ranking or optimization is claimed. Existing refinement/
+readiness proofs and full-run/publication holds remain unchanged. The commit
+containing this entry preserves the diagnostic stopping point, not completion.
+
 ### Offline-run readiness handoff — complete, 7 October 2026
 
 Human controller turn `01a11738-0fd8-75e1-b7d3-3e1bb367d19c` authorized this
