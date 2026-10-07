@@ -1,5 +1,8 @@
 # Offline temporal validation
 
+Integrated implementation: `8e1569d`, pushed on
+`codex/btr-ready-snapshot-trial`. Frozen scenario checkpoint: `9c2218d`.
+
 This package uses the approved 1,240-pair catalogue and one shared June6–26,2026
 execution horizon. Every pair has 21 daily inputs. The ten-pair acceptance trial
 uses June6–8 from its separately registered 21-day subset. Input generation is

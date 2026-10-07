@@ -11,8 +11,10 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 Current exit status: Steps1–3 implementation and bounded package acceptance PASS.
 The ten-pair three-day trial,93 comparisons, daily source/readback proof,
 terminal18-layer publication, finite browser checks, command retry and restoration
-are verified. Original selection is restored. Integrated commit/push and handoff
-are the remaining closure steps. The chronology below
+are verified. Original selection is restored. Integrated delivery `8e1569d` is
+committed and pushed to `origin/codex/btr-ready-snapshot-trial`; handoff commands
+and limitations are in `OFFLINE_TEMPORAL_VALIDATION_RUNBOOK.md`. This bounded
+package is COMPLETE; stop here, without full21-day execution. The chronology below
 retains earlier failures and their resolutions; it is not a new queue.
 
 Direct human controller turn `01a11575-2b20-7ec3-bda7-2eea6a6c3035` approves
