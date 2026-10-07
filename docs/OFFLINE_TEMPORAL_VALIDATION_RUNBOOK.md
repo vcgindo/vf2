@@ -1,15 +1,29 @@
 # Operator procedure: retained temporal validation
 
-## Execute now — steps 1–4 only
+## Start here — execute H1 → H2 → H3 → H4
 
-**Run steps 1–4 in order, then stop. Do not execute H1–H8 now.** The DBM-refined
-source/image transition passed live non-calculating preflight on 8 October 2026.
-Calculation and publication still require separate direct human releases.
-`docs/MIGRATION.md`, “DBM-refined offline readiness”, is the sole status tracker.
+**Calculation is authorized. Start at H1 below and run H1–H4 in order.**
+There is no separate preliminary steps 1–4 sequence. The direct human release
+on 8 October 2026 covers `temporal-full-001` with the exact verified pins below.
+The human operator runs these commands; the agent has not started the run.
+
+Resume starts on June 9 and skips the accepted June 6–8 dates. It continues
+through June 26 for the same 1,240 pairs, retaining all 31 comparisons, independent
+RRR, automatic pinned Apply/Sleep actions and required daily persistence.
+No further routine authorization is needed for days 4–21 or their comparisons
+and actions. There is no browser/login/CAPTCHA step during calculation.
+
+**The one remaining planned authorization is terminal publication, H5–H8, after
+H4 succeeds.** A real failure stops the run for investigation; a scope change
+requires its own decision. Do not repeat a failed command unchanged. Expensive
+presentation preparation occurs only at terminal publication.
+
+`docs/MIGRATION.md`, “Human offline calculation release”, records this release.
 Use the existing Windows account with SQL access. Keep Docker Desktop, MSSQL and
-the owned stack running. Do not change services, credentials or source files.
+the owned stack running. Keep the computer awake and connected to power until
+H4 finishes. Do not change services, credentials or source files.
 
-### 1. Open PowerShell and load the exact pins
+### H1. Open PowerShell and load the exact pins
 
 ```powershell
 Set-Location F:/freshvcf
@@ -22,9 +36,11 @@ $Pins = @{
 $CandidateImage = 'sha256:8cd55a876595f37398eaa25828f4d51ecd07b737d25b9208498686732ab7abb2'
 ```
 
-Continue to step 2. Keep this PowerShell session for subsequent steps.
+Keep this PowerShell session open. Continue to H2.
 
-### 2. Read the accepted-prefix summary
+### H2. Read the summary and verify readiness
+
+Run both command blocks below in order.
 
 ```powershell
 $summaryJson = ./tools/Get-TemporalValidationSummary.ps1 @Pins
@@ -36,49 +52,19 @@ if ($summary.required_days -ne 21 -or $summary.population.pairs -ne 1240) {
 }
 ```
 
-The verified prefix is June 6–8, 2026, with no calculated-only day. Day 4
-(June 9) is the next calculation; do not calculate it in this section.
-Day 3 uses its original modern run and the approved repaired legacy capture;
-the failed legacy attempt remains preserved. Calculated-only days do not count
-as accepted. On exit code 0, continue to step 3; on failure follow recovery A.
-
-### 3. Run the non-calculating preflight
+The verified starting prefix is June 6–8, 2026, with no calculated-only day.
+Day 3 uses its original modern run and approved repaired legacy capture; the
+failed attempt is preserved. The summary identifies the next unaccepted day.
 
 ```powershell
 ./tools/Test-TemporalValidationPreflight.ps1 @Pins -Scenario full -Image $CandidateImage
 if ($LASTEXITCODE -ne 0) { throw 'STOP: preflight failed. Follow recovery A.' }
 ```
 
-This verifies the frozen input/ledger, source/image/runner pins, owned SQL and
-PostgreSQL, storage, resources and persisted prefix/actions. It reads retained
-outputs; it does not calculate a day or change serving selection. On `PASS`,
-continue to step 4.
-
-### 4. Hand over the output and stop
-
-Give the maintainer the step-2/3 output and
-`D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1`.
-**Do not run H1–H8 now.** Successful preflight is not a calculation or publication
-release. Leave 3005 and the existing 3006 selection unchanged.
-
-## After a direct human calculation release — H1–H4 only
-
-Enter this section only after the human explicitly releases the held full run
-and the maintainer records that release in `docs/MIGRATION.md`. The release must
-name `temporal-full-001` and these exact pins. It does not release publication.
-No setup, reset, new execution ID, input generation or accepted-day replay is
-part of this procedure.
-
-### H1. Load the pins
-
-Execute **step 1** above. Keep the computer awake and connected to power until
-H4 finishes. Continue to H2.
-
-### H2. Verify readiness
-
-Execute **steps 2 and 3** above. On `PASS`, continue to H3. On failure follow
-recovery A. The preflight checks the current contiguous prefix, so the same
-procedure works after an authorized retry.
+Preflight verifies frozen inputs, exact source/image/runner pins, owned databases,
+resources and persisted prefix/actions without calculating a day. On `PASS`,
+**continue directly to H3; no additional permission is required.** On failure,
+follow recovery A.
 
 ### H3. Resume the existing execution
 
@@ -127,7 +113,8 @@ release is recorded.** Calculation release does not authorize H5.
 
 ### H5. Prepare and publish June 26 on 3006
 
-Execute step 1 to load the same pins, then run:
+After the separate publication release is recorded, execute H1 to load the
+same pins, then run:
 
 ```powershell
 ./tools/Publish-TemporalValidationTerminal.ps1 @Pins -ReleasePublication

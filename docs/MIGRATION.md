@@ -6,6 +6,30 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Human offline calculation release — 8 October 2026
+
+Direct human controller turn01a117ef-d3cc-7761-866a-20c1c851c8aa releases
+calculation of existing temporal-full-001 using verified readiness bd67fea.
+Transition: D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1/transition-v006.json
+SHA256: 4dc6f1acd7f8fd47e2c6893a39e12e1c607f0392c5d2656b0efbf70fcb2cc29d
+Image: sha256:8cd55a876595f37398eaa25828f4d51ecd07b737d25b9208498686732ab7abb2
+
+The human operator executes H1 → H2 → H3 → H4 in the runbook, starting at H1.
+H3 uses combined -Resume -ReleaseCalculations, skips accepted June6–8 and resumes
+June9 throughJune26 for all1240 pairs. No further routine approval is needed for
+calculation days4–21, full31 comparisons plus independent RRR, pinned automatic
+actions or required persistence. First real failure stops for concrete diagnosis;
+no unchanged speculative retries. New scope requires its own decision.
+Publication H5–H8 remains the ONE planned authorization after successful H4;
+no serving selection or publication is released. Calculation needs no browser,
+login or CAPTCHA. Terminal presentation preparation remains at publication.
+
+This documentation-only release supersedes earlier calculation-hold instructions.
+Historical readiness receipts and their release=false fields remain immutable:
+the direct release is supplied operationally by -ReleaseCalculations, not by
+rewriting those receipts. Pins, runtime/source, business rules and inputs remain
+unchanged. The agent has not started the offline run or changed any service.
+
 ### DBM-refined offline readiness — complete, 8 October 2026
 
 Human controller turn01a117d2-e638-7761-9382-cd0cecfe79b1 authorized this bounded
@@ -35,11 +59,12 @@ June6–8; no calculated-only date; next isJune9. Same1240 pairs/21 dates June6�
 and frozen input ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56.
 Evidence: readiness-dbm-v1/readiness-result.json, operator-preflight.log,
 reused-proof-pins.json, candidate-content.json and before/after preservation.
-Runbook now prescribes steps1–4 and STOP, exact H3 -ReleaseCalculations only after
-separate direct human release, and H5 publication only after another release.
+At this readiness handoff, calculation awaited direct release. The later human
+calculation release above now authorizes H1–H4; H5 publication remains separate.
 The70.2s narrower production sample is not combined validation/legacy duration.
 No new engine day, schema change, serving restart, publication or release occurred.
-This goal stops at the verified pinned handoff; both execution holds remain.
+This completed readiness goal stopped at the verified pinned handoff. Its
+calculation hold is superseded by the later release above; publication stays held.
 
 ### Targeted DBM join refinement — complete, 8 October2026
 
