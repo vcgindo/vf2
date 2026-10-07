@@ -6,28 +6,46 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### DBM33.7s diagnostic — stopped on setup failure, 7 October2026
+### DBM33.7s diagnostic — bounded handoff with attribution limits, 7 October2026
 
-Latest human amendment `01a1176f-0cc3-7b00-8a47-1367d41057db` permits one
-offline June6 day per engine solely to profile DBM, sequentially, with unchanged
-frozen1240-pair input and4GiB/twoCPU workers. It supersedes the earlier
-native-opening-only restriction. No repeats, tuning, parity campaigns,
-non-DBM investigation, accepted-run writes, full continuation or publication.
+Human amendment `01a1176f-0cc3-7b00-8a47-1367d41057db` and direct “Approve to
+resume” authorized one offline June6 sample per engine, DBM-only instrumentation,
+and existing-network reuse after the preserved subnet-exhaustion setup failure.
+Exactly one modern and one legacy sample completed sequentially; no repeats,
+warmups, optimizations, parity campaigns, accepted-run writes or publication.
 
-Active exit remains unmet: the detailed modern/legacy DBM samples and attribution
-were not obtained. Standard isolated PostgreSQL setup failed because Docker's
-predefined network address pools are fully subnetted. Stopped at first failure
-without retry or infrastructure repair, as instructed. Zero engine invocations,
-SQL namespaces or serving changes. The reserved owned volume exists, but no
-probe container/network was created; all evidence/resources are preserved.
-Protected-service snapshots match exactly. A usable permitted network and human
-continuation decision are the next prerequisite; do not infer a full-run release.
+Modern production run `87e8afc8-21aa-4b92-ade3-95bbbb774c97` committed one day,
+zero actions and no validation digest. Its same selected_stages boundary measured
+211.011s under cProfile versus the retained33.733s. The profiler was materially
+heavier than intended. Exact uninstrumented33.733s substage attribution remains
+UNPROVED: no scaling, production proportions, regression or speed-ratio claim.
+Call counts identify white/spike/supply full-history scans:1,240 masters by27,280
+observations and171,932,274 key-helper calls across these three functions.
+Ordered key-candidate lookup is the first proposed DBM-only intervention, followed
+by ExtendedOCP/history joins and narrowly justified copy ownership. No change was
+implemented or saved-seconds estimate claimed.
 
-Evidence: `D:/freshvcf-build/diagnostics/dbm-33733-001/{evidence.json,postgres-setup.log,setup-failure.json}`.
-Report: `docs/DBM_33733_DIAGNOSTIC.md`. Retained33.733s has no measured substages;
-no unsupported hotspot ranking or optimization is claimed. Existing refinement/
-readiness proofs and full-run/publication holds remain unchanged. The commit
-containing this entry preserves the diagnostic stopping point, not completion.
+Legacy's64 script intervals total54.363s (retained18.771s); finer execute/fetch/
+SQL CPU/read attribution is UNAVAILABLE because raw ODBC bypassed the finer
+hooks. Session statistics overhead is unmeasured. Both samples retain all limits
+and caveats; no repeat was used to manufacture precision. The controller's
+profiler-bias correction is reflected in `docs/DBM_33733_DIAGNOSTIC.md`.
+
+Evidence root: `D:/freshvcf-build/diagnostics/dbm-33733-001`.
+`samples-a001/{modern-dbm,legacy-dbm}.json`, `attribution-summary.json`,
+`sample-identities.json`, `legacy-worker.json`, `modern-commit-proof.log` and
+`preservation-final.json` retain timings/identity/limits. The exact external
+profiler and two focused instrumentation tests accompany this handoff. No
+calculation code changed. Original package/three accepted receipts and protected
+service identities match exactly. Probe PostgreSQL stopped with data retained;
+new owned SQL prefix726490d1c903c67a remains isolated.4GiB/twoCPU workers,
+1GiB/oneCPU PostgreSQL, no public ports/resource increase. Same frozen1240-pair
+June6 input; separate initial state per engine.
+
+The diagnostic handoff stops here for a human strategy decision. Exact normal
+DBM time allocation and matched-resource legacy performance remain unproved.
+Existing refinement99d4854/b884ff7, readinessb89c790, full-run/publication holds,
+3005/current3006 selection and calculation/SQL/input/action contracts are intact.
 
 ### Offline-run readiness handoff — complete, 7 October 2026
 
