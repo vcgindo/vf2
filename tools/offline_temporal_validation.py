@@ -17,6 +17,19 @@ sys.path.insert(0, str(ROOT))
 OWNER = Path('D:/freshvcf-build/daily-3006')
 PYTHON = Path('D:/freshvcf-build/venv/Scripts/python.exe')
 REGISTRY = ROOT/'baseline/offline-temporal-scenarios-v1.json'
+DBM_READINESS_PARENT = '601684d09e37ea21eafe7b3f2e468b9fe3fd208794d0355dff51d024c7c99e60'
+DBM_READINESS_IMAGE = 'sha256:8cd55a876595f37398eaa25828f4d51ecd07b737d25b9208498686732ab7abb2'
+DBM_SOURCE_TRANSITION = {
+    'mta/domain/dbm_ingestion.py': (
+        '4783962e9b36b0ee4c616edb235d44b58a4469ffc16ae8aa000829e97699734d',
+        '2288da173acd9f098d29c25f5945eedd56f7c8d735382920babe82f91c215f85'),
+    'mta/domain/dbm_suspension_history.py': (
+        'b6556083f0d52b504422dcec9f67f815b3d5a8ceb23717f6d905acbbe814b9cc',
+        'dbf745fce10d7807cc3e3f5ea701d3d1dc3d7ae9dc528fd2a1e45573e3475545'),
+    'mta/domain/dbm_suspensions.py': (
+        '23e49a2bb3acda5e2e8fa8bcb06a961221dbab30e9d738ef4ef45f4ce1ffbd71',
+        '6c241ed7590f6b33ceab4dbb886b2a5ffc6387b28ac26e0d4fb683e77defc9de'),
+}
 
 
 class ComparisonFailure(RuntimeError):
@@ -114,11 +127,58 @@ def require_package_sources(folder, package):
     return sha(folder/'runner-transition.json')
 
 
+def validate_readiness_extension(value):
+    """Admit the new human decision without changing the fixed image's parser.
+
+    The inherited top-level approval is runtime compatibility, not authorization
+    for new sources. The independently hash-pinned extension supplies that grant.
+    """
+    if value is None or (value.get('version', 0) <= 5
+            and value.get('after_image') != DBM_READINESS_IMAGE
+            and 'readiness_extension' not in value):
+        return
+    folder = owned('temporal-full-001')
+    parent_path = folder/'readiness-v1/transition-a005.json'
+    if sha(parent_path) != DBM_READINESS_PARENT:
+        raise ValueError('DBM readiness parent hash differs')
+    parent = load(parent_path)
+    runner_path = 'tools/offline_temporal_validation.py'
+    runner_hash = sha(ROOT/runner_path)
+    expected = deepcopy(parent)
+    for field in ('after_sources', 'modern_after', 'legacy_after'):
+        for path, (before, after) in DBM_SOURCE_TRANSITION.items():
+            if expected[field].get(path) != before:
+                raise ValueError('DBM readiness parent source differs')
+            expected[field][path] = after
+    expected['after_sources'][runner_path] = runner_hash
+    compose_path = folder/'readiness-dbm-v1/worker-compose.json'
+    compose_anchor = dict(path=str(compose_path.resolve()), sha256=sha(compose_path))
+    old_compose = parent['worker_compose']
+    if sha(old_compose['path']) != old_compose['sha256']:
+        raise ValueError('DBM readiness parent worker differs')
+    compose = load(old_compose['path'])
+    compose['services']['mta']['image'] = DBM_READINESS_IMAGE
+    if load(compose_path) != compose:
+        raise ValueError('DBM readiness worker must change only image')
+    expected.update(version=6, prior_transition_sha256=DBM_READINESS_PARENT,
+        after_image=DBM_READINESS_IMAGE, worker_compose=compose_anchor,
+        readiness_extension=dict(schema='fresh-offline-readiness-chain-v1',
+            approval='01a117d2-e638-7761-9382-cd0cecfe79b1',
+            parent=dict(path=str(parent_path.resolve()), sha256=DBM_READINESS_PARENT),
+            candidate_commit='d004dc10426d486cd130d00d747124db03107e26',
+            candidate_image=DBM_READINESS_IMAGE,
+            source_changes={p:dict(before=b,after=a) for p,(b,a) in DBM_SOURCE_TRANSITION.items()},
+            runner_changes={runner_path:dict(before=parent['after_sources'][runner_path],after=runner_hash)}))
+    if value != expected:
+        raise ValueError('DBM readiness extension exceeds exact approved transition')
+
+
 def readiness_package(folder, package):
     from mta.runtime.offline_transition import transition
     value = transition()
     if value is None:
         return None
+    validate_readiness_extension(value)
     if (package['execution_id'] != value['execution_id']
             or sha(folder/'package.json') != value['package_sha256']
             or package['sources'] != value['before_sources']
@@ -956,7 +1016,9 @@ def main():
         from mta.runtime.offline_transition import PATH_ENV,SHA_ENV,transition
         os.environ[PATH_ENV]=str(options.transition_file.resolve())
         os.environ[SHA_ENV]=options.transition_sha256
-        transition()
+    # Child legacy/comparison commands inherit the environment without CLI pins.
+    from mta.runtime.offline_transition import transition
+    validate_readiness_extension(transition())
     if options.operation=='preflight':
         result=preflight(options)
         folder=owned(options.execution_id)

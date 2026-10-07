@@ -1,27 +1,11 @@
 # Operator procedure: retained temporal validation
 
-## Execute now — step 0 only
+## Execute now — steps 1–4 only
 
-### 0. Stop at the source-pin hold
-
-**Do not execute steps 1–4 or H1–H8 from the current checkout.** The bounded
-DBM join refinement changes three calculation-source hashes. The retained
-readiness transition below still pins the earlier source and image; it has not
-been replaced or released. Do not substitute the refinement image into these
-commands or edit the retained transition.
-
-Give the maintainer `docs/DBM_JOIN_REFINEMENT_REPORT.md` and stop. Before these
-steps become executable again, the maintainer must obtain a separate human
-decision, record the exact source/image transition, revalidate readiness, and
-replace this hold with the verified command pins. Full-run calculation and
-publication still require their separate releases. No operator decision about
-which image or source version to use is required now.
-
-## Retained procedure — held pending the step-0 transition
-
-After step 0 has been replaced by a verified readiness handoff, run steps 1–4
-in order, then stop. Calculation and publication remain on human hold.
-`docs/MIGRATION.md`, “Offline-run readiness handoff”, is the sole status tracker.
+**Run steps 1–4 in order, then stop. Do not execute H1–H8 now.** The DBM-refined
+source/image transition passed live non-calculating preflight on 8 October 2026.
+Calculation and publication still require separate direct human releases.
+`docs/MIGRATION.md`, “DBM-refined offline readiness”, is the sole status tracker.
 Use the existing Windows account with SQL access. Keep Docker Desktop, MSSQL and
 the owned stack running. Do not change services, credentials or source files.
 
@@ -32,10 +16,10 @@ Set-Location F:/freshvcf
 $ErrorActionPreference = 'Stop'
 $Pins = @{
     ExecutionId = 'temporal-full-001'
-    TransitionFile = 'D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-v1/transition-a005.json'
-    TransitionSha256 = '601684d09e37ea21eafe7b3f2e468b9fe3fd208794d0355dff51d024c7c99e60'
+    TransitionFile = 'D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1/transition-v006.json'
+    TransitionSha256 = '4dc6f1acd7f8fd47e2c6893a39e12e1c607f0392c5d2656b0efbf70fcb2cc29d'
 }
-$CandidateImage = 'sha256:c2cf4f14c4a8a58cc4010a0875b9eaee9e0be635d0a26499606f537467f578ff'
+$CandidateImage = 'sha256:8cd55a876595f37398eaa25828f4d51ecd07b737d25b9208498686732ab7abb2'
 ```
 
 Continue to step 2. Keep this PowerShell session for subsequent steps.
@@ -52,7 +36,8 @@ if ($summary.required_days -ne 21 -or $summary.population.pairs -ne 1240) {
 }
 ```
 
-The delivered prefix is June 6–8, 2026. Day 4 (June 9) is the next calculation.
+The verified prefix is June 6–8, 2026, with no calculated-only day. Day 4
+(June 9) is the next calculation; do not calculate it in this section.
 Day 3 uses its original modern run and the approved repaired legacy capture;
 the failed legacy attempt remains preserved. Calculated-only days do not count
 as accepted. On exit code 0, continue to step 3; on failure follow recovery A.
@@ -72,7 +57,7 @@ continue to step 4.
 ### 4. Hand over the output and stop
 
 Give the maintainer the step-2/3 output and
-`D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-v1`.
+`D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1`.
 **Do not run H1–H8 now.** Successful preflight is not a calculation or publication
 release. Leave 3005 and the existing 3006 selection unchanged.
 
@@ -110,9 +95,11 @@ prefix receipts remain hash-verified. All 31 comparisons and independent RRR
 are required before advancing. Modern and Windows workers stay at 4 GiB/2 CPUs.
 
 This is **validation mode**: mandatory trace compression, hashing, normalization,
-legacy capture and real pinned actions remain enabled. The 89.9-second modern
-production probe omitted validation work and actions; it is not a full-run ETA
-or matched legacy performance proof. Required daily relational state, actions,
+legacy capture and real pinned actions remain enabled. The 70.2-second modern
+production sample omitted validation work, actions and two initialized empty
+workflow sources. A separate untimed acceptance run proved complete source
+equality. That timing is not the combined offline duration per day, a full-run
+ETA or matched-resource legacy performance proof. Required daily relational state, actions,
 histories and report sources persist; expensive report preparation runs only
 at terminal publication. No selection occurs during H3. Continue to H4 only
 on exit code 0. On interruption or failure follow recovery A.
@@ -246,14 +233,20 @@ acceptance is outstanding. **Stop. Do not start another run or leave June 26 sel
   All 1,240 pairs and all 21 days (June 6–26) are unchanged.
 - Original package/image/source pins and every accepted/failed attempt remain
   preserved. Versioned readiness receipts describe the additive transition;
-  they do not overwrite `package.json`. Migrations 0076–0078 are additive.
-- The delivered retained day-three proof used the exact command below, once.
-  **Do not execute it again:** the final transition anchors all three accepted
-  days and `compare-next` refuses to advance without pinned retained counterparts.
-
-```text
-D:/freshvcf-build/venv/Scripts/python.exe tools/offline_temporal_validation.py compare-next --execution-id temporal-full-001 --transition-file D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-v1/transition-a003.json --transition-sha256 4f2880a0cfb4aa2e0b1fd366b6bae869ce1cfed3326fd32eb0dc469a21638fdb
-```
+  they do not overwrite `package.json`. Version 6 links the immutable prior
+  `readiness-v1/transition-a005.json` and admits only the three DBM source changes
+  from `d004dc1`, the exact image above and the pinned host admission guard.
+  The fixed image retains the earlier runtime-compatible approval envelope;
+  the host validates the new approval and exact parent/hash/delta before dispatch.
+  This readiness update made no schema change. Existing migrations remain intact.
+- Verified evidence: `readiness-dbm-v1/readiness-result.json`,
+  `operator-summary.log`, `operator-preflight.log`, `candidate-content.json`,
+  `reused-proof-pins.json`, `sql-ownership.json` and unchanged PostgreSQL before/
+  after snapshots. Candidate bytes match 610 runtime files; normal Windows/Git
+  CRLF-to-LF checkout normalization is recorded separately from raw image pins.
+- Day-three comparison is already accepted. Do not rerun `compare-next` or any
+  accepted day. The version-6 transition preserves all three original accepted
+  receipts; subsequent comparisons use one fresh bounded worker for the next day.
 
 - RRR's MTO=0 invocation remains the approved synthetic gate exception.
   BOR/BOROA and Guided Excess rolling history remain deferred. Existing GIT

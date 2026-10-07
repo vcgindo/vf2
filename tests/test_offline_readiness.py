@@ -1,4 +1,6 @@
 import hashlib
+from copy import deepcopy
+import io
 import json
 import os
 from pathlib import Path
@@ -168,6 +170,91 @@ class ReadinessGuards(unittest.TestCase):
                 patch.object(runner,'last_json',return_value=before):
             with self.assertRaises(RuntimeError):runner.prepare_terminal(self.root,[])
             self.assertEqual(worker.call_count,1)
+
+
+class DbmReadinessChain(unittest.TestCase):
+    setUp = ReadinessGuards.setUp
+    tearDown = ReadinessGuards.tearDown
+    write = ReadinessGuards.write
+    def chain(self):
+        worker = self.write('readiness-v1/worker.json',
+            {'services':{'mta':{'image':'old','mem_limit':'4g','cpus':2}}})
+        pins = {p:b for p,(b,_) in runner.DBM_SOURCE_TRANSITION.items()}
+        pins['tools/offline_temporal_validation.py'] = 'old-runner'
+        parent = dict(schema='fresh-offline-readiness-v1', version=5,
+            approval=transition.APPROVAL, execution_id='temporal-full-001',
+            input_sha256=transition.INPUT, business_calculation_release=False,
+            publication_release=False, after_image='old', worker_compose=worker,
+            after_sources=pins, modern_after=dict(pins), legacy_after=dict(pins),
+            modern_before=[{'retained':'exact'}], accepted_prefix=[{'retained':'anchor'}],
+            package_sha256='original', protected_baseline={'unchanged':True})
+        anchor = self.write('readiness-v1/transition-a005.json',parent)
+        candidate = self.write('readiness-dbm-v1/worker-compose.json',
+            {'services':{'mta':{'image':runner.DBM_READINESS_IMAGE,'mem_limit':'4g','cpus':2}}})
+        child = deepcopy(parent)
+        for field in ('after_sources','modern_after','legacy_after'):
+            child[field].update({p:a for p,(_,a) in runner.DBM_SOURCE_TRANSITION.items()})
+        path='tools/offline_temporal_validation.py'; after=runner.sha(runner.ROOT/path)
+        child['after_sources'][path]=after
+        child.update(version=6, prior_transition_sha256=anchor['sha256'],
+            after_image=runner.DBM_READINESS_IMAGE, worker_compose=candidate,
+            readiness_extension=dict(schema='fresh-offline-readiness-chain-v1',
+                approval='01a117d2-e638-7761-9382-cd0cecfe79b1',parent=anchor,
+                candidate_commit='d004dc10426d486cd130d00d747124db03107e26',
+                candidate_image=runner.DBM_READINESS_IMAGE,
+                source_changes={p:dict(before=b,after=a) for p,(b,a) in runner.DBM_SOURCE_TRANSITION.items()},
+                runner_changes={path:dict(before='old-runner',after=after)}))
+        return anchor,child
+
+    def test_fixed_runtime_accepts_exact_host_authorized_chain(self):
+        parent,child=self.chain();bound=self.write('child.json',child)
+        with patch.object(runner,'owned',return_value=self.root), \
+                patch.object(runner,'DBM_READINESS_PARENT',parent['sha256']), \
+                patch.dict(os.environ,{transition.PATH_ENV:bound['path'],transition.SHA_ENV:bound['sha256']}):
+            self.assertEqual(transition.transition(),child)
+            runner.validate_readiness_extension(child)
+
+    def test_rehashed_scope_expansion_and_worker_change_denied(self):
+        parent,child=self.chain()
+        mutations=[lambda c:c.pop('readiness_extension'),
+            lambda c:c['readiness_extension'].update(approval='wrong'),
+            lambda c:c['readiness_extension']['parent'].update(sha256='wrong'),
+            lambda c:c['readiness_extension'].update(candidate_commit='wrong'),
+            lambda c:c.update(after_image='wrong'),
+            lambda c:c.update(business_calculation_release=True),
+            lambda c:c.update(publication_release=True),
+            lambda c:c.update(accepted_prefix=[]),
+            lambda c:c.update(package_sha256='changed'),
+            lambda c:c.update(protected_baseline={}),
+            lambda c:c.update(modern_before=[]),
+            lambda c:c['after_sources'].update(extra='fourth-source'),
+            lambda c:c['modern_after'].update(extra='fourth-source'),
+            lambda c:c['legacy_after'].update(extra='fourth-source'),
+            lambda c:c['after_sources'].update({'tools/offline_temporal_validation.py':'wrong'})]
+        with patch.object(runner,'owned',return_value=self.root), \
+                patch.object(runner,'DBM_READINESS_PARENT',parent['sha256']):
+            for index,mutate in enumerate(mutations):
+                bad=deepcopy(child);mutate(bad)
+                with self.subTest(case=index),self.assertRaisesRegex(ValueError,'exact approved'):
+                    runner.validate_readiness_extension(bad)
+            self.write('readiness-dbm-v1/worker-compose.json',
+                {'services':{'mta':{'image':runner.DBM_READINESS_IMAGE,'mem_limit':'8g','cpus':2}}})
+            with self.assertRaisesRegex(ValueError,'only image'):
+                runner.validate_readiness_extension(child)
+
+    def test_cli_and_inherited_environment_validate_before_dispatch(self):
+        parent,child=self.chain();child['readiness_extension']['approval']='wrong'
+        bound=self.write('child.json',child)
+        for cli in (False,True):
+            args=['runner','summary','--execution-id','temporal-full-001']
+            if cli:args+=['--transition-file',bound['path'],'--transition-sha256',bound['sha256']]
+            with patch.object(runner,'owned',return_value=self.root), \
+                    patch.object(runner,'DBM_READINESS_PARENT',parent['sha256']), \
+                    patch.dict(os.environ,{transition.PATH_ENV:bound['path'],transition.SHA_ENV:bound['sha256']}), \
+                    patch('sys.argv',args),patch('sys.stdout',io.StringIO()), \
+                    patch.object(runner,'summary') as summary:
+                with self.assertRaisesRegex(ValueError,'exact approved'):runner.main()
+                summary.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

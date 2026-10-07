@@ -6,6 +6,41 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### DBM-refined offline readiness — complete, 8 October 2026
+
+Human controller turn01a117d2-e638-7761-9382-cd0cecfe79b1 authorized this bounded
+update after d004dc1. The containing commit is the integrated readiness handoff.
+Version6 appends one exact host-validated chain to immutable readiness-v1/a005;
+only three approved DBM source pins and the minimal host admission guard differ.
+The fixed runtime keeps its compatible old approval envelope; a mandatory host
+extension validates the new approval, parent hash, exact source maps, image,
+runner pin and image-only worker-compose change. Original package, accepted
+June6–8 calculations/actions/parity, attempts, protected baseline and seals remain.
+
+Transition: D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1/transition-v006.json
+SHA256: 4dc6f1acd7f8fd47e2c6893a39e12e1c607f0392c5d2656b0efbf70fcb2cc29d
+Image: sha256:8cd55a876595f37398eaa25828f4d51ecd07b737d25b9208498686732ab7abb2
+DBM source commit: d004dc10426d486cd130d00d747124db03107e26.
+Image verification matches610 runtime files and committed content, with standard
+Git/Windows CRLF normalization explicitly separate from exact raw-byte pins.
+Passing two-day31+RRR and all515-image/seven-source equality evidence is hash-bound
+and reused without any calculation or comparison rerun.15 focused guard tests,
+four PowerShell syntax checks and387 baseline identities pass. All8 original
+SQL database identities/owned files/schemas pass. PostgreSQL source ownership,
+schema, original run/action/parity rows and serving config/identities are unchanged.
+
+Exact operator summary and live non-calculating preflight PASS. Retained typed
+June8 predecessor is df0f9187-f157-4fa5-8cdd-51a1f2ee8d90. Accepted dates remain
+June6–8; no calculated-only date; next isJune9. Same1240 pairs/21 dates June6–26
+and frozen input ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56.
+Evidence: readiness-dbm-v1/readiness-result.json, operator-preflight.log,
+reused-proof-pins.json, candidate-content.json and before/after preservation.
+Runbook now prescribes steps1–4 and STOP, exact H3 -ReleaseCalculations only after
+separate direct human release, and H5 publication only after another release.
+The70.2s narrower production sample is not combined validation/legacy duration.
+No new engine day, schema change, serving restart, publication or release occurred.
+This goal stops at the verified pinned handoff; both execution holds remain.
+
 ### Targeted DBM join refinement — complete, 8 October2026
 
 Human controller turn `01a11797-42b9-7531-adfa-d6add53349e0` authorizes this
