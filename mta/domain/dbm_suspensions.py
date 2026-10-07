@@ -1,6 +1,6 @@
 """Ordered DBM suspension state; selected SQL semantics without rule dispatch."""
 from copy import deepcopy
-from mta.domain.ordinal_lookup import indexed_state, matching
+from mta.domain.ordinal_lookup import OrdinalLookup, indexed_state, matching
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -312,6 +312,7 @@ def apply_phaseout_suspension(state):
     return result
 
 
+@indexed_state('DailyConsumption')
 def apply_supply(today, state):
     """DAG step15: window nominations, stock exclusions, receipt-date release."""
     def day(value):
@@ -332,7 +333,7 @@ def apply_supply(today, state):
     for master in state['DBMMaster']:
         key=_key(master)
         group=(key,master['Norm'])
-        for fact in state['DailyConsumption']:
+        for fact in matching(state, 'DailyConsumption', key):
             if key==_key(fact) and today-timedelta(days=master['RLT']) < day(fact['ReportDate']) <= today:
                 windows.setdefault(group,[]).append(fact['Receipts'])
                 if fact['Stock'] is not None and Decimal(fact['Stock']) > Decimal(2)*master['Norm']/3:
@@ -345,10 +346,11 @@ def apply_supply(today, state):
                  'ReceiptDate':None,'IsRedEnabled':False} for key in nominated)
     # Joined unresolved memberships multiply the grouped receipt values.
     solved=set()
-    for (key,norm),values in windows.items():
-        multiplicity=sum(_key(r)==key and r['ReceiptDate'] is None for r in rows)
-        if multiplicity and sum(values)*multiplicity>=limit(norm):
-            solved.add(key)
+    with OrdinalLookup(rows) as row_index:
+        for (key,norm),values in windows.items():
+            multiplicity=sum(_key(r)==key and r['ReceiptDate'] is None for r in row_index.matching(rows, key))
+            if multiplicity and sum(values)*multiplicity>=limit(norm):
+                solved.add(key)
     for row in rows:
         if _key(row) in solved:
             row['ReceiptDate']=today.isoformat()
@@ -361,6 +363,7 @@ def apply_supply(today, state):
     return result
 
 
+@indexed_state('DailyConsumption')
 def apply_white(today, state):
     """DAG step14: rebuild today's white keys and release other memberships."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -373,12 +376,13 @@ def apply_white(today, state):
         raise ValueError('White seam requires midnight business date')
     whites = []
     for master in state['DBMMaster']:
-        for fact in state['DailyConsumption']:
+        master_key = _key(master)
+        for fact in matching(state, 'DailyConsumption', master_key):
             day = fact['ReportDate']
             day = date.fromisoformat(day) if isinstance(day, str) else day
-            if (_key(master) == _key(fact) and day == today and fact['Stock'] is not None
+            if (master_key == _key(fact) and day == today and fact['Stock'] is not None
                     and fact['Stock'] > master['Norm'] + fact['BlueZone']):
-                whites.append({'SKUCode':master['SKUCode'], 'WhCode':_key(master)[1],
+                whites.append({'SKUCode':master['SKUCode'], 'WhCode':master_key[1],
                                'IsRedEnabled':False})
     result = deepcopy(state)
     keys = {_key(r) for r in whites}
@@ -389,6 +393,7 @@ def apply_white(today, state):
     return result
 
 
+@indexed_state('DailyConsumption', 'DBMMaster')
 def apply_spike(today, state):
     """DAG step 13: replace today's spikes, then release from later receipts."""
     def day(value):
@@ -406,8 +411,9 @@ def apply_spike(today, state):
     spikes = []
     for master in state['DBMMaster']:
         limit = threshold(master['Norm'])
-        for fact in state['DailyConsumption']:
-            if (_key(master) == _key(fact) and day(fact['ReportDate']) == today
+        master_key = _key(master)
+        for fact in matching(state, 'DailyConsumption', master_key):
+            if (master_key == _key(fact) and day(fact['ReportDate']) == today
                     and fact['Consumption'] is not None and fact['Consumption'] > limit
                     and fact['Stock'] is not None and fact['Stock'] <= limit):
                 spikes.append(master)
@@ -419,10 +425,11 @@ def apply_spike(today, state):
     # SQL groups joined membership/facts/master rows by key AND Norm.
     receipts = {}
     for row in rows:
-        for master in state['DBMMaster']:
+        row_key = _key(row)
+        for master in matching(state, 'DBMMaster', row_key):
             if _key(master) != _key(row):
                 continue
-            for fact in state['DailyConsumption']:
+            for fact in matching(state, 'DailyConsumption', row_key):
                 if (_key(fact) == _key(row)
                         and day(row['WaitStartDate']) < day(fact['ReportDate']) <= today):
                     group = (_key(row), master['Norm'])

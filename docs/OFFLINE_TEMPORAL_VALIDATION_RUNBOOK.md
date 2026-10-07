@@ -1,9 +1,26 @@
 # Operator procedure: retained temporal validation
 
-## Execute now — steps 1–4 only
+## Execute now — step 0 only
 
-**Run steps 1–4 in order, then stop.** Calculation and publication remain on
-human hold. This readiness handoff does not release either operation.
+### 0. Stop at the source-pin hold
+
+**Do not execute steps 1–4 or H1–H8 from the current checkout.** The bounded
+DBM join refinement changes three calculation-source hashes. The retained
+readiness transition below still pins the earlier source and image; it has not
+been replaced or released. Do not substitute the refinement image into these
+commands or edit the retained transition.
+
+Give the maintainer `docs/DBM_JOIN_REFINEMENT_REPORT.md` and stop. Before these
+steps become executable again, the maintainer must obtain a separate human
+decision, record the exact source/image transition, revalidate readiness, and
+replace this hold with the verified command pins. Full-run calculation and
+publication still require their separate releases. No operator decision about
+which image or source version to use is required now.
+
+## Retained procedure — held pending the step-0 transition
+
+After step 0 has been replaced by a verified readiness handoff, run steps 1–4
+in order, then stop. Calculation and publication remain on human hold.
 `docs/MIGRATION.md`, “Offline-run readiness handoff”, is the sole status tracker.
 Use the existing Windows account with SQL access. Keep Docker Desktop, MSSQL and
 the owned stack running. Do not change services, credentials or source files.

@@ -9,6 +9,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import date, timedelta
 from itertools import groupby
+from mta.domain.ordinal_lookup import OrdinalLookup
 
 
 def _day(value):
@@ -75,33 +76,34 @@ def calculate_extended_ocp(today, attributes, masters, daily):
     """Match SQL observation groups, inclusive lower bound, and NULL OCP."""
     today = _day(today)
     result = deepcopy(attributes)
-    for attr in result:
-        matching = [row for row in masters if _key(row) == _key(attr)]
-        if not matching:
-            continue
-        if len(matching) != 1:
-            raise ValueError('SOURCE_ORDER_AMBIGUITY: duplicate DBMMaster for ExtendedOCP')
-        master = matching[0]
-        ocp, rlt = master['OCP'], master['RLT']
-        attr['ExtendedOCP'] = ocp
-        if ocp is None:
-            continue
-        observations = sorted(
-            (row for row in daily if _key(row) == _key(master)
-             and _day(row['ReportDate']) >= today - timedelta(days=ocp)),
-            key=lambda row: _day(row['ReportDate']),
-        )
-        for _, group in groupby(observations, key=lambda row: _day(row['ReportDate'])):
-            # ROW_NUMBER orders only by date in both windows. Never manufacture
-            # a deterministic order for differently classified tied observations.
-            if len({row['Stock'] == 0 for row in group}) > 1:
-                raise ValueError('SOURCE_ORDER_AMBIGUITY: tied zero/nonzero observations')
-        current = longest = 0
-        for row in observations:
-            current = current + 1 if row['Stock'] == 0 else 0
-            longest = max(longest, current)
-        if longest > rlt:
-            attr['ExtendedOCP'] = ocp + longest - rlt
+    with OrdinalLookup(masters) as master_index, OrdinalLookup(daily) as daily_index:
+        for attr in result:
+            matching = [row for row in master_index.matching(masters, _key(attr)) if _key(row) == _key(attr)]
+            if not matching:
+                continue
+            if len(matching) != 1:
+                raise ValueError('SOURCE_ORDER_AMBIGUITY: duplicate DBMMaster for ExtendedOCP')
+            master = matching[0]
+            ocp, rlt = master['OCP'], master['RLT']
+            attr['ExtendedOCP'] = ocp
+            if ocp is None:
+                continue
+            observations = sorted(
+                (row for row in daily_index.matching(daily, _key(master)) if _key(row) == _key(master)
+                 and _day(row['ReportDate']) >= today - timedelta(days=ocp)),
+                key=lambda row: _day(row['ReportDate']),
+            )
+            for _, group in groupby(observations, key=lambda row: _day(row['ReportDate'])):
+                # ROW_NUMBER orders only by date in both windows. Never manufacture
+                # a deterministic order for differently classified tied observations.
+                if len({row['Stock'] == 0 for row in group}) > 1:
+                    raise ValueError('SOURCE_ORDER_AMBIGUITY: tied zero/nonzero observations')
+            current = longest = 0
+            for row in observations:
+                current = current + 1 if row['Stock'] == 0 else 0
+                longest = max(longest, current)
+            if longest > rlt:
+                attr['ExtendedOCP'] = ocp + longest - rlt
     return result
 
 

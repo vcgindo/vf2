@@ -6,6 +6,39 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Targeted DBM join refinement — complete, 8 October2026
+
+Human controller turn `01a11797-42b9-7531-adfa-d6add53349e0` authorizes this
+bounded goal after diagnostic1ccef40. Delivered: five measured DBM joins
+in white/spike/supply, ExtendedOCP and suspension history, using existing ordered
+ordinal lookup with immutable per-call ownership. Preserve predicates, typed
+keys/NULLs, order/duplicates, dates/ties, reasons, grouping and receipt arithmetic.
+Retain full copies unless an explicit alias/mutation test proves reduction safe.
+Focused differential proof and the single matched pre/post timing pair pass;
+DBM30.862 to10.131s, production day89.159 to70.199s. Day1 passes31+RRR.
+The daily-source mismatch was traced to absent timing-fixture request/BPR-remark
+owners versus explicitly initialized empty validation owners. All shared paths
+matched. Human approval call_o8pMnxLpwAhIoVdAvFccvmJ2 allowed one additional
+untimed production acceptance run with identical initialization; all515 images,
+report manifests and all seven source/projection groups now match exactly.
+Original timing receipts retain their narrower source-coverage qualification.
+Both days pass all31 canonical comparisons and independent RRR, each engine
+continuing its own persisted predecessor. Readback verifies8Sleep/120Apply on
+day1 and6Apply on day2, action-state digests, complete ordered sources/projections
+and unchanged accepted day1 proof. Focused six-test suite, independent review,
+build, fresh migrations and387 pinned-resource checks pass. All four owned test
+PostgreSQL containers stopped with data retained. Original package/three accepted
+receipts/readiness pins and protected serving identities remain unchanged.
+Evidence: D:/freshvcf-build/refinement/dbm-joins-001/final-proof.json and
+mode-equivalence-resolved.json; report docs/DBM_JOIN_REFINEMENT_REPORT.md.
+This integrated commit is the closure checkpoint; stop here. Runbook step0
+explicitly holds the changed-source checkout until a separately approved exact
+source/image transition and renewed readiness proof. No automatic release.
+No other tuning, full-run transition, shared resource change or publication.
+Normal4GiB/twoCPU workers and approved database limits, unchanged frozen input.
+Original accepted prefix and readinessb89c790 remain protected; any later full-run
+pin transition must be documented, never applied by this goal.
+
 ### DBM33.7s diagnostic — bounded handoff with attribution limits, 7 October2026
 
 Human amendment `01a1176f-0cc3-7b00-8a47-1367d41057db` and direct “Approve to
