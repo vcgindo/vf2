@@ -1,158 +1,189 @@
-# Offline temporal validation
+# Operator procedure: full 21-day validation
 
-Integrated implementation: `8e1569d`, pushed on
-`codex/btr-ready-snapshot-trial`. Frozen scenario checkpoint: `9c2218d`.
+**Execute steps 1–8 in order.** This runs 1,240 pairs for June 6–26, 2026,
+compares both engines, checks terminal reports on 3006, and restores the previous
+3006 selection. The operator executes the full run; the agent has not run it.
 
-This package uses the approved 1,240-pair catalogue and one shared June6–26,2026
-execution horizon. Every pair has 21 daily inputs. The ten-pair acceptance trial
-uses June6–8 from its separately registered 21-day subset. Input generation is
-complete; input validity does not establish calculation or report parity.
+Use `temporal-full-001` throughout. **Do not rerun the accepted ten-pair trial,
+regenerate inputs or repeat database setup.** On failure, follow the named
+recovery instruction before continuing.
 
-The status and trial acceptance live in `docs/MIGRATION.md`. Preserve the
-original12-day artifact, accepted F2 receipts, accepted3006 smoke, failed history
-attempts and3005. Full execution is a subsequent human-operated action; this
-implementation task runs only the small trial.
-
-The retained trial passed93 comparisons across June6–8, separate daily RRR
-source proofs and terminal typed readback. All18 prepared layers reached READY.
-Broad-account browser verification covered BPR and shipment drill-down, both BTR
-inventory views, empty current DBM suggestions, empty RRR and empty RRR colour-band.
-The colour-band menu click did not navigate; its documented direct route did.
-The original3006 selection was restored and checked ready, with protected services
-unchanged against the explicitly approved external-recovery baseline.
-
-## Local requirements
-
-Run PowerShell in `F:/freshvcf`. Python is
-`D:/freshvcf-build/venv/Scripts/python.exe`. Docker Desktop and the existing
-owned `freshvcf-daily3006` stack must be available. The local SQL instance needs
-the existing Windows-authenticated oracle provisioning access and healthy
-storage. Credentials stay in the existing external3006 private configuration;
-the scripts do not reset passwords or import secrets into Git.
-
-The candidate is `freshvcf-daily3006-mta:offline-temporal-003`. Preflight resolves
-the verified image ID
-`sha256:0408073029940316a695ff4384cacaace211269500fbd4a90c6e0963018abfe2`;
-the tag is retained for the commands below. Preflight resolves
-its immutable image ID and compares all runtime Python and governing JSON bytes
-inside that image against the checkout. Input, catalogue, generator dependencies,
-ledger, resource limits, SQL lease/storage, PostgreSQL health and storage reserve
-must pass. A tag or running SQL process alone is insufficient.
+## 1. Open PowerShell
 
 ```powershell
-./tools/Test-TemporalValidationPreflight.ps1 -ExecutionId temporal-smoke-001 -Scenario trial
-./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-smoke-001 -Scenario trial -Mode combined
-./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-smoke-001
+Set-Location F:/freshvcf
+$ErrorActionPreference = 'Stop'
 ```
 
-The retained `temporal-smoke-001` execution already exists. Use its `-Resume`
-command below to verify/reuse it; the initial command above deliberately refuses
-to overwrite that owner. Do not generate a new ID merely to rerun accepted days.
+Use the existing Windows account with SQL oracle access. Keep the computer awake
+and connected to power through step 8. Docker Desktop, MSSQL and the existing
+`freshvcf-daily3006` stack must be running; step 2 checks them. Do not change
+source files, images, credentials or configuration during the run.
 
-After the package is accepted, the human-operated full command is:
+## 2. Run preflight
 
 ```powershell
 ./tools/Test-TemporalValidationPreflight.ps1 -ExecutionId temporal-full-001 -Scenario full
-./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-full-001 -Scenario full -Mode combined
-./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001
+if ($LASTEXITCODE -ne 0) { throw 'STOP: preflight failed. Follow recovery A.' }
 ```
 
-The full command has not been executed by this implementation task. It runs one
-new day per worker, sequentially, stopping at the first failure. Each engine uses
-its own persisted predecessor and own suggestions for the approved eligible-Sleep
-policy. All31 comparisons and independent RRR source checks precede the next day.
-Missing day-one Sleep targets are explicitly unexercised; they are never invented.
+Continue only on exit code 0 and `PASS`. This checks input/source/image identity,
+the ledger, SQL access/ownership, PostgreSQL health, resource limits and storage.
 
-## Resume and independent modes
+## 3. Execute the full run
+
+Run this block exactly. It chooses initial execution or resume automatically.
 
 ```powershell
-./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-smoke-001 -Scenario trial -Mode combined -Resume
-./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-full-001 -Scenario full -Mode combined -Resume
+$packagePath = 'D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/package.json'
+if (Test-Path -LiteralPath $packagePath) {
+    ./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-full-001 -Scenario full -Mode combined -Resume
+} else {
+    ./tools/Invoke-TemporalValidation.ps1 -ExecutionId temporal-full-001 -Scenario full -Mode combined
+}
+if ($LASTEXITCODE -ne 0) { throw 'STOP: execution failed. Follow recovery A.' }
 ```
 
-Resume requires unchanged image, code, inputs, action policy, source owner and
-serving configuration. A successful modern day is reused after a legacy failure.
-Attempts and accepted receipts are immutable. Resolve a failure before resuming;
-never use a new execution ID to hide a divergence or force the same accepted day
-through a different contract. Interrupted RUNNING attempts need ownership and
-committed-state reconciliation before retry; do not blindly restart them.
+Leave PowerShell running until the command returns. Each day runs both engines
+independently, then requires 31 comparisons and the daily RRR source proof before
+advancing. Workers use 4 GiB and two CPUs. Serving selection stays unchanged.
 
-The retained smoke trial includes explicitly approved host-runner transitions
-and a start-time-only external-recovery qualification. Their immutable receipts
-remain beside the original `package.json` and protected snapshot. These receipts
-are specific to that trial; other changed sources are still rejected. A new full
-execution freezes the delivered runner directly and needs no trial transition.
+Continue only on exit code 0. On failure or interruption, follow **recovery A**;
+do not immediately rerun the block.
 
-For separately operated engines, use the same new execution ID and scenario with
-`-Mode modern-only`, then `-Mode legacy-only -Resume`, then
-`-Mode compare-retained -Resume`. Reverse engine order is also supported. Those
-captures remain unaccepted until comparison and source proofs pass. No mode copies
-modern state or action choices into legacy.
+## 4. Verify all 21 accepted dates
 
-Modern workers use one4GiB/two-CPU Docker process per day. Predecessor verification
-runs in a child under that same bound after unused input is released. Legacy
-Python workers enter a Windows job limited to4GiB and two permitted CPUs before
-task code starts. The existing SQL service and protected services are unchanged.
+```powershell
+$summary = ./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001 | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'STOP: summary failed. Follow recovery A.' }
+$expectedDates = 0..20 | ForEach-Object { ([datetime]'2026-06-06').AddDays($_).ToString('yyyy-MM-dd') }
+if (($summary.accepted_dates -join ',') -ne ($expectedDates -join ',')) {
+    throw 'STOP: accepted dates are incomplete. Follow recovery A.'
+}
+if ($summary.required_days -ne 21 -or $summary.population.pairs -ne 1240) {
+    throw 'STOP: population or horizon differs. Follow recovery A.'
+}
+$summary | ConvertTo-Json -Depth 20
+```
 
-## Terminal publication
+Continue only if every check passes. Calculated days alone do not count as accepted.
 
-Calculation, parity, preparation and selection are distinct states. Daily typed
-state, histories and canonical sources persist throughout; expensive prepared
-presentation layers are built only for the complete accepted terminal prefix.
+## 5. Publish June 26 on 3006
 
 ```powershell
 ./tools/Publish-TemporalValidationTerminal.ps1 -ExecutionId temporal-full-001
+if ($LASTEXITCODE -ne 0) { throw 'STOP: publication failed. Follow recovery B.' }
 ```
 
-That explicit command verifies every accepted day/source, prepares all required
-layers, seals, binds the exact retained access/hierarchy, admits Planning/RRR and
-checks selection before changing only owned3006's MTA image/configuration. A
-partial prefix cannot be selected. Preparation failure preserves serving state;
-selection/readiness failure restores the prior tuple.
+This verifies the accepted prefix, prepares and seals all 18 layers, activates
+access/hierarchy, and selects the terminal day on 3006. Readiness waits up to
+180 seconds. It does not change 3005 or cut over 3004.
 
-The retained preparation coordinator can initially report missing RRR projection
-dependencies for two Expedite layers, then create that prerequisite later in the
-same attempt. Inspect the layer receipt before retrying the same publication
-command. Its existing retry path verifies and reuses successful layers; it does
-not recalculate days or discard failed attempts. This ordering limitation was
-observed and the retry verified in the three-day trial.
+Continue only on exit code 0 and `SELECTED`. On failure, follow **recovery B**.
 
-The acceptance trial uses the same command and then restores its prior selection:
+## 6. Check the terminal reports
+
+Open `http://localhost:3006/login`. Use `stage2.broad@vectorflow.local` and its
+existing password from
+`D:/freshvcf-build/preview/secrets/stage2-fixture-accounts.json`.
+Complete the normal login challenge if shown. Do not reset credentials or grants.
+
+Perform all five checks below. Choose **Show All** when the filter dialog opens.
+Record each displayed date, row count and error in
+`D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/operator-ui-check.txt`.
+
+| Order | URL | Required check |
+|---|---|---|
+| 6.1 | `http://localhost:3006/mta/supply-chain-intelligence-hub/bpr` | Grid finishes loading and shows 26 Jun 2026. Selecting a row loads shipment data or an explicit empty result. |
+| 6.2 | `http://localhost:3006/mta/insights-and-trends/buffer-trend-report` | Both On-Hand and Pipeline views finish loading and show 26 Jun 2026. |
+| 6.3 | `http://localhost:3006/mta/dbm/dbm-norm-suggestions` | Grid finishes loading and shows 26 Jun 2026. Zero suggestions is valid after automatic APPLY. Do not submit additional Apply/Sleep actions. |
+| 6.4 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr` | Grid finishes loading and shows 26 Jun 2026. An empty result is valid; an error or persistent loading indicator is not. |
+| 6.5 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr-color-bandwise` | Use this direct URL; the retained menu click did not navigate in the trial. Grid must finish loading, including a valid empty result. This screen has no date label. |
+
+Do not expect trial row counts or create data to populate empty reports.
+Write `UI PASS` only if all five checks pass; otherwise write `UI FAILED` and the
+failed check. **In either case, execute step 7.**
+
+## 7. Restore the previous 3006 selection
+
+Run this even when a browser check failed:
 
 ```powershell
-./tools/Publish-TemporalValidationTerminal.ps1 -ExecutionId temporal-smoke-001
-./tools/Publish-TemporalValidationTerminal.ps1 -ExecutionId temporal-smoke-001 -RestorePrevious
+./tools/Publish-TemporalValidationTerminal.ps1 -ExecutionId temporal-full-001 -RestorePrevious
+if ($LASTEXITCODE -ne 0) { throw 'STOP: restoration failed. Follow recovery C.' }
 ```
 
-Verify the finite terminal UI journey between these commands. Restoration checks
-that the selected config has not been changed by another operator before replacing
-it. Neither command cuts over3004 or changes the3005 big-data demo.
+This restores the recorded previous configuration and waits for readiness. It
+refuses to overwrite configuration changed by another operator.
+Continue only on exit code 0. On failure, follow **recovery C**.
 
-Startup readiness waits at most180seconds. Repeating the same terminal selection
-preserves its identical selection receipt; a different existing tuple is rejected
-before changing serving configuration. Restoration has its own immutable receipt,
-and the summary distinguishes restored state from a currently selected terminal.
+## 8. Check the final summary and stop
 
-## Evidence and limitations
+```powershell
+$final = ./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001 | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'STOP: summary failed. Follow recovery A.' }
+if ($final.publication -ne 'trial verified; previous selection restored') {
+    throw 'STOP: restoration is not confirmed. Follow recovery C.'
+}
+$final | ConvertTo-Json -Depth 20
+```
 
-Each execution is under
-`D:/freshvcf-build/daily-3006/runtime/offline-<ExecutionId>`. `package.json` pins
-source/input/image/configuration. `modern-*` holds execution metadata and compressed
-archives; `legacy-*` holds independently captured closing state; `compare-*` holds
-all comparison differences, RRR proof and parity attachment. Failed attempts stay
-beside later attempts. `summary-*.json` and Markdown reports distinguish computed,
-accepted and selected states. Early invocation failures have separate durable
-reports under `D:/freshvcf-build/evidence/offline-runner-failures`.
+The current summary uses the literal label `trial verified; previous selection
+restored` for a restored full run too. It reports selection state, not the
+operator's browser result. Keep the entire evidence directory and
+`operator-ui-check.txt`; invocation summaries are already saved there.
 
-RRR's MTO=0 producer invocation is the approved synthetic gate exception, not
-canonical gating parity. BOR/BOROA and Guided Excess rolling history remain
-deferred. Retained GIT SQL207, native ordering and custom report limitations remain.
-Empty orders/advance populations do not prove positive order workflows. Trial
-completion does not establish full-population memory/performance, MTO integration,
-whole-application acceptance or production cutover readiness.
+Report completion only when steps 2–8 passed and browser evidence says `UI PASS`.
+For `UI FAILED`, hand over the evidence after restoration and report that UI
+acceptance is outstanding. **Stop. Do not start another run or leave June 26 selected.**
 
-Final focused suite:31 tests PASS; baseline387resources unchanged. Additive
-PostgreSQL migrations0074/0075 and a fresh75-migration database were verified.
-The whole suite is not green:6 failures and19 errors reproduce in the untouched
-baseline by failing test name. See `unit-baseline-comparison-001.json` rather than
-interpreting focused success as whole-repository acceptance.
+## Recovery A — preflight, execution or summary failure
+
+1. Stop issuing execution commands. Keep the same execution ID and all evidence.
+2. Give the maintainer the command output and
+   `D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001`.
+   Early failures may be under `D:/freshvcf-build/evidence/offline-runner-failures`.
+3. Wait for the maintainer to resolve the cause and confirm the same execution is
+   safe to resume. Interrupted workers require committed-state reconciliation;
+   changed pins or service identities require explicit reconciliation. Do not
+   edit receipts, delete attempts, reset databases or increase memory.
+4. After that confirmation, return to **step 2**. Step 3 reuses accepted captures.
+
+## Recovery B — publication failure
+
+1. Stop before browser verification. Give the maintainer the publication output
+   and evidence directory from recovery A.
+2. A known first-pass issue can leave only `planning_expedite_charts` and
+   `planning_expedite_transit` failed because RRR is prepared later in the same
+   attempt. The maintainer must confirm those exact failures and a READY RRR
+   prerequisite before authorizing a retry. Other failures require diagnosis.
+3. After the maintainer confirms retry is safe, repeat **step 5** with the same ID.
+   Successful layers and identical receipts are reused. Do not repeat calculation.
+
+## Recovery C — restoration failure
+
+1. Stop and contact the maintainer immediately with the output and evidence
+   directory. Preserve the previous configuration and selection receipt.
+2. Do not edit `compose.json`, restart other services or issue another publication.
+3. After the maintainer reconciles serving configuration, repeat **step 7**, then
+   **step 8**. Do not declare completion before restoration passes.
+
+## Reference — no commands to execute
+
+- Implementation `8e1569d`; handoff `7dc193b`; scenario `9c2218d`, on
+  `codex/btr-ready-snapshot-trial`.
+- Image `freshvcf-daily3006-mta:offline-temporal-003`, ID
+  `sha256:0408073029940316a695ff4384cacaace211269500fbd4a90c6e0963018abfe2`.
+- The completed ten-pair June 6–8 trial passed 93 comparisons, daily RRR proofs,
+  terminal readback and 18-layer preparation. Its previous selection was restored.
+- Focused suite: 31 tests passed; 387 pinned resources unchanged. Migrations
+  0074/0075 and a fresh 75-migration database were verified. The whole suite has
+  six failures and 19 errors also present in the baseline.
+- `package.json`, `modern-*`, `legacy-*`, `compare-*` and `summary-*` preserve pins
+  and evidence. Keep failed attempts. Independent engine modes are maintainer
+  tools, not part of this operator procedure.
+- RRR's MTO=0 invocation is an approved synthetic gate exception. BOR/BOROA and
+  Guided Excess rolling history remain deferred. Retained GIT SQL207, ordering
+  and custom-report limitations remain. Empty orders do not prove positive order
+  workflows; absent Sleep targets stay unexercised. This is not MTO integration
+  or production cutover acceptance.
