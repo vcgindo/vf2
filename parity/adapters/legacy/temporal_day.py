@@ -40,7 +40,41 @@ SUPPLIER_STAGES = ('ValidateSOBData.sql', 'ValidateMOQDataRaw1.sql', 'ValidateMO
 
 
 def _plain(value):
-    return json.loads(json.dumps(value, default=_json))
+    """The JSON wire values without a whole-result encoded/decoded duplicate.
+
+    No memoized aliases: repeated source containers produce independent values,
+    exactly as the former JSON roundtrip. Only the active recursion path is held.
+    """
+    active = set()
+    def convert(item):
+        if item is None or type(item) in (str, int, float, bool):
+            return item
+        if isinstance(item, str):return str(item)
+        if isinstance(item, bool):return bool(item)
+        if isinstance(item, int):return int(item)
+        if isinstance(item, float):return float(item)
+        if isinstance(item, (dict, list, tuple)):
+            identity = id(item)
+            if identity in active:raise ValueError('Circular reference detected')
+            active.add(identity)
+            try:
+                if isinstance(item, dict):
+                    result = {}
+                    for key, child in item.items():
+                        if isinstance(key, str):name = str(key)
+                        elif key is None:name = 'null'
+                        elif key is True:name = 'true'
+                        elif key is False:name = 'false'
+                        elif isinstance(key, (int, float)):
+                            name = json.dumps(key)
+                        else:raise TypeError('keys must be str, int, float, bool or None')
+                        result[name] = convert(child)
+                    return result
+                return [convert(child) for child in item]
+            finally:
+                active.remove(identity)
+        return convert(_json(item))
+    return convert(value)
 
 
 def execute_day(prior, opening_date, day, profile, evidence, *, evidence_prefix='', commands=(), initial=False, post_policy=None):
@@ -419,7 +453,9 @@ def execute_day(prior, opening_date, day, profile, evidence, *, evidence_prefix=
                 })
                 if delivery:
                     result['delivery'] = _plain(full)
-                    result['closing'] = _plain(full['closing'])
+                    # Same immutable wire closing; do not retain a second graph.
+                    result['closing'] = result['delivery']['closing']
+                    del full
                     result['scripts'].extend(connected.receipts)
                     result['command_inputs'] = command_receipts
                     validate_state(result['closing'])

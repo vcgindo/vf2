@@ -175,7 +175,7 @@ def validate_accepted_prefix(previous, execution, case, *, require_parity=True):
         manifest = (previous / current['output_archive']).resolve()
         if not manifest.is_relative_to(previous.resolve()):
             raise ValueError('Continuation output archive escaped its evidence owner')
-        OutputArchive(manifest).verify(run.output_digest)
+        OutputArchive(manifest).verify(run.output_digest,run.validation_digest)
 
         state, events = command_state(run, output['DBMFinal'][0])
         action_path = previous / ('actions-%03d.json.gz' % index)

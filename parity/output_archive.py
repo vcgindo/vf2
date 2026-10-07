@@ -69,7 +69,7 @@ class OutputArchive:
     def __init__(self, manifest_path):
         self.path = Path(manifest_path)
         self.manifest = json.loads(self.path.read_text())
-        if self.manifest['schema'] != 'fresh-output-archive-v1':
+        if self.manifest['schema'] not in ('fresh-output-archive-v1','fresh-output-archive-v2'):
             raise ValueError('Unknown output archive')
         names = [item['name'] for item in self.manifest['checkpoints']]
         if names != sorted(set(names)):
@@ -83,7 +83,11 @@ class OutputArchive:
     def __getitem__(self, name):
         return list(self.iter_rows(name))
 
-    def verify(self, expected_digest):
+    def verify(self, expected_digest, expected_validation_digest=None):
+        modern=self.manifest['schema']=='fresh-output-archive-v2'
+        if modern and (not expected_validation_digest or
+                       self.manifest.get('validation_digest')!=expected_validation_digest):
+            raise ValueError('Explicit validation evidence identity required')
         checksum = hashlib.sha256(b'{')
         for index, name in enumerate(self.items):
             if index:
@@ -93,5 +97,6 @@ class OutputArchive:
             checksum.update(b':')
             update_array(checksum, self.iter_rows(name))
         checksum.update(b'}')
-        if checksum.hexdigest() != expected_digest or self.manifest['output_digest'] != expected_digest:
+        if (checksum.hexdigest() != (expected_validation_digest if modern else expected_digest)
+                or self.manifest['output_digest'] != expected_digest):
             raise ValueError('Complete output archive checksum differs')

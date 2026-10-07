@@ -5,6 +5,7 @@ actions remain a separate required contract. Unordered generated keys are not
 assigned arbitrary modern tie-breaks.
 """
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -82,7 +83,7 @@ def order_stages(today, opening_date, state, feed_status, feed):
         for row in rows:
             row['IsSpike'], row['IsElephant'] = bool(row['IsSpike']), bool(row['IsElephant'])
     s['OrderIdentity'] = [{'Seed': 1, 'Increment': 1, 'LastValue': counter}]
-    yield 'ImportSpikeOrders.sql', deepcopy(s)
+    yield 'ImportSpikeOrders.sql', snapshot(s)
 
     # Literal selected SQL level loop: one INSERT SELECT per level. Its anti-join
     # intentionally omits WhCode. All candidates see the pre-insert population.
@@ -131,4 +132,4 @@ def order_stages(today, opening_date, state, feed_status, feed):
                 row['CurrentWhCode'] = parent['ParentWhCode']
                 row['RLT'] += parent['RLT']
     s['OrderIdentity'] = [{'Seed': 1, 'Increment': 1, 'LastValue': counter}]
-    yield 'CalculateDD.sql', deepcopy(s)
+    yield 'CalculateDD.sql', snapshot(s)

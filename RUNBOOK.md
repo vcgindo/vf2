@@ -1,5 +1,15 @@
 # Fresh build runbook
 
+## Operator entry point — 7 October 2026
+
+**Execute only steps 1–3 in the [temporal validation operator procedure](docs/OFFLINE_TEMPORAL_VALIDATION_RUNBOOK.md), then stop.**
+The full `temporal-full-001` run is on human hold. Those three steps read retained
+status and hand over evidence; they do not resume calculation or publish a run.
+Do not execute the held H1–H8 procedure or startup/setup commands below.
+The remaining sections retain earlier deployment instructions and provenance;
+they are not the current operator checklist. Current authorization and acceptance
+status are maintained only in [docs/MIGRATION.md](docs/MIGRATION.md).
+
 This build is not the application served on3004. An isolated F3 work-in-progress
 preview is available on3005; it is NOT full F3 acceptance or a3004 cutover.
 Do not run copied historical startup scripts.

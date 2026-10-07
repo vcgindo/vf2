@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 from xml.sax.saxutils import quoteattr
@@ -553,27 +554,27 @@ def btr_stages(today, prior, facts, settings):
         _key(row)
 
     current = _import_bpr(today, prior, facts)
-    yield "1. Import BPR.sql", deepcopy(current)
+    yield "1. Import BPR.sql", snapshot(current)
     current = _generate_trends(today, current, facts)
-    yield "2. GenerateBufferTrend.sql", deepcopy(current)
+    yield "2. GenerateBufferTrend.sql", snapshot(current)
     current = _update_br_age(current, facts, "BufferTrendDispatch", selected["br_tolerance"], True)
-    yield "UpdateBRAge.sql", deepcopy(current)
+    yield "UpdateBRAge.sql", snapshot(current)
     current = _update_br_age(current, facts, "BufferTrendPhysicalInv", selected["br_tolerance"])
-    yield "UpdateBRAgePhysicalInv.sql", deepcopy(current)
+    yield "UpdateBRAgePhysicalInv.sql", snapshot(current)
     current = _availability(current)
-    yield "CalculateAvailabilityPhysicalInv.sql", deepcopy(current)
+    yield "CalculateAvailabilityPhysicalInv.sql", snapshot(current)
     current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"])
-    yield "GenerateColorAgeingReport.sql", deepcopy(current)
+    yield "GenerateColorAgeingReport.sql", snapshot(current)
     current = _snapshot(current)
-    yield "3. GenerateSnapshotForUI.sql", deepcopy(current)
+    yield "3. GenerateSnapshotForUI.sql", snapshot(current)
     current = _count_graph(current)
-    yield "BufferTrendCountGraph.sql", deepcopy(current)
+    yield "BufferTrendCountGraph.sql", snapshot(current)
     current = _chronic(current, facts)
-    yield "CollectChronicUnavailabilityData.sql", deepcopy(current)
+    yield "CollectChronicUnavailabilityData.sql", snapshot(current)
     current = _norm_suggestions(today, current, facts, selected)
-    yield "CollectDBMNormSuggestionsData.sql", deepcopy(current)
+    yield "CollectDBMNormSuggestionsData.sql", snapshot(current)
     current = _categories(today, current, facts, selected)
-    yield "UpdateCategoryCol.sql", deepcopy(current)
+    yield "UpdateCategoryCol.sql", snapshot(current)
 
 
 def btr_finalization(today, prior, facts, settings):

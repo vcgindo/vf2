@@ -1,14 +1,104 @@
-# Operator procedure: full 21-day validation
+# Operator procedure: retained temporal validation
 
-**Execute steps 1–8 in order.** This runs 1,240 pairs for June 6–26, 2026,
-compares both engines, checks terminal reports on 3006, and restores the previous
-3006 selection. The operator executes the full run; the agent has not run it.
+## Execute now — steps 1–3 only
+
+**The full run `temporal-full-001` is on human hold. Execute steps 1–3 below,
+then stop. Do not execute the held procedure H1–H8.** The authoritative status is
+[docs/MIGRATION.md](MIGRATION.md), under “Integrated daily execution refinement”
+and “Full run on human hold”. The separately authorized maintainer refinement
+and single legacy day-three retry do not release the full run.
+
+### 1. Open PowerShell in the checkout
+
+```powershell
+Set-Location F:/freshvcf
+$ErrorActionPreference = 'Stop'
+```
+
+Continue to step 2. Do not start, restart or configure any service.
+
+### 2. Read the retained execution summary
+
+```powershell
+$summaryJson = ./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001
+if ($LASTEXITCODE -ne 0) { throw 'STOP: summary failed. Give the output to the maintainer; do not retry execution.' }
+$summary = $summaryJson | ConvertFrom-Json
+$summary | Select-Object execution_id, accepted_dates, required_days, attempts, legacy_captures, publication | ConvertTo-Json -Depth 20
+```
+
+This command reads existing receipts; it does not run either engine. On exit
+code 0, continue to step 3. On any error, give the output to the maintainer and
+stop. Do not execute a resume command suggested by the underlying summary's
+`next_safe_command` field: that field does not account for the human hold.
+Likewise, `unselected; terminal command required` is a stored selection-status
+label, not an instruction to publish. Continue to step 3 for either label.
+
+### 3. Hand over the summary and stop
+
+Give the maintainer the step-2 output and this evidence directory:
+`D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001`.
+Preserve all files and failed attempts. Leave 3005 and the current 3006 selection
+unchanged. **There is no further operator execution step in the current scope.**
+
+## Verified mode commands — reference only; do not execute now
+
+The maintainer already executed the following calls in the separately owned
+refinement database. Operators must still execute only steps1–3 above. These
+commands document mode behavior; they are not a release of the held full run.
+Do not repeat them or provision their databases.
+
+Production command (called through Django `call_command` by the retained timing
+probe; this is the equivalent CLI argument list):
+
+```text
+manage.py run_daily /input/full-input.json
+  --sha256 ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56
+  --day-index 0 --revision refine-production-001 --evidence-mode production
+  --mdm-source 2
+  --mdm-source-digest fe2548f936c8b17133a37ea1adb491fcbbd71ea1d58bc42633da0e4a1477a0cb
+  --bpr-remark-horizon 90
+```
+
+It executes exactly one day and commits required operational rows. It does not
+infer Apply/Sleep decisions, generate comparison archives, prepare terminal
+reports or select a serving run. Success alone is not independent parity.
+
+Verified validation day-one retry (the named failed capture is retained):
+
+```text
+manage.py run_temporal /input/full-input.json
+  --sha256 ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56
+  --revision refine-validation-001-day1-a002
+  --evidence /proof/modern-day1-a002 --through 0
+  --automatic-actions --bounded-one-day --mdm-source 1
+  --mdm-source-digest 098cb331bcf2f0a68d050d1858298eafeeb255120149959d7d4f82d7d6fe740f
+  --bpr-remark-horizon 90 --mdm-retry 38fe4bee-20e8-4ead-ab94-36e38a1a180b
+```
+
+`run_temporal` explicitly uses validation evidence, retains full checkpoints and
+applies only the pinned automatic action policy. Legacy capture/comparison and
+`record_parity` remain separate operations. Both commands preserve typed rows,
+input identity, ordered state and atomic daily completion. Neither command is a
+serving deployment command. Evidence and the private isolated compose file are
+under `D:/freshvcf-build/refinement/integrated-001/`; credentials stay outside Git.
+
+## Held procedure — H1–H8 must not be executed now
+
+The following is retained reference for a future full-run release. Before an
+operator can use it, the maintainer must record explicit human authorization to
+resume and reconcile the source/image/runner pins in `docs/MIGRATION.md`, then
+issue an updated executable runbook. Successful optimization tests, restored SQL
+access and permission for mandatory diagnostic capture are not that release.
+
+This held procedure covers 1,240 pairs for June 6–26, 2026, terminal report checks
+on 3006 and restoration of the previous selection. The full run already has
+retained attempts; it is not an unstarted execution.
 
 Use `temporal-full-001` throughout. **Do not rerun the accepted ten-pair trial,
 regenerate inputs or repeat database setup.** On failure, follow the named
 recovery instruction before continuing.
 
-## 1. Open PowerShell
+## H1. Open PowerShell
 
 ```powershell
 Set-Location F:/freshvcf
@@ -16,11 +106,11 @@ $ErrorActionPreference = 'Stop'
 ```
 
 Use the existing Windows account with SQL oracle access. Keep the computer awake
-and connected to power through step 8. Docker Desktop, MSSQL and the existing
-`freshvcf-daily3006` stack must be running; step 2 checks them. Do not change
+and connected to power through step H8. Docker Desktop, MSSQL and the existing
+`freshvcf-daily3006` stack must be running; step H2 checks them. Do not change
 source files, images, credentials or configuration during the run.
 
-## 2. Run preflight
+## H2. Run preflight
 
 ```powershell
 ./tools/Test-TemporalValidationPreflight.ps1 -ExecutionId temporal-full-001 -Scenario full
@@ -30,7 +120,7 @@ if ($LASTEXITCODE -ne 0) { throw 'STOP: preflight failed. Follow recovery A.' }
 Continue only on exit code 0 and `PASS`. This checks input/source/image identity,
 the ledger, SQL access/ownership, PostgreSQL health, resource limits and storage.
 
-## 3. Execute the full run
+## H3. Execute the full run
 
 Run this block exactly. It chooses initial execution or resume automatically.
 
@@ -51,7 +141,7 @@ advancing. Workers use 4 GiB and two CPUs. Serving selection stays unchanged.
 Continue only on exit code 0. On failure or interruption, follow **recovery A**;
 do not immediately rerun the block.
 
-## 4. Verify all 21 accepted dates
+## H4. Verify all 21 accepted dates
 
 ```powershell
 $summary = ./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001 | ConvertFrom-Json
@@ -68,7 +158,7 @@ $summary | ConvertTo-Json -Depth 20
 
 Continue only if every check passes. Calculated days alone do not count as accepted.
 
-## 5. Publish June 26 on 3006
+## H5. Publish June 26 on 3006
 
 ```powershell
 ./tools/Publish-TemporalValidationTerminal.ps1 -ExecutionId temporal-full-001
@@ -81,7 +171,7 @@ access/hierarchy, and selects the terminal day on 3006. Readiness waits up to
 
 Continue only on exit code 0 and `SELECTED`. On failure, follow **recovery B**.
 
-## 6. Check the terminal reports
+## H6. Check the terminal reports
 
 Open `http://localhost:3006/login`. Use `stage2.broad@vectorflow.local` and its
 existing password from
@@ -94,17 +184,17 @@ Record each displayed date, row count and error in
 
 | Order | URL | Required check |
 |---|---|---|
-| 6.1 | `http://localhost:3006/mta/supply-chain-intelligence-hub/bpr` | Grid finishes loading and shows 26 Jun 2026. Selecting a row loads shipment data or an explicit empty result. |
-| 6.2 | `http://localhost:3006/mta/insights-and-trends/buffer-trend-report` | Both On-Hand and Pipeline views finish loading and show 26 Jun 2026. |
-| 6.3 | `http://localhost:3006/mta/dbm/dbm-norm-suggestions` | Grid finishes loading and shows 26 Jun 2026. Zero suggestions is valid after automatic APPLY. Do not submit additional Apply/Sleep actions. |
-| 6.4 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr` | Grid finishes loading and shows 26 Jun 2026. An empty result is valid; an error or persistent loading indicator is not. |
-| 6.5 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr-color-bandwise` | Use this direct URL; the retained menu click did not navigate in the trial. Grid must finish loading, including a valid empty result. This screen has no date label. |
+| H6.1 | `http://localhost:3006/mta/supply-chain-intelligence-hub/bpr` | Grid finishes loading and shows 26 Jun 2026. Selecting a row loads shipment data or an explicit empty result. |
+| H6.2 | `http://localhost:3006/mta/insights-and-trends/buffer-trend-report` | Both On-Hand and Pipeline views finish loading and show 26 Jun 2026. |
+| H6.3 | `http://localhost:3006/mta/dbm/dbm-norm-suggestions` | Grid finishes loading and shows 26 Jun 2026. Zero suggestions is valid after automatic APPLY. Do not submit additional Apply/Sleep actions. |
+| H6.4 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr` | Grid finishes loading and shows 26 Jun 2026. An empty result is valid; an error or persistent loading indicator is not. |
+| H6.5 | `http://localhost:3006/mta/supply-chain-intelligence-hub/rrr-color-bandwise` | Use this direct URL; the retained menu click did not navigate in the trial. Grid must finish loading, including a valid empty result. This screen has no date label. |
 
 Do not expect trial row counts or create data to populate empty reports.
 Write `UI PASS` only if all five checks pass; otherwise write `UI FAILED` and the
-failed check. **In either case, execute step 7.**
+failed check. **In either case, execute step H7.**
 
-## 7. Restore the previous 3006 selection
+## H7. Restore the previous 3006 selection
 
 Run this even when a browser check failed:
 
@@ -117,7 +207,7 @@ This restores the recorded previous configuration and waits for readiness. It
 refuses to overwrite configuration changed by another operator.
 Continue only on exit code 0. On failure, follow **recovery C**.
 
-## 8. Check the final summary and stop
+## H8. Check the final summary and stop
 
 ```powershell
 $final = ./tools/Get-TemporalValidationSummary.ps1 -ExecutionId temporal-full-001 | ConvertFrom-Json
@@ -133,7 +223,7 @@ restored` for a restored full run too. It reports selection state, not the
 operator's browser result. Keep the entire evidence directory and
 `operator-ui-check.txt`; invocation summaries are already saved there.
 
-Report completion only when steps 2–8 passed and browser evidence says `UI PASS`.
+Report completion only when steps H2–H8 passed and browser evidence says `UI PASS`.
 For `UI FAILED`, hand over the evidence after restoration and report that UI
 acceptance is outstanding. **Stop. Do not start another run or leave June 26 selected.**
 
@@ -147,7 +237,7 @@ acceptance is outstanding. **Stop. Do not start another run or leave June 26 sel
    safe to resume. Interrupted workers require committed-state reconciliation;
    changed pins or service identities require explicit reconciliation. Do not
    edit receipts, delete attempts, reset databases or increase memory.
-4. After that confirmation, return to **step 2**. Step 3 reuses accepted captures.
+4. After that confirmation, return to **step H2**. Step H3 reuses accepted captures.
 
 ## Recovery B — publication failure
 
@@ -157,7 +247,7 @@ acceptance is outstanding. **Stop. Do not start another run or leave June 26 sel
    `planning_expedite_transit` failed because RRR is prepared later in the same
    attempt. The maintainer must confirm those exact failures and a READY RRR
    prerequisite before authorizing a retry. Other failures require diagnosis.
-3. After the maintainer confirms retry is safe, repeat **step 5** with the same ID.
+3. After the maintainer confirms retry is safe, repeat **step H5** with the same ID.
    Successful layers and identical receipts are reused. Do not repeat calculation.
 
 ## Recovery C — restoration failure
@@ -165,8 +255,8 @@ acceptance is outstanding. **Stop. Do not start another run or leave June 26 sel
 1. Stop and contact the maintainer immediately with the output and evidence
    directory. Preserve the previous configuration and selection receipt.
 2. Do not edit `compose.json`, restart other services or issue another publication.
-3. After the maintainer reconciles serving configuration, repeat **step 7**, then
-   **step 8**. Do not declare completion before restoration passes.
+3. After the maintainer reconciles serving configuration, repeat **step H7**, then
+   **step H8**. Do not declare completion before restoration passes.
 
 ## Reference — no commands to execute
 

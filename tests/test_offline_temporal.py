@@ -23,6 +23,23 @@ def load_gzip(path):
 class OfflineTemporalTest(unittest.TestCase):
     namespace = {'VFTEST_DBM': 'VFTEST_Fresh_Owned_DBM'}
 
+    def test_day_three_repair_transition_rejects_unrelated_changes(self):
+        old={'parity/adapters/legacy/temporal_day.py':'old',
+             'parity/offline_temporal.py':'old','canonical.sql':'fixed'}
+        new={**old,'parity/adapters/legacy/temporal_day.py':'new','parity/offline_temporal.py':'new'}
+        sha='ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56'
+        path=self.root/'transition.json'
+        def check(after):
+            value=dict(schema='fresh-legacy-day3-conversion-repair-v1',input_sha256=sha,
+                       day_index=2,before=old,after=after)
+            path.write_text(json.dumps(value))
+            return offline._repair_transition(path,offline._sha(path),after,sha)
+        self.assertEqual(check(new)['before'],old)
+        with self.assertRaisesRegex(ValueError,'exceeds approved'):
+            check({**new,'canonical.sql':'changed'})
+        with self.assertRaisesRegex(ValueError,'identity differs'):
+            offline._repair_transition(path,'0'*64,new,sha)
+
     def setUp(self):
         self.temp = TemporaryDirectory()
         self.root = Path(self.temp.name)

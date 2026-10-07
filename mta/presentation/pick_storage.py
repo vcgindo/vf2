@@ -50,9 +50,13 @@ def read_pick_bands(run):
     receipt = PickProjection.objects.get(run=run)
     if receipt.version != 1:
         raise ValueError('Unsupported Pick projection version')
-    checkpoint = Checkpoint.objects.get(run=run, name='CalculationOutputs')
-    if checkpoint.digest != receipt.calculation_digest:
-        raise ValueError('Pick projection calculation identity differs')
+    if run.production_manifest.get('version')==2:
+        from mta.runtime.receipt_integrity import verify_root
+        verify_root(run)
+    else:
+        checkpoint = Checkpoint.objects.get(run=run, name='CalculationOutputs')
+        if checkpoint.digest != receipt.calculation_digest:
+            raise ValueError('Pick projection calculation identity differs')
     return _read_rows(run, receipt)
 
 
@@ -66,7 +70,7 @@ def _read_rows(run, receipt):
     return rows
 
 
-def write_pick_bands(run, calculated, *, provenance):
+def write_pick_bands(run, calculated, *, provenance, calculation_digest=None):
     """Caller owns the production transaction; duplicate writes are forbidden."""
     if transaction.get_autocommit():
         raise ValueError('Pick projection requires the publication transaction')
@@ -74,7 +78,7 @@ def write_pick_bands(run, calculated, *, provenance):
         raise ValueError('Pick provenance must remain bounded metadata')
     rows = selected_bands(calculated)
     records = native_rows(run, rows)
-    receipt = PickProjection.objects.create(run=run, calculation_digest=digest(calculated),
+    receipt = PickProjection.objects.create(run=run, calculation_digest=calculation_digest or digest(calculated),
         rows_digest=digest(rows), row_count=len(rows), provenance=provenance)
     PickBand.objects.bulk_create(records, batch_size=500)
     if _read_rows(run, receipt) != rows:

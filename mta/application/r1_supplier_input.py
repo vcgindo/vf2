@@ -5,6 +5,7 @@ from the master producer, never supplied as current-day processed fixture data.
 """
 from collections import Counter, defaultdict
 from copy import deepcopy
+from mta.evidence import validating
 from decimal import Decimal, InvalidOperation
 import json
 import math
@@ -171,7 +172,8 @@ def process_supplier_validation(raw, master_validation, settings, now):
                              if parent is not None and r["SupplierCode"] is not None and r["SKUCode"] is not None
                              and (_sql_key(r["SKUCode"]), _sql_key(r["SupplierCode"])) == (_sql_key(sku), _sql_key(parent))]
         outcome = validate(table)
-        stages[stage] = {"outcome": outcome, "tables": {t: sorted_rows(rows) for t, rows in tables.items()}}
+        stages[stage] = {"outcome": outcome, "tables":
+            {t: sorted_rows(rows) for t, rows in tables.items()} if validating() else {}}
     # Selected shell ImportNoNormData=0. Do not test processed master presence.
     if master["MasterDataRaw"]:
         for row in tables["ImporterSettingsTbl"]:

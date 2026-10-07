@@ -1,0 +1,93 @@
+"""Disposable, bounded-heap candidate index; PostgreSQL remains operational truth.
+
+The source owner retains the rows. This file contains only typed keys and source
+ordinals. Queries stream in original order, so duplicate joins are unchanged.
+"""
+from contextlib import ExitStack
+from contextvars import ContextVar
+from functools import wraps
+from pathlib import Path
+import os
+import sqlite3
+import tempfile
+
+_indexes = ContextVar('dbm_ordinal_indexes', default=None)
+
+
+def pair(row):
+    return row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+
+
+def encode(value):
+    if value is None:return b'n'
+    if isinstance(value, str):return b's' + value.encode('utf-8', 'surrogatepass')
+    raise TypeError('Canonical DBM identity must be text or NULL')
+
+
+class OrdinalLookup:
+    batch_size = 256
+    cache_kib = 2048
+
+    def __init__(self, rows):
+        self.rows = rows
+        self.count = len(rows)
+        self.candidate_rows = 0
+        base = Path(os.environ.get('VF_WORK_ROOT',
+            'D:/freshvcf-build/tmp' if os.name == 'nt' else '/tmp'))
+        base.mkdir(parents=True, exist_ok=True)
+        self.directory = tempfile.TemporaryDirectory(prefix='fresh-dbm-index-', dir=base)
+        try:
+            self.db = sqlite3.connect(str(Path(self.directory.name)/'ordinals.sqlite'))
+            self.db.execute('PRAGMA cache_size=-2048')
+            self.db.execute('PRAGMA temp_store=FILE')
+            self.db.execute('PRAGMA journal_mode=OFF')
+            self.db.execute('PRAGMA synchronous=OFF')
+            self.db.execute('CREATE TABLE candidate(sku BLOB NOT NULL, loc BLOB NOT NULL, ordinal INTEGER NOT NULL)')
+            self.db.executemany('INSERT INTO candidate VALUES(?,?,?)',
+                ((encode(key[0]), encode(key[1]), ordinal)
+                 for ordinal, row in enumerate(rows) for key in (pair(row),)))
+            self.db.execute('CREATE INDEX candidate_pair ON candidate(sku,loc,ordinal)')
+            self.db.commit()
+        except BaseException:
+            self.close()
+            raise
+
+    def close(self):
+        if hasattr(self, 'db'):self.db.close()
+        self.directory.cleanup()
+
+    def __enter__(self):return self
+
+    def __exit__(self, *args):self.close()
+
+    def matching(self, rows, key):
+        if rows is not self.rows or len(rows) != self.count:
+            raise ValueError('Ordinal lookup owner changed')
+        cursor = self.db.execute('SELECT ordinal FROM candidate WHERE sku=? AND loc=? ORDER BY ordinal',
+                                 (encode(key[0]), encode(key[1])))
+        try:
+            while batch := cursor.fetchmany(self.batch_size):
+                for (ordinal,) in batch:
+                    row = rows[ordinal]
+                    if pair(row) != key:raise ValueError('Ordinal lookup source reordered or mutated')
+                    self.candidate_rows += 1
+                    yield row
+        finally:
+            cursor.close()
+
+
+def indexed_state(*tables):
+    def decorate(function):
+        @wraps(function)
+        def call(today, state, *args, **kwargs):
+            with ExitStack() as stack:
+                indexes = {name:stack.enter_context(OrdinalLookup(state[name])) for name in tables}
+                token = _indexes.set(indexes)
+                try:return function(today, state, *args, **kwargs)
+                finally:_indexes.reset(token)
+        return call
+    return decorate
+
+
+def matching(state, table, key):
+    return _indexes.get()[table].matching(state[table], key)

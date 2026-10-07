@@ -387,7 +387,7 @@ def compare_step(options):
     from parity.verify_daily_rrr_colour import verify
     day=load(modern/'execution.json')['days'][-1]
     with isolation.exclusive_replay():
-        proof=verify(modern/day['output_archive'],day['output_digest'],offline_context=dict(
+        proof=verify(modern/day['output_archive'],day['output_digest'],validation_digest=day.get('validation_digest'),offline_context=dict(
             artifact_sha256=package['input']['sha256'],scenario_sha256=load(REGISTRY)['scenario_sha256']))
     save(target/'rrr-source.json',proof)
     if proof['status']!='PASS':

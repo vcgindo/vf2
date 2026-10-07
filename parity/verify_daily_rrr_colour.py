@@ -22,9 +22,9 @@ PICK = ROOT/'Ration_Scripts/GenerateBifurcationOfRationedReq.sql'
 PICK_SHA = '8da7fde0a88fd29a8c1f3af0d92ff578be50262f1b5605be8421a1686c45f0b5'
 
 
-def source(archive_path, expected_output, *, offline_context=None):
+def source(archive_path, expected_output, *, offline_context=None, validation_digest=None):
     archive = OutputArchive(archive_path)
-    archive.verify(expected_output)
+    archive.verify(expected_output,validation_digest)
     capabilities = {row['capability']: row['rows'] for row in archive['CalculationOutputs']}
     rationed = archive['BPRFinal'][0]['vf_RationedReqReport']
     masters = archive['ClosingState'][0]['bpr']['BPRMaster']
@@ -68,9 +68,9 @@ def canonical_sql():
     return pick, sql
 
 
-def verify(archive_path, expected_output, *, offline_context=None):
+def verify(archive_path, expected_output, *, offline_context=None, validation_digest=None):
     archive, capabilities, rationed, masters, bands, modern = source(
-        archive_path, expected_output, offline_context=offline_context)
+        archive_path, expected_output, offline_context=offline_context,validation_digest=validation_digest)
     pick_sql, report_sql = canonical_sql()
     with connection('VFTEST_BPR') as db:
         for name, table, rows in (
@@ -125,6 +125,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--archive', required=True)
     parser.add_argument('--output-digest', required=True)
+    parser.add_argument('--validation-digest')
     parser.add_argument('--receipt', required=True)
     args = parser.parse_args()
     target = Path(args.receipt)
@@ -132,7 +133,7 @@ def main():
         raise ValueError('Evidence must be append-only')
     os.environ['VFTEST_PROFILE'] = 'fresh'
     with exclusive_replay():
-        result = verify(args.archive, args.output_digest)
+        result = verify(args.archive, args.output_digest,validation_digest=args.validation_digest)
     with target.open('x') as stream:
         json.dump(result, stream, indent=2)
     print(result['status'], target)

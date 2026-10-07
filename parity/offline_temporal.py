@@ -117,6 +117,24 @@ def _verify_source(receipt_path, receipt, current=None):
     return value['files']
 
 
+def _repair_transition(path, expected_sha, current, input_sha):
+    """Exact retained day-three adapter repair, never a general pin waiver."""
+    if path is None and expected_sha is None:return None
+    if path is None or expected_sha is None or _sha(path)!=expected_sha:
+        raise ValueError('Repair transition identity differs')
+    value=json.loads(Path(path).read_text(encoding='utf-8'))
+    allowed={'parity/adapters/legacy/temporal_day.py','parity/offline_temporal.py'}
+    before,after=value.get('before',{}),value.get('after',{})
+    changed={p for p in set(before)|set(after) if before.get(p)!=after.get(p)}
+    if (value.get('schema')!='fresh-legacy-day3-conversion-repair-v1'
+            or value.get('input_sha256')!=input_sha
+            or input_sha!='ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56'
+            or value.get('day_index')!=2 or not before or after!=current
+            or changed!=allowed or set(before)!=set(after)):
+        raise ValueError('Repair transition exceeds approved day-three adapter boundary')
+    return value
+
+
 def _predecessor(case, index, receipt_path, receipt_sha, input_sha, policy, sources_digest):
     if index == 0:
         if receipt_path is not None or receipt_sha is not None:
@@ -145,7 +163,8 @@ def _predecessor(case, index, receipt_path, receipt_sha, input_sha, policy, sour
 
 def capture_legacy_day(*, artifact, expected_sha, destination, day_index,
                        namespace, predecessor_receipt=None,
-                       predecessor_receipt_sha256=None):
+                       predecessor_receipt_sha256=None, source_transition=None,
+                       source_transition_sha256=None):
     """Capture exactly one next canonical legacy day from its own predecessor."""
     artifact, destination = Path(artifact), Path(destination).resolve()
     if destination.exists():
@@ -165,9 +184,17 @@ def capture_legacy_day(*, artifact, expected_sha, destination, day_index,
         from parity.temporal_policy import policy_for_case, commands_for_day
         policy = policy_for_case(case)
         sources, source_path = _source_receipt(destination, authority)
+        transition=_repair_transition(source_transition,source_transition_sha256,sources,expected_sha)
+        if transition:
+            if day_index!=2:raise ValueError('Repair transition only permits day three')
+            prior_path,prior_receipt=_read_capture(predecessor_receipt,predecessor_receipt_sha256)
+            if _verify_source(prior_path,prior_receipt)!=transition['before']:
+                raise ValueError('Repair predecessor source differs')
+            receipt['source_transition']={'path':str(Path(source_transition).resolve()),
+                                          'sha256':source_transition_sha256}
         prior, opening_date, predecessor = _predecessor(
             case, day_index, predecessor_receipt, predecessor_receipt_sha256,
-            expected_sha, policy, digest(sources))
+            expected_sha, policy, digest(transition['before'] if transition else sources))
         day = {**deepcopy(case['days'][day_index]), **deepcopy(case['static_day'])}
         commands = commands_for_day(case, day_index - 1, prior['dbm']['Suggestions']) if day_index else []
         # Namespace equality has been checked before importing the adapter.
@@ -252,13 +279,18 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
     policy = policy_for_case(case)
     current_sources = authority.source_files()
     lineage = _capture_lineage(legacy_receipt, legacy_receipt_sha256)
+    transition_receipt=lineage[-1][1].get('source_transition')
+    transition=(_repair_transition(transition_receipt['path'],transition_receipt['sha256'],
+                current_sources,expected_sha) if transition_receipt else None)
+    if transition and len(lineage)!=3:raise ValueError('Repair comparison is terminal at day three')
     if len(lineage) > len(case['days']):
         raise ValueError('Legacy capture exceeds the frozen horizon')
     for path, capture in lineage:
         if (capture['input_sha256'] != expected_sha or capture['action_policy'] != policy
                 or capture['date'] != case['days'][capture['day_index']]['business_date']):
             raise ValueError('Legacy capture input/action/date lineage differs')
-        _verify_source(path, capture, current_sources)
+        _verify_source(path, capture, transition['before']
+                       if transition and capture['day_index']<2 else current_sources)
     modern_path = modern_execution / 'execution.json'
     modern = json.loads(modern_path.read_text(encoding='utf-8'))
     if (modern.get('artifact_sha256') != expected_sha
@@ -294,7 +326,10 @@ def _compare_retained(*, artifact, expected_sha, modern_execution,
                 raise ValueError('Legacy capture logical digest differs')
             if current.get('output_archive'):
                 actual = authority.OutputArchive(modern_execution / current['output_archive'])
-                actual.verify(current['output_digest'])
+                if current.get('validation_digest'):
+                    actual.verify(current['output_digest'],current['validation_digest'])
+                else:
+                    actual.verify(current['output_digest'])
             else:
                 modern_day = modern_execution / ('day-%03d.json.gz' % index)
                 actual = authority.load_gzip(modern_day)

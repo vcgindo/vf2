@@ -16,7 +16,8 @@ from mta.runtime.services import read_outputs, finish_run, fail_run
 from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
-from mta.runtime.validation_storage import read_input, store_input
+from mta.runtime.validation_storage import read_input
+from mta.evidence import evidence_mode as evidence_scope
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
@@ -99,7 +100,9 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
-                report_exceptions=None, mdm_source=None, mdm_retry=None):
+                report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation'):
+    if evidence_mode not in ('production','validation'):
+        raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
         raise ValueError('Explicit execution revision required')
@@ -165,6 +168,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if repeated is not None:
                     if repeated.origin_id!=origin_capture.pk:
                         raise ValueError('Daily run identity drift')
+                    if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
                     read_outputs(repeated.run)
                     return repeated.run
                 active_leaf_ids=list(MdmDailyInputCapture.objects.filter(
@@ -174,7 +178,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         or active_leaf_ids!=[origin_capture.run_id]
                         or origin_capture.request_digest!=request_digest):
                     raise ValueError('MDM retry does not match this failed daily request')
-                origin_raw=read_input(origin_capture.run)
+                origin_raw=read_input(origin_capture.run, components=('mdm_input','request_inputs','remark_inputs'))
                 capture_snapshot=deepcopy(origin_raw.get('mdm_input'))
                 if not capture_snapshot or capture_snapshot['revision_digest']!=origin_capture.revision_digest:
                     raise ValueError('Failed MDM capture input drift')
@@ -192,6 +196,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if repeated is not None:
                     if repeated.run.predecessor_id!=(parent.pk if parent else None):
                         raise ValueError('Daily run identity drift')
+                    if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
                     read_outputs(repeated.run)
                     return repeated.run
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
@@ -226,12 +231,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         if existing is not None:
             if existing.kind!=KIND or existing.predecessor_id!=(parent.pk if parent else None):
                 raise ValueError('Daily run identity drift')
+            if existing.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
             read_outputs(existing)
             return existing
         if parent and parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
             raise ValueError('Predecessor already consumed; no implicit timeline fork')
         new_id=uuid.uuid4()
-        fields=dict(id=new_id,input_digest=source_digest,input_payload=store_input(new_id,raw),execution_revision=execution_revision,
+        fields=dict(id=new_id,input_digest=source_digest,input_payload={},execution_revision=execution_revision,
+                    evidence_mode=evidence_mode,
                     kind=KIND,business_date=today,predecessor=parent)
         if parent is None:
             # A unique root key serializes concurrent initial starts without
@@ -242,10 +249,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if not created:
                 if run.input_digest!=source_digest or read_input(run)!=raw:
                     raise ValueError('Opening already used for different facts; explicit new trial required')
+                if run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
                 read_outputs(run)
                 return run
         else:
             run=CalculationRun.objects.create(**fields)
+        from mta.runtime.input_storage import save_input
+        run.input_payload=save_input(run,raw)
+        run.input_manifest_digest=digest(run.input_payload)
+        run.save(update_fields=['input_payload','input_manifest_digest'])
         if capture_snapshot is not None:
             from mta.mdm.daily_input import bind_capture
             bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
@@ -255,13 +267,16 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             bind_requests(run, raw['request_inputs'])
             bind_snapshots(run, raw['remark_inputs'])
     try:
-        result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-            lambda source:(calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
-        if [r['boundary'] for r in result['MajorBoundaries']]!=list(BOUNDARIES):
-            raise ValueError('Incomplete daily boundary roster')
-        result['Lineage']=[lineage]
-        return finish_run(run,result,expected_digest=source_digest,
-                          publication_opening=publication_opening)
+        with evidence_scope(evidence_mode):
+            result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
+                lambda source:(calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
+            completed=([r['boundary'] for r in result['MajorBoundaries']] if evidence_mode=='validation'
+                       else result.pop('_CompletedBoundaries'))
+            if completed!=list(BOUNDARIES):
+                raise ValueError('Incomplete daily boundary roster')
+            result['Lineage']=[lineage]
+            return finish_run(run,result,expected_digest=source_digest,
+                              publication_opening=publication_opening)
     except Exception as error:
         fail_run(run,error)
         raise

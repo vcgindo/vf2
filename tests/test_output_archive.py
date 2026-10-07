@@ -51,3 +51,19 @@ class OutputArchiveTest(unittest.TestCase):
             archive.items['Rows']['sha256']='0'*64
             with self.assertRaisesRegex(ValueError,'file drift'):
                 archive.verify(digest(value))
+
+    def test_v2_requires_separate_trusted_validation_identity(self):
+        value={'Rows':[{'v':1},{'v':None},{'v':True},{'v':1}]}
+        with TemporaryDirectory() as directory:
+            archive=self.archive(directory,value)
+            manifest=json.loads(archive.path.read_text())
+            manifest.update(schema='fresh-output-archive-v2',output_digest='a'*64,
+                            validation_digest=digest(value))
+            archive.path.write_text(json.dumps(manifest))
+            archive=OutputArchive(archive.path)
+            archive.verify('a'*64,digest(value))
+            for supplied in (None,'b'*64):
+                with self.assertRaisesRegex(ValueError,'Explicit validation evidence identity'):
+                    archive.verify('a'*64,supplied)
+            with self.assertRaisesRegex(ValueError,'Complete output archive checksum'):
+                archive.verify('b'*64,digest(value))

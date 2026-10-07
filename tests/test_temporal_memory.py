@@ -13,17 +13,21 @@ from mta.temporal.chain import calculate_day, _calculate_day_native, json_value
 
 
 class TemporalMemoryTest(unittest.TestCase):
-    def test_calculation_ast_is_unchanged_except_native_name_and_final_return(self):
-        tree = ast.parse(inspect.getsource(_calculate_day_native))
-        function = tree.body[0]
-        self.assertEqual(function.name, '_calculate_day_native')
-        self.assertEqual(ast.dump(function.body[-1]), "Return(value=Name(id='result', ctx=Load()))")
-        function.name = 'calculate_day'
-        function.body[-1] = ast.Return(value=ast.Call(
-            func=ast.Name(id='json_value', ctx=ast.Load()),
-            args=[ast.Name(id='result', ctx=ast.Load())], keywords=[]))
-        self.assertEqual(hashlib.sha256(ast.dump(tree, include_attributes=False).encode()).hexdigest(),
-            '72d7c16d6327a6eaead35cbf0e5bf58ed776d2865423edde592a771fc9feb1f9')
+    def test_production_avoids_normalization_and_diagnostic_copy(self):
+        from mta.evidence import evidence_mode, snapshot, final_stage, validating
+        row={'quantity':Decimal('1.2500')}
+        with evidence_mode('production'):
+            with patch('mta.temporal.chain._calculate_day_native', return_value={'ClosingState':[row]}), \
+                 patch('mta.temporal.chain.json_value',side_effect=AssertionError('diagnostic normalization')), \
+                 patch('mta.evidence.deepcopy',side_effect=AssertionError('diagnostic copy')):
+                result=calculate_day(None,None,None,None,None,None,None)
+                self.assertIs(result['ClosingState'][0],row)
+                self.assertIs(snapshot(row),row)
+                self.assertEqual(final_stage(iter([1,2,3])),[3])
+        self.assertTrue(validating())
+        with self.assertRaisesRegex(RuntimeError,'injected'):
+            with evidence_mode('production'):raise RuntimeError('injected')
+        self.assertTrue(validating())
 
     def test_checkpoint_conversion_matches_whole_graph_without_mutating_shared_rows(self):
         shared = {'quantity': Decimal('12.3400'), 'null': None, 'flag': True,

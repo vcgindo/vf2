@@ -6,6 +6,73 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Integrated daily execution refinement — correctness complete; performance qualification pending
+
+Explicit goal remains active in executor chat `01a10dd1-f170-7232-a731-568fd524a163`,
+without a token budget. Human controller turn `01a116b3-02eb-77f3-b730-2ea5d466e9c2`
+authorized `MODERN_DAILY_EXECUTION_OPTIMIZATION_PLAN.md`. Implementation and the
+bounded correctness exercise are complete. Remaining closure decision: the
+matched-resource legacy performance target is UNPROVED; unequal database resources
+and capture/persistence boundaries prohibit a matched end-to-end speed claim.
+Do not silently waive that gate or resume the held full run.
+
+Evidence root: `D:/freshvcf-build/refinement/integrated-001/`. The separate owned
+PostgreSQL has no host port and is limited to 1 GiB/one CPU. Workers are bounded
+to 4 GiB/two CPUs with restart=no. Candidate image:
+`3791d148878aae8780200cb91fcee9e90920f9afb6f63f974d07a3569330c48f`.
+
+- Production/validation separation, typed input/output persistence, bounded DBM
+  ordinal lookups and checkpoint-free production readers are implemented.
+  Migrations 0076–0078 passed real fresh-schema verification and 19 affected tests.
+  Baseline verification retains all 387 pinned resources. Focused conversion,
+  archive, source-transition and differential DBM checks pass. No whole-suite claim.
+- Production day1 `f6842ba8-f3f3-4012-8be0-e43aea0aa48a` matches validation
+  `6ad55f99-fb4e-4e7a-8e62-616594030c26` across 515 complete ordered images,
+  required exports and all seven source/projection groups. Both typed input and
+  output integrity and normal readers pass; independent run/MDM lineage differs.
+- New days1–2 pass all 31 comparisons each and both RRR SQL source proofs.
+  Day1 exercised all eight eligible Sleep identities and 120 Apply suggestions;
+  day2 consumed its own predecessor and applied six suggestions. Day2 run
+  `0499c478-0503-4abf-92ad-736a7eb7b0b4` has output
+  `81d3739acaec8b8d391816ffcdaa3bc468be7c851a7386f34994b4773f1f5e7c`.
+  `record_parity --preserve-existing` retained day1 acceptance unchanged.
+- The one approved legacy day3 calculation repair passed all 31 comparisons plus
+  RRR against retained modern day3; no accepted engine day was recalculated.
+- Terminal preparation is READY for the unchanged 18-layer synthetic roster.
+  Normal retry completed two expedite layers after their RRR prerequisite,
+  retaining all 16 successful receipts. Seal:
+  `d961094ec657a054741fb94bc277b55b3e1bea355deafc684a8ec89e77736d35`.
+  Broad/restricted/denied BPR/BTR reader scopes pass; native NULL hierarchy denies
+  without the exact retained read-time supplement. All prepared row/seal verifiers
+  and seven actual day2 source/projection readers pass. This is offline reader
+  proof, not HTTP/browser admission. No activation or selection occurred.
+- Terminal readback verifies ordered predecessor actions and proves day2 did not
+  depend on day1 expensive preparation (none exists). All 30 protected container
+  identities/images remain unchanged. Full21-day resume/day4+, UI activation,
+  serving publication and a capacity campaign remain outside this scope.
+
+Preserved failures: initial day1 SOB precision readback (corrected only typed
+input storage; retry reused frozen MDM capture); full-prefix comparator memory
+failures (fresh terminal-only comparisons reused verified accepted prefixes);
+first terminal preparation prerequisite failures; fixture-only BPR probe denial
+(corrected the probe to use the actual daily ReadModel). No engine retry was
+introduced by these comparison/preparation failures and no assertions were relaxed.
+
+Single-sample modern production boundary: 89.895s versus earlier diagnostic
+407.433s, a 77.9% observed reduction including removed diagnostics. New legacy
+capture boundary: 180.878s. These totals are NOT COMPARABLE as matched execution
+speed. Modern DBM remains slower than the measured SQL bucket. Modern production
+peak RSS is 689,618,944 bytes; both days and bounded comparison workers stayed
+within 4 GiB. Million-pair daily capacity and matched-resource performance remain
+uncertified. See [one comparison report](DAILY_EXECUTION_REFINEMENT_REPORT.md)
+and [complete-flow coverage](DAILY_EXECUTION_COVERAGE.md).
+
+Operator instruction: execute only steps1–3 in
+`OFFLINE_TEMPORAL_VALIDATION_RUNBOOK.md`, then stop. Verified production and
+validation commands are explicitly reference-only. Full-run H1–H8 remain held.
+Commit/push the substantive implementation and this qualified handoff; closing
+the unproved performance gate requires a consolidated human disposition.
+
 ### One-day timing diagnostic — complete, 7 October 2026
 
 Human controller turn `01a11653-59a8-7a73-aaf2-e3bdfa57df47` authorizes one

@@ -38,3 +38,13 @@ def digest(value):
     for part in canonical_parts(value):
         checksum.update(part)
     return checksum.hexdigest()
+
+
+def rows_digest(rows):
+    """Canonical list digest over a repeatable or streaming row source."""
+    checksum=hashlib.sha256(b'[')
+    for index,row in enumerate(rows):
+        if index:checksum.update(b',')
+        for part in canonical_parts(row):checksum.update(part)
+    checksum.update(b']')
+    return checksum.hexdigest()

@@ -218,6 +218,7 @@ class Command(BaseCommand):
                     capture_arguments = {'mdm_retry': retry_id}
                     receipt['retry_of'] = str(retry_id)
                 run=execute_day(day=day,profile=profile,execution_revision=options['revision'],
+                    evidence_mode='validation',
                     predecessor=previous,opening=None if previous else dict(state=case['opening'],
                         opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),
                     report_exceptions=exceptions, **capture_arguments)
@@ -227,6 +228,7 @@ class Command(BaseCommand):
                 receipt.update(status='COMPUTED_NOT_YET_PARITY',run_id=str(run.pk),
                     predecessor_id=str(run.predecessor_id) if run.predecessor_id else None,
                     input_digest=run.input_digest,output_digest=run.output_digest,
+                    validation_digest=run.validation_digest,
                     closing_digest=digest(output['ClosingState']),
                     output_archive=str(manifest.relative_to(target)),
                     boundaries=[r['boundary'] for r in archive.iter_rows('MajorBoundaries')],

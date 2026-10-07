@@ -202,7 +202,7 @@ def replay(artifact, expected_sha, modern_execution, destination, through, conti
                     raise ValueError('Modern date/status differs')
                 if current.get('output_archive'):
                     actual=OutputArchive(modern_execution/current['output_archive'])
-                    actual.verify(current['output_digest'])
+                    actual.verify(current['output_digest'],current.get('validation_digest'))
                 else:
                     actual=load_gzip(modern_execution/f'day-{index:03d}.json.gz')
                     if digest(actual)!=current['output_digest']:raise ValueError('Modern export/readback digest differs')

@@ -19,7 +19,7 @@ def capture_configuration_for_day(importer_settings, *, predecessor=None, source
             or predecessor.kind != 'DAILY_CHAIN' or capture is None
             or capture.status != 'CONSUMED' or capture.source_id != source.pk):
         raise ValueError('Successor MDM configuration requires its consumed same-source predecessor')
-    snapshot = read_input(predecessor).get('mdm_input')
+    snapshot = read_input(predecessor, components=('mdm_input',)).get('mdm_input')
     if (not isinstance(snapshot, dict) or snapshot.get('schema') != SCHEMA
             or snapshot.get('source_id') != source.pk
             or snapshot.get('source_digest') != source.digest

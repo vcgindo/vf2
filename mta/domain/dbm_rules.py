@@ -1,5 +1,6 @@
 """Ordered selected DBM recommendation rules."""
 from copy import deepcopy
+from mta.domain.ordinal_lookup import indexed_state, matching
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -56,6 +57,7 @@ def stockout_rules_one_six(today, state):
     return spike_recommendation(today, stockout_rules_one_five(today, state))
 
 
+@indexed_state('DailyConsumption', 'SuspendStockType')
 def too_much_in_green(today, state):
     """Rule5 preserves unbounded future rows, nongreen resets and group joins."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -75,12 +77,12 @@ def too_much_in_green(today, state):
         if key(master) in excluded:
             continue
         start = today - timedelta(days=2 * master['GCP'])
-        for fact in state['DailyConsumption']:
+        for fact in matching(state, 'DailyConsumption', key(master)):
             if key(fact) != key(master):
                 continue
             day = fact['ReportDate']
             day = date.fromisoformat(day) if isinstance(day, str) else day
-            for member in state['SuspendStockType']:
+            for member in matching(state, 'SuspendStockType', key(master)):
                 resume = member['GreenResumeDate']
                 resume = date.fromisoformat(resume) if isinstance(resume, str) else resume
                 if key(member) != key(master) or resume is None or day <= start or day < resume:
@@ -116,6 +118,7 @@ def stockout_rules_one_five(today, state):
     return too_much_in_green(today, stockout_rules_one_four(today, state))
 
 
+@indexed_state('DailyConsumption', 'SuspendStockType')
 def too_much_in_red(today, state):
     """Rule4 counts red observations exactly equal to maximum RCP after earlier winners."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -135,12 +138,12 @@ def too_much_in_red(today, state):
         if key(master) in excluded:
             continue
         start = today - timedelta(days=master['RCP'] - 1)
-        for fact in state['DailyConsumption']:
+        for fact in matching(state, 'DailyConsumption', key(master)):
             if key(fact) != key(master):
                 continue
             day = fact['ReportDate']
             day = date.fromisoformat(day) if isinstance(day, str) else day
-            for member in state['SuspendStockType']:
+            for member in matching(state, 'SuspendStockType', key(master)):
                 resume = member['RedResumeDate']
                 resume = date.fromisoformat(resume) if isinstance(resume, str) else resume
                 if key(member) == key(master) and resume is not None and start <= day <= today and resume <= day:
@@ -164,6 +167,7 @@ def stockout_rules_one_four(today, state):
     return too_much_in_red(today, stockout_rules_one_three(today, state))
 
 
+@indexed_state('DailyConsumption', 'SuspendStockType')
 def stockout_type_b(today, state):
     """Rule3 groups qualifying zero-stock observations after earlier winners."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -183,12 +187,12 @@ def stockout_type_b(today, state):
         if key(master) in excluded:
             continue
         start = today - timedelta(days=master['RCP'] - 1)
-        for fact in state['DailyConsumption']:
+        for fact in matching(state, 'DailyConsumption', key(master)):
             if key(fact) != key(master) or fact['Stock'] != 0:
                 continue
             day = fact['ReportDate']
             day = date.fromisoformat(day) if isinstance(day, str) else day
-            for member in state['SuspendStockType']:
+            for member in matching(state, 'SuspendStockType', key(master)):
                 resume = member['RedResumeDate']
                 resume = date.fromisoformat(resume) if isinstance(resume, str) else resume
                 if key(member) == key(master) and resume is not None and start <= day <= today and resume <= day:
@@ -208,6 +212,7 @@ def stockout_rules_one_three(today, state):
     return stockout_type_b(today, stockout_rules_one_two(today, state))
 
 
+@indexed_state('DailyConsumption', 'SuspendStockType')
 def virtual_stockout(today, state):
     """Rule2 uses integer per-row depletion and preserves earlier winners."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -227,12 +232,12 @@ def virtual_stockout(today, state):
         if key(master) in excluded:
             continue
         start = today - timedelta(days=master['RCP'] - 1)
-        for fact in state['DailyConsumption']:
+        for fact in matching(state, 'DailyConsumption', key(master)):
             if key(fact) != key(master) or fact['Stock'] is None:
                 continue
             day = fact['ReportDate']
             day = date.fromisoformat(day) if isinstance(day, str) else day
-            for member in state['SuspendStockType']:
+            for member in matching(state, 'SuspendStockType', key(master)):
                 resume = member['RedResumeDate']
                 resume = date.fromisoformat(resume) if isinstance(resume, str) else resume
                 if key(member) != key(master) or resume is None or not (start <= day <= today and resume <= day):

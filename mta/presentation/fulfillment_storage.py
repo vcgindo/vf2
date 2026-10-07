@@ -31,13 +31,17 @@ def read_fulfillment(run,*,output):
         from mta.presentation.fixture import projection_rows
         return dict(summary=projection_rows(run,FulfillmentSummaryRow),details=projection_rows(run,FulfillmentDetailRow))
     receipt=FulfillmentProjection.objects.get(run=run)
-    if (receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)) or
-        receipt.calculation_digest!=Checkpoint.objects.get(run=run,name='CalculationOutputs').digest):
+    if run.production_manifest.get('version')==2:
+        from mta.runtime.receipt_integrity import verify_root
+        verify_root(run)
+    elif receipt.calculation_digest!=Checkpoint.objects.get(run=run,name='CalculationOutputs').digest:
+        raise ValueError('Fulfilment calculation identity differs')
+    if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)):
         raise ValueError('Fulfilment producer/input identity differs')
     return _read(run,receipt)
 
 
-def write_fulfillment(run,output,calculated):
+def write_fulfillment(run,output,calculated, *, calculation_digest=None):
     if transaction.get_autocommit():
         raise ValueError('Fulfilment requires publication transaction')
     source=inputs(output,run.business_date)
@@ -45,7 +49,7 @@ def write_fulfillment(run,output,calculated):
     rows=dict(summary=produce_summary(source['rationed'],source['standards']),
               details=produce_details(source['orders'],routes,source['standards'],source['business_date']))
     receipt=FulfillmentProjection.objects.create(run=run,producer_sha256=PRODUCER_SHA,
-        source_digest=digest(source),calculation_digest=digest(calculated),
+        source_digest=digest(source),calculation_digest=calculation_digest or digest(calculated),
         **{name+suffix:value for name,records in rows.items() for suffix,value in
            (('_count',len(records)),('_digest',digest(records)))})
     for name,model in (('summary',FulfillmentSummaryRow),('details',FulfillmentDetailRow)):

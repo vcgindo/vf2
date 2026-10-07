@@ -11,9 +11,10 @@ import hashlib
 import json
 from pathlib import Path
 import re
+from itertools import islice
 
 from django.db import connection
-from mta.serialization import digest, storage
+from mta.serialization import digest, storage, rows_digest, canonical_parts
 
 CATALOG=json.loads((Path(__file__).resolve().parents[2]/'baseline/production-state-schema.json').read_text())
 if digest(CATALOG)!='89201eca8c797bcd70a9f87d9dce31cc2be27636eccc0f6cee027a8bcf09d7aa':
@@ -24,6 +25,8 @@ PG_TYPES={'int':'bigint','bigint':'bigint','bit':'boolean','date':'date',
     'datetime':'timestamp without time zone','decimal':'numeric','numeric':'numeric',
     'float':'double precision','real':'double precision',
     'nchar':'text','nvarchar':'text','varchar':'text','xml':'text'}
+from mta.runtime.input_tables import TABLES as INPUT_TABLES
+STORAGE_TABLES = {**CATALOG['tables'], **INPUT_TABLES}
 
 
 def quote(name):return '"'+name.replace('"','""')+'"'
@@ -51,6 +54,7 @@ def schema_statements():
 
 
 def wire_type(value):
+    if isinstance(value, (Decimal, date, datetime)):return 'str'
     kind=type(value).__name__
     if kind not in ('str','int','float','bool'):raise ValueError('Non-scalar operational column '+kind)
     return kind
@@ -65,8 +69,8 @@ def db_value(value,kind):
     if kind=='bit':
         if value not in (True,False,0,1):raise ValueError('Invalid canonical bit')
         return bool(value)
-    if kind=='date':return date.fromisoformat(value)
-    if kind=='datetime':return datetime.fromisoformat(value)
+    if kind=='date':return date.fromisoformat(value) if isinstance(value,str) else value
+    if kind=='datetime':return datetime.fromisoformat(value) if isinstance(value,str) else value
     if kind in ('float','real'):return float(value)
     return str(value)
 
@@ -82,16 +86,19 @@ def wire_value(value,kind):
 
 def bulk(sql,records):
     with connection.cursor() as cursor:
-        for start in range(0,len(records),500):cursor.executemany(sql,records[start:start+500])
+        iterator=iter(records)
+        while batch:=list(islice(iterator,500)):
+            cursor.executemany(sql,batch)
 
 
-def save_image(run,image,binding,rows):
-    key='/'.join(CATALOG['bindings'][binding])
-    metadata=dict(image=image,table=key,count=len(rows),digest=digest(rows),fields=[])
+def save_image(run,image,binding,rows, *, table=None):
+    key=table if table is not None else '/'.join(CATALOG['bindings'][binding])
+    if key not in STORAGE_TABLES:raise ValueError('Unknown typed image table')
+    metadata=dict(image=image,table=key,count=len(rows),digest=rows_digest(rows),fields=[])
     if not rows:return metadata
     fields=list(rows[0])
     if any(set(row)!=set(fields) for row in rows):raise ValueError('Mixed operational row shape: '+image)
-    columns={name.casefold():(name,kind) for name,kind in CATALOG['tables'][key]}
+    columns={name.casefold():(name,kind) for name,kind in STORAGE_TABLES[key]}
     native=[]
     for field in fields:
         if field.casefold() not in columns:raise ValueError('Unmapped operational column '+image+'/'+field)
@@ -101,55 +108,119 @@ def save_image(run,image,binding,rows):
         metadata['fields'].append([field,name,next(iter(types),'str')])
         native.append((name,kind))
     query='INSERT INTO '+table_sql(key)+' (vf_run_id,vf_image,vf_ordinal,'+','.join(quote(n) for n,_ in native)+') VALUES ('+','.join(['%s']*(len(native)+3))+')'
-    records=[(run.pk,image,index,*[db_value(row[field],kind) for field,(_,kind) in zip(fields,native)])
-             for index,row in enumerate(rows)]
+    records=((run.pk,image,index,*[db_value(row[field],kind) for field,(_,kind) in zip(fields,native)])
+             for index,row in enumerate(rows))
     bulk(query,records)
     return metadata
 
 
-def load_image(run,item):
-    if item['table'] not in CATALOG['tables']:raise ValueError('Unknown operational table')
+def iter_image(run,item):
+    if item['table'] not in STORAGE_TABLES:raise ValueError('Unknown operational table')
     fields=item['fields']
+    checksum=hashlib.sha256(b'[');count=0
     with connection.cursor() as cursor:
         cursor.execute('SELECT vf_ordinal'+(' ,'+','.join(quote(n) for _,n,_ in fields) if fields else '')+
             ' FROM '+table_sql(item['table'])+' WHERE vf_run_id=%s AND vf_image=%s ORDER BY vf_ordinal',
             [run.pk,item['image']])
-        records=cursor.fetchall()
-    if [r[0] for r in records]!=list(range(item['count'])):raise ValueError('Operational row count/order drift')
-    rows=[{f:wire_value(v,kind) for (f,_,kind),v in zip(fields,r[1:])} for r in records]
-    if digest(rows)!=item['digest']:raise ValueError('Operational state value/type/multiplicity drift: '+item['image'])
-    return rows
+        while records:=cursor.fetchmany(500):
+            for record in records:
+                if record[0]!=count:raise ValueError('Operational row count/order drift')
+                row={f:wire_value(v,kind) for (f,_,kind),v in zip(fields,record[1:])}
+                if count:checksum.update(b',')
+                for part in canonical_parts(row):checksum.update(part)
+                count+=1
+                yield row
+    checksum.update(b']')
+    if count!=item['count'] or checksum.hexdigest()!=item['digest']:
+        raise ValueError('Operational state value/type/multiplicity drift: '+item['image'])
+
+
+def load_image(run,item):
+    return list(iter_image(run,item))
 
 
 def save_export(run,image,rows):
-    records=[];lengths=[]
-    for ordinal,row in enumerate(rows):
-        if set(row)!={'values'}:raise ValueError('Unexpected report export row shape')
-        lengths.append(len(row['values']))
-        for column,value in enumerate(row['values']):
-            kind='null' if value is None else wire_type(value)
-            values=[None,None,None,None]
-            if kind!='null':values[('str','int','float','bool').index(kind)]=value
-            records.append((run.pk,image,ordinal,column,kind,*values))
-    bulk('INSERT INTO mta_state.report_export_cell VALUES ('+','.join(['%s']*9)+')',records)
-    return dict(image=image,lengths=lengths,digest=digest(rows))
+    def lengths():
+        for ordinal,row in enumerate(rows):
+            if set(row)!={'values'}:raise ValueError('Unexpected report export row shape')
+            yield (run.pk,image,ordinal,len(row['values']))
+    bulk('INSERT INTO mta_state.report_export_row VALUES (%s,%s,%s,%s)',lengths())
+    def cells():
+        for ordinal,row in enumerate(rows):
+            for column,value in enumerate(row['values']):
+                kind='null' if value is None else wire_type(value)
+                values=[None,None,None,None]
+                if kind!='null':values[('str','int','float','bool').index(kind)]=wire_value(value,kind)
+                yield (run.pk,image,ordinal,column,kind,*values)
+    bulk('INSERT INTO mta_state.report_export_cell VALUES ('+','.join(['%s']*9)+')',cells())
+    return dict(version=2,image=image,count=len(rows),digest=rows_digest(rows))
+
+
+def iter_export(run,item):
+    checksum=hashlib.sha256(b'[');count=0
+    with connection.cursor() as cursor:
+        if item.get('version')==2:
+            cursor.execute('SELECT r.row_ordinal,r.column_count,c.column_ordinal,c.value_type,'
+                'c.text_value,c.integer_value,c.real_value,c.boolean_value '
+                'FROM mta_state.report_export_row r LEFT JOIN mta_state.report_export_cell c '
+                'ON c.vf_run_id=r.vf_run_id AND c.vf_image=r.vf_image AND c.row_ordinal=r.row_ordinal '
+                'WHERE r.vf_run_id=%s AND r.vf_image=%s ORDER BY r.row_ordinal,c.column_ordinal',
+                [run.pk,item['image']])
+            def records():
+                while batch:=cursor.fetchmany(500):yield from batch
+            iterator=iter(records());pending=next(iterator,None)
+            for ordinal in range(item['count']):
+                if pending is None or pending[0]!=ordinal:raise ValueError('Report row population drift')
+                size=pending[1];values=[]
+                if size<0:raise ValueError('Report row length drift')
+                for column in range(size):
+                    if pending is None or pending[:3]!=(ordinal,size,column):raise ValueError('Report cell population drift')
+                    kind,*typed=pending[3:]
+                    selected=None if kind=='null' else ('str','int','float','bool').index(kind)
+                    if any(v is not None for i,v in enumerate(typed) if i!=selected):
+                        raise ValueError('Report cell typed columns conflict')
+                    values.append(None if selected is None else typed[selected])
+                    pending=next(iterator,None)
+                if not size:
+                    if any(v is not None for v in pending[2:]):raise ValueError('Empty report row has cells')
+                    pending=next(iterator,None)
+                row={'values':values}
+                if count:checksum.update(b',')
+                for part in canonical_parts(row):checksum.update(part)
+                count+=1
+                yield row
+            if pending is not None:raise ValueError('Extra report rows')
+            cursor.execute('SELECT count(*) FROM mta_state.report_export_cell c WHERE c.vf_run_id=%s '
+                'AND c.vf_image=%s AND NOT EXISTS (SELECT 1 FROM mta_state.report_export_row r '
+                'WHERE r.vf_run_id=c.vf_run_id AND r.vf_image=c.vf_image AND r.row_ordinal=c.row_ordinal)',
+                [run.pk,item['image']])
+            if cursor.fetchone()[0]:raise ValueError('Orphan report cells')
+        else:
+            # Accepted version-one receipts retain their original row-length manifest.
+            cursor.execute('SELECT row_ordinal,column_ordinal,value_type,text_value,integer_value,real_value,boolean_value '
+                'FROM mta_state.report_export_cell WHERE vf_run_id=%s AND vf_image=%s ORDER BY row_ordinal,column_ordinal',
+                [run.pk,item['image']])
+            for ordinal,size in enumerate(item['lengths']):
+                values=[]
+                for column in range(size):
+                    record=cursor.fetchone()
+                    if record is None or record[:2]!=(ordinal,column):raise ValueError('Report cell population drift')
+                    kind,*typed=record[2:]
+                    selected=None if kind=='null' else ('str','int','float','bool').index(kind)
+                    if any(v is not None for i,v in enumerate(typed) if i!=selected):raise ValueError('Report cell typed columns conflict')
+                    values.append(None if selected is None else typed[selected])
+                row={'values':values}
+                if count:checksum.update(b',')
+                for part in canonical_parts(row):checksum.update(part)
+                count+=1
+                yield row
+            if cursor.fetchone() is not None:raise ValueError('Extra report cells')
+    checksum.update(b']')
+    if checksum.hexdigest()!=item['digest']:raise ValueError('Report projection drift')
 
 
 def load_export(run,item):
-    rows=[{'values':[None]*size} for size in item['lengths']]
-    expected={(i,j) for i,size in enumerate(item['lengths']) for j in range(size)}
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT row_ordinal,column_ordinal,value_type,text_value,integer_value,real_value,boolean_value '
-            'FROM mta_state.report_export_cell WHERE vf_run_id=%s AND vf_image=%s ORDER BY row_ordinal,column_ordinal',
-            [run.pk,item['image']])
-        for ordinal,column,kind,*values in cursor.fetchall():
-            if (ordinal,column) not in expected:raise ValueError('Report cell population drift')
-            expected.remove((ordinal,column))
-            selected=None if kind=='null' else ('str','int','float','bool').index(kind)
-            if any(v is not None for i,v in enumerate(values) if i!=selected):raise ValueError('Report cell typed columns conflict')
-            rows[ordinal]['values'][column]=None if selected is None else values[selected]
-    if expected or digest(rows)!=item['digest']:raise ValueError('Report projection drift')
-    return rows
+    return list(iter_export(run,item))
 
 
 def save_daily(run,output):

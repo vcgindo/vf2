@@ -4,6 +4,7 @@ The extra tables are closing state, not a new set of daily control answers.
 Current-day commands may append only to the source request tables.
 """
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 
 from mta.application.r1_phase_out import collect_phase_out, process_phase_out
 from mta.application.r1_phase_in import collect_phase_in, process_phase_in
@@ -44,13 +45,13 @@ def timeline_control_stages(today, opening_date, state, extra, day, profile, dai
         s = calculate(s)
         if name == 'ProcessPhaseIn.sql':
             diagnostics['phase_exceptions'] = phase_exception_rows(s, timestamp)
-        yield name, deepcopy(s), deepcopy(diagnostics)
+        yield name, snapshot(s), snapshot(diagnostics)
     extras = {n: deepcopy(s[n]) for n in EXTRA_TABLES}
     for name, current in control_stages(today, opening_date, {n: s[n] for n in TABLES},
             profile['force_flags'], day['accepted_feed'], day['new_force_requests']):
         s = {**current, **deepcopy(extras)}
         if name == 'UpdateNormChanges.sql':
             diagnostics['failed_force'] = failed_force_rows(s, today)
-        yield name, deepcopy(s), deepcopy(diagnostics)
+        yield name, snapshot(s), snapshot(diagnostics)
     s = clear_phase_inputs(s, today, history_horizon=profile['history_horizon'])
     yield 'ClearPhaseInPhaseOutData.sql', s, diagnostics

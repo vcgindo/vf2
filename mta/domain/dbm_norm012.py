@@ -1,6 +1,7 @@
 """Selected Norm0/1/2 report stages; unordered source outcomes are not invented."""
 from collections import defaultdict
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 from datetime import date, timedelta
 from itertools import product
 
@@ -127,13 +128,13 @@ def norm012_stages(today, state, norm, horizon, occurrence_order_exclusions=(),
                    exclude_all_occurrence_order=False):
     current = data_stage(today, state, norm, horizon, occurrence_order_exclusions,
                          exclude_all_occurrence_order)
-    yield 'data', deepcopy(current)
+    yield 'data', snapshot(current)
     current = detail_stage(current)
-    yield 'detail', deepcopy(current)
+    yield 'detail', snapshot(current)
     current = export_stage(current)
-    yield 'export', deepcopy(current)
+    yield 'export', snapshot(current)
     current = clear_stage(current)
-    yield 'clear', deepcopy(current)
+    yield 'clear', snapshot(current)
 
 
 def norm012_report(today, state, norm, horizon):

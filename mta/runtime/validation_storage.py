@@ -35,8 +35,11 @@ def store_input(run_id,raw):
         input_digest=digest(raw))
 
 
-def read_input(run):
+def read_input(run, *, components=None):
     value=run.input_payload
+    if value.get('schema')=='fresh-daily-input-manifest-v2':
+        from mta.runtime.input_storage import read_input as typed_input
+        return typed_input(run, components=components)
     if value.get('schema')!='fresh-input-reference-v1':return value
     if value['path']!=str(run.pk)+'/InputSnapshot.jsonl.gz':raise ValueError('Input owner/path drift')
     rows=list(iter_rows(evidence_path(run,'InputSnapshot'),value))
@@ -62,6 +65,8 @@ def export_run(run, directory):
     """
     from mta.runtime.services import read_outputs
     read_outputs(run)  # Production identity/roster/readback checks first.
+    if run.evidence_mode!='validation':
+        raise ValueError('Complete parity export requires validation evidence mode')
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False)
     records = []
@@ -79,7 +84,7 @@ def export_run(run, directory):
                 raise ValueError('Production export checksum differs')
         records.append(dict(name=checkpoint.name, path=os.path.relpath(path, directory), **metadata))
     manifest = directory / 'manifest.json'
-    manifest.write_text(json.dumps(dict(schema='fresh-output-archive-v1', run_id=str(run.pk),
-        output_digest=run.output_digest, checkpoints=records), indent=2), encoding='utf-8')
-    OutputArchive(manifest).verify(run.output_digest)
+    manifest.write_text(json.dumps(dict(schema='fresh-output-archive-v2' if run.validation_digest else 'fresh-output-archive-v1', run_id=str(run.pk),
+        output_digest=run.output_digest, validation_digest=run.validation_digest, checkpoints=records), indent=2), encoding='utf-8')
+    OutputArchive(manifest).verify(run.output_digest,run.validation_digest)
     return manifest

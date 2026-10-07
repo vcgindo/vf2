@@ -1,5 +1,6 @@
 """Complete selected ingestion-starting DBM sequence, preserving every boundary."""
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 from mta.domain.dbm_connected import connected_stages
 from mta.domain.dbm_delisting import delisting_recommendation
 from mta.domain.dbm_postrules import postrule_stages
@@ -24,12 +25,12 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
         if config['AutoDBMActive'] != 0 or any(config[f'PhaseOutRecommendation{h}Days'] for h in (30, 60, 90)):
             raise ValueError('Unselected auto-acceptance/phase recommendation profile')
     for name, current in connected_stages(today, state, facts):
-        yield name, deepcopy(current)
+        yield name, snapshot(current)
     if config is None or active('DelistingofNormRuleActive'):
         current = delisting_recommendation(today, current)
-        yield 'rule12', deepcopy(current)
+        yield 'rule12', snapshot(current)
     for name, current in postrule_stages(today, current):
-        yield name, deepcopy(current)
+        yield name, snapshot(current)
     for name, calculate in (
         ('order-summary', update_order_summary),
         ('norm1-advisory', norm1_advisory),
@@ -41,7 +42,7 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
                 or (name == 'norm-change-history' and config['ActivateNormChangeLogReport'] != 1)):
             continue
         current = calculate(today, current)
-        yield name, deepcopy(current)
+        yield name, snapshot(current)
     for norm in (0, 1, 2):
         for horizon in ((30, 60, 90) if norm == 0 and config is not None else (30,)):
             if config is not None and config[f'ActivateNorm{norm}Report{horizon}Days'] != 1:
@@ -56,9 +57,9 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
                            and horizon in scope.get('horizons', []))
             for name, current in norm012_stages(
                     today, current, norm, horizon, excluded, exclude_all):
-                yield f'norm{norm}-{name}', deepcopy(current)
+                yield f'norm{norm}-{name}', snapshot(current)
     current = daily_cleanup(today, current, 370 if config is None else config['DailyConsumptionHorizonDBM'])
-    yield 'daily-cleanup', deepcopy(current)
+    yield 'daily-cleanup', snapshot(current)
 
 
 def selected_chain(today, state, facts):

@@ -1,5 +1,6 @@
 """Ordered DBM suspension state; selected SQL semantics without rule dispatch."""
 from copy import deepcopy
+from mta.domain.ordinal_lookup import indexed_state, matching
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -13,6 +14,7 @@ def _flags(row, red=False, green=False):
             'IsRedEnabled': red, 'IsGreenEnabled': green}
 
 
+@indexed_state('DailyConsumption')
 def suppress_insufficient_data(today, state):
     """DAG step26: preserve SQL joined-row counts and post-resume suppression."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
@@ -30,7 +32,7 @@ def suppress_insufficient_data(today, state):
         for master in state['DBMMaster']:
             group = (_key(master), master[period])
             start = today - timedelta(days=2 * master[period] - 1)
-            for fact in state['DailyConsumption']:
+            for fact in matching(state, 'DailyConsumption', _key(master)):
                 report = fact['ReportDate']
                 report = date.fromisoformat(report) if isinstance(report, str) else report
                 if _key(master) == _key(fact) and start <= report <= today:

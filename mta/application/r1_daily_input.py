@@ -6,6 +6,7 @@ No SQL is executed by this port. Each script's return/error is local to it.
 """
 from collections import Counter
 from copy import deepcopy
+from mta.evidence import validating
 from datetime import date, timedelta
 import re
 
@@ -267,5 +268,6 @@ def process_daily_validation(entry, master_validation, business_date, now):
             outcome = operation()
         except _SqlError:
             outcome = "SQL_ERROR"
-        stages[stage] = {"outcome": outcome, "tables": {k: sorted_rows(v) for k, v in tables.items()}}
+        stages[stage] = {"outcome": outcome, "tables":
+            {k: sorted_rows(v) for k, v in tables.items()} if validating() or stage==STAGES[-1] else {}}
     return stages

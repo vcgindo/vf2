@@ -1,6 +1,7 @@
 """Physical BPR construction before dispatch rewrites its colour scratch table."""
 from collections import defaultdict
 from copy import deepcopy
+from mta.evidence import snapshot, final_stage
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 
 from mta.domain.dbm_ingestion import _key
@@ -65,7 +66,7 @@ def construct_stages(today, state, show_norm_zero=True):
                 'EcoPen': '0.00', 'EcoColor': 'White', 'EcoColorSequence': 0})
     current['PenetrationAndColor'] = penetration
     current['BPRExceptions'] = []
-    yield 'CollectDataForBPR.sql', deepcopy(current)
+    yield 'CollectDataForBPR.sql', snapshot(current)
 
     unique_values(penetration, _key, ('Norm', 'Stock', 'GIT'))
     sequence = unique_values(state['ColorSequence'], lambda r: r['Color'], ('SequenceNo',))
@@ -84,7 +85,7 @@ def construct_stages(today, state, show_norm_zero=True):
             if band in sequence:
                 row[prefix + 'ColorSequence'] = sequence[band][0]
     current['IntermediateTables'] = {k: [] for k in current['IntermediateTables']}
-    yield 'PhysicalInventoryColour', deepcopy(current)
+    yield 'PhysicalInventoryColour', snapshot(current)
 
     sku_names = unique_values(state['SKUDescriptionTbl'], lambda r: r['SKUCode'], ('SKUDescription',))
     loc_names = unique_values(state['SiteDescriptionTbl'], lambda r: r['WHCode'], ('WHDescription',))
@@ -108,12 +109,12 @@ def construct_stages(today, state, show_norm_zero=True):
             row.update({'SKULocAttr' + str(i): attr[i] for i in range(1, 16)})
             result.append(row)
     current['BPR_Table'] = result
-    yield 'GenerateBPR.sql', deepcopy(current)
+    yield 'GenerateBPR.sql', snapshot(current)
 
 
 def constructor_then_late(today, state, report):
     """Carry generated BPR into the already-proved late update, without I/O."""
-    stages = list(construct_stages(today, state))
+    stages = final_stage(construct_stages(today, state))
     late = update_bpr({'BPR_Table': stages[-1][1]['BPR_Table'],
                       'BPRDailyConsumption': state['BPRDailyConsumption'],
                       'BPRLastBatchRunTbl': state['LastBatchRunTbl'], 'vf_RationedReqReport': report})
