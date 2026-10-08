@@ -289,6 +289,25 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     report=rationed_report(source,calculated,
         [{'sku_code':r['SKUCode'],'description':r['SKUDescription']} for r in importer['SKUDescriptionTbl']],
         [{'location_code':r['WHCode'],'description':r['WHDescription']} for r in importer['SiteDescriptionTbl']])
+    pick_state = None
+    if profile.get('complete_pick') is not None:
+        if profile['complete_pick'] != {'policy': 'canonical-tied-order-v1'}:
+            raise ValueError('Explicit supported complete Pick policy required')
+        from mta.application.complete_daily_inputs import pick_report
+        from mta.application.complete_daily_pick import calculate_native_pick
+        logistics = profile['calculation']['logistics']
+        if 'vehicle' in logistics or not {'vehicles', 'location_vehicles'} <= logistics.keys():
+            raise ValueError('Complete Pick requires explicit vehicle IDs and parent mappings')
+        pick_sources = dict(
+            pick_rows=pick_report(rationed=report, bands=calculated['r1_ration_bifurcation']),
+            sku_attributes=importer['SkuAttributeData'], location_attributes=importer['LocationAttributeData'],
+            vehicles=[dict(VehicleID=v['vehicle_id'], VehicleName=v['name'], Weight=v['weight_capacity'],
+                           Volume=v['volume_capacity']) for v in logistics['vehicles']],
+            location_vehicles=[dict(LocationID=v['location_code'], VehicleID=v['vehicle_id'])
+                               for v in logistics['location_vehicles']])
+        pick_state = calculate_native_pick(**pick_sources)
+        calculated['r1_pick_list'] = [r for r in pick_state['allocations'] if r['truck'] is not None]
+        calculated['r1_pick_remaining'] = [r for r in pick_state['allocations'] if r['truck'] is None]
     early_daily=generated_bpr_daily_state({'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily)
     constructor={'BPRMaster':bpr_master,'BPRDailyConsumption':early_daily,
         'RequirementBlue':[{'SKUCode':r['sku_code'],'WhCode':r['location_code'],'BlueReq':int(Decimal(r['virtual_norm']['blue_requirement']))} for r in calculated['r1_requirement']],
@@ -348,8 +367,14 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         'supplier':{'SOBData':supplier_state['refreshed_sob'],'MOQData':supplier_state['refreshed_moq']},
         'orders':{n:deepcopy(orders[-1][1][n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
     snapshots=lambda stages:[{'stage':n,'state':v} for n,v in stages]
+    if pick_state is not None:
+        closing['complete'] = {name: pick_state[name] for name in
+                              ('LogisticPickList', 'PickListDataForTruckFormation')}
     result = {'ClosingState':[closing],
         'CalculationOutputs':[{'capability':n,'rows':v} for n,v in calculated.items()]}
+    if pick_state is not None:
+        from mta.serialization import digest
+        result['_PickSourceDigests'] = {name: digest(rows) for name, rows in pick_sources.items()}
     if validating():
         result.update({'MasterValidation':[master],
         'SupplierStages':[{'stage':n,**v} for n,v in supplier.items()],

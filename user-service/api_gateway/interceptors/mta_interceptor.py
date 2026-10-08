@@ -1,12 +1,13 @@
 import json
 import os
 import requests
-from api.models import User_Application_Location_Permission
+from api.models import Permission, User_Application_Location_Permission
 from api.models import User_Application_Product_Permission
 from api_gateway.utils import getAllUserDetails
 from django.http import JsonResponse
 from rest_framework.response import Response
-from api_gateway.mta_stream import streams_mta_read, bounded_mta_read, UPSTREAM_TIMEOUT
+from api_gateway.mta_stream import (PICK_DOWNLOAD_PATHS, streams_mta_read,
+    bounded_mta_read, UPSTREAM_TIMEOUT)
 
 class MTA_INTERCEPTOR:
     def __init__(self):
@@ -17,15 +18,23 @@ class MTA_INTERCEPTOR:
             return Response({"error": "Access token is missing in cookies"}, status=401)
         url = service_map['mta']['base_url'].rstrip('/') + request.path
         application_id = service_map['mta']['application_id']
+        identity = {
+            'id': request.user.id,
+            'name': request.user.name,
+            'email': request.user.email,
+        }
+        if request.path in PICK_DOWNLOAD_PATHS:
+            granted = (request.user.is_admin or Permission.objects.filter(
+                url='mta-report-urls', role_id__user_id=request.user.id,
+                role_id__application_id=application_id).exists())
+            if not granted:
+                return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+            identity['entitlements'] = ['mta-report-urls']
         # headers = {key: value for key, value in request.headers.items() if key != 'Host'}
         headers = {
             'Authorization':  f"Bearer {access_token}",
             'Content-Type': 'application/json',
-            os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity'): json.dumps({
-                'id': request.user.id,
-                'name': request.user.name,
-                'email': request.user.email,
-            }),
+            os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity'): json.dumps(identity),
         }
 
         # Migrated MTA requests have an exact schema. Identity is derived from

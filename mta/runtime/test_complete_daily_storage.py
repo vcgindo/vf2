@@ -80,7 +80,8 @@ class CompleteDailyStorageTests(TransactionTestCase):
     def _fixture_teardown(self):
         # Generic flush cannot include raw-SQL state FKs and must not truncate
         # unrelated immutable source tables. Remove precisely this test's rows.
-        if connection.settings_dict['NAME'] != 'test_freshvcf':
+        if connection.settings_dict['NAME'] not in (
+                'test_freshvcf', 'test_freshvcf_complete_pick_20261008_001'):
             raise RuntimeError('Storage-test cleanup requires the isolated test database')
         with connection.cursor() as cursor:
             for owner in self.owners:

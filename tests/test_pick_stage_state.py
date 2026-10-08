@@ -46,6 +46,20 @@ class PickStateTests(unittest.TestCase):
             calculate_pick_list_state(case)
         self.assertTrue(calculate_pick_list(case))
 
+    def test_tie_opt_in_changes_no_untied_values_or_existing_allocation_order(self):
+        case = fixture()
+        self.assertEqual(calculate_pick_list_state(case, allow_priority_ties=True),
+                         calculate_pick_list_state(case))
+        case['vehicle']['weight_capacity'] = '4.000'
+        for row in case['items'][:2]:
+            row.update(buckets={'to_black': 3}, weight='1.000')
+        for items in (case['items'], list(reversed(case['items']))):
+            current = {**case, 'items': items}
+            before = deepcopy(current)
+            self.assertEqual(calculate_pick_list_state(current, allow_priority_ties=True)['allocations'],
+                             calculate_pick_list(current))
+            self.assertEqual(current, before)
+
     def test_volume_boundary_preserves_signed_weight_overage_and_mxl_threshold(self):
         case = fixture()
         case['vehicle'].update(weight_capacity='100.000', volume_capacity='2.500')
@@ -65,14 +79,40 @@ class PickStateTests(unittest.TestCase):
             calculate_pick_list_state(case)
         self.assertTrue(calculate_pick_list(case))
 
-    def test_null_dimension_and_zero_allocation_are_explicitly_unqualified(self):
+    def test_exact_fit_null_keeps_native_nulls_and_default_view_guard(self):
         case = fixture()
+        case['items'] = case['items'][:1]
         case['items'][0]['weight'] = None
+        case['items'][0]['buckets'] = {'to_black': 5}
+        case['vehicle']['volume_capacity'] = '5.000'
         with self.assertRaises(ValueError):
+            calculate_pick_list(case)
+        state = calculate_pick_list_state(case)
+        self.assertEqual(state['PickListDataForTruckFormation'], [])
+        row, = state['LogisticPickList']
+        for name in ('TotalWeight', 'CumulativeWeight', 'RemainingWeigt'):
+            self.assertIsNone(row[name])
+        self.assertEqual((row['ColorWiseAlloction'], row['TotalVolume'], row['TransportLoadType']),
+                         (5, Decimal('5.000'), 'SXL'))
+        case['items'][0]['buckets'] = {'to_black': 1}
+        with self.assertRaisesRegex(ValueError, 'Canonical Pick nontermination'):
             calculate_pick_list_state(case)
+
+    def test_zero_boundary_retains_the_native_row_and_own_residual(self):
+        case = fixture()
+        case['items'] = case['items'][:2]
+        case['items'][0]['buckets'] = {'to_black': 4}
+        case['items'][1]['buckets'] = {'to_red': 1}
+        state = calculate_pick_list_state(case)
+        self.assertEqual(state['allocations'], calculate_pick_list(case))
+        self.assertEqual([r['ColorWiseAlloction'] for r in state['LogisticPickList']], [2, 2, 0])
+        row, = state['PickListDataForTruckFormation']
+        self.assertEqual((row['SKUCode'], row['ColorWiseAlloction'], row['NoTruckFlag']), ('B', 1, True))
+
+    def test_zero_progress_boundary_remains_explicitly_unqualified(self):
         case = fixture()
         case['items'][0]['weight'] = '6.000'
-        with self.assertRaisesRegex(ValueError, 'Zero-allocation'):
+        with self.assertRaisesRegex(ValueError, 'Canonical Pick nontermination'):
             calculate_pick_list_state(case)
 
 

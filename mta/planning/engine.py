@@ -42,7 +42,7 @@ class NormalAllocation:
                    Decimal(row['remaining_parent_stock']), row['virtual'])
 
 
-def calculate_current_day(raw):
+def calculate_current_day(raw, *, defer_pick=False):
     """Consume validated external facts and return every produced checkpoint.
 
 Caller cannot supply bands, calculated stock, ration or current-day answers.
@@ -97,9 +97,10 @@ processed-input coverage. Legacy undefined branches retain their guards.
         'r1_ration_bifurcation': bifurcation,
         'r1_bor': bor,
         'r1_bor_oa': bor_oa,
-        'r1_pick_list': _pick_rows(bifurcation, payload['logistics']),
-        'r1_pick_remaining': _pick_rows(bifurcation, payload['logistics'], remaining=True),
     }
+    if not defer_pick:
+        output.update(r1_pick_list=_pick_rows(bifurcation, payload['logistics']),
+            r1_pick_remaining=_pick_rows(bifurcation, payload['logistics'], remaining=True))
     if prepared.master_state is not None:
         output.update({'r1_' + name: rows for name, rows in prepared.master_state.items()})
     if prepared.order_part_identity is not None:

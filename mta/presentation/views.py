@@ -154,6 +154,22 @@ def report_paths(request, payload):
 
 
 @endpoint('GET')
+def download_report(request, payload, *, report_name):
+    from mta.presentation.pick_downloads import PickDownloadDenied, open_report
+    if identity(request).get('entitlements') != ['mta-report-urls']:
+        return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+    from mta.presentation import fixture
+    if fixture.enabled():
+        return JsonResponse({'error': 'fixture_pick_download_denied'}, status=403)
+    try:
+        stream, filename = open_report(selected_run(), payload, report_name)
+    except PickDownloadDenied as error:
+        return JsonResponse({'error': str(error)}, status=403)
+    from django.http import FileResponse
+    return FileResponse(stream, as_attachment=True, filename=filename, content_type='text/csv')
+
+
+@endpoint('GET')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
     if name == 'BOR_OA':

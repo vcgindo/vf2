@@ -1,5 +1,7 @@
 """Storage mapping scope; database roundtrip is a separate migration proof."""
 import unittest
+import json
+from pathlib import Path
 
 from mta.runtime.complete_daily_state import TABLES, BINDINGS, schema_statements, validate_write
 from mta.runtime.input_storage import choose_table
@@ -7,6 +9,22 @@ from mta.runtime.relational_state import CATALOG, INPUT_TABLES
 
 
 class CompleteStateTests(unittest.TestCase):
+    def test_pick_extension_preserves_previous_catalogue_and_native_columns(self):
+        root = Path(__file__).resolve().parents[1]
+        previous = json.loads((root/'baseline/complete-daily-state-schema-v1.json').read_bytes())
+        for key, fields in previous['tables'].items():
+            self.assertEqual(TABLES[key], fields)
+        for binding, key in previous['bindings'].items():
+            self.assertEqual(BINDINGS[binding], key)
+        self.assertEqual(set(TABLES)-set(previous['tables']), {
+            'complete/BPR/LogisticPickList', 'complete/BPR/PickListDataForTruckFormation'})
+        for name, size in (('LogisticPickList', 21), ('PickListDataForTruckFormation', 16)):
+            key = 'complete/BPR/' + name
+            self.assertEqual(len(TABLES[key]), size)
+            fields = [n for n, _ in TABLES[key]]
+            self.assertEqual(choose_table(fields, 'input/opening/state/complete/' + name + '/values'), key)
+            self.assertEqual(BINDINGS['closing/complete/' + name], key)
+
     def test_old_input_candidates_are_unchanged_for_every_existing_family(self):
         legacy = {**CATALOG['tables'], **INPUT_TABLES}
         for fields in legacy.values():

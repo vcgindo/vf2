@@ -33,6 +33,15 @@ def daily_sources_enabled(profile):
     return bool(getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
 
 
+def replay_completed(existing, *, complete_pick=False, pick_output_root=None):
+    """Verify a completed run before restoring derived files; never calculate."""
+    output = read_outputs(existing)
+    if complete_pick:
+        from mta.application.complete_daily_batch_files import write_run_pick_files
+        write_run_pick_files(existing.pk, output['ClosingState'][0]['complete'], pick_output_root)
+    return existing
+
+
 def command_state(run, state, *, through_date=None):
     """Verify every action's before/after chain; never mutate completed output."""
     state=deepcopy(state)
@@ -100,7 +109,8 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
-                report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation'):
+                report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
+                pick_output_root=None, pick_config_sha256=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -111,6 +121,16 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
+    complete_pick = profile.get('complete_pick') is not None
+    if complete_pick != (pick_output_root is not None):
+        raise ValueError('Complete Pick policy and explicit owned output root must be supplied together')
+    if pick_config_sha256 is not None and not complete_pick:
+        raise ValueError('Complete Pick configuration identity requires complete Pick')
+    if complete_pick:
+        from pathlib import Path
+        pick_output_root = str(Path(pick_output_root).resolve(strict=True))
+        if profile['complete_pick'] != {'policy': 'canonical-tied-order-v1'}:
+            raise ValueError('Unsupported complete Pick policy')
     publication_enabled = daily_sources_enabled(profile)
     today=date.fromisoformat(day['business_date'])
     with transaction.atomic():
@@ -145,6 +165,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if publication_enabled else None)
         raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
                  lineage=lineage,report_exceptions=storage(report_exceptions or {}))
+        if complete_pick:
+            raw['pick_output_root'] = pick_output_root
+        if pick_config_sha256 is not None:
+            raw['pick_config_sha256'] = pick_config_sha256
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
             from mta.mdm.daily_input import (apply_refresh_setting,
@@ -169,8 +193,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     if repeated.origin_id!=origin_capture.pk:
                         raise ValueError('Daily run identity drift')
                     if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
-                    read_outputs(repeated.run)
-                    return repeated.run
+                    return replay_completed(repeated.run, complete_pick=complete_pick,
+                                            pick_output_root=pick_output_root)
                 active_leaf_ids=list(MdmDailyInputCapture.objects.filter(
                     source_id=origin_capture.source_id,status='CAPTURED',retries__isnull=True)
                     .values_list('run_id',flat=True))
@@ -197,8 +221,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     if repeated.run.predecessor_id!=(parent.pk if parent else None):
                         raise ValueError('Daily run identity drift')
                     if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
-                    read_outputs(repeated.run)
-                    return repeated.run
+                    return replay_completed(repeated.run, complete_pick=complete_pick,
+                                            pick_output_root=pick_output_root)
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
                     task_status_log_horizon=task_horizon)
             # The caller's current full raw feed is the new run's base.  The
@@ -232,8 +256,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if existing.kind!=KIND or existing.predecessor_id!=(parent.pk if parent else None):
                 raise ValueError('Daily run identity drift')
             if existing.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
-            read_outputs(existing)
-            return existing
+            return replay_completed(existing, complete_pick=complete_pick,
+                                    pick_output_root=pick_output_root)
         if parent and parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
             raise ValueError('Predecessor already consumed; no implicit timeline fork')
         new_id=uuid.uuid4()
@@ -250,8 +274,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if run.input_digest!=source_digest or read_input(run)!=raw:
                     raise ValueError('Opening already used for different facts; explicit new trial required')
                 if run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
-                read_outputs(run)
-                return run
+                return replay_completed(run, complete_pick=complete_pick,
+                                        pick_output_root=pick_output_root)
         else:
             run=CalculationRun.objects.create(**fields)
         from mta.runtime.input_storage import save_input
@@ -269,12 +293,19 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     try:
         with evidence_scope(evidence_mode):
             result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-                lambda source:(calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
+                lambda source:(calculate_current_day(source, defer_pick=True) if complete_pick else
+                               calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
             completed=([r['boundary'] for r in result['MajorBoundaries']] if evidence_mode=='validation'
                        else result.pop('_CompletedBoundaries'))
             if completed!=list(BOUNDARIES):
                 raise ValueError('Incomplete daily boundary roster')
             result['Lineage']=[lineage]
+            if complete_pick:
+                source_digests = result.pop('_PickSourceDigests', None)
+                if source_digests is not None:
+                    lineage['pick_source_digests'] = source_digests
+                from mta.application.complete_daily_batch_files import write_run_pick_files
+                write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
             return finish_run(run,result,expected_digest=source_digest,
                               publication_opening=publication_opening)
     except Exception as error:

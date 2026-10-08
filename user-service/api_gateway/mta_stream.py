@@ -16,6 +16,10 @@ READ_PATHS = frozenset('/api/mta/' + route for route in (
     # Forwarding safely does not certify these unfinished pages' business flows.
     'ChronicUnavailabilityLoc', 'ChronicUnavailabilitySku',
 ))
+PICK_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + key for key in (
+    'LogisticPickListReport', 'LogisticRemainingQtySummary',
+    'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt',
+))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
     'RRRDataCount', 'GetBPRDataCount', 'GetBTRDataCount', 'DBMDataCount',
 ))
@@ -26,11 +30,11 @@ _END = object()
 
 
 def streams_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS
+    return request.method in ('GET', 'POST') and request.path in READ_PATHS | PICK_DOWNLOAD_PATHS
 
 
 def bounded_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS | COUNT_PATHS
+    return request.method in ('GET', 'POST') and request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS
 
 
 class UpstreamChunks:

@@ -43,6 +43,14 @@ class Command(BaseCommand):
                             help='Independent modern capture: no parity or UI acceptance is implied')
         parser.add_argument('--bounded-one-day', action='store_true',
                             help='One day with isolated predecessor verification and released unused inputs')
+        parser.add_argument('--complete-pick-policy',
+                            help='Explicit complete Pick policy; requires root and pinned configuration')
+        parser.add_argument('--pick-output-root', type=Path,
+                            help='Existing owned root for per-run Pick output/download files')
+        parser.add_argument('--pick-config', type=Path,
+                            help='JSON vehicle and parent-location mapping for complete Pick')
+        parser.add_argument('--pick-config-sha256',
+                            help='Expected immutable complete Pick configuration digest')
         parser.add_argument('--verify-prefix-only', action='store_true', help=argparse.SUPPRESS)
 
     def handle(self,*args,**options):
@@ -102,6 +110,63 @@ class Command(BaseCommand):
             except ValueError as error:
                 raise CommandError(str(error)) from error
         profile = deepcopy(case['profile'])
+        pick_values = (options.get('complete_pick_policy'), options.get('pick_output_root'),
+                       options.get('pick_config'), options.get('pick_config_sha256'))
+        if any(value is not None for value in pick_values) and not all(value is not None for value in pick_values):
+            raise CommandError('Complete Pick policy, output root, configuration and digest must be supplied together')
+        pick_identity = None
+        pick_output_root = None
+        if all(value is not None for value in pick_values):
+            pick_policy, pick_output_root, pick_config_path, pick_config_sha = pick_values
+            if pick_policy != 'canonical-tied-order-v1':
+                raise CommandError('Unsupported complete Pick policy')
+            try:
+                pick_output_root = pick_output_root.resolve(strict=True)
+                config_bytes = pick_config_path.read_bytes()
+                if hashlib.sha256(config_bytes).hexdigest() != pick_config_sha:
+                    raise CommandError('Complete Pick configuration digest differs')
+                pick_config = json.loads(config_bytes)
+            except CommandError:
+                raise
+            except (OSError, ValueError, TypeError) as error:
+                raise CommandError('Complete Pick configuration is unavailable or invalid') from error
+            if (not isinstance(pick_config, dict) or set(pick_config) != {'vehicles', 'location_vehicles'}
+                    or not isinstance(pick_config['vehicles'], list) or not pick_config['vehicles']
+                    or not isinstance(pick_config['location_vehicles'], list)
+                    or not pick_config['location_vehicles']):
+                raise CommandError('Complete Pick configuration requires exact vehicle and location mappings')
+            vehicle_fields = {'vehicle_id', 'name', 'weight_capacity', 'volume_capacity'}
+            mapping_fields = {'location_code', 'vehicle_id'}
+            if (any(not isinstance(row, dict) or set(row) != vehicle_fields for row in pick_config['vehicles'])
+                    or any(not isinstance(row, dict) or set(row) != mapping_fields
+                           for row in pick_config['location_vehicles'])):
+                raise CommandError('Complete Pick configuration fields differ')
+            vehicle_ids = [row['vehicle_id'] for row in pick_config['vehicles']]
+            if (any(isinstance(value, bool) or not isinstance(value, (str, int)) or value == ''
+                    for value in vehicle_ids)
+                    or any(not isinstance(row['name'], str) or not row['name']
+                           or row['weight_capacity'] is None or row['volume_capacity'] is None
+                           for row in pick_config['vehicles'])):
+                raise CommandError('Complete Pick vehicle identities or mappings differ')
+            vehicle_id_set = set(vehicle_ids)
+            if (len(vehicle_id_set) != len(vehicle_ids)
+                    or any(not isinstance(row['location_code'], str) or not row['location_code']
+                           or row['vehicle_id'] not in vehicle_id_set
+                           for row in pick_config['location_vehicles'])):
+                raise CommandError('Complete Pick vehicle identities or mappings differ')
+            logistics = profile.get('calculation', {}).get('logistics')
+            if not isinstance(logistics, dict) or not isinstance(logistics.get('items'), list):
+                raise CommandError('Complete Pick requires existing artifact logistics items')
+            required_locations = {row['from_location'] for row in logistics['items']}
+            mapped_locations = {row['location_code'] for row in pick_config['location_vehicles']}
+            if not required_locations <= mapped_locations:
+                raise CommandError('Complete Pick parent-location mapping is incomplete')
+            logistics.pop('vehicle', None)
+            logistics['vehicles'] = deepcopy(pick_config['vehicles'])
+            logistics['location_vehicles'] = deepcopy(pick_config['location_vehicles'])
+            profile['complete_pick'] = {'policy': pick_policy}
+            pick_identity = dict(policy=pick_policy, output_root=str(pick_output_root),
+                                 config_sha256=pick_config_sha)
         if mdm_source is not None:
             profile['daily_publication'] = True
             configured = profile.setdefault('daily_publication_config', {})
@@ -153,6 +218,8 @@ class Command(BaseCommand):
                 raise CommandError('Continuation input/policy/span identity differs')
             if previous_execution.get('computation_only',False) != options.get('computation_only',False):
                 raise CommandError('Continuation verification mode differs')
+            if previous_execution.get('complete_pick') != pick_identity:
+                raise CommandError('Continuation complete Pick identity differs')
             expected_mdm=(dict(id=str(mdm_source.pk),digest=mdm_source.digest,
                 bpr_remark_horizon=options['bpr_remark_horizon']) if mdm_source is not None else None)
             if previous_execution.get('mdm_source')!=expected_mdm:
@@ -221,7 +288,9 @@ class Command(BaseCommand):
                     evidence_mode='validation',
                     predecessor=previous,opening=None if previous else dict(state=case['opening'],
                         opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),
-                    report_exceptions=exceptions, **capture_arguments)
+                    report_exceptions=exceptions, pick_output_root=pick_output_root,
+                    pick_config_sha256=(pick_identity or {}).get('config_sha256'),
+                    **capture_arguments)
                 manifest=export_run(run,target/f'day-{index:03d}')
                 archive=OutputArchive(manifest)
                 output=read_outputs(run)
@@ -271,6 +340,7 @@ class Command(BaseCommand):
                         bpr_remark_horizon=options['bpr_remark_horizon'])} if mdm_source is not None else {}),
                     action_policy=policy,report_exceptions=exceptions,
                     computation_only=options.get('computation_only',False),
+                    **({'complete_pick':pick_identity} if pick_identity else {}),
                     **({'continuation':continuation} if continuation else {}),
                     days=receipts),indent=2),encoding='utf-8')
                 self.stdout.write(json.dumps(receipt));self.stdout.flush()

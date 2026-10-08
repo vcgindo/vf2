@@ -14,9 +14,16 @@ def image_metadata(run, path):
         from mta.presentation.daily_sources import image_metadata as daily_metadata
         return daily_metadata(run, path)
     item = run.production_manifest.get('images', {}).get(path)
-    if not item or item['image'] != path or item['table'] not in CATALOG['tables']:
+    tables = CATALOG['tables']
+    if path in ('closing/complete/LogisticPickList',
+                'closing/complete/PickListDataForTruckFormation'):
+        from mta.runtime.complete_daily_state import TABLES, BINDINGS
+        tables = TABLES
+        if item and item['table'] != BINDINGS[path]:
+            raise PublicationUnavailable('selected_report_image_table_mismatch:' + path)
+    if not item or item['image'] != path or item['table'] not in tables:
         raise PublicationUnavailable('selected_report_image_not_published:' + path)
-    allowed = {name for name, _ in CATALOG['tables'][item['table']]}
+    allowed = {name for name, _ in tables[item['table']]}
     if any(name not in allowed for _, name, _ in item['fields']):
         raise PublicationUnavailable('selected_report_image_column_mismatch')
     return item

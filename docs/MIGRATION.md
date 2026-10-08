@@ -6,139 +6,87 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### Complete daily production code readiness — benchmark halted, 8 October 2026
+### Pick cohesive closure — qualified acceptance, 8 October 2026
 
-Direct human controller turn01a11a02-a138-7521-83cd-648fe426bac0 says:
-"hault all the benchmarking related activities in the current task. I want to
-first conclude the codebase production readiness". Verified from that human
-message; this supersedes the reassessment benchmark objective and execution
-budget below. Continue the SAME goal identity. The app goal is active but its
-stored objective text is historical; its tool exposes no objective-edit operation.
-Do not create a replacement or mark unfinished readiness complete.
+The commit containing this entry is the finite Pick delivery checkpoint. The
+human-approved PICK_FINITE_CLOSURE_REVIEW_PLAN.md and latest direct human turn
+01a11ad1-c612-7e62-aea1-985a531c709b supersede the historical benchmark objective:
+finish Pick within the SAME goal, commit/push and STOP. Broader readiness remains
+held. This is not unrestricted product, MTO, performance or publication readiness.
 
-Latest human clarification, controller turn01a11a25-e15c-7a20-8ace-96c832774fe5:
-GulfOil is a separate client profile. The earlier C1 interpretation that promoted
-its hooks to universal product requirements is superseded. Active readiness is
-GENERIC PRODUCT plus genuinely enabled generic configuration. GulfOil hooks,
-settings overrides, c3/c9/c10/c12/c13 calculated attributes, FG history and custom
-BTR files are explicit opt-in client work only; further client work is HELD.
-Preserve its completed code/proofs. No unconditional client call/data requirement
-may enter execute_day. Generic ProdOrderSuggestions remains in scope despite
-sharing complete_daily_bpr.py with a client producer. Other C1–C6 bounds remain;
-C2 FG opening is client-only. The approved package bytes are retained as history.
+All five finite steps are satisfied within the declared domain:
+1. Approved D1 final-table retrieval, D2 four-export order, and distinguishable
+   tied-allocation qualifications remain separate. Every value, NULL, duplicate,
+   rank and truck field is compared; modern persisted ordinals stay exact.
+2. Five-source mapping, unchanged native allocation/truck rules, typed migration0080,
+   actual chain/execute_day, four writers, command/config forwarding, completed
+   retries and the existing scoped download consumer are integrated.
+3. Fixed16 native cases: 13 exact/qualified passes and three approved conflicting
+   UPDATE denials. Refreshed tie witness a005, 60 focused units, fresh PostgreSQL
+   schema/storage, failure/retry and immutable-image checks pass. Final consumer
+   repair adds one focused regression; its affected ten-test suite and actual
+   persisted-state checks pass. Unaffected proofs were reused by source identity.
+4. Exactly TWO NEW modern dates and TWO native Pick-stage calls pass in the new
+   synthetic timeline. No additional calculation occurred during recovery.
+5. PICK_OPERATOR_RUNBOOK.md gives numbered read-only operator steps, exact pinned
+   recovery, actual historical commands and honest consumer limitations. Evidence
+   and source/image/input identities are bound in the closure receipt below.
 
-Attribution correction is recorded in COMPLETE_DAILY_EXECUTION_ASSESSMENT.md and
-the existing operation roster: generic-core-required, generic-configurable and
-gulfoil-client-only. Canonical BAT requires site settings/feed bindings; this
-does not authorize adopting GulfOil as the generic site's implementation.
-The correction does not itself establish generic production readiness.
+| Date | Modern run | Formed trucks / quantity | Residual quantity |
+|---|---|---|---|
+| June6 | 9607a6ec-07e9-4be7-9be9-2d204b7ecebc | 6 / 60 | 1 |
+| June7 | 39dd7880-2ba4-42bd-9e90-40428f4b1ede | 6 / 60 | 5 |
 
-Active item R1: complete and qualify missing GENERIC producers and their concrete
-source positions, then wire the actual supported generic daily path. No benchmarking, timing
-samples, performance profiling/comparison/ranking, timer work or benchmark-day
-execution is authorized. All old production/validation invocation budgets are
-ON HOLD (zero used). Original temporal-full-001 remains human-stopped. Existing
-small native rollback fixtures and storage correctness checks may finish.
+Each date has seven complete21-column formed rows and one complete16-column
+residual row. Both native full-state comparisons, all four downstream projections,
+exact typed/ordinal readback and eight output/download copies per date pass.
+June7 owns June6 as predecessor and consumes its actual Apply event (two own
+suggestions); June7 suggests no further action. No Sleep was invented.
+Completed-identity recovery restored a deliberately missing download with
+calculate_day forbidden: ZERO calls, unchanged two run IDs/digests/action IDs,
+and all sixteen original file copies unchanged/restored.
 
-Finite readiness exits, in order; this is the sole status tracker:
-1. R1 — Finish source-qualified generic business producers/configured outputs and input
-   bridges. Require exact native fixtures/retained proof for changed columns,
-   NULLs, duplicates, order and canonical final writers. Applicable C1–C6 remain approved;
-   source/configuration gaps must remain explicit. ACTIVE, incomplete.
-2. R2 — Integrate those owners into execute_day/chain/services and one operational
-   command: ingestion/master/supplier/control/order/BPR/RRR/DBM/BTR, own predecessor
-   and actions, typed closing/history/source persistence, dates/completion/failure
-   visibility, enabled files/ZIP/local alert intents/owned backups. Reuse the
-   existing engine. Missing executable call sites cannot be closed by helpers.
-3. R3 — Prove affected correctness/storage/action/continuity/publication/recovery
-   and denial cases, exact source identity and real fresh PostgreSQL migrations.
-   Operational admission must be an explicit supported policy with coherent
-   prepare/atomic selection/readers; preserve existing strict serving defaults.
-   If a new real business-day execution is needed, first propose the smallest
-   correctness-only scenario/count/owners/exits for human approval. Do not rename
-   or execute the held full1240pair/two-day benchmark as a readiness test.
-4. R4 — Deliver the executable operator command and numbered runbook for normal
-   operation, failures/restart/idempotent retry and explicitly bounded C1–C6 setup.
-5. R5 — Integrated substantive commit/push, exact code/image/config/proof identities
-   and honest readiness/remaining-limit matrix, then stop or report one concrete
-   remaining decision. No timing result or optimization ranking is required.
+Frozen input 7e60ef1b3d73a36889b25a43995234ec5839a5bb646da5b782328189a1b2699d;
+config 19a7b9f9dd840389d0d948ef21ed740bad2f0f55d01c286b3678da06c1e53a45.
+Only AG515802 external future consumption/stock and explicit truck capacities
+change from the approved dimension derivative. The ledger preserves every
+historical/calculated opening, Norm, route, shipment, receipt and transit date.
+The21-day fact scaffold meets the existing validator; only June6–7 executed.
 
-Completed generic component evidence: production-order suggestions,
-completion/reset/retention functions and ordered admission-evidence validators.
-Preserved client-only evidence: GulfOil post-BPR and post-BTR producers.
-Three mixed native producer fixture groups pass with standalone Python adapters
-(a004:577 population comparisons);12 completion cases also pass standalone
-(a002:58 checkpoint comparisons). Scalar adapters pass2291 exact SQL comparisons
-(a002). All earlier failures and narrower native-callback receipts are preserved.
-Supplier/Pick source-position fixtures now pass full28/69-column comparisons
-(inputs-qualification-a002: three cases); this covers the declared integral-SOB,
-ASCII fixture domain, not arbitrary source values. Req/BOR bridges explicitly
-supply consumed columns only. Fullkit inline-SQL gates pass four native rollback
-cases (fullkit-qualification-a001); physical file checks/site hooks remain unwired.
-Preserved client-only GulfOil transformation passes16 native pandas cases with exact CSV bytes
-and ZIP member names (gulfoil-transform-qualification-a001), retaining actual
-host-date filtering and preservation of an existing ZIP on empty data. SQL joins,
-diagnostic text and operational file writing remain outside that proof; further
-client qualification/integration is held and does not block generic readiness. Four Pick
-file projections are written; native result order and their full logistics input
-materializers remain unmet. pick-files-qualification-a001 stopped at the first
-Logistic report: all8 typed business rows and headers match, but all8 positions
-differ. Strict sequence FAIL remains; owned seeds/scratch restore after rollback.
-Human call_5a75ffbc20224abb91987c31f6cb6ee7 approved the bounded four-file
-unordered-export qualification. a002 passes all four mixed and four empty
-projections with exact typed bags/headers; all four mixed strict sequence FAILs
-remain recorded. Calculation/table ordinal/API/grid order is unaffected.
-Full native logistics input materializers are still missing: accepted allocation
-outputs omit native counters/cumulative/overage/formed-bit/residual metadata;
-the additive restricted capture below now supplies those fields for its proved inputs.
-Source review also identifies duplicate joins, single NULL dimensions and
-priority-rank ties as unproved boundaries; no speculative algorithm repair or
-generic full-row readiness claim is made from the projection proof.
-Current R1 edit adds calculate_pick_list_state to the existing calculation,
-capturing native truck metadata at queue/cut/residual points while preserving
-the old allocation return. It remains unintegrated and restricted to unique
-joins, unambiguous ranks and positive non-NULL dimensions. Twenty-one focused
-tests pass. Independent review found no bounded implementation defect and
-required native/volume evidence rather than treating unit results as parity.
-pick-stage-state-a001.json now passes both weight/volume fixtures: complete21/16
-typed columns AND strict observed sequences, exact original narrow projections,
-unchanged allocation fields/order, signed overages and ratio4.5/MXL. Both owned
-fixtures roll back with seed/all-scratch preservation; worker remains4GiB/2CPU.
-This restricted capture is an implementation step, not the generic exit; the
-full input adapter and the identified duplicate/NULL/rank boundaries remain open.
-The two native operational tables also need typed storage binding before R2;
-they are not currently present in the complete-state catalogue. No business day,
-benchmark, serving change or client continuation occurred.
+Calculation/recovery image: eed864f13836bd017f053ce9a6992524372550075c80de100c15637b0d0ba41d.
+Final MTA image: eefbecff9083ad670224c841ed91a57c44c75b8b8e869e79451847ea0a85d783.
+Gateway image: 2c1602ff8ff42fbf414ff756f2a9bc456748952f073ab7331e11762866211392.
+The sole post-calculation runtime change teaches the selective reader the two
+Pick typed-table bindings. All calculation/action/storage source hashes match
+those used by the accepted dates. The final image passes actual PG consumer
+checks without a checkout mount; no business replay or schema change was needed.
 
-Migration0079 adds11 typed run/image/ordinal tables without changing the accepted
-catalogue/default input mappings. Django check, migration check/plan, fresh PG
-migrate and3 real DB tests pass (pg/storage-proof-a004.json). Earlier two proof
-attempts passed assertions but failed generic teardown; retained failures led to
-precise owned-row cleanup. a004 also verifies the repository LF-normalized
-schema byte pin; git-line-endings-a001.json records exact non-semantic source
-normalization for earlier component receipts. Review-found input path/table ambiguity is fixed with
-exact binding and denial checks. Current focused complete-day unit suite73pass; qualification-helper17tests pass.
-All387 pinned source resources verify unchanged (identity, not parity).
-Evidence: D:/freshvcf-build/complete-daily-assessment; no full business-day call.
-The subsequent generic component suite passes46 focused tests. Four new harness/
-test files required Git LF normalization; git-line-endings-a002.json records
-exact byte-only transitions and preserves originals. No client proof was rerun.
+Authoritative closure evidence (25 pinned proof/log/script hashes):
+D:/freshvcf-build/evidence/pick-closure-20261008-001/positive/closure-proof-v1.json.
+Native receipts: D:/freshvcf-build/complete-daily-assessment/
+pick-positive-native-day1-a002.json and pick-positive-native-day2.json.
+These are matched-input PICK-STAGE proofs, not independent full legacy daily parity.
+The bounded tie witness explicitly records A3+B1 versus B3+A1 as qualified
+SKU equivalence; this fixture's own raw native table sequences also match.
 
-UNMET: actual generic main-flow integration, generic file/archive/backup/alert-intent
-bindings, operational policy issuance/readers, recovery and complete correctness
-proof. No deployment/release or serving changes. Components are not production
-readiness. C1 empty report/sanitation tables are a synthetic setup limit; client-only
-C2 empty FG opening leaves that profile's prior history unavailable. C4 local intents do not prove email
-delivery, C5 requires owned backup/recoverability, C6 retains legacy clearing vs
-modern rollback difference. These prevent an unrestricted readiness claim even
-if the explicitly configured code path passes. Existing BOR/BOROA/GuidedExcess
-rolling-history deferrals remain exact; no hidden expansion or whole-stack claim.
+Consumer limit: local operator access to all four files is verified. The actual
+new timeline has native NULL hierarchy and no whole-publication acceptance, so
+HTTP remains denied (403 entitlement/scope, 503 publication acceptance). Existing
+positive consumer/gateway fixture tests pass, but no positive browser/serving
+acceptance or grant mutation is claimed. No legacy NULL-denial bypass was added.
 
-Protect services3002/3/4/5/6, selections/seals/accepted and interrupted artifacts,
-canonical SQL/formulas/NULL/duplicates/native order/action contracts, scopes and
-excluded checkouts. Existing approved owned SQL/PG only;4GiB/twoCPU workers and
-1GiB/oneCPU PG, no ports/sharedrestart/reset/copy/borrow/prune/resource increase.
-No full21day continuation, history campaign, UI redesign or surrogate work.
+Preserved failures: original table-sequence a001; original dimension-only empty
+June6 run63925b64-b786-4f71-a587-0f9e681a3399 and its three Apply selections;
+all launchers/native preflight failures (zero native SQL calls); and the first
+selective-consumer failure. The latter was corrected and verified. No original
+artifact/receipt was overwritten. Earlier unused June7 remains unused.
+
+Stop after this Pick checkpoint. Other generic final writers/actions/history/files,
+backups/local alert intents, operational publication/readers and the wider runbook
+remain outside this delivery. GulfOil stays opt-in. Benchmarking, original
+human-stopped temporal-full-001, serving activation, protected3002/3/4/5/6 and
+MTO remain unchanged. The goal tool's objective text is historical; the verified
+human Pick-only supersession governs this closure, not a new goal or budget.
 
 <details>
 <summary>Superseded reassessment scope and retained history — execution held</summary>

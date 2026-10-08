@@ -31,20 +31,11 @@ LOGISTIC_OUTPUT = ('ParentWHCode', 'WHCode', 'LogisticLocation', 'Vehicle Counte
     'VehicleName', 'TransportLoadType', 'DispatchColor', 'SKUCode', 'SumOfPikedQty', 'TotalWeight', 'TotalVolume')
 DETAIL_OUTPUT = DETAIL_FIELDS + ('Qty', 'RemainingTotalWeight', 'RemainingTotalVol')
 
-# The calculation seam currently exposes allocations and scalar totals, not
-# complete native stage images. These obligations cannot be filled by defaults.
-MISSING_INPUT_MATERIALIZERS = {
-    'LogisticPickList': {
-        'owner': 'mta.domain.remaining_capabilities.calculate_pick_list',
-        'missing': ('Full native row constructor: VehicleName, TransportLoadType, '
-                    'IsTruckFormed, NewSRNo/MinSRNo/TruckCount and cumulative/capacity fields; '
-                    'preserve producer occurrences and native decimal assignments.')},
-    'PickListDataForTruckFormation': {
-        'owner': 'mta.domain.remaining_capabilities.calculate_pick_list',
-        'missing': ('Full residual native row constructor: source NewSRNo, VehicleName, '
-                    'NoTruckFlag and capacity/remaining fields; require own residual stage, '
-                    'not an aggregate report or substituted Pick population.')},
-}
+# Complete native images are produced by complete_daily_pick.calculate_native_pick
+# and bound to typed closing state by the explicit complete_pick daily policy.
+# Compatibility receipt field retained; supported-domain limits are documented
+# separately and are not missing materializers or fabricated input defaults.
+MISSING_INPUT_MATERIALIZERS = {}
 
 
 class UnqualifiedPickFileInput(ValueError):

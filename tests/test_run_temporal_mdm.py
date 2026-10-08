@@ -39,7 +39,7 @@ class MdmRunnerTests(unittest.TestCase):
             calls.append(kwargs)
             return SimpleNamespace(pk='run-'+str(len(calls)),
                 predecessor_id=None if len(calls)==1 else 'run-1',
-                input_digest='input', output_digest='output')
+                input_digest='input', output_digest='output', validation_digest='validation')
         output = {'ClosingState': [{}], 'DBMFinal': [{'Suggestions': []}]}
         with TemporaryDirectory() as directory, \
                 patch.object(MdmSource.objects, 'get', return_value=source), \
@@ -66,6 +66,8 @@ class MdmRunnerTests(unittest.TestCase):
         self.assertIsNone(calls[0]['predecessor'])
         self.assertEqual(calls[1]['predecessor'].pk, 'run-1')
         self.assertIsNone(calls[1]['opening'])
+        self.assertTrue(all(call['pick_output_root'] is None and call['pick_config_sha256'] is None
+                            and 'complete_pick' not in call['profile'] for call in calls))
         self.assertTrue(calls[0]['profile']['daily_publication'])
         self.assertEqual(calls[0]['profile']['daily_publication_config']['bpr_remark_horizon'], 90)
         self.assertEqual(receipt['mdm_source']['digest'], source.digest)

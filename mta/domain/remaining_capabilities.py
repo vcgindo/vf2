@@ -199,47 +199,107 @@ def calculate_pick_list(case: dict) -> list[dict]:
     return _calculate_pick_list(case)
 
 
-def calculate_pick_list_state(case: dict) -> dict:
+def calculate_pick_list_state(case: dict, *, allow_priority_ties=False) -> dict:
     """Capture native truck fields from the existing allocation calculation.
 
-    This additive seam currently requires unique native join occurrences,
-    unambiguous priority ranks and positive, non-NULL native dimensions. It is
-    not the full native-table input adapter and must not stand in for its still
-    unqualified duplicate/NULL/tied-rank branches. No source defaults are added.
+    This additive seam requires qualified native join occurrences.
+    Priority ties require explicit
+    opt-in under the bounded canonical-order witness qualification; opting in
+    retains the existing input-order choice and adds no business tie-break. It is
+    not the native-table input adapter. Ambiguous native updates and canonical
+    nontermination remain explicit failures. No source defaults are added.
     """
-    state = {'LogisticPickList': [], 'PickListDataForTruckFormation': []}
-    allocations = _calculate_pick_list(case, state)
+    result = calculate_pick_cases_state([case], allow_priority_ties=allow_priority_ties)
+    for row in result['allocations']:
+        row.pop('vehicle')
+    return result
+
+
+def calculate_pick_cases_state(cases, *, allow_priority_ties=False):
+    """One canonical global truck loop across all parent/vehicle queues."""
+    state = {'LogisticPickList': [], 'PickListDataForTruckFormation': [],
+             '_allow_priority_ties': allow_priority_ties}
+    allocations = _calculate_native_pick_cases(cases, state)
+    multiplicities = {}
+    for case in cases:
+        for item in case['items']:
+            key = item['sku'].rstrip(' ').upper()
+            value = item.get('_join_multiplicity', 1)
+            if key in multiplicities and multiplicities[key] != value:
+                raise ValueError('Inconsistent native SKU join multiplicity')
+            multiplicities[key] = value
     groups = {}
     for row in state['LogisticPickList']:
-        groups.setdefault((row['ParentWHCode'], row['LogisticLocation'], row['TruckCount']), []).append(row)
+        groups.setdefault((*_native_partition(row['ParentWHCode'], row['LogisticLocation']), row['TruckCount']), []).append(row)
     # Native division of the SUM(decimal(13,3)) values yields decimal(38,6).
     with localcontext() as context:
         context.prec = 80
         for rows in groups.values():
-            weight = sum((row['TotalWeight'] for row in rows), ZERO)
-            volume = sum((row['TotalVolume'] for row in rows), ZERO)
-            ratio = (weight / volume).quantize(Decimal('.000001'), rounding=ROUND_HALF_UP)
+            weight = _pick_sum(None if row['TotalWeight'] is None else row['TotalWeight'] *
+                              multiplicities[row['SKUCode'].rstrip(' ').upper()] for row in rows)
+            volume = _pick_sum(None if row['TotalVolume'] is None else row['TotalVolume'] *
+                              multiplicities[row['SKUCode'].rstrip(' ').upper()] for row in rows)
+            ratio = None if weight is None or volume is None else (weight / volume).quantize(
+                Decimal('.000001'), rounding=ROUND_HALF_UP)
             for row in rows:
-                row['TransportLoadType'] = 'MXL' if ratio >= Decimal('4.5') else 'SXL'
+                row['TransportLoadType'] = 'MXL' if ratio is not None and ratio >= Decimal('4.5') else 'SXL'
+    state.pop('_allow_priority_ties')
+    order_native_pick_state(state)
     return dict(allocations=allocations, **state)
 
 
+def _native_partition(parent, location):
+    from mta.domain.complete_daily_scalars import identifier_sort_key
+    return identifier_sort_key(parent), identifier_sort_key(location)
+
+
+def order_native_pick_state(state):
+    """Retain the canonical round's prefix INSERT then boundary INSERT order.
+
+    These are existing SQL ORDER BY columns, never a SKU business tie-break.
+    Queue rank choices have already been made before this storage projection.
+    """
+    state['LogisticPickList'].sort(key=lambda row: (row['TruckCount'], row['IsTruckFormed'] is True,
+        *_native_partition(row['ParentWHCode'], row['LogisticLocation']), row['NewSRNo']))
+    state['PickListDataForTruckFormation'].sort(key=lambda row: (
+        *_native_partition(row['ParentWHCode'], row['LogisticLocation']), row['NewSRNo']))
+
+
 def _native_decimal(value):
+    if value is None:
+        return None
     rounded = d_signed(value).quantize(Decimal('.001'), rounding=ROUND_HALF_UP)
     if abs(rounded) >= Decimal('10000000000'):
         raise ValueError('Native Pick decimal(13,3) overflow')
     return rounded
 
 
-def _native_queue(flattened, vehicle):
+def _pick_product(quantity, dimension):
+    return None if dimension is None else quantity * d(dimension)
+
+
+def _pick_sum(values):
+    present = [value for value in values if value is not None]
+    return sum(present, ZERO) if present else None
+
+
+def _pick_compare(value, other, *, greater=False):
+    return value is not None and (value > other if greater else value >= other)
+
+
+def _native_queue(flattened, vehicle, *, allow_priority_ties=False):
     priorities = set()
     for number, row in enumerate(flattened, 1):
-        if row['priority'] in priorities:
+        if row['priority'] in priorities and not allow_priority_ties:
             raise ValueError('Native Pick priority-rank tie requires source-order qualification')
         priorities.add(row['priority'])
+        if row['weight'] is None and row['volume'] is None:
+            raise ValueError('Both-NULL native Pick dimensions must be excluded by the source join')
         for field in ('weight', 'volume'):
+            if row[field] is None:
+                continue
             value = d(row[field])
-            if value <= 0 or _native_decimal(value) != value:
+            if value < 0 or _native_decimal(value) != value:
                 raise ValueError('Native Pick state requires qualified positive scale3 dimensions')
         if row['quantity'] != int(row['quantity']) or not 0 < row['quantity'] < 2**31:
             raise ValueError('Native Pick quantity must be a positive SQL int')
@@ -268,25 +328,166 @@ def _native_pick_identity(row, vehicle):
         LogisticLocation=row['logistics_location'])
 
 
-def _capture_native_truck(state, rows, boundary, allocation, truck, vehicle):
-    cumulative_weight = cumulative_volume = ZERO
-    minimum = rows[boundary]['_native_sr_no']
-    for index, row in enumerate(rows[:boundary + 1]):
-        cumulative_weight += row['quantity'] * d(row['weight'])
-        cumulative_volume += row['quantity'] * d(row['volume'])
-        quantity = allocation if index == boundary else row['quantity']
-        native = _native_pick_identity(row, vehicle)
-        native.update(MinSRNo=minimum, TotalWeight=_native_decimal(quantity*d(row['weight'])),
-            TotalVolume=_native_decimal(quantity*d(row['volume'])),
-            CumulativeWeight=_native_decimal(cumulative_weight), CumulativeVolume=_native_decimal(cumulative_volume),
-            IsTruckFormed=True if index == boundary else None, TruckCount=truck,
-            RemainingWeigt=_native_decimal(cumulative_weight-d(vehicle['weight_capacity'])) if index == boundary else None,
-            RemainingVolume=_native_decimal(cumulative_volume-d(vehicle['volume_capacity'])) if index == boundary else None,
-            TransportLoadType=None, ColorWiseAlloction=int(quantity))
-        state['LogisticPickList'].append(native)
+def _calculate_native_pick_cases(cases, state):
+    """Literal staged-loop semantics; source joins have one qualified SKU row.
+
+    NoTruckFlag is sticky and its UPDATE is set-based. All partitions advance
+    together, including a flagged partition while another partition keeps the
+    canonical global loop alive. Ambiguous UPDATE values are not invented.
+    """
+    from mta.domain.complete_daily_scalars import ascii_equal
+    equal = lambda a, b: a is not None and b is not None and ascii_equal(a, b)
+    queues = {}
+    buckets = ('to_black', 'to_red', 'to_yellow', 'to_green', 'to_blue')
+    for case in cases:
+        for item_index, item in enumerate(case['items']):
+            for priority, bucket in enumerate(buckets, 1):
+                quantity = d(item['buckets'].get(bucket, 0))
+                if quantity <= 0:
+                    continue
+                key = _native_partition(item['from_location'], item['logistics_location'])
+                queues.setdefault(key, []).append(dict(item, quantity=quantity, priority=priority,
+                    item_index=item_index, _vehicle=case['vehicle'],
+                    _vehicles=case.get('vehicles', [case['vehicle']]), _no_truck_flag=False))
+    rows = []
+    for key in sorted(queues):
+        queue = queues[key]
+        queue.sort(key=lambda row: row['priority'])  # stable permitted tie order
+        vehicle = queue[0]['_vehicle']
+        _native_queue(queue, vehicle, allow_priority_ties=state['_allow_priority_ties'])
+        # Canonical ROW_NUMBER precedes the vehicle join: all vehicle
+        # occurrences derived from one ranked row share that rank.
+        for row in queue:
+            for configured in row['_vehicles']:
+                _native_queue([dict(row)], configured, allow_priority_ties=True)
+                rows.append(dict(row, _vehicle=configured))
+    originals = {(*_native_partition(r['from_location'], r['logistics_location']), r['_native_sr_no']): dict(r)
+                 for r in rows}
+    truck = 0
+    while rows:
+        before_state = [(id(r), r['quantity'], r['_no_truck_flag']) for r in rows]
+        truck += 1
+        groups, snapshots = {}, []
+        for row in rows:
+            groups.setdefault(_native_partition(row['from_location'], row['logistics_location']), []).append(row)
+        for group in groups.values():
+            cw = cv = None
+            ranks = {}
+            for row in group:
+                ranks.setdefault(row['_native_sr_no'], []).append(row)
+            for peers in ranks.values():
+                cw = _pick_sum([cw] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['weight']) for r in peers])
+                cv = _pick_sum([cv] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['volume']) for r in peers])
+                snapshots.extend(dict(r,cw=cw,cv=cv) for r in peers)
+        # Native join omits WHCode/NewSRNo: preserve cross-occurrence flags.
+        for row in rows:
+            for snap in snapshots:
+                if (equal(row['sku'], snap['sku']) and row['priority']==snap['priority'] and
+                        _native_partition(row['from_location'], row['logistics_location']) ==
+                        _native_partition(snap['from_location'], snap['logistics_location'])):
+                    vehicle = snap['_vehicle']
+                    if (snap['cw'] is not None and snap['cv'] is not None and
+                            snap['cw'] < d(vehicle['weight_capacity']) and snap['cv'] < d(vehicle['volume_capacity'])):
+                        row['_no_truck_flag'] = True
+        start = len(state['LogisticPickList'])
+        for key, group in groups.items():
+            current = [s for s in snapshots if _native_partition(s['from_location'],s['logistics_location'])==key]
+            crossing = [s['_native_sr_no'] for s in current
+                        if _pick_compare(s['cw'],d(s['_vehicle']['weight_capacity']))
+                        or _pick_compare(s['cv'],d(s['_vehicle']['volume_capacity']))]
+            if not crossing:
+                continue
+            minimum = min(crossing)
+            distinct = []
+            for row in current:
+                if row['_native_sr_no'] > minimum:
+                    continue
+                boundary = row['_native_sr_no']==minimum
+                vehicle = row['_vehicle']
+                weight_cap, volume_cap = d(vehicle['weight_capacity']), d(vehicle['volume_capacity'])
+                allocation = row['quantity']
+                if boundary:
+                    over_w = _pick_compare(row['cw'],weight_cap,greater=True)
+                    over_v = _pick_compare(row['cv'],volume_cap,greater=True)
+                    within_w = row['cw'] is not None and row['cw'] <= weight_cap
+                    within_v = row['cv'] is not None and row['cv'] <= volume_cap
+                    tw, tv = _pick_product(row['quantity'],row['weight']), _pick_product(row['quantity'],row['volume'])
+                    tw = None if tw is None else tw-(row['cw']-weight_cap) if over_w else tw
+                    tv = None if tv is None else tv-(row['cv']-volume_cap) if over_v else tv
+                    if over_w and over_v:
+                        allocation = min(tw/d(row['weight']),tv/d(row['volume']))
+                    elif over_w and within_v:
+                        allocation = tw/d(row['weight'])
+                    elif over_v and within_w:
+                        allocation = tv/d(row['volume'])
+                allocation = Decimal(int(allocation))
+                native = _native_pick_identity(row,vehicle)
+                native.update(MinSRNo=minimum,TotalWeight=_native_decimal(_pick_product(allocation,row['weight'])),
+                    TotalVolume=_native_decimal(_pick_product(allocation,row['volume'])),
+                    CumulativeWeight=_native_decimal(row['cw']),CumulativeVolume=_native_decimal(row['cv']),
+                    IsTruckFormed=True if boundary else None,TruckCount=truck,
+                    RemainingWeigt=_native_decimal(row['cw']-weight_cap) if boundary and row['cw'] is not None else None,
+                    RemainingVolume=_native_decimal(row['cv']-volume_cap) if boundary and row['cv'] is not None else None,
+                    TransportLoadType=None,ColorWiseAlloction=int(allocation))
+                # Both native INSERTs SELECT DISTINCT the full projection.
+                if native not in distinct:
+                    distinct.append(native)
+            state['LogisticPickList'].extend(distinct)
+        formed = state['LogisticPickList'][start:]
+        # Canonical residual UPDATE omits SKU/logistics from B/C join keys.
+        changes = []
+        for row in rows:
+            candidates = []
+            for snap in snapshots:
+                if not (equal(row['to_location'],snap['to_location']) and equal(row['from_location'],snap['from_location'])
+                        and row['_native_sr_no']==snap['_native_sr_no']):
+                    continue
+                for picked in formed:
+                    if (equal(row['to_location'],picked['WHCode']) and equal(row['from_location'],picked['ParentWHCode'])
+                            and row['_native_sr_no']==picked['NewSRNo']==picked['MinSRNo']):
+                        cap = snap['_vehicle']
+                        candidates.append(row['quantity']-picked['ColorWiseAlloction'] if
+                            _pick_compare(snap['cw'],d(cap['weight_capacity'])) or
+                            _pick_compare(snap['cv'],d(cap['volume_capacity'])) else snap['quantity'])
+            if candidates and any(value != candidates[0] for value in candidates):
+                raise ValueError('Canonical Pick residual UPDATE has differing candidate values; '
+                                 f"target={(row['sku'],row['to_location'],row['from_location'],row['_native_sr_no'])!r}, "
+                                 f"candidates={sorted(set(candidates))!r}; rank qualification does not cover it")
+            changes.append(candidates[0] if candidates else row['quantity'])
+        for row, quantity in zip(rows, changes):
+            row['quantity'] = quantity
+        kept = []
+        for row in rows:
+            matches = [r for r in state['LogisticPickList'] if equal(row['sku'],r['SKUCode']) and
+                equal(row['to_location'],r['WHCode']) and equal(row['from_location'],r['ParentWHCode']) and
+                row['priority']==r['Priority']]
+            if any(row['_native_sr_no'] < r['MinSRNo'] or
+                   (row['_native_sr_no']==r['MinSRNo'] and row['quantity']==0) for r in matches):
+                continue
+            kept.append(row)
+        rows = kept
+        if not any(not row['_no_truck_flag'] for row in rows):
+            break
+        if before_state == [(id(r),r['quantity'],r['_no_truck_flag']) for r in rows]:
+            raise ValueError('Canonical Pick nontermination: zero progress or NULL underfilled queue')
+    picks = []
+    for native in state['LogisticPickList']:
+        row = originals[(*_native_partition(native['ParentWHCode'],native['LogisticLocation']),native['NewSRNo'])]
+        if native['ColorWiseAlloction'] > 0:
+            picks.append({**_pick_row(row,native['TruckCount'],Decimal(native['ColorWiseAlloction']),native=True),
+                          'vehicle':native['VehicleName']})
+    for row in rows:
+        native = _native_pick_identity(row,row['_vehicle'])
+        native.update(TotalWeight=_native_decimal(_pick_product(row['quantity'],row['weight'])),
+            TotalVolume=_native_decimal(_pick_product(row['quantity'],row['volume'])),
+            RemainingWeight=Decimal('0.000'),RemainingVolume=Decimal('0.000'),
+            ColorWiseAlloction=int(row['quantity']),NoTruckFlag=row['_no_truck_flag'])
+        state['PickListDataForTruckFormation'].append(native)
+        picks.append({**_pick_row(row,None,ZERO,remaining=row['quantity'],native=True), 'vehicle':row['_vehicle']['name']})
+    return sorted(picks,key=lambda row:(row['truck'] is None,row['truck'] or 999999,row['priority'],row['case'],row['remaining_quantity']))
 
 
-def _calculate_pick_list(case: dict, state=None) -> list[dict]:
+def _calculate_pick_list(case: dict) -> list[dict]:
     vehicle = case["vehicle"]
     weight_cap, volume_cap = d(vehicle["weight_capacity"]), d(vehicle["volume_capacity"])
     grouped: dict[tuple[str, str], list[dict]] = {}
@@ -304,15 +505,13 @@ def _calculate_pick_list(case: dict, state=None) -> list[dict]:
                 )
     picks = []
     for group in grouped.values():
-        picks.extend(_calculate_pick_group(group, weight_cap, volume_cap, state=state, vehicle=vehicle))
+        picks.extend(_calculate_pick_group(group, weight_cap, volume_cap))
     return sorted(picks, key=lambda row: (row["truck"] is None, row["truck"] or 999999, row["priority"], row["case"], row["remaining_quantity"]))
 
 
-def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap: Decimal, *, state=None, vehicle=None) -> list[dict]:
+def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap: Decimal) -> list[dict]:
     """Form vehicles for one legacy ParentWHCode/LogisticsLocation queue."""
     flattened.sort(key=lambda row: (row["priority"], row["item_index"]))
-    if state is not None:
-        _native_queue(flattened, vehicle)
     remaining = [dict(row) for row in flattened]
     picks, truck = [], 0
     while remaining:
@@ -338,10 +537,6 @@ def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap
         allocation = min(row["quantity"], available_by_weight, available_by_volume)
         # ColorWiseAlloction is an int in the recovered table: assignment truncates.
         allocation = max(ZERO, Decimal(int(allocation)))
-        if state is not None:
-            if allocation == 0:
-                raise ValueError('Zero-allocation native truck boundary remains unqualified')
-            _capture_native_truck(state, remaining, boundary, allocation, truck, vehicle)
         if allocation > 0:
             picks.append(_pick_row(row, truck, allocation))
         residual = row["quantity"] - allocation
@@ -350,26 +545,19 @@ def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap
             remaining.insert(0, {**row, "quantity": residual})
     for row in remaining:
         picks.append(_pick_row(row, None, ZERO, remaining=row["quantity"]))
-        if state is not None:
-            native = _native_pick_identity(row, vehicle)
-            native.update(TotalWeight=_native_decimal(row['quantity']*d(row['weight'])),
-                TotalVolume=_native_decimal(row['quantity']*d(row['volume'])),
-                RemainingWeight=Decimal('0.000'), RemainingVolume=Decimal('0.000'),
-                ColorWiseAlloction=int(row['quantity']), NoTruckFlag=True)
-            state['PickListDataForTruckFormation'].append(native)
     return picks
 
 
-def _pick_row(row, truck, quantity, remaining=ZERO):
-    total_weight = quantity * d(row["weight"])
-    total_volume = quantity * d(row["volume"])
+def _pick_row(row, truck, quantity, remaining=ZERO, *, native=False):
+    total_weight = _pick_product(quantity,row['weight']) if native else quantity * d(row["weight"])
+    total_volume = _pick_product(quantity,row['volume']) if native else quantity * d(row["volume"])
     return {
         "case": row["case"], "sku": row["sku"], "from_location": row["from_location"],
         "to_location": row["to_location"], "logistics_location": row["logistics_location"],
         "truck": truck, "priority": row["priority"], "picked_quantity": text(quantity),
         "remaining_quantity": text(remaining),
-        "total_weight": "0" if quantity == 0 else format(total_weight.quantize(Decimal("0.001")), "f"),
-        "total_volume": "0" if quantity == 0 else format(total_volume.quantize(Decimal("0.001")), "f"),
+        "total_weight": "0" if quantity == 0 else None if total_weight is None else format(total_weight.quantize(Decimal("0.001")), "f"),
+        "total_volume": "0" if quantity == 0 else None if total_volume is None else format(total_volume.quantize(Decimal("0.001")), "f"),
     }
 
 

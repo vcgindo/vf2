@@ -29,6 +29,7 @@ urlpatterns = [
     path('WHDesc', partial(views.descriptions, kind='location')),
     path('GetEnvironmentConfiguration', views.environment),
     path('GetAllReports', views.report_paths),
+    path('DownloadReports/<str:report_name>', views.download_report),
     path('GetUIConfig', views.ui_config),
     path('GetState', partial(views.user_layout, operation='get')),
     path('SaveState', partial(views.user_layout, operation='save')),

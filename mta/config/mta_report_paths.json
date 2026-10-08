@@ -1,4 +1,28 @@
 {
+  "LogisticPickListReport": {
+    "path": "",
+    "downloadName": "LogisticPickListReport.csv",
+    "reportName": "Logistic Pick List Report",
+    "fileType": "text/csv"
+  },
+  "LogisticRemainingQtySummary": {
+    "path": "",
+    "downloadName": "LogisticRemainingQtySummary.csv",
+    "reportName": "Logistic Remaining Quantity Summary",
+    "fileType": "text/csv"
+  },
+  "LogisticRemainingQtyDetails": {
+    "path": "",
+    "downloadName": "LogisticRemainingQtyDetails.csv",
+    "reportName": "Logistic Remaining Quantity Details",
+    "fileType": "text/csv"
+  },
+  "TransportReqSummaryRpt": {
+    "path": "",
+    "downloadName": "TransportReqSummaryRpt.csv",
+    "reportName": "Transport Requirement Summary Report",
+    "fileType": "text/csv"
+  },
   "DailyDataUnavailabilityReport": {
     "path": "",
     "downloadName": "DailyDataUnavailabilityReport.zip",

@@ -31,6 +31,36 @@ class TestMtaInterceptorIdentity(SimpleTestCase):
             FILES={},
         )
 
+    @patch("api_gateway.interceptors.mta_interceptor.Permission.objects.filter")
+    @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
+    @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")
+    @patch("api_gateway.interceptors.mta_interceptor.requests.request")
+    def test_pick_download_requires_stored_report_grant_and_forwards_exact_scopes(
+        self, request_mock, product_filter_mock, location_filter_mock, grant_filter_mock
+    ):
+        request = self.request('GET', '/api/mta/DownloadReports/LogisticPickListReport')
+        request.user.is_admin = False
+        product_filter_mock.return_value.values_list.return_value = [11]
+        location_filter_mock.return_value.values_list.return_value = [22]
+        grant_filter_mock.return_value.exists.return_value = False
+        denied = MTA_INTERCEPTOR().forward(request, self.service_map)
+        self.assertEqual(denied.status_code, 403)
+        request_mock.assert_not_called()
+
+        grant_filter_mock.return_value.exists.return_value = True
+        request_mock.return_value = MagicMock(status_code=200)
+        MTA_INTERCEPTOR().forward(request, self.service_map)
+        forwarded = request_mock.call_args.kwargs
+        header_name = os.environ.get(
+            "MTA_TRUSTED_GATEWAY_HEADER", "X-VectorFLOW-Identity")
+        self.assertEqual(json.loads(forwarded['headers'][header_name]), {
+            'id': 7, 'name': 'Stage 7B', 'email': 'stage7b@example.invalid',
+            'entitlements': ['mta-report-urls']})
+        self.assertEqual(forwarded['json']['product_permissions'], [11])
+        self.assertEqual(forwarded['json']['location_permissions'], [22])
+        self.assertTrue(forwarded['stream'])
+        self.assertEqual(forwarded['timeout'], (5, 60))
+
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.requests.request")

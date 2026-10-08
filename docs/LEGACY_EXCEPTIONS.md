@@ -1,5 +1,86 @@
 # Legacy behavior and explicit exceptions
 
+## PICK-FINITE-CLOSURE-D1-D4 — approved 8 October 2026
+
+Human controller turn01a11a8b-e70d-74f0-899a-f9e034e42938 authorizes the exact
+PICK_FINITE_CLOSURE_REVIEW_PLAN.md. D1 qualifies only unordered retrieval of the
+final LogisticPickList and PickListDataForTruckFormation relations: complete
+typed row multisets, every rank/truck/value/NULL/duplicate, raw native sequences
+and exact modern persisted ordinal readback. Calculation ordering and explicitly
+ordered consumers are unchanged. Original pick-integration-a001 failure remains.
+D2 applies the existing four-export typed-data-bag policy consistently; byte
+format proofs use identical input order, not a claim of identical files across
+qualified row-order differences. D3 permits fail-closed denial for known native
+nontermination only, never a successful-day receipt. Other deterministic duplicate
+or multiple-vehicle behavior is not waived. D4 permits exactly two modern dates
+under the plan's retained-input, owner and invocation limits, plus at most one
+matched-input native Pick-stage proof per date; not full legacy-day parity.
+
+Direct human turn01a11ad1-c612-7e62-aea1-985a531c709b subsequently approves a
+separate synthetic Pick-only input and exactly TWO NEW modern dates, plus at
+most one matched-input native Pick call per date. The prior empty dimension-only
+June6 run remains preserved. Positive fixture input/config and the external
+ledger delta are pinned in PICK_REAL_ROUTE_INPUT_DECISION.md. This authorizes
+external facts/capacity changes for that fixture, never calculated Norm/history
+or formula changes. Both new dates and both native calls pass; proof identities
+and consumer limitations are recorded in MIGRATION.md and PICK_OPERATOR_RUNBOOK.md.
+
+Consolidated D3 follow-up approved by human controller turn
+01a11a92-4215-7273-a398-45ace82cff36 and its delegated answer: deny actual unequal
+UPDATE candidates for mixed qualifying/both-NULL SKU attributes, different
+vehicle capacities with conflicting residuals, and different SKU dimensions with
+conflicting final totals. Exact source lines/configurations are in
+PICK_SUPPORTED_DOMAIN.md. Deterministic duplicates/vehicles remain required;
+neither a category-wide exclusion nor an arbitrary native winner is approved.
+Known numeric/identifier/encoding limits may remain explicit rejected domains
+for QUALIFIED Pick closure only. Failed attempts cannot complete, publish or
+become a successor. No unrestricted product-readiness claim follows.
+
+## COMPLETE-DAILY-PICK-TIES — bounded calculation qualification approved
+
+Direct human approval on8October supersedes the earlier blocked disposition
+below only for distinguishable rows tied under the canonical legacy ranking.
+Modern output must be a valid unchanged canonical calculation under a permissible
+ordering of those tied rows. Individual eligibility, quantities, capacities,
+formed/residual truck state and downstream consistency must be proved; equal
+totals do not suffice. Ranking predicates, formulas, NULL/duplicate semantics and
+untied allocations remain unchanged. SKU-level differences are qualified
+equivalence, never exact parity. No business tie-break is authorized. This is
+separate from COMPLETE-DAILY-PICK-FILE-ORDER. Bounded fixtures must prove the
+qualification or identify a concrete blocker without wider discovery.
+
+Bounded evidence pick-tie-witness-a005.json (refreshing preserved a004) passes the unique A3/B3 fixture
+under both permissible priority-tie orders, including complete formed/residual
+state and downstream projections. The opposite-order batch is explicitly a
+test-only post-rank witness, not an unmodified oracle. Calculation statements
+and non-rank staging values stay unchanged. A3+B1 versus B3+A1 is qualified
+SKU-level equivalence only.
+
+Earlier table-order blocker, resolved ONLY by approved D1 above:
+pick-integration-a001's concurrent-active-queues
+fixture produces native formed sequence [A,D,B,D,B] versus modern [A,B,D,B,D].
+All five complete rows match; D/L2 and B/L1 are in different ranking partitions.
+Strict table-sequence failure is retained; D1 qualifies the unordered table read.
+Neither the tied-allocation nor four-file-export approval alone extends to it.
+
+Earlier disposition retained for provenance:
+
+Human call_cd9dfc5b32304c5e96aa6713c9c4474d explicitly decided:
+"Keep exact parity required; leave tied allocations blocked".
+Canonical GenerateLogisticPickList.sql SHA256
+b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb
+lines48 and75 use ROW_NUMBER without a SKU/occurrence tie-break. In the latter,
+different SKUs can tie within parent/logistics-location/priority. This affects
+truck membership and quantities, not merely report presentation. A diagnostic
+using the existing modern allocation with red A3/B3, unit weight/volume and
+weight capacity4 gives A3+B1 versus A1+B3 when input order reverses. That is an
+illustration of the ambiguity, not a newly executed native parity result.
+The existing source-order choice cannot establish generic exact parity. No
+tie-break, changed allocation comparison or table-order qualification is approved.
+The four-file export exception below remains strictly separate. Generic Pick
+closure is blocked on distinguishable tied allocations; restricted passing
+fixtures do not establish generic production readiness.
+
 ## COMPLETE-DAILY-PICK-FILE-ORDER — approved four-file qualification
 
 Direct human reply to call_5a75ffbc20224abb91987c31f6cb6ee7 on8October2026:
