@@ -1,0 +1,227 @@
+{
+  "policy": "cohort2-eleven-runtime-check-casts-20261008",
+  "approval": "call_949f22a0325346ac8095e2766efd8001",
+  "proof_sha256": "ca5302ad1635cf3c5150a7ddb5d1cbf6d9954a7826a1ca796d51b81ba116c87a",
+  "constraints": [
+    {
+      "schema": "mta",
+      "table": "fresh_mta_btrjoinreference",
+      "constraint": "fresh_btr_reference_branch",
+      "column": "branch",
+      "left": "CHECK (branch::text = ANY (ARRAY['tech'::character varying, 'eco'::character varying]::text[]))",
+      "right": "CHECK (branch::text = ANY (ARRAY['tech'::character varying::text, 'eco'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(4)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_btrpresentationrow",
+      "constraint": "fresh_btr_presentation_branch",
+      "column": "branch",
+      "left": "CHECK (branch::text = ANY (ARRAY['tech'::character varying, 'eco'::character varying]::text[]))",
+      "right": "CHECK (branch::text = ANY (ARRAY['tech'::character varying::text, 'eco'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(4)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_buffergraphpreparedmembership",
+      "constraint": "buffer_graph_member_family",
+      "column": "family",
+      "left": "CHECK (family::text = ANY (ARRAY['physical'::character varying, 'dispatch'::character varying]::text[]))",
+      "right": "CHECK (family::text = ANY (ARRAY['physical'::character varying::text, 'dispatch'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_dailyuipublication",
+      "constraint": "daily_ui_publication_status",
+      "column": "status",
+      "left": "CHECK (status::text = ANY (ARRAY['INCOMPLETE'::character varying, 'READY'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['INCOMPLETE'::character varying::text, 'READY'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_dailyuipublicationattempt",
+      "constraint": "daily_ui_attempt_status",
+      "column": "status",
+      "left": "CHECK (status::text = ANY (ARRAY['BUILDING'::character varying, 'FAILED'::character varying, 'READY'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['BUILDING'::character varying::text, 'FAILED'::character varying::text, 'READY'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_mdmdailyinputcapture",
+      "constraint": "mdm_daily_capture_status",
+      "column": "status",
+      "left": "CHECK (status::text = ANY (ARRAY['CAPTURED'::character varying, 'CONSUMED'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['CAPTURED'::character varying::text, 'CONSUMED'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_operationalalertintent",
+      "constraint": "op_intent_disposition",
+      "column": "disposition",
+      "left": "CHECK (disposition::text = ANY (ARRAY['LOCAL_READY'::character varying, 'DISABLED'::character varying, 'PREDICATE_FALSE'::character varying, 'RECIPIENT_SUPPRESSED'::character varying, 'ATTACHMENT_UNAVAILABLE'::character varying]::text[]))",
+      "right": "CHECK (disposition::text = ANY (ARRAY['LOCAL_READY'::character varying::text, 'DISABLED'::character varying::text, 'PREDICATE_FALSE'::character varying::text, 'RECIPIENT_SUPPRESSED'::character varying::text, 'ATTACHMENT_UNAVAILABLE'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(24)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_operationalattempt",
+      "constraint": "op_attempt_status",
+      "column": "status",
+      "left": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'RUNNING'::character varying, 'FAILED'::character varying, 'SUCCEEDED'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying::text, 'RUNNING'::character varying::text, 'FAILED'::character varying::text, 'SUCCEEDED'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_operationalbackup",
+      "constraint": "op_restore_status",
+      "column": "restore_status",
+      "left": "CHECK (restore_status::text = ANY (ARRAY['UNPROVED'::character varying, 'RUNNING'::character varying, 'FAILED'::character varying, 'VERIFIED'::character varying, 'QUALIFIED'::character varying]::text[]))",
+      "right": "CHECK (restore_status::text = ANY (ARRAY['UNPROVED'::character varying::text, 'RUNNING'::character varying::text, 'FAILED'::character varying::text, 'VERIFIED'::character varying::text, 'QUALIFIED'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_operationaloperation",
+      "constraint": "op_operation_status",
+      "column": "status",
+      "left": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying, 'RUNNING'::character varying, 'FAILED'::character varying, 'SUCCEEDED'::character varying, 'DISABLED'::character varying, 'UNAVAILABLE'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['PENDING'::character varying::text, 'RUNNING'::character varying::text, 'FAILED'::character varying::text, 'SUCCEEDED'::character varying::text, 'DISABLED'::character varying::text, 'UNAVAILABLE'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_researchpreparedhistoryreference",
+      "constraint": "research_history_ref_family",
+      "column": "family",
+      "left": "CHECK (family::text = ANY (ARRAY['physical'::character varying, 'dispatch'::character varying]::text[]))",
+      "right": "CHECK (family::text = ANY (ARRAY['physical'::character varying::text, 'dispatch'::character varying::text]))",
+      "metadata": [
+        true,
+        false,
+        false,
+        false,
+        "character varying(16)",
+        "default",
+        "d",
+        true,
+        null,
+        null
+      ]
+    }
+  ]
+}

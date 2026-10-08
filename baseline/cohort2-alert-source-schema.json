@@ -1,0 +1,12 @@
+{
+  "schema": "cohort2-alert-source-schema-v1",
+  "source": "Scripts/DBCreation/Importer_DBCreation.sql",
+  "source_sha256": "11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309",
+  "tables": {
+    "Importer/RunAbortReasons": [
+      {"name": "FileId", "type": "int", "parameters": null, "nullable": false},
+      {"name": "RunDateTime", "type": "datetime", "parameters": null, "nullable": false},
+      {"name": "Reason", "type": "nvarchar", "parameters": "512", "nullable": false}
+    ]
+  }
+}

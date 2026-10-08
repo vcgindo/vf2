@@ -1,0 +1,2226 @@
+{
+  "schema": "cohort2-native-source-schema-v1",
+  "sources": {
+    "F:\\VFlow_Local\\local-runtime\\mta-engine\\Scripts\\DBCreation\\Importer_DBCreation.sql": "11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309",
+    "F:\\VFlow_Local\\local-runtime\\mta-engine\\Scripts\\DBCreation\\BPR_DBCreation.sql": "a906c4b7ea50cb4a121101159553c2d531a29fe5c782247318fc0f933efe6ec0",
+    "F:\\VFlow_Local\\local-runtime\\mta-engine\\Scripts\\DBCreation\\Intermediate_DBCreation.sql": "3f716a38b20856ef4308d68d1ec896a63162a2c62e8cbe06132c564ec4c943fa"
+  },
+  "tables": {
+    "Importer/MasterDataRaw": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "MinNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RLT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "OCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUIntroDate",
+        "type": "date",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SKUDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "WHDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "ParentDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "PackSize",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SpikeThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "PSOThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "FGRMFlag",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "MOQ",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "StockPercentForRationing",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "NormPercentReservation",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "MinOrderCount",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "ElephantOrderCapping",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Weight",
+        "type": "decimal",
+        "parameters": "13,3",
+        "nullable": true
+      },
+      {
+        "name": "Volume",
+        "type": "decimal",
+        "parameters": "13,3",
+        "nullable": true
+      },
+      {
+        "name": "SL1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocationType",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LogisticsLocation",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt01",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt02",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt03",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt04",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt05",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt06",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt07",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt08",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt09",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKUAtt15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt01",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt02",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt03",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt04",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt05",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt06",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt07",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt08",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt09",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LocAtt15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt01",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt02",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt03",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt04",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt05",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt06",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt07",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt08",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt09",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      }
+    ],
+    "Importer/DailyDataRaw": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Consumption",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Receipts",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "PSO",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "ReportDate",
+        "type": "date",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/SOBDataRaw": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "WHCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SupplierDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "SOB",
+        "type": "float",
+        "parameters": null,
+        "nullable": true
+      }
+    ],
+    "Importer/MOQDataRaw1": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SupplierDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "MOQ",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      }
+    ],
+    "Importer/UIUploadLogNMSNewItem": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "MinNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RLT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "OCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "PackSize",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SpikeThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "PSOThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "FGRMFlag",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "DBMActive",
+        "type": "bit",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "StockPercentForRat",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "NormPercentReservation",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "MinOrderCount",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt01",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt02",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt03",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt04",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt05",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt06",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt07",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt08",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt09",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSModifyItem": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "MinNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RLT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "OCP",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "PackSize",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SpikeThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "PSOThreshold",
+        "type": "decimal",
+        "parameters": "10, 2",
+        "nullable": true
+      },
+      {
+        "name": "FGRMFlag",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "DBMActive",
+        "type": "bit",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "StockPercentForRat",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "NormPercentReservation",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "MinOrderCount",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt01",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt02",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt03",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt04",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt05",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt06",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt07",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt08",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt09",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SKULocAtt15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSRemoveItem": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WHCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSLocations": [
+      {
+        "name": "WHCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WHDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "LocationType",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LogisticsLocation",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "LL5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c6",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c7",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c8",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c9",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSSKUs": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "SKUDescription",
+        "type": "varchar",
+        "parameters": "125",
+        "nullable": true
+      },
+      {
+        "name": "ElephantOrderCapping",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Weight",
+        "type": "decimal",
+        "parameters": "13,3",
+        "nullable": true
+      },
+      {
+        "name": "Volume",
+        "type": "decimal",
+        "parameters": "13,3",
+        "nullable": true
+      },
+      {
+        "name": "SL1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SL5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c1",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c2",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c3",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c4",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c5",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c6",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c7",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c8",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c9",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c10",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c11",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c12",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c13",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c14",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "c15",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSSOB": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "SOB",
+        "type": "float",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogNMSMOQ": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "MOQ",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "UserName",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogFNC": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WHCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "OldNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "NewNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Approved",
+        "type": "bit",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RequestedBy",
+        "type": "nvarchar",
+        "parameters": "256",
+        "nullable": false
+      },
+      {
+        "name": "ActionTimeStamp",
+        "type": "datetime",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "Importer/UIUploadLogActionType": [
+      {
+        "name": "ActionId",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ActionDesc",
+        "type": "nvarchar",
+        "parameters": "128",
+        "nullable": false
+      }
+    ],
+    "BPR/BPRExceptions": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      }
+    ],
+    "Intermediate/NoNormAtParentReport": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": true
+      }
+    ],
+    "BPR/BORWithOrderAllocation": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "VirtualNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ParentLeftoverStock",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Requirement",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOB",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOR",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOY",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOG",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOBlue",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOB",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOR",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOY",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOG",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_ToBlue",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchColor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": false
+      },
+      {
+        "name": "OrderBlackUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderRedUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderYellowUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderGreenUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "DispatchPen",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      }
+    ],
+    "BPR/BOR_OrderAllocationHistory": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "SupplierCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "VirtualNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ParentLeftoverStock",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Requirement",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOB",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOR",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOY",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOG",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Req_TOBlue",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOB",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOR",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOY",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_TOG",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "Dispatch_ToBlue",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchColor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": false
+      },
+      {
+        "name": "OrderBlackUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderRedUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderYellowUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "OrderGreenUnsatisfiedPercentage",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "DispatchPen",
+        "type": "decimal",
+        "parameters": "10,2",
+        "nullable": false
+      },
+      {
+        "name": "ReportDate",
+        "type": "date",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "BPR/RRR_OrderAllocation": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "AllocationFor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "VirtualNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "LeftoverParentStock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Requirement",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "TOBlack_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOR_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOY_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOGreen_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOBlue_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "RationedQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RationedCasePacks",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "TOBlack_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOR_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOY_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOGreen_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOBlue_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchColor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "AdvAllocDone",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      }
+    ],
+    "BPR/RRR_OrderAllocationHistory": [
+      {
+        "name": "SKUCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "WhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "ParentWhCode",
+        "type": "nvarchar",
+        "parameters": "50",
+        "nullable": false
+      },
+      {
+        "name": "AllocationFor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "Norm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "VirtualNorm",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Stock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "GIT",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "LeftoverParentStock",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "Requirement",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "TOBlack_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOR_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOY_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOGreen_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOBlue_ReqQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "RationedQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "RationedCasePacks",
+        "type": "int",
+        "parameters": null,
+        "nullable": true
+      },
+      {
+        "name": "TOBlack_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOR_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOY_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOGreen_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "TOBlue_AllocQty",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "DispatchColor",
+        "type": "nvarchar",
+        "parameters": "10",
+        "nullable": true
+      },
+      {
+        "name": "AdvAllocDone",
+        "type": "int",
+        "parameters": null,
+        "nullable": false
+      },
+      {
+        "name": "ReportDate",
+        "type": "date",
+        "parameters": null,
+        "nullable": false
+      }
+    ]
+  },
+  "projection_sources": {
+    "Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationData.sql": "e06d22c31b0b51b6ba375c4bdf8ddeac52806d6e0b5b1c362a77dd8d3b4b18da",
+    "Scripts/BPR/OrderAllocationReports/GenerateBOR_OrderAllocation.sql": "9a063498e99060a119f5c82655de61074f2a4cb895beb444ce2cbb8714ef5d9c",
+    "Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationHistory.sql": "4a58bb30a2b94c48693297852cafe0f48748f62f76c09178c0c2996e83298340",
+    "Scripts/BPR/OrderAllocationReports/CollectRRR_OrderAllocationHistory.sql": "266ec95240ef468b94ad1e433235723e8cbb04115fbbb35083c7825b24c2ca5b"
+  }
+}

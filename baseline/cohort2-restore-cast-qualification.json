@@ -1,0 +1,58 @@
+{
+  "policy": "cohort2-seven-check-casts-20261008",
+  "approval": "call_c3c9dbe4c033483dae660166286f5429: Approve this seven-constraint qualification",
+  "source_digest": "1bbb953865a031de365081dfaadf08e8d767cfa197cc1f6df171401139cd55fe",
+  "restored_digest": "9c5c4b3dfd40e01b5b05d7901d1a95828772c5af4837d1461759e92ef109a65f",
+  "proof_sha256": "7a8db74d60802ea18229573dae2b027df3c5607fac3326401afaeb8165e34142",
+  "constraints": [
+    {
+      "schema": "mta",
+      "table": "fresh_mta_btrjoinreference",
+      "constraint": "fresh_btr_reference_branch",
+      "left": "CHECK (branch::text = ANY (ARRAY['tech'::character varying, 'eco'::character varying]::text[]))",
+      "right": "CHECK (branch::text = ANY (ARRAY['tech'::character varying::text, 'eco'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_btrpresentationrow",
+      "constraint": "fresh_btr_presentation_branch",
+      "left": "CHECK (branch::text = ANY (ARRAY['tech'::character varying, 'eco'::character varying]::text[]))",
+      "right": "CHECK (branch::text = ANY (ARRAY['tech'::character varying::text, 'eco'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_buffergraphpreparedmembership",
+      "constraint": "buffer_graph_member_family",
+      "left": "CHECK (family::text = ANY (ARRAY['physical'::character varying, 'dispatch'::character varying]::text[]))",
+      "right": "CHECK (family::text = ANY (ARRAY['physical'::character varying::text, 'dispatch'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_dailyuipublication",
+      "constraint": "daily_ui_publication_status",
+      "left": "CHECK (status::text = ANY (ARRAY['INCOMPLETE'::character varying, 'READY'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['INCOMPLETE'::character varying::text, 'READY'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_dailyuipublicationattempt",
+      "constraint": "daily_ui_attempt_status",
+      "left": "CHECK (status::text = ANY (ARRAY['BUILDING'::character varying, 'FAILED'::character varying, 'READY'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['BUILDING'::character varying::text, 'FAILED'::character varying::text, 'READY'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_mdmdailyinputcapture",
+      "constraint": "mdm_daily_capture_status",
+      "left": "CHECK (status::text = ANY (ARRAY['CAPTURED'::character varying, 'CONSUMED'::character varying]::text[]))",
+      "right": "CHECK (status::text = ANY (ARRAY['CAPTURED'::character varying::text, 'CONSUMED'::character varying::text]))"
+    },
+    {
+      "schema": "mta",
+      "table": "fresh_mta_researchpreparedhistoryreference",
+      "constraint": "research_history_ref_family",
+      "left": "CHECK (family::text = ANY (ARRAY['physical'::character varying, 'dispatch'::character varying]::text[]))",
+      "right": "CHECK (family::text = ANY (ARRAY['physical'::character varying::text, 'dispatch'::character varying::text]))"
+    }
+  ]
+}

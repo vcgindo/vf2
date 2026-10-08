@@ -17,9 +17,14 @@ from mta.domain.control_carry import TABLES, control_stages
 EXTRA_TABLES = ('phase_map', 'phase_in_norms', 'phase_exceptions', 'phase_requests',
                 'phase_stops', 'phase_in_requests', 'season_status', 'season_requests')
 REQUEST_TABLES = ('phase_requests', 'phase_stops', 'phase_in_requests', 'season_requests')
+FORCE_CAPTURE_POLICY = 'cohort2-pre-clear-force-v1'
 
 
-def timeline_control_stages(today, opening_date, state, extra, day, profile, daily, attributes):
+def timeline_control_stages(today, opening_date, state, extra, day, profile, daily, attributes,
+                            *, force_alert_capture=None):
+    if force_alert_capture is not None and (not isinstance(force_alert_capture, dict)
+                                            or force_alert_capture):
+        raise ValueError('A new empty force-alert capture sink is required')
     if set(extra) != set(EXTRA_TABLES):
         raise ValueError('Complete persisted phase/season state required')
     commands = day['control_requests']
@@ -52,6 +57,15 @@ def timeline_control_stages(today, opening_date, state, extra, day, profile, dai
         s = {**current, **deepcopy(extras)}
         if name == 'UpdateNormChanges.sql':
             diagnostics['failed_force'] = failed_force_rows(s, today)
+            if force_alert_capture is not None:
+                # ClearForceNormChange.sql subsequently deletes approved rows.
+                # Keep this opt-in projection outside Reports/closing state so
+                # ordinary calculation outputs and their digests stay unchanged.
+                force_alert_capture.update(deepcopy({
+                    'ForceNormChange': s['force_requests'],
+                    'DBMMaster': s['dbm_master'],
+                    'MasterDataRaw': s['raw_master'],
+                }))
         yield name, snapshot(s), snapshot(diagnostics)
     s = clear_phase_inputs(s, today, history_horizon=profile['history_horizon'])
     yield 'ClearPhaseInPhaseOutData.sql', s, diagnostics

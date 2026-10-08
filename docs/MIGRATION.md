@@ -6,6 +6,570 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT2 — operational outputs and recoverability (qualified closure)
+
+Direct human release relayed by controller01a1037c-5d96-7700-87a8-89a575f6c9f8
+on8 October2026 makes Cohort2 the sole active delivery. Cohort1ec4a5ea remains
+qualified and closed; no accepted calculation, action or receipt is reopened.
+Authoritative contracts: COHORT2_OPERATIONAL_OUTPUTS_RECOVERABILITY_PLAN.md and
+COHORT2_SOURCE_EXIT_MAP.json. This file is the sole status tracker.
+
+Contract mapping O1–O9 is complete at direct-wrapper level. O1 opening RRR/history,
+O4 physical/member/table/clock and O5 eight log/action bindings are now explicitly
+approved by call_5c8463bd82e544cf9b51d0e44efb0765 in
+COHORT2_INPUT_BINDING_DECISION.md, including O7 recipient/attachment dispositions.
+No missing population is empty by inference. Source/tool and real-owner evidence
+now establish the bounded O1–O9 delivery. The two authorized real dates pass
+alongside native component, file, intent, restore, retry and repair proofs.
+This commit records qualified Cohort2 closure; stop after its push. No adjacent
+cohort or broader release follows from this checkpoint.
+Allowed boundary: affected code/schema/tests, new owned side-effect roots and
+exclusive backup/restore fixtures within existing limits. Required proof: exact
+source hashes, actual file/archive bytes and tools, typed intents, logical restore,
+main-runtime integration, interrupted recovery and zero-calculation idempotence.
+
+**Completed finite exit checklist (8 October2026).**
+This supersedes component-level next-step wording below without removing any
+O1–O9 exit. Continue the same goal; no new subsystem or adjacent work.
+
+- [x] **Implementation complete — O7 source/intent wiring.** Typed pre-clear
+  force and RunAbortReasons owners, explicit C1 sanitation input, mapped files
+  and all14 dispositions are wired. Native attachment8/8, abort producer3/3 and
+  persisted alert protocol3/3 and both real calculation owners pass. No
+  sanitation/client engine was added.
+- [x] **Implementation complete — one O1–O9 runner and commands.** Actual
+  materialize/check/recover protocol, real archives and qualified PG restore
+  pass on persisted stub owners. Mandatory files/populations/intents/completion
+  guards pass. Both real dates now prove their own operational predecessor,
+  commands, files, local intents and qualified fresh-target logical restore.
+- [x] **Recovery contract and focused acceptance complete.** Exact-copy restoration,
+  interrupted plain-file regeneration and post-intent whole retry are implemented
+  and proved, with zero calculation and preserved receipts. The last retry fix
+  retains all14 intents and all28 archive hashes. The mapped ZIP
+  member/container condition is now approved; nine focused repair tests pass
+  in approved-zip-repair-a002.log. a001 retains a fixture-only ownership failure
+  from reusing one owner across subtests; separate owners correct that fixture.
+  No further recovery
+  development or expanded tests unless an existing exit demonstrably fails.
+- [x] **Final real-source proof complete; consolidated decision approved.**
+  COHORT2_CONSOLIDATED_CLOSURE_DECISION.md fixes BOR-history/SOB-export ordering,
+  mapped ZIP restoration and exactly two proposed modern source dates. The
+  proposal/input/supplement hashes are frozen there. Exactly two modern dates
+  are authorized. The required native O2/O3/O6 file
+  checks pass12/12. Fresh-schema verification and immutable candidate build
+  pass. The final read-only audit after owned PostgreSQL restart and actual
+  management CLI check pass; no additional calculation was made.
+- [x] Integrated code/image/config/tool/evidence handoff is complete in
+  COHORT2_HANDOFF.md. This cohesive commit is the closure checkpoint; push it
+  and stop. No component commits or Cohort3/4 expansion.
+
+Retained source boundary: accepted Cohort1 owners lack required O1/O4 captures
+and some O7 stage inputs; they were preserved, never backfilled or replayed.
+The separately approved new owners supply the required sources.
+BOR-history and SOB table-export strict sequence differences remain preserved;
+their exact bounded bag qualifications are now approved.
+The eleven-check runtime restore policy is approved and remains exact. Serving,
+publication, benchmark, active NMS and populated approval workflows stay held.
+
+Final real-source evidence: June6 run77731d95-03f4-4a82-8498-404f944df73b,
+operational attempt e0918a5d-2ce5-489a-8ef5-32b9ce605e88; June7 run
+1b83fdca-d0ad-47d5-8694-414257ae68be, attempt
+2a6dbb31-3d1a-4f7b-aa55-6f710f85fc7d. Each passes19 complete core comparisons,
+typed daily/source readback,35 file receipts,14 alert dispositions and qualified
+PG logical restore. June6 applies its own two suggested identities; no designated
+Sleep target was suggested, so Sleep remains unexercised in these two dates.
+June7 consumes that exact state/actions and its own operational predecessor.
+All completed replays and explicit missing-copy recoveries add zero calculations.
+
+Candidate image:
+sha256:a8d606b23e65f85b326d87fd86e960f343af4789eec69b03deee70341cf98ebd.
+All982 candidate source files are unchanged. Closure proof:
+`D:/freshvcf-build/evidence/cohort2-20261008-001/real-source-20261008-001/closure-proof.json`,
+SHA25601278f44616e40abe73c74d6c896588769ee954df5efaa189ca1cdf273ad8ae0,
+indexes128 retained evidence files. All original failures remain preserved.
+An external stop left the owned PostgreSQL container exited255 before the final
+audit. Only that exact container was started with unchanged1GiB/1CPU/restart=no/
+no-port limits. The final read-only audit verifies both accepted new owners,
+complete validation archives and original Cohort1 rows/actions unchanged after
+restart. No shared Docker/service restart, benchmark or serving change occurred.
+
+The following paragraphs retain chronological checkpoints, including superseded
+pending states and preserved failures; the completed checklist above governs.
+The human directly approved all four items in the consolidated package on
+8 October2026. This supersedes the pending-decision hold above only for the
+documented ordering/ZIP qualifications and exactly two modern June6–7 calls.
+Active exit: apply and verify the mapped ZIP qualification, freeze candidate
+identities, then execute the finite real-source proof and cohesive delivery.
+Preserve failures; stop before day two on any day-one acceptance failure. No
+additional dates, benchmarks, serving changes or adjacent work are released.
+
+June6 acceptance stopped after one calculation: run
+77731d95-03f4-4a82-8498-404f944df73b committed successfully with exact typed daily
+readback and all three source captures. The external harness incorrectly asked
+the production reader for validation-only CalculationOutputs and raised KeyError
+before actions or operational materialization. Failed acceptance is retained in
+real-source-20261008-001/day-000.json. Read-only diagnosis passes all five core
+families and all prior complete-state populations against Cohort1 and verifies
+both accepted owners/actions unchanged. No June7 invocation has occurred.
+COHORT2_ACCEPTANCE_READER_CORRECTION.md fixes the smallest runner-only correction
+and its exact hashes. It resumes June6 without calculation and preserves the
+failed receipt; the human approved this correction and bounded continuation via
+call_a7512ac1cb244e3f9bf31c8bed8e6c1f. Resume only zero-calculation June6 acceptance,
+then June7 if every June6 exit passes.
+The candidate image and frozen inputs/configuration remain unchanged. No partial
+commit or closure is claimed.
+
+Fresh-schema harness correction: `fresh-schema-a001.json` is **invalid as fresh
+database evidence**. Its six existing protocol tests passed, but Django skipped
+database setup because their unittest classes did not declare database usage.
+The original receipt/log are retained unchanged; their claimed fresh database
+does not establish migration acceptance. The bounded a002 harness forces the
+default test database and asserts its actual name and migration0095 before
+running the same six tests. No application code, test roster or business date
+is changed by this correction.
+Corrected `fresh-schema-a002.json` / `.log` now pass: all95 Fresh migrations
+applied to the previously absent `test_freshvcf_cohort2_20261008_001`; the harness
+verified that actual database and migration0095 before all six existing tests
+passed. Django check, migration no-drift and plan also passed. Source pins are
+unchanged, the fresh database is preserved, and business-day calls remain zero.
+Closure identity check `baseline-closure-a001.log` passes all387 pinned resources
+using `tools/baseline.py verify`. This proves unchanged source/input identity,
+not parity. The consolidated decision remains pending; final candidate freezing
+and real-source acceptance must follow its disposition.
+
+Narrow repair checkpoint: migration0093 passed check/no-drift/plan and applied
+only to the owned protocol database. Linked repair attempts/targets preserve
+original SUCCEEDED receipts; normal file/attachment verification resolves only a
+completed verified replacement. Exact surviving copies are preferred. The
+implemented member-equivalence branch is limited to O4/O5/O6 and records the new
+container hash; changed members or use by other groups fails. Repair attempts
+cannot become next-day operational predecessors; backup snapshots are not
+regenerated as reports. Existing mapped O1–O6 producers are the only regeneration
+dispatch, and no new recovery mode or subsystem is opened.
+All31 repair/lease/effect protocol tests pass in repair-protocol-a002.log,
+including interrupted repair followed by explicit retry, original receipt
+preservation and zero extra calculation calls. These are component fixtures:
+their historical parent admission is deliberately isolated, not a real complete
+O1–O9 success. The later integrated protocol below supplies runner/command proof;
+the finite checklist above distinguishes implementation from real-owner acceptance.
+
+O8 integrated backup checkpoint: migration0091 applied on the owned protocol
+database after Django check/no-drift/plan. Actual runtime attempt
+531d0ad3-be71-436c-971b-98cd748cc20f captured a consistent PostgreSQL dump and
+restored it into fresh_cohort2_restore_531d0ad3be71436c971b98cd748cc20f.
+Its full674-relation comparison preserves identical typed rows and sequence
+values but fails strict schema text at11 CHECK definitions: the7 previously
+reviewed pairs plus4 operational-table pairs. The earlier seven-constraint
+approval is bound to different images and does not accept this attempt.
+Both attempt and backup are FAILED, with dump, fresh target and complete
+compressed images retained under backup-runtime-a001. No additional calculation
+call occurred. This proves truthful failure retention, not O8 completion;
+do not rerun or extend qualification without the exact required disposition.
+The snapshot includes the committed RUNNING operation at capture time, not
+the later restore receipt or final whole-attempt completion.
+Read-only native proof now confirms identical operands, column collation and
+constraint metadata for all11 exact pairs (backup-runtime-cast-proof-a001.json).
+COHORT2_RUNTIME_RESTORE_CAST_DECISION.md records the explicit runtime scope,
+now approved by call_949f22a0325346ac8095e2766efd8001. Five backup-receipt checks pass, including changed dump,
+wrong database/tool/operation/file, unapproved qualification and altered logical
+digest rejection (backup-receipts-a001.log). No failed attempt was reclassified.
+The new runtime attempt d38df687-80be-41b0-be85-5ffeec5d3fe8 passes actual
+snapshot dump/fresh-target restore with the eleven-pair policy and its exact
+metadata checked independently in each snapshot. Result is
+QUALIFIED_LOGICAL_RESTORE, not exact schema-text parity. Complete source/restored
+digests and target are in backup-runtime-a002/receipt.json. Six runtime tests
+pass, including that real tool proof, and four focused qualification tests reject
+changed values, duplicates, NULLs, definitions, expressions, metadata and policy.
+No additional calculation call occurred. This proves the O8 operation, not a
+complete O1–O9 attempt or Cohort2 closure; alert integration and recovery remain.
+All13 affected attempt/effect PostgreSQL protocol regressions also pass after
+the backup verifier integration (attempt-backup-regression-a001.log).
+
+Corrected O7 source audit: accepted owners contain neither RunAbortReasons nor
+DataSanitizationResult. Modern fullkit currently has no RunAbortReasons producer;
+capture alone cannot fill that gap. FailedForceNorm also needs its original
+pre-clear request population for generic positive evaluation. Existing typed
+negative cases, phase/control reports and O2/O3 attachment producers remain
+usable, but none authorizes treating absent populations as empty. Future
+source-positioned producer/capture and missing alert-file integration remain
+inside O9's implementation boundary; new actual business-day proof still needs
+the separate bounded execution decision required by the plan.
+O7's four remaining wrapper file lifecycles are now implemented: Invalid Data
+always copies its download ZIP before retaining the selected CSV/ZIP output;
+Failed Force writes its day-number plain CSV; Phase Exception preserves native
+CSV append and the mismatched download-CSV cleanup (old download ZIP survives
+the zero branch); Daily Unavailability creates/copies its ZIP and removes CSV.
+Nine affected file tests pass. Five actual pinned7-Zip/plain-file cases pass in
+alert-file-tools-a001/receipt.json. These use declared payloads and prove only
+file/member/cleanup behavior; native SQL formatting, alert input capture and
+durable intent integration were pending at this checkpoint and are now proved
+by alert-native-a002 and alert-runtime-a001; no missing source is coerced empty.
+O7 attachment-format proof now passes all8 canonical native SQLCMD exports
+(empty/populated Invalid Data, Daily Unavailability, Phase Exception and Failed
+Force) in alert-native-a002.json. Fixtures cover NULL/empty projection, duplicate
+occurrences, run-clock filtering, native ordering, CP1252 punctuation, long text
+and fixed-width output. All touched native rows were restored and source/tool
+pins stayed unchanged. alert-native-a001 retains the sole initial mismatch:
+Failed Force omits -W, so VectorFlowNorm uses the14-character alias display width
+despite varchar(10). The formatter now matches that native padding exactly.
+The explicit int-min/nvarchar(10) scalar probe returned native8115 overflow;
+its evidence is retained in force-padding-a002 and is not accepted positive
+attachment coverage. No assertions were weakened. Source capture and durable
+O7 intent/runner integration is now covered by the later runtime receipts below.
+O7 source dependency checkpoint: the mapped GetUnavailableFiles.sql producer now
+passes all3 native rollback cases in abort-reasons-native-a001.json: explicitly
+empty files, type/existence filtering with retained duplicate history, and native
+515 on NULL path concatenation with no partial INSERT. Original SQL populations
+and source pins are preserved. This is not a filesystem resolver or client hook.
+The opt-in cohort2-pre-clear-force-v1 capture now observes ForceNormChange,
+DBMMaster and MasterDataRaw at UpdateNormChanges.sql before request clearing,
+without adding business fields to existing Reports/closing output. Its typed
+images and immutable metadata commit with the new calculation owner; absent or
+incomplete populations fail. Migration0094 passed check/no-drift/plan and applied
+only to the owned protocol database (migrate-force-a001.log). All12 focused
+checks pass in force-protocol-a002.log, including real PostgreSQL readback,
+duplicate/NULL preservation, receipt mutation denial, late failure rollback,
+explicit retry and zero extra calculation on idempotent reuse. Calculations in
+that protocol are stubs, not new business-day acceptance. RunAbortReasons typed
+ownership and complete alert/runner integration were subsequently implemented
+and verified below; these component proofs alone did not close Cohort2.
+O7/O9 integrated checkpoint: migration0095 adds only typed RunAbortReasons rows
+through the existing operational population owner. Django check/no-drift/plan
+and owned PostgreSQL migration passed (migrate-abort-a001.log). Explicit first
+abort history and its configuration digest are required; missing history is not
+empty. The runtime currently requires the approved empty generic CriticalFiles
+population and rejects populated resolver input without source-stage evidence.
+It reads the explicit C1 sanitation source and pre-clear force capture, generates
+mapped O7 files, and records all14 native seed dispositions. Three real PG/file
+tests pass in alert-runtime-a001.log, including durable positive sanitation
+attachment failure and rejection of absent sanitation state. No mail is sent.
+
+The one cohort2_operational materialize/check/recover command now dispatches
+O1–O9 under the existing exclusive worker lease. Whole completion requires the
+canonical roster, mandatory typed populations, exact conditional file/member
+rosters, all14 evaluations and the real verified backup. The integrated protocol
+passed in integrated-runtime-a002.log on run47c0945e-7708-4b75-9bd4-f2941b9e3269,
+attempt2858e35b-af64-4597-b35a-6c97b1d6625d: actual ZIPs, qualified native PG
+dump/restore, command check, idempotent materialize, and linked repair from a
+surviving InputData.zip copy. Calculation calls added during materialization,
+checks and repair: zero. This run uses an explicit stub calculation, not business
+parity or a new actual date. integrated-runtime-a001 preserves an import-name
+test failure before any attempt. Existing31 lease/repair/effect regressions pass
+in integrated-regression-a001.log.
+
+Mapped O1/O5 regeneration now reads its historical parent's opening sources,
+not an absent repair opening. O7 regeneration uses the same native format/file
+producer with original typed sources and leaves existing intents unchanged.
+alert-repair-a001/receipt.json proves injected archive failure, retained failed
+repair, explicit retry and exact plain FailedForce CSV recovery for the above
+integrated parent. All14 intents and original receipts remain unchanged, with
+zero calculation calls. Archive member-equivalence approval remains unresolved;
+the existing narrow O4/O5/O6 implementation is not generalized or accepted here.
+completion-guards-a002.json additionally proves that deleting a required file
+receipt, one alert evaluation, a mandatory typed population or the completion
+operation each prevents verification of the integrated parent. Every test
+mutation was rolled back and the parent reverified; a001 preserves the initial
+harness PROTECT failure. The CLI check accepts only SUCCEEDED attempts. The
+whole-run retry after recorded intents now passes in integrated-retry-a001.log.
+The final narrow archive-reuse fix checks every staged member before copying a
+verified ZIP from the same failed run/config/source/operation lineage. All28 ZIP
+hashes and all14 intent identities remain unchanged. Stub run
+f31aa81e-42cc-47ec-88b3-fe5b0302ef0d, failed attempt
+6e522c97-96a7-4e85-a2a1-5bff29bfe246 and successful retry
+7ff84e63-9d35-4379-969e-ee8ea4433968 remain retained. Real backup/restore,
+command check, repeat recovery and missing-copy repair passed with zero added
+calculation calls. No further recovery work is planned unless an existing exit
+demonstrably fails. Only the consolidated member/container decision remains.
+
+COHORT2_CONSOLIDATED_CLOSURE_DECISION.md is now ready and requested from the
+human. Proposal6298483327fccde514356b3bc1db0a5a263cce0f52023f5456c317a1110c1c68
+pins the unchanged Pick input, explicit supplements and exactly2 proposed modern
+dates on the retained1-SKU/10-location slice. No calculation release is inferred.
+Remaining path: decision, finite real-source proof and mandatory outstanding
+native/schema/build checks, one cohesive commit/push/handoff, STOP.
+The mandatory remaining native file-format gate now passes all12 exact-byte
+cases in remaining-files-a002.json: empty/populated BPRExceptionReport,
+ValidationForParentNorm, DBMNormChange, NormChangeHistory and both enabled
+Norm1/Norm2 exports. This covers actual SQLCMD headers, NULL conversion,
+description joins/duplicates, comma/quote handling, CP1252, date/horizon output
+and empty parent-file behavior. Every touched native/scratch population was
+restored exactly; source/tool/code pins remained unchanged. The first proof
+remaining-files-a001 retains10 successful comparisons and a fixture-only type
+failure before populated Norm1 execution (text supplied for three integer
+detail fields). Correcting those fixture values required no production change,
+new branch, qualification or widened roster.
+O9 worker ownership now uses a dedicated PostgreSQL session advisory lock with
+stored run key and unique worker identity. New production attempts and mutation
+boundaries require the live matching lease; legacy unleased component fixtures
+need an explicit test setting and cannot reclaim managed attempts. A new worker
+can mark only a prior managed RUNNING attempt interrupted, preserving succeeded
+operations and files, then create a linked retry in a new root. Lost leases
+cannot write success/failure; historical unleased RUNNING rows cannot be reclaimed
+automatically. The outer operational_worker service records failures between
+operations and checks whole-attempt completion before releasing its lease.
+Migration0092 passed Django check/no-drift/plan and applied on the owned protocol
+database. Nineteen real PostgreSQL protocol tests pass in lease-protocol-a002.log,
+including live second-session exclusion, lost-session recovery, write denials,
+outer-boundary failure and zero additional calculation calls. Full stage runner,
+missing-file repair and Cohort2 completion remain unproved.
+Focused review found and resolved lease loss during long validation and a failure
+path lock-order inversion. Mutations now recheck before transaction exit;
+failure/recovery both lock attempt before operation. Backup receipt create/update
+uses the same guarded atomic boundary. All25 affected PostgreSQL protocol tests
+pass in lease-protocol-a004.log, including forced connection loss during archive,
+attachment, typed readback and backup writes, and competing failure/recovery
+workers without deadlock. Files remain evidence while unowned DB writes roll
+back. No calculation replay or accepted-state mutation occurred.
+Further O7 source reconciliation: the already approved C1 decision explicitly
+initializes CriticalFiles and DataSanitizationResult empty in new owners.
+The pinned DataSanitizationUtility.bat (fcc7af1d8c110a6436e4fee1db64aa7cd8de522a84c1959666f31e239948028b)
+skips the unrelated AmaraRaja executable. Future integration must carry that
+explicit opening and report the skipped utility/empty-table gate, not invent a
+sanitation producer or claim successful sanitation. This does not backfill the
+absent accepted-run populations. Reuse C1's exact approval for new owners;
+missing RunAbortReasons stage ownership and pre-clear force requests remain.
+
+Implementation checkpoint (8 October2026): approved physical CSV round-trip,
+BOR/history and exception projections, all14 local alert predicates/content and
+all8 upload-log projections have53 focused tests passing. Actual pinned7-Zip
+ten-member fixture proves output/download equality and staging cleanup; it does
+not prove native SQL export bytes. Fresh owned PostgreSQL database
+fresh_cohort2_protocol_20261008_001 applied migrations0082/0083; Django check,
+no-drift migration check, migration plan and4 real effect-protocol tests passed
+(typed duplicates/NULLs/ordinals, truthful I/O failure, retained retry and intent
+idempotence). No calculation invocation or accepted-database mutation occurred.
+Evidence: D:/freshvcf-build/evidence/cohort2-20261008-001/.
+
+Retained-source audit corrected an earlier implementation assumption: both exact
+Cohort1 run IDs have typed processed MasterData (10 rows), but read_outputs does
+not expose CalculationOutputs; its RequirementInColorBand/ReqCalculation scratch
+owners are cleared empty. Trace evidence is not an operational substitute. O1
+lossless typed-source reconstruction is BLOCKED: bounded independent review
+confirmed that existing PickBand/BPR/other typed projections omit the13 band
+quantities and AdvAllocDone, and cannot reconstruct exact ordinals/duplicates.
+No approved trace import, implicit empty binding or replay can repair the two
+accepted owners. Future transactional typed capture of16 requirement fields and
+stock-only advance occurrences is now implemented behind the explicit
+operational_sources=cohort2-operational-sources-v1 profile. Immutable authorization
+is created with the new uncalculated owner; persisted opt-in, append-only guards
+and the production transaction prevent accepted-run backfill. Migrations0084–87
+and7 PostgreSQL protocol tests pass; the service-level capture test also passed
+alongside14 existing temporal protocol regressions (stub calculation only).
+Those tests prove opt-in/out, duplicate/NULL readback, later-writer rollback,
+new-run retry and zero-calculation replay, not a new business scenario. A new
+correctness scenario requires a separate decision. O9/O8
+and independent file proofs remain authorized. Native byte/ordering fixtures, actual backup/
+restore and complete runtime integration remain unproved. Cohort2 is NOT closed;
+no adjacent cohort, benchmark or stopped temporal continuation is released.
+
+Further checkpoint: O6 now reads the actual retained four enabled Reports
+stages, preserving the additional disabled norm0-export population without
+creating its file.64 focused application tests pass. The candidate tool image
+freshvcf-cohort2:20261008-a001 supplies PostgreSQL16.15 dump/restore clients;
+this is a tool-development build, not the final integrated image.
+
+O8 actual PostgreSQL snapshot dump and fresh-target restore executed against
+owned fresh_complete, preserving the source and retaining target
+fresh_cohort2_restore_accepted_20261008_001. Complete rows and sequence values
+match across613 relations. Strict schema comparison FAILED on7 CHECK definitions:
+PostgreSQL's restore parser moved array-level text casts onto each element.
+No qualification is approved and restore is not marked VERIFIED. Retained full
+source/restored logical images and strict failure receipt are under
+cohort2-20261008-001/pg-backup-accepted-a001. SQL full/differential counterpart,
+native file-byte/order proof and complete operational orchestration remain due.
+
+O5 native-file checkpoint: upload-native-a007.json proves17 strict byte comparisons
+across all8 logs: empty and populated/duplicate/cutoff fixtures, plus SKU numeric
+and CP1252 text fields. All12 touched SQL populations were restored exactly by
+rollback; no engine/day ran. The initial preflight found3 omitted SKU log columns
+in our schema declaration (ElephantOrderCapping, Weight, Volume), confirmed against
+pinned native DDL. Migration0088 adds those typed fields without renumbering the
+existing storage fields. Django check, no-drift check, migration plan/application
+and populated decimal/NULL/duplicate PostgreSQL readback passed in the protocol
+database. Applied migrations0082–87 are unchanged. Earlier failed proofs remain.
+Actual pinned7-Zip then produced all8 log archives: decompressed native bytes,
+output/download/client copy equality and CSV removal passed (24 archive files),
+recorded in upload-archives-a001/receipt.json.17 affected application tests pass.
+These are O5 component proofs; main-runtime ownership/recovery and Cohort2 closure
+remain unproved. Continue O9 integration and O8 restore obligations within the
+existing authorization; the retained O1 source gap and strict PG schema difference
+remain unresolved.
+
+O9 ownership checkpoint: the attempt service now rejects overlapping RUNNING
+owners for one daily run and requires explicit, unbranched retry lineage after
+failure. Completion rereads typed populations, owner/date/configuration/source,
+alert attachment bytes and restore/file ownership; required O-groups cannot be
+waived with DISABLED receipts. Migration0089 binds each local intent evaluation
+to an exact content/attachment digest. Older empty-digest evaluations remain
+unproved rather than being silently recertified.13 real PostgreSQL protocol tests
+pass, including retained failure/retry without further calculation, stale source,
+typed value and intent-content tampering, absent restore and disabled-group denial.
+Django check, no-drift check and migration plan/application pass in the protocol
+database. Evidence: attempt-protocol-a002.log under the Cohort2 evidence root.
+Calculations in these protocol fixtures are stubbed; this is not business parity
+or complete runtime integration. Full materialize/check/recover command wiring,
+source-positioned operation roster and actual restore acceptance remain due.
+
+O9 report-input binding now reads O2/O3/O6 from the exact completed typed daily
+owner, with field-roster, activation/horizon and digest checks. O3 uses processed
+Importer.MasterData and the preserved controls.phase_out image, not raw master
+or the later DBMFinal state. Both accepted dates passed this reader and existing
+projection adapters inside explicit READ ONLY transactions: zero exception/parent
+rows and four enabled Norm reports per date. Complete inputs/projections and
+digests are retained in report-binding-a002; this is source/readback evidence,
+not independent native report parity. The initial a001 rejection is retained:
+the source calculation enables Norm0-30 while the approved Cohort2 file roster
+excludes Norm0. The reader preserves those source flags separately and checks the
+four enabled exports; it does not rewrite the source or generate Norm0 files.
+O1 live-capture availability, O4 stage-specific inputs and full O7/O8 integration
+remain separate required gates; this reader cannot certify whole-attempt success.
+
+O8 retained PostgreSQL restore is now QUALIFIED_LOGICAL_RESTORE under direct human
+approval call_c3c9dbe4c033483dae660166286f5429. Native read-only proof establishes
+identical operands/column collation/constraint metadata for the7 exact cast pairs.
+The production comparison binds to the exact source/restored image digests and
+the pinned named constraint roster; no generalized normalization is introduced.
+A fresh restored-database read matches the approved image.7 acceptance/denial
+checks pass, including strict failure retention, unknown policy, changed schema,
+row multiplicity and different expressions. Evidence: pg-constraint-cast-proof-a001,
+pg-backup-accepted-a001/qualified-restore-receipt.json and qualification-denial-tests.json.
+The earlier strict failure remains unchanged. This qualification applies only to
+the retained image pair; later snapshots need exact acceptance or a separate
+disposition. SQL full/differential proof and operational backup receipt integration
+remain due. No new dump, restore, calculation or serving change was performed.
+
+O8 SQL counterpart now passes for all4 post-backup flags. New owner
+6e6d619d-5c2b-4765-bb01-6a4cb6a0ef30 created4 uniquely named source fixtures and4
+absent restore targets under D:/freshvcf-build/sqlserver/cohort2-backup-<ownerhex>.
+Each source holds one declared raw-feed table; the differential fixture appends
+the same rows once to exercise duplicate preservation without any calculation.
+The unchanged canonical Backup.bat performed pre/full and post/differential
+backups, including its tiny-fixture shrink calls. Native headers confirm all8
+backup files, compression=1, correct database names and matching differential
+base LSNs. All4 full+diff restores match exact typed rows, NULLs, duplicate rows,
+ordinals, column types, collations, keys and identity state. External ZIP is
+correctly disabled by DBBkpCompress=1. All sources, restores and backups remain.
+Evidence: sql-backup-a001.json and sql-backup-schema-a001.json in the Cohort2 root.
+No accepted/serving SQL database, legacy engine or scheduler was used.
+
+Backup preflight also caught3 missing MasterDataRaw declaration columns:
+ElephantOrderCapping, Weight and Volume (the same unbracketed native types as the
+earlier SKU-log omission). Corrected the source-schema declaration and verified
+all4 raw table rosters/types/nullability/width/precision against the exclusive
+canonical SQL namespace:81/8/5/4 columns exact, raw-source-schema-a001.json.
+No typed model changes arise because raw inputs retain their existing owners.
+13 affected input/upload tests pass. These component backup proofs did not
+themselves close O9; the later integrated protocol above now covers orchestration
+and its backup receipts, while final real-owner acceptance remains pending.
+
+O9 report-stage implementation now connects the typed input reader to O2/O3/O6
+projection, typed exception/parent populations, canonical file lifecycles and
+durable final file/member receipts. O2 additionally ports the native export's
+description left joins, duplicate multiplication, comma removal, distinct missing
+description literals and integer NULL-to-zero conversions. Native script-byte
+qualification for this export remains due.21 affected pure tests pass.
+The real PostgreSQL/7-Zip protocol test report-operation-protocol-a001.log passes:
+one persisted stub calculation, injected archive failure with retained CSV,
+explicit linked retry into a new root,3 successful report operations/12 surviving
+file receipts, exact typed population readback and zero further calculation calls.
+Whole-attempt completion is denied because the other required groups are absent.
+Protocol files and failed attempt are retained under report-operation-protocol-a001.
+This earlier checkpoint was partial runtime integration. The complete runner
+and command protocol above supersede its wiring gap; independent native report
+coverage and real-source acceptance remain pending.
+
+O5 is now integrated into the same durable report-operation service. The opening
+installer requires all12 explicit typed populations:8 upload logs,6-row action
+lookup and3 BOR/RRR populations, with an exact first-run input/configuration
+digest. Every non-lookup opening must be explicitly empty under the approved
+policy. Missing, nonempty, altered or repeated openings fail without partial
+installation. Successors read only their accepted operational predecessor;
+valid successor completion remains to be exercised with the complete runner.
+Upload carry-forward requires inactive NMS, no new force requests, an explicit
+empty current control upload log, horizon7 and an explicit client-folder binding.
+Populated application producers remain unsupported and denied, as required by
+the approved domain limit. All8 retained logs and the action lookup are saved as
+typed closing populations before real archive output and final file receipts.
+
+report-operation-protocol-a003.log passes both real PostgreSQL/7-Zip tests:4
+successful operations and28 surviving file receipts on the explicit retry,
+retained failed CSV, all8 closing logs/action-seed readback, no additional
+calculation call, unchanged persisted source and whole-attempt completion denial.
+Missing/nonempty/changed/repeated openings and active/new-request producer paths
+are rejected. Calculation outputs are declared protocol stubs, not new business
+days or native parity evidence. The later integrated protocol supplies the
+previously missing O1/O4/O7/O8 orchestration and command wiring; remaining native
+file comparisons and final real-source acceptance are still required.
+
+O1 runtime checkpoint: report-operation-protocol-a007.log passes3 real PostgreSQL/
+7-Zip protocol tests, including BOR's opt-in live capture, stock-only advance SUM,
+typed current/history populations, matching output/download CSV bytes and missing
+capture rejection before effects. The canonical seven-colour seed must be supplied
+explicitly; generic mode0 and both native90-day horizons are required. The two
+accepted Cohort1 sources remain unavailable to O1; no trace fallback was added.
+Earlier failed protocol attempts a004–a006 are retained.20 affected pure tests pass.
+
+Native O1 proof bor-native-a002 matches collection, exported ordinal cells and
+header, RRR history and execution flags in its first positive fixture. BOR history
+has exactly matching typed rows but a strict sequence failure (new June6 row
+before retained March9 in SQL, reverse in modern). All touched/source/scratch rows
+were restored exactly. COHORT2_BOR_HISTORY_ORDER_DECISION.md proposes only a BOR
+history-table bag qualification; pending approval it remains FAILED. Other bounded
+fixtures and independent file-byte checks continue under O9's existing scope.
+
+BOR native component evidence is now complete for the4 bounded fixtures across
+bor-native-a002/a003: collection, report ordinal cells/header, RRR history and
+execution flags match exactly. Duplicate/MOQ and empty cases also match history
+sequence; positive and missing-description cases retain only the pending BOR
+history sequence failure. bor-files-a001 separately proves all4 native SQLCMD
+export byte sequences exactly, including duplicate joins and missing-description
+NULLs. Every touched source and scratch population was restored. No engine/day
+ran. O1 remains blocked on the bounded history decision and new correctness-source
+authorization; O4 source/archive integration continues as independent O9 work.
+
+O4 source-position audit: the immutable input owns physical intake facts, while
+archive table exports occur after BPR. controls.raw_master retains the processed
+master and closing.complete retains processed supplier raw tables. Processed
+DailyDataRaw is absent from accepted closing output; raw intake cannot replace
+it. The opt-in typed capture implemented below supplies that source only to new
+owners, with no accepted-run backfill or replay. Native input-files-a003 proves7/8 byte cases
+across the4 export tables. Populated SOBDataRaw matches its header and all4 rows
+but differs only in unordered row sequence; COHORT2_SOB_EXPORT_ORDER_DECISION.md
+records a separate pending decision. All5 native tables were restored exactly.
+Earlier a001/a002 verifier failures are retained: date-literal handling and the
+test tool's PRINT routing, respectively. No production formatter was changed.
+
+O4 future source capture is now implemented at the actual post-BPR/pre-DBM
+boundary under explicit operational_input_sources=cohort2-input-tables-v1 plus
+the existing live-capture authorization. All4 processed populations are copied
+into run-owned typed relational images; OperationalInputSource stores only
+bounded image/schema/digest metadata. Migration0090 creates its immutable receipt.
+No accepted run can be backfilled. Existing typed row layouts are reused under
+distinct operational/input images, without changing their prior working images.
+Django check, no-drift check, migration plan and actual protocol-database migration
+pass. input-capture-protocol-a003.log passes4 real PostgreSQL tests: complete typed
+readback, zero-calculation replay, immutable receipt denial, later-writer rollback
+with zero surviving rows, missing-source denial and explicit retry. The original
+band-capture protocol also remains passing. Earlier failed a001 is preserved.
+
+O4 now joins the report-operation service: it separately reads immutable physical
+intake and the new processed-table capture, validates the exact four-table roster,
+shipment date/schema and declared clock, then writes a real10-member7-Zip archive,
+output/download copies and durable member/file receipts. The protocol fixture
+deliberately gives intake Stock=123 while processed Stock remains NULL; each ZIP
+member matches its correct source, staging is removed and no extra calculation
+occurs.16 affected input/I/O/formatter tests pass. Evidence and retained ZIPs are
+under input-capture-protocol-a003. This is source/storage/I/O protocol proof, not
+a new business scenario. The SOB export ordering decision remains pending, and
+actual capture on a new business-day owner still requires separate authorization.
+
+Proceed to integrated implementation only after the contract mapping identifies
+its supported inputs and any explicit blocked binding. No adjacent cohort,
+new business-day or legacy-engine invocation, timing/benchmark or serving change.
+Use retained Cohort1 rows read-only; focused native rollback fixtures and real
+owned backup/restoration are authorized. Preserve failed attempts and all prior
+seals/artifacts. Commit/push one cohesive delivery, report exact limits and stop.
+
 ### COHORT1 — qualified inactive-NMS finalization delivered (8 October 2026)
 
 The latest human authorization supersedes the consumer-first correction. Pick

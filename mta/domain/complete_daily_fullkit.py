@@ -46,6 +46,36 @@ def file_availability(critical_files, file_type, *, previous, equal):
     return dict(missing_count=missing, files_available=previous and missing == 0)
 
 
+def unavailable_file_reasons(opening, critical_files, file_type, run_datetime, *, equal):
+    """GetUnavailableFiles.sql INSERT from explicitly resolved file rows.
+
+    This does not resolve paths or run a client hook. Preserve existing history,
+    duplicate occurrences and SQL NULL-concatenation failure; no default opening.
+    A failed INSERT contributes no partial rows.
+    """
+    from mta.domain.complete_daily_scalars import parse_datetime
+    if not isinstance(opening, list) or not isinstance(critical_files, list):
+        raise ValueError('Explicit abort-reason opening and resolved files required')
+    if file_type not in ('GoAheadFiles', 'DataFiles'):
+        raise ValueError('Explicit supported file check required')
+    clock = parse_datetime(run_datetime).isoformat(timespec='milliseconds')
+    added = []
+    for row in critical_files:
+        if not (_same(row['Type'], file_type, equal) and row['Exists'] == 0):
+            continue
+        name, path = row['ResolvedFileName'], row['ResolvedPath']
+        if name is None or path is None:
+            raise ValueError('Native RunAbortReasons.Reason NOT NULL violation')
+        reason = f'File "{name}" is not present at Location "{path}".'
+        if len(reason.encode('utf-16-le')) // 2 > 512:
+            raise ValueError('Native RunAbortReasons.Reason truncation')
+        file_id = row['Id']
+        if type(file_id) is not int or not -(2**31) <= file_id < 2**31:
+            raise ValueError('Native RunAbortReasons.FileId requires SQL int')
+        added.append(dict(FileId=file_id, RunDateTime=clock, Reason=reason))
+    return deepcopy(opening) + added
+
+
 def fullkit_outcome(settings, *, go_ahead, files_available,
                     daily_data_available, equal):
     """Final BAT outcome from actual explicit hook/file/database checks."""

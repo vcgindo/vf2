@@ -262,13 +262,22 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             prior['importer_settings'], controls['importer_settings'])
     delivery = profile.get('delivery')
     control_aux = diagnostics = None
+    force_alert_capture = None
+    if profile.get('operational_force_sources') is not None:
+        from mta.application.timeline_controls import FORCE_CAPTURE_POLICY
+        from mta.application.operational_capture import CAPTURE_POLICY
+        if (profile['operational_force_sources'] != FORCE_CAPTURE_POLICY
+                or profile.get('operational_sources') != CAPTURE_POLICY or delivery is None):
+            raise ValueError('Explicit operational force capture policies and delivery required')
+        force_alert_capture = {}
     if delivery is not None:
         controls['importer_settings'].extend(deepcopy(profile['daily']['settings']))
         from mta.application.timeline_controls import timeline_control_stages, EXTRA_TABLES
         from mta.domain.control_carry import TABLES as CONTROL_TABLES
         connected = final_stage(timeline_control_stages(today, opening_date, controls,
             prior['control_aux'], day, {**delivery['controls'], 'force_flags': profile['force_flags']},
-            daily_final['DailyDataProcessed'], importer['SkuLocAttributeData']))
+            daily_final['DailyDataProcessed'], importer['SkuLocAttributeData'],
+            force_alert_capture=force_alert_capture))
         for _, state, _ in connected:
             delivery_control_types(state)
         if completion is not None:
@@ -373,6 +382,15 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             'ProdOrderSuggestions.sql', 'ClearHistoryData_BPR.sql')
         control_final['importer_settings'] = daily_finalization.validate_completion(
             complete, control_final['importer_settings'], today, kind='BPR')
+    operational_input_tables = None
+    if profile.get('operational_input_sources') is not None:
+        from mta.application.operational_input_capture import INPUT_CAPTURE_POLICY, capture_input_tables
+        from mta.application.operational_capture import CAPTURE_POLICY
+        if (profile['operational_input_sources'] != INPUT_CAPTURE_POLICY
+                or profile.get('operational_sources') != CAPTURE_POLICY):
+            raise ValueError('Explicit operational source capture policies required')
+        operational_input_tables = capture_input_tables(
+            controls=control_final, daily=daily_final, supplier=supplier_final)
     dbm=deepcopy(prior['dbm'])
     # ImportMasterDataComponents.bat runs the deployed Importer initializer on
     # every day before DBM/BTR. Its TRUNCATE plus distinct two-key INSERT
@@ -502,4 +520,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                 configuration_digest=digest(profile),
                 qualification='inactive-nms-critical-flags-remain-false',
                 flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
+    if operational_input_tables is not None:
+        result['_OperationalInputTables'] = operational_input_tables
+    if force_alert_capture is not None:
+        result['_OperationalForceSources'] = force_alert_capture
     return result

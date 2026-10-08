@@ -121,6 +121,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
+    if 'operational_sources' in profile:
+        from mta.application.operational_capture import CAPTURE_POLICY
+        if profile['operational_sources'] != CAPTURE_POLICY:
+            raise ValueError('Unsupported explicit operational source capture policy')
     from mta.application.daily_finalization import configuration
     finalization = configuration(profile)
     finalization_binding = None
@@ -322,6 +326,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         run.input_payload=save_input(run,raw)
         run.input_manifest_digest=digest(run.input_payload)
         run.save(update_fields=['input_payload','input_manifest_digest'])
+        if 'operational_sources' in profile:
+            from mta.runtime.operational_source import authorize_new_run
+            authorize_new_run(run)
         if capture_snapshot is not None:
             from mta.mdm.daily_input import bind_capture
             bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)

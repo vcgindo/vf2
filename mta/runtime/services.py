@@ -88,6 +88,25 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             # calculations, existing manifests, checkpoints or output digests.
             from mta.presentation.pick_storage import write_pick_bands
             calculation_digest=digest(output['CalculationOutputs'])
+            capture_policy = read_input(run, components=('profile',))['profile'].get('operational_sources')
+            if capture_policy is not None:
+                from mta.application.operational_capture import CAPTURE_POLICY
+                from mta.runtime.operational_source import write_source
+                if capture_policy != CAPTURE_POLICY:
+                    raise ValueError('Unsupported operational source capture policy')
+                write_source(run, output['CalculationOutputs'], calculation_digest=calculation_digest)
+            input_capture = read_input(run, components=('profile',))['profile'].get('operational_input_sources')
+            if input_capture is not None:
+                from mta.runtime.operational_input_source import write_input_source
+                write_input_source(run, output.pop('_OperationalInputTables', None))
+            elif '_OperationalInputTables' in output:
+                raise ValueError('Unexpected processed input capture without opt-in')
+            force_capture = read_input(run, components=('profile',))['profile'].get('operational_force_sources')
+            if force_capture is not None:
+                from mta.runtime.operational_force_source import write_force_source
+                write_force_source(run, output.pop('_OperationalForceSources', None))
+            elif '_OperationalForceSources' in output:
+                raise ValueError('Unexpected force capture without opt-in')
             write_pick_bands(run, output['CalculationOutputs'],
                              provenance={'origin': 'production-calculation'},calculation_digest=calculation_digest)
             from mta.presentation.excess_storage import write_excess

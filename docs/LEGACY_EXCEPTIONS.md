@@ -1245,3 +1245,81 @@ mode. Missing other critical writers, stale dates, altered roster/configuration
 and incomplete typed output must deny the Cohort1 successor. This is not full
 legacy batch completion or publication readiness. No business day has run at
 the time this implementation record is added.
+
+## Cohort2 retained PostgreSQL restore casts — 8 October 2026
+
+Direct human approval call_c3c9dbe4c033483dae660166286f5429 permits qualified
+logical restore for exactly seven named CHECK-expression pairs in
+baseline/cohort2-restore-cast-qualification.json. This is a backup schema-text
+qualification, not a calculation, report-order or legacy-SQL exception.
+Source: PostgreSQL16.15 pg_dump/pg_restore of owned fresh_complete into the new
+fresh_cohort2_restore_accepted_20261008_001. Source/restored logical image digests
+are respectively 1bbb953865a031de365081dfaadf08e8d767cfa197cc1f6df171401139cd55fe
+and 9c5c4b3dfd40e01b5b05d7901d1a95828772c5af4837d1461759e92ef109a65f.
+The seven expressions move a constant varchar-array text cast to its elements.
+Native SQL confirms identical text-array operands, checked columns, collation
+and constraint metadata; all613 relation rows and sequences remain exact.
+Every strict failure is preserved. Only this exact image pair may return
+QUALIFIED_LOGICAL_RESTORE; additional differences and future unmatched images
+are rejected. No source schema is rewritten and no general normalization is used.
+Decision: docs/COHORT2_RESTORE_CAST_DECISION.md. Evidence:
+D:/freshvcf-build/evidence/cohort2-20261008-001/pg-constraint-cast-proof-a001.json
+and pg-backup-accepted-a001/qualified-restore-receipt.json. This does not certify
+SQL full/differential backup, runtime operational completion or Cohort2 closure.
+
+## Cohort2 runtime PostgreSQL restore casts — 8 October 2026
+
+Direct human approval call_949f22a0325346ac8095e2766efd8001 permits the eleven
+exact CHECK-expression pairs and column/constraint metadata pinned in
+baseline/cohort2-runtime-restore-cast-qualification.json. The seven-pair retained
+image exception above stays unchanged. This runtime policy adds only the four
+operational-table constraints identified in
+docs/COHORT2_RUNTIME_RESTORE_CAST_DECISION.md.
+
+Every owned Cohort2 runtime backup must independently retain full logical images,
+compare all rows/NULLs/duplicates/ordinals/sequences and other captured definitions,
+and verify the exact approved native metadata in its consistent snapshot and
+restore. Only the eleven pinned expression pairs may differ. Different metadata,
+an extra schema/value difference or missing proof fails. Accepted results are
+QUALIFIED_LOGICAL_RESTORE, never exact schema-text parity. No expression parser
+or general cast normalization is used. Calculation and report contracts are
+unaffected; no serving or accepted-run mutation is authorized.
+
+Source: PostgreSQL16.15 dump/restore of owned
+fresh_cohort2_protocol_20261008_001. Native read-only semantic evidence is
+D:/freshvcf-build/evidence/cohort2-20261008-001/backup-runtime-cast-proof-a001.json.
+Failed attempt531d0ad3-be71-436c-971b-98cd748cc20f and its strict failures remain
+unchanged. Runtime qualification must not retrospectively mark it SUCCEEDED.
+
+## Cohort2 consolidated closure qualifications — 8 October 2026
+
+The human directly approved all four items exactly as documented in
+`docs/COHORT2_CONSOLIDATED_CLOSURE_DECISION.md`.
+
+Only BOR_OrderAllocationHistory may use complete typed row bags: canonical
+CollectBOR_OrderAllocationHistory.sql SHA256
+4a58bb30a2b94c48693297852cafe0f48748f62f76c09178c0c2996e83298340
+has no ordering contract. Preserve every field, NULL, duplicate and retention
+boundary, persisted ordinals and strict failures in bor-native-a002/a003.json.
+Current BOR, RRR, allocations, exports and UI do not inherit this exception.
+
+Only the generated SOBDataRaw input-table export may use exact header plus
+complete exported-row bags. ExportInputTable.sql SHA256
+022e622c60b7dee6e1921a54fdf778c53a6334f5bc1d78c76b28e04892aeaf07
+has no ORDER BY. Keep the 245-byte strict failure in input-files-a003.json;
+preserve values, NULL spelling and duplicate counts. Physical SOBDataRaw.csv,
+other members and calculations retain their existing exact contracts.
+
+Missing mapped report ZIPs in O2–O7 first use a verified identical copy. Only
+when every copy is missing, pinned-tool regeneration may qualify through exact
+ordered names, decompressed bytes, sizes and hashes. Original successful
+receipts/container hashes/intents remain unchanged; a linked repair records the
+replacement hash as EXACT_ARCHIVE_MEMBERS, meaning qualified archive restoration,
+never exact container-byte parity. Changed members and owner/config/action
+identities fail. Plain files, backups, traces and arbitrary archives do not
+qualify. The decision document fixes the complete allowed report roster.
+
+These qualifications neither rewrite earlier failed attempts nor establish
+full-day legacy parity. The same decision authorizes exactly two modern
+correctness invocations with the frozen proposal and own actions/predecessor;
+no benchmark, serving change, third date or broader continuation is released.

@@ -2,11 +2,41 @@ from copy import deepcopy
 import unittest
 
 from mta.domain.complete_daily_fullkit import (
-    initialise_fullkit, file_availability, fullkit_outcome, post_run_fullkit)
+    initialise_fullkit, file_availability, fullkit_outcome, post_run_fullkit,
+    unavailable_file_reasons)
 from mta.domain.complete_daily_scalars import ascii_equal
 
 
 class FullkitTests(unittest.TestCase):
+    def test_abort_reasons_preserve_history_duplicates_and_type_filter(self):
+        old = dict(FileId=8, RunDateTime='2026-06-05T00:00:00.000', Reason='old')
+        missing = dict(Id=4, Type='DataFiles', Exists=False,
+                       ResolvedFileName='daily.csv', ResolvedPath='owned')
+        files = [missing, deepcopy(missing), missing | dict(Exists=True),
+                 missing | dict(Type='GoAheadFiles')]
+        before = deepcopy(files)
+        rows = unavailable_file_reasons([old], files, 'DataFiles',
+            '2026-06-06T00:00:00', equal=ascii_equal)
+        self.assertEqual(rows, [old] + [dict(FileId=4,
+            RunDateTime='2026-06-06T00:00:00.000',
+            Reason='File "daily.csv" is not present at Location "owned".')] * 2)
+        self.assertEqual(files, before)
+        self.assertIsNot(rows[0], old)
+
+    def test_abort_reason_insert_failure_does_not_change_opening(self):
+        opening = []
+        valid = dict(Id=1, Type='DataFiles', Exists=False,
+                     ResolvedFileName='daily.csv', ResolvedPath='owned')
+        for change, message in ((dict(ResolvedPath=None), 'NOT NULL'),
+                                (dict(ResolvedFileName='x' * 513), 'truncation')):
+            with self.assertRaisesRegex(ValueError, message):
+                unavailable_file_reasons(opening, [valid, valid | change],
+                    'DataFiles', '2026-06-06T00:00:00', equal=ascii_equal)
+            self.assertEqual(opening, [])
+        with self.assertRaisesRegex(ValueError, 'Explicit abort-reason'):
+            unavailable_file_reasons(None, [], 'DataFiles',
+                '2026-06-06T00:00:00', equal=ascii_equal)
+
     def settings(self):
         return [dict(Parameter='FullkitAvailable', Value='0'),
                 dict(Parameter='FullkitCheckdate', Value='2026-06-05')]

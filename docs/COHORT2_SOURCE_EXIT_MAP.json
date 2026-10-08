@@ -1,0 +1,231 @@
+{
+  "schema": "cohort2-source-exit-map-v1",
+  "authority": "Direct human instruction 8 October 2026: verify Cohort1, create/map Cohort2 plan and instruct implementation",
+  "plan": "docs/COHORT2_OPERATIONAL_OUTPUTS_RECOVERABILITY_PLAN.md",
+  "status_tracker": "docs/MIGRATION.md",
+  "not_a_status_tracker": true,
+  "entry": {
+    "commit": "ec4a5eaf4a5f772e790e3bb68d71670d7d24ee49",
+    "proof_path": "D:\\freshvcf-build\\evidence\\cohort1-20261008-001\\closure-proof-v1.json",
+    "proof_sha256": "bd8201d10e54062fede464f300cbbb429fb2e765edcaef9f722f5d4b33e767ac",
+    "pinned_evidence_files_verified": 29,
+    "hash_failures": 0,
+    "verdict": "qualified inactive-NMS closure; not unrestricted production readiness"
+  },
+  "reuse_contract": {
+    "operation_roster": "docs\\COMPLETE_DAILY_OPERATION_ROSTER.json",
+    "sha256": "5004321b2c674558a170dba6428f239dc16d90bdcf779675973990f51b0ff3c7",
+    "configuration_decisions": "docs/COMPLETE_DAILY_CONFIGURATION_DECISIONS.md",
+    "qualification": "GulfOil C1 binding superseded; C2 client-only; C3/C4/C5 valid; C6 preserves native flag/failure truth"
+  },
+  "canonical_sources": [
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\OrderAllocBasedReports.bat",
+      "sha256": "12df6d7a4eba37b4bc56cb03bed12f37d4749483bf19ebb2ceff7336723cf22b"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\GenerateBPRExceptionReport.bat",
+      "sha256": "722798af0f50ebec6b15c4d4a07b8e342b8b5ed3a5c2fc18f29e6c1585317b4c"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\ValidateParentNorm.bat",
+      "sha256": "afbff90d850afce4247744a87d3ae0c5001ef8ade82d152cbb1e895caa0ea010"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\CheckFileSize.bat",
+      "sha256": "e1ebc3aca43bd84d5baeda460bf3eedc2a460a4d9959e5759782d796f133366e"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\ProvideInputDataForDownload.bat",
+      "sha256": "d46ade48ab45823ae3b29a6d6808f33e1802afdccf98f87fc0c81b6050146b52"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\ProvideInputFilesForDownload.bat",
+      "sha256": "70c10eda6033692f33acd4040a5ec07d5d48c4fdff237c43a1fca7c0246993fe"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\ProvideInputTablesForDownload.bat",
+      "sha256": "636bc63837fa1d1b031afd7343749253d6eaa814b7c646f2dd24af709ce5e51b"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\GenerateUIUploadLogs.bat",
+      "sha256": "656da66db2a0e7e653b24b66c57765f168a64119fb928074ef76e7c55c222be3"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\ExportUIUploadLog.bat",
+      "sha256": "e22099dca963ace3dae23e2cc6ff247eaa4e3c42f5db882aa59646b50aadd847"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\SendDBMNormChangeReport.bat",
+      "sha256": "37aad4ea93fb9465f65430183be4fddb874ac5f738d55f2bf8e435b157656cf3"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\GenerateNormChangeLogReport.bat",
+      "sha256": "8d858b9598f8ff9e8285515d27ed358e8eef2fe9713b5b49fa3b8a30f1af4db1"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\GenerateNorm0-1-2Report.bat",
+      "sha256": "fcfd8c93659d245c792209c5ae5f58471a8f9754e0f3e1647d09782d8ae2ff47"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\CheckFlagForNorm0-1-2Reports.bat",
+      "sha256": "9d4d52dd5e101f53f1a315362eb67ee075bc18048a6f1793b72c5fd8cc8cdee7"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\Backup.bat",
+      "sha256": "4fa3ed4aaf5085db4e6c60897fb1c43cad601285bd355634a1dce23d2fa27150"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\CompressBackup.bat",
+      "sha256": "1788c096716dfad5f1b883b244d6a6b64ce5b351a327c85a7d5d9718143480b9"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\StdSettingsPre.bat",
+      "sha256": "38805cdf611057f3e92a2a080bd3b0686182464f0cb61c3dae8e49627cb31cdb"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\RunCoreBPR.bat",
+      "sha256": "ccd6d8038d953ea9c9ba1661cb8942a56626a754f6774cd70036c365314d7a02"
+    },
+    {
+      "path": "F:\\VFlow_Local\\local-runtime\\mta-engine\\Engine\\RunCoreDBM.bat",
+      "sha256": "b01193968e3b8ff5bd81b404ddb954f0978e7857eae5aa3acbe73be6d004da17"
+    }
+  ],
+  "groups": [
+    {
+      "id": "O1",
+      "decisions": [
+        "C3"
+      ],
+      "wrapper_sources": [
+        "OrderAllocBasedReports.bat"
+      ],
+      "obligation": "BOR allocation export and mandatory BOR/RRR allocation histories; MTO-only exports disabled",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O2",
+      "decisions": [
+        "C3",
+        "C4"
+      ],
+      "wrapper_sources": [
+        "GenerateBPRExceptionReport.bat"
+      ],
+      "obligation": "exception predicate, CSV/ZIP lifecycle, local intent",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O3",
+      "decisions": [
+        "C3",
+        "C4"
+      ],
+      "wrapper_sources": [
+        "ValidateParentNorm.bat",
+        "CheckFileSize.bat"
+      ],
+      "obligation": "native file-size gate, NoNormParent archive/copy/intent",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O4",
+      "decisions": [
+        "C3"
+      ],
+      "wrapper_sources": [
+        "ProvideInputDataForDownload.bat",
+        "ProvideInputFilesForDownload.bat",
+        "ProvideInputTablesForDownload.bat"
+      ],
+      "obligation": "physical inputs and InputTableList member roster, marker, archive, cleanup",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O5",
+      "decisions": [
+        "C3"
+      ],
+      "wrapper_sources": [
+        "GenerateUIUploadLogs.bat",
+        "ExportUIUploadLog.bat"
+      ],
+      "obligation": "eight upload logs, retention, archives and optional owned client-folder copies",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O6",
+      "decisions": [
+        "C3",
+        "C4"
+      ],
+      "wrapper_sources": [
+        "SendDBMNormChangeReport.bat",
+        "GenerateNormChangeLogReport.bat",
+        "GenerateNorm0-1-2Report.bat",
+        "CheckFlagForNorm0-1-2Reports.bat"
+      ],
+      "obligation": "generic DBM/NormChange/Norm1+2 enabled reports and intent predicates",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O7",
+      "decisions": [
+        "C4"
+      ],
+      "wrapper_sources": [],
+      "obligation": "14 seed alerts mapped to exact generic enabled predicates/attachments; no transport",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O8",
+      "decisions": [
+        "C5"
+      ],
+      "wrapper_sources": [
+        "Backup.bat",
+        "CompressBackup.bat"
+      ],
+      "obligation": "SQL full/differential fixture backups and native PG backup, restoration logical equality",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    },
+    {
+      "id": "O9",
+      "decisions": [
+        "C1",
+        "C6"
+      ],
+      "wrapper_sources": [
+        "RunCoreBPR.bat",
+        "RunCoreDBM.bat"
+      ],
+      "obligation": "actual daily integration, durable operation truth and no-calculation side-effect recovery",
+      "source_binding_exit": "Resolve only direct referenced SQL/variables and existing roster entries; pin stage/activation/source-owner/columns/order/types/members/clock/receipt before implementation",
+      "proof_exit": "Actual integrated typed/file/archive/intent/restore evidence per plan; exact versus qualified versus disabled/blocked disposition"
+    }
+  ],
+  "execution_boundary": {
+    "new_business_day_invocations": 0,
+    "new_legacy_engine_runs": 0,
+    "allowed": "focused native rollback fixtures, real tools/file/ZIP checks, zero-calculation materialization from verified existing typed source, owned backup/restore fixtures in existing isolated facilities",
+    "if_reconstruction_missing": "exact smallest correctness-only invocation proposal requires human approval before execution"
+  },
+  "held": [
+    "active NMS and populated SOB/MOQ implementation",
+    "Cohort3 publication/readers/HTTP",
+    "Cohort4 full operator packaging",
+    "benchmarking",
+    "temporal-full-001",
+    "serving cutover",
+    "GulfOil client work"
+  ]
+}

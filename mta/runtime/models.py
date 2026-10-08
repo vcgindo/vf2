@@ -1247,3 +1247,14 @@ from mta.runtime.daily_transit_models import DailyTransitRaw, DailyTransitRow
 from mta.runtime.daily_rrr_models import DailyRrrColourReceipt, DailyRrrColourRow
 
 from mta.runtime.offline_rrr_models import OfflineRrrColourSource, OfflineRrrColourRow
+
+from mta.runtime.operational_models import (OperationalConfiguration, OperationalSetting,
+    OperationalInputTable, OperationalAlertSetting, OperationalAttempt, OperationalOperation,
+    OperationalFile, OperationalArchiveMember, OperationalAlertIntent,
+    OperationalIntentAttachment, OperationalIntentEvaluation, OperationalBackup, OperationalRepairTarget)
+
+from mta.runtime.operational_native import OperationalPopulation
+from mta.runtime.operational_source_models import (
+    OperationalCaptureAuthorization, OperationalCalculationSource, OperationalRequirementBand, OperationalAdvanceStock,
+    OperationalInputSource, OperationalForceSource,
+)
