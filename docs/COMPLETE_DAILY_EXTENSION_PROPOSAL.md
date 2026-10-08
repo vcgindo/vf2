@@ -7,6 +7,10 @@ No old business-day invocation budget below authorizes current execution. Keep
 the original stopped run and serving policies untouched. The following approved
 reassessment disposition and proposal are retained design history; current work
 must produce a supported operational code path, not a benchmark-only substitute.
+The later8October human clarification also limits current readiness to the
+generic product and enabled generic configuration. GulfOil hooks/settings,
+calculated attributes, FG history and custom files are explicit opt-in client
+work, now held. Historical C1 wording below is not a generic product default.
 
 ## Historical approved reassessment disposition — execution now held
 

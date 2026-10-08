@@ -16,17 +16,34 @@ budget below. Continue the SAME goal identity. The app goal is active but its
 stored objective text is historical; its tool exposes no objective-edit operation.
 Do not create a replacement or mark unfinished readiness complete.
 
-Active item R1: complete and qualify missing producers and their concrete source
-positions, then wire the actual supported daily path. No benchmarking, timing
+Latest human clarification, controller turn01a11a25-e15c-7a20-8ace-96c832774fe5:
+GulfOil is a separate client profile. The earlier C1 interpretation that promoted
+its hooks to universal product requirements is superseded. Active readiness is
+GENERIC PRODUCT plus genuinely enabled generic configuration. GulfOil hooks,
+settings overrides, c3/c9/c10/c12/c13 calculated attributes, FG history and custom
+BTR files are explicit opt-in client work only; further client work is HELD.
+Preserve its completed code/proofs. No unconditional client call/data requirement
+may enter execute_day. Generic ProdOrderSuggestions remains in scope despite
+sharing complete_daily_bpr.py with a client producer. Other C1–C6 bounds remain;
+C2 FG opening is client-only. The approved package bytes are retained as history.
+
+Attribution correction is recorded in COMPLETE_DAILY_EXECUTION_ASSESSMENT.md and
+the existing operation roster: generic-core-required, generic-configurable and
+gulfoil-client-only. Canonical BAT requires site settings/feed bindings; this
+does not authorize adopting GulfOil as the generic site's implementation.
+The correction does not itself establish generic production readiness.
+
+Active item R1: complete and qualify missing GENERIC producers and their concrete
+source positions, then wire the actual supported generic daily path. No benchmarking, timing
 samples, performance profiling/comparison/ranking, timer work or benchmark-day
 execution is authorized. All old production/validation invocation budgets are
 ON HOLD (zero used). Original temporal-full-001 remains human-stopped. Existing
 small native rollback fixtures and storage correctness checks may finish.
 
 Finite readiness exits, in order; this is the sole status tracker:
-1. R1 — Finish source-qualified business producers/configured outputs and input
+1. R1 — Finish source-qualified generic business producers/configured outputs and input
    bridges. Require exact native fixtures/retained proof for changed columns,
-   NULLs, duplicates, order and canonical final writers. C1–C6 are approved;
+   NULLs, duplicates, order and canonical final writers. Applicable C1–C6 remain approved;
    source/configuration gaps must remain explicit. ACTIVE, incomplete.
 2. R2 — Integrate those owners into execute_day/chain/services and one operational
    command: ingestion/master/supplier/control/order/BPR/RRR/DBM/BTR, own predecessor
@@ -46,14 +63,36 @@ Finite readiness exits, in order; this is the sole status tracker:
    and honest readiness/remaining-limit matrix, then stop or report one concrete
    remaining decision. No timing result or optimization ranking is required.
 
-Completed component evidence: post-BPR, production-order and post-BTR producers;
-completion/reset/retention functions; ordered admission-evidence validators.
-Three native producer fixture groups now pass with standalone Python adapters
+Completed generic component evidence: production-order suggestions,
+completion/reset/retention functions and ordered admission-evidence validators.
+Preserved client-only evidence: GulfOil post-BPR and post-BTR producers.
+Three mixed native producer fixture groups pass with standalone Python adapters
 (a004:577 population comparisons);12 completion cases also pass standalone
 (a002:58 checkpoint comparisons). Scalar adapters pass2291 exact SQL comparisons
-(a002). All earlier failures and narrower native-callback receipts are preserved. Full Supplier/Pick bridges are written but full native28/69-column
-source-position proofs remain unmet. Retained narrower projections do not prove
-those full images. Req/BOR bridges explicitly supply consumed columns only.
+(a002). All earlier failures and narrower native-callback receipts are preserved.
+Supplier/Pick source-position fixtures now pass full28/69-column comparisons
+(inputs-qualification-a002: three cases); this covers the declared integral-SOB,
+ASCII fixture domain, not arbitrary source values. Req/BOR bridges explicitly
+supply consumed columns only. Fullkit inline-SQL gates pass four native rollback
+cases (fullkit-qualification-a001); physical file checks/site hooks remain unwired.
+Preserved client-only GulfOil transformation passes16 native pandas cases with exact CSV bytes
+and ZIP member names (gulfoil-transform-qualification-a001), retaining actual
+host-date filtering and preservation of an existing ZIP on empty data. SQL joins,
+diagnostic text and operational file writing remain outside that proof; further
+client qualification/integration is held and does not block generic readiness. Four Pick
+file projections are written; native result order and their full logistics input
+materializers remain unmet. pick-files-qualification-a001 stopped at the first
+Logistic report: all8 typed business rows and headers match, but all8 positions
+differ. Strict sequence FAIL remains; owned seeds/scratch restore after rollback.
+Human call_5a75ffbc20224abb91987c31f6cb6ee7 approved the bounded four-file
+unordered-export qualification. a002 passes all four mixed and four empty
+projections with exact typed bags/headers; all four mixed strict sequence FAILs
+remain recorded. Calculation/table ordinal/API/grid order is unaffected.
+Full native logistics materializers are still missing: accepted allocation
+outputs omit native counters/cumulative/overage/formed-bit/residual metadata.
+Source review also identifies duplicate joins, single NULL dimensions and
+priority-rank ties as unproved boundaries; no speculative algorithm repair or
+generic full-row readiness claim is made from the projection proof.
 
 Migration0079 adds11 typed run/image/ordinal tables without changing the accepted
 catalogue/default input mappings. Django check, migration check/plan, fresh PG
@@ -65,12 +104,15 @@ normalization for earlier component receipts. Review-found input path/table ambi
 exact binding and denial checks. Current focused complete-day unit suite73pass; qualification-helper17tests pass.
 All387 pinned source resources verify unchanged (identity, not parity).
 Evidence: D:/freshvcf-build/complete-daily-assessment; no full business-day call.
+The subsequent generic component suite passes46 focused tests. Four new harness/
+test files required Git LF normalization; git-line-endings-a002.json records
+exact byte-only transitions and preserves originals. No client proof was rerun.
 
-UNMET: actual complete main-flow integration, file/archive/backup/alert-intent
+UNMET: actual generic main-flow integration, generic file/archive/backup/alert-intent
 bindings, operational policy issuance/readers, recovery and complete correctness
 proof. No deployment/release or serving changes. Components are not production
-readiness. C1 empty report/sanitation tables are a synthetic setup limit, C2 empty
-FG opening leaves prior history unavailable, C4 local intents do not prove email
+readiness. C1 empty report/sanitation tables are a synthetic setup limit; client-only
+C2 empty FG opening leaves that profile's prior history unavailable. C4 local intents do not prove email
 delivery, C5 requires owned backup/recoverability, C6 retains legacy clearing vs
 modern rollback difference. These prevent an unrestricted readiness claim even
 if the explicitly configured code path passes. Existing BOR/BOROA/GuidedExcess

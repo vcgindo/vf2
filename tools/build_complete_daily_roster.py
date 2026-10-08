@@ -52,7 +52,7 @@ GROUPS = (
     ('input-download', 'Engine/ProvideInputDataForDownload.bat', 'configured:GenerateDownloadableInputData=1', ['C3'], ['InputData.zip and members', 'input date file']),
     ('dbm-pre', 'Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat', 'required', ['C1'], ['site pre-DBM effects']),
     ('dbm-core', 'Engine/RunCoreDBM.bat', 'required', [], ['DBM imported/rules/suspensions/suggestions and histories', 'configured resultsets']),
-    ('dbm-files', 'Engine/RunCoreDBM.bat', 'configured:frozen Norm/phase-out report settings', ['C3', 'C4'], ['DBMNormChange and configured Norm0/1/2 and phase-out files', 'alert intents']),
+    ('dbm-files', 'Engine/RunCoreDBM.bat', 'configured:generic standard Norm1/2=1; Norm0 and phase-out=0', ['C3', 'C4'], ['generic DBMNormChange and NormChangeLogReport; enabled 30-day Norm1/2 files', 'alert intents']),
     ('post-dbm', 'Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat', 'required:no business commands in retained hook', ['C1'], []),
     ('runtime-post-dbm', 'Engine/GenerateRuntimeReports.bat', 'configured:PostDBM', ['C1', 'C3'], ['configured resultsets/files']),
     ('btr-core', 'Engine/RunCoreBufferTrend.bat', 'required', [], ['BTR history/trends/core attributes; standard 30/60/90 and location files disabled']),
@@ -66,14 +66,26 @@ GROUPS = (
     ('post-backup', 'Engine/Backup.bat', 'configured:DoPostBkpDBM/BPR/Importer/BTR=1', ['C3', 'C5'], ['four native SQL differential backups and compressed files', 'modern native backup']),
     ('alerts', 'Engine/VectorFLOWv4.bat', 'configured:seeded EmailAlertSettings plus data predicates', ['C1', 'C4'], ['evaluated alert intents/attachments']),
     ('actions', 'Engine/VectorFLOWv4.bat', 'approved:frozen eligible-Sleep/Apply policy', [], ['ordered real workflow commands', 'own successor state']),
-    ('publication-readers', 'Engine/VectorFLOWv4.bat', 'readiness:explicit supported operational policy; strict existing defaults preserved', ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'], ['typed final roots', 'prepared layers/seals/access', 'explicit owned selection', 'finite serialized reader responses']),
+    ('publication-readers', 'Engine/VectorFLOWv4.bat', 'readiness:explicit supported operational policy; strict existing defaults preserved', ['C1', 'C3', 'C4', 'C5', 'C6'], ['typed final roots', 'prepared layers/seals/access', 'explicit owned selection', 'finite serialized reader responses']),
 )
 
 SETTING_NAMES = frozenset(('DoPostBkpDBM', 'DoPostBkpBPR', 'DoPostBkpImporter',
     'DoPostBkpBTR', 'Zip', 'DBBkpCompress', 'GenerateLocWiseBTR', 'BTR30Days',
     'BTR60Days', 'BTR90Days', 'AutoDBMActive', 'OrchestratorImplemented',
     'DailyConsumptionHorizonBPR', 'BPR_RemarkHorizon', 'GenerateModifiedRRR',
-    'ActivateNorm0Report30Days', 'BPR_ShowNormZeroItems'))
+    'ActivateNorm0Report30Days', 'ActivateNorm0Report60Days', 'ActivateNorm0Report90Days',
+    'ActivateNorm1Report30Days', 'ActivateNorm2Report30Days',
+    'PhaseOutRecommendation30Days', 'PhaseOutRecommendation60Days',
+    'PhaseOutRecommendation90Days', 'BPR_ShowNormZeroItems'))
+
+
+def contract_category(relative, activation):
+    """Ownership annotation for the existing map, not a runtime profile engine."""
+    if '/SiteSpecific/GulfOil/' in relative:
+        return 'gulfoil-client-only'
+    if activation.startswith(('configured:', 'disabled:', 'data-dependent:')):
+        return 'generic-configurable'
+    return 'generic-core-required'
 
 
 def identity(path):
@@ -139,13 +151,20 @@ def build():
             match = re.match(r'\s*set\s+(\w+)=(.*?)\s*$', line, re.I)
             if match and match[1] in SETTING_NAMES:
                 settings.append({'source': relative, 'line': number,
+                                 'contract_category': contract_category(relative, 'configured:'),
                                  'name': match[1], 'value': match[2]})
     operations = []
     for ordinal, (name, relative, activation, dependencies, outputs) in enumerate(GROUPS):
         source(relative, unregistered=relative.endswith('GulfOil_BTRReports.py'))
-        operations.append(dict(ordinal=ordinal, id=name, source=relative,
-            activation=activation, configuration_dependencies=dependencies,
-            output_obligations=outputs))
+        category = contract_category(relative, activation)
+        operation = dict(ordinal=ordinal, id=name, source=relative,
+            contract_category=category, activation=activation,
+            configuration_dependencies=dependencies, output_obligations=outputs)
+        if category == 'gulfoil-client-only':
+            operation['historical_assessment_activation'] = activation
+            operation['activation'] = 'explicit-opt-in:GulfOil profile only; further client work held'
+            operation['generic_readiness_requirement'] = False
+        operations.append(operation)
     # Literal flag markers are retained, not repaired to match filename spelling.
     # Not every script containing a marker is actually reachable in this workload.
     markers = {}
@@ -170,7 +189,14 @@ def build():
     case = json.loads(FROZEN.read_text(encoding='utf-8'))['case']
     return dict(schema='fresh-complete-daily-operation-roster-v1',
         status_tracker='docs/MIGRATION.md', executable=False,
-        qualification='Finite producer/configuration contract only. C1-C6 approved; concrete operation qualification and main-flow integration remain required. Benchmark execution held; this map grants no business-day execution.',
+        qualification='Generic product readiness map with separately retained opt-in GulfOil client entries. C1-C6 remain bounded setup dispositions; client hooks are not generic prerequisites. Not executable; no business-day permission.',
+        profile_boundary=dict(
+            authority='Direct human controller turn01a11a25-e15c-7a20-8ace-96c832774fe5, 8 October 2026',
+            active='generic product and genuinely enabled generic configuration',
+            client='GulfOil explicit opt-in only; further client-only work held',
+            supersession='C1 GulfOil binding is not a product-wide default; C2 FGTrendData applies only to that client profile',
+            retained_configuration='Frozen synthetic settings remain evidence, not universal product defaults; no client override is merged into generic settings',
+            deployment_limit='Canonical BAT requires site settings/feed hooks. Generic product readiness does not establish a deployable site binding.'),
         frozen_input=identity(FROZEN), business_dates=['2026-06-06', '2026-06-07'],
         benchmark_execution='HELD by human scope change; new real business-day correctness execution requires specific approval',
         historical_invocation_limits={'production_per_engine': 2, 'conditional_validation_per_engine': 2,
@@ -183,6 +209,10 @@ def build():
             package=identity(ROOT/'docs/COMPLETE_DAILY_CONFIGURATION_DECISIONS.md')),
         configuration_decisions='docs/COMPLETE_DAILY_CONFIGURATION_DECISIONS.md',
         frozen_configuration=frozen_configuration(case), static_settings=settings,
+        generic_standard_settings={row['name']: row['value'] for row in settings
+            if row['contract_category'] != 'gulfoil-client-only'},
+        gulfoil_setting_overrides={row['name']: row['value'] for row in settings
+            if row['contract_category'] == 'gulfoil-client-only'},
         schema_seed_candidates={'source': importer, 'ScriptExecutedFlag': flags,
                                 'EmailAlertSettings': alerts},
         schema_only_candidates={'RuntimeReports': bpr, 'CriticalFiles': importer,
@@ -195,7 +225,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     result = build()
-    args.output.write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
+    args.output.write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8', newline='\n')
     print(json.dumps({'operations': len(result['operations']),
         'critical_scripts': len(result['critical_script_candidates']),
         'unresolved_configuration': result['unresolved_configuration'],

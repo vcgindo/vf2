@@ -1,5 +1,37 @@
 # Legacy behavior and explicit exceptions
 
+## COMPLETE-DAILY-PICK-FILE-ORDER — approved four-file qualification
+
+Direct human reply to call_5a75ffbc20224abb91987c31f6cb6ee7 on8October2026:
+"Approve this four-file ordering qualification". Scope is only the generic
+LogisticPickListReport, LogisticRemainingQtySummary, LogisticRemainingQtyDetails
+and TransportReqSummaryRpt batch CSVs. Their pinned Generate SQL exports have
+no ORDER BY. Accept complete typed data-row bags, retaining exact header and
+column order, every value/NULL and duplicate count. Preserve native and modern
+sequences and strict sequence failures; do not invent a sort. This does not
+qualify calculation order, table ordinals, APIs or paged grids.
+pick-files-qualification-a001.json preserves the first strict failure (all8
+Logistic rows match but all8 positions differ). a002 passes all four mixed and
+all four empty projections under this qualification; each mixed projection
+retains strict sequence FAIL. Both owned fixture states roll back and preserve
+seed/scratch rows. Full producer input materializers and physical delivery are
+not certified by these projection fixtures.
+
+## COMPLETE-DAILY-PROFILE-ATTRIBUTION — corrected scope, 8 October 2026
+
+Direct human controller turn01a11a25-e15c-7a20-8ace-96c832774fe5 clarifies GulfOil
+was a client-specific profile with a separate product boundary. Earlier C1
+wording promoted its hooks/settings to generic readiness incorrectly. That
+interpretation is superseded: generic readiness uses generic source ownership
+and genuinely enabled generic configuration; GulfOil is explicit opt-in only.
+Its calculated c3/c9/c10/c12/c13, FGTrendData and custom BTR report quirks are not
+missing generic functionality. No source behavior or accepted output is changed.
+Client code/proofs and the exact approved C1–C6 package bytes remain preserved;
+further client-only work is held. C2 belongs only to the client profile. Generic
+ProdOrderSuggestions, Supplier/Pick, completion/retention and applicable C3–C6
+remain in scope. The corrected source/activation map is the existing operation
+roster, and execution status remains only in MIGRATION.md.
+
 ## COMPLETE-DAILY-C1-C6 — bounded assessment dispositions, 8 October 2026
 
 Direct human answer **“Approve C1–C6 as documented”** to

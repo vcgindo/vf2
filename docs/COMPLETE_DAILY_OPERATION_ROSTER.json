@@ -2,7 +2,15 @@
   "schema": "fresh-complete-daily-operation-roster-v1",
   "status_tracker": "docs/MIGRATION.md",
   "executable": false,
-  "qualification": "Finite producer/configuration contract only. C1-C6 approved; concrete operation qualification and main-flow integration remain required. Benchmark execution held; this map grants no business-day execution.",
+  "qualification": "Generic product readiness map with separately retained opt-in GulfOil client entries. C1-C6 remain bounded setup dispositions; client hooks are not generic prerequisites. Not executable; no business-day permission.",
+  "profile_boundary": {
+    "authority": "Direct human controller turn01a11a25-e15c-7a20-8ace-96c832774fe5, 8 October 2026",
+    "active": "generic product and genuinely enabled generic configuration",
+    "client": "GulfOil explicit opt-in only; further client-only work held",
+    "supersession": "C1 GulfOil binding is not a product-wide default; C2 FGTrendData applies only to that client profile",
+    "retained_configuration": "Frozen synthetic settings remain evidence, not universal product defaults; no client override is merged into generic settings",
+    "deployment_limit": "Canonical BAT requires site settings/feed hooks. Generic product readiness does not establish a deployable site binding."
+  },
   "frozen_input": {
     "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json",
     "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56"
@@ -149,130 +157,232 @@
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 22,
+      "contract_category": "generic-configurable",
       "name": "DoPostBkpDBM",
       "value": "1"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 23,
+      "contract_category": "generic-configurable",
       "name": "DoPostBkpBPR",
       "value": "1"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 24,
+      "contract_category": "generic-configurable",
       "name": "DoPostBkpImporter",
       "value": "1"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 25,
+      "contract_category": "generic-configurable",
       "name": "DoPostBkpBTR",
       "value": "1"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 34,
+      "contract_category": "generic-configurable",
       "name": "Zip",
       "value": "Not-Defined"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 37,
+      "contract_category": "generic-configurable",
       "name": "GenerateLocWiseBTR",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 44,
+      "contract_category": "generic-configurable",
       "name": "BTR30Days",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 45,
+      "contract_category": "generic-configurable",
       "name": "BTR60Days",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 46,
+      "contract_category": "generic-configurable",
       "name": "BTR90Days",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 58,
+      "contract_category": "generic-configurable",
       "name": "DBBkpCompress",
       "value": "1"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 69,
+      "contract_category": "generic-configurable",
       "name": "AutoDBMActive",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
+      "line": 78,
+      "contract_category": "generic-configurable",
+      "name": "PhaseOutRecommendation30Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 79,
+      "contract_category": "generic-configurable",
+      "name": "PhaseOutRecommendation60Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 80,
+      "contract_category": "generic-configurable",
+      "name": "PhaseOutRecommendation90Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
       "line": 92,
+      "contract_category": "generic-configurable",
       "name": "ActivateNorm0Report30Days",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
+      "line": 93,
+      "contract_category": "generic-configurable",
+      "name": "ActivateNorm0Report60Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 94,
+      "contract_category": "generic-configurable",
+      "name": "ActivateNorm0Report90Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 95,
+      "contract_category": "generic-configurable",
+      "name": "ActivateNorm1Report30Days",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 96,
+      "contract_category": "generic-configurable",
+      "name": "ActivateNorm2Report30Days",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
       "line": 98,
+      "contract_category": "generic-configurable",
       "name": "OrchestratorImplemented",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 113,
+      "contract_category": "generic-configurable",
       "name": "DailyConsumptionHorizonBPR",
       "value": "90"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 118,
+      "contract_category": "generic-configurable",
       "name": "BPR_RemarkHorizon",
       "value": "90"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 119,
+      "contract_category": "generic-configurable",
       "name": "BPR_ShowNormZeroItems",
       "value": "0"
     },
     {
       "source": "Engine/StdSettingsPre.bat",
       "line": 122,
+      "contract_category": "generic-configurable",
       "name": "GenerateModifiedRRR",
       "value": "0"
     },
     {
       "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
       "line": 26,
+      "contract_category": "gulfoil-client-only",
       "name": "DBBkpCompress",
       "value": "0"
     },
     {
       "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
       "line": 50,
+      "contract_category": "gulfoil-client-only",
       "name": "OrchestratorImplemented",
       "value": "0"
     },
     {
       "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
       "line": 52,
+      "contract_category": "gulfoil-client-only",
       "name": "BPR_ShowNormZeroItems",
       "value": "1"
     },
     {
       "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
       "line": 53,
+      "contract_category": "gulfoil-client-only",
       "name": "ActivateNorm0Report30Days",
       "value": "1"
     }
   ],
+  "generic_standard_settings": {
+    "DoPostBkpDBM": "1",
+    "DoPostBkpBPR": "1",
+    "DoPostBkpImporter": "1",
+    "DoPostBkpBTR": "1",
+    "Zip": "Not-Defined",
+    "GenerateLocWiseBTR": "0",
+    "BTR30Days": "0",
+    "BTR60Days": "0",
+    "BTR90Days": "0",
+    "DBBkpCompress": "1",
+    "AutoDBMActive": "0",
+    "PhaseOutRecommendation30Days": "0",
+    "PhaseOutRecommendation60Days": "0",
+    "PhaseOutRecommendation90Days": "0",
+    "ActivateNorm0Report30Days": "0",
+    "ActivateNorm0Report60Days": "0",
+    "ActivateNorm0Report90Days": "0",
+    "ActivateNorm1Report30Days": "1",
+    "ActivateNorm2Report30Days": "1",
+    "OrchestratorImplemented": "0",
+    "DailyConsumptionHorizonBPR": "90",
+    "BPR_RemarkHorizon": "90",
+    "BPR_ShowNormZeroItems": "0",
+    "GenerateModifiedRRR": "0"
+  },
+  "gulfoil_setting_overrides": {
+    "DBBkpCompress": "0",
+    "OrchestratorImplemented": "0",
+    "BPR_ShowNormZeroItems": "1",
+    "ActivateNorm0Report30Days": "1"
+  },
   "schema_seed_candidates": {
     "source": "Scripts/DBCreation/Importer_DBCreation.sql",
     "ScriptExecutedFlag": [
@@ -2028,6 +2138,7 @@
       "ordinal": 0,
       "id": "settings",
       "source": "Engine/VectorFLOWv4.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1"
@@ -2040,6 +2151,7 @@
       "ordinal": 1,
       "id": "fullkit",
       "source": "Engine/CheckRunStartCriteria.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1",
@@ -2055,6 +2167,7 @@
       "ordinal": 2,
       "id": "sanitation",
       "source": "Engine/DataSanitizationUtility.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1"
@@ -2067,6 +2180,7 @@
       "ordinal": 3,
       "id": "pre-backup",
       "source": "Engine/Backup.bat",
+      "contract_category": "generic-configurable",
       "activation": "disabled:IsPreBackupActive=0",
       "configuration_dependencies": [],
       "output_obligations": []
@@ -2075,6 +2189,7 @@
       "ordinal": 4,
       "id": "reset",
       "source": "Scripts/Importer/ResetBatchExecutionFlag.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1"
@@ -2088,18 +2203,22 @@
       "ordinal": 5,
       "id": "site-pre",
       "source": "Engine/SiteSpecific/GulfOil/PreProcessing.bat",
-      "activation": "required",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1"
       ],
       "output_obligations": [
         "site pre-processing effects"
-      ]
+      ],
+      "historical_assessment_activation": "required",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 6,
       "id": "run-date",
       "source": "Engine/SetRunDate.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2110,6 +2229,7 @@
       "ordinal": 7,
       "id": "raw-input",
       "source": "Engine/ImportAllRawData.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C3"
@@ -2122,6 +2242,7 @@
       "ordinal": 8,
       "id": "vendor",
       "source": "Engine/ImportVendorData.bat",
+      "contract_category": "generic-configurable",
       "activation": "disabled:VendorSystemActive=0",
       "configuration_dependencies": [],
       "output_obligations": []
@@ -2130,6 +2251,7 @@
       "ordinal": 9,
       "id": "distributor",
       "source": "Engine/ImportDistributorData.bat",
+      "contract_category": "generic-configurable",
       "activation": "disabled:DistributorSystemActive=0",
       "configuration_dependencies": [],
       "output_obligations": []
@@ -2138,6 +2260,7 @@
       "ordinal": 10,
       "id": "input-validation",
       "source": "Engine/ValidateAndProcessInputData.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2149,6 +2272,7 @@
       "ordinal": 11,
       "id": "norm-controls",
       "source": "Engine/NormChangesRun.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2161,6 +2285,7 @@
       "ordinal": 12,
       "id": "parent-norm",
       "source": "Engine/ValidateParentNorm.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C3",
@@ -2175,6 +2300,7 @@
       "ordinal": 13,
       "id": "task-status",
       "source": "Scripts/Importer/NMSTaskStatusUpdate.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2185,6 +2311,7 @@
       "ordinal": 14,
       "id": "runtime-post-importer",
       "source": "Engine/GenerateRuntimeReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:PostImporter",
       "configuration_dependencies": [
         "C1",
@@ -2198,6 +2325,7 @@
       "ordinal": 15,
       "id": "bpr-core",
       "source": "Engine/RunCoreBPR.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2208,6 +2336,7 @@
       "ordinal": 16,
       "id": "pick-files",
       "source": "Engine/PickListReports.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C3"
@@ -2220,6 +2349,7 @@
       "ordinal": 17,
       "id": "order-allocation-files",
       "source": "Engine/OrderAllocBasedReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:IsMTOEnvironment=0",
       "configuration_dependencies": [
         "C3"
@@ -2233,6 +2363,7 @@
       "ordinal": 18,
       "id": "bpr-exception-files",
       "source": "Engine/GenerateBPRExceptionReport.bat",
+      "contract_category": "generic-configurable",
       "activation": "data-dependent:BPRExceptions nonempty",
       "configuration_dependencies": [
         "C3",
@@ -2246,6 +2377,7 @@
       "ordinal": 19,
       "id": "production-orders",
       "source": "Scripts/BPR/ProdOrderSuggestions.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2257,6 +2389,7 @@
       "ordinal": 20,
       "id": "bpr-retention",
       "source": "Scripts/BPR/ClearHistoryData_BPR.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2268,6 +2401,7 @@
       "ordinal": 21,
       "id": "modified-rrr",
       "source": "Engine/RunCoreBPR.bat",
+      "contract_category": "generic-configurable",
       "activation": "disabled:GenerateModifiedRRR=0",
       "configuration_dependencies": [],
       "output_obligations": []
@@ -2276,6 +2410,7 @@
       "ordinal": 22,
       "id": "planning",
       "source": "Engine/Planning.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2286,6 +2421,7 @@
       "ordinal": 23,
       "id": "bpr-completion",
       "source": "Scripts/BPR/ValidateBPRBatchExecutionFlags.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1",
@@ -2299,6 +2435,7 @@
       "ordinal": 24,
       "id": "bpr-failure-clear",
       "source": "Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql",
+      "contract_category": "generic-configurable",
       "activation": "data-dependent:BPR completion failed",
       "configuration_dependencies": [
         "C6"
@@ -2311,19 +2448,23 @@
       "ordinal": 25,
       "id": "post-bpr",
       "source": "Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql",
-      "activation": "required",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1"
       ],
       "output_obligations": [
         "BPR/Importer/NMS c3",
         "cleared Intermediate tables"
-      ]
+      ],
+      "historical_assessment_activation": "required",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 26,
       "id": "runtime-post-bpr",
       "source": "Engine/GenerateRuntimeReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:PostBPR",
       "configuration_dependencies": [
         "C1",
@@ -2337,6 +2478,7 @@
       "ordinal": 27,
       "id": "input-download",
       "source": "Engine/ProvideInputDataForDownload.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:GenerateDownloadableInputData=1",
       "configuration_dependencies": [
         "C3"
@@ -2350,18 +2492,22 @@
       "ordinal": 28,
       "id": "dbm-pre",
       "source": "Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat",
-      "activation": "required",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1"
       ],
       "output_obligations": [
         "site pre-DBM effects"
-      ]
+      ],
+      "historical_assessment_activation": "required",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 29,
       "id": "dbm-core",
       "source": "Engine/RunCoreDBM.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2373,13 +2519,14 @@
       "ordinal": 30,
       "id": "dbm-files",
       "source": "Engine/RunCoreDBM.bat",
-      "activation": "configured:frozen Norm/phase-out report settings",
+      "contract_category": "generic-configurable",
+      "activation": "configured:generic standard Norm1/2=1; Norm0 and phase-out=0",
       "configuration_dependencies": [
         "C3",
         "C4"
       ],
       "output_obligations": [
-        "DBMNormChange and configured Norm0/1/2 and phase-out files",
+        "generic DBMNormChange and NormChangeLogReport; enabled 30-day Norm1/2 files",
         "alert intents"
       ]
     },
@@ -2387,16 +2534,20 @@
       "ordinal": 31,
       "id": "post-dbm",
       "source": "Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat",
-      "activation": "required:no business commands in retained hook",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1"
       ],
-      "output_obligations": []
+      "output_obligations": [],
+      "historical_assessment_activation": "required:no business commands in retained hook",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 32,
       "id": "runtime-post-dbm",
       "source": "Engine/GenerateRuntimeReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:PostDBM",
       "configuration_dependencies": [
         "C1",
@@ -2410,6 +2561,7 @@
       "ordinal": 33,
       "id": "btr-core",
       "source": "Engine/RunCoreBufferTrend.bat",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2420,7 +2572,8 @@
       "ordinal": 34,
       "id": "post-btr-attributes",
       "source": "Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql",
-      "activation": "required",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1",
         "C2"
@@ -2429,25 +2582,31 @@
         "FGTrendData",
         "c9/c10/c12/c13 in six owners",
         "cleared Intermediate tables"
-      ]
+      ],
+      "historical_assessment_activation": "required",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 35,
       "id": "post-btr-files",
       "source": "Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py",
-      "activation": "required",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1",
         "C3"
       ],
       "output_obligations": [
         "GulfOil BTR Python reports"
-      ]
+      ],
+      "historical_assessment_activation": "required",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 36,
       "id": "runtime-post-btr",
       "source": "Engine/GenerateRuntimeReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:PostBTR",
       "configuration_dependencies": [
         "C1",
@@ -2461,6 +2620,7 @@
       "ordinal": 37,
       "id": "ui-upload-logs",
       "source": "Engine/GenerateUIUploadLogs.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:ActivateNMSUIUploadLogs=1",
       "configuration_dependencies": [
         "C3"
@@ -2473,6 +2633,7 @@
       "ordinal": 38,
       "id": "batch-completion",
       "source": "Scripts/Importer/ValidateBatchExecutionFlags.sql",
+      "contract_category": "generic-core-required",
       "activation": "required",
       "configuration_dependencies": [
         "C1",
@@ -2486,16 +2647,20 @@
       "ordinal": 39,
       "id": "site-final",
       "source": "Engine/SiteSpecific/GulfOil/FinalProcessing.bat",
-      "activation": "required:no business commands in retained hook",
+      "contract_category": "gulfoil-client-only",
+      "activation": "explicit-opt-in:GulfOil profile only; further client work held",
       "configuration_dependencies": [
         "C1"
       ],
-      "output_obligations": []
+      "output_obligations": [],
+      "historical_assessment_activation": "required:no business commands in retained hook",
+      "generic_readiness_requirement": false
     },
     {
       "ordinal": 40,
       "id": "runtime-final",
       "source": "Engine/GenerateRuntimeReports.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:Final",
       "configuration_dependencies": [
         "C1",
@@ -2509,6 +2674,7 @@
       "ordinal": 41,
       "id": "post-backup",
       "source": "Engine/Backup.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:DoPostBkpDBM/BPR/Importer/BTR=1",
       "configuration_dependencies": [
         "C3",
@@ -2523,6 +2689,7 @@
       "ordinal": 42,
       "id": "alerts",
       "source": "Engine/VectorFLOWv4.bat",
+      "contract_category": "generic-configurable",
       "activation": "configured:seeded EmailAlertSettings plus data predicates",
       "configuration_dependencies": [
         "C1",
@@ -2536,6 +2703,7 @@
       "ordinal": 43,
       "id": "actions",
       "source": "Engine/VectorFLOWv4.bat",
+      "contract_category": "generic-core-required",
       "activation": "approved:frozen eligible-Sleep/Apply policy",
       "configuration_dependencies": [],
       "output_obligations": [
@@ -2547,10 +2715,10 @@
       "ordinal": 44,
       "id": "publication-readers",
       "source": "Engine/VectorFLOWv4.bat",
+      "contract_category": "generic-core-required",
       "activation": "readiness:explicit supported operational policy; strict existing defaults preserved",
       "configuration_dependencies": [
         "C1",
-        "C2",
         "C3",
         "C4",
         "C5",
