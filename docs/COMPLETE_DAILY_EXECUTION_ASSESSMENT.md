@@ -1,8 +1,9 @@
 # Generic product daily codebase readiness assessment
 
 8 October 2026. **Not production-ready yet.** The core migrated engine and earlier
-accepted application slices remain available, but the newly required complete
-generic daily path is not wired end to end. C1â€“C6 resolve bounded setup/compatibility choices;
+accepted application slices remain available, but the complete
+generic delivery still has deferred publication/operational boundaries. Cohort1
+final writers pass in the explicitly qualified inactive-NMS configuration. C1â€“C6 resolve bounded setup/compatibility choices;
 they do not prove complete implementation, publication or release.
 
 This report explains the existing evidence and completion plan. It is not a second
@@ -57,6 +58,33 @@ The consolidated receipt is
 It binds25 existing proof/log/script hashes and both new run/source/file identities.
 Older implementation prose below describes retained evidence at its original
 scope, not the current Pick status or authorization for adjacent work.
+
+## Pick consumer prerequisites — deferred to Cohort3
+
+This map describes dependencies, not a second status queue; MIGRATION.md owns
+status. Pick is CLOSED for the current production-readiness assessment by latest human
+authorization. The following retained dependencies belong to unreleased Cohort3,
+not Cohort1 or a reopened Pick calculation exit.
+
+| Boundary / owner | Existing implementation and remaining prerequisite | Required closure proof |
+|---|---|---|
+| Gateway authentication / user service | Existing cookie authentication, stored mta-report-urls role entitlement and assigned product/location IDs; successful retained-run transport has not been exercised. No new grant is implied. | Real owned authenticated request and stored permissions; unauthorized request denied. |
+| Selected identity / presentation context | Explicit run/digest and successful production manifest exist. selected_run requires whole-publication parity PASS; Pick-stage receipts cannot truthfully satisfy it. | Existing strict default preserved; supported operational admission must verify its complete required owners before selection. No synthetic PASS. |
+| Operational admission / daily publication | complete_daily_admission contains standalone evidence validators, explicitly no READY issuer or consuming reader. This is a wider generic integration dependency, not missing Pick arithmetic. | Truthful enabled-operation roster, immutable source/config/action/output binding, coherent preparation and selection; stale/mixed owners denied. |
+| Hierarchy and scope / Pick reader | _attributes reads native importer rows directly. It does not invoke hierarchy.selected_manifest/project_attributes. Native NULL scope correctly denies. | Reuse only retained catalogue SL1-3/LL1-3, hash 18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356; exact run/date/output binding, manifest hash/counts, read-time projection preserving native checksums/duplicates. Absent or conflicting supplement must deny. |
+| Typed rows / selective reader | Both truck tables are bound and actual persisted readback passes for June6/7. | Reuse accepted complete-value/ordinal receipts; no recalculation. |
+| Four files / Pick download owner | Run-owned paths and exact bytes against typed-state serialization are implemented; actual local reads and recovery pass. | Stream all four retained nonempty files through the actual endpoint; full bytes equal accepted hashes, correct CSV type and attachment names; tampering denied. |
+| Transport / gateway and MTA | Real positive integrated delivery remains unproved; prior positive unit tests mock dependencies. | Isolated in-process or no-port transport with real admission/auth/scope resolution, no mocked selection, permissions or file bytes. Browser/serving activation is not required or authorized. |
+
+Retained identities: June6 9607a6ec-07e9-4be7-9be9-2d204b7ecebc,
+output 4f93aa13e1d18d4f9cf934c43620db0ff81cc71e3d9436f1e5dec7563da290e0;
+June7 39dd7880-2ba4-42bd-9e90-40428f4b1ede,
+output e1e676c2866bd884da929eb1b7b8304a9ebbfc8487bb141223c9a32e358f6bb4.
+A hierarchy-only repair cannot establish positive delivery while admission is
+missing. Do not add a Pick-specific acceptance exception, waive scope, or mark
+other generic writers complete to obtain HTTP200. The next cohesive dependency
+is genuine generic operational admission and its required final writers; actual
+new business-day verification still requires its separately bounded approval.
 
 ## Corrected product and client boundary
 
@@ -159,19 +187,47 @@ supersedes only the use of its GulfOil binding as a product-wide baseline.
 | C5 | Owned SQL/PG backups; SQL full bases at setup | Implement setup/daily backup lifecycle and prove logical recoverability. No shared backups or resource repair. |
 | C6 | Explicit legacy clearing versus modern rollback/prior-publication difference | Integrate failed-candidate denial and prove prior selection remains coherent. Failure-state parity is explicitly not claimed. |
 
+## Cohort1 source positions and proof
+
+MIGRATION.md remains the only status tracker. The final writer integration is
+proved for the approved inactive-NMS domain, not unrestricted generic readiness.
+
+| Canonical position | Integrated typed owner | Proof and limit |
+|---|---|---|
+| Reset before import | ScriptExecutedFlag and importer settings | Exact pinned206-row roster; reset each date; missing settings denied |
+| Master/nonmaster clear then load | Fresh working feeds and three typed supplier raw tables | Immutable predecessor/input evidence preserved; current producer outputs persisted |
+| NMS import/clear | Existing captured MDM source, three explicit typed SOB/MOQ queues | NMSActive=0 only; queues must be empty; skipped flags remain false; active intake denied |
+| NormChangesRun after phase clearing | NMS snapshot into importer MasterData and consumer NMSAllItems | Own post-control inputs; disabled snapshot preserved in both real dates; qualified component tests cover active snapshot only |
+| Transit tags after snapshot | Initialized standard attributes through DBM/BTR | Existing tag producer; later initialization no longer erases tags; BTR retains final ownership |
+| After final BPR/ration report | SupplierDispatchReq then ProdOrderSuggestions | Nonempty results both dates; complete typed readback; unchanged native producer fixtures |
+| After production suggestions | BPR consumption and three remark histories | Declared90-day horizons; exact native retention fixtures; own predecessor persistence |
+| BPR and whole-batch validation | Typed flags/settings and separate Cohort1 gate | BPR=1, current date, all enabled critical writers; native ALL=0 preserved under approved qualification |
+| Final task update/publication | Consumed capture and typed closing in one transaction | Failure after typed writer rolls both back; frozen same-parent/source/date retry; zero-calculation replay |
+| Existing DBM/BTR/reports/Pick | Existing typed final projections | Seven full output families exactly equal accepted positive Pick runs on both dates |
+
+The two authorized June6–7 engine calls are consumed and passed. No further date
+or recalculation is authorized. Frozen supplement, image, source hashes, complete
+readback and action receipts are bound in
+D:/freshvcf-build/evidence/cohort1-20261008-001/closure-proof-v1.json.
+The real proof uses execute_day; runner unit routing is narrower than a new MDM
+application installation. No full-day native parity or publication/HTTP claim.
+Active-NMS intake and populated SOB/MOQ approval workflows remain explicit
+unsupported boundaries. Prior component fixtures do not close those boundaries.
+
 ## Remaining gaps beyond those decisions
 
 The categories below distinguish **missing code**, **unwired code**, **missing
 proof**, and **input/release decisions**. No row is closed merely because its file
-exists. Dependencies refer to the sole R1â€“R5 checklist in MIGRATION.md.
+exists. The following retained assessment is superseded for Cohort1 final writers
+by the exact proof/limits above; MIGRATION.md owns current status.
 
 | Gap / category | Concrete existing evidence and business consequence | Smallest completion work and dependency | Required proof / human decision |
 |---|---|---|---|
-| Native Supplier/Pick inputs â€” bounded proof passed; generic logistics adapter missing | `complete_daily_inputs.py` passes full28/69-column fixtures. Req/BOR expose7/3 consumed columns only. `calculate_pick_list_state` now captures full21/16 truck rows from the existing allocation calculation and passes two native fixtures, but has no full native input adapter. Duplicate bifurcation/SKU joins, NULL dimensions and multiple vehicles remain unqualified. Distinguishable priority ties are explicitly BLOCKED by human call_cd9dfc5b32304c5e96aa6713c9c4474d: exact allocation parity remains required, with no invented tie-break. Old allocation outputs alone cannot reconstruct the native tables. | R1: finish the actual source-table adapter and qualify those identified boundaries without inventing defaults, changing legacy flaws or treating restricted proof as generic completeness. Preserve existing allocation assertions. | Full required typed columns, join multiplicity, NULL behavior and native sequences at the correct source position. Keep the proved restricted state cases as regression evidence, not a substitute for missing branches. |
-| Main final-writer sequence â€” generic additions unwired | `chain.py`, `runtime/temporal.py` and `runtime/services.py` do not call the new generic production-order/completion/file owners. Existing `daily_nms_snapshot.py` must be reused at its qualified ownership point. Absence of GulfOil post-BPR/post-BTR calls is not a core defect. | R2 after R1: integrate exact generic production-order, retention, NMS and report final writers; preserve original transient comparison positions. No unconditional client attribute writer. | Affected sequence/dataflow tests; unchanged defaults; generic final rows reach their declared owners/readers. Any necessary new real business-day execution needs a concrete correctness-only proposal first. |
+| Supplier/Pick inputs — Pick accepted | f76bbb1 integrates the five-source adapter, qualified native truck allocation, typed21/16-column storage, main daily path, four files and recovery. Fixed16 cases, tied-order witness and two approved synthetic dates are preserved. | No Cohort1 Pick reimplementation; preserve source identity and declared fail-closed domains. | Reuse accepted proof; HTTP belongs to Cohort3. |
+| Main final-writer sequence — qualified inactive-NMS integration | `chain.py`, `runtime/temporal.py` and `runtime/services.py` now call the Cohort1 production-order/completion owners; Cohort2 operational file owners remain deferred. Existing `daily_nms_snapshot.py` must be reused at its qualified ownership point. Absence of GulfOil post-BPR/post-BTR calls is not a core defect. | R2 after R1: integrate exact generic production-order, retention, NMS and report final writers; preserve original transient comparison positions. No unconditional client attribute writer. | Affected sequence/dataflow tests; unchanged defaults; generic final rows reach their declared owners/readers. Any necessary new real business-day execution needs a concrete correctness-only proposal first. |
 | Complete executable daily command â€” missing integration | `execute_day` remains the one production day boundary; no supported command currently composes the required generic subset of the mapped45 groups, files, actions and publication. Client-only entries must be excluded unless explicitly selected. | R2: extend the actual operational entry, reusing the engine and validated owners; explicit generic configuration/policy, inputs, dates and failure propagation. No new engine/profile framework. | One documented command resolves every enabled generic obligation and rejects missing/unknown configuration. No client data dependency in the default product path. Real complete-day proof requires specific approval. |
 | Predecessor and Apply/Sleep lifecycle â€” reusable core, missing extended proof | `mta/runtime/temporal.py` has command_state/record_command and persisted predecessor locking. Additional generic production-order/history/operation state must participate; client FG history is excluded from this requirement. | R2/R3: include required typed closing state and configuration identity in own predecessor intake; retain action before/after order, idempotency and eligibility. | Own-state continuity, cross-owner/config denial, actions retained once, failed/interrupted attempt cannot masquerade as predecessor. Focused tests authorized; actual business-day continuity scenario requires approval. |
-| Typed operational state and histories â€” storage partly written, writers unwired | `complete_daily_state.py` now binds13 tables: retained migration0079 plus additive0080 for LogisticPickList21 and PickListDataForTruckFormation16. Fresh migration-enabled PG proof passes3 tests (pick-storage-a002.log); original catalogue/migration remain preserved. No full chain supplies the complete section. BOR/RRR history/file obligations and report-source final writers still need exact positions. | Typed truck storage is proved independently; actual final rows/source ownership still needs wiring into existing save_daily/readback after the Pick calculation boundary is resolved. Keep business populations in typed rows, not metadata or traces. | Complete expected output/source roster, fresh migration/readback, corruption/NULL/duplicate/order denial and rollback. Do not infer intermediate proof from closing rows. |
+| Typed operational state and histories — Cohort1 integrated | The13-table supplement includes the two Pick tables already written/read back by the main chain. Cohort1 production/NMS/completion/history owners now persist in the qualified domain above; broader rolling histories remain deferred. | Cohort1: map each canonical writer and persist owned rows at its source-defined stage; preserve deferred rolling-history boundaries. | Exact fields/NULLs/duplicates/ordinals, fresh PG/readback/rollback, own successor continuity. |
 | Fullkit, dates, completion and failure visibility â€” partly written, unwired | `complete_daily_completion.py` is qualified in fixtures. The operational command lacks the complete critical-operation/date/file admission and failure path. Status alone can conceal omitted work or stale output. | R1/R2: bind exact critical writers/flag literals and current date, fullkit/sanitation dispositions and C6 failure policy to actual successful operations. | Omitted operation, stale date, SQL CATCH result, missing output and partial attempt deny readiness; prior publication remains valid. No fabricated flag completion or fake parity PASS. |
 | Required generic physical file producers â€” partly written; wiring/proof missing | Existing UI exporters/storage do not establish canonical batch files. Four Pick projections pass exact typed bags/headers under the new four-file ordering approval; the literal SQLCMD serializer and delete/write/copy lifecycle pass four native byte comparisons within direct CP1252/display-width limits. Full native input materializers and daily-path delivery remain absent. Enabled generic list is below. | R1/R2: one owned dispatcher using existing projections where equivalent; complete missing generic projections/writers and actual input owners. GulfOil files are excluded from this work. | Exact payload cells/headers/member roster and condition/absence/delete/copy behavior/errors. Retain strict sequence evidence; four-file bag approval does not extend to calculation, table ordinals, APIs or grids. |
 | Backup and alert lifecycle â€” missing orchestration/proof | Approved C4/C5 are decisions; no complete daily owned backup/restore or local alert-intent pipeline is qualified. Outputs would lack proven recoverability and alert evidence. | R1/R2: explicit local intent store tied to predicates/attachments; owned full-base/setup and daily SQL/PG backup/archive execution. Reuse ordinary database tooling. | Attachment membership/predicate proof; backup exists and restores logically into a newly owned target. Never send messages or restore over a serving/accepted database. Additional resources/execution outside existing isolation need a concrete decision. |
@@ -189,7 +245,7 @@ the retained configuration; that does not exclude other enabled outputs.
 
 | Output | Existing canonical owner / specific remaining work |
 |---|---|
-| Four Pick CSVs | `PickListReports.bat` and four PickList_Reports Generate SQL files: LogisticPickListReport, LogisticRemainingQtySummary, LogisticRemainingQtyDetails, TransportReqSummaryRpt. Reuse calculations; qualify exact projections/sqlcmd formatting and download copies. |
+| Four Pick CSVs — accepted | f76bbb1: actual two-date generation/copies and exact typed projection proof, native SQLCMD formatting within declared limits, zero-calculation recovery. Preserve; no Cohort1 file work. |
 | BOR_OrderAllocation.csv and BOR/RRR allocation histories | `OrderAllocBasedReports.bat` / GenerateBOR_OrderAllocation and history SQL. Bind collect/export/history order; UI deferral does not waive these batch obligations. |
 | BPRExceptionReport.csv/.zip | `GenerateBPRExceptionReport.bat`: delete prior artifacts, predicate on exception count, generate/copy and local alert intent. |
 | NoNormParentReport.csv/.zip | `ValidateParentNorm.bat` / ValidationForParentNorm.sql: preserve sqlcmd headers and exact file-size condition for ZIP/copy/intent. |

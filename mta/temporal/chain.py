@@ -226,9 +226,17 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                           report_exceptions=None):
     """execute_calculation runs the existing modern R1 producer and returns outputs/id."""
     today=day['business_date'];now=today+'T00:00:00'
+    from mta.application import daily_finalization
+    finalization = daily_finalization.configuration(profile)
+    if finalization is not None:
+        prior = daily_finalization.begin(prior, today)
+        day = daily_finalization.fresh_feeds(prior, day)
+    completion = prior['complete'] if finalization is not None else None
     master_input,daily_input=entry_inputs(prior,opening_date,day,profile,identity)
     master=process_importer_master(master_input)
     if master['outcome']!='APPLIED':raise ValueError('Connected master producer did not apply')
+    if completion is not None:
+        daily_finalization.mark(completion, 'ValidateAndProcessMaster.sql')
     supplier=process_supplier_validation(day['supplier_feeds'],master,master_input['settings'],now)
     supplier_final=supplier[SUPPLIER_STAGES[-1]]['tables']
     if any(v['outcome']=='SQL_ERROR' for v in supplier.values()):raise ValueError('Supplier producer failed')
@@ -249,6 +257,9 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     controls['dbm_master']=[{s:r[f] for f,s in MASTER_SOURCE_MAP.items()} for r in refreshed['dbm_master']]
     controls.update(importer_master=deepcopy(importer['MasterData']),raw_master=deepcopy(importer['MasterDataRaw']),
         force_requests=deepcopy(importer['ForceNormChange']),importer_settings=[{'Parameter':r['Parameter'],'Value':str(r['Value'])} for r in supplier_final['ImporterSettingsTbl']])
+    if finalization is not None:
+        controls['importer_settings'] = daily_finalization.preserve_settings(
+            prior['importer_settings'], controls['importer_settings'])
     delivery = profile.get('delivery')
     control_aux = diagnostics = None
     if delivery is not None:
@@ -260,6 +271,10 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             daily_final['DailyDataProcessed'], importer['SkuLocAttributeData']))
         for _, state, _ in connected:
             delivery_control_types(state)
+        if completion is not None:
+            # The accepted compound control generator is fully consumed even
+            # when evidence mode retains only its final snapshot.
+            daily_finalization.mark(completion, 'UpdateNormChanges.sql')
         control = [(name, state) for name, state, _ in connected]
         complete = connected[-1][1]
         control_final = {n: deepcopy(complete[n]) for n in CONTROL_TABLES}
@@ -271,6 +286,21 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     completed_boundaries=['controls']
     importer['MasterData']=deepcopy(control_final['importer_master'])
     importer['ForceNormChange']=deepcopy(control_final['force_requests'])
+    nms = None
+    standard_attributes = None
+    if finalization is not None:
+        nms = daily_finalization.nms_snapshot(importer, control_final, prior, day['exclusions'])
+        importer['MasterData'] = nms['MasterData']
+        control_final['importer_master'] = deepcopy(nms['MasterData'])
+        from mta.application.r1_transit_tags import update_transit_tags
+        standard_attributes = initialise_sku_loc_standard_attributes(importer)
+        tagged = update_transit_tags(
+            [{name: row[name] for name in ('SKUCode', 'WhCode', 'Tags')}
+             for row in standard_attributes], control_final['seasonality'],
+            control_final['phase_out'])
+        for row, tag in zip(standard_attributes, tagged, strict=True):
+            row['Tags'] = tag['Tags']
+        daily_finalization.mark(completion, 'NMSCreateSnapshot.sql', 'UpdateInTransitDataTags.sql')
     source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
     prepared=prepare_r1_current_day(source)
     bpr_master=[{'SKUCode':r['sku_code'],'WHCode':r['location_code'],'Norm':r['norm'],
@@ -279,16 +309,22 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         'AdditionalMasterData':additional_native(prepared,importer),'LastBatchRunTbl':[{'LastRunDate':opening_date+'T00:00:00'}],
         'PSOData':[],'IntermediateTables':deepcopy(control_final['IntermediateTables'])}
     orders=final_stage(order_stages(today,opening_date,order_input,day['order_feed_status'],day['order_feed']))
+    if completion is not None:
+        daily_finalization.mark(completion, 'ImportSpikeOrders.sql', 'CalculateDD.sql')
     for r in orders[-1][1]['SpikeOrderData']:
         source['orders'].append({'order_id':r['CustomerOrderId'],'sku_code':r['SKUCode'],'location_code':r['WhCode'],
             'outstanding_quantity':r['Qty'],'accepted_on':r['IntroDate'],'customer_expected_date':r['CustomerExpectedDate'],
             'established_is_spike':r['IsSpike'],'established_due_date':r['DueDate'],
             'first_servicing_location_code':r['FirstServicingWhCode'],'established_order_key':r['OrderKey']})
     calculated,calculation_id=execute_calculation(source)
+    if completion is not None:
+        daily_finalization.mark(completion, *daily_finalization.CALCULATION_SCRIPTS)
     from mta.application.r1_rationed_report import rationed_report
     report=rationed_report(source,calculated,
         [{'sku_code':r['SKUCode'],'description':r['SKUDescription']} for r in importer['SKUDescriptionTbl']],
         [{'location_code':r['WHCode'],'description':r['WHDescription']} for r in importer['SiteDescriptionTbl']])
+    if completion is not None:
+        daily_finalization.mark(completion, 'GenerateRationReqReport.sql')
     pick_state = None
     if profile.get('complete_pick') is not None:
         if profile['complete_pick'] != {'policy': 'canonical-tied-order-v1'}:
@@ -308,6 +344,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         pick_state = calculate_native_pick(**pick_sources)
         calculated['r1_pick_list'] = [r for r in pick_state['allocations'] if r['truck'] is not None]
         calculated['r1_pick_remaining'] = [r for r in pick_state['allocations'] if r['truck'] is None]
+        if completion is not None:
+            daily_finalization.mark(completion, 'GenerateLogisticPickList.sql')
     early_daily=generated_bpr_daily_state({'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily)
     constructor={'BPRMaster':bpr_master,'BPRDailyConsumption':early_daily,
         'RequirementBlue':[{'SKUCode':r['sku_code'],'WhCode':r['location_code'],'BlueReq':int(Decimal(r['virtual_norm']['blue_requirement']))} for r in calculated['r1_requirement']],
@@ -319,11 +357,28 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     bpr_stages,late=constructor_then_late(today,constructor,report)
     completed_boundaries.append('final-bpr-bluezone')
     bpr_stages.append(('UpdateBPR.sql',{**late,'vf_RationedReqReport':report}))
+    if completion is not None:
+        daily_finalization.mark(completion, '01. ImportData.sql', 'CollectDataForBPR.sql',
+            'CalculatePenetrationAndColor.sql', 'GenerateBPR.sql', 'UpdateBPR.sql')
+    complete = None
+    if finalization is not None:
+        complete, retained_daily = daily_finalization.production_and_retention(
+            complete=prior['complete'], source=source, calculated=calculated,
+            bpr_master=bpr_master, importer=importer, plants=prior['bpr']['Plants'],
+            report=report, late=late, today=today, config=finalization)
+        complete.update({name: deepcopy(supplier_final[name])
+                         for name in daily_finalization.SUPPLIER_RAW})
+        late = {**late, 'BPRDailyConsumption': retained_daily}
+        daily_finalization.mark(complete, 'GenSupplierWiseReq.sql',
+            'ProdOrderSuggestions.sql', 'ClearHistoryData_BPR.sql')
+        control_final['importer_settings'] = daily_finalization.validate_completion(
+            complete, control_final['importer_settings'], today, kind='BPR')
     dbm=deepcopy(prior['dbm'])
     # ImportMasterDataComponents.bat runs the deployed Importer initializer on
     # every day before DBM/BTR. Its TRUNCATE plus distinct two-key INSERT
     # discards all prior standard-attribute values.
-    dbm['SKULocStandardAttributes'] = initialise_sku_loc_standard_attributes(importer)
+    dbm['SKULocStandardAttributes'] = (standard_attributes if finalization is not None
+        else initialise_sku_loc_standard_attributes(importer))
     # 01.ImportMasterData replaces these complete metadata tables from this
     # day's actual Importer producer before the DBM sequence consumes them.
     for table in ('SKUDescriptionTbl','SiteDescriptionTbl','SkuAttributeData','LocationAttributeData','SkuLocAttributeData'):
@@ -367,9 +422,11 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         'supplier':{'SOBData':supplier_state['refreshed_sob'],'MOQData':supplier_state['refreshed_moq']},
         'orders':{n:deepcopy(orders[-1][1][n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
     snapshots=lambda stages:[{'stage':n,'state':v} for n,v in stages]
+    if complete is not None:
+        closing['complete'] = complete
     if pick_state is not None:
-        closing['complete'] = {name: pick_state[name] for name in
-                              ('LogisticPickList', 'PickListDataForTruckFormation')}
+        closing.setdefault('complete', {}).update({name: pick_state[name] for name in
+                              ('LogisticPickList', 'PickListDataForTruckFormation')})
     result = {'ClosingState':[closing],
         'CalculationOutputs':[{'capability':n,'rows':v} for n,v in calculated.items()]}
     if pick_state is not None:
@@ -390,6 +447,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         btr_facts = {**deepcopy(prior['consumer_context']), **deepcopy(importer),
                      **deepcopy(final_dbm), 'vf_RationedReqReport': report,
                      'BPR_Table': late['BPR_Table'], 'MasterData': importer['MasterData']}
+        if nms is not None:
+            btr_facts['NMSAllItems'] = nms['NMSAllItems']
         # UpdateBRAge changes these three fields on the current Pick-based
         # expedite population. Reuse the accepted R1 Pick membership producer;
         # an opening/current-day prepared expedite result is never the input.
@@ -411,6 +470,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         closing.update(control_aux=control_aux, btr=deepcopy(trends[-1][1]),
                        consumer_context=deepcopy(prior['consumer_context']),
                        publication_context=deepcopy(prior['publication_context']))
+        if nms is not None:
+            closing['consumer_context']['NMSAllItems'] = nms['NMSAllItems']
         stages = dict(dbm_stages)
         # Reports that overwrite the same legacy staging tables stay separate
         # consumer-visible families in the enclosing immutable run.
@@ -433,4 +494,12 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                 ('btr-insights', trends[-1][1]), ('closing-state', closing))])
         else:
             result['_CompletedBoundaries']=[*completed_boundaries,'closing-state']
+        if finalization is not None:
+            closing['importer_settings'] = daily_finalization.finish(
+                closing['complete'], closing['importer_settings'], today)
+            from mta.serialization import digest
+            result['_Cohort1'] = dict(policy=finalization['policy'], business_date=today,
+                configuration_digest=digest(profile),
+                qualification='inactive-nms-critical-flags-remain-false',
+                flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
     return result

@@ -56,6 +56,20 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             audit_input(run)
         if run.input_digest != expected_digest or (not typed and digest(read_input(run)) != expected_digest):
             raise ValueError('Input snapshot changed during calculation')
+        lineage = output.get('Lineage') or [{}]
+        cohort = lineage[0].get('cohort1')
+        if cohort is not None:
+            # Queue/task finalization and typed output commit share this one
+            # transaction. Any later writer/readback failure rolls both back.
+            from mta.mdm.daily_input import finalize_consumption
+            from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+            from mta.application.daily_finalization import mark
+            finalize_consumption(run)
+            if not MdmDailyInputCapture.objects.filter(run=run, status='CONSUMED').exists():
+                raise ValueError('Cohort1 task source was not consumed')
+            complete = output['ClosingState'][0]['complete']
+            mark(complete, 'NMSTaskStatusUpdate.sql')
+            cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
         # Keep one atomic publication, but serialize/write one checkpoint at
         # a time rather than retaining a second whole temporal output graph.
         if run.kind=='DAILY_CHAIN':

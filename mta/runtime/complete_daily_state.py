@@ -8,8 +8,8 @@ import hashlib
 import json
 from pathlib import Path
 
-SCHEMA_SHA256 = 'c36dee5784b6922d7a1fbe422052941918be9c2af20b4deb691b1561ff77d8bf'
-_raw = (Path(__file__).resolve().parents[2]/'baseline/complete-daily-state-schema-v2.json').read_bytes()
+SCHEMA_SHA256 = '110d505e08ef1c31238dc5a362127193dc646deace4a40c0c07dd989b57c6d97'
+_raw = (Path(__file__).resolve().parents[2]/'baseline/complete-daily-state-schema-v3.json').read_bytes()
 if hashlib.sha256(_raw).hexdigest() != SCHEMA_SHA256:
     raise ValueError('Complete-day typed schema supplement differs')
 CATALOG = json.loads(_raw)

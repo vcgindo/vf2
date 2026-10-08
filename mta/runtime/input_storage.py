@@ -71,7 +71,14 @@ def save_input(run,raw):
             return {'object':[[k,pack(v,path+'/'+k)] for k,v in value.items()]}
         if not isinstance(value,(list,tuple,Rows)):
             return {'scalar':storage(value)}
-        if not value:return {'empty':True}
+        if not value:
+            from mta.runtime.complete_daily_state import input_table
+            table = input_table(path + '/values')
+            if table:
+                return {'records': image(path+'/values', [], table),
+                    'shape_image': image(path+'/shape', [], 'input/row_shape'),
+                    'shapes': [], 'children': []}
+            return {'empty':True}
         if all(not isinstance(v,(dict,list,tuple)) for v in value):
             rows=Rows(len(value),lambda:({'value':v} for v in value))
             kinds={type(v) for v in value if v is not None}

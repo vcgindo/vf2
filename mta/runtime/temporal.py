@@ -110,7 +110,7 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
                 report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
-                pick_output_root=None, pick_config_sha256=None):
+                pick_output_root=None, pick_config_sha256=None, finalization_config=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -121,7 +121,19 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
+    from mta.application.daily_finalization import configuration
+    finalization = configuration(profile)
+    finalization_binding = None
+    if finalization is not None:
+        from mta.application.daily_finalization import validate_supplement
+        finalization_binding = validate_supplement(finalization_config, profile, opening)
+    elif finalization_config is not None:
+        raise ValueError('Finalization supplement requires its explicit policy')
+    if finalization is not None and mdm_source is None and mdm_retry is None:
+        raise ValueError('Generic finalization requires an explicit owned task/MDM capture source')
     complete_pick = profile.get('complete_pick') is not None
+    if finalization is not None and not complete_pick:
+        raise ValueError('Generic finalization requires the complete Pick producer')
     if complete_pick != (pick_output_root is not None):
         raise ValueError('Complete Pick policy and explicit owned output root must be supplied together')
     if pick_config_sha256 is not None and not complete_pick:
@@ -144,7 +156,30 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             parent=CalculationRun.objects.select_for_update().get(pk=predecessor.pk)
             if parent.kind!=KIND or parent.business_date>=today:
                 raise ValueError('Invalid daily predecessor')
+            parent_profile = read_input(parent, components=('profile',))['profile']
+            if (configuration(parent_profile) is not None or finalization is not None):
+                if configuration(parent_profile) != finalization:
+                    raise ValueError('Generic finalization predecessor configuration differs')
+                if digest(parent_profile) != digest(profile):
+                    raise ValueError('Generic finalization requires its own unchanged configuration')
+                parent_capture = getattr(parent, 'mdm_input_capture', None)
+                selected_source_id = mdm_source.pk if mdm_source is not None else None
+                if mdm_retry is not None:
+                    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+                    retry_capture = MdmDailyInputCapture.objects.select_related('run').get(
+                        run_id=getattr(mdm_retry, 'pk', mdm_retry))
+                    if (retry_capture.run.status != 'FAILED'
+                            or retry_capture.run.predecessor_id != parent.pk
+                            or retry_capture.run.business_date != today):
+                        raise ValueError('Cohort1 retry predecessor or date differs')
+                    selected_source_id = retry_capture.source_id
+                if (parent_capture is None or parent_capture.status != 'CONSUMED'
+                        or parent_capture.source_id != selected_source_id):
+                    raise ValueError('Generic finalization requires its own consumed task source')
             previous=read_outputs(parent)
+            if finalization is not None:
+                from mta.application.daily_finalization import verify_successor
+                verify_successor(previous, parent_profile, parent.business_date.isoformat())
             if parent.input_payload['profile']['delivery']['site_code']!=profile['delivery']['site_code']:
                 raise ValueError('Predecessor belongs to another site')
             prior=deepcopy(previous['ClosingState'][0])
@@ -165,6 +200,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if publication_enabled else None)
         raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
                  lineage=lineage,report_exceptions=storage(report_exceptions or {}))
+        if finalization_binding is not None:
+            raw['finalization_binding'] = finalization_binding
         if complete_pick:
             raw['pick_output_root'] = pick_output_root
         if pick_config_sha256 is not None:
@@ -200,7 +237,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     .values_list('run_id',flat=True))
                 if (origin_capture.run.status!='FAILED' or origin_capture.status!='CAPTURED'
                         or active_leaf_ids!=[origin_capture.run_id]
-                        or origin_capture.request_digest!=request_digest):
+                        or origin_capture.request_digest!=request_digest
+                        or origin_capture.run.predecessor_id != (parent.pk if parent else None)
+                        or origin_capture.run.business_date != today
+                        or origin_capture.run.execution_revision == execution_revision):
                     raise ValueError('MDM retry does not match this failed daily request')
                 origin_raw=read_input(origin_capture.run, components=('mdm_input','request_inputs','remark_inputs'))
                 capture_snapshot=deepcopy(origin_raw.get('mdm_input'))
@@ -300,6 +340,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if completed!=list(BOUNDARIES):
                 raise ValueError('Incomplete daily boundary roster')
             result['Lineage']=[lineage]
+            if finalization is not None:
+                from mta.application.daily_finalization import verify_successor
+                lineage['cohort1'] = result.pop('_Cohort1')
+                verify_successor(result, profile, today.isoformat())
             if complete_pick:
                 source_digests = result.pop('_PickSourceDigests', None)
                 if source_digests is not None:

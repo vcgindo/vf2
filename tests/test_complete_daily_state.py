@@ -9,18 +9,40 @@ from mta.runtime.relational_state import CATALOG, INPUT_TABLES
 
 
 class CompleteStateTests(unittest.TestCase):
-    def test_pick_extension_preserves_previous_catalogue_and_native_columns(self):
+    def test_empty_nms_queue_extension_preserves_v2_catalogue_and_native_columns(self):
         root = Path(__file__).resolve().parents[1]
-        previous = json.loads((root/'baseline/complete-daily-state-schema-v1.json').read_bytes())
+        previous = json.loads((root/'baseline/complete-daily-state-schema-v2.json').read_bytes())
         for key, fields in previous['tables'].items():
             self.assertEqual(TABLES[key], fields)
         for binding, key in previous['bindings'].items():
             self.assertEqual(BINDINGS[binding], key)
         self.assertEqual(set(TABLES)-set(previous['tables']), {
-            'complete/BPR/LogisticPickList', 'complete/BPR/PickListDataForTruckFormation'})
-        for name, size in (('LogisticPickList', 21), ('PickListDataForTruckFormation', 16)):
-            key = 'complete/BPR/' + name
-            self.assertEqual(len(TABLES[key]), size)
+            'complete/Importer/NMSSOB', 'complete/Importer/NMSMOQWithDestination',
+            'complete/Importer/NMSMOQWithoutDestination',
+            'complete/Importer/SOBDataRaw', 'complete/Importer/MOQDataRaw1',
+            'complete/Importer/MOQDataRaw2'})
+        expected = {
+            'NMSSOB': [('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'),
+                ('SupplierCode', 'nvarchar'), ('SOB', 'float'), ('ActionType', 'int'),
+                ('Approved', 'bit'), ('Reverted', 'bit')],
+            'NMSMOQWithDestination': [('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'),
+                ('SupplierCode', 'nvarchar'), ('MOQ', 'int'), ('ActionType', 'int'),
+                ('Approved', 'bit'), ('Reverted', 'bit')],
+            'NMSMOQWithoutDestination': [('SKUCode', 'nvarchar'),
+                ('SupplierCode', 'nvarchar'), ('MOQ', 'int'), ('ActionType', 'int'),
+                ('Approved', 'bit'), ('Reverted', 'bit')],
+            'SOBDataRaw': [('SKUCode', 'nvarchar'), ('WHCode', 'nvarchar'),
+                ('SupplierCode', 'nvarchar'), ('SupplierDescription', 'varchar'),
+                ('SOB', 'float')],
+            'MOQDataRaw1': [('SKUCode', 'nvarchar'), ('SupplierCode', 'nvarchar'),
+                ('SupplierDescription', 'varchar'), ('MOQ', 'int')],
+            'MOQDataRaw2': [('SKUCode', 'nvarchar'), ('WHCode', 'nvarchar'),
+                ('SupplierCode', 'nvarchar'), ('SupplierDescription', 'varchar'),
+                ('MOQ', 'int')],
+        }
+        for name, columns in expected.items():
+            key = 'complete/Importer/' + name
+            self.assertEqual(TABLES[key], [list(column) for column in columns])
             fields = [n for n, _ in TABLES[key]]
             self.assertEqual(choose_table(fields, 'input/opening/state/complete/' + name + '/values'), key)
             self.assertEqual(BINDINGS['closing/complete/' + name], key)

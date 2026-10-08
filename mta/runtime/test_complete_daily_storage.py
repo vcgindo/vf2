@@ -61,6 +61,22 @@ class CompleteDailyStorageTests(TransactionTestCase):
         self.assertEqual(read_input(run), raw)
         self.assertNotIn('Text ', str(run.input_payload))
 
+    def test_empty_approval_openings_have_typed_identity_and_readback(self):
+        names = ('NMSSOB', 'NMSMOQWithDestination', 'NMSMOQWithoutDestination')
+        raw = dict(profile={'delivery': {'site_code': 'VECTORFLOW-DEMO'}},
+                   opening={'state': {'complete': {name: [] for name in names}}})
+        run = self.run_owner('explicit-empty-queues')
+        run.input_digest = digest(raw)
+        run.input_payload = save_input(run, raw)
+        run.input_manifest_digest = digest(run.input_payload)
+        run.save()
+        for name in names:
+            path = 'input/opening/state/complete/' + name + '/values'
+            metadata = run.input_payload['images'][path]
+            self.assertEqual(metadata['count'], 0)
+            self.assertEqual(load_image(run, metadata), [])
+        self.assertEqual(read_input(run), raw)
+
     def test_database_rollback_and_restrict_are_real(self):
         run = self.run_owner('rollback')
         binding, key = next(iter(BINDINGS.items()))
@@ -81,7 +97,8 @@ class CompleteDailyStorageTests(TransactionTestCase):
         # Generic flush cannot include raw-SQL state FKs and must not truncate
         # unrelated immutable source tables. Remove precisely this test's rows.
         if connection.settings_dict['NAME'] not in (
-                'test_freshvcf', 'test_freshvcf_complete_pick_20261008_001'):
+                'test_freshvcf', 'test_freshvcf_complete_pick_20261008_001',
+                'test_freshvcf_cohort1_20261008_001'):
             raise RuntimeError('Storage-test cleanup requires the isolated test database')
         with connection.cursor() as cursor:
             for owner in self.owners:

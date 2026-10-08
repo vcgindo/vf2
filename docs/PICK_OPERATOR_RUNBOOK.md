@@ -1,5 +1,10 @@
 # Pick operator runbook
 
+**Pick is CLOSED for the current readiness assessment.** Execute the numbered
+read-only procedure below for its accepted calculation/storage/files/recovery.
+Authenticated HTTP and publication remain deferred to Cohort3; this procedure
+does not activate serving or grant publication acceptance.
+
 This runbook covers the positive Pick fixture approved in human controller turn
 `01a11ad1-c612-7e62-aea1-985a531c709b`. The two authorized modern dates have
 already been calculated. The normal operator procedure below is read-only. It

@@ -51,6 +51,9 @@ class Command(BaseCommand):
                             help='JSON vehicle and parent-location mapping for complete Pick')
         parser.add_argument('--pick-config-sha256',
                             help='Expected immutable complete Pick configuration digest')
+        parser.add_argument('--finalization-config', type=Path,
+                            help='Pinned generic finalization policy and explicit opening populations')
+        parser.add_argument('--finalization-config-sha256')
         parser.add_argument('--verify-prefix-only', action='store_true', help=argparse.SUPPRESS)
 
     def handle(self,*args,**options):
@@ -61,8 +64,6 @@ class Command(BaseCommand):
         source_id, source_digest = options.get('mdm_source'), options.get('mdm_source_digest')
         retry_id = options.get('mdm_retry')
         continuation_path = options.get('continue_from')
-        if continuation_path and retry_id:
-            raise CommandError('Successor continuation cannot reuse a failed root capture')
         if retry_id and not source_id:
             raise CommandError('Frozen MDM retry requires an explicit bound source')
         if bool(source_id) != bool(source_digest):
@@ -77,9 +78,11 @@ class Command(BaseCommand):
                 raise CommandError('MDM daily publication requires explicit BPR remark horizon')
             if retry_id:
                 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-                if not MdmDailyInputCapture.objects.filter(run_id=retry_id, source=mdm_source,
-                        run__status='FAILED', run__predecessor__isnull=True).exists():
-                    raise CommandError('Frozen retry is not a failed root of this source')
+                retry_filters = dict(run_id=retry_id, source=mdm_source, run__status='FAILED')
+                if not continuation_path:
+                    retry_filters['run__predecessor__isnull'] = True
+                if not MdmDailyInputCapture.objects.filter(**retry_filters).exists():
+                    raise CommandError('Frozen retry is not a failed attempt of this source')
         elif options.get('bpr_remark_horizon') is not None:
             raise CommandError('BPR remark horizon override requires an explicit MDM source')
         target=options['evidence']
@@ -110,6 +113,33 @@ class Command(BaseCommand):
             except ValueError as error:
                 raise CommandError(str(error)) from error
         profile = deepcopy(case['profile'])
+        finalization_identity = None
+        finalization_content = None
+        finalization_path = options.get('finalization_config')
+        finalization_sha = options.get('finalization_config_sha256')
+        if bool(finalization_path) != bool(finalization_sha):
+            raise CommandError('Finalization supplement and digest must be supplied together')
+        if finalization_path:
+            content = finalization_path.read_bytes()
+            finalization_content = content
+            if hashlib.sha256(content).hexdigest() != finalization_sha:
+                raise CommandError('Finalization supplement digest differs')
+            supplement = json.loads(content)
+            if (set(supplement) != {'schema', 'artifact_sha256', 'configuration', 'opening_complete'}
+                    or supplement['schema'] != 'generic-finalization-input-v1'
+                    or supplement['artifact_sha256'] != options['sha256']):
+                raise CommandError('Finalization supplement binding differs')
+            from mta.application.daily_finalization import configuration, begin
+            profile['complete_daily'] = supplement['configuration']
+            profile['complete_daily_config_sha256'] = finalization_sha
+            profile['complete_daily_artifact_sha256'] = options['sha256']
+            configuration(profile)
+            if 'complete' in case['opening']:
+                raise CommandError('Finalization supplement cannot replace existing complete state')
+            case['opening'] = {**case['opening'], 'complete': supplement['opening_complete']}
+            begin(case['opening'], case['days'][0]['business_date'])
+            finalization_identity = dict(policy=profile['complete_daily']['policy'],
+                                         config_sha256=finalization_sha)
         pick_values = (options.get('complete_pick_policy'), options.get('pick_output_root'),
                        options.get('pick_config'), options.get('pick_config_sha256'))
         if any(value is not None for value in pick_values) and not all(value is not None for value in pick_values):
@@ -220,6 +250,8 @@ class Command(BaseCommand):
                 raise CommandError('Continuation verification mode differs')
             if previous_execution.get('complete_pick') != pick_identity:
                 raise CommandError('Continuation complete Pick identity differs')
+            if previous_execution.get('complete_daily') != finalization_identity:
+                raise CommandError('Continuation finalization identity differs')
             expected_mdm=(dict(id=str(mdm_source.pk),digest=mdm_source.digest,
                 bpr_remark_horizon=options['bpr_remark_horizon']) if mdm_source is not None else None)
             if previous_execution.get('mdm_source')!=expected_mdm:
@@ -245,6 +277,12 @@ class Command(BaseCommand):
                 raise CommandError(str(error)) from error
             receipts=composed_prefix(previous_execution)
             start=len(receipts)
+            if retry_id:
+                if not MdmDailyInputCapture.objects.filter(run_id=retry_id,
+                        source=mdm_source, run__predecessor=previous,
+                        run__business_date=case['days'][start]['business_date'],
+                        run__status='FAILED').exclude(run__execution_revision=options['revision']).exists():
+                    raise CommandError('Frozen successor retry identity differs')
 
         if options.get('verify_prefix_only'):
             if not continuation_path:
@@ -281,7 +319,7 @@ class Command(BaseCommand):
                         business_date=day['business_date'],base_artifact_sha256=options['sha256'])
                     receipt['shipment_supplement_sha256']=shipment_sha
                 capture_arguments = {'mdm_source': mdm_source} if mdm_source is not None else {}
-                if retry_id and index == 0:
+                if retry_id and index == start:
                     capture_arguments = {'mdm_retry': retry_id}
                     receipt['retry_of'] = str(retry_id)
                 run=execute_day(day=day,profile=profile,execution_revision=options['revision'],
@@ -290,6 +328,7 @@ class Command(BaseCommand):
                         opening_date=case['opening_date'],identity=case['case']+'-'+options['sha256']+'-'+policy),
                     report_exceptions=exceptions, pick_output_root=pick_output_root,
                     pick_config_sha256=(pick_identity or {}).get('config_sha256'),
+                    finalization_config=finalization_content,
                     **capture_arguments)
                 manifest=export_run(run,target/f'day-{index:03d}')
                 archive=OutputArchive(manifest)
@@ -341,6 +380,7 @@ class Command(BaseCommand):
                     action_policy=policy,report_exceptions=exceptions,
                     computation_only=options.get('computation_only',False),
                     **({'complete_pick':pick_identity} if pick_identity else {}),
+                    **({'complete_daily':finalization_identity} if finalization_identity else {}),
                     **({'continuation':continuation} if continuation else {}),
                     days=receipts),indent=2),encoding='utf-8')
                 self.stdout.write(json.dumps(receipt));self.stdout.flush()

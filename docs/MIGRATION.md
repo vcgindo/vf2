@@ -6,6 +6,59 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT1 — qualified inactive-NMS finalization delivered (8 October 2026)
+
+The latest human authorization supersedes the consumer-first correction. Pick
+remains CLOSED for this readiness assessment; HTTP/publication belongs to held
+Cohort3. This commit delivers the cohesive generic final-writer integration and
+the approved two-date correctness proof within the explicit domain below.
+
+1. Main execute_day now owns reset, fresh raw-feed clear/load, post-control NMS
+   snapshot and transit tags, supplier dispatch, production suggestions, retention,
+   BPR validation and the separate Cohort1 enabled-writer successor check.
+   Actual task consumption and typed closing publication share one transaction.
+2. Typed migration0081 adds the three explicit approval queues and three supplier
+   raw populations; empty openings retain typed identity. Own predecessor,
+   configuration, capture source and action lineage are enforced.
+3. Exactly two approved engine calls passed: June6 run
+   2a231060-6eb0-4163-9cfb-7fb5146100a4; June7 run
+   5ed740db-71fc-407f-b558-c68d7437d835. Full typed projection readback is exact.
+   June7 consumed June6's actual two-identity Apply event. No Sleep target was
+   suggested; no Sleep was manufactured. Completed retries made zero calculations.
+4. CalculationOutputs, DBMFinal, BPRFinal, BTRFinal, Reports and both complete Pick
+   tables exactly match the accepted positive Pick runs on both dates. New final
+   populations include nonempty supplier dispatch and production suggestions.
+5. Verification:44 focused unit tests;4 migration-enabled PG storage tests;
+   14 unchanged default protocol tests; one new PG successor failure/rollback/
+   frozen-retry test. Protocol tests use stub calculations, separately from the
+   real two-date proof. Canonical producer/native receipts are reused after exact
+   source reconciliation (only recorded harness line-ending changes). Baseline387
+   pins pass. Independent review findings were corrected and tested.
+
+Evidence: D:/freshvcf-build/evidence/cohort1-20261008-001/closure-proof-v1.json.
+Calculation image: sha256:6fa4a13165d996ce13a60c5987cbce12e5e5feefb33edd88d316b5addee372a4.
+Final image: sha256:be53e87caac650d9e51d045830e63f376421a21c8b45c65947752c49a0cf6ed0.
+Only pinned-seed CRLF/LF normalization and its checksum changed after calculation;
+identical seed values,12 focused tests and both persisted-run checks pass.
+Supplement:571e38fa7ef82759ce0ca439bff08015eb1eb688c29620958cd07f4c6dab2b3e.
+Original business artifact7e60ef1b…2699d, Pick configuration and action policy
+remain unchanged. Proof calls execute_day directly; command routing tests do not
+claim a newly installed MDM application source or CLI end-to-end acceptance.
+
+Approved limits: NMSActive=0; NMSSOB and both MOQ approval queues explicitly empty;
+canonical IsBatchFileExecuted remains0 because its two skipped NMS scripts remain
+critical/false. The separate Cohort1 gate also requires BPR success, current date,
+all enabled critical writers, exact typed state and consumed task source. It is
+not publication admission. Authorities:call_bfa7da5e618345cd830e5be8e9fc0c17,
+call_f79bc59d50134d93a3bc413d97359080 and call_fbec246f79704e59baf3e5347253d7a8.
+
+Unrestricted generic closure is NOT claimed: active-NMS finalization intake is
+still unqualified and explicitly rejected; populated SOB/MOQ approval workflows
+remain an unmet supported-domain boundary. No further dates, full-day SQL parity,
+Cohorts2–4, benchmark or stopped temporal run are released by this result.
+Stop at this qualified Cohort1 handoff. All serving selections/seals, prior runs,
+MTO and unrelated dirty work remain preserved.
+
 ### Pick cohesive closure — qualified acceptance, 8 October 2026
 
 The commit containing this entry is the finite Pick delivery checkpoint. The

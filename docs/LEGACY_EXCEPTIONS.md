@@ -1225,3 +1225,23 @@ Four guard tests and the deployed broad/restricted endpoint proof pass in
 `daily-publication-3006-20261006-001/history-disposition-serving-001.log`;
 selected smoke seals, Planning/RRR admissions and protected services are
 unchanged. No completed date from the stopped reproduction is claimed.
+
+## Cohort1 finalization qualifications — 8 October 2026
+
+Direct human approval call_f79bc59d50134d93a3bc413d97359080 permits explicitly
+empty, typed, run-owned NMSSOB/NMSMOQWithDestination/NMSMOQWithoutDestination
+openings for the retained two-date correctness proof. Nonempty populations are
+rejected; this does not establish populated supplier/MOQ approval workflows.
+Source: Importer_DBCreation.sql and NMSImportData/NMSClearInputTables.sql.
+
+Direct human approval call_fbec246f79704e59baf3e5347253d7a8 permits a separately
+named Cohort1 enabled-writer successor check while preserving the native
+IsBatchFileExecuted=0. The retained input7e60ef1b…2699d has NMSActive=0; the
+approved206-row seed nevertheless marks NMSImportData.sql and NMSClearInputTables.sql
+critical, and ImportMasterDataComponents.bat skips both. Canonical flags, their
+criticality, settings, calculation and publication admission remain unchanged.
+The qualification excuses only those two source-skipped flags for the inactive
+mode. Missing other critical writers, stale dates, altered roster/configuration
+and incomplete typed output must deny the Cohort1 successor. This is not full
+legacy batch completion or publication readiness. No business day has run at
+the time this implementation record is added.

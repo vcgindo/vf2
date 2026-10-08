@@ -1,0 +1,1242 @@
+{
+  "schema": "generic-finalization-flags-v1",
+  "source_sha256": "11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309",
+  "flags": [
+    {
+      "ScriptName": "GenerateLogisticPickListReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateRemainingQtyDetailsReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectDataForNormRationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectDataToExpediteDispatches.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "EcoAvailabilityComparision.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "PostRationEcoAvailability.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "UpdatePostRationPipelineInventoryPen.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ExcludeReplenishment.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "FillRationSteps.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GetReqData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GetReqDataForParent.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GetStepwiseChildReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "RationPacksize.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CalculateDD.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CalculateReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CalculateRoute.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectDataForPSORationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ConsolidateReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateAddionalMasterData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateBifurcationOfRationedReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateLogisticPickList.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateRationReqReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenSupplierWiseReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ImportSpikeOrders.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "PSORationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "StockCalculation.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "01. ImportData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CalculatePenetrationAndColor.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ClearHistoryData_BPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectDataForBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectDataForDispatchPriority.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ProdOrderSuggestions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "SendBPRExceptionsAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "UpdateBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "UpdateDispatchPriority.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ClearTableForBPRBatchExecutionFailure.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "ValidateBPRBatchExecutionFlags.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GenerateGoodsInTransitMaster.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "GoodsInTransitTransporterMaster.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectExcessInventoryDetails.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectOrderFulfillmentData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "OrderAllocation.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "CollectBOR_OrderAllocationData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "UpdateBPPAndColorForOrder.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BPR"
+    },
+    {
+      "ScriptName": "1. Import BPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "2. GenerateBufferTrend.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "3. GenerateSnapshotForUI.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "BufferTrendCountGraph.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "CollectRationingHistory.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "ExportToExcel_30Days.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "ExportToExcel_60Days.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "ExportToExcel_90Days.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "GenerateColorAgeingReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "GenerateLocationwiseBTR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "UpdateBRAge.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "UpdateBRAgePhysicalInv.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "UpdateCategoryCol.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "CollectChronicUnavailabilityData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "CollectDBMNormSuggestionsData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "CalculateAvailabilityPhysicalInv.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "BTR"
+    },
+    {
+      "ScriptName": "ClearHistoryData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Common"
+    },
+    {
+      "ScriptName": "ExportRuntimeReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Common"
+    },
+    {
+      "ScriptName": "RunFinishAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Common"
+    },
+    {
+      "ScriptName": "Norm1IncreaseSuggestions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "PhaseOutRecommendation.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "AutoNormAcceptance.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "NormAcceptanceAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "01. ImportMasterData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "02. GetDailyData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ImportExclusions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ImportForceNormChange.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ImportOrderData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "DBMNormChangeAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "01. Stockout type A.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "02. VirtualStockout.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "03. Stockout type B.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "04. Too much in Red.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "05. Too much in Green.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "06. Spikes.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "08. GenerateReports.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuggestionNorm0Increase_OrderBased.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuggestionNorm1Increase_ConsumptionBased.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuggestionNorm2Decrease_ConsumptionBased.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "12. DelistingofNorm.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CalculateExtendedOCP.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ClearForceNormChange.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CollectFailedForceNormData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CollectPhaseInData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CollectPhaseOutData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "FailedForceNormChangeAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "InsertParentOrderTypeSuggestions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "PhaseInPhaseOutExceptionAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ProcessPhaseIn.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ProcessPhaseOut.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "UpdateAcceptedNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "UpdateForceChangedNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "UpdateOrderSummaryData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ClearNorm0-1-2ReportData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "GenerateNorm0-1-2Report.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "Norm0Data.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "Norm1Data.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "Norm2Data.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ApplySeasonalityNormChanges.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CollectSeasonalityData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ProcessSeasonality.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "01. StepOne.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "01.1. StepOneOrderType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "02. NewSKUIntroduction.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "03.1 AcceptedNormsStockType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "03.2 AcceptedNormsConsumptionType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "04. ForcedChangeNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "04.2 ForcedChangeNormsConsumptionType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "05. NormsInSleepMode.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "06. ExistingDisabledNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "07. SpikeToday.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "08. WhiteStock.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "09. RedBlackParent.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "10. SupplyIssue.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "11. Phaseout.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "12. PhaseIn.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "13. Seasonality.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "14. AggregateCommonSuspensions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "14.0 AggregateCommonSuspensionWithOrderType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "15. AggregateStockTypeSuspensions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "16. AggregateConsumptionTypeSuspensions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "DiscardSuggestions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "GatherSuspensionHistory.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "InsufficientDataPoints.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionsUpdatePreConsumptionType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionsUpdatePreOrderType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionsUpdatePreStockType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionUpdateFinalConsumptionType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionUpdateFinalOrderType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "SuspensionUpdateFinalStockType.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "ClearHistoryData_DBM.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "DBM"
+    },
+    {
+      "ScriptName": "CleanDistLogTbl.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "CreateDistTransactionReportBatchFile.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "CreateTransactionLog.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "DistributorsDataSnapshot.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "ImportDistInvoices.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "ImportDistributorDailyData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "ImportMasterDataForDist.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "ImportNewSKULocDistributor.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "MissingMasterDataAlertForDistributors.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "RejectedInvoiceAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "ResetStockEntry.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Distributor"
+    },
+    {
+      "ScriptName": "UnApprovedPhaseinPhaseoutAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "UpdateNormChanges.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "AddPhaseInItemsMasterData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ClearInvalidDataHistory.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ClearMasterInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ClearNonMasterInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ClearPhaseInPhaseOutData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ClearUIUploadLogHistory.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "CollectNonMasterSKUs.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "DataUnavailabilityAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "DBMMissingDailyDataHandling.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "GenerateLocationInventoryMissingAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "GenerateLocationInventoryMissingReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "GetUnavailableFiles.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "InvalidDataAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NMSArchiveInputData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NMSClearInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NMSCreateSnapshot.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NMSImportData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NoNormParentAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ResetFlags.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ResetTotalOrdQtyForOrdCreationUI.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAcceptedNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "NMSTaskStatusUpdate.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAdditionalDailyData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAdditionalDataStockForReqCalc.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessDailyData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessDailyDataCarryStock.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessDailyDataNoChange.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessDailyDataStockZero.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessMaster.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateAndProcessNoNormMaster.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateCustomGITData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateExclusions.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateForceNormChange.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateInvoiceData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateMOQDataRaw1.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateMOQDataRaw2.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateOrderData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidatePhaseInNorms.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidatePhaseout.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidatePSOData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateSeasonalityData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateSOBData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidationForParentNorm.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidMasterDataAlert.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ResetBatchExecutionFlag.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateBatchExecutionFlags.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "ValidateGoodsInTransit.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "UpdateInTransitDataTags.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "InitialiseSkuLocStdAttributeData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "AddNewRemoveDiscontinued.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    },
+    {
+      "ScriptName": "CleanVendorLogTbl.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "CreateTransactionLog.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "ImportMasterDataForVendor.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "ImportVendorDailyData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "ResetStockEntry.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "VendorDataSnapshot.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Vendor"
+    },
+    {
+      "ScriptName": "UpdateChangedSKULocCode.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 0,
+      "ModuleName": "Importer"
+    }
+  ]
+}
