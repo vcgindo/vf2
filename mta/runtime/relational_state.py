@@ -26,7 +26,8 @@ PG_TYPES={'int':'bigint','bigint':'bigint','bit':'boolean','date':'date',
     'float':'double precision','real':'double precision',
     'nchar':'text','nvarchar':'text','varchar':'text','xml':'text'}
 from mta.runtime.input_tables import TABLES as INPUT_TABLES
-STORAGE_TABLES = {**CATALOG['tables'], **INPUT_TABLES}
+from mta.runtime.complete_daily_state import TABLES as COMPLETE_TABLES, BINDINGS as COMPLETE_BINDINGS
+STORAGE_TABLES = {**CATALOG['tables'], **INPUT_TABLES, **COMPLETE_TABLES}
 
 
 def quote(name):return '"'+name.replace('"','""')+'"'
@@ -92,8 +93,11 @@ def bulk(sql,records):
 
 
 def save_image(run,image,binding,rows, *, table=None):
-    key=table if table is not None else '/'.join(CATALOG['bindings'][binding])
+    key=(table if table is not None else COMPLETE_BINDINGS[binding]
+         if binding in COMPLETE_BINDINGS else '/'.join(CATALOG['bindings'][binding]))
     if key not in STORAGE_TABLES:raise ValueError('Unknown typed image table')
+    from mta.runtime.complete_daily_state import validate_write
+    validate_write(key,image,binding)
     metadata=dict(image=image,table=key,count=len(rows),digest=rows_digest(rows),fields=[])
     if not rows:return metadata
     fields=list(rows[0])

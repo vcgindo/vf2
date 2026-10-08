@@ -1,218 +1,131 @@
-# Complete daily execution: coverage and assessment contract
+# Complete daily codebase readiness assessment
 
-8 October 2026. This document records evidence and the benchmark contract, not
-execution status. `MIGRATION.md` is the sole status tracker. The approved objective
-is one complete daily outcome, including actions and daily published outputs
-consumable by the existing UI. No new business invocation has been made for this
-assessment. No complete-day timing is available yet.
+8 October 2026. **Not production-ready yet.** The core migrated engine and earlier
+accepted application slices remain available, but the newly required complete
+daily path is not wired end to end. C1–C6 resolve bounded setup/compatibility choices;
+they do not prove complete implementation, publication or release.
 
-The human-stopped `temporal-full-001`, all accepted/interrupted attempts, source
-transitions, SQL namespace and serving selections remain protected. Do not run
-the previous H3 command to perform this assessment.
+This report explains the existing evidence and completion plan. It is not a second
+tracker: [MIGRATION.md](MIGRATION.md), readiness exits R1–R5, is the only status.
+The human instruction to halt benchmarking supersedes the earlier assessment run
+budget. No timing work, benchmark exercises or stopped H3 continuation is active.
+No new complete business day has run. A real new business-day correctness execution
+requires a separate, smallest-scenario approval before it starts.
 
-## Authority and evidence boundary
+## Scope and what is already proved
 
-Use `baseline/manifest.json`, actual deployed BAT/SQL/config and the deployed API
-DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`.
-The retained `docs/batch-atlas/inventory.json` and `diagrams-v2.json` provide
-navigation and source hashes; their static edges are not execution proof. Existing
-`DAILY_EXECUTION_COVERAGE.md` described the earlier narrower refinement, whose
-presentation preparation was outside its timing. That boundary cannot close this
-assessment. Untracked atlas/guide files are read-only evidence, not adopted changes.
+Canonical deployed BAT/SQL/config and API DLL remain authority. DLL SHA256:
+`0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`.
+The existing source manifest, operation roster and coverage map are reused; this
+report introduces no broad rediscovery, new engine, test campaign or architecture.
 
-Frozen facts remain
-`D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json`, SHA256
-`ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56`:
-1,240 pairs, 200 SKUs, retained 20-location catalogue (13 active pair locations),
-21 dates June 6–26. The proposed exercise uses ONLY June 6 and June 7, retaining
-the complete artifact; no regeneration or new history. The profile declares
-`delivery.site_code=VECTORFLOW-DEMO`, disables vendor/distributor/VectorDMS and
-AutoDBMActive, and selects explicit report horizons. It is not a complete deployed
-GulfOil BAT settings export. GulfOil hooks must be reconciled explicitly, not
-inferred from the atlas's site selection.
+* Written: post-BPR attributes, production-order suggestions, post-BTR RM/FG
+  attributes/history, completion/reset/retention functions, input bridges,
+  standalone scalar adapters, typed storage and admission-evidence validators.
+* Qualified components: standalone Python producers versus canonical SQL pass
+  three small rollback fixtures (577 population comparisons); completion passes
+  twelve fixtures (58 checkpoint comparisons). Scalar adapters pass2,291 exact
+  native comparisons. These are bounded fixture results, not complete-day parity.
+* Storage: migration0079 adds11 typed run/image/ordinal tables. Django check,
+  migration check/plan, fresh PostgreSQL migrations and three DB tests pass:
+  all native columns, NULLs/duplicates, run isolation, input reconstruction,
+  transaction rollback and FK protection. Earlier failed teardown receipts remain.
+* Unchanged earlier evidence: accepted core calculation/DBM joins, own actions,
+  narrower source/readback and report-reader proofs remain reusable only where
+  code/input/source scope matches. They do not certify the new final writers.
 
-Frozen-opening reconciliation additionally confirms input downloads and UI-upload
-logs enabled (both1), pre-backup disabled, NormZeroOneRuleActive0 and delisting1.
-Seven Plants rows are present. Initial orders and both June6/7 order feeds are
-empty. RuntimeReports, ScriptExecutedFlag, DataSanitizationResult and
-EmailAlertSettings are absent, not valid empty populations. The companion
-proposal and source inventory record exact owner paths/values; include known
-enabled output work rather than asking for defaults already supplied by the input.
+Evidence directory: `D:/freshvcf-build/complete-daily-assessment/`.
+Git-required CRLF-to-LF-only source transitions are recorded exactly in
+`git-line-endings-a001.json`; schema bytes/pin were normalized and the DB proof
+rerun as a004. Current accepted component receipts: `qualification-a004.json`,
+`completion-qualification-a002.json`, `scalars-qualification-a002.json`,
+`pg/storage-proof-a004.json`. This PG proof used the old retained application image
+with current source mounted read-only; it is **not a newly built release image**.
 
-## Complete coverage map
+## C1–C6 disposition
 
-Each row follows producer order. Inputs include its listed predecessors. Stored
-outputs must preserve types, NULLs, duplicate occurrences and native order; a row
-count or final-state match cannot prove an overwritten intermediate population.
-`R1` through `R7` below refer to the reuse matrix, not new acceptance receipts.
+All six are approved exactly in
+[COMPLETE_DAILY_CONFIGURATION_DECISIONS.md](COMPLETE_DAILY_CONFIGURATION_DECISIONS.md).
 
-| Process and purpose | Inputs / dependency | Legacy implementation / final writer | Modern implementation / final writer | Persisted output; next-day and UI consumer | Integrity / diagnostics and proof gap |
-|---|---|---|---|---|---|
-| Admission, run dates, fullkit, sanitation, critical-script flags | Explicit site/settings/date and external fact availability | `VectorFLOWv4.bat`, `StdSettingsPre/Post`, site Settings, `CheckRunStartCriteria`, `FullkitCheckForPostRun`, sanitation, `SetRunDate` | `run_daily`, `execute_day`, artifact/MDM/source binding and day-boundary roster | Dates, settings, input/run identity, execution flags/logs; all stages and UI completion | R1/R2 bind selected profile, not full BAT gates. Missing settings/flag mapping must be resolved; no invented empty gate tables |
-| MDM capture / approved master changes / pair exclusion | Own pending approved occurrences, raw master, effective configuration | NMS import/task/archive SQL under input/control BAT sequence | `mdm/daily_input`, `daily_source`, `runtime/mdm_configuration`, `execute_day` | Typed input snapshots, occurrence/task/history archives; current master and subsequent day | Repeatable-read capture and atomic consumption; R3. Legacy actor/check exceptions retain exact scope |
-| Raw master validation / reconciliation | Frozen raw master, NoNorm/NonNMS, own master opening | `ValidateAndProcessMaster.sql`, master import adapter | `r1_master_input`, `r1_gulfoil_input`, `entry_inputs` | MasterData, attributes/descriptions, rejected rows; BPR/DBM/MDM/UI | Outcome checks, exact schema/row policy; intermediate diagnostics R1/R2 |
-| Supplier feeds and SOB/MOQ | Raw supplier rows, prior SOB/MOQ, validated master | Supplier validation/import then refresh at supplier allocation | `r1_supplier_input`, supplier calculation state | Opening supplier sources distinct from refreshed SOB/MOQ; allocation/BOR consumers/next day | Decimal preservation, readback; R2/R3. Opening is not BOR-OA output |
-| Daily input and ingestion | Daily stock/sales/GIT facts and valid master | Daily validation SQL and configured missing-data handling | `r1_daily_input`, `process_daily_validation` | Processed daily rows, reject/history/settings; current calculations | SQL-error/outcome checks, source identity; R1/R2. Optional distributor/vendor disabled by exact profile |
-| Controls and accepted/forced Norms | Prior controls, new requests, phase-in/out, seasonality | `NormChangesRun`, control SQL, force update then clear | `timeline_controls`, `control_carry` | Effective masters, control histories, exports and cleared requests; BPR/DBM and next day | Order-sensitive; force-before-clear diagnostic images required. R1/R2 |
-| Orders and due dates | Own order history/identity, frozen order feed, effective master | `r1_runner.R1_SEQUENCE`, order SQL | `order_closing`, `order_stages` | SpikeOrderData/identity/due dates/history; Pick and next day | Existing used-counter setup is fixture initialization, not timing replacement; no new default/tie break |
-| Stock, requirements and reservations | Processed facts, routes, standard attributes, orders | Current-day R1 SQL sequence | `planning.engine.calculate_current_day`, domain producers | Requirement/stock/advance/GIT/order and allocation populations; downstream Pick/BPR | All15 calculation comparisons include transient populations; R1/R2, cannot infer from final reports |
-| Sourcing, rationing, Pick, supplier allocation and logistics | Requirements, priority, packs, supplier opening, vehicle/logistics | R1 sequence, supplier refresh, BOR-OA collect, Pick/logistics SQL | Current-day planning/ration/Pick/logistics producers | Rationed/Pick/BOR populations, own logistics state; BPR/Planning/RRR | Opening BOR-OA and refreshed supplier BOR captured at different positions. Existing calculation proof is not daily BOR UI source proof |
-| BPR / BlueRequirement / RRR sources | Pick/ration output, inventory, daily consumption/colour | CollectDataForBPR, UpdateBPR and retained SQL source queries | `bpr_construction`, `rationed_report`, `offline_rrr.write` | BPR_Table, vf_RationedReqReport, colour, RRR typed source; BPR/RRR/DBM/BTR | R1/R2 plus independent RRR source proof; scoped RRR0 exception unchanged |
-| Production order suggestions | SupplierDispatchReq, Plants, rationed bands, own plant stock/GIT | ProdOrderSuggestions.sql, after GenSupplierWiseReq | No complete producer mapping yet | ProdOrderSuggestions and scratch effects; configured planning/production consumers | Unconditional BAT call omitted from selected R1 sequence. Script warns about order-data use; frozen-workload compatibility must be resolved |
-| BPR history retention | Own dated consumption and BPR/request/transit remarks; declared horizons | ClearHistoryData_BPR.sql | Typed histories and remark capture filtering do not prove matching owner cleanup | DailyConsumption and three remark histories; next day/current readers | Inclusive cutoff/delete behavior must be mapped; unknown horizon is not zero |
-| Planning final populations / batch files | GIT/excess, expedite, order fulfillment, Pick/order/BOR outputs | Planning.bat and PickListReports/OrderAllocBasedReports wrappers | Existing projection/preparation families require per-producer equality | Planning tables and configured files/downloads; unchanged UI | No omission under BOR UI deferral. Source/input/output mapping still required |
-| BPR exception export | Actual nonempty BPRExceptions | GenerateBPRExceptionReport.bat | No full file-wrapper equivalence established | Header/rows/CSV/ZIP and absent-output behavior | Data-dependent required output; owned paths only, email separate |
-| BPR completion / failed-output clearing | Run-date setting and critical BPR script flags | `ValidateBPRBatchExecutionFlags.sql`; failure clears four BPR report tables and skips later work | Eight-boundary roster and atomic `finish_run` are not proven equivalent BAT failure behavior | IsBPRBatchFileExecuted and report availability; readers and continuation | Missing behavior mapping. Preserve canonical failure outcome; do not silently equate transaction rollback to table clearing |
-| Site post-BPR attributes | Current Pick, ParentPackSize/stock, VirtualNorm, raw SKULocAtt01/02 | GulfOil `CalculatedAttributes.sql`, before DBM | No matching producer found in current temporal chain | c3 in BPR/Importer attributes, BPR_Table.SKULocAttr3, NMSAllItems.SKULocAtt03; attribute readers and possible downstream facts | Real missing source/config decision, not diagnostic overhead. See extension proposal |
-| DBM ingestion and ExtendedOCP | BPR/controls/exclusions/order facts and own DBM opening | Daily import/DBM selected sequence | `dbm_ingestion`, selected/connected DBM stages | DBMMaster, consumption, attributes; ordered suspensions/rules | d004dc1 lookup refinement retained; R2. DBM-ingestion boundary is overwritten later |
-| Suspension/cooling and rule competition | Own suspension/cooling/history plus current imported master | Ordered suspension/rule/discard SQL | `dbm_suspensions`, rule stages, `dbm_suspension_history` | Suggestions, suspension/log/acceptance/history; real actions/next day | Formula, date/tie and reason precedence fixed. R2; stage snapshots diagnostic, histories operational |
-| DBM reports, Norm0/1/2/advisory and norm exports | Stage-specific rule outputs and configured horizons | Ordered report resultsets/tables followed by overwrite/cleanup | DBM report stages and `chain` retained report slices | Ordered report tables, header/row cells/row lengths, Norm history; export readers | Capture before overwrite is required output preservation, not removable debug data. R1/R2/R3 |
-| BTR finalization, ageing, category, insights | Own BTR history plus current BPR/DBM/Pick | Core BTR SQL; final UpdateCategoryCol writer | `btr_finalization`; `chain` copies final standard attributes back to closing DBM | Trends, dates, BTRSnapshotForUI, Chronic, norm suggestions, final standard attributes; next day/BTR/Research/Guided | Core final writer matters: earlier DBM snapshot differs. R1/R2/R3 do not include GulfOil post-BTR overwrite |
-| Site post-BTR computed attributes and files | Rolling BTR/current master under explicit GulfOil hook selection | CalculateAttributeBasedonBTR.sql then GulfOil_BTRReports.py | No qualified computed/file equivalent established | c9/c10/c12/c13 across BPR/DBM/Importer/Supplier/NMS, Interface.FGTrendData and site reports; UI/final state | Omitted from retained core-BTR sequence. New final writer; Python called by pinned BAT but not currently baseline-registered |
-| Parent-Norm report and batch flag reset | Effective master and run-date/critical-script roster | ValidationForParentNorm / ResetBatchExecutionFlag | Existing input/control/run owners not yet qualified for these exact outputs | NoNormParent files and completion flags; operator/readers | Scope includes output/absence/error behavior, not just formulas |
-| BOR/RRR order-allocation history and file wrappers | Current allocation/supplier populations and declared horizons | CollectBOR_OrderAllocationHistory / CollectRRR_OrderAllocationHistory and export wrappers | Existing prepared/UI histories are not proof of these batch producers | Canonical history rows/files; subsequent day and configured consumers | Unconditional history/export calls distinguished from IsMTOEnvironment-gated exports |
-| Runtime reports, input-downloads, UI upload logs, backup/alerts | Exact activation/config rows and intermediate/final products | GenerateRuntimeReports at PostImporter/PostBPR/PostDBM/PostBTR/Final; DownloadInputData; GenerateUIUploadLogs; Backup/alerts | No full-deployed operational wrapper equivalence established | Files/archives/logs and configured reader downloads; operation audit | Conditional is not free exclusion. Need exact flags/SQL/report-file roster. No email transmission or shared backup authorized |
-| Final completion and cleanup | Critical script flags, final reports and date | GenericFinalProcessing / ValidateBatchExecutionFlags; site final hooks | `finish_run` status/manifest/MDM consumption; separate readiness seal | IsBatchFileExecuted; durable run/output identities; next-day/UI admission | Final flags absent in selected oracle. No-op site hooks still recorded; no assumption flag=1 |
-| Real Apply/Sleep | This engine's OWN eligible Suggestions and frozen eligible-Sleep policy | Canonical deployed action SQL/API contract, `replay_commands` | `record_command`, `command_state` | Command selection/before/after digests, typed action images, acceptance/suspension changes; UI overlay and successor | R2/R3 real8Sleep+120Apply day1,6Apply day2 evidence. New workload determined anew, never copied from other engine |
-| Closing persistence and predecessor continuity | All final owned state plus commands | Current oracle writes own capture/closing archive after SQL rollback; actual daily SQL must commit | `save_daily`, `finish_run`, typed relational state; next `execute_day` reads own closing and applies own commands | Run-linked histories/state/images/lineage and source receipts; every successor | R3 atomic typed/readback proof. Legacy archive is persisted evidence, not durable SQL publication; new commit proposal required |
-| Daily narrow report sources | Supplier opening, colour, requests/remarks, frozen shipment facts, calculation outputs | Canonical consumer ingredients in SQL/own external input | `daily_sources`, `daily_transit`, `daily_requests`, `ancillary_live`, Pick/Excess/Fulfillment/Expedite/PickPost writers | Seven source/projection families and source metadata; existing readers | Explicit identical empty request/BPR owners. Missing remains unavailable. R2 corrective proof covers owners, original70.199s does not |
-| Daily presentation preparation | Same-day persisted output and complete source identities | Canonical API/SQL views/query populations plus configured output files | `daily_publication.prepare`, finite `daily_preparation` layers | Prepared typed rows, BTR generation, sealed layer receipts; all supported report readers | R4/R5 retained preparation proof is not new-day end-to-end timing. Every required layer must be READY; no partial seal |
-| Publication, access, readiness and finite consumers | Complete run, output/seal, exact catalogue/hierarchy, action overlays | Durable committed own SQL + fresh compatible canonical reader connection | `activate_daily_ui`, `activate_offline_readers`, `check_daily_selection`, `admission`, `context.selected_run` | Explicit selection tuple/readiness and actual response payloads; unchanged UI | Current modern gates require external parity. Existing service config cannot change. Isolated in-process/private reader proof only; no browser timing claim |
-
-## Presentation output accountability
-
-The 18-layer `core-without-bor-v1` roster remains explicit: dbm_sources, bpr, btr,
-planning_sources, planning_grids, planning_charts, planning_custom, planning_git,
-planning_expedite_grids, planning_expedite_custom, planning_expedite_transit,
-planning_expedite_charts, rrr, history, research_availability, guided_history,
-guided_dbm and guided_chronic. Each has an existing prepare/verify owner in
-`daily_preparation.py`; record its receipt, row identity and consumer response.
-Both days must prepare all required layers and prove finite reader usability.
-
-Direct operational readers also include DBM current/history/actions, Pick,
-Fulfillment, Excess, Expedite and Pick-post. They are not optional merely because
-they lack a separate prepared-layer entry. Live requests/remarks remain their
-own source families and are initialized explicitly; MDM histories remain owned
-and typed. Existing auth/menu/hierarchy/MTO behavior is reused, not redesigned.
-
-BOR and BOR-OA daily UI source gaps remain existing explicit deferrals despite
-their underlying calculation comparisons. Guided Excess rolling history remains
-coverage-bounded/unknown outside qualified dates; do not synthesize pre-June6
-history or extend an old fixture-only waiver. Current Excess projection must
-still be produced and read. No other report is silently deferred.
-
-The companion source inventory records EVERY current `mta/presentation/*.py`
-file (including nested planning files), its hash and top-level symbols. It is a
-completeness backstop, not a claim that a lexical symbol is an equivalent producer.
-Every changed output requires a named consumer and proof before benchmark closure.
-
-## Reuse matrix
-
-| ID / retained evidence | Reusable claim after pin reconciliation | What it cannot establish |
+| Decision | Approved scope | What remains to implement/prove; readiness limit |
 |---|---|---|
-| R1 baseline manifest, source DAG/contracts and canonical DLL | Deployed source identities and selected dependency provenance | All enabled BAT branches or complete daily publication acceptance |
-| R2 `refinement/dbm-joins-001/final-proof.json`, `identities.json`, validation day1/day2 replay and independent RRR | Five DBM joins, all31+RRR, own actions/continuity for the recorded two-day profile; preserve d004dc1 | New site hooks/final flags, new commit/admission semantics, fresh complete-day timing |
-| R3 integrated-001 typed persistence, migration/rollback/input tamper proofs and DBM mode-equivalence-resolved | Typed operation/report persistence and all515 images plus seven source groups where code/input ownership match | Intermediate stages absent from production; no parity transfer by swapping run IDs |
-| R4 terminal/daily preparation, reader/scoped SQL receipts and source implementations | Unchanged reader SQL/serializer/scoping semantics and finite roster recipes | New-day readiness, post-action publication and changed attributes; no copied acceptance |
-| R5 readiness-dbm-v1 before/after/service/source pins | Prior immutable readiness and exact source transition evidence | Authority to restart temporal-full-001 or change a service |
-| R6 old modern89.159→70.199s / DBM30.862→10.131s and earlier89.895/legacy180.878 samples | Historical measured components with recorded resource/input limits | Actions, successor opening, full source owners, presentation, durable legacy publication or complete-day ratio |
-| R7 preserved temporal-full-001 June6–9 acceptance / interrupted later attempts | Exact accepted original identities and diagnostics only | Permission to replay, reset, time again or publish the stopped run |
+| C1 | Pinned GulfOil hooks/schema seeds; explicitly empty missing configuration tables | Wire configuration, flags and gates. Empty RuntimeReports/CriticalFiles/sanitation configuration does not establish a deployed report/sanitation workload. |
+| C2 | Empty initial FG history; own generated successors | Wire persisted FG final state/next opening. Pre-June6 history remains unavailable; no historical completeness claim. |
+| C3 | Unchanged frozen facts as physical CSVs, owned paths and pinned ZIP utility | Implement exact enabled files, members and side effects below; do not invent a member roster. |
+| C4 | Local alert intents using seeded predicates and attachments | Implement and prove intent evaluation. Real email delivery remains outside this qualified scope. |
+| C5 | Owned SQL/PG backups; SQL full bases at setup | Implement setup/daily backup lifecycle and prove logical recoverability. No shared backups or resource repair. |
+| C6 | Explicit legacy clearing versus modern rollback/prior-publication difference | Integrate failed-candidate denial and prove prior selection remains coherent. Failure-state parity is explicitly not claimed. |
 
-Never sum R6 with R4 or any other run to manufacture elapsed daily time. SQL server
-resources are unmatched to the1GiB/oneCPU PostgreSQL fixture; worker4GiB/twoCPU
-limits do not make database resources equal. No clean speed ratio, p95 or SLA.
+## Remaining gaps beyond those decisions
 
-## Integrity controls and possible future replacements
+The categories below distinguish **missing code**, **unwired code**, **missing
+proof**, and **input/release decisions**. No row is closed merely because its file
+exists. Dependencies refer to the sole R1–R5 checklist in MIGRATION.md.
 
-These are assessment candidates only. None is removed or weakened here.
-
-| Control and origin | Failure prevented / authoritative owner | Classification | Existing guarantee and later proof needed |
+| Gap / category | Concrete existing evidence and business consequence | Smallest completion work and dependency | Required proof / human decision |
 |---|---|---|---|
-| BAT fullkit/sanitation/run-date guards | Missing/invalid feeds or wrong date; deployment/input owner | Required admission | Modern explicit input/MDM binding covers selected fields, not every BAT condition; first reconcile missing config |
-| Critical-script flags and BPR clear-on-failure | Silent script omission/partial report display; canonical BAT | Required completion semantics | Modern atomic status/roster is a candidate replacement, not current equivalence; test omitted critical stage, stale date, SQL catch-result and visibility |
-| SQL TRY/CATCH resultsets | Business SQL errors that do not fail process exit; SQL producer | Required error recognition | Result consumer must inspect error rows; exit0 alone is insufficient; preserve canonical side effects |
-| Namespace allowlist, files/schema signatures, lease | Accidental live/shared mutation or concurrent replay; isolation owner | Required safety/integrity | Unique ownership + restricted principal; never replace with a naming assertion alone |
-| Input hash, typed input audit, source owner/revision | Drift, mixed approvals and missing-versus-empty; execute_day/MDM owner | Required boundary checks | Typed keys/FKs and repeatable-read capture already exist. Repeated immutable input scans are candidates only after tamper/mutation guarantees are proved |
-| `read_outputs` / `audit_output` / ordered image checksums | Corrupt/missing/reordered/duplicated state; typed row owner | Required integrity with potentially repeated work | Constraints protect identity/ordinal, not all cell contents. Later immutable-write guarantee + once-per-boundary verification must still reject content tampering |
-| `record_command` rereads all output and replays prior commands | Stale/invalid selections, wrong order, duplicate actions; command owner | Required action integrity, possible redundant reconstruction | Row locks/idempotency/before-after digests exist. Any narrower authoritative DBM read must retain every action eligibility and next-day invariant |
-| `command_state` / action archive/readback | Wrong action lineage or changed typed action image; command owner | Operational validation plus diagnostic export | Persisted RunCommand/image receipts are operational; gzip copies are external evidence. Do not omit action execution or policy selection |
-| Full accepted-prefix verification/copy in `run_temporal` | Changed historical evidence or source transition; validation continuation owner | External acceptance orchestration | Own immediate predecessor verification remains operational. Prefix archive copy/rehash is not calculation; assess once-bound immutable evidence later, no bypass in accepted timelines |
-| `snapshot`, whole graph normalization, checkpoint compression/hash | Independent transient stage comparison; validation evidence owner | Diagnostic capture | Operational final state is not a replacement for overwritten stages. No invented all31 evidence from typed final rows |
-| Report slices before overwrite | Loss of user-visible reports/exports; report producer | Required business output | Header/row cells and duplicate ordinals must survive even with diagnostics disabled |
-| Atomic `finish_run` / MDM consumption | Half daily result or lost queued approval; PostgreSQL transaction | Required durability | Commit/readback/rollback proofs retained; actions and UI preparation have their own transactions and cannot be assumed part of this commit |
-| Layer preparation verification, seal, activation and startup | Mixed run/config/recipe, partial prepared output, wrong scopes; publication owner | Required publication integrity, possibly repeated row verification | Immutable per-layer seals already exist. Consolidation needs crash/retry/config-change denial proof before removing any check |
-| Per-run all31+RRR parity gate in UI | Unaccepted calculated run reaching readers; migration acceptance owner | External acceptance coupled to production admission | Cannot disable or label fake PASS. Separate operational readiness policy needs explicit approval and denial tests (proposal) |
+| Native Supplier/Pick inputs — missing proof; some full table owners absent | `mta/application/complete_daily_inputs.py` builds28 Supplier and69 Pick columns. Accepted captures retain only9/8 projected columns. Req/BOR bridges expose7/3 consumed columns, not full tables. Wrong join multiplicity or aliases can feed wrong calculated attributes/files. | R1: qualify exact GenSupplierWiseReq/GenerateBifurcation endpoints with small independent native fixtures. Reuse existing R1 quantities; supply additional fields only for an identified downstream consumer. | Full required typed columns, NULLs, duplicate joins and native sequences at the correct source position. Focused rollback fixtures are authorized; no full-day approval implied. |
+| Main final-writer sequence — unwired code | `mta/temporal/chain.py`, `mta/runtime/temporal.py`, `mta/runtime/services.py` do not call complete_daily producers. Current closing state therefore omits the new complete flow. Existing `daily_nms_snapshot.py` must be reused at its qualified ownership point. | R2 after R1: integrate post-BPR before dependent DBM import; post-BTR after core BTR; exact production-order, retention, NMS and report final writers. Preserve original transient comparison positions separately. | Affected sequence/dataflow tests; unchanged default path; final attributes reach all declared owners/readers. Any necessary new real business-day execution needs a concrete correctness-only proposal first. |
+| Complete executable daily command — missing integration | `execute_day` remains the one production day boundary; no supported command currently composes all45 configured operation groups, files, actions and publication. A helper-only implementation cannot update a whole day. | R2: extend the actual operational entry, reusing the engine and validated owners; explicit configuration/policy, inputs, dates and failure propagation. No benchmark-only replacement engine. | One documented command resolves every enabled obligation and rejects missing/unknown configuration. Build/command tests now; real complete-day proof only after specific approval. |
+| Predecessor and Apply/Sleep lifecycle — reusable core, missing extended proof | `mta/runtime/temporal.py` has command_state/record_command and persisted predecessor locking. New FG/history/attributes/operation state is not yet integrated. A successor could consume incomplete or mismatched state. | R2/R3: include complete typed closing state and configuration identity in own predecessor intake; retain action before/after order, idempotency and eligibility. | Own-state continuity, cross-owner/config denial, actions retained once, failed/interrupted attempt cannot masquerade as predecessor. Focused tests authorized; actual business-day continuity scenario requires approval. |
+| Typed operational state and histories — storage written, writers unwired | `complete_daily_state.py`, migration0079 and DB proof cover storage; no full chain supplies its complete section. BOR/RRR history/file obligations and report-source final writers still need exact positions. | R2: wire real final rows, source ownership and versioned receipt metadata into existing save_daily/readback. Keep business populations in typed rows, not metadata or trace substitutes. | Complete expected output/source roster, fresh migration/readback, corruption/NULL/duplicate/order denial and rollback. Do not infer all intermediate proof from closing rows. |
+| Fullkit, dates, completion and failure visibility — partly written, unwired | `complete_daily_completion.py` is qualified in fixtures. The operational command lacks the complete critical-operation/date/file admission and failure path. Status alone can conceal omitted work or stale output. | R1/R2: bind exact critical writers/flag literals and current date, fullkit/sanitation dispositions and C6 failure policy to actual successful operations. | Omitted operation, stale date, SQL CATCH result, missing output and partial attempt deny readiness; prior publication remains valid. No fabricated flag completion or fake parity PASS. |
+| Required physical file producers — missing code/wiring/proof | Existing UI exporters/storage do not establish canonical batch files. Exact enabled list is below; file presence/deletion/archive rules are business outcomes. GulfOil BTR file production is wholly missing. | R1/R2: one owned dispatcher using existing projections where equivalent; add only missing source-qualified projections/writers and the GulfOil report producer. | Exact payload cells/headers/member roster, condition/absence/delete/copy behavior and errors. Qualified utility/config identities. Preserve the clock-dependent GulfOil behavior unless separately approved. |
+| Backup and alert lifecycle — missing orchestration/proof | Approved C4/C5 are decisions; no complete daily owned backup/restore or local alert-intent pipeline is qualified. Outputs would lack proven recoverability and alert evidence. | R1/R2: explicit local intent store tied to predicates/attachments; owned full-base/setup and daily SQL/PG backup/archive execution. Reuse ordinary database tooling. | Attachment membership/predicate proof; backup exists and restores logically into a newly owned target. Never send messages or restore over a serving/accepted database. Additional resources/execution outside existing isolation need a concrete decision. |
+| Operational integrity/admission/publication/readers — validators written, main path missing | `mta/presentation/complete_daily_admission.py` validates supplied evidence only. Existing preparation/activation paths do not issue/use a supported complete-day operational policy. | R2/R3: explicit named/configured production policy, immutable source/output/action/config roots, all required prepared layers, coherent atomic selection and compatible readers. Keep existing strict migration defaults/seals. | Deny forged/missing/stale/mixed-owner or mixed-generation receipts; prove finite readers, scoped data, failure/restart/retry and previous selection preservation. No global bypass/latest fallback. Serving activation is not authorized. |
+| Packaging and operational runbook — missing updated delivery | Current candidate image predates these changes; historical H/runbook commands target a stopped workflow. Operators cannot infer a supported new command from component scripts. | R4 after integrated correctness: build a pinned image; supply numbered exact setup/run/check/failure/restart commands with prerequisites and explicit stop conditions. | Build/source/config identity and executable command checks; demonstrate supported recovery without silent recalculation. No new ports or service replacement. |
+| Integrated correctness proof — incomplete | Current receipts prove components; old31/RRR/source/action receipts have narrower final writers. Unit tests and file counts cannot establish a complete result. | R3: reuse unchanged proofs, run affected integration/denial/storage checks, then enumerate any irreducible real-day correctness scenario and exact count/owners/exits. | Human approval is required BEFORE any new real business-day execution. Benchmark approval is held; no relabelled1240-pair/two-day exercise. |
+| Application/deployment boundaries — intentionally deferred or not reassessed | Accepted BOR/BOR-OA UI slices exist, but their daily UI source gaps remain deferred. Guided Excess prior/rolling history stays coverage-bounded. Retained frontend/auth/scopes/direct-port MTO are protected; complete-day changes do not certify every unrelated application flow, MTO or capacity. | Preserve exact existing deferrals and reuse matching proofs. Report a changed dependency if one is found; do not expand into a UI/history/MTO campaign. | New history reproduction, broader application acceptance, production credentials/configuration and3004 cutover need separate authority. No claim of whole-stack or unrestricted deployment readiness. |
 
-## Benchmark design and measurement
+## Enabled file work still required
 
-One new explicit owner; one owned PostgreSQL database and one unique8-role
-`VFTEST_Fresh_*` SQL namespace. Own initial state on day1; each engine consumes its
-own durable persisted predecessor and real action state on day2. No engine
-receives the other engine's calculated state. Initialize matching authoritative
-empty request/BPR remark owners with provenance before day1; preserve all other
-unavailable populations. Use exact frozen daily shipment facts, not a terminal
-empty-transit supplement. Keep existing hierarchy catalogue/six-field projection
-scope; bind it to the new run/date/output, never substitute native attributes.
+This finite list comes from the existing operation roster and directly retained
+wrapper evidence. RuntimeReports is explicitly empty under C1. Standard30/60/90-day
+BTR and location exports, modified RRR and MTO-only file branches are disabled by
+the retained configuration; that does not exclude other enabled outputs.
 
-Start: host invocation before worker startup/admission. End: durable daily output,
-real actions, required histories/sources, prepared roster, publication admission
-and successful finite compatible reader responses from a fresh connection/process.
-Use complete payload/typed occurrence validation in subsequent external proof;
-the finite timed readers must actually serialize/consume their responses, not
-return a READY label. No browser campaign or click-to-render performance claim.
-No protected selection, service, port, restart or proxy rerouting.
+| Output | Existing canonical owner / specific remaining work |
+|---|---|
+| Four Pick CSVs | `PickListReports.bat` and four PickList_Reports Generate SQL files: LogisticPickListReport, LogisticRemainingQtySummary, LogisticRemainingQtyDetails, TransportReqSummaryRpt. Reuse calculations; qualify exact projections/sqlcmd formatting and download copies. |
+| BOR_OrderAllocation.csv and BOR/RRR allocation histories | `OrderAllocBasedReports.bat` / GenerateBOR_OrderAllocation and history SQL. Bind collect/export/history order; UI deferral does not waive these batch obligations. |
+| BPRExceptionReport.csv/.zip | `GenerateBPRExceptionReport.bat`: delete prior artifacts, predicate on exception count, generate/copy and local alert intent. |
+| NoNormParentReport.csv/.zip | `ValidateParentNorm.bat` / ValidationForParentNorm.sql: preserve sqlcmd headers and exact file-size condition for ZIP/copy/intent. |
+| InputData.zip and dated marker | `ProvideInputDataForDownload.bat`: physical owned input files plus exact InputTableList exports, dated marker, staging removal. Table-derived member roster still needs concrete binding. |
+| Eight UI upload ZIPs and retention | `GenerateUIUploadLogs.bat` / ExportUIUploadLog: NMSAddNewSKULocLog, NMSModifySKULocLog, NMSRemoveSKULocLog, NMSLocMasterLog, NMSSKUMasterLog, NMSSOBMasterLog, NMSMOQMasterLog, ForceNormChangeUploadLog. |
+| DBMNormChange.zip, NormChangeLogReport.csv/.zip, enabled30-day Norm0/1/2 files | Existing DBM outputs are reusable; selected site export, template/header formatting, archive/copy/deletion and alert predicates remain unproved. Phase-out report flags are disabled in retained standard settings. |
+| BTR_Tech/Eco/OnHand/Pipeline.zip | Missing `GulfOil_BTRReports.py` equivalent: joined report projection, four pandas-style headered CSVs/ZIPs and its diagnostic text artifact. |
+| Post-backups and archives | Four owned SQL differential backups/compression plus approved PG native backup; setup full bases and logical recoverability. |
 
-Each day includes these non-overlapping accounting categories:
-admission/ingestion, own opening/calculation, action selection/verification/persistence,
-closing/history/source persistence, preparation/publication/readiness, startup/
-orchestration. Separately identify diagnostics and external acceptance. Raw
-invocation elapsed includes everything that actually occurred before its endpoint.
-Nested inclusive intervals must never be summed. Exclusive attribution uses one
-monotonic clock and counts each interval once. Diagnostic-subtracted time is an
-attribution, NOT an observed uncaptured production runtime.
+The GulfOil script uses `pd.Timestamp.today().normalize()` for its90-day window,
+not LastBatchRunTbl. Empty filtered data leaves an existing ZIP untouched. It also
+writes `debug_missing_entry_21104027051000_P023_1002.txt` when that hardcoded target
+is absent. These are observed source behaviors, not permission to repair them.
+Preservation is within current authority; changing the date anchor, stale-file
+behavior or diagnostic side effect requires a specific compatibility decision.
+Historical synthetic inputs cannot prove populated current-date report behavior.
 
-`tools/daily_boundary_timing.py` is standalone measurement only: explicit scalar
-boundaries, failure retention and a total partition. It installs no engine hooks,
-runs no process, grants no publication authority and cannot infer readiness.
-Worker/host clocks must have separate timelines; include subprocess waiting once
-in host elapsed, not again by summing worker elapsed. Child rows explain the wait.
-No cProfile, per-row timers, warmups, matrix or speculative repeats.
+## Finite completion plan
 
-## Correctness and capture disposition
+1. **R1: finish source-qualified components.** Reuse the passed producer/scalar/
+   storage work; finish exact Supplier/Pick source-position proof, configured file
+   projections/writers, completion/fullkit and backup/alert owners. Keep unresolved
+   source behavior explicit. No broad rediscovery or benchmark is needed.
+2. **R2: wire one supported operational daily path.** Add those components at their
+   canonical stage boundaries, persist complete state/history, retain own actions
+   and successor state, and connect an explicit publication policy/preparation/
+   atomic selection/reader sequence. Preserve default strict policies.
+3. **R3: prove the changed integration and recovery.** Focused native fixtures,
+   integration tests, fresh PostgreSQL/storage, action/continuity/denial/failure/
+   retry checks and source/build identity. If full integration needs real new
+   daily execution, submit the smallest correctness-only proposal before running.
+4. **R4: package the actual operator path.** Pinned image/configuration and numbered
+   executable commands for setup, a day, verification and failure/recovery; no
+   ambiguous optional steps and no stopped H3 command reuse.
+5. **R5: commit/push the integrated delivery and conclude honestly.** Report exact
+   code/image/config/proof identities and qualified readiness limits. Stop at a
+   concrete remaining decision if necessary; never label incomplete work ready.
 
-Current31 =8 boundaries +15 calculation populations +5 master obligations +emitted
-reports +own-action-selection +post-action-state. Independent RRR is additional.
-See `parity/accepted_prefix.py` and `replay_temporal.compare_day` for exact names.
-
-Typed production rows preserve closing state, final reports, required exports,
-actions, histories and narrow consumer sources. They do NOT preserve the complete
-controls/DBM ingestion/suspension/discard stages, all transient calculation outputs
-or force-before-clear images. `validation_storage.export_run` explicitly denies
-production-mode intermediate export. Legacy SQL also overwrites report stages and
-always rolls back in the existing temporal adapter. Final rows cannot reconstruct
-these contracts. Reused R2 receipts prove unchanged old behavior only.
-
-For a two-invocation-only baseline, retain required transient capture DURING each
-day and disclose instrumented inclusive elapsed plus separately attributed capture
-cost. Do not claim an uncaptured production measurement. If actual uncaptured
-production timing is required as well as new full31 parity, additional diagnostic
-business invocations require a concrete decision. No such invocation has been
-made or authorized by this document. Separating production admission from external
-acceptance also requires reviewed scope, not a timer change.
-
-## Current findings, not timing conclusions
-
-1. Whole daily work was absent from the earlier timing boundary: actions,
-   successor orchestration, publication and full initialized sources.
-2. Existing selected oracle and deployed BAT have a concrete scope mismatch.
-3. Legacy rollback capture is not durable SQL publication.
-4. Modern migration acceptance is coupled to normal UI admission.
-5. Repeated readback/prefix/capture work is visible in code but has no measured
-   complete-day cost yet. Rank it only after the new measurements; no invented
-   savings or extrapolated two-day/full-horizon estimates.
-
-The coverage map still has named unresolved producer/configuration entries; it is
-not a completed source-by-source coverage certificate. The companion
-`COMPLETE_DAILY_EXTENSION_PROPOSAL.md` defines the decisions required
-before any benchmark. This assessment remains incomplete until those dependencies
-are resolved and real complete-day results/proofs exist.
+Current implementation and focused proof work can proceed within authority.
+Actual new business days, changes to canonical quirks, broader input/history or
+application coverage, serving deployment/cutover and resumed benchmarking remain
+separate decisions. No elapsed-time, throughput, percentage or ETA claim is made.

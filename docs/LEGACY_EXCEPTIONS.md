@@ -1,5 +1,59 @@
 # Legacy behavior and explicit exceptions
 
+## COMPLETE-DAILY-C1-C6 — bounded assessment dispositions, 8 October 2026
+
+Direct human answer **“Approve C1–C6 as documented”** to
+`call_bcfe99ea9c2d40af8c9de82ff0f529bc` authorizes exactly the package in
+`COMPLETE_DAILY_CONFIGURATION_DECISIONS.md` for new two-day assessment owners.
+Frozen input remains `scenario-004/full-input.json`, SHA256
+`ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56`.
+The source/activation contract is `COMPLETE_DAILY_OPERATION_ROSTER.json`.
+
+* C1 binds the deployed GulfOil hooks/settings while retaining the synthetic
+  site identity; exact schema flag/alert seeds and explicitly empty missing
+  RuntimeReports/CriticalFiles/DataSanitizationResult populations are new setup,
+  not recovered deployment evidence. The retained sanitation BAT's unrelated
+  binary stays skipped. Its empty-table gate does not prove sanitation.
+* C2 starts Interface.FGTrendData explicitly empty. Only each new owner's own
+  subsequent generated history is covered; pre-June6 FG history is unavailable.
+* C3 declares matching physical files from unchanged raw facts and a pinned owned
+  ZIP utility. Archive member content/presence, rather than variable ZIP metadata,
+  is compared. Existing raw/calculation inputs are not regenerated or replaced.
+* C4 retains seeded alert activation and locally records evaluated intents and
+  attachments. No mail is sent; delivery is unexercised.
+* C5 includes enabled owned SQL shrink/differential backups with full bases in
+  setup, plus modern native PostgreSQL backups. Logical recoverability/output
+  availability is the boundary; cross-engine physical backup bytes are not equal.
+* C6 preserves `ClearTableForBPRBatchExecutionFailure.sql` destructive clearing
+  after partial SQL commits and modern failed-calculation rollback as distinct
+  behaviors. Both deny publication of the failed candidate. Prior published
+  modern rows are not cleared and no failure-state parity is claimed.
+
+No formula, comparison position, action policy, original stopped execution,
+serving selection or default migration gate changes are authorized by these
+dispositions. Focused and complete-day proof remains required; approval is not
+acceptance evidence.
+
+
+The later direct human readiness instruction (controller turn
+01a11a02-a138-7521-83cd-648fe426bac0) retains these exact C1–C6 bounds while
+halting all benchmark execution. This transfers the configured implementation
+scope, not permission for real new business-day runs or broader production claims.
+
+## COMPLETE-DAILY-GULFOIL-FILES — observed source behavior, no repair approved
+
+Source: Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py, as pinned in
+COMPLETE_DAILY_OPERATION_ROSTER.json. Its report window uses host
+pd.Timestamp.today().normalize(), not the selected LastBatchRunTbl date.
+For the retained historical June2026 input and an October2026 host date, a
+populated historical source does not imply a populated current-window file.
+Empty filtered data returns without replacing an existing ZIP. When hardcoded
+SKU/location21104027051000/P023_1002 is absent, it also writes a diagnostic text
+file. Affected contract: four GulfOil BTR CSV/ZIP outputs, absence/stale-file
+behavior and diagnostic artifact. Preserve these source behaviors in the port;
+changing the date anchor, stale-file rule or diagnostic side effect would need
+an explicit compatibility decision. C3 does not silently authorize that repair.
+
 ## DAILY-MDM-CONSUMPTION — authorized transactional reconciliation, 6 October2026
 
 The steps1&2 daily-publication instruction requires a failed calculation to retain

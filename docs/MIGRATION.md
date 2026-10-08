@@ -6,85 +6,171 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### Complete daily execution reassessment — blocked on scope decision, 8 October 2026
+### Complete daily production code readiness — benchmark halted, 8 October 2026
 
-Authority: direct human controller turn01a1199a-805c-7333-a16b-0cb6a5983762
-approved the complete reassessment plan and its implementation. This supersedes
-partial/action-free timing as an acceptance definition. Production daily completion
-includes inputs, calculations, real Apply/Sleep, closing/history/report-source
-persistence and daily publication consumable by the unchanged UI.
+Direct human controller turn01a11a02-a138-7521-83cd-648fe426bac0 says:
+"hault all the benchmarking related activities in the current task. I want to
+first conclude the codebase production readiness". Verified from that human
+message; this supersedes the reassessment benchmark objective and execution
+budget below. Continue the SAME goal identity. The app goal is active but its
+stored objective text is historical; its tool exposes no objective-edit operation.
+Do not create a replacement or mark unfinished readiness complete.
 
-The human stopped temporal-full-001. Keep its accepted and interrupted attempts
-immutable: no restart, resume, replay or publication. The earlier H1–H4 release
-below is historical and no longer authorizes restarting that execution.
+Active item R1: complete and qualify missing producers and their concrete source
+positions, then wire the actual supported daily path. No benchmarking, timing
+samples, performance profiling/comparison/ranking, timer work or benchmark-day
+execution is authorized. All old production/validation invocation budgets are
+ON HOLD (zero used). Original temporal-full-001 remains human-stopped. Existing
+small native rollback fixtures and storage correctness checks may finish.
 
-Active item A1: complete coverage, reuse and integrity assessment plus explicit
-benchmark contract before invocation. Unmet exit: every required legacy/modern
-process and output is mapped, publication/reader and diagnostic capture gaps are
-resolved or explicitly blocked with evidence. Boundary: read-only provenance
-reconciliation and assessment artifacts; no business invocations yet. Proof:
-authoritative BAT/SQL/config/API and modern source references, exact retained
-receipt applicability, full31/RRR reconstruction-versus-capture disposition,
-separate owned resource/publication design and declared resource limitations.
+Finite readiness exits, in order; this is the sole status tracker:
+1. R1 — Finish source-qualified business producers/configured outputs and input
+   bridges. Require exact native fixtures/retained proof for changed columns,
+   NULLs, duplicates, order and canonical final writers. C1–C6 are approved;
+   source/configuration gaps must remain explicit. ACTIVE, incomplete.
+2. R2 — Integrate those owners into execute_day/chain/services and one operational
+   command: ingestion/master/supplier/control/order/BPR/RRR/DBM/BTR, own predecessor
+   and actions, typed closing/history/source persistence, dates/completion/failure
+   visibility, enabled files/ZIP/local alert intents/owned backups. Reuse the
+   existing engine. Missing executable call sites cannot be closed by helpers.
+3. R3 — Prove affected correctness/storage/action/continuity/publication/recovery
+   and denial cases, exact source identity and real fresh PostgreSQL migrations.
+   Operational admission must be an explicit supported policy with coherent
+   prepare/atomic selection/readers; preserve existing strict serving defaults.
+   If a new real business-day execution is needed, first propose the smallest
+   correctness-only scenario/count/owners/exits for human approval. Do not rename
+   or execute the held full1240pair/two-day benchmark as a readiness test.
+4. R4 — Deliver the executable operator command and numbered runbook for normal
+   operation, failures/restart/idempotent retry and explicitly bounded C1–C6 setup.
+5. R5 — Integrated substantive commit/push, exact code/image/config/proof identities
+   and honest readiness/remaining-limit matrix, then stop or report one concrete
+   remaining decision. No timing result or optimization ranking is required.
 
-A1 inspection has now established concrete invocation blockers: the selected
-oracle omits deployed post-BPR CalculatedAttributes and BAT completion checks,
-rolls SQL back, and modern reader admission depends on external parity while
-production omits required intermediate capture. The frozen profile's site code
-is VECTORFLOW-DEMO; it does not itself authorize substituting GulfOil hooks.
-The controller explicitly authorized a consolidated reviewed extension proposal
-first; business/admission/commit implementation and engine invocations remain held.
-Continue A1 coverage/reuse/control documentation and that proposal. Independent
-A2 work is limited to a standalone scalar timer with no engine hooks, launches,
-state changes or admission authority; focused deterministic timing tests suffice.
-This is an explicit dependency hold, not assessment completion or a new deferral
-of any required daily work. One consolidated decision follows focused review.
+Completed component evidence: post-BPR, production-order and post-BTR producers;
+completion/reset/retention functions; ordered admission-evidence validators.
+Three native producer fixture groups now pass with standalone Python adapters
+(a004:577 population comparisons);12 completion cases also pass standalone
+(a002:58 checkpoint comparisons). Scalar adapters pass2291 exact SQL comparisons
+(a002). All earlier failures and narrower native-callback receipts are preserved. Full Supplier/Pick bridges are written but full native28/69-column
+source-position proofs remain unmet. Retained narrower projections do not prove
+those full images. Req/BOR bridges explicitly supply consumed columns only.
 
-Reviewed proposal checkpoint: docs/COMPLETE_DAILY_EXECUTION_ASSESSMENT.md,
-COMPLETE_DAILY_EXTENSION_PROPOSAL.md and COMPLETE_DAILY_SOURCE_INVENTORY.json.
-Focused review corrected additional omitted production-order/history/exception/
-Planning/flag/parent-Norm/task/post-BTR outputs and separated strict captured
-publication (A) from optional operational-admission changes (B). Full source/config
-closure is still unmet; these documents are not complete-day acceptance.
-The inventory reconciles188 modules,25 selected canonical source pins, existing
-DBM refinement pins and retained evidence hashes; called GulfOil BTR Python has
-observed differing canonical/backup bytes and is not baseline-registered. Its
-connection-string line differs; no implementation-equivalence claim is made.
-Standalone scalar timer has no engine hooks/launches/admission authority;3 focused
-tests pass and baseline verify passes387 identities. No schema/runtime/image,
-engine invocation or protected resource/selection change. A1 remains at the
-reviewed extension/configuration decision; independent timer plumbing is delivered.
-No actual complete-day timing or ranked measured savings yet. The goal is
-blocked, not complete; do not start A3 until the consolidated scope decision is supplied.
+Migration0079 adds11 typed run/image/ordinal tables without changing the accepted
+catalogue/default input mappings. Django check, migration check/plan, fresh PG
+migrate and3 real DB tests pass (pg/storage-proof-a004.json). Earlier two proof
+attempts passed assertions but failed generic teardown; retained failures led to
+precise owned-row cleanup. a004 also verifies the repository LF-normalized
+schema byte pin; git-line-endings-a001.json records exact non-semantic source
+normalization for earlier component receipts. Review-found input path/table ambiguity is fixed with
+exact binding and denial checks. Current focused complete-day unit suite73pass; qualification-helper17tests pass.
+All387 pinned source resources verify unchanged (identity, not parity).
+Evidence: D:/freshvcf-build/complete-daily-assessment; no full business-day call.
 
-Read-only continuation reconciled frozen opening configuration: download/upload
-flags are both1, pre-backup0, NormZeroOne0/delisting1; Plants has7 rows and both
-first-day/successor order feeds plus initial SpikeOrderData are empty. Those known
-enabled outputs remain in scope. RuntimeReports, ScriptExecutedFlag,
-DataSanitizationResult and EmailAlertSettings are absent, not empty/disabled.
-Inventory/proposal corrected; no engine or runtime change. This reduces genuine
-configuration unknowns but does not remove the reviewed extension decision hold.
+UNMET: actual complete main-flow integration, file/archive/backup/alert-intent
+bindings, operational policy issuance/readers, recovery and complete correctness
+proof. No deployment/release or serving changes. Components are not production
+readiness. C1 empty report/sanitation tables are a synthetic setup limit, C2 empty
+FG opening leaves prior history unavailable, C4 local intents do not prove email
+delivery, C5 requires owned backup/recoverability, C6 retains legacy clearing vs
+modern rollback difference. These prevent an unrestricted readiness claim even
+if the explicitly configured code path passes. Existing BOR/BOROA/GuidedExcess
+rolling-history deferrals remain exact; no hidden expansion or whole-stack claim.
 
-Blocked audit: the same reviewed-extension decision remains unresolved across
-three consecutive goal turns. Read-only proposal/review, configuration reconciliation
-and independent non-semantic timer work are delivered (dc01307,8838e02). Latest
-controller instruction still authorizes proposal first and prohibits business,
-commit/admission extensions or engine invocation before the consolidated decision.
-No live benchmark is being waited on. Remaining end-to-end results/proofs require
-that decision; no smaller timing boundary can satisfy the goal. Preserve all work
-and resume this same goal when the scope/publication/capture disposition arrives.
+Protect services3002/3/4/5/6, selections/seals/accepted and interrupted artifacts,
+canonical SQL/formulas/NULL/duplicates/native order/action contracts, scopes and
+excluded checkouts. Existing approved owned SQL/PG only;4GiB/twoCPU workers and
+1GiB/oneCPU PG, no ports/sharedrestart/reset/copy/borrow/prune/resource increase.
+No full21day continuation, history campaign, UI redesign or surrogate work.
 
-Remaining sequence (only this tracker owns status): A2 minimal monotonic measurement
-plumbing and focused verification; A3 one separately owned two-day exercise per
-engine, both days through actions and published-consumable outputs, with external
-correctness proof; A4 integrated measured assessment, ranked recommendations,
-operator artifacts, commit/push and stop. Do not begin an adjacent item before the
-active exit is proved or explicitly blocked/deferred here. No extra engine capture
-invocation without a concrete bounded decision. No optimization implementation,
-new21-day run, resource increase, ports or protected serving changes. Existing
-BOR/BOROA/GuidedExcess rolling-history deferrals remain explicit. The70.199s sample
-remains historical action-free opening-day partial evidence; do not manufacture a
-complete-day total by adding unrelated runs. Preserve DBM d004dc1 and prior proofs.
+<details>
+<summary>Superseded reassessment scope and retained history — execution held</summary>
+
+### Complete daily execution reassessment — resumed scope, 8 October 2026
+
+Direct human approval turn01a119c9-4924-7bd2-bad2-0c2089957191 supersedes the
+proposal-first implementation hold. Continue the SAME reassessment objective.
+Earlier reviewed artifacts/pins remain evidence; no full-run restart is authorized.
+The goal tool still reports blocked until the app resumes its accounting; do not
+create a replacement goal or mislabel unfinished work complete. User-authorized
+work proceeds under this explicit scope and the existing goal identity.
+
+Active item A2: implement and qualify the complete configured flow. A1's input
+decision exit is complete: direct human answer "Approve C1–C6 as documented"
+to call_bcfe99ea9c2d40af8c9de82ff0f529bc approves the consolidated package in
+COMPLETE_DAILY_CONFIGURATION_DECISIONS.md. COMPLETE_DAILY_OPERATION_ROSTER.json
+binds45 finite producer/output groups,37 critical scripts with exact literal
+writer sources,206 schema flag seeds,14 alert seeds and the frozen settings.
+No unresolved human configuration item remains. This is a contract map, not a
+second tracker or proof that operations execute correctly; it stays non-executable
+until concrete file/utility/producer/admission bindings and qualification pass.
+
+A2 progress: optional post-BPR and production-order producers, full post-BTR
+RM/FG history/attribute producer, canonical completion/reset and BPR retention
+functions, and ordered admission-evidence validators are implemented. Focused
+tests cover NULLs, duplicates, caps/rounding, date cutoffs, literal flag names,
+mode equality and denial cases. Native SQL differential proof, full-flow typed
+persistence, durable legacy sequence and operational admission integration are
+unmet. No strict reader gate or existing chain behavior has been changed.
+
+APPROVED scope: missing post-BPR/post-BTR attributes, production-order suggestions,
+reset/completion semantics, required histories/cleanup, configured reports/files
+and other mapped daily producers. Reuse existing exact equivalent producers;
+retain old oracle/snapshot positions/accepted receipts with their narrower meaning.
+Do not repair legacy flaws or silently equate destructive failure clearing with
+modern atomic/prior-publication behavior; collect these in one compatibility list.
+
+Operational admission OPTION B is approved ONLY for the NEW benchmark owner:
+SUCCEEDED, immutable typed input/output/source roots, qualified operation roster,
+exact owner/date/predecessor, ordered own action lineage, source ownership, all
+included prepared layers/config seals/access catalogue/hierarchy, finite usable
+readers and coherent explicit atomic selection. Existing migration gates/defaults,
+seals and services remain strict. External parity remains genuine and mandatory
+for assessment acceptance, OFF the timed production publication critical path.
+No fake PASS, global bypass, latest fallback or mixed generations.
+
+Execution budget: ONE owned TWO-day PRODUCTION exercise PER ENGINE, June6/7 with
+same frozen1240pair facts/config/policy and own durable successor state. A separate
+TWO-day VALIDATION exercise PER ENGINE is authorized only for intermediate proof
+unreconstructable from production rows; document exact need first. Maximum FOUR
+business-day invocations per engine (two production, up to two validation).
+No warmups/repeats/matrix/speculative retry or extra invocation. Stop first real
+failure and preserve attempt; report the concrete corrective decision. No business
+invocations have started under this assessment. Each exercise has distinct owned
+state/lineage; no cross-engine output or validation predecessor substitution.
+
+Primary time is clean COMPLETE invocation-to-published-consumable daily elapsed,
+including all business, input/opening/action/integrity/persistence/file/preparation/
+publication/readiness work. Diagnostic capture/export/compression and external
+parity are separate; user-visible exports are required timed work. Minimal scalar
+monotonic boundaries, no profiler/optimizations. Old70.199s remains partial history.
+Unmatched SQL/PG resources and single samples are explicit, no false ratios/ETAs.
+
+Sequence: A1 configured coverage/reuse/integrity + consolidated decisions; A2
+qualified mapped flow/admissionB/durable legacy and focused mandatory proofs; A3
+bounded complete-day production and necessary separate validation exercise;
+A4 full31+RRR/new-obligation/mode/source/reader/own-successor proof, measured ranked
+recommendations, exact operator/artifact/code/image/resource identities and honest
+closure, substantive commit/push then STOP. docs/MIGRATION.md is sole status.
+
+Preserve stopped temporal-full-001, accepted/interrupted attempts, d004dc1 joins,
+canonical SQL/formulas/NULL/duplicates/order/cutoffs, scopedRRR0/auth/hierarchy,
+existing BOR/BOROA/GuidedExcess rolling-history deferrals without broader exclusions.
+Protect services3002/3/4/5/6/selections and excluded checkouts. New exclusively owned
+SQL/PG only,4GiB/twoCPU workers/existingDBlimits, no ports/borrow/reset/copy/prune/
+sharedrestart/resourceincrease. No21day run, newUI/historycampaign/surrogate work.
+
+Prior checkpoints: dc01307 reviewed map/proposal/timer;8838e02 frozen configuration;
+1ffe58b recorded the now-superseded decision hold. Timer3tests and387sourceidentity
+checks passed. Known frozen flags: downloads/upload1, prebackup0, NormZeroOne0,
+delisting1,7Plants rows, empty first-two-day order feeds/initial orders. Missing
+RuntimeReports/ScriptExecutedFlag/DataSanitizationResult/EmailAlertSettings are
+now explicitly bound by approved C1 initialization, not inferred empty. C2 binds
+new empty FG history with pre-June6 coverage unavailable; C3 owned frozen-fact
+files/ZIP binding; C4 local alert intents only; C5 owned native backups and setup
+full bases; C6 explicit legacy-clear versus modern-rollback qualification.
+Complete timing/proof remains unmet; assessment is not complete.
+
+</details>
 
 ### Human offline calculation release — 8 October 2026
 

@@ -1,11 +1,42 @@
-# Proposed complete-day boundary extensions
+# Approved complete-day boundary extensions
 
-8 October 2026. Decision package for review; **not implementation or execution
-authorization**. Human approval authorizes preparing/reviewing this proposal and
-independent assessment/timing support. It does not yet authorize the business,
-commit or admission extensions described here. `MIGRATION.md` owns status.
+8 October 2026. **Benchmarking is halted.** The latest direct human scope change
+prioritizes production codebase readiness with C1–C6. MIGRATION.md R1–R5 is the
+active checklist; COMPLETE_DAILY_EXECUTION_ASSESSMENT.md records remaining gaps.
+No old business-day invocation budget below authorizes current execution. Keep
+the original stopped run and serving policies untouched. The following approved
+reassessment disposition and proposal are retained design history; current work
+must produce a supported operational code path, not a benchmark-only substitute.
 
-## Decision requested
+## Historical approved reassessment disposition — execution now held
+
+Direct human controller turn01a119c9-4924-7bd2-bad2-0c2089957191 approves the
+mapped missing business/completion flow, durable exclusively owned legacy path and
+operational admission OPTION B, preserving existing strict migration defaults.
+It supersedes the earlier proposal-only hold and captured-inclusive recommendation
+below. Primary measurements must be clean complete production-day invocations.
+Exactly two production days per engine are approved; at most two separate validation
+days per engine are additionally approved only where transient proof cannot be
+reconstructed. Maximum four daily invocations per engine; no retries/warmups/matrix.
+Document the intermediate-proof need before the conditional validation exercise.
+
+FIRST reconcile authoritative retained configuration. Bring one consolidated list
+of genuinely unresolved inputs/compatibility decisions before freezing or executing
+dependent work; continue independent approved implementation. No invented settings,
+flaw repairs or excluded required output. Original temporal-full-001 remains stopped.
+The original proposal and review below are retained as design history, with their
+unapproved/choice-A/four-total-invocation wording superseded by this disposition.
+MIGRATION.md contains the finite current execution plan and sole status.
+
+Configuration decisions C1–C6 were subsequently approved in direct response to
+`call_bcfe99ea9c2d40af8c9de82ff0f529bc`; see
+`COMPLETE_DAILY_CONFIGURATION_DECISIONS.md`. They do not require another approval.
+
+## Historical proposal — superseded decision request
+
+The remaining sections preserve the reviewed proposal and alternatives. Phrases
+such as “proposed”, “decision requested”, “does not authorize” and choice A in
+this historical text do not override the approved disposition above.
 
 Approve one integrated extension scope only after resolving the configuration and
 canonical-behavior questions below. Retain the current oracle and its accepted

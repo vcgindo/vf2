@@ -1,0 +1,2764 @@
+{
+  "schema": "fresh-complete-daily-operation-roster-v1",
+  "status_tracker": "docs/MIGRATION.md",
+  "executable": false,
+  "qualification": "Finite producer/configuration contract only. C1-C6 approved; concrete operation qualification and main-flow integration remain required. Benchmark execution held; this map grants no business-day execution.",
+  "frozen_input": {
+    "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json",
+    "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56"
+  },
+  "business_dates": [
+    "2026-06-06",
+    "2026-06-07"
+  ],
+  "benchmark_execution": "HELD by human scope change; new real business-day correctness execution requires specific approval",
+  "historical_invocation_limits": {
+    "production_per_engine": 2,
+    "conditional_validation_per_engine": 2,
+    "total_per_engine": 4,
+    "warmups": 0,
+    "retries": 0
+  },
+  "unresolved_configuration": [],
+  "approved_configuration": {
+    "ids": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6"
+    ],
+    "question_id": "call_bcfe99ea9c2d40af8c9de82ff0f529bc",
+    "answer": "Approve C1\u2013C6 as documented",
+    "package": {
+      "path": "F:/freshvcf/docs/COMPLETE_DAILY_CONFIGURATION_DECISIONS.md",
+      "sha256": "1ef295c9595fed8bee031fd57bf4472f42d8090e779722a76966e511c0e13dde"
+    }
+  },
+  "configuration_decisions": "docs/COMPLETE_DAILY_CONFIGURATION_DECISIONS.md",
+  "frozen_configuration": {
+    "parameters": [
+      {
+        "path": "opening/controls/dbm_settings/0",
+        "parameter": "DelistingofNormRuleActive",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/dbm_settings/2",
+        "parameter": "NormZeroOneRuleActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/controls/importer_settings/11",
+        "parameter": "ActivateNMSUIUploadLogs",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/12",
+        "parameter": "GenerateDownloadableInputData",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/15",
+        "parameter": "IsBatchFileExecuted",
+        "value": "0"
+      },
+      {
+        "path": "opening/controls/importer_settings/16",
+        "parameter": "IsBPRBatchFileExecuted",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/17",
+        "parameter": "BatchFileExecutionDate",
+        "value": "Oct  8 2025  1:00AM"
+      },
+      {
+        "path": "opening/controls/importer_settings/19",
+        "parameter": "IsPreBackupActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/dbm/DBMSettingsTbl/0",
+        "parameter": "DelistingofNormRuleActive",
+        "value": "1"
+      },
+      {
+        "path": "opening/dbm/DBMSettingsTbl/2",
+        "parameter": "NormZeroOneRuleActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/dbm/VFSettings/10",
+        "parameter": "IsMTOEnvironment",
+        "value": "0"
+      },
+      {
+        "path": "opening/importer_settings/11",
+        "parameter": "ActivateNMSUIUploadLogs",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/12",
+        "parameter": "GenerateDownloadableInputData",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/15",
+        "parameter": "IsBatchFileExecuted",
+        "value": "0"
+      },
+      {
+        "path": "opening/importer_settings/16",
+        "parameter": "IsBPRBatchFileExecuted",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/17",
+        "parameter": "BatchFileExecutionDate",
+        "value": "Oct  8 2025  1:00AM"
+      },
+      {
+        "path": "opening/importer_settings/19",
+        "parameter": "IsPreBackupActive",
+        "value": "0"
+      }
+    ],
+    "tables": [
+      {
+        "path": "opening/bpr/Plants",
+        "name": "Plants",
+        "rows": 7
+      }
+    ],
+    "absent_tables": [
+      "DataSanitizationResult",
+      "EmailAlertSettings",
+      "RuntimeReports",
+      "ScriptExecutedFlag"
+    ],
+    "first_two_day_order_feed_counts": [
+      0,
+      0
+    ],
+    "initial_spike_order_count": 0,
+    "qualification": "Declared frozen values only; absent config tables remain unknown. Counts describe workload, not calculation parity."
+  },
+  "static_settings": [
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 22,
+      "name": "DoPostBkpDBM",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 23,
+      "name": "DoPostBkpBPR",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 24,
+      "name": "DoPostBkpImporter",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 25,
+      "name": "DoPostBkpBTR",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 34,
+      "name": "Zip",
+      "value": "Not-Defined"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 37,
+      "name": "GenerateLocWiseBTR",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 44,
+      "name": "BTR30Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 45,
+      "name": "BTR60Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 46,
+      "name": "BTR90Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 58,
+      "name": "DBBkpCompress",
+      "value": "1"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 69,
+      "name": "AutoDBMActive",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 92,
+      "name": "ActivateNorm0Report30Days",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 98,
+      "name": "OrchestratorImplemented",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 113,
+      "name": "DailyConsumptionHorizonBPR",
+      "value": "90"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 118,
+      "name": "BPR_RemarkHorizon",
+      "value": "90"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 119,
+      "name": "BPR_ShowNormZeroItems",
+      "value": "0"
+    },
+    {
+      "source": "Engine/StdSettingsPre.bat",
+      "line": 122,
+      "name": "GenerateModifiedRRR",
+      "value": "0"
+    },
+    {
+      "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
+      "line": 26,
+      "name": "DBBkpCompress",
+      "value": "0"
+    },
+    {
+      "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
+      "line": 50,
+      "name": "OrchestratorImplemented",
+      "value": "0"
+    },
+    {
+      "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
+      "line": 52,
+      "name": "BPR_ShowNormZeroItems",
+      "value": "1"
+    },
+    {
+      "source": "Engine/SiteSpecific/GulfOil/Settings.bat",
+      "line": 53,
+      "name": "ActivateNorm0Report30Days",
+      "value": "1"
+    }
+  ],
+  "schema_seed_candidates": {
+    "source": "Scripts/DBCreation/Importer_DBCreation.sql",
+    "ScriptExecutedFlag": [
+      {
+        "ScriptName": "GenerateLogisticPickListReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateRemainingQtyDetailsReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectDataForNormRationing.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectDataToExpediteDispatches.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "EcoAvailabilityComparision.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "PostRationEcoAvailability.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "UpdatePostRationPipelineInventoryPen.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ExcludeReplenishment.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "FillRationSteps.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GetReqData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GetReqDataForParent.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GetStepwiseChildReq.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "RationPacksize.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CalculateDD.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CalculateReq.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CalculateRoute.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectDataForPSORationing.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ConsolidateReq.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateAddionalMasterData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateBifurcationOfRationedReq.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateLogisticPickList.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateRationReqReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenSupplierWiseReq.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ImportSpikeOrders.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "PSORationing.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "StockCalculation.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "01. ImportData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CalculatePenetrationAndColor.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ClearHistoryData_BPR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectDataForBPR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectDataForDispatchPriority.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateBPR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ProdOrderSuggestions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "SendBPRExceptionsAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "UpdateBPR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "UpdateDispatchPriority.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ClearTableForBPRBatchExecutionFailure.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "ValidateBPRBatchExecutionFlags.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GenerateGoodsInTransitMaster.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "GoodsInTransitTransporterMaster.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectExcessInventoryDetails.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectOrderFulfillmentData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "OrderAllocation.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "CollectBOR_OrderAllocationData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "UpdateBPPAndColorForOrder.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BPR"
+      },
+      {
+        "ScriptName": "1. Import BPR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "2. GenerateBufferTrend.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "3. GenerateSnapshotForUI.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "BufferTrendCountGraph.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "CollectRationingHistory.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "ExportToExcel_30Days.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "ExportToExcel_60Days.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "ExportToExcel_90Days.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "GenerateColorAgeingReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "GenerateLocationwiseBTR.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "UpdateBRAge.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "UpdateBRAgePhysicalInv.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "UpdateCategoryCol.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "CollectChronicUnavailabilityData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "CollectDBMNormSuggestionsData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "CalculateAvailabilityPhysicalInv.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "BTR"
+      },
+      {
+        "ScriptName": "ClearHistoryData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Common"
+      },
+      {
+        "ScriptName": "ExportRuntimeReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Common"
+      },
+      {
+        "ScriptName": "RunFinishAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Common"
+      },
+      {
+        "ScriptName": "Norm1IncreaseSuggestions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "PhaseOutRecommendation.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "AutoNormAcceptance.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "NormAcceptanceAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "01. ImportMasterData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "02. GetDailyData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ImportExclusions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ImportForceNormChange.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ImportOrderData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "DBMNormChangeAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "01. Stockout type A.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "02. VirtualStockout.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "03. Stockout type B.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "04. Too much in Red.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "05. Too much in Green.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "06. Spikes.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "08. GenerateReports.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuggestionNorm0Increase_OrderBased.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuggestionNorm1Increase_ConsumptionBased.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuggestionNorm2Decrease_ConsumptionBased.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "12. DelistingofNorm.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CalculateExtendedOCP.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ClearForceNormChange.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CollectFailedForceNormData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CollectPhaseInData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CollectPhaseOutData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "FailedForceNormChangeAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "InsertParentOrderTypeSuggestions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "PhaseInPhaseOutExceptionAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ProcessPhaseIn.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ProcessPhaseOut.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "UpdateAcceptedNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "UpdateForceChangedNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "UpdateOrderSummaryData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ClearNorm0-1-2ReportData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "GenerateNorm0-1-2Report.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "Norm0Data.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "Norm1Data.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "Norm2Data.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ApplySeasonalityNormChanges.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CollectSeasonalityData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ProcessSeasonality.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "01. StepOne.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "01.1. StepOneOrderType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "02. NewSKUIntroduction.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "03.1 AcceptedNormsStockType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "03.2 AcceptedNormsConsumptionType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "04. ForcedChangeNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "04.2 ForcedChangeNormsConsumptionType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "05. NormsInSleepMode.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "06. ExistingDisabledNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "07. SpikeToday.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "08. WhiteStock.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "09. RedBlackParent.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "10. SupplyIssue.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "11. Phaseout.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "12. PhaseIn.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "13. Seasonality.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "14. AggregateCommonSuspensions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "14.0 AggregateCommonSuspensionWithOrderType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "15. AggregateStockTypeSuspensions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "16. AggregateConsumptionTypeSuspensions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "DiscardSuggestions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "GatherSuspensionHistory.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "InsufficientDataPoints.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionsUpdatePreConsumptionType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionsUpdatePreOrderType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionsUpdatePreStockType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionUpdateFinalConsumptionType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionUpdateFinalOrderType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "SuspensionUpdateFinalStockType.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "ClearHistoryData_DBM.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "DBM"
+      },
+      {
+        "ScriptName": "CleanDistLogTbl.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "CreateDistTransactionReportBatchFile.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "CreateTransactionLog.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "DistributorsDataSnapshot.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "ImportDistInvoices.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "ImportDistributorDailyData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "ImportMasterDataForDist.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "ImportNewSKULocDistributor.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "MissingMasterDataAlertForDistributors.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "RejectedInvoiceAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "ResetStockEntry.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Distributor"
+      },
+      {
+        "ScriptName": "UnApprovedPhaseinPhaseoutAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "UpdateNormChanges.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "AddPhaseInItemsMasterData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ClearInvalidDataHistory.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ClearMasterInputTables.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ClearNonMasterInputTables.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ClearPhaseInPhaseOutData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ClearUIUploadLogHistory.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "CollectNonMasterSKUs.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "DataUnavailabilityAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "DBMMissingDailyDataHandling.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "GenerateLocationInventoryMissingAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "GenerateLocationInventoryMissingReport.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "GetUnavailableFiles.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "InvalidDataAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NMSArchiveInputData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NMSClearInputTables.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NMSCreateSnapshot.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NMSImportData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NoNormParentAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ResetFlags.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ResetTotalOrdQtyForOrdCreationUI.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAcceptedNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "NMSTaskStatusUpdate.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAdditionalDailyData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAdditionalDataStockForReqCalc.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessDailyData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessDailyDataCarryStock.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessDailyDataNoChange.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessDailyDataStockZero.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessMaster.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateAndProcessNoNormMaster.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateCustomGITData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateExclusions.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateForceNormChange.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateInvoiceData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateMOQDataRaw1.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateMOQDataRaw2.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateOrderData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidatePhaseInNorms.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidatePhaseout.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidatePSOData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateSeasonalityData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateSOBData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidationForParentNorm.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidMasterDataAlert.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ResetBatchExecutionFlag.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateBatchExecutionFlags.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 1,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "ValidateGoodsInTransit.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "UpdateInTransitDataTags.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "InitialiseSkuLocStdAttributeData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "AddNewRemoveDiscontinued.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      },
+      {
+        "ScriptName": "CleanVendorLogTbl.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "CreateTransactionLog.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "ImportMasterDataForVendor.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "ImportVendorDailyData.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "ResetStockEntry.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "VendorDataSnapshot.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Vendor"
+      },
+      {
+        "ScriptName": "UpdateChangedSKULocCode.sql",
+        "IsScriptExecuted": 0,
+        "IsScriptCritical": 0,
+        "ModuleName": "Importer"
+      }
+    ],
+    "EmailAlertSettings": [
+      {
+        "AlertName": "NoNormParentAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "InvalidDataAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "DailyDataUnavailabilityAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "AutoNormAcceptanceAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "MissingMasterDataForDistributorsAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "LocationInventoryMissingAlert",
+        "IsActive": "0"
+      },
+      {
+        "AlertName": "UnapprovedPhaseinPhaseoutAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "FailedForceNormAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "PhaseInPhaseOutExceptionAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "RejectedInvoiceAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "DBMNormChangeAlert",
+        "IsActive": "0"
+      },
+      {
+        "AlertName": "RunFinishAlert",
+        "IsActive": "0"
+      },
+      {
+        "AlertName": "BPRExceptionAlert",
+        "IsActive": "1"
+      },
+      {
+        "AlertName": "DailyDataValidationErrorAlert",
+        "IsActive": "1"
+      }
+    ]
+  },
+  "schema_only_candidates": {
+    "RuntimeReports": "Scripts/DBCreation/BPR_DBCreation.sql",
+    "CriticalFiles": "Scripts/DBCreation/Importer_DBCreation.sql",
+    "DataSanitizationResult": "Scripts/DBCreation/Importer_DBCreation.sql"
+  },
+  "critical_script_candidates": [
+    {
+      "ScriptName": "CollectDataForNormRationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/CollectDataForNormRationing.sql",
+          "sha256": "2ca0cb727cbbd30f2ab8709bdc4e4ba3d14feae6a720dae2b0305de34fa4a087"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ExcludeReplenishment.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/ExcludeReplenishment.sql",
+          "sha256": "9fec772bd947f15d554b89da5dc9543ff6ba401729a990dc91c32af37fe85ac6"
+        }
+      ]
+    },
+    {
+      "ScriptName": "FillRationSteps.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/FillRationSteps.sql",
+          "sha256": "3f5821abbfa4719ce0a844ea996a286789b0797e26822fa279e08713b7bab631"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GetReqData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetReqData.sql",
+          "sha256": "a82159e39c32e06be3532b3d7d99460350a87ff898df6ceedcd47902ffc4c61d"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GetReqDataForParent.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetReqDataForParent.sql",
+          "sha256": "2a0bae6e71dce7a967186597f87a602fc7c23b9bada2f5b3bbd1364e6f8c79e0"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GetStepwiseChildReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/GetStepwiseChildReq.sql",
+          "sha256": "6581e9d5ca8f2bd8b13d2d7a0a644c8d7002c033424b647846f293c86faf577a"
+        }
+      ]
+    },
+    {
+      "ScriptName": "RationPacksize.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/NormRationing/RationPacksize.sql",
+          "sha256": "316dacda0806d94355556a796bc713c5da650493bb7ad213fd98a6a889c1891e"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CalculateDD.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateDD.sql",
+          "sha256": "98ddd068735a7154b53b4171e63899579363844d965541501f8dbd5e375bd210"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CalculateReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateReq.sql",
+          "sha256": "587c367323409081b9d1bf8050c23f166ab829a1f1f947cfe7d37bc5cd3902bf"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CalculateRoute.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CalculateRoute.sql",
+          "sha256": "66abe2e41ce2fb9d9a3f8583001d53a7cdc7a4fa2306a73a4da66f36f7416a41"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CollectDataForPSORationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/CollectDataForPSORationing.sql",
+          "sha256": "7f74f75aeaaa3007ae62f69382e2ffea6505726b8203be26db068405c6495a01"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ConsolidateReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/ConsolidateReq.sql",
+          "sha256": "00bac7ce2c83dfc63980b369da2174d4a162875a8c4a2be666f5de5bf0e65415"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenerateAddionalMasterData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateAddionalMasterData.sql",
+          "sha256": "831092defb102e1efbe342fa3515f3319e556a6d47d77388e44286d420ea0123"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenerateBifurcationOfRationedReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateBifurcationOfRationedReq.sql",
+          "sha256": "8da7fde0a88fd29a8c1f3af0d92ff578be50262f1b5605be8421a1686c45f0b5"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenerateLogisticPickList.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql",
+          "sha256": "b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenerateRationReqReport.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateRationReqReport.sql",
+          "sha256": "eca76c08c57a553c65f3c9bb460434adfbbcc88341a3a607bbe80a84c825f9c3"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenSupplierWiseReq.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenSupplierWiseReq.sql",
+          "sha256": "fae0668e77fb3e149f62301f4e5e3cda1c1b546180a66f8262ca899644f16a9b"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ImportSpikeOrders.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/ImportSpikeOrders.sql",
+          "sha256": "5c8a724f98ef5b8ea830f64e825285e73b924ea03bf8b8e34a0a7e92709e58ce"
+        }
+      ]
+    },
+    {
+      "ScriptName": "PSORationing.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/PSORationing.sql",
+          "sha256": "89d4f88e851a2891a5edf5becab5026acf3da4064d69e0baf46e7cffd5b9ee12"
+        }
+      ]
+    },
+    {
+      "ScriptName": "StockCalculation.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/StockCalculation.sql",
+          "sha256": "b493932706997cf38697695b74fc87e96332c6cfadd29c200a682ae0dbd462ce"
+        }
+      ]
+    },
+    {
+      "ScriptName": "01. ImportData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/01. ImportData.sql",
+          "sha256": "c248baeedda13d74a71a499c8b59b7ec46f05f11db00938de59a746bce94ce93"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CalculatePenetrationAndColor.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CalculatePenetrationAndColor.sql",
+          "sha256": "e4a62d592b660fe08d46c45eecaf7a061e60eba7c8d86d3adec239023de5e251"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ClearHistoryData_BPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearHistoryData_BPR.sql",
+          "sha256": "96f06d458161643e9729a215d990a280e445c25f01f58935cbcf476394dc2d92"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CollectDataForBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectDataForBPR.sql",
+          "sha256": "1236b702861dce1d9f2492f9c7d9a280bbef20245326ff49628dd6b09308a7c7"
+        }
+      ]
+    },
+    {
+      "ScriptName": "CollectDataForDispatchPriority.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectDataForDispatchPriority.sql",
+          "sha256": "3d0602ffd47f9d93489a5440fbd85ac031620fb66e6fe343d9314cc69714d278"
+        }
+      ]
+    },
+    {
+      "ScriptName": "GenerateBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/GenerateBPR.sql",
+          "sha256": "36f06df7a79a0e849ff728659df3ada0ad5a567fa6e0257a4b50b3baeffa4647"
+        }
+      ]
+    },
+    {
+      "ScriptName": "UpdateBPR.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/UpdateBPR.sql",
+          "sha256": "fb050b8cb30a8c582dcf8ef5c4a50dff52c5252f82fc6318862fabfa6708722b"
+        }
+      ]
+    },
+    {
+      "ScriptName": "UpdateDispatchPriority.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "BPR",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/UpdateDispatchPriority.sql",
+          "sha256": "1331f5cb21ece8ffce3ac3c9dbd61e6df7c2e636bdd297c6267b6b5595656e90"
+        }
+      ]
+    },
+    {
+      "ScriptName": "UpdateNormChanges.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/Misc/UpdateNormChanges.sql",
+          "sha256": "20eee2a6847084129c33bdaa06bcb684086d5f66631544555c21db9bd9bea3bb"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ClearMasterInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearMasterInputTables.sql",
+          "sha256": "c47079c697c5ca7f21c572e6975ea728b492b201f625e7a982359785b861e526"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ClearNonMasterInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ClearNonMasterInputTables.sql",
+          "sha256": "0178c188c7c4c646aabfef7d1c1230f9b52c49f2bc15fd331c9fef66bbd23e3a"
+        }
+      ]
+    },
+    {
+      "ScriptName": "NMSClearInputTables.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSClearInputTables.sql",
+          "sha256": "f3e5a78dda0d82ce593f06c2d09fd4af98dad6b60dccf8ec28ea3be8bfe42a45"
+        }
+      ]
+    },
+    {
+      "ScriptName": "NMSCreateSnapshot.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSCreateSnapshot.sql",
+          "sha256": "f306ea8dc185611197d55d5deb7dd8bf5d1ab5523a581577bc0b8f1ec63a47ab"
+        }
+      ]
+    },
+    {
+      "ScriptName": "NMSImportData.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSImportData.sql",
+          "sha256": "c86d014b1f7ee921821f83936a53d1d4da566ba9b2558db9252853260c3c3801"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ValidateAndProcessMaster.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateAndProcessMaster.sql",
+          "sha256": "e95e7c2d7c4fa5459a75184a7eb546e77b58a6b9848b5e08befe61a874b85a88"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ResetBatchExecutionFlag.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetBatchExecutionFlag.sql",
+          "sha256": "bff92b31a962ea6e609e2db6a202744a01a9e46b9a42ed07abaf91dd05e41fa1"
+        }
+      ]
+    },
+    {
+      "ScriptName": "ValidateBatchExecutionFlags.sql",
+      "IsScriptExecuted": 0,
+      "IsScriptCritical": 1,
+      "ModuleName": "Importer",
+      "candidate_literal_writers": [
+        {
+          "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateBatchExecutionFlags.sql",
+          "sha256": "7c91eab8a46d3d6db540b11ba4bd5ee4daff526d1ffe6cd58ff46b70a8173b67"
+        }
+      ]
+    }
+  ],
+  "operations": [
+    {
+      "ordinal": 0,
+      "id": "settings",
+      "source": "Engine/VectorFLOWv4.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "effective configuration"
+      ]
+    },
+    {
+      "ordinal": 1,
+      "id": "fullkit",
+      "source": "Engine/CheckRunStartCriteria.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "FullkitAvailable",
+        "FullkitCheckdate",
+        "CriticalFiles"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "id": "sanitation",
+      "source": "Engine/DataSanitizationUtility.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "DataSanitizationResult gate"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "id": "pre-backup",
+      "source": "Engine/Backup.bat",
+      "activation": "disabled:IsPreBackupActive=0",
+      "configuration_dependencies": [],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 4,
+      "id": "reset",
+      "source": "Scripts/Importer/ResetBatchExecutionFlag.sql",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "ScriptExecutedFlag",
+        "ImporterSettingsTbl"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "id": "site-pre",
+      "source": "Engine/SiteSpecific/GulfOil/PreProcessing.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "site pre-processing effects"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "id": "run-date",
+      "source": "Engine/SetRunDate.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "all LastBatchRunTbl owners"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "id": "raw-input",
+      "source": "Engine/ImportAllRawData.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C3"
+      ],
+      "output_obligations": [
+        "raw master/daily/supplier/control rows"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "id": "vendor",
+      "source": "Engine/ImportVendorData.bat",
+      "activation": "disabled:VendorSystemActive=0",
+      "configuration_dependencies": [],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 9,
+      "id": "distributor",
+      "source": "Engine/ImportDistributorData.bat",
+      "activation": "disabled:DistributorSystemActive=0",
+      "configuration_dependencies": [],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 10,
+      "id": "input-validation",
+      "source": "Engine/ValidateAndProcessInputData.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "processed/rejected input rows",
+        "validation reports"
+      ]
+    },
+    {
+      "ordinal": 11,
+      "id": "norm-controls",
+      "source": "Engine/NormChangesRun.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "effective Norms",
+        "control histories",
+        "cleared requests"
+      ]
+    },
+    {
+      "ordinal": 12,
+      "id": "parent-norm",
+      "source": "Engine/ValidateParentNorm.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C3",
+        "C4"
+      ],
+      "output_obligations": [
+        "NoNormParent report",
+        "conditional CSV/ZIP/alert intent"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "id": "task-status",
+      "source": "Scripts/Importer/NMSTaskStatusUpdate.sql",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "NMS task status and retention"
+      ]
+    },
+    {
+      "ordinal": 14,
+      "id": "runtime-post-importer",
+      "source": "Engine/GenerateRuntimeReports.bat",
+      "activation": "configured:PostImporter",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "configured resultsets/files"
+      ]
+    },
+    {
+      "ordinal": 15,
+      "id": "bpr-core",
+      "source": "Engine/RunCoreBPR.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "requirements/ration/Pick/BPR/supplier rows"
+      ]
+    },
+    {
+      "ordinal": 16,
+      "id": "pick-files",
+      "source": "Engine/PickListReports.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C3"
+      ],
+      "output_obligations": [
+        "four Pick report files"
+      ]
+    },
+    {
+      "ordinal": 17,
+      "id": "order-allocation-files",
+      "source": "Engine/OrderAllocBasedReports.bat",
+      "activation": "configured:IsMTOEnvironment=0",
+      "configuration_dependencies": [
+        "C3"
+      ],
+      "output_obligations": [
+        "BOR_OrderAllocation.csv",
+        "BOR and RRR allocation histories; MTO files disabled"
+      ]
+    },
+    {
+      "ordinal": 18,
+      "id": "bpr-exception-files",
+      "source": "Engine/GenerateBPRExceptionReport.bat",
+      "activation": "data-dependent:BPRExceptions nonempty",
+      "configuration_dependencies": [
+        "C3",
+        "C4"
+      ],
+      "output_obligations": [
+        "BPR exception CSV/ZIP presence and alert intent"
+      ]
+    },
+    {
+      "ordinal": 19,
+      "id": "production-orders",
+      "source": "Scripts/BPR/ProdOrderSuggestions.sql",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "ProdOrderSuggestions",
+        "cleared Intermediate tables"
+      ]
+    },
+    {
+      "ordinal": 20,
+      "id": "bpr-retention",
+      "source": "Scripts/BPR/ClearHistoryData_BPR.sql",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "DailyConsumption",
+        "BPR/request/transit remark retention"
+      ]
+    },
+    {
+      "ordinal": 21,
+      "id": "modified-rrr",
+      "source": "Engine/RunCoreBPR.bat",
+      "activation": "disabled:GenerateModifiedRRR=0",
+      "configuration_dependencies": [],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 22,
+      "id": "planning",
+      "source": "Engine/Planning.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "GIT/excess/expedite/order fulfillment final populations"
+      ]
+    },
+    {
+      "ordinal": 23,
+      "id": "bpr-completion",
+      "source": "Scripts/BPR/ValidateBPRBatchExecutionFlags.sql",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1",
+        "C6"
+      ],
+      "output_obligations": [
+        "IsBPRBatchFileExecuted"
+      ]
+    },
+    {
+      "ordinal": 24,
+      "id": "bpr-failure-clear",
+      "source": "Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql",
+      "activation": "data-dependent:BPR completion failed",
+      "configuration_dependencies": [
+        "C6"
+      ],
+      "output_obligations": [
+        "four cleared legacy report tables; failed modern candidate denied"
+      ]
+    },
+    {
+      "ordinal": 25,
+      "id": "post-bpr",
+      "source": "Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "BPR/Importer/NMS c3",
+        "cleared Intermediate tables"
+      ]
+    },
+    {
+      "ordinal": 26,
+      "id": "runtime-post-bpr",
+      "source": "Engine/GenerateRuntimeReports.bat",
+      "activation": "configured:PostBPR",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "configured resultsets/files"
+      ]
+    },
+    {
+      "ordinal": 27,
+      "id": "input-download",
+      "source": "Engine/ProvideInputDataForDownload.bat",
+      "activation": "configured:GenerateDownloadableInputData=1",
+      "configuration_dependencies": [
+        "C3"
+      ],
+      "output_obligations": [
+        "InputData.zip and members",
+        "input date file"
+      ]
+    },
+    {
+      "ordinal": 28,
+      "id": "dbm-pre",
+      "source": "Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": [
+        "site pre-DBM effects"
+      ]
+    },
+    {
+      "ordinal": 29,
+      "id": "dbm-core",
+      "source": "Engine/RunCoreDBM.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "DBM imported/rules/suspensions/suggestions and histories",
+        "configured resultsets"
+      ]
+    },
+    {
+      "ordinal": 30,
+      "id": "dbm-files",
+      "source": "Engine/RunCoreDBM.bat",
+      "activation": "configured:frozen Norm/phase-out report settings",
+      "configuration_dependencies": [
+        "C3",
+        "C4"
+      ],
+      "output_obligations": [
+        "DBMNormChange and configured Norm0/1/2 and phase-out files",
+        "alert intents"
+      ]
+    },
+    {
+      "ordinal": 31,
+      "id": "post-dbm",
+      "source": "Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat",
+      "activation": "required:no business commands in retained hook",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 32,
+      "id": "runtime-post-dbm",
+      "source": "Engine/GenerateRuntimeReports.bat",
+      "activation": "configured:PostDBM",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "configured resultsets/files"
+      ]
+    },
+    {
+      "ordinal": 33,
+      "id": "btr-core",
+      "source": "Engine/RunCoreBufferTrend.bat",
+      "activation": "required",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "BTR history/trends/core attributes; standard 30/60/90 and location files disabled"
+      ]
+    },
+    {
+      "ordinal": 34,
+      "id": "post-btr-attributes",
+      "source": "Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1",
+        "C2"
+      ],
+      "output_obligations": [
+        "FGTrendData",
+        "c9/c10/c12/c13 in six owners",
+        "cleared Intermediate tables"
+      ]
+    },
+    {
+      "ordinal": 35,
+      "id": "post-btr-files",
+      "source": "Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "GulfOil BTR Python reports"
+      ]
+    },
+    {
+      "ordinal": 36,
+      "id": "runtime-post-btr",
+      "source": "Engine/GenerateRuntimeReports.bat",
+      "activation": "configured:PostBTR",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "configured resultsets/files"
+      ]
+    },
+    {
+      "ordinal": 37,
+      "id": "ui-upload-logs",
+      "source": "Engine/GenerateUIUploadLogs.bat",
+      "activation": "configured:ActivateNMSUIUploadLogs=1",
+      "configuration_dependencies": [
+        "C3"
+      ],
+      "output_obligations": [
+        "UI upload log files and retention"
+      ]
+    },
+    {
+      "ordinal": 38,
+      "id": "batch-completion",
+      "source": "Scripts/Importer/ValidateBatchExecutionFlags.sql",
+      "activation": "required",
+      "configuration_dependencies": [
+        "C1",
+        "C6"
+      ],
+      "output_obligations": [
+        "IsBatchFileExecuted"
+      ]
+    },
+    {
+      "ordinal": 39,
+      "id": "site-final",
+      "source": "Engine/SiteSpecific/GulfOil/FinalProcessing.bat",
+      "activation": "required:no business commands in retained hook",
+      "configuration_dependencies": [
+        "C1"
+      ],
+      "output_obligations": []
+    },
+    {
+      "ordinal": 40,
+      "id": "runtime-final",
+      "source": "Engine/GenerateRuntimeReports.bat",
+      "activation": "configured:Final",
+      "configuration_dependencies": [
+        "C1",
+        "C3"
+      ],
+      "output_obligations": [
+        "configured resultsets/files"
+      ]
+    },
+    {
+      "ordinal": 41,
+      "id": "post-backup",
+      "source": "Engine/Backup.bat",
+      "activation": "configured:DoPostBkpDBM/BPR/Importer/BTR=1",
+      "configuration_dependencies": [
+        "C3",
+        "C5"
+      ],
+      "output_obligations": [
+        "four native SQL differential backups and compressed files",
+        "modern native backup"
+      ]
+    },
+    {
+      "ordinal": 42,
+      "id": "alerts",
+      "source": "Engine/VectorFLOWv4.bat",
+      "activation": "configured:seeded EmailAlertSettings plus data predicates",
+      "configuration_dependencies": [
+        "C1",
+        "C4"
+      ],
+      "output_obligations": [
+        "evaluated alert intents/attachments"
+      ]
+    },
+    {
+      "ordinal": 43,
+      "id": "actions",
+      "source": "Engine/VectorFLOWv4.bat",
+      "activation": "approved:frozen eligible-Sleep/Apply policy",
+      "configuration_dependencies": [],
+      "output_obligations": [
+        "ordered real workflow commands",
+        "own successor state"
+      ]
+    },
+    {
+      "ordinal": 44,
+      "id": "publication-readers",
+      "source": "Engine/VectorFLOWv4.bat",
+      "activation": "readiness:explicit supported operational policy; strict existing defaults preserved",
+      "configuration_dependencies": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6"
+      ],
+      "output_obligations": [
+        "typed final roots",
+        "prepared layers/seals/access",
+        "explicit owned selection",
+        "finite serialized reader responses"
+      ]
+    }
+  ],
+  "sources": {
+    "Scripts/DBCreation/Importer_DBCreation.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/Importer_DBCreation.sql",
+      "sha256": "11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309",
+      "baseline_registered": true
+    },
+    "Scripts/DBCreation/BPR_DBCreation.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/BPR_DBCreation.sql",
+      "sha256": "a906c4b7ea50cb4a121101159553c2d531a29fe5c782247318fc0f933efe6ec0",
+      "baseline_registered": true
+    },
+    "Engine/StdSettingsPre.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/StdSettingsPre.bat",
+      "sha256": "38805cdf611057f3e92a2a080bd3b0686182464f0cb61c3dae8e49627cb31cdb",
+      "baseline_registered": true
+    },
+    "Engine/SiteSpecific/GulfOil/Settings.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/Settings.bat",
+      "sha256": "0a21134b38bbeda7a32c96b5d2312e4c98200101e2f8bb58a168f325681439d2",
+      "baseline_registered": true
+    },
+    "Engine/VectorFLOWv4.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/VectorFLOWv4.bat",
+      "sha256": "6e70b6c7a6675ab1c8e38dfcba9a9a945f3da70aab673fc95ea7ce0e93f78d75",
+      "baseline_registered": true
+    },
+    "Engine/CheckRunStartCriteria.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/CheckRunStartCriteria.bat",
+      "sha256": "9edf97b4a08b095bb97380576e5616cd84efa725ae37ed13e63b28974c4101ce",
+      "baseline_registered": true
+    },
+    "Engine/DataSanitizationUtility.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/DataSanitizationUtility.bat",
+      "sha256": "fcc7af1d8c110a6436e4fee1db64aa7cd8de522a84c1959666f31e239948028b",
+      "baseline_registered": true
+    },
+    "Engine/Backup.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Backup.bat",
+      "sha256": "4fa3ed4aaf5085db4e6c60897fb1c43cad601285bd355634a1dce23d2fa27150",
+      "baseline_registered": true
+    },
+    "Scripts/Importer/ResetBatchExecutionFlag.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetBatchExecutionFlag.sql",
+      "sha256": "bff92b31a962ea6e609e2db6a202744a01a9e46b9a42ed07abaf91dd05e41fa1",
+      "baseline_registered": true
+    },
+    "Engine/SiteSpecific/GulfOil/PreProcessing.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreProcessing.bat",
+      "sha256": "3315283f5b8f98224df88b568ee529a47973646654a5dd85dc58cf1b2520a1aa",
+      "baseline_registered": true
+    },
+    "Engine/SetRunDate.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SetRunDate.bat",
+      "sha256": "6dd96847bd625c90edc59ec97e086de5b1007b62baa63414d3672e7fbe76148b",
+      "baseline_registered": true
+    },
+    "Engine/ImportAllRawData.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportAllRawData.bat",
+      "sha256": "30c28dbab43df40e00c6da682c1ae999985ba72200e91cce75c00d5023a7a1ac",
+      "baseline_registered": true
+    },
+    "Engine/ImportVendorData.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportVendorData.bat",
+      "sha256": "a81acf3d40e8795dc67a4657b8a6258b84d540bbbd31e7c0acc74fee366ee6be",
+      "baseline_registered": true
+    },
+    "Engine/ImportDistributorData.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ImportDistributorData.bat",
+      "sha256": "d9f4c087355f5419f32cea968e0e227e55397dbf3bc5716330487522c9c5a262",
+      "baseline_registered": true
+    },
+    "Engine/ValidateAndProcessInputData.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateAndProcessInputData.bat",
+      "sha256": "b7d76ab0967099751bb6402b1e9cd3eaf1712ddb4cd06aba78b53f0776d96cd7",
+      "baseline_registered": true
+    },
+    "Engine/NormChangesRun.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/NormChangesRun.bat",
+      "sha256": "1b66cce3e052904bdb55b5c19952b987a264bb045285583be8ec1c9c5d9575b5",
+      "baseline_registered": true
+    },
+    "Engine/ValidateParentNorm.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ValidateParentNorm.bat",
+      "sha256": "afbff90d850afce4247744a87d3ae0c5001ef8ade82d152cbb1e895caa0ea010",
+      "baseline_registered": true
+    },
+    "Scripts/Importer/NMSTaskStatusUpdate.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSTaskStatusUpdate.sql",
+      "sha256": "99836bcf74c618350924bf02e21dea30cbe4cc9d6022f859f5c1c6cfca10dbe8",
+      "baseline_registered": true
+    },
+    "Engine/GenerateRuntimeReports.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateRuntimeReports.bat",
+      "sha256": "8e1c83c49dd7c12dad25c153c923caf28b01db03720fe8aa665a3df09a88c7e8",
+      "baseline_registered": true
+    },
+    "Engine/RunCoreBPR.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreBPR.bat",
+      "sha256": "ccd6d8038d953ea9c9ba1661cb8942a56626a754f6774cd70036c365314d7a02",
+      "baseline_registered": true
+    },
+    "Engine/PickListReports.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PickListReports.bat",
+      "sha256": "a47e9dc5ddb8e356ddaa121d320dd694d2aca44c58e0f51ecd60a3730d757b40",
+      "baseline_registered": true
+    },
+    "Engine/OrderAllocBasedReports.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/OrderAllocBasedReports.bat",
+      "sha256": "12df6d7a4eba37b4bc56cb03bed12f37d4749483bf19ebb2ceff7336723cf22b",
+      "baseline_registered": true
+    },
+    "Engine/GenerateBPRExceptionReport.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateBPRExceptionReport.bat",
+      "sha256": "722798af0f50ebec6b15c4d4a07b8e342b8b5ed3a5c2fc18f29e6c1585317b4c",
+      "baseline_registered": true
+    },
+    "Scripts/BPR/ProdOrderSuggestions.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ProdOrderSuggestions.sql",
+      "sha256": "e4e50d327a60e02717183c803303ffa6ae8a731c7fa728a76dfff190d51377db",
+      "baseline_registered": true
+    },
+    "Scripts/BPR/ClearHistoryData_BPR.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearHistoryData_BPR.sql",
+      "sha256": "96f06d458161643e9729a215d990a280e445c25f01f58935cbcf476394dc2d92",
+      "baseline_registered": true
+    },
+    "Engine/Planning.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Planning.bat",
+      "sha256": "738b9f4eb8f93a5c738578a6cb59415e00c6f394e532ae841cb9e52a62ecdc10",
+      "baseline_registered": true
+    },
+    "Scripts/BPR/ValidateBPRBatchExecutionFlags.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ValidateBPRBatchExecutionFlags.sql",
+      "sha256": "5da557469af8f6a021ef7c4eabe503f1678b4035673082f82174b135472146e5",
+      "baseline_registered": true
+    },
+    "Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql",
+      "sha256": "7f7c4db185b908c3a3f4390d8df5fabbe946ae97a4f71f6e3205606e86abe8b5",
+      "baseline_registered": true
+    },
+    "Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql",
+      "sha256": "d0d2036edd71269c514fd0e316889c6923c20f963063fb5f984b81eaaa7c332b",
+      "baseline_registered": true
+    },
+    "Engine/ProvideInputDataForDownload.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/ProvideInputDataForDownload.bat",
+      "sha256": "d46ade48ab45823ae3b29a6d6808f33e1802afdccf98f87fc0c81b6050146b52",
+      "baseline_registered": true
+    },
+    "Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PreDBMProcessing.bat",
+      "sha256": "d0f7016dd295bc84c515d6ad562cc2c96f4caca8c7efb4aa9e4b4462da319d0d",
+      "baseline_registered": true
+    },
+    "Engine/RunCoreDBM.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreDBM.bat",
+      "sha256": "b01193968e3b8ff5bd81b404ddb954f0978e7857eae5aa3acbe73be6d004da17",
+      "baseline_registered": true
+    },
+    "Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat",
+      "sha256": "ff89655c149f18097bfe4bcd139ee2ff6fe60b6e3f6211e0c5f53d3445f3d526",
+      "baseline_registered": true
+    },
+    "Engine/RunCoreBufferTrend.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreBufferTrend.bat",
+      "sha256": "21787bb37d1ae15a86c6f95986c8c119aa15d7236e70dc0eab2260f140934dca",
+      "baseline_registered": true
+    },
+    "Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql",
+      "sha256": "b2f356c09bdc905f11d33e58de2e47b7bb852db43eed2aceb7dcfe3982058f6b",
+      "baseline_registered": true
+    },
+    "Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py",
+      "sha256": "9492cb85d618ae373cf84442e12fcc8c6c90dad7b8544b03aa45b4c4996e6096",
+      "baseline_registered": false
+    },
+    "Engine/GenerateUIUploadLogs.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateUIUploadLogs.bat",
+      "sha256": "656da66db2a0e7e653b24b66c57765f168a64119fb928074ef76e7c55c222be3",
+      "baseline_registered": true
+    },
+    "Scripts/Importer/ValidateBatchExecutionFlags.sql": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateBatchExecutionFlags.sql",
+      "sha256": "7c91eab8a46d3d6db540b11ba4bd5ee4daff526d1ffe6cd58ff46b70a8173b67",
+      "baseline_registered": true
+    },
+    "Engine/SiteSpecific/GulfOil/FinalProcessing.bat": {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/FinalProcessing.bat",
+      "sha256": "4278f77981c917996646246c9af95724a3cb82fc2a05c3d72f16060ed80ff480",
+      "baseline_registered": true
+    }
+  }
+}

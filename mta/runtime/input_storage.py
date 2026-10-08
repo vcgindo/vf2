@@ -43,9 +43,16 @@ def get(value,path,default=None):
 
 
 def choose_table(fields,path):
+    from mta.runtime.complete_daily_state import input_table
     names={f.casefold() for f in fields}
+    complete = input_table(path)
+    if complete:
+        if not names <= {name.casefold() for name,_ in STORAGE_TABLES[complete]}:
+            raise ValueError('Complete-day input fields differ from declared population: '+path)
+        return complete
     candidates=[key for key,columns in STORAGE_TABLES.items()
-                if names<={name.casefold() for name,_ in columns}]
+                if not key.startswith('complete/')
+                and names<={name.casefold() for name,_ in columns}]
     if not candidates:raise ValueError('Unmapped typed input family: '+path+' '+str(sorted(fields)))
     # Explicit input families take precedence; closing schema is reusable only
     # for exact native field names. Every chosen mapping is retained and checked.
