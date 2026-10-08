@@ -80,11 +80,33 @@ DailyConsumptionHorizonBPR=90, BPR_RemarkHorizon=90, GenerateModifiedRRR=0,
 AutoDBMActive=0, vendor/distributor/VectorDMS=0, OrchestratorImplemented=0 and
 GulfOil ActivateNorm0Report30Days=1/BPR_ShowNormZeroItems=1. These are static
 settings, not proof of current database-held activation rows. RuntimeReports,
-critical-script roster, sanitation/fullkit and input-download/upload/backup flags
-still need a declared authoritative dataset. Frozen batch/rule overrides must be
+critical-script roster, sanitation/fullkit and alert activation still need a
+declared authoritative dataset. Input-download/upload and pre-backup flags are
+already present in the frozen opening, as reconciled below. Frozen batch/rule overrides must be
 reconciled against those defaults explicitly, rather than silently substituted.
 DBM NormZeroOneRuleActive and DelistingofNormRuleActive affect rule activation;
 the selected adapter's direct rule sequence is not proof of those settings.
+
+### Frozen configuration reconciliation
+
+The frozen opening itself supplies these authoritative values; they are not
+missing settings requiring a default:
+
+| Setting/population | Frozen value and implication |
+|---|---|
+| GenerateDownloadableInputData / ActivateNMSUIUploadLogs | Both1 in opening.importer_settings and controls.importer_settings. Their file/output work is enabled and must be included |
+| IsMTOEnvironment |0 in opening.dbm.VFSettings. Bind the corresponding canonical Importer settings owner explicitly; do not enable MTO order-allocation exports by assumption |
+| NormZeroOneRuleActive / DelistingofNormRuleActive |0 /1 in both DBMSettingsTbl and controls.dbm_settings. Reconcile exact rule branches with the selected adapter |
+| IsPreBackupActive |0. No pre-backup workload is implied. Post-backup per-database flags still require reconciliation |
+| BatchFileExecutionDate |Retained October8,2025 opening value, not the June2026 run date. Canonical reset/date advancement is required; never seed a success date or flag merely to pass admission |
+| IsBatchFileExecuted / IsBPRBatchFileExecuted |0 /1 in opening. These are prior state, not proof the new run finished |
+| Plants |Seven opening BPR rows; production-order suggestions cannot be dismissed as an assumed empty configuration |
+| Orders for this two-day workload |Zero initial SpikeOrderData rows and zero order-feed rows on both June6/7. This narrows the production-suggestion script's order-input compatibility question without proving its result |
+| RuntimeReports / ScriptExecutedFlag / DataSanitizationResult / EmailAlertSettings |Absent from frozen opening/profile. Absence is unknown, not empty/disabled; require explicit source/configuration disposition |
+
+The source inventory records exact paths and values. No live database state was
+queried or substituted for these frozen settings. The read-only reconciliation
+does not authorize the missing business producers or any engine invocation.
 
 These gaps supplement the table above. The coverage map is an inventory under
 reconciliation, not a certificate that every deployed operation is implemented.

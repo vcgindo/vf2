@@ -57,6 +57,14 @@ reviewed extension/configuration decision; independent timer plumbing is deliver
 No actual complete-day timing or ranked measured savings yet. Goal remains active;
 do not close it or start A3 until the consolidated scope decision is supplied.
 
+Read-only continuation reconciled frozen opening configuration: download/upload
+flags are both1, pre-backup0, NormZeroOne0/delisting1; Plants has7 rows and both
+first-day/successor order feeds plus initial SpikeOrderData are empty. Those known
+enabled outputs remain in scope. RuntimeReports, ScriptExecutedFlag,
+DataSanitizationResult and EmailAlertSettings are absent, not empty/disabled.
+Inventory/proposal corrected; no engine or runtime change. This reduces genuine
+configuration unknowns but does not remove the reviewed extension decision hold.
+
 Remaining sequence (only this tracker owns status): A2 minimal monotonic measurement
 plumbing and focused verification; A3 one separately owned two-day exercise per
 engine, both days through actions and published-consumable outputs, with external

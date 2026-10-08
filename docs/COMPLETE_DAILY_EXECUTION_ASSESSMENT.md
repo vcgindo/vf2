@@ -31,6 +31,14 @@ AutoDBMActive, and selects explicit report horizons. It is not a complete deploy
 GulfOil BAT settings export. GulfOil hooks must be reconciled explicitly, not
 inferred from the atlas's site selection.
 
+Frozen-opening reconciliation additionally confirms input downloads and UI-upload
+logs enabled (both1), pre-backup disabled, NormZeroOneRuleActive0 and delisting1.
+Seven Plants rows are present. Initial orders and both June6/7 order feeds are
+empty. RuntimeReports, ScriptExecutedFlag, DataSanitizationResult and
+EmailAlertSettings are absent, not valid empty populations. The companion
+proposal and source inventory record exact owner paths/values; include known
+enabled output work rather than asking for defaults already supplied by the input.
+
 ## Complete coverage map
 
 Each row follows producer order. Inputs include its listed predecessors. Stored

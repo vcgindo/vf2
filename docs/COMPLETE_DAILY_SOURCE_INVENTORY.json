@@ -24,6 +24,114 @@
     "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56",
     "bytes": 56588334
   },
+  "frozen_configuration": {
+    "parameters": [
+      {
+        "path": "opening/controls/dbm_settings/0",
+        "parameter": "DelistingofNormRuleActive",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/dbm_settings/2",
+        "parameter": "NormZeroOneRuleActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/controls/importer_settings/11",
+        "parameter": "ActivateNMSUIUploadLogs",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/12",
+        "parameter": "GenerateDownloadableInputData",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/15",
+        "parameter": "IsBatchFileExecuted",
+        "value": "0"
+      },
+      {
+        "path": "opening/controls/importer_settings/16",
+        "parameter": "IsBPRBatchFileExecuted",
+        "value": "1"
+      },
+      {
+        "path": "opening/controls/importer_settings/17",
+        "parameter": "BatchFileExecutionDate",
+        "value": "Oct  8 2025  1:00AM"
+      },
+      {
+        "path": "opening/controls/importer_settings/19",
+        "parameter": "IsPreBackupActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/dbm/DBMSettingsTbl/0",
+        "parameter": "DelistingofNormRuleActive",
+        "value": "1"
+      },
+      {
+        "path": "opening/dbm/DBMSettingsTbl/2",
+        "parameter": "NormZeroOneRuleActive",
+        "value": "0"
+      },
+      {
+        "path": "opening/dbm/VFSettings/10",
+        "parameter": "IsMTOEnvironment",
+        "value": "0"
+      },
+      {
+        "path": "opening/importer_settings/11",
+        "parameter": "ActivateNMSUIUploadLogs",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/12",
+        "parameter": "GenerateDownloadableInputData",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/15",
+        "parameter": "IsBatchFileExecuted",
+        "value": "0"
+      },
+      {
+        "path": "opening/importer_settings/16",
+        "parameter": "IsBPRBatchFileExecuted",
+        "value": "1"
+      },
+      {
+        "path": "opening/importer_settings/17",
+        "parameter": "BatchFileExecutionDate",
+        "value": "Oct  8 2025  1:00AM"
+      },
+      {
+        "path": "opening/importer_settings/19",
+        "parameter": "IsPreBackupActive",
+        "value": "0"
+      }
+    ],
+    "tables": [
+      {
+        "path": "opening/bpr/Plants",
+        "name": "Plants",
+        "rows": 7
+      }
+    ],
+    "absent_tables": [
+      "DataSanitizationResult",
+      "EmailAlertSettings",
+      "RuntimeReports",
+      "ScriptExecutedFlag"
+    ],
+    "first_two_day_order_feed_counts": [
+      0,
+      0
+    ],
+    "initial_spike_order_count": 0,
+    "qualification": "Declared frozen values only; absent config tables remain unknown. Counts describe workload, not calculation parity."
+  },
   "canonical": [
     {
       "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateBPRExceptionReport.bat",

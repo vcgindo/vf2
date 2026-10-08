@@ -53,6 +53,43 @@ REUSE = (
     'D:/freshvcf-build/refinement/dbm-joins-001/mode-equivalence-resolved.json',
     'D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1/readiness-result.json',
 )
+CONFIG_PARAMETERS = frozenset((
+    'GenerateDownloadableInputData', 'ActivateNMSUIUploadLogs', 'IsMTOEnvironment',
+    'NormZeroOneRuleActive', 'DelistingofNormRuleActive', 'IsPreBackupActive',
+    'BatchFileExecutionDate', 'IsBatchFileExecuted', 'IsBPRBatchFileExecuted',
+    'DailyConsumptionHorizonBPR', 'BPR_RemarkHorizon',
+))
+CONFIG_TABLES = frozenset((
+    'RuntimeReports', 'ScriptExecutedFlag', 'DataSanitizationResult',
+    'EmailAlertSettings', 'Plants',
+))
+
+
+def frozen_configuration(case):
+    """Retain explicit settings only; absence is never a disabled/empty value."""
+    parameters, tables = [], []
+
+    def walk(value, path):
+        if isinstance(value, dict):
+            if value.get('Parameter') in CONFIG_PARAMETERS:
+                parameters.append(dict(path=path, parameter=value['Parameter'], value=value['Value']))
+            for key, child in value.items():
+                if key in CONFIG_TABLES:
+                    tables.append(dict(path=path+'/'+key, name=key,
+                                       rows=len(child) if isinstance(child, list) else None))
+                walk(child, path+'/'+key)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(child, path+'/'+str(index))
+
+    for name in ('opening','profile'):
+        walk(case[name], name)
+    return dict(parameters=parameters, tables=tables,
+        absent_tables=sorted(CONFIG_TABLES-{r['name'] for r in tables}),
+        first_two_day_order_feed_counts=[len(day['order_feed']) for day in case['days'][:2]],
+        initial_spike_order_count=len(case['opening']['orders']['SpikeOrderData']),
+        qualification='Declared frozen values only; absent config tables remain unknown. '
+                      'Counts describe workload, not calculation parity.')
 
 
 def identity(path):
@@ -94,13 +131,15 @@ def inventory():
     site_python = [identity(Path(p)) for p in (
         'F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py',
         'F:/VFlow_Source_Backup/deployed-demo/MTA/V6/Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py')]
+    frozen = Path('D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json')
     return dict(schema='fresh-complete-daily-assessment-inventory-v1',
         status_tracker='docs/MIGRATION.md',
         inventory_is_not_execution_or_equivalence_proof=True,
         baseline=identity(manifest_path),
         navigation=[identity(ROOT/p) for p in (
             'docs/batch-atlas/inventory.json','docs/batch-atlas/diagrams-v2.json')],
-        frozen_input=identity(Path('D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json')),
+        frozen_input=identity(frozen),
+        frozen_configuration=frozen_configuration(json.loads(frozen.read_text(encoding='utf-8'))['case']),
         canonical=canonical, missing_canonical_suffixes=sorted(set(CANONICAL_SUFFIXES)-found),
         deployed_api=api, retained_dbm_refinement=refinements,
         newly_observed_site_python=dict(files=site_python,
