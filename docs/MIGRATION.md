@@ -6,7 +6,7 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### Complete daily execution reassessment — active, 8 October 2026
+### Complete daily execution reassessment — blocked on scope decision, 8 October 2026
 
 Authority: direct human controller turn01a1199a-805c-7333-a16b-0cb6a5983762
 approved the complete reassessment plan and its implementation. This supersedes
@@ -54,8 +54,8 @@ Standalone scalar timer has no engine hooks/launches/admission authority;3 focus
 tests pass and baseline verify passes387 identities. No schema/runtime/image,
 engine invocation or protected resource/selection change. A1 remains at the
 reviewed extension/configuration decision; independent timer plumbing is delivered.
-No actual complete-day timing or ranked measured savings yet. Goal remains active;
-do not close it or start A3 until the consolidated scope decision is supplied.
+No actual complete-day timing or ranked measured savings yet. The goal is
+blocked, not complete; do not start A3 until the consolidated scope decision is supplied.
 
 Read-only continuation reconciled frozen opening configuration: download/upload
 flags are both1, pre-backup0, NormZeroOne0/delisting1; Plants has7 rows and both
@@ -64,6 +64,15 @@ enabled outputs remain in scope. RuntimeReports, ScriptExecutedFlag,
 DataSanitizationResult and EmailAlertSettings are absent, not empty/disabled.
 Inventory/proposal corrected; no engine or runtime change. This reduces genuine
 configuration unknowns but does not remove the reviewed extension decision hold.
+
+Blocked audit: the same reviewed-extension decision remains unresolved across
+three consecutive goal turns. Read-only proposal/review, configuration reconciliation
+and independent non-semantic timer work are delivered (dc01307,8838e02). Latest
+controller instruction still authorizes proposal first and prohibits business,
+commit/admission extensions or engine invocation before the consolidated decision.
+No live benchmark is being waited on. Remaining end-to-end results/proofs require
+that decision; no smaller timing boundary can satisfy the goal. Preserve all work
+and resume this same goal when the scope/publication/capture disposition arrives.
 
 Remaining sequence (only this tracker owns status): A2 minimal monotonic measurement
 plumbing and focused verification; A3 one separately owned two-day exercise per
