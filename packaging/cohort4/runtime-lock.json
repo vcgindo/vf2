@@ -1,0 +1,15 @@
+{
+  "package": "cohort4-qualified-operational-package-v1",
+  "base_tag": "freshvcf-cohort3-proof:closure-003",
+  "base_image_id": "sha256:17f7568f65fcbbb78c3ecfd694b8ac4b340f0a78c417d2e9d7691e11f221bc2d",
+  "tool_dependency_tag": "freshvcf-cohort2:20261008-final001",
+  "tool_dependency_image_id": "sha256:a8d606b23e65f85b326d87fd86e960f343af4789eec69b03deee70341cf98ebd",
+  "copied_tool_libraries": ["libldap-2.5.so.0", "liblber-2.5.so.0", "libsasl2.so.2"],
+  "application_commit": "44c350b0fc201f832393ca02664e3b17b07143fd",
+  "application_roots": ["mta", "vectorflow", "baseline", "parity", "user-service/api_gateway"],
+  "dependency_policy": "Installed dependencies and PostgreSQL tools inherited from pinned base; three missing shared libraries copied from pinned accepted operational image; no downloads or upgrades",
+  "schema": "fresh_mta.0097_cohort3_activation_lineage",
+  "admission": "strict independent parity; qualified two-owner policy is not enabled by this package",
+  "runtime": "Linux amd64; Python 3.11; PostgreSQL configuration supplied privately",
+  "release": "packaging only; no business-day run, serving activation or general-input acceptance"
+}

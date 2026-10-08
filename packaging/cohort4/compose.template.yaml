@@ -1,0 +1,48 @@
+name: freshvcf-cohort4-owned
+services:
+  worker:
+    image: ${FRESH_RUNTIME_IMAGE:?Set the verified immutable package image ID}
+    restart: "no"
+    mem_limit: 4g
+    cpus: 2
+    pids_limit: 256
+    read_only: true
+    tmpfs:
+      - /tmp:size=268435456
+    environment:
+      DJANGO_SETTINGS_MODULE: vectorflow.settings
+      VF_SECRET_KEY: ${VF_SECRET_KEY:?Supply privately}
+      VF_DB_HOST: ${VF_DB_HOST:?Supply the exclusively owned PostgreSQL host}
+      VF_DB_PORT: ${VF_DB_PORT:?Supply its port}
+      VF_DB_NAME: ${VF_DB_NAME:?Supply its database}
+      VF_DB_USER: ${VF_DB_USER:?Supply its user}
+      VF_DB_PASSWORD: ${VF_DB_PASSWORD:?Supply privately}
+      VF_MTA_DAILY_PUBLICATION: "1"
+      VF_MTA_SYNTHETIC_ROSTER: core-without-bor-v1
+      VF_MTA_CONSUMPTION_POLICY: ""
+      VF_MTA_PUBLISHED_RUN: ""
+      VF_MTA_PUBLISHED_DIGEST: ""
+      VF_BTR_REPORTING_GENERATION: ""
+      VF_MTA_ACTIONS_ENABLED: "0"
+    volumes:
+      - type: bind
+        source: ${FRESH_PRIVATE_ROOT:?Supply the owned private configuration root}
+        target: /private
+        read_only: true
+      - type: bind
+        source: ${FRESH_COHORT2_ROOT:?Supply the retained Cohort2 evidence root}
+        target: /cohort2
+        read_only: true
+      - type: bind
+        source: ${FRESH_COHORT1_ROOT:?Supply the retained Cohort1 evidence root}
+        target: /cohort1
+        read_only: true
+      - type: bind
+        source: ${FRESH_PICK_ROOT:?Supply the retained Pick evidence root}
+        target: /pick-evidence
+        read_only: true
+    networks: [owned]
+networks:
+  owned:
+    external: true
+    name: ${FRESH_OWNED_NETWORK:?Supply the existing exclusively owned network}

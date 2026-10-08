@@ -6,6 +6,47 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT4 — operational packaging (qualified closure checkpoint)
+
+Direct human approval in controller turn01a11d57-4b23-7691-9433-e058daed41f3
+releases only D1–D4 of COHORT4_OPERATIONAL_DELIVERY_ACCEPTANCE_PLAN.md.
+The previous Cohort3 stop is superseded only for this finite packaging delivery.
+The bounded goal has no numeric budget; this remains the sole tracker.
+
+D1 is complete in COHORT4_COMMAND_CONTRACT.md. General input/admission is
+explicitly BLOCKED; no policy change is needed to package the existing commands.
+D2 complete: operational-004 pins 848 application files and required imports;
+pg_dump/pg_restore start, Django/schema/command checks and retained operational
+readback pass. Strict selection rejects the qualified owner as expected. Earlier
+build/audit failures are preserved. No business or schema changes occurred.
+D3 complete: numbered steps1–5 in COHORT4_OPERATOR_RUNBOOK.md; executable
+steps verified all25 indexed package/evidence files and strict-denial receipt.
+Held new-day, retry/repair, restore and restart procedures have explicit gates.
+D4 readiness matrix is complete in COHORT4_HANDOFF.md. This commit is the
+cohesive closure checkpoint. Final delivery action: push, verify upstream,
+close the bounded goal and stop. No further runtime checks or next phase due.
+
+- [x] D1 — existing-command contract and explicit supported/blocked domain.
+- [x] D2 — one pinned reproducible package/private template; required clean checks.
+- [x] D3 — numbered executable operator/failure/recovery procedure and no-calculation audit.
+- [x] D4 — qualified readiness matrix and cohesive delivery checkpoint; verified push ends the goal.
+
+Runtime image: sha256:0a8ca22f471386ec6ce8dd3e59cd3fb5b1f5e56cfc525e32a6f30e3a2adb5dff.
+COHORT4_EVIDENCE_INDEX.json pins package/source/command proof and the exported
+image. Only three missing PostgreSQL tool libraries were copied from the pinned
+Cohort2 image. No application code, schema, business owner or permission changed.
+All11 command outcomes passed, including the expected strict-selection denial.
+This establishes qualified operational packaging only; all readiness gaps in the
+handoff remain held. No new calculation, legacy call, restore/consumer campaign,
+benchmark, serving activation or cutover occurred.
+
+General admission stays strict; the two-owner policy cannot admit another run.
+No new hardcoded owners, inferred empties, framework, scheduler, dependency
+modernization, ports, serving change, benchmark or adjacent workflow is released.
+Preserve accepted receipts/seals, two approved503 blocks, baseline test failures,
+all protected resources and unrelated work. A real daily-input run needs separate
+approval. Investigate only an observed packaging/forwarding/command dependency.
+
 ### COHORT3 — publication and authenticated consumption (qualified closure)
 
 The direct human release, four source/access choices in
