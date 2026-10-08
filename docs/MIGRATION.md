@@ -88,11 +88,27 @@ Human call_5a75ffbc20224abb91987c31f6cb6ee7 approved the bounded four-file
 unordered-export qualification. a002 passes all four mixed and four empty
 projections with exact typed bags/headers; all four mixed strict sequence FAILs
 remain recorded. Calculation/table ordinal/API/grid order is unaffected.
-Full native logistics materializers are still missing: accepted allocation
-outputs omit native counters/cumulative/overage/formed-bit/residual metadata.
+Full native logistics input materializers are still missing: accepted allocation
+outputs omit native counters/cumulative/overage/formed-bit/residual metadata;
+the additive restricted capture below now supplies those fields for its proved inputs.
 Source review also identifies duplicate joins, single NULL dimensions and
 priority-rank ties as unproved boundaries; no speculative algorithm repair or
 generic full-row readiness claim is made from the projection proof.
+Current R1 edit adds calculate_pick_list_state to the existing calculation,
+capturing native truck metadata at queue/cut/residual points while preserving
+the old allocation return. It remains unintegrated and restricted to unique
+joins, unambiguous ranks and positive non-NULL dimensions. Twenty-one focused
+tests pass. Independent review found no bounded implementation defect and
+required native/volume evidence rather than treating unit results as parity.
+pick-stage-state-a001.json now passes both weight/volume fixtures: complete21/16
+typed columns AND strict observed sequences, exact original narrow projections,
+unchanged allocation fields/order, signed overages and ratio4.5/MXL. Both owned
+fixtures roll back with seed/all-scratch preservation; worker remains4GiB/2CPU.
+This restricted capture is an implementation step, not the generic exit; the
+full input adapter and the identified duplicate/NULL/rank boundaries remain open.
+The two native operational tables also need typed storage binding before R2;
+they are not currently present in the complete-state catalogue. No business day,
+benchmark, serving change or client continuation occurred.
 
 Migration0079 adds11 typed run/image/ordinal tables without changing the accepted
 catalogue/default input mappings. Django check, migration check/plan, fresh PG

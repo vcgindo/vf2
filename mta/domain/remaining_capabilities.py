@@ -6,7 +6,7 @@ rounding and suspension semantics.  It is not a redesigned planning model.
 from __future__ import annotations
 
 from datetime import date, timedelta
-from decimal import Decimal, ROUND_CEILING
+from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP, localcontext
 
 
 ZERO = Decimal("0")
@@ -196,6 +196,97 @@ def calculate_dbm(case: dict) -> list[dict]:
 
 
 def calculate_pick_list(case: dict) -> list[dict]:
+    return _calculate_pick_list(case)
+
+
+def calculate_pick_list_state(case: dict) -> dict:
+    """Capture native truck fields from the existing allocation calculation.
+
+    This additive seam currently requires unique native join occurrences,
+    unambiguous priority ranks and positive, non-NULL native dimensions. It is
+    not the full native-table input adapter and must not stand in for its still
+    unqualified duplicate/NULL/tied-rank branches. No source defaults are added.
+    """
+    state = {'LogisticPickList': [], 'PickListDataForTruckFormation': []}
+    allocations = _calculate_pick_list(case, state)
+    groups = {}
+    for row in state['LogisticPickList']:
+        groups.setdefault((row['ParentWHCode'], row['LogisticLocation'], row['TruckCount']), []).append(row)
+    # Native division of the SUM(decimal(13,3)) values yields decimal(38,6).
+    with localcontext() as context:
+        context.prec = 80
+        for rows in groups.values():
+            weight = sum((row['TotalWeight'] for row in rows), ZERO)
+            volume = sum((row['TotalVolume'] for row in rows), ZERO)
+            ratio = (weight / volume).quantize(Decimal('.000001'), rounding=ROUND_HALF_UP)
+            for row in rows:
+                row['TransportLoadType'] = 'MXL' if ratio >= Decimal('4.5') else 'SXL'
+    return dict(allocations=allocations, **state)
+
+
+def _native_decimal(value):
+    rounded = d_signed(value).quantize(Decimal('.001'), rounding=ROUND_HALF_UP)
+    if abs(rounded) >= Decimal('10000000000'):
+        raise ValueError('Native Pick decimal(13,3) overflow')
+    return rounded
+
+
+def _native_queue(flattened, vehicle):
+    priorities = set()
+    for number, row in enumerate(flattened, 1):
+        if row['priority'] in priorities:
+            raise ValueError('Native Pick priority-rank tie requires source-order qualification')
+        priorities.add(row['priority'])
+        for field in ('weight', 'volume'):
+            value = d(row[field])
+            if value <= 0 or _native_decimal(value) != value:
+                raise ValueError('Native Pick state requires qualified positive scale3 dimensions')
+        if row['quantity'] != int(row['quantity']) or not 0 < row['quantity'] < 2**31:
+            raise ValueError('Native Pick quantity must be a positive SQL int')
+        for field in ('sku', 'from_location', 'to_location', 'logistics_location', 'dispatch_color'):
+            value = row[field]
+            if value is None and field == 'dispatch_color':
+                continue
+            if not isinstance(value, str):
+                raise ValueError('Native Pick text metadata required: ' + field)
+            if len(value.encode('utf-16-le')) // 2 > (20 if field == 'dispatch_color' else 50):
+                raise ValueError('Native Pick text exceeds column size: ' + field)
+        row['_native_sr_no'] = number
+    if not isinstance(vehicle['name'], str) or len(vehicle['name'].encode('utf-16-le')) // 2 > 50:
+        raise ValueError('Native vehicle name required')
+    for field in ('weight_capacity', 'volume_capacity'):
+        value = d(vehicle[field])
+        if value <= 0 or _native_decimal(value) != value:
+            raise ValueError('Native Pick state requires qualified positive scale3 capacities')
+
+
+def _native_pick_identity(row, vehicle):
+    return dict(NewSRNo=row['_native_sr_no'], SKUCode=row['sku'], WHCode=row['to_location'],
+        ParentWHCode=row['from_location'], VehicleWeightCapacity=_native_decimal(vehicle['weight_capacity']),
+        VehicleVolumeCapacity=_native_decimal(vehicle['volume_capacity']),
+        DispatchColor=row['dispatch_color'], VehicleName=vehicle['name'], Priority=row['priority'],
+        LogisticLocation=row['logistics_location'])
+
+
+def _capture_native_truck(state, rows, boundary, allocation, truck, vehicle):
+    cumulative_weight = cumulative_volume = ZERO
+    minimum = rows[boundary]['_native_sr_no']
+    for index, row in enumerate(rows[:boundary + 1]):
+        cumulative_weight += row['quantity'] * d(row['weight'])
+        cumulative_volume += row['quantity'] * d(row['volume'])
+        quantity = allocation if index == boundary else row['quantity']
+        native = _native_pick_identity(row, vehicle)
+        native.update(MinSRNo=minimum, TotalWeight=_native_decimal(quantity*d(row['weight'])),
+            TotalVolume=_native_decimal(quantity*d(row['volume'])),
+            CumulativeWeight=_native_decimal(cumulative_weight), CumulativeVolume=_native_decimal(cumulative_volume),
+            IsTruckFormed=True if index == boundary else None, TruckCount=truck,
+            RemainingWeigt=_native_decimal(cumulative_weight-d(vehicle['weight_capacity'])) if index == boundary else None,
+            RemainingVolume=_native_decimal(cumulative_volume-d(vehicle['volume_capacity'])) if index == boundary else None,
+            TransportLoadType=None, ColorWiseAlloction=int(quantity))
+        state['LogisticPickList'].append(native)
+
+
+def _calculate_pick_list(case: dict, state=None) -> list[dict]:
     vehicle = case["vehicle"]
     weight_cap, volume_cap = d(vehicle["weight_capacity"]), d(vehicle["volume_capacity"])
     grouped: dict[tuple[str, str], list[dict]] = {}
@@ -213,13 +304,15 @@ def calculate_pick_list(case: dict) -> list[dict]:
                 )
     picks = []
     for group in grouped.values():
-        picks.extend(_calculate_pick_group(group, weight_cap, volume_cap))
+        picks.extend(_calculate_pick_group(group, weight_cap, volume_cap, state=state, vehicle=vehicle))
     return sorted(picks, key=lambda row: (row["truck"] is None, row["truck"] or 999999, row["priority"], row["case"], row["remaining_quantity"]))
 
 
-def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap: Decimal) -> list[dict]:
+def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap: Decimal, *, state=None, vehicle=None) -> list[dict]:
     """Form vehicles for one legacy ParentWHCode/LogisticsLocation queue."""
     flattened.sort(key=lambda row: (row["priority"], row["item_index"]))
+    if state is not None:
+        _native_queue(flattened, vehicle)
     remaining = [dict(row) for row in flattened]
     picks, truck = [], 0
     while remaining:
@@ -245,6 +338,10 @@ def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap
         allocation = min(row["quantity"], available_by_weight, available_by_volume)
         # ColorWiseAlloction is an int in the recovered table: assignment truncates.
         allocation = max(ZERO, Decimal(int(allocation)))
+        if state is not None:
+            if allocation == 0:
+                raise ValueError('Zero-allocation native truck boundary remains unqualified')
+            _capture_native_truck(state, remaining, boundary, allocation, truck, vehicle)
         if allocation > 0:
             picks.append(_pick_row(row, truck, allocation))
         residual = row["quantity"] - allocation
@@ -253,6 +350,13 @@ def _calculate_pick_group(flattened: list[dict], weight_cap: Decimal, volume_cap
             remaining.insert(0, {**row, "quantity": residual})
     for row in remaining:
         picks.append(_pick_row(row, None, ZERO, remaining=row["quantity"]))
+        if state is not None:
+            native = _native_pick_identity(row, vehicle)
+            native.update(TotalWeight=_native_decimal(row['quantity']*d(row['weight'])),
+                TotalVolume=_native_decimal(row['quantity']*d(row['volume'])),
+                RemainingWeight=Decimal('0.000'), RemainingVolume=Decimal('0.000'),
+                ColorWiseAlloction=int(row['quantity']), NoTruckFlag=True)
+            state['PickListDataForTruckFormation'].append(native)
     return picks
 
 
