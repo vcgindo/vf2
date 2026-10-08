@@ -1,0 +1,2464 @@
+{
+  "schema": "fresh-complete-daily-assessment-inventory-v1",
+  "status_tracker": "docs/MIGRATION.md",
+  "inventory_is_not_execution_or_equivalence_proof": true,
+  "baseline": {
+    "path": "F:/freshvcf/baseline/manifest.json",
+    "sha256": "b3f662682d4f5b63d21e2bd8efc185d699d1f6f2946dd119e45e1b09863308c6",
+    "bytes": 113124
+  },
+  "navigation": [
+    {
+      "path": "F:/freshvcf/docs/batch-atlas/inventory.json",
+      "sha256": "4de6e9a44cc33bd4ef07555d1c5424a960a26ad52c12e9cf3e587de68499b442",
+      "bytes": 1625927
+    },
+    {
+      "path": "F:/freshvcf/docs/batch-atlas/diagrams-v2.json",
+      "sha256": "367fd4b7541ecf6f03d7d06dbfb912b6ec816c319ccccb244a4610f4aa322f09",
+      "bytes": 8161
+    }
+  ],
+  "frozen_input": {
+    "path": "D:/freshvcf-build/synthetic/rlt-4-7-v1/scenario-004/full-input.json",
+    "sha256": "ee707e71eb134f8ade084bef95d4ff915d8ba94a50776e0c1621e5a3bd0b0f56",
+    "bytes": 56588334
+  },
+  "canonical": [
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenerateBPRExceptionReport.bat",
+      "sha256": "722798af0f50ebec6b15c4d4a07b8e342b8b5ed3a5c2fc18f29e6c1585317b4c",
+      "bytes": 2167,
+      "expected_sha256": "722798af0f50ebec6b15c4d4a07b8e342b8b5ed3a5c2fc18f29e6c1585317b4c",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/GenericFinalProcessing.bat",
+      "sha256": "ef27b6388517c1337c2b2f9216e036bfc8829355a6b7dabc4dc2d8a01620aa34",
+      "bytes": 482,
+      "expected_sha256": "ef27b6388517c1337c2b2f9216e036bfc8829355a6b7dabc4dc2d8a01620aa34",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/OrderAllocBasedReports.bat",
+      "sha256": "12df6d7a4eba37b4bc56cb03bed12f37d4749483bf19ebb2ceff7336723cf22b",
+      "bytes": 4448,
+      "expected_sha256": "12df6d7a4eba37b4bc56cb03bed12f37d4749483bf19ebb2ceff7336723cf22b",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/PickListReports.bat",
+      "sha256": "a47e9dc5ddb8e356ddaa121d320dd694d2aca44c58e0f51ecd60a3730d757b40",
+      "bytes": 5016,
+      "expected_sha256": "a47e9dc5ddb8e356ddaa121d320dd694d2aca44c58e0f51ecd60a3730d757b40",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/Planning.bat",
+      "sha256": "738b9f4eb8f93a5c738578a6cb59415e00c6f394e532ae841cb9e52a62ecdc10",
+      "bytes": 731,
+      "expected_sha256": "738b9f4eb8f93a5c738578a6cb59415e00c6f394e532ae841cb9e52a62ecdc10",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/RunCoreBPR.bat",
+      "sha256": "ccd6d8038d953ea9c9ba1661cb8942a56626a754f6774cd70036c365314d7a02",
+      "bytes": 4630,
+      "expected_sha256": "ccd6d8038d953ea9c9ba1661cb8942a56626a754f6774cd70036c365314d7a02",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/FinalProcessing.bat",
+      "sha256": "4278f77981c917996646246c9af95724a3cb82fc2a05c3d72f16060ed80ff480",
+      "bytes": 380,
+      "expected_sha256": "4278f77981c917996646246c9af95724a3cb82fc2a05c3d72f16060ed80ff480",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostBPRProcessing.bat",
+      "sha256": "0a4d607eb06315406d064338a3f78f30f5ed04d30fb333dd3bd96dfcf859737a",
+      "bytes": 529,
+      "expected_sha256": "0a4d607eb06315406d064338a3f78f30f5ed04d30fb333dd3bd96dfcf859737a",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostBTRProcessing.bat",
+      "sha256": "2dade8dbcec02fa5867be2a8f1994ba0e3897302453a917fc38f3400313f2fa4",
+      "bytes": 775,
+      "expected_sha256": "2dade8dbcec02fa5867be2a8f1994ba0e3897302453a917fc38f3400313f2fa4",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/PostDBMProcessing.bat",
+      "sha256": "ff89655c149f18097bfe4bcd139ee2ff6fe60b6e3f6211e0c5f53d3445f3d526",
+      "bytes": 385,
+      "expected_sha256": "ff89655c149f18097bfe4bcd139ee2ff6fe60b6e3f6211e0c5f53d3445f3d526",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/SiteSpecific/GulfOil/Settings.bat",
+      "sha256": "0a21134b38bbeda7a32c96b5d2312e4c98200101e2f8bb58a168f325681439d2",
+      "bytes": 2021,
+      "expected_sha256": "0a21134b38bbeda7a32c96b5d2312e4c98200101e2f8bb58a168f325681439d2",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/StdSettingsPost.bat",
+      "sha256": "d67e725c7b74f1b16062f5d693be2bf45de63791d4e90eb3b8096776c1938a7a",
+      "bytes": 1912,
+      "expected_sha256": "d67e725c7b74f1b16062f5d693be2bf45de63791d4e90eb3b8096776c1938a7a",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/StdSettingsPre.bat",
+      "sha256": "38805cdf611057f3e92a2a080bd3b0686182464f0cb61c3dae8e49627cb31cdb",
+      "bytes": 3362,
+      "expected_sha256": "38805cdf611057f3e92a2a080bd3b0686182464f0cb61c3dae8e49627cb31cdb",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Engine/VectorFLOWv4.bat",
+      "sha256": "6e70b6c7a6675ab1c8e38dfcba9a9a945f3da70aab673fc95ea7ce0e93f78d75",
+      "bytes": 14993,
+      "expected_sha256": "6e70b6c7a6675ab1c8e38dfcba9a9a945f3da70aab673fc95ea7ce0e93f78d75",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearHistoryData_BPR.sql",
+      "sha256": "96f06d458161643e9729a215d990a280e445c25f01f58935cbcf476394dc2d92",
+      "bytes": 1803,
+      "expected_sha256": "96f06d458161643e9729a215d990a280e445c25f01f58935cbcf476394dc2d92",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ClearTableForBPRBatchExecutionFailure.sql",
+      "sha256": "7f7c4db185b908c3a3f4390d8df5fabbe946ae97a4f71f6e3205606e86abe8b5",
+      "bytes": 1021,
+      "expected_sha256": "7f7c4db185b908c3a3f4390d8df5fabbe946ae97a4f71f6e3205606e86abe8b5",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/CollectOrderFulfillmentData.sql",
+      "sha256": "b6ae768bd632c831050453f7702a2016bf8db11bc69a2a05088f31c030d3d3b1",
+      "bytes": 4240,
+      "expected_sha256": "b6ae768bd632c831050453f7702a2016bf8db11bc69a2a05088f31c030d3d3b1",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ProdOrderSuggestions.sql",
+      "sha256": "e4e50d327a60e02717183c803303ffa6ae8a731c7fa728a76dfff190d51377db",
+      "bytes": 4868,
+      "expected_sha256": "e4e50d327a60e02717183c803303ffa6ae8a731c7fa728a76dfff190d51377db",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/ValidateBPRBatchExecutionFlags.sql",
+      "sha256": "5da557469af8f6a021ef7c4eabe503f1678b4035673082f82174b135472146e5",
+      "bytes": 1716,
+      "expected_sha256": "5da557469af8f6a021ef7c4eabe503f1678b4035673082f82174b135472146e5",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/NMSTaskStatusUpdate.sql",
+      "sha256": "99836bcf74c618350924bf02e21dea30cbe4cc9d6022f859f5c1c6cfca10dbe8",
+      "bytes": 29883,
+      "expected_sha256": "99836bcf74c618350924bf02e21dea30cbe4cc9d6022f859f5c1c6cfca10dbe8",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ResetBatchExecutionFlag.sql",
+      "sha256": "bff92b31a962ea6e609e2db6a202744a01a9e46b9a42ed07abaf91dd05e41fa1",
+      "bytes": 1461,
+      "expected_sha256": "bff92b31a962ea6e609e2db6a202744a01a9e46b9a42ed07abaf91dd05e41fa1",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidateBatchExecutionFlags.sql",
+      "sha256": "7c91eab8a46d3d6db540b11ba4bd5ee4daff526d1ffe6cd58ff46b70a8173b67",
+      "bytes": 1675,
+      "expected_sha256": "7c91eab8a46d3d6db540b11ba4bd5ee4daff526d1ffe6cd58ff46b70a8173b67",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/Importer/ValidationForParentNorm.sql",
+      "sha256": "014d3c5f3cccff32b266eb11210960ca3fe2241da4bdd62d807dfb860f92da52",
+      "bytes": 2120,
+      "expected_sha256": "014d3c5f3cccff32b266eb11210960ca3fe2241da4bdd62d807dfb860f92da52",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BPR/CalculatedAttributes.sql",
+      "sha256": "d0d2036edd71269c514fd0e316889c6923c20f963063fb5f984b81eaaa7c332b",
+      "bytes": 3110,
+      "expected_sha256": "d0d2036edd71269c514fd0e316889c6923c20f963063fb5f984b81eaaa7c332b",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/CalculateAttributeBasedonBTR.sql",
+      "sha256": "b2f356c09bdc905f11d33e58de2e47b7bb852db43eed2aceb7dcfe3982058f6b",
+      "bytes": 27601,
+      "expected_sha256": "b2f356c09bdc905f11d33e58de2e47b7bb852db43eed2aceb7dcfe3982058f6b",
+      "matches_pin": true
+    }
+  ],
+  "missing_canonical_suffixes": [],
+  "deployed_api": [
+    {
+      "path": "F:/VFlow_Local/local-runtime/mta-latest/VectorFlowAPIs.dll",
+      "sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "bytes": 1065472,
+      "expected_sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/VFlow_Source_Backup/deployed-demo/MTA/BackEndAPI/VectorFlowAPIs.dll",
+      "sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "bytes": 1065472,
+      "expected_sha256": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+      "matches_pin": true
+    }
+  ],
+  "retained_dbm_refinement": [
+    {
+      "path": "F:/freshvcf/mta/domain/dbm_suspensions.py",
+      "sha256": "6c241ed7590f6b33ceab4dbb886b2a5ffc6387b28ac26e0d4fb683e77defc9de",
+      "bytes": 49326,
+      "expected_sha256": "6c241ed7590f6b33ceab4dbb886b2a5ffc6387b28ac26e0d4fb683e77defc9de",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/freshvcf/mta/domain/dbm_ingestion.py",
+      "sha256": "2288da173acd9f098d29c25f5945eedd56f7c8d735382920babe82f91c215f85",
+      "bytes": 5662,
+      "expected_sha256": "2288da173acd9f098d29c25f5945eedd56f7c8d735382920babe82f91c215f85",
+      "matches_pin": true
+    },
+    {
+      "path": "F:/freshvcf/mta/domain/dbm_suspension_history.py",
+      "sha256": "dbf745fce10d7807cc3e3f5ea701d3d1dc3d7ae9dc528fd2a1e45573e3475545",
+      "bytes": 2859,
+      "expected_sha256": "dbf745fce10d7807cc3e3f5ea701d3d1dc3d7ae9dc528fd2a1e45573e3475545",
+      "matches_pin": true
+    }
+  ],
+  "newly_observed_site_python": {
+    "files": [
+      {
+        "path": "F:/VFlow_Local/local-runtime/mta-engine/Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py",
+        "sha256": "9492cb85d618ae373cf84442e12fcc8c6c90dad7b8544b03aa45b4c4996e6096",
+        "bytes": 17145
+      },
+      {
+        "path": "F:/VFlow_Source_Backup/deployed-demo/MTA/V6/Scripts/SiteSpecific/GulfOil/BTR/GulfOil_BTRReports.py",
+        "sha256": "694913decc587ccba375851531bfc339cadd6546ee73d220864ab824150731ce",
+        "bytes": 17118
+      }
+    ],
+    "copies_identical": false,
+    "baseline_registered": false,
+    "qualification": "Called by pinned PostBTR BAT; observed bytes only, not accepted producer proof or a new baseline registration."
+  },
+  "evidence": [
+    {
+      "path": "D:/freshvcf-build/refinement/dbm-joins-001/identities.json",
+      "sha256": "cc51c1f05f2fc2b194d96df75c3de24855276ed7a3b6694b6ab88e7cb3627299",
+      "bytes": 4607
+    },
+    {
+      "path": "D:/freshvcf-build/refinement/dbm-joins-001/final-proof.json",
+      "sha256": "c9ce3e6bc1c9cea2fd72e96f8d066c0ae77a2405992525249c7449df2b846de6",
+      "bytes": 1128
+    },
+    {
+      "path": "D:/freshvcf-build/refinement/dbm-joins-001/mode-equivalence-resolved.json",
+      "sha256": "e19087ed0d6960775d42ff772e96fd1c92581a2abbc39adbbf1866b0b28bc0d4",
+      "bytes": 511
+    },
+    {
+      "path": "D:/freshvcf-build/daily-3006/runtime/offline-temporal-full-001/readiness-dbm-v1/readiness-result.json",
+      "sha256": "aa12e174fc67e8ef8139c1c167b3a2f92479dbca77c5619758c5ec74dc8ee2d4",
+      "bytes": 1398
+    }
+  ],
+  "modules": [
+    {
+      "path": "mta/evidence.py",
+      "sha256": "2b9ea8b844e883e6cb682a34e5183dda24edca03ffb7b6448cf05444a0a1db13",
+      "bytes": 1074,
+      "top_level_symbols": [
+        "validating",
+        "evidence_mode",
+        "snapshot",
+        "final_stage"
+      ]
+    },
+    {
+      "path": "mta/presentation/__init__.py",
+      "sha256": "8dfb5e8ac36af475d09e662036e4b166075f863277f814ed69d4ce0ef8de952f",
+      "bytes": 66,
+      "top_level_symbols": []
+    },
+    {
+      "path": "mta/presentation/actions.py",
+      "sha256": "15482b63142f9882bc17f9e3f1bb6f0b0836e7dc296cf738106ca863a45b7ad5",
+      "bytes": 2987,
+      "top_level_symbols": [
+        "ActionDenied",
+        "timestamp",
+        "selected_pairs",
+        "submit"
+      ]
+    },
+    {
+      "path": "mta/presentation/admission.py",
+      "sha256": "6e9edb1a1db293500ffcbb356dd2509dd68081b7fa32c2fc937cbe136d54a608",
+      "bytes": 9784,
+      "top_level_symbols": [
+        "binding",
+        "native_binding",
+        "verify",
+        "admit",
+        "require_admission",
+        "AdmittedApplication"
+      ]
+    },
+    {
+      "path": "mta/presentation/ancillary_live.py",
+      "sha256": "2e641a7c0313f14125d140bc780e551f04fa531614196f0b6bb03d9342d9c704",
+      "bytes": 17438,
+      "top_level_symbols": [
+        "serving_live",
+        "_models",
+        "family_for_path",
+        "initialize_owner",
+        "owner",
+        "_wire",
+        "_rows_digest",
+        "_snapshot_digest",
+        "_capture_metadata",
+        "snapshot_all",
+        "_validate_snapshot",
+        "bind_snapshot",
+        "bind_snapshots",
+        "_capture",
+        "image_metadata",
+        "image_rows",
+        "image_query",
+        "publication_rows",
+        "publication_metadata",
+        "append"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_configuration.py",
+      "sha256": "e5291dd11386d275264cba5bd73973c3b52478c7cdd6c673edfd7dc5f41b348a",
+      "bytes": 2244,
+      "top_level_symbols": [
+        "configuration",
+        "ui_columns",
+        "wire_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_contract.py",
+      "sha256": "bfd2717354a49bb4fe45765b6633bc79552ad49da56c46175bfa9e76d490eb1a",
+      "bytes": 1891,
+      "top_level_symbols": [
+        "recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_preparation.py",
+      "sha256": "a3753b9c0bd1edc8cb912d4f0e46bada31efd76a652e3e2f36e83b803a859048",
+      "bytes": 2992,
+      "top_level_symbols": [
+        "query",
+        "row_receipt"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_prepared_fields.py",
+      "sha256": "225c61166f966158dfd6aa2cae2befd914bda11a430919adb65df5cf39aa4c3f",
+      "bytes": 2159,
+      "top_level_symbols": [
+        "field_name",
+        "recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_remarks.py",
+      "sha256": "4df394b826f09607bb0cae703a6940bda837610971d8dcc492644469c93a7e48",
+      "bytes": 4652,
+      "top_level_symbols": [
+        "_literal",
+        "append",
+        "history"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_sources.py",
+      "sha256": "d0c7225d165b7d980667913d0b398b446ff24727652cf9bd28996f889f54b760",
+      "bytes": 3773,
+      "top_level_symbols": [
+        "native_binding",
+        "wire_rows",
+        "validate_capture",
+        "verify_values",
+        "admitted_sources"
+      ]
+    },
+    {
+      "path": "mta/presentation/bor_sql.py",
+      "sha256": "e4cb6582b66edf3054f6ee38006c57a730a88131b069b4c53534275f6962251b",
+      "bytes": 13392,
+      "top_level_symbols": [
+        "BorQueryError",
+        "_FilterBuildAbort",
+        "col",
+        "BorFilters",
+        "projection",
+        "remark_query",
+        "read_bor"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_configuration.py",
+      "sha256": "cecd469d48a9f087515f5e3ac8d9ab12c294ef6679b54f899f5427f1848e7f18",
+      "bytes": 1693,
+      "top_level_symbols": [
+        "configuration",
+        "ui_columns"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_contract.py",
+      "sha256": "032884b38122d7c0859f047e85ac7025569ae9df75ada5e1737cbd261744ad05",
+      "bytes": 19849,
+      "top_level_symbols": [
+        "field_name",
+        "source_recipe",
+        "prepared_recipe"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_filters.py",
+      "sha256": "ce7e3190558d58e182ca3d141a8bacbf88fd178031573e4e0926ac263686e4e7",
+      "bytes": 7775,
+      "top_level_symbols": [
+        "BorOaQueryError",
+        "_FilterBuildAbort",
+        "BorOaFilters"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_preparation.py",
+      "sha256": "76e4030eac1f52edd29927e9cf3bf6b8912cb86da5e1a676f9f096cc7adcaad2",
+      "bytes": 2831,
+      "top_level_symbols": [
+        "query",
+        "row_receipt"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_remarks.py",
+      "sha256": "29b8177c0b4a3b75928e98868a5ba0cfc55ed8d7280968a40a728672a3a6db3f",
+      "bytes": 4771,
+      "top_level_symbols": [
+        "_literal",
+        "append",
+        "history"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_sources.py",
+      "sha256": "5e0a61d36e4964dba9b04cc6ecf0bbf21e71aef08cbfd1861965e853816eba15",
+      "bytes": 3803,
+      "top_level_symbols": [
+        "validate_capture",
+        "verify_values",
+        "admitted_sources"
+      ]
+    },
+    {
+      "path": "mta/presentation/boroa_sql.py",
+      "sha256": "a1d54b06b9b71960d086039539d342ce64b32350f305d0bebcbea4628eac91c5",
+      "bytes": 7205,
+      "top_level_symbols": [
+        "col",
+        "projection",
+        "remark_query",
+        "read_boroa"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr.py",
+      "sha256": "94c2ba41964aa156382e1986f1b93d154964a38a70b6ffde1f3ce23cc824552f",
+      "bytes": 8175,
+      "top_level_symbols": [
+        "native",
+        "latest_remarks",
+        "sort_rows",
+        "ReadModel"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_export.py",
+      "sha256": "4ad189038beb061a47817c76a8aa3d5fc0e751d737d96dff29b89f66e146ad1d",
+      "bytes": 774,
+      "top_level_symbols": [
+        "selected_headers"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_filters.py",
+      "sha256": "7622c753086a7434b63d44f9bc9872bc78ab71f04a24ce054dc76a641a26ee5a",
+      "bytes": 6974,
+      "top_level_symbols": [
+        "unavailable",
+        "BprPredicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_prepared.py",
+      "sha256": "c2657bf310ce1c1ce44be7575ee5a93766f5130310308484c059b303092bcca3",
+      "bytes": 11891,
+      "top_level_symbols": [
+        "column",
+        "PreparedFilters",
+        "projection",
+        "_prepared_query",
+        "_build",
+        "read_bpr"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_prepared_fields.py",
+      "sha256": "13f16e3b88c0ef5a380d539aaab470d26f19e36107aa5cb0e9c6308e9afc7411",
+      "bytes": 2149,
+      "top_level_symbols": [
+        "field_name",
+        "schema_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_read.py",
+      "sha256": "0450f8a23ad3f13e4f69d5f7f10e7692388a82be17928870860914d951df1466",
+      "bytes": 2095,
+      "top_level_symbols": [
+        "bpr_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_remarks.py",
+      "sha256": "e3ab92977c63f18b62d1b9dfe297da1bc4cbf85b51b95ae2024168ced12d81d9",
+      "bytes": 3533,
+      "top_level_symbols": [
+        "_literal",
+        "_run",
+        "append",
+        "history"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_response.py",
+      "sha256": "47d6cd6bb8cd743b13c03c16f2b7259031a9675e2d266c13cc78def4c8208f36",
+      "bytes": 1667,
+      "top_level_symbols": [
+        "transit_json",
+        "response_row"
+      ]
+    },
+    {
+      "path": "mta/presentation/bpr_sql.py",
+      "sha256": "1aaff277004d5ef7db1ce9a41a7423ce24f8eb252fc94d9406d25650d772fa48",
+      "bytes": 15227,
+      "top_level_symbols": [
+        "BprSqlFilters",
+        "_projected_attributes",
+        "_values_cte",
+        "_build",
+        "read_bpr"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr.py",
+      "sha256": "7e964f2156ee7283ebd69d99fc1329fda410d65bbfc443b4743ef250a54a60d6",
+      "bytes": 5635,
+      "top_level_symbols": [
+        "key",
+        "horizon_columns",
+        "joined_rows",
+        "category_alias_text",
+        "project_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_display.py",
+      "sha256": "08caa3276738dc9ca3a1f982dd4f56528ae67b8c2b91d919989e075490cf1873",
+      "bytes": 5558,
+      "top_level_symbols": [
+        "display_horizon",
+        "_parse_float",
+        "_js_string",
+        "_convert",
+        "_parse_int_is_below_100",
+        "_availability",
+        "_token",
+        "prepare_display"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_export.py",
+      "sha256": "cf645caf673fe6c525757e4143bf4b4fa22d575fcde57fe8ef6f378d732eec66",
+      "bytes": 2285,
+      "top_level_symbols": [
+        "selected_headers"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_filters.py",
+      "sha256": "a750e05e24f0142fdcb1614d09d704e1f9b8312803881a4ac30923e9f7815b33",
+      "bytes": 7668,
+      "top_level_symbols": [
+        "unavailable",
+        "BtrPredicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_reporting.py",
+      "sha256": "c920bf7965d3e08cf24905771ad6bba07fffa684d4d6f583513daebe8215cb4a",
+      "bytes": 12423,
+      "top_level_symbols": [
+        "source_identity",
+        "selected_generation",
+        "admission_identity",
+        "rows_identity",
+        "verify_generation",
+        "_duplicates",
+        "_populate",
+        "_build",
+        "build_run",
+        "build_selected",
+        "eligible_request",
+        "reference_from",
+        "substitute_keys"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_snapshot.py",
+      "sha256": "9a269a8dc6450b7cc521403ef23589c7e70cf022fc42dfcc8cbc7e6d40a16e5d",
+      "bytes": 18012,
+      "top_level_symbols": [
+        "rows_identity",
+        "reference_generation",
+        "prepared_values",
+        "_source_rows",
+        "build_selected",
+        "_attributes",
+        "_display_projection",
+        "_display_row",
+        "range_availability",
+        "read_snapshot"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_snapshot_fields.py",
+      "sha256": "adcb76230070503d704dddb058fb46173ce28ba562e035e389637271feaf58c1",
+      "bytes": 1493,
+      "top_level_symbols": [
+        "filter_field",
+        "display_field"
+      ]
+    },
+    {
+      "path": "mta/presentation/btr_sql.py",
+      "sha256": "94a5da1aab767c5ecf14c2921c162d4f6e178de79217a1918149fc9b4fa75bef",
+      "bytes": 21156,
+      "top_level_symbols": [
+        "BtrFilters",
+        "read_btr",
+        "iter_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/buffer_trends_sql.py",
+      "sha256": "6ed8b08a5a18e3a63fc52ebd35d77e18c46d7f8c1e39dbba74176c9d0f84a978",
+      "bytes": 10513,
+      "top_level_symbols": [
+        "unavailable",
+        "GraphFilters",
+        "read_graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/chronic_sql.py",
+      "sha256": "495000bc39c7280abf68cb60990dd1c48faaead42d8daa4ac38279fac5fc9c85",
+      "bytes": 8888,
+      "top_level_symbols": [
+        "native_equal",
+        "native_fixture",
+        "read_chronic"
+      ]
+    },
+    {
+      "path": "mta/presentation/context.py",
+      "sha256": "b13ecfa58336b5619e42387023eccbe533e4f18a910b0b893068c26358a6eade",
+      "bytes": 6624,
+      "top_level_symbols": [
+        "PublicationUnavailable",
+        "Publication",
+        "selected_run",
+        "publication",
+        "permission_catalogue",
+        "scope"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_activation.py",
+      "sha256": "0b3a5fb585d55dc5717f1dfd4536da238a63f1b1d065eb47be2f07bf813a9b56",
+      "bytes": 5546,
+      "top_level_symbols": [
+        "access_manifest",
+        "native_verification_with_access",
+        "values",
+        "require_activation",
+        "activate"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_git_charts.py",
+      "sha256": "3814357acf235cc1b7e43211f3c05fe1b26d358d781e12e284900d008d5ad1d1",
+      "bytes": 13867,
+      "top_level_symbols": [
+        "_index",
+        "_scope",
+        "_dynamic",
+        "_key_value",
+        "_dimension_rows",
+        "_location_values",
+        "_group_key",
+        "_expanded_value",
+        "_percentile",
+        "_mean",
+        "_delay_cte",
+        "_delay_dataset",
+        "datasets",
+        "_wire",
+        "response",
+        "build"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_git_count.py",
+      "sha256": "7ef1934d01278dd53a7e96c77e087698d10866bf2d1ee5e4ddb19fb1bebb932e",
+      "bytes": 4396,
+      "top_level_symbols": [
+        "CountFilters",
+        "count"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_git_custom.py",
+      "sha256": "927e324401278b07cb8680802cdb915435e31f3b3dd478efd2f6f99d230f4a9b",
+      "bytes": 4633,
+      "top_level_symbols": [
+        "custom"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_git_preparation.py",
+      "sha256": "740f8b8091cb5066dc98ab805b471cbb149a6a518afc84236de3967d463edc25",
+      "bytes": 3826,
+      "top_level_symbols": [
+        "location_configuration",
+        "sources",
+        "validate_ready",
+        "recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_git_read.py",
+      "sha256": "c706cfcf3b520d5838375bc7db6053e54c5f33ec4e47e0d1b7cb94bfb44eb742",
+      "bytes": 6966,
+      "top_level_symbols": [
+        "_permissions",
+        "_relations",
+        "_location_columns",
+        "_fetch",
+        "_delay_query",
+        "graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_history.py",
+      "sha256": "d0db875859c4c178c8fe6dd491485c4235dbd25e3684fc3cf1fd3ab5ebccf4eb",
+      "bytes": 639,
+      "top_level_symbols": [
+        "daily_graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_history_disposition.py",
+      "sha256": "944d521266a9d4ee5032642d8bc50cf79be02add947e0dab211c0173ca38ffe3",
+      "bytes": 1112,
+      "top_level_symbols": [
+        "guard"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_opening_sob.py",
+      "sha256": "7895ca99167a11a599b5b7930db151b64a2764ec24ee2f94e91ccaa3282cf24a",
+      "bytes": 3479,
+      "top_level_symbols": [
+        "recipe_digest",
+        "save",
+        "read",
+        "query"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/__init__.py",
+      "sha256": "7ca578bc6913be1aa43f0954b4d47bbf51c2bf3277a03a86a18b64b7dd5dbb1f",
+      "bytes": 85,
+      "top_level_symbols": []
+    },
+    {
+      "path": "mta/presentation/daily_planning/daily_git_custom.py",
+      "sha256": "50f369a615a1650b3b3f5621a6410cc29312309584345ceefb9bed9f5bfb3078",
+      "bytes": 4885,
+      "top_level_symbols": [
+        "custom"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/daily_git_read.py",
+      "sha256": "3998dcb8a2dedb822295d756a1fef4d951d8611873f23962ded8a8ca4518189c",
+      "bytes": 7262,
+      "top_level_symbols": [
+        "_permissions",
+        "_relations",
+        "_location_columns",
+        "_fetch",
+        "_delay_query",
+        "graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/dispatch.py",
+      "sha256": "f3c5b14a38b32c6d34cd8b1d0190d479ea680ece09675dba66dc58177f68ebd9",
+      "bytes": 3225,
+      "top_level_symbols": [
+        "read",
+        "_read"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/pick.py",
+      "sha256": "00fbc608ffa556bace9aae68c0d48ba6a52c043d3c584b5a2ee657ec23976bae",
+      "bytes": 1984,
+      "top_level_symbols": [
+        "verify_bag",
+        "query"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_chart_sql.py",
+      "sha256": "42eb3317367b1e65ae2e29fb5e0be3baa3fe54dd0574d70831d0c63a38398f28",
+      "bytes": 4583,
+      "top_level_symbols": [
+        "chart_queries",
+        "graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_custom_sql.py",
+      "sha256": "2dabc8b5857a53d5ef2a8da712dc4239d53704f4890a2095e2918e19b71706cc",
+      "bytes": 5317,
+      "top_level_symbols": [
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_expedite_chart_sql.py",
+      "sha256": "3c8d37dc3332e06178e77fc75f56f0b44e6cdb479e1dbdfec6f88f61e1c731d6",
+      "bytes": 6725,
+      "top_level_symbols": [
+        "fetch",
+        "queries"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_expedite_custom_sql.py",
+      "sha256": "9e57bbddf9d7b8016b04fa14391c31d96703601713109c9ec800c716170eeaa8",
+      "bytes": 3844,
+      "top_level_symbols": [
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_expedite_sql.py",
+      "sha256": "2ecc6b5c26e3809a790671a9217db5bdb2fecfa25048a61d635f111b60075101",
+      "bytes": 12531,
+      "top_level_symbols": [
+        "ExpediteFilters",
+        "selected_parent",
+        "counts",
+        "parent_grid",
+        "child_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_git_sql.py",
+      "sha256": "da41502d1948180d162d0e033a13d1118864421fe6dfe1de46df51cf45bfa794",
+      "bytes": 9425,
+      "top_level_symbols": [
+        "location_transit",
+        "grid",
+        "combined_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_grid_sql.py",
+      "sha256": "aa18ed1b103b3af382ac38c136f54f3fb8fab7dddd911f387d65a4547bee595b",
+      "bytes": 10488,
+      "top_level_symbols": [
+        "GridFilters",
+        "read_grid",
+        "selected_details"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/planning_overview_sql.py",
+      "sha256": "0dca87ae8dc29043090fbae66ea6e8a2ab538f1abc0e8c56a8cbb62c8e5fa6ed",
+      "bytes": 3975,
+      "top_level_symbols": [
+        "counts"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning/sources.py",
+      "sha256": "0393ea93364836bc9ea93ee08f0460661272bb1ff713b083597b957764344908",
+      "bytes": 6626,
+      "top_level_symbols": [
+        "admitted_request",
+        "_projected_attributes",
+        "dimensions",
+        "image_query",
+        "occurrence",
+        "admitted_git",
+        "admitted_grids",
+        "admitted_expedite_grids",
+        "admitted_charts",
+        "expedite_chart_relation",
+        "git_sources",
+        "git_custom_count"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_planning_extension.py",
+      "sha256": "508fe8ccb8c4740a29cdbaae70fa4937f3f7516f72efa8b8597f9fe89262936d",
+      "bytes": 4420,
+      "top_level_symbols": [
+        "enabled",
+        "reader_digest",
+        "values",
+        "require",
+        "activate"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_preparation.py",
+      "sha256": "e727a8a39dfcc80c4cad7800d63a21aa73a53796c0d57ce94295c5a09c3959aa",
+      "bytes": 14437,
+      "top_level_symbols": [
+        "roster_identity",
+        "required_layers",
+        "require_report",
+        "production_branch",
+        "source_digest",
+        "command_binding",
+        "assert_unchanged",
+        "recipe_for",
+        "required_images",
+        "ancillary_rows",
+        "ancillary_row",
+        "available_source_roster",
+        "_command_result",
+        "_dbm_result",
+        "_btr_result",
+        "_require_ancillary",
+        "prepare_layer",
+        "verify_layer"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_publication.py",
+      "sha256": "b676562954635758dfa32ceede11e61d16f694a738f1b72043947cf456eb0da2",
+      "bytes": 9229,
+      "top_level_symbols": [
+        "configuration_identity",
+        "recipe_identity",
+        "source_identity",
+        "seal_identity",
+        "bounded",
+        "prepare",
+        "require_ready"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_requests.py",
+      "sha256": "5aebcdc905b56e28ee6736ca58fed90e4eaeb285740f760d54e9d4d3ddbe09ae",
+      "bytes": 6128,
+      "top_level_symbols": [
+        "_schema",
+        "_rows",
+        "_typed",
+        "initialize",
+        "snapshot",
+        "bind",
+        "rows",
+        "metadata",
+        "query"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_rrr_colour.py",
+      "sha256": "785a015fe40dabde9e8dee5e745225db55487d5d167a7b909d93317a8885fba6",
+      "bytes": 15876,
+      "top_level_symbols": [
+        "_complete",
+        "_int",
+        "_code",
+        "_key",
+        "_add",
+        "_sub",
+        "_mul",
+        "_sql_true",
+        "_lt",
+        "_le",
+        "_eq",
+        "_ceiling",
+        "_sql_divide",
+        "_join",
+        "validate_smoke_source",
+        "_tor",
+        "_toy",
+        "_tog",
+        "_adjust_blue",
+        "norm_rrr_colour_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_rrr_read.py",
+      "sha256": "b2a2cd04b2db7c6cc3f51457110f37f4f26a057131747c1210ec388c31246d59",
+      "bytes": 7876,
+      "top_level_symbols": [
+        "Filters",
+        "projection",
+        "read"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_rrr_storage.py",
+      "sha256": "2c89cf03e2703d0f71f01fa8e5149ec3c2d9a75e24fe48b3c587b10d5fa935e3",
+      "bytes": 12453,
+      "top_level_symbols": [
+        "producer_digest",
+        "exception_digest",
+        "_owned_scope",
+        "_publication_values",
+        "_one",
+        "_source_inputs",
+        "_proof_rows",
+        "_proof",
+        "_metadata",
+        "_read_rows",
+        "read",
+        "install"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_shipment_input.py",
+      "sha256": "c46bd02b2f608df7417d479ca74f34c98eb5f2ae2716e1f3ad89107017bca48f",
+      "bytes": 4398,
+      "top_level_symbols": [
+        "_require",
+        "validate_supplement",
+        "load_day"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_sources.py",
+      "sha256": "096d262c28933679cc900d66c207786087c83b5b36dd0e9ecb2e73d6fc1da887",
+      "bytes": 6139,
+      "top_level_symbols": [
+        "recipe_digest",
+        "write_sources",
+        "receipt",
+        "image_metadata",
+        "image_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/daily_transit.py",
+      "sha256": "2246d23c378604787a700e2f6481f7b359c8a4f2fb9e22b42c2ea710a0a5fbe9",
+      "bytes": 5388,
+      "top_level_symbols": [
+        "recipe_digest",
+        "_decoded",
+        "_save",
+        "publish",
+        "read_rows",
+        "query"
+      ]
+    },
+    {
+      "path": "mta/presentation/dbm.py",
+      "sha256": "7d0268a08c32a062845ab6cdfdede64c412275e3886fb6dc28fe4bcf7ab73790",
+      "bytes": 7102,
+      "top_level_symbols": [
+        "key",
+        "delivery_history",
+        "daily_graph",
+        "dbm_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/dbm_filters.py",
+      "sha256": "ac0e50d7c54cdd52bff55375850f4109c1dfd0bdf024c70b96cd9e49058468dd",
+      "bytes": 5322,
+      "top_level_symbols": [
+        "unavailable",
+        "dbm_predicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/dbm_fixture_read.py",
+      "sha256": "3fda04db87fa67a2bdd8c124c17ae85cb05483d8f8e524a2453ff0b6e6b2f776",
+      "bytes": 3117,
+      "top_level_symbols": [
+        "pair_condition",
+        "grid_state"
+      ]
+    },
+    {
+      "path": "mta/presentation/dbm_read.py",
+      "sha256": "7530653408017e3150a2bb3074ef3d3b646095773e494ac38850958b8bd006eb",
+      "bytes": 4434,
+      "top_level_symbols": [
+        "_section",
+        "dbm_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/descriptions.py",
+      "sha256": "9aa6e99271212b6cfb94021ea64d197aea24863f6d611ae77fe8faeef0465249",
+      "bytes": 2204,
+      "top_level_symbols": [
+        "description_rows",
+        "selected_descriptions"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess.py",
+      "sha256": "1b561886351a7c56de27dce78673ac8fcdd779ed28ee5bf384a0ef18bc889fcd",
+      "bytes": 2857,
+      "top_level_symbols": [
+        "checked_integer",
+        "produce"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_charts.py",
+      "sha256": "d30e04863ecdc43bdbff7333345592bfe54b78482ff361de897a8cfe49c2d579",
+      "bytes": 3410,
+      "top_level_symbols": [
+        "excess_chart_queries",
+        "excess_chart_response"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_filters.py",
+      "sha256": "b621688b7d3fe8788d84e38fbcddeea2a41b6580624a3c1b0e5c836a4bf50476",
+      "bytes": 5896,
+      "top_level_symbols": [
+        "unavailable",
+        "predicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_grid.py",
+      "sha256": "0cf769f3d202045b372e2c5912e9fb3fb2ae11eb1ddb1819ddc287e6f9344f4c",
+      "bytes": 3519,
+      "top_level_symbols": [
+        "inventory_grid_membership",
+        "excess_grid_rows",
+        "excess_grid_config"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_history.py",
+      "sha256": "6a1de9702ca9e43d0f494af675d36b1a25cf4767bc9dca3c883a4ec3ca70ba69",
+      "bytes": 6693,
+      "top_level_symbols": [
+        "run_identity",
+        "check_binding",
+        "checked_chain",
+        "persisted_chain",
+        "selected_manifest",
+        "native_output",
+        "projection_identity",
+        "admission_identity",
+        "read_history",
+        "publish_history"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_insights.py",
+      "sha256": "a93f49286db4392877db6f919d463b05198067a8b3ad60bfa96044efd0e7821b",
+      "bytes": 1113,
+      "top_level_symbols": [
+        "project"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_read.py",
+      "sha256": "637cd0f8d083acfa4230c425d355e04686b4fbff3dd7a13ba03b6797e4eeb40a",
+      "bytes": 6186,
+      "top_level_symbols": [
+        "pagination",
+        "excess_context",
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_storage.py",
+      "sha256": "de70599eaae7040adb24b847e9de6c1035f887a713bb6f9838903c748574e288",
+      "bytes": 2962,
+      "top_level_symbols": [
+        "inputs",
+        "read_excess",
+        "write_excess",
+        "publish_existing"
+      ]
+    },
+    {
+      "path": "mta/presentation/excess_views.py",
+      "sha256": "83364d82432854984a8b8908e57650d250d0b314ee88461c3e37277a713701ae",
+      "bytes": 5233,
+      "top_level_symbols": [
+        "joined_rows",
+        "chart_queries",
+        "chart_response"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite.py",
+      "sha256": "68aaf4ad6fdf89a0c399b0640482ed42f12363d5af08c7a10ffd2f08a876f37d",
+      "bytes": 4229,
+      "top_level_symbols": [
+        "potential_loss",
+        "unique_update",
+        "produce"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_charts.py",
+      "sha256": "ed577d233de29dc7225a64270ad5dcc80fd41e491ed3fa862edc61f331fcc687",
+      "bytes": 10786,
+      "top_level_symbols": [
+        "_sum",
+        "queries",
+        "response",
+        "response_from_dataset"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_child.py",
+      "sha256": "dd7f34a6a4fb4e2c5221b9c9ed4dd2c93c0346db1234c0c3f7c46a7e647ccb85",
+      "bytes": 4262,
+      "top_level_symbols": [
+        "child_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_child_sources.py",
+      "sha256": "3818b33fffd93d8833e79f59acd9863d31fa9e4ea21f2d2999eb4432d6ddd352",
+      "bytes": 1713,
+      "top_level_symbols": [
+        "projections"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_custom.py",
+      "sha256": "a070eb4270c89ecb57212a710cc1cbfeb0c7ead22da933324319ca6638dd5fe5",
+      "bytes": 7562,
+      "top_level_symbols": [
+        "_index",
+        "_empty_nms_rows",
+        "_joined_value",
+        "custom_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_parent.py",
+      "sha256": "1823bb9297cb54a756b706482172f3042186bd5fc10cf80f52caff7ba6e2daa6",
+      "bytes": 7966,
+      "top_level_symbols": [
+        "parent_filter",
+        "parent_transit_rows",
+        "parent_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_read.py",
+      "sha256": "4995f1f78346cb533bb6c7ee6b0b66ef014a817ad651043f14e5a89ab4b78c7c",
+      "bytes": 9369,
+      "top_level_symbols": [
+        "parent_grid",
+        "custom_grid",
+        "child_grid",
+        "expedite_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_storage.py",
+      "sha256": "af4ab96ad8d73445632648317dd10ab9c07151ed6ad7aa7fb5fb14e1cfaac80e",
+      "bytes": 3152,
+      "top_level_symbols": [
+        "inputs",
+        "read_expedite",
+        "write_expedite",
+        "publish_existing"
+      ]
+    },
+    {
+      "path": "mta/presentation/expedite_views.py",
+      "sha256": "0a5ae17c52065a9b540e7010e114d06c0ea7e5f7a5a42b435e73a2d7f8f2d5bd",
+      "bytes": 1944,
+      "top_level_symbols": [
+        "counts"
+      ]
+    },
+    {
+      "path": "mta/presentation/fixture.py",
+      "sha256": "7b4cb283c72ce193a804da88ab321dc00dd89553c3e4e0e502e3aad4dd78e068",
+      "bytes": 21957,
+      "top_level_symbols": [
+        "enabled",
+        "unavailable",
+        "policy",
+        "selected_run",
+        "receipts",
+        "binding",
+        "freeze_state",
+        "pair_rows",
+        "history_scope_rows",
+        "bpr_ancillary",
+        "bpr_ui_columns",
+        "bpr_image_rows",
+        "receipt",
+        "_validate_image_metadata",
+        "image_metadata",
+        "image_metadata_batch",
+        "projection_rows",
+        "actor_allowed",
+        "grid_subjects",
+        "dbm_grid_rows",
+        "verify"
+      ]
+    },
+    {
+      "path": "mta/presentation/fixture_count_plan.py",
+      "sha256": "9f98db1622681af68a0883889f2fe9bae536d32c1222d13badbb5cde34df3a2c",
+      "bytes": 1191,
+      "top_level_symbols": [
+        "count_cursor"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment.py",
+      "sha256": "ea29f77bee4492051b2d88c7a09beef122b0c6b5827a8db9218746e69d26163c",
+      "bytes": 5529,
+      "top_level_symbols": [
+        "routes_for_orders",
+        "amount",
+        "produce_summary",
+        "produce_details"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_charts.py",
+      "sha256": "d029c663ef7ef325420df24125ff65fdaa7cb0ef147262948627209da1333885",
+      "bytes": 4410,
+      "top_level_symbols": [
+        "chart_queries",
+        "chart_response"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_filters.py",
+      "sha256": "37f433992dbd48881ebc5070a694da64523398fed20653f9598205397d1cd53e",
+      "bytes": 6021,
+      "top_level_symbols": [
+        "unavailable",
+        "predicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_grid.py",
+      "sha256": "200a6ff9f30f33977dd30817bbff26b550e32d51a37f7df62fe72debcf3b938d",
+      "bytes": 2641,
+      "top_level_symbols": [
+        "fulfillment_grid_rows",
+        "fulfillment_grid_config"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_read.py",
+      "sha256": "1de81d76cbd9447b4a54404e6cc54558778c1c6bc972a392bb9cde0483adab4f",
+      "bytes": 4902,
+      "top_level_symbols": [
+        "fulfillment_context",
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_storage.py",
+      "sha256": "e987d0c3cd472f6c2d05f78fa473653e2ba6c3cdfd68f9c9fac81eb36bb1ca1e",
+      "bytes": 5017,
+      "top_level_symbols": [
+        "inputs",
+        "_read",
+        "read_fulfillment",
+        "write_fulfillment",
+        "publish_existing"
+      ]
+    },
+    {
+      "path": "mta/presentation/fulfillment_views.py",
+      "sha256": "3fbd2d3b4deba3a960267ef040713c752778cc736ac78761f8ae79d23072dc94",
+      "bytes": 1792,
+      "top_level_symbols": [
+        "joined_rows",
+        "detail_aliases"
+      ]
+    },
+    {
+      "path": "mta/presentation/git_read.py",
+      "sha256": "236e57c8687484874e061fd6156430f21ad2b1c3ab3e2c0f92e575ac6620f832",
+      "bytes": 8506,
+      "top_level_symbols": [
+        "terminal_context",
+        "validate_filters",
+        "grid",
+        "custom",
+        "graph",
+        "transporter_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_chronic.py",
+      "sha256": "cd7ecdbe38be5f46bc9174ce1cf985e823ba18ef933fa4d08a67196460e068cd",
+      "bytes": 9082,
+      "top_level_symbols": [
+        "raw_equal",
+        "referenced_owners",
+        "_prepared_query",
+        "build_query",
+        "read_guided_chronic"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_chronic_fields.py",
+      "sha256": "1934470a08d6f4a90ef19a5e50c1d4ab8f3bf559ecaff74901e6e1c3f38433d5",
+      "bytes": 879,
+      "top_level_symbols": [
+        "schema_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_dbm.py",
+      "sha256": "99b85efc077109dcefb02b24dedbdfc2b046031d1ea7321ce8737d2ca14492c9",
+      "bytes": 9405,
+      "top_level_symbols": [
+        "column",
+        "raw_equal",
+        "PreparedFilters",
+        "compile_terms",
+        "_max",
+        "_projection",
+        "_prepared_query",
+        "build_query",
+        "read_guided_dbm"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_dbm_fields.py",
+      "sha256": "e616d9fcd01cf4fccc979e2703517de7dcef565b7c0d1df05bfafdd51c35f271",
+      "bytes": 1538,
+      "top_level_symbols": [
+        "field_name",
+        "schema_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_history_fields.py",
+      "sha256": "96efcd56cfbfda1bb5358d959a003b1b6762690291320cd1fe0fee1519dbb496",
+      "bytes": 1350,
+      "top_level_symbols": [
+        "schema_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/guided_history_prepared.py",
+      "sha256": "0f6f2818388b3301beac0c8f19ba2b4090e3a7333c9abcf9ca464a2b509f1d4e",
+      "bytes": 9128,
+      "top_level_symbols": [
+        "refs",
+        "fields_for",
+        "read_prepared"
+      ]
+    },
+    {
+      "path": "mta/presentation/hierarchy.py",
+      "sha256": "9b7562701c86e98e5e1f6d07c54798ba7ec95be3f423ea44f7d04fab83680be3",
+      "bytes": 3503,
+      "top_level_symbols": [
+        "HierarchyUnavailable",
+        "selected_manifest",
+        "project_attributes",
+        "project"
+      ]
+    },
+    {
+      "path": "mta/presentation/history.py",
+      "sha256": "fd0e5cdfa8e6a97ea4c2f94d73963464475492ca4581d055a61f3ab4f72fad8f",
+      "bytes": 3947,
+      "top_level_symbols": [
+        "_colour_counts",
+        "_historical_availability",
+        "_buffer_trend_graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/history_native.py",
+      "sha256": "5566ae59ca910af92053cfae14551ccb6b14e93aec4c85c7be136e2721b538f0",
+      "bytes": 5894,
+      "top_level_symbols": [
+        "percentage",
+        "colour_counts",
+        "graph_response",
+        "buffer_graph",
+        "historical_availability",
+        "research_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/history_preparation.py",
+      "sha256": "fcf51e396c571342e796dfd7df91ce1809ecb091e2906961b1c896aad15a6cb2",
+      "bytes": 10755,
+      "top_level_symbols": [
+        "source_signatures",
+        "_relations",
+        "research_master_query",
+        "research_history_query",
+        "availability_query",
+        "graph_query",
+        "recipe_digest",
+        "verify_guards"
+      ]
+    },
+    {
+      "path": "mta/presentation/history_prepared_sql.py",
+      "sha256": "ca1e8ccc1d1eef63d1943b7dcbb51eade6ef384c843cd74274f5c339fc553731",
+      "bytes": 15061,
+      "top_level_symbols": [
+        "admitted",
+        "_attributes",
+        "_selected",
+        "_source_rows",
+        "read_research",
+        "_dimension_ctes",
+        "read_historical_availability",
+        "read_availability_bands",
+        "read_graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/insight_filters.py",
+      "sha256": "0bcb7fd1c85e7eccc7ef80f9516ee564c93db4a634d790c131d53a730210189b",
+      "bytes": 9405,
+      "top_level_symbols": [
+        "InsightFilterUnavailable",
+        "unavailable",
+        "InsightPredicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/insight_history_sql.py",
+      "sha256": "b0859faeeafa6fa1f3334e2dd2b56d6f89af09cd9e3721f99df3c8b9f7911b64",
+      "bytes": 11362,
+      "top_level_symbols": [
+        "read_history",
+        "_result"
+      ]
+    },
+    {
+      "path": "mta/presentation/insight_read.py",
+      "sha256": "d7abc3890b7b894f611333056205d491f673b4d8606e6490f89c971aafa1ea94",
+      "bytes": 2207,
+      "top_level_symbols": [
+        "insight_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/insight_response.py",
+      "sha256": "b05c278cd17d7f64fb7238bc26cfccbe3e0c0e3177a52e44100c682e3b3bc0ed",
+      "bytes": 843,
+      "top_level_symbols": [
+        "scalar_json_rows",
+        "insight_payload",
+        "chronic_grid_payload"
+      ]
+    },
+    {
+      "path": "mta/presentation/insights.py",
+      "sha256": "b21193f6f559729166005ef801aaa3073edae0941e10b7c2ab0511f8b5b89708",
+      "bytes": 9760,
+      "top_level_symbols": [
+        "_key",
+        "_native_index",
+        "availability_rows",
+        "availability_trend",
+        "availability_ageing",
+        "joined_rows",
+        "_max",
+        "chronic_grid",
+        "_attributes",
+        "project"
+      ]
+    },
+    {
+      "path": "mta/presentation/legacy_ui.py",
+      "sha256": "cd4a136213d9e17a1e0bcdaf6763d1e98bde0f703d86d861aa7394ba2352d729",
+      "bytes": 23562,
+      "top_level_symbols": [
+        "_ui_config_row",
+        "_report_columns",
+        "bpr_ui_columns",
+        "_mdm_field",
+        "_planning_config",
+        "_no_active_filters",
+        "_filter_rows",
+        "_pagination",
+        "_page"
+      ]
+    },
+    {
+      "path": "mta/presentation/mdm_views.py",
+      "sha256": "ba64e48d441a5200d51cf045fa6cc57b47768ba7621e9810528c1caa840b83f8",
+      "bytes": 7789,
+      "top_level_symbols": [
+        "MdmEncoder",
+        "response",
+        "configuration",
+        "current",
+        "all_drafts",
+        "draft_count",
+        "draft",
+        "submit",
+        "task_list",
+        "task_count",
+        "task_details",
+        "task_history",
+        "history_skus",
+        "approve",
+        "delete_task"
+      ]
+    },
+    {
+      "path": "mta/presentation/offline_rrr.py",
+      "sha256": "909c6ba473c62e27b3ad49e755c960deed36479e5a4d87fd47bef9ea316cf697",
+      "bytes": 7732,
+      "top_level_symbols": [
+        "recipe_digest",
+        "validate_scope",
+        "produce",
+        "write",
+        "_rows",
+        "read",
+        "read_published",
+        "proof_identity",
+        "require_proof"
+      ]
+    },
+    {
+      "path": "mta/presentation/permissions.py",
+      "sha256": "9f9255f847cc77f292b6af0cd154826f0bef80573554b02b2b7c07831c4ebd80",
+      "bytes": 2373,
+      "top_level_symbols": [
+        "PermissionCodes",
+        "permission_multiplicity",
+        "_sql_equal",
+        "expand_permission_ids",
+        "materialize_permission_memberships"
+      ]
+    },
+    {
+      "path": "mta/presentation/pick_post.py",
+      "sha256": "bc75842817cf9f1150c9d40ae083e23dc89a86b270523cbce1a85c5b0cc7f6d4",
+      "bytes": 2460,
+      "top_level_symbols": [
+        "produce"
+      ]
+    },
+    {
+      "path": "mta/presentation/pick_post_storage.py",
+      "sha256": "b38704611b47cc13e70bf38e32056291c917dea29701de447c49a394ed2c2bef",
+      "bytes": 3518,
+      "top_level_symbols": [
+        "inputs",
+        "read_pick_post",
+        "write_pick_post",
+        "publish_existing"
+      ]
+    },
+    {
+      "path": "mta/presentation/pick_storage.py",
+      "sha256": "a45ba28c3e2930ab5438ef9a2ad03028e4ee24150cc969ed39939f855f7f1c46",
+      "bytes": 6024,
+      "top_level_symbols": [
+        "selected_bands",
+        "native_rows",
+        "read_pick_bands",
+        "_read_rows",
+        "write_pick_bands",
+        "restore_pick_bands"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_chart_preparation.py",
+      "sha256": "4db4f5ac1b0ebec4cdb46d7b3fe2b640a378bad2143faa5408c019171f8baf91",
+      "bytes": 6469,
+      "top_level_symbols": [
+        "recipe_digest",
+        "production_recipe_digest",
+        "chart_ingredients",
+        "production_chart_ingredients"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_chart_sql.py",
+      "sha256": "9b86f64b613ca35beac596c1a86978de0ed0f435d5777898dbfa5daded807eb7",
+      "bytes": 4506,
+      "top_level_symbols": [
+        "chart_queries",
+        "graph"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_charts.py",
+      "sha256": "5e2e69c7be0261a847f1151b8ba0eec371bdbb7b1aee204a9d0cde98fd41cede",
+      "bytes": 2125,
+      "top_level_symbols": [
+        "admitted_charts"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_custom.py",
+      "sha256": "b332505c81b29bf626c3c3846b8e16e5cca0ea2c22f12d6355552c25f2023a59",
+      "bytes": 2161,
+      "top_level_symbols": [
+        "admitted_custom"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_custom_preparation.py",
+      "sha256": "4dc3ae0d3420b7bd188f7fa15e385275ec6bc5fe77398bc84633c40c5f58c5e8",
+      "bytes": 4377,
+      "top_level_symbols": [
+        "custom_occurrences",
+        "production_custom_occurrences",
+        "recipe_digest",
+        "production_recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_custom_sql.py",
+      "sha256": "33c8d7da5339eabc97e2a3be75a84f1ebd0e47ed0fd278b381390b8b01df313e",
+      "bytes": 5233,
+      "top_level_symbols": [
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_chart_preparation.py",
+      "sha256": "bad1910bfab376cc5ad03eca841242e9398c4dee4e3909366cccc3949aca4733",
+      "bytes": 6115,
+      "top_level_symbols": [
+        "members",
+        "prepost_members",
+        "production_prepost_members",
+        "recipe_digest",
+        "production_recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_chart_sql.py",
+      "sha256": "cfb4a1a7b27a481437e3b182351548fd28450e2eb21267525c26b3620fe56c69",
+      "bytes": 6378,
+      "top_level_symbols": [
+        "fetch",
+        "queries"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_charts.py",
+      "sha256": "08ad6eb9ac1b04e68e7e718c4b64ece2c8a8cc3c98a015570184355f877b59ce",
+      "bytes": 1635,
+      "top_level_symbols": [
+        "admit"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_custom.py",
+      "sha256": "fd7ccbf2176da2861b0a91780fa28d911d1570d54c3b7e9cc01b1ddfa99635a3",
+      "bytes": 2170,
+      "top_level_symbols": [
+        "admitted_expedite_custom"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_custom_preparation.py",
+      "sha256": "470108ce0b0c3bfa479cf86c8bbaad41a7302013a8d304144be37f364dfa8702",
+      "bytes": 3422,
+      "top_level_symbols": [
+        "custom_occurrences",
+        "production_custom_occurrences",
+        "recipe_digest",
+        "production_recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_custom_sql.py",
+      "sha256": "cafc66ee78b82ab134faf5fba42eeba749b29bebace68b5054274ff231b6c38f",
+      "bytes": 3771,
+      "top_level_symbols": [
+        "custom_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_grids.py",
+      "sha256": "3126a50210754e77b2b7a40bcabe3fad9c1c049174d4e28c35e2b18627406b20",
+      "bytes": 2039,
+      "top_level_symbols": [
+        "admitted_expedite_grids"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_preparation.py",
+      "sha256": "36d1aa072ca7f387de1312c482c5710e0f27823bb7c78f2da9628cb002f1b5e4",
+      "bytes": 3215,
+      "top_level_symbols": [
+        "grid_occurrences",
+        "recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_requests.py",
+      "sha256": "71c6f96dd80a5b0427dc8c58244450f485ae187a4dc9c7f5e0f4e5a575989437",
+      "bytes": 1490,
+      "top_level_symbols": [
+        "empty_requests"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_sql.py",
+      "sha256": "96a044b6461a30b20e4ae099697126e228e1fc8e7b5d7cc0ca10b6151b50eed7",
+      "bytes": 12357,
+      "top_level_symbols": [
+        "ExpediteFilters",
+        "selected_parent",
+        "counts",
+        "parent_grid",
+        "child_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_transit.py",
+      "sha256": "bdee676bcb59f7dae311982dbf9707048c18da1e193a590f2020cca7aa41ac39",
+      "bytes": 3237,
+      "top_level_symbols": [
+        "admit",
+        "transit_query",
+        "transit_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_expedite_transit_preparation.py",
+      "sha256": "3f0c30bd12b8d835cee12343acf921f103769cd3315cc9aaec9d9e469b11b86e",
+      "bytes": 8029,
+      "top_level_symbols": [
+        "production_pick_query",
+        "production_pick_digest",
+        "pick_binding",
+        "encoded",
+        "pick_source",
+        "base_query",
+        "match_query",
+        "production_base_query",
+        "production_match_query",
+        "recipe_digest",
+        "production_recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_git.py",
+      "sha256": "6c7470b069c8db60b6720f6e74e3ea89884a2f42dd3eb6f5b2710b48a74218bc",
+      "bytes": 2062,
+      "top_level_symbols": [
+        "admitted_git"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_git_preparation.py",
+      "sha256": "db0b86766d1908ac9ad1b219e6532cfbc1e0645104a1f5674183faaf7e48024b",
+      "bytes": 5017,
+      "top_level_symbols": [
+        "git_occurrences",
+        "production_git_occurrences",
+        "recipe_digest",
+        "production_recipe_digest"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_git_sql.py",
+      "sha256": "efb14d4dec758d74a9740dcd6fbaa459c0dcfb1bcb73a32ae24c5a178043c429",
+      "bytes": 9276,
+      "top_level_symbols": [
+        "location_transit",
+        "grid",
+        "combined_grid"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_grid_preparation.py",
+      "sha256": "8b6c42db4fa50ecfab1cbdbe2ca50e5d95cbb33fdc1edfab3e09d31a5e4589f0",
+      "bytes": 6701,
+      "top_level_symbols": [
+        "recipe_digest",
+        "production_recipe_digest",
+        "grid_occurrences",
+        "production_grid_occurrences"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_grid_sql.py",
+      "sha256": "0dd7bcb8bd356a5764d190b895ac5daf8a3dfb01726ebfa5ae2e78539434a984",
+      "bytes": 10515,
+      "top_level_symbols": [
+        "GridFilters",
+        "read_grid",
+        "selected_details"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_grids.py",
+      "sha256": "bf623c82a45065eb9899b4b843718f3d32bb53917cae3e7218d8dd26304c3745",
+      "bytes": 2141,
+      "top_level_symbols": [
+        "admitted_grids"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_overview.py",
+      "sha256": "72f62fba570609b3b2fb956903917f0c710745e2b6b821473676f6ed158498f0",
+      "bytes": 3654,
+      "top_level_symbols": [
+        "counts"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_overview_sql.py",
+      "sha256": "8544fad593ae1d82ea72363d3512af8a8f8454187a7da241ddd7821398f5770f",
+      "bytes": 3872,
+      "top_level_symbols": [
+        "counts"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_read.py",
+      "sha256": "ede6c0af1a316d1c46befa9dbefcc0087e764c6281f6ca03512459c46b945e5e",
+      "bytes": 2902,
+      "top_level_symbols": [
+        "terminal_git_reports",
+        "planning_overview_context"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_source_sql.py",
+      "sha256": "daf62279efe1b407d860b1af2466ce90f537278c0930d507e040f31048c4e82f",
+      "bytes": 5355,
+      "top_level_symbols": [
+        "recipe_digest",
+        "source_queries",
+        "bpr_master_query",
+        "git_master_query",
+        "validate_target_lengths"
+      ]
+    },
+    {
+      "path": "mta/presentation/planning_sources.py",
+      "sha256": "5885944d96e7b472d4dc82775a611d42d956df9834c9bb19c3cbe976877aaf61",
+      "bytes": 1977,
+      "top_level_symbols": [
+        "admitted_sources"
+      ]
+    },
+    {
+      "path": "mta/presentation/research_availability_preparation.py",
+      "sha256": "f3bd847517188c4087e989886c0594c62584cacb4bc828b45da749d33cff1821",
+      "bytes": 8101,
+      "top_level_symbols": [
+        "_literal",
+        "_count_expression",
+        "bands_query",
+        "recipe_digest",
+        "verify_guards"
+      ]
+    },
+    {
+      "path": "mta/presentation/research_read.py",
+      "sha256": "3168fe10b4b0ca4b07c270780c34cd2607e971d0521da4f21157c6fc40f6d370",
+      "bytes": 5353,
+      "top_level_symbols": [
+        "attributes",
+        "selected_rows",
+        "read_research",
+        "read_historical_availability"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr.py",
+      "sha256": "fad0ab273cf23ddb185470d39c115718bf6e9294c4d3aec509dd27c7f4b11279",
+      "bytes": 7049,
+      "top_level_symbols": [
+        "sql_key",
+        "index",
+        "pick_rows",
+        "selected_rows"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_export.py",
+      "sha256": "b91d90c5e64b1ce639a766224c0afdb795313aa6ffb2978303e0d1eee1c74d6a",
+      "bytes": 3248,
+      "top_level_symbols": [
+        "selected_headers",
+        "invariant",
+        "csv_chunks"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_filters.py",
+      "sha256": "d7fbc5efc6d252b646e72a23c6ca5b8a5d974c61e57e9170b40ec6c246b816f6",
+      "bytes": 9083,
+      "top_level_symbols": [
+        "unavailable",
+        "sql_like",
+        "compare",
+        "rrr_predicate"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_preparation.py",
+      "sha256": "3c308b97f623eb0a46b7ebe659e145bb83132f8050aaaf929b3dd7f8a878927e",
+      "bytes": 12230,
+      "top_level_symbols": [
+        "source_signatures",
+        "bands_query",
+        "validate_positions",
+        "membership_query",
+        "a_selections",
+        "recipe_digest",
+        "verify_guards"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_prepared_sql.py",
+      "sha256": "35e0dc84f98d52f7c5acc7e92e4779c986808dcdb2e54e7e2dc85ab931c5b06b",
+      "bytes": 6567,
+      "top_level_symbols": [
+        "admitted_relation",
+        "read_prepared"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_sql.py",
+      "sha256": "9075c3df1c6fdc056973ca33f1065066aaaed031038a9dd610c624d464f127d6",
+      "bytes": 16169,
+      "top_level_symbols": [
+        "key",
+        "equal",
+        "like_pattern",
+        "Filters",
+        "read_rrr"
+      ]
+    },
+    {
+      "path": "mta/presentation/rrr_types.py",
+      "sha256": "e4b739f68a724f8a41430f1a3b0ecb0ad8da8beafa456995a0737f5f0cda3487",
+      "bytes": 2013,
+      "top_level_symbols": [
+        "selected_rrr_response"
+      ]
+    },
+    {
+      "path": "mta/presentation/selective.py",
+      "sha256": "b45fedc805a65b4ed69050730d6a34bdb7352df20c52652ec5dd07fc6c712b3b",
+      "bytes": 4524,
+      "top_level_symbols": [
+        "image_metadata",
+        "image_rows",
+        "image_field",
+        "image_query"
+      ]
+    },
+    {
+      "path": "mta/presentation/terminal_supplement.py",
+      "sha256": "f61e6fd440d119deda875b1357dee9e08c9b0f53b80f2d57fb5ad935952c519d",
+      "bytes": 1867,
+      "top_level_symbols": [
+        "terminal_ancillary"
+      ]
+    },
+    {
+      "path": "mta/presentation/ui_state.py",
+      "sha256": "f3ebc8fe76826660989e0453fee22440edeff0854198c1aa8e24d6ae7a415d48",
+      "bytes": 2446,
+      "top_level_symbols": [
+        "dbm_columns",
+        "_selected",
+        "get_layout",
+        "save_layout",
+        "reset_layout"
+      ]
+    },
+    {
+      "path": "mta/presentation/urls.py",
+      "sha256": "873a983fcc50ef311db83eef33de1be2b9cdc3706cec60ed2e883127d3557adf",
+      "bytes": 4877,
+      "top_level_symbols": []
+    },
+    {
+      "path": "mta/presentation/views.py",
+      "sha256": "8ff77706aa9d798209d432025181beb6e5fe98a07ff42a398db1f86b434ca29d",
+      "bytes": 44098,
+      "top_level_symbols": [
+        "envelope",
+        "identity",
+        "_require_report",
+        "endpoint",
+        "scoped",
+        "all_permissions",
+        "location_types",
+        "descriptions",
+        "environment",
+        "report_paths",
+        "ui_config",
+        "user_layout",
+        "dbm_action",
+        "last_run_date",
+        "dbm_filtered",
+        "dbm_data",
+        "rrr_data",
+        "rrr_colour_data",
+        "bpr_remark_history",
+        "bpr_remark",
+        "bpr_selected",
+        "bpr_analytics",
+        "bor_ui_config",
+        "bor_data",
+        "boroa_data",
+        "boroa_remark",
+        "bor_analytics",
+        "bor_remark",
+        "bpr_data",
+        "export_data",
+        "planning_overview",
+        "planning_context",
+        "planning_graph",
+        "planning_grid",
+        "planning_custom",
+        "btr_data",
+        "history_graph",
+        "history_rows",
+        "buffer_trends",
+        "research_insights",
+        "historical_availability",
+        "insight_data"
+      ]
+    },
+    {
+      "path": "mta/runtime/management/commands/record_parity.py",
+      "sha256": "b0db6292fdd809b4244b7b7336568b7e799e5c603abfb5a4f0f9f2185dc0e9e8",
+      "bytes": 8874,
+      "top_level_symbols": [
+        "verify_preserved_summary",
+        "Command"
+      ]
+    },
+    {
+      "path": "mta/runtime/management/commands/run_daily.py",
+      "sha256": "b72855635b0985e7878da551ee506dc78d4e3500dfa60bc05c8ecc1bcddf5a45",
+      "bytes": 3510,
+      "top_level_symbols": [
+        "Command"
+      ]
+    },
+    {
+      "path": "mta/runtime/management/commands/run_temporal.py",
+      "sha256": "ebda2fb6d941b2fc1214113e6d61ce87b1b4f6730bdaf3da2cf498fe9b95550f",
+      "bytes": 17970,
+      "top_level_symbols": [
+        "Command"
+      ]
+    },
+    {
+      "path": "mta/runtime/receipt_integrity.py",
+      "sha256": "8df7ac9aa132b89e0b107b23ad42b7c6ebfa643aee7299ebc1219882cc5989bb",
+      "bytes": 2964,
+      "top_level_symbols": [
+        "output_root",
+        "verify_root",
+        "verify",
+        "source_receipts",
+        "audit_input",
+        "audit_output"
+      ]
+    },
+    {
+      "path": "mta/runtime/relational_state.py",
+      "sha256": "4e69020087dd02d6f376bc89d3cbc51a9f27a1850714fdb1f72ef22604721f3b",
+      "bytes": 15612,
+      "top_level_symbols": [
+        "quote",
+        "table_name",
+        "table_sql",
+        "schema_statements",
+        "wire_type",
+        "db_value",
+        "wire_value",
+        "bulk",
+        "save_image",
+        "iter_image",
+        "load_image",
+        "save_export",
+        "iter_export",
+        "load_export",
+        "save_daily",
+        "read_daily",
+        "production_projection"
+      ]
+    },
+    {
+      "path": "mta/runtime/services.py",
+      "sha256": "3e8893fdf577c3238f45fa311128518ed98429112c6924d931f28baf52c9aa9e",
+      "bytes": 8441,
+      "top_level_symbols": [
+        "read_outputs",
+        "finish_run",
+        "fail_run",
+        "execute_current_day"
+      ]
+    },
+    {
+      "path": "mta/runtime/temporal.py",
+      "sha256": "b9c217ad338cde8d0b9305fafe28473df387651169e16bdf5d769f86231379f2",
+      "bytes": 17941,
+      "top_level_symbols": [
+        "daily_sources_enabled",
+        "command_state",
+        "record_command",
+        "execute_day"
+      ]
+    },
+    {
+      "path": "mta/runtime/temporal_continuation.py",
+      "sha256": "cdb391d40ace26be33d37cfd8bc453870863be2a0d772ac82ebbd35f11684a55",
+      "bytes": 15339,
+      "top_level_symbols": [
+        "file_sha",
+        "mapping_digest",
+        "validate_source_transition",
+        "successor_index",
+        "execution_lineage",
+        "_accepted_receipt",
+        "validate_accepted_prefix",
+        "copy_prefix_evidence",
+        "composed_prefix"
+      ]
+    },
+    {
+      "path": "mta/runtime/validation_storage.py",
+      "sha256": "0824892c273c80b12fb0ad06e9ec92319369fa6e0797340c7c5c1153e2b09927",
+      "bytes": 4574,
+      "top_level_symbols": [
+        "evidence_path",
+        "store_input",
+        "read_input",
+        "persist_trace",
+        "export_run"
+      ]
+    },
+    {
+      "path": "mta/temporal/chain.py",
+      "sha256": "c76ee6545598d1af25c85f84d3253dbdb0e043c06ce98b1a6a317b6685b4897b",
+      "bytes": 26656,
+      "top_level_symbols": [
+        "json_value",
+        "scratch_tables",
+        "control_rows",
+        "native_rows",
+        "delivery_control_types",
+        "initialise_sku_loc_standard_attributes",
+        "entry_inputs",
+        "project_phase_out_calculation_membership",
+        "producer_owned_logistics",
+        "calculation_source",
+        "additional_native",
+        "calculate_day",
+        "_calculate_day_native"
+      ]
+    },
+    {
+      "path": "parity/accepted_prefix.py",
+      "sha256": "1c0b8708769ac5aa48016f05b1deaaf9d765cc10d3b3e027e61613d29125834c",
+      "bytes": 4283,
+      "top_level_symbols": [
+        "read_bound",
+        "normalized",
+        "verify_prefix"
+      ]
+    },
+    {
+      "path": "parity/adapters/legacy/temporal_day.py",
+      "sha256": "f59cd0c593533227d7845f036cfcc2678f9063d811405fa1353cc6513ab2a072",
+      "bytes": 30074,
+      "top_level_symbols": [
+        "_plain",
+        "execute_day"
+      ]
+    },
+    {
+      "path": "parity/adapters/legacy/temporal_delivery.py",
+      "sha256": "93ddfd56d5bd539aaf62821a9e71bfe2ee2be5dea564f22fce6db112928a6103",
+      "bytes": 21221,
+      "top_level_symbols": [
+        "replay_commands",
+        "sequence",
+        "prepare",
+        "DeliverySQL"
+      ]
+    },
+    {
+      "path": "parity/offline_temporal.py",
+      "sha256": "5e08c9750af6e85f01081c8823fe31c15f0b95db100a3036c79f7e1a71abb0bc",
+      "bytes": 24188,
+      "top_level_symbols": [
+        "_sha",
+        "_write_json_exclusive",
+        "_authority",
+        "_registered_artifact",
+        "_bound_namespace",
+        "_execute_legacy_day",
+        "_source_receipt",
+        "_read_capture",
+        "_capture_file",
+        "_verify_source",
+        "_repair_transition",
+        "_predecessor",
+        "capture_legacy_day",
+        "capture_one",
+        "_capture_lineage",
+        "_compare_retained",
+        "compare_retained",
+        "main"
+      ]
+    },
+    {
+      "path": "parity/replay_temporal.py",
+      "sha256": "91456db16b87b6f7907b5e50bb5fbc79fb38939e4c23ac51ce35dea8a43886b8",
+      "bytes": 15907,
+      "top_level_symbols": [
+        "sha",
+        "load_gzip",
+        "dump_gzip",
+        "compare_day",
+        "source_files",
+        "validate_continuation_sources",
+        "independent_contracts_pass",
+        "replay"
+      ]
+    },
+    {
+      "path": "parity/temporal_policy.py",
+      "sha256": "6798c8fcf573353d7eae091fa9af8b0832b4e63d552fb7d4738fbf4582a08103",
+      "bytes": 2609,
+      "top_level_symbols": [
+        "policy_for_case",
+        "commands_for_day"
+      ]
+    },
+    {
+      "path": "tools/offline_temporal_validation.py",
+      "sha256": "f78797c06fe7b8eb2498e5d3901e22fc1d07464d53c6bb7c1632325d83835e4b",
+      "bytes": 59031,
+      "top_level_symbols": [
+        "ComparisonFailure",
+        "sha",
+        "load",
+        "save",
+        "sources",
+        "owned",
+        "require_package_sources",
+        "validate_readiness_extension",
+        "readiness_package",
+        "retained_modern",
+        "require_release",
+        "retained_legacy",
+        "prefix_receipts",
+        "protected_baseline",
+        "container_path",
+        "command",
+        "bounded_legacy_command",
+        "worker",
+        "bind_namespace",
+        "preflight",
+        "initialize",
+        "last_json",
+        "modern_day",
+        "legacy_step",
+        "initialize_order_identity",
+        "compare_step",
+        "execute",
+        "execution_lock",
+        "execute_locked",
+        "accept_comparison",
+        "compare_next",
+        "readiness",
+        "replace_owned_config",
+        "retain_selection",
+        "prepare_terminal",
+        "publish",
+        "next_attempt",
+        "latest",
+        "summary",
+        "publication_state",
+        "main"
+      ]
+    }
+  ],
+  "limitation": "Hashes bind inspected sources, not full BAT activation or new daily acceptance. All timings remain historical until a separately authorized complete exercise."
+}

@@ -6,6 +6,69 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### Complete daily execution reassessment — active, 8 October 2026
+
+Authority: direct human controller turn01a1199a-805c-7333-a16b-0cb6a5983762
+approved the complete reassessment plan and its implementation. This supersedes
+partial/action-free timing as an acceptance definition. Production daily completion
+includes inputs, calculations, real Apply/Sleep, closing/history/report-source
+persistence and daily publication consumable by the unchanged UI.
+
+The human stopped temporal-full-001. Keep its accepted and interrupted attempts
+immutable: no restart, resume, replay or publication. The earlier H1–H4 release
+below is historical and no longer authorizes restarting that execution.
+
+Active item A1: complete coverage, reuse and integrity assessment plus explicit
+benchmark contract before invocation. Unmet exit: every required legacy/modern
+process and output is mapped, publication/reader and diagnostic capture gaps are
+resolved or explicitly blocked with evidence. Boundary: read-only provenance
+reconciliation and assessment artifacts; no business invocations yet. Proof:
+authoritative BAT/SQL/config/API and modern source references, exact retained
+receipt applicability, full31/RRR reconstruction-versus-capture disposition,
+separate owned resource/publication design and declared resource limitations.
+
+A1 inspection has now established concrete invocation blockers: the selected
+oracle omits deployed post-BPR CalculatedAttributes and BAT completion checks,
+rolls SQL back, and modern reader admission depends on external parity while
+production omits required intermediate capture. The frozen profile's site code
+is VECTORFLOW-DEMO; it does not itself authorize substituting GulfOil hooks.
+The controller explicitly authorized a consolidated reviewed extension proposal
+first; business/admission/commit implementation and engine invocations remain held.
+Continue A1 coverage/reuse/control documentation and that proposal. Independent
+A2 work is limited to a standalone scalar timer with no engine hooks, launches,
+state changes or admission authority; focused deterministic timing tests suffice.
+This is an explicit dependency hold, not assessment completion or a new deferral
+of any required daily work. One consolidated decision follows focused review.
+
+Reviewed proposal checkpoint: docs/COMPLETE_DAILY_EXECUTION_ASSESSMENT.md,
+COMPLETE_DAILY_EXTENSION_PROPOSAL.md and COMPLETE_DAILY_SOURCE_INVENTORY.json.
+Focused review corrected additional omitted production-order/history/exception/
+Planning/flag/parent-Norm/task/post-BTR outputs and separated strict captured
+publication (A) from optional operational-admission changes (B). Full source/config
+closure is still unmet; these documents are not complete-day acceptance.
+The inventory reconciles188 modules,25 selected canonical source pins, existing
+DBM refinement pins and retained evidence hashes; called GulfOil BTR Python has
+observed differing canonical/backup bytes and is not baseline-registered. Its
+connection-string line differs; no implementation-equivalence claim is made.
+Standalone scalar timer has no engine hooks/launches/admission authority;3 focused
+tests pass and baseline verify passes387 identities. No schema/runtime/image,
+engine invocation or protected resource/selection change. A1 remains at the
+reviewed extension/configuration decision; independent timer plumbing is delivered.
+No actual complete-day timing or ranked measured savings yet. Goal remains active;
+do not close it or start A3 until the consolidated scope decision is supplied.
+
+Remaining sequence (only this tracker owns status): A2 minimal monotonic measurement
+plumbing and focused verification; A3 one separately owned two-day exercise per
+engine, both days through actions and published-consumable outputs, with external
+correctness proof; A4 integrated measured assessment, ranked recommendations,
+operator artifacts, commit/push and stop. Do not begin an adjacent item before the
+active exit is proved or explicitly blocked/deferred here. No extra engine capture
+invocation without a concrete bounded decision. No optimization implementation,
+new21-day run, resource increase, ports or protected serving changes. Existing
+BOR/BOROA/GuidedExcess rolling-history deferrals remain explicit. The70.199s sample
+remains historical action-free opening-day partial evidence; do not manufacture a
+complete-day total by adding unrelated runs. Preserve DBM d004dc1 and prior proofs.
+
 ### Human offline calculation release — 8 October 2026
 
 Direct human controller turn01a117ef-d3cc-7761-866a-20c1c851c8aa releases
