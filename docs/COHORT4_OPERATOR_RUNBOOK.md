@@ -1,5 +1,11 @@
 # Cohort4 operator runbook
 
+Cohort5 adds a separately approved operational admission path; see
+[COHORT5_OPERATOR_RUNBOOK.md](COHORT5_OPERATOR_RUNBOOK.md). This Cohort4 document
+retains its historical strict-path evidence. Do not use its separate activation
+step for the new atomic operational receipt/access path. New runs and serving
+changes remain held.
+
 **Execute steps 1–5, in order, then stop.** These are the delivered audit steps.
 They do not calculate, restore, prepare, activate or start a service. Copy only
 the commands inside each block, without the Markdown fence lines. No elevated

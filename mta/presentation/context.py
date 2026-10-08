@@ -48,7 +48,8 @@ def selected_run():
     Full verification remains in read_outputs/publication and publication/startup
     acceptance. Routine selective readers verify the images they actually use.
     """
-    from mta.presentation import fixture
+    from mta.presentation import fixture, operational_admission
+    operational = operational_admission.enabled()
     if fixture.enabled():
         from mta.presentation import qualified_consumption
         if qualified_consumption.enabled():
@@ -68,7 +69,9 @@ def selected_run():
     if run is None or not run.production_manifest or run.output_digest != expected:
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
     from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
+    if operational:
+        operational_admission.identity(run)
+    elif qualified_consumption.enabled():
         qualified_consumption.identity(run)
     elif run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
         raise PublicationUnavailable('publication_acceptance_required')

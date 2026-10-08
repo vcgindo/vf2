@@ -1254,6 +1254,7 @@ from mta.runtime.operational_models import (OperationalConfiguration, Operationa
     OperationalIntentAttachment, OperationalIntentEvaluation, OperationalBackup, OperationalRepairTarget)
 
 from mta.runtime.operational_native import OperationalPopulation
+from mta.runtime.operational_admission_models import OperationalAcceptance
 from mta.runtime.operational_source_models import (
     OperationalCaptureAuthorization, OperationalCalculationSource, OperationalRequirementBand, OperationalAdvanceStock,
     OperationalInputSource, OperationalForceSource,

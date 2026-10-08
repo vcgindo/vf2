@@ -1,5 +1,11 @@
 # Cohort4 command and ownership contract
 
+Cohort5 adds a separately approved operational admission path; see
+[COHORT5_OPERATOR_RUNBOOK.md](COHORT5_OPERATOR_RUNBOOK.md). This Cohort4 document
+retains its historical strict-path evidence. Do not use its separate activation
+step for the new atomic operational receipt/access path. New runs and serving
+changes remain held.
+
 This maps the existing command owners; it is not a second status tracker or a
 release to execute a new day. `MIGRATION.md` owns status. Cohort4 packages the
 commands without changing their semantics. The general daily chain remains

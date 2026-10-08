@@ -6,6 +6,36 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT5 — supported operational admission (qualified closure checkpoint)
+
+Direct human release in controller turn01a11d76-2ae0-7f23-9500-27920e258af1
+and the direct9 October approval of supported-synthetic-operational-v1 govern
+only A1–A4. The existing goal remains the one bounded goal, without token budget.
+This is the sole tracker. No additional source omission was introduced.
+
+A2 complete: native input/MDM/opening/action/operation/file/source/layer/access
+verification issues an immutable typed operational receipt and matching access
+activation atomically. Explicit selection/startup consumes that exact receipt;
+strict independent parity and the prior two-owner policy remain separate.
+A3 complete:23 focused admission tests and11 affected activation/MDM tests pass.
+Actual empty-database migration through0100 and upgrade from0097 pass; schema
+checks pass. Fixture proof does not constitute a new daily-run acceptance.
+The earlier failed test expectation and all prior failures remain retained.
+
+- [x] A1 — exact policy approved, including native flag0 qualification.
+- [x] A2 — reusable verified receipt and selection/startup integration.
+- [x] A3 — focused correctness, transaction, denial, retry and real schema proof.
+- [x] A4 — numbered handoff/audit and hashed proof; this cohesive commit is the delivery checkpoint.
+
+The numbered read-only operator audit passes. Final delivery action: push this
+checkpoint, verify upstream, complete the existing goal and stop. No further
+implementation, tests, daily runs or next phase are released.
+See COHORT5_HANDOFF.md and COHORT5_OPERATOR_RUNBOOK.md. No new engine calls,
+consumer/backup/restore campaigns, serving changes or benchmarks occurred.
+Accepted rows/actions/seals, both503 blocks, ordering/restore/Pick qualifications,
+stopped temporal-full-001 and unrelated work remain protected. Real new daily
+acceptance, broader inputs/workflows and deployment remain UNPROVED and held.
+
 ### COHORT4 — operational packaging (qualified closure checkpoint)
 
 Direct human approval in controller turn01a11d57-4b23-7691-9433-e058daed41f3
