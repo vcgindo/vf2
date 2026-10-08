@@ -6,6 +6,32 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT6 — E0 prepared; execution blocked pending one prerequisite decision
+
+Direct human Approval A relayed by the controller was verified in
+turn01a11dad-8ed0-78e0-9d47-a1791d3d2d1e. Cohort5 c5a3e9c remains closed.
+The bounded preparation goal ends at the review request; E1–E5 are not released.
+Package image sha256:aad2a0a211b3435d0c9528457c6d24f61c9825673993f52df45a5c02eca72673
+contains857 exact files from delivered c5a3e9c, without a source overlay. Imports,
+tools, dependency hashes, Django/schema/CLI checks pass. No migrations repeated.
+
+COHORT6_FROZEN_EXECUTION_REQUEST.json is BLOCKED_PREFLIGHT_NOT_EXECUTABLE.
+Existing input:7ee7d940…24fc, June6–7, one SKU/ten locations, unchanged identities.
+Unmet E0 exit is an executable complete binding, blocked by: B1 run_daily/complete
+Pick/finalization/profile integration; B2 artifact-specific supplement/transit
+provenance; B3 fresh owned MDM installer namespace/privileges; B4 authenticated
+action clock/order versus immutable read-only admission. Exact evidence and one
+consolidated decision are in COHORT6_APPROVAL_REQUEST.md. No defaults invented,
+producer/admission code repaired or source qualification extended.
+
+Zero execute_day/business-day/legacy calls; no new trial DB, roles, source install,
+operations, backup/restore, serving change or benchmark. Read-only resource check
+confirms proposed names absent and proof DB still empty. Its first PGOPTIONS
+assertion failure and corrected session-read-only result are both preserved.
+Commit/push this preparation checkpoint, verify upstream, close only the finite
+E0 preparation goal and STOP. Approval B remains required and cannot be requested
+as executable until all four blockers have their explicit disposition and proof.
+
 ### COHORT5 — supported operational admission (qualified closure checkpoint)
 
 Direct human release in controller turn01a11d76-2ae0-7f23-9500-27920e258af1

@@ -1,0 +1,361 @@
+{
+  "schema": "cohort6-frozen-execution-request-v1",
+  "status": "BLOCKED_PREFLIGHT_NOT_EXECUTABLE",
+  "approval_A": "E0 only; verified human controller turn01a11dad-8ed0-78e0-9d47-a1791d3d2d1e",
+  "approval_B": false,
+  "execute_day_authorized": 0,
+  "execute_day_invocations": 0,
+  "legacy_engine_invocations": 0,
+  "proposed_future_invocation_limit": 2,
+  "code": {
+    "status": "PINNED_PACKAGE_PASS",
+    "commit": "c5a3e9c80c930b35e22671ba1488869977199376",
+    "image": "sha256:aad2a0a211b3435d0c9528457c6d24f61c9825673993f52df45a5c02eca72673",
+    "tag": "freshvcf-cohort6:preparation-001",
+    "base": "sha256:0a8ca22f471386ec6ce8dd3e59cd3fb5b1f5e56cfc525e32a6f30e3a2adb5dff",
+    "source_manifest_sha256": "de2568777b80b153f968918dcb3edfedc5633a5bdb4c58ce4367b958c45cf265",
+    "source_files": 857,
+    "dependencies": {
+      "Django": "5.2.4",
+      "djangorestframework": "3.14.0",
+      "djangorestframework-simplejwt": "5.2.2",
+      "psycopg": "3.3.6",
+      "psycopg2-binary": "2.9.10",
+      "pycryptodome": "3.23.0",
+      "requests": "2.32.3"
+    },
+    "tools": {
+      "python": {
+        "path": "/usr/local/bin/python",
+        "sha256": "8219d0acbf6e1b78e322a221c438244034afc7d8c9d08b68019ba320de50afbb"
+      },
+      "pg_dump": {
+        "path": "/usr/local/bin/pg_dump",
+        "sha256": "b24e777de7beeb22f41c8233285c7f15c5c936739a38330bd780ea7252865cfe"
+      },
+      "pg_restore": {
+        "path": "/usr/local/bin/pg_restore",
+        "sha256": "a3fbe6a9f8b13d451ac94a720c72cade1dc1261a9a50604fe4c90aa7d233c285"
+      }
+    },
+    "pg_dump": "pg_dump (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)",
+    "pg_restore": "pg_restore (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)",
+    "file_manifest": {
+      "path": "D:/freshvcf-build/evidence/cohort6-20261009-001/package/context/source-manifest.json",
+      "sha256": "de2568777b80b153f968918dcb3edfedc5633a5bdb4c58ce4367b958c45cf265"
+    },
+    "build_recipe": {
+      "path": "D:/freshvcf-build/evidence/cohort6-20261009-001/package/context/Dockerfile",
+      "sha256": "4c6101040250467cc8e9a361b96479cf7141ac0632b7787c45a5d71e242b843e"
+    },
+    "builder": {
+      "path": "F:/freshvcf/packaging/cohort6/build.py",
+      "sha256": "65004ae603f64a576f335a70e087d46f743e4bd319bef29f13cd99a3e7b02b56"
+    }
+  },
+  "facts": {
+    "artifact": {
+      "path": "D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-input-v1.json",
+      "sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+      "bytes": 248518
+    },
+    "schema": "block3-sizeable-input-v1",
+    "case": "ten-pair-smoke-derivative",
+    "opening_date": "2026-06-05",
+    "opening_digest": "7629e3faab46dae2ddf616871e1b72f111fd9a655a26a926f1c20c72f3a1c260",
+    "profile_digest": "f6dee16689e9ecd428bec967aec387d6151300c4d4700cc3aff0cdf77bf7b8bc",
+    "days": [
+      {
+        "index": 0,
+        "date": "2026-06-06",
+        "day_digest": "50a0d5fe925559e028505bb5d1700dac3a538b786cb5c810989d207b8deafae2",
+        "raw_daily_rows": 10,
+        "raw_master_rows": 10
+      },
+      {
+        "index": 1,
+        "date": "2026-06-07",
+        "day_digest": "2605a1e3787f3ecc7f94cea8f1adc02789d5016e8059959a7538b52b15311435",
+        "raw_daily_rows": 10,
+        "raw_master_rows": 10
+      }
+    ],
+    "static_day_digest": "841c72b9273a1ab71ad62fd80a368f162b9a0b25eb1b81c97d5e7054de0677c7",
+    "identities": [
+      {
+        "SKUCode": "6120",
+        "WhCode": "AG515802",
+        "ParentWhCode": "LDC006"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "DP010290",
+        "ParentWhCode": "LDC001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "DP020819",
+        "ParentWhCode": "LDC001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "LDC001",
+        "ParentWhCode": "PL001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "LDC002",
+        "ParentWhCode": "PL001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "LDC006",
+        "ParentWhCode": "PL001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "LP001",
+        "ParentWhCode": "LDC001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "LP002",
+        "ParentWhCode": "LDC002"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "MT0513",
+        "ParentWhCode": "LDC001"
+      },
+      {
+        "SKUCode": "6120",
+        "WhCode": "PPI000604",
+        "ParentWhCode": "LDC001"
+      }
+    ],
+    "unique_skus": 1,
+    "unique_locations": 10
+  },
+  "opening_profile": {
+    "status": "UNRESOLVED_B1_B2",
+    "registered_root_unchanged": true,
+    "inactive_nms": true,
+    "finalization_config": null,
+    "registered_complete_population": false,
+    "reference_only": {
+      "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/closure-proposal-v1/finalization-input-v1.json",
+      "sha256": "e00799a63a29b856728a649809ca4db5816e42f28fe7784af378994ec7008c2b",
+      "bytes": 34635
+    },
+    "reference_artifact_sha256": "7e60ef1b3d73a36889b25a43995234ec5839a5bb646da5b782328189a1b2699d",
+    "reference_populations": {
+      "ScriptExecutedFlag": 206,
+      "ProdOrderSuggestions": 0,
+      "SupplierDispatchReq": 0,
+      "BPRReport_RemarkDetails": 0,
+      "OpenExpeditRequestRemarksHistory": 0,
+      "InTransitWhereAboutsRemarks": 0,
+      "NMSSOB": 0,
+      "NMSMOQWithDestination": 0,
+      "NMSMOQWithoutDestination": 0,
+      "SOBDataRaw": 3,
+      "MOQDataRaw1": 1,
+      "MOQDataRaw2": 0,
+      "CriticalFiles": 0,
+      "DataSanitizationResult": 0
+    }
+  },
+  "native_sources": {
+    "status": "UNRESOLVED_B2_B3",
+    "remarks_requests": "Existing installer explicitly establishes empty run-capturable current owners; no installation executed or receipt invented",
+    "shipment_input": "ABSENT from selected registered day/static facts; no transit rows inferred from aggregate GIT",
+    "source_receipts": null,
+    "producer_attributes": "Unchanged registered root/importer and raw master attributes; no calculated-output seed"
+  },
+  "mdm": {
+    "status": "NOT_INSTALLED_B3",
+    "source_id": null,
+    "source_digest": null,
+    "family_receipts": null,
+    "artifact_sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc"
+  },
+  "actions": {
+    "status": "UNRESOLVED_B4",
+    "registered_commands": [],
+    "policy_code_default": "own-recommendations-daily-apply-retained-sleep-v1",
+    "default_timestamp_rule": "Own eligible non-Sleep suggestions APPLY at business-date T12:00:00+05:30; no action manufactured",
+    "frozen_selected_policy": null,
+    "actor": null,
+    "eligible_suggestions": "UNKNOWN until own calculation",
+    "sleep_targets": [],
+    "exercise_limit": "No retained Sleep target exists in this registered case"
+  },
+  "operations": {
+    "status": "UNRESOLVED_B2_B3",
+    "policy": "cohort2-integrated-materialization-v1",
+    "configuration_id": null,
+    "requests": null,
+    "reference_pins": [
+      {
+        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/closure-proposal-v1/operational-opening-v1.json",
+        "sha256": "7ee4047b75a253e988b717ff7726d2aa72df3aa818b1fdb03295a4a08a5c9325",
+        "bytes": 962
+      },
+      {
+        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/real-source-20261008-001/configuration-template.json",
+        "sha256": "18dafd4cd6cd78d2099d795d3ef4cfb9cac07fb823449d9c7ffd1f9b55be8a16",
+        "bytes": 7199
+      },
+      {
+        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/tools/linux/7zz",
+        "sha256": "d1bc79f00e9815b24048ab167690bdd1dbc387de7dbc47e8d75d68689e49cf4f",
+        "bytes": 2886216
+      }
+    ],
+    "reference_only": true,
+    "groups": [
+      "O1",
+      "O2",
+      "O3",
+      "O4",
+      "O5",
+      "O6",
+      "O7",
+      "O8",
+      "O9"
+    ]
+  },
+  "access": {
+    "status": "UNRESOLVED_ACTOR_AND_RUN_BINDING",
+    "catalogue": {
+      "path": "F:/vflow_integrated/.local-stage7/block1-selected-consumers/permission-input-v1.json",
+      "role": "retained permission scopes",
+      "sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+      "bytes": 31629
+    },
+    "roster": "core-without-bor-v1",
+    "hierarchy_rule": "fresh-presentation-hierarchy-v1; exact own run/date/output digest; retained catalogue; only SL1\u20133/LL1\u20133; reject conflicts and preserve duplicate order",
+    "hierarchy": null,
+    "actors": null,
+    "new_grants_authorized": false
+  },
+  "resources": {
+    "status": "NOT_CREATED_AFTER_INDISPENSABLE_BLOCKERS",
+    "existing_postgres": "freshvcf-complete001-postgres",
+    "proposed_database": "fresh_cohort6_20261009_001",
+    "proposed_restore_targets": [
+      "fresh_cohort6_restore_20261009_001",
+      "fresh_cohort6_restore_20261009_002"
+    ],
+    "names_absent_proof": "resource-preflight-a002.log",
+    "ownership_receipt": null,
+    "worker_memory_gib": 4,
+    "worker_cpus": 2,
+    "ports": [],
+    "restart": "no",
+    "existing_db_limits": "unchanged",
+    "evidence_root": "D:/freshvcf-build/evidence/cohort6-20261009-001",
+    "business_output_root": null,
+    "sql_fixture": null,
+    "legacy_engine_calls": 0
+  },
+  "privileges": {
+    "status": "NOT_PROVISIONED_B3_B4",
+    "issuer_role_definition": {
+      "path": "packaging/cohort5/offline-issuer.sql",
+      "sha256": "b63fa667273b1643889dd576f5eaa4a3063b1b020771821c720ac8fc5bb8ecf9"
+    },
+    "proposed_new_logins": [
+      "fresh_cohort6_issuer_001",
+      "fresh_cohort6_reader_001"
+    ],
+    "consumer_requirement": "read-only, nonowner, nonsuperuser, no fresh_operational_acceptor membership",
+    "credential_references": null,
+    "existing_serving_credentials_changed": false
+  },
+  "commands": {
+    "status": "NOT_EXECUTABLE",
+    "install": null,
+    "root_run": null,
+    "root_materialize": null,
+    "root_prepare": null,
+    "root_accept": null,
+    "root_check": null,
+    "actions": null,
+    "successor_run": null,
+    "successor_materialize": null,
+    "successor_accept": null,
+    "no_calculation_retry": null,
+    "allowed_dynamic_binding": "Only day1 committed run/output/actions/attempt receipts may populate successor placeholders after Approval B; unresolved contracts are not dynamic placeholders",
+    "stop": "No E1 until all B1\u2013B4 resolved and a complete replacement freeze explicitly approved"
+  },
+  "blockers": [
+    {
+      "id": "B1",
+      "boundary": "Producer/CLI/admission profile",
+      "evidence": [
+        "mta/runtime/management/commands/run_daily.py",
+        "mta/runtime/temporal.py:139",
+        "mta/presentation/operational_admission.py:243"
+      ],
+      "finding": "Registered profile lacks complete_daily, complete_pick and operational_sources. run_daily cannot bind a finalization supplement, complete-Pick output/configuration or operational capture profile. execute_day requires complete_pick for finalization, while the operational comparator rejects that additional profile key for this registered artifact.",
+      "required": "Separate finite implementation approval for explicit existing-policy bindings through run_daily and the exact admission profile contract; no calculation or input fact change."
+    },
+    {
+      "id": "B2",
+      "boundary": "Frozen finalization and native source inputs",
+      "evidence": [
+        "input-preflight.json",
+        "mta/presentation/daily_sources.py:60",
+        "mta/mdm/daily_source_install.py"
+      ],
+      "finding": "The retained finalization supplement is bound to different artifact 7e60ef1b\u20262699d, not registered 7ee7d940\u202624fc. Registered opening has no complete population, and its two day/static-day payloads have no shipment_input. Existing installer explicitly initializes empty request/BPR remark owners with source provenance, but cannot be invoked in the required new database. No supplement, shipment, empty-history/approval or operations-template authority was silently transferred.",
+      "required": "One exact approved source-binding package for the unchanged registered facts, including finalization/complete Pick and transit provenance. If unavailable, keep execution blocked; no absence-to-empty or two-owner presentation supplement."
+    },
+    {
+      "id": "B3",
+      "boundary": "New owned MDM/resource/privilege namespace",
+      "evidence": [
+        "mta/mdm/daily_source_install.py:119",
+        "packaging/cohort5/offline-issuer.sql",
+        "resource-preflight-a002.log"
+      ],
+      "finding": "Installer admits only daily_3006 or test_freshvcf. It rejects a fresh uniquely named Cohort6 database. No new installation/family receipt, issuer/reader connection or owned operation configuration exists.",
+      "required": "Approve a narrow verified-owned-namespace installer boundary before creating/installing the new owner. Then provision only new offline issuer/read-only consumer roles and prove nonowner/no issuer membership for the consumer. Existing serving accounts remain untouched."
+    },
+    {
+      "id": "B4",
+      "boundary": "Authenticated actions and immutable acceptance order",
+      "evidence": [
+        "mta/presentation/actions.py:23",
+        "mta/presentation/actions.py:45",
+        "mta/presentation/operational_admission.py:36",
+        "mta/presentation/operational_admission.py:411"
+      ],
+      "finding": "Operational policy requires actions disabled; authenticated submit requires them enabled. A later RunCommand changes the immutable receipt action digest and operation source binding, so existing exact retry cannot reseal it. HTTP timestamps use current local time, whereas the historical policy requests June6/7 timestamps. The registered artifact has no retained Sleep commands.",
+      "required": "An explicit action/acceptance sequencing and historical-clock decision plus any bounded implementation release is required. Do not waive authenticated proof, force actions, fabricate eligibility, rewrite receipts or silently drop E3. Freeze actor and policy details before Approval B."
+    }
+  ],
+  "checks": {
+    "package": "PASS;857 exact committed files, immutable image, seven dependency content hashes",
+    "schema": "PASS; check, makemigrations --check, migrate --plan against existing empty owned C5 proof DB; no schema mutation",
+    "cli": "PASS parser help only",
+    "resource": "PASS absent proposed names and zero proof DB run count",
+    "retained_failure": "resource-preflight.log: PGOPTIONS read-only assertion failed because Django connection options override it; corrected explicit read-only session passed in resource-preflight-a002.log. All prior commands were nonmutating checks."
+  },
+  "evidence": {
+    "accept-help.log": "98c2fbfa0f7c34d3be2890f9e01f75bab89607ad5c84e4c0fa9289c707969a7c",
+    "dependency-hashes.json": "1a31f18017e0698ffb106bf8fb1a0ec36105a26d6de4be9fcfb285123991ee0f",
+    "django-check.log": "c6e6c53946ee802a36571f75d4999f6b6293fdbd375b63f050dd3e3d57ba31c5",
+    "input-preflight.json": "57e6e37b89fa9cdfe07fbbb59fadbb4f5b6816d24d685f83b75ac89cb2fe0663",
+    "package/build.log": "95907490826bc0a5deba75f8b0748a4d0dc577eb1024e5dcd2cc2073a4982b5d",
+    "package/package.json": "238a0e8d13769b45802245cbb88b7de89a984f7040bfaf50e74ddfb04d5163f1",
+    "package_checks.py": "62d16b8a3c5f1481b9fe4552314d0149b26f709dbb7ea4a58c126829ebf969fe",
+    "resource-preflight-a002.log": "30b27064bd98ca924705f4c8a10d383109e9443b4240456250de0c4476c7bc43",
+    "resource-preflight.log": "20d9731c044b0f6aa99bbb712e4236856dc9bbd6dc4f77506db614a4f0dea984",
+    "run-daily-help.log": "c035b05326101ff90c13656d7b0c35689feae6ba9e1628e3145cbf95150763ec",
+    "schema-drift.log": "bdada3cf1fb0604504e1a5c349158a03188670bc3bfb4c09271de774ad78d609",
+    "schema-plan.log": "14e6aac5722a524322c2727c7f290cfedc5ddcf45567f6e0d5c75efeea5a2291",
+    "package-resource.json": "acdd535b8ec247ad02596b28883b5a27289e0568375947e1c70973fe778ace14"
+  }
+}
