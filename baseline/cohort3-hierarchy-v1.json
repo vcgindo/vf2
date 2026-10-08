@@ -1,0 +1,34 @@
+{
+  "version": "fresh-presentation-hierarchy-v1",
+  "role": "presentation-only-retained-hierarchy",
+  "catalogue_sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+  "allowed_fields": {
+    "products": [
+      "SL1",
+      "SL2",
+      "SL3"
+    ],
+    "locations": [
+      "LL1",
+      "LL2",
+      "LL3"
+    ]
+  },
+  "catalogue_counts": {
+    "products": 200,
+    "locations": 20
+  },
+  "publications": [
+    {
+      "run_id": "77731d95-03f4-4a82-8498-404f944df73b",
+      "business_date": "2026-06-06",
+      "output_digest": "4956672dd7174c805888ccd8957764be51b31a561af57befbb844454b75c2849"
+    },
+    {
+      "run_id": "1b83fdca-d0ad-47d5-8694-414257ae68be",
+      "business_date": "2026-06-07",
+      "output_digest": "24cb05541ac807ac8c5c4afbc8e4c5c27c1d5023d2fd4fcc67be05b734fab1d3"
+    }
+  ],
+  "authorization": "call_00b781455b944ead8db06860fbc55b06: Approve all four bounded choices"
+}

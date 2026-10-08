@@ -267,6 +267,16 @@ def image_metadata(run, path):
 
 
 def image_rows(run, path, *, include_live=False):
+    # The two-owner presentation supplement is read-only. Keep image_metadata
+    # strict: the write workflow uses it to require an actual captured owner.
+    from mta.presentation.qualified_consumption import empty_query
+    supplement = empty_query(run, path)
+    if supplement is not None:
+        with connection.cursor() as cursor:
+            cursor.execute(*supplement)
+            fields = [column[0] for column in cursor.description]
+            return [{field: value for field, value in zip(fields, row)
+                     if field != 'vf_ordinal'} for row in cursor.fetchall()]
     family = family_for_path(path)
     live_model, captured_model, fields = _models(family)
     capture = _capture(run, family)
@@ -291,6 +301,10 @@ def image_rows(run, path, *, include_live=False):
 
 
 def image_query(run, path, *, include_live=False):
+    from mta.presentation.qualified_consumption import empty_query
+    supplement = empty_query(run, path)
+    if supplement is not None:
+        return supplement
     family = family_for_path(path)
     live_model, captured_model, fields = _models(family)
     capture = _capture(run, family)

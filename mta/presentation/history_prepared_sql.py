@@ -116,6 +116,10 @@ def _dimension_ctes(run, attributes, manifest, *, metadata=None):
                       for v in (ordinal, *[row[prefix + str(i)] for i in (1,2,3)]))
         fields = [name for name, _ in CATALOG['tables']['BTR/' + table]
                   if name not in [prefix + str(i) for i in (1,2,3)]]
+        from mta.presentation import qualified_consumption
+        if qualified_consumption.enabled():
+            qualified_consumption.owner(run)
+            fields.insert(0, 'vf_ordinal')
         ctes.append(alias + ' AS (SELECT ' + ','.join('N.' + quote(name) for name in fields) + ','
                     + ','.join('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1,2,3))
                     + ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1)')

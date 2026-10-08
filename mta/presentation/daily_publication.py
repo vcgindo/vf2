@@ -24,6 +24,9 @@ def configuration_identity(*, access=None):
     import hashlib
     root = Path(__file__).resolve().parents[1] / 'config'
     values = {name:getattr(settings, name) for name in CONFIG_NAMES}
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        values['qualified_consumption'] = qualified_consumption.PIN_SHA
     if access is not None:
         values.update({name: access[name] for name in
             ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256')})
@@ -35,20 +38,28 @@ def recipe_identity():
     from mta.presentation import daily_preparation
     from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
     from mta.presentation import daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read
-    return digest(dict(roster=daily_preparation.roster_identity(),
+    value = dict(roster=daily_preparation.roster_identity(),
         layers=daily_preparation.required_layers(),
         coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare),
         daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in
             (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count,
-             daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)}))
+             daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        value['qualified_consumption'] = qualified_consumption.recipe()
+    return digest(value)
 
 
 def source_identity(run):
     from mta.presentation.daily_sources import receipt
     source = receipt(run)
-    return digest(dict(input=run.input_digest, output=run.output_digest,
+    value = dict(input=run.input_digest, output=run.output_digest,
         production=run.production_digest, manifest=run.production_manifest,
-        daily_sources=source.images_digest, daily_recipe=source.recipe_digest))
+        daily_sources=source.images_digest, daily_recipe=source.recipe_digest)
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        value['qualified_consumption'] = qualified_consumption.identity(run)
+    return digest(value)
 
 
 def seal_identity(publication):

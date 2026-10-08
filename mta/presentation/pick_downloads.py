@@ -29,10 +29,18 @@ def _complete_state(run):
 
 
 def _attributes(run):
-    return {
+    attributes = {
         'SkuAttributeData': image_rows(run, 'closing/importer/SkuAttributeData'),
         'LocationAttributeData': image_rows(run, 'closing/importer/LocationAttributeData'),
     }
+    from mta.presentation import qualified_consumption, hierarchy
+    if qualified_consumption.enabled():
+        qualified_consumption.owner(run)
+        manifest = hierarchy.selected_manifest(run)
+        if manifest is not None:
+            from mta.presentation.context import permission_catalogue
+            return hierarchy.project_attributes(attributes, permission_catalogue(), manifest)
+    return attributes
 
 
 def _fully_scoped(run, payload, state, report_name):

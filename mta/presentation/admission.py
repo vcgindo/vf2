@@ -73,6 +73,11 @@ def native_binding():
         manifest_digest=digest(run.production_manifest), output_roster=run.output_roster,
         checkpoints=list(run.checkpoints.order_by('name').values('name', 'digest', 'row_count')),
         configuration=configuration, files=hashes, projections=projections)
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        value['qualified_consumption'] = qualified_consumption.identity(run)
+        from mta.presentation.daily_planning_extension import reader_digest
+        value['qualified_planning_reader'] = reader_digest()
     if configuration['VF_MTA_EXCESS_HISTORY_FILE'] or configuration['VF_MTA_EXCESS_HISTORY_SHA256']:
         from mta.presentation.excess_history import selected_manifest, admission_identity
         value['excess_history'] = admission_identity(run, selected_manifest(run))
@@ -84,6 +89,9 @@ def verify(run):
     if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
         from mta.presentation.fixture import verify as verify_fixture
         return verify_fixture(run)
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        qualified_consumption.verify(run)
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_publication import require_ready
         require_ready(run, verify_rows=True)

@@ -75,9 +75,13 @@ def activate(run, *, expected_output_digest, expected_seal):
     from mta.presentation.daily_publication import (source_identity, recipe_identity,
         seal_identity)
     from mta.presentation.daily_preparation import required_layers, verify_layer
+    from mta.presentation import qualified_consumption
+    qualified = qualified_consumption.enabled()
+    if qualified:
+        qualified_consumption.verify(run)
     if (str(run.pk) == str(settings.VF_MTA_PUBLISHED_RUN)
             or run.output_digest != expected_output_digest
-            or run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS')):
+            or (not qualified and run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'))):
         raise PublicationUnavailable('explicit_unselected_accepted_daily_activation_required')
     with transaction.atomic():
         publication = DailyUiPublication.objects.select_for_update().get(run=run)
@@ -100,4 +104,7 @@ def activate(run, *, expected_output_digest, expected_seal):
             return require_activation(run, publication)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.daily_activation',%s,true)", [str(run.pk)])
+            if qualified:
+                cursor.execute("SELECT set_config('fresh.qualified_daily_activation',%s,true)",
+                               [qualified_consumption.PIN_SHA])
         return DailyUiActivation.objects.create(publication=publication, **expected)

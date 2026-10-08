@@ -5,6 +5,10 @@ from mta.presentation.context import PublicationUnavailable
 
 
 def image_metadata(run, path):
+    from mta.presentation.qualified_consumption import empty_metadata
+    supplement = empty_metadata(run, path)
+    if supplement is not None:
+        return supplement
     if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
         from mta.presentation.fixture import image_metadata as fixture_metadata
         return fixture_metadata(run,path)
@@ -30,6 +34,9 @@ def image_metadata(run, path):
 
 
 def image_rows(run, path, *, metadata=None):
+    from mta.presentation.qualified_consumption import empty_metadata
+    if empty_metadata(run, path) is not None:
+        return []
     from mta.presentation.daily_preparation import production_branch
     if (production_branch(run) and
             (path == 'metadata/bpr/ColorSequence' or path.startswith('opening/supplier/')
@@ -64,6 +71,10 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.presentation.qualified_consumption import empty_query
+    supplement = empty_query(run, path)
+    if supplement is not None:
+        return supplement
     from mta.presentation.daily_preparation import production_branch
     from mta.presentation import daily_opening_sob
     if production_branch(run) and path == daily_opening_sob.PATH:

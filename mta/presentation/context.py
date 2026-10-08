@@ -50,6 +50,9 @@ def selected_run():
     """
     from mta.presentation import fixture
     if fixture.enabled():
+        from mta.presentation import qualified_consumption
+        if qualified_consumption.enabled():
+            raise PublicationUnavailable('qualified_consumption_fixture_conflict')
         return fixture.selected_run()
     from mta.presentation.daily_preparation import roster_identity
     roster_identity()
@@ -64,7 +67,10 @@ def selected_run():
     run = CalculationRun.objects.filter(pk=identifier, kind='DAILY_CHAIN', status='SUCCEEDED').first()
     if run is None or not run.production_manifest or run.output_digest != expected:
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
-    if run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        qualified_consumption.identity(run)
+    elif run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
         raise PublicationUnavailable('publication_acceptance_required')
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_publication import require_ready

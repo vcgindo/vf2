@@ -1,0 +1,98 @@
+{
+  "version": "cohort3-accepted-source-pins-v1",
+  "candidate_image": "sha256:a8d606b23e65f85b326d87fd86e960f343af4789eec69b03deee70341cf98ebd",
+  "catalogue_sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+  "inventory_sha256": "d9b003c2344bc9b4f814aa8ba84834629b1622d9b9ebe8cc63ec8ade577c6053",
+  "runs": [
+    {
+      "run_id": "77731d95-03f4-4a82-8498-404f944df73b",
+      "date": "2026-06-06",
+      "output_digest": "4956672dd7174c805888ccd8957764be51b31a561af57befbb844454b75c2849",
+      "input_digest": "fd8331ad9ac7d6aaae322ae7151f054f48b76e2c55d0ce5c65b3d444c7c85914",
+      "production_digest": "7f7aaa88b81a578f316161d97f8f5c012fd65533a06f8760a01085610c141ef7",
+      "predecessor": null,
+      "operational_attempt": "e0918a5d-2ce5-489a-8ef5-32b9ce605e88",
+      "operational_configuration": "d6f283c70332aa056176e73f46f1592ffb3c688f2bdfc7b244efa33e9304de2f",
+      "action_digest": "06508bce2ee77ac22f0573401817270cdfd121bb8090606816423d4174614f15",
+      "source_digest": "0a5a862550e45b327b99ae405bcc520f190708e15b5475e49a9a3d05097c4bb5",
+      "daily_source_images_digest": "e1aa1289af2e0bd243a64ed7c82e99e0b4e018df1e944b5941a86dc4406cff53",
+      "daily_source_recipe": "a0b22c0fc8f16e6a6825f94474f5e5bb42ba8266777a96b8705dd5320a714f72",
+      "sources": {
+        "opening/supplier/MOQData": {
+          "count": 3,
+          "digest": "fd33dafb4ede74920393c55d52021cb744f6e00b05b9d3bf199fc0db6eb8ddc4"
+        },
+        "opening/supplier/SOBData": {
+          "count": 3,
+          "digest": "ecfc44729f439612eeaed7afbaf1aa6d98f8fa1ba97496919eb612c402cd59bf"
+        },
+        "sources/bpr/InTransitData": {
+          "count": 28,
+          "digest": "0dba5d517fe495abc640b3dc05c8a0b012cd4252704490ed9b8247ba0f5b9d58"
+        },
+        "sources/importer/InTransitDataRaw": {
+          "count": 28,
+          "digest": "0b5d385d0b76dd92639320eab8836f895c136fabdd02fa3f11e0c4f86fad84a3"
+        },
+        "sources/importer/TransitRejectedMaster": {
+          "count": 0,
+          "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "sources/planning/GoodsInTransitTransporterMaster": {
+          "count": 28,
+          "digest": "3a06f483340f03093c27f3cf7a713f7f4b2594fbdbcb74930ca127509a7f7321"
+        }
+      }
+    },
+    {
+      "run_id": "1b83fdca-d0ad-47d5-8694-414257ae68be",
+      "date": "2026-06-07",
+      "output_digest": "24cb05541ac807ac8c5c4afbc8e4c5c27c1d5023d2fd4fcc67be05b734fab1d3",
+      "input_digest": "958295b04555ac7d71fc8b5e232e9e3c781bae15621cca12076495aafc716673",
+      "production_digest": "8c2356fe12276b4703e8b88626e8aab4ebb1d02db10661327621b6c8bde7c968",
+      "predecessor": "77731d95-03f4-4a82-8498-404f944df73b",
+      "operational_attempt": "2a6dbb31-3d1a-4f7b-aa55-6f710f85fc7d",
+      "operational_configuration": "d6f283c70332aa056176e73f46f1592ffb3c688f2bdfc7b244efa33e9304de2f",
+      "action_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "source_digest": "42e931b4d9c3e3db2b00882e4a40b7b509914ddb93b85bdfad4c2a1b4a3565a1",
+      "daily_source_images_digest": "01fb4adddd5ea19ac47654032c7223c87c2164231fc98a587dae3644aa7edd6a",
+      "daily_source_recipe": "a0b22c0fc8f16e6a6825f94474f5e5bb42ba8266777a96b8705dd5320a714f72",
+      "sources": {
+        "opening/supplier/MOQData": {
+          "count": 3,
+          "digest": "fd33dafb4ede74920393c55d52021cb744f6e00b05b9d3bf199fc0db6eb8ddc4"
+        },
+        "opening/supplier/SOBData": {
+          "count": 3,
+          "digest": "4b1d5887bb5082c5ca33386a2a5d7739c7e6e0041be217993e5c717df265c3fc"
+        },
+        "sources/bpr/InTransitData": {
+          "count": 28,
+          "digest": "e4f0fb53a1b41e146a74fb4c6405d8f84a93cfa8e4b7da4282ce37530a16aed6"
+        },
+        "sources/importer/InTransitDataRaw": {
+          "count": 28,
+          "digest": "80bdc5d587bfde37aa7786a4ee23970f68de65eb17bb79aad6eec57d3f0a27ca"
+        },
+        "sources/importer/TransitRejectedMaster": {
+          "count": 0,
+          "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "sources/planning/GoodsInTransitTransporterMaster": {
+          "count": 28,
+          "digest": "d9f443d3c5041ce5984c44da0b59567e106898b3f8cecb9f0c0cac484bc2baac"
+        }
+      }
+    }
+  ],
+  "policy": "cohort2-qualified-consumption-v1",
+  "approval": "call_00b781455b944ead8db06860fbc55b06: Approve all four bounded choices",
+  "empty_sources": [
+    "sources/bpr/BPRReport_RemarkDetails",
+    "sources/planning/OpenExpediteRequests"
+  ],
+  "repairs": {
+    "77731d95-03f4-4a82-8498-404f944df73b": "008682cc-6328-4489-9e42-f51b72049933",
+    "1b83fdca-d0ad-47d5-8694-414257ae68be": "98e9e02e-f214-474a-bce1-88dbb3d93d4f"
+  }
+}

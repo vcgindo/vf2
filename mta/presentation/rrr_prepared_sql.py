@@ -9,7 +9,7 @@ from mta.presentation.rrr_filters import rrr_predicate
 from mta.presentation.rrr_preparation import a_selections, recipe_digest, source_signatures, verify_guards
 from mta.presentation.selective import image_query, image_rows
 from mta.runtime.models import RrrPreparedMembership, RrrPreparedProjection, PickBand
-from mta.runtime.relational_state import quote
+from mta.runtime.relational_state import CATALOG, quote
 
 
 def admitted_relation(run):
@@ -58,7 +58,10 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
     if manifest:
-        raise PublicationUnavailable('rrr_prepared_native_hierarchy_required')
+        from mta.presentation import qualified_consumption
+        if not qualified_consumption.enabled():
+            raise PublicationUnavailable('rrr_prepared_native_hierarchy_required')
+        qualified_consumption.owner(run)
     rrr_predicate(payload, importer)
     products, locations = scope(payload, attributes=importer)
     if not products or not locations:
@@ -71,6 +74,26 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
             ('C', 'closing/importer/SkuAttributeData'),
             ('D', 'closing/importer/LocationAttributeData')):
         query, values = image_query(run, path)
+        if manifest and alias in ('C', 'D'):
+            # Join the approved SL1–3/LL1–3 projection by source occurrence,
+            # retaining every sealed membership ordinal and native other field.
+            table, prefix = (('SkuAttributeData', 'SL') if alias == 'C'
+                             else ('LocationAttributeData', 'LL'))
+            rows = importer[table]
+            ctes.append(alias + 'native AS NOT MATERIALIZED (' + query + ')')
+            params.extend(values)
+            ctes.append(alias + 'hierarchy AS (VALUES ' +
+                        ','.join(['(%s,%s,%s,%s)'] * len(rows)) + ')')
+            params.extend(value for ordinal, row in enumerate(rows)
+                          for value in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)]))
+            columns = [name for name, _ in CATALOG['tables']['Importer/' + table]
+                       if name not in [prefix + str(i) for i in (1, 2, 3)]]
+            query = ('SELECT N.vf_ordinal,' + ','.join('N.' + quote(name) for name in columns)
+                     + ',' + ','.join('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i))
+                                      for i in (1, 2, 3))
+                     + ' FROM ' + alias + 'native N JOIN ' + alias
+                     + 'hierarchy H ON N.vf_ordinal=H.column1')
+            values = []
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
     ctes.append('A AS (SELECT H.*,' + ','.join(a_selections())

@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from api_gateway.mta_stream import (PICK_DOWNLOAD_PATHS, streams_mta_read,
     bounded_mta_read, UPSTREAM_TIMEOUT)
+from api_gateway.inprocess_mta import request as mta_request
 
 class MTA_INTERCEPTOR:
     def __init__(self):
@@ -40,7 +41,7 @@ class MTA_INTERCEPTOR:
         # Migrated MTA requests have an exact schema. Identity is derived from
         # the authenticated gateway session, never from browser-supplied data.
         if request.path.startswith('/api/mta/v1/'):
-            return requests.request(
+            return mta_request(base_url=service_map['mta']['base_url'],
                 method=request.method,
                 url=url,
                 headers=headers,
@@ -93,7 +94,7 @@ class MTA_INTERCEPTOR:
                     'email': request.user.email,
                 }),
             }  # do not force Content-Type
-            response = requests.request(
+            response = mta_request(base_url=service_map['mta']['base_url'],
                 method=request.method,
                 url=url,
                 headers=headers,
@@ -105,7 +106,7 @@ class MTA_INTERCEPTOR:
             )
         else:
            
-            response = requests.request(
+            response = mta_request(base_url=service_map['mta']['base_url'],
                 method=request.method,
                 url=url,
                 headers=headers,

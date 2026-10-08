@@ -12,6 +12,11 @@ class Command(BaseCommand):
         parser.add_argument('--output-digest', required=True)
 
     def handle(self, *args, **options):
+        from mta.presentation import qualified_consumption
+        if qualified_consumption.enabled():
+            from mta.runtime.models import CalculationRun
+            run = CalculationRun.objects.get(pk=options['run_id'])
+            qualified_consumption.verify(run)
         receipt = prepare(options['run_id'], expected_output_digest=options['output_digest'])
         self.stdout.write(json.dumps(dict(run_id=str(receipt.run_id), status=receipt.status,
             seal_digest=receipt.seal_digest, layers=receipt.layers), sort_keys=True))

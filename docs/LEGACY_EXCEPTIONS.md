@@ -1323,3 +1323,40 @@ These qualifications neither rewrite earlier failed attempts nor establish
 full-day legacy parity. The same decision authorizes exactly two modern
 correctness invocations with the frozen proposal and own actions/predecessor;
 no benchmark, serving change, third date or broader continuation is released.
+
+## Cohort3 qualified consumption — 9 October 2026
+
+Direct human approval call_00b781455b944ead8db06860fbc55b06 accepts the four
+bounded dispositions in COHORT3_SOURCE_POLICY_DECISION.md. Exact two-owner
+input/output/production/action/configuration/operation/source identities are in
+COHORT3_SOURCE_PINS.json; baseline/cohort3-consumption-v1.json is the pinned
+presentation contract. Native IsBatchFileExecuted=0 and empty parity_summary
+remain unchanged. `cohort2-qualified-consumption-v1` is operational consumption
+of the accepted qualified owners, not strict migration parity or full-batch
+completion. The ordinary parity admission policy remains the default.
+
+Missing BPRReport_RemarkDetails and OpenExpediteRequests are newly declared
+empty presentation-only inputs for those exact owners, never retrospective
+calculation facts. Existing typed schemas and zero-row checks apply; no original
+source receipt is backfilled. Any other missing source remains unavailable.
+The retained catalogue SL1–3/LL1–3 projection transfers only to these two
+run/date/output tuples, including Pick attributes; native NULL denial and native
+checksum checks remain without that opt-in. The existing mta-report-urls grant
+is permitted only on a new isolated role for the copied broad fixture actor.
+Serving credentials, grants, selections and all earlier seals remain protected.
+
+BOR/BOROA and unavailable GuidedExcess rolling history retain their explicit
+deferrals. Existing Pick, Cohort1 and Cohort2 qualifications are not broadened.
+No business calculation, legacy-engine invocation, benchmark or serving
+activation is authorized by this decision. Positive scoped consumer, full-file
+stream, typed readback and denial proofs remain required before closure.
+
+Human call_d2cf547683b94376b8cd74ea91487794 approves qualified Cohort3 closure
+with exactly two routes blocked on both accepted owners: orderFulfillment custom
+retains LEG-FULFILLMENT-CUSTOM-UNORDERED-NMS; combined GIT child grid retains
+LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120. These503 unavailable contracts are
+not positive acceptance or exact legacy HTTP parity. No tie-break, NMS identity,
+SQL repair or alternate child population is supplied. Original final consumer
+receipts remain FAILED with exactly these two strict failures. The separate
+qualified closure links this human disposition; all other required observations
+and four Pick streams pass on both owners. Earlier qualifications remain intact.

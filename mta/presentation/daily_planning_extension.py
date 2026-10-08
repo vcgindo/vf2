@@ -16,6 +16,10 @@ OFFLINE_VERSION = 'daily-planning-offline-v1'
 
 
 def enabled(run):
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        qualified_consumption.owner(run)
+        return True
     if getattr(settings, 'VF_MTA_PLANNING_EXTENSION', '') == OFFLINE_VERSION:
         from mta.runtime.offline_scenario import require_run
         require_run(run)
@@ -70,6 +74,14 @@ def require(run, route):
     from mta.runtime.models import DailyPlanningExtension
     if route not in ROUTES:
         raise PublicationUnavailable('daily_planning_extension_route_not_approved')
+    from mta.presentation import qualified_consumption
+    if qualified_consumption.enabled():
+        # Qualified owners use their complete 18-layer seal and exact access
+        # activation. They do not impersonate the old daily_3006 smoke extension.
+        qualified_consumption.owner(run)
+        from mta.presentation.daily_publication import require_ready
+        from mta.presentation.daily_activation import require_activation
+        return require_activation(run, require_ready(run))
     expected = values(run)
     saved = DailyPlanningExtension.objects.filter(publication_id=run.pk).first()
     if saved is None or any(getattr(saved, k) != v for k, v in expected.items()):

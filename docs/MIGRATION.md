@@ -6,6 +6,51 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### COHORT3 — publication and authenticated consumption (qualified closure)
+
+The direct human release, four source/access choices in
+call_00b781455b944ead8db06860fbc55b06, and final disposition in
+call_d2cf547683b94376b8cd74ea91487794 govern this finite delivery. This file is
+still the sole tracker. The commit containing this entry is the closure
+checkpoint; verify its push and stop. No next cohort is released.
+
+- [x] P1 — exact two-owner source/route/policy map and approved dispositions.
+- [x] P2 — all 18 prepared layers on both owners, native typed verification,
+  actual operation/file/source checks, unchanged strict recipes and prior seals.
+- [x] P3 — isolated append-only access activation, coherent selection,
+  failed-candidate/prior-valid preservation, restart/readmission of each own date.
+- [x] P4 — qualified authenticated consumer acceptance: 81 observations per date,
+  exact BPR/BTR pages/filters/counts, 32 complete prepared/native RRR comparisons,
+  four full Pick streams per date and scope/auth/file/path denials. Two routes
+  explicitly remain blocked by the final human approval: order-fulfillment
+  custom (ambiguous canonical row numbering), combined GIT child grid (invalid
+  legacy SQL207/8120). Neither is positive acceptance or exact legacy HTTP parity.
+- [x] P5 — affected checks, indexed evidence, verified numbered operator audit,
+  cohesive implementation/handoff checkpoint. Push verification concludes delivery.
+
+Final consumer receipts consumer-day1-a007 and consumer-day2-a002 remain FAILED
+with exactly those two503 failures; no strict failure was rewritten as PASS.
+All earlier failures, source/operation receipts and accepted calculations/actions
+remain intact. The four choices keep native flag0 and parity_summary{}; only
+qualified consumption is admitted. Default parity requirements remain strict.
+No business calculation, legacy-engine call, benchmark or serving change ran.
+
+Evidence: docs/COHORT3_EVIDENCE_INDEX.json hashes 96 external files under
+D:/freshvcf-build/evidence/cohort3-20261009-001. Full observations/comparisons are
+also compressed there. Migrations0096–0097 pass actual upgrade/fresh schema and
+Django checks; eight native activation guard cases pass.25 focused tests and all
+387 pinned identities pass. Two existing history Cursor.fetchone test-double
+errors reproduce on HEAD and remain unmodified; this is not a full-suite PASS.
+See COHORT3_HANDOFF.md for proof image, identities and exact limitations, and
+COHORT3_OPERATOR_RUNBOOK.md for executable numbered audit steps.
+
+Serving3002–6, stopped temporal-full-001, unrelated work and all older seals stay
+protected. BOR/BOROA, separate RRR colour and GuidedExcess rolling history retain
+their deferrals. Active NMS, populated approvals/upload logs, real alerts,
+sanitation/deployment workload, unexercised Sleep, full legacy daily parity,
+whole application/MTO acceptance, performance/capacity and deployment remain
+unproved. Cohort4, full temporal continuation and serving activation stay held.
+
 ### COHORT2 — operational outputs and recoverability (qualified closure)
 
 Direct human release relayed by controller01a1037c-5d96-7700-87a8-89a575f6c9f8
