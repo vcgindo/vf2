@@ -1,5 +1,6 @@
 """Explicit verified operational qualification; never writes parity or business state."""
 from copy import deepcopy
+from contextlib import contextmanager
 from datetime import timedelta
 from functools import lru_cache
 import hashlib
@@ -424,10 +425,34 @@ def identity(run, *, selected=True):
     return row
 
 
+@contextmanager
+def predecessor_access(run):
+    """Verify a predecessor with its exact already-sealed access binding."""
+    path = getattr(settings, 'VF_MTA_PREDECESSOR_HIERARCHY_FILE', '')
+    if not path:
+        yield
+        return
+    from mta.runtime.models import OperationalAcceptance
+    from mta.presentation.daily_activation import access_manifest
+    from django.test import override_settings
+    parent = run.predecessor
+    receipt = OperationalAcceptance.objects.get(run=parent)
+    source = Path(path)
+    if (not source.is_absolute() or not source.is_file()
+            or hashlib.sha256(source.read_bytes()).hexdigest() != receipt.hierarchy_digest
+            or settings.VF_MTA_PERMISSIONS_SHA256 != receipt.permissions_digest):
+        reject('predecessor_access_binding_changed')
+    with override_settings(VF_MTA_HIERARCHY_FILE=str(source),
+                           VF_MTA_HIERARCHY_SHA256=receipt.hierarchy_digest):
+        access_manifest(parent)
+        yield
+
+
 def verify(run, *, selected=True):
     row = identity(run, selected=selected)
     if run.predecessor_id:
-        parent = identity(run.predecessor, selected=False)
+        with predecessor_access(run):
+            parent = identity(run.predecessor, selected=False)
         if row.attempt.predecessor_id != parent.attempt_id:
             reject('receipt_operational_predecessor_changed')
     from mta.runtime.models import DailyUiPublication
@@ -445,8 +470,14 @@ def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path
         reject('policy_required')
     # Offline issuer credentials must be allowed to assume this role. Serving
     # credentials must not be a member; a caller-set custom GUC is insufficient.
+    from psycopg import sql
     with connection.cursor() as cursor:
+        cursor.execute('SELECT current_user')
+        verification_role = cursor.fetchone()[0]
         cursor.execute('SET LOCAL ROLE fresh_operational_acceptor')
+        # The writer deliberately has no access to complete mta_state inputs.
+        # Prove its membership now, then verify under the caller's existing role.
+        cursor.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(verification_role)))
     run = CalculationRun.objects.select_for_update().get(pk=run_id)
     if run.output_digest != output_digest or str(run.pk) == settings.VF_MTA_PUBLISHED_RUN:
         reject('explicit_unselected_output_required')
@@ -454,7 +485,8 @@ def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path
     attempt = OperationalAttempt.objects.select_for_update().get(pk=attempt_id)
     repair = OperationalAttempt.objects.select_for_update().get(pk=repair_id) if repair_id else None
     if run.predecessor_id:
-        parent = verify(run.predecessor, selected=False)
+        with predecessor_access(run):
+            parent = verify(run.predecessor, selected=False)
         if attempt.predecessor_id != parent.attempt_id:
             reject('own_accepted_operational_predecessor_required')
     state, profile = verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path)
@@ -468,11 +500,13 @@ def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path
     if DailyUiActivation.objects.filter(publication=publication).exists():
         reject('preexisting_activation_not_operational')
     with connection.cursor() as cursor:
+        cursor.execute('SET LOCAL ROLE fresh_operational_acceptor')
         cursor.execute("SELECT set_config('fresh.operational_acceptance',%s,true)", [str(run.pk)])
         row = OperationalAcceptance.objects.create(run=run, attempt=attempt, repair=repair,
             predecessor_id=run.predecessor_id, **values)
         cursor.execute("SELECT set_config('fresh.daily_activation',%s,true)", [str(run.pk)])
         cursor.execute("SELECT set_config('fresh.operational_daily_activation',%s,true)", [row.receipt_digest])
         DailyUiActivation.objects.create(publication=publication, **state['access'])
+        cursor.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(verification_role)))
     identity(run, selected=False)
     return row

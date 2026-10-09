@@ -51,21 +51,30 @@ def _file_bindings(files):
     return result
 
 
+def _scope_output(run, output):
+    """Approved read-time hierarchy only; native state/checksums remain untouched."""
+    from mta.presentation.context import permission_catalogue
+    from mta.presentation.hierarchy import selected_manifest, project_attributes
+    manifest = selected_manifest(run)
+    if manifest is None:
+        _deny('run_bound_hierarchy_required')
+    closing = output['ClosingState'][0]
+    attributes = project_attributes(closing['importer'], permission_catalogue(), manifest)
+    return {**output, 'ClosingState': [{**closing, 'importer': attributes}]}
+
+
 def _access(run, access, output):
     if not isinstance(access, dict) or set(access) != set(ACCESS_KEYS):
         _deny('exact_access_binding_required')
     if (access['permissions_sha256'] != settings.VF_MTA_PERMISSIONS_SHA256
             or access['hierarchy_sha256'] != settings.VF_MTA_HIERARCHY_SHA256):
         _deny('access_file_identity_changed')
-    from mta.presentation.context import permission_catalogue, scope
-    from mta.presentation.hierarchy import selected_manifest
-    permission_catalogue()
-    if selected_manifest(run) is None:
-        _deny('run_bound_hierarchy_required')
+    from mta.presentation.context import scope
+    projected = _scope_output(run, output)
     payload = {name: deepcopy(access[name]) for name in
                ('product_permissions', 'location_permissions')}
     products, locations = scope(
-        payload, attributes=output['ClosingState'][0]['importer'])
+        payload, attributes=projected['ClosingState'][0]['importer'])
     return deepcopy(access), products, locations
 
 
@@ -277,7 +286,7 @@ def execute(run, *, actor, access):
                        manifest['access']['product_permissions']),
                    'location_permissions': deepcopy(
                        manifest['access']['location_permissions'])}
-        context = actions.PreacceptanceActionContext(run=run, output=output,
+        context = actions.PreacceptanceActionContext(run=run, output=_scope_output(run, output),
             dbm=current, action_timestamp=command['timestamp'],
             idempotency_key=_idempotency_key(manifest['phase_identity'], ordinal))
         event, _ = actions.submit(payload, manifest['actor'],

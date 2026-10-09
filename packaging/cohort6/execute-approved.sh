@@ -10,7 +10,7 @@ PY
 
 # Handoff command block 1
 set -euo pipefail
-export EVIDENCE_ROOT='/execution/two-date-001'
+export EVIDENCE_ROOT='/execution/two-date-002'
 test ! -e "$EVIDENCE_ROOT"
 mkdir "$EVIDENCE_ROOT"
 exec 2> >(tee -a "$EVIDENCE_ROOT/stderr.log" >&2)
@@ -23,7 +23,7 @@ export FINALIZATION='/request/finalization.json'
 export FINALIZATION_SHA='9a646e0eb3b455e495be3a6abb3cc11854594962def6171571bac5e834fef1b1'
 export PICK_CONFIG='/request/pick.json'
 export PICK_CONFIG_SHA='a775176974652ae0c228ab70a11ef4a5cbc2447b6535929397e914cc0e4b1c51'
-export PICK_ROOT='/execution/two-date-001/pick'
+export PICK_ROOT='/execution/two-date-002/pick'
 export SHIPMENT='/request/shipment.json'
 export SHIPMENT_SHA='dee26721ff67a7e09cb70dde849a43976a0132ea71a3a3402705a55b393664ae'
 export PERMISSIONS='/request/permissions.json'
@@ -103,7 +103,7 @@ PY
 
 # Handoff command block 5
 python -m django run_daily "$ARTIFACT" --sha256 "$ARTIFACT_SHA" \
-     --day-index 0 --revision 'cohort6-approved-two-date-v1' \
+     --day-index 0 --revision 'cohort6-approved-two-date-retry-001' \
      --mdm-source "$MDM_SOURCE" --mdm-source-digest "$MDM_DIGEST" \
      --bpr-remark-horizon '90' \
      --finalization-config "$FINALIZATION" --finalization-config-sha256 "$FINALIZATION_SHA" \
@@ -174,8 +174,8 @@ if set(opening) != {'populations', 'abort_reasons'}:
     raise SystemExit('exact operational opening fields required')
 value = {'run_id': run_id,
          'configuration_id': configuration,
-         'request_key': 'cohort6-day1-2026-06-06',
-         'owned_root': '/execution/two-date-001/operations-day1',
+         'request_key': 'cohort6-retry001-day1-2026-06-06',
+         'owned_root': '/execution/two-date-002/operations-day1',
          'expected_output_digest': output,
          'openings': opening['populations'],
          'abort_opening': opening['abort_reasons']}
@@ -217,7 +217,7 @@ check_day 07-day1 02-day1-run.json
 
 # Handoff command block 13
 python -m django run_daily "$ARTIFACT" --sha256 "$ARTIFACT_SHA" \
-     --day-index 1 --revision 'cohort6-approved-two-date-v1' --predecessor "$DAY1_RUN" \
+     --day-index 1 --revision 'cohort6-approved-two-date-retry-001' --predecessor "$DAY1_RUN" \
      --mdm-source "$MDM_SOURCE" --mdm-source-digest "$MDM_DIGEST" \
      --bpr-remark-horizon '90' \
      --finalization-config "$FINALIZATION" --finalization-config-sha256 "$FINALIZATION_SHA" \
@@ -273,8 +273,8 @@ import json, pathlib, sys
 target, run_id, output, predecessor, configuration = sys.argv[1:]
 value = {'run_id': run_id,
          'configuration_id': configuration,
-         'request_key': 'cohort6-day2-2026-06-07',
-         'owned_root': '/execution/two-date-001/operations-day2',
+         'request_key': 'cohort6-retry001-day2-2026-06-07',
+         'owned_root': '/execution/two-date-002/operations-day2',
          'expected_output_digest': output,
          'predecessor_id': predecessor}
 with pathlib.Path(target).open('x', encoding='utf-8') as stream:

@@ -191,12 +191,14 @@ class PreacceptanceFixtureTests(SimpleTestCase):
         with patch.object(phase, 'configured_manifest', return_value=(
                 manifest, self.output, [], state)), \
                 patch.object(phase, '_lock_phase_run', return_value=self.run) as lock_run, \
+                patch.object(phase, '_scope_output', return_value={'projected': True}), \
                 patch.object(phase.actions, 'submit', side_effect=submit), \
                 patch('mta.runtime.temporal.command_state', return_value=(state, [])):
             result = phase.execute.__wrapped__(self.run, actor='2', access=self.access)
         lock_run.assert_called_once_with(self.run)
         self.assertEqual(result, [event])
         payload, actor, operation, context = seen[0]
+        self.assertEqual(context.output, {'projected': True})
         self.assertEqual((actor, operation), ('2', 'APPLY'))
         self.assertEqual(payload['data'], [
             {'SKUCode': 'A', 'WHCode': 'L1'},
@@ -247,6 +249,7 @@ class PreacceptanceFixtureTests(SimpleTestCase):
         with patch('mta.runtime.models.CalculationRun.objects', manager), \
                 patch.object(phase, 'connection', database), \
                 patch.object(phase, 'configured_manifest', side_effect=configured), \
+                patch.object(phase, '_scope_output', return_value=self.output), \
                 patch.object(phase.actions, 'submit', return_value=(SimpleNamespace(pk=1), {})), \
                 patch('mta.runtime.temporal.command_state', return_value=(
                     self.output['DBMFinal'][0], [])):

@@ -41,6 +41,14 @@ TABLES = {
 TABLES.update(json.loads((Path(__file__).resolve().parents[2]/
                          'baseline/daily-input-extra-schema-v2.json').read_text()))
 
+# Explicit profile input representations; numeric families remain unchanged.
+TEXT_VEHICLE_TABLES = {
+    'input/vehicle_text': [('vehicle_id','nvarchar'), ('name','nvarchar'),
+                         ('weight_capacity','numeric'), ('volume_capacity','numeric')],
+    'input/location_vehicle_text': [('location_code','nvarchar'), ('vehicle_id','nvarchar')],
+}
+TABLES.update(TEXT_VEHICLE_TABLES)
+
 
 def schema_statements():
     from mta.runtime.relational_state import quote, table_sql, PG_TYPES

@@ -1,23 +1,23 @@
 {
   "schema": "cohort6-frozen-execution-request-v1",
-  "status": "READY_FOR_APPROVAL_B",
-  "approval_B": false,
-  "execute_day_authorized": 0,
-  "execute_day_invocations": 0,
+  "status": "GOAL_AUTHORIZED_ZERO_CALC_ROOT_CONTINUATION",
+  "approval_B": true,
+  "execute_day_authorized": 1,
+  "execute_day_invocations": 2,
   "legacy_engine_invocations": 0,
-  "proposed_future_invocation_limit": 2,
+  "proposed_future_invocation_limit": 1,
   "dates": [
     "2026-06-06",
     "2026-06-07"
   ],
   "code": {
     "status": "PINNED_PACKAGE_PASS",
-    "source_tree": "914aca54bb2c48fa3c35270bdc2fc18b93714cd4",
-    "image": "sha256:fff6046d76bb5e3e2601f081cf81a6763b78a37edb9cb50b414676fa8baf295e",
-    "tag": "freshvcf-cohort6:prerequisites-003",
+    "source_tree": "5d426103ea99997f00ac7dc4320119c61db07f95",
+    "image": "sha256:1529cd76514110d16d75c6748523cc6f3c1e9e5abf65cce88745f79af3e36a1d",
+    "tag": "freshvcf-cohort6:continuation-005",
     "base": "sha256:0a8ca22f471386ec6ce8dd3e59cd3fb5b1f5e56cfc525e32a6f30e3a2adb5dff",
-    "source_manifest_sha256": "cc4d1ca3091fa3bd9a434f62ec736792030d71e175565861c132e05139044641",
-    "source_files": 873,
+    "source_manifest_sha256": "b3cf3b4e1e985ce64b96d4ca4377fd7af9d69af00e1cf3373e3ff0fef509a428",
+    "source_files": 880,
     "dependencies": {
       "Django": "5.2.4",
       "djangorestframework": "3.14.0",
@@ -184,9 +184,11 @@
   "source_authority": {
     "B2_B4": "call_58626a94decf49fbb89193b2d6314b3d",
     "O8": "controller human turn01a11ddc-06bf-7c03-afd7-83bb7129eac0",
-    "RSA": "call_bc585920d7494c88b7e6046483b05504"
+    "RSA": "call_bc585920d7494c88b7e6046483b05504",
+    "representation_retry": "controller human turn01a11f4b-e759-7e03-9317-ae54878f9c1c",
+    "goal_level_continuation": "controller human turn01a11f60-4f5c-71b3-90ee-76d574a5bdab"
   },
-  "schema_migration": "mta.runtime.0101_operational_bound_files; applied in owned database; no fake migrations",
+  "schema_migration": "fresh_mta.0102_text_vehicle_input; two additive text-ID input tables, existing bigint families unchanged; applied after fresh/owned proof",
   "mdm": {
     "id": 1,
     "digest": "9b099c1f5b9853f2e2760d91ad549dcba883d375438135d58dab1efb63169cab",
@@ -729,21 +731,22 @@
     "ports": [],
     "restart": "no",
     "serving_changes": 0,
-    "output_root": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\execution\\two-date-001",
-    "container_output_root": "/execution/two-date-001",
-    "compose_private_path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\compose-execution.private.json",
-    "compose_sha256": "57e8d32fd27c03e6761e14e1dbd29676f2414f65dc1dc30657ed624c96f2840b",
+    "output_root": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\execution\\two-date-007",
+    "container_output_root": "/execution/two-date-007",
+    "compose_private_path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\compose-execution.private.json",
+    "compose_sha256": "ee3100c16e03aa77f2f2cae1373c3f2a0ad6966f49c8114683862784035d556c",
     "credentials": "only existing isolated issuer/RSA, broad fixture environment variables, and dedicated restore-private/credentials.json; never print or commit values"
   },
   "commands": {
-    "script": "packaging/cohort6/execute-approved.sh",
-    "script_sha256": "f4adb5c64c7a5f24d16d0c274d4546a1195fd939c107c931f8a055828168fe81",
-    "container_script": "/app/packaging/cohort6/execute-approved.sh",
+    "script": "packaging/cohort6/continue-approved.sh",
+    "script_sha256": "420bd80954c6328d04bd5f8402a3f08ed0386ff607a164d19d9ab480894422bc",
+    "container_script": "/app/packaging/cohort6/continue-approved.sh",
     "settings": "tools.cohort6_settings",
-    "production_boundary": "python -m django run_daily; exactly two literal commands, day-index0 then1; no loop/retry",
+    "production_boundary": "EXACTLY ONE remaining run_daily --day-index1; never invoke June6 again",
     "dynamic_bindings": "only receipts from immediately preceding finite commands; no latest-row discovery",
-    "stop": "first nonzero exit, binding mismatch or failed day1 check; preserve all receipts and stop; no retry/recovery/third date",
-    "operator_steps": "docs/COHORT6_OPERATOR_STEPS.md"
+    "stop": "Preserve failures; bounded zero-calculation integration corrections permitted under goal authority. No extra calculation calls. Failed June7 requires explicit extra-call approval.",
+    "operator_steps": "docs/COHORT6_OPERATOR_STEPS.md",
+    "execution_revision": "cohort6-approved-successor-001"
   },
   "qualifications": [
     "Prerequisite proofs only; no newly calculated day acceptance",
@@ -880,6 +883,178 @@
     "config-byte-preservation.json": {
       "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\config-byte-preservation.json",
       "sha256": "05cb9deb95360cc1e0216985638fabe7b9b5c0043a02a6846dfa7969673ad1d4"
+    },
+    "vehicle-remedy/fresh-check.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-check.log",
+      "sha256": "efcae1c65c3ee741d3c4cae97f7cab0c88792cf169ad4e5dfbd2b9748b449d37"
+    },
+    "vehicle-remedy/fresh-create.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-create.log",
+      "sha256": "159d46a06efd7ef829c1098132ec5a302daf94ecb980549db7e178d0dfb36ad2"
+    },
+    "vehicle-remedy/fresh-drift.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-drift.log",
+      "sha256": "3b487a8cc6699428093318d02d92662cf59a394b958708c898a21259f49d4898"
+    },
+    "vehicle-remedy/fresh-migrate.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-migrate.log",
+      "sha256": "4c0a768c5abdf15096ce1581927ff06214f5f50ed56cb4a38eaae6b9695776d7"
+    },
+    "vehicle-remedy/fresh-plan.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-plan.log",
+      "sha256": "74159248c3675a8fa5ffc31333bf6409a6c6e3aaa0fc878be7301f799eb569d9"
+    },
+    "vehicle-remedy/fresh-roundtrip.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\fresh-roundtrip.log",
+      "sha256": "45631382997099fda35f278d343fb35bda5742256564cb37a245f9968dc2bd2c"
+    },
+    "vehicle-remedy/owned-check.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\owned-check.log",
+      "sha256": "a2af842e6894a023c185f94689b0f272f22d1d966e89cd1fdf3696d3c86a7526"
+    },
+    "vehicle-remedy/owned-drift.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\owned-drift.log",
+      "sha256": "b3cd397df72e0256c4969c315d528502e3e9de0635d6aff3118fb01e3b8e59fb"
+    },
+    "vehicle-remedy/owned-migrate.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\owned-migrate.log",
+      "sha256": "46348ddf9fef533d38c80f717f2e252feb583c1d722b72eb22d98bc3f034c927"
+    },
+    "vehicle-remedy/owned-plan.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\owned-plan.log",
+      "sha256": "50494ac1ed7e70cb11f18949a94cbcb65b5268a1b611e7040871d5a7ece43d81"
+    },
+    "vehicle-remedy/owned-roundtrip.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\owned-roundtrip.log",
+      "sha256": "c422638f547455a65923aef74380e626da22fea389fb448288bd9b6aae41ab5f"
+    },
+    "vehicle-remedy/package-check.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\package-check.log",
+      "sha256": "ed364bea8b0062cd9510f1c27f1872539a10e4d8341f5fb86496ae275d59564e"
+    },
+    "vehicle-remedy/package-drift.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\package-drift.log",
+      "sha256": "7fb7a19d97aa08d3e146a611b7f5f6352ed806a8c3dc4740ee7d50ce77084e39"
+    },
+    "vehicle-remedy/package-plan.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\package-plan.log",
+      "sha256": "d7b9d6f922feeadba0654e59db4a72ba73e44bffeff0d9009658544422523092"
+    },
+    "vehicle-remedy/package-shell.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\package-shell.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "vehicle-remedy/package-storage.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\package-storage.log",
+      "sha256": "ecf656e28ed25c1e9901f73347c8663a0c32450391d54153c333f4777cf978e1"
+    },
+    "continuation/native-scope-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\native-scope-proof.log",
+      "sha256": "637ae33240caf99a9b11a35b2d58f9a0c8ca7b76ccac1007ab92739c85b438c1"
+    },
+    "continuation/package-native-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\package-native-proof.log",
+      "sha256": "f48ad584db58da63fb0bd55657ce96f9da3415e414790d79779d60acde673bb3"
+    },
+    "continuation/package-shell-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\package-shell-proof.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "continuation/package-syntax-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\package-syntax-proof.log",
+      "sha256": "9b6f7fca91723e2ab779d27171a90a699b3eeeebdf7bd9b4687383f14ff060c3"
+    },
+    "continuation/package-unit-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\package-unit-proof.log",
+      "sha256": "4a5abe5ce5e657453cd76b2752fdfd4397baaaca0bc216ddd22e45d49099fb37"
+    },
+    "continuation/unit-scope-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-001\\unit-scope-proof.log",
+      "sha256": "9dd16eba38504cce4acdc9396c316df6840a7f617e1eed6f78f3b58f958f03e7"
+    },
+    "continuation002/native-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\native-proof.log",
+      "sha256": "c3e2403b997f6a1689543307f0d7fc56e7fac80f7085176872cf5774d5128bac"
+    },
+    "continuation002/package-native-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\package-native-proof.log",
+      "sha256": "78d1f5c2c31c9db3a19eed89888873408368f52114a45047d5b33303d926e71a"
+    },
+    "continuation002/package-shell-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\package-shell-proof.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "continuation002/package-syntax-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\package-syntax-proof.log",
+      "sha256": "4918782ee447d30cb13d560831df16e3836c44a70dcc82279e353c4d86099aef"
+    },
+    "continuation002/package-unit-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\package-unit-proof.log",
+      "sha256": "740dec17efb3bca395e7753d96ec329f30b26a4ce7bf2a3e9275e152ce94c5ba"
+    },
+    "continuation002/unit-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-002\\unit-proof.log",
+      "sha256": "10416bee0ffadf60ea848de2006ebf3b21202de3869e561ee76c324a4b880f2b"
+    },
+    "continuation003/package-native-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-003\\package-native-proof.log",
+      "sha256": "05ea59dd13d566d6fa5e21817b6c1a065aeb220f8a5dd370eae79766a4aa07cd"
+    },
+    "continuation003/package-shell-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-003\\package-shell-proof.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "continuation003/package-syntax-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-003\\package-syntax-proof.log",
+      "sha256": "0ebb55b3cc440ed6c11ed1d3361725c1fd8afb4c9eab07b2730a509ea45f94c4"
+    },
+    "continuation003/package-transition-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-003\\package-transition-proof.log",
+      "sha256": "4cd49ad0c73a8aa832fab522c6a78b7c7920d0020aa82b81b4234fa118a1a5f0"
+    },
+    "continuation004/guard-rollback-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\guard-rollback-proof.log",
+      "sha256": "4b2735d543792e7438a07e50e4204ef421aa31d810aac33bdb49380a96f8e08a"
+    },
+    "continuation004/package-guard-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\package-guard-proof.log",
+      "sha256": "4c39e9ae86e736ad66f861fedf5a7a0e9e4a25c763f474b478d93d159615f9ae"
+    },
+    "continuation004/package-parent-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\package-parent-proof.log",
+      "sha256": "1ffab80f54fc4ab536fcafcde175863fcb7c13340da9abcc6043daa856915d0f"
+    },
+    "continuation004/package-shell-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\package-shell-proof.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "continuation004/package-syntax-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\package-syntax-proof.log",
+      "sha256": "0ebb55b3cc440ed6c11ed1d3361725c1fd8afb4c9eab07b2730a509ea45f94c4"
+    },
+    "continuation004/parent-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-004\\parent-proof.log",
+      "sha256": "f85af7b618658b1a4e232fa8f526029c99a47aadf1152b6a6361369783769c0b"
+    },
+    "continuation005/issuer-rollback-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\issuer-rollback-proof.log",
+      "sha256": "daf558a663824fa65aa00a7aaf8c9627828e6edb3fedffcb90f739d3d65603fa"
+    },
+    "continuation005/issuer-rollback-proof2.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\issuer-rollback-proof2.log",
+      "sha256": "294ffd0a401f4ae23363f333248ce074331d9368071e47be1df578b42e6f692f"
+    },
+    "continuation005/package-issuer-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\package-issuer-proof.log",
+      "sha256": "a577e07f58c2037a30e33190a6b8d563ebf97daecb4966871501fbcc57f99719"
+    },
+    "continuation005/package-shell-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\package-shell-proof.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "continuation005/package-syntax-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\continuation-005\\package-syntax-proof.log",
+      "sha256": "44cd9e36bac66fc62757eee53372d900c2278782abe388a5f1fe28d600bd2de3"
     }
   },
   "preserved_failures": {
@@ -907,5 +1082,63 @@
   "prior_request": {
     "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\original-blocked-request.json",
     "sha256": "e4533a603fafe2575584dd1c2cc1498c829c7ae0d8cbd2cc2e147a76a781307f"
-  }
+  },
+  "maximum_total_execute_day_calls": 3,
+  "remaining_calls": {
+    "June6": 0,
+    "June7_successor_after_all_root_gates": 1
+  },
+  "preserved_first_execution": {
+    "request": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\request-freeze\\COHORT6_FROZEN_EXECUTION_REQUEST.json",
+    "request_sha256": "a34bb2b1c837009ff81128cd37be5ba1c4a6d79816379bb266f5267bddf3748b",
+    "failure_receipt": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\approval-b\\failure-receipt.json",
+    "failure_receipt_sha256": "df76222175132236c561800d12287482f4e4f8e01819300ef02336658f670330",
+    "output_root": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\execution\\two-date-001",
+    "consumed_calls": 1
+  },
+  "representation_transition": {
+    "old_tables_unchanged": [
+      "input/vehicle",
+      "input/location_vehicle"
+    ],
+    "new_text_tables": [
+      "input/vehicle_text",
+      "input/location_vehicle_text"
+    ],
+    "selection": "only the two explicit profile/logistics paths with non-NULL string IDs; no changed business values",
+    "fixed_files_identical": true,
+    "numeric_ids_and_null_only_families": "original typed table and exact wire reconstruction"
+  },
+  "committed_root": {
+    "run_id": "71a5addc-dcb7-49ca-811d-6cd93886d4e5",
+    "output_digest": "7075127ea7fc6fa3d3d05f00bcb6e771eb1bf6401a811cbf2c97158e5976235b",
+    "receipt_path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\execution\\two-date-002\\02-day1-run.json",
+    "receipt_sha256": "a1ac5b240d1017decbd36558a3a8b1079f96521e48b628f175d62e5d1ad60362",
+    "reuse": "copy exact receipt; no calculation; native state reverified before actions"
+  },
+  "preserved_scope_failure": {
+    "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\vehicle-remedy-001\\failure-receipt.json",
+    "sha256": "4c88993e981f2cd61bda4ea71cef2c1358301d784f697f1515f13bfca5399e83"
+  },
+  "hierarchy_correction": "Apply exact approved read-time projection to preacceptance scope and submit authorization only; record_command still uses native persisted state; no grants/source/eligibility changes",
+  "operational_retry": {
+    "failed_attempt": "91b690ea-2b61-4ddb-bc9b-ca4a6a012d07",
+    "failure": "O8 ownership file omitted from integrated expected roster",
+    "failure_log_sha256": "613a9967228ad176964a0e795d3b5ba35a49552c0951c7c493035fe9cc1b12ce",
+    "root_calculation_and_actions": "reuse exact retained receipts, no replay",
+    "correction": "Require ownership.json exactly when owned_restore is configured; no default or other roster changes"
+  },
+  "native_preparation": {
+    "prior_attempt": 1,
+    "prior_snapshot_sha256": "7414b88f8638109b456ab8e264a0893659b07e3880e0d2d35a32ade781416bac",
+    "operational_attempt": "aa939337-78b8-476b-b3b4-1df5f563d1b6",
+    "reuse": "root calculation, actions, operations, 13 READY layers",
+    "correction": "Exact unsealed configuration-only transition with snapshot retained; native empty-access preparation and explicit RRR prerequisite; source/output/recipe/seals unchanged",
+    "guard_exception": "Direct user approval9October2026 of COHORT6_UNSEALED_CONFIGURATION_DECISION.md; temporary exact-row guard branch inside owned transaction, original definition restored before commit",
+    "preserved_guard_failure_sha256": "ecba1224e9fbe76e75f3dfc5fd38fe30971520dfccd002440e1503e37ad097c6",
+    "completed_transition_sha256": "626e1b0bb8ec2b33dd8f51a3259269aafdaec81cf00e89b01d073425431d0895",
+    "completed_preparation_sha256": "29561d72cb91919690dff70185adb5c124cce5855069a2f3987922b892416273"
+  },
+  "predecessor_access": "Optional explicit parent hierarchy file must match parent sealed acceptance SHA and catalogue, only during parent verification; child context restored; no combined manifest",
+  "issuer_boundary": "Prove writer membership first; full native verification under existing caller role; writer role only for two guarded inserts; restore caller role; no new privileges"
 }

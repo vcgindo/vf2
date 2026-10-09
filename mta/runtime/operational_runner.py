@@ -11,7 +11,7 @@ from mta.application.operational_sqlcmd import no_norm_parent_bytes
 from mta.runtime.operational_alert_runner import ALERT_OPERATION, materialize_alert_operation
 from mta.runtime.operational_alert_sources import install_alert_opening, read_alert_inputs
 from mta.runtime.operational_attempts import configuration_value, operational_worker
-from mta.runtime.operational_backup import BACKUP_OPERATION, materialize_backup, SOURCE_IMAGE, RESTORED_IMAGE
+from mta.runtime.operational_backup import BACKUP_OPERATION, materialize_backup, SOURCE_IMAGE, RESTORED_IMAGE, OWNERSHIP_FILE
 from mta.runtime.operational_effects import operation
 from mta.runtime.operational_native import read_population
 from mta.runtime.operational_opening import install_opening
@@ -87,6 +87,8 @@ def _expected_files(owner, config):
             add('O7', folder+'/PhaseInPhaseOutExceptionReport.zip', ('PhaseInPhaseOutExceptionReport.csv',))
     result['O9'] = {}
     result['O8'] = {path: [] for path in ('backup/post.dump', SOURCE_IMAGE, RESTORED_IMAGE)}
+    if config['bindings'].get('postgres_backup', {}).get('owned_restore') is not None:
+        add('O8', OWNERSHIP_FILE)
     return result
 
 

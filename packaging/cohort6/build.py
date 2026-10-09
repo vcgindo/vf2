@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[2]
 ROOTS = ['mta','vectorflow','baseline','parity','user-service/api_gateway',
          'tools/cohort6_actions.py','tools/cohort6_settings.py',
          'tools/cohort6_bind_day.py','tools/cohort3_database_router.py',
-         'packaging/cohort6/execute-approved.sh']
+         'tools/cohort6_native_publication.py',
+         'packaging/cohort6/execute-approved.sh',
+         'packaging/cohort6/continue-approved.sh']
 
 def output(*args):
     return subprocess.check_output(args, cwd=ROOT)

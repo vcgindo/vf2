@@ -6,7 +6,80 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### COHORT6 — B1–B4 prerequisites proved; Approval B held
+### COHORT6 — two-date operational acceptance proved (qualified delivery checkpoint)
+
+The finite June6–7 delivery is accepted under supported-synthetic-operational-v1.
+Both dates passed authenticated action policy, O1–O9 with qualified owned restore,
+18-layer native preparation, final operational acceptance and unselected checks.
+Complete typed readback proves own predecessor/configuration/action lineage.
+Exactly3 execute_day calls were consumed: the preserved input-storage failure,
+the successful June6 retry, and one successful June7. No further calculation,
+serving activation, port, benchmark, temporal continuation or adjacent work.
+This commit is the cohesive delivery checkpoint; upstream verification is retained
+in the external delivery receipt. STOP after this finite delivery.
+
+| Date | Run | Operational acceptance receipt |
+|---|---|---|
+| 2026-06-06 | `71a5addc-dcb7-49ca-811d-6cd93886d4e5` | `2fc74fb470ef76f9ac4a97ce8945903083ba632d9c35ca4f682bef8f124d1d6f` |
+| 2026-06-07 | `08937d55-ed1a-4d22-843a-2f7d93a2d3da` | `406213d8bb342b58084a2e283d3fbb43b19470354ca98000fcbd347ec3937e8d` |
+
+June6 retains one authenticated APPLY; June7's authenticated policy found no
+eligible action. Sleep remains unexercised. No fabricated action was added.
+Native flag0, two blocked503 routes, Pick tie and four-file export-order limits,
+bounded history, explicit empty unsupported queues/sources and eleven CHECK-cast
+logical-restore qualification remain in force. This is qualified supported-domain
+acceptance, not unrestricted generic readiness or new full legacy parity.
+
+Final immutable image: `sha256:1529cd76514110d16d75c6748523cc6f3c1e9e5abf65cce88745f79af3e36a1d`.
+Frozen continuation request: `965e9d4a59b7b8f7254eeb3b79c80fb9592f201e0827554d9a9e9f8a3203ce3a`.
+Its880 packaged source files are audited against the delivery commit. The frozen
+request records authorization before execution; actual consumed calls are3 above.
+Evidence root: `D:/freshvcf-build/evidence/cohort6-prerequisites-20261009-001`.
+Final evidence: `execution/two-date-007/terminal-receipts.json` and
+`continuation-005/delivery-verification.json`, `delivery-readback.log`, package
+manifest/proofs and execution exit. All earlier evidence and resources remain.
+
+Necessary bounded corrections and proof:
+
+- Migration0102_text_vehicle_input (after0101) adds two typed text-vehicle input
+  tables without changing numeric/NULL families. Fresh migration chain and owned
+  upgrade, Django check/drift/plan, five real save/read tests and packaged proof
+  passed. No existing input/state rows were rewritten.
+- Preacceptance scope uses the approved read-time hierarchy; native command state
+  is unchanged. Broad/restricted/empty scope and immutability proofs passed.
+- O8's exact roster includes ownership.json only for configured owned_restore;
+  missing/extra/member differences still deny. Failed operational lineage remains.
+- Native preparation uses empty access settings and an explicit RRR prerequisite;
+  successful layer receipts are reused. The exact user-approved unsealed config
+  exception is documented in COHORT6_UNSEALED_CONFIGURATION_DECISION.md. The full
+  original snapshot and failed attempt are retained, the guard was restored
+  exactly before commit, and final readback confirms its original definition.
+- Parent verification uses only its exact sealed hierarchy/catalogue binding,
+  then restores child settings. Default behavior remains strict.
+- Issuance verifies under existing caller access and switches to the dedicated
+  writer only for guarded acceptance/activation inserts. Full real rollback proof
+  and final issuance passed; no privileges, role memberships or app grants changed.
+
+All focused proofs and bounded independent reviews passed. Source inputs,
+calculations, SQL, action rules and prior qualified receipts remain unchanged.
+
+| Preserved failure | Evidence and disposition |
+|---|---|
+| First input storage call | approval-b and two-date-001; rolled back before calculation; explicit retry authorized. |
+| June6 action scope | vehicle-remedy-001 and two-date-002; committed run reused, no recalculation. |
+| O8 ownership roster | continuation-001 and two-date-003; failed attempt91b690ea retained; explicit retryaa939337 succeeded. |
+| Native preparation | continuation-002 and two-date-004; attempt1FAILED and13 READY receipts retained. |
+| Immutable config guard | continuation-003 and two-date-005; rejected update rolled back exactly; subsequent exception explicitly approved. |
+| Writer-role read access | continuation-004 and two-date-006; acceptance rolled back; privileges unchanged. |
+| Proof harness overlay | continuation-005/issuer-rollback-proof.log retained; exact-file proof2 and immutable-package proof passed. |
+
+Authority: original ApprovalB controller turn01a11f43-c85d-7fb1-8643-2999cff0c152;
+text vehicle/three-call amendment01a11f4b-e759-7e03-9317-ae54878f9c1c;
+bounded autonomous integration closure01a11f60-4f5c-71b3-90ee-76d574a5bdab;
+direct9October2026 guarded-transition approval, "approved, proceed with the goal".
+No scope beyond those finite decisions is claimed.
+
+### COHORT6 — preserved prerequisite checkpoint (execution hold superseded)
 
 Finite prerequisite delivery under COHORT6_PREREQUISITE_CLOSURE_PLAN.md. Direct
 human B2/B4 approval: call_58626a94decf49fbb89193b2d6314b3d. Isolated login/RSA

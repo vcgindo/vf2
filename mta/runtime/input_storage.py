@@ -42,9 +42,21 @@ def get(value,path,default=None):
     return value
 
 
-def choose_table(fields,path):
+def choose_table(fields,path,rows=None):
     from mta.runtime.complete_daily_state import input_table
+    from mta.runtime.input_tables import TEXT_VEHICLE_TABLES
     names={f.casefold() for f in fields}
+    text_path = {
+        'input/profile/calculation/logistics/vehicles/values': 'input/vehicle_text',
+        'input/profile/calculation/logistics/location_vehicles/values': 'input/location_vehicle_text',
+    }.get(path)
+    if text_path and rows:
+        identities = [row.get('vehicle_id') for row in rows
+                      if row.get('vehicle_id') is not None]
+        if identities and all(isinstance(value,str) for value in identities):
+            if not names <= {name.casefold() for name,_ in STORAGE_TABLES[text_path]}:
+                raise ValueError('Text vehicle input fields differ: '+path)
+            return text_path
     complete = input_table(path)
     if complete:
         if not names <= {name.casefold() for name,_ in STORAGE_TABLES[complete]}:
@@ -52,6 +64,7 @@ def choose_table(fields,path):
         return complete
     candidates=[key for key,columns in STORAGE_TABLES.items()
                 if not key.startswith('complete/')
+                and key not in TEXT_VEHICLE_TABLES
                 and names<={name.casefold() for name,_ in columns}]
     if not candidates:raise ValueError('Unmapped typed input family: '+path+' '+str(sorted(fields)))
     # Explicit input families take precedence; closing schema is reusable only
@@ -62,7 +75,7 @@ def choose_table(fields,path):
 def save_input(run,raw):
     images={}
     def image(path,rows,table=None):
-        table=table or choose_table(rows[0] if rows else (),path)
+        table=table or choose_table(rows[0] if rows else (),path,rows)
         images[path]=save_image(run,path,None,rows,table=table)
         return path
 
