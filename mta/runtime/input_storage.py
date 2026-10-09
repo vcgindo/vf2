@@ -57,13 +57,56 @@ def choose_table(fields,path,rows=None):
             if not names <= {name.casefold() for name,_ in STORAGE_TABLES[text_path]}:
                 raise ValueError('Text vehicle input fields differ: '+path)
             return text_path
+    phase_paths = {'input/mdm_input/phase_controls/phase_requests/values': 'input/phase_out_queue',
+        'input/mdm_input/phase_controls/phase_in_requests/values': 'input/phase_in_norm_queue',
+        'input/mdm_input/phase_controls/task_revisions/values': 'input/phase_controls_task_revision'}
+    if path in phase_paths:
+        table = phase_paths[path]
+        if names != {n.casefold() for n, _ in STORAGE_TABLES[table]}:
+            raise ValueError('Phase controls typed capture field roster differs')
+        return table
+    stop_paths = {'input/mdm_input/stop_pipo/rows/values': 'input/stop_pipo_queue',
+        'input/mdm_input/stop_pipo/task_revisions/values': 'input/stop_pipo_task_revision'}
+    if path in stop_paths:
+        table = stop_paths[path]
+        if names != {n.casefold() for n, _ in STORAGE_TABLES[table]}:
+            raise ValueError('StopPIPO typed capture field roster differs')
+        return table
+    season_paths = {'input/mdm_input/season/rows/values': 'input/season_queue',
+        'input/mdm_input/season/current/values': 'input/season_current',
+        'input/mdm_input/season/task_revisions/values': 'input/season_task_revision'}
+    if path in season_paths:
+        table = season_paths[path]
+        if names != {n.casefold() for n, _ in STORAGE_TABLES[table]}:
+            raise ValueError('Seasonality typed capture field roster differs')
+        return table
+    force_paths = {'input/mdm_input/force/rows/values': 'input/force_queue',
+        'input/mdm_input/force/upload_log/values': 'input/force_upload_log',
+        'input/mdm_input/force/task_revisions/values': 'input/force_task_revision'}
+    if path in force_paths:
+        table = force_paths[path]
+        if names != {name.casefold() for name, _ in STORAGE_TABLES[table]}:
+            raise ValueError('Force capture typed field roster differs')
+        return table
+    if path == 'input/mdm_input/supplier/task_revisions/values':
+        if names != {'master_id', 'task_id', 'revision'}:
+            raise ValueError('Supplier task revision fields differ')
+        return 'input/supplier_task_revision'
+    supplier_queue = {'NMSSOB': 'sob', 'NMSMOQWithDestination': 'moq_with_destination',
+                      'NMSMOQWithoutDestination': 'moq_without_destination'}
+    for queue, suffix in supplier_queue.items():
+        if path == 'input/mdm_input/supplier/queues/' + queue + '/values':
+            table = 'input/supplier_' + suffix
+            if not names <= {name.casefold() for name, _ in STORAGE_TABLES[table]}:
+                raise ValueError('Supplier capture fields differ')
+            return table
     complete = input_table(path)
     if complete:
         if not names <= {name.casefold() for name,_ in STORAGE_TABLES[complete]}:
             raise ValueError('Complete-day input fields differ from declared population: '+path)
         return complete
     candidates=[key for key,columns in STORAGE_TABLES.items()
-                if not key.startswith('complete/')
+                if not key.startswith(('complete/', 'input/supplier_', 'input/force_', 'input/season_', 'input/stop_pipo_', 'input/phase_'))
                 and key not in TEXT_VEHICLE_TABLES
                 and names<={name.casefold() for name,_ in columns}]
     if not candidates:raise ValueError('Unmapped typed input family: '+path+' '+str(sorted(fields)))

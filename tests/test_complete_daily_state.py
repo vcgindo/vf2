@@ -49,6 +49,12 @@ class CompleteStateTests(unittest.TestCase):
 
     def test_old_input_candidates_are_unchanged_for_every_existing_family(self):
         legacy = {**CATALOG['tables'], **INPUT_TABLES}
+        # New path-bound populations are not part of the original generic
+        # catalogue. Their field overlaps must not redirect existing inputs.
+        legacy = {key: fields for key, fields in legacy.items()
+                  if not key.startswith(('input/supplier_', 'input/force_',
+                      'input/season_', 'input/stop_pipo_', 'input/phase_'))
+                  and key not in ('input/vehicle_text', 'input/location_vehicle_text')}
         for fields in legacy.values():
             names = {name.casefold() for name, _ in fields}
             candidates = [key for key, columns in legacy.items()

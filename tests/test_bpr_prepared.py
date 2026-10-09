@@ -45,7 +45,7 @@ class BprPreparedTests(unittest.TestCase):
             binding.assert_not_called()
 
     def test_reader_rejects_nonfixture_and_invalid_page(self):
-        with self.assertRaisesRegex(ValueError, 'fixture-only'):
+        with self.assertRaisesRegex(ValueError, 'requires an admitted source run'):
             prepared.read_bpr(SimpleNamespace(kind='DAILY_CHAIN'), {}, paging=(1, 3))
         run = SimpleNamespace(kind='LEGACY_UI_FIXTURE')
         for paging in ((0, 3), (1, 0), (True, 3), [1, 3], None):

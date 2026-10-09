@@ -47,6 +47,11 @@ def read_outputs(run):
 def finish_run(run, output, *, expected_digest, publication_opening=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     with transaction.atomic():
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        from mta.mdm.supplier_revisions import lock_transaction
+        source_id = MdmDailyInputCapture.objects.filter(run=run).values_list('source_id', flat=True).first()
+        if source_id is not None:
+            lock_transaction(source_id)
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
         if run.status != 'RUNNING' or run.checkpoints.exists():
             raise ValueError('Run changed during calculation')
@@ -64,7 +69,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             from mta.mdm.daily_input import finalize_consumption
             from mta.runtime.mdm_daily_models import MdmDailyInputCapture
             from mta.application.daily_finalization import mark
-            finalize_consumption(run)
+            finalize_consumption(run, output=output)
             if not MdmDailyInputCapture.objects.filter(run=run, status='CONSUMED').exists():
                 raise ValueError('Cohort1 task source was not consumed')
             complete = output['ClosingState'][0]['complete']
@@ -132,7 +137,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         # Consuming captured MDM rows is part of the same committed boundary.
         # A readback/storage failure leaves both queues and run unconsumed.
         from mta.mdm.daily_input import finalize_consumption
-        finalize_consumption(run)
+        finalize_consumption(run, output=output)
         run.status = 'SUCCEEDED'
         if typed:
             from mta.runtime.receipt_integrity import OPERATIONAL_ROSTER, output_root, source_receipts

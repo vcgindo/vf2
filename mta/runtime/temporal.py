@@ -155,7 +155,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             raise ValueError('Unsupported complete Pick policy')
     publication_enabled = daily_sources_enabled(profile)
     today=date.fromisoformat(day['business_date'])
-    with transaction.atomic():
+    from mta.mdm.supplier_revisions import source_lock
+    supplier_lock_source = mdm_source.pk if mdm_source is not None else None
+    if mdm_retry is not None:
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        supplier_lock_source = MdmDailyInputCapture.objects.get(
+            run_id=getattr(mdm_retry, 'pk', mdm_retry)).source_id
+    # Acquire before REPEATABLE READ establishes its first snapshot, including
+    # before any source FK/header locks. Release after freezing, not calculation.
+    with source_lock(supplier_lock_source), transaction.atomic():
         if mdm_source is not None or mdm_retry is not None:
             # Must be the transaction's first statement. Queue rows, histories,
             # task headers and subtasks then share one PostgreSQL snapshot.
@@ -277,6 +285,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                                             pick_output_root=pick_output_root)
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
                     task_status_log_horizon=task_horizon)
+            from mta.mdm.integration_source import verify_predecessor
+            verify_predecessor(configuration_source, parent)
             # The caller's current full raw feed is the new run's base.  The
             # predecessor remains immutable and supplies closing state only.
             base_master=raw['day']['raw_master']
@@ -287,7 +297,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 capture_snapshot=capture_pending_conflicts(capture_snapshot,mdm_source,composed)
                 capture_snapshot=capture_prune_candidates(capture_snapshot,mdm_source,today)
             raw['day']['raw_master']=storage(composed)
+            if capture_snapshot['nms_active'] and 'supplier' in capture_snapshot:
+                from mta.mdm.supplier_capture import feeds as supplier_feeds, require_format
+                require_format(capture_snapshot, prior['importer_settings'])
+                raw['day']['supplier_feeds'] = supplier_feeds(capture_snapshot)
             raw['day']['exclusions']=deepcopy(capture_snapshot['pair_exclusions'])
+            from mta.mdm.integration_source import verify_capture, replace_working_inputs
+            verify_capture(configuration_source, capture_snapshot)
+            replace_working_inputs(capture_snapshot, prior, raw['day'], parent)
             apply_refresh_setting(prior['importer_settings'], capture_snapshot)
             raw['mdm_input']=capture_snapshot
         if publication_enabled:

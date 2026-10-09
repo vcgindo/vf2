@@ -33,7 +33,8 @@ class MdmRunnerTests(unittest.TestCase):
     def test_binds_both_smoke_days_to_owned_source_and_own_predecessor(self):
         artifact = Path('D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-input-v1.json')
         checksum = hashlib.sha256(artifact.read_bytes()).hexdigest()
-        source = SimpleNamespace(pk='owned-mdm-test', digest='d'*64)
+        source = SimpleNamespace(pk='owned-mdm-test', digest='d'*64,
+                                 receipt={'schema': 'fresh-mdm-daily-source-v1'})
         calls = []
         def execute(**kwargs):
             calls.append(kwargs)
@@ -75,7 +76,8 @@ class MdmRunnerTests(unittest.TestCase):
 
     def test_frozen_retry_routes_first_day_without_recapturing_source(self):
         artifact = Path('D:/freshvcf-build/evidence/daily-publication-3006-20261006-001/ten-pair-input-v1.json')
-        source = SimpleNamespace(pk='owned-mdm-test', digest='d'*64)
+        source = SimpleNamespace(pk='owned-mdm-test', digest='d'*64,
+                                 receipt={'schema': 'fresh-mdm-daily-source-v1'})
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         with TemporaryDirectory() as directory, \
                 patch.object(MdmSource.objects, 'get', return_value=source), \

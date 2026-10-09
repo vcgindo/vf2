@@ -260,6 +260,23 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     if finalization is not None:
         controls['importer_settings'] = daily_finalization.preserve_settings(
             prior['importer_settings'], controls['importer_settings'])
+    if day.get('phase_controls_input_validation'):
+        from mta.application.phase_input_validation import validate_phase_inputs
+        names = ('phase_requests', 'phase_stops', 'phase_in_requests')
+        inputs = [prior['control_aux'][name] + day['control_requests'][name] for name in names]
+        validated_phase = validate_phase_inputs(*inputs, importer['RejectedMaster'], now)
+        for name in names:
+            prior['control_aux'][name] = []
+            day['control_requests'][name] = validated_phase[name]
+        importer['RejectedMaster'] = validated_phase['rejected_master']
+        if completion is not None:
+            daily_finalization.mark(completion, 'ValidatePhaseout.sql', 'ValidatePhaseInNorms.sql')
+    if day.get('seasonality_input_validation'):
+        from mta.application.seasonality_validation import validate_seasonality_data
+        validated_season = validate_seasonality_data(prior['control_aux']['season_requests'],
+            importer['MasterData'], importer['RejectedMaster'], now)
+        prior['control_aux']['season_requests'] = validated_season['seasonality']
+        importer['RejectedMaster'] = validated_season['rejected_master']
     delivery = profile.get('delivery')
     control_aux = diagnostics = None
     force_alert_capture = None

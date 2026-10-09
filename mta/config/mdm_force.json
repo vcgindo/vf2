@@ -1,0 +1,71 @@
+{
+  "MasterMapper": [
+    {
+      "MasterId": 13,
+      "MasterName": "ForceNormChange",
+      "VFTables": null,
+      "DraftTables": "DraftFNCMaster",
+      "TaskHistoryTables": "TaskForceNormChangeHistory",
+      "TaskTempTables": "TaskForceNormChange",
+      "IsAdd": false,
+      "IsModify": true,
+      "IsRemove": false
+    }
+  ],
+  "UI_MDMConfig": [
+    {
+      "MasterId": 13,
+      "MasterName": "ForceNormChange",
+      "Col_Code": "sc",
+      "TableField": "SKUCode",
+      "Col_Position": 1,
+      "Header": "SKU Code",
+      "Visible": true,
+      "CellAlignment": "          ",
+      "Value": "",
+      "IsAdd": false,
+      "IsEdit": false,
+      "IsFilter": false,
+      "IsDownload": true,
+      "IsApplicable": false,
+      "DataType": "String",
+      "IsDelete": false
+    },
+    {
+      "MasterId": 13,
+      "MasterName": "ForceNormChange",
+      "Col_Code": "wc",
+      "TableField": "WhCode",
+      "Col_Position": 2,
+      "Header": "Location Code",
+      "Visible": true,
+      "CellAlignment": "          ",
+      "Value": "",
+      "IsAdd": false,
+      "IsEdit": false,
+      "IsFilter": false,
+      "IsDownload": true,
+      "IsApplicable": false,
+      "DataType": "String",
+      "IsDelete": false
+    },
+    {
+      "MasterId": 13,
+      "MasterName": "ForceNormChange",
+      "Col_Code": "nn",
+      "TableField": "NewNorm",
+      "Col_Position": 3,
+      "Header": "Norm",
+      "Visible": true,
+      "CellAlignment": "          ",
+      "Value": "",
+      "IsAdd": false,
+      "IsEdit": true,
+      "IsFilter": false,
+      "IsDownload": true,
+      "IsApplicable": false,
+      "DataType": "Number",
+      "IsDelete": false
+    }
+  ]
+}

@@ -13,6 +13,18 @@ from mta.serialization import digest
 
 
 class DailySourceBindingTests(unittest.TestCase):
+    def setUp(self):
+        # These unit fixtures represent an unsealed original family roster.
+        self.integration = patch('mta.mdm.integration_source.installed_binding', return_value=None)
+        self.integration_lookup = self.integration.start()
+        self.addCleanup(self.integration.stop)
+
+    def test_invalid_integration_is_not_treated_as_absent(self):
+        source, _ = self.source()
+        self.integration_lookup.side_effect = ValueError('integration identity differs')
+        with self.assertRaisesRegex(ValueError, 'integration identity differs'):
+            self.verify(source)
+
     def source(self):
         families={str(i):dict(owner_digest=str(i)*64) for i in (1,2,3)}
         receipt=dict(schema=binding.SCHEMA, artifact_sha256='a'*64,
@@ -46,6 +58,7 @@ class DailySourceBindingTests(unittest.TestCase):
         source,_=self.source();source.dll_digest='other'
         with self.assertRaisesRegex(ValueError,'DLL'):
             self.verify(source)
+
         source,_=self.source()
         with patch.object(binding,'configuration_digest',return_value={'changed':'config'}), \
                 self.assertRaisesRegex(ValueError,'configuration differs'):
@@ -54,3 +67,15 @@ class DailySourceBindingTests(unittest.TestCase):
         with patch.object(binding.MdmFamilySource.objects,'filter',return_value=[]), \
                 self.assertRaisesRegex(ValueError,'not installed'):
             self.verify(source)
+
+    def test_pinned_legacy_adapter_only_binds_legacy_family_roster(self):
+        source, installed = self.source()
+        source.receipt['adapter_sha256'] = binding.LEGACY_ADAPTER_SHA
+        source.digest = digest(source.receipt)
+        with patch.object(binding.MdmFamilySource.objects, 'filter', return_value=installed):
+            self.assertIs(self.verify(source), source)
+            installed.append(SimpleNamespace(master_id=13))
+            source.receipt['schema'] = binding.FORCE_SCHEMA
+            source.digest = digest(source.receipt)
+            with self.assertRaisesRegex(ValueError, 'not bound'):
+                self.verify(source)

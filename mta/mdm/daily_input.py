@@ -21,6 +21,8 @@ from mta.runtime.mdm_skuloc_models import (MdmSkuLocAddApproved,
     MdmSkuLocHistory, MdmSkuLocModifyApproved, MdmSkuLocPair,
     MdmSkuLocRemoveApproved)
 from mta.serialization import digest, storage
+from mta.runtime.mdm_supplier_models import (MdmSobHistory, MdmMoqHistory,
+                                            MdmSobRequested, MdmMoqRequested)
 
 SQL_DIGEST = 'c86d014b1f7ee921821f83936a53d1d4da566ba9b2558db9252853260c3c3801'
 SCHEMA = 'fresh-mdm-daily-input-v1'
@@ -248,8 +250,16 @@ def compose_pair_exclusions(snapshot, incoming_master):
 
 
 def _task_snapshot(source):
+    from mta.runtime.mdm_force_models import MdmForceHistory
+    from mta.runtime.mdm_season_models import MdmSeasonHistory
+    from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory
+    from mta.runtime.mdm_phase_controls_models import MdmPhaseOutHistory
+    # NMSTaskStatusUpdate's Phase In Norm block also reads TaskPhaseOutHistory.
+    # Do not silently substitute PhaseInNormHistory to make master9 complete.
     families = (('sku', MdmSkuHistory), ('location', MdmLocationHistory),
-                ('skuloc', MdmSkuLocHistory))
+                ('skuloc', MdmSkuLocHistory), ('sob', MdmSobHistory), ('moq', MdmMoqHistory),
+                ('force', MdmForceHistory), ('season', MdmSeasonHistory), ('stop_pipo', MdmStopPipoHistory),
+                ('phase_out', MdmPhaseOutHistory))
     result = []
     for family, history_model in families:
         approved = list(history_model.objects.filter(source=source, Status='3')
@@ -279,7 +289,11 @@ def select_capture(source, *, nms_active, task_status_log_horizon):
         raise ValueError('NMSActive must be explicit')
     if type(task_status_log_horizon) is not int:
         raise ValueError('TaskStatusLogHorizon must be an explicit integer')
+    from mta.mdm.supplier_revisions import lock_transaction
+    lock_transaction(source.pk)
     source = MdmSource.objects.select_for_update().get(pk=source.pk)
+    from mta.mdm.integration_source import capture_identity, verify_capture
+    integration = capture_identity(source)
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     if MdmDailyInputCapture.objects.filter(source=source, status='CAPTURED',
                                            retries__isnull=True).exists():
@@ -322,6 +336,29 @@ def select_capture(source, *, nms_active, task_status_log_horizon):
         # NMSTaskStatusUpdate runs later in the main BAT even when NMSActive=0.
         'tasks': _task_snapshot(source), 'history_transitions': [],
         'completion_tasks': [], 'prune_tasks': []}
+    from mta.mdm.supplier_capture import capture as capture_supplier
+    supplier = capture_supplier(source)
+    if supplier is not None:
+        snapshot['supplier'] = supplier
+    from mta.mdm.force_capture import capture as capture_force
+    force = capture_force(source)
+    if force is not None:
+        snapshot['force'] = force
+    from mta.mdm.season_capture import capture as capture_season
+    season = capture_season(source)
+    if season is not None:
+        snapshot['season'] = season
+    from mta.mdm.stop_pipo_capture import capture as capture_stop
+    stop = capture_stop(source)
+    if stop is not None:
+        snapshot['stop_pipo'] = stop
+    from mta.mdm.phase_controls_capture import capture as capture_phase
+    phase = capture_phase(source)
+    if phase is not None:
+        snapshot['phase_controls'] = phase
+    if integration is not None:
+        snapshot['integration'] = integration
+    verify_capture(source, snapshot)
     snapshot['revision_digest'] = digest(snapshot)
     return storage(snapshot)
 
@@ -357,13 +394,29 @@ def capture_pending_conflicts(snapshot, source, composed_rows):
 
 
 def _prune_models(master_id):
+    from mta.runtime.mdm_force_models import MdmForceHistory, MdmForceRequested
+    from mta.runtime.mdm_season_models import (MdmSeasonHistory, MdmSeasonRequested,
+        MdmSeasonStatusHistory, MdmSeasonStatusRequested)
     from mta.runtime.mdm_models import MdmLocationRequested, MdmSkuRequested
     from mta.runtime.mdm_skuloc_models import (MdmSkuLocAddRequested,
         MdmSkuLocModifyRequested, MdmSkuLocRemoveRequested)
-    return {'1': (MdmSkuHistory, MdmSkuRequested),
+    from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory, MdmStopPipoRequested
+    from mta.runtime.mdm_phase_controls_models import (MdmPhaseOutHistory,
+        MdmPhaseOutRequested, MdmPhaseInNormHistory, MdmPhaseInNormRequested)
+    return {'6': (MdmStopPipoHistory, MdmStopPipoRequested),
+            '7': (MdmPhaseOutHistory, MdmPhaseOutRequested),
+            '8': (MdmPhaseOutHistory, MdmPhaseOutRequested),
+            '9': (MdmPhaseInNormHistory, MdmPhaseInNormRequested),
+            '1': (MdmSkuHistory, MdmSkuRequested),
             '2': (MdmLocationHistory, MdmLocationRequested),
             '3': (MdmSkuLocHistory, MdmSkuLocAddRequested,
-                  MdmSkuLocModifyRequested, MdmSkuLocRemoveRequested)}[master_id]
+                  MdmSkuLocModifyRequested, MdmSkuLocRemoveRequested),
+            '4': (MdmSobHistory, MdmSobRequested),
+            '5': (MdmMoqHistory, MdmMoqRequested),
+            '10': (MdmSeasonStatusHistory, MdmSeasonStatusRequested),
+            '11': (MdmSeasonHistory, MdmSeasonRequested),
+            '12': (MdmSeasonHistory, MdmSeasonRequested),
+            '13': (MdmForceHistory, MdmForceRequested)}[master_id]
 
 
 def _model_identity(model):
@@ -386,13 +439,13 @@ def capture_prune_candidates(snapshot, source, business_date):
     projected = {row['subtask_pk']: ('4' if row['subtask_status'] == '2' else '5')
                  for row in result['tasks']}
     for task in MdmTask.objects.filter(source=source,
-            MasterId__in=('1', '2', '3')).order_by('id'):
+            MasterId__in=('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13')).order_by('id'):
         subtasks = list(MdmSubTask.objects.filter(source=source,
                                                   TaskID=task.TaskID).order_by('id'))
         statuses = [projected.get(row.pk, row.TaskStatus) for row in subtasks]
         if not statuses or not all(value in ('4', '5', '6', '8') for value in statuses):
             continue
-        completion = {'task_id': task.TaskID, 'task': _row_version(task),
+        completion = {'task_id': task.TaskID, 'master_id': task.MasterId, 'task': _row_version(task),
             'subtasks': [_row_version(row) for row in subtasks],
             'projected_statuses': statuses}
         completion['digest'] = digest({k: v for k, v in completion.items()
@@ -414,14 +467,16 @@ def capture_prune_candidates(snapshot, source, business_date):
     return storage(result)
 
 
-def _lock_prune_candidates(snapshot, capture):
+def _lock_prune_candidates(snapshot, capture, *, deferred_tasks=()):
     model_by_label = {_model_identity(MdmTask): MdmTask,
                       _model_identity(MdmSubTask): MdmSubTask}
-    for master_id in ('1', '2', '3'):
+    for master_id in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'):
         model_by_label.update({_model_identity(model): model
                                for model in _prune_models(master_id)})
     locked = []
     for candidate in snapshot['prune_tasks']:
+        if (int(candidate['master_id']), candidate['task_id']) in deferred_tasks:
+            continue
         if digest(candidate['members']) != candidate['digest']:
             raise ValueError('captured MDM task-prune roster drift')
         candidate_rows = []
@@ -439,9 +494,11 @@ def _lock_prune_candidates(snapshot, capture):
     return locked
 
 
-def _lock_completion_candidates(snapshot, capture):
+def _lock_completion_candidates(snapshot, capture, *, deferred_tasks=()):
     locked = []
     for candidate in snapshot['completion_tasks']:
+        if (int(candidate.get('master_id', 0)), candidate['task_id']) in deferred_tasks:
+            continue
         expected = {k: v for k, v in candidate.items() if k != 'digest'}
         if digest(expected) != candidate['digest']:
             raise ValueError('captured MDM task-completion roster drift')
@@ -665,10 +722,14 @@ def _lock_pair_exclusion_opening(snapshot, capture):
     return owner, typed
 
 
-def finalize_consumption(run):
+def finalize_consumption(run, *, output=None):
     """Idempotently consume exactly the frozen rows inside finish_run's atomic block."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    capture = MdmDailyInputCapture.objects.select_for_update().filter(run=run).first()
+    from mta.mdm.supplier_revisions import lock_transaction, superseded_tasks
+    source_id = MdmDailyInputCapture.objects.filter(run=run).values_list('source_id', flat=True).first()
+    if source_id is None: return
+    lock_transaction(source_id)
+    capture = MdmDailyInputCapture.objects.select_for_update().get(run=run, source_id=source_id)
     if capture is None: return
     if capture.status == 'CONSUMED': return
     if run.status != 'RUNNING':
@@ -677,9 +738,30 @@ def finalize_consumption(run):
     snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
     if not snapshot or snapshot['revision_digest'] != capture.revision_digest:
         raise ValueError('MDM capture/run input identity drift')
+    from mta.mdm.integration_source import verify_capture
+    verify_capture(capture.source, snapshot)
+    deferred_supplier_tasks = superseded_tasks(snapshot)
+    from mta.mdm.force_revisions import superseded_tasks as superseded_force_tasks
+    deferred_supplier_tasks |= superseded_force_tasks(snapshot)
+    from mta.mdm.season_revisions import superseded_tasks as superseded_season_tasks
+    deferred_supplier_tasks |= superseded_season_tasks(snapshot)
+    from mta.mdm.stop_pipo_revisions import superseded_tasks as superseded_stop_tasks
+    deferred_supplier_tasks |= superseded_stop_tasks(snapshot)
+    from mta.mdm.phase_controls_revisions import superseded_tasks as superseded_phase_tasks
+    deferred_supplier_tasks |= superseded_phase_tasks(snapshot)
     exclusion_owner, final_exclusions = _lock_pair_exclusion_opening(snapshot, capture)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
+    from mta.mdm.supplier_capture import finalize as finalize_supplier
+    finalize_supplier(run, snapshot, output)
+    from mta.mdm.force_capture import finalize as finalize_force
+    finalize_force(run, snapshot, output)
+    from mta.mdm.season_capture import finalize as finalize_season
+    finalize_season(run, snapshot, output)
+    from mta.mdm.stop_pipo_capture import finalize as finalize_stop
+    finalize_stop(run, snapshot, output)
+    from mta.mdm.phase_controls_capture import finalize as finalize_phase
+    finalize_phase(run, snapshot, output)
     now = database_now()
     run_timestamp = datetime.fromisoformat(snapshot['configuration']['run_timestamp'])
     archive_models = None
@@ -723,17 +805,30 @@ def finalize_consumption(run):
             current.delete(); occurrence.cleared_at = now
         occurrence.save(update_fields=['archived_at', 'cleared_at'])
 
-    completion_rows = _lock_completion_candidates(snapshot, capture)
-    prune_rows = _lock_prune_candidates(snapshot, capture)
+    completion_rows = _lock_completion_candidates(snapshot, capture, deferred_tasks=deferred_supplier_tasks)
+    prune_rows = _lock_prune_candidates(snapshot, capture, deferred_tasks=deferred_supplier_tasks)
     stamp = run_timestamp.strftime('%d/%m/%Y %I:%M%p')
     captured_tasks = {row['subtask_pk']: row for row in snapshot['tasks']}
     for item in capture.task_occurrences.select_for_update().all():
+        if item.family == 'phase_out' and any((mid, item.task_id) in deferred_supplier_tasks for mid in (7, 8, 9)):
+            continue
+        if item.family == 'season' and any((mid, item.task_id) in deferred_supplier_tasks for mid in (11, 12)):
+            continue
+        if item.family in ('sob', 'moq', 'force', 'stop_pipo') and (
+                {'sob': 4, 'moq': 5, 'force': 13, 'stop_pipo': 6}[item.family], item.task_id) in deferred_supplier_tasks:
+            continue
         task = MdmTask.objects.filter(source=capture.source, pk=item.task_pk,
                                       TaskID=item.task_id).first()
         sub = MdmSubTask.objects.filter(source=capture.source, pk=item.subtask_pk,
                                         TaskID=item.task_id).first()
+        from mta.runtime.mdm_force_models import MdmForceHistory
+        from mta.runtime.mdm_season_models import MdmSeasonHistory
+        from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory
+        from mta.runtime.mdm_phase_controls_models import MdmPhaseOutHistory
         history_model = {'sku': MdmSkuHistory, 'location': MdmLocationHistory,
-                         'skuloc': MdmSkuLocHistory}[item.family]
+                         'skuloc': MdmSkuLocHistory, 'sob': MdmSobHistory,
+                         'moq': MdmMoqHistory, 'force': MdmForceHistory, 'season': MdmSeasonHistory,
+                         'stop_pipo': MdmStopPipoHistory, 'phase_out': MdmPhaseOutHistory}[item.family]
         captured = captured_tasks.get(item.subtask_pk)
         if captured is None:
             raise ValueError('MDM captured task roster drift')
@@ -774,6 +869,8 @@ def finalize_consumption(run):
         row.save(update_fields=['Status', 'Comments'])
         item.transitioned_at = now; item.save(update_fields=['transitioned_at'])
 
+    from mta.mdm.supplier_capture import finalize_pending as finalize_supplier_pending
+    finalize_supplier_pending(snapshot, output, deferred_tasks=deferred_supplier_tasks)
     for candidate_rows in prune_rows:
         # Header is first in the roster and therefore deleted last.
         for model, pks in reversed(candidate_rows):

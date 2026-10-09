@@ -70,6 +70,18 @@ def prepare(payload):
             values = [literal(row[k]) for k in keys if k in aliases]
             values += [literal(row[k]) for special in ('error', 'warning') for k in keys if k.lower() == special]
             rows.append(dict(zip(columns, values)))
+        if master_id == 6:
+            # DraftPIPOMaster has native int/date columns, unlike text-only drafts.
+            for row in rows:
+                for column in ('OriginalNorm', 'CurrentNorm', 'PhaseInCurrNorm', 'PhaseInTargetNorm'):
+                    if row.get(column) is not None:
+                        number = int(row[column].strip() or '0')
+                        if not -2147483648 <= number <= 2147483647:
+                            raise ValueError('native draft int32 overflow')
+                        row[column] = number
+                for column in ('LastNormChangeDate', 'PhaseOutStartDate'):
+                    if row.get(column) is not None:
+                        row[column] = datetime.fromisoformat(row[column].strip() or '1900-01-01').date()
         result.append((master_id, literal(grid), text(value(master, 'status')), rows))
     return result
 
@@ -169,7 +181,8 @@ def details(source, draft_id, actor, payload):
     maps = list(MdmDraftMaster.objects.filter(source=source, DraftId=draft_id))
     if not maps:
         raise ValueError('native draft details has no dynamic statement')
-    aliased_ids = {item.MasterId for item in maps if item.GridState}
+    aliased_ids = {item.MasterId for item in maps if item.GridState and
+                   any(r['IsDownload'] for r in families.module(item.MasterId).FIELDS.values())}
     if len(aliased_ids) > 1:
         # IL23138 concatenates fields across families into one projection and
         # leaves @MASTERID as an unordered last assignment. Keep it unqualified.
@@ -185,7 +198,10 @@ def details(source, draft_id, actor, payload):
         if item.MasterId in aliased_ids:
             config = families.module(item.MasterId)
             aliases = getattr(config, 'DRAFT_ALIASES', config.ALIASES)
-            columns = {alias: name for alias, name in aliases.items() if config.FIELDS[alias]['IsDownload']}
+            columns = {alias: name for alias, name in aliases.items()
+                       if alias in config.FIELDS and config.FIELDS[alias]['IsDownload']}
+            if item.MasterId in (6, 10):
+                columns['IsSelected'] = 'IsSelected'
             columns.update(error='Error', warning='Warning')
         else:
             columns = {field.name: field.name for field in model._meta.fields if field.name not in ('id', 'source')}

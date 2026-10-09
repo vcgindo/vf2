@@ -35,7 +35,7 @@ TABLES = {
         ('ordinal','bigint'), ('sku_code','nvarchar'), ('location_code','nvarchar'),
         ('action_type','int'), ('approved','bit'), ('reverted','bit'), ('row_digest','nvarchar')],
     'input/mdm_history': [('family','nvarchar'), ('history_pk','bigint'), ('task_id','nvarchar'), ('row_digest','nvarchar')],
-    'input/mdm_completion': [('task_id','nvarchar'), ('task/pk','bigint'), ('task/digest','nvarchar'), ('digest','nvarchar')],
+    'input/mdm_completion': [('task_id','nvarchar'), ('master_id','nvarchar'), ('task/pk','bigint'), ('task/digest','nvarchar'), ('digest','nvarchar')],
     'input/mdm_prune': [('task_id','nvarchar'), ('master_id','nvarchar'), ('digest','nvarchar')],
 }
 TABLES.update(json.loads((Path(__file__).resolve().parents[2]/
@@ -48,6 +48,35 @@ TEXT_VEHICLE_TABLES = {
     'input/location_vehicle_text': [('location_code','nvarchar'), ('vehicle_id','nvarchar')],
 }
 TABLES.update(TEXT_VEHICLE_TABLES)
+# Supplier capture rows retain native float53/int32 and the queue occurrence ID.
+for _name, _scalar, _destination in (
+        ('sob', ('SOB', 'float'), True),
+        ('moq_with_destination', ('MOQ', 'int'), True),
+        ('moq_without_destination', ('MOQ', 'int'), False)):
+    TABLES['input/supplier_' + _name] = [('id', 'bigint'), ('revision', 'bigint'), ('SKUCode', 'nvarchar'),
+        *([('WhCode', 'nvarchar')] if _destination else []), ('SupplierCode', 'nvarchar'),
+        _scalar, ('ActionType', 'int'), ('Approved', 'bit'), ('Reverted', 'bit')]
+
+
+TABLES['input/supplier_task_revision'] = [('master_id', 'int'), ('task_id', 'nvarchar'), ('revision', 'bigint')]
+TABLES['input/force_queue'] = [('id', 'bigint'), ('revision', 'bigint'),
+    ('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'), ('NewNorm', 'int'),
+    ('Approved', 'bit'), ('RequestedBy', 'nvarchar')]
+TABLES['input/force_task_revision'] = [('task_id', 'nvarchar'), ('revision', 'bigint')]
+TABLES['input/force_upload_log'] = [('id', 'bigint'), ('SKUCode', 'nvarchar'),
+    ('WHCode', 'nvarchar'), ('OldNorm', 'int'), ('NewNorm', 'int'), ('Approved', 'bit'),
+    ('RequestedBy', 'nvarchar'), ('ActionTimeStamp', 'datetime'), ('ActionId', 'int')]
+
+
+_SEASON_REQUEST = [('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'), ('StartDate', 'date'),
+    ('EndDate', 'date'), ('TargetNorm', 'int'), ('DeltaNormPercentage', 'int'),
+    ('UpperLowerCap', 'int'), ('BuildupDuration', 'int'), ('ActivateDBM', 'bit')]
+TABLES['input/season_queue'] = [('id', 'bigint'), ('revision', 'bigint'),
+    *_SEASON_REQUEST, ('Approved', 'bit')]
+TABLES['input/season_current'] = [('id', 'bigint'), ('revision', 'bigint'),
+    ('ordinal', 'bigint'), *_SEASON_REQUEST, ('OrigNorm', 'int'), ('NewNorm', 'int'),
+    ('Type', 'int'), ('Status', 'int'), ('Comment', 'nvarchar'), ('LastProcessedOn', 'date')]
+TABLES['input/season_task_revision'] = [('master_id', 'int'), ('task_id', 'nvarchar'), ('revision', 'bigint')]
 
 
 def schema_statements():
@@ -59,3 +88,13 @@ def schema_statements():
             'vf_ordinal bigint NOT NULL, '+','.join(quote(n)+' '+PG_TYPES[t] for n,t in fields)
             +', PRIMARY KEY(vf_run_id,vf_image,vf_ordinal))')
     return result
+
+TABLES['input/stop_pipo_queue'] = [('id', 'bigint'), ('revision', 'bigint'),
+    ('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar')]
+TABLES['input/stop_pipo_task_revision'] = [('task_id', 'nvarchar'), ('revision', 'bigint')]
+
+TABLES['input/phase_out_queue'] = [('id', 'bigint'), ('revision', 'bigint'),
+    ('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'), ('PhaseInSKUCode', 'nvarchar'), ('Approved', 'bit')]
+TABLES['input/phase_in_norm_queue'] = [('id', 'bigint'), ('revision', 'bigint'),
+    ('SKUCode', 'nvarchar'), ('WhCode', 'nvarchar'), ('TargetNorm', 'int'), ('Approved', 'bit')]
+TABLES['input/phase_controls_task_revision'] = [('master_id', 'int'), ('task_id', 'nvarchar'), ('revision', 'bigint')]

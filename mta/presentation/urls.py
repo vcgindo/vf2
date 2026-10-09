@@ -7,6 +7,7 @@ urlpatterns = [
     path('GetMasterUIConfiguration', mdm_views.configuration),
     path('GetCount', partial(mdm_views.current, count=True)),
     path('GetMasterData', mdm_views.current),
+    path('GetSeasonalityDetails', mdm_views.seasonality_graph),
     path('allDrafts', mdm_views.all_drafts),
     path('draftCount/<str:draft_id>', mdm_views.draft_count),
     path('draft', mdm_views.draft),

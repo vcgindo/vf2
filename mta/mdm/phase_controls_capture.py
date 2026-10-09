@@ -1,0 +1,92 @@
+"""Frozen native input occurrences, own predecessor and atomic queue publication."""
+from mta.mdm.phase_controls_source import FIELDS, QUEUES, require_installed
+from mta.mdm.phase_controls_revisions import task_revisions
+from mta.runtime.mdm_phase_controls_models import (
+    MdmPhaseControlsOwner, MdmPhaseOutConsumed, MdmPhaseInNormConsumed)
+from mta.serialization import digest, storage
+
+CONSUMED = {'phase_requests': MdmPhaseOutConsumed, 'phase_in_requests': MdmPhaseInNormConsumed}
+
+
+def native(row, name):
+    return {f: row[f] for f in FIELDS[name]}
+
+
+def capture(source):
+    if not MdmPhaseControlsOwner.objects.filter(source=source).exists():
+        return None
+    owner = require_installed(source)
+    if owner.last_run.status != 'SUCCEEDED':
+        raise ValueError('Phase controls require a successful own predecessor')
+    result = storage(dict(source_digest=owner.receipt_digest,
+        anchor=dict(run_id=str(owner.last_run_id), output_digest=owner.last_run.output_digest,
+            queue_digest=owner.closing_queue_digest, generation=owner.generation),
+        **{name: list(model.objects.filter(source=source).order_by('id')
+            .values('id', 'revision', *FIELDS[name])) for name, model in QUEUES.items()},
+        task_revisions=task_revisions(source)))
+    result['digest'] = digest(result)
+    return result
+
+
+def replace_working_input(snapshot, prior, day, predecessor):
+    if 'phase_controls' not in snapshot:
+        return
+    frozen = snapshot['phase_controls']
+    if digest({k: v for k, v in frozen.items() if k != 'digest'}) != frozen['digest']:
+        raise ValueError('Phase controls frozen input digest differs')
+    anchor = frozen['anchor']
+    if (predecessor is None or str(predecessor.pk) != anchor['run_id']
+            or predecessor.output_digest != anchor['output_digest']
+            or digest({n: prior['control_aux'][n] for n in FIELDS}) != anchor['queue_digest']):
+        raise ValueError('Phase controls do not descend from their own closing')
+    for name in FIELDS:
+        if day['control_requests'][name]:
+            raise ValueError('Phase controls exclude a second external phase feed')
+        # The captured owner includes remaining old rows and later approved
+        # additions. Feed it once, not once as carry plus again as daily input.
+        prior['control_aux'][name] = []
+        day['control_requests'][name] = [native(r, name) for r in frozen[name]]
+    day['phase_controls_input_validation'] = True
+
+
+def finalize(run, snapshot, output):
+    if 'phase_controls' not in snapshot:
+        return
+    if output is None:
+        raise ValueError('Phase controls require actual closing state')
+    frozen = snapshot['phase_controls']
+    owner = MdmPhaseControlsOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
+    anchor = frozen['anchor']
+    if (owner.receipt_digest != frozen['source_digest']
+            or str(owner.last_run_id) != anchor['run_id']
+            or owner.closing_queue_digest != anchor['queue_digest']
+            or owner.generation < anchor['generation']):
+        raise ValueError('Phase controls closing owner changed during execution')
+    closing = storage(output['ClosingState'][0]['control_aux'])
+    remaining = {name: closing[name] for name in FIELDS}
+    for name, model in QUEUES.items():
+        if any(set(r) != set(FIELDS[name]) for r in remaining[name]):
+            raise ValueError('Phase controls closing fields differ')
+        # Native validation trims and DISTINCTs input before canonical clearing.
+        # Record every original occurrence, then rebuild only this capture's own
+        # produced remaining bag. Never invent which duplicate occurrence won.
+        normalized = [{f: (v.strip(' ') if isinstance(v, str) else v)
+                       for f, v in native(r, name).items()} for r in frozen[name]]
+        allowed = {digest(r) for r in normalized}
+        if any(r['Approved'] == 1 or digest(r) not in allowed for r in remaining[name]):
+            raise ValueError('Phase controls closing contains an unowned or uncleared row')
+        if len({digest(r) for r in remaining[name]}) != len(remaining[name]):
+            raise ValueError('Phase controls closing retained duplicate native DISTINCT rows')
+        live = {r.pk: r for r in model.objects.select_for_update().filter(source=owner.source)}
+        for ordinal, before in enumerate(frozen[name]):
+            row = live.get(before['id'])
+            if (row is None or row.revision != before['revision']
+                    or storage({f: getattr(row, f) for f in FIELDS[name]}) != native(before, name)):
+                raise ValueError('Captured phase control occurrence changed or disappeared')
+            CONSUMED[name].objects.create(source=owner.source, run=run, ordinal=ordinal,
+                source_pk=row.pk, revision=row.revision, **native(before, name))
+            row.delete()
+        model.objects.bulk_create([model(source=owner.source, **r) for r in remaining[name]])
+    owner.last_run = run
+    owner.closing_queue_digest = digest(remaining)
+    owner.save(update_fields=['last_run', 'closing_queue_digest'])

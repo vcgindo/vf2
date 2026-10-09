@@ -30,6 +30,8 @@ def source():
     result = MdmSource.objects.filter(digest=digest, dll_digest=DLL).first()
     if result is None:
         raise PublicationUnavailable('mdm_source_not_installed')
+    from mta.mdm.integration_source import require_read_binding
+    require_read_binding(result)
     return result
 
 

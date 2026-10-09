@@ -112,6 +112,11 @@ class Command(BaseCommand):
                                 artifact_schema=artifact.get('schema'))
             except ValueError as error:
                 raise CommandError(str(error)) from error
+            from mta.mdm.daily_source import FORCE_SCHEMA
+            if mdm_source.receipt.get('schema') == FORCE_SCHEMA:
+                from mta.mdm.force_source import registered_case
+                artifact = registered_case(raw)
+                case = artifact['case']
         profile = deepcopy(case['profile'])
         finalization_identity = None
         finalization_content = None

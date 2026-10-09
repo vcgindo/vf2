@@ -1259,3 +1259,28 @@ from mta.runtime.operational_source_models import (
     OperationalCaptureAuthorization, OperationalCalculationSource, OperationalRequirementBand, OperationalAdvanceStock,
     OperationalInputSource, OperationalForceSource,
 )
+from mta.runtime.mdm_force_models import (MdmForceOwner, MdmForceQueue,
+    MdmForceRequested, MdmForceHistory, MdmForceUploadLog, MdmDraftForce,
+    MdmForceTaskRevision, MdmForceConsumed, MdmForceDisplayOwner, MdmForceDisplayRow)
+from mta.runtime.mdm_supplier_models import (MdmSupplierConfiguration,
+    MdmDraftSob, MdmDraftMoq, MdmSobRequested, MdmSobHistory, MdmMoqRequested,
+    MdmMoqHistory, MdmSobApproved, MdmMoqWithDestinationApproved,
+    MdmMoqWithoutDestinationApproved, MdmSobRaw, MdmMoqRaw1, MdmMoqRaw2,
+    MdmSobUploadLog, MdmMoqUploadLog, MdmSobArchive,
+    MdmMoqWithDestinationArchive, MdmMoqWithoutDestinationArchive, MdmSupplierTaskRevision)
+
+from mta.runtime.mdm_season_models import (MdmSeasonOwner, MdmSeasonQueue,
+    MdmSeasonCurrent, MdmSeasonRequested, MdmSeasonHistory,
+    MdmSeasonStatusRequested, MdmSeasonStatusHistory, MdmSeasonTaskRevision,
+    MdmSeasonEligibility, MdmSeasonConsumed, MdmDraftSeason)
+
+from mta.runtime.mdm_stop_pipo_models import (MdmStopPipoOwner, MdmStopPipoQueue,
+    MdmStopPipoRequested, MdmStopPipoHistory, MdmStopPipoTaskRevision,
+    MdmStopPipoConsumed, MdmDraftStopPipo)
+
+from mta.runtime.mdm_phase_controls_models import (MdmPhaseControlsOwner,
+    MdmPhaseOutRequested, MdmPhaseOutHistory, MdmPhaseOutQueue, MdmPhaseOutConsumed,
+    MdmPhaseInNormRequested, MdmPhaseInNormHistory, MdmPhaseInNormQueue,
+    MdmPhaseInNormConsumed, MdmPhaseControlsTaskRevision, MdmDraftAddPipo)
+
+from mta.runtime.mdm_integration_models import MdmSourceIntegration

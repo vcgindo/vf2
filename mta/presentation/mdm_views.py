@@ -1,15 +1,38 @@
 """Existing MDM wire routes over isolated, typed application master owners."""
 from decimal import Decimal, InvalidOperation
+from functools import wraps
 import json
 
+from django.conf import settings
 from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 
 from mta.mdm import drafts, families, task_reads, tasks
-from mta.mdm.source import source
-from mta.presentation.views import endpoint, identity
+from mta.mdm.source import DLL, source
+from mta.presentation.views import endpoint as gateway_endpoint, identity
+
+
+def endpoint(method):
+    """Keep source admission and response assembly in one owned generation.
+
+    The existing session lock permits native statement commits in decisions;
+    wrapping the request in a database transaction would change that contract.
+    Authentication and payload checks still execute first in the gateway wrapper.
+    """
+    def decorate(function):
+        @gateway_endpoint(method)
+        @wraps(function)
+        def wrapped(request, payload, *args, **kwargs):
+            from mta.runtime.mdm_models import MdmSource
+            from mta.mdm.supplier_revisions import source_lock
+            source_id = MdmSource.objects.filter(digest=settings.VF_MDM_SOURCE_DIGEST,
+                dll_digest=DLL).values_list('pk', flat=True).first()
+            with source_lock(source_id):
+                return function(request, payload, *args, **kwargs)
+        return wrapped
+    return decorate
 
 
 class MdmEncoder(DjangoJSONEncoder):
@@ -45,6 +68,19 @@ def current(request, payload, *, count=False):
     if count:
         return response(record_count=result, message='record count', status=0, http_status=200)
     return response(record_count='', data=result)
+
+
+@endpoint('POST')
+def seasonality_graph(request, payload):
+    installed = source()
+    try:
+        families.require_installed(installed, 10)
+        from mta.mdm.season_current import graph
+        return response(data=graph(installed, payload))
+    except task_reads.TaskDenied as exc:
+        return JsonResponse({'error': str(exc)}, status=403)
+    except (DatabaseError, KeyError, ValueError):
+        return response(status=500)
 
 
 @endpoint('GET')

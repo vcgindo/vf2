@@ -6,6 +6,39 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### MDM integration for working3005 — bounded code delivery (9 October2026)
+
+Human correction/resume in controller turns `01a1216a-2876-77c1-8f89-628f417074da`
+and `01a12171-7511-73e0-86ae-02607d812ff7` supersedes the3006-oriented target.
+This commit delivers code and isolated proof for working3005;3006 is reference
+only. Running3005 image1192c35d, database test_freshvcf_stage2_vm_20261003_002,
+applied0052, existing MDM families1–3 and April7 fixture selection stay unchanged.
+
+| Exit | Disposition |
+|---|---|
+| I1 | Complete: deployed image/source/schema and named shared seams reconciled. Exact target amendment excludes combined3006-only code; original files and proofs archived. |
+| I2 | Complete: selected eight-group family routes/owners/config/drafts/tasks/history/capture/finalizers integrated.48 PostgreSQL capture/rollback/ownership tests and nine mocked runner/configuration tests pass. |
+| I3 | Complete for code preservation: no non-MDM reader, auth/frontend/MTO or calculation-rule changes.88 focused reader/workflow tests pass with no skips, including PostgreSQL fixture differentials and existing families1–3. Independent review has no actionable findings. |
+| I4 | Complete: actual empty→0052→0103 isolated migration; full seeded owner/typed rows identical before/after. Check/drift/plan pass; both historical migration branches unchanged.0103 is the necessary empty join;0104/0105 excluded. |
+| I5 | This cohesive delivery commit closes the code/proof slice; push/upstream hash verification is recorded in the external delivery receipt. STOP after verification. No deployment or next goal. |
+
+[Delivery and limitations](MDM_3005_CODE_DELIVERY.md),
+[implementation contract](MDM_BTR_CODE_INTEGRATION_PLAN.md),
+[extraction amendment](MDM_BTR_EXTRACTION_CONTRACT.md), and
+[exact source manifest](evidence/MDM_3005_CODE_MANIFEST.json) support this tracker.
+Evidence: D:/freshvcf-build/evidence/mdm-btr-integration-20261009-001/target3005.
+All387 pinned baseline resources pass identity verification. Preserved failures
+include setup field-name, test harness binding and stale test-message attempts;
+the original old-scope0105 migration is historical evidence only.
+
+Ready for separate3005 deployment review, NOT deployed or fully production ready.
+No running schema/data/source/grant/credential/selection/service changes, business
+days, oracle calls, benchmark or browser campaign. Positive Force/Seasonality
+source ownership and combined onboarding remain gated. All original qualification,
+native limitation and blocked-route records remain. Existing seals are immutable;
+later activation requires exact identity admission/revalidation. Preexisting dirty
+work is retained outside this delivery's selected changes.
+
 ### COHORT6 — two-date operational acceptance proved (qualified delivery checkpoint)
 
 The finite June6–7 delivery is accepted under supported-synthetic-operational-v1.

@@ -1360,3 +1360,122 @@ SQL repair or alternate child population is supplied. Original final consumer
 receipts remain FAILED with exactly these two strict failures. The separate
 qualified closure links this human disposition; all other required observations
 and four Pick streams pass on both owners. Earlier qualifications remain intact.
+
+
+## FORCE-MASTER13-ISOLATED-INPUTS — approved 8 October 2026
+
+Source67 / scenario004, registered input SHA
+a7e12b4a0ea39c4e0122076df8f6a6268e749dca73a51387278878511281993f,
+has ten retained pairs and June6/7 dates. Direct human replies approve only:
+FNC_MatchMasterNorm1→0 (call_41c8e71cd567475fbcb750bf95fc6e7b);
+retained Importer consumer SL1–3/LL1–3 (call_96d9f196a5d94d4ba0c9b88b4228e4a9);
+immutable opening-value current-display fixture
+(call_ae59fd3f25b44635b736b243ecf48f3e); and that same fixture as the current-Norm
+input for a NEW task's native submission-history UPDATE
+(call_862fe2dd4f914140aac62f5f86eb9521). Proposal identities and exact boundaries
+are in NMS_FORCE_NORM_CONTRACT.md and external nms-force-norm-20261008-001.
+
+Native source: deployed MDMProcessor SHA
+f46e2fc1db36007ee29ea2de4574eca2017ceea268db55eea6b62fa9b16779c8,
+master13 current query and UploadForceNormChange history UPDATE. Empty
+NMSAllItems hides Modify/Upload; empty history lookup preserves submitted Norm,
+causing unchanged review UI to refuse an equal old/new row. Preserve original
+task4_20261008215131 and its history as evidence. These fixtures qualify the
+positive isolated acceptance; they do not repair either native limitation.
+Operational NMSAllItems stays empty, calculation opening stays registered except
+the explicit flag override, NMSActive remains0, and all permission, frontend,
+calculation and canonical clear/status semantics remain unchanged. Role-hidden
+history navigation remains unavailable. No transfer to other sources or dates.
+
+# NMS supplier source findings — 8 October 2026
+
+Scope: isolated SOB(master4)/MOQ(master5) delivery. Authority is deployed API
+DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`,
+not recovered C#. No calculation exception or legacy repair is approved here.
+
+- **Destination MOQ modify/remove history:** deployed `MDMProcessor`
+  `AddModifyMOQMaster`/`RemoveMOQMaster` read `MOQDataRaw1` for history.
+  A WithDestLoc request including `wc` references an unavailable column and
+  the native SQL batch fails. Preserve that failure; do not substitute Raw2.
+- **Destination MOQ UI template:** retained UI_MDMConfig master5 has wc hidden
+  and not applicable to Add/Edit. The unchanged WithDestLoc modification
+  template consequently contains only SKU Code, Supplier Code and MOQ. Its
+  submission lacks the native-required wc and returns500 before creating a
+  task. Browser source13 demonstrates current30 and this exact failure. A
+  separate declared empty-opening backend fixture proves destination add55
+  through real approval/capture/consumer; it does not certify the blocked UI.
+- **MOQ action2 consumption:** an approved modification retains ActionType2.
+  `NMSImportData.sql:500–568` deletes matching raw rows but inserts only
+  ActionType1. No marker conversion is permitted.
+- **MOQ history without destination:** deployed `TaskMasterHistory` and
+  `GetSkuLocProcessor` still reference/join WhCode. History may be unavailable;
+  supplying a default destination would change the contract.
+- **History screen/read boundaries:** existing MasterUpdater/MasterApprover
+  role definitions omit the data-modification-history route. Native
+  GetSkuLocProcessor also restricts PendingSince through today's midnight,
+  excluding today's new browser tasks from the choices. Keep actual timestamps
+  and grants. Authenticated direct SOB history reads the completed browser
+  task, while WithoutDestLoc history yields no task under its WhCode predicate.
+  This is an explicit incomplete positive history-screen proof, not parity for
+  a repaired or backdated UI fixture.
+- **Supplier history multiplicity:** deployed history joins omit SupplierCode.
+  Multiple suppliers may multiply rows. The projection retains this behavior.
+- **Unchanged SOB upload validation:** the existing frontend rejects fractional
+  SOB as "SOB must be an integer" although native requested/approved storage is
+  float53. Browser fixture37.125 exports exactly; upload12.375 retains its error
+  through draft save/reload, while integer12 submits. No frontend repair or
+  rounding is authorized; fractional backend proof remains separately qualified.
+- **Root-only supplier assignment:** native GetSKUWHIds emits exact leaf IDs;
+  the existing gateway forwards stored approver IDs without expanding roots.
+  Owned root-only actors can read the scoped grid but submission creates an
+  unassigned pending task. Preserve that negative fixture; positive review uses
+  explicitly recorded matching leaf grants, without changing assignment logic.
+- **Incomparable duplicate UPDATE:** unequal values for the same SQL join key
+  have no canonical winner. The modern adapter rejects that comparison domain;
+  this is not a parity claim for those inputs. Equal duplicate occurrences are
+  retained. Source: deployed `UpdateApprovedData` and NMSImportData description
+  UPDATE. A preceding native statement may already have effects.
+- **Bounded connector versus whole-day qualification:** populated supplier
+  queues are connected to the existing non-complete MDM execute_day adapter.
+  The inherited complete-day Cohort1 NMSActive0 qualification remains intact.
+  Focused consumer proof does not qualify active-NMS whole-day completion.
+
+
+## Seasonality fixture admission (9 October 2026)
+
+The direct user answer to call_b54a0359e44d4719885a37c5f695ee9f:0 approves
+proposal93ecfb5222e60759eedd9c84a0e2fb6496b35660a444f2d04bb9f4b0301f6763,
+retained at D:/freshvcf-build/evidence/nms-seasonality-20261009-001.
+Only new isolated masters10/11/12: June5 noon request validation clock on
+basic-validation11/12; retained consumer hierarchy; opening ten-pair Norms for
+native upload eligibility. Causes: native historical-date rejection, NULL scope
+denial and empty NMSAllItems upload-pair lookup. Calculation inputs, operational
+NMSAllItems, clocks outside those validation requests, frontend and grants stay
+unchanged. Current/graph must use actual outputs. Native generic-card navigation,
+hidden history and disabled detailed progress remain qualified. No Force
+exception transfers. Full routes and fixed proof boundary are in
+NMS_SEASONALITY_CONTRACT.md; only MIGRATION.md tracks status.
+
+The approved plan requires authenticated scope/actor ownership. Seasonal approval
+and graph reads retain the existing gateway/server scope checks even where the
+DLL method omits its own recheck. Denial tests certify that security boundary,
+not equivalence to a crafted direct native call. Native valid, assigned decisions
+remain the parity boundary. Generation collision at publication is rejected with
+all prior state and later decisions retained; no late STOP/RESUME is transferred
+to a potentially replaced season merely because SKU/location match.
+# Seasonality ADD draft reopening (9 October 2026)
+
+Deployed DraftProcessor.GetDraftDetails IL23137–23199 assigns its alias projection
+only from UI_MDMConfig.IsDownload=1. Native masters11/12 have no such columns,
+so their saved drafts return raw DraftSeasonalityMaster names (`SKUCode`,
+`StartDate`, `Error`), while the unchanged saved GridState expects `sc`, `sd`,
+`error`. The browser reopens one persisted row with blank cells. Native SQL
+rollback receipt `nms-seasonality-20261009-001/native-draft-projection-001.json`
+(SHA de9dbb9fb4f629585c175fc3c98ac8d3761f29049c42d52b31d6a7d750008024)
+and screenshot `nms-sob-moq-20261008-001/browser-runner/season-draft-native-blank-001.png`
+prove the boundary. All paths are under D:/freshvcf-build/evidence.
+Modern read matches native raw fields; draft bytes/rows are retained. Successful
+save/read is not usable draft recovery. No frontend or native-response repair is
+authorized. Direct human approval call_26586e466f4840d2820b9e4e66cc1dba:0,
+"Approve native draft limitation", accepts this exact missing usable recovery;
+complete the trial through fresh file uploads with every other positive exit intact.
