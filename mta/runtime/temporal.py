@@ -110,7 +110,8 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
                 report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
-                pick_output_root=None, pick_config_sha256=None, finalization_config=None):
+                pick_output_root=None, pick_config_sha256=None, finalization_config=None,
+                shipment_sha256=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -121,6 +122,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         raise ValueError('Choose a fresh MDM capture or one frozen retry capture')
     if not profile.get('delivery'):raise ValueError('Complete selected daily delivery profile required')
     day,profile=storage(day),storage(profile)
+    if shipment_sha256 is not None and (
+            not isinstance(shipment_sha256,str) or len(shipment_sha256)!=64
+            or any(c not in '0123456789abcdef' for c in shipment_sha256)
+            or 'shipment_input' not in day):
+        raise ValueError('Shipment identity requires an explicit SHA256 and supplied day source')
     if 'operational_sources' in profile:
         from mta.application.operational_capture import CAPTURE_POLICY
         if profile['operational_sources'] != CAPTURE_POLICY:
@@ -210,6 +216,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             raw['pick_output_root'] = pick_output_root
         if pick_config_sha256 is not None:
             raw['pick_config_sha256'] = pick_config_sha256
+        if shipment_sha256 is not None:
+            raw['shipment_sha256'] = shipment_sha256
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
             from mta.mdm.daily_input import (apply_refresh_setting,

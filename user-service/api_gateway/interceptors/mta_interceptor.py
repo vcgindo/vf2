@@ -10,6 +10,29 @@ from api_gateway.mta_stream import (PICK_DOWNLOAD_PATHS, streams_mta_read,
     bounded_mta_read, UPSTREAM_TIMEOUT)
 from api_gateway.inprocess_mta import request as mta_request
 
+
+def authenticated_mta_context(request, application_id=2):
+    """Derive MTA identity and scopes only from the authenticated gateway user."""
+    return {
+        'actor': request.user.id,
+        'identity': {
+            'id': request.user.id,
+            'name': request.user.name,
+            'email': request.user.email,
+        },
+        'product_permissions': list(
+            User_Application_Product_Permission.objects.filter(
+                application_id=application_id, user_id=request.user.id
+            ).values_list('productfilter_id', flat=True)
+        ),
+        'location_permissions': list(
+            User_Application_Location_Permission.objects.filter(
+                application_id=application_id, user_id=request.user.id
+            ).values_list('locationfilter_id', flat=True)
+        ),
+    }
+
+
 class MTA_INTERCEPTOR:
     def __init__(self):
         pass
@@ -49,6 +72,7 @@ class MTA_INTERCEPTOR:
                 json=request.data if request.method not in ('GET', 'DELETE') else None,
             )
 
+        context = authenticated_mta_context(request, application_id)
         # print("REQUEST DATA",request.data)
         data = request.data.copy() if hasattr(request.data, 'copy') else request.data
 
@@ -58,8 +82,8 @@ class MTA_INTERCEPTOR:
             "name":request.user.name
         }
         forwardUsers = data.get('forwardUsers') if data.get('forwardUsers') else None
-        product_permissions = list(User_Application_Product_Permission.objects.filter(application_id=application_id,user_id=request.user.id).values_list('productfilter_id',flat=True))
-        location_permissions = list(User_Application_Location_Permission.objects.filter(application_id=application_id,user_id=request.user.id).values_list('locationfilter_id',flat=True))
+        product_permissions = context['product_permissions']
+        location_permissions = context['location_permissions']
         data['product_permissions'] = product_permissions
         data['location_permissions'] = location_permissions
         data['user'] = user_dict

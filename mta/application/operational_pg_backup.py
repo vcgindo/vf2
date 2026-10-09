@@ -5,6 +5,7 @@ runtime configuration. This module never chooses a database or resets a target.
 """
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
+from ipaddress import IPv4Address, IPv6Address, IPv4Interface, IPv6Interface, IPv4Network, IPv6Network
 import hashlib
 import json
 from pathlib import Path
@@ -30,6 +31,8 @@ def _value(value):
         return ['timedelta', [value.days, value.seconds, value.microseconds]]
     if isinstance(value, UUID):
         return ['uuid', str(value)]
+    if isinstance(value,(IPv4Address,IPv6Address,IPv4Interface,IPv6Interface,IPv4Network,IPv6Network)):
+        return [type(value).__name__,str(value)]
     if isinstance(value, (bytes, memoryview)):
         return ['bytes', bytes(value).hex()]
     if isinstance(value, dict):
@@ -106,7 +109,7 @@ def image_digest(image):
 
 
 def dump_database(*, connection_factory, database_name, root, relative_path,
-                  executable, executable_sha256, client_environment):
+                  executable, executable_sha256, client_environment, ownership=None):
     """Keep the exported read-only snapshot open through pg_dump and row audit."""
     target = owned_path(root, relative_path)
     if target.exists():
@@ -118,10 +121,14 @@ def dump_database(*, connection_factory, database_name, root, relative_path,
         actual = connection.execute('SELECT current_database()').fetchone()[0]
         if actual != database_name:
             raise ValueError('Owned backup database binding differs')
+        if ownership is not None:
+            ownership.verify_source(connection)
         snapshot = connection.execute('SELECT pg_export_snapshot()').fetchone()[0]
         before = logical_image(connection)
-        result = subprocess.run([str(tool), '--format=custom', '--no-owner', '--no-privileges',
-            '--snapshot=' + snapshot, '--dbname=' + database_name, '--file=' + str(target)],
+        command=[str(tool), '--format=custom', '--no-owner', '--no-privileges',
+            '--snapshot=' + snapshot, '--dbname=' + database_name, '--file=' + str(target)]
+        if ownership is not None:command.append('--role='+ownership.source_role)
+        result = subprocess.run(command,
             env=client_environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=600, check=False)
         if result.returncode:
@@ -135,7 +142,7 @@ def dump_database(*, connection_factory, database_name, root, relative_path,
 
 def restore_database(*, admin_connection_factory, connection_factory, target_database,
                      source_database, root, backup, executable, executable_sha256,
-                     client_environment, qualification=None, observe_restore=None):
+                     client_environment, qualification=None, observe_restore=None, ownership=None):
     """Create only an absent explicitly named owned target; never drop/reset one."""
     import re
     from mta.application.operational_io import verify_file
@@ -147,9 +154,14 @@ def restore_database(*, admin_connection_factory, connection_factory, target_dat
     with admin_connection_factory() as admin:
         if not admin.autocommit:
             raise ValueError('Restore setup requires an autocommit administrative connection')
+        if ownership is not None:
+            ownership.authorize(admin,target_database,source_database)
         if admin.execute('SELECT 1 FROM pg_database WHERE datname=%s', (target_database,)).fetchone():
             raise ValueError('Restore target exists; refusing replacement')
-        admin.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(target_database)))
+        create='CREATE DATABASE {}' + (' ALLOW_CONNECTIONS false' if ownership is not None else '')
+        admin.execute(sql.SQL(create).format(sql.Identifier(target_database)))
+        if ownership is not None:
+            ownership.created(admin,target_database)
     result = subprocess.run([str(tool), '--exit-on-error', '--single-transaction',
         '--no-owner', '--no-privileges', '--dbname=' + target_database,
         str(owned_path(root, backup['file']['relative_path']))],
@@ -159,6 +171,8 @@ def restore_database(*, admin_connection_factory, connection_factory, target_dat
         raise RuntimeError('PostgreSQL restore failed; target retained; exit ' + str(result.returncode))
     with connection_factory(target_database) as restored:
         restored.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+        if ownership is not None:
+            ownership.verify_target(restored,target_database)
         actual = logical_image(restored)
     if observe_restore is not None:
         observe_restore(actual)

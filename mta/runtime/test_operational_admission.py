@@ -66,6 +66,7 @@ class OperationalAcceptancePersistence(TestCase):
         allowed.start(); self.addCleanup(allowed.stop)
         self.state = dict(code=digest('code'), artifact=digest('artifact'), actions=digest([]),
             sources=digest('sources'), operations=digest('operations'),
+            pick_config=digest('pick'),shipment=digest('shipment'),
             access=daily_activation.values(self.run,self.pub), generation=self.generation)
         # Only the expensive native validators are substituted for transaction fixtures.
         # Separate tests below exercise their required orchestration and failures.
@@ -75,7 +76,8 @@ class OperationalAcceptancePersistence(TestCase):
 
     def issue(self, **changes):
         args=dict(output_digest=self.run.output_digest, attempt_id=self.attempt.pk,
-                  artifact_path='/fixture/artifact', finalization_path='/fixture/finalization')
+                  artifact_path='/fixture/artifact', finalization_path='/fixture/finalization',
+                  pick_config_path='/fixture/pick',shipment_path='/fixture/shipment')
         args.update(changes)
         return op.issue(self.run.pk,**args)
 
@@ -134,6 +136,16 @@ class OperationalAcceptancePersistence(TestCase):
         with self.assertRaises(DatabaseError),transaction.atomic(),connection.cursor() as cursor:
             cursor.execute('TRUNCATE mta.fresh_mta_operationalacceptance')
 
+    def test_database_denies_action_append_after_final_acceptance(self):
+        self.issue()
+        with connection.cursor() as cursor: cursor.execute('SET LOCAL ROLE NONE')
+        from mta.runtime.models import RunCommand
+        with self.assertRaisesRegex(DatabaseError,'freezes its action chain'),transaction.atomic():
+            RunCommand.objects.create(run=self.run,idempotency_key='late-action',
+                payload={'operation':'APPLY'},digest=digest('command'),
+                before_digest=digest('before'),after_digest=digest('after'))
+        self.assertFalse(self.run.commands.exists())
+
     def test_changed_retry_preserves_original(self):
         row=self.issue(); self.state={**self.state,'sources':digest('changed')}
         self.candidate.return_value=(self.state,digest('profile'))
@@ -191,7 +203,7 @@ class OperationalAcceptancePersistence(TestCase):
 
     def test_database_deferred_pair_rejects_receipt_without_activation(self):
         values=op.receipt_values(self.run,self.attempt,None,'/fixture/artifact',
-                                '/fixture/finalization',self.state,digest('profile'))
+                                '/fixture/finalization',self.state,digest('profile'),'/fixture/pick','/fixture/shipment')
         with self.assertRaises(DatabaseError),transaction.atomic(),connection.cursor() as cursor:
             cursor.execute('SET LOCAL ROLE fresh_operational_acceptor')
             cursor.execute("SELECT set_config('fresh.operational_acceptance',%s,true)",[str(self.run.pk)])
@@ -263,7 +275,7 @@ class OperationalVerifierProtocol(SimpleTestCase):
         opening_complete={name:[] for name in final.REQUIRED}
         opening_complete['ScriptExecutedFlag']=deepcopy(final.FLAG_SEED)
         settings=[{'Parameter':k,'Value':v} for k,v in (('NMSActive','0'),('IsBatchFileExecuted','0'),('IsBPRBatchFileExecuted','1'),('BatchFileExecutionDate','2026-06-05'))]
-        case=dict(case='admission-fixture',profile={'force_flags':{'nms_active':False}},
+        case=dict(case='admission-fixture',profile={'force_flags':{'nms_active':False},'calculation':{'logistics':{'items':[{'from_location':'P'}]}}},
                   opening={'importer_settings':settings},opening_date='2026-06-05',
                   days=[{'business_date':'2026-06-06','raw_master':[],'new_force_requests':[]}],static_day={})
         artifact={'schema':'block3-sizeable-input-v1','case':case}
@@ -275,6 +287,12 @@ class OperationalVerifierProtocol(SimpleTestCase):
             complete_daily_config_sha256=hashlib.sha256(content).hexdigest(),
             complete_daily_artifact_sha256=ARTIFACT_SHA,operational_sources=CAPTURE_POLICY,
             daily_publication=True,daily_publication_config={'bpr_remark_horizon':90})
+        from mta.runtime.daily_bindings import apply_pick,apply_operational_sources
+        pick_bytes=json.dumps({'vehicles':[{'vehicle_id':'T','name':'T','weight_capacity':10,'volume_capacity':10}],
+            'location_vehicles':[{'location_code':'P','vehicle_id':'T'}]}).encode()
+        profile['calculation']=deepcopy(case['profile']['calculation'])
+        profile=apply_pick(profile,pick_bytes,'canonical-tied-order-v1')
+        profile=apply_operational_sources(profile,CAPTURE_POLICY,'cohort2-input-tables-v1','cohort2-pre-clear-force-v1')
         opening=dict(state={**case['opening'],'complete':opening_complete},opening_date=case['opening_date'],
                      identity=case['case']+'-'+ARTIFACT_SHA+'-daily')
         mdm=dict(revision_digest=digest('mdm'),nms_active=False,pair_exclusions=[])
@@ -284,6 +302,10 @@ class OperationalVerifierProtocol(SimpleTestCase):
             mdm_input=mdm,report_exceptions={},finalization_binding={
                 'sha256':profile['complete_daily_config_sha256'],'artifact_sha256':ARTIFACT_SHA,
                 'opening_digest':digest(opening_complete)})
+        raw['pick_config_sha256']=hashlib.sha256(pick_bytes).hexdigest()
+        raw['shipment_sha256']=hashlib.sha256(b'fixture').hexdigest()
+        raw['pick_output_root']=str(Path.cwd()/'fixture-pick-output')
+        raw['day']['shipment_input']={'declared':'fixture'}
         closing=deepcopy(opening['state'])
         closing['controls']={'upload_log':[]}
         for flag in closing['complete']['ScriptExecutedFlag']:
@@ -299,16 +321,27 @@ class OperationalVerifierProtocol(SimpleTestCase):
         with tempfile.TemporaryDirectory() as directory,ExitStack() as stack:
             ap=Path(directory)/'artifact.json';ap.write_text(json.dumps(artifact))
             fp=Path(directory)/'finalization.json';fp.write_bytes(content)
+            pp=Path(directory)/'pick.json';pp.write_bytes(pick_bytes)
+            sp=Path(directory)/'shipment.json';sp.write_bytes(b'fixture')
+            stack.enter_context(patch('mta.runtime.daily_bindings.shipment_day',return_value={'declared':'fixture'}))
             stack.enter_context(patch('mta.mdm.daily_source_install.registered',return_value=artifact))
             binding=stack.enter_context(patch('mta.mdm.daily_source.require_binding'))
             stack.enter_context(patch('mta.presentation.operational_mdm.verify_consumed'))
             stack.enter_context(patch('mta.mdm.daily_input.compose',return_value=[]))
             stack.enter_context(patch('mta.runtime.temporal.command_state',return_value=({},[])))
             stack.enter_context(patch.object(op,'actions',return_value=[]))
-            self.assertEqual(op.verify_input_domain(run,raw,output,ap,fp),digest(profile))
+            self.assertEqual(op.verify_input_domain(run,raw,output,ap,fp,pp,sp),digest(profile))
             self.assertEqual(binding.call_args.kwargs['artifact_sha256'],ARTIFACT_SHA)
-            for change in ('profile','day','opening','lineage','source_omission','remark_horizon','upload_source'):
+            # Even identical selected-day rows cannot authorize a byte-distinct
+            # acceptance-time supplement in place of the producer's file.
+            sp.write_bytes(b'byte-distinct-same-day-fixture')
+            with self.assertRaisesRegex(ValueError,'Shipment supplement digest differs'):
+                op.verify_input_domain(run,raw,output,ap,fp,pp,sp)
+            sp.write_bytes(b'fixture')
+            for change in ('profile','day','opening','lineage','source_omission','remark_horizon','upload_source','pick_hash','shipment_rows'):
                 bad=deepcopy(raw)
+                if change=='pick_hash':bad['pick_config_sha256']=digest('wrong')
+                if change=='shipment_rows':bad['day']['shipment_input']={}
                 if change=='remark_horizon':bad['profile']['daily_publication_config']['bpr_remark_horizon']=89
                 if change=='upload_source':bad['day']['new_force_requests']=[{}]
                 if change=='profile':bad['profile']['unexpected']=True
@@ -318,7 +351,7 @@ class OperationalVerifierProtocol(SimpleTestCase):
                 if change=='source_omission':bad.pop('finalization_binding')
                 run.input_digest=digest(bad)
                 with self.subTest(change=change),self.assertRaises((ValueError,PublicationUnavailable)):
-                    op.verify_input_domain(run,bad,output,ap,fp)
+                    op.verify_input_domain(run,bad,output,ap,fp,pp,sp)
 
     def test_explicit_operational_opening_roster_and_binding(self):
         from mta.runtime.operational_opening import OPENING_TABLES, OPENING_POLICY, ACTION_TYPES
@@ -388,7 +421,7 @@ class OperationalVerifierProtocol(SimpleTestCase):
             mocks[paths[0]].return_value={'identity':'same'}
             mocks[paths[6]].return_value=SimpleNamespace(images={PATH:{},remark:{}})
             mocks[paths[7]].return_value={};mocks[paths[8]].return_value={}
-            args=(object(),publication,attempt,None,'/artifact','/finalization')
+            args=(object(),publication,attempt,None,'/artifact','/finalization','/pick','/shipment')
             op.verify_candidate(*args)
             self.assertEqual(mocks[paths[11]].call_count,18)
             for p in (paths[1],paths[4],paths[5],paths[7],paths[8],paths[9],paths[10],paths[11],paths[12],paths[13]):

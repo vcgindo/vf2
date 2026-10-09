@@ -6,7 +6,54 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### COHORT6 — E0 prepared; execution blocked pending one prerequisite decision
+### COHORT6 — B1–B4 prerequisites proved; Approval B held
+
+Finite prerequisite delivery under COHORT6_PREREQUISITE_CLOSURE_PLAN.md. Direct
+human B2/B4 approval: call_58626a94decf49fbb89193b2d6314b3d. Isolated login/RSA
+investigation: call_bc585920d7494c88b7e6046483b05504. Bounded O8 dependency and
+separate restore provisioner: controller human turn01a11ddc-06bf-7c03-afd7-83bb7129eac0.
+Same existing goal, no numeric budget. This remains the sole tracker.
+
+| Exit | Disposition and proof |
+|---|---|
+| B1 | PROVED: explicit finalization/Pick/shipment/capture command bindings and exact producer-file/admission identities. Changed/missing bindings deny. No calculation semantics changed. |
+| B2 | PROVED within exact approved package: retained artifact and shipments, separate frozen finalization/Pick/operation openings, explicit empty-owner authority; no inferred or copied calculated state. |
+| B3 | PROVED: new owned database/issuer/nonowner reader, fresh migrations through0101, complete16 typed owner bags across three families, namespace/reader/role/write denials. |
+| B4 | PROVED at prerequisite/fixture scope: actual password/JWT/persisted scopes for actors2/3; wrong-password/missing-cookie denial; historical action eligibility/order/idempotency fixtures; advisory lock and immutable final-action seal in24 native PG admission tests. Newly calculated day acceptance remains unexecuted. |
+| O8 dependency | PROVED: source163141/owner163136/issuer163137; dedicated provisioner171113; observed target171114.731 relations compared under existing eleven-CHECK-cast logical-restore qualification; existing/source targets and application provisioning deny. |
+| Package/handoff | PROVED: final873-file immutable image, no-overlay Django/CLI/strict installed-source checks,31 focused tests,2 hierarchy tests,387 baseline identities; exact finite commands and missing-approval denial before output creation. |
+
+Image `sha256:fff6046d76bb5e3e2601f081cf81a6763b78a37edb9cb50b414676fa8baf295e`.
+Packaged source tree `914aca54bb2c48fa3c35270bdc2fc18b93714cd4`.
+Manifest `cc4d1ca3091fa3bd9a434f62ec736792030d71e175565861c132e05139044641`.
+Frozen request `a34bb2b1c837009ff81128cd37be5ba1c4a6d79816379bb266f5267bddf3748b`;
+see COHORT6_FROZEN_EXECUTION_REQUEST.json and numbered COHORT6_OPERATOR_STEPS.md.
+All evidence: D:/freshvcf-build/evidence/cohort6-prerequisites-20261009-001.
+The delivery commit containing this section must match every packaged blob;
+commit/upstream verification is recorded externally in delivery-receipt.json.
+
+Installed MDM source remains1/digest
+9b099c1f5b9853f2e2760d91ad549dcba883d375438135d58dab1efb63169cab.
+The first package correctly rejected config hashes after Git converted retained
+CRLF bytes to LF. Three explicit Git attributes now preserve the exact installed
+bytes; complete JSON values are unchanged. The intermediate build preceded index
+renormalization and remains non-delivery evidence. Final strict binding passes.
+No source receipt rewritten or hash comparison relaxed.
+
+Preserve original E0 request, incorrect-test-selector failure, initial RSA/config
+failures, optional unchanged login loopback permission-list failures, first O8
+inet-encoding failure and rejected package logs/images. Native IP address/family/
+prefix values are now encoded without omission. Strict restore failures remain
+under the existing qualification; receipt failure status remains FAILED.
+
+ZERO business-day/legacy-engine invocations, ZERO persisted calculation runs and
+ZERO action commands; no serving/port changes. Preserve native flag0, two blocked
+503 routes, BOR roster exclusion, Pick and restore qualifications, bounded history
+and absence of a registered Sleep target. Approval B is required for exactly two
+future June6–7 calls; no retries, third date, consumer campaign, benchmark or
+temporal continuation. Commit/push this cohesive prerequisite delivery, then STOP.
+
+### COHORT6 — E0 historical preparation (superseded by prerequisite delivery above)
 
 Direct human Approval A relayed by the controller was verified in
 turn01a11dad-8ed0-78e0-9d47-a1791d3d2d1e. Cohort5 c5a3e9c remains closed.
@@ -15,7 +62,8 @@ Package image sha256:aad2a0a211b3435d0c9528457c6d24f61c9825673993f52df45a5c02eca
 contains857 exact files from delivered c5a3e9c, without a source overlay. Imports,
 tools, dependency hashes, Django/schema/CLI checks pass. No migrations repeated.
 
-COHORT6_FROZEN_EXECUTION_REQUEST.json is BLOCKED_PREFLIGHT_NOT_EXECUTABLE.
+The original E0 request was BLOCKED_PREFLIGHT_NOT_EXECUTABLE; its immutable copy
+is retained at cohort6-prerequisites-20261009-001/original-blocked-request.json.
 Existing input:7ee7d940…24fc, June6–7, one SKU/ten locations, unchanged identities.
 Unmet E0 exit is an executable complete binding, blocked by: B1 run_daily/complete
 Pick/finalization/profile integration; B2 artifact-specific supplement/transit

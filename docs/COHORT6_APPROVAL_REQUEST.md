@@ -1,70 +1,40 @@
-# Cohort6 E0 review request — execution remains blocked
+# Cohort6 prerequisite delivery — Approval B held
 
-**Do not approve or execute the two-day run yet.** Approval A preparation produced
-an immutable package and the exact observed input bindings, but four indispensable
-boundaries prevent a complete executable request. The JSON is deliberately marked
-BLOCKED_PREFLIGHT_NOT_EXECUTABLE; unresolved commands/owners are null, not defaults.
-MIGRATION.md is the only tracker. Cohort5 remains closed at its recorded fixture
-qualification; this new integration finding does not alter its receipts or code.
+B1–B4 prerequisites are proved within the approved finite boundary. **No business-day
+or legacy-engine invocation was made. No serving configuration changed.**
 
-## Completed preparation
+The executable request is [COHORT6_FROZEN_EXECUTION_REQUEST.json](COHORT6_FROZEN_EXECUTION_REQUEST.json),
+SHA256 `a34bb2b1c837009ff81128cd37be5ba1c4a6d79816379bb266f5267bddf3748b`. Follow [the numbered operator steps](COHORT6_OPERATOR_STEPS.md)
+only after separate explicit Approval B for that exact request.
 
-- Delivered revision: c5a3e9c80c930b35e22671ba1488869977199376.
-- Image: sha256:aad2a0a211b3435d0c9528457c6d24f61c9825673993f52df45a5c02eca72673
-  (`freshvcf-cohort6:preparation-001`). All857 application files are exact committed
-  bytes, copied into the image; no mutable source overlay. Source manifest SHA:
-  de2568777b80b153f968918dcb3edfedc5633a5bdb4c58ce4367b958c45cf265.
-- Required imports, pg_dump/pg_restore startup, seven dependency content hashes,
-  Django check, migration drift and migration plan pass. Schema check used the
-  existing empty owned Cohort5 proof database; no new migration was executed.
-- Registered artifact unchanged:7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc.
-  First two dates are6–7 June2026, opening5 June; one SKU6120 at ten locations,
-  ten raw-master and ten daily rows per date. Exact parent identities and full
-  opening/profile/day digests are in the JSON. No subset or replacement was made.
-- **Zero execute_day, business-day and legacy-engine invocations.** No source
-  installation, trial DB/roles, operation, backup/restore, serving change or
-  benchmark ran. Proposed new database/role names were checked absent.
+| Exit | Proof |
+|---|---|
+| B1 command/profile | Exact finalization, Pick, shipment and three capture bindings; parser/forwarding and changed/missing identity denials. The production day boundary remains execute_day. |
+| B2 source authority | Exact approved source/action package; immutable nine-file input manifest, retained artifact/shipment hashes, explicit approved openings and typed installation. |
+| B3 owned namespace | Fresh owned PG migrations through0101, all16 owner bags across three families read back exactly; unowned/reader/issuer denials and advisory lock proof. |
+| B4 authentication/actions | Real password/cookie-JWT gateway authentication and persisted scopes for actors2/3; wrong-password/missing-cookie denial; scoped policy/eligibility/timestamps, action prefix and immutable final-action seal fixtures. |
+| O8 direct dependency | Separate minimum-authority provisioner;731-relation native restore, exact rows/sequences and approved eleven-cast qualification; existing/source target and application-provisioning denials. |
+| Delivery package | Immutable image and873-file manifest; no-overlay Django/CLI/source binding checks,31 focused tests,2 hierarchy tests and387 unchanged baseline resource identities. |
 
-## One consolidated prerequisite decision
+Image: `sha256:fff6046d76bb5e3e2601f081cf81a6763b78a37edb9cb50b414676fa8baf295e`.
+Packaged Git tree: `914aca54bb2c48fa3c35270bdc2fc18b93714cd4`.
+Source manifest: `cc4d1ca3091fa3bd9a434f62ec736792030d71e175565861c132e05139044641`.
+The delivery commit must contain every packaged blob; post-commit verification
+and upstream identity are recorded in the external delivery receipt.
 
-Decide whether to **release a separate finite prerequisite correction and binding
-package covering B1–B4**, while keeping execution Approval B held, or leave Cohort6
-held. The requested release must cover all four boundaries; accepting only the
-package image cannot make the current request executable. No correction is part
-of the completed E0 preparation and none has been made.
+Evidence root: `D:/freshvcf-build/evidence/cohort6-prerequisites-20261009-001`.
+The frozen request pins individual proof logs, original blocked request and failures.
+The final package retains the installed MDM configuration bytes exactly; three
+Git attributes prevent line-ending conversion. JSON values and installed receipts
+were not changed. Earlier rejected package images/logs remain preserved evidence.
 
-| Item | Concrete blocker | Required disposition before another execution request |
-|---|---|---|
-| B1 — producer, command and validator binding | Registered profile lacks finalization, operational capture and complete Pick. run_daily cannot pass the supplement or Pick output/config bindings. execute_day requires complete Pick for finalization, but admission's exact expected profile excludes that added key for this artifact. | Authorize the narrow explicit existing-policy wiring and exact profile-validation correction. Preserve artifact bytes, formulas and strict identity checks; do not bypass the validator or substitute run_temporal as an unapproved execution route. |
-| B2 — exact source populations | The retained Cohort2 supplement is bound to artifact7e60ef1b…2699d, a different input. The registered opening lacks complete populations and its daily/static facts lack shipment_input. Prior empty histories/configuration and transit supplements do not automatically transfer. | Freeze an exact, explicitly approved finalization/Pick/transit/operational input package for the unchanged registered facts. Use actual retained provenance, identify every changed binding and do not infer empties or import calculated output. If unavailable, retain this block. |
-| B3 — isolated installation and privileges | The MDM installer accepts only daily_3006/test_freshvcf, so a fresh uniquely named Cohort6 database is rejected. Existing initial request/remark provenance is implemented by that installer, but no new installation is eligible. | Authorize only a verified owned-namespace installer boundary, then provision the new isolated owner and separate issuer/reader identities. Preserve all existing sources, serving roles and credentials. Require complete three-family readback and nonowner/no-issuer-member consumer proof. |
-| B4 — real authenticated action sequencing | Operational admission requires actions disabled; authenticated Apply/Sleep requires enabled actions. Post-receipt actions change the immutable action/operation binding; exact retry cannot reseal it. HTTP action time uses current civil time while the declared historical policy uses the business date. | Decide and authorize a bounded pre-final-acceptance authenticated action/clock workflow that preserves immutable final receipts and own successor actions, or explicitly revise the requested action acceptance scope. Do not silently waive E3, force eligibility, rewrite receipts, use trusted headers or fake authentication. Freeze the exact actor/timestamp/order before Approval B. |
+Approval B would authorize exactly two modern production-boundary calls for June6–7,
+own authenticated actions before O1–O9 and final acceptance, then unselected checks
+and STOP. It would authorize no calculation retry, third date, legacy-engine call,
+serving activation, consumer campaign, benchmark or temporal continuation.
 
-The original registered case has no retained Sleep commands. Computed suggestion
-eligibility is unknown without calculation; no positive Sleep opportunity is
-claimed. Existing reader catalogue is pinned, but new actor/entitlement and
-run-bound hierarchy files remain unresolved until the owned package exists.
-
-Even after a prerequisite release, **Approval B still requires a complete new
-freeze and direct approval**: exact configuration/MDM/source/access/tool hashes,
-owned resources/privileges, two fully resolved production commands, actual
-predecessor/action binding and explicit failure stops. This document authorizes
-neither code correction nor calculation on its own.
-
-## Operator steps — execute1–3 only, then stop
-
-1. Read `COHORT6_FROZEN_EXECUTION_REQUEST.json`. Confirm status is
-   BLOCKED_PREFLIGHT_NOT_EXECUTABLE, approval_B=false and both invocation counts0.
-2. Review B1–B4 above as one decision. The fully pinned image is reusable evidence;
-   it is not an instruction to install sources or run a day. Do not run the null
-   command slots, fill them manually or borrow an accepted predecessor.
-3. Stop. Obtain the prerequisite disposition first. No E1, new connection,
-   serving activation, next cohort or benchmark is released.
-
-Evidence is under D:/freshvcf-build/evidence/cohort6-20261009-001; its hashes are
-in the JSON. The package builder reads only the delivered Git revision. The
-private compose contains credentials and is excluded from Git/evidence sharing.
-An initial resource-check read-only assertion failed because Django's connection
-options override PGOPTIONS; its original log remains. The explicit session
-read-only check passed. All package/schema commands were nonmutating checks.
-No earlier accepted tests, consumer campaigns or migration proofs were repeated.
+These are prerequisite and declared-fixture proofs, not acceptance of newly calculated
+days. Preserve native flag0, blocked custom order-fulfillment/combined-GIT routes,
+BOR roster exclusion, bounded history, Pick qualifications and qualified logical
+restore. No registered Sleep target exists. Optional unchanged login loopback
+permission-list failures are retained; password/JWT/scopes passed.

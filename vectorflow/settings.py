@@ -60,3 +60,6 @@ DATABASES = {'default': {
     'OPTIONS': {'options': '-c search_path=mta,public', 'connect_timeout': 5},
     'TEST': {'NAME': 'test_freshvcf'},
 }}
+
+VF_MTA_PREACCEPTANCE_FILE = os.environ.get('VF_MTA_PREACCEPTANCE_FILE', '')
+VF_MTA_PREACCEPTANCE_SHA256 = os.environ.get('VF_MTA_PREACCEPTANCE_SHA256', '')

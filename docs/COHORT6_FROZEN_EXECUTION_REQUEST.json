@@ -1,20 +1,23 @@
 {
   "schema": "cohort6-frozen-execution-request-v1",
-  "status": "BLOCKED_PREFLIGHT_NOT_EXECUTABLE",
-  "approval_A": "E0 only; verified human controller turn01a11dad-8ed0-78e0-9d47-a1791d3d2d1e",
+  "status": "READY_FOR_APPROVAL_B",
   "approval_B": false,
   "execute_day_authorized": 0,
   "execute_day_invocations": 0,
   "legacy_engine_invocations": 0,
   "proposed_future_invocation_limit": 2,
+  "dates": [
+    "2026-06-06",
+    "2026-06-07"
+  ],
   "code": {
     "status": "PINNED_PACKAGE_PASS",
-    "commit": "c5a3e9c80c930b35e22671ba1488869977199376",
-    "image": "sha256:aad2a0a211b3435d0c9528457c6d24f61c9825673993f52df45a5c02eca72673",
-    "tag": "freshvcf-cohort6:preparation-001",
+    "source_tree": "914aca54bb2c48fa3c35270bdc2fc18b93714cd4",
+    "image": "sha256:fff6046d76bb5e3e2601f081cf81a6763b78a37edb9cb50b414676fa8baf295e",
+    "tag": "freshvcf-cohort6:prerequisites-003",
     "base": "sha256:0a8ca22f471386ec6ce8dd3e59cd3fb5b1f5e56cfc525e32a6f30e3a2adb5dff",
-    "source_manifest_sha256": "de2568777b80b153f968918dcb3edfedc5633a5bdb4c58ce4367b958c45cf265",
-    "source_files": 857,
+    "source_manifest_sha256": "cc4d1ca3091fa3bd9a434f62ec736792030d71e175565861c132e05139044641",
+    "source_files": 873,
     "dependencies": {
       "Django": "5.2.4",
       "djangorestframework": "3.14.0",
@@ -39,19 +42,7 @@
       }
     },
     "pg_dump": "pg_dump (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)",
-    "pg_restore": "pg_restore (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)",
-    "file_manifest": {
-      "path": "D:/freshvcf-build/evidence/cohort6-20261009-001/package/context/source-manifest.json",
-      "sha256": "de2568777b80b153f968918dcb3edfedc5633a5bdb4c58ce4367b958c45cf265"
-    },
-    "build_recipe": {
-      "path": "D:/freshvcf-build/evidence/cohort6-20261009-001/package/context/Dockerfile",
-      "sha256": "4c6101040250467cc8e9a361b96479cf7141ac0632b7787c45a5d71e242b843e"
-    },
-    "builder": {
-      "path": "F:/freshvcf/packaging/cohort6/build.py",
-      "sha256": "65004ae603f64a576f335a70e087d46f743e4bd319bef29f13cd99a3e7b02b56"
-    }
+    "pg_restore": "pg_restore (PostgreSQL) 16.15 (Debian 16.15-1.pgdg12+2)"
   },
   "facts": {
     "artifact": {
@@ -136,83 +127,576 @@
     "unique_skus": 1,
     "unique_locations": 10
   },
-  "opening_profile": {
-    "status": "UNRESOLVED_B1_B2",
-    "registered_root_unchanged": true,
-    "inactive_nms": true,
-    "finalization_config": null,
-    "registered_complete_population": false,
-    "reference_only": {
-      "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/closure-proposal-v1/finalization-input-v1.json",
-      "sha256": "e00799a63a29b856728a649809ca4db5816e42f28fe7784af378994ec7008c2b",
-      "bytes": 34635
+  "fixed_files": {
+    "input.json": {
+      "path": "/request/input.json",
+      "source": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\registered-input.json",
+      "sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+      "bytes": 248518
     },
-    "reference_artifact_sha256": "7e60ef1b3d73a36889b25a43995234ec5839a5bb646da5b782328189a1b2699d",
-    "reference_populations": {
-      "ScriptExecutedFlag": 206,
-      "ProdOrderSuggestions": 0,
-      "SupplierDispatchReq": 0,
-      "BPRReport_RemarkDetails": 0,
-      "OpenExpeditRequestRemarksHistory": 0,
-      "InTransitWhereAboutsRemarks": 0,
-      "NMSSOB": 0,
-      "NMSMOQWithDestination": 0,
-      "NMSMOQWithoutDestination": 0,
-      "SOBDataRaw": 3,
-      "MOQDataRaw1": 1,
-      "MOQDataRaw2": 0,
-      "CriticalFiles": 0,
-      "DataSanitizationResult": 0
+    "finalization.json": {
+      "path": "/request/finalization.json",
+      "source": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\proposed-bindings\\finalization.json",
+      "sha256": "9a646e0eb3b455e495be3a6abb3cc11854594962def6171571bac5e834fef1b1",
+      "bytes": 35926
+    },
+    "pick.json": {
+      "path": "/request/pick.json",
+      "source": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\proposed-bindings\\pick.json",
+      "sha256": "a775176974652ae0c228ab70a11ef4a5cbc2447b6535929397e914cc0e4b1c51",
+      "bytes": 537
+    },
+    "operational-opening.json": {
+      "path": "/request/operational-opening.json",
+      "source": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\proposed-bindings\\operational-opening.json",
+      "sha256": "7ee4047b75a253e988b717ff7726d2aa72df3aa818b1fdb03295a4a08a5c9325",
+      "bytes": 962
+    },
+    "shipment.json": {
+      "path": "/request/shipment.json",
+      "source": "D:\\freshvcf-build\\evidence\\daily-publication-3006-20261006-001\\ten-pair-shipment-input-v1.json",
+      "sha256": "dee26721ff67a7e09cb70dde849a43976a0132ea71a3a3402705a55b393664ae",
+      "bytes": 74661
+    },
+    "permissions.json": {
+      "path": "/request/permissions.json",
+      "source": "F:\\vflow_integrated\\.local-stage7\\block1-selected-consumers\\permission-input-v1.json",
+      "sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
+      "bytes": 31629
+    },
+    "hierarchy-template.json": {
+      "path": "/request/hierarchy-template.json",
+      "source": "F:\\freshvcf\\baseline\\presentation-hierarchy-v1.json",
+      "sha256": "d69c63804798b3cf31f98849341d7a61d38a37fe73c05e627aef1237e5ecfc6a",
+      "bytes": 736
+    },
+    "operations-template.json": {
+      "path": "/request/operations-template.json",
+      "sha256": "262d98a6b9f046552bbbe03afe67e10e56af7b13688540c922784e9effb3e2bd",
+      "bytes": 7605,
+      "derivation": "Approved B2 template plus separately approved exact O8 ownership/credential-reference binding; first input digest resolved from June6 receipt only"
+    },
+    "mdm-source.json": {
+      "path": "/request/mdm-source.json",
+      "sha256": "3b2b08416bf62e0cdd02b8c179985d25bd355bdfe91f0202dadab487f49a4393"
     }
   },
-  "native_sources": {
-    "status": "UNRESOLVED_B2_B3",
-    "remarks_requests": "Existing installer explicitly establishes empty run-capturable current owners; no installation executed or receipt invented",
-    "shipment_input": "ABSENT from selected registered day/static facts; no transit rows inferred from aggregate GIT",
-    "source_receipts": null,
-    "producer_attributes": "Unchanged registered root/importer and raw master attributes; no calculated-output seed"
+  "source_authority": {
+    "B2_B4": "call_58626a94decf49fbb89193b2d6314b3d",
+    "O8": "controller human turn01a11ddc-06bf-7c03-afd7-83bb7129eac0",
+    "RSA": "call_bc585920d7494c88b7e6046483b05504"
   },
+  "schema_migration": "mta.runtime.0101_operational_bound_files; applied in owned database; no fake migrations",
   "mdm": {
-    "status": "NOT_INSTALLED_B3",
-    "source_id": null,
-    "source_digest": null,
-    "family_receipts": null,
-    "artifact_sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc"
+    "id": 1,
+    "digest": "9b099c1f5b9853f2e2760d91ad549dcba883d375438135d58dab1efb63169cab",
+    "receipt": {
+      "schema": "fresh-mdm-daily-source-v1",
+      "artifact_sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+      "artifact_schema": "block3-sizeable-input-v1",
+      "adapter_sha256": "4299f49c74cc2fa19ac0f1db20f4cc5959bebede7591e7c36424e472b9b90632",
+      "families": {
+        "1": {
+          "owners": [
+            {
+              "model": "MdmSkuAttributes",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/SkuAttributeData",
+              "rows": 1,
+              "digest": "cb626818e3d1202f2744822eb94b3cad191ecac2f662ef8be5eaf699211d225c",
+              "fields": [
+                "SKUCode",
+                "ElephantOrderCapping",
+                "Weight",
+                "Volume",
+                "SL1",
+                "SL2",
+                "SL3",
+                "SL4",
+                "SL5",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmSkuDescription",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/SKUDescriptionTbl",
+              "rows": 1,
+              "digest": "ee24c0c734fd1e97bd50e61fa2d4644603e30e92899b9ef105dee6b2a2382e50",
+              "fields": [
+                "SKUCode",
+                "SKUDescription"
+              ]
+            },
+            {
+              "model": "MdmSkuAttributes",
+              "owner": "BPR",
+              "input_path": "/case/opening/importer/SkuAttributeData",
+              "rows": 1,
+              "digest": "cb626818e3d1202f2744822eb94b3cad191ecac2f662ef8be5eaf699211d225c",
+              "fields": [
+                "SKUCode",
+                "ElephantOrderCapping",
+                "Weight",
+                "Volume",
+                "SL1",
+                "SL2",
+                "SL3",
+                "SL4",
+                "SL5",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmSkuDescription",
+              "owner": "BPR",
+              "input_path": "/case/opening/importer/SKUDescriptionTbl",
+              "rows": 1,
+              "digest": "ee24c0c734fd1e97bd50e61fa2d4644603e30e92899b9ef105dee6b2a2382e50",
+              "fields": [
+                "SKUCode",
+                "SKUDescription"
+              ]
+            },
+            {
+              "model": "MdmSkuAttributes",
+              "owner": "BTR",
+              "input_path": "/case/opening/btr/SkuAttributeData",
+              "rows": 0,
+              "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "fields": [
+                "SKUCode",
+                "ElephantOrderCapping",
+                "Weight",
+                "Volume",
+                "SL1",
+                "SL2",
+                "SL3",
+                "SL4",
+                "SL5",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmSkuDescription",
+              "owner": "BTR",
+              "input_path": "/case/opening/btr/SKUDescriptionTbl",
+              "rows": 0,
+              "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "fields": [
+                "SKUCode",
+                "SKUDescription"
+              ]
+            },
+            {
+              "model": "MdmSkuAttributes",
+              "owner": "DBM",
+              "input_path": "/case/opening/dbm/SkuAttributeData",
+              "rows": 1,
+              "digest": "cb626818e3d1202f2744822eb94b3cad191ecac2f662ef8be5eaf699211d225c",
+              "fields": [
+                "SKUCode",
+                "ElephantOrderCapping",
+                "Weight",
+                "Volume",
+                "SL1",
+                "SL2",
+                "SL3",
+                "SL4",
+                "SL5",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmSkuDescription",
+              "owner": "DBM",
+              "input_path": "/case/opening/dbm/SKUDescriptionTbl",
+              "rows": 1,
+              "digest": "ee24c0c734fd1e97bd50e61fa2d4644603e30e92899b9ef105dee6b2a2382e50",
+              "fields": [
+                "SKUCode",
+                "SKUDescription"
+              ]
+            },
+            {
+              "model": "MdmSkuUse",
+              "input_path": "/case/opening/importer/SkuLocAttributeData:SKUCode",
+              "rows": 10,
+              "digest": "7a7896dafe57377e5f2d170ab3f419010aacb0a40394eb0b823e4ca0dee8582d",
+              "fields": [
+                "SKUCode"
+              ]
+            }
+          ]
+        },
+        "2": {
+          "owners": [
+            {
+              "model": "MdmLocationAttributes",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/LocationAttributeData",
+              "rows": 10,
+              "digest": "d5deb39a2497daee1bbe4e7d90b977de79a0c1923e4a1a4b38c3cb5755b65760",
+              "fields": [
+                "WHCode",
+                "LocationType",
+                "LogisticsLocation",
+                "LL1",
+                "LL2",
+                "LL3",
+                "LL4",
+                "LL5",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmLocationDescription",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/SiteDescriptionTbl",
+              "rows": 11,
+              "digest": "610931fa92843026d355e55b5282a8ca41c36fb9e02b8a7639d7e530014a6dfb",
+              "fields": [
+                "WHCode",
+                "WHDescription"
+              ]
+            },
+            {
+              "model": "MdmLocationUse",
+              "use_kind": "direct",
+              "input_path": "/case/opening/importer/SkuLocAttributeData:LocCode",
+              "rows": 10,
+              "digest": "eebbebce4733887d6956c465839f53ec603334a74f28dfcb5146e6c247e599bf",
+              "fields": [
+                "WHCode"
+              ]
+            },
+            {
+              "model": "MdmLocationUse",
+              "use_kind": "parent",
+              "input_path": "/case/opening/consumer_context/NMSAllItems:ParentWhCode",
+              "rows": 0,
+              "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "fields": [
+                "WHCode"
+              ]
+            }
+          ]
+        },
+        "3": {
+          "owners": [
+            {
+              "model": "MdmSkuLocPair",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/SkuLocAttributeData",
+              "rows": 10,
+              "digest": "75b94d567ab4ca332071c386d07829bc86a90eee2f9bbe26a9d265e10673c5f6",
+              "fields": [
+                "SKUCode",
+                "LocCode",
+                "PackSize",
+                "SpikeThreshold",
+                "PSOThreshold",
+                "FGRMFlag",
+                "StockPercentForRationing",
+                "NormPercentReservation",
+                "NonNMS",
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "c6",
+                "c7",
+                "c8",
+                "c9",
+                "c10",
+                "c11",
+                "c12",
+                "c13",
+                "c14",
+                "c15"
+              ]
+            },
+            {
+              "model": "MdmSkuLocMasterPair",
+              "owner": "Importer",
+              "input_path": "/case/opening/importer/MasterData",
+              "rows": 10,
+              "digest": "a7847946def8d2049da25149578aa6cdcdd2f268cc0fcfcbcfd3199cc3f74fbd",
+              "fields": [
+                "SKUCode",
+                "WhCode",
+                "Norm",
+                "MinNorm",
+                "RLT",
+                "RCP",
+                "GCP",
+                "OCP",
+                "MinOrderCount",
+                "ParentWhCode",
+                "SKUIntroDate"
+              ]
+            },
+            {
+              "model": "MdmSkuLocCurrent",
+              "owner": "Importer",
+              "input_path": "/case/opening/consumer_context/NMSAllItems",
+              "rows": 0,
+              "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "fields": [
+                "SKUCode",
+                "WhCode",
+                "Norm",
+                "MinNorm",
+                "RLT",
+                "RCP",
+                "GCP",
+                "OCP",
+                "ParentWhCode",
+                "SKUIntroDate",
+                "SKUDescription",
+                "WHDescription",
+                "ParentDescription",
+                "PackSize",
+                "SpikeThreshold",
+                "DefaultSpikeThreshold",
+                "PSOThreshold",
+                "DefaultPSOThreshold",
+                "FGRMFlag",
+                "StockPercentForRationing",
+                "NormPercentReservation",
+                "MinOrderCount",
+                "DBMActive",
+                "ElephantOrderCapping",
+                "Weight",
+                "Volume",
+                "LocationType",
+                "LogisticsLocation",
+                "SL1",
+                "SL2",
+                "SL3",
+                "SL4",
+                "SL5",
+                "LL1",
+                "LL2",
+                "LL3",
+                "LL4",
+                "LL5",
+                "SKUAtt01",
+                "SKUAtt02",
+                "SKUAtt03",
+                "SKUAtt04",
+                "SKUAtt05",
+                "SKUAtt06",
+                "SKUAtt07",
+                "SKUAtt08",
+                "SKUAtt09",
+                "SKUAtt10",
+                "SKUAtt11",
+                "SKUAtt12",
+                "SKUAtt13",
+                "SKUAtt14",
+                "SKUAtt15",
+                "LocAtt01",
+                "LocAtt02",
+                "LocAtt03",
+                "LocAtt04",
+                "LocAtt05",
+                "LocAtt06",
+                "LocAtt07",
+                "LocAtt08",
+                "LocAtt09",
+                "LocAtt10",
+                "LocAtt11",
+                "LocAtt12",
+                "LocAtt13",
+                "LocAtt14",
+                "LocAtt15",
+                "SKULocAtt01",
+                "SKULocAtt02",
+                "SKULocAtt03",
+                "SKULocAtt04",
+                "SKULocAtt05",
+                "SKULocAtt06",
+                "SKULocAtt07",
+                "SKULocAtt08",
+                "SKULocAtt09",
+                "SKULocAtt10",
+                "SKULocAtt11",
+                "SKULocAtt12",
+                "SKULocAtt13",
+                "SKULocAtt14",
+                "SKULocAtt15"
+              ]
+            }
+          ]
+        }
+      },
+      "database": "fresh_cohort6_20261009_001",
+      "opening_date": "2026-06-05",
+      "canonical": {
+        "dll": "0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346",
+        "bpr_metadata_copy": "c248baeedda13d74a71a499c8b59b7ec46f05f11db00938de59a746bce94ce93",
+        "mdm_use_queries_il": "ccd47dc8d76895a6aa63ad5d6beaadb32f4f53ab75047a68fb8055382fd87ca1"
+      },
+      "configuration": {
+        "mdm_sku.json": "0a467e94483945e307b253068f877903c389fc902f3aab2c9cb75bbb52156f43",
+        "mdm_location.json": "d7104e905612e730213499fb5f704b819c803f57815fcb1e196846928d4c77b7",
+        "mdm_skuloc.json": "53cc3edc97898117e66e0bdae2bdb709bd2a62ab717c09d9e8553ae62552a28a"
+      },
+      "initial_workflows": "new isolated owner; no pre-existing tasks, drafts, requests or remarks",
+      "owned_namespace": {
+        "policy": "fresh-owned-mdm-namespace-v1",
+        "registration_id": "47d00d0f-5128-437c-90b9-940749da5da6",
+        "database_oid": 163141,
+        "database_name": "fresh_cohort6_20261009_001",
+        "owner_oid": 163136,
+        "owner_role": "fresh_cohort6_owner_001",
+        "issuer_oid": 163137,
+        "issuer_role": "fresh_cohort6_issuer_001",
+        "consumer_oid": 163138,
+        "consumer_role": "fresh_cohort6_reader_001",
+        "acceptor_oid": 163135,
+        "acceptor_role": "fresh_operational_acceptor",
+        "registrar_oid": 170779,
+        "registrar_role": "fresh_namespace_registrar",
+        "artifact_sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+        "adapter_sha256": "4299f49c74cc2fa19ac0f1db20f4cc5959bebede7591e7c36424e472b9b90632",
+        "registration_digest": "98147c339e0c9bc2142a21ebf0f1d64a8337c1ea5330ea9b10ad47d5156a71be"
+      }
+    }
   },
+  "namespace": {
+    "policy": "fresh-owned-mdm-namespace-v1",
+    "registration_id": "47d00d0f-5128-437c-90b9-940749da5da6",
+    "database_oid": 163141,
+    "database_name": "fresh_cohort6_20261009_001",
+    "owner_oid": 163136,
+    "owner_role": "fresh_cohort6_owner_001",
+    "issuer_oid": 163137,
+    "issuer_role": "fresh_cohort6_issuer_001",
+    "consumer_oid": 163138,
+    "consumer_role": "fresh_cohort6_reader_001",
+    "acceptor_oid": 163135,
+    "acceptor_role": "fresh_operational_acceptor",
+    "registrar_oid": 170779,
+    "registrar_role": "fresh_namespace_registrar",
+    "artifact_sha256": "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc",
+    "adapter_sha256": "4299f49c74cc2fa19ac0f1db20f4cc5959bebede7591e7c36424e472b9b90632",
+    "registration_digest": "98147c339e0c9bc2142a21ebf0f1d64a8337c1ea5330ea9b10ad47d5156a71be"
+  },
+  "restore": {
+    "policy": "fresh-owned-restore-v1",
+    "registration_digest": "98147c339e0c9bc2142a21ebf0f1d64a8337c1ea5330ea9b10ad47d5156a71be",
+    "database_oid": 163141,
+    "owner_oid": 163136,
+    "provisioner_oid": 171113,
+    "provisioner_role": "fresh_cohort6_restore_001",
+    "credential_file": "/restore-private/credentials.json"
+  },
+  "restore_target_rule": "fresh_cohort2_restore_ + exact newly created OperationalAttempt UUID hex; refuse any existing target before mutation",
   "actions": {
-    "status": "UNRESOLVED_B4",
+    "policy": "own-recommendations-daily-apply-retained-sleep-v1",
+    "actor": "2",
+    "application": 2,
+    "product_permissions": [
+      71001
+    ],
+    "location_permissions": [
+      72001
+    ],
+    "authentication": "unchanged real password login, cookie JWT, gateway permission/scope projection",
+    "timestamp": "own business date T12:00:00+05:30",
     "registered_commands": [],
-    "policy_code_default": "own-recommendations-daily-apply-retained-sleep-v1",
-    "default_timestamp_rule": "Own eligible non-Sleep suggestions APPLY at business-date T12:00:00+05:30; no action manufactured",
-    "frozen_selected_policy": null,
-    "actor": null,
-    "eligible_suggestions": "UNKNOWN until own calculation",
-    "sleep_targets": [],
-    "exercise_limit": "No retained Sleep target exists in this registered case"
+    "rule": "only own eligible suggestions APPLY; empty is valid only when calculated policy emits it; no manufactured Sleep",
+    "order": "run, authenticated manifest/build/execute, operational materialization/check, UI preparation, final acceptance, read-only selection check"
   },
   "operations": {
-    "status": "UNRESOLVED_B2_B3",
-    "policy": "cohort2-integrated-materialization-v1",
-    "configuration_id": null,
-    "requests": null,
-    "reference_pins": [
-      {
-        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/closure-proposal-v1/operational-opening-v1.json",
-        "sha256": "7ee4047b75a253e988b717ff7726d2aa72df3aa818b1fdb03295a4a08a5c9325",
-        "bytes": 962
-      },
-      {
-        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/real-source-20261008-001/configuration-template.json",
-        "sha256": "18dafd4cd6cd78d2099d795d3ef4cfb9cac07fb823449d9c7ffd1f9b55be8a16",
-        "bytes": 7199
-      },
-      {
-        "path": "D:/freshvcf-build/evidence/cohort2-20261008-001/tools/linux/7zz",
-        "sha256": "d1bc79f00e9815b24048ab167690bdd1dbc387de7dbc47e8d75d68689e49cf4f",
-        "bytes": 2886216
-      }
-    ],
-    "reference_only": true,
+    "template": {
+      "path": "/request/operations-template.json",
+      "sha256": "262d98a6b9f046552bbbe03afe67e10e56af7b13688540c922784e9effb3e2bd",
+      "bytes": 7605,
+      "derivation": "Approved B2 template plus separately approved exact O8 ownership/credential-reference binding; first input digest resolved from June6 receipt only"
+    },
+    "opening": {
+      "path": "/request/operational-opening.json",
+      "source": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\proposed-bindings\\operational-opening.json",
+      "sha256": "7ee4047b75a253e988b717ff7726d2aa72df3aa818b1fdb03295a4a08a5c9325",
+      "bytes": 962
+    },
+    "configuration_rule": "register_cohort6_operational replaces only literal $FIRST_RUN_INPUT_DIGEST with exact successful June6 receipt input digest, verifies same native run/source and exact typed configuration readback; both dates share returned configuration_id",
+    "day1": "approved populations + abort_reasons; no predecessor",
+    "day2": "only own successful June6 run and operational attempt; no supplied opening",
     "groups": [
       "O1",
       "O2",
@@ -225,137 +709,203 @@
       "O9"
     ]
   },
-  "access": {
-    "status": "UNRESOLVED_ACTOR_AND_RUN_BINDING",
-    "catalogue": {
-      "path": "F:/vflow_integrated/.local-stage7/block1-selected-consumers/permission-input-v1.json",
-      "role": "retained permission scopes",
-      "sha256": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356",
-      "bytes": 31629
+  "hierarchy": {
+    "template": {
+      "path": "/request/hierarchy-template.json",
+      "source": "F:\\freshvcf\\baseline\\presentation-hierarchy-v1.json",
+      "sha256": "d69c63804798b3cf31f98849341d7a61d38a37fe73c05e627aef1237e5ecfc6a",
+      "bytes": 736
     },
-    "roster": "core-without-bor-v1",
-    "hierarchy_rule": "fresh-presentation-hierarchy-v1; exact own run/date/output digest; retained catalogue; only SL1\u20133/LL1\u20133; reject conflicts and preserve duplicate order",
-    "hierarchy": null,
-    "actors": null,
-    "new_grants_authorized": false
+    "binding_rule": "cohort6_bind_day replaces only publications with exact successful own run/date/output; all catalogue values unchanged"
   },
   "resources": {
-    "status": "NOT_CREATED_AFTER_INDISPENSABLE_BLOCKERS",
-    "existing_postgres": "freshvcf-complete001-postgres",
-    "proposed_database": "fresh_cohort6_20261009_001",
-    "proposed_restore_targets": [
-      "fresh_cohort6_restore_20261009_001",
-      "fresh_cohort6_restore_20261009_002"
-    ],
-    "names_absent_proof": "resource-preflight-a002.log",
-    "ownership_receipt": null,
-    "worker_memory_gib": 4,
+    "postgres": "freshvcf-complete001-postgres",
+    "database": "fresh_cohort6_20261009_001",
+    "network": "freshvcf-complete001_owned",
+    "worker_memory_bytes": 4294967296,
     "worker_cpus": 2,
+    "postgres_memory_bytes": 1073741824,
+    "postgres_cpus": 1,
     "ports": [],
     "restart": "no",
-    "existing_db_limits": "unchanged",
-    "evidence_root": "D:/freshvcf-build/evidence/cohort6-20261009-001",
-    "business_output_root": null,
-    "sql_fixture": null,
-    "legacy_engine_calls": 0
-  },
-  "privileges": {
-    "status": "NOT_PROVISIONED_B3_B4",
-    "issuer_role_definition": {
-      "path": "packaging/cohort5/offline-issuer.sql",
-      "sha256": "b63fa667273b1643889dd576f5eaa4a3063b1b020771821c720ac8fc5bb8ecf9"
-    },
-    "proposed_new_logins": [
-      "fresh_cohort6_issuer_001",
-      "fresh_cohort6_reader_001"
-    ],
-    "consumer_requirement": "read-only, nonowner, nonsuperuser, no fresh_operational_acceptor membership",
-    "credential_references": null,
-    "existing_serving_credentials_changed": false
+    "serving_changes": 0,
+    "output_root": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\execution\\two-date-001",
+    "container_output_root": "/execution/two-date-001",
+    "compose_private_path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\compose-execution.private.json",
+    "compose_sha256": "57e8d32fd27c03e6761e14e1dbd29676f2414f65dc1dc30657ed624c96f2840b",
+    "credentials": "only existing isolated issuer/RSA, broad fixture environment variables, and dedicated restore-private/credentials.json; never print or commit values"
   },
   "commands": {
-    "status": "NOT_EXECUTABLE",
-    "install": null,
-    "root_run": null,
-    "root_materialize": null,
-    "root_prepare": null,
-    "root_accept": null,
-    "root_check": null,
-    "actions": null,
-    "successor_run": null,
-    "successor_materialize": null,
-    "successor_accept": null,
-    "no_calculation_retry": null,
-    "allowed_dynamic_binding": "Only day1 committed run/output/actions/attempt receipts may populate successor placeholders after Approval B; unresolved contracts are not dynamic placeholders",
-    "stop": "No E1 until all B1\u2013B4 resolved and a complete replacement freeze explicitly approved"
+    "script": "packaging/cohort6/execute-approved.sh",
+    "script_sha256": "f4adb5c64c7a5f24d16d0c274d4546a1195fd939c107c931f8a055828168fe81",
+    "container_script": "/app/packaging/cohort6/execute-approved.sh",
+    "settings": "tools.cohort6_settings",
+    "production_boundary": "python -m django run_daily; exactly two literal commands, day-index0 then1; no loop/retry",
+    "dynamic_bindings": "only receipts from immediately preceding finite commands; no latest-row discovery",
+    "stop": "first nonzero exit, binding mismatch or failed day1 check; preserve all receipts and stop; no retry/recovery/third date",
+    "operator_steps": "docs/COHORT6_OPERATOR_STEPS.md"
   },
-  "blockers": [
-    {
-      "id": "B1",
-      "boundary": "Producer/CLI/admission profile",
-      "evidence": [
-        "mta/runtime/management/commands/run_daily.py",
-        "mta/runtime/temporal.py:139",
-        "mta/presentation/operational_admission.py:243"
-      ],
-      "finding": "Registered profile lacks complete_daily, complete_pick and operational_sources. run_daily cannot bind a finalization supplement, complete-Pick output/configuration or operational capture profile. execute_day requires complete_pick for finalization, while the operational comparator rejects that additional profile key for this registered artifact.",
-      "required": "Separate finite implementation approval for explicit existing-policy bindings through run_daily and the exact admission profile contract; no calculation or input fact change."
-    },
-    {
-      "id": "B2",
-      "boundary": "Frozen finalization and native source inputs",
-      "evidence": [
-        "input-preflight.json",
-        "mta/presentation/daily_sources.py:60",
-        "mta/mdm/daily_source_install.py"
-      ],
-      "finding": "The retained finalization supplement is bound to different artifact 7e60ef1b\u20262699d, not registered 7ee7d940\u202624fc. Registered opening has no complete population, and its two day/static-day payloads have no shipment_input. Existing installer explicitly initializes empty request/BPR remark owners with source provenance, but cannot be invoked in the required new database. No supplement, shipment, empty-history/approval or operations-template authority was silently transferred.",
-      "required": "One exact approved source-binding package for the unchanged registered facts, including finalization/complete Pick and transit provenance. If unavailable, keep execution blocked; no absence-to-empty or two-owner presentation supplement."
-    },
-    {
-      "id": "B3",
-      "boundary": "New owned MDM/resource/privilege namespace",
-      "evidence": [
-        "mta/mdm/daily_source_install.py:119",
-        "packaging/cohort5/offline-issuer.sql",
-        "resource-preflight-a002.log"
-      ],
-      "finding": "Installer admits only daily_3006 or test_freshvcf. It rejects a fresh uniquely named Cohort6 database. No new installation/family receipt, issuer/reader connection or owned operation configuration exists.",
-      "required": "Approve a narrow verified-owned-namespace installer boundary before creating/installing the new owner. Then provision only new offline issuer/read-only consumer roles and prove nonowner/no issuer membership for the consumer. Existing serving accounts remain untouched."
-    },
-    {
-      "id": "B4",
-      "boundary": "Authenticated actions and immutable acceptance order",
-      "evidence": [
-        "mta/presentation/actions.py:23",
-        "mta/presentation/actions.py:45",
-        "mta/presentation/operational_admission.py:36",
-        "mta/presentation/operational_admission.py:411"
-      ],
-      "finding": "Operational policy requires actions disabled; authenticated submit requires them enabled. A later RunCommand changes the immutable receipt action digest and operation source binding, so existing exact retry cannot reseal it. HTTP timestamps use current local time, whereas the historical policy requests June6/7 timestamps. The registered artifact has no retained Sleep commands.",
-      "required": "An explicit action/acceptance sequencing and historical-clock decision plus any bounded implementation release is required. Do not waive authenticated proof, force actions, fabricate eligibility, rewrite receipts or silently drop E3. Freeze actor and policy details before Approval B."
-    }
+  "qualifications": [
+    "Prerequisite proofs only; no newly calculated day acceptance",
+    "Native inactive-NMS critical completion flag remains0 under supported-synthetic-operational-v1",
+    "Existing orderFulfillment-custom and git-child-GetPlanningDataGrid remain blocked503",
+    "BOR is outside core-without-bor-v1 consumer roster",
+    "Existing Pick tied-allocation qualification and separate four-file unordered-export qualification retained",
+    "Existing eleven exact CHECK-cast logical-restore qualification retained; strict failures preserved",
+    "No registered Sleep target; no fabricated Sleep opportunity",
+    "History coverage remains bounded; no invented pre-opening history",
+    "Unchanged login optional loopback permission-list connection errors retained; real login/JWT/scopes proved"
   ],
-  "checks": {
-    "package": "PASS;857 exact committed files, immutable image, seven dependency content hashes",
-    "schema": "PASS; check, makemigrations --check, migrate --plan against existing empty owned C5 proof DB; no schema mutation",
-    "cli": "PASS parser help only",
-    "resource": "PASS absent proposed names and zero proof DB run count",
-    "retained_failure": "resource-preflight.log: PGOPTIONS read-only assertion failed because Django connection options override it; corrected explicit read-only session passed in resource-preflight-a002.log. All prior commands were nonmutating checks."
+  "proofs": {
+    "namespace-preflight.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-preflight.log",
+      "sha256": "bf94fef9e9005116bca6339cc38503e05370c462912908b5cf76470989814de7"
+    },
+    "namespace-setup.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-setup.log",
+      "sha256": "ea74b207807edbfbde57dc06a4715763687e46599f9c38b439bcb0e69fac390f"
+    },
+    "schema-check.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\schema-check.log",
+      "sha256": "fe7a9feb49986e0a5c2f69e69f8a2deeca40de7a5a0344fc43d6c101c5cf1077"
+    },
+    "schema-plan.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\schema-plan.log",
+      "sha256": "fc4d0a9a603f08c9d06372012ee24abfc37954eb9630c958c23912e1c46f2ed4"
+    },
+    "schema-migrate.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\schema-migrate.log",
+      "sha256": "767ab3307c2ef747865c0dd49a28fffe84887b33abf01691fdc351146b7e530e"
+    },
+    "schema-drift.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\schema-drift.log",
+      "sha256": "ebf24a4933d18025b68044871f943ef743fadff48b949559809e9f8f9db5b7b6"
+    },
+    "namespace-register.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-register.log",
+      "sha256": "e27a60eda3c827f7b120ed7008501966d4789445d0f59bf0b9949ff04380f5c9"
+    },
+    "namespace-registration.json": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-registration.json",
+      "sha256": "3ef4e301526695ed3d5e59b7de9e3b3cb97ef0a6980fedbff1527b0a1d106c99"
+    },
+    "namespace-install.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-install.log",
+      "sha256": "e85fca712bc1921e728653490a05a7e0aea2465cad780b7093c158f15f502242"
+    },
+    "namespace-readback.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-readback.log",
+      "sha256": "2a89c767b8c4a6fb0f77af161c628e41c3206a5dd46079bc6d41036ee63f7885"
+    },
+    "namespace-reader.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-reader.log",
+      "sha256": "76eb5a2709f1e21529fd9aead8a13ffb6c5f53d4a5c9c4b2cbc8e3e51a838002"
+    },
+    "namespace-identity.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\namespace-identity.log",
+      "sha256": "5d0038d284564f9bacbe08e8f83619dccc74ac84a38d30aee9589133e9319984"
+    },
+    "admission-transaction-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\admission-transaction-proof.log",
+      "sha256": "e5977bb71a3b683032537dc7bfb21e6f5ec275a12ad8ee4e7090684d25241dda"
+    },
+    "real-authentication-proof-a003.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\real-authentication-proof-a003.log",
+      "sha256": "f6448293c9bfc1bf93e3f390ec1a458c61798511583eb7d2266d8b06b4c0d6fc"
+    },
+    "action-lock-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\action-lock-proof.log",
+      "sha256": "3a81585e1deaf50b2748924abe74348bce8b33d34163896768dc7fe0886e3142"
+    },
+    "unowned-namespace-denial.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\unowned-namespace-denial.log",
+      "sha256": "4dd5dc76581060d2edced5af015cf4cd36aa3ed3416d21355b74cfc4a5c4d2a8"
+    },
+    "focused-integration-tests-corrected-selector.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\focused-integration-tests-corrected-selector.log",
+      "sha256": "0cd7d952880f18c410398f8406c2fc761840dc571f22592ff37c447a4f0a3a9e"
+    },
+    "action-producer-seal-focused.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\action-producer-seal-focused.log",
+      "sha256": "5093751c2fc5ad3d43b3abfd11cf0987aa6385f256c485295560d1b888ad8e9d"
+    },
+    "producer-shipment-binding.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\producer-shipment-binding.log",
+      "sha256": "263929116d9c07865d081ad365abf6f28a6d3862814da3c50e786b161256af0e"
+    },
+    "focused-final-tests.json": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\focused-final-tests.json",
+      "sha256": "2182fe18629bec05b10d62d105a4c641cbe669814430fa2e3032c62e54e05144"
+    },
+    "o8-native-proof-a002.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\o8-native-proof-a002.log",
+      "sha256": "0adcb8970ae66b06d0e4a1dec0db2aada07a1285ab2d8c6fa6d5bad50ae2a819"
+    },
+    "package-corrected-check.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-check.log",
+      "sha256": "d4c23d08bbe33a61fd11875abee5a89cd464c6d0e5e917df4502739942f3f472"
+    },
+    "package-corrected-drift.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-drift.log",
+      "sha256": "c10a0b06f7edc8d7f52dabfdf84725a068b79aeaf49dd6f0a09fd323408e2f39"
+    },
+    "package-corrected-plan.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-plan.log",
+      "sha256": "82be4a57293cede9f470cfc0bd1a5288373890b54b90ce37b947596e52f2d8b5"
+    },
+    "package-corrected-focused.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-focused.log",
+      "sha256": "c04fb804eadf3b243fd9a6de5e64f0d876ec9657884e19fc73dbb655d695a5ae"
+    },
+    "package-corrected-bindings.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-bindings.log",
+      "sha256": "84b47c9e83144a62ae6c2785cb59bd5c43652f102df5aa04a9fc8f0ee2d53f17"
+    },
+    "package-corrected-cli.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-cli.log",
+      "sha256": "f1265b7e11aaf6ee854584593df464044c1391168abb434fa00dbcfbdafc2ce1"
+    },
+    "package-corrected-shell.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-shell.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "package-corrected-heredoc.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-corrected-heredoc.log",
+      "sha256": "7c07c3e9d39b5836f6cc1574e5e98d238e14355b0f9e8d44bc7cc9ffa6452ff2"
+    },
+    "approval-denial.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\approval-denial.log",
+      "sha256": "4abc188f48063a22b9fcf8ef82c9e5ede6856f4dfd7f61951340e78806d8c614"
+    },
+    "config-byte-preservation.json": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\config-byte-preservation.json",
+      "sha256": "05cb9deb95360cc1e0216985638fabe7b9b5c0043a02a6846dfa7969673ad1d4"
+    }
   },
-  "evidence": {
-    "accept-help.log": "98c2fbfa0f7c34d3be2890f9e01f75bab89607ad5c84e4c0fa9289c707969a7c",
-    "dependency-hashes.json": "1a31f18017e0698ffb106bf8fb1a0ec36105a26d6de4be9fcfb285123991ee0f",
-    "django-check.log": "c6e6c53946ee802a36571f75d4999f6b6293fdbd375b63f050dd3e3d57ba31c5",
-    "input-preflight.json": "57e6e37b89fa9cdfe07fbbb59fadbb4f5b6816d24d685f83b75ac89cb2fe0663",
-    "package/build.log": "95907490826bc0a5deba75f8b0748a4d0dc577eb1024e5dcd2cc2073a4982b5d",
-    "package/package.json": "238a0e8d13769b45802245cbb88b7de89a984f7040bfaf50e74ddfb04d5163f1",
-    "package_checks.py": "62d16b8a3c5f1481b9fe4552314d0149b26f709dbb7ea4a58c126829ebf969fe",
-    "resource-preflight-a002.log": "30b27064bd98ca924705f4c8a10d383109e9443b4240456250de0c4476c7bc43",
-    "resource-preflight.log": "20d9731c044b0f6aa99bbb712e4236856dc9bbd6dc4f77506db614a4f0dea984",
-    "run-daily-help.log": "c035b05326101ff90c13656d7b0c35689feae6ba9e1628e3145cbf95150763ec",
-    "schema-drift.log": "bdada3cf1fb0604504e1a5c349158a03188670bc3bfb4c09271de774ad78d609",
-    "schema-plan.log": "14e6aac5722a524322c2727c7f290cfedc5ddcf45567f6e0d5c75efeea5a2291",
-    "package-resource.json": "acdd535b8ec247ad02596b28883b5a27289e0568375947e1c70973fe778ace14"
+  "preserved_failures": {
+    "focused-integration-tests.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\focused-integration-tests.log",
+      "sha256": "221d4036cb6ba88762cba624364505bc60b19681317c488e44678bea2dba6655"
+    },
+    "real-authentication-proof.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\real-authentication-proof.log",
+      "sha256": "feae4e360df31187df335ed77783b89e74f7fb588fb4f2bd116ee1c06f72dd60"
+    },
+    "real-authentication-proof-a002.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\real-authentication-proof-a002.log",
+      "sha256": "e4ec9f2a57a329bf62c124aa6c31ee377aa43b8936f3d08a3dc1dd3d86cbd464"
+    },
+    "o8-native-proof-a001.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\o8-native-proof-a001.log",
+      "sha256": "a597430fbe9150a1918afdfc38d3eead49287d32bcd0abd1034394d5901418c6"
+    },
+    "package-bindings.log": {
+      "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\package-bindings.log",
+      "sha256": "e5b68c06fa3279b75774766d13556d248c927cd4d5ad07fc594c93f57c568c54"
+    }
+  },
+  "prior_request": {
+    "path": "D:\\freshvcf-build\\evidence\\cohort6-prerequisites-20261009-001\\original-blocked-request.json",
+    "sha256": "e4533a603fafe2575584dd1c2cc1498c829c7ae0d8cbd2cc2e147a76a781307f"
   }
 }

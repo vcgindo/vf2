@@ -50,6 +50,7 @@ class BackupReceiptVerification(unittest.TestCase):
 
     def test_rejects_wrong_database_tool_and_qualification(self):
         for field,value in (('database_name','another_database'),('tool_sha256','d'*64),
+                            ('restore_target','fresh_cohort2_restore_wrong_attempt'),
                             ('qualification','unapproved-policy')):
             with self.subTest(field=field):
                 old=getattr(self.backup,field);setattr(self.backup,field,value)

@@ -10,9 +10,10 @@ import hashlib
 import json
 from pathlib import Path
 
-from django.db import connection, transaction
+from django.db import transaction
 
 from mta.mdm.daily_source import SCHEMA, ARTIFACT_SHA, adapter_digest, configuration_digest, require_binding
+from mta.mdm.owned_namespace import authorize_install
 from mta.mdm.source import DLL
 from mta.runtime import mdm_models as models
 from mta.runtime import mdm_skuloc_models as pairs
@@ -95,10 +96,8 @@ def owners(artifact):
 
 @transaction.atomic
 def install(raw, expected):
-    with connection.cursor() as cursor:
-        cursor.execute('SELECT current_database()'); database=cursor.fetchone()[0]
-    if database not in ('daily_3006','test_freshvcf'):
-        raise ValueError('Synthetic master bootstrap requires the owned3006 database')
+    namespace=authorize_install(expected,adapter_digest())
+    database=namespace['database_name']
     artifact=registered(raw,expected); batches=owners(artifact)
     # A new shell has no workflows. Never reinterpret an existing source as a
     # fresh owner or overwrite its current rows/queued tasks.
@@ -115,6 +114,8 @@ def install(raw, expected):
         canonical=dict(dll=DLL,bpr_metadata_copy=BPR_COPY_SHA,mdm_use_queries_il=IL_SHA),
         configuration=configuration_digest(),
         initial_workflows='new isolated owner; no pre-existing tasks, drafts, requests or remarks')
+    if namespace['registration'] is not None:
+        receipt['owned_namespace']=namespace['registration']
     source=models.MdmSource.objects.create(digest=digest(receipt),dll_digest=DLL,
         database_name=database,receipt=receipt)
     for family,model,kwargs,rows,path in batches:

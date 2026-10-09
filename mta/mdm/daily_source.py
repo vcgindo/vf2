@@ -17,7 +17,8 @@ ARTIFACT_SHA = '7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc
 
 def adapter_digest():
     return digest({name: hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
-                   for name in ('daily_source.py', 'daily_source_install.py', 'families.py')})
+                   for name in ('daily_source.py', 'daily_source_install.py', 'families.py',
+                                'owned_namespace.py')})
 
 
 def configuration_digest():
@@ -37,6 +38,9 @@ def require_binding(source, *, artifact_sha256, artifact_schema):
         raise ValueError('Daily MDM source is not bound to this registered artifact/adapter')
     if receipt.get('configuration') != configuration_digest():
         raise ValueError('Daily MDM source configuration differs')
+    if 'owned_namespace' in receipt:
+        from mta.mdm.owned_namespace import verify_binding
+        verify_binding(receipt)
     families = receipt.get('families')
     if not isinstance(families, dict) or set(families) != {'1', '2', '3'}:
         raise ValueError('Complete three-family daily MDM source required')

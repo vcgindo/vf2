@@ -152,7 +152,7 @@ def owner_checks(run, attempt, repair):
         reject('unexpected_operational_predecessor')
 
 
-def snapshot(run, publication, attempt, repair, artifact_path, finalization_path):
+def snapshot(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path):
     """Bounded persisted metadata for before/after and request drift checks."""
     from mta.presentation import daily_activation, daily_sources, daily_publication
     from mta.runtime.receipt_integrity import source_receipts
@@ -185,6 +185,8 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
         output=run.output_digest, production=run.production_digest,
         production_metadata=digest(run.production_manifest), parity=digest(run.parity_summary),
         artifact=artifact_sha, finalization=hashlib.sha256(Path(finalization_path).read_bytes()).hexdigest(),
+        pick_config=hashlib.sha256(Path(pick_config_path).read_bytes()).hexdigest(),
+        shipment=hashlib.sha256(Path(shipment_path).read_bytes()).hexdigest(),
         actions=digest(actions(run)),
         predecessor=str(run.predecessor_id) if run.predecessor_id else None,
         predecessor_receipt=(run.predecessor.operationalacceptance.receipt_digest if run.predecessor_id else ''),
@@ -198,7 +200,7 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
         generation=str(publication.layers['btr']['receipt']['generation']))
 
 
-def verify_input_domain(run, raw, output, artifact_path, finalization_path):
+def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick_config_path, shipment_path):
     """Native inputs, frozen facts, exact finalization and own predecessor chain."""
     from mta.mdm.daily_source_install import registered
     from mta.mdm.daily_source import ARTIFACT_SHA, require_binding
@@ -229,7 +231,15 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path):
     from mta.application.operational_capture import CAPTURE_POLICY
     if profile.get('operational_sources') != CAPTURE_POLICY:
         reject('explicit_operational_capture_profile_required')
-    expected_profile['operational_sources'] = CAPTURE_POLICY
+    from mta.runtime.daily_bindings import apply_pick, apply_operational_sources, verify_sha256
+    from mta.application.operational_input_capture import INPUT_CAPTURE_POLICY
+    from mta.application.timeline_controls import FORCE_CAPTURE_POLICY
+    expected_profile=apply_operational_sources(expected_profile,CAPTURE_POLICY,INPUT_CAPTURE_POLICY,FORCE_CAPTURE_POLICY)
+    pick_bytes=Path(pick_config_path).read_bytes()
+    verify_sha256(pick_bytes,raw.get('pick_config_sha256'),'Complete Pick configuration')
+    if not isinstance(raw.get('pick_output_root'),str) or not Path(raw['pick_output_root']).is_absolute():
+        reject('explicit_pick_output_root_required')
+    expected_profile=apply_pick(expected_profile,pick_bytes,'canonical-tied-order-v1')
     expected_opening={**case['opening'],'complete':supplement['opening_complete']}
     final.begin(deepcopy(expected_opening), case['days'][0]['business_date'])
     expected_profile['daily_publication'] = True
@@ -257,6 +267,12 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path):
         reject('artifact_date')
     index, day = matches[0]
     expected_day = {**deepcopy(day), **deepcopy(case['static_day'])}
+    from mta.runtime.daily_bindings import shipment_day
+    if 'shipment_input' in expected_day:reject('shipment_cannot_replace_artifact')
+    shipment_bytes=Path(shipment_path).read_bytes()
+    verify_sha256(shipment_bytes,raw.get('shipment_sha256'),'Shipment supplement')
+    expected_day['shipment_input']=shipment_day(shipment_path,raw['shipment_sha256'],
+        artifact_sha256=ARTIFACT_SHA,business_date=str(run.business_date))
     if bool(index) != bool(run.predecessor_id):
         reject('artifact_predecessor')
     mdm = raw.get('mdm_input')
@@ -330,7 +346,7 @@ def verify_operational_opening(attempt):
         reject('explicit_operational_opening_changed')
 
 
-def verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path):
+def verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path):
     from mta.runtime.services import read_outputs
     from mta.runtime.validation_storage import read_input
     from mta.runtime.operational_runner import validate_configuration
@@ -338,8 +354,8 @@ def verify_candidate(run, publication, attempt, repair, artifact_path, finalizat
     from mta.presentation import daily_activation, daily_requests, ancillary_live, daily_sources
     from mta.presentation.daily_preparation import required_layers, verify_layer
     from mta.presentation.admission import verify_native
-    before = snapshot(run, publication, attempt, repair, artifact_path, finalization_path)
-    profile = verify_input_domain(run, read_input(run), read_outputs(run), artifact_path, finalization_path)
+    before = snapshot(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path)
+    profile = verify_input_domain(run, read_input(run), read_outputs(run), artifact_path, finalization_path, pick_config_path, shipment_path)
     validate_configuration(attempt.configuration)
     verify_attempt(attempt)
     verify_operational_opening(attempt)
@@ -358,15 +374,17 @@ def verify_candidate(run, publication, attempt, repair, artifact_path, finalizat
     for name in required_layers():
         verify_layer(run, name, publication.layers[name]['receipt'])
     verify_native(run)
-    if snapshot(run, publication, attempt, repair, artifact_path, finalization_path) != before:
+    if snapshot(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path) != before:
         reject('changed_during_verification')
     return before, profile
 
 
-def receipt_values(run, attempt, repair, artifact_path, finalization_path, state, profile):
+def receipt_values(run, attempt, repair, artifact_path, finalization_path, state, profile, pick_config_path, shipment_path):
     access = state['access']
     result = dict(policy=POLICY, qualification=QUALIFICATION, code_digest=state['code'],
         artifact_path=str(Path(artifact_path).resolve()), finalization_path=str(Path(finalization_path).resolve()),
+        pick_config_path=str(Path(pick_config_path).resolve()), pick_config_digest=state['pick_config'],
+        shipment_path=str(Path(shipment_path).resolve()), shipment_digest=state['shipment'],
         artifact_digest=state['artifact'],
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
         profile_digest=profile, execution_revision=run.execution_revision,
@@ -393,8 +411,8 @@ def identity(run, *, selected=True):
         reject('policy_required')
     row = OperationalAcceptance.objects.select_related('attempt__configuration', 'repair').get(run=run)
     publication = DailyUiPublication.objects.get(run=run)
-    state = snapshot(run, publication, row.attempt, row.repair, row.artifact_path, row.finalization_path)
-    expected = receipt_values(run, row.attempt, row.repair, row.artifact_path, row.finalization_path, state, row.profile_digest)
+    state = snapshot(run, publication, row.attempt, row.repair, row.artifact_path, row.finalization_path, row.pick_config_path, row.shipment_path)
+    expected = receipt_values(run, row.attempt, row.repair, row.artifact_path, row.finalization_path, state, row.profile_digest, row.pick_config_path, row.shipment_path)
     if any(str(getattr(row, key)) != str(value) for key, value in expected.items()):
         reject('receipt_identity_changed')
     if row.predecessor_id != run.predecessor_id:
@@ -414,14 +432,14 @@ def verify(run, *, selected=True):
             reject('receipt_operational_predecessor_changed')
     from mta.runtime.models import DailyUiPublication
     state, profile = verify_candidate(run, DailyUiPublication.objects.get(run=run),
-        row.attempt, row.repair, row.artifact_path, row.finalization_path)
-    if receipt_values(run, row.attempt, row.repair, row.artifact_path, row.finalization_path, state, profile)['receipt_digest'] != row.receipt_digest:
+        row.attempt, row.repair, row.artifact_path, row.finalization_path, row.pick_config_path, row.shipment_path)
+    if receipt_values(run, row.attempt, row.repair, row.artifact_path, row.finalization_path, state, profile, row.pick_config_path, row.shipment_path)['receipt_digest'] != row.receipt_digest:
         reject('verified_receipt_changed')
     return row
 
 
 @transaction.atomic
-def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path, repair_id=None):
+def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path, pick_config_path, shipment_path, repair_id=None):
     from mta.runtime.models import CalculationRun, DailyUiPublication, DailyUiActivation, OperationalAcceptance, OperationalAttempt
     if not enabled():
         reject('policy_required')
@@ -439,8 +457,8 @@ def issue(run_id, *, output_digest, attempt_id, artifact_path, finalization_path
         parent = verify(run.predecessor, selected=False)
         if attempt.predecessor_id != parent.attempt_id:
             reject('own_accepted_operational_predecessor_required')
-    state, profile = verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path)
-    values = receipt_values(run, attempt, repair, artifact_path, finalization_path, state, profile)
+    state, profile = verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path)
+    values = receipt_values(run, attempt, repair, artifact_path, finalization_path, state, profile, pick_config_path, shipment_path)
     prior = OperationalAcceptance.objects.filter(run=run).first()
     if prior:
         if prior.receipt_digest != values['receipt_digest']:

@@ -6,7 +6,9 @@ from unittest.mock import MagicMock, patch
 from django.http import JsonResponse
 from django.test import SimpleTestCase
 
-from api_gateway.interceptors.mta_interceptor import MTA_INTERCEPTOR
+from api_gateway.interceptors.mta_interceptor import (
+    MTA_INTERCEPTOR, authenticated_mta_context,
+)
 from api_gateway.interceptors.mto_interceptor import MTO_INTERCEPTOR
 from api_gateway.views import API_GATEWAY_VIEW
 
@@ -30,6 +32,28 @@ class TestMtaInterceptorIdentity(SimpleTestCase):
             user=SimpleNamespace(id=7, name="Stage 7B", email="stage7b@example.invalid"),
             FILES={},
         )
+
+    @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
+    @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")
+    def test_authenticated_context_uses_only_gateway_user_and_stored_application_scopes(
+        self, product_filter_mock, location_filter_mock
+    ):
+        product_filter_mock.return_value.values_list.return_value = [11, 12]
+        location_filter_mock.return_value.values_list.return_value = [22]
+        request = self.request(data={
+            'user': {'id': 999}, 'product_permissions': [999],
+            'location_permissions': [999],
+        })
+
+        self.assertEqual(authenticated_mta_context(request), {
+            'actor': 7,
+            'identity': {'id': 7, 'name': 'Stage 7B',
+                         'email': 'stage7b@example.invalid'},
+            'product_permissions': [11, 12],
+            'location_permissions': [22],
+        })
+        product_filter_mock.assert_called_once_with(application_id=2, user_id=7)
+        location_filter_mock.assert_called_once_with(application_id=2, user_id=7)
 
     @patch("api_gateway.interceptors.mta_interceptor.Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
