@@ -30,6 +30,9 @@ def configuration_sha():
 
 def require_installed(source):
     owner = MdmSeasonOwner.objects.get(source=source)
+    from mta.mdm.target_fixture import require_family
+    if require_family(source, owner, 'season'):
+        return owner
     p = owner.provenance
     if (source.dll_digest != DLL or p.get('schema') != OWNER_SCHEMA
             or p.get('configuration_sha256') != configuration_sha()

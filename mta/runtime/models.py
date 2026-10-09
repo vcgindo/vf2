@@ -1284,3 +1284,5 @@ from mta.runtime.mdm_phase_controls_models import (MdmPhaseControlsOwner,
     MdmPhaseInNormConsumed, MdmPhaseControlsTaskRevision, MdmDraftAddPipo)
 
 from mta.runtime.mdm_integration_models import MdmSourceIntegration
+from mta.runtime.mdm_target_fixture_models import (MdmTargetFixture,
+    MdmFixturePhaseOut, MdmFixturePhaseIn, MdmFixturePhaseMap, MdmFixtureSeasonStatus)

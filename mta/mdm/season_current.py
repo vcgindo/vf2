@@ -12,9 +12,17 @@ from mta.mdm.task_reads import TaskDenied, sql_key
 from mta.presentation.context import PublicationUnavailable, selected_run
 from mta.presentation.rrr_sql import like_pattern
 from mta.presentation.selective import image_rows
+from mta.mdm.target_fixture import consumer_rows as fixture_rows, SOURCE as TARGET_SOURCE
 from mta.runtime.mdm_season_models import MdmSeasonCurrent
 
 NUMERIC = {'tn', 'dnp', 'ulc', 'bd', 'r', 'nn', 'onm', 'tp', 'sts'}
+
+
+def consumer_rows(source, run, path):
+    if getattr(source, 'digest', None) == TARGET_SOURCE:
+        return fixture_rows(source, run, path)
+    return image_rows(run, path)
+
 def publication(source):
     from mta.mdm.season_source import require_installed
     owner = require_installed(source)
@@ -64,10 +72,10 @@ def _filter(row, item):
 
 
 def projected(source, run, seasons, *, payload=None, descriptions=None):
-    master = image_rows(run, 'closing/dbm/DBMMaster')
+    master = consumer_rows(source, run, 'closing/dbm/DBMMaster')
     if descriptions is None:
-        skus = image_rows(run, 'closing/dbm/SKUDescriptionTbl')
-        locations = image_rows(run, 'closing/dbm/SiteDescriptionTbl')
+        skus = consumer_rows(source, run, 'closing/dbm/SKUDescriptionTbl')
+        locations = consumer_rows(source, run, 'closing/dbm/SiteDescriptionTbl')
     else:
         skus, locations = descriptions
     result = []
@@ -122,10 +130,10 @@ def graph(source, payload):
     run = publication(source)
     target = dict(SKUCode=sku, WhCode=wh)
     seasons = [r for r in live_rows(source) if same(r, target)]
-    masters = [r for r in image_rows(run, 'closing/dbm/DBMMaster') if same(r, target)]
-    logs = [r for r in image_rows(run, 'closing/dbm/NormChangeLogTbl') if same(r, target)]
-    batches = image_rows(run, 'closing/dbm/LastBatchRunTbl')
-    reasons = image_rows(run, 'closing/dbm/ReasonCodes')
+    masters = [r for r in consumer_rows(source, run, 'closing/dbm/DBMMaster') if same(r, target)]
+    logs = [r for r in consumer_rows(source, run, 'closing/dbm/NormChangeLogTbl') if same(r, target)]
+    batches = consumer_rows(source, run, 'closing/dbm/LastBatchRunTbl')
+    reasons = consumer_rows(source, run, 'closing/dbm/ReasonCodes')
     norms = []
     for s in seasons:
         for m in masters:
@@ -146,7 +154,11 @@ def graph(source, payload):
                             norms.append(omit_nulls(dict(date=row['NormChangeDate'], old_norm=row['OldNorm'],
                                 new_norm=row['NewNorm'], change_reason=reason['Reason'])))
     norms.sort(key=lambda r: r['date'], reverse=True)
-    daily = [r for r in image_rows(run, 'closing/dbm/DailyConsumption') if same(r, target)]
+    if getattr(source, 'digest', None) == TARGET_SOURCE:
+        from mta.mdm.target_fixture import daily_pair_rows
+        daily = daily_pair_rows(source, run, sku, wh)
+    else:
+        daily = [r for r in consumer_rows(source, run, 'closing/dbm/DailyConsumption') if same(r, target)]
     daily.sort(key=lambda r: (r['ReportDate'] is not None, str(r['ReportDate'] or '')), reverse=True)
     result = dict(norm=norms)
     if daily:

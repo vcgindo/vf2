@@ -97,6 +97,9 @@ def configuration_sha():
 
 def require_installed(source):
     owner = MdmForceOwner.objects.get(source=source)
+    from mta.mdm.target_fixture import require_family
+    if require_family(source, owner, 'force'):
+        return owner
     family = MdmFamilySource.objects.get(source=source, master_id=13)
     if (source.dll_digest != DLL or owner.provenance.get('schema') != OWNER_SCHEMA
             or owner.provenance.get('configuration_sha256') != configuration_sha()

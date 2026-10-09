@@ -6,6 +6,92 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### MDM3005 deployment and UI — accepted bounded delivery (10 October 2026)
+
+Active scope is D1–D6 in [the deployment plan](MDM_3005_DEPLOYMENT_PLAN.md),
+expanded by the [five-group contract](MDM_3005_FIVE_GROUP_COMPLETION_PLAN.md).
+Human reply `call_63dfc3ff84c84f43a2855554d598e52e:0` approves the exact
+[target fixture package](MDM_3005_TARGET_BINDING_DECISION.md), superseding the
+three-family-only disposition. All eight families are installed and their supported
+requester/reviewer acceptance is complete. Isolated restart and final identity/readback passed. This delivery commit is the
+cohesive checkpoint; push verification and runtime handoff close D6, then STOP.
+No business day, oracle call, benchmark, new grant/account/port or 3006 change.
+
+D1–D4 passed. Image `b3bc7ea3994db6967a590fb3d5d7b265d680d7bce205f9395643e7efd3582016`
+contains base12a8e71 plus the verified1111-file target overlay. Schema is0106.
+Full database backup is1,223,815,894 bytes, SHA256
+`054ce7390084fef0cd47e59136b386414ed26f87a8ab9859292f3b9b5e9465a2`;
+its2948-entry catalogue was read, not restore rehearsed.109 old-image projections
+passed the upgraded proof schema. The direct controller instruction to stop wholeDB
+rescans is honored: reuse foundation/backup proof, exact migration write exclusion,
+original rows in the three affected tables, immutable guards and changed UI seams.
+Both redundant canceled scans remain failure evidence, not acceptance.
+
+0053 first created seven empty tables but its migration-record INSERT hit the
+existing metadata guard. The bounded recovery verified exact empty native table
+signatures/no external references, then used one atomic real Django reversal and
+0053–0106 reapplication. Only two Django metadata triggers were temporarily suspended
+under locks and restored before commit; all business guards stayed enabled. No fake
+migration/reset/history rewrite. Original calculation-run columns, family2/3 receipts
+and metadata rows remained exact. `bounded-attempt-003` records committed proof.
+
+Target input canonical digest is
+`bdc91dd88e99b9d3aeb353bbf8e22b8ad23e07832e66281e0ebdb5681b4357d3`:
+12 native bags/3632 rows plus retained empty Force input, complete typed readback,
+97097 eligible pairs. Source `eccbec8c…975d`, April7 fixture
+`bfd75b4b-a9df-4a08-82d3-852e3324b623` and permissions remain unchanged.
+Owner receipt `8716a82abfc30a85629d33367cd939a968329f69dbdd262451154812ca4251e7`
+admits fixture consumers only; daily capture/root/seal admission remains denied.
+Seven focused tests (four native PostgreSQL), migration application/plan, Django
+check and migration drift checks passed. Existing Seasonality checks also passed.
+
+D5 positive UI: restricted requester3 submitted ten tasks for masters4–13, assigned
+to broad reviewer2; all ten were approved through the unchanged Tasks Pending UI,
+which then showed no remaining approval rows. Complete typed task/history/revision
+readback is retained. Every reviewed task downloaded an actual XLSX; workbook cells
+retain requested keys/quantities and approval text. SOB/MOQ, Phase7–9, Stop,
+Seasonality10–12 and Force are all exercised. Current/filter/template/draft-supported
+journeys are retained in `ui-progress.json`. Broad self-requested unassigned tasks
+remain pending and are not counted as approval proof.
+
+Native distinctions remain: nine reviewed details say DB Update Pending;
+Seasonality Status says DB Updated (native subtask4). Parent task headers remain1.
+No calculation or engine effect is claimed. Modification History's native completed-
+header/90-day/midnight filters do not expose these pending headers; no synthetic
+history or backdating was added. Seasonality11/12 saved-draft projection remains the
+approved unusable native limitation; fresh XLSX submission was used. The native
+Seasonality review labels Resume as Stop; stored request/status and download retain
+Resume. CSV failed in the retained frontend ZIP reader; XLSX succeeds. Wide grids
+require native horizontal scrolling/unpinning, without frontend changes.
+
+Seasonality graph504 was attributable to a normalized pair scan over31,047,476
+DailyConsumption rows. One exact run/image/normalized-pair/date/ordinal expression
+index fixes the access path without changing predicates/order/rows. Initial concurrent
+creation timed out at20minutes; its failure is retained. Exact owned invalid index
+was recovered with bounded concurrent REINDEX, exit0. Complete180 ordered rows match
+SHA256 `e65d7a2de5b29ba37bf5bd2beb300436252c6e95c153e36087f8e1d14d982256`;
+valid index and actual index scan proved. Read+plan0.0324s versus121.37s before;
+this is a diagnostic, not matched legacy benchmarking. Real graph rendered in6.861s,
+with retained Norm620/target1000/RLT12 and GIT toggle verified.
+
+Preservation UI: SKU2189 and Location234 current rows with actual exports;
+SKU–Location selective103 rows with export. BTR97299, BPR populated, RRR populated,
+Research97097, DBM11158, Planning retained category counts, Guided availability/excess
+charts and Buffer Trends seven-series chart render on April7. BOR route renders an
+empty grid; no positive BOR-row claim. These are bounded deployment preservation
+checks, not reopening whole-page performance acceptance or known blocked contracts.
+Auth/frontend/MTO assets and other services remain protected.
+
+Evidence root: `D:/freshvcf-build/evidence/mdm3005-deployment-20261009-001/`.
+Key evidence: target serving/input/image logs, `restricted-approved-task-readback.json.gz`,
+`task-downloads.json`, `task-download-cell-evidence.json`, graph failure/recovery logs,
+`preserved-*-ui.png` and reviewed-task screenshots. [Operator steps](MDM_3005_OPERATOR_STEPS.md)
+give the exact request/review/download sequence and rollback command.
+[Runtime handoff](MDM_3005_DEPLOYMENT_HANDOFF.md) pins the image/source/schema.
+Final restart retained all1111 runtime files, image/configuration, other-container
+identities and selected fixture/source/permissions/BTR generation. All families
+readmitted with daily admission denied; real requester Task Status retained approval.
+
 ### MDM integration for working3005 — bounded code delivery (9 October2026)
 
 Human correction/resume in controller turns `01a1216a-2876-77c1-8f89-628f417074da`

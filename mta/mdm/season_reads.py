@@ -49,9 +49,9 @@ def details(source, payload, actor, *, download=False):
     run = statuses = None
     if master_id == 10:
         from mta.mdm.season_current import publication
-        from mta.presentation.selective import image_rows
+        from mta.mdm.target_fixture import consumer_rows
         run = publication(source)
-        statuses = image_rows(run, 'closing/control_aux/season_status')
+        statuses = consumer_rows(source, run, 'closing/control_aux/season_status')
     result = []
     for row in requested:
         matches = [r for r in history if row_key(r) == row_key(row)]

@@ -1479,3 +1479,23 @@ save/read is not usable draft recovery. No frontend or native-response repair is
 authorized. Direct human approval call_26586e466f4840d2820b9e4e66cc1dba:0,
 "Approve native draft limitation", accepts this exact missing usable recovery;
 complete the trial through fresh file uploads with every other positive exit intact.
+
+# Target3005 fixture-only MDM ownership (9 October 2026)
+
+Direct human reply `call_63dfc3ff84c84f43a2855554d598e52e:0` approves the exact
+package in `MDM_3005_TARGET_BINDING_DECISION.md`. Source eccbec8c…975d and run
+bfd75b4b-a9df-4a08-82d3-852e3324b623 remain the original April7 legacy UI fixture.
+Its retained native SOB/MOQ, Phase and Seasonality populations are consumer inputs,
+not independently calculated modern state. Separate typed fixture projections and
+explicit fixture owners permit the supported MDM workflows without an accepted
+same-source daily capture. This exception replaces only that fixture's onboarding
+prerequisite; ordinary daily admission, integration seals and calculation openings
+remain strict. Approval of a UI request proves a queued workflow, not engine effects.
+
+The complete installed input envelope is pinned by canonical digest
+bdc91dd88e99b9d3aeb353bbf8e22b8ad23e07832e66281e0ebdb5681b4357d3;
+native table schemas, NULLs, duplicates and complete typed readbacks are retained
+under `D:/freshvcf-build/evidence/mdm3005-deployment-20261009-001/target-inputs`.
+Unmatched supplier SKU rows are preserved, with unchanged canonical scope exclusion.
+No new day, source switch, calculated history seed, grant or account change follows
+from this exception. Installation and browser acceptance status is in MIGRATION.md.

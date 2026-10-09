@@ -22,6 +22,9 @@ def configuration_sha():
 
 def require_installed(source):
     owner = MdmStopPipoOwner.objects.get(source=source)
+    from mta.mdm.target_fixture import require_family
+    if require_family(source, owner, 'stop_pipo'):
+        return owner
     p = owner.provenance
     if (source.dll_digest != DLL or p.get('schema') != SCHEMA
             or p.get('source_digest') != source.digest

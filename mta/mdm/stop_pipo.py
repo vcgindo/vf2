@@ -11,6 +11,7 @@ from mta.mdm.task_reads import sql_key
 from mta.presentation.context import PublicationUnavailable, selected_run
 from mta.presentation.rrr_sql import like_pattern
 from mta.presentation.selective import image_rows
+from mta.mdm.target_fixture import consumer_rows as fixture_rows, SOURCE as TARGET_SOURCE
 from mta.runtime.mdm_stop_pipo_models import MdmStopPipoQueue
 
 
@@ -20,6 +21,12 @@ FIELDS = {row['Col_Code']: row for row in CONFIG['UI_MDMConfig']}
 ALIASES = {alias: row['TableField'] for alias, row in FIELDS.items()}
 DRAFT_ALIASES = dict(ALIASES, IsSelected='IsSelected')
 NUMERIC = {'onm', 'cn', 'pcn', 'ptn', 'isPOActive'}
+
+
+def consumer_rows(source, run, path):
+    if getattr(source, 'digest', None) == TARGET_SOURCE:
+        return fixture_rows(source, run, path)
+    return image_rows(run, path)
 
 
 def configuration(screen_type):
@@ -102,12 +109,12 @@ def _matches(rows, row, left_names=('SKUCode', 'WHCode'), right_names=None):
 
 
 def _project(source, run, payload):
-    phase_out = image_rows(run, 'closing/dbm/PhaseOutTbl')
-    phase_in = image_rows(run, 'closing/dbm/PhaseInTbl')
-    phase_map = image_rows(run, 'closing/control_aux/phase_map')
-    sku_descriptions = image_rows(run, 'closing/dbm/SKUDescriptionTbl')
-    location_descriptions = image_rows(run, 'closing/dbm/SiteDescriptionTbl')
-    logs = _latest_reason_102(image_rows(run, 'closing/dbm/NormChangeLogTbl'))
+    phase_out = consumer_rows(source, run, 'closing/dbm/PhaseOutTbl')
+    phase_in = consumer_rows(source, run, 'closing/dbm/PhaseInTbl')
+    phase_map = consumer_rows(source, run, 'closing/control_aux/phase_map')
+    sku_descriptions = consumer_rows(source, run, 'closing/dbm/SKUDescriptionTbl')
+    location_descriptions = consumer_rows(source, run, 'closing/dbm/SiteDescriptionTbl')
+    logs = _latest_reason_102(consumer_rows(source, run, 'closing/dbm/NormChangeLogTbl'))
     stopped = list(MdmStopPipoQueue.objects.filter(source=source).order_by('id')
                    .values('SKUCode', 'WhCode'))
     rows = []
