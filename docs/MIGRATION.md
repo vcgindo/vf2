@@ -6,39 +6,34 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### UI measurement STOPPED; MTO configuration delivery with explicit gaps (10 October2026)
+### MTO bounded integration CLOSED with retained limits (10 October2026)
 
-Latest direct human amendment allows empty MTO data and requires existing API
-connection plus ALL existing features visible/reachable in3005. Populated workflows
-are deferred. The later instruction uses connected Edge and permits minimal
-configuration/routing/packaging/service fixes with rollback, but no source-code
-edits, data population/discovery or engine calls. This is separate from MDM pause.
+Final human instruction: finish outstanding existing screens, resolve report-menu
+failure using configuration only, reconcile retained evidence once and stop.
+All54 route screens already rendered under broad fixture user2 (37 Chrome,17 Edge);
+no repeat campaign. Four MTO cards, Procurement navigation and return via shared
+landing to MTA Planning are proved. Exact approved role3/55 menu links remain;
+existing MTA grants/scopes and restricted accounts are unchanged.
 
-Exact approved role3/user2/55 existing menu permissions applied; prior roles,
-product/location/data scopes and restricted accounts are preserved. All54 retained
-route screens rendered (37 Chrome,17 Edge). MTO cards and Procurement navigation
-passed; shared landing returned to authenticated MTA Planning. Container identity
-and MTA fixture hash prove MTA selection unchanged. This is route visibility,
-not full interaction or complete API-payload acceptance.
+Resolved two configuration defects: MTO-only launch uses existing Daphne instead
+of Uvicorn without WebSocket support; public socket now101 with no application
+messages or engine run. Explicit empty download registry at native ReportPaths.json
+is a read-only compose mount. Authenticated gateway menu request now200; native
+body is data:{} with no invented report definitions/files. Restart-transient500s
+and original400/404 evidence are retained. Health/readiness200. MTA fixture hash
+and all non-MTO container IDs/images/start times match; protected services unchanged.
 
-Observed public WebSocket404 was traced to Uvicorn without supported WebSocket
-libraries. Changed ONLY MTO compose entrypoint to already-installed Daphne, same
-image/environment/resources/mounts, with backup. MTO-only recreation now gives
-public101 upgrade and HTTP health/ready/master200. No application messages or
-scheduler run. All other container IDs/images/start times are unchanged.
+Closure is API connectivity and existing-route visibility for the allowed empty
+deployment, NOT populated workflows/downloads, every interaction or repaired legacy
+presentation. Retained limits: no scheduler run/configuration; native empty404 is
+shown as Failed to fetch; absent failure-reason dates display Invalid date; direct
+simulation child lacks context. No code repair/data invention is claimed. Earlier
+publicreadyz503 is retained; no unrelated MTA repair. Exact gap/remedy remains in
+MTO_UI_REMAINING_GAPS.md, not a newly opened queue. MTO handoff contains roster,
+evidence and rollback. Commit/push this finite closure and STOP.
 
-Remaining acceptance gaps: missing ReportPaths.json makes dynamic report menu400;
-native scheduler empty404 is rendered as failure; empty top-failure dates display
-Invalid date; direct simulation child navigation lacks context and returns400.
-No missing population was fabricated. Publicreadyz503 remains retained without
-unrelated repair. MTO_UI_REMAINING_GAPS.md consolidates exact packaging/source
-remedies requiring disposition. All-feature acceptance is INCOMPLETE; bounded
-configuration delivery stops at this review boundary, not false completion.
-
-MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md contains the finite roster and rollback.
 Evidence: D:/freshvcf-build/evidence/mto-same-product-20261010-001.
-Tranche A performance stays stopped with99 observations/14 branches and failures;
-no measurements/tuning resumed. Preserve all unrelated MDM dirty work below.
+No performance/MDM/engine execution resumed. Preserve unrelated dirty work below.
 
 ### MDM3005 deployment and UI — accepted bounded delivery (10 October 2026)
 

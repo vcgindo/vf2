@@ -94,6 +94,8 @@ services:
       DEBUG: 'false'
       CORS_ALLOWED_ORIGINS: http://localhost:3005
       MTO_STAGE7B_ENABLE_DDQ_UI: 'false'
+    volumes:
+      - ./infrastructure/mto/ReportPaths.json:/app/Downloads/ReportPaths.json:ro
     mem_limit: 1g
     cpus: 1
     restart: 'no'
