@@ -1,6 +1,10 @@
 # Existing MTO in the 3005 product — bounded verification handoff
 
-10 October 2026. **Bounded empty-deployment integration closed:54 existing route screens observed, report-menu200, WebSocket101 and MTA return proved. Retained presentation and populated-workflow limits remain below.** Only the explicitly approved navigation role was added: role3 for user2,55 existing permission links. No source, service, business data, credentials or existing scope grants changed. No rebuild, restart, business-day call, workflow write or new port was performed. The human stopped the separate performance tranche; that incomplete evidence remains in UI_PERFORMANCE_PARITY_REPORT.md and was not used as a prerequisite for this check.
+10 October 2026. **Bounded empty-deployment integration closed:54 existing route screens observed, report-menu200, WebSocket101 and MTA return proved. Retained presentation and populated-workflow limits remain below.** Changes were limited to the approved navigation role3 for user2 (55 existing permission links), the MTO Daphne launch configuration and the read-only empty report-registry mount. MTO alone was recreated for these configuration changes using the same image. No application-source changes, image rebuilds, business-day calls, workflow submissions or new ports occurred; business data, credentials, existing scope grants and other services were preserved. The human stopped the separate performance tranche; that incomplete evidence remains in UI_PERFORMANCE_PARITY_REPORT.md and was not used as a prerequisite for this check.
+
+## Historical observations before the final corrections
+
+The table below preserves the initial checks and failures, with the later navigation-grant update identified in its account row. Its original MTO start time and unproved browser/WebSocket results are historical, not the final state. The final result below supersedes those status statements without removing the evidence.
 
 Evidence: [runtime identities](D:/freshvcf-build/evidence/mto-same-product-20261010-001/runtime-identities.json), [running nginx routing](D:/freshvcf-build/evidence/mto-same-product-20261010-001/nginx-routing.conf), [read-only checks](D:/freshvcf-build/evidence/mto-same-product-20261010-001/read-only-proof.json). The read-only proof explicitly distinguishes runtime observations from configuration declarations.
 
