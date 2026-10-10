@@ -6,39 +6,39 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### UI measurement STOPPED; MTO API/UI visibility ACTIVE (10 October 2026)
+### UI measurement STOPPED; MTO configuration delivery with explicit gaps (10 October2026)
 
-The latest direct human amendment, relayed by controller
-01a1037c-5d96-7700-87a8-89a575f6c9f8, supersedes the earlier populated-workflow
-prerequisite. Empty MTO data is allowed. This separate delivery requires existing
-MTO API connection and ALL existing MTO features visible/reachable through3005,
-shared login/navigation, truthful empty/error responses, applicable WebSocket
-proof and return to MTA with selection preserved. Populated workflows/persistence
-are deferred, not required; no data package, source discovery or seeding is needed.
+Latest direct human amendment allows empty MTO data and requires existing API
+connection plus ALL existing features visible/reachable in3005. Populated workflows
+are deferred. The later instruction uses connected Edge and permits minimal
+configuration/routing/packaging/service fixes with rollback, but no source-code
+edits, data population/discovery or engine calls. This is separate from MDM pause.
 
-Active item: existing-menu/route visibility, INCOMPLETE. The exact55 navigation
-permissions were approved and applied as role3 to user2 only. All existing grants,
-application rows and product/location/data scopes are unchanged. Four MTO cards
-appeared in the authenticated3005 landing; Procurement navigation worked. Saved
-browser observations prove36/54 route shells rendered (not full API acceptance).
-The remaining18 routes are listed in MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md.
-Browser batch timeout then detached control stopped further UI proof. Reconnect
-Chrome's Codex extension to continue; no browser recovery campaign was opened.
+Exact approved role3/user2/55 existing menu permissions applied; prior roles,
+product/location/data scopes and restricted accounts are preserved. All54 retained
+route screens rendered (37 Chrome,17 Edge). MTO cards and Procurement navigation
+passed; shared landing returned to authenticated MTA Planning. Container identity
+and MTA fixture hash prove MTA selection unchanged. This is route visibility,
+not full interaction or complete API-payload acceptance.
 
-Authenticated MTO gateway logs show200 reads and explicit400 failures. Dynamic
-report-menu API lacks /app/Downloads/ReportPaths.json; simulation-result direct
-navigation sent releaseDate=undefined and returned400. Preserve these as failures,
-not valid empty responses. No fabricated report configuration or data was added.
-Return-to-MTA, WebSocket and all-feature API proof remain unproved. Public readyz503
-is retained without speculative repair. All recorded container IDs/images/start
-and MTA fixture hash match. Only approved role/menu joins changed; no engine,
-source-code, service, credentials, business-data or scope changes occurred.
+Observed public WebSocket404 was traced to Uvicorn without supported WebSocket
+libraries. Changed ONLY MTO compose entrypoint to already-installed Daphne, same
+image/environment/resources/mounts, with backup. MTO-only recreation now gives
+public101 upgrade and HTTP health/ready/master200. No application messages or
+scheduler run. All other container IDs/images/start times are unchanged.
 
-Tranche A performance stays stopped:99 observations/14 branches and failures are
-preserved in UI_PERFORMANCE_PARITY_REPORT.md and its external evidence. No further
-samples, calibration, reruns or tuning. MDM remains separately paused below.
-MTO evidence: D:/freshvcf-build/evidence/mto-same-product-20261010-001.
-MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md records partial proof, not closure.
+Remaining acceptance gaps: missing ReportPaths.json makes dynamic report menu400;
+native scheduler empty404 is rendered as failure; empty top-failure dates display
+Invalid date; direct simulation child navigation lacks context and returns400.
+No missing population was fabricated. Publicreadyz503 remains retained without
+unrelated repair. MTO_UI_REMAINING_GAPS.md consolidates exact packaging/source
+remedies requiring disposition. All-feature acceptance is INCOMPLETE; bounded
+configuration delivery stops at this review boundary, not false completion.
+
+MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md contains the finite roster and rollback.
+Evidence: D:/freshvcf-build/evidence/mto-same-product-20261010-001.
+Tranche A performance stays stopped with99 observations/14 branches and failures;
+no measurements/tuning resumed. Preserve all unrelated MDM dirty work below.
 
 ### MDM3005 deployment and UI — accepted bounded delivery (10 October 2026)
 
