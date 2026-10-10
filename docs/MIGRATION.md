@@ -6,6 +6,18 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### 3005 BPR default rows — 5,000 (10 October2026)
+
+Direct user request sets BPR default rows to5000. Added only BPR_ROWS_PER_PAGE
+in a3005-specific environment configuration, copied it into the running MTA
+configuration and mounted it read-only in preview compose for future recreation.
+All other values match the prior runtime configuration. No service restart or
+frontend/calculation change. BPR hook consumes this key for initial rows/page
+and requests; absent key previously fell back to50. Runtime file readback passes.
+Browser verification reached expired login, so rendered-page confirmation is
+not claimed. Reload BPR after sign-in to load the new default. Backup:
+D:/freshvcf-build/evidence/bpr-default-5000-3005/configuration-before.json.
+
 ### MTO bounded integration CLOSED with retained limits (10 October2026)
 
 Final human instruction: finish outstanding existing screens, resolve report-menu

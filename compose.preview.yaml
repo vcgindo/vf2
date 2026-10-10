@@ -27,6 +27,7 @@ services:
       # Explicit June17 preview initialization approved by the user, not legacy facts.
       VF_MTA_PREVIEW_EMPTY_EXPEDITE_HISTORY: '1'
     volumes:
+      - ./infrastructure/preview/mta_environment_configuration.json:/app/mta/config/mta_environment_configuration.json:ro
       - D:/freshvcf-build/inputs/permission-input-v1.json:/inputs/permission-input-v1.json:ro
       - D:/freshvcf-build/inputs/excess-history-input-v1.json:/inputs/excess-history-input-v1.json:ro
       - D:/freshvcf-build/evidence/runtime/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:/input-identity/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:ro
