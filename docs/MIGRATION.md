@@ -6,6 +6,35 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
+### UI measurement STOPPED; MTO bounded handoff delivered with blockers (10 October 2026)
+
+Direct human stop relayed by controller01a1037c-5d96-7700-87a8-89a575f6c9f8
+ended tranche A. No further samples, calibration, reruns or tuning. The report and
+external evidence preserve99 observations across14 branches, including failures;
+coverage remains incomplete and qualified, with no parity or tuning-failure claim.
+
+Separately authorized MTO configuration-only verification is finished as a no-change
+handoff, NOT business-workflow acceptance. Existing container, gateway mapping,
+nginx API/WebSocket routing and internal MTO health/database connectivity verified.
+Seven named prerequisite master/order/calendar tables are empty. The current broad
+actor has no application3 navigation/scopes. Same-login positive workflow/readback,
+reload, WebSocket-dependent behavior and return journey remain blocked/unproved.
+Chrome control detached and its fresh landing-tab attempt timed out; no additional
+browser recovery campaign was opened after these independent blockers were proved.
+
+MTA container/image/start and fixture selection pins are unchanged; no source,
+configuration, service, grant, data or business-day mutation. Public readyz did
+return503 (identity/catalogue true; MTA false). Preserve that failure; do not equate
+running-container identity with a health PASS or infer a cause from this check.
+
+Artifacts: UI_PERFORMANCE_PARITY_REPORT.md and
+MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md. Evidence roots under
+D:/freshvcf-build/evidence/ui-performance-parity-20261010-001 and
+mto-same-product-20261010-001. Remaining MTO exits require a separate target-bound
+data/operation/access package and browser proof. One selective documentation
+commit/push closes this bounded handoff; STOP. All unrelated MDM dirty work and
+failed-day receipts remain preserved and paused, not accepted or canceled.
+
 ### MDM3005 deployment and UI — accepted bounded delivery (10 October 2026)
 
 Active scope is D1–D6 in [the deployment plan](MDM_3005_DEPLOYMENT_PLAN.md),
