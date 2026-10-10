@@ -6,34 +6,39 @@ UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
 
 ## Authority and current instruction
 
-### UI measurement STOPPED; MTO bounded handoff delivered with blockers (10 October 2026)
+### UI measurement STOPPED; MTO API/UI visibility ACTIVE (10 October 2026)
 
-Direct human stop relayed by controller01a1037c-5d96-7700-87a8-89a575f6c9f8
-ended tranche A. No further samples, calibration, reruns or tuning. The report and
-external evidence preserve99 observations across14 branches, including failures;
-coverage remains incomplete and qualified, with no parity or tuning-failure claim.
+The latest direct human amendment, relayed by controller
+01a1037c-5d96-7700-87a8-89a575f6c9f8, supersedes the earlier populated-workflow
+prerequisite. Empty MTO data is allowed. This separate delivery requires existing
+MTO API connection and ALL existing MTO features visible/reachable through3005,
+shared login/navigation, truthful empty/error responses, applicable WebSocket
+proof and return to MTA with selection preserved. Populated workflows/persistence
+are deferred, not required; no data package, source discovery or seeding is needed.
 
-Separately authorized MTO configuration-only verification is finished as a no-change
-handoff, NOT business-workflow acceptance. Existing container, gateway mapping,
-nginx API/WebSocket routing and internal MTO health/database connectivity verified.
-Seven named prerequisite master/order/calendar tables are empty. The current broad
-actor has no application3 navigation/scopes. Same-login positive workflow/readback,
-reload, WebSocket-dependent behavior and return journey remain blocked/unproved.
-Chrome control detached and its fresh landing-tab attempt timed out; no additional
-browser recovery campaign was opened after these independent blockers were proved.
+Active item: existing-menu/route visibility, INCOMPLETE. The exact55 navigation
+permissions were approved and applied as role3 to user2 only. All existing grants,
+application rows and product/location/data scopes are unchanged. Four MTO cards
+appeared in the authenticated3005 landing; Procurement navigation worked. Saved
+browser observations prove36/54 route shells rendered (not full API acceptance).
+The remaining18 routes are listed in MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md.
+Browser batch timeout then detached control stopped further UI proof. Reconnect
+Chrome's Codex extension to continue; no browser recovery campaign was opened.
 
-MTA container/image/start and fixture selection pins are unchanged; no source,
-configuration, service, grant, data or business-day mutation. Public readyz did
-return503 (identity/catalogue true; MTA false). Preserve that failure; do not equate
-running-container identity with a health PASS or infer a cause from this check.
+Authenticated MTO gateway logs show200 reads and explicit400 failures. Dynamic
+report-menu API lacks /app/Downloads/ReportPaths.json; simulation-result direct
+navigation sent releaseDate=undefined and returned400. Preserve these as failures,
+not valid empty responses. No fabricated report configuration or data was added.
+Return-to-MTA, WebSocket and all-feature API proof remain unproved. Public readyz503
+is retained without speculative repair. All recorded container IDs/images/start
+and MTA fixture hash match. Only approved role/menu joins changed; no engine,
+source-code, service, credentials, business-data or scope changes occurred.
 
-Artifacts: UI_PERFORMANCE_PARITY_REPORT.md and
-MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md. Evidence roots under
-D:/freshvcf-build/evidence/ui-performance-parity-20261010-001 and
-mto-same-product-20261010-001. Remaining MTO exits require a separate target-bound
-data/operation/access package and browser proof. One selective documentation
-commit/push closes this bounded handoff; STOP. All unrelated MDM dirty work and
-failed-day receipts remain preserved and paused, not accepted or canceled.
+Tranche A performance stays stopped:99 observations/14 branches and failures are
+preserved in UI_PERFORMANCE_PARITY_REPORT.md and its external evidence. No further
+samples, calibration, reruns or tuning. MDM remains separately paused below.
+MTO evidence: D:/freshvcf-build/evidence/mto-same-product-20261010-001.
+MTO_SAME_PRODUCT_INTEGRATION_HANDOFF.md records partial proof, not closure.
 
 ### MDM3005 deployment and UI — accepted bounded delivery (10 October 2026)
 
