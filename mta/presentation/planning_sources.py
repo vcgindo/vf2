@@ -9,7 +9,7 @@ from mta.runtime.planning_source_schema import verify_guards
 from mta.runtime.relational_state import quote
 
 
-def admitted_sources(run, *, validated_fixture=None):
+def admitted_sources(run):
     """Resolve one request's source binding using the established sealed-read rule.
 
     Full checksum traversal belongs to preparation/readback verification. Serving
@@ -21,7 +21,7 @@ def admitted_sources(run, *, validated_fixture=None):
         from mta.presentation.daily_preparation import source_digest
         source = source_digest(run)
     else:
-        selected, source = validated_fixture if validated_fixture is not None else fixture.binding()
+        selected, source = fixture.binding()
         if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or selected.pk != run.pk
                 or str(run.business_date) != '2026-04-07'):
             raise PublicationUnavailable('planning_sources_wrong_fixture')

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import VFButton from "../../../../components/VectorFLOW/commons/VFButton";
 import { useUserData } from "../../../../context"
 import * as globalStyles from '../../../../styles/global'
+import useGetlastRunData from "../../../../hooks/useGetLastRunData";
 import { Skeleton } from "../../../../components/commons/styled";
 import { LastRunDateHeader } from "../../../../VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/Planning/ActionToolBar/styles";
 import MTAVFMultiFilter from "../../../../VectorFlow/Pages/MTA/Common/MTAVFMultiFilter";
@@ -11,7 +12,6 @@ import MTAVFMultiFilter from "../../../../VectorFlow/Pages/MTA/Common/MTAVFMulti
 
 
 interface CountProp {
-    businessDate?: string;
     childMonitorCount: number;
     parentMonitorCount: number;
     childExpediteCount: number;
@@ -53,7 +53,7 @@ const SelectCategory = (props: CountProp) => {
     } = props;
 
 
-    const formattedDate = props.businessDate || 'Loading';
+    const {date:formattedDate} = useGetlastRunData()
 
     const [isFilterOpen, toggleFilter] = useState<boolean>(false)
 

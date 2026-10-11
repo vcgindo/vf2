@@ -79,7 +79,6 @@ urlpatterns = [
     path('ChronicUnavailabilitySku', partial(views.insight_data, kind='chronic-sku')),
     path('ChronicUnavailabilityGridViewData', partial(views.insight_data, kind='chronic-grid')),
     path('AvailabilityTrend', partial(views.insight_data, kind='availability-trend')),
-    path('ReportReadIdentity', views.report_read_identity),
     path('AvailabilityAgeing', partial(views.insight_data, kind='availability-ageing')),
     path('ExcessInventorySku', partial(views.insight_data, kind='excess-sku')),
     path('ExcessInventoryValue', partial(views.insight_data, kind='excess-value')),

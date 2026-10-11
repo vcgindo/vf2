@@ -567,22 +567,6 @@ def export_data(request, payload):
 
 @endpoint('POST')
 def planning_overview(request, payload):
-    import os
-    if os.environ.get('VF_PLANNING_SUMMARY') == '1':
-        from mta.presentation.planning_summary import admitted, identity_value, counts
-        claimed = payload.pop('_report_read_identity', None)
-        receipt, resolved = admitted(selected_run(), payload)
-        token = identity_value(receipt, payload, identity(request), resolved)
-        if claimed is not None and claimed != token:
-            return JsonResponse({'error': 'report_read_identity_changed'}, status=409)
-        response = envelope(data=counts(receipt, resolved), message='')
-        response['X-Planning-Business-Date'] = receipt.business_date.isoformat()
-        response['X-Planning-Identity'] = token
-        return response
-    return planning_overview_reference(request, payload)
-
-
-def planning_overview_reference(request, payload):
     from mta.presentation.daily_planning_extension import enabled
     if enabled(selected_run()):
         from mta.presentation.daily_planning.dispatch import read
@@ -899,14 +883,3 @@ def insight_data(request, payload, *, kind):
                                        preserve_join_multiplicity=True))
         values = insights.project(rows, kind)
     return envelope(data=insight_payload(values, kind))
-
-
-@endpoint('POST')
-def report_read_identity(request,payload):
-    if payload.pop('report', None) == 'planning':
-        from mta.presentation.planning_summary import admitted, identity_value
-        receipt, resolved = admitted(selected_run(), payload)
-        return envelope(data=dict(identity=identity_value(receipt,payload,identity(request),resolved),
-            businessDate=receipt.business_date.isoformat()))
-    from mta.presentation.report_cache import read_identity
-    return envelope(data={'identity':read_identity(selected_run(),payload,identity(request))})
