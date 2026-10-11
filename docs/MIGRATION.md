@@ -1,5 +1,21 @@
 # Fresh VectorFLOW migration — current baseline
 
+### DBM I2/I3 pair-index assessment — CLOSED, neither recommended (11 October 2026)
+
+Actual fixture dispatch and unchanged scoped queries verified. Nine normal reads
+(one instrumented endpoint plus two private HTTP per case) and four explicit
+additional plans only. Broad/SKU-filter each load11158 pairs; restricted1036.
+Display filtering happens after pair loading. Restricted optimistic eliminate-all
+lookup ceilings: I2 7.02%, I3 12.49%; filtered I2 9.60%, I3 17.92%. Actual benefit
+unproved. Recommend neither index; no trial or query rewrite authorized here.
+A probe matcher failed after broad requests: SQL evidence retained, broad wall
+and assembly timings lost; no request rerun. This limits broad attribution.
+Remaining two cases have exact within-case response equality. No index, ANALYZE,
+service, source or schema mutation. Source binding unchanged. Full evidence and
+limitations: docs/DBM_PAIR_INDEX_ASSESSMENT.md; external dbm-pair-index-assessment-
+20261011-001. BPR I1 remains rejected, MDM paused; finite assessment stopped.
+
+
 ### BPR I1 page-order index trial — CLOSED, rejected (11 October 2026)
 
 The single released candidate was built concurrently once, measured with three
