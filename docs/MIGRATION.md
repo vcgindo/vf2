@@ -1,5 +1,21 @@
 # Fresh VectorFLOW migration — current baseline
 
+### BPR I1 page-order index trial — CLOSED, rejected (11 October 2026)
+
+The single released candidate was built concurrently once, measured with three
+before/after actual scoped SQL/API observations per selected case, then dropped.
+Default workload remained5,000; retained selective SKU and page2 also used5,000.
+No after-plan used the candidate; default SQL median842.362→692.748ms improved
+17.76%, below the20% gate. Apparent timing gains are not attributable index wins.
+All9 complete API bodies and broad/restricted/denied count/row checks matched.
+Exact owned candidate rollback verified absence, original index catalogue and
+unchanged fixture binding/seals. No migration/model/index remains to deploy.
+See docs/BPR_I1_INDEX_TRIAL.md for API boundary, samples and qualifications;
+evidence D:/freshvcf-build/evidence/bpr-i1-index-20261011-001. I1 finite delivery
+is complete as a rejected trial. MDM paused; no I2/I3, other removal, query
+rewrite, business-day call, restart or browser campaign authorized or performed.
+
+
 Baseline date: 6 October 2026. Location/SKU–Location combined delivery is verified
 below; the commit containing this entry is its closure checkpoint. SKU `0b04411` is pushed and human
 UI-accepted. BOR-OA `b5ee354` and earlier accepted reports remain protected.
