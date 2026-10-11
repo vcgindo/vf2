@@ -567,6 +567,13 @@ def export_data(request, payload):
 
 @endpoint('POST')
 def planning_overview(request, payload):
+    import os
+    if os.environ.get('VF_PLANNING_SUMMARY') == '1':
+        from mta.presentation.planning_summary import read
+        values, business_date = read(selected_run(), payload)
+        return JsonResponse(dict(recordCount=None, data=values, status=200, msg='',
+            errorCount=None, error=None, conflictErrorCount=None, conflictError=None,
+            businessDate=business_date))
     from mta.presentation.daily_planning_extension import enabled
     if enabled(selected_run()):
         from mta.presentation.daily_planning.dispatch import read

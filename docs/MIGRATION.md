@@ -1,4 +1,43 @@
 # Fresh VectorFLOW migration — current baseline
+### Planning simple rebuild — DELIVERED WITH UNMET PERFORMANCE TARGET (11 October 2026)
+
+Latest direct human instruction supersedes both prior Planning designs. Restore
+pre70bc43f source/image boundary744cb2522c9856c60b40276c9933e1695578add3 selectively;
+preserve unrelated dirty work, all evidence and inert additive database rows.
+Baseline images restored and ready; selected/auth/MTO/config/resource protection
+verified. The rebuilt authenticated GetPlanningDataCount response delivers
+ten exact scoped counts plus businessDate; direct card/date rendering, no separate
+identity/date request or frontend cache/revision orchestration. Reuse retained
+count contracts and existing screen observations; finish only bounded missing
+browser samples and affected correctness checks. One normal scoped reversal and
+one cohesive rebuilt delivery commit/push, then stop. Daily runtime remains
+UNPROVED/deferred. MIGRATION is the only status tracker.
+
+Simple reader proof passes exact broad/restricted/denied/overlap counts and date,
+plus changed-source/recipe and unknown-scope denial. No day calls or state writes.
+Frontend build and seven focused tests pass (initial test-process failure from
+unmocked asynchronous config calls retained, corrected mocks pass). Required
+mainstream daily summary population is now wired through prepare_daily_ui after
+base reporting preparation, with serving readiness requiring the matching summary.
+Six command/idempotency/failure/readiness unit checks pass; actual accepted daily
+runtime proof remains UNPROVED because freshvcf-complete001/fresh_complete and
+its volume are absent. No restoration or new day authorized or performed.
+Existing schema check/makemigrations check/empty migration plan and PostgreSQL
+guard verification pass. Final3005 overlay planning-simple-20261011-002 is ready
+with unchanged admission5c90ae58…bf3e7 and BPR5000. Three entry/return journeys
+per actor render exact cards/date; logs prove one summary request per entry and
+return, zero identity/date calls. Consecutive returns are also tested.
+
+The50% full-screen target is NOT MET. Before→after median seconds: broad entry
+4.580→2.353 (48.6% improvement), broad return2.619→3.793, restricted entry
+3.166→4.211, restricted return3.522→4.110. Preserve differing before-image and
+first-navigation qualifications, observer overhead and expired-session failure.
+No wider performance campaign, daily facility restoration or calculation is
+authorized. Finite delivery stops with these exact limits; no production-daily
+acceptance or performance success claim. Governing design/operator command and
+rollback are in docs/PLANNING_SIMPLE_DELIVERY.md; raw proof is under
+D:/freshvcf-build/evidence/planning-screen-20261011-001.
+
 
 ### DBM I2/I3 pair-index assessment — CLOSED, neither recommended (11 October 2026)
 

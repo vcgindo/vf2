@@ -132,11 +132,11 @@ def history_scope_rows(run,path,code,*,metadata):
                 for row in cur.fetchall()]
 
 
-def bpr_ancillary(run):
+def bpr_ancillary(run, *, validated_fixture=None):
     """Two explicit native ancillary bags from sealed, frozen typed staging."""
     from datetime import date,datetime
     from decimal import Decimal
-    selected,_=binding()
+    selected,_=validated_fixture if validated_fixture is not None else binding()
     if run.pk!=selected.pk:unavailable('ancillary_run_changed')
     populations={
         'InTransitData':('Demo_Importer_1','SKUCode WhCode ParentWhCode CurrentLocationCode LRCode OrderNo CreationDate GateOutDate InTransitQty TransporterCode Ageing ETA TLT SLT Remark ReportDate'.split()),

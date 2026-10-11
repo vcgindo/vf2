@@ -134,6 +134,7 @@ const Planning = () => {
                 isSelectCategoryOpen &&
                 <div style={{zoom:'var(--default-zoom)'}}>
                     <SelectCategory
+                        businessDate={lastRunDate}
                         childMonitorCount={initialPlanningCount?.childMonitorCount}
                         parentMonitorCount={initialPlanningCount?.parentMonitorCount}
                         childExpediteCount={initialPlanningCount?.childExpediteCount}

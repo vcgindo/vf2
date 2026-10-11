@@ -1286,3 +1286,6 @@ from mta.runtime.mdm_phase_controls_models import (MdmPhaseControlsOwner,
 from mta.runtime.mdm_integration_models import MdmSourceIntegration
 from mta.runtime.mdm_target_fixture_models import (MdmTargetFixture,
     MdmFixturePhaseOut, MdmFixturePhaseIn, MdmFixturePhaseMap, MdmFixtureSeasonStatus)
+
+from mta.runtime.planning_summary_models import (PlanningSummaryReceipt,
+    PlanningSummaryContribution, PlanningSummaryAttempt)

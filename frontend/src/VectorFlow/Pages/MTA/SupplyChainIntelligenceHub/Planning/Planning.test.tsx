@@ -44,6 +44,13 @@ jest.mock("ag-charts-react", () => ({
 }));
 
 jest.mock("../../../../Services/MTA/SupplyChainIntelligenceHub/Planning");
+jest.mock("../../../../Services/MTA/Common/UIConfig", () => ({
+    useGetUIConfigData: () => ({ mutateAsync: async () => ({ data: { data: [] } }) }),
+}));
+jest.mock("../../../../Services/MTA/SupplyChainIntelligenceHub/BPR", () => ({
+    ...jest.requireActual("../../../../Services/MTA/SupplyChainIntelligenceHub/BPR"),
+    useGetLocationTypes: () => ({ data: { data: [] }, isLoading: false }),
+}));
 
 const useGetPlanningDataGridCountMock = useGetPlanningDataGridCount as jest.MockedFunction<
     typeof useGetPlanningDataGridCount
@@ -69,7 +76,7 @@ const useuseGetPlanningDataGridCountMockData:any = {
 
 const useGetPlanningDataCountMockData: any = {
     mutateAsync: () => {
-        return { data: getPlanningDataCountMockData };
+        return { data: { ...getPlanningDataCountMockData, businessDate: '2026-04-07' } };
     },
 };
 
@@ -112,9 +119,27 @@ describe("Planning Quadrant", () => {
         })
     });
 
-    it("Renders Select Category Planning Quadrant", () => {
+    it("renders the date from the same count response", async () => {
         render(contextWrapper(<Planning/>,store));
+        expect(await screen.findByText('07 Apr 2026')).toBeInTheDocument();
     })
+
+    it("requests one fresh summary on each consecutive quadrant return", async () => {
+        const fetchCount = jest.fn().mockResolvedValue({
+            data: { ...getPlanningDataCountMockData, businessDate: '2026-04-07' },
+        });
+        useGetPlanningDataCountMock.mockImplementation(() => ({ mutateAsync: fetchCount } as any));
+        useGetPlanningDataGraphMock.mockImplementation(() => useGetPlanningDataGraphMockData(ExcessInventoryMockData));
+        render(contextWrapper(<Planning/>, store));
+        await screen.findByText('07 Apr 2026');
+        expect(fetchCount).toHaveBeenCalledTimes(1);
+        for (let count = 2; count <= 3; count += 1) {
+            await act(async () => { fireEvent.click(screen.getAllByText('Review')[0]); });
+            await act(async () => { fireEvent.click(await screen.findByText('Go Back')); });
+            await screen.findByText('07 Apr 2026');
+            expect(fetchCount).toHaveBeenCalledTimes(count);
+        }
+    });
 
     it("releases the blocking loader when planning counts are unavailable", async () => {
         let rejectCount: (error: Error) => void = () => {};

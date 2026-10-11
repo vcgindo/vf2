@@ -78,6 +78,8 @@ def selected_run():
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_publication import require_ready
         require_ready(run)
+        from mta.presentation.planning_summary_daily import require_ready as require_summary
+        require_summary(run)
     return run
 
 

@@ -20,7 +20,6 @@ import { GridRef } from "../../../../../VectorFlow/types/MDM";
 import { useGetUIConfigData } from "../../../../../VectorFlow/Services/MTA/Common/UIConfig";
 import { UIColumnConfigName } from "../../../../../helpers/Enum";
 import _ from "lodash";
-import useGetLastRunData from "../../../../../hooks/useGetLastRunData"
 
 const usePlanning = ()=>{
 
@@ -50,7 +49,9 @@ const usePlanning = ()=>{
 
     const [isSelectCategoryOpen,setIsSelectCategoryOpen] = useState(true);
 
-    const { date: lastRunDate } = useGetLastRunData();
+    const [lastRunDate, setLastRunDate] = useState<string>('');
+    const summaryRequest = useRef(0);
+    useEffect(() => () => { summaryRequest.current += 1; }, []);
     const {mutateAsync:getPlanningDataCount} = useGetPlanningDataCount();
 
     const {mutateAsync:getPlanningDataGraph} = useGetPlanningDataGraph();
@@ -83,7 +84,7 @@ const usePlanning = ()=>{
 
     const [totalRows,setTotalRows] = useState<number>(0);
 
-    const [goBack,setGoBack] = useState<boolean>(false);
+    const [goBack,setGoBack] = useState<number>(0);
 
     // const [currentGridState,setCurrentGridState] = useState<any>()
 
@@ -482,9 +483,16 @@ const usePlanning = ()=>{
     }
     const [initialPlanningCount, setInitialPlanningCount] = useState<any>();
     const fetchPlanningDataCount = async (filter?:any) => {
+        const request = ++summaryRequest.current;
         setIsOverlayVisible(true);
+        setLastRunDate('');
         try {
             const result = await getPlanningDataCount({...filter});
+            if (request !== summaryRequest.current) return;
+            const date = result.data.businessDate;
+            if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                throw new Error('Planning summary date is unavailable');
+            }
             const data = result.data.data;
             const tempPlanningCount = {...initialPlanningCounts};
             data?.forEach((planningCategoryObj:PlanningCategory) => {
@@ -509,13 +517,17 @@ const usePlanning = ()=>{
             });
             setInitialPlanningCount(_.cloneDeep(tempPlanningCount));
             setPlanningCounts(tempPlanningCount);
+            setLastRunDate(new Date(date + 'T00:00:00').toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            }));
             setFulfillmentError(null);
         } catch (error) {
+            if (request !== summaryRequest.current) return;
             console.error(error);
             setFulfillmentError(fulfillmentFailureMessage(error));
             notifyError('Planning counts could not be loaded');
         } finally {
-            setIsOverlayVisible(false);
+            if (request === summaryRequest.current) setIsOverlayVisible(false);
         }
     }
     
@@ -1068,7 +1080,7 @@ const usePlanning = ()=>{
         setCurrentView('');
         setCurrentTab('');
         setCurrentPage(1);
-        setGoBack(true);
+        setGoBack(value => value + 1);
         toast.dismiss();
     }
 
