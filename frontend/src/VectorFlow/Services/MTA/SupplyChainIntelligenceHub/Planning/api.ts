@@ -2,6 +2,10 @@
 import axios from 'axios'
 
 export namespace PlanningService {
+    export const getSummaryIdentity = (body:any) => axios.post(
+        process.env.REACT_APP_API_HOST + 'api/mta/ReportReadIdentity',
+        { ...body, report: 'planning' }, { headers: { 'Content-Type': 'application/json' } });
+
 
     export const getPlanningDataCount = async (body:any) => {
         return axios.post(process.env.REACT_APP_API_HOST + `api/mta/GetPlanningDataCount`,body,{

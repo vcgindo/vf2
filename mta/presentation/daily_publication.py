@@ -179,3 +179,17 @@ def require_ready(run, *, verify_rows=False):
         if not generation or settings.VF_BTR_REPORTING_GENERATION != generation:
             raise PublicationUnavailable('daily_ui_btr_generation_selection_mismatch')
     return publication
+
+
+def prepare_reporting_generation(run_id, *, expected_output_digest):
+    """Append summary after the existing sealed roster; never rewrite its seal.
+
+    The old coordinator recipe hashes prepare(), not this supplemental step.
+    A failed summary leaves the base receipt/selection unchanged and is not READY.
+    """
+    publication = prepare(run_id, expected_output_digest=expected_output_digest)
+    if publication.status != 'READY':
+        raise PublicationUnavailable('planning_summary_requires_ready_report_layers')
+    from mta.presentation.planning_summary import prepare as prepare_summary
+    summary = prepare_summary(publication.run)
+    return publication, summary

@@ -9,7 +9,7 @@ from mta.runtime.planning_expedite_grid_schema import verify_guards
 from mta.runtime.relational_state import quote
 
 
-def admitted_expedite_grids(run):
+def admitted_expedite_grids(run, *, validated_fixture=None):
     """Resolve one request's source binding using the established sealed-read rule.
 
     Full checksum traversal belongs to preparation/readback verification. Serving
@@ -21,7 +21,7 @@ def admitted_expedite_grids(run):
         from mta.presentation.daily_preparation import source_digest
         source = source_digest(run)
     else:
-        selected, source = fixture.binding()
+        selected, source = validated_fixture if validated_fixture is not None else fixture.binding()
         if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or selected.pk != run.pk
                 or str(run.business_date) != '2026-04-07'):
             raise PublicationUnavailable('planning_expedite_grid_wrong_fixture')

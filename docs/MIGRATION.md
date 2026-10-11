@@ -1,4 +1,38 @@
 # Fresh VectorFLOW migration — current baseline
+### Planning summary — qualified fixture delivery; daily runtime UNPROVED (11 October 2026)
+
+Human release in PLANNING_SUMMARY_PREPARATION_AND_REUSE_PLAN.md supersedes the
+closed index-assessment objective only. S1 contribution contract and S2 selected
+fixture preparation are proved: all ten counts match four scope cases; 50,061
+typed rows,10.985s preparation,19,398,656bytes. Injected rollback/idempotency,
+native scope/NULL/duplicate/overflow/immutability and affected migration proofs
+pass. S3 implementation and eight Python/four frontend contract tests pass.
+Finite fixture implementation, deployment and browser proof complete; final
+cohesive commit/push is the delivery boundary. This is not full S1–S4 acceptance.
+Original-directory baseline build exactly matched the serving asset manifest;
+the separate-directory mismatch and harness failure remain preserved. Backend
+candidate004 is deployed on3005 with unchanged selection, admission digest and
+protected runtimes. Six corrected API bodies exactly match baseline; medians
+3.5291→1.4553s broad and4.0226→1.3192s restricted pass the50% reduction target.
+First broad target failure led to a measured call-local binding correction;
+all receipt/recipe/guard checks remain. Both generations and failures are retained.
+First browser proof found the gateway strips the date header; deployed frontend
+002 derives the selector date from the validated identity body. Broad and
+restricted each pass one Planning→GIT From Parent→return journey: all four cards
+and07-Apr-2026 date correct; exactly one summary-count request and two current
+identity checks per journey, zero summary recount on return. Nine backend and
+ten affected frontend tests pass. Original failures remain. Rollback images,
+environment, mounts and limits verified by preflight; rollback not executed.
+Actual accepted-daily runtime proof is unavailable: the formerly owned
+freshvcf-complete001 database/container/volume is absent. Coordinator unit
+sequencing is not daily runtime acceptance. Preserve this explicit proof gap;
+no source restore/substitution or new day is authorized. No further work follows
+the commit/push under this finite release. See
+docs/PLANNING_SUMMARY_DELIVERY.md and planning-summary-20261011-001 evidence.
+No engine/day call, source/grant change, unrelated reader deployment or MDM
+resume. Existing serving foundation and selected fixture remain authoritative;
+unrelated dirty work is excluded. One cohesive delivery commit/push at S4 exit.
+
 
 ### DBM I2/I3 pair-index assessment — CLOSED, neither recommended (11 October 2026)
 

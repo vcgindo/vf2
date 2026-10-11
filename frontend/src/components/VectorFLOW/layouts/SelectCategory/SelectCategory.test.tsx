@@ -8,9 +8,8 @@ import { setupReactQuery } from "../../../../config/react-query-config";
 import { UserDataContext } from "../../../../context";
 import SelectCategory from ".";
 
-jest.mock("../../../../hooks/useGetLastRunData", () => () => ({ date: "19 Sep 2026" }));
-
 const dummyProps = {
+  businessDate: "19 Sep 2026",
   childMonitorCount: 100,
   parentMonitorCount: 100,
   childExpediteCount: 100,

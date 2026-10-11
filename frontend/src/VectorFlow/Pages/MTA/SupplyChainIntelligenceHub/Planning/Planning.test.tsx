@@ -69,7 +69,7 @@ const useuseGetPlanningDataGridCountMockData:any = {
 
 const useGetPlanningDataCountMockData: any = {
     mutateAsync: () => {
-        return { data: getPlanningDataCountMockData };
+        return { data: getPlanningDataCountMockData, headers: { 'x-planning-business-date': '2026-04-07' } };
     },
 };
 
