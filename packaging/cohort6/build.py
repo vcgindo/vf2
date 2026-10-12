@@ -36,7 +36,7 @@ def main():
     rows=[]
     for name in output('git','ls-tree','-r','--name-only',source,'--',*ROOTS).decode().splitlines():
         raw=output('git','show',source+':'+name)
-        target=name.replace('user-service/api_gateway/','api_gateway/',1)
+        target=name.removeprefix('user-service/')
         path=context/'app'/target;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(raw)
         rows.append(dict(path='/app/'+target,sha256=hashlib.sha256(raw).hexdigest()))
     (context/'source-manifest.json').write_text(json.dumps(rows,indent=2),encoding='utf-8')

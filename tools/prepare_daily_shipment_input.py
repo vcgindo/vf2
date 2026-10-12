@@ -10,6 +10,7 @@ recorded for convention ``fresh-ten-pair-daily-shipment-input-v1``.
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
 from datetime import date
 import hashlib
 import json
@@ -23,7 +24,7 @@ if str(ROOT) not in sys.path:
 from mta.application.daily_transit import RAW_FIELDS
 from mta.presentation.daily_shipment_input import (
     CONVENTION, OUTPUT_SCHEMA, PARENT_SHA256, RAW_SCHEMA, SOURCE_SHA256,
-    validate_supplement,
+    APPROVAL_SOURCE_SHA256, APPROVAL_CONVENTION, APPROVAL_OUTPUT_SCHEMA, validate_supplement,
 )
 from mta.serialization import digest
 from parity.temporal_ledger import validate as validate_ledger
@@ -35,6 +36,7 @@ SOURCE = Path(
 )
 REDUCTION_RECEIPT = SOURCE.with_name("ten-pair-reduction-v1.json")
 REDUCTION_RECEIPT_SHA256 = "2991f82c0caa452c8a83fbdfc5e80f730c794303b01985a104cff73370d0541b"
+APPROVAL_REDUCTION_SHA256 = '9040342fe26170beaf4d9fa0839a2ad6ecc11157d586ebb30c310240a70750b7'
 RECEIPT_SCHEMA = "fresh-ten-pair-shipment-input-receipt-v1"
 LEDGER_FIELDS = (
     "SKUCode", "WhCode", "dispatch_date", "git_duration_days", "quantity",
@@ -57,6 +59,22 @@ def _transporter_index(shipment_id: str, count: int) -> int:
 
 
 def _source_contract(source_raw: bytes, reduction_raw: bytes):
+    if _sha256(source_raw) == APPROVAL_SOURCE_SHA256:
+        _require(_sha256(reduction_raw) == APPROVAL_REDUCTION_SHA256,
+                 'Approved MDM reduction receipt identity differs')
+        source, reduction = json.loads(source_raw), json.loads(reduction_raw)
+        # The reduction receipt describes the preserved pre-amendment package.
+        # Strip only the separately approved initial-NMS delta when checking it.
+        base = deepcopy(source)
+        amendment = base['derivative_provenance'].pop('initial_nms_owner')
+        _require(amendment['base_artifact_sha256'] ==
+                 '7586426e7b061499e17d5d89d73c33b77c89d8c5671ffa65b3f929c9a536f100'
+                 and digest(base['case']['opening']['consumer_context']['NMSAllItems']) ==
+                 amendment['output_digest'], 'Approved initial NMS amendment differs')
+        base['case']['opening']['consumer_context']['NMSAllItems'] = []
+        _require(digest(base) == reduction['derivative_payload_digest'],
+                 'Approved MDM reduction payload differs')
+        return source
     _require(_sha256(source_raw) == SOURCE_SHA256,
              "Registered ten-pair artifact identity differs")
     _require(_sha256(reduction_raw) == REDUCTION_RECEIPT_SHA256,
@@ -76,9 +94,9 @@ def _source_contract(source_raw: bytes, reduction_raw: bytes):
     return source
 
 
-def _catalogue(case):
+def _catalogue(case, expected_count=10):
     rows = case["static_day"]["raw_master"]
-    _require(isinstance(rows, list) and len(rows) == 10,
+    _require(isinstance(rows, list) and len(rows) == expected_count,
              "Ten-pair current catalogue population differs")
     parents = {}
     for row in rows:
@@ -143,10 +161,15 @@ def build_derivative(source_raw: bytes, reduction_raw: bytes, *, generator_sha25
     _require(isinstance(generator_sha256, str) and len(generator_sha256) == 64,
              "Generator SHA256 is required")
     source = _source_contract(source_raw, reduction_raw)
+    source_sha = _sha256(source_raw)
+    active = source_sha == APPROVAL_SOURCE_SHA256
+    convention = APPROVAL_CONVENTION if active else CONVENTION
+    output_schema = APPROVAL_OUTPUT_SCHEMA if active else OUTPUT_SCHEMA
+    reduction_sha = APPROVAL_REDUCTION_SHA256 if active else REDUCTION_RECEIPT_SHA256
     # This also proves that adding metadata never repairs or replaces the ledger.
     ledger_validation = validate_ledger(source)
     case = source["case"]
-    catalogue, parent_projection, parents = _catalogue(case)
+    catalogue, parent_projection, parents = _catalogue(case, 20 if active else 10)
     directory, transporter_codes = _directory(case)
     shipments = case["external_fact_ledger"]["shipments"]
     _require(isinstance(shipments, list), "Shipment ledger must be a list")
@@ -157,17 +180,21 @@ def build_derivative(source_raw: bytes, reduction_raw: bytes, *, generator_sha25
                  "Shipment quantity must be a positive integer")
         _require(isinstance(shipment["shipment_id"], str)
                  and shipment["shipment_id"], "Shipment ID is required")
-    days = case["days"]
-    _require(len(days) == 12, "Approved shipment supplement requires twelve days")
+    _require(len(case['days']) == 12, "Retained conserved source horizon differs")
+    days = case['days'][:3] if active else case['days']
+    if active:
+        _require([day['business_date'] for day in days] ==
+                 ['2026-06-06', '2026-06-07', '2026-06-08'],
+                 "Approved shipment execution dates differ")
     _require(all("shipment_input" not in day for day in days),
              "Source already contains shipment input")
 
     common = {
-        "schema": "fresh-ten-pair-shipment-input-provenance-v1",
-        "convention": CONVENTION,
-        "source_artifact_sha256": SOURCE_SHA256,
+        "schema": 'fresh-mdm-approval-day-shipment-provenance-v1' if active else "fresh-ten-pair-shipment-input-provenance-v1",
+        "convention": convention,
+        "source_artifact_sha256": source_sha,
         "parent_artifact_sha256": PARENT_SHA256,
-        "reduction_receipt_sha256": REDUCTION_RECEIPT_SHA256,
+        "reduction_receipt_sha256": reduction_sha,
         "generator_sha256": generator_sha256,
         "catalogue_path": "case/static_day/raw_master",
         "catalogue_count": len(catalogue),
@@ -224,8 +251,8 @@ def build_derivative(source_raw: bytes, reduction_raw: bytes, *, generator_sha25
         daily.append(reconciliation)
 
     derivative = {
-        "schema": OUTPUT_SCHEMA,
-        "base_artifact_sha256": SOURCE_SHA256,
+        "schema": output_schema,
+        "base_artifact_sha256": source_sha,
         "provenance": {
             **common,
             "daily_reconciliation": daily,
@@ -234,13 +261,13 @@ def build_derivative(source_raw: bytes, reduction_raw: bytes, *, generator_sha25
         },
         "days": supplement_days,
     }
-    validate_supplement(derivative, base_artifact_sha256=SOURCE_SHA256)
+    validate_supplement(derivative, base_artifact_sha256=source_sha)
     receipt = {
-        "schema": RECEIPT_SCHEMA,
-        "convention": CONVENTION,
-        "source_artifact_sha256": SOURCE_SHA256,
+        "schema": 'fresh-mdm-approval-day-shipment-receipt-v1' if active else RECEIPT_SCHEMA,
+        "convention": convention,
+        "source_artifact_sha256": source_sha,
         "parent_artifact_sha256": PARENT_SHA256,
-        "reduction_receipt_sha256": REDUCTION_RECEIPT_SHA256,
+        "reduction_receipt_sha256": reduction_sha,
         "generator_sha256": generator_sha256,
         "catalogue": {
             "path": common["catalogue_path"], "count": len(catalogue),
@@ -284,16 +311,17 @@ def write_derivative(source: Path, reduction_receipt: Path,
         stream.write(encoded)
     with receipt_path.open("xb") as stream:
         stream.write(receipt_bytes)
+    domain = 'twenty-pair three-date MDM' if _sha256(source.read_bytes()) == APPROVAL_SOURCE_SHA256 else 'ten-pair'
     manifest_records = [
         {
             "path": destination.as_posix(),
-            "role": "approved ten-pair immutable daily shipment-input derivative",
+            "role": f"approved {domain} immutable daily shipment-input derivative",
             "sha256": receipt["derivative_file_sha256"],
             "bytes": len(encoded),
         },
         {
             "path": receipt_path.as_posix(),
-            "role": "ten-pair daily shipment-input generation provenance",
+            "role": f"{domain} daily shipment-input generation provenance",
             "sha256": _sha256(receipt_bytes),
             "bytes": len(receipt_bytes),
         },

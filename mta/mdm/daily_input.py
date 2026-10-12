@@ -524,6 +524,25 @@ def _unique(rows, keys, label):
     return clean[0] if clean else None
 
 
+def nms_master_raw(prior):
+    """Canonical NMSImportData initial SELECT, including its explicit NULLs.
+
+    Both bootstrap and successor days read their own NMSAllItems population.
+    Descriptions and pair/custom attributes are populated by later statements;
+    retaining those columns here would bypass the canonical NULL projection.
+    """
+    from mta.application.r1_importer_master import MASTER_COLUMNS, SKU_LEVELS, LOC_LEVELS
+    columns = (*MASTER_COLUMNS, 'ElephantOrderCapping', 'Weight', 'Volume',
+               *SKU_LEVELS, 'LocationType', 'LogisticsLocation', *LOC_LEVELS)
+    result = []
+    for item in prior['consumer_context']['NMSAllItems']:
+        row = dict.fromkeys(RAW_COLUMNS)
+        for name in columns:
+            row[name] = deepcopy(item[name])
+        result.append(row)
+    return result
+
+
 def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS):
     """Apply the qualified MasterDataRaw statements in their native order."""
     result = deepcopy(list(master_rows))

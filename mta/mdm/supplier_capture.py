@@ -82,6 +82,39 @@ def feeds(snapshot):
         moq_format=supplier['moq_format'], locations=location_master(snapshot['rows']['location']))
 
 
+def complete_feeds(snapshot, prior):
+    """Active NMS ClearMasterInputTables followed by the existing NMS importer.
+
+    Bootstrap uses explicitly declared raw/empty queue owners. Later days must
+    match their own persisted raw predecessor before captured decisions apply.
+    """
+    from mta.mdm.supplier_input import RAW, FORMATS
+    if snapshot.get('nms_active') is not True:
+        raise ValueError('Active supplier intake requires an active frozen MDM capture')
+    raw = {name: deepcopy(prior['complete'][name]) for name in RAW}
+    values = [r['Value'] for r in prior['importer_settings']
+              if sql_key(r['Parameter']) == 'nmsmoqinputdataformat']
+    if len(values) != 1 or values[0] not in FORMATS:
+        raise ValueError('Active supplier intake requires one explicit MOQ format')
+    fmt = values[0]
+    if 'supplier' in snapshot:
+        supplier = snapshot['supplier']
+        if (digest({k: v for k, v in supplier.items() if k != 'digest'}) != supplier['digest']
+                or storage(supplier['raw']) != storage(raw) or supplier['moq_format'] != fmt):
+            raise ValueError('Active supplier capture differs from its own raw predecessor')
+        queues = {name: [{k: v for k, v in row.items() if k not in ('id', 'revision')} for row in rows]
+                  for name, rows in supplier['queues'].items()}
+    else:
+        queues = {name: prior['complete'][name] for name in QUEUES}
+        if any(queues.values()):
+            raise ValueError('Uninstalled supplier queues must be explicitly empty')
+    # Canonical ClearMasterInputTables retains the selected raw owner and clears
+    # the opposite format before NMSImportData. It does not reload external SOB.
+    raw['MOQDataRaw2' if fmt == 'WithoutDestLoc' else 'MOQDataRaw1'] = []
+    return compose_supplier_inputs(raw, queues, moq_format=fmt,
+        locations=location_master(snapshot['rows']['location']))
+
+
 def require_format(snapshot, importer_settings):
     """Do not let the API's selected queue format replace the engine setting."""
     if not snapshot['nms_active'] or 'supplier' not in snapshot:
@@ -91,6 +124,25 @@ def require_format(snapshot, importer_settings):
     expected = snapshot['supplier']['moq_format']
     if not values or any(value != expected for value in values):
         raise ValueError('Captured supplier format differs from explicit importer setting')
+
+
+def terminal_raw(output):
+    """Use persisted production raw owners; retain validation compatibility."""
+    if output is None:
+        raise ValueError('Supplier publication requires actual producer output')
+    complete = output.get('ClosingState', [{}])[0].get('complete', {})
+    traces = [stage['tables'] for stage in output.get('SupplierStages', ())
+              if stage['stage'] == 'ResetFlags.sql']
+    if traces and len(traces) != 1:
+        raise ValueError('Exact terminal supplier producer required')
+    if all(name in complete for name in MODELS):
+        raw = {name: complete[name] for name in MODELS}
+        if traces and storage(raw) != storage({name: traces[0][name] for name in MODELS}):
+            raise ValueError('Supplier production closing differs from its validation trace')
+        return raw
+    if complete or len(traces) != 1:
+        raise ValueError('Complete terminal supplier raw owners required')
+    return {name: traces[0][name] for name in MODELS}
 
 
 def finalize(run, snapshot, output):
@@ -104,11 +156,7 @@ def finalize(run, snapshot, output):
     if (current['source_digest'] != supplier['source_digest']
             or current['moq_format'] != supplier['moq_format'] or current['raw'] != supplier['raw']):
         raise ValueError('Captured supplier raw/configuration changed before publication')
-    if output is None:
-        raise ValueError('Supplier publication requires actual producer output')
-    final = [stage['tables'] for stage in output['SupplierStages'] if stage['stage'] == 'ResetFlags.sql']
-    if len(final) != 1:
-        raise ValueError('Exact terminal supplier producer required')
+    final = terminal_raw(output)
     selected = archive_populations(supplier['queues'], moq_format=supplier['moq_format'])
     for name, model in QUEUES.items():
         for ordinal, frozen in enumerate(supplier['queues'][name], 1):
@@ -129,7 +177,7 @@ def finalize(run, snapshot, output):
     for name, model in MODELS.items():
         model.objects.filter(source=source).delete()
         model.objects.bulk_create([model(source=source, ordinal=i, **row)
-            for i, row in enumerate(final[0][name], 1)])
+            for i, row in enumerate(final[name], 1)])
 
 
 def finalize_pending(snapshot, output, *, deferred_tasks=()):
@@ -139,9 +187,7 @@ def finalize_pending(snapshot, output, *, deferred_tasks=()):
     supplier = snapshot['supplier']
     if not supplier['pending']:
         return
-    if output is None:
-        raise ValueError('Supplier pending history requires producer output')
-    final = next(stage['tables'] for stage in output['SupplierStages'] if stage['stage'] == 'ResetFlags.sql')
+    final = terminal_raw(output)
     for item in supplier['pending']:
         if (4 if item['family'] == 'sob' else 5, item['task_id']) in deferred_tasks:
             continue

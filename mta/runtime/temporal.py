@@ -194,6 +194,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if (parent_capture is None or parent_capture.status != 'CONSUMED'
                         or parent_capture.source_id != selected_source_id):
                     raise ValueError('Generic finalization requires its own consumed task source')
+                from mta.application.daily_finalization import ACTIVE_POLICY
+                if finalization['policy'] == ACTIVE_POLICY:
+                    from mta.presentation.operational_admission import verify
+                    verify(parent, selected=False)
             previous=read_outputs(parent)
             if finalization is not None:
                 from mta.application.daily_finalization import verify_successor
@@ -287,17 +291,30 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     task_status_log_horizon=task_horizon)
             from mta.mdm.integration_source import verify_predecessor
             verify_predecessor(configuration_source, parent)
-            # The caller's current full raw feed is the new run's base.  The
-            # predecessor remains immutable and supplies closing state only.
             base_master=raw['day']['raw_master']
+            from mta.application.daily_finalization import ACTIVE_POLICY
+            if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY:
+                from mta.mdm.daily_input import nms_master_raw
+                if capture_snapshot['nms_active'] is not True:
+                    raise ValueError('Active finalization requires active NMS intake')
+                base_master=nms_master_raw(prior)
             if origin_capture is None:
                 capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
             composed=compose(capture_snapshot,base_master,last_run_date=opening_date)
+            if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY:
+                from django.conf import settings
+                from mta.mdm.approval_hierarchy import project
+                composed = project(composed,
+                    path=getattr(settings, 'VF_MDM_APPROVAL_HIERARCHY_FILE', ''),
+                    artifact_sha256=configuration_source.receipt['artifact_sha256'])
             if origin_capture is None:
                 capture_snapshot=capture_pending_conflicts(capture_snapshot,mdm_source,composed)
                 capture_snapshot=capture_prune_candidates(capture_snapshot,mdm_source,today)
             raw['day']['raw_master']=storage(composed)
-            if capture_snapshot['nms_active'] and 'supplier' in capture_snapshot:
+            if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY:
+                from mta.mdm.supplier_capture import complete_feeds
+                raw['day']['supplier_feeds'] = complete_feeds(capture_snapshot, prior)
+            elif capture_snapshot['nms_active'] and 'supplier' in capture_snapshot:
                 from mta.mdm.supplier_capture import feeds as supplier_feeds, require_format
                 require_format(capture_snapshot, prior['importer_settings'])
                 raw['day']['supplier_feeds'] = supplier_feeds(capture_snapshot)

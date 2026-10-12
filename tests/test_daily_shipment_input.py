@@ -11,6 +11,28 @@ from tools import prepare_daily_shipment_input as generator
 
 
 class DailyShipmentInputTests(unittest.TestCase):
+    def test_approved_mdm_amendment_retains_ledger_but_exports_only_three_dates(self):
+        root = Path('D:/freshvcf-build/evidence/mdm-approval-day-20261010-001')
+        raw = (root / 'mdm-approval-day-input-initial-nms-v1.json').read_bytes()
+        source = json.loads(raw)
+        supplement, receipt = generator.build_derivative(raw,
+            (root / 'mdm-approval-day-reduction-v1.json').read_bytes(),
+            generator_sha256='1'*64)
+        self.assertEqual(len(source['case']['days']), 12)
+        self.assertEqual([d['business_date'] for d in supplement['days']],
+                         ['2026-06-06', '2026-06-07', '2026-06-08'])
+        self.assertEqual(receipt['ledger_validation'], validate_ledger(source))
+        for day in supplement['days']:
+            expected = [s for s in source['case']['external_fact_ledger']['shipments']
+                        if s['dispatch_date'] <= day['business_date'] < s['receipt_date']]
+            actual = day['shipment_input']['rows']
+            self.assertEqual([(r['SKUCode'], r['ToLocationCode'], r['OrderNo'], r['InTransitQty'])
+                              for r in actual],
+                             [(r['SKUCode'], r['WhCode'], r['shipment_id'], r['quantity'])
+                              for r in expected])
+        runtime.validate_supplement(supplement,
+                                   base_artifact_sha256=generator.APPROVAL_SOURCE_SHA256)
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

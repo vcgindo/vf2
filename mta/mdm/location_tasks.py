@@ -87,7 +87,8 @@ def submit(source,payload,actor,action):
     names=[ALIASES[k] for k in keys]
     permissions=payload.get('location_permissions') or []
     catalogue=permission_catalogue()['locations']['records']
-    levels=[tuple(p['level_'+str(i)].lower().strip() for i in range(1,4)) for p in catalogue if p['id'] in permissions]
+    levels=[tuple(p['level_'+str(i)].lower().strip() for i in range(1,4)) for p in catalogue
+            if p['id'] in permissions and all(p['level_'+str(i)] is not None for i in range(1,4))]
     existing=set(MdmLocationAttributes.objects.filter(source=source,owner='Importer').values_list('WHCode',flat=True))
     errors=[]
     if action==3:

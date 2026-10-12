@@ -74,6 +74,19 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
                 raise ValueError('Cohort1 task source was not consumed')
             complete = output['ClosingState'][0]['complete']
             mark(complete, 'NMSTaskStatusUpdate.sql')
+            from mta.application.daily_finalization import ACTIVE_POLICY, finish
+            if cohort['policy'] == ACTIVE_POLICY:
+                captured = MdmDailyInputCapture.objects.get(run=run, status='CONSUMED')
+                if not captured.nms_active:
+                    raise ValueError('Active completion requires its consumed NMS input')
+                # Only after actual capture composition and atomic native archive/
+                # clear/task writers, never from a requested or missing source.
+                mark(complete, 'NMSImportData.sql', 'NMSArchiveInputData.sql', 'NMSClearInputTables.sql')
+                closing = output['ClosingState'][0]
+                closing['importer_settings'] = finish(complete, closing['importer_settings'],
+                    run.business_date.isoformat(), policy=ACTIVE_POLICY)
+                from mta.mdm.daily_current import publish as publish_mdm_current
+                publish_mdm_current(run, captured, closing)
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
         # Keep one atomic publication, but serialize/write one checkpoint at
         # a time rather than retaining a second whole temporal output graph.

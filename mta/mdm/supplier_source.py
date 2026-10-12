@@ -33,6 +33,43 @@ def require_installed(source, master_id):
             or family.digest != digest(family.receipt)
             or family.receipt.get('installation_digest') != config.receipt_digest):
         raise ValueError('Supplier application installation identity differs')
+    from mta.mdm.integration_source import DAILY_OWNER_SCHEMA, verify_owner_anchor
+    if config.provenance.get('schema') == DAILY_OWNER_SCHEMA:
+        verify_owner_anchor(source, config.provenance)
+        if (config.provenance.get('family') != 'supplier'
+                or family.receipt.get('closing_binding_digest') != digest(config.provenance)):
+            raise ValueError('Supplier accepted closing provenance differs')
+    return config
+
+
+@transaction.atomic
+def bind(source, run):
+    """Install the three typed raw bags from this source's actual daily closing."""
+    from mta.mdm.integration_source import accepted_closing
+    from mta.serialization import storage
+    source, closing, p = accepted_closing(source, run, (4, 5))
+    # Complete daily production persists these raw owners, not merely processed SOB/MOQ.
+    raw = {name: closing['complete'][name] for name in MODELS}
+    settings = closing['importer_settings']
+    def setting(name):
+        values = [r['Value'] for r in settings if r['Parameter'] == name]
+        if len(values) != 1:
+            raise ValueError('Supplier accepted closing requires one explicit ' + name)
+        return values[0]
+    moq_format, active = setting('NMSMOQInputDataFormat'), setting('ActivateNMSUIUploadLogs')
+    if str(active) not in ('0', '1'):
+        raise ValueError('Supplier accepted closing upload log flag differs')
+    p.update(family='supplier', raw_digests={name: digest(rows) for name, rows in raw.items()})
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.supplier_closing_bind',%s,true)", [f'{source.pk}:{run.pk}'])
+    config = install(source, raw, moq_format=moq_format, upload_log_active=str(active) == '1', provenance=p)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.supplier_closing_bind','',true)")
+    for name, model in MODELS.items():
+        fields = [f.name for f in model._meta.fields if f.name not in ('id', 'source', 'ordinal')]
+        actual = list(model.objects.filter(source=source).order_by('ordinal').values(*fields))
+        if storage(actual) != storage(raw[name]):
+            raise ValueError('Supplier accepted closing typed readback differs: ' + name)
     return config
 
 
@@ -91,6 +128,11 @@ def install(source, raw, *, moq_format, upload_log_active, provenance):
         receipt = dict(schema=SCHEMA, dll_sha256=DLL, configuration=CONFIGURATION,
                        installation_digest=installation, master_id=master_id,
                        moq_format=moq_format, upload_log_active=upload_log_active)
+        from mta.mdm.integration_source import DAILY_OWNER_SCHEMA
+        if provenance.get('schema') == DAILY_OWNER_SCHEMA:
+            receipt['closing_binding_digest'] = digest(provenance)
         MdmFamilySource.objects.create(source=source, master_id=master_id,
                                        digest=digest(receipt), receipt=receipt)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_supplier_bootstrap','',true)")
     return config

@@ -30,7 +30,7 @@ def _expected_installation(artifact):
     return batches, families
 
 
-def _verify_installed_owners(source, artifact):
+def _verify_installed_owners(source, artifact, run=None):
     try:
         batches, expected_families = _expected_installation(artifact)
     except (KeyError, TypeError, ValueError) as exc:
@@ -42,6 +42,12 @@ def _verify_installed_owners(source, artifact):
              'MDM source artifact schema differs')
     _require(receipt.get('families') == expected_families,
              'MDM installed owner receipt differs from the exact artifact')
+
+    from mta.mdm.daily_source import APPROVAL_DAY_ARTIFACT_SHA
+    if receipt.get('artifact_sha256') == APPROVAL_DAY_ARTIFACT_SHA:
+        _require(run is not None, 'Active current verification requires its run')
+        from mta.mdm.daily_current import verify_published
+        return expected_families, verify_published(run, source)
 
     readback = []
     for family, model, kwargs, expected, path in batches:
@@ -228,7 +234,7 @@ def verify_consumed(run, raw, artifact):
     _require(snapshot.get('nms_active') is capture.nms_active,
              'MDM NMS activation identity differs')
 
-    families, owner_readback = _verify_installed_owners(source, artifact)
+    families, owner_readback = _verify_installed_owners(source, artifact, run)
     origin = _verify_origin(capture)
     evidence = {
         'schema': 'fresh-operational-mdm-verification-v1',

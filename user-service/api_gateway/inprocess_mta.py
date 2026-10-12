@@ -62,6 +62,37 @@ def owned_wsgi_application(application):
     return _OwnedWsgiApplication(application)
 
 
+MDM_WORKFLOW_PATHS = frozenset('/api/mta/' + route for route in (
+    'AddMasterData', 'ModifyMasterData', 'PostMasterAfterApproved'))
+
+
+class _OwnedMdmWorkflowApplication(_OwnedWsgiApplication):
+    """Separate capability; never granted by the existing read-proof seal."""
+    __slots__ = ('binding',)
+
+    def __init__(self, application, binding):
+        super().__init__(application)
+        self.binding = binding
+
+
+def _workflow_binding():
+    return (settings.DATABASES['default']['NAME'],
+            settings.VF_MDM_SOURCE_DIGEST, str(settings.VF_MTA_PUBLISHED_RUN),
+            settings.VF_MTA_PUBLISHED_DIGEST)
+
+
+def owned_mdm_workflow_application(application, *, run_id, output_digest):
+    """Exact isolated approval-day transport; endpoint authentication still applies."""
+    if (settings.SETTINGS_MODULE != 'tools.mdm_approval_day_settings'
+            or settings.DATABASES['default']['NAME'] != 'fresh_mdm_approval_day_20261010_002'
+            or settings.VF_MDM_SOURCE_DIGEST != '39f76f9c718a28e014737e8c856af7d29f1ab5dbdfd2370321a6cb539d010f8e'
+            or not run_id or not output_digest
+            or str(settings.VF_MTA_PUBLISHED_RUN) != str(run_id)
+            or settings.VF_MTA_PUBLISHED_DIGEST != output_digest):
+        raise InProcessMtaTransportError('mdm_workflow_owned_binding_required')
+    return _OwnedMdmWorkflowApplication(application, _workflow_binding())
+
+
 class WsgiResponse:
     """Small requests-compatible response over a real WSGI response iterable."""
     def __init__(self, status, headers, iterable, url):
@@ -125,13 +156,15 @@ def _query_string(parsed, params):
     return values
 
 
-def _validate_target(method, url, base_url):
+def _validate_target(method, url, base_url, *, workflow=False):
     if method not in ('GET', 'POST'):
         raise InProcessMtaTransportError('mta_inprocess_method_denied')
     parsed, base = urlsplit(url), urlsplit(base_url)
     if (parsed.scheme, parsed.netloc) != (base.scheme, base.netloc) or parsed.fragment:
         raise InProcessMtaTransportError('mta_inprocess_target_denied')
     allowed = GET_PATHS | DOWNLOAD_PATHS if method == 'GET' else POST_PATHS
+    if workflow:
+        allowed = MDM_WORKFLOW_PATHS if method == 'POST' else frozenset()
     if parsed.path not in allowed:
         raise InProcessMtaTransportError('mta_inprocess_path_denied')
     return parsed
@@ -140,7 +173,8 @@ def _validate_target(method, url, base_url):
 def _wsgi_request(application, *, method, url, base_url, headers=None, params=None,
                   json=None, data=None, files=None, **_ignored):
     method = str(method).upper()
-    parsed = _validate_target(method, url, base_url)
+    parsed = _validate_target(method, url, base_url,
+        workflow=isinstance(application, _OwnedMdmWorkflowApplication))
     if files or data is not None:
         raise InProcessMtaTransportError('mta_inprocess_json_reads_only')
     body = b'' if json is None else json_module.dumps(
@@ -195,4 +229,6 @@ def request(*, base_url, **kwargs):
         return requests.request(**kwargs)
     if not isinstance(application, _OwnedWsgiApplication):
         raise InProcessMtaTransportError('mta_inprocess_application_not_owned')
+    if isinstance(application, _OwnedMdmWorkflowApplication) and application.binding != _workflow_binding():
+        raise InProcessMtaTransportError('mdm_workflow_owned_binding_changed')
     return _wsgi_request(application, base_url=base_url, **kwargs)

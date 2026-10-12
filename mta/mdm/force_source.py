@@ -101,6 +101,18 @@ def require_installed(source):
     if require_family(source, owner, 'force'):
         return owner
     family = MdmFamilySource.objects.get(source=source, master_id=13)
+    from mta.mdm.integration_source import DAILY_OWNER_SCHEMA, verify_owner_anchor
+    if owner.provenance.get('schema') == DAILY_OWNER_SCHEMA:
+        p = owner.provenance
+        verify_owner_anchor(source, p)
+        if (p.get('configuration_sha256') != configuration_sha()
+                or p.get('family') != 'force'
+                or p.get('root_state_digest') != owner.root_state_digest
+                or p.get('opening_digest') != owner.opening_digest
+                or digest(p) != owner.receipt_digest
+                or family.receipt != p or family.digest != owner.receipt_digest):
+            raise ValueError('Force accepted closing installation differs')
+        return owner
     if (source.dll_digest != DLL or owner.provenance.get('schema') != OWNER_SCHEMA
             or owner.provenance.get('configuration_sha256') != configuration_sha()
             or owner.provenance.get('artifact_sha256') != ARTIFACT_SHA
@@ -111,6 +123,46 @@ def require_installed(source):
             or family.receipt != owner.provenance or family.digest != owner.receipt_digest):
         raise ValueError('Force source installation identity differs')
     return owner
+
+
+@transaction.atomic
+def bind(source, run):
+    """Attach master13 to its own accepted closing, without fixture overrides."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from mta.mdm.integration_source import accepted_closing
+    from mta.mdm.force_capture import FIELDS, LOG_FIELDS, native_log
+    from mta.mdm.supplier_revisions import source_lock
+    from mta.runtime.mdm_force_models import MdmForceUploadLog
+    source, closing, p = accepted_closing(source, run, (13,))
+    if MdmForceOwner.objects.filter(source=source).exists():
+        raise ValueError('Force owner already installed')
+    queue, logs = closing['importer']['ForceNormChange'], closing['controls']['upload_log']
+    native_log_fields = {('WhCode' if name == 'WHCode' else name) for name in LOG_FIELDS}
+    if (any(set(row) != set(FIELDS) for row in queue)
+            or any(set(row) != native_log_fields for row in logs)):
+        raise ValueError('Force accepted closing field roster differs')
+    p.update(family='force', configuration_sha256=configuration_sha(),
+             opening_digest=digest(queue), opening_log_digest=digest(logs))
+    owner = MdmForceOwner.objects.create(source=source, provenance=p,
+        receipt_digest=digest(p), opening_digest=digest(queue), closing_digest=digest(queue),
+        root_state_digest=p['root_state_digest'], closing_log_digest=digest(logs), last_run=run)
+    with source_lock(source.pk, deciding=True):
+        MdmForceQueue.objects.bulk_create([MdmForceQueue(source=source, **row) for row in queue])
+        for row in logs:
+            values = {name: row['WhCode' if name == 'WHCode' else name] for name in LOG_FIELDS}
+            stamp = datetime.fromisoformat(values['ActionTimeStamp'])
+            if stamp.tzinfo is None:
+                stamp = stamp.replace(tzinfo=ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE))
+            values['ActionTimeStamp'] = stamp
+            MdmForceUploadLog.objects.create(source=source, **values)
+    actual_queue = list(MdmForceQueue.objects.filter(source=source).order_by('id').values(*FIELDS))
+    actual_logs = [{('WhCode' if k == 'WHCode' else k): v for k, v in native_log(row).items()}
+        for row in MdmForceUploadLog.objects.filter(source=source).order_by('id').values(*LOG_FIELDS)]
+    if storage(actual_queue) != storage(queue) or storage(actual_logs) != storage(logs):
+        raise ValueError('Force accepted closing typed readback differs')
+    MdmFamilySource.objects.create(source=source, master_id=13, receipt=p, digest=digest(p))
+    return require_installed(source)
 
 
 @transaction.atomic

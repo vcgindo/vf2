@@ -6,6 +6,24 @@ from mta.application import daily_finalization as final
 
 
 class DailyFinalizationTests(unittest.TestCase):
+    def test_active_policy_requires_all_native_flags_and_never_uses_inactive_waiver(self):
+        complete = {'ScriptExecutedFlag': deepcopy(final.FLAG_SEED)}
+        for row in complete['ScriptExecutedFlag']:
+            row['IsScriptExecuted'] = True
+        settings = [dict(Parameter='NMSActive', Value='1'),
+            dict(Parameter='BatchFileExecutionDate', Value='2026-06-06'),
+            dict(Parameter='IsBPRBatchFileExecuted', Value='1'),
+            dict(Parameter='IsBatchFileExecuted', Value='0')]
+        with self.assertRaisesRegex(ValueError, 'NMSActive=0'):
+            final.finish(deepcopy(complete), settings, '2026-06-06')
+        result = final.finish(deepcopy(complete), settings, '2026-06-06', policy=final.ACTIVE_POLICY)
+        self.assertEqual(next(r['Value'] for r in result if r['Parameter'] == 'IsBatchFileExecuted'), '1')
+        for script in ('NMSImportData.sql', 'NMSClearInputTables.sql', 'GenerateBPR.sql'):
+            missing = deepcopy(complete)
+            next(r for r in missing['ScriptExecutedFlag'] if r['ScriptName'] == script)['IsScriptExecuted'] = False
+            with self.subTest(script=script), self.assertRaisesRegex(ValueError, 'completion failed'):
+                final.finish(missing, settings, '2026-06-06', policy=final.ACTIVE_POLICY)
+
     def test_configuration_is_explicit_and_default_is_unchanged(self):
         self.assertIsNone(final.configuration({}))
         good = dict(policy=final.POLICY, consumption_days=90, remark_days=90)

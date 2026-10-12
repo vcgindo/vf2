@@ -43,6 +43,12 @@ class OperationalAcceptance(models.Model):
 
     class Meta:
         constraints = [
-            models.CheckConstraint(condition=models.Q(policy='supported-synthetic-operational-v1'), name='op_accept_policy'),
-            models.CheckConstraint(condition=models.Q(qualification='inactive-nms-critical-flags-remain-false'), name='op_accept_qualification'),
+            models.CheckConstraint(condition=models.Q(policy__in=(
+                'supported-synthetic-operational-v1', 'supported-synthetic-active-nms-v1')), name='op_accept_policy'),
+            models.CheckConstraint(condition=models.Q(qualification__in=(
+                'inactive-nms-critical-flags-remain-false', 'active-nms-enabled-writers-complete')), name='op_accept_qualification'),
+            models.CheckConstraint(condition=(
+                models.Q(policy='supported-synthetic-operational-v1', qualification='inactive-nms-critical-flags-remain-false')
+                | models.Q(policy='supported-synthetic-active-nms-v1', qualification='active-nms-enabled-writers-complete')),
+                name='op_accept_policy_qualification_pair'),
         ]

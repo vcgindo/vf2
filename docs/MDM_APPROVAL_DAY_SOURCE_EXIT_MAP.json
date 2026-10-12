@@ -1,0 +1,311 @@
+{
+  "schema": "fresh-mdm-approval-day-source-exit-map-v1",
+  "source_authority": "S1–S5 approved by call_947bd75dab04482db35f934e1deeb4d6:0; freeze and execution approval outstanding; status tracked only in MIGRATION.md",
+  "baseline_commit": "c55a1156b1e511de1357ba2913685962e200c306",
+  "new_days_authorized": 0,
+  "serving_change_authorized": false,
+  "families": [
+    {
+      "master_id": 1,
+      "family": "SKU",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "Weight": 1
+      },
+      "approved_queue": "MdmSkuApproved",
+      "working_input": "MasterDataRaw Weight overlay",
+      "output_columns": "Importer SkuAttributeData.Weight; MasterData.Weight",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "approved2 -> DBUpdated4 -> parent7 when all subtasks terminal",
+      "canonical_reference": "NMSImportData.sql; NMSTaskStatusUpdate.sql; daily_input.py SKU_FIELDS/CONSUMER_ORDER"
+    },
+    {
+      "master_id": 2,
+      "family": "Location",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "WHCode": "LP001",
+        "c4": "MDM-DAY-M1"
+      },
+      "approved_queue": "MdmLocationApproved",
+      "working_input": "MasterDataRaw LocAtt04 overlay",
+      "output_columns": "Importer LocationAttributeData.c4; MasterData.LocAtt04",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "approved2 -> DBUpdated4 -> parent7 when all subtasks terminal",
+      "canonical_reference": "NMSImportData.sql; NMSTaskStatusUpdate.sql; daily_input.py LOCATION_FIELDS"
+    },
+    {
+      "master_id": 3,
+      "family": "SKU-Location",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "PPI000604",
+        "PackSize": 2
+      },
+      "approved_queue": "MdmSkuLocModifyApproved",
+      "working_input": "MasterDataRaw PackSize overlay; exclusions remain exact",
+      "output_columns": "Importer SkuLocAttributeData.PackSize; MasterData/DBMMaster.PackSize",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "approved2 -> DBUpdated4 -> parent7 when all subtasks terminal",
+      "canonical_reference": "NMSImportData.sql; NMSTaskStatusUpdate.sql; daily_input.py compose/compose_pair_exclusions"
+    },
+    {
+      "master_id": 4,
+      "family": "SOB",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "action": "ADD",
+        "SKUCode": "6120",
+        "WHCode": "LP001",
+        "SupplierCode": "PL001",
+        "SOB": 100
+      },
+      "approved_queue": "MdmSobApproved",
+      "working_input": "supplier_feeds.SOBDataRaw triple-grain replace/insert",
+      "output_columns": "complete.SOBDataRaw; supplier.SOBData all fields; MdmSobRaw; archive occurrences",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native supplier approved history transition; no totals-only acceptance",
+      "canonical_reference": "NMSImportData.sql500-568; NMSArchiveInputData.sql53-74; NMSClearInputTables.sql29-39; NMSTaskStatusUpdate.sql157-208/349-397"
+    },
+    {
+      "master_id": 5,
+      "family": "MOQ",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "action": "ADD",
+        "SKUCode": "337",
+        "SupplierCode": "PL001",
+        "MOQ": 11
+      },
+      "approved_queue": "MdmMoqWithoutDestinationApproved",
+      "working_input": "supplier_feeds.MOQDataRaw1; WithoutDestLoc fixed",
+      "output_columns": "complete.MOQDataRaw1; supplier.MOQData all fields; MdmMoqRaw1; archive occurrences",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native WithoutDestLoc transition; preserve wrong Raw2 pending-add reference",
+      "canonical_reference": "NMS_SOB_MOQ_CONTRACT.md; NMSImportData.sql500-568; NMSTaskStatusUpdate.sql157-208/349-397"
+    },
+    {
+      "master_id": 6,
+      "family": "Stop",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "DP010290"
+      },
+      "approved_queue": "MdmStopPipoQueue",
+      "working_input": "control_requests.phase_stops replaces own carry once",
+      "output_columns": "DBM PhaseOutTbl/PhaseInTbl; control_aux.phase_stops/phase_map; Norm/log102 state",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native Stop completion separate from actual phase result",
+      "canonical_reference": "NMS_STOP_PIPO_CONTRACT.md; CollectPhaseOutData.sql; ClearPhaseInPhaseOutData.sql; NMSTaskStatusUpdate.sql"
+    },
+    {
+      "master_id": 7,
+      "family": "Phase Out",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "DP020819",
+        "PhaseInSKUCode": null
+      },
+      "approved_queue": "MdmPhaseOutQueue",
+      "working_input": "control_requests.phase_requests; native importer validation",
+      "output_columns": "DBM PhaseOutTbl; Norm; phase map; original consumed occurrence; remaining queue",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native PhaseOut history drives completion; status alone not effect proof",
+      "canonical_reference": "NMS_PHASE_CONTROLS_CONTRACT.md; ValidatePhaseout.sql; Collect/ProcessPhaseOut.sql; NMSTaskStatusUpdate.sql259-286"
+    },
+    {
+      "master_id": 8,
+      "family": "PIPO",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "337",
+        "WhCode": "LDC001",
+        "PhaseInSKUCode": "6120"
+      },
+      "approved_queue": "MdmPhaseOutQueue",
+      "working_input": "control_requests.phase_requests; native importer validation",
+      "output_columns": "DBM PhaseOutTbl/PhaseInTbl; phase_map; relevant Norm/log102/103",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native PhaseOut history drives completion",
+      "canonical_reference": "NMS_PHASE_CONTROLS_CONTRACT.md; ValidatePhaseout.sql; Collect/ProcessPhaseOut.sql; Collect/ProcessPhaseIn.sql"
+    },
+    {
+      "master_id": 9,
+      "family": "Target Norm",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "LDC002",
+        "TargetNorm": 400
+      },
+      "approved_queue": "MdmPhaseInNormQueue",
+      "working_input": "control_requests.phase_in_requests",
+      "output_columns": "phase_in_norms; PhaseInTbl; Norm/log103; consumed and remaining occurrences",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native master9 remains pending because completion joins TaskPhaseOutHistory; no invented completion",
+      "canonical_reference": "NMS_PHASE_CONTROLS_CONTRACT.md; ValidatePhaseInNorms.sql; Collect/ProcessPhaseIn.sql; NMSTaskStatusUpdate.sql259-286"
+    },
+    {
+      "master_id": 10,
+      "family": "Seasonality Status",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "AG515802",
+        "action": "STOP"
+      },
+      "approved_queue": "MdmSeasonCurrent status revision (effect at approval)",
+      "working_input": "captured current Seasonality status; no second application",
+      "output_columns": "DBM/controls Seasonality.Status/Comment/NewNorm/LastProcessedOn; exact own predecessor continuity",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native approval subtask4; no daily reapplication",
+      "canonical_reference": "NMS_SEASONALITY_CONTRACT.md; StopResumeSeasonality; ProcessSeasonality.sql"
+    },
+    {
+      "master_id": 11,
+      "family": "Absolute Seasonality",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "LDC006",
+        "StartDate": "2026-06-07",
+        "EndDate": "2026-06-20",
+        "TargetNorm": 500,
+        "BuildupDuration": 1
+      },
+      "approved_queue": "MdmSeasonQueue",
+      "working_input": "control_aux.season_requests captured once",
+      "output_columns": "Seasonality Type/Status/OrigNorm/NewNorm/LastProcessedOn; DBM Norm; NormChangeLogTbl",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native seasonal history task completion; effect independently required",
+      "canonical_reference": "ValidateSeasonalityData.sql; CollectSeasonality.sql; ProcessSeasonality.sql; ApplySeasonalityNormChanges.sql"
+    },
+    {
+      "master_id": 12,
+      "family": "Delta Seasonality",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "LP002",
+        "StartDate": "2026-06-07",
+        "EndDate": "2026-06-20",
+        "DeltaNormPercentage": 20,
+        "UpperLowerCap": 1000,
+        "BuildupDuration": 1
+      },
+      "approved_queue": "MdmSeasonQueue",
+      "working_input": "control_aux.season_requests captured once",
+      "output_columns": "Seasonality Type/Status/OrigNorm/NewNorm/LastProcessedOn; DBM Norm; NormChangeLogTbl",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "native seasonal history task completion; no arithmetic rewrite",
+      "canonical_reference": "ValidateSeasonalityData.sql; CollectSeasonality.sql; ProcessSeasonality.sql; ApplySeasonalityNormChanges.sql"
+    },
+    {
+      "master_id": 13,
+      "family": "Force",
+      "requester": "existing nms.sob.moq.requester@vectorflow.local",
+      "reviewer": "existing nms.sob.moq.approver@vectorflow.local",
+      "scope": "unchanged product root71001/location root72001 in copied isolated identity namespace; exact current identities verified before freeze",
+      "approval_time_proposed": "2026-06-06T13:00:00+05:30",
+      "capture": "D1 frozen source/task/revision/ordinal; D2 own persisted successor",
+      "proof": "reuse named family contract for native semantics; new combined source/capture/atomic consumption and exact output witness",
+      "request": {
+        "SKUCode": "6120",
+        "WhCode": "MT0513",
+        "NewNorm": 500
+      },
+      "approved_queue": "MdmForceQueue",
+      "working_input": "Importer ForceNormChange + typed upload log; no external duplicate feed",
+      "output_columns": "DBM Norm/MinNorm; reason101 NormChangeLogTbl; control upload log; clear and consumed occurrences",
+      "consumer_projection": "same-source terminal MDM current/task/history; native visibility/date restrictions",
+      "task_transition": "NMSTaskStatusUpdate LEFT JOIN can complete independently of application; prove both",
+      "canonical_reference": "ImportForceNormChange.sql; UpdateForceChangedNorms.sql; UpdateNormChanges.sql; ClearForceNormChange.sql; NMSTaskStatusUpdate.sql208-222/487-490"
+    }
+  ],
+  "bootstrap": [
+    "Register a new explicitly approved artifact and independently owned namespace; install base1-3 using current adapter; retain original installation SHA compatibility.",
+    "D0 real execute_day/consumed capture/own closing and strict active-NMS acceptance; no synthetic successful carrier.",
+    "Bind supplier4-5 from declared own D0 raw sources, then Stop6/Phase7-9/Force13/Season10-12 to the same own accepted terminal D0.",
+    "Bind complete1-13 integration roster last; original partial seals remain valid for their original scope.",
+    "Authenticate new requests/reviews in the owned namespace; existing fixture tasks never transfer.",
+    "D1 captures all approved occurrences and typed revisions, persists output and consumption atomically; D2 uses D1 only."
+  ],
+  "direct_seams": [
+    "daily_source_install.registered currently only allows7ee7 ten-pair artifact; narrow new registered input adapter is required.",
+    "force_source and season_source installers create historical roots; additive own-accepted-closing bind paths required.",
+    "daily_source.require_binding excludes combined current SCHEMA rosters before seal; current-adapter complete-group branch required.",
+    "integration_source must bind supplier provenance and full requested family roster without weakening historical seals.",
+    "operational_admission currently requires inactive NMS and exact old artifact; active-NMS policy needs explicit disposition before guard mutation."
+  ],
+  "authority_pending": [
+    "20-pair retained-input derivative and declared external bootstrap requests; no computed output seeds.",
+    "Active NMS and Force master-match flags, selected MOQ format/raw opening, retained hierarchy, effective clock and exact scenario requests.",
+    "Active-NMS admission with actual enabled writer flags and all required sources; no false-success flags or implicit earlier qualification transfer.",
+    "Copy existing named requester/reviewer credentials/roles/scopes to fresh no-port authentication namespace without grants or resets.",
+    "Exact three execution calls and any serving change remain separate later gates after frozen hashes and code proof."
+  ]
+}

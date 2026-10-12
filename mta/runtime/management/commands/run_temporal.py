@@ -142,7 +142,8 @@ class Command(BaseCommand):
             if 'complete' in case['opening']:
                 raise CommandError('Finalization supplement cannot replace existing complete state')
             case['opening'] = {**case['opening'], 'complete': supplement['opening_complete']}
-            begin(case['opening'], case['days'][0]['business_date'])
+            begin(case['opening'], case['days'][0]['business_date'],
+                  policy=profile['complete_daily']['policy'])
             finalization_identity = dict(policy=profile['complete_daily']['policy'],
                                          config_sha256=finalization_sha)
         pick_values = (options.get('complete_pick_policy'), options.get('pick_output_root'),

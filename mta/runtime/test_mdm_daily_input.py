@@ -24,6 +24,47 @@ from mta.serialization import digest
 
 
 class DailyInputConsumptionTests(TestCase):
+    def test_finish_run_failure_rolls_queue_history_task_and_output_back(self):
+        from mta.application.daily_finalization import FLAG_SEED, POLICY
+        from mta.runtime.services import finish_run
+        from mta.runtime.models import Checkpoint
+        from copy import deepcopy
+        approved = MdmSkuApproved.objects.create(source=self.source, SKUCode='APPROVED',
+            SKUDescription='Approved', ActionType=2, Approved=True, Reverted=False)
+        task = MdmTask.objects.create(source=self.source, TaskID='ROLLBACK', TaskStatus='6',
+                                     MasterId='1', Actiontype=2)
+        sub = MdmSubTask.objects.create(source=self.source, TaskID='ROLLBACK',
+                                       ApproverId='2', TaskStatus='2')
+        history = MdmSkuHistory.objects.create(source=self.source, TaskId='ROLLBACK',
+            SKUCode='APPROVED', SKUDescription='Approved', Status='3')
+        with transaction.atomic():
+            snapshot = select_capture(self.source, nms_active=True, task_status_log_horizon=7)
+            snapshot = compose_pair_exclusions(snapshot, [])
+            snapshot = capture_prune_candidates(snapshot, self.source, date(2026, 10, 6))
+            raw = {'mdm_input': snapshot}
+            run = CalculationRun.objects.create(input_digest=digest(raw), input_payload=raw,
+                kind='DAILY_CHAIN', business_date=date(2026, 10, 6),
+                execution_revision='rollback-only-publication-no-calculation')
+            bind_capture(run, snapshot, request_digest='e'*64)
+        output = {'Lineage': [{'cohort1': {'policy': POLICY}}],
+                  'ClosingState': [{'complete': {'ScriptExecutedFlag': deepcopy(FLAG_SEED)}}]}
+        def fail_after_write(current, _output):
+            self.assertFalse(MdmSkuApproved.objects.filter(pk=approved.pk).exists())
+            self.assertEqual(MdmDailyInputCapture.objects.get(run=current).status, 'CONSUMED')
+            sub.refresh_from_db(); self.assertEqual(sub.TaskStatus, '4')
+            Checkpoint.objects.create(run=current, name='rollback-only-output', rows=[],
+                                      row_count=0, digest=digest([]))
+            raise ValueError('injected later output failure')
+        with patch('mta.runtime.relational_state.save_daily', side_effect=fail_after_write), \
+                self.assertRaisesRegex(ValueError, 'injected later output failure'):
+            finish_run(run, output, expected_digest=run.input_digest)
+        self.assertTrue(MdmSkuApproved.objects.filter(pk=approved.pk).exists())
+        self.assertFalse(MdmDailySkuArchive.objects.exists())
+        self.assertFalse(Checkpoint.objects.filter(run=run).exists())
+        self.assertEqual(MdmDailyInputCapture.objects.get(run=run).status, 'CAPTURED')
+        task.refresh_from_db(); sub.refresh_from_db(); history.refresh_from_db()
+        self.assertEqual((task.TaskStatus, sub.TaskStatus, history.Status), ('6', '2', '3'))
+
     def setUp(self):
         self.source = MdmSource.objects.create(digest='a' * 64, database_name='owned',
             dll_digest='b' * 64, receipt={})
@@ -81,6 +122,14 @@ class DailyInputConsumptionTests(TestCase):
         self.assertEqual((sub.TaskStatus, task.TaskStatus), ('4', '7'))
         self.assertEqual(sub.DBUpdatedDate,
                          captured_timestamp.strftime('%d/%m/%Y %I:%M%p'))
+        before = (list(MdmDailySkuArchive.objects.order_by('id').values()),
+                  list(MdmSkuApproved.objects.order_by('id').values()),
+                  list(capture.occurrences.order_by('id').values()))
+        with transaction.atomic():
+            finalize_consumption(self.run)
+        self.assertEqual(before, (list(MdmDailySkuArchive.objects.order_by('id').values()),
+            list(MdmSkuApproved.objects.order_by('id').values()),
+            list(capture.occurrences.order_by('id').values())))
 
     def test_changed_captured_occurrence_aborts_without_clearing(self):
         first = MdmSkuApproved.objects.create(source=self.source, SKUCode='FIRST',

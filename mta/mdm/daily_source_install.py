@@ -10,9 +10,10 @@ import hashlib
 import json
 from pathlib import Path
 
-from django.db import transaction
+from django.db import connection, transaction
 
-from mta.mdm.daily_source import SCHEMA, ARTIFACT_SHA, adapter_digest, configuration_digest, require_binding
+from mta.mdm.daily_source import (SCHEMA, ARTIFACT_SHA, APPROVAL_DAY_ARTIFACT_SHA,
+                                  adapter_digest, configuration_digest, require_binding)
 from mta.mdm.owned_namespace import authorize_install
 from mta.mdm.source import DLL
 from mta.runtime import mdm_models as models
@@ -24,8 +25,8 @@ IL_SHA = 'ccd47dc8d76895a6aa63ad5d6beaadb32f4f53ab75047a68fb8055382fd87ca1'
 
 
 def registered(raw, expected):
-    if expected != ARTIFACT_SHA:
-        raise ValueError('This bootstrap requires the exact registered ten-pair artifact')
+    if expected not in (ARTIFACT_SHA, APPROVAL_DAY_ARTIFACT_SHA):
+        raise ValueError('This bootstrap requires an exact registered MDM artifact')
     if hashlib.sha256(raw).hexdigest() != expected:
         raise ValueError('Synthetic master artifact bytes differ')
     manifest=json.loads((Path(__file__).resolve().parents[2]/'baseline/manifest.json').read_text())
@@ -118,12 +119,16 @@ def install(raw, expected):
         receipt['owned_namespace']=namespace['registration']
     source=models.MdmSource.objects.create(digest=digest(receipt),dll_digest=DLL,
         database_name=database,receipt=receipt)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_current_bootstrap',%s,true)", [str(source.pk)])
     for family,model,kwargs,rows,path in batches:
         model.objects.bulk_create([model(source=source,ordinal=i,**kwargs,**row)
             for i,row in enumerate(rows,1)],batch_size=500)
         actual=list(model.objects.filter(source=source,**kwargs).order_by('ordinal')
                     .values(*[f.name for f in business_fields(model)]))
         if storage(actual) != storage(rows):raise ValueError('Synthetic owner typed readback differs: '+path)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_current_bootstrap','',true)")
     for master_id in (2,3):
         item=families[str(master_id)]
         models.MdmFamilySource.objects.create(source=source,master_id=master_id,

@@ -10,10 +10,13 @@ from mta.serialization import digest
 
 
 SOURCE_SHA256 = "7ee7d940da3bab89ffeeddff94b4f2a7d9abace4aacdd589d698df6de85c24fc"
+APPROVAL_SOURCE_SHA256 = "be33508fd9e5cd6b0224f02502f61b87a0cfb8cdce44cafb3d1f1c3e1384d847"
 PARENT_SHA256 = "0f3084b7a6fb60b84edbd7c4dc01fef3c4b40f1a7c389ec82f88b9ad22519546"
 CONVENTION = "fresh-ten-pair-daily-shipment-input-v1"
 OUTPUT_SCHEMA = "fresh-ten-pair-shipment-input-derivative-v1"
 RAW_SCHEMA = "daily-transit-raw-v1"
+APPROVAL_CONVENTION = 'fresh-mdm-approval-day-shipment-input-v1'
+APPROVAL_OUTPUT_SCHEMA = 'fresh-mdm-approval-day-shipment-derivative-v1'
 
 
 def _require(condition, message):
@@ -26,19 +29,23 @@ def validate_supplement(payload, *, base_artifact_sha256: str):
     _require(isinstance(payload, dict)
              and set(payload) == {"schema", "base_artifact_sha256", "provenance", "days"},
              "Shipment supplement shape differs")
-    _require(payload["schema"] == OUTPUT_SCHEMA,
+    active = base_artifact_sha256 == APPROVAL_SOURCE_SHA256
+    _require(base_artifact_sha256 in (SOURCE_SHA256, APPROVAL_SOURCE_SHA256),
+             'Shipment supplement source is outside the approved identities')
+    count = 3 if active else 12
+    _require(payload["schema"] == (APPROVAL_OUTPUT_SCHEMA if active else OUTPUT_SCHEMA),
              "Shipment supplement schema differs")
-    _require(payload["base_artifact_sha256"] == base_artifact_sha256 == SOURCE_SHA256,
+    _require(payload["base_artifact_sha256"] == base_artifact_sha256,
              "Shipment supplement base artifact differs")
     provenance = payload["provenance"]
     _require(isinstance(provenance, dict)
-             and provenance.get("convention") == CONVENTION
-             and provenance.get("source_artifact_sha256") == SOURCE_SHA256
+             and provenance.get("convention") == (APPROVAL_CONVENTION if active else CONVENTION)
+             and provenance.get("source_artifact_sha256") == base_artifact_sha256
              and provenance.get("parent_artifact_sha256") == PARENT_SHA256,
              "Shipment supplement provenance differs")
     days = payload["days"]
-    _require(isinstance(days, list) and len(days) == 12,
-             "Shipment supplement must contain twelve days")
+    _require(isinstance(days, list) and len(days) == count,
+             "Shipment supplement date count differs")
     dates = []
     for item in days:
         _require(isinstance(item, dict)
@@ -65,7 +72,8 @@ def validate_supplement(payload, *, base_artifact_sha256: str):
                  and reconciliation.get("rows_digest") == digest(rows),
                  "Daily shipment reconciliation differs")
         dates.append(business_date)
-    _require(len(set(dates)) == 12 and dates == sorted(dates),
+    _require(len(set(dates)) == count and dates == sorted(dates)
+             and (not active or dates == ['2026-06-06', '2026-06-07', '2026-06-08']),
              "Shipment supplement dates differ")
     _require(provenance.get("daily_reconciliation") == [
         item["shipment_input"]["provenance"]["daily_reconciliation"]

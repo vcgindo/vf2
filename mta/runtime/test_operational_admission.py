@@ -64,7 +64,8 @@ class OperationalAcceptancePersistence(TestCase):
         access.enable(); self.addCleanup(access.disable)
         allowed = patch('mta.presentation.daily_activation.access_manifest',return_value={'fixture':True})
         allowed.start(); self.addCleanup(allowed.stop)
-        self.state = dict(code=digest('code'), artifact=digest('artifact'), actions=digest([]),
+        self.state = dict(policy=op.POLICY, qualification=op.QUALIFICATION,
+            code=digest('code'), artifact=digest('artifact'), actions=digest([]),
             sources=digest('sources'), operations=digest('operations'),
             pick_config=digest('pick'),shipment=digest('shipment'),
             access=daily_activation.values(self.run,self.pub), generation=self.generation)
@@ -398,6 +399,19 @@ class OperationalVerifierProtocol(SimpleTestCase):
             with self.subTest(key=key),self.assertRaises(ValueError): final.finish(deepcopy(complete),bad,'2026-06-06')
         next(r for r in complete['ScriptExecutedFlag'] if r['IsScriptCritical']==1 and r['IsScriptExecuted'])['IsScriptExecuted']=0
         with self.assertRaises(ValueError): final.finish(complete,settings,'2026-06-06')
+
+    def test_each_supported_policy_binds_its_own_artifact_and_activation(self):
+        from mta.mdm.daily_source import ARTIFACT_SHA, APPROVAL_DAY_ARTIFACT_SHA
+        from mta.application.daily_finalization import ACTIVE_QUALIFICATION
+        for policy, qualification, artifact, active in (
+                (op.POLICY, op.QUALIFICATION, ARTIFACT_SHA, False),
+                (op.ACTIVE_POLICY, ACTIVE_QUALIFICATION, APPROVAL_DAY_ARTIFACT_SHA, True)):
+            with self.subTest(policy=policy), override_settings(VF_MTA_OPERATIONAL_POLICY=policy):
+                self.assertTrue(op.enabled())
+                self.assertEqual(op.policy_identity(), (policy, qualification, artifact, active))
+        with override_settings(VF_MTA_OPERATIONAL_POLICY='unknown'):
+            with self.assertRaises(PublicationUnavailable):
+                op.policy_identity()
 
     def test_candidate_calls_all_existing_validators_and_propagates_each_failure(self):
         from contextlib import ExitStack

@@ -14,6 +14,7 @@ from mta.runtime.mdm_integration_models import MdmSourceIntegration
 from mta.serialization import digest
 
 SCHEMA = 'fresh-mdm-source-integration-v1'
+DAILY_OWNER_SCHEMA = 'fresh-mdm-accepted-closing-owner-v1'
 CONFIGURATIONS = {
     1: 'mdm_sku.json', 2: 'mdm_location.json', 3: 'mdm_skuloc.json',
     4: 'mdm_sob.json', 5: 'mdm_moq.json', 6: 'mdm_stop_pipo.json',
@@ -103,6 +104,10 @@ def installed_binding(source):
             or p.get('configuration') != configuration_digest({int(mid) for mid in family_digests})
             or digest(p) != seal.digest):
         raise ValueError('Combined MDM integration identity differs')
+    if p.get('required_families') is not None and (
+            p['required_families'] != list(range(1, 14))
+            or set(family_digests) != {str(i) for i in p['required_families']}):
+        raise ValueError('Complete MDM integration roster differs')
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     anchor = MdmDailyInputCapture.objects.select_related('run').filter(
         source=source, run_id=p.get('run_id'), status='CONSUMED').first()
@@ -116,6 +121,59 @@ def installed_binding(source):
 def require_unsealed(source):
     if MdmSourceIntegration.objects.filter(source=source).exists():
         raise ValueError('Combined MDM roster is sealed; additional installation is prohibited')
+
+
+def accepted_closing(source, run, family_ids):
+    """Lock and read one accepted own closing for additive family onboarding.
+
+    Callers own the atomic transaction. This neither creates a capture nor
+    grants acceptance: selected_run and the immutable consumed input prove it.
+    """
+    from mta.mdm.daily_source import require_binding
+    from mta.mdm.supplier_revisions import lock_transaction
+    from mta.presentation.context import selected_run
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.validation_storage import read_input
+    from mta.runtime.services import read_outputs
+    lock_transaction(source.pk)
+    source = MdmSource.objects.select_for_update().get(pk=source.pk)
+    require_unsealed(source)
+    require_binding(source, artifact_sha256=source.receipt['artifact_sha256'],
+                    artifact_schema=source.receipt['artifact_schema'])
+    if selected_run().pk != run.pk:
+        raise ValueError('Family binding requires the explicit accepted selected publication')
+    anchor = current_capture(source, run)
+    if (MdmFamilySource.objects.filter(source=source, master_id__in=family_ids).exists()
+            or MdmDailyInputCapture.objects.filter(source=source, status='CAPTURED',
+                                                   retries__isnull=True).exists()):
+        raise ValueError('Family binding requires absent owners and no pending capture')
+    snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
+    if (not snapshot or snapshot.get('source_id') != source.pk
+            or snapshot.get('source_digest') != source.digest
+            or snapshot.get('revision_digest') != anchor.revision_digest):
+        raise ValueError('Family binding accepted input belongs to a different source')
+    closing = read_outputs(run)['ClosingState'][0]
+    provenance = dict(schema=DAILY_OWNER_SCHEMA, source_digest=source.digest,
+        artifact_sha256=source.receipt['artifact_sha256'], dll_sha256=source.dll_digest,
+        run_id=str(run.pk), output_digest=run.output_digest,
+        capture_digest=anchor.revision_digest, root_state_digest=digest(closing))
+    return source, closing, provenance
+
+
+def verify_owner_anchor(source, provenance):
+    """Verify the immutable onboarding anchor; live owner generations may advance."""
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    anchor = MdmDailyInputCapture.objects.select_related('run').filter(
+        source=source, run_id=provenance.get('run_id'), status='CONSUMED').first()
+    if (provenance.get('schema') != DAILY_OWNER_SCHEMA
+            or provenance.get('source_digest') != source.digest
+            or provenance.get('artifact_sha256') != source.receipt.get('artifact_sha256')
+            or provenance.get('dll_sha256') != source.dll_digest
+            or anchor is None or anchor.run.kind != 'DAILY_CHAIN'
+            or anchor.run.status != 'SUCCEEDED'
+            or anchor.run.output_digest != provenance.get('output_digest')
+            or anchor.revision_digest != provenance.get('capture_digest')):
+        raise ValueError('Family accepted closing anchor differs')
 
 
 def current_capture(source, run):
@@ -133,7 +191,7 @@ def current_capture(source, run):
 
 
 @transaction.atomic
-def bind(source, run):
+def bind(source, run, *, require_all_families=False):
     """Seal an explicitly installed roster after accepted same-source closing."""
     from mta.mdm.supplier_revisions import lock_transaction
     from mta.presentation.context import selected_run
@@ -142,6 +200,8 @@ def bind(source, run):
     source = MdmSource.objects.select_for_update().get(pk=source.pk)
     require_unsealed(source)
     families = owner_identity(source)
+    if require_all_families and set(families) != {str(i) for i in range(1, 14)}:
+        raise ValueError('Complete MDM integration requires all thirteen masters')
     if selected_run().pk != run.pk:
         raise ValueError('Combined MDM requires the explicit accepted selected publication')
     anchor = current_capture(source, run)
@@ -164,9 +224,26 @@ def bind(source, run):
         adapter_sha256=adapter_digest(), configuration=configuration_digest({int(mid) for mid in families}),
         run_id=str(anchor.run_id), output_digest=anchor.run.output_digest,
         capture_digest=anchor.revision_digest)
+    if require_all_families:
+        from mta.mdm.supplier_source import require_installed
+        supplier = require_installed(source, 4)
+        if (supplier.provenance.get('schema') != DAILY_OWNER_SCHEMA
+                or supplier.provenance.get('run_id') != str(run.pk)
+                or supplier.provenance.get('capture_digest') != anchor.revision_digest):
+            raise ValueError('Complete MDM supplier owner requires the same accepted closing')
+        p['required_families'] = list(range(1, 14))
     seal = MdmSourceIntegration.objects.create(source=source, digest=digest(p), receipt=p)
     installed_binding(source)
     return seal
+
+
+@transaction.atomic
+def bind_complete(source, run):
+    """Onboard all optional families from one closing and seal them atomically."""
+    from importlib import import_module
+    for family in ('supplier', 'stop_pipo', 'phase_controls', 'force', 'season'):
+        import_module('mta.mdm.' + family + '_source').bind(source, run)
+    return bind(source, run, require_all_families=True)
 
 
 def capture_identity(source):

@@ -34,10 +34,16 @@ def require_installed(source):
     if require_family(source, owner, 'season'):
         return owner
     p = owner.provenance
-    if (source.dll_digest != DLL or p.get('schema') != OWNER_SCHEMA
+    from mta.mdm.integration_source import DAILY_OWNER_SCHEMA, verify_owner_anchor
+    accepted = p.get('schema') == DAILY_OWNER_SCHEMA
+    if accepted:
+        verify_owner_anchor(source, p)
+        if p.get('family') != 'season':
+            raise ValueError('Seasonality accepted closing family differs')
+    if (source.dll_digest != DLL or not accepted and p.get('schema') != OWNER_SCHEMA
             or p.get('configuration_sha256') != configuration_sha()
-            or p.get('artifact_sha256') != ARTIFACT_SHA
-            or p.get('supplement') != SUPPLEMENT
+            or not accepted and p.get('artifact_sha256') != ARTIFACT_SHA
+            or not accepted and p.get('supplement') != SUPPLEMENT
             or p.get('root_state_digest') != owner.root_state_digest
             or digest(p) != owner.receipt_digest):
         raise ValueError('Seasonality source installation identity differs')
@@ -49,6 +55,55 @@ def require_installed(source):
     if digest(storage(eligible)) != p['eligibility_digest']:
         raise ValueError('Seasonality upload eligibility fixture differs')
     return owner
+
+
+@transaction.atomic
+def bind(source, run):
+    """Attach masters10–12 to actual same-source produced Seasonality rows."""
+    from mta.application.r1_seasonality import REQUEST_FIELDS, SEASON_FIELDS
+    from mta.mdm.integration_source import accepted_closing
+    from mta.mdm.supplier_revisions import source_lock
+    source, closing, p = accepted_closing(source, run, (10, 11, 12))
+    if MdmSeasonOwner.objects.filter(source=source).exists():
+        raise ValueError('Seasonality owner already installed')
+    queue, current = closing['control_aux']['season_requests'], closing['dbm']['Seasonality']
+    eligible = [{n: row[n] for n in ('SKUCode', 'WhCode', 'Norm')}
+                for row in closing['importer']['MasterData']]
+    if (any(set(row) != set(REQUEST_FIELDS) for row in queue)
+            or any(set(row) != set(SEASON_FIELDS) for row in current)):
+        raise ValueError('Seasonality accepted closing field roster differs')
+    p.update(family='season', configuration_sha256=configuration_sha(),
+        eligibility_digest=digest(storage(eligible)), opening_queue_digest=digest(queue),
+        opening_current_digest=digest(current))
+    MdmSeasonOwner.objects.create(source=source, provenance=p, receipt_digest=digest(p),
+        root_state_digest=p['root_state_digest'], closing_queue_digest=digest(queue),
+        closing_current_digest=digest(current), last_run=run)
+    with source_lock(source.pk, deciding=True):
+        MdmSeasonQueue.objects.bulk_create([MdmSeasonQueue(source=source, **row) for row in queue])
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.season_eligibility_source',%s,true), "
+                       "set_config('fresh.season_closing_bind',%s,true)",
+                       [str(source.pk), f'{source.pk}:{run.pk}'])
+    try:
+        MdmSeasonEligibility.objects.bulk_create([MdmSeasonEligibility(source=source, ordinal=i, **row)
+            for i, row in enumerate(eligible, 1)])
+        MdmSeasonCurrent.objects.bulk_create([MdmSeasonCurrent(source=source, ordinal=i, **row)
+            for i, row in enumerate(current, 1)])
+        for model, names, rows, ordering in (
+            (MdmSeasonQueue, REQUEST_FIELDS, queue, 'id'),
+            (MdmSeasonCurrent, SEASON_FIELDS, current, 'ordinal'),
+            (MdmSeasonEligibility, ('SKUCode', 'WhCode', 'Norm'), eligible, 'ordinal')):
+            actual = list(model.objects.filter(source=source).order_by(ordering).values(*names))
+            if storage(actual) != storage(rows):
+                raise ValueError('Seasonality accepted closing typed readback differs: ' + model.__name__)
+        # Close bootstrap only after the complete typed readback, in this transaction.
+        for mid in (10, 11, 12):
+            MdmFamilySource.objects.create(source=source, master_id=mid, receipt=p, digest=digest(p))
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT set_config('fresh.season_eligibility_source','',true), "
+                           "set_config('fresh.season_closing_bind','',true)")
+    return require_installed(source)
 
 
 def consumer_batches(artifact):

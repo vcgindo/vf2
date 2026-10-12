@@ -1,6 +1,7 @@
 """Single run identity and atomic checkpoint storage for the fresh engine."""
 import uuid
 from django.db import models
+from django.db.models.functions import Lower
 
 
 class UserReportLayout(models.Model):
@@ -293,7 +294,9 @@ class GuidedAvailabilityHistoryRow(models.Model):
                                          'location_type',
                                          'physical_inventory_color', 'ordinal',
                                          'snapshot_anchor_ordinal'],
-                                name='fresh_guided_avail_cover')]
+                                name='fresh_guided_avail_cover'),
+                   models.Index(models.F('run'), Lower(models.Func(models.F('sku_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_avail_sku'),
+                   models.Index(models.F('run'), Lower(models.Func(models.F('location_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_avail_loc')]
 
 
 class GuidedAvailabilitySnapshotReference(models.Model):
@@ -332,7 +335,9 @@ class GuidedExcessHistoryRow(models.Model):
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
                                                name='fresh_guided_excess_history_ordinal')]
         indexes = [models.Index(fields=['run', 'report_date'],
-                                name='fresh_guided_excess_date')]
+                                name='fresh_guided_excess_date'),
+                   models.Index(models.F('run'), Lower(models.Func(models.F('sku_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_excess_sku'),
+                   models.Index(models.F('run'), Lower(models.Func(models.F('location_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_excess_loc')]
 
 
 class BtrReportingGeneration(models.Model):
@@ -1236,6 +1241,8 @@ from mta.runtime.mdm_daily_models import (MdmDailyInputCapture, MdmDailyInputOcc
     MdmDailyInputTask, MdmDailyInputHistory, MdmDailySkuArchive, MdmDailyLocationArchive,
     MdmDailySkuLocAddArchive, MdmDailySkuLocModifyArchive, MdmDailySkuLocRemoveArchive,
     MdmPairExclusionSource, MdmPairExclusion, MdmDailyPairExclusion)
+from mta.runtime.report_aggregate_models import (
+    ReportAggregateReceipt, ReportScopeMember, GuidedHistoryAggregate)
 from mta.runtime.publication_models import (DailySourceReceipt, DailyColorSequence, DailyOpeningSob,
     DailyUiPublication, DailyUiPublicationAttempt, DailyUiActivation, DailyPlanningExtension)
 from mta.runtime.daily_request_models import (DailyRequestOwner, DailyOpenRequest,

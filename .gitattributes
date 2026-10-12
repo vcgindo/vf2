@@ -13,3 +13,8 @@ baseline/cohort3-hierarchy-v1.json -text -eol whitespace=cr-at-eol
 mta/config/mdm_sku.json -text -eol whitespace=cr-at-eol
 mta/config/mdm_location.json -text -eol whitespace=cr-at-eol
 mta/config/mdm_skuloc.json -text -eol whitespace=cr-at-eol
+# The prepared MDM-day namespace pins this adapter's exact installed bytes.
+mta/mdm/daily_source.py -text -eol whitespace=cr-at-eol
+# Approved MDM-day preparation pins these exact decision/input-map bytes.
+docs/MDM_APPROVAL_DAY_SOURCE_DECISION.md -text -eol whitespace=cr-at-eol
+docs/MDM_APPROVAL_DAY_SOURCE_EXIT_MAP.json -text -eol whitespace=cr-at-eol

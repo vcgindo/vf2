@@ -15,6 +15,7 @@ from mta.presentation.context import PublicationUnavailable
 
 POLICY = 'supported-synthetic-operational-v1'
 QUALIFICATION = 'inactive-nms-critical-flags-remain-false'
+ACTIVE_POLICY = 'supported-synthetic-active-nms-v1'
 BLOCKED_ROUTES = ('orderFulfillment-custom', 'git-child-GetPlanningDataGrid')
 
 
@@ -22,9 +23,20 @@ def reject(reason):
     raise PublicationUnavailable('operational_acceptance_' + reason)
 
 
+def policy_identity():
+    from mta.mdm.daily_source import ARTIFACT_SHA, APPROVAL_DAY_ARTIFACT_SHA
+    from mta.application.daily_finalization import ACTIVE_QUALIFICATION
+    value = getattr(settings, 'VF_MTA_OPERATIONAL_POLICY', '') or POLICY
+    if value == POLICY:
+        return POLICY, QUALIFICATION, ARTIFACT_SHA, False
+    if value == ACTIVE_POLICY:
+        return ACTIVE_POLICY, ACTIVE_QUALIFICATION, APPROVAL_DAY_ARTIFACT_SHA, True
+    reject('unknown_policy')
+
+
 def enabled():
     value = getattr(settings, 'VF_MTA_OPERATIONAL_POLICY', '')
-    if value not in ('', POLICY):
+    if value not in ('', POLICY, ACTIVE_POLICY):
         reject('unknown_policy')
     if not value:
         if getattr(settings, 'VF_MTA_OPERATIONAL_RECEIPT', ''):
@@ -164,12 +176,12 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
     if not path.is_absolute() or not path.is_file():
         reject('frozen_artifact_required')
     artifact_sha = hashlib.sha256(path.read_bytes()).hexdigest()
-    from mta.mdm.daily_source import ARTIFACT_SHA
-    if artifact_sha != ARTIFACT_SHA:
+    policy, qualification, expected_artifact, active_nms = policy_identity()
+    if artifact_sha != expected_artifact:
         reject('unregistered_artifact')
     capture = run.mdm_input_capture
-    if capture.status != 'CONSUMED' or capture.nms_active:
-        reject('consumed_inactive_mdm_required')
+    if capture.status != 'CONSUMED' or capture.nms_active is not active_nms:
+        reject('consumed_policy_mdm_required')
     if (publication.status != 'READY' or publication.output_digest != run.output_digest
             or publication.source_digest != daily_publication.source_identity(run)
             or publication.recipe_digest != daily_publication.recipe_identity()
@@ -179,7 +191,11 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
     if set(publication.layers) != set(required_layers()) or any(
             row.get('status') != 'READY' for row in publication.layers.values()):
         reject('required_layers_incomplete')
-    return dict(policy=POLICY, qualification=QUALIFICATION, blocked_routes=BLOCKED_ROUTES,
+    current_identity = {}
+    if active_nms:
+        from mta.mdm.daily_current import verify_published
+        current_identity['published_owners'] = digest(verify_published(run, capture.source))
+    return dict(policy=policy, qualification=qualification, blocked_routes=BLOCKED_ROUTES,
         code=code_identity(), run=str(run.pk), date=str(run.business_date),
         input=run.input_digest, input_manifest=run.input_manifest_digest,
         input_metadata=digest(run.input_payload), revision=run.execution_revision,
@@ -194,7 +210,8 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
         predecessor_output=(run.predecessor.output_digest if run.predecessor_id else ''),
         mdm=digest(dict(source=capture.source_id, source_digest=capture.source.digest,
             receipt=capture.source.receipt, revision=capture.revision_digest,
-            sql=capture.sql_digest, request=capture.request_digest, status=capture.status)),
+            sql=capture.sql_digest, request=capture.request_digest, status=capture.status,
+            **current_identity)),
         sources=digest(dict(images=source.images_digest, recipe=source.recipe_digest,
                             receipts=source_receipts(run))),
         operations=operation_metadata(attempt, repair), access=access,
@@ -204,12 +221,13 @@ def snapshot(run, publication, attempt, repair, artifact_path, finalization_path
 def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick_config_path, shipment_path):
     """Native inputs, frozen facts, exact finalization and own predecessor chain."""
     from mta.mdm.daily_source_install import registered
-    from mta.mdm.daily_source import ARTIFACT_SHA, require_binding
+    from mta.mdm.daily_source import require_binding
     from mta.mdm.daily_input import compose
     from mta.application import daily_finalization as final
     from mta.runtime.validation_storage import read_input
     from mta.runtime.services import read_outputs
     from mta.runtime.temporal import command_state
+    _, _, ARTIFACT_SHA, active_nms = policy_identity()
     artifact = registered(Path(artifact_path).read_bytes(), ARTIFACT_SHA)
     case = artifact['case']
     capture = run.mdm_input_capture
@@ -242,7 +260,10 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
         reject('explicit_pick_output_root_required')
     expected_profile=apply_pick(expected_profile,pick_bytes,'canonical-tied-order-v1')
     expected_opening={**case['opening'],'complete':supplement['opening_complete']}
-    final.begin(deepcopy(expected_opening), case['days'][0]['business_date'])
+    final.begin(deepcopy(expected_opening), case['days'][0]['business_date'],
+                policy=supplement['configuration']['policy'])
+    if supplement['configuration']['policy'] != (final.ACTIVE_POLICY if active_nms else final.POLICY):
+        reject('finalization_policy_changed')
     expected_profile['daily_publication'] = True
     # run_daily permits an explicit remark horizon; it is bound in the full profile.
     config = expected_profile.setdefault('daily_publication_config', {})
@@ -257,9 +278,9 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
         reject('undeclared_report_exceptions')
     final.verify_successor(output, profile, str(run.business_date))
     closing = output['ClosingState'][0]
-    if (profile.get('force_flags',{}).get('nms_active') is not False
+    if (profile.get('force_flags',{}).get('nms_active') is not active_nms
             or raw['day'].get('new_force_requests') != []
-            or closing.get('controls',{}).get('upload_log') != []):
+            or not active_nms and closing.get('controls',{}).get('upload_log') != []):
         reject('unsupported_upload_log_source')
     if any(closing['complete'][name] != [] for name in final.EMPTY_APPROVAL_QUEUES):
         reject('populated_approval_queue')
@@ -267,6 +288,9 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
     if len(matches) != 1:
         reject('artifact_date')
     index, day = matches[0]
+    if active_nms and (index not in (0, 1, 2) or str(run.business_date) not in
+                       ('2026-06-06', '2026-06-07', '2026-06-08')):
+        reject('active_approval_day_execution_horizon')
     expected_day = {**deepcopy(day), **deepcopy(case['static_day'])}
     from mta.runtime.daily_bindings import shipment_day
     if 'shipment_input' in expected_day:reject('shipment_cannot_replace_artifact')
@@ -277,7 +301,7 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
     if bool(index) != bool(run.predecessor_id):
         reject('artifact_predecessor')
     mdm = raw.get('mdm_input')
-    if not mdm or mdm.get('revision_digest') != capture.revision_digest or mdm.get('nms_active') is not False:
+    if not mdm or mdm.get('revision_digest') != capture.revision_digest or mdm.get('nms_active') is not active_nms:
         reject('mdm_capture_changed')
     if run.predecessor_id:
         parent = run.predecessor
@@ -306,7 +330,30 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
                 or raw['lineage'] != dict(opening_identity=opening['identity'], opening_digest=digest(opening))):
             reject('opening_lineage')
         opening_date = opening['opening_date']
-    expected_day['raw_master'] = storage(compose(mdm, expected_day['raw_master'], last_run_date=opening_date))
+    prior = parent_output['ClosingState'][0] if run.predecessor_id else expected_opening
+    base_master = expected_day['raw_master']
+    if active_nms:
+        from mta.mdm.daily_input import nms_master_raw
+        base_master = nms_master_raw(prior)
+    composed = compose(mdm, base_master, last_run_date=opening_date)
+    if active_nms:
+        from mta.mdm.approval_hierarchy import project
+        composed = project(composed,
+            path=getattr(settings, 'VF_MDM_APPROVAL_HIERARCHY_FILE', ''),
+            artifact_sha256=ARTIFACT_SHA)
+    expected_day['raw_master'] = storage(composed)
+    if active_nms:
+        from mta.mdm.supplier_capture import complete_feeds
+        from mta.mdm.integration_source import verify_capture, CAPTURES
+        if index == 0:
+            if mdm.get('integration') is not None or any(name in mdm for name in CAPTURES):
+                reject('active_bootstrap_roster')
+        else:
+            binding = mdm.get('integration')
+            if not binding or set(binding.get('families', {})) != {str(i) for i in range(1, 14)}:
+                reject('active_complete_family_roster')
+            verify_capture(capture.source, mdm)
+        expected_day['supplier_feeds'] = complete_feeds(mdm, prior)
     expected_day['exclusions'] = deepcopy(mdm['pair_exclusions'])
     if raw['day'] != expected_day:
         reject('frozen_daily_facts_changed')
@@ -382,7 +429,7 @@ def verify_candidate(run, publication, attempt, repair, artifact_path, finalizat
 
 def receipt_values(run, attempt, repair, artifact_path, finalization_path, state, profile, pick_config_path, shipment_path):
     access = state['access']
-    result = dict(policy=POLICY, qualification=QUALIFICATION, code_digest=state['code'],
+    result = dict(policy=state['policy'], qualification=state['qualification'], code_digest=state['code'],
         artifact_path=str(Path(artifact_path).resolve()), finalization_path=str(Path(finalization_path).resolve()),
         pick_config_path=str(Path(pick_config_path).resolve()), pick_config_digest=state['pick_config'],
         shipment_path=str(Path(shipment_path).resolve()), shipment_digest=state['shipment'],

@@ -2202,6 +2202,12 @@
   ],
   "retained_resources": [
     {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/mdm-approval-day-input-v1.json",
+      "role": "S1\u2013S5 approved twenty-pair MDM input package; zero business-day execution authorized",
+      "sha256": "7586426e7b061499e17d5d89d73c33b77c89d8c5671ffa65b3f929c9a536f100",
+      "bytes": 420309
+    },
+    {
       "path": "F:/vflow_integrated/.local-stage7/block1-selected-consumers/input.json",
       "role": "sizeable processed/report metadata parent",
       "sha256": "8ea842061fc03687eafb30b152e3228e91632fb00914e894c1957cf049f753ec",
@@ -2326,6 +2332,54 @@
       "role": "approved21day synthetic scenario input; not calculation acceptance",
       "sha256": "a14a98237b1761ff846617e8c99a1a75ad1f980c342c4916bfffb0be8712afa0",
       "bytes": 41828
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/mdm-approval-day-input-initial-nms-v1.json",
+      "role": "Approved initial NMS owner amendment for20-pair MDM approval-day package; preparation only, no execution acceptance",
+      "sha256": "be33508fd9e5cd6b0224f02502f61b87a0cfb8cdce44cafb3d1f1c3e1384d847",
+      "bytes": 863777
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/mdm-approval-day-shipment-v1.json",
+      "role": "approved twenty-pair three-date MDM immutable daily shipment-input derivative",
+      "sha256": "acffb0bf8164a4a9c6b1017aff52e82c08a9968be1b2e5b4d2c9d432a8e930ce",
+      "bytes": 29601
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/mdm-approval-day-shipment-receipt-v1.json",
+      "role": "twenty-pair three-date MDM daily shipment-input generation provenance",
+      "sha256": "d7537975b526d2b3c5f294c205311302365809503e67b2a810c32a1268b7983c",
+      "bytes": 2756
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/finalization.json",
+      "role": "Approved S5 MDM-day finalization.json; exact Cohort6 content except explicit active policy/artifact binding",
+      "sha256": "c1ae7d95a80d61b32dcd984b24a804d76a45948b23b8187aa90c4a834b83eb5c",
+      "bytes": 34646
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/operational-opening.json",
+      "role": "Approved S5 MDM-day operational-opening.json; exact Cohort6 content except explicit active policy/artifact binding",
+      "sha256": "7ee4047b75a253e988b717ff7726d2aa72df3aa818b1fdb03295a4a08a5c9325",
+      "bytes": 962
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/pick.json",
+      "role": "Approved S5 MDM-day pick.json; exact Cohort6 content except explicit active policy/artifact binding",
+      "sha256": "a775176974652ae0c228ab70a11ef4a5cbc2447b6535929397e914cc0e4b1c51",
+      "bytes": 537
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/hierarchy-template.json",
+      "role": "Approved own June6-8 MDM presentation hierarchy template; preparation only",
+      "sha256": "e3cc38ddae203161c522aacb14e46a1c16c863032e7ad12d619676d84ace3ce9",
+      "bytes": 637
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/mdm-approval-day-20261010-001/namespace002/operations-template.json",
+      "role": "Approved active-NMS owned namespace002 operational configuration; preparation only",
+      "sha256": "beb072328f16f567cd3a3fffec8a46e1735c319e0e6d3360865eefa428bda3fd",
+      "bytes": 7897
     }
   ],
   "reuse": {

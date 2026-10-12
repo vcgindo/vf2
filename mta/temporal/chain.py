@@ -229,8 +229,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     from mta.application import daily_finalization
     finalization = daily_finalization.configuration(profile)
     if finalization is not None:
-        prior = daily_finalization.begin(prior, today)
-        day = daily_finalization.fresh_feeds(prior, day)
+        prior = daily_finalization.begin(prior, today, policy=finalization['policy'])
+        day = daily_finalization.fresh_feeds(prior, day, policy=finalization['policy'])
     completion = prior['complete'] if finalization is not None else None
     master_input,daily_input=entry_inputs(prior,opening_date,day,profile,identity)
     master=process_importer_master(master_input)
@@ -530,12 +530,13 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         else:
             result['_CompletedBoundaries']=[*completed_boundaries,'closing-state']
         if finalization is not None:
-            closing['importer_settings'] = daily_finalization.finish(
-                closing['complete'], closing['importer_settings'], today)
+            if finalization['policy'] != daily_finalization.ACTIVE_POLICY:
+                closing['importer_settings'] = daily_finalization.finish(
+                    closing['complete'], closing['importer_settings'], today)
             from mta.serialization import digest
             result['_Cohort1'] = dict(policy=finalization['policy'], business_date=today,
                 configuration_digest=digest(profile),
-                qualification='inactive-nms-critical-flags-remain-false',
+                qualification=daily_finalization.qualification(finalization['policy']),
                 flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
     if operational_input_tables is not None:
         result['_OperationalInputTables'] = operational_input_tables

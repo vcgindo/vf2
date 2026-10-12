@@ -16,6 +16,7 @@ RECEIPT_KEYS = frozenset((
 ))
 FIELDS = {'products': ['SL1', 'SL2', 'SL3'],
           'locations': ['LL1', 'LL2', 'LL3']}
+MDM_DAY_TEMPLATE_SHA = 'e3cc38ddae203161c522aacb14e46a1c16c863032e7ad12d619676d84ace3ce9'
 
 
 def _read_json(path, expected_sha=None):
@@ -33,6 +34,9 @@ def bind(template_path, template_sha256, run_receipt_path, business_date,
          output_path):
     template, _ = _read_json(template_path, template_sha256)
     receipt, receipt_sha = _read_json(run_receipt_path)
+    dates = ('2026-06-06', '2026-06-07')
+    if template_sha256 == MDM_DAY_TEMPLATE_SHA:
+        dates += ('2026-06-08',)
     if (not isinstance(template, dict) or set(template) != TEMPLATE_KEYS
             or template.get('version') != 'fresh-presentation-hierarchy-v1'
             or template.get('role') != 'presentation-only-retained-hierarchy'
@@ -44,7 +48,7 @@ def bind(template_path, template_sha256, run_receipt_path, business_date,
     if (not isinstance(receipt, dict) or set(receipt) != RECEIPT_KEYS
             or receipt.get('status') != 'SUCCEEDED'
             or receipt.get('business_date') != business_date
-            or business_date not in ('2026-06-06', '2026-06-07')
+            or business_date not in dates
             or not isinstance(receipt.get('run_id'), str) or not receipt['run_id']
             or any(not isinstance(receipt.get(name), str)
                    or len(receipt[name]) != 64
@@ -87,7 +91,7 @@ def main(argv=None):
     parser.add_argument('--template', type=Path, required=True)
     parser.add_argument('--template-sha256', required=True)
     parser.add_argument('--run-receipt', type=Path, required=True)
-    parser.add_argument('--business-date', choices=('2026-06-06', '2026-06-07'),
+    parser.add_argument('--business-date', choices=('2026-06-06', '2026-06-07', '2026-06-08'),
                         required=True)
     parser.add_argument('--output', type=Path, required=True)
     options = parser.parse_args(argv)

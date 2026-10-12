@@ -1,5 +1,18 @@
 # Legacy behavior and explicit exceptions
 
+## Canonical NULL transit-tag correction — 13 October 2026
+
+This corrects a modern divergence, not an exception to legacy calculation. The
+pinned InitialiseSkuLocStdAttributeData.sql keeps NULL identities from raw master
+populations; UpdateInTransitDataTags.sql updates only SQL-equal SKU/location joins.
+The preserved approval-day June6 failure f1075083-3360-4922-9231-c1dc6aeabb8b contains
+NULL-SKU parent-description rows PL001/PL002. Modern validation previously rejected
+those rows before tagging. The correction preserves every target occurrence/tag
+and excludes NULL identities from matching on either side. Non-NULL matching,
+status rules, PIPO precedence and typed reconstruction remain unchanged. Inputs,
+SQL and earlier receipts are untouched; no business-day rerun or new parity claim.
+See DAILY_MDM_BASELINE_REVIEW.md and MIGRATION.md for proof and remaining scope.
+
 ## PICK-FINITE-CLOSURE-D1-D4 — approved 8 October 2026
 
 Human controller turn01a11a8b-e70d-74f0-899a-f9e034e42938 authorizes the exact

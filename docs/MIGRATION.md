@@ -1,4 +1,38 @@
 # Fresh VectorFLOW migration — current baseline
+### Daily/MDM baseline review — ACCEPTED CODE BASELINE (13 October 2026)
+
+Direct user authorization in this chat released review, identified defect fixes,
+verification and commit of accepted daily/MDM changes on
+codex/btr-ready-snapshot-trial. This section's containing commit is the pinned
+baseline; report its exact SHA before creating the production-handoff branch.
+
+Canonical NULL transit identities now survive without matching NULL sources;
+temporal preflight forwards the active finalization policy; the MDM execution
+package prepares and requires both report layers and Planning summary. Active
+MDM/current-owner/admission dependencies and their tests are included. The existing
+Planning graph's missing0110/0112 schema prerequisites and additive merges close
+fresh-schema reproducibility; no applied migration or unrelated Guided UI/cache
+implementation is changed.
+
+Focused unit/command/package/source-preservation/gateway tests pass. Fresh owned
+PostgreSQL migration through0116, check, model drift and empty final plan pass;
+eight real MDM guard/readback/rollback tests and36 consumption/admission tests pass.
+All396 pinned resources verify unchanged. Earlier stale mocked-policy fixture
+failures and Git newline-conversion diagnosis are retained; approved decision/map
+bytes are preserved rather than hashes or validators weakened. No full-suite or
+business-day acceptance claim is made.
+
+3005's six serving container/image/config/start/mount identities, readiness200 and
+selected April7 fixture bfd75b4b-a9df-4a08-82d3-852e3324b623 remain unchanged.
+No engine day, legacy call, workflow submission, serving mutation or handoff branch
+was created. The paused June6 attempt and all prior receipts remain preserved;
+actual active-day continuation and production handoff remain unproved. General
+input/admission, complete output producers, portable packaging and legacy-validation
+separation remain subsequent scope. Unrelated dirty work remains uncommitted.
+
+Implementation/proof record: docs/DAILY_MDM_BASELINE_REVIEW.md. Full logs and exact
+candidate exports: D:/freshvcf-build/evidence/daily-mdm-baseline-review-20261013-001.
+
 ### Planning simple rebuild — DELIVERED WITH UNMET PERFORMANCE TARGET (11 October 2026)
 
 Latest direct human instruction supersedes both prior Planning designs. Restore

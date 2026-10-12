@@ -38,7 +38,7 @@ def apply_finalization(profile, opening, config_bytes, *, artifact_sha256,
     if 'complete' in result_opening:
         raise ValueError('Finalization supplement cannot replace existing complete state')
     result_opening['complete'] = deepcopy(supplement['opening_complete'])
-    begin(result_opening, business_date)
+    begin(result_opening, business_date, policy=result_profile['complete_daily']['policy'])
     return result_profile, result_opening
 
 

@@ -21,6 +21,8 @@ from mta.domain.complete_daily_scalars import (
 )
 
 POLICY = 'generic-finalization-v1'
+ACTIVE_POLICY = 'generic-finalization-active-nms-v1'
+ACTIVE_QUALIFICATION = 'active-nms-enabled-writers-complete'
 FLAG_SEED_SHA256 = '1fa8858c03a4d37646b1c0e6f33b0321c5a6edaab93c5c0c168f1a5991f9931f'
 _seed_bytes = (Path(__file__).resolve().parents[1] / 'config/daily_finalization_flags.json').read_bytes()
 if hashlib.sha256(_seed_bytes).hexdigest() != FLAG_SEED_SHA256:
@@ -92,12 +94,26 @@ def require_inactive_qualification(settings):
             raise ValueError('Explicit completion setting required: ' + parameter)
 
 
-def finish(complete, settings, today):
+def finish(complete, settings, today, *, policy=POLICY):
     """Qualified Cohort1 gate; canonical ALL remains unchanged and distinct.
 
     Only the two source-skipped inactive-NMS critical rows may remain false.
     This is not a publication receipt or a whole-batch success override.
     """
+    if policy == ACTIVE_POLICY:
+        require_active_settings(settings)
+        validate_flag_roster(complete['ScriptExecutedFlag'])
+        result = validate_completion(complete, settings, today, kind='ALL')
+        for parameter in ('IsBPRBatchFileExecuted', 'IsBatchFileExecuted'):
+            values = [r['Value'] for r in result if ascii_equal(r['Parameter'], parameter)]
+            if len(values) != 1 or values != ['1']:
+                raise ValueError('Active NMS requires canonical completion: ' + parameter)
+        stamps = [r['Value'] for r in result if ascii_equal(r['Parameter'], 'BatchFileExecutionDate')]
+        if len(stamps) != 1 or parse_datetime(stamps[0]) != datetime.fromisoformat(today):
+            raise ValueError('Active NMS completion date differs')
+        return result
+    if policy != POLICY:
+        raise ValueError('Unknown generic finalization policy')
     require_inactive_qualification(settings)
     if any(row['Value'] != '1' for row in settings
            if ascii_equal(row['Parameter'], 'IsBPRBatchFileExecuted')):
@@ -130,13 +146,14 @@ def verify_successor(output, profile, today):
     """Require the committed Cohort1 gate as well as typed output integrity."""
     from mta.serialization import digest
     state = output['ClosingState'][0]
-    expected = dict(policy=POLICY, business_date=today,
+    policy = configuration(profile)['policy']
+    expected = dict(policy=policy, business_date=today,
         configuration_digest=digest(profile),
-        qualification='inactive-nms-critical-flags-remain-false',
+        qualification=qualification(policy),
         flag_digest=digest(state['complete']['ScriptExecutedFlag']))
     if output['Lineage'][0].get('cohort1') != expected:
         raise ValueError('Cohort1 predecessor gate identity differs')
-    if finish(deepcopy(state['complete']), state['importer_settings'], today) != state['importer_settings']:
+    if finish(deepcopy(state['complete']), state['importer_settings'], today, policy=policy) != state['importer_settings']:
         raise ValueError('Cohort1 predecessor completion state differs')
 
 
@@ -145,7 +162,7 @@ def configuration(profile):
     if value is None:
         return None
     if (not isinstance(value, dict) or set(value) != {
-            'policy', 'consumption_days', 'remark_days'} or value['policy'] != POLICY):
+            'policy', 'consumption_days', 'remark_days'} or value['policy'] not in (POLICY, ACTIVE_POLICY)):
         raise ValueError('Explicit supported generic finalization configuration required')
     for name in ('consumption_days', 'remark_days'):
         if type(value[name]) is not int or not -2147483648 <= value[name] <= 2147483647:
@@ -188,11 +205,32 @@ def preserve_settings(original, produced):
     return result
 
 
-def begin(prior, today):
+def qualification(policy):
+    if policy not in (POLICY, ACTIVE_POLICY):
+        raise ValueError('Unknown generic finalization policy')
+    return ACTIVE_QUALIFICATION if policy == ACTIVE_POLICY else 'inactive-nms-critical-flags-remain-false'
+
+
+def require_active_settings(settings):
+    values = [row['Value'] for row in settings if ascii_equal(row['Parameter'], 'NMSActive')]
+    if values != ['1']:
+        raise ValueError('Active finalization requires one explicit NMSActive=1')
+    for parameter in ('IsBatchFileExecuted', 'IsBPRBatchFileExecuted', 'BatchFileExecutionDate'):
+        values = [row['Value'] for row in settings if ascii_equal(row['Parameter'], parameter)]
+        if len(values) != 1 or type(values[0]) is not str:
+            raise ValueError('Explicit completion setting required: ' + parameter)
+
+
+def begin(prior, today, *, policy=POLICY):
     """Reset owned flag/settings rows; missing populations are never made empty."""
     if 'complete' not in prior or any(name not in prior['complete'] for name in REQUIRED):
         raise ValueError('Explicit generic finalization opening populations required')
-    require_inactive_qualification(prior['importer_settings'])
+    if policy == ACTIVE_POLICY:
+        require_active_settings(prior['importer_settings'])
+    elif policy == POLICY:
+        require_inactive_qualification(prior['importer_settings'])
+    else:
+        raise ValueError('Unknown generic finalization policy')
     if any(prior['complete'][name] != [] for name in EMPTY_APPROVAL_QUEUES):
         raise ValueError('Populated SOB/MOQ approval workflows are outside the qualified domain')
     validate_flag_roster(prior['complete']['ScriptExecutedFlag'])
@@ -205,13 +243,13 @@ def begin(prior, today):
     return result
 
 
-def fresh_feeds(prior, day):
+def fresh_feeds(prior, day, *, policy=POLICY):
     """Clear working raw populations and load explicit non-NMS facts.
 
     Immutable inputs and predecessor rows are never the working tables. Active
     NMS needs its different persisted-input/queue path, not this raw-feed route.
     """
-    if nms_active(prior['importer_settings']):
+    if nms_active(prior['importer_settings']) and policy != ACTIVE_POLICY:
         raise ValueError('Active NMS complete finalization intake is not yet qualified')
     working = deepcopy(day)
     for name in ('raw_master', 'raw_non_nms', 'raw_no_norm', 'raw_daily',

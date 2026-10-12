@@ -10,7 +10,7 @@ from django.test import SimpleTestCase, override_settings
 from django.urls import path
 
 from api_gateway.inprocess_mta import (
-    InProcessMtaTransportError, owned_wsgi_application, request,
+    InProcessMtaTransportError, owned_wsgi_application, owned_mdm_workflow_application, request,
 )
 
 
@@ -42,6 +42,8 @@ urlpatterns = [
     path('api/mta/DBMData', json_read),
     path('api/mta/DownloadReports/<str:report_name>', download),
 ]
+urlpatterns += [path('api/mta/' + route, json_read) for route in (
+    'AddMasterData', 'ModifyMasterData', 'PostMasterAfterApproved')]
 
 
 PROOF_SETTINGS = dict(
@@ -51,6 +53,36 @@ PROOF_SETTINGS = dict(
 
 
 class InProcessMtaTransportTests(SimpleTestCase):
+    @override_settings(**PROOF_SETTINGS)
+    def test_workflow_seal_is_exact_and_does_not_extend_read_seal(self):
+        binding = dict(SETTINGS_MODULE='tools.mdm_approval_day_settings',
+            DATABASES={'default': {'NAME': 'fresh_mdm_approval_day_20261010_002'}},
+            VF_MDM_SOURCE_DIGEST='39f76f9c718a28e014737e8c856af7d29f1ab5dbdfd2370321a6cb539d010f8e',
+            VF_MTA_PUBLISHED_RUN='own-accepted-D0', VF_MTA_PUBLISHED_DIGEST='d' * 64)
+        with override_settings(**binding):
+            application = owned_mdm_workflow_application(WSGIHandler(), run_id='own-accepted-D0', output_digest='d' * 64)
+            with override_settings(MTA_INPROCESS_WSGI_APPLICATION=application):
+                for route in ('AddMasterData', 'ModifyMasterData', 'PostMasterAfterApproved'):
+                    response = request(base_url='http://mta', method='POST',
+                        url='http://mta/api/mta/' + route, json={'id': 1})
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.headers['X-Proof-Middleware'], 'traversed')
+                for method, route in (('POST', 'RemoveMasterData'), ('POST', 'DBMData'),
+                                      ('GET', 'GetLastRunDate')):
+                    with self.assertRaises(InProcessMtaTransportError):
+                        request(base_url='http://mta', method=method, url='http://mta/api/mta/' + route)
+                with override_settings(VF_MTA_PUBLISHED_RUN='changed'), self.assertRaisesRegex(
+                        InProcessMtaTransportError, 'binding_changed'):
+                    request(base_url='http://mta', method='POST', url='http://mta/api/mta/AddMasterData')
+            for field, value in (('SETTINGS_MODULE', 'vectorflow.settings'),
+                    ('VF_MDM_SOURCE_DIGEST', 'wrong'), ('VF_MTA_PUBLISHED_RUN', ''),
+                    ('DATABASES', {'default': {'NAME': 'other'}})):
+                with override_settings(**{field: value}), self.assertRaises(InProcessMtaTransportError):
+                    owned_mdm_workflow_application(WSGIHandler(), run_id='own-accepted-D0', output_digest='d' * 64)
+        with override_settings(MTA_INPROCESS_WSGI_APPLICATION=owned_wsgi_application(WSGIHandler())):
+            with self.assertRaises(InProcessMtaTransportError):
+                request(base_url='http://mta', method='POST', url='http://mta/api/mta/AddMasterData')
+
     def test_default_transport_is_the_unchanged_requests_call(self):
         expected = object()
         arguments = dict(method='POST', url='http://mta/api/mta/DBMData',
