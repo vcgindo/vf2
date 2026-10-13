@@ -80,9 +80,181 @@ class SkuLocationCurrentPostgresTests(TestCase):
 
 
 class SkuLocationWorkflowPostgresTests(TestCase):
+    def test_missing_audit_configuration_fails_before_submission_writes(self):
+        from django.apps import apps
+        from django.db import DatabaseError
+        from mta.mdm import skuloc_audit
+        from mta.runtime.mdm_supplier_models import MdmSupplierConfiguration
+        MdmLocationAttributes.objects.create(source=self.source, owner='Importer', ordinal=2,
+            WHCode='W-NEW', LL1='L', LL2='A', LL3='X')
+        models = [model for model in apps.get_models()
+                  if any(field.name == 'source' and field.related_model is MdmSource
+                         for field in model._meta.fields)]
+        def snapshot():
+            return {model._meta.label: list(model.objects.filter(source=self.source)
+                    .order_by('pk').values()) for model in models}
+        before = snapshot()
+        for action, data in ((1, {'sc':'S1','wc':'W-NEW','pwc':'P1','n':10}),
+                             (2, {'sc':'S1','wc':'W1','mn':3}),
+                             (3, {'sc':'S1','wc':'W1'})):
+            with self.subTest(action=action), self.assertRaises(MdmSupplierConfiguration.DoesNotExist):
+                skuloc_tasks.submit(self.source, dict(id=3,taskId='',data=[data],
+                    product_permissions=[1],location_permissions=[10],
+                    all_users=[self.reviewer]),self.requester,action)
+            self.assertEqual(snapshot(), before)
+            with patch.object(skuloc_audit, 'enabled', side_effect=DatabaseError('setting read failed')):
+                with self.assertRaisesMessage(DatabaseError, 'setting read failed'):
+                    skuloc_tasks.submit(self.source, dict(id=3,taskId='',data=[data],
+                        product_permissions=[1],location_permissions=[10],
+                        all_users=[self.reviewer]),self.requester,action)
+            self.assertEqual(snapshot(), before)
+
+    def test_review_setting_read_failure_preserves_native_partial_decision_order(self):
+        from django.db import DatabaseError
+        from mta.mdm import skuloc_audit
+        submitted = skuloc_tasks.submit(self.source, dict(id=3,taskId='',
+            data=[{'sc':'S1','wc':'W1','mn':3}],product_permissions=[1],
+            location_permissions=[10],all_users=[self.reviewer]),self.requester,2)
+        before = list(MdmSubTask.objects.filter(source=self.source).values())
+        with patch.object(skuloc_audit, 'enabled', side_effect=DatabaseError('setting read failed')):
+            with self.assertRaisesMessage(DatabaseError, 'setting read failed'):
+                skuloc_tasks.approve(self.source, dict(taskId=submitted['taskId'],
+                    data=[{'sc':'S1','wc':'W1','status':'3','comments':'native order'}],
+                    product_permissions=[1],location_permissions=[10]),self.reviewer)
+        self.assertEqual(MdmSkuLocHistory.objects.get(TaskId=submitted['taskId']).Status, '3')
+        self.assertEqual(MdmSkuLocModifyApproved.objects.get(source=self.source).MinNorm, 3)
+        self.assertEqual(list(MdmSubTask.objects.filter(source=self.source).values()), before)
+        self.assertFalse(any(model.objects.filter(source=self.source).exists()
+                             for model in skuloc_audit.MODELS.values()))
+
+    def test_enabled_native_audits_preserve_complete_values_decisions_and_denials(self):
+        from datetime import timedelta
+        from zoneinfo import ZoneInfo
+        from mta.mdm import skuloc_audit
+        from mta.runtime.mdm_supplier_models import MdmSupplierConfiguration
+        self.assertTrue(MdmSupplierConfiguration.objects.get(source=self.source).upload_log_active)
+        MdmLocationAttributes.objects.create(source=self.source, owner='Importer', ordinal=2,
+            WHCode='W-NEW', LL1='L', LL2='A', LL3='X')
+        schema = json.loads((Path(__file__).resolve().parents[2] /
+            'baseline/cohort2-native-source-schema.json').read_text(encoding='utf-8'))['tables']
+        stamp = datetime(2026, 10, 7, 8, tzinfo=ZoneInfo('Asia/Calcutta'))
+        cases = (
+            (1, {'sc':'S1','wc':'W-NEW','pwc':'P1','n':10,'mn':2,'rlt':1,
+                 'rcp':1,'gcp':1,'ps':1,'da':'Yes','spr':'','npr':''},
+             {'SKUCode':'S1','WhCode':'W-NEW','ParentWhCode':'P1','Norm':10,
+              'MinNorm':2,'RLT':1,'RCP':1,'GCP':1,'PackSize':1,'DBMActive':True,
+              'StockPercentForRat':100,'NormPercentReservation':0}, '3', 'NewItem'),
+            (2, {'sc':'S1','wc':'W1','spr':'','npr':'','ps':2},
+             {'SKUCode':'S1','WhCode':'W1','StockPercentForRat':100,
+              'NormPercentReservation':0,'PackSize':2}, '4', 'ModifyItem'),
+            (3, {'sc':'S1','wc':'W1'}, {'SKUCode':'S1','WHCode':'W1'}, '3', 'RemoveItem'),
+        )
+        for action, data, values, status, table in cases:
+            with self.subTest(action=action):
+                stamp += timedelta(seconds=10)
+                model = skuloc_audit.MODELS[action]
+                fields = [c['name'] for c in schema['Importer/UIUploadLogNMS'+table]]
+                self.assertEqual(set(fields), {f.name for f in model._meta.concrete_fields}
+                                 - {'id','source'})
+                with patch.object(skuloc_tasks, 'now', return_value=stamp), \
+                        patch.object(skuloc_tasks, 'database_now', return_value=stamp), \
+                        patch.object(skuloc_audit, 'database_now', return_value=stamp):
+                    submitted = skuloc_tasks.submit(self.source, dict(id=3,taskId='',
+                        isOverwrite=False,data=[data],product_permissions=[1],
+                        location_permissions=[10],all_users=[self.reviewer]), self.requester, action)
+                expected = dict.fromkeys(fields)
+                expected.update(values,UserName='Requester',ActionTimeStamp=stamp,ActionId=1)
+                self.assertEqual(list(model.objects.order_by('pk').values(*fields)), [expected])
+                if action in (1, 2):
+                    from mta.runtime.mdm_skuloc_models import MdmSkuLocAddRequested
+                    request_model = MdmSkuLocAddRequested if action == 1 else MdmSkuLocModifyRequested
+                    requested = request_model.objects.get(TaskId=submitted['taskId'])
+                    history = MdmSkuLocHistory.objects.get(TaskId=submitted['taskId'])
+                    self.assertEqual((requested.StockPercentForRat,
+                                      requested.NormPercentReservation), (100, 0))
+                    self.assertEqual((history.StockPercentForRationing,
+                                      history.NormPercentReservation), (100, 0))
+                decision = dict(taskId=submitted['taskId'],
+                    data=[{'sc':data['sc'],'wc':data['wc'],'status':status,'comments':'audit'}],
+                    product_permissions=[1],location_permissions=[10])
+                before = list(model.objects.order_by('pk').values())
+                with self.assertRaises(TaskDenied):
+                    skuloc_tasks.approve(self.source, decision, self.requester)
+                self.assertEqual(list(model.objects.order_by('pk').values()), before)
+                with self.assertRaises(TaskDenied):
+                    skuloc_tasks.approve(self.source, {**decision,'location_permissions':[]}, self.reviewer)
+                self.assertEqual(list(model.objects.order_by('pk').values()), before)
+                reviewed_at = stamp + timedelta(seconds=1)
+                # Duplicate identical decisions are two native audit occurrences.
+                decision['data'] *= 2
+                with patch.object(skuloc_tasks, 'database_now', return_value=reviewed_at), \
+                        patch.object(skuloc_audit, 'database_now', return_value=reviewed_at):
+                    skuloc_tasks.approve(self.source, decision, self.reviewer)
+                reviewed = dict.fromkeys(fields)
+                reviewed.update(SKUCode='S1',UserName='Reviewer',ActionTimeStamp=reviewed_at,
+                                ActionId=int(status))
+                reviewed['WHCode' if action==3 else 'WhCode'] = data['wc']
+                self.assertEqual(list(model.objects.order_by('pk').values(*fields)),
+                                 [expected, reviewed, reviewed])
+
+    def test_disabled_native_audit_setting_preserves_no_log_effect(self):
+        from mta.mdm import skuloc_audit
+        submitted=skuloc_tasks.submit(self.source,dict(id=3,taskId='',
+            data=[{'sc':'S1','wc':'W1','mn':3}],product_permissions=[1],
+            location_permissions=[10],all_users=[self.reviewer]),self.requester,2)
+        skuloc_tasks.approve(self.source,dict(taskId=submitted['taskId'],
+            data=[{'sc':'S1','wc':'W1','status':'3','comments':'disabled'}],
+            product_permissions=[1],location_permissions=[10]),self.reviewer)
+        self.assertFalse(any(model.objects.filter(source=self.source).exists()
+                             for model in skuloc_audit.MODELS.values()))
+
+    def test_modify_rationing_history_uses_native_column_and_submission_date(self):
+        from zoneinfo import ZoneInfo
+        from mta.runtime.mdm_models import MdmTask
+        stamp = datetime(2026, 10, 7, 8, tzinfo=ZoneInfo('Asia/Calcutta'))
+        with patch.object(skuloc_tasks, 'now', return_value=stamp), \
+                patch.object(skuloc_tasks, 'database_now', return_value=stamp):
+            submitted = skuloc_tasks.submit(self.source,
+                dict(id=3, taskId='', isOverwrite=False,
+                     data=[{'sc': 'S1', 'wc': 'W1', 'spr': 75, 'ps': 2}],
+                     product_permissions=[1], location_permissions=[10],
+                     all_users=[self.reviewer]), self.requester, 2)
+        task_id = submitted['taskId']
+        requested = MdmSkuLocModifyRequested.objects.get(TaskId=task_id)
+        history = MdmSkuLocHistory.objects.get(TaskId=task_id)
+        task = MdmTask.objects.get(TaskID=task_id)
+        self.assertEqual((requested.StockPercentForRat, requested.PackSize), (75, 2))
+        self.assertEqual((history.StockPercentForRationing, history.PackSize), (100, 1))
+        self.assertEqual(history.SKUIntroDate, stamp.date())
+        self.assertEqual(task.ColumnList, 'SKUCode,WhCode,StockPercentForRat,PackSize')
+        self.assertEqual(MdmSkuLocCurrent.objects.get(source=self.source).SKUIntroDate,
+                         datetime(2026, 10, 6).date())
+        skuloc_tasks.approve(self.source,
+            dict(taskId=task_id, data=[{'sc': 'S1', 'wc': 'W1', 'status': '3',
+                 'comments': 'native rationing history proof'}],
+                 product_permissions=[1], location_permissions=[10]), self.reviewer)
+        approved = MdmSkuLocModifyApproved.objects.get(source=self.source)
+        self.assertEqual((approved.StockPercentForRat, approved.PackSize), (75, 2))
+        remove_stamp = stamp.replace(second=1)
+        with patch.object(skuloc_tasks, 'now', return_value=remove_stamp), \
+                patch.object(skuloc_tasks, 'database_now', return_value=remove_stamp):
+            removed = skuloc_tasks.submit(self.source,
+                dict(id=3, taskId='', data=[{'sc': 'S1', 'wc': 'W1'}],
+                     product_permissions=[1], location_permissions=[10],
+                     all_users=[self.reviewer]), self.requester, 3)
+        self.assertEqual(MdmSkuLocHistory.objects.get(TaskId=removed['taskId']).SKUIntroDate,
+                         remove_stamp.date())
+
     def setUp(self):
         self.source=MdmSource.objects.create(digest='3'*64,database_name='owned-test',
             dll_digest='0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346',receipt={})
+        from mta.runtime.mdm_supplier_models import MdmSupplierConfiguration
+        if self._testMethodName != 'test_missing_audit_configuration_fails_before_submission_writes':
+            MdmSupplierConfiguration.objects.create(source=self.source,
+                moq_format='WithDestLoc',
+                upload_log_active=(self._testMethodName ==
+                    'test_enabled_native_audits_preserve_complete_values_decisions_and_denials'),
+                receipt_digest='3'*64, provenance={'kind':'explicit-immutable-test-setting'})
         self.catalogue={'products':{'records':[
             {'id':1,'level_1':'P','level_2':'A','level_3':'X'},
             {'id':2,'level_1':'P','level_2':'B','level_3':'Y'}]},

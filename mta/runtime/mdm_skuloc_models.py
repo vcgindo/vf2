@@ -234,6 +234,31 @@ class MdmSkuLocRemoveApproved(models.Model):
     Approved = models.BooleanField()
 
 
+class SkuLocAudit(models.Model):
+    UserName = models.CharField(max_length=256)
+    ActionTimeStamp = models.DateTimeField()
+    ActionId = models.IntegerField()
+
+    class Meta:
+        abstract = True
+
+
+class MdmSkuLocAddUploadLog(SkuLocValues, SkuLocAudit):
+    """Native UIUploadLogNMSNewItem; separate duplicate occurrences."""
+
+
+class MdmSkuLocModifyUploadLog(SkuLocModifyValues, SkuLocAudit):
+    """Native UIUploadLogNMSModifyItem; no Norm column."""
+    ParentWhCode = models.CharField(max_length=50, null=True)
+
+
+class MdmSkuLocRemoveUploadLog(SkuLocAudit):
+    """Native UIUploadLogNMSRemoveItem preserves its WHCode spelling."""
+    source = models.ForeignKey(MdmSource, on_delete=models.PROTECT)
+    SKUCode = models.CharField(max_length=50)
+    WHCode = models.CharField(max_length=50)
+
+
 class MdmDraftSkuLoc(models.Model):
     source = models.ForeignKey(MdmSource, on_delete=models.PROTECT)
     RowId = models.IntegerField()

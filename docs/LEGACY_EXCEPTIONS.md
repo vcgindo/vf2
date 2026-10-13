@@ -1573,3 +1573,8 @@ and eb12ec114a9cd056d8a41d9424645028ffea51d5db6d10cae496a819421508ae.
 Controller verified this exact boundary. Four focused cases plus affected BTR/day
 integration:20 tests pass. Failed attempt/immutable seals remain unchanged; new
 source uses a new initialization in the same owned environment.
+
+
+## 14 October 2026 — master3 approval batches over999 rows remain unproved
+
+C05 independent component review identified a modern deviation, not an approved exception or legacy repair: DLL-matched TaskStatusProcessor.deployed.cs1220–1232 and2832–2864 execute business effects and rejection/approval audits per999-row chunk; modern mta/mdm/skuloc_tasks.py approve processes the complete decision list before its audit groups. Mixed statuses across the999-row boundary can differ in statement and timestamp grouping. C05 uses tiny requests, so its component/own-successor proof cannot close unrestricted batch behavior. No runtime limit, semantic repair or waiver is introduced here. See docs/handoff-3005/S2_C05_COMPONENT_PROOF.md and its evidence manifest. Resolve this deviation or explicitly establish the admitted production boundary before claiming broader master3 acceptance.

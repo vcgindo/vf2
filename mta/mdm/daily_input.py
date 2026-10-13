@@ -252,13 +252,14 @@ def compose_pair_exclusions(snapshot, incoming_master):
 def _task_snapshot(source):
     from mta.runtime.mdm_force_models import MdmForceHistory
     from mta.runtime.mdm_season_models import MdmSeasonHistory
-    from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory
     from mta.runtime.mdm_phase_controls_models import MdmPhaseOutHistory
     # NMSTaskStatusUpdate's Phase In Norm block also reads TaskPhaseOutHistory.
     # Do not silently substitute PhaseInNormHistory to make master9 complete.
+    # There is no TaskPhaseOutStopHistory block: consuming a StopPIPO command
+    # does not mark its approved subtask DB-updated or complete its header.
     families = (('sku', MdmSkuHistory), ('location', MdmLocationHistory),
                 ('skuloc', MdmSkuLocHistory), ('sob', MdmSobHistory), ('moq', MdmMoqHistory),
-                ('force', MdmForceHistory), ('season', MdmSeasonHistory), ('stop_pipo', MdmStopPipoHistory),
+                ('force', MdmForceHistory), ('season', MdmSeasonHistory),
                 ('phase_out', MdmPhaseOutHistory))
     result = []
     for family, history_model in families:

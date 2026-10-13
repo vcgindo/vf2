@@ -24,8 +24,40 @@ from mta.serialization import digest
 
 
 class DailyInputConsumptionTests(TestCase):
+    def test_canonical_phase_completion_leaves_stop_and_target_tasks_pending(self):
+        from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory
+        from mta.runtime.mdm_phase_controls_models import (
+            MdmPhaseOutHistory, MdmPhaseInNormHistory)
+        pending_since = datetime(2026, 10, 5, tzinfo=ZoneInfo('Asia/Calcutta'))
+        cases = ((6, MdmStopPipoHistory), (7, MdmPhaseOutHistory),
+                 (8, MdmPhaseOutHistory), (9, MdmPhaseInNormHistory))
+        objects = {}
+        for master_id, history_model in cases:
+            task_id = 'CONTROL-' + str(master_id)
+            task = MdmTask.objects.create(source=self.source, TaskID=task_id,
+                PendingSince=pending_since, TaskStatus='1', MasterId=str(master_id),
+                Actiontype=2 if master_id == 6 else 1)
+            sub = MdmSubTask.objects.create(source=self.source, TaskID=task_id,
+                ApproverId='2', TaskStatus='2')
+            history_model.objects.create(source=self.source, TaskId=task_id,
+                SKUCode='SKU', WhCode='LOC', Status='3', ApproverId='2')
+            objects[master_id] = task, sub
+        snapshot = self._bind()
+        with patch('mta.runtime.validation_storage.read_input',
+                   return_value={'mdm_input': snapshot}):
+            with transaction.atomic():
+                finalize_consumption(self.run)
+        for master_id, (task, sub) in objects.items():
+            task.refresh_from_db(); sub.refresh_from_db()
+            if master_id in (7, 8):
+                self.assertEqual((task.TaskStatus, sub.TaskStatus), ('7', '4'))
+                self.assertIsNotNone(sub.DBUpdatedDate)
+            else:
+                self.assertEqual((task.TaskStatus, sub.TaskStatus), ('1', '2'))
+                self.assertIsNone(sub.DBUpdatedDate)
+
     def test_finish_run_failure_rolls_queue_history_task_and_output_back(self):
-        from mta.application.daily_finalization import FLAG_SEED, POLICY
+        from mta.application.daily_finalization import FLAG_SEED, POLICY, qualification
         from mta.runtime.services import finish_run
         from mta.runtime.models import Checkpoint
         from copy import deepcopy
@@ -41,12 +73,18 @@ class DailyInputConsumptionTests(TestCase):
             snapshot = select_capture(self.source, nms_active=True, task_status_log_horizon=7)
             snapshot = compose_pair_exclusions(snapshot, [])
             snapshot = capture_prune_candidates(snapshot, self.source, date(2026, 10, 6))
-            raw = {'mdm_input': snapshot}
+            profile = {'complete_daily': {'policy': POLICY,
+                'consumption_days': 7, 'remark_days': 7}}
+            raw = {'mdm_input': snapshot, 'profile': profile}
             run = CalculationRun.objects.create(input_digest=digest(raw), input_payload=raw,
                 kind='DAILY_CHAIN', business_date=date(2026, 10, 6),
                 execution_revision='rollback-only-publication-no-calculation')
             bind_capture(run, snapshot, request_digest='e'*64)
-        output = {'Lineage': [{'cohort1': {'policy': POLICY}}],
+        output = {'Lineage': [{'cohort1': {'policy': POLICY,
+                  'business_date': '2026-10-06',
+                  'configuration_digest': digest(profile),
+                  'qualification': qualification(POLICY),
+                  'flag_digest': digest(FLAG_SEED)}}],
                   'ClosingState': [{'complete': {'ScriptExecutedFlag': deepcopy(FLAG_SEED)}}]}
         def fail_after_write(current, _output):
             self.assertFalse(MdmSkuApproved.objects.filter(pk=approved.pk).exists())

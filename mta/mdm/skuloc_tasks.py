@@ -9,6 +9,7 @@ from django.db.models.functions import Cast, Lower
 from django.db import models
 
 from mta.mdm.clock import database_now
+from mta.mdm import skuloc_audit
 from mta.mdm.drafts import now, value
 from mta.mdm.skuloc import ALIASES, FIELDS
 from mta.mdm.task_reads import TaskDenied, assigned, header, require_requester, sql_key
@@ -47,7 +48,9 @@ def convert(row, keys):
         if name == 'StockPercentForRationing':
             name = 'StockPercentForRat'
         try:
-            if alias in NUMERIC:
+            if alias in ('spr', 'npr') and text == '':
+                result[name] = 100 if alias == 'spr' else 0
+            elif alias in NUMERIC:
                 result[name] = Decimal(text) if alias in ('st','pso','pt') and text else (int(text) if text else None)
             elif alias == 'da':
                 result[name] = text.lower() in ('yes','1','y')
@@ -97,7 +100,8 @@ def _approvers(source, rows, users):
 def _history_values(row, names):
     values={name:getattr(row,name) for name in names if hasattr(row,name)}
     if 'StockPercentForRat' in names and hasattr(row,'StockPercentForRationing'):
-        values['StockPercentForRat']=row.StockPercentForRationing
+        # The native history INSERT rewrites the staging column spelling.
+        values['StockPercentForRationing']=row.StockPercentForRationing
     return values
 
 
@@ -174,6 +178,14 @@ def submit(source, payload, actor, action):
         approver_names=','.join(a['name'] for a in approvers)
         try:
             converted=[convert(row,keys) for row in chunk]
+        except (NativeSqlValueError, TypeError):
+            log.exception('master3 native submission value failure')
+            continue
+        # Native SQL construction resolves this setting before PostQuery.
+        # Its failure is not swallowed by the statement-error handler below.
+        audit_enabled = skuloc_audit.enabled(source)
+        try:
+            audit_rows = converted
             if action==1:
                 MdmSkuLocAddRequested.objects.bulk_create([MdmSkuLocAddRequested(source=source,Approved=False,TaskId=task_id,**row) for row in converted])
                 history=[{('StockPercentForRationing' if key=='StockPercentForRat' else key):val
@@ -184,11 +196,13 @@ def submit(source, payload, actor, action):
                     [r['sc'] for r in chunk],[r['wc'] for r in chunk],'WhCode')
                 for old in mq: master[(sql_key(old.SKUCode),sql_key(old.WhCode))].append(old)
                 accepted=[]
+                audit_rows=[]
                 for row in converted:
                     matches=master[(sql_key(row['SKUCode']),sql_key(row['WhCode']))]
                     if not matches: missing_count+=1
                     for old in matches:
                         item=dict(row);item['ParentWhCode']=old.ParentWhCode;accepted.append(item)
+                        audit_rows.append(dict(row))
                 MdmSkuLocModifyRequested.objects.bulk_create([MdmSkuLocModifyRequested(source=source,Approved=False,TaskId=task_id,**row) for row in accepted])
                 current=_pair_rows(MdmSkuLocCurrent.objects.filter(source=source,owner='Importer'),
                     [r['sc'] for r in chunk],[r['wc'] for r in chunk],'WhCode')
@@ -199,7 +213,14 @@ def submit(source, payload, actor, action):
                 current=MdmSkuLocCurrent.objects.filter(source=source,owner='Importer',SKUCode__in=[r['sc'] for r in chunk],WhCode__in=[r['wc'] for r in chunk])
                 history=[_history_values(old,names) for old in current for row in chunk
                     if old.SKUCode==row['sc'] and old.WhCode==row['wc']]
+            if action in (2, 3):
+                # Modify/RemoveSKULocMaster record GETDATE(), not the current
+                # pair's introduction date, in TaskNMSAllItemsHistory.
+                history_date = database_now().date()
+                for item in history:
+                    item['SKUIntroDate'] = history_date
             MdmSkuLocHistory.objects.bulk_create([MdmSkuLocHistory(source=source,TaskId=task_id,ApproverId=approver_ids,**row) for row in history])
+            skuloc_audit.submitted(source, action, audit_rows, actor, active=audit_enabled)
             if not supplied_id and offset==0:
                 task_names=names if action!=3 else ['SKUCode','WhCode']
                 MdmTask.objects.create(source=source,TaskID=task_id,PendingSince=database_now(),
@@ -294,6 +315,11 @@ def approve(source, payload, actor):
                     MdmSkuLocModifyRequested.objects.filter(pk=row.pk).update(Approved=True)
     except DatabaseError:
         log.exception('master3 native decision SQL failure')
+    audit_enabled = skuloc_audit.enabled(source)
+    try:
+        skuloc_audit.reviewed(source, task.Actiontype, valid, actor, active=audit_enabled)
+    except DatabaseError:
+        log.exception('master3 native decision audit failure')
     mine=[h for h in MdmSkuLocHistory.objects.filter(source=source,TaskId=task_id) if assigned(h.ApproverId,actor['id'])]
     completed=bool(mine) and all(h.Status in ('3','4') for h in mine)
     date=database_now().strftime('%d/%m/%Y %I:%M %p')

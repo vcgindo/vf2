@@ -1235,7 +1235,8 @@ from mta.runtime.mdm_models import (MdmSource, MdmSkuAttributes, MdmSkuDescripti
 from mta.runtime.mdm_skuloc_models import (MdmSkuLocCurrent, MdmSkuLocPair,
     MdmSkuLocMasterPair, MdmSkuLocAddRequested, MdmSkuLocModifyRequested,
     MdmSkuLocRemoveRequested, MdmSkuLocHistory, MdmSkuLocAddApproved,
-    MdmSkuLocModifyApproved, MdmSkuLocRemoveApproved, MdmDraftSkuLoc)
+    MdmSkuLocModifyApproved, MdmSkuLocRemoveApproved, MdmDraftSkuLoc,
+    MdmSkuLocAddUploadLog, MdmSkuLocModifyUploadLog, MdmSkuLocRemoveUploadLog)
 
 from mta.runtime.mdm_daily_models import (MdmDailyInputCapture, MdmDailyInputOccurrence,
     MdmDailyInputTask, MdmDailyInputHistory, MdmDailySkuArchive, MdmDailyLocationArchive,
