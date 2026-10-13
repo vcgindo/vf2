@@ -1,0 +1,6 @@
+# Append to the existing database installation; never creates or changes storage.
+services:
+  postgres:
+    cpus: ${SERVE_PG_CPUS:-2}
+    mem_limit: ${SERVE_PG_MEMORY:-2g}
+    memswap_limit: ${SERVE_PG_MEMORY_SWAP:-2g}

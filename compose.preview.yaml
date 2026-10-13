@@ -32,10 +32,10 @@ services:
       - D:/freshvcf-build/inputs/excess-history-input-v1.json:/inputs/excess-history-input-v1.json:ro
       - D:/freshvcf-build/evidence/runtime/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:/input-identity/ac1612c8-0e49-4155-83c3-f59f41422293/InputSnapshot.jsonl.gz:ro
     # Verify the immutable publication before opening the listener/forking.
-    command: [gunicorn, vectorflow.wsgi:application, --preload, --bind, '0.0.0.0:8000', --workers, '2', --timeout, '180']
-    mem_limit: 4g
-    memswap_limit: 4g
-    cpus: 2
+    command: [gunicorn, vectorflow.wsgi:application, --preload, --bind, '0.0.0.0:8000', --workers, '${SERVE_MTA_WORKERS:-2}', --timeout, '${SERVE_MTA_TIMEOUT:-180}']
+    mem_limit: ${SERVE_MTA_MEMORY:-4g}
+    memswap_limit: ${SERVE_MTA_MEMORY_SWAP:-4g}
+    cpus: ${SERVE_MTA_CPUS:-3}
     restart: 'no'
     networks: [preview, fresh-db]
   user-service:
@@ -44,7 +44,7 @@ services:
       context: .
       dockerfile: infrastructure/docker/user-service.Dockerfile
     # Schema/bootstrap is an explicit first-start command, never a restart reset.
-    entrypoint: [uvicorn, 'apps.asgi:application', --host, 0.0.0.0, --port, '10016']
+    entrypoint: [uvicorn, 'apps.asgi:application', --host, 0.0.0.0, --port, '10016', --workers, '${SERVE_AUTH_WORKERS:-1}']
     environment:
       DB_HOST: freshvcf-test-postgres-1
       DB_PORT: '5432'
@@ -72,8 +72,9 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/0
     volumes:
       - D:/freshvcf-build/preview/secrets:/run/secrets:ro
-    mem_limit: 1g
-    cpus: 1
+    mem_limit: ${SERVE_AUTH_MEMORY:-1g}
+    memswap_limit: ${SERVE_AUTH_MEMORY_SWAP:-2g}
+    cpus: ${SERVE_AUTH_CPUS:-1}
     restart: 'no'
     networks: [preview, fresh-db]
   mto:
@@ -97,14 +98,16 @@ services:
       MTO_STAGE7B_ENABLE_DDQ_UI: 'false'
     volumes:
       - ./infrastructure/mto/ReportPaths.json:/app/Downloads/ReportPaths.json:ro
-    mem_limit: 1g
-    cpus: 1
+    mem_limit: ${SERVE_MTO_MEMORY:-1g}
+    memswap_limit: ${SERVE_MTO_MEMORY_SWAP:-2g}
+    cpus: ${SERVE_MTO_CPUS:-1}
     restart: 'no'
     networks: [preview, fresh-db]
   redis:
     image: redis:7.4-alpine
-    mem_limit: 128m
-    cpus: 0.5
+    mem_limit: ${SERVE_REDIS_MEMORY:-128m}
+    memswap_limit: ${SERVE_REDIS_MEMORY_SWAP:-256m}
+    cpus: ${SERVE_REDIS_CPUS:-0.5}
     restart: 'no'
     networks: [preview]
   frontend:
@@ -117,8 +120,9 @@ services:
         REACT_APP_WS_API_HOST: ws://localhost:3005
         REACT_APP_DEMO_MODE: 'false'
     ports: ['127.0.0.1:3005:80']
-    mem_limit: 128m
-    cpus: 0.5
+    mem_limit: ${SERVE_FRONTEND_MEMORY:-128m}
+    memswap_limit: ${SERVE_FRONTEND_MEMORY_SWAP:-256m}
+    cpus: ${SERVE_FRONTEND_CPUS:-0.5}
     restart: 'no'
     networks: [preview]
 networks:

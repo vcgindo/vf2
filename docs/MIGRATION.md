@@ -1,4 +1,37 @@
 # Fresh VectorFLOW migration — current baseline
+### 3005 resource configuration — APPLIED (13 October 2026)
+
+User requested checking 3005 and applying the pending configuration. Scope was
+existing serving resource limits only, with healthy login/readiness and preserved
+publication, images, mounts and database identity as the exit criteria.
+3005 was already running (login HTTP 200); no restart was necessary. Applied live:
+MTA 3 CPUs / 4 GiB RAM, PostgreSQL 2 CPUs / 2 GiB RAM, both with swap disabled.
+Existing worker configuration remains unchanged. Normal Compose overlays render
+these limits and independently overridden CPU/RAM/worker values successfully.
+Container identities, startup times, environment hashes and mounts are unchanged;
+database system identity/start time, selected configuration, mounted identity
+files and readiness admission digest match before/after. Login remains HTTP 200
+and readiness is true. No application rebuild, calculation, data reload or other
+serving-stack change occurred. This is availability/configuration proof, not a
+new authenticated workflow or performance acceptance.
+
+Evidence: `D:/freshvcf-build/evidence/normal-serving-resources-20261013-001/`
+(`before-3005.json`, `after-3005.json`, `apply-3005-mta.json`,
+`apply-3005-pg.json`, `render-proof.json`). Docker live limits persist across
+container restart; recreation must append the normal resource overlays last.
+Operator procedure: `infrastructure/preview/NORMAL_RESOURCES.md`.
+Legacy 3002 root/login both return HTTP 200; native Node, .NET, auth/MTO Python
+and PostgreSQL processes retain all 16 logical CPUs and normal priority. Legacy
+SQL data/log files remain on D: NTFS; local PostgreSQL data/WAL remain ordinary
+directories on F: ReFS. Modern PostgreSQL data/WAL remain disk-backed on D:.
+No legacy configuration or shared SQL setting was changed. Shared SQL's
+effectively unlimited maximum memory is retained, not claimed as isolated
+capacity. Evidence also includes `legacy-storage-processes.json` and
+`legacy-sql-storage.txt`. The finite resource task is delivered; preview images
+still contain validation assets and fixture-bound publication, so production
+packaging purity and workload/performance acceptance are not claimed. Planning's
+qualified closure and stopped business-day runs remain unchanged.
+
 ### Daily/MDM baseline review — ACCEPTED CODE BASELINE (13 October 2026)
 
 Direct user authorization in this chat released review, identified defect fixes,

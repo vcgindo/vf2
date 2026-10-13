@@ -1,0 +1,26 @@
+# Append LAST to the current normal serving Compose files.
+# This file changes resources/concurrency only; images, state and mounts stay owned
+# by the existing installation. Use a separate explicit harness for comparisons.
+services:
+  mta:
+    cpus: ${SERVE_MTA_CPUS:-3}
+    mem_limit: ${SERVE_MTA_MEMORY:-4g}
+    memswap_limit: ${SERVE_MTA_MEMORY_SWAP:-4g}
+    command: [gunicorn, vectorflow.wsgi:application, --preload, --bind, '0.0.0.0:8000', --workers, '${SERVE_MTA_WORKERS:-2}', --timeout, '${SERVE_MTA_TIMEOUT:-180}']
+  user-service:
+    cpus: ${SERVE_AUTH_CPUS:-1}
+    mem_limit: ${SERVE_AUTH_MEMORY:-1g}
+    memswap_limit: ${SERVE_AUTH_MEMORY_SWAP:-2g}
+    entrypoint: [uvicorn, 'apps.asgi:application', --host, 0.0.0.0, --port, '10016', --workers, '${SERVE_AUTH_WORKERS:-1}']
+  mto:
+    cpus: ${SERVE_MTO_CPUS:-1}
+    mem_limit: ${SERVE_MTO_MEMORY:-1g}
+    memswap_limit: ${SERVE_MTO_MEMORY_SWAP:-2g}
+  frontend:
+    cpus: ${SERVE_FRONTEND_CPUS:-0.5}
+    mem_limit: ${SERVE_FRONTEND_MEMORY:-128m}
+    memswap_limit: ${SERVE_FRONTEND_MEMORY_SWAP:-256m}
+  redis:
+    cpus: ${SERVE_REDIS_CPUS:-0.5}
+    mem_limit: ${SERVE_REDIS_MEMORY:-128m}
+    memswap_limit: ${SERVE_REDIS_MEMORY_SWAP:-256m}
