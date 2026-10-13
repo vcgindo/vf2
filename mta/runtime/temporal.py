@@ -397,7 +397,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 base_master=nms_master_raw(prior)
             if origin_capture is None:
                 capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
-            composed=compose(capture_snapshot,base_master,last_run_date=opening_date)
+            # Native SetRunDate precedes NMSImportData. Preserve the sealed
+            # legacy adapter's opening-date behavior outside native execution.
+            composed=compose(capture_snapshot,base_master,
+                last_run_date=today.isoformat() if native else opening_date)
             if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY and not native:
                 from django.conf import settings
                 from mta.mdm.approval_hierarchy import project
