@@ -1,0 +1,29 @@
+{
+  "root": "D:\\freshvcf-build\\evidence\\handoff3005-s1-20261013-001",
+  "files": {
+    "capture_baseline.py": "11a0684a8291b0c8dbe7501ade98a8833d5ce396204c7c2eedcca2ab55e5e595",
+    "compose-reference-hashes.json": "4c9d16ce7ac3114749a9af2662de0891e48d8bd32a668f440d69d56846dc1253",
+    "database-metadata.txt": "d1404fe17f4088b7eff3810aa9f5c30971be649fa8ea91d4b1f2bd55925441c1",
+    "deployed-mta-source.tar.gz": "b0da6767cca9045934f55c030662ffc5e68273d40b2ea27dd973d0b4be0af3f5",
+    "historical-source-reconciliation.json": "71209e24cb3ab56e4913156f26750e03569627ab99998b0a0e9235bdced716ae",
+    "http-health.json": "a72449b41ab0f81870165661d74b6dfeee9046d4405aecfb038398695dab1a0f",
+    "login-challenge.png": "2e881ebbb5584e177f7522ded05099152e322f63d679db14939023886c1bec69",
+    "login-success.png": "d204bf4927de8441c6947bb5880457f39b1ca466f3b31014a3ef24613242c764",
+    "mounted-file-identities.json": "1dd4634fca633dcda9ae553636ee4a89410a7ecc8a8564d7e5b4fae3c907a33d",
+    "mta-deployed-source-hashes.json": "bc62c4801528ca78b2ca8b2e42963243d1948ce6ef1057023c3f5e6928e8519c",
+    "mta-source-reconciliation.json": "60df2b0e54fb600b2df562d187fa0fb4495b2a824f8e5e623260192ab15ce2e2",
+    "planning-baseline.png": "aa4875ee2bb0de418cd7ab10660d7d83e9409144888dde651f350c579301c847",
+    "planning-filter-counts.png": "57bc50a5e61c727a8ea214a3dd1b99f4a32f4fc354986fa98eba4eb2c87e86f7",
+    "planning-filter-grid.png": "00fca4ea05a165bc59d39fb7f3f0521cdc169851febe14242ee36f84c70dcc3b",
+    "planning-filter-grid.txt": "6eae0696dcae8d3c2a5a426f2ddae4ed9dc0f0c29289f91d5fbd1e454725a6fd",
+    "planning-one-sku-export.xlsx": "abadf513d80333714bcfceb3bc6e111d4e4b9b778d3cbec6e6b5b03800ea407e",
+    "protection-check.json": "5ed2833f9145278666772ace37a6aac732695bfbc0ca48792152fb339cf21ee6",
+    "runtime-before.json": "2d55e935176c7303db4cbe5db342fb03c716ccb7380b96d033ff4e6446f82434",
+    "schema-metadata-digests.txt": "10f2697ad78d75b78720129eb4253b4cc16adff7c00fffa52c5a90b8d3bbd087",
+    "selected-metadata-after.txt": "7e84576d169a7a16b7ac80263e3e4115e789dbd494e28f604d8b7f7e4621d1f3",
+    "source-checkout.json": "feecf8e8a7074f81e4d4f2c90f5e972533cd773c9988213d6e7b02408c963eb2",
+    "source-dispositions.json": "9da45b7dd3fd2b0d3490b02b7ec9ddbbc88ca5639771e8831c052975a53c136e",
+    "source-status-after.txt": "594b0d92b0082f3c6fa3ed95e1a766572450c947c86184cfa8279ff1aa2ab12c",
+    "ui-export-check.json": "98c8b5959f126cd04f27085142b5371928226e0a221c50109d6c25c40a913247"
+  }
+}
