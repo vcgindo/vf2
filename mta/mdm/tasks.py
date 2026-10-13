@@ -1,5 +1,6 @@
 """SKU submission and decisions from the pinned API, without calculation replay."""
 from collections import defaultdict
+from contextlib import nullcontext
 from decimal import Decimal, InvalidOperation
 import logging
 
@@ -187,19 +188,31 @@ def delete(source,task_id,actor):
 
 def publish_add(source, task):
     """Pinned synchronous add copy into four independently owned master bags."""
+    from mta.mdm.sku_publication import publication_statement
+    from mta.mdm.supplier_revisions import source_lock
+    native = source.receipt.get('schema') == 'fresh-production-mdm-source-v1'
+    # The API already owns this lock for the whole decision. Retain it here too
+    # for direct callers so capture cannot interleave the eight native INSERTs.
+    with source_lock(source.pk) if native else nullcontext():
+        _publish_add(source, task, publication_statement if native else None)
+
+
+def _publish_add(source, task, statement):
     # getCollist reads this task's physical ColumnList; it does not select all
     # queue fields. Publication itself is deliberately not task-filtered.
     names=(task.ColumnList or '').replace('SKUDescription,','').split(',')
     if 'SKUDescription' in names:
         raise ValueError('native attribute insert contains SKUDescription')
-    queue=list(MdmSkuApproved.objects.filter(source=source))
+    queued=MdmSkuApproved.objects.filter(source=source)
+    queue=list(queued.order_by('pk') if statement else queued)
     for owner in ('Importer','BPR','BTR','DBM'):
         for model, selected in ((MdmSkuAttributes,names),(MdmSkuDescription,['SKUCode','SKUDescription'])):
             existing={sql_key(code) for code in model.objects.filter(source=source,owner=owner).values_list('SKUCode',flat=True)}
             additions=[row for row in queue if sql_key(row.SKUCode) not in existing]
             ordinal=model.objects.filter(source=source,owner=owner).aggregate(n=Max('ordinal'))['n'] or 0
-            model.objects.bulk_create([model(source=source,owner=owner,ordinal=ordinal+i,
-                **fields(row,selected)) for i,row in enumerate(additions,1)])
+            with statement(source, task) if statement else nullcontext():
+                model.objects.bulk_create([model(source=source,owner=owner,ordinal=ordinal+i,
+                    **fields(row,selected)) for i,row in enumerate(additions,1)])
 
 
 def update_approved_queue(source,task_id):

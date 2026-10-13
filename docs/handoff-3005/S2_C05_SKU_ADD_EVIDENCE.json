@@ -1,0 +1,210 @@
+{
+  "evidence_root": "D:\\freshvcf-build\\evidence\\handoff3005-s2-20261013-001",
+  "scope": "C05 request25 SKU correction/component proof/missing-effect recovery only; no request26/day3/fullG2 acceptance",
+  "files": {
+    "c05-day-03.log": {
+      "sha256": "2ec7414bdd31ba42b7f2dc821e82291c425ee62cbf1daabb9ea36bab211f8739",
+      "bytes": 7363
+    },
+    "c05-execution-amended-v1/day-02-readonly-verification.json": {
+      "sha256": "15cc1dd642281e90ec86b77690de7183b6ea7e8e019eaf0d03d429cb6d67b84c",
+      "bytes": 337
+    },
+    "c05-execution-amended-v1/day-02.json": {
+      "sha256": "a3855ac7cb65cf2a770534dcd22c29a2f0b5f588fbb5f017b6c241c3f7992add",
+      "bytes": 3348
+    },
+    "c05-execution-amended-v1/request-25-reviewed.json.gz": {
+      "sha256": "d4352bb9e86221ce39ba64eb6b99f360e613d6fabd64e56e1d70cd09834d07bb",
+      "bytes": 80682
+    },
+    "c05-execution-amended-v1/request-25-submitted.json.gz": {
+      "sha256": "26eb3993c3d867d7e3ef4eaab5c07fa9e1eb921b18695c958fe8756ba302d08d",
+      "bytes": 80681
+    },
+    "c05-execution-amended-v1/STOP.json": {
+      "sha256": "606f4a06c0edc40b3294c5e52d990d89145e71730013c46b3a7909b4961988a9",
+      "bytes": 2158
+    },
+    "c05-execution-v1/day-01.json": {
+      "sha256": "990e583a60e7fe433606ce7ba04b36fcf3ffb87dea53d7538b9b9e9ba88aa1ce",
+      "bytes": 962
+    },
+    "c05-request25-initial-attribution.json": {
+      "sha256": "6887420216b41fd24791819205223fdc2d5ce1e2fd802ca8fbbd0360b032087d",
+      "bytes": 680
+    },
+    "c05-request25-postcommit-v2.log": {
+      "sha256": "61c2468af541c3fecb54fdb992bf1e26c0f025c4f14555a724200da3d2a2a1d2",
+      "bytes": 478
+    },
+    "c05-request25-preflight-runner-correction.json": {
+      "sha256": "08164455c37cf4061f8778cf185eb6fb97fff2181056aa158a92ecbdfe316eb4",
+      "bytes": 1843
+    },
+    "c05-request25-preflight-v2.log": {
+      "sha256": "d038b180dad6573bd2f89a1915a5f0e302d8c112af40f89e5c289c7df805f3d2",
+      "bytes": 591
+    },
+    "c05-request25-preflight.log": {
+      "sha256": "e15b43e0d88a2fbeb853af8ee33bbbf56517b43b8bea30041f1e46314520acda",
+      "bytes": 424
+    },
+    "c05-request25-recover-v2.log": {
+      "sha256": "49333fe020c5bd58e545b5c08940f2aa6d49486924cc063b2f3c0fc875afb6ec",
+      "bytes": 709
+    },
+    "c05-request25-recovery-v1/preflight-FAILED.json": {
+      "sha256": "ec0423b67b6093daf3867335983b056860170681b9bd2401263a007fe11d8dd0",
+      "bytes": 1092912
+    },
+    "c05-request25-recovery-v2/preflight.json": {
+      "sha256": "b2b37e65d7aca20b140504f72f298f4b70a14a7d99a594adaca9398dd73f8a2c",
+      "bytes": 614
+    },
+    "c05-request25-recovery-v2/recover.json": {
+      "sha256": "482570500d3260ce6b74f2c3015c2a2c86ecbc6826b14e941825c5de69f5cec7",
+      "bytes": 1100618
+    },
+    "c05-request25-recovery-v2/verify-complete.json": {
+      "sha256": "e458ec0659c04122f9070e15fb4128d4855be31d6f726f2c0401ad222ead36b2",
+      "bytes": 4059
+    },
+    "c05-sku-add-C05-migrate-plan.log": {
+      "sha256": "983adad8346cede498e052ce9436d2ea0cbea91183756b97d8374e2abc561412",
+      "bytes": 237
+    },
+    "c05-sku-add-C05-migrate.log": {
+      "sha256": "ff9fa926f6db9a3c9e0b90a8c08e33ee461d7525369c613b8e33a736d8371e15",
+      "bytes": 214
+    },
+    "c05-sku-add-component-v1-proof.json": {
+      "sha256": "af1d2dd3e2ce8e7fa9b563fc41ff7064dace12401a7eca90d60a9e546acc43d9",
+      "bytes": 38290
+    },
+    "c05-sku-add-component-v1.log": {
+      "sha256": "16566ed6554042d19c0a69d4ceffc1182e74f5067a4d48a5a99927e4b31fc795",
+      "bytes": 8797
+    },
+    "c05-sku-add-component-v2-proof.json": {
+      "sha256": "9a03b8ed2c0fa3a6132bd316974fe86d6d43bc938ad2da2d0a5f082a21afb05e",
+      "bytes": 38291
+    },
+    "c05-sku-add-component-v2.log": {
+      "sha256": "754711f1679bf074483e964979c8c3347a0e9177936d76df7a3786959f9a765b",
+      "bytes": 5443
+    },
+    "c05-sku-add-component-v3-proof.json": {
+      "sha256": "64f6cbae46bae49b064ab5cfac4b1da1444f60723b46c3c99fe4a004fb551806",
+      "bytes": 38291
+    },
+    "c05-sku-add-component-v3.log": {
+      "sha256": "f74e47d035d73cf7150cb71652515da6790acef3aa3acd1f1765c0eb334a9522",
+      "bytes": 1876
+    },
+    "c05-sku-add-component-v4-proof.json": {
+      "sha256": "9c24e803957fd8d0ff649c111a71d9c3a0f8376ae96e1cd9d9c14abf26b440fe",
+      "bytes": 38291
+    },
+    "c05-sku-add-component-v4.log": {
+      "sha256": "e2c57a434943c01e3fbe19675c50278ee3cd070720cdfacd851ab0077b7097d1",
+      "bytes": 4178
+    },
+    "c05-sku-add-final-check.log": {
+      "sha256": "f87ceb15410bde28ff826ce26228e0576558258fa64d145847921a593a61ee63",
+      "bytes": 49
+    },
+    "c05-sku-add-final-makemigrations.log": {
+      "sha256": "93e6e2d5be3c054add80c0f19101608803f7ca8a7df1fa41f76bbb9a1f570f4a",
+      "bytes": 21
+    },
+    "c05-sku-add-makemigrations.log": {
+      "sha256": "93e6e2d5be3c054add80c0f19101608803f7ca8a7df1fa41f76bbb9a1f570f4a",
+      "bytes": 21
+    },
+    "c05-sku-add-migrate-component.log": {
+      "sha256": "f89155ad8c0e5fd7a90836a7341c24d5f1c6ecd009c15dda302beaefe618e0f2",
+      "bytes": 154
+    },
+    "c05-sku-add-migrate-plan.log": {
+      "sha256": "ddb989233964840a6ed91412afc1ee1ffee6b141ee9750fb1072e2938732da3d",
+      "bytes": 129
+    },
+    "c05-sku-add-resource-after-check.py": {
+      "sha256": "0a72495e9d6ac747984e933125de1b9b21bddcc873552b7740e66c57cb3cdbc1",
+      "bytes": 2116
+    },
+    "c05-sku-add-resource-after.json": {
+      "sha256": "68585e930a63d3bac571e26a4e538a5114245cd8318c048526ae7ed1012c9e21",
+      "bytes": 9159
+    },
+    "c05-sku-add-resource-before.json": {
+      "sha256": "68585e930a63d3bac571e26a4e538a5114245cd8318c048526ae7ed1012c9e21",
+      "bytes": 9159
+    },
+    "c05-sku-add-resource-check.py": {
+      "sha256": "7c02a9caf380cdb81dedeadd9ebc1b8a45613a918d3644dcfda7b49762550b1a",
+      "bytes": 2117
+    },
+    "c05-sku-add-runtime-v1/manifest.json": {
+      "sha256": "38924a0f54418d2477b6cefc82097988580f004bd848793a8ff14303e60909ae",
+      "bytes": 102637
+    },
+    "c05-sku-add-runtime-v1/runtime-source.zip": {
+      "sha256": "cc93e55ed3346950a69b78123701cc2ca459a40965178950faf92c53c86f7432",
+      "bytes": 1758039
+    },
+    "c05-sku-add-runtime-v1/tasks.diff": {
+      "sha256": "8bac19f80de979b575c379bfac7f658d7145a3fe157f673031d436e103a6ca9f",
+      "bytes": 2566
+    },
+    "c05-sku-add-snapshot-migrate-component.log": {
+      "sha256": "156b976203dbdc6c1e162c9cd39ab534f83e8cd42206e243bad0ceea10118396",
+      "bytes": 154
+    },
+    "c05-sku-add-snapshot-migrate-plan.log": {
+      "sha256": "0de5ea43aff471d30c5f174a26bb0fa98af771cd4b3bdeed12b186045fead9cc",
+      "bytes": 129
+    },
+    "c05-sku-snapshot-experiment-v1.log": {
+      "sha256": "63f6a99c97dc584b13c21f99c0997e7f2e85c80f7cac7833363ff52c1d2126d9",
+      "bytes": 1829
+    },
+    "c05-sku-snapshot-experiment-v1.py": {
+      "sha256": "1e61be2a54ef4a22e9d1601fab8a52ee365721afa04edd3722d6380bb69ce965",
+      "bytes": 2070
+    },
+    "c05-sku-snapshot-experiment-v2.log": {
+      "sha256": "213f52486f802a155132ce81fbc0e643cdbdcca4a4b31cdb7ac09993ea792649",
+      "bytes": 284
+    },
+    "c05-sku-snapshot-experiment-v2.py": {
+      "sha256": "0c3eee3182a394b2e5bb66e7c13f79f70797fa13ddc2e646d0629fb277df9699",
+      "bytes": 2072
+    },
+    "recover-c05-request25-v1.py": {
+      "sha256": "43a9d20a6114ab7795be5c5dd1a2625b439c017070281ba1570015af548627a5",
+      "bytes": 8964
+    },
+    "recover-c05-request25-v2.py": {
+      "sha256": "516626135d387f79887c2daf4297208f471b18a3e29aaf329de34d150d9dbc91",
+      "bytes": 9206
+    },
+    "run-c05-sku-add-component-v1.py": {
+      "sha256": "75195014c1fc7becbef6556df74d3ade2c1769b28efe8f7a035a746a6bececfe",
+      "bytes": 1792
+    },
+    "run-c05-sku-add-component-v2.py": {
+      "sha256": "0f1ff99aefb5a05f0f9202a84b2ed600e087c02ac891fc01bfbca58be6f142b3",
+      "bytes": 1792
+    },
+    "run-c05-sku-add-component-v3.py": {
+      "sha256": "e401c93fb90bf41e8ed1ad1f34ad0734d7dcfc0a56769e25103d639df470f573",
+      "bytes": 1792
+    },
+    "run-c05-sku-add-component-v4.py": {
+      "sha256": "b4e2cc3612cf44f98e35299700467e7ebdc728140b9afab962f1f057b594ffa0",
+      "bytes": 1854
+    }
+  }
+}
