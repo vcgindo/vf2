@@ -18,6 +18,7 @@ class MdmSource(models.Model):
     digest = models.CharField(max_length=64, unique=True)
     database_name = models.CharField(max_length=128)
     dll_digest = models.CharField(max_length=64)
+    implementation_digest = models.CharField(max_length=64, blank=True)
     receipt = models.JSONField()
     installed_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,0 +1,125 @@
+{
+  "boundary": "G2.1 initialization component only",
+  "files": [
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/component-database-created.json",
+      "bytes": 142,
+      "sha256": "a7cbf13e14385377d0eb7c2bde552748a32f93337a39f450f94e95c7d1d1d5e1"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/component-expected.json",
+      "bytes": 67204,
+      "sha256": "353187bdce278055c2a934bfce9a601231fa1968905cb8cf79ee6df33bc17024"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/component-input-manifest.json",
+      "bytes": 572,
+      "sha256": "0d06665b628de33be8038b39e59ec899d9a4127e3b5dd9e6ff09c367f5f78d33"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/component-registration.json",
+      "bytes": 418,
+      "sha256": "50faa4c066b32bfa404e3b828c52176c8a7621c5ec0b9123b2fcb0db0988c2a6"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/consumer-denial.txt",
+      "bytes": 125,
+      "sha256": "d1e58b71d32142071f1761ffa27f933d0176711b5a5410902052e1b751ef79cf"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/daily-source-binding-tests.txt",
+      "bytes": 107,
+      "sha256": "c9d3485c429116824a8ac79708b4fa07c064d6665e8e9e011d2625b944027863"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/django-owned.py",
+      "bytes": 910,
+      "sha256": "2bccc06c95542256fb401edfd91cf8c047a21735d821ec2925d103d6101dfd3e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/initialization-cli-committed.json",
+      "bytes": 1545,
+      "sha256": "19eb61fe1e050926bdf938f341e42be921458c45082a0ccdac488fa766904409"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/initialization-cli-proof.txt",
+      "bytes": 100,
+      "sha256": "99351dd13482194d1aaccce6e6ccb38aef281b1830f83f6dd0b7729d43ac8a9f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/initialization-contract-tests.txt",
+      "bytes": 111,
+      "sha256": "36c00ca14c611f250ac4696e00e049e8debde651a8cc7079f6873fd1a8cb9e60"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/initialization-postgres-tests.txt",
+      "bytes": 1291,
+      "sha256": "5534bfc8a5e1391fa2ae525691d1a2838e4259d5e4df7edb9ce436171a5976fc"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/isolation-created.json",
+      "bytes": 1698,
+      "sha256": "92cd08f921c0f13b9c9fb021c1abe7c1f89554c15cc8c1696d3edd5b52bd29a6"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/migrate-apply.txt",
+      "bytes": 8168,
+      "sha256": "ba3343152e9cd0255a6cee8683e3761d4b09616a1561ae617f68e7e1b11e5714"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/migrate-plan.txt",
+      "bytes": 52955,
+      "sha256": "2116460d5eef99274f7eced91cb5d6ab4fbfa4d78dd0f81987ceb2029b7b717a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/operator-input.json",
+      "bytes": 37227,
+      "sha256": "af30d7aa6b131ac67bbac007e79ad810f6f1c29aca4f604c091baf734c86a5a1"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/owned-namespace-source.sql",
+      "bytes": 3984,
+      "sha256": "e9a6eabab9905953fc0d13aea8db7fc257c9945a438a87dbcbd01f21f4f5a29e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/protected-after-initialization.json",
+      "bytes": 681,
+      "sha256": "303ee1894649b7ee17e02164528e890720a0539f025257d34c94f62198dc1d5e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/protected-before.json",
+      "bytes": 6786,
+      "sha256": "b40210c5fa5adca0c32f6f91852ffbb17d716a5d6539fc27b1bb583a4c2604cc"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/prove-component-entry.py",
+      "bytes": 2188,
+      "sha256": "fab3b4135bfd2f60b9978dc4141551aaf01dc8406a717d5c9ca16f480573809a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/provision-component.py",
+      "bytes": 2631,
+      "sha256": "62cfe6655cf6de68a7a4dc162ba786dbfdd281b15f588414bf639538ab1ac8df"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/provisioner-denial.txt",
+      "bytes": 140,
+      "sha256": "6e43a71a06098c9e08d75d85524703d4deb99bda45075f2a85e9a740e75bad55"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/register-component.py",
+      "bytes": 1445,
+      "sha256": "5692751d6db3ea49793940419a26dd1515bd6697981e0e0f4cbb20e84b6a246c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/resource-boundary.json",
+      "bytes": 1155,
+      "sha256": "93e2c26f1600c09689faec8b9297f2ba8102c652e11a41ae739fad7c25c4fbd5"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/run-component-tests.py",
+      "bytes": 566,
+      "sha256": "f8c4339288a03429da0e3bb94b441d5731a7c71cf2bbd4350fe0cd2ef5401c6f"
+    }
+  ]
+}

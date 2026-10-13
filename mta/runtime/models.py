@@ -1296,3 +1296,5 @@ from mta.runtime.mdm_target_fixture_models import (MdmTargetFixture,
 
 from mta.runtime.planning_summary_models import (PlanningSummaryReceipt,
     PlanningSummaryContribution, PlanningSummaryAttempt)
+
+from mta.runtime.initialization_models import ProductionInitialization

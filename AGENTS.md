@@ -2,7 +2,7 @@
 
 ## New 3005 production handoff authority
 
-For this five-step handoff ONLY, docs/handoff-3005/PLAN.md governs scope and acceptance. The sole live status/blocker/decision/evidence tracker is F:/freshvcf/docs/handoff-3005/TRACKER.md; the local TRACKER.md is a pointer. This supersedes the older MIGRATION.md queue requirement for this effort. Do not inherit historical completion claims or automatically merge rejected handoff work. Preserve business semantics and protected resources. Step 1 alone was released. The user has explicitly required a pause before Step 2 initiation; S2 remains on hold until a fresh direct human release is recorded in the canonical tracker.
+For this five-step handoff ONLY, docs/handoff-3005/PLAN.md governs scope and acceptance. The sole live status/blocker/decision/evidence tracker is F:/freshvcf/docs/handoff-3005/TRACKER.md; the local TRACKER.md is a pointer. This supersedes the older MIGRATION.md queue requirement for this effort. Do not inherit historical completion claims or automatically merge rejected handoff work. Preserve business semantics and protected resources. Step 1 is accepted. The direct human release on 13 October 2026 supersedes the prior hold and authorizes Step 2 only: isolated native initialization/daily execution and compact functional proofs under G2.1–G2.4. Read the canonical tracker for active boundaries and resource ownership. No serving changes; stop before unreleased Step 3.
 
 
 ## Mandate

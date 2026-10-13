@@ -16,8 +16,8 @@ from itertools import islice
 from django.db import connection
 from mta.serialization import digest, storage, rows_digest, canonical_parts
 
-CATALOG=json.loads((Path(__file__).resolve().parents[2]/'baseline/production-state-schema.json').read_text())
-if digest(CATALOG)!='89201eca8c797bcd70a9f87d9dce31cc2be27636eccc0f6cee027a8bcf09d7aa':
+CATALOG=json.loads((Path(__file__).resolve().parents[2]/'mta/config/production_state_schema_v1.json').read_text())
+if digest(CATALOG)!='84f01ea82866a3898dd134eafac32bca4e35daa193aca9d55da4716074b1e512':
     raise ValueError('Pinned relational storage schema differs')
 REPORT_STAGES=frozenset(('norm1-advisory','norm-change-export','norm-change-history',
                         'norm0-export','norm1-export','norm2-export','controls'))

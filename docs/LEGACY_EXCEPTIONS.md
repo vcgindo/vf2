@@ -1512,3 +1512,46 @@ under `D:/freshvcf-build/evidence/mdm3005-deployment-20261009-001/target-inputs`
 Unmatched supplier SKU rows are preserved, with unchanged canonical scope exclusion.
 No new day, source switch, calculated history seed, grant or account change follows
 from this exception. Installation and browser acceptance status is in MIGRATION.md.
+
+
+# Exact amendments transferred to the new 3005 handoff (13 October 2026)
+
+These dispositions govern only the exact contracts below. Controller01a13635
+read direct human turns and confirmed continuing authorization; prior donor
+completion labels do not constitute acceptance. Implementation/proof status lives
+only in F:/freshvcf/docs/handoff-3005/TRACKER.md. These are approved production
+amendments, not recovered legacy parity. No calculated outputs may be seeded.
+
+- Normal BOR: chat01a10dd1, human01a13528-27a8-72d0-8209-9e77cc621c02
+  approves/freezes proposal01a13525-f46c-7060-8483-b66a3229baaf. After unchanged
+  SOB/MOQ, exact same-run Black DispatchColor moves Red requirement into Black,
+  sets Red0; otherwise Black0 and Red unchanged. Yellow/Green/Blue/total remain
+  unchanged; cumulatives Black→Red→Yellow→Green→Blue. Preserve duplicate denial
+  and source mapping; no invented matching/defaults. Normal BOR only.
+- BOROA zero-Norm behavior: human01a1352d-59ce-7643-aaa1-a7d53b8e437e in the
+  same chat confirms retained positive-below-MOQ exemption: downstream colour
+  priority retained, dispatch raised to MOQ with excess Blue; zero requirement
+  remains0, nonzero Norm rules unchanged. This does not authorize redesign.
+- BOROA SKULocAtt01–15: old controller01a1319b human01a13556-b57f-7bd2-8b40-8bf0bb42edfa
+  and approval01a1355a-6622-7a23-9c4c-0d8b3b31cb25 permit a versioned nullable-text
+  missing-source allowance only. Preserve all fields, known/empty/NULL values;
+  no c1..15 alias, formula/numeric fill or generic missing-column waiver. The
+  rejected arithmetic proposal remains excluded.
+- Ordinary/Spike OrderKey: old controller human01a13341-d0d1-7c93-9468-31205c6bf559,
+  questioncall_9ec4000fe2514cfcb58f305cdc450b01 approves consecutive new keys in
+  preserved supplied feed-row order, ordinary before Spike. Retain duplicates,
+  persisted keys and existing numeric limits. Human01a1339b-d931-7582-be41-3589fd9d0e77,
+  questioncall_cNP3khaCGpuw8KFi37Zcv3m8, additionally permits accepted Elephant
+  rows in persisted order before new ordinary/Spike when that affected path
+  requires it; quantities/manual due dates/acceptance unchanged.
+- Norm0 NEW60/90 Occurances text: old controller human01a13253-c550-71b2-b073-e1ebe7282cdd,
+  questioncall_799d7e553f594f9fa8124e800d64ada9 approves chronological ordering.
+  Preserve stable equal-date source order, duplicates, existing date predicate,
+  format/truncation, counts/totals/rows/other fields. 30day unchanged. The separate
+  inherited identity-join limitation is outside this chronology amendment.
+
+Enabled conditional DBM7/10/11, automatic acceptance and phase30/60/90 require
+exact canonical SQL/config/DLL-matched reconciliation and positive enabled proof.
+The S2 release permits missing canonical ports; disabled-profile old evidence
+cannot certify them. Undefined/conflicting behavior or a proposed deviation
+still requires an exact decision. No feature may be silently disabled to close S2.

@@ -115,11 +115,13 @@ def choose_table(fields,path,rows=None):
     return min(candidates,key=lambda key:(not key.startswith('input/'),len(STORAGE_TABLES[key]),key))
 
 
-def save_input(run,raw):
+def save_input(run,raw, *, image_writer=None, table_selector=None):
+    writer = image_writer or save_image
+    selector = table_selector or choose_table
     images={}
     def image(path,rows,table=None):
-        table=table or choose_table(rows[0] if rows else (),path,rows)
-        images[path]=save_image(run,path,None,rows,table=table)
+        table=table or selector(rows[0] if rows else (),path,rows)
+        images[path]=writer(run,path,None,rows,table=table)
         return path
 
     def pack(value,path):
@@ -128,6 +130,11 @@ def save_input(run,raw):
         if not isinstance(value,(list,tuple,Rows)):
             return {'scalar':storage(value)}
         if not value:
+            if table_selector:
+                table = selector((), path+'/values', [])
+                return {'records': image(path+'/values', [], table),
+                    'shape_image': image(path+'/shape', [], 'input/row_shape'),
+                    'shapes': [], 'children': []}
             from mta.runtime.complete_daily_state import input_table
             table = input_table(path + '/values')
             if table:
@@ -180,12 +187,13 @@ def save_input(run,raw):
     return manifest
 
 
-def read_input(run, *, components=None):
+def read_input(run, *, components=None, image_reader=None):
+    reader = image_reader or load_image
     value=run.input_payload
     if (value.get('schema')!=SCHEMA or value['content_digest']!=run.input_digest
             or digest(value)!=run.input_manifest_digest):
         raise ValueError('Typed daily input manifest identity drift')
-    def read(path):return load_image(run,value['images'][path])
+    def read(path):return reader(run,value['images'][path])
     def unpack(node):
         if 'scalar' in node:return node['scalar']
         if 'empty' in node:return []

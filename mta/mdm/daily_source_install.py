@@ -38,61 +38,11 @@ def registered(raw, expected):
     return artifact
 
 
-def business_fields(model):
-    return [f for f in model._meta.fields if f.name not in ('id','source','owner','ordinal','use_kind')]
-
-
-def typed(model, rows):
-    fields=business_fields(model); names={f.name for f in fields}; result=[]
-    for row in rows:
-        if set(row) != names:
-            raise ValueError('Synthetic owner fields differ: '+model.__name__)
-        item={}
-        for field in fields:
-            value=field.to_python(row[field.name])
-            if value is None and not field.null:
-                raise ValueError('NULL in required synthetic master field: '+field.name)
-            if isinstance(value,Decimal):
-                exact=value.quantize(Decimal(1).scaleb(-field.decimal_places))
-                if exact != value:raise ValueError('Synthetic master decimal precision differs')
-                value=exact
-            field.run_validators(value)
-            item[field.name]=value
-        result.append(item)
-    return result
+from mta.mdm.master_owners import business_fields, typed, owner_batches
 
 
 def owners(artifact):
-    opening=artifact['case']['opening']; result=[]
-    for owner in ('Importer','BPR','BTR','DBM'):
-        source='importer' if owner in ('Importer','BPR') else owner.lower()
-        for table,model in (('SkuAttributeData',models.MdmSkuAttributes),
-                             ('SKUDescriptionTbl',models.MdmSkuDescription)):
-            result.append((1,model,dict(owner=owner),typed(model,opening[source][table]),
-                '/case/opening/'+source+'/'+table))
-    for table,model in (('LocationAttributeData',models.MdmLocationAttributes),
-                        ('SiteDescriptionTbl',models.MdmLocationDescription),
-                        ('SkuLocAttributeData',pairs.MdmSkuLocPair),
-                        ('MasterData',pairs.MdmSkuLocMasterPair)):
-        family=2 if model in (models.MdmLocationAttributes,models.MdmLocationDescription) else 3
-        result.append((family,model,dict(owner='Importer'),typed(model,opening['importer'][table]),
-                       '/case/opening/importer/'+table))
-    nms=opening['consumer_context']['NMSAllItems']
-    result.append((3,pairs.MdmSkuLocCurrent,dict(owner='Importer'),typed(pairs.MdmSkuLocCurrent,nms),
-                   '/case/opening/consumer_context/NMSAllItems'))
-    # Deployed MDMProcessor CheckSKU/WHCodeExistINSKULOC reads pair attributes;
-    # CheckParentWHCodeExistINSKULOC reads NMSAllItems (IL62809/62859/62909).
-    # Preserve source occurrences. Their use is membership-only in the API.
-    pair=opening['importer']['SkuLocAttributeData']
-    for family,model,kwargs,rows,path in (
-        (1,models.MdmSkuUse,{},[dict(SKUCode=r['SKUCode']) for r in pair],
-         '/case/opening/importer/SkuLocAttributeData:SKUCode'),
-        (2,models.MdmLocationUse,dict(use_kind='direct'),[dict(WHCode=r['LocCode']) for r in pair],
-         '/case/opening/importer/SkuLocAttributeData:LocCode'),
-        (2,models.MdmLocationUse,dict(use_kind='parent'),[dict(WHCode=r['ParentWhCode']) for r in nms],
-         '/case/opening/consumer_context/NMSAllItems:ParentWhCode')):
-        result.append((family,model,kwargs,typed(model,rows),path))
-    return result
+    return owner_batches(artifact['case']['opening'])
 
 
 @transaction.atomic
