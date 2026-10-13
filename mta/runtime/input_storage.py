@@ -46,6 +46,25 @@ def choose_table(fields,path,rows=None):
     from mta.runtime.complete_daily_state import input_table
     from mta.runtime.input_tables import TEXT_VEHICLE_TABLES
     names={f.casefold() for f in fields}
+    if path in ('input/profile/daily/module_sources/distributor_norms/values',
+                'input/profile/daily/module_sources/vendor_master/values'):
+        if names and names != {'skucode','whcode'}:
+            raise ValueError('Daily module master projection fields differ')
+        return 'Intermediate/SKULoc_DailyData'
+    from mta.runtime.dbm_phase_storage import TABLE as PHASE_TABLE, OPENING as PHASE_OPENING
+    from mta.runtime.btr_history_storage import TABLE as BTR_TABLE, OPENING as BTR_OPENING, FROZEN as BTR_FROZEN
+    if path in (BTR_OPENING,BTR_FROZEN):
+        if names and names != {name.casefold() for name,_ in STORAGE_TABLES[BTR_TABLE]}:
+            raise ValueError('BTR history typed input field roster differs')
+        return BTR_TABLE
+    if path == 'input/profile/delivery/btr_history/importer_vf_settings/values':
+        if names and names != {'parameter','value','description'}:
+            raise ValueError('BTR Importer settings typed field roster differs')
+        return 'Importer/VFSettings'
+    if path == PHASE_OPENING:
+        if names and names != {name.casefold() for name, _ in STORAGE_TABLES[PHASE_TABLE]}:
+            raise ValueError('Phase recommendation typed input field roster differs')
+        return PHASE_TABLE
     text_path = {
         'input/profile/calculation/logistics/vehicles/values': 'input/vehicle_text',
         'input/profile/calculation/logistics/location_vehicles/values': 'input/location_vehicle_text',
@@ -105,8 +124,8 @@ def choose_table(fields,path,rows=None):
         if not names <= {name.casefold() for name,_ in STORAGE_TABLES[complete]}:
             raise ValueError('Complete-day input fields differ from declared population: '+path)
         return complete
-    candidates=[key for key,columns in STORAGE_TABLES.items()
-                if not key.startswith(('complete/', 'input/supplier_', 'input/force_', 'input/season_', 'input/stop_pipo_', 'input/phase_'))
+    candidates=[key for key,columns in STORAGE_TABLES.items() if key not in (PHASE_TABLE,BTR_TABLE)
+                if not key.startswith(('complete/', 'input/supplier_', 'input/force_', 'input/season_', 'input/stop_pipo_', 'input/phase_', 'input/production_', 'production/'))
                 and key not in TEXT_VEHICLE_TABLES
                 and names<={name.casefold() for name,_ in columns}]
     if not candidates:raise ValueError('Unmapped typed input family: '+path+' '+str(sorted(fields)))
@@ -121,6 +140,14 @@ def save_input(run,raw, *, image_writer=None, table_selector=None):
     images={}
     def image(path,rows,table=None):
         table=table or selector(rows[0] if rows else (),path,rows)
+        from mta.runtime.dbm_phase_storage import TABLE as PHASE_TABLE, OPENING as PHASE_OPENING, FROZEN as PHASE_FROZEN
+        if image_writer is None and table == PHASE_TABLE and path == PHASE_OPENING:
+            # Frozen predecessor rows are owned by the run, not by the native
+            # initialization namespace. Their manifest preserves source shape.
+            path = PHASE_FROZEN
+        from mta.runtime.btr_history_storage import TABLE as BTR_TABLE, OPENING as BTR_OPENING, FROZEN as BTR_FROZEN
+        if image_writer is None and table == BTR_TABLE and path == BTR_OPENING:
+            path = BTR_FROZEN
         images[path]=writer(run,path,None,rows,table=table)
         return path
 
@@ -132,6 +159,8 @@ def save_input(run,raw, *, image_writer=None, table_selector=None):
         if not value:
             if table_selector:
                 table = selector((), path+'/values', [])
+                if table is None:
+                    return {'empty': True}
                 return {'records': image(path+'/values', [], table),
                     'shape_image': image(path+'/shape', [], 'input/row_shape'),
                     'shapes': [], 'children': []}

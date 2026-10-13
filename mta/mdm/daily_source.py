@@ -44,8 +44,8 @@ def require_root(source, *, artifact_sha256, artifact_schema):
     """Verify immutable original ownership, without extending its family roster."""
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
-        from mta.mdm.initialization import bind_source
-        bind_source(source, input_sha256=artifact_sha256, input_schema=artifact_schema)
+        from mta.mdm.production_families import require_initialization
+        require_initialization(source, input_sha256=artifact_sha256, input_schema=artifact_schema)
         return source.receipt['families']
     receipt = source.receipt
     if source.dll_digest != DLL or not isinstance(receipt, dict):
@@ -79,8 +79,13 @@ def require_root(source, *, artifact_sha256, artifact_schema):
 def require_binding(source, *, artifact_sha256, artifact_schema):
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
-        from mta.mdm.initialization import bind_source
-        return bind_source(source, input_sha256=artifact_sha256, input_schema=artifact_schema)
+        from mta.mdm.production_families import (require_initialization,
+                                                 require_binding as require_native)
+        require_initialization(source, input_sha256=artifact_sha256, input_schema=artifact_schema)
+        from mta.runtime.mdm_integration_models import MdmSourceIntegration
+        if MdmSourceIntegration.objects.filter(source=source).exists():
+            require_native(source)
+        return source
     families = require_root(source, artifact_sha256=artifact_sha256,
                             artifact_schema=artifact_schema)
     from mta.mdm.integration_source import installed_binding

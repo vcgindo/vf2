@@ -97,6 +97,10 @@ def configuration_sha():
 
 def require_installed(source):
     owner = MdmForceOwner.objects.get(source=source)
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_owner
+        return require_owner(source, owner, 'force')
     from mta.mdm.target_fixture import require_family
     if require_family(source, owner, 'force'):
         return owner

@@ -12,11 +12,23 @@ class ScalarTests(unittest.TestCase):
         self.assertTrue(ascii_equal('dp010290  ', 'DP010290'))
         self.assertFalse(ascii_equal(None, None))
         self.assertFalse(ascii_equal('X\t', 'X'))
-        self.assertEqual(identifier_sort_key('dp010290 '), 'DP010290')
+        self.assertEqual(identifier_sort_key('dp010290 '), identifier_sort_key('DP010290'))
         with self.assertRaisesRegex(ValueError, 'UNQUALIFIED'):
             ascii_equal('ß', 'ss')
         with self.assertRaisesRegex(ValueError, 'UNQUALIFIED'):
-            identifier_sort_key('sku-2')
+            identifier_sort_key('SKU\t2')
+
+    def test_qualified_word_order_punctuation_and_positional_secondary_weights(self):
+        rows=['A',"'A",'-A',"A'",'A-','A0',"A'0",'A-0','AA','AB',"A'B", "A''B",'A-B','A--B',"AB'",'AB-']
+        self.assertEqual(sorted(reversed(rows),key=identifier_sort_key),rows)
+        expected=['OWNROOT7','OWN-ROOT7','OWNWH8','OWN-WH8','SUPPLIEDZ9','SUPPLIED-Z9']
+        self.assertEqual(sorted(reversed(expected),key=identifier_sort_key),expected)
+        self.assertEqual(identifier_sort_key("a-b' "),identifier_sort_key("A-B'"))
+        self.assertNotEqual(identifier_sort_key('AB'),identifier_sort_key('A-B'))
+        primary=list('!"#$%&()*,./:;?@[\\]^_`{|}~+<=>0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        self.assertEqual(sorted(reversed(primary),key=identifier_sort_key),primary)
+        for value in ('',' ','A B','A\tB','\x00','ß','é'):
+            with self.assertRaisesRegex(ValueError,'UNQUALIFIED'):identifier_sort_key(value)
 
     def test_try_cast_does_not_accept_python_extensions(self):
         for value in ('NaN', 'Inf', '1_000', '0x1', '1,000', '1e999', 'invalid'):

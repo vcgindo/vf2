@@ -32,6 +32,11 @@ def require_installed(source, master_id):
     master_id = int(master_id)
     if master_id not in NAMES:
         raise ValueError('MDM family is not delivered')
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_binding
+        require_binding(source)
+        return
     if master_id in (7, 8, 9):
         from mta.mdm.phase_controls_source import require_installed as require_phase
         require_phase(source)
@@ -60,6 +65,10 @@ def require_installed(source, master_id):
 
 def installed_ids(source):
     result = [1, *MdmFamilySource.objects.filter(source=source).order_by('master_id').values_list('master_id', flat=True)]
+    if source.receipt.get('schema') == 'fresh-production-mdm-source-v1':
+        from mta.mdm.production_families import require_binding
+        require_binding(source)
+        return result
     for master_id in result:
         require_installed(source, master_id)
     return result

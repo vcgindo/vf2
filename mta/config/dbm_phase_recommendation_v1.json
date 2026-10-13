@@ -1,0 +1,482 @@
+{
+  "schema": "fresh-dbm-phase-recommendation-storage-v1",
+  "columns": [
+    {
+      "name": "SKUCode",
+      "type": "nvarchar",
+      "ordinal": 1,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": false
+    },
+    {
+      "name": "SKUName",
+      "type": "nvarchar",
+      "ordinal": 2,
+      "length": 250,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "WhCode",
+      "type": "nvarchar",
+      "ordinal": 3,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": false
+    },
+    {
+      "name": "WHName",
+      "type": "nvarchar",
+      "ordinal": 4,
+      "length": 250,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "StockDays",
+      "type": "int",
+      "ordinal": 5,
+      "length": 4,
+      "precision": 10,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "TotalSale",
+      "type": "int",
+      "ordinal": 6,
+      "length": 4,
+      "precision": 10,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "CurrentNorm",
+      "type": "int",
+      "ordinal": 7,
+      "length": 4,
+      "precision": 10,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "CurrentStock",
+      "type": "int",
+      "ordinal": 8,
+      "length": 4,
+      "precision": 10,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt01",
+      "type": "nvarchar",
+      "ordinal": 9,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt02",
+      "type": "nvarchar",
+      "ordinal": 10,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt03",
+      "type": "nvarchar",
+      "ordinal": 11,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt04",
+      "type": "nvarchar",
+      "ordinal": 12,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt05",
+      "type": "nvarchar",
+      "ordinal": 13,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt06",
+      "type": "nvarchar",
+      "ordinal": 14,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt07",
+      "type": "nvarchar",
+      "ordinal": 15,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt08",
+      "type": "nvarchar",
+      "ordinal": 16,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt09",
+      "type": "nvarchar",
+      "ordinal": 17,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt10",
+      "type": "nvarchar",
+      "ordinal": 18,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt11",
+      "type": "nvarchar",
+      "ordinal": 19,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt12",
+      "type": "nvarchar",
+      "ordinal": 20,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt13",
+      "type": "nvarchar",
+      "ordinal": 21,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt14",
+      "type": "nvarchar",
+      "ordinal": 22,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKUAtt15",
+      "type": "nvarchar",
+      "ordinal": 23,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt01",
+      "type": "nvarchar",
+      "ordinal": 24,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt02",
+      "type": "nvarchar",
+      "ordinal": 25,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt03",
+      "type": "nvarchar",
+      "ordinal": 26,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt04",
+      "type": "nvarchar",
+      "ordinal": 27,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt05",
+      "type": "nvarchar",
+      "ordinal": 28,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt06",
+      "type": "nvarchar",
+      "ordinal": 29,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt07",
+      "type": "nvarchar",
+      "ordinal": 30,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt08",
+      "type": "nvarchar",
+      "ordinal": 31,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt09",
+      "type": "nvarchar",
+      "ordinal": 32,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt10",
+      "type": "nvarchar",
+      "ordinal": 33,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt11",
+      "type": "nvarchar",
+      "ordinal": 34,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt12",
+      "type": "nvarchar",
+      "ordinal": 35,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt13",
+      "type": "nvarchar",
+      "ordinal": 36,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt14",
+      "type": "nvarchar",
+      "ordinal": 37,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "LocAtt15",
+      "type": "nvarchar",
+      "ordinal": 38,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt01",
+      "type": "nvarchar",
+      "ordinal": 39,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt02",
+      "type": "nvarchar",
+      "ordinal": 40,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt03",
+      "type": "nvarchar",
+      "ordinal": 41,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt04",
+      "type": "nvarchar",
+      "ordinal": 42,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt05",
+      "type": "nvarchar",
+      "ordinal": 43,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt06",
+      "type": "nvarchar",
+      "ordinal": 44,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt07",
+      "type": "nvarchar",
+      "ordinal": 45,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt08",
+      "type": "nvarchar",
+      "ordinal": 46,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt09",
+      "type": "nvarchar",
+      "ordinal": 47,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt10",
+      "type": "nvarchar",
+      "ordinal": 48,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt11",
+      "type": "nvarchar",
+      "ordinal": 49,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt12",
+      "type": "nvarchar",
+      "ordinal": 50,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt13",
+      "type": "nvarchar",
+      "ordinal": 51,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt14",
+      "type": "nvarchar",
+      "ordinal": 52,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    },
+    {
+      "name": "SKULocAtt15",
+      "type": "nvarchar",
+      "ordinal": 53,
+      "length": 100,
+      "precision": 0,
+      "scale": 0,
+      "nullable": true
+    }
+  ]
+}

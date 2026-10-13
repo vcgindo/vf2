@@ -18,8 +18,9 @@ COLOR_PATH = 'metadata/bpr/ColorSequence'
 def recipe_digest():
     from mta.presentation.daily_transit import recipe_digest as transit_recipe
     from mta.presentation.daily_opening_sob import recipe_digest as sob_recipe
-    return digest(dict(version=3, writer=inspect.getsource(write_sources), sob=sob_recipe(),
-                       transit=transit_recipe()))
+    from mta.presentation.production_reports import recipe_digest as report_recipe
+    return digest(dict(version=4, writer=inspect.getsource(write_sources), sob=sob_recipe(),
+                       transit=transit_recipe(), reports=report_recipe()))
 
 
 def write_sources(run, output, *, opening=None):
@@ -57,6 +58,9 @@ def write_sources(run, output, *, opening=None):
         images[daily_requests.PATH] = daily_requests.metadata(run)
     from mta.presentation.ancillary_live import publication_metadata
     images.update(publication_metadata(run))
+    if 'production_report_policy' in prior:
+        from mta.presentation.production_reports import write as write_reports
+        images.update(write_reports(run, output, prior))
     if prior.get('shipment_input') is not None:
         from mta.presentation.daily_transit import publish as publish_transit
         def current(path):
@@ -65,9 +69,18 @@ def write_sources(run, output, *, opening=None):
         factors = [row['Value'] for row in settings_rows if row['Parameter'] == 'SuperDelayFactor']
         if len(factors) != 1:
             raise ValueError('Exactly one current SuperDelayFactor required')
+        directory_source = prior.get('transporter_input')
+        if directory_source is not None:
+            from mta.application.production_source_inputs import validate, SCHEMA
+            validate(dict(schema=prior.get('production_report_schema', SCHEMA), shipments=prior['shipment_input'],
+                          transporters=directory_source, report_policy=prior['production_report_policy'],
+                          report_opening=prior['production_report_opening']), run.business_date.isoformat())
+            directory = directory_source['rows']
+        else:
+            directory = current('closing/consumer_context/GoodsInTransitTransporterMaster')
         images.update(publish_transit(run, prior['shipment_input'],
             standards=current('closing/dbm/SKULocStandardAttributes'),
-            directory=current('closing/consumer_context/GoodsInTransitTransporterMaster'),
+            directory=directory,
             rationed_report=current('reports/bpr/vf_RationedReqReport'),
             super_delay_factor=factors[0],
             run_timestamp=datetime.combine(run.business_date, datetime.min.time())))

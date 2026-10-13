@@ -1555,3 +1555,21 @@ exact canonical SQL/config/DLL-matched reconciliation and positive enabled proof
 The S2 release permits missing canonical ports; disabled-profile old evidence
 cannot certify them. Undefined/conflicting behavior or a proposed deviation
 still requires an exact decision. No feature may be silently disabled to close S2.
+
+## S2 C01 BTR NULL target-key port correction (14 October 2026)
+
+This is a port-conformance correction, not a legacy behavior exception. Failed
+run9f7a13f6-9b18-4809-a2d2-035662b4711d used input
+3ceaa466c9789c4bbbedbd5a1ab43a91892bf47c43b85d8435017e8789c101a2.
+Full retained metadata with12 active pairs generates225 raw master rows,213 with
+NULL keys. Canonical Importer/InitialiseSkuLocStdAttributeData.sql retains distinct
+NULL keys; BufferTrend/UpdateCategoryCol.sql updates only via equality joins.
+Native _categories incorrectly raised on NULL location. Preserve all complete
+target rows/NULLs/order/duplicates and omit only NULL targets from its join index.
+Missing required fields and all other strict-key paths remain denied. No rows
+are removed and no attributes fabricated. Runtime and preserved SQL match pinned
+manifest hashes cb329137601a550c3a8fb02b77918878a8a22d3d31aebe7ef1b2beb392209802
+and eb12ec114a9cd056d8a41d9424645028ffea51d5db6d10cae496a819421508ae.
+Controller verified this exact boundary. Four focused cases plus affected BTR/day
+integration:20 tests pass. Failed attempt/immutable seals remain unchanged; new
+source uses a new initialization in the same owned environment.

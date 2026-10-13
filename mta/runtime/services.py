@@ -63,7 +63,14 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             raise ValueError('Input snapshot changed during calculation')
         lineage = output.get('Lineage') or [{}]
         cohort = lineage[0].get('cohort1')
+        if run.kind=='DAILY_CHAIN':
+            from mta.application.daily_finalization import configuration,verify_finalization_identity
+            frozen_profile=read_input(run,components=('profile',))['profile']
+            if configuration(frozen_profile) is not None or cohort is not None:
+                verify_finalization_identity(output,frozen_profile,run.business_date.isoformat())
         if cohort is not None:
+            if run.kind!='DAILY_CHAIN':raise ValueError('Complete finalization requires a daily-chain owner')
+            configured_policy=configuration(frozen_profile)['policy']
             # Queue/task finalization and typed output commit share this one
             # transaction. Any later writer/readback failure rolls both back.
             from mta.mdm.daily_input import finalize_consumption
@@ -75,7 +82,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             complete = output['ClosingState'][0]['complete']
             mark(complete, 'NMSTaskStatusUpdate.sql')
             from mta.application.daily_finalization import ACTIVE_POLICY, finish
-            if cohort['policy'] == ACTIVE_POLICY:
+            if configured_policy == ACTIVE_POLICY:
                 captured = MdmDailyInputCapture.objects.get(run=run, status='CONSUMED')
                 if not captured.nms_active:
                     raise ValueError('Active completion requires its consumed NMS input')
@@ -85,9 +92,18 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
                 closing = output['ClosingState'][0]
                 closing['importer_settings'] = finish(complete, closing['importer_settings'],
                     run.business_date.isoformat(), policy=ACTIVE_POLICY)
+            from mta.mdm.initialization_contract import SOURCE_SCHEMA
+            captured = MdmDailyInputCapture.objects.select_related('source').get(run=run, status='CONSUMED')
+            if configured_policy == ACTIVE_POLICY or captured.source.receipt.get('schema') == SOURCE_SCHEMA:
                 from mta.mdm.daily_current import publish as publish_mdm_current
-                publish_mdm_current(run, captured, closing)
+                publish_mdm_current(run, captured, output['ClosingState'][0])
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
+            # Verify the same complete boundary after its actual owned writers,
+            # inside the transaction so any failure rolls every writer back.
+            if configured_policy == ACTIVE_POLICY:
+                from mta.application.daily_finalization import verify_successor
+                verify_successor(output, read_input(run, components=('profile',))['profile'],
+                                 run.business_date.isoformat())
         # Keep one atomic publication, but serialize/write one checkpoint at
         # a time rather than retaining a second whole temporal output graph.
         if run.kind=='DAILY_CHAIN':

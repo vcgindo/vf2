@@ -48,6 +48,10 @@ TEXT_VEHICLE_TABLES = {
     'input/location_vehicle_text': [('location_code','nvarchar'), ('vehicle_id','nvarchar')],
 }
 TABLES.update(TEXT_VEHICLE_TABLES)
+from mta.application.production_source_inputs import TABLES as SOURCE_INPUT_TABLES
+TABLES.update(SOURCE_INPUT_TABLES)
+TABLES['input/production_transaction'] = [('WhCode','nvarchar'),
+    ('TransactedItemCount','int'), ('TotalItems','int'), ('ReportDate','date')]
 # Supplier capture rows retain native float53/int32 and the queue occurrence ID.
 for _name, _scalar, _destination in (
         ('sob', ('SOB', 'float'), True),

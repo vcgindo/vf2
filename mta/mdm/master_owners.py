@@ -8,6 +8,29 @@ def business_fields(model):
     return [f for f in model._meta.fields if f.name not in ('id','source','owner','ordinal','use_kind')]
 
 
+def typed_field(model, field, raw, *, strict=False):
+    """Existing owner scalar validation, usable without replacing caller values."""
+    if strict and raw is not None:
+        kind = field.get_internal_type()
+        valid = (isinstance(raw, str) if kind in ('CharField', 'TextField', 'DateField', 'DateTimeField') else
+            type(raw) is bool if kind == 'BooleanField' else
+            type(raw) is int if 'IntegerField' in kind else
+            type(raw) in (int, float) and math.isfinite(raw) if kind == 'FloatField' else
+            type(raw) in (str, int, float, Decimal) if kind == 'DecimalField' else False)
+        if not valid:
+            raise ValueError('Owner field type differs: '+model.__name__+'/'+field.name)
+    value = field.to_python(raw)
+    if value is None and not field.null:
+        raise ValueError('NULL in required synthetic master field: '+field.name)
+    if isinstance(value, Decimal):
+        exact = value.quantize(Decimal(1).scaleb(-field.decimal_places))
+        if exact != value or strict and exact != Decimal(str(raw)):
+            raise ValueError('Master decimal precision differs')
+        value = exact
+    field.run_validators(value)
+    return value
+
+
 def typed(model, rows, *, strict=False):
     if not isinstance(rows, list):
         raise ValueError('Owner population must be an explicit list: '+model.__name__)
@@ -17,26 +40,7 @@ def typed(model, rows, *, strict=False):
             raise ValueError('Synthetic owner fields differ: '+model.__name__)
         item={}
         for field in fields:
-            raw = row[field.name]
-            if strict and raw is not None:
-                kind = field.get_internal_type()
-                valid = (isinstance(raw, str) if kind in ('CharField', 'TextField', 'DateField', 'DateTimeField') else
-                    type(raw) is bool if kind == 'BooleanField' else
-                    type(raw) is int if 'IntegerField' in kind else
-                    type(raw) in (int, float) and math.isfinite(raw) if kind == 'FloatField' else
-                    type(raw) in (str, int, float, Decimal) if kind == 'DecimalField' else False)
-                if not valid:
-                    raise ValueError('Owner field type differs: '+model.__name__+'/'+field.name)
-            value=field.to_python(row[field.name])
-            if value is None and not field.null:
-                raise ValueError('NULL in required synthetic master field: '+field.name)
-            if isinstance(value,Decimal):
-                exact=value.quantize(Decimal(1).scaleb(-field.decimal_places))
-                if exact != value or strict and exact != Decimal(str(raw)):
-                    raise ValueError('Master decimal precision differs')
-                value=exact
-            field.run_validators(value)
-            item[field.name]=value
+            item[field.name] = typed_field(model, field, row[field.name], strict=strict)
         result.append(item)
     return result
 

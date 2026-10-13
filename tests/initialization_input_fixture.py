@@ -61,10 +61,19 @@ def supplied_input():
         OldNorm=7, NewNorm=8, NormChangeDate='2037-04-08', NormChangeReason=5)] * 2
     state['complete']['ScriptExecutedFlag'] = deepcopy(FLAG_SEED)
     state['consumer_context']['NMSAllItems'] = [supplied_row(mdm_skuloc_models.MdmSkuLocCurrent)] * 3
+    state['dbm']['FirstReplenishmentPercentageTbl'] = [dict(ReplenishmentPercentage=50)]
+    state['dbm']['DBMSettingsTbl'] = [dict(Parameter='SpikeRuleHorizon', Value='7'),
+                                   dict(Parameter='SpikeRuleParCount', Value='3')]
+    state['dbm']['IntermediateTables'] = []
+    state['dbm']['ui_ReportConfigurations'] = [dict(ReportName='Norm_0_1_2Report',
+        Col_Code=code, Col_Position=position, Header=code, Visible=True,
+        CellAlignment=None, Value=None, TagID=None) for position, code in enumerate(
+        ('SKUCode', 'SKUName', 'WHCode', 'WhName', 'ParentWhCode', 'ParentNorm',
+         'NumOfDaysSold', 'TotalSale', 'Occurances'), 1)]
     state['publication_context'] = {'label': 'supplied opening; no accepted day'}
     profile = dict(import_non_nms=False, daily_publication=True,
         daily_publication_config={'bpr_remark_horizon': 13},
-        daily=dict(settings=[dict(Parameter='MissingDailyDataHandling', Value='0')],
+        daily=dict(settings=[dict(Parameter='MissingDailyDataHandling', Value='1')],
             vf_settings=[dict(Parameter='GenerateBPRForMissingInventoryLoc', Value='0')],
             shell_flags=dict.fromkeys(FLAGS, 0),
             distributor_codes=['OWN-WH8', 'OWN-WH8'], vendor_codes=[], vector_dms_codes=[]),
@@ -84,7 +93,10 @@ def supplied_input():
             GatherSuspensionHistory=1, ActivateNormChangeLogReport=1, DailyConsumptionHorizonDBM=370,
             ActivateNorm0Report30Days=1, ActivateNorm0Report60Days=1, ActivateNorm0Report90Days=1,
             ActivateNorm1Report30Days=1, ActivateNorm2Report30Days=1),
-            controls=dict(from_ui=True, start_percent=50, history_horizon=7), btr_settings=[]),
+            controls=dict(from_ui=True, start_percent=50, history_horizon=7),
+            btr_settings=dict(CaptureDispatchExecutionEfficiency=0, GenerateColorAgeingReport=1,
+                BRAgeColorTolerance=1, CARNoColorToleranceDuration=2,
+                NormSuggestion_Upward='3', NormSuggestion_Downward='4')),
         complete_pick={'policy': 'canonical-tied-order-v1'},
         complete_daily=dict(policy='generic-finalization-active-nms-v1', consumption_days=43, remark_days=13))
     profile['calculation']['allocation'] = {'advance_stock_threshold_percent': 50}

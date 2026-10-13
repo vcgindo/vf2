@@ -27,8 +27,14 @@ def source():
     digest = settings.VF_MDM_SOURCE_DIGEST
     if not digest:
         raise PublicationUnavailable('mdm_source_not_selected')
-    result = MdmSource.objects.filter(digest=digest, dll_digest=DLL).first()
+    result = MdmSource.objects.filter(digest=digest).first()
     if result is None:
+        raise PublicationUnavailable('mdm_source_not_installed')
+    if result.receipt.get('schema') == 'fresh-production-mdm-source-v1':
+        from mta.mdm.native_source import require_base
+        for master_id in (1, 2, 3):
+            require_base(result, master_id)
+    elif result.dll_digest != DLL:
         raise PublicationUnavailable('mdm_source_not_installed')
     from mta.mdm.integration_source import require_read_binding
     require_read_binding(result)

@@ -107,3 +107,59 @@ def auxiliary_stock_balances(daily_consumption, physical_balances, attributes, b
                            stock_for_requirement=str(stock), stock_for_rationing=str(max(stock, 0)),
                            reserved_stock='0'))
     return tuple(output)
+
+
+def native_auxiliary_stock_balances(daily_consumption, physical_balances, attributes,
+                                   business_date, reservation_type):
+    """Owned native daily rows outside BPRMaster, without invented master nodes.
+
+    Native stock overrides/absolute reservations are explicitly configured only
+    at physical master keys. Norm-percent reservation cannot join a nonmaster
+    row; stock-percent reservation can join the supplied attribute owner.
+    """
+    from decimal import Decimal
+    if type(reservation_type) is not int or reservation_type not in (0, 1, 2):
+        raise ValueError('Explicit native stock reservation type required')
+    key = lambda sku, loc: (_sql_key(sku), _sql_key(loc))
+    physical = {key(r['sku_code'], r['location_code']) for r in physical_balances}
+    output, seen = [], {}
+    for row in daily_consumption:
+        if row['ReportDate'] != business_date:
+            continue
+        identity = key(row['SKUCode'], row['WHCode'])
+        if identity in physical:
+            continue
+        stock = row['Stock']
+        if type(stock) is not int or not -2**31 <= stock < 2**31:
+            raise ValueError('Auxiliary stock requires its actual non-NULL signed32 quantity')
+        rationing = max(stock, 0)
+        reserved = 0
+        if reservation_type == 1:
+            values = [r['StockPercentForRationing'] for r in attributes
+                      if key(r['SKUCode'], r['LocCode']) == identity]
+            if values:
+                if any(v != values[0] for v in values[1:]):
+                    raise ValueError('SOURCE_ORDER_AMBIGUITY: auxiliary stock-percent reservation')
+                if values[0] is None:
+                    raise ValueError('Auxiliary NULL reservation reaches an unqualified downstream consumer')
+                percentage = values[0]
+                if type(percentage) is not int or not -2**31 <= percentage < 2**31:
+                    raise ValueError('Auxiliary stock percentage requires signed32')
+                factor = 100-percentage
+                product = rationing*factor
+                if not -2**31 <= factor < 2**31 or not -2**31 <= product < 2**31:
+                    raise ValueError('Auxiliary reservation signed32 intermediate overflow')
+                reserved = int(Decimal(product) / 100)
+                if not -2**31 <= reserved < 2**31:
+                    raise ValueError('Auxiliary reserved stock signed32 overflow')
+        rationing -= reserved
+        if not -2**31 <= rationing < 2**31:
+            raise ValueError('Auxiliary rationing stock signed32 overflow')
+        result = dict(sku_code=row['SKUCode'], location_code=row['WHCode'],
+            stock_for_requirement=str(stock), stock_for_rationing=str(rationing), reserved_stock=str(reserved))
+        effective = (result['stock_for_requirement'], result['stock_for_rationing'], result['reserved_stock'])
+        if identity in seen and seen[identity] != effective:
+            raise ValueError('SOURCE_ORDER_AMBIGUITY: duplicate auxiliary stock join')
+        seen[identity] = effective
+        output.append(result)  # Identical occurrences remain separate stock rows.
+    return tuple(output)

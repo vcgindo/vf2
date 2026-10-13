@@ -17,26 +17,34 @@ def capture(source):
         return None
     from mta.mdm.stop_pipo_source import require_installed
     owner = require_installed(source)
-    if owner.last_run.status != 'SUCCEEDED':
+    native = owner.provenance.get('schema') == 'fresh-production-mdm-opening-owner-v1'
+    if owner.last_run is None and not native:
         raise ValueError('StopPIPO requires a successful own predecessor')
-    result = storage(dict(source_digest=owner.receipt_digest,
-        anchor=dict(run_id=str(owner.last_run_id), output_digest=owner.last_run.output_digest,
-            queue_digest=owner.closing_queue_digest, generation=owner.generation),
+    if owner.last_run is not None and owner.last_run.status != 'SUCCEEDED':
+        raise ValueError('StopPIPO requires a successful own predecessor')
+    anchor = dict(run_id=str(owner.last_run_id) if owner.last_run_id else None,
+            output_digest=owner.last_run.output_digest if owner.last_run_id else '',
+            queue_digest=owner.closing_queue_digest, generation=owner.generation)
+    if native:
+        anchor['root_state_digest'] = owner.root_state_digest
+    result = storage(dict(source_digest=owner.receipt_digest, anchor=anchor,
         rows=list(MdmStopPipoQueue.objects.filter(source=source).order_by('id')
             .values('id', 'revision', *FIELDS)), task_revisions=task_revisions(source)))
     result['digest'] = digest(result)
     return result
 
 
-def replace_working_input(snapshot, prior, day, predecessor):
+def replace_working_input(snapshot, prior, day, predecessor, *, opening_digest=None):
     if 'stop_pipo' not in snapshot:
         return
     frozen = snapshot['stop_pipo']
     if digest({k: v for k, v in frozen.items() if k != 'digest'}) != frozen['digest']:
         raise ValueError('StopPIPO frozen input digest differs')
     anchor = frozen['anchor']
-    if (predecessor is None or str(predecessor.pk) != anchor['run_id']
-            or predecessor.output_digest != anchor['output_digest']
+    native = 'root_state_digest' in anchor
+    if (anchor['run_id'] != (str(predecessor.pk) if predecessor else None)
+            or anchor['output_digest'] != (predecessor.output_digest if predecessor else '')
+            or predecessor is None and (not native or (opening_digest or digest(prior)) != anchor['root_state_digest'])
             or digest(prior['control_aux']['phase_stops']) != anchor['queue_digest']):
         raise ValueError('StopPIPO does not descend from its own bound closing')
     if day.get('control_requests', {}).get('phase_stops'):
@@ -53,7 +61,9 @@ def finalize(run, snapshot, output):
     owner = MdmStopPipoOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
     anchor = frozen['anchor']
     if (owner.receipt_digest != frozen['source_digest']
-            or str(owner.last_run_id) != anchor['run_id']
+            or (str(owner.last_run_id) if owner.last_run_id else None) != anchor['run_id']
+            or 'root_state_digest' in anchor
+            and owner.root_state_digest != anchor['root_state_digest']
             or owner.closing_queue_digest != anchor['queue_digest']
             or owner.generation < anchor['generation']):
         raise ValueError('StopPIPO closing owner changed during execution')

@@ -30,7 +30,8 @@ def import_forced_norms(state, *, from_ui, ignore_master_norm, nms_active):
         k = key(request)
         if k not in masters:
             continue
-        raw = [r for r in out['raw_master'] if key(r) == k]
+        raw = [r for r in out['raw_master'] if r['SKUCode'] is not None
+               and r['WhCode'] is not None and key(r) == k]
         matches = [None] if ignore_master_norm or nms_active else [
             r for r in raw if r['Norm'] is not None and request['NewNorm'] is not None
             and r['Norm'] == request['NewNorm']]
@@ -38,7 +39,8 @@ def import_forced_norms(state, *, from_ui, ignore_master_norm, nms_active):
             out['forced'].append(dict(SKUCode=request['SKUCode'], WhCode=request['WhCode'],
                                       OldNorm=masters[k]['Norm'], NewNorm=request['NewNorm']))
     for k in {key(r) for r in out['forced']}:
-        raw = [r for r in out['raw_master'] if key(r) == k]
+        raw = [r for r in out['raw_master'] if r['SKUCode'] is not None
+               and r['WhCode'] is not None and key(r) == k]
         if len(raw) > 1:
             raise ValueError('Legacy ambiguous raw-master MinNorm UPDATE; no invented winner')
         if raw:

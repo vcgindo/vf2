@@ -16,11 +16,17 @@ def capture(source):
     if not MdmPhaseControlsOwner.objects.filter(source=source).exists():
         return None
     owner = require_installed(source)
-    if owner.last_run.status != 'SUCCEEDED':
+    native = owner.provenance.get('schema') == 'fresh-production-mdm-opening-owner-v1'
+    if owner.last_run is None and not native:
         raise ValueError('Phase controls require a successful own predecessor')
-    result = storage(dict(source_digest=owner.receipt_digest,
-        anchor=dict(run_id=str(owner.last_run_id), output_digest=owner.last_run.output_digest,
-            queue_digest=owner.closing_queue_digest, generation=owner.generation),
+    if owner.last_run is not None and owner.last_run.status != 'SUCCEEDED':
+        raise ValueError('Phase controls require a successful own predecessor')
+    anchor = dict(run_id=str(owner.last_run_id) if owner.last_run_id else None,
+            output_digest=owner.last_run.output_digest if owner.last_run_id else '',
+            queue_digest=owner.closing_queue_digest, generation=owner.generation)
+    if native:
+        anchor['root_state_digest'] = owner.root_state_digest
+    result = storage(dict(source_digest=owner.receipt_digest, anchor=anchor,
         **{name: list(model.objects.filter(source=source).order_by('id')
             .values('id', 'revision', *FIELDS[name])) for name, model in QUEUES.items()},
         task_revisions=task_revisions(source)))
@@ -28,15 +34,17 @@ def capture(source):
     return result
 
 
-def replace_working_input(snapshot, prior, day, predecessor):
+def replace_working_input(snapshot, prior, day, predecessor, *, opening_digest=None):
     if 'phase_controls' not in snapshot:
         return
     frozen = snapshot['phase_controls']
     if digest({k: v for k, v in frozen.items() if k != 'digest'}) != frozen['digest']:
         raise ValueError('Phase controls frozen input digest differs')
     anchor = frozen['anchor']
-    if (predecessor is None or str(predecessor.pk) != anchor['run_id']
-            or predecessor.output_digest != anchor['output_digest']
+    native_anchor = 'root_state_digest' in anchor
+    if (anchor['run_id'] != (str(predecessor.pk) if predecessor else None)
+            or anchor['output_digest'] != (predecessor.output_digest if predecessor else '')
+            or predecessor is None and (not native_anchor or (opening_digest or digest(prior)) != anchor['root_state_digest'])
             or digest({n: prior['control_aux'][n] for n in FIELDS}) != anchor['queue_digest']):
         raise ValueError('Phase controls do not descend from their own closing')
     for name in FIELDS:
@@ -58,7 +66,9 @@ def finalize(run, snapshot, output):
     owner = MdmPhaseControlsOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
     anchor = frozen['anchor']
     if (owner.receipt_digest != frozen['source_digest']
-            or str(owner.last_run_id) != anchor['run_id']
+            or (str(owner.last_run_id) if owner.last_run_id else None) != anchor['run_id']
+            or 'root_state_digest' in anchor
+            and owner.root_state_digest != anchor['root_state_digest']
             or owner.closing_queue_digest != anchor['queue_digest']
             or owner.generation < anchor['generation']):
         raise ValueError('Phase controls closing owner changed during execution')

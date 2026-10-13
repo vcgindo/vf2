@@ -33,6 +33,7 @@ STAGES = ("CollectNonMasterSKUs.sql", "ValidateAndProcessDailyData.sql",
           "ValidateAndProcessDailyDataNoChange.sql", "GenerateLocationInventoryMissingReport.sql",
           "DBMMissingDailyDataHandling.sql")
 FLAGS = ("DistributorSystemActive", "VendorSystemActive", "VectorDMSActive")
+MODULE_PAIRS = {'DistributorSystemActive':'distributor_norms','VendorSystemActive':'vendor_master'}
 
 
 class DailyAmbiguity(ValueError):
@@ -71,13 +72,25 @@ def _typed_rows(rows, fields, nullable=()):
     return output
 
 
+def validate_module_configuration(flags, sources=None):
+    if (not isinstance(flags,dict) or set(flags)!=set(FLAGS) or
+            any(type(value) is not int or value not in (0,1) for value in flags.values())):
+        raise ValueError('Explicit daily module flags0/1 required')
+    if sources is not None and (not isinstance(sources,dict) or set(sources)-set(MODULE_PAIRS.values())):
+        raise ValueError('Explicit daily module source projections required')
+    for flag,name in MODULE_PAIRS.items():
+        if flags[flag] and (sources is None or name not in sources):
+            raise ValueError('Enabled daily module requires its actual master projection: '+name)
+        if sources is not None and name in sources:
+            _typed_rows(sources[name],('SKUCode','WhCode'))
+
+
 def validate_daily_entry(entry, business_date):
     fields = {"schema", "raw_daily_data", "prior_bpr", "settings", "vf_settings", "shell_flags",
               "distributor_codes", "vendor_codes", "vector_dms_codes"}
-    if not isinstance(entry, dict) or set(entry) != fields or entry["schema"] != SCHEMA:
+    if not isinstance(entry, dict) or not fields<=set(entry) or set(entry)-fields-{'module_sources'} or entry["schema"] != SCHEMA:
         raise ValueError("Explicit raw daily/prior BPR/config contract required; no derived daily input")
-    if entry["shell_flags"] != dict.fromkeys(FLAGS, 0):
-        raise ValueError("Daily component currently proves only the selected all-disabled module flags")
+    validate_module_configuration(entry['shell_flags'],entry.get('module_sources'))
     day = date.fromisoformat(business_date)
     state = entry["prior_bpr"]
     if not isinstance(state, dict) or set(state) != {*PRIOR_TABLES, "opening_provenance"}:
@@ -176,17 +189,41 @@ def process_daily_validation(entry, master_validation, business_date, now):
             for f in ("SKUCode", "WhCode"):
                 if row[f] is not None:
                     row[f] = row[f].strip(" ")
+        flags=entry['shell_flags']
+        distributors={_sql_key(c) for c in entry['distributor_codes']}
+        vendors={_sql_key(c) for c in entry['vendor_codes']}
+        dms={_sql_key(c) for c in entry['vector_dms_codes']}
+        if (any(flags.values()) and any(_sql_key(r['WhCode']) not in distributors|vendors for r in master['MasterData'])
+                and not any(r['WhCode'] is None or _sql_key(r['WhCode']) not in distributors|vendors|dms for r in rows)):
+            reject(13,'Daily data file/table is invalid/not available for non-distributor/non-Vendor records')
         rows[:] = [r for r in rows if r["SKUCode"] is not None and r["WhCode"] is not None
                    and any(r[f] is not None for f in METRICS)]
         if not rows:
             reject(21, "Null values are provided from all records in daily data.")
             return "EARLY_RETURN"
-        distributors = {_sql_key(c) for c in entry["distributor_codes"]}
+        def reject_subset(selected,code,message,multiplicity=None):
+            counts=Counter(_key(r) for r in selected) if multiplicity is None else multiplicity
+            duplicates=_distinct([r for r in selected if counts[_key(r)]>1],('SKUCode','WhCode'))
+            if duplicates:
+                reject(code,message,duplicates)
+                keys={_key(r) for r in selected}
+                rows[:]=[r for r in rows if _key(r) not in keys]
+        if flags['DistributorSystemActive'] or flags['VectorDMSActive']:
+            reject_subset([r for r in rows if _sql_key(r['WhCode']) in distributors|dms],14,
+                          'Duplicate entries SKU+Location in Distributor daily data file/table')
+        if flags['VendorSystemActive']:
+            selected=[r for r in rows if _sql_key(r['WhCode']) in vendors]
+            counts=Counter(_key(r) for r in selected for code in entry['vendor_codes']
+                           if _sql_key(code)==_sql_key(r['WhCode']))
+            reject_subset(selected,15,'Duplicate entries SKU+Location in Vendor daily data file/table',counts)
         ordinary = [r for r in rows if _sql_key(r["WhCode"]) not in distributors]
         counts = Counter(_key(r) for r in ordinary)
         duplicates = _distinct([r for r in ordinary if counts[_key(r)] > 1], ("SKUCode", "WhCode"))
         if duplicates:
-            reject(6, "Duplicate entries SKU+Location in daily data file/table", duplicates)
+            message=('Duplicate entries SKU+Location in Non-Distributor/Non-Vendor daily data file/table'
+                     if flags['DistributorSystemActive'] or flags['VendorSystemActive'] else
+                     'Duplicate entries SKU+Location in daily data file/table')
+            reject(6, message, duplicates)
             rows[:] = [r for r in rows if _sql_key(r["WhCode"]) in distributors]
         for row in rows:
             for f in METRICS:
@@ -194,6 +231,15 @@ def process_daily_validation(entry, master_validation, business_date, now):
                     row[f] = max(row[f], 0) if row[f] is not None else None
                 else:
                     row[f] = max(row[f] or 0, 0)
+        sources=entry.get('module_sources',{})
+        for flag,name in MODULE_PAIRS.items():
+            if flags[flag]:
+                tables['DailyDataProcessed'].extend(deepcopy(row) for row in rows for source in sources[name]
+                    if _key(row)==_key(source) and row['Stock'] is not None)
+        if flags['VectorDMSActive']:
+            tables['DailyDataProcessed'].extend(deepcopy(row) for row in rows
+                for code in entry['vector_dms_codes'] for current in master['MasterData']
+                if _sql_key(row['WhCode'])==_sql_key(code) and _key(row)==_key(current) and row['Stock'] is not None)
         return "APPLIED"
 
     def locations():
@@ -206,10 +252,13 @@ def process_daily_validation(entry, master_validation, business_date, now):
         # SQL NULL <> n is UNKNOWN: absence executes all three scripts.
         if setting is not None and setting != number:
             return "EARLY_RETURN"
-        rows = tables["DailyDataRaw"]
+        excluded=set()
+        for flag,name in zip(FLAGS,('distributor_codes','vendor_codes','vector_dms_codes')):
+            if entry['shell_flags'][flag]:excluded.update(_sql_key(c) for c in entry[name])
+        rows = [r for r in tables['DailyDataRaw'] if _sql_key(r['WhCode']) not in excluded]
         if number != 1 and not any(r["Stock"] is not None for r in rows):
             return "EARLY_RETURN"
-        targets = locations()
+        targets = [r for r in locations() if _sql_key(r['WhCode']) not in excluded]
         if number == 1:
             keys = {_key(r) for r in targets}
             output = [deepcopy(r) for r in rows if _key(r) in keys and r["Stock"] is not None]

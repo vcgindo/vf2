@@ -107,7 +107,13 @@ def calculate_r1_requirements(prepared, payload):
         # cannot determine that promoted order's current allocation priority.
         def retained_key(oid):
             raw = raw_orders[oid]
-            return raw.get("established_order_key") if raw["established_is_spike"] is True else None
+            if raw["established_is_spike"] is True:
+                return raw.get("established_order_key")
+            # Separate-feed preparation owns this map only after it computes
+            # the approved generated keys. Raw callers cannot seed that map.
+            if raw['established_is_spike'] is None and prepared.order_part_identity is not None:
+                return prepared.order_part_identity[oid]['order_key']
+            return None
 
         groups = {}
         for row in result:

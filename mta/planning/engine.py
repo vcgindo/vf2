@@ -3,7 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from decimal import Decimal
 
-from mta.application.r1_input import prepare_r1_current_day
+from mta.application.r1_input import prepare_r1_current_day, prepare_owned_order_current_day
 from mta.application.r1_calculation import calculate_r1_requirements
 from mta.application.r1_supplier_input import sorted_rows
 from mta.application.r1_importer_master import _sql_key
@@ -42,7 +42,7 @@ class NormalAllocation:
                    Decimal(row['remaining_parent_stock']), row['virtual'])
 
 
-def calculate_current_day(raw, *, defer_pick=False):
+def calculate_current_day(raw, *, defer_pick=False, _owned_order_closing=None, _owned_daily_stock=None, _production_sources=False):
     """Consume validated external facts and return every produced checkpoint.
 
 Caller cannot supply bands, calculated stock, ration or current-day answers.
@@ -53,7 +53,17 @@ processed-input coverage. Legacy undefined branches retain their guards.
     if raw.get('schema') == 'r1-gulfoil-file-input-v1':
         from mta.application.r1_gulfoil_input import prepare_gulfoil_standard_input
         raw, adapter = prepare_gulfoil_standard_input(raw)
-    prepared = prepare_r1_current_day(raw)
+    prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
+                prepare_owned_order_current_day(raw, _owned_order_closing))
+    if _owned_daily_stock is not None:
+        if _owned_order_closing is None:
+            raise ValueError('Native daily stock requires its connected order/day owner')
+        from mta.application.r1_daily_entry import native_auxiliary_stock_balances
+        owned = _owned_daily_stock
+        auxiliary = native_auxiliary_stock_balances(owned['daily_consumption'], prepared.stock_balances,
+            owned['attributes'], raw['foundation']['snapshot']['business_date'],
+            raw['stock_configuration']['reservation_type'])
+        prepared = replace(prepared, stock_balances=prepared.stock_balances + auxiliary)
     if adapter is not None:
         # Canonical selected site hook follows validation and Norm controls.
         # It is not a default common-engine behavior or an active NMS snapshot.
@@ -74,7 +84,9 @@ processed-input coverage. Legacy undefined branches retain their guards.
     normal_values = [NormalAllocation.from_row(row) for row in normal]
     pso = allocate_spike_pso(_pso_inputs(prepared, requirements, normal_values))
     bpp = _bpp_order_rows(prepared, payload)
-    bands = _requirement_band_rows(prepared, payload, requirements, bpp, stock_advances + git_advances)
+    source_bands = {} if _production_sources else None
+    bands = _requirement_band_rows(prepared, payload, requirements, bpp, stock_advances + git_advances,
+                                  source_rows=source_bands)
     bifurcation = _bifurcation_rows(prepared, requirements, normal_values, pso)
     bor, bor_oa = _source_bor_rows(prepared, payload, requirements, bands)
 
@@ -98,6 +110,8 @@ processed-input coverage. Legacy undefined branches retain their guards.
         'r1_bor': bor,
         'r1_bor_oa': bor_oa,
     }
+    if source_bands is not None:
+        output['r1_order_allocation_bands'] = [source_bands[key] for key in sorted(source_bands)]
     if not defer_pick:
         output.update(r1_pick_list=_pick_rows(bifurcation, payload['logistics']),
             r1_pick_remaining=_pick_rows(bifurcation, payload['logistics'], remaining=True))

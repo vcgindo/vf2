@@ -20,14 +20,19 @@ CATALOG=json.loads((Path(__file__).resolve().parents[2]/'mta/config/production_s
 if digest(CATALOG)!='84f01ea82866a3898dd134eafac32bca4e35daa193aca9d55da4716074b1e512':
     raise ValueError('Pinned relational storage schema differs')
 REPORT_STAGES=frozenset(('norm1-advisory','norm-change-export','norm-change-history',
-                        'norm0-export','norm1-export','norm2-export','controls'))
+                        'norm0-export','norm0-60-export','norm0-90-export',
+                        'norm1-export','norm2-export','controls'))
 PG_TYPES={'int':'bigint','bigint':'bigint','bit':'boolean','date':'date',
-    'datetime':'timestamp without time zone','decimal':'numeric','numeric':'numeric',
+    'datetime':'timestamp without time zone','datetimetz':'timestamp with time zone','decimal':'numeric','numeric':'numeric',
     'float':'double precision','real':'double precision',
     'nchar':'text','nvarchar':'text','varchar':'text','xml':'text'}
 from mta.runtime.input_tables import TABLES as INPUT_TABLES
 from mta.runtime.complete_daily_state import TABLES as COMPLETE_TABLES, BINDINGS as COMPLETE_BINDINGS
-STORAGE_TABLES = {**CATALOG['tables'], **INPUT_TABLES, **COMPLETE_TABLES}
+from mta.runtime.dbm_phase_storage import TABLES as PHASE_TABLES, BINDINGS as PHASE_BINDINGS, STAGES as PHASE_STAGES, TABLE as PHASE_TABLE
+from mta.runtime.btr_history_storage import TABLES as BTR_TABLES, BINDINGS as BTR_BINDINGS, TABLE as BTR_TABLE
+from mta.runtime.production_report_storage import TABLES as PRODUCTION_REPORT_TABLES
+STORAGE_TABLES = {**CATALOG['tables'], **INPUT_TABLES, **COMPLETE_TABLES, **PHASE_TABLES, **BTR_TABLES, **PRODUCTION_REPORT_TABLES}
+REPORT_STAGES = REPORT_STAGES | frozenset(PHASE_STAGES)
 
 
 def quote(name):return '"'+name.replace('"','""')+'"'
@@ -71,7 +76,7 @@ def db_value(value,kind):
         if value not in (True,False,0,1):raise ValueError('Invalid canonical bit')
         return bool(value)
     if kind=='date':return date.fromisoformat(value) if isinstance(value,str) else value
-    if kind=='datetime':return datetime.fromisoformat(value) if isinstance(value,str) else value
+    if kind in ('datetime','datetimetz'):return datetime.fromisoformat(value) if isinstance(value,str) else value
     if kind in ('float','real'):return float(value)
     return str(value)
 
@@ -93,11 +98,20 @@ def bulk(sql,records):
 
 
 def save_image(run,image,binding,rows, *, table=None):
-    key=(table if table is not None else COMPLETE_BINDINGS[binding]
+    key=(table if table is not None else BTR_BINDINGS[binding] if binding in BTR_BINDINGS else PHASE_BINDINGS[binding] if binding in PHASE_BINDINGS else COMPLETE_BINDINGS[binding]
          if binding in COMPLETE_BINDINGS else '/'.join(CATALOG['bindings'][binding]))
     if key not in STORAGE_TABLES:raise ValueError('Unknown typed image table')
     from mta.runtime.complete_daily_state import validate_write
     validate_write(key,image,binding)
+    if key == PHASE_TABLE:
+        from mta.runtime.dbm_phase_storage import validate_write as validate_phase
+        validate_phase(image, binding, rows)
+    if key == BTR_TABLE:
+        from mta.runtime.btr_history_storage import validate_write as validate_btr
+        validate_btr(image,binding,rows)
+    if key == 'BPR/ElephantOrders':
+        from mta.domain.elephant_orders import validate as validate_elephants
+        validate_elephants(list(rows))
     metadata=dict(image=image,table=key,count=len(rows),digest=rows_digest(rows),fields=[])
     if not rows:return metadata
     fields=list(rows[0])
@@ -249,14 +263,21 @@ def save_daily(run,output):
                 else:tables[name]=image(path,path,rows)
             template[section]={'tables':tables}
     reports=[]
+    seen_reports=set()
     for stage in output.get('Reports',[]):
         if stage['stage'] not in REPORT_STAGES:continue
+        if stage['stage'] in seen_reports:raise ValueError('Duplicate owned report family')
+        seen_reports.add(stage['stage'])
         tables={}
         for name,rows in stage['tables'].items():
             path='reports/'+stage['stage']+'/'+name
             if name in ('ReportHeader','ReportRows'):
                 tables[name]={'export':save_export(run,path,rows)}
-            else:tables[name]=image(path,path,rows)
+            else:
+                # New horizons reuse the same typed columns, with separate
+                # run/image/ordinal ownership. The pinned catalogue is unchanged.
+                binding_stage='norm0-export' if stage['stage'] in ('norm0-60-export','norm0-90-export') else stage['stage']
+                tables[name]=image(path,'reports/'+binding_stage+'/'+name,rows)
         reports.append(dict(stage=stage['stage'],tables=tables))
     bpr={name:image('reports/bpr/'+name,'reports/bpr/'+name,output['BPRFinal'][0][name])
          for name in ('BPR_Table','vf_RationedReqReport')} if output.get('BPRFinal') else {}

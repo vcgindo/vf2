@@ -30,6 +30,10 @@ def configuration_sha():
 
 def require_installed(source):
     owner = MdmSeasonOwner.objects.get(source=source)
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_owner
+        return require_owner(source, owner, 'season')
     from mta.mdm.target_fixture import require_family
     if require_family(source, owner, 'season'):
         return owner

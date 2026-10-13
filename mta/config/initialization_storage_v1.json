@@ -17925,7 +17925,8 @@
       "SuspendSupplyIssueTbl",
       "SuspendWhitesTbl",
       "VFSettings",
-      "ui_ReportConfigurations"
+      "ui_ReportConfigurations",
+      "IntermediateTables"
     ],
     "btr": [
       "BPPTrendDispatch",

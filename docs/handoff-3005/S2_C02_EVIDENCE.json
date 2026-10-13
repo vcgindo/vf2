@@ -1,0 +1,521 @@
+{
+  "boundary": "G2 C02 simple positive source/logistics ledger and18-day own chain only; explicit preserved failed initial assertion and additive expectation correction",
+  "source_base": "837ef17fe5465200736ef29429a4c1bb0b8081ad",
+  "files": [
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-8cd-hooks.patch",
+      "bytes": 15581,
+      "sha256": "88e468899b0f39a47b195a520a1c9a4b2f545a4be0e76e8e3e5f7fd33965cabd"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-amended-execution-binding.json",
+      "bytes": 470,
+      "sha256": "3f4a6ff6f04f2205c8873aad861f72310776136f84ada551801aad21dae2bd5f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/canonical-sources.json",
+      "bytes": 1890,
+      "sha256": "dccbcbc34497fb3baf0894efa2a5c7dd0bda833a1f3063e5d3aa2c591aa7f62f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/CASE.md",
+      "bytes": 6983,
+      "sha256": "14a5f15c878107b6d9d638d9a27925a2fd1067bdaf421d23abbce2a262714568"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-01.json",
+      "bytes": 3000,
+      "sha256": "10f5888d7f0088c1ff117f75c361d10d06054df04a371c00a92532aacf0b36b0"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-02.json",
+      "bytes": 2359,
+      "sha256": "70ce39a9857eb25ba265e1928cbfed4de4673ecbfdf5bf74ca848a6923ba12a1"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-03.json",
+      "bytes": 2359,
+      "sha256": "d6095b81dd9d3d29db928000730bc100a368c53627839532a060ad6533b5f617"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-04.json",
+      "bytes": 2359,
+      "sha256": "8dfbfba26bc9ba473675f52cffe37fe9cc890a31eb453754fc31d7ad149748be"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-05.json",
+      "bytes": 2067,
+      "sha256": "3a33c670ae865794dcf6c4f2ef50b6d4b195c7744175450d4ce3a97b74c8b258"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-06.json",
+      "bytes": 2066,
+      "sha256": "62f21be2b3e526c783d783ca9ef396ab50a35d6d110cce60025024095f1de0bd"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-07.json",
+      "bytes": 2065,
+      "sha256": "a589e431c6fbff3ad8170787f1aecd8152bb792a7b87cd20d673df728d802268"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-08.json",
+      "bytes": 2065,
+      "sha256": "1f15a22d7c9b8f67b8bdd41c163d84b5c4d39badc269a822de33d52343cfd844"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-09.json",
+      "bytes": 2065,
+      "sha256": "ab9e83c789264728ab6a90e331d89f462e220ae4030e63615da5db99b8d8b814"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-10.json",
+      "bytes": 2065,
+      "sha256": "b90d5b98247e6f0683e4fe4e74ffca14ec46fc35482c2d283c90be101b996b0b"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-11.json",
+      "bytes": 2065,
+      "sha256": "1a193452570a3303f5e83f76ae4be0514d440c4a573ee779785606db79e91285"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-12.json",
+      "bytes": 2065,
+      "sha256": "53d4c5c07c3383876a2a03cd5a1f32ea3bd100d4bf0987def2768672b827a6c6"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-13.json",
+      "bytes": 2065,
+      "sha256": "798b38fc512252f751ca1167ca049861147738bbbcd968ede064c7f01f708bed"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-14.json",
+      "bytes": 2065,
+      "sha256": "23bc8a890a98c355212fcb5b8e78f1d8120d797c9a32a69d55c62809b175765d"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-15.json",
+      "bytes": 2065,
+      "sha256": "9a9691fbb865e0dafb2f9785a24d6271e2b0d9e8e15ed3beee45b7e4ec8d6eca"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-16.json",
+      "bytes": 2065,
+      "sha256": "6e588ee21d3f136a98349c9db005917dbaf5db7c27c4547ad52528b350f7a377"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-17.json",
+      "bytes": 2065,
+      "sha256": "7afdcb1df116597f9f438570af576ee1395afa5ddb3b9b7cfe44d51060683b0c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/day-18.json",
+      "bytes": 2065,
+      "sha256": "b7e16db887a2070fe5305dc4f6d2c54ca00983810cf08e70d0ad00eafcebb101"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/expected-consumer-inputs.json",
+      "bytes": 782,
+      "sha256": "cb14addf37b8332752e4e7cea45aa48adb1e77308711354d094fbd8b72650987"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/expected-initialized-frame.json",
+      "bytes": 591991,
+      "sha256": "0275a32706b3422912b3f28910d3e3f38293def69e1d627d5aead6251154c74f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/expected-source-values.json",
+      "bytes": 416414,
+      "sha256": "858bd9ae189541d39d91099fcb36d651b0aaaf9f12167c3434892efa861ffba8"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/expected-transit.json",
+      "bytes": 1256,
+      "sha256": "f811dcaf24a08b7b84cd651adfe1c8ae4c6dd72327683afeae4d46722eb5bfd8"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/freeze-c02-case.py",
+      "bytes": 5624,
+      "sha256": "37b0f38d4f39898f5947e46492f990bd357629c51e61d7eb7bc3f625be3693f5"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/independent-static-review.json",
+      "bytes": 1413,
+      "sha256": "158b07920aac0ffe615936bc334a96903a3cafac6084546db916173cf47cb520"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/input-overrides.json",
+      "bytes": 3609,
+      "sha256": "a280e4220585e793257147f6c40902c68506aca390fb04efd651a31bf718bd02"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/ledger.json",
+      "bytes": 7141,
+      "sha256": "66251e8315154a40276a7e88b17c2414baa2acb1d8c1cf91515e6b86eceb0945"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/manifest.json",
+      "bytes": 8094,
+      "sha256": "ea16b7ecb4bc79024eef64b95d4836b70b06b875bd1ddf53ba594ad16e3ca906"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/operator-input.json",
+      "bytes": 282628,
+      "sha256": "9dd22117954175130b00b627856fe60e1709771c1323b38257aa2833112ff783"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/prepare-c02-expectations.py",
+      "bytes": 5553,
+      "sha256": "03c6e810bbcf0fc13e1829f40e39bbeb4ec588bbeec28b17e3517c6ea2cfdd58"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/prepare-c02-inputs.py",
+      "bytes": 9586,
+      "sha256": "92f1247925916e1d6e59c68123ef86f1bef06310333e81c3a6406e798a660975"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/runtime-source.json",
+      "bytes": 101055,
+      "sha256": "50bd21841edbc9e76ef65e7f04505acf85e383fb2c3e6fdee3ce42267e38c072"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/runtime-source.zip",
+      "bytes": 1741313,
+      "sha256": "9db40bc5afe7adb8200edd66973e96fa0fb6e69a3b2dce0d8f9738f91f8689ba"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-case-frozen-v2/static-day-preflight-v2.json",
+      "bytes": 5352,
+      "sha256": "cdf92bf8966f4b10de859a7d6a77a55229a0b22c2eace6fd6a751c033bd9314a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-consumer-hooks.patch",
+      "bytes": 3498,
+      "sha256": "97ba50a0d88b38291b4a135064139cc3334f467c7f89525f08f59e7739b822a4"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-database-absence.json",
+      "bytes": 170,
+      "sha256": "d1d9044e5f41784830fec13ad56c9b616d12fc9b8b4ac6ea105103a42afb9888"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-database-created.json",
+      "bytes": 147,
+      "sha256": "a7a7613216e680b1dac715933bf5f1feb5a1bd09ca365a8d3211fcaf5a71f2fb"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-day01-diagnosis-v1.json",
+      "bytes": 5282,
+      "sha256": "a7432d83cab16812dfb968b37c02ca62e0905785b56433964804c0c56593927e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/case-result.json",
+      "bytes": 7676,
+      "sha256": "3d1a0be3652d788da316747803175822c3816163d1a2c2963682c8b6ae69587a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-01-complete-readback.json.gz",
+      "bytes": 74359,
+      "sha256": "74cf326b0a0a384a346cc17d2acc91dd8d08065103f71e22f87c8426b0cb3a0c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-01.json",
+      "bytes": 941,
+      "sha256": "a2061970d912dc6543014c65edb357d8b24ea3db0e90c0e1296c20d3a66ea71b"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-02-complete-readback.json.gz",
+      "bytes": 58448,
+      "sha256": "c072970257d7f0f245180cbbbf1c00f2b160156ba80cbfbce60d802042590eb6"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-02.json",
+      "bytes": 996,
+      "sha256": "a9f8d333393d275078e8a139a8dc7e6fc1232b635b78ab124eb24d74bc8bb010"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-03-complete-readback.json.gz",
+      "bytes": 58669,
+      "sha256": "7c9049be5b38f98f93fe32dcaa1b278d2d4267a8dcc918f8aca4c9c183b45a6e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-03.json",
+      "bytes": 996,
+      "sha256": "16b2be655344f70394d204e38bfbe93c60d3a9747d2b1c263c37854f9e873b25"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-04-complete-readback.json.gz",
+      "bytes": 58922,
+      "sha256": "062aee3950d8a2b03f6b4d4c53f79714bcd180fd7585b951b601721bdf62f2ec"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-04.json",
+      "bytes": 996,
+      "sha256": "a15e40e76a95a2985405c72d58943e0a33c10ca2389d2b1c1fa8a1c2c25df755"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-05-complete-readback.json.gz",
+      "bytes": 58950,
+      "sha256": "17b3b78cbd5178e12278d50c7f2b7d09a327bd7bf103c03533eedd0a40b6bf3c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-05.json",
+      "bytes": 996,
+      "sha256": "0dc51b2968cc9b8365018dd0cc280d9591356e57dd7737d12630e6126f74a9dd"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-06-complete-readback.json.gz",
+      "bytes": 59427,
+      "sha256": "1d9acac9a481f4c27323ae0dbbb9b966be9e53c4a470381465216a630e18e6db"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-06.json",
+      "bytes": 996,
+      "sha256": "f3fd9efc6674c5c5801b069df3d803a4704c5360ece303ef7c908bc5f85d42c4"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-07-complete-readback.json.gz",
+      "bytes": 59593,
+      "sha256": "b052314e5e67e34f6541c6d109e764d387a96979fc689b4ddaeacaff137e8755"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-07.json",
+      "bytes": 996,
+      "sha256": "c11ee032d4fa90bec2b10a371f3b77dd251af8cf7ee281cad1624f30605f5e2f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-08-complete-readback.json.gz",
+      "bytes": 59784,
+      "sha256": "a9d88aaa1d9526aec2bebc957635b4a5df54a51c9f8c13eba8cddbf3e0b3f02e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-08.json",
+      "bytes": 996,
+      "sha256": "1893122a29262e77094f1504e263328e9d61b298203744b88de6a6368cf2d73d"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-09-complete-readback.json.gz",
+      "bytes": 59950,
+      "sha256": "3ef0e21e2e12978471e28d20f8ffd667ca1db5ad8ec136b38ea32efd83eb46b2"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-09.json",
+      "bytes": 996,
+      "sha256": "b70e83a4894fd8d1cc20356a818cc4920c2e581c4aa3ce46ecdeb37d64532f3b"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-10-complete-readback.json.gz",
+      "bytes": 60149,
+      "sha256": "a1b06306660c6cf5aa778932acbfdd687f8b7d19aca63f5285c96f4b00b6af17"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-10.json",
+      "bytes": 996,
+      "sha256": "0ee0eaec7ced3ed63b55aa4fddec7f16d088439cca080880b1351544b2478bf3"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-11-complete-readback.json.gz",
+      "bytes": 60334,
+      "sha256": "dde295f3992ea602880e264159aeff40f10450270618f5836b283c3dad651580"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-11.json",
+      "bytes": 996,
+      "sha256": "8d25bd9406c7bac00d0b2b4ddb62aceb31913de8b3c4a462eacceab12bd776ec"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-12-complete-readback.json.gz",
+      "bytes": 60552,
+      "sha256": "56f847dd1a55d3e45c6afda9da645bf243a85db785f945b5dae7292a3de7cb41"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-12.json",
+      "bytes": 996,
+      "sha256": "045f906e78effb2dc49a5c8dd91002562112f1fb1cdecc94cdde35304911c6cb"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-13-complete-readback.json.gz",
+      "bytes": 60749,
+      "sha256": "cd82ab90cfafef5a3896e11e6ecab47aa5756a732cf45fc17e37524d11c9718a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-13.json",
+      "bytes": 996,
+      "sha256": "f890650650ab934c8702d8c73206fc5df3747ee6b2e5916c695755c5597cbe79"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-14-complete-readback.json.gz",
+      "bytes": 60871,
+      "sha256": "158632b0cff58b291769f1c50ec0d582a184e3ca5d4afc0fd78e59e72e91bb73"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-14.json",
+      "bytes": 996,
+      "sha256": "ca91ddfab87d95e39ec749a007999c643df72c0be7dee6987ad83092483b276a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-15-complete-readback.json.gz",
+      "bytes": 61051,
+      "sha256": "fbccec768a0dbad3daf934c3e79b06ee723c5e0ef465953565e7cc28b226b99e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-15.json",
+      "bytes": 996,
+      "sha256": "e43d8c6aa51dae0c5e4dee7bac7333be3100e8ef60a5679f045ab5c53b8d5825"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-16-complete-readback.json.gz",
+      "bytes": 61203,
+      "sha256": "cb5ac9a194a62e572ec6ebb6c827c6e31cc632dbcc1bda9d38c8de1a5892e3e4"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-16.json",
+      "bytes": 996,
+      "sha256": "9c1a0d0f018cc7446657f0397d0ab4570f832b3413ab0a8f58d0061d354451dc"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-17-complete-readback.json.gz",
+      "bytes": 61349,
+      "sha256": "014784b26e4dc88dddd9d44b7a1de2276bb3d1f22e33b4ae3b1d60e68a43009c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-17.json",
+      "bytes": 996,
+      "sha256": "1a4c436369b9d0d2e3d0e89fa750de7803e7fab22c304d90816cb033991f1bc3"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-18-complete-readback.json.gz",
+      "bytes": 61565,
+      "sha256": "0cd6b87fabcdd429672479b4230f946f4b15de89c4aba300728a0b73ff597d70"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-amended-v1/day-18.json",
+      "bytes": 996,
+      "sha256": "b709fed9a451edc57a7272bdab267f7badac0fda7355376d7b196ff1e665754c"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-v1/day-01-complete-readback.json.gz",
+      "bytes": 74359,
+      "sha256": "502922b805b44bbb6cd9ad68ecb48f62ea2a57ce5b0a600bd1a3d384f2ac8b7e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-v1/day-01-source-difference.json.gz",
+      "bytes": 287,
+      "sha256": "781d3ab89ff14fe221d298777d26fc8158b0c5a95cb20afa4ba1ca6d72d4df9a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-v1/initialization.json",
+      "bytes": 320,
+      "sha256": "b14d8aa5a4ee53265a181e75573c0bf585fa15f013b2ef5d2a668773da7c5ec1"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-execution-v1/STOP.json",
+      "bytes": 403,
+      "sha256": "1fa7e2a31d938a540da7e101475cc42b3b013fe21b7f7e58bebde161728a9f1d"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-expectation-amendment-v1.json",
+      "bytes": 4079,
+      "sha256": "14c8d7ecfc297b1f58b59263281470012be4e490283aaeb16920a7e97e40e473"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-migrate-apply.txt",
+      "bytes": 8784,
+      "sha256": "cfec3b8fae625337d57b9628de659c2a1fac5d9a07b4a515872b87de0eab1d1f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-migrate-plan-v2.txt",
+      "bytes": 54990,
+      "sha256": "12022c3adcffaa255b3e27a97c37645e959e976047a6ee56df60213ba0e68017"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-migrate-plan.txt",
+      "bytes": 254,
+      "sha256": "ba60b11e0180594d6259887efb235541f0c60f61642df3ae6045eb166a3683b5"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-preflight-hook.patch",
+      "bytes": 4627,
+      "sha256": "bd696b30e77ebca53841b3a6f0d61dd16fe71cd6078f35306c923831f95ed711"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-producer-tests.txt",
+      "bytes": 179,
+      "sha256": "f9aa19cf6f8c6ac501f992575633abafe728c2b61744104082f2e59740b40dca"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-publication-hook.patch",
+      "bytes": 2864,
+      "sha256": "7ccac3a62f24d8a57a1ea7683fcd05a9fb5f61772748f16502eb2db58b619f2d"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-registration.json",
+      "bytes": 422,
+      "sha256": "3866e0233093f3e746591dc32aff9b8adffcd7ff4dd7d22c71dc0939a07242c6"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-resource-after.json",
+      "bytes": 9379,
+      "sha256": "7e5c761d387126412d18ccb6109c48602f57165ba850c580f9539eda40274e31"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-resource-before.json",
+      "bytes": 9379,
+      "sha256": "7e5c761d387126412d18ccb6109c48602f57165ba850c580f9539eda40274e31"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-schema-check.txt",
+      "bytes": 49,
+      "sha256": "f87ceb15410bde28ff826ce26228e0576558258fa64d145847921a593a61ee63"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-schema-makemigrations.txt",
+      "bytes": 21,
+      "sha256": "93e6e2d5be3c054add80c0f19101608803f7ca8a7df1fa41f76bbb9a1f570f4a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c02-schema-plan.txt",
+      "bytes": 1085,
+      "sha256": "90f7ea222a96c0c58b621e8eda30d625259d1e359e72245121a089b38bb79c52"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/check-c02-protection-after.py",
+      "bytes": 3001,
+      "sha256": "b7a9a67246f1624895eb5aae7733095f5cf59a42d3bfe968c1675a5158dc593f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/close-c02-proof.py",
+      "bytes": 6045,
+      "sha256": "a75f68b51260798ffe05467dfeac82a332976538b772d6de9019c13f8378f979"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/django-c02.py",
+      "bytes": 935,
+      "sha256": "1faae41adf5335764cc015303259ad019734018dc6dc14eb9323da4e09fb7d68"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/prepare-c02-resources.py",
+      "bytes": 4017,
+      "sha256": "f2ababb53200153edeb2d856adc61e925f4bb16f072d3182cc04c638032a46ec"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/provision-c02.py",
+      "bytes": 2224,
+      "sha256": "d609b31e8387be484c4bfc51b4e016d2cc6b6dd968557ae364eaf0fb2b3ef198"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/register-c02.py",
+      "bytes": 1547,
+      "sha256": "e4bcd1eea0aaac8d0f79be316a4829cc6ac158fec28316040d592065aa9bf006"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/run-c02-amended.py",
+      "bytes": 9631,
+      "sha256": "4cd0bd91a6dc88629948f0b786e0656317f21073a33a6d820c064adfe8754828"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/run-c02-case.py",
+      "bytes": 7638,
+      "sha256": "73b960a761bd796055030ae121f1f91fdbac032959d63e31be131deaea23c51f"
+    }
+  ]
+}

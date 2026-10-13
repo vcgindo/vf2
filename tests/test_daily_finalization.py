@@ -6,6 +6,55 @@ from mta.application import daily_finalization as final
 
 
 class DailyFinalizationTests(unittest.TestCase):
+    def test_active_completion_metadata_cannot_select_an_inactive_or_missing_writer(self):
+        from mta.serialization import digest
+        profile=dict(complete_daily=dict(policy=final.ACTIVE_POLICY,consumption_days=43,remark_days=13))
+        complete=dict(ScriptExecutedFlag=deepcopy(final.FLAG_SEED))
+        cohort=dict(policy=final.ACTIVE_POLICY,business_date='2037-04-10',configuration_digest=digest(profile),
+            qualification=final.qualification(final.ACTIVE_POLICY),flag_digest=digest(complete['ScriptExecutedFlag']))
+        output=dict(ClosingState=[dict(complete=complete)],Lineage=[dict(cohort1=cohort)])
+        final.verify_finalization_identity(output,profile,'2037-04-10')
+        for change in ('missing','policy','date','configuration','flags'):
+            bad=deepcopy(output)
+            if change=='missing':bad['Lineage'][0].pop('cohort1')
+            elif change=='policy':bad['Lineage'][0]['cohort1']['policy']=final.POLICY
+            elif change=='date':bad['Lineage'][0]['cohort1']['business_date']='2037-04-09'
+            elif change=='configuration':bad['Lineage'][0]['cohort1']['configuration_digest']='0'*64
+            else:bad['ClosingState'][0]['complete']['ScriptExecutedFlag'][0]['IsScriptExecuted']=True
+            with self.assertRaisesRegex(ValueError,'identity differs'):
+                final.verify_finalization_identity(bad,profile,'2037-04-10')
+
+    def test_transactional_writer_rejects_drifted_active_cohort_before_consuming(self):
+        import os
+        from contextlib import nullcontext
+        from datetime import date
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock,patch
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE','vectorflow.settings')
+        os.environ.setdefault('VF_SECRET_KEY','finalization-gate-unit-only')
+        import django
+        django.setup()
+        from mta.runtime.services import finish_run
+        from mta.serialization import digest
+        profile=dict(complete_daily=dict(policy=final.ACTIVE_POLICY,consumption_days=43,remark_days=13))
+        run=SimpleNamespace(pk='run',status='RUNNING',kind='DAILY_CHAIN',checkpoints=MagicMock(),
+            input_payload={},input_digest=digest(dict(profile=profile)),business_date=date(2037,4,10))
+        run.checkpoints.exists.return_value=False
+        output=dict(ClosingState=[dict(complete=dict(ScriptExecutedFlag=deepcopy(final.FLAG_SEED)))],
+            Lineage=[dict(cohort1=dict(policy=final.POLICY))])
+        with patch('mta.runtime.services.transaction.atomic',return_value=nullcontext()), \
+                patch('mta.runtime.services.CalculationRun.objects') as runs, \
+                patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
+                patch('mta.runtime.services.read_input',return_value=dict(profile=profile)), \
+                patch('mta.mdm.daily_input.finalize_consumption') as consume, \
+                patch('mta.mdm.daily_current.publish') as current:
+            runs.select_for_update.return_value.get.return_value=run
+            captures.filter.return_value.values_list.return_value.first.return_value=None
+            with self.assertRaisesRegex(ValueError,'identity differs'):
+                finish_run(run,output,expected_digest=run.input_digest)
+            consume.assert_not_called();current.assert_not_called()
+            self.assertEqual(run.status,'RUNNING')
+
     def test_active_policy_requires_all_native_flags_and_never_uses_inactive_waiver(self):
         complete = {'ScriptExecutedFlag': deepcopy(final.FLAG_SEED)}
         for row in complete['ScriptExecutedFlag']:

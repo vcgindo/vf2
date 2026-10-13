@@ -1,0 +1,380 @@
+{
+  "schema": "fresh-native-btr-rationing-history-v1",
+  "columns": [
+    {
+      "name": "SKUCode",
+      "type": "nvarchar",
+      "nullable": false,
+      "length": 50
+    },
+    {
+      "name": "SKUName",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 125
+    },
+    {
+      "name": "WhCode",
+      "type": "nvarchar",
+      "nullable": false,
+      "length": 50
+    },
+    {
+      "name": "WhName",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 125
+    },
+    {
+      "name": "WhType",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "ParentWhType",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "Norm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "VirtualNorm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "VirtualNodeNorm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "SpikeThreshold",
+      "type": "decimal",
+      "nullable": false,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "PSOThreshold",
+      "type": "decimal",
+      "nullable": false,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "Stock",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "GIT",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "Receipts",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "Consumption",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "Dispatch",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "StockForRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "StockForReqCalc",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "TechPen",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "TechColor",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "EcoPen",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "EcoColor",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "DispatchPen",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "DispatchColor",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "DispatchColorSequence",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "PhysicalInventoryPen",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "PhysicalInventoryColor",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "PhysicalInventoryColorSequence",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "ParentWhCode",
+      "type": "nvarchar",
+      "nullable": false,
+      "length": 50
+    },
+    {
+      "name": "ParentWhName",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 125
+    },
+    {
+      "name": "ParentNorm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "TechPenParent",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "TechColorParent",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "EcoPenParent",
+      "type": "decimal",
+      "nullable": true,
+      "precision": 10,
+      "scale": 2
+    },
+    {
+      "name": "EcoColorParent",
+      "type": "nvarchar",
+      "nullable": true,
+      "length": 10
+    },
+    {
+      "name": "Req",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "AllocatedForVirtualNormReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "AllocatedForNormReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "AllocatedForSnPReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "AllocatedForDirectOrders",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "RationedReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "SupplierDispatchReq",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "PackSize",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "RationedCasePacks",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "LeftoverParentStock",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "LeftoverStock",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ParentPackSize",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "IsNormed",
+      "type": "bit",
+      "nullable": false
+    },
+    {
+      "name": "DirectSpikeOverdue",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "SpikeOverdueAtParent",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "PSO",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "RelPSOAndCNR",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ResidualChildrenSnP",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "SnPToNetOff",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "SnPNettedOff",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ResidualSnP",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "EcoStockForNormReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "NormReq",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "BlueReq",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "AvgSiblingsNorm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "AvgChildrenNorm",
+      "type": "int",
+      "nullable": true
+    },
+    {
+      "name": "ParentStockForNormRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ParentStockForSnPRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ParentStockForRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "StockPercentageForRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "NormPercentReservation",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ParentStockPercentageForRationing",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ParentNormPercentReservation",
+      "type": "int",
+      "nullable": false
+    },
+    {
+      "name": "ReportDate",
+      "type": "date",
+      "nullable": true
+    }
+  ]
+}

@@ -5,6 +5,9 @@ from mta.application.r1_norm_updates import key
 def failed_force_rows(state, day):
     masters = {key(r):r for r in state['dbm_master']}
     requests = state['force_requests']
+    # Description-only importer rows have NULL join identifiers. They cannot
+    # join a physical request; retain the raw owner rather than manufacturing IDs.
+    raw_rows = [r for r in state['raw_master'] if r['SKUCode'] is not None and r['WhCode'] is not None]
     pending = [r for r in requests if not (key(r) in masters and r['NewNorm'] is not None
                and r['NewNorm'] == masters[key(r)]['Norm'])]
     result = []
@@ -16,13 +19,13 @@ def failed_force_rows(state, day):
         pending = [r for r in pending if key(r) not in identified]
 
     append([r for r in pending if r['Approved'] == 0], 'Not approved')
-    append([r for r in requests for raw in state['raw_master'] if key(r)==key(raw) and key(raw) not in masters], 'Record is introduced today')
-    append([r for r in pending if not any(key(r)==key(raw) for raw in state['raw_master'])], 'Record does not exist in master data')
+    append([r for r in requests for raw in raw_rows if key(r)==key(raw) and key(raw) not in masters], 'Record is introduced today')
+    append([r for r in pending if not any(key(r)==key(raw) for raw in raw_rows)], 'Record does not exist in master data')
     for table,reason in (('phase_out','Phase Out in progress'),('phase_in','Phase In in progress')):
         append([r for control in state[table] for r in pending if key(control)==key(r)],reason)
     append([r for control in state['seasonality'] for r in pending if key(control)==key(r)
             and control['Status'] in (2,3,4,5,6)], 'Seasonality in progress')
-    append([r for r in pending for raw in state['raw_master'] if key(r)==key(raw)
+    append([r for r in pending for raw in raw_rows if key(r)==key(raw)
             and r['NewNorm'] is not None and raw['Norm'] is not None and r['NewNorm']!=raw['Norm']], 'New Norm is not updated in Master data')
     append([r for log in state['log'] for r in pending if key(log)==key(r)
             and log['NormChangeDate']==day and log['NormChangeReason'] is not None and log['NormChangeReason']<100], 'Norm changed by Suggestion')

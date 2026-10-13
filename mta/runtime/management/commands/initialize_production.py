@@ -4,6 +4,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from mta.mdm.initialization import initialize, implementation_digest
 from mta.mdm.initialization_contract import decode
+from mta.runtime.production_preflight import initialization as inspect, PreflightError, require
 
 
 class Command(BaseCommand):
@@ -22,12 +23,11 @@ class Command(BaseCommand):
             parameters = dict(expected_configuration=options['configuration_digest'],
                               expected_recipe=options['recipe_digest'])
             if options['inspect']:
-                _, frame, batches = decode(raw, options['sha256'], **parameters)
-                self.stdout.write(json.dumps(dict(status='INPUT_CONTRACT_VALIDATED_NOT_INSTALLED',
-                    implementation_digest=implementation_digest(), input_sha256=options['sha256'],
-                    opening_identity=frame['opening']['identity'],
-                    populations=[dict(model=model.__name__, scope=scope, rows=len(rows))
-                        for _, model, scope, rows, _ in batches])))
+                report=inspect(raw,options['sha256'],**parameters)
+                report.update(implementation_digest=implementation_digest(),input_sha256=options['sha256'],
+                    status='INPUT_CONTRACT_VALIDATED_NOT_INSTALLED' if report['stage_eligibility']['installation'] else 'INPUT_REQUIREMENTS_INCOMPLETE')
+                require(report,'installation')
+                self.stdout.write(json.dumps(report,sort_keys=True))
                 return
             owner, created = initialize(raw, options['sha256'], **parameters)
             self.stdout.write(json.dumps(dict(status='INITIALIZED' if created else 'REVERIFIED',
@@ -37,5 +37,8 @@ class Command(BaseCommand):
                 configuration_digest=owner.configuration_digest, recipe_digest=owner.recipe_sha256,
                 implementation_digest=owner.implementation_digest, content_digest=owner.input_digest,
                 accepted_day=False), sort_keys=True))
+        except PreflightError as error:
+            self.stdout.write(json.dumps(error.report,sort_keys=True))
+            raise CommandError('Native '+error.stage+' preflight has blocking requirements') from error
         except Exception as error:
             raise CommandError(str(error)) from error

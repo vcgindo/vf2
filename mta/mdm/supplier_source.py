@@ -25,6 +25,10 @@ def require_installed(source, master_id):
         family = MdmFamilySource.objects.get(source=source, master_id=int(master_id))
     except (MdmSupplierConfiguration.DoesNotExist, MdmFamilySource.DoesNotExist):
         raise PublicationUnavailable('mdm_supplier_family_not_installed') from None
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_owner
+        return require_owner(source, config, 'supplier')
     if (family.receipt.get('schema') != SCHEMA or family.receipt.get('dll_sha256') != DLL
             or source.dll_digest != DLL
             or family.receipt.get('configuration') != CONFIGURATION

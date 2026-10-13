@@ -1,0 +1,137 @@
+{
+  "boundary": "Intermediate S2 checkpoint only; fullS2 not accepted",
+  "runtime_frozen_manifest": "c02-case-frozen-v2/runtime-source.json",
+  "runtime_files_unchanged": 854,
+  "files": [
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/btr-binding-tests.txt",
+      "bytes": 122,
+      "sha256": "b991e5477168862cdb072d4271e1b05e733890600c3e8e219e600c271ff588d9"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/btr-null-key-correction-final-tests.txt",
+      "bytes": 124,
+      "sha256": "b588084d12120093ec5ddbd649b6550a5eb1c10c0474c50c7a9dba04eebf3a40"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-003-frozen-runtime-source.zip",
+      "bytes": 1713689,
+      "sha256": "c1bc7ee5a90674302a1bc9ad2cd0c8fb50d98125eeca17148ef609dfe7e592f1"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-btr-null-key-canonical.json",
+      "bytes": 817,
+      "sha256": "6ec9170ac817a16fe1ef4bddee877c1c7fa0754935080f9bb0868437daa7a6e7"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/after-day02-late-failure-excluding-durable-attempt.json.gz",
+      "bytes": 202955,
+      "sha256": "3885deec3d78d85c54926894addb8cb83fe3777b932b2900c9320a9ca2480b48"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/before-day02-late-failure.json.gz",
+      "bytes": 202930,
+      "sha256": "03e341aef6a4fd66bc5973294dcbdd401bfea2263fd27cf2ba2c8c86b5e2d8d8"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/completed-root-repeat.json",
+      "bytes": 100,
+      "sha256": "9bfbda73c479511301557ef497b904aca07e2a35f9d83c4336debe48eb2c079e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-01-complete-readback.json.gz",
+      "bytes": 81490,
+      "sha256": "d01729d9c8a98f282cb12852d09ae00197bc3f6cef635bbfae4ed65b9776bffb"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-01-null-target-readback.json",
+      "bytes": 511,
+      "sha256": "85f4953ed6b45bf9ec524ccf3361895ce9f2cc638bae35c9cb67f68ac780827f"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-01.json",
+      "bytes": 509,
+      "sha256": "96d12943209c1606a54bf98bcca43d07e6079ac574e683df9d8163cddada5c14"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-02-complete-readback.json.gz",
+      "bytes": 65300,
+      "sha256": "e98fadc7d7cd1654c267d87124698a9bc3216b910e7d0c99a9fb4a3fcd370338"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-02.json",
+      "bytes": 509,
+      "sha256": "8a62a2e86cd483b7d9d47f83c6fd233201f76ceba6f007695e1735b610ae2607"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/day-03-expectation-failed-complete-readback.json.gz",
+      "bytes": 66653,
+      "sha256": "038f16b0f433f0c94e23b4d5033903b4e3b3e1ddf2883011933bb7ae43651af3"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/feed-denials.json",
+      "bytes": 1710,
+      "sha256": "c3411821da478edf590b69808749cbeea2cba03ab1fc80ea82d2ebcdc96b28e8"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/initialization.json",
+      "bytes": 454,
+      "sha256": "3dfa954b4905ed86ef630bfeaf02e64409f3ee3722b6a9905b5a7f3c6904f42b"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/late-failure.json",
+      "bytes": 474,
+      "sha256": "8c25f936df33d4c6bc995d5c522f9fa9f9dd59225e615fcaefac31b79eb4a44e"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c01-execution-v2-003/STOP.json",
+      "bytes": 817,
+      "sha256": "117a9498597b72bafff22368d33ef9977b641f99effcb5a1ef8eac96d8237460"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/c03-c04-frozen-runtime-source.zip",
+      "bytes": 1713726,
+      "sha256": "01b5076494c965cf3ebd105ff4aada101f4ca71a966181a2976145893e96d780"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/checkpoint-added-tests.txt",
+      "bytes": 326,
+      "sha256": "8f34c3d4fcb9f55b76861ee24b7d0f24fbeb6a643e4f0052c7d638d99c46e1ab"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/checkpoint-excluded-packaging-test.json",
+      "bytes": 473,
+      "sha256": "f93804f5f5d0af8d63b6479c1184c1370e752740252b4288ceb0c798916e0054"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/checkpoint-test-modules.json",
+      "bytes": 889,
+      "sha256": "59a669ff89adcf3ac8e16015f237d04cfb5305e065cf75c6166eb1e9e9ab5b6d"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/component-preserved-after-c01-grant-correction.json",
+      "bytes": 259,
+      "sha256": "24e7c0becf2f37b7f67b296524011e244d04b6518ff0491f93882c8cf9820e91"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/current-owner-mode-tests.txt",
+      "bytes": 116,
+      "sha256": "f789b73fe8aed8427c0f566185bbba584e52dffce063a636ac71560693eb1794"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/daily-source-binding-tests.txt",
+      "bytes": 107,
+      "sha256": "c9d3485c429116824a8ac79708b4fa07c064d6665e8e9e011d2625b944027863"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/donor-harness-reference/test_production_resources.py",
+      "bytes": 5561,
+      "sha256": "4ce750d83fb5004937f03e4532c1cdc81cc793c48ea16dc8fa013a16539582ef"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/legacy-current-guard-correction.json",
+      "bytes": 562,
+      "sha256": "cf0837dc96aab1a0d11a1334cea3f55e13a5267582436e116b095128408845e5"
+    }
+  ]
+}

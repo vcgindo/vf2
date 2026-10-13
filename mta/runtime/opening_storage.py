@@ -1,10 +1,20 @@
 """Typed initialization-owned images; no CalculationRun is created or borrowed."""
 import hashlib
+import json
+from pathlib import Path
 from django.db import connection
 
-from mta.runtime.relational_state import (STORAGE_TABLES, quote, table_name, bulk,
+from mta.runtime.relational_state import (quote, table_name, bulk,
     db_value, wire_type, wire_value)
 from mta.serialization import rows_digest, canonical_parts
+
+# Initialization v1 owns the exact table set created by0118, independently of
+# later run-input families. A later daily table is never an opening namespace.
+STORAGE_TABLES = json.loads((Path(__file__).resolve().parents[1]/
+    'config/initialization_storage_v1.json').read_text())['tables']
+from mta.runtime.dbm_phase_storage import TABLES as PHASE_TABLES
+from mta.runtime.btr_history_storage import TABLES as BTR_TABLES
+STORAGE_TABLES = {**STORAGE_TABLES, **PHASE_TABLES, **BTR_TABLES}
 
 
 def table_sql(key):

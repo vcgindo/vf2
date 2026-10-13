@@ -64,7 +64,7 @@ def _master_rows(rows, *, importer=False):
     return result
 
 
-def validate_master_entry(payload):
+def validate_master_entry(payload, *, _order_types_reconciled=False):
     state = payload.get("master_state")
     required = {"importer_master", "dbm_opening", "opening_provenance"}
     if not isinstance(state, dict) or not required <= set(state) or set(state) - required - {'force_norm_input','phase_control_input','accepted_norm_input','season_control_input','transit_tag_input','control_diagnostics','phase_out_membership'}:
@@ -118,11 +118,10 @@ def validate_master_entry(payload):
             raise ValueError(f"R1 v5 {section} must be a list of source rows")
     if any(row.get("controls") for row in payload["policies"]):
         raise ValueError("R1 v5 control events require the ordered pre-BPR producer; no downstream reapplication")
-    # The recovered SQL classifies any positive order as an Elephant when its
-    # cap is NULL (because it uses ISNULL(cap, 0)).  A fixture that declares a
-    # cap must fail before calculation if it would exercise that still-pending
-    # order-state producer; the migrated engine must not silently invent it.
-    for order in payload.get("orders", []):
+    # Public raw orders must pass the order-state producer. Internally owned
+    # orders have already been reconciled, including manual Elephant acceptance;
+    # their unchanged quantity must not trigger this raw-entry restriction again.
+    for order in (() if _order_types_reconciled else payload.get("orders", [])):
         cap = importer.get((order.get("sku_code"), order.get("location_code")), {}).get("elephant_order_capping")
         if cap is not None and Decimal(str(order.get("outstanding_quantity"))) > cap:
             raise ValueError("R1 v5 Elephant order requires the pending order-state producer")
@@ -182,13 +181,13 @@ def forced_norm_state(dbm, importer, source):
                 phase_in=[], seasonality=[], forced=[], log=[], triggers=[], upload_log=[])
 
 
-def source_calculation_view(payload):
+def source_calculation_view(payload, *, _order_types_reconciled=False):
     """Project ONLY inbound source facts for old validation and oracle seeding.
 
     No DBM reconciliation/Norm-control calculation happens here. The oracle
     loads dbm_opening separately and independently executes pinned SQL.
     """
-    importer, _ = validate_master_entry(payload)
+    importer, _ = validate_master_entry(payload, _order_types_reconciled=_order_types_reconciled)
     view = deepcopy(payload)
     del view["master_state"]
     view["schema"] = "r1-current-day-input-v4"
@@ -222,13 +221,13 @@ def source_calculation_view(payload):
     return view
 
 
-def reconcile_master_state(payload):
+def reconcile_master_state(payload, *, _order_types_reconciled=False):
     """01.ImportMasterData: refresh structural fields, retain existing Norm.
 
     A Norm difference never manufactures a trigger. Only explicitly supplied
     control requests can emit a delta through their canonical producer.
     """
-    importer, opening = validate_master_entry(payload)
+    importer, opening = validate_master_entry(payload, _order_types_reconciled=_order_types_reconciled)
     dbm = {}
     for key, row in importer.items():
         if key in opening:

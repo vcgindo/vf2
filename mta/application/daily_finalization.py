@@ -142,8 +142,8 @@ def finish(complete, settings, today, *, policy=POLICY):
     return result['ImporterSettingsTbl']
 
 
-def verify_successor(output, profile, today):
-    """Require the committed Cohort1 gate as well as typed output integrity."""
+def verify_finalization_identity(output, profile, today):
+    """Bind uncommitted completion metadata to its actual captured profile."""
     from mta.serialization import digest
     state = output['ClosingState'][0]
     policy = configuration(profile)['policy']
@@ -151,8 +151,15 @@ def verify_successor(output, profile, today):
         configuration_digest=digest(profile),
         qualification=qualification(policy),
         flag_digest=digest(state['complete']['ScriptExecutedFlag']))
-    if output['Lineage'][0].get('cohort1') != expected:
+    if (output.get('Lineage') or [{}])[0].get('cohort1') != expected:
         raise ValueError('Cohort1 predecessor gate identity differs')
+
+
+def verify_successor(output, profile, today):
+    """Require the committed Cohort1 gate as well as typed output integrity."""
+    verify_finalization_identity(output,profile,today)
+    state=output['ClosingState'][0]
+    policy=configuration(profile)['policy']
     if finish(deepcopy(state['complete']), state['importer_settings'], today, policy=policy) != state['importer_settings']:
         raise ValueError('Cohort1 predecessor completion state differs')
 

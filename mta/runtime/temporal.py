@@ -4,7 +4,7 @@ No oracle input, copied legacy state or secondary child-run persistence exists
 in this service. Parent locking freezes which actions a next day consumes.
 """
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import uuid
 
 from django.db import connection, transaction
@@ -22,6 +22,28 @@ from mta.evidence import evidence_mode as evidence_scope
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
             'final-suggestions','post-rule-reports','btr-insights','closing-state')
+
+
+def resolved_pick_root(value):
+    from pathlib import Path
+    return str(Path(value).resolve(strict=True))
+
+
+def request_input(*, day, profile, initial, lineage, report_exceptions=None,
+                  finalization_binding=None, initialization_binding=None,
+                  daily_input_sha256=None, complete_pick=False, pick_output_root=None,
+                  pick_config_sha256=None, shipment_sha256=None):
+    """Exact pre-capture identity shared by execution and read-only inspection."""
+    raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
+             lineage=lineage,report_exceptions=storage(report_exceptions or {}))
+    if finalization_binding is not None: raw['finalization_binding']=finalization_binding
+    if initialization_binding is not None:
+        raw['initialization_binding']=initialization_binding
+        raw['daily_input_sha256']=daily_input_sha256
+    if complete_pick: raw['pick_output_root']=pick_output_root
+    if pick_config_sha256 is not None: raw['pick_config_sha256']=pick_config_sha256
+    if shipment_sha256 is not None: raw['shipment_sha256']=shipment_sha256
+    return raw
 
 
 def daily_sources_enabled(profile):
@@ -42,30 +64,52 @@ def replay_completed(existing, *, complete_pick=False, pick_output_root=None):
     return existing
 
 
-def command_state(run, state, *, through_date=None):
+def command_state(run, state, *, through_date=None, domain='dbm'):
     """Verify every action's before/after chain; never mutate completed output."""
     state=deepcopy(state)
     receipts=[]
     last_date=run.business_date
     for event in run.commands.order_by('id'):
-        if digest(event.payload)!=event.digest or digest(state)!=event.before_digest:
+        if digest(event.payload)!=event.digest:
             raise ValueError('Command input/ordering drift')
         command=event.payload
         event_date=datetime.fromisoformat(command['timestamp']).date()
         if event_date<last_date or (through_date is not None and event_date>through_date):
             raise ValueError('Command date outside its temporal execution boundary')
         last_date=event_date
+        from mta.domain.elephant_orders import ACTION
+        event_domain = 'orders' if command.get('operation') == ACTION else 'dbm'
+        if event_domain != domain:
+            continue
+        if digest(state)!=event.before_digest:
+            raise ValueError('Command input/ordering drift')
         if event.state_manifest:
             from mta.runtime.relational_state import load_image
+            if domain == 'orders' and (set(event.state_manifest) != {'ElephantOrders'}
+                    or event.state_manifest['ElephantOrders']['table'] != 'BPR/ElephantOrders'):
+                raise ValueError('Elephant command typed owner differs')
             for name,metadata in event.state_manifest.items():
                 state[name]=load_image(run,metadata)
         else:
+            if domain == 'orders':
+                raise ValueError('Elephant command requires its typed action image')
             state=storage(apply_command(state,command['operation'],
                         [tuple(k) for k in command['selected']],command['timestamp']))
         if digest(state)!=event.after_digest:
             raise ValueError('Command output drift')
         receipts.append(dict(id=event.pk,digest=event.digest,before=event.before_digest,after=event.after_digest))
     return state,receipts
+
+
+def command_states(run, closing, *, through_date=None):
+    """Reconstruct each action owner and retain the single global event order."""
+    result = deepcopy(closing)
+    result['dbm'], receipts = command_state(run, result['dbm'], through_date=through_date)
+    if 'orders' in result:
+        result['orders'], order_receipts = command_state(run, result['orders'],
+            through_date=through_date, domain='orders')
+        receipts += order_receipts
+    return result, sorted(receipts, key=lambda row: row['id'])
 
 
 @transaction.atomic
@@ -78,7 +122,10 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     parent=CalculationRun.objects.select_for_update().get(pk=run.pk)
     if parent.kind!=KIND:raise ValueError('Commands require a daily-chain run')
     output=read_outputs(parent)
-    state,_=command_state(parent,output['DBMFinal'][0])
+    from mta.domain.elephant_orders import ACTION, apply_due_dates
+    closing,_=command_states(parent,output['ClosingState'][0])
+    domain = 'orders' if operation == ACTION else 'dbm'
+    state=closing[domain]
     existing=parent.commands.filter(idempotency_key=idempotency_key).first()
     if existing:
         if existing.payload!=payload:raise ValueError('Idempotency key has different command facts')
@@ -91,19 +138,22 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
         raise ValueError('Command date precedes its parent or prior command')
     if parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
         raise ValueError('Daily output has already been consumed; act on the current run')
-    result=storage(apply_command(state,operation,[tuple(k) for k in selected],timestamp))
+    result=storage(apply_due_dates(state,selected) if domain == 'orders' else
+                   apply_command(state,operation,[tuple(k) for k in selected],timestamp))
     event=RunCommand.objects.create(run=parent,idempotency_key=idempotency_key,payload=payload,
         digest=digest(payload),before_digest=digest(state),after_digest=digest(result))
     from mta.runtime.relational_state import save_image
     changed={name for name in state if state[name]!=result[name]}
-    if changed-{'NormAcceptanceTbl','NormsInSleepModeTbl','Suggestions'}:
+    allowed = {'ElephantOrders'} if domain == 'orders' else {'NormAcceptanceTbl','NormsInSleepModeTbl','Suggestions'}
+    if changed-allowed:
         raise ValueError('Unexpected action state writer')
     event.state_manifest={name:save_image(parent,'action/'+str(event.pk)+'/'+name,
-        'closing/dbm/'+name,result[name]) for name in changed}
+        'closing/'+domain+'/'+name,result[name]) for name in changed}
     # A no-change accepted command is still distinguishable from legacy events.
     if not event.state_manifest:
-        event.state_manifest={'NormAcceptanceTbl':save_image(parent,'action/'+str(event.pk)+'/NormAcceptanceTbl',
-            'closing/dbm/NormAcceptanceTbl',result['NormAcceptanceTbl'])}
+        name = 'ElephantOrders' if domain == 'orders' else 'NormAcceptanceTbl'
+        event.state_manifest={name:save_image(parent,'action/'+str(event.pk)+'/'+name,
+            'closing/'+domain+'/'+name,result[name])}
     event.save(update_fields=['state_manifest'])
     return event
 
@@ -111,7 +161,8 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
                 report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
-                shipment_sha256=None):
+                shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
+                consumer_opening=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -134,7 +185,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     from mta.application.daily_finalization import configuration
     finalization = configuration(profile)
     finalization_binding = None
-    if finalization is not None:
+    native = production_initialization is not None
+    if native:
+        from mta.mdm.initialization_contract import sha
+        sha(daily_input_sha256, 'native daily input')
+        if evidence_mode != 'production' or finalization_config is not None or report_exceptions:
+            raise ValueError('Native daily execution requires production evidence and unchanged calculations')
+        if finalization is None:
+            raise ValueError('Native daily execution requires initialized finalization configuration')
+    elif finalization is not None:
         from mta.application.daily_finalization import validate_supplement
         finalization_binding = validate_supplement(finalization_config, profile, opening)
     elif finalization_config is not None:
@@ -149,8 +208,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     if pick_config_sha256 is not None and not complete_pick:
         raise ValueError('Complete Pick configuration identity requires complete Pick')
     if complete_pick:
-        from pathlib import Path
-        pick_output_root = str(Path(pick_output_root).resolve(strict=True))
+        pick_output_root = resolved_pick_root(pick_output_root)
         if profile['complete_pick'] != {'policy': 'canonical-tied-order-v1'}:
             raise ValueError('Unsupported complete Pick policy')
     publication_enabled = daily_sources_enabled(profile)
@@ -169,6 +227,37 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             # task headers and subtasks then share one PostgreSQL snapshot.
             with connection.cursor() as cursor:
                 cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        initialization_binding = None
+        if native:
+            from mta.runtime.models import ProductionInitialization
+            from mta.mdm.initialization import read_initialized_input
+            from mta.mdm.production_families import require_initialization
+            initialized = ProductionInitialization.objects.select_for_update().select_related('source').get(
+                pk=production_initialization.pk)
+            require_initialization(initialized.source)
+            initialized_frame = read_initialized_input(initialized)
+            if mdm_source is not None and mdm_source.pk != initialized.source_id:
+                raise ValueError('Native daily source differs from its initialization')
+            if mdm_retry is not None and supplier_lock_source != initialized.source_id:
+                raise ValueError('Native retry source differs from its initialization')
+            if mdm_source is None and mdm_retry is None:
+                raise ValueError('Native daily execution requires its owned MDM source/capture')
+            if storage(initialized_frame['profile']) != profile:
+                raise ValueError('Native daily configuration differs from its initialization')
+            if predecessor is None and storage(opening) != storage(initialized_frame['opening']):
+                raise ValueError('Native initial opening differs from its typed initialization')
+            initialization_binding = dict(id=str(initialized.pk), source_digest=initialized.source.digest,
+                input_sha256=initialized.input_sha256, content_digest=initialized.input_digest,
+                configuration_digest=initialized.configuration_digest)
+            if predecessor is None:
+                if consumer_opening is None:
+                    raise ValueError('Native root requires explicitly declared consumer opening')
+                from mta.runtime.production_daily import initialize_consumers
+                initialize_consumers(initialized, consumer_opening, daily_input_sha256)
+            elif consumer_opening is not None:
+                raise ValueError('Native successor cannot replace consumer ownership')
+        elif mdm_source is not None and mdm_source.receipt.get('schema') == 'fresh-production-mdm-source-v1':
+            raise ValueError('Native source requires its initialization boundary')
         parent=None
         if predecessor is not None:
             parent=CalculationRun.objects.select_for_update().get(pk=predecessor.pk)
@@ -195,7 +284,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         or parent_capture.source_id != selected_source_id):
                     raise ValueError('Generic finalization requires its own consumed task source')
                 from mta.application.daily_finalization import ACTIVE_POLICY
-                if finalization['policy'] == ACTIVE_POLICY:
+                if finalization['policy'] == ACTIVE_POLICY and not native:
                     from mta.presentation.operational_admission import verify
                     verify(parent, selected=False)
             previous=read_outputs(parent)
@@ -206,7 +295,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 raise ValueError('Predecessor belongs to another site')
             prior=deepcopy(previous['ClosingState'][0])
             del previous  # The predecessor trace is verified, not the next day's working state.
-            prior['dbm'],commands=command_state(parent,prior['dbm'],through_date=today)
+            prior,commands=command_states(parent,prior,through_date=today)
             opening_date=parent.business_date.isoformat()
             lineage=dict(run_id=str(parent.pk),output_digest=parent.output_digest,commands=commands)
             initial=None
@@ -218,18 +307,21 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             opening_date=initial['opening_date']
             if date.fromisoformat(opening_date)>=today:raise ValueError('Opening must precede current facts')
             lineage=dict(opening_identity=initial['identity'],opening_digest=digest(initial))
+        if native:
+            if today != date.fromisoformat(opening_date) + timedelta(days=1):
+                raise ValueError('Native daily execution requires the immediately preceding day')
+            if parent is not None:
+                parent_binding = read_input(parent, components=('initialization_binding',)).get('initialization_binding')
+                if parent_binding != initialization_binding:
+                    raise ValueError('Native predecessor belongs to another initialization')
+            lineage['initialization_id'] = str(initialized.pk)
         publication_opening = ({'supplier': deepcopy(prior['supplier'])}
             if publication_enabled else None)
-        raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
-                 lineage=lineage,report_exceptions=storage(report_exceptions or {}))
-        if finalization_binding is not None:
-            raw['finalization_binding'] = finalization_binding
-        if complete_pick:
-            raw['pick_output_root'] = pick_output_root
-        if pick_config_sha256 is not None:
-            raw['pick_config_sha256'] = pick_config_sha256
-        if shipment_sha256 is not None:
-            raw['shipment_sha256'] = shipment_sha256
+        raw=request_input(day=day,profile=profile,initial=initial,lineage=lineage,
+            report_exceptions=report_exceptions,finalization_binding=finalization_binding,
+            initialization_binding=initialization_binding,daily_input_sha256=daily_input_sha256,
+            complete_pick=complete_pick,pick_output_root=pick_output_root,
+            pick_config_sha256=pick_config_sha256,shipment_sha256=shipment_sha256)
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
             from mta.mdm.daily_input import (apply_refresh_setting,
@@ -243,6 +335,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                     run_id=getattr(mdm_retry,'pk',mdm_retry))
                 from mta.runtime.mdm_models import MdmSource
                 configuration_source=MdmSource.objects.select_for_update().get(pk=origin_capture.source_id)
+            if not native and configuration_source.receipt.get('schema') == 'fresh-production-mdm-source-v1':
+                raise ValueError('Native source/capture requires its initialization boundary')
             from mta.runtime.mdm_configuration import capture_configuration_for_day
             nms_active, task_horizon = capture_configuration_for_day(
                 prior['importer_settings'], predecessor=parent, source=configuration_source)
@@ -290,7 +384,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
                     task_status_log_horizon=task_horizon)
             from mta.mdm.integration_source import verify_predecessor
-            verify_predecessor(configuration_source, parent)
+            if native:
+                verify_predecessor(configuration_source, parent, retry_capture=origin_capture)
+            else:
+                verify_predecessor(configuration_source, parent)
             base_master=raw['day']['raw_master']
             from mta.application.daily_finalization import ACTIVE_POLICY
             if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY:
@@ -301,7 +398,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if origin_capture is None:
                 capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
             composed=compose(capture_snapshot,base_master,last_run_date=opening_date)
-            if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY:
+            if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY and not native:
                 from django.conf import settings
                 from mta.mdm.approval_hierarchy import project
                 composed = project(composed,
@@ -336,6 +433,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             # Optional explicit external shipment facts stay in the immutable
             # day input; absence remains unavailable, never an empty population.
             publication_opening['shipment_input'] = raw['day'].get('shipment_input')
+            publication_opening['transporter_input'] = raw['day'].get('transporter_input')
+            if 'production_report_policy' in raw['day']:
+                publication_opening['production_report_policy'] = raw['day']['production_report_policy']
+                publication_opening['production_report_opening'] = raw['day']['production_report_opening']
+                publication_opening['production_report_schema'] = raw['day']['production_report_schema']
         source_digest=digest(raw)
         existing=CalculationRun.objects.filter(input_digest=source_digest,execution_revision=execution_revision).first()
         if existing is not None:
@@ -365,7 +467,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         else:
             run=CalculationRun.objects.create(**fields)
         from mta.runtime.input_storage import save_input
-        run.input_payload=save_input(run,raw)
+        if native:
+            from mta.runtime.production_daily import input_table
+            run.input_payload=save_input(run,raw,table_selector=input_table)
+        else:
+            run.input_payload=save_input(run,raw)
         run.input_manifest_digest=digest(run.input_payload)
         run.save(update_fields=['input_payload','input_manifest_digest'])
         if 'operational_sources' in profile:
@@ -382,17 +488,22 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     try:
         with evidence_scope(evidence_mode):
             result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-                lambda source:(calculate_current_day(source, defer_pick=True) if complete_pick else
-                               calculate_current_day(source),str(run.pk)),raw['report_exceptions'])
+                lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
+                               calculate_current_day(source, **owned),str(run.pk)),raw['report_exceptions'],native_daily=native)
             completed=([r['boundary'] for r in result['MajorBoundaries']] if evidence_mode=='validation'
                        else result.pop('_CompletedBoundaries'))
             if completed!=list(BOUNDARIES):
                 raise ValueError('Incomplete daily boundary roster')
             result['Lineage']=[lineage]
             if finalization is not None:
-                from mta.application.daily_finalization import verify_successor
+                from mta.application.daily_finalization import verify_successor, verify_finalization_identity, ACTIVE_POLICY
                 lineage['cohort1'] = result.pop('_Cohort1')
-                verify_successor(result, profile, today.isoformat())
+                # Active MDM archive/clear/task writers execute transactionally
+                # in finish_run. Their markers cannot be complete before then.
+                if finalization['policy'] != ACTIVE_POLICY:
+                    verify_successor(result, profile, today.isoformat())
+                else:
+                    verify_finalization_identity(result,profile,today.isoformat())
             if complete_pick:
                 source_digests = result.pop('_PickSourceDigests', None)
                 if source_digests is not None:

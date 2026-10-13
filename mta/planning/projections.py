@@ -162,7 +162,7 @@ def _bpp_order_rows(prepared, payload: dict) -> list[dict]:
     return output
 
 
-def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict], bpp_rows: list[dict], advance_allocations: list[dict]) -> list[dict]:
+def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict], bpp_rows: list[dict], advance_allocations: list[dict], *, source_rows=None) -> list[dict]:
     parent_by_key = {
         (row["sku_code"], row["child_location_code"]): row["parent_location_code"]
         for row in prepared.track_a["foundation"]["hierarchy"]
@@ -220,7 +220,7 @@ def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict]
     physical_keys = {(row["sku_code"], row["location_code"]) for row in requirement_rows}
     references = frozenset((sku, parent) for (sku, _), parent in parent_by_key.items()
                            if (sku, parent) not in physical_keys)
-    return calculate_requirement_bands(tuple(inputs), reference_parent_keys=references)
+    return calculate_requirement_bands(tuple(inputs), reference_parent_keys=references, source_rows=source_rows)
 
 
 def _source_bor_rows(prepared, payload: dict, requirement_rows: list[dict], band_rows) -> tuple[list[dict], list[dict]]:

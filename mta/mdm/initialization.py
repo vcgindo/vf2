@@ -25,8 +25,21 @@ def implementation_digest():
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
-        'application/daily_finalization.py', 'application/r1_daily_input.py',
+        'application/daily_finalization.py', 'application/r1_daily_input.py', 'domain/complete_daily_scalars.py',
         'application/r1_importer_master.py', 'config/daily_finalization_flags.json',
+        'domain/dbm_norm012.py', 'domain/btr_finalization.py', 'domain/dbm_conditional.py',
+        'domain/dbm_auto_acceptance.py',
+        'domain/btr_rationing_history.py','runtime/btr_history_storage.py',
+        'config/btr_rationing_history_v1.json','runtime/migrations/0123_btr_rationing_history.py',
+        'domain/order_identity.py','domain/order_closing.py','domain/elephant_orders.py','application/r1_order_input.py',
+        'application/r1_input.py','application/r1_calculation.py','application/r1_daily_entry.py','planning/engine.py','runtime/temporal.py','runtime/services.py',
+        'application/r1_master_state.py','application/r1_norm_updates.py','application/r1_control_diagnostics.py',
+        'mdm/phase_controls_capture.py',
+        'domain/dbm_phase_recommendation.py', 'runtime/dbm_phase_storage.py',
+        'config/dbm_phase_recommendation_v1.json',
+        'runtime/migrations/0122_phase_recommendation_storage.py',
+        'domain/dbm_selected_chain.py', 'temporal/chain.py',
+        'runtime/production_preflight.py',
         'runtime/migrations/0117_production_initialization.py',
         'runtime/migrations/0118_initialization_typed_storage.py', 'runtime/migrations/0119_initialization_guards.py',
         'runtime/management/commands/initialize_production.py',
@@ -114,6 +127,9 @@ def bind_source(source, *, input_sha256, input_schema):
 
 
 def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe):
+    from mta.runtime.production_preflight import initialization as inspect, require
+    require(inspect(raw,expected_sha256,expected_configuration=expected_configuration,
+        expected_recipe=expected_recipe),'installation')
     value, frame, batches = decode(raw, expected_sha256,
         expected_configuration=expected_configuration, expected_recipe=expected_recipe)
     implementation = implementation_digest()

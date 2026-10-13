@@ -55,6 +55,7 @@ class RequirementBandInput:
 def calculate_requirement_bands(
     rows: tuple[RequirementBandInput, ...], *,
     reference_parent_keys: frozenset[tuple[str, str]] = frozenset(),
+    source_rows=None,
 ) -> list[dict]:
     """Calculate persisted band populations from requirement/route facts.
 
@@ -179,6 +180,11 @@ def calculate_requirement_bands(
             "rel_cnr_red": _text(rel_cnr_red), "rel_cnr_black": _text(rel_cnr_black),
         }
         resolved[key] = output
+        if source_rows is not None:
+            source_rows[key] = dict(SKUCode=row.sku_code, WhCode=row.location_code,
+                ParentWhCode=row.parent_location_code, Norm=_text(row.norm),
+                RelPSO=_text(rel_pso), RelCNR=_text(rel_cnr_green+rel_cnr_yellow+rel_cnr_red+rel_cnr_black),
+                OrderBlackBand=_text(order_bands['black']), ResidualChildrenSnP=_text(residual_child_orders))
         visiting.remove(key)
         return output
 

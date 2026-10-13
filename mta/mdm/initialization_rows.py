@@ -5,17 +5,25 @@ import math
 
 from mta.runtime.relational_state import CATALOG, STORAGE_TABLES, COMPLETE_BINDINGS
 from mta.application.r1_daily_input import PRIOR_TABLES
+from mta.runtime.dbm_phase_storage import OPENING as PHASE_OPENING, TABLE as PHASE_TABLE
+from mta.runtime.btr_history_storage import OPENING as BTR_OPENING, TABLE as BTR_TABLE
 
 TABLES = {'input/opening/state/'+key.removeprefix('closing/')+'/values': '/'.join(table)
           for key, table in CATALOG['bindings'].items() if key.startswith('closing/')}
 TABLES.update({'input/opening/state/'+key.removeprefix('closing/')+'/values': table
               for key, table in COMPLETE_BINDINGS.items()})
+TABLES[PHASE_OPENING] = PHASE_TABLE
+TABLES[BTR_OPENING] = BTR_TABLE
 TABLES['input/opening/state/importer_settings/values'] = 'Importer/ImporterSettingsTbl'
 TABLES.update({
     'input/pair_exclusions/values': 'Intermediate/ExclusionRecords',
     'input/profile/daily/settings/values': 'Importer/ImporterSettingsTbl',
     'input/profile/daily/vf_settings/values': 'Importer/ImporterSettingsTbl',
     'input/profile/delivery/btr_settings/values': 'Importer/ImporterSettingsTbl',
+    'input/profile/delivery/conditional_dbm/importer_vf_settings/values': 'Importer/VFSettings',
+    'input/profile/delivery/btr_history/importer_vf_settings/values': 'Importer/VFSettings',
+    **{'input/profile/daily/module_sources/'+name+'/values':'Intermediate/SKULoc_DailyData'
+       for name in ('distributor_norms','vendor_master')},
     **{'input/profile/calculation/'+name+'/values': table for name, table in (
         ('skus', 'input/sku'), ('locations', 'input/location'),
         ('stock_openings', 'input/stock'), ('policies', 'input/policy'))},
@@ -26,6 +34,7 @@ TABLES.update({
 SCALARS = {'input/profile/daily/'+name: 'input/string_values' for name in
            ('distributor_codes', 'vendor_codes', 'vector_dms_codes')}
 SCALARS['input/profile/calculation/replenishment_exclusions'] = 'input/string_values'
+EMPTY_STRUCTURES = frozenset(('input/opening/state/dbm/IntermediateTables',))
 
 
 def schema(path, rows):
@@ -76,6 +85,16 @@ def scalar(value, kind, path):
 
 
 def select(fields, path, rows):
+    if path in ('input/profile/delivery/conditional_dbm/importer_vf_settings/values',
+                'input/profile/delivery/btr_history/importer_vf_settings/values'):
+        from mta.domain.dbm_conditional import validate_settings_rows
+        # The raw contract validates lists; the internal typed writer projects
+        # them through a reiterable Rows sequence. Validate its exact records.
+        validate_settings_rows(list(rows))
+    if path.removesuffix('/values') in EMPTY_STRUCTURES:
+        if rows != []:
+            raise ValueError('Explicit empty initialization scratch list required: '+path)
+        return None  # Shape metadata represents []; there are no typed state rows.
     table, expected = schema(path, rows)
     if set(fields) != set(expected) and rows:
         raise ValueError('Initialization field roster differs: '+path)
@@ -97,6 +116,10 @@ def select(fields, path, rows):
 
 
 def validate_tree(value, path='input'):
+    if path in EMPTY_STRUCTURES:
+        if value != [] or type(value) is not list:
+            raise ValueError('Explicit empty initialization scratch list required: '+path)
+        return
     if isinstance(value, dict):
         for key, child in value.items():
             validate_tree(child, path+'/'+key)

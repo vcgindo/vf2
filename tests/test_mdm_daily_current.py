@@ -14,6 +14,8 @@ django.setup()
 
 from mta.mdm import daily_current
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+from mta.application.daily_finalization import ACTIVE_POLICY
+from mta.mdm.daily_source import SCHEMA
 from django.db import connection, transaction, DatabaseError
 
 
@@ -23,10 +25,12 @@ class CurrentOwnerTests(unittest.TestCase):
             run=SimpleNamespace(pk=pk, kind='DAILY_CHAIN', predecessor_id=parent))
 
     def verify(self, carriers, selected):
-        source = object()
+        source = SimpleNamespace(receipt={'schema': SCHEMA})
         query = Mock()
         query.select_related.return_value = carriers
         with patch.object(MdmDailyInputCapture.objects, 'filter', return_value=query), \
+                patch('mta.runtime.validation_storage.read_input',
+                    return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}), \
                 patch('mta.runtime.services.read_outputs',
                     side_effect=lambda run: {'ClosingState': [{'own_run': run.pk}]}), \
                 patch.object(daily_current, 'verify_current') as live, \
@@ -63,10 +67,12 @@ class CurrentOwnerTests(unittest.TestCase):
         first = self.carrier('first'); second = self.carrier('second', 'first')
         query = Mock(); query.select_related.return_value = [first, second]
         with patch.object(MdmDailyInputCapture.objects, 'filter', return_value=query), \
+                patch('mta.runtime.validation_storage.read_input',
+                    return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}), \
                 patch('mta.runtime.services.read_outputs', return_value={'ClosingState': [{}]}), \
                 patch.object(daily_current, 'verify_current', side_effect=ValueError('typed readback differs')):
             with self.assertRaisesRegex(ValueError, 'typed readback'):
-                daily_current.verify_published(first.run, object())
+                daily_current.verify_published(first.run, SimpleNamespace(receipt={'schema': SCHEMA}))
 
 
 @unittest.skipUnless(os.environ.get('VF_MDM_CURRENT_PG_PROOF') == '1',

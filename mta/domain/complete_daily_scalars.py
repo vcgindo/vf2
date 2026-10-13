@@ -13,6 +13,8 @@ import sys
 NUMBER = re.compile(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\Z', re.ASCII)
 MONTHS = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 STYLE_ZERO = re.compile(r'([A-Za-z]{3})\s+(\d{1,2}) (\d{4}) (\d{1,2}):(\d{2})(AM|PM)\Z')
+IDENTIFIER_WEIGHTS = {char: weight for weight, char in enumerate(
+    "'-!\"#$%&()*,./:;?@[\\]^_`{|}~+<=>0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")}
 
 
 def ascii_equal(left, right):
@@ -25,11 +27,22 @@ def ascii_equal(left, right):
 
 
 def identifier_sort_key(value):
-    # Only alphanumeric SKU identifiers are ordered by the production script.
-    # Punctuation/Unicode collation weights are not Python lexicographic order.
-    if not isinstance(value, str) or re.fullmatch(r'[A-Za-z0-9]+ *', value) is None:
-        raise ValueError('UNQUALIFIED_SCALAR_DOMAIN: alphanumeric SKU ordering')
-    return value.rstrip(' ').upper()
+    """Qualified printable ASCII word ordering; no binary spelling tie-break.
+
+    Apostrophe/hyphen have positional secondary weights. Other punctuation,
+    digits and case-folded letters retain their verified primary weights.
+    Controls, internal ordinary spaces and Unicode remain explicit denials.
+    """
+    if not isinstance(value, str) or re.fullmatch(r'[!-~]+ *', value) is None:
+        raise ValueError('UNQUALIFIED_SCALAR_DOMAIN: printable ASCII identifier ordering')
+    primary, secondary = [], []
+    for char in value.rstrip(' ').upper():
+        weight = IDENTIFIER_WEIGHTS[char]
+        if char in "'-":
+            secondary.append((len(primary), weight))
+        else:
+            primary.append(weight)
+    return tuple(primary), ((1, *secondary) if secondary else (0,))
 
 
 def try_cast_float(value):

@@ -95,6 +95,10 @@ def installed_binding(source):
     seal = MdmSourceIntegration.objects.filter(source=source).first()
     if seal is None:
         return None
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_binding
+        return require_binding(source)
     p = seal.receipt
     family_digests = owner_identity(source)
     if (not isinstance(p, dict) or p.get('schema') != SCHEMA
@@ -267,8 +271,21 @@ def verify_capture(source, snapshot):
 
 def require_current_run(source, run, seal):
     """Require this source's own latest consumed generation, never a fallback."""
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        capture = current_capture(source, run)
+        from mta.runtime.validation_storage import read_input
+        snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
+        if snapshot is None or snapshot.get('revision_digest') != capture.revision_digest:
+            raise ValueError('Native MDM predecessor capture differs')
+        verify_capture(source, snapshot)
+        for module in ('force', 'season', 'stop_pipo', 'phase_controls'):
+            owner = __import__('mta.mdm.'+module+'_source', fromlist=['require_installed']).require_installed(source)
+            if owner.last_run_id != run.pk:
+                raise ValueError('Native MDM owner predecessor differs')
+        return
     capture = current_capture(source, run)
-    if str(run.pk) != seal.receipt['run_id']:
+    if seal.receipt.get('schema') == 'fresh-production-mdm-integration-v1' or str(run.pk) != seal.receipt['run_id']:
         from mta.runtime.validation_storage import read_input
         snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
         if snapshot is None or snapshot.get('revision_digest') != capture.revision_digest:
@@ -276,9 +293,24 @@ def require_current_run(source, run, seal):
         verify_capture(source, snapshot)
 
 
-def verify_predecessor(source, run):
+def verify_predecessor(source, run, *, retry_capture=None):
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     seal = installed_binding(source)
     if seal is not None:
+        from mta.mdm.initialization_contract import SOURCE_SCHEMA
+        if source.receipt.get('schema') == SOURCE_SCHEMA and run is None:
+            if MdmDailyInputCapture.objects.filter(source=source, status='CONSUMED').exists():
+                raise ValueError('Native MDM opening is no longer the current predecessor')
+            captures = MdmDailyInputCapture.objects.filter(source=source)
+            if captures.exists() and (retry_capture is None or not captures.filter(
+                    pk=retry_capture.pk, status='CAPTURED', run__status='FAILED',
+                    run__predecessor__isnull=True).exists()):
+                raise ValueError('Native root requires its explicit failed capture retry')
+            for module in ('force', 'season', 'stop_pipo', 'phase_controls'):
+                owner = __import__('mta.mdm.'+module+'_source', fromlist=['require_installed']).require_installed(source)
+                if owner.last_run_id is not None:
+                    raise ValueError('Native MDM opening owner already advanced')
+            return
         require_current_run(source, run, seal)
 
 
@@ -286,6 +318,9 @@ def require_read_binding(source):
     seal = installed_binding(source)
     if seal is None:
         return
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if source.receipt.get('schema') == SOURCE_SCHEMA:
+        return seal
     from mta.presentation.context import selected_run
     run = selected_run()
     require_current_run(source, run, seal)
@@ -299,6 +334,7 @@ def require_read_binding(source):
 
 def replace_working_inputs(snapshot, prior, day, predecessor):
     """Check both whole-opening anchors before changing either working table."""
+    root_digest = digest(prior) if predecessor is None else None
     from mta.mdm.force_capture import prepare_working_input as prepare_force
     from mta.mdm.season_capture import prepare_working_input as prepare_season
     changes = (prepare_force(snapshot, prior, day, predecessor),
@@ -308,5 +344,5 @@ def replace_working_inputs(snapshot, prior, day, predecessor):
             apply()
     from mta.mdm.stop_pipo_capture import replace_working_input as replace_stop
     from mta.mdm.phase_controls_capture import replace_working_input as replace_phase
-    replace_stop(snapshot, prior, day, predecessor)
-    replace_phase(snapshot, prior, day, predecessor)
+    replace_stop(snapshot, prior, day, predecessor, opening_digest=root_digest)
+    replace_phase(snapshot, prior, day, predecessor, opening_digest=root_digest)

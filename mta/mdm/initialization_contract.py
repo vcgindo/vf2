@@ -80,7 +80,7 @@ def scalar_configuration(profile):
     if any(type(value) is not bool for value in profile['force_flags'].values()):
         raise ValueError('Force flags must be explicit booleans')
     delivery = profile['delivery']
-    if set(delivery) != {'site_code', 'batch', 'controls', 'btr_settings'}:
+    if set(delivery) - {'site_code', 'batch', 'controls', 'btr_settings', 'conditional_dbm', 'btr_history'} or not {'site_code', 'batch', 'controls', 'btr_settings'} <= set(delivery):
         raise ValueError('Delivery configuration fields differ')
     batch = {name: 'int' for name in ('AutoDBMActive', 'DBMNormChangeReportHorizon',
         'NormChangeLogHorizon', 'GatherSuspensionHistory', 'ActivateNormChangeLogReport',
@@ -88,12 +88,32 @@ def scalar_configuration(profile):
         'PhaseOutRecommendation60Days', 'PhaseOutRecommendation90Days',
         'ActivateNorm0Report30Days', 'ActivateNorm0Report60Days', 'ActivateNorm0Report90Days',
         'ActivateNorm1Report30Days', 'ActivateNorm2Report30Days')}
-    fields(delivery['batch'], batch, 'delivery/batch', required=True)
-    if any(delivery['batch'][name] != 0 for name in ('AutoDBMActive',
-            'PhaseOutRecommendation30Days', 'PhaseOutRecommendation60Days', 'PhaseOutRecommendation90Days')):
-        raise ValueError('Unsupported DBM auto-acceptance/phase recommendation profile')
+    from mta.domain.dbm_conditional import MULTIPLIERS
+    from mta.domain.dbm_phase_recommendation import TOLERANCES, configuration as phase_configuration
+    if not set(batch) <= set(delivery['batch']):
+        raise ValueError('Required delivery batch fields differ')
+    fields(delivery['batch'], {**batch, **dict.fromkeys((*MULTIPLIERS, *TOLERANCES), 'int')}, 'delivery/batch')
+    if 'conditional_dbm' in delivery and (not isinstance(delivery['conditional_dbm'], dict)
+            or set(delivery['conditional_dbm']) != {'importer_vf_settings'}
+            or not isinstance(delivery['conditional_dbm']['importer_vf_settings'], list)):
+        raise ValueError('Explicit conditional Importer settings object required')
+    if delivery['batch']['AutoDBMActive'] not in (0, 1):
+        raise ValueError('Explicit automatic acceptance flag 0/1 required')
+    phase_configuration(delivery['batch'])
     fields(delivery['controls'], {'from_ui': 'bit', 'start_percent': 'numeric',
         'history_horizon': 'int'}, 'delivery/controls', required=True)
+    btr_kinds={'CaptureDispatchExecutionEfficiency': 'int',
+        'GenerateColorAgeingReport': 'int', 'BRAgeColorTolerance': 'int',
+        'CARNoColorToleranceDuration': 'int', 'NormSuggestion_Upward': 'nvarchar',
+        'NormSuggestion_Downward': 'nvarchar'}
+    if not set(btr_kinds)<=set(delivery['btr_settings']):
+        raise ValueError('Required BTR settings differ')
+    fields(delivery['btr_settings'],{**btr_kinds,'RationingHistoryHorizonBTR':'int'},'delivery/btr_settings')
+    owner=delivery.get('btr_history')
+    if owner is not None and (not isinstance(owner,dict) or set(owner)!={'importer_vf_settings'}):
+        raise ValueError('Explicit BTR Importer settings owner required')
+    from mta.domain.btr_finalization import _selected_settings
+    _selected_settings(delivery['btr_settings'],None if owner is None else owner['importer_vf_settings'])
     fields(profile['daily_publication_config'], {'bpr_remark_horizon': 'int'},
         'daily_publication_config', required=True)
     if profile['daily_publication_config']['bpr_remark_horizon'] < 0:
@@ -113,9 +133,25 @@ def scalar_configuration(profile):
         for row in profile['daily'][name]:
             if not isinstance(row, dict) or set(row) != {'Parameter', 'Value'} or row['Parameter'] not in allowed or type(row['Value']) is not str:
                 raise ValueError('Daily configuration settings differ')
+    modes = [row['Value'] for row in profile['daily']['settings']
+             if row['Parameter'] == 'MissingDailyDataHandling']
+    if len(modes) != 1 or modes[0] not in ('1', '2', '3'):
+        raise ValueError('One supported MissingDailyDataHandling mode (1, 2 or 3) required')
 
 
 def initial_state(state, opening_date):
+    percentages = state['dbm']['FirstReplenishmentPercentageTbl']
+    if len(percentages) != 1 or type(percentages[0]['ReplenishmentPercentage']) is not int:
+        raise ValueError('One explicit typed first replenishment percentage required')
+    for name in ('SpikeRuleHorizon', 'SpikeRuleParCount'):
+        values = [row['Value'] for row in state['dbm']['DBMSettingsTbl']
+                  if row['Parameter'] == name]
+        if len(values) != 1:
+            raise ValueError('One explicit selected DBM setting required: '+name)
+        try:
+            int(values[0])  # Existing selected producer parser; no new ranges.
+        except (ValueError, TypeError) as error:
+            raise ValueError('Selected DBM setting integer differs: '+name) from error
     for section, allowed in (('dbm', DBM_CARRY), ('btr', BTR_BASE)):
         for name, rows in state[section].items():
             if rows and name not in allowed:
@@ -194,10 +230,11 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
             or not 1 <= len(profile['delivery']['site_code']) <= 128):
         raise ValueError('Explicit site and production configuration required')
     configuration(profile)  # Validates the versioned finalization policy and typed horizons; no producer executes.
-    if set(profile['daily']) != {'settings', 'vf_settings', 'shell_flags', 'distributor_codes', 'vendor_codes', 'vector_dms_codes'}:
+    daily_required={'settings','vf_settings','shell_flags','distributor_codes','vendor_codes','vector_dms_codes'}
+    if not daily_required<=set(profile['daily']) or set(profile['daily'])-daily_required-{'module_sources'}:
         raise ValueError('Daily configuration population roster differs')
-    if profile['daily']['shell_flags'] != dict.fromkeys(FLAGS, 0):
-        raise ValueError('Daily module flags outside the existing supported contract')
+    from mta.application.r1_daily_input import validate_module_configuration
+    validate_module_configuration(profile['daily']['shell_flags'],profile['daily'].get('module_sources'))
     for name in ('settings', 'vf_settings', 'distributor_codes', 'vendor_codes', 'vector_dms_codes'):
         if not isinstance(profile['daily'][name], list):
             raise ValueError('Daily configuration requires an explicit population: '+name)
@@ -209,7 +246,7 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
         raise ValueError('Calculation logistics/stock configuration required')
     if (not isinstance(profile['delivery'].get('batch'), dict)
             or not isinstance(profile['delivery'].get('controls'), dict)
-            or not isinstance(profile['delivery'].get('btr_settings'), list)):
+            or not isinstance(profile['delivery'].get('btr_settings'), dict)):
         raise ValueError('Delivery configuration populations required')
     scalar_configuration(profile)
     masters = value['masters']
@@ -250,6 +287,10 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
         if section in ('importer', 'complete'):
             continue
         allowed = set(CONTRACT['allowed_opening_populations'][section])
+        if section == 'dbm':
+            allowed.add('PhaseOutRecommendation')
+        if section == 'btr':
+            allowed.add('RationingHistory')
         if section == 'controls':
             required = CONTROL_TABLES
             allowed = set(CONTROL_TABLES)
@@ -257,6 +298,14 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
             raise ValueError('Opening population roster differs: '+section)
     if set(state['complete']) - set(CONTRACT['allowed_opening_populations']['complete']):
         raise ValueError('Unknown complete opening populations')
+    # A fresh recommendation population is computed empty, never an operator
+    # fact or an imported answer. Older initialization envelopes remain valid.
+    if state['dbm'].get('PhaseOutRecommendation'):
+        raise ValueError('Initial opening cannot seed phase recommendations')
+    state['dbm'].setdefault('PhaseOutRecommendation', [])
+    if state['btr'].get('RationingHistory'):
+        raise ValueError('Initial opening cannot seed calculated rationing history')
+    state['btr'].setdefault('RationingHistory', [])
     for section in STATE_SECTIONS - {'importer_settings', 'publication_context'}:
         for name, rows in state[section].items():
             if name == 'IntermediateTables' and rows in ({}, []):
@@ -304,6 +353,11 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
     from mta.mdm.initialization_rows import validate_tree
     validate_tree(frame)
     initial_state(state, date.fromisoformat(opening['date']))
+    if any(profile['delivery']['batch'][name] == 1 for name in (
+            'ActivateNorm0Report30Days', 'ActivateNorm0Report60Days', 'ActivateNorm0Report90Days',
+            'ActivateNorm1Report30Days', 'ActivateNorm2Report30Days')):
+        from mta.domain.dbm_norm012 import selected_report_configuration
+        selected_report_configuration(state['dbm']['ui_ReportConfigurations'])
     expected_flags = dict(from_ui=True,
         ignore_master_norm=sum(row == {'Parameter': 'FNC_MatchMasterNorm', 'Value': '0'}
             for row in state['controls']['dbm_settings']) == 1,

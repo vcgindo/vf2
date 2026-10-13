@@ -75,13 +75,14 @@ def _setting(settings, name):
     return settings[name]
 
 
-def _selected_settings(settings):
+def _selected_settings(settings, importer_vf_settings=None):
     missing = [name for name in SETTING_NAMES if name not in settings]
     if missing:
         raise ValueError(f"settings roster drift: missing {missing}")
-    if str(settings["CaptureDispatchExecutionEfficiency"]) != "0":
-        raise ValueError("selected BTR contract excludes CollectRationingHistory")
+    from mta.domain.btr_rationing_history import configuration
+    capture = configuration(settings, importer_vf_settings)
     return {
+        'capture_history':capture,
         "generate_age": str(settings["GenerateColorAgeingReport"]) == "1",
         "br_tolerance": int(settings["BRAgeColorTolerance"]),
         "age_tolerance": int(settings["CARNoColorToleranceDuration"]),
@@ -504,6 +505,13 @@ def _categories(today, state, facts, selected):
     attributes = deepcopy(facts["SKULocStandardAttributes"])
     by_key = defaultdict(list)
     for row in attributes:
+        # The daily DISTINCT initializer retains NULL-key rows. Canonical
+        # UpdateCategoryCol uses SQL equality joins, which cannot match those
+        # targets; preserve their values and ordinals without indexing them.
+        if "WhCode" not in row and "WHCode" not in row:
+            raise KeyError("WhCode")
+        if row["SKUCode"] is None or row.get("WhCode", row.get("WHCode")) is None:
+            continue
         by_key[_key(row)].append(row)
     master = _unique_source(facts["MasterData"], _key, ("RLT",), "Importer MasterData RLT")
     snapshots = {_key(row): row for row in result["BTRSnapshotForUI"]}
@@ -542,18 +550,27 @@ def _categories(today, state, facts, selected):
     return result
 
 
-def btr_stages(today, prior, facts, settings):
+def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None):
     """Yield each selected legacy source boundary and its complete BTR state."""
     today = _day(today)
     _require_rows(prior, PRIOR_TABLES, "prior")
     _require_rows(facts, FACT_TABLES, "facts")
-    selected = _selected_settings(settings)
+    selected = _selected_settings(settings, importer_vf_settings)
     # Native BPR is required as an independently retained producer boundary even
     # though Import BPR canonically selects from vf_RationedReqReport.
     for row in facts["BPR_Table"]:
         _key(row)
 
-    current = _import_bpr(today, prior, facts)
+    current = prior
+    if selected['capture_history']:
+        from mta.domain.btr_rationing_history import collect, POPULATION, STAGE
+        if POPULATION not in prior or facts.get('LastBatchRunTbl') != [{'LastRunDate':today.isoformat()+'T00:00:00'}]:
+            raise ValueError('BTR capture requires its own history and singleton current date owner')
+        current = {**deepcopy(prior), POPULATION:collect(today,prior[POPULATION],
+            facts['vf_RationedReqReport'],facts.get('BPRDailyConsumption'),facts.get('SupplierDispatchReq'),
+            settings['RationingHistoryHorizonBTR'])}
+        yield STAGE, snapshot(current)
+    current = _import_bpr(today, current, facts)
     yield "1. Import BPR.sql", snapshot(current)
     current = _generate_trends(today, current, facts)
     yield "2. GenerateBufferTrend.sql", snapshot(current)

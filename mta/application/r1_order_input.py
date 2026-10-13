@@ -7,6 +7,7 @@ spikes. No customer-format transformation or replacement Elephant handler.
 from copy import deepcopy
 from datetime import date
 from decimal import Decimal, ROUND_CEILING
+from mta.domain.order_identity import counter as identity_counter, next_keys
 
 FEED_FIELDS = ('OrderID', 'SKUCode', 'WhCode', 'Qty', 'CustomerExpDate')
 ORDER_FIELDS = ('OrderKey', 'CustomerOrderId', 'PartId', 'IsSpike', 'IsElephant',
@@ -73,20 +74,21 @@ def validate_order_input(source, business_date):
         raise ValueError('Opening OrderKey must be unique')
     if 'identity_last_value' in source:
         counter = source['identity_last_value']
-        if (type(counter) is not int or not 1 <= counter < 2147483647
-                or not keys or counter < max(keys)):
-            raise ValueError('Selected identity opening needs a SQL integer counter covering nonempty historical orders')
+        identity_counter(counter)
+        if keys and counter < max(keys):
+            raise ValueError('Selected identity counter must cover historical orders')
     feed_keys = [_key(r, 'OrderID') for r in source['feed_rows']]
     if len(feed_keys) != len(set(feed_keys)):
         raise ValueError('Duplicate feed UPDATE winner is unverified; no arbitrary selection')
 
 
-def reconcile_order_feed(source, master_rows, business_date):
+def reconcile_order_feed(source, master_rows, business_date, *, accepted_orders=(), elephant_orders=None):
     """master_rows: SKUCode/WhCode/Norm/SpikeThreshold/ElephantOrderCapping.
 
     Returns retained/amended orders, newly classified orders and full closure
-    history. A single new non-Spike uses the explicit historical identity counter.
-    Without that opening, OrderKey=None remains unverified, not parity evidence.
+    history. New non-Spikes use the explicit owned counter in preserved feed
+    order under the approved production contract, not canonical insertion parity.
+    Without that counter, OrderKey=None remains unverified.
     Existing per-part identity is retained. Legacy applies feed Qty to EACH
     existing part; this function deliberately does not invent a split rule.
     """
@@ -97,12 +99,20 @@ def reconcile_order_feed(source, master_rows, business_date):
         if key in masters:
             raise ValueError('Duplicate master order join requires discrimination')
         masters[key] = row
-    orders = deepcopy(source['opening_orders'])
+    orders = deepcopy(source['opening_orders']) + deepcopy(list(accepted_orders))
+    elephants = None
+    if elephant_orders is not None:
+        from mta.domain.elephant_orders import validate, refreshed, identity
+        validate(elephant_orders)
+        elephants = deepcopy(elephant_orders)
     history = deepcopy(source['closure_history'])
     feed = [deepcopy(r) for r in source['feed_rows'] if _key(r, 'OrderID')[1:] in masters]
     # The source tests raw PSOData emptiness BEFORE filtering to master.
     raw_empty = not source['feed_rows']
     current_keys = {_key(r, 'OrderID') for r in feed}
+    if elephants is not None:
+        elephants = [r for r in elephants if (identity(r)[1:] in masters if raw_empty
+                                              else identity(r) in current_keys)]
     retained = []
     for row in orders:
         close = _key(row)[1:] not in masters if raw_empty else _key(row) not in current_keys
@@ -112,8 +122,10 @@ def reconcile_order_feed(source, master_rows, business_date):
         else:
             retained.append(row)
     if raw_empty:
-        return dict(orders=retained, new_spikes=[], closure_history=history,
-                    feed_status=source['feed_status'], outcome='EMPTY_FEED_RETAINED')
+        result = dict(orders=retained, new_spikes=[], closure_history=history,
+                      feed_status=source['feed_status'], outcome='EMPTY_FEED_RETAINED')
+        if elephants is not None: result['elephant_orders'] = elephants
+        return result
     new_spikes = []
     for incoming in feed:
         key = _key(incoming, 'OrderID')
@@ -121,6 +133,16 @@ def reconcile_order_feed(source, master_rows, business_date):
         threshold = (Decimal(str(master['Norm'])) * Decimal(str(master['SpikeThreshold'])) / 100
                      ).to_integral_value(rounding=ROUND_CEILING)
         spike = any(_key(r) == key and r['IsSpike'] == 1 for r in retained) or incoming['Qty'] > threshold
+        if elephants is not None:
+            changed = []
+            for row in elephants:
+                if identity(row) == key:
+                    row = refreshed(row, master)
+                    row['Qty'] = incoming['Qty']
+                    if row['Qty'] <= (0 if master['ElephantOrderCapping'] is None else master['ElephantOrderCapping']):
+                        continue
+                changed.append(row)
+            elephants = changed
         # Canonical removes promoted PSOs before matching existing orders.
         if spike:
             retained = [r for r in retained if not (_key(r) == key and r['IsSpike'] == 0)]
@@ -133,7 +155,14 @@ def reconcile_order_feed(source, master_rows, business_date):
             raise ValueError('R1-05 new order needs source-owned Elephant cap; no assumed default')
         cap = master['ElephantOrderCapping']
         if incoming['Qty'] > (0 if cap is None else cap):
-            raise ValueError('R1-05 Elephant source path remains unimplemented; no replacement handler')
+            if elephants is None:
+                raise ValueError('R1-05 Elephant source path requires its connected owner')
+            if not any(identity(r) == key for r in elephants):
+                elephants.append(refreshed(dict(CustomerOrderID=incoming['OrderID'],
+                    SKUCode=incoming['SKUCode'], WhCode=incoming['WhCode'], Qty=incoming['Qty'],
+                    IntroDate=business_date, CustomerExpectedDate=incoming['CustomerExpDate'], DueDate=None), master))
+        if elephants is not None and any(identity(r) == key for r in elephants):
+            continue
         if spike:
             new_spikes.append(dict(CustomerOrderId=incoming['OrderID'], SKUCode=incoming['SKUCode'],
                                    WhCode=incoming['WhCode'], Qty=incoming['Qty'],
@@ -146,10 +175,11 @@ def reconcile_order_feed(source, master_rows, business_date):
                                  DueDate=None, IntroDate=business_date))
     generated = [r for r in retained if r['OrderKey'] is None]
     if generated and 'identity_last_value' in source:
-        # ImportSpikeOrders inserts non-Spikes before CalculateDD inserts Spikes.
-        # Its INSERT SELECT has no ORDER BY: only one new row is discriminated.
-        if len(generated) != 1:
-            raise ValueError('Multiple generated non-Spike identities have no source-defined insertion order')
-        generated[0]['OrderKey'] = source['identity_last_value'] + 1
-    return dict(orders=retained, new_spikes=new_spikes, closure_history=history,
-                feed_status=source['feed_status'], outcome='APPLIED')
+        # Filtering/classification above preserves supplied ordinals. Ordinary
+        # rows are assigned before the separately resolved Spike subset.
+        for row, value in zip(generated, next_keys(source['identity_last_value'], len(generated))):
+            row['OrderKey'] = value
+    result = dict(orders=retained, new_spikes=new_spikes, closure_history=history,
+                  feed_status=source['feed_status'], outcome='APPLIED')
+    if elephants is not None: result['elephant_orders'] = elephants
+    return result

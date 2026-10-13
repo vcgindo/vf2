@@ -20,7 +20,7 @@ from mta.serialization import digest
 class MdmConfigurationTests(unittest.TestCase):
     def setUp(self):
         self.settings = [{'Parameter':'NMSActive','Value':'0'}]
-        self.source = SimpleNamespace(pk=1, digest='source')
+        self.source = SimpleNamespace(pk=1, digest='source', receipt={})
         self.snapshot = dict(schema=SCHEMA,source_id=1,source_digest='source',
             sql_digest=SQL_DIGEST,nms_active=True,configuration=dict(
                 task_status_log_horizon=7,nms_data_history_horizon=15))

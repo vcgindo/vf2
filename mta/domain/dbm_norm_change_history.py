@@ -1,21 +1,24 @@
-"""Selected seven-day change history projection, date-descending groups."""
+"""Configured change history projection, date-descending groups."""
 from copy import deepcopy
-from datetime import date,timedelta
+from mta.application.r1_importer_master import _sql_key
+from mta.domain.dbm_report_dates import report_cutoff, row_date
 
 HEADER=['SKUCode','SKU Name','Loc Code','Loc Name','OldNorm','NewNorm','NormChangeDate','Reason']
 
 
 def norm_change_history(today,state,horizon):
-    today=date.fromisoformat(today) if isinstance(today,str) else today
-    if horizon!=7 or state['LastBatchRunTbl']!=[{'LastRunDate':today.isoformat()+'T00:00:00'}]:
-        raise ValueError('Selected history requires seven-day horizon and singleton midnight run date')
+    lower=report_cutoff(today,state,horizon,inclusive=False)
     rows=[]
+    def same(left,right):
+        return left is not None and right is not None and _sql_key(left)==_sql_key(right)
+    def description(value):
+        return None if value is None else value.replace(',',' ')
     for r in state['NormChangeLogTbl']:
-        day=date.fromisoformat(r['NormChangeDate']) if isinstance(r['NormChangeDate'],str) else r['NormChangeDate']
-        if day<=today-timedelta(days=horizon):continue
-        skus=[v['SKUDescription'].replace(',',' ') for v in state['SKUDescriptionTbl'] if v['SKUCode']==r['SKUCode']] or [None]
-        sites=[v['WHDescription'].replace(',',' ') for v in state['SiteDescriptionTbl'] if v['WHCode']==r['WHCode']] or [None]
-        reasons=[v['Reason'] for v in state['ReasonCodes'] if v['Id']==r['NormChangeReason']] or [None]
+        day=row_date(r['NormChangeDate'])
+        if day is None or day<=lower:continue
+        skus=[description(v['SKUDescription']) for v in state['SKUDescriptionTbl'] if same(v['SKUCode'],r['SKUCode'])] or [None]
+        sites=[description(v['WHDescription']) for v in state['SiteDescriptionTbl'] if same(v['WHCode'],r['WHCode'])] or [None]
+        reasons=[v['Reason'] for v in state['ReasonCodes'] if r['NormChangeReason'] is not None and v['Id']==r['NormChangeReason']] or [None]
         for sku in skus:
             for site in sites:
                 for reason in reasons:rows.append({'values':[r['SKUCode'],sku,r['WHCode'],site,r['OldNorm'],r['NewNorm'],day.isoformat(),reason]})

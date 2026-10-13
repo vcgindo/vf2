@@ -7,8 +7,9 @@ class MdmPhaseControlsOwner(models.Model):
     source = models.OneToOneField(MdmSource, on_delete=models.PROTECT)
     provenance = models.JSONField()  # Bounded binding metadata, never row payloads.
     receipt_digest = models.CharField(max_length=64)
+    root_state_digest = models.CharField(max_length=64, default='')
     closing_queue_digest = models.CharField(max_length=64)
-    last_run = models.ForeignKey('CalculationRun', on_delete=models.PROTECT)
+    last_run = models.ForeignKey('CalculationRun', null=True, on_delete=models.PROTECT)
     generation = models.PositiveBigIntegerField(default=0)
 
 

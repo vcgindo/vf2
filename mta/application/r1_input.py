@@ -162,7 +162,7 @@ def resolve_r1_replenishment_exclusions(payload: dict) -> tuple[str, ...]:
                          if (row["sku_code"], row["location_code"]) not in parents}))
 
 
-def validate_r1_raw_input(payload: dict) -> None:
+def validate_r1_raw_input(payload: dict, *, _order_types_reconciled=False) -> None:
     """Validate the R1 entry contract before source-shaped adaptation.
 
     It is intentionally stricter than the Stage 6 integrated contract: order
@@ -202,7 +202,8 @@ def validate_r1_raw_input(payload: dict) -> None:
         if set(payload) != (v4_required - {"routing"}) | {"master_state"}:
             raise ValueError("Invalid R1 v5 master-state input contract")
         _reject_derived(payload)
-        validate_r1_raw_input(source_calculation_view(payload))
+        validate_r1_raw_input(source_calculation_view(payload,
+            _order_types_reconciled=_order_types_reconciled))
         return
     if not isinstance(payload, dict) or set(payload) not in (required, v2_required, v3_required, v4_required):
         raise ValueError("Invalid R1 raw input contract")
@@ -392,6 +393,36 @@ class PreparedR1CurrentDay:
     order_part_identity: dict | None = None
 
 
+def calculation_order_rows(closing):
+    """Project the actual order owner; repeated customer IDs remain distinct parts."""
+    rows = closing['SpikeOrderData']
+    ids = [r['CustomerOrderId'] for r in rows]
+    multipart = len(ids) != len(set(ids))
+    return [dict(order_id=str(r['OrderKey']) if multipart else r['CustomerOrderId'],
+        sku_code=r['SKUCode'],location_code=r['WhCode'],outstanding_quantity=r['Qty'],
+        accepted_on=r['IntroDate'],customer_expected_date=r['CustomerExpectedDate'],
+        established_is_spike=r['IsSpike'],established_due_date=r['DueDate'],
+        first_servicing_location_code=r['FirstServicingWhCode'],established_order_key=r['OrderKey'])
+        for r in rows]
+
+
+def prepare_owned_order_current_day(payload, closing):
+    """Internal daily producer connection; this metadata is never a raw input field."""
+    if 'order_input' in payload or payload['orders'] != calculation_order_rows(closing):
+        raise ValueError('Owned order calculation projection drift')
+    rows = closing['SpikeOrderData']
+    keys = [r['OrderKey'] for r in rows]
+    if len(keys) != len(set(keys)):
+        raise ValueError('Duplicate owned order keys')
+    prepared = prepare_r1_current_day(payload, _order_types_reconciled=True)
+    ids = [r['CustomerOrderId'] for r in rows]
+    if len(ids) == len(set(ids)):
+        return prepared
+    identity = {str(r['OrderKey']): dict(order_id=r['CustomerOrderId'],
+                order_key=r['OrderKey'],part_id=r['PartId']) for r in rows}
+    return replace(prepared, order_part_identity=identity)
+
+
 def prepare_r1_current_day(
     payload: dict,
     *,
@@ -406,7 +437,7 @@ def prepare_r1_current_day(
     values, retaining raw payload ownership and stable checkpoint rows for the
     later persisted R1 run.
     """
-    validate_r1_raw_input(payload)
+    validate_r1_raw_input(payload, _order_types_reconciled=_order_types_reconciled)
     if 'order_input' in payload:
         from mta.application.r1_order_input import reconcile_order_feed
         skeleton = deepcopy({k:v for k,v in payload.items() if k != 'order_input'})
@@ -427,34 +458,36 @@ def prepare_r1_current_day(
             raise ValueError('New order identity connection remains unverified in separate-feed entry')
         ids = [r['CustomerOrderId'] for r in payload['order_input']['opening_orders']]
         multipart = len(ids) != len(set(ids)) or "identity_last_value" in payload["order_input"]
-        generated_spike_key = None
+        generated_spike_keys = []
         if multipart and imported['new_spikes']:
-            if 'identity_last_value' not in payload['order_input'] or len(imported['new_spikes']) != 1:
-                raise ValueError('Multiple generated Spike identities require source-defined insertion order')
-            # ImportSpikeOrders inserts new non-Spikes first; CalculateDD
-            # inserts this sole new Spike afterwards. No multirow winner is
-            # selected here, and deleted historical keys remain in the counter.
-            generated_spike_key = max([payload['order_input']['identity_last_value']] +
-                                      [r['OrderKey'] for r in imported['orders']]) + 1
+            if 'identity_last_value' not in payload['order_input']:
+                raise ValueError('Generated Spike identities require an explicit owned counter')
+            from mta.domain.order_identity import next_keys
+            # The approved production contract assigns the filtered Spike
+            # subset in feed order, after the newly inserted ordinary subset.
+            last = max([payload['order_input']['identity_last_value']] +
+                       [r['OrderKey'] for r in imported['orders']])
+            generated_spike_keys = list(next_keys(last, len(imported['new_spikes'])))
+        elif len(imported['new_spikes']) > 1:
+            raise ValueError('Multiple generated Spike identities require an explicit owned counter')
         # Canonical routes and quantity remainders belong to OrderKey, not to
         # CustomerOrderId. Internal keys never replace customer identity at the
         # persisted consumer boundary. Preserve the existing single-order seam.
         identity = {str(r['OrderKey']): dict(order_id=r['CustomerOrderId'],
                     order_key=r['OrderKey'], part_id=r['PartId'])
                     for r in imported['orders']} if multipart else None
-        if generated_spike_key is not None:
-            identity[str(generated_spike_key)] = dict(order_id=imported['new_spikes'][0]['CustomerOrderId'],
-                                                    order_key=generated_spike_key, part_id=1)
+        for generated_key, row in zip(generated_spike_keys, imported['new_spikes']):
+            identity[str(generated_key)] = dict(order_id=row['CustomerOrderId'],order_key=generated_key,part_id=1)
         effective = deepcopy(base.calculation_payload or skeleton)
         effective['orders'] = [dict(order_id=str(r['OrderKey']) if multipart else r['CustomerOrderId'],sku_code=r['SKUCode'],location_code=r['WhCode'],
             outstanding_quantity=r['Qty'],accepted_on=r['IntroDate'],customer_expected_date=r['CustomerExpectedDate'],
             established_is_spike=bool(r['IsSpike']),established_due_date=r['DueDate'],
             first_servicing_location_code=r['FirstServicingWhCode'],established_order_key=r['OrderKey'])
             for r in imported['orders']]
-        effective['orders'].extend(dict(order_id=str(generated_spike_key) if generated_spike_key is not None else r['CustomerOrderId'],sku_code=r['SKUCode'],location_code=r['WhCode'],
+        effective['orders'].extend(dict(order_id=str(generated_spike_keys[index]) if generated_spike_keys else r['CustomerOrderId'],sku_code=r['SKUCode'],location_code=r['WhCode'],
             outstanding_quantity=r['Qty'],accepted_on=day,customer_expected_date=r['CustomerExpectedDate'],
             established_is_spike=None,established_due_date=None,first_servicing_location_code=None)
-            for r in imported['new_spikes'])
+            for index,r in enumerate(imported['new_spikes']))
         calculated = prepare_r1_current_day(effective, reservation_type=reservation_type,
                                            reservation_for_rationing_only=reservation_for_rationing_only,
                                            _order_types_reconciled=True)
@@ -514,7 +547,7 @@ def prepare_r1_current_day(
     if payload["schema"] == MASTER_SCHEMA:
         phase_out_membership = tuple((row['SKUCode'], row['WhCode'])
                                      for row in payload['master_state'].get('phase_out_membership', []))
-        master_state = reconcile_master_state(payload)
+        master_state = reconcile_master_state(payload, _order_types_reconciled=_order_types_reconciled)
         # Modern calculations consume the exported importer state. The oracle
         # still projects/seeds original source facts independently.
         effective = deepcopy(payload)
@@ -522,7 +555,7 @@ def prepare_r1_current_day(
         for row in effective['master_state']['importer_master']:
             row.update(norm=changed[(row['sku_code'], row['location_code'])]['norm'],
                        min_norm=changed[(row['sku_code'], row['location_code'])]['min_norm'])
-        payload = source_calculation_view(effective)
+        payload = source_calculation_view(effective, _order_types_reconciled=_order_types_reconciled)
     stock_configuration = resolve_r1_stock_configuration(
         payload, reservation_type=reservation_type,
         reservation_for_rationing_only=reservation_for_rationing_only,
