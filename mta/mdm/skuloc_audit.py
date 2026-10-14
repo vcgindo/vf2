@@ -32,8 +32,9 @@ def reviewed(source, action, rows, actor, *, active):
         return
     model = MODELS[action]
     location = 'WHCode' if action == 3 else 'WhCode'
-    # Native EntryInLogTable emits rejection before approval. Every submitted
-    # decision occurrence is retained; identical duplicate keys are not deduped.
+    # Native EntryInLogTable emits rejection before approval within the caller's
+    # 999-item statement chunk. Every submitted decision occurrence is retained;
+    # identical duplicate keys are not deduped.
     for status in ('4', '3'):
         stamp = database_now()
         model.objects.bulk_create([model(source=source, SKUCode=row['sc'],

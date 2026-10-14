@@ -186,6 +186,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     finalization = configuration(profile)
     finalization_binding = None
     native = production_initialization is not None
+    if 'native_upload_audit' in profile and not native:
+        raise ValueError('Native upload audit requires production initialization')
     if native:
         from mta.mdm.initialization_contract import sha
         sha(daily_input_sha256, 'native daily input')
@@ -482,7 +484,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             authorize_new_run(run)
         if capture_snapshot is not None:
             from mta.mdm.daily_input import bind_capture
-            bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
+            daily_capture = bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
+            from mta.mdm.native_audit import bind as bind_native_audit
+            bind_native_audit(run, daily_capture, profile)
         if publication_enabled:
             from mta.presentation.daily_requests import bind as bind_requests
             from mta.presentation.ancillary_live import bind_snapshots

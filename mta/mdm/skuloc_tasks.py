@@ -300,26 +300,30 @@ def approve(source, payload, actor):
             raise ValueError('native duplicate decision UPDATE is incomparable')
         decisions[pair]=decision
     request_model={1:MdmSkuLocAddRequested,2:MdmSkuLocModifyRequested,3:MdmSkuLocRemoveRequested}[task.Actiontype]
-    try:
-        for row in request_model.objects.filter(source=source,TaskId=task_id):
-            decision=decisions.get((sql_key(row.SKUCode),sql_key(row.WhCode)))
-            if decision: request_model.objects.filter(pk=row.pk).update(Approved=decision[0]=='3')
-        for row in history:
-            decision=decisions.get((sql_key(row.SKUCode),sql_key(row.WhCode)))
-            if decision: MdmSkuLocHistory.objects.filter(pk=row.pk).update(Status=decision[0],Comments=decision[1],ApprovedBy=str(actor['id']))
-        _copy_approved(source,task_id,task.Actiontype)
-        if task.Actiontype==2:
-            rejected={(sql_key(r['sc']),sql_key(r['wc'])) for r in valid if str(r['status'])=='4'}
-            for row in MdmSkuLocModifyRequested.objects.filter(source=source,TaskId=task_id):
-                if (sql_key(row.SKUCode),sql_key(row.WhCode)) in rejected:
-                    MdmSkuLocModifyRequested.objects.filter(pk=row.pk).update(Approved=True)
-    except DatabaseError:
-        log.exception('master3 native decision SQL failure')
-    audit_enabled = skuloc_audit.enabled(source)
-    try:
-        skuloc_audit.reviewed(source, task.Actiontype, valid, actor, active=audit_enabled)
-    except DatabaseError:
-        log.exception('master3 native decision audit failure')
+    for offset in range(0,len(valid),999):
+        chunk=valid[offset:offset+999]
+        chunk_decisions={(sql_key(row['sc']),sql_key(row['wc'])):
+                         (str(row['status']),str(row['comments'])) for row in chunk}
+        try:
+            for row in request_model.objects.filter(source=source,TaskId=task_id):
+                decision=chunk_decisions.get((sql_key(row.SKUCode),sql_key(row.WhCode)))
+                if decision: request_model.objects.filter(pk=row.pk).update(Approved=decision[0]=='3')
+            for row in history:
+                decision=chunk_decisions.get((sql_key(row.SKUCode),sql_key(row.WhCode)))
+                if decision: MdmSkuLocHistory.objects.filter(pk=row.pk).update(Status=decision[0],Comments=decision[1],ApprovedBy=str(actor['id']))
+            _copy_approved(source,task_id,task.Actiontype)
+            if task.Actiontype==2:
+                rejected={(sql_key(r['sc']),sql_key(r['wc'])) for r in chunk if str(r['status'])=='4'}
+                for row in MdmSkuLocModifyRequested.objects.filter(source=source,TaskId=task_id):
+                    if (sql_key(row.SKUCode),sql_key(row.WhCode)) in rejected:
+                        MdmSkuLocModifyRequested.objects.filter(pk=row.pk).update(Approved=True)
+        except DatabaseError:
+            log.exception('master3 native decision SQL failure')
+        audit_enabled = skuloc_audit.enabled(source)
+        try:
+            skuloc_audit.reviewed(source, task.Actiontype, chunk, actor, active=audit_enabled)
+        except DatabaseError:
+            log.exception('master3 native decision audit failure')
     mine=[h for h in MdmSkuLocHistory.objects.filter(source=source,TaskId=task_id) if assigned(h.ApproverId,actor['id'])]
     completed=bool(mine) and all(h.Status in ('3','4') for h in mine)
     date=database_now().strftime('%d/%m/%Y %I:%M %p')

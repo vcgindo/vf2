@@ -1299,3 +1299,8 @@ from mta.runtime.planning_summary_models import (PlanningSummaryReceipt,
     PlanningSummaryContribution, PlanningSummaryAttempt)
 
 from mta.runtime.initialization_models import ProductionInitialization
+
+from mta.runtime.mdm_projection_models import MdmClosingProjectionReceipt
+from mta.runtime.native_audit_models import (NativeUploadAudit, NativeAuditAdd,
+    NativeAuditModify, NativeAuditRemove, NativeAuditLocation, NativeAuditSku,
+    NativeAuditSob, NativeAuditMoq, NativeAuditForce)

@@ -762,7 +762,7 @@ def closing_shape(c,state):
                 c.records(group[name],path,section,fields={
                     'SKUCode':'nvarchar','WhCode':'nvarchar','BRAge':'int',
                     'BRAgeRedCount':'int','BRAgeBlackCount':'int'})
-            elif section=='controls' and name in ('log','phase_in','phase_out'):
+            elif section=='controls' and name in ('log','phase_in','phase_out','upload_log'):
                 # Native control producers use WhCode. Typed storage records
                 # that wire spelling while mapping to the physical WHCode.
                 _,fields=native_rows.schema('input/opening/state/controls/'+name+'/values',group[name])

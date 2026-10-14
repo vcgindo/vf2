@@ -231,6 +231,10 @@ def calculation_source(today, opening_date, profile, importer, dbm_master, proce
     skus={r['SKUCode']:r for r in importer['SkuAttributeData']}
     project=lambda rows:[{f:r[s] for f,s in MASTER_SOURCE_MAP.items()} for r in rows]
     masters=project(importer['MasterData'])
+    active={(r['sku_code'],r['location_code']) for r in masters}
+    for name in ('stock_openings','policies'):
+        config[name]=[r for r in config[name]
+                      if (r['sku_code'],r['location_code']) in active]
     for r in masters:
         a=attrs[r['sku_code'],r['location_code']]
         r.update(pack_size=a['PackSize'],elephant_order_capping=skus[r['sku_code']]['ElephantOrderCapping'])

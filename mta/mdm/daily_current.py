@@ -6,20 +6,26 @@ from mta.mdm.master_owners import owner_batches, business_fields
 from mta.serialization import digest, storage
 
 
-def closing_owners(closing):
+def closing_owners(closing, *, version=None):
     """Reuse the exact installation projection, including its BPR copy source."""
-    return owner_batches(closing)
+    batches = owner_batches(closing)
+    if version is not None:
+        from mta.mdm.location_projection import additional_owners, VERSION
+        if version != VERSION:
+            raise ValueError('Unsupported closing projection version')
+        batches += additional_owners(closing)[0]
+    return batches
 
 
-def identity(closing):
+def identity(closing, *, version=None):
     return [dict(family=family, model=model.__name__, **partition,
                  fields=[f.name for f in business_fields(model)],
                  rows=len(rows), digest=digest(storage(rows)))
-            for family, model, partition, rows, _path in closing_owners(closing)]
+            for family, model, partition, rows, _path in closing_owners(closing, version=version)]
 
 
-def verify_current(source, closing):
-    for _family, model, partition, expected, path in closing_owners(closing):
+def verify_current(source, closing, *, version=None):
+    for _family, model, partition, expected, path in closing_owners(closing, version=version):
         fields = [f.name for f in business_fields(model)]
         actual = list(model.objects.filter(source=source, **partition)
                       .order_by('ordinal').values('ordinal', *fields))
@@ -54,15 +60,36 @@ def publish(run, capture, closing):
               run.business_date.isoformat(), policy=policy) != closing['importer_settings']:
         raise ValueError('Current master publication completion differs')
     # Validate the whole typed projection before touching any partition.
-    batches = closing_owners(closing)
+    version = None
+    receipt = None
+    if native:
+        from mta.mdm.location_transition import run_identity, admit, capture_identity
+        from mta.mdm.location_projection import VERSION, additional_owners
+        from mta.runtime.mdm_projection_models import MdmClosingProjectionReceipt
+        code_identity = run_identity(run, source)
+        if code_identity['version'] != VERSION:
+            raise ValueError('New native publication requires the corrected projection')
+        admit(source, run.business_date, run.predecessor)
+        version = VERSION
+    batches = closing_owners(closing, version=version)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_current_run',%s,true)", [str(run.pk)])
     try:
+        if native:
+            receipt = MdmClosingProjectionReceipt.objects.create(run=run,
+                capture_digest=capture_identity(capture), **code_identity)
         for _family, model, partition, rows, _path in batches:
             model.objects.filter(source=source, **partition).delete()
             model.objects.bulk_create([model(source=source, ordinal=i, **partition, **row)
                 for i, row in enumerate(rows, 1)], batch_size=500)
-        verify_current(source, closing)
+        verify_current(source, closing, version=version)
+        if receipt is not None:
+            proof = additional_owners(closing)[1]
+            receipt.metadata = dict(version=VERSION, partitions=identity(closing, version=version),
+                sources=proof['sources'])
+            receipt.digest = digest(receipt.metadata)
+            receipt.status = 'SEALED'
+            receipt.save(update_fields=['metadata','digest','status'])
     finally:
         # A database error has already marked the enclosing atomic block for
         # rollback. Do not mask that error with a cleanup query on a broken
@@ -105,8 +132,14 @@ def verify_published(run, source):
         raise ValueError('Active current owner chain is disconnected')
     leaf = by_id[leaf_id].run
     closing = read_outputs(leaf)['ClosingState'][0]
-    verify_current(source, closing)
+    def projection_version(item):
+        if not native:
+            return None
+        from mta.mdm.location_transition import verified_receipt
+        receipt = verified_receipt(item, source)
+        return receipt.version if receipt is not None else None
+    verify_current(source, closing, version=projection_version(leaf))
     # Never return the changing leaf identity as part of an old receipt.
     if leaf.pk != run.pk:
         closing = read_outputs(run)['ClosingState'][0]
-    return identity(closing)
+    return identity(closing, version=projection_version(run))

@@ -1,8 +1,10 @@
 """Location submission and decisions from pinned master2 SQL."""
 from collections import defaultdict
+from contextlib import nullcontext
 import logging
 
 from django.db import DatabaseError
+from django.db.models import Max
 from mta.mdm.drafts import now, value
 from mta.mdm.clock import database_now
 from mta.mdm.location import ALIASES
@@ -191,6 +193,35 @@ def delete(source,task_id,actor):
         model.objects.filter(source=source,**{field:task_id}).delete()
 
 
+def publish_add(source, task):
+    """Pinned synchronous add copy into four independently owned master bags."""
+    from mta.mdm.location_publication import publication_statement
+    from mta.mdm.supplier_revisions import source_lock
+    native = source.receipt.get('schema') == 'fresh-production-mdm-source-v1'
+    # The API already owns this lock for the whole decision. Retain it here too
+    # for direct callers so capture cannot interleave the eight native INSERTs.
+    with source_lock(source.pk) if native else nullcontext():
+        _publish_add(source, task, publication_statement if native else None)
+
+
+def _publish_add(source, task, statement):
+    # getCollist reads this task's physical ColumnList; it does not select all
+    # queue fields. Publication itself is deliberately not task-filtered.
+    names=(task.ColumnList or '').replace('WHDescription,','').split(',')
+    if 'WHDescription' in names:
+        raise ValueError('native attribute insert contains WHDescription')
+    queued=MdmLocationApproved.objects.filter(source=source)
+    queue=list(queued.order_by('pk') if statement else queued)
+    for owner in ('Importer','BPR','BTR','DBM'):
+        for model, selected in ((MdmLocationAttributes,names),(MdmLocationDescription,['WHCode','WHDescription'])):
+            existing={sql_key(code) for code in model.objects.filter(source=source,owner=owner).values_list('WHCode',flat=True)}
+            additions=[row for row in queue if sql_key(row.WHCode) not in existing]
+            ordinal=model.objects.filter(source=source,owner=owner).aggregate(n=Max('ordinal'))['n'] or 0
+            with statement(source, task) if statement else nullcontext():
+                model.objects.bulk_create([model(source=source,owner=owner,ordinal=ordinal+i,
+                    **fields(row,selected)) for i,row in enumerate(additions,1)])
+
+
 def update_approved_queue(source,task_id):
     requested=list(MdmLocationRequested.objects.filter(source=source,TaskId=task_id,Approved=True))
     queue=list(MdmLocationApproved.objects.filter(source=source))
@@ -272,6 +303,9 @@ def approve(source,payload,actor):
                     for row in chunk if str(row['status'])==status])
         except DatabaseError:
             log.exception('MDM native decision audit failure')
+    if task.Actiontype==1:
+        try: publish_add(source,task)
+        except (DatabaseError,ValueError): log.exception('MDM native synchronous publication failure')
     history=list(MdmLocationHistory.objects.filter(source=source,TaskId=task_id))
     mine=[h for h in history if assigned(h.ApproverId,actor['id'])]
     completed=sum(h.Status in ('3','4') for h in mine)==len(mine)
@@ -287,5 +321,16 @@ def approve(source,payload,actor):
         MdmSubTask.objects.filter(source=source,TaskID=task_id,ApprovedOrRejectedDate=None).update(TaskStatus='8')
     else:
         MdmSubTask.objects.filter(source=source,TaskID=task_id,ApproverId=str(actor['id'])).update(TaskStatus='3')
+    if task.Actiontype==1:
+        if any(h.Status=='3' for h in history):
+            updated_date=database_now().strftime('%d/%m/%Y %I:%M%p')
+            for old,new in (('2','4'),('3','5')):
+                MdmSubTask.objects.filter(source=source,TaskID=task_id,TaskStatus=old).update(TaskStatus=new,DBUpdatedDate=updated_date)
+        statuses=list(MdmSubTask.objects.filter(source=source,TaskID=task_id).values_list('TaskStatus',flat=True))
+        if statuses and all(s in ('4','5','6','8') for s in statuses):
+            MdmTask.objects.filter(source=source,TaskID=task_id).update(TaskStatus='7')
+        codes={sql_key(h.WHCode) for h in history}
+        for row in MdmLocationApproved.objects.filter(source=source):
+            if sql_key(row.WHCode) in codes: row.delete()
     return dict(status=200,msg='Data submitted successfully'+(' and Task status updated' if completed else 'Task status not updated')+' ',
         taskId=task_id,errorCount=None,error=None,conflictErrorCount=None,conflictError=None)

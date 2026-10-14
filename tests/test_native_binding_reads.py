@@ -13,6 +13,7 @@ django.setup()
 from mta.mdm import families
 from mta.mdm import production_families as production
 from mta.mdm.initialization_contract import SOURCE_SCHEMA
+from mta.mdm.location_projection import VERSION
 from mta.serialization import digest
 
 
@@ -65,7 +66,8 @@ class NativeBindingReadTests(unittest.TestCase):
             initialization_id=str(initialization.pk),
             initialization_content_digest=initialization.input_digest,
             families=family_digests, required_families=list(range(1, 14)),
-            configuration=configuration, adapter_digest='adapter')
+            configuration=configuration, adapter_digest='adapter',
+            closing_projection_version=VERSION, source_manifest_digest='runtime-source')
         seal = SimpleNamespace(receipt=receipt, digest=digest(receipt))
         owners = {family: SimpleNamespace(source_id=source.pk, family=family)
                   for family in production.GROUPS}
@@ -84,6 +86,8 @@ class NativeBindingReadTests(unittest.TestCase):
             stack.enter_context(patch.object(production, '_expected', expected))
             stack.enter_context(patch.object(production, '_configuration', return_value=configuration))
             stack.enter_context(patch.object(production, 'adapter_digest', return_value='adapter'))
+            stack.enter_context(patch('mta.mdm.location_transition.source_manifest_digest',
+                                      return_value='runtime-source'))
             stack.enter_context(patch.object(production, '_verify_owner', owner_check))
             stack.enter_context(patch.object(production.MdmSourceIntegration.objects, 'get', return_value=seal))
             stack.enter_context(patch.object(production.MdmFamilySource.objects, 'filter',

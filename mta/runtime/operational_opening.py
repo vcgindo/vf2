@@ -55,13 +55,29 @@ def opening_rows(owner, name):
 
 
 def upload_inputs(owner):
-    """Bounded carry-forward: populated application log producers stay unsupported."""
+    """Select a sealed native capture or the existing explicit empty opening."""
     from mta.runtime.validation_storage import read_input
     from mta.runtime.services import read_outputs
     from mta.runtime.operational_attempts import configuration_value
+    from mta.runtime.native_audit_models import NativeUploadAudit
+    if NativeUploadAudit.objects.filter(run_id=owner.run_id).exists():
+        config = configuration_value(owner.configuration)
+        capture = NativeUploadAudit.objects.get(run_id=owner.run_id)
+        if (owner.business_date != owner.run.business_date
+                or owner.run_output_digest != owner.run.output_digest
+                or config['bindings'].get('native_initialization_id') != str(capture.initialization_id)
+                or config['bindings'].get('native_configuration_digest') != capture.configuration_digest
+                or config['bindings'].get('upload_log_timezone') != capture.timezone
+                or 'upload_log_client_folder' not in config['bindings']
+                or config['bindings']['upload_log_client_folder'] != capture.client_folder
+                or [r['value'] for r in config['settings'] if r['name']=='UIUploadLogHorizon'] != [str(capture.horizon)]):
+            raise ValueError('Operational upload configuration differs from native daily capture')
+        return native_upload_inputs(owner.run)
     if owner.run.input_payload.get('schema') != 'fresh-daily-input-manifest-v2':
         raise ValueError('Typed daily upload-log sources required')
     source = read_input(owner.run, components=('profile', 'day'))
+    if 'native_upload_audit' in source['profile']:
+        raise ValueError('Required native upload audit capture is missing')
     if (source['profile'].get('force_flags', {}).get('nms_active') is not False
             or source['day'].get('new_force_requests') != []):
         raise ValueError('Populated/enabled upload-log producer requires its own supported binding')
@@ -75,3 +91,18 @@ def upload_inputs(owner):
     return dict(logs={name: opening_rows(owner, name) for name, _ in LOG_BINDINGS},
                 actions=opening_rows(owner, 'UIUploadLogActionType'), horizon=7,
                 client_folder=config['bindings']['upload_log_client_folder'])
+
+
+def native_upload_inputs(run):
+    """Existing exporter inputs from immutable same-run typed audit rows."""
+    from mta.runtime.receipt_integrity import verify_root
+    from mta.mdm.native_audit import verify, images, native_rows
+    from mta.runtime.native_audit_models import NativeUploadAudit
+    run.refresh_from_db()
+    verify_root(run)
+    capture = verify(NativeUploadAudit.objects.select_related(
+        'run','initialization','predecessor__run').get(run=run))
+    retained = {name:[r for r in rows if r['retained']]
+                for name, rows in images(capture, 'FINAL').items()}
+    return dict(logs=native_rows(capture, retained), actions=[dict(r) for r in ACTION_TYPES],
+                horizon=capture.horizon, client_folder=capture.client_folder)

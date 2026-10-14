@@ -422,6 +422,8 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
     day = working_day(value, frame['profile'])
     if day['raw_non_nms'] and not frame['profile']['import_non_nms']:
         raise ValueError('Non-NMS feed requires its initialized active configuration')
+    from mta.mdm.location_transition import admit
+    admit(owner.source, day['business_date'], parent)
     return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,

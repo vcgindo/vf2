@@ -167,6 +167,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         # A readback/storage failure leaves both queues and run unconsumed.
         from mta.mdm.daily_input import finalize_consumption
         finalize_consumption(run, output=output)
+        if typed:
+            from mta.mdm.native_audit import finalize as finalize_native_audit
+            finalize_native_audit(run)
         run.status = 'SUCCEEDED'
         if typed:
             from mta.runtime.receipt_integrity import OPERATIONAL_ROSTER, output_root, source_receipts

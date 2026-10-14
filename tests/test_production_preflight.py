@@ -217,7 +217,7 @@ class ProductionPreflightTests(unittest.TestCase):
 
     def test_successor_controls_preserve_exact_native_location_spelling(self):
         from mta.mdm.initialization_rows import schema
-        for name in ('log','phase_in','phase_out'):
+        for name in ('log','phase_in','phase_out','upload_log'):
             _,fields=schema('input/opening/state/controls/'+name+'/values',[])
             good={('WhCode' if key=='WHCode' else key):None for key in fields}
             good.update(SKUCode='SUPPLIED-Z9',WhCode='OWN-WH8')

@@ -51,6 +51,7 @@ HISTORY_DATES = frozenset(('ReportDate', 'AcceptanceDate', 'NormChangeDate',
 def scalar_configuration(profile):
     """Deny undeclared configuration objects before typed storage selection."""
     from mta.mdm.initialization_rows import scalar
+    from mta.mdm.native_audit_policy import validate_policy
     def fields(value, kinds, label, *, required=False):
         if not isinstance(value, dict) or set(value) - set(kinds) or required and set(value) != set(kinds):
             raise ValueError('Initialization configuration fields differ: '+label)
@@ -118,6 +119,7 @@ def scalar_configuration(profile):
         'daily_publication_config', required=True)
     if profile['daily_publication_config']['bpr_remark_horizon'] < 0:
         raise ValueError('Negative remark horizon')
+    validate_policy(profile)
     policies = {'operational_sources': 'cohort2-operational-sources-v1',
         'operational_force_sources': 'cohort2-pre-clear-force-v1',
         'operational_input_sources': 'cohort2-input-tables-v1'}

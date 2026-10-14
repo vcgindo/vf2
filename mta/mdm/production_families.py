@@ -25,8 +25,7 @@ GROUPS = {'supplier': (4, 5), 'stop_pipo': (6,), 'phase_controls': (7, 8, 9),
           'season': (10, 11, 12), 'force': (13,)}
 
 
-def adapter_digest():
-    root = Path(__file__).resolve().parents[1]
+def legacy_adapter_paths():
     names = ['mdm/'+name+'.py' for name in ('production_families', 'daily_input',
         'daily_current', 'integration_source', 'owned_namespace', 'native_source', 'source', 'families')]
     names += ['mdm/'+family+'_'+suffix+'.py' for family in
@@ -37,6 +36,20 @@ def adapter_digest():
     names += ['runtime/migrations/0120_native_mdm_openings.py',
         'runtime/migrations/0121_native_daily_transaction_input.py',
         'runtime/management/commands/run_production_day.py']
+    return names
+
+
+def adapter_digest():
+    root = Path(__file__).resolve().parents[1]
+    names = legacy_adapter_paths() + [
+        'mdm/location_tasks.py', 'mdm/location_publication.py',
+        'mdm/location_projection.py', 'mdm/location_transition.py',
+        'runtime/mdm_projection_models.py', 'runtime/models.py',
+        'runtime/receipt_integrity.py',
+        'runtime/migrations/0132_native_synchronous_location_add.py',
+        'runtime/migrations/0133_mdmclosingprojectionreceipt.py',
+        'runtime/migrations/0134_native_closing_projection_guards.py',
+        'runtime/migrations/0135_closing_projection_parent_guard.py']
     return digest({name: hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names})
 
 
@@ -288,11 +301,13 @@ def require_binding(source):
     families = {'1': digest(source.receipt['families']['1'])}
     families.update({str(row.master_id): row.digest for row in
                      MdmFamilySource.objects.filter(source=source).order_by('master_id')})
+    from mta.mdm.location_transition import integration_identity
+    code_identity = integration_identity(source, initialization, seal)
     receipt = dict(schema=INTEGRATION_SCHEMA, source_digest=source.digest,
         initialization_id=str(initialization.pk),
         initialization_content_digest=initialization.input_digest,
         families=families, required_families=list(range(1, 14)),
-        configuration=_configuration(), adapter_digest=adapter_digest())
+        configuration=_configuration(), **code_identity)
     if (families.keys() != {str(i) for i in range(1, 14)}
             or seal.receipt != receipt or seal.digest != digest(receipt)):
         raise ValueError('Native complete MDM integration seal differs')
@@ -338,11 +353,14 @@ def bootstrap_native_families(initialization):
         families = {'1': digest(source.receipt['families']['1'])}
         families.update({str(row.master_id): row.digest for row in
                          MdmFamilySource.objects.filter(source=source).order_by('master_id')})
+        from mta.mdm.location_transition import source_manifest_digest
+        from mta.mdm.location_projection import VERSION
         receipt = dict(schema=INTEGRATION_SCHEMA, source_digest=source.digest,
             initialization_id=str(initialization.pk),
             initialization_content_digest=initialization.input_digest,
             families=families, required_families=list(range(1, 14)),
-            configuration=_configuration(), adapter_digest=adapter_digest())
+            configuration=_configuration(), adapter_digest=adapter_digest(),
+            closing_projection_version=VERSION, source_manifest_digest=source_manifest_digest())
         MdmSourceIntegration.objects.create(source=source, receipt=receipt, digest=digest(receipt))
         for family, owner in owners.items():
             _verify_owner(source, owner, family, initialization, frame, bags, True)

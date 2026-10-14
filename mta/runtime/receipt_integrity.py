@@ -40,7 +40,22 @@ def source_receipts(run):
         fields=[f.attname for f in model._meta.fields
                 if f.name not in ('id','run','created_at')]
         result[model.__name__]=list(model.objects.filter(run=run).values(*fields))
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    capture = MdmDailyInputCapture.objects.select_related('source').filter(run=run).first()
+    if capture is not None and capture.source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.location_transition import verified_receipt
+        receipt = verified_receipt(run, capture.source)
+        if receipt is not None:
+            values = {f.attname:getattr(receipt,f.attname)
+                for f in receipt._meta.fields if f.name != 'run'}
+            values['transition_id'] = str(receipt.transition_id) if receipt.transition_id is not None else None
+            result['MdmClosingProjectionReceipt'] = [values]
     from mta.serialization import storage
+    from mta.mdm.native_audit import receipt as audit_receipt
+    native_audit = audit_receipt(run)
+    if native_audit is not None:
+        result['NativeUploadAudit'] = [native_audit]
     return storage(result)
 
 

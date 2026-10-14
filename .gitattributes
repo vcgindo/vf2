@@ -18,3 +18,27 @@ mta/mdm/daily_source.py -text -eol whitespace=cr-at-eol
 # Approved MDM-day preparation pins these exact decision/input-map bytes.
 docs/MDM_APPROVAL_DAY_SOURCE_DECISION.md -text -eol whitespace=cr-at-eol
 docs/MDM_APPROVAL_DAY_SOURCE_EXIT_MAP.json -text -eol whitespace=cr-at-eol
+
+# Preserve the single S2 handoff runtime freeze exactly across Git checkout.
+mta/application/production_output_policy.py -text -eol whitespace=cr-at-eol
+mta/domain/btr_finalization.py -text -eol whitespace=cr-at-eol
+mta/domain/btr_rationing_history.py -text -eol whitespace=cr-at-eol
+mta/mdm/daily_current.py -text -eol whitespace=cr-at-eol
+mta/mdm/location_publication.py -text -eol whitespace=cr-at-eol
+mta/mdm/location_tasks.py -text -eol whitespace=cr-at-eol
+mta/mdm/location_transition.py -text -eol whitespace=cr-at-eol
+mta/mdm/production_families.py -text -eol whitespace=cr-at-eol
+mta/runtime/mdm_projection_models.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0127_production_bor_sources.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0128_native_skuloc_upload_audit.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0129_skuloc_modify_audit_nullable_parent.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0132_native_synchronous_location_add.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0133_mdmclosingprojectionreceipt.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0135_closing_projection_parent_guard.py -text -eol whitespace=cr-at-eol
+mta/runtime/migrations/0136_native_upload_audit.py -text -eol whitespace=cr-at-eol
+mta/runtime/models.py -text -eol whitespace=cr-at-eol
+mta/runtime/production_daily.py -text -eol whitespace=cr-at-eol
+mta/runtime/production_report_storage.py -text -eol whitespace=cr-at-eol
+mta/runtime/receipt_integrity.py -text -eol whitespace=cr-at-eol
+mta/runtime/test_closing_projection_guards.py -text -eol whitespace=cr-at-eol
+mta/runtime/test_native_location_add.py -text -eol whitespace=cr-at-eol
