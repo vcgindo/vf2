@@ -1,0 +1,57 @@
+{
+  "status": "PROPOSAL_ONLY_NO_RETAINED_UPGRADE",
+  "evidence_root": "D:\\freshvcf-build\\evidence\\handoff3005-s2-20261013-001",
+  "files": {
+    "c05-request26-static-attribution.json": {
+      "sha256": "81f057bd7b83378a6e4222c302dc73ca96deb8bad079c38c4eaab2fb04a56409",
+      "bytes": 5909
+    },
+    "c05-request26-canonical-attribution.json": {
+      "sha256": "9e847bcf2d5d0e2906c936ef8cccee98a3378961e37d460b7f7bc26a29614259",
+      "bytes": 1125
+    },
+    "c05-location-projection-component-v1-proof.json": {
+      "sha256": "cd5d62a5cb959e8e730baf9bd712a186e545ae9b9ac51dfa8cabad4d230e55f2",
+      "bytes": 38316
+    },
+    "c05-location-projection-component-v1.log": {
+      "sha256": "029a5c4f2debc0ad9bc3156c68b7f746a73eff98b9c8b0ac830086b367977ca5",
+      "bytes": 881
+    },
+    "run-c05-location-projection-component-v1.py": {
+      "sha256": "f71b76f518d4931b2394465fa0018a6288296967dcb083c9ce37875c7af7d380",
+      "bytes": 1841
+    },
+    "c05-request26-proposal-v1/c05_workflows-proposed.py": {
+      "sha256": "b4abb579b417af9658fc5a5fb6ca906101bb812510cd6dd0c1213da0c9611fe4",
+      "bytes": 13057
+    },
+    "c05-request26-proposal-v1/c05_workflows.diff": {
+      "sha256": "1179900350b165501a74b3d43abfeaca0dbaca118402686f4cc53f36fe79a51f",
+      "bytes": 1334
+    },
+    "c05-request26-proposal-v1/daily-workflow-expected-proposed.json": {
+      "sha256": "4369669382f60bc6fe8fce3fd1aecf8bfe1bb81c8c5f3a7b6dec3c8e4b7b4461",
+      "bytes": 1157642
+    },
+    "c05-request26-proposal-v1/expectation-proposal.json": {
+      "sha256": "a331e10a27940c446b68db3ccaca68e0abb85225a1942b3d24d8a540a4f7cedb",
+      "bytes": 8823
+    },
+    "c05-request26-proposal-v1/workflow-expected-proposed.json": {
+      "sha256": "ce48dfd5c7c1db4627b10ff090374fd1d97e1bc39af60699fc352624ffa48289",
+      "bytes": 229880
+    },
+    "c05-request26-design-review.json": {
+      "sha256": "3920440afac7547205d0a4dd537831c3e12f7a80a153c468337ef5d01fd3b1b0",
+      "bytes": 717
+    }
+  },
+  "component_source": {
+    "mta/mdm/location_projection.py": "bbac9ed3e43b30dace075df85e6e2ac0a9c3cdb59a88026075faf873d3f51117",
+    "mta/runtime/test_location_projection.py": "6a8b121f297771d758bf4fe0165ee9f1f3b2c8b1bdc05d1c4dad4a18588fee78"
+  },
+  "component_tests": 4,
+  "transition_or_registration_or_publication_tests": 0,
+  "retained_C05_mutations": 0
+}
