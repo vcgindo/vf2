@@ -1,6 +1,6 @@
 // Register the same grid features as the app bootstrap, without importing its persistor.
 import 'ag-grid-enterprise';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
@@ -120,4 +120,18 @@ test('renders the configured transit grid and supplied row with the real MTA red
   expect(grid.getByRole('gridcell', { name: '12' })).toBeInTheDocument();
   expect(screen.getByText('18 Oct 2026')).toBeInTheDocument();
   expect(store.getState().mta.lastRunDate).toBe('2026-10-18');
+  const readLayout = (useGetState as jest.Mock).mock.results[0].value.mutateAsync;
+  const saveLayout = (useSaveState as jest.Mock).mock.results[0].value.mutateAsync;
+  const resetLayout = (useResetState as jest.Mock).mock.results[0].value.mutateAsync;
+  await waitFor(() => expect(readLayout).toHaveBeenCalled());
+  fireEvent.click(screen.getByText('Save Layout'));
+  await waitFor(() => expect(saveLayout).toHaveBeenCalled());
+  const savedKey = saveLayout.mock.calls[0][0].reportname;
+  expect(savedKey).toBe('InTransitWhereabouts');
+  expect(readLayout).toHaveBeenCalledWith({ reportname: savedKey });
+  expect(JSON.parse(saveLayout.mock.calls[0][0].state).columns).toEqual(
+    expect.arrayContaining([expect.objectContaining({ colId: 'OrderNo' })]));
+  fireEvent.click(screen.getByText('Reset Layout'));
+  await waitFor(() => expect(resetLayout).toHaveBeenCalledWith({ reportname: savedKey }));
+
 });

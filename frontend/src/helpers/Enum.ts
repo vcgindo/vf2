@@ -48,7 +48,7 @@ export enum UserUIColumnConfigName{
     OER = "OpenExpeditingRequests",
     OAR = "OrderAllocationReport",
     TRR = "RRRColorBandWise",
-    InTransit = "InTransitWhereAbouts",
+    InTransit = "InTransitWhereabouts",
     BTROnHand = "BTRon-hand",
     BTRPipeline = "BTRpipeline",
     SDR = "SDR",
