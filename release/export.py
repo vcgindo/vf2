@@ -16,7 +16,8 @@ EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'in
     'export_history_consumers', 'export_daily_history', 'export_btr_consumer', 'export_excess_consumer',
     'export_expedite_charts', 'export_fulfillment_charts', 'publish_expedite_projection',
     'publish_fulfillment_projection', 'publish_excess_projection', 'prepare_guided_history_fixture',
-    'prepare_guided_dbm_fixture', 'prepare_guided_chronic_fixture'))
+    'prepare_guided_dbm_fixture', 'prepare_guided_chronic_fixture',
+    'verify_application_reads', 'verify_offline_terminal'))
 
 
 def included(name):
@@ -42,6 +43,11 @@ def included(name):
         # required tables/guards only. Keep the complete native schema chain.
         if name.startswith('mta/runtime/migrations/'):
             return path.suffix == '.py'
+        # target_fixture is an imported fail-closed provenance guard, not a
+        # fixture population/installer. Native MDM modules import it even when
+        # the historical fixture mode is inactive.
+        if name == 'mta/mdm/target_fixture.py':
+            return True
         if path.stem.endswith(('_probe', '_fixture')) or path.stem.startswith(('prove_', 'test_')):
             return False
         if '/management/commands/' in name and path.stem in EXCLUDED_COMMANDS:
@@ -49,9 +55,10 @@ def included(name):
         return True
     if name.startswith('baseline/'):
         return path.name in NATIVE_SCHEMAS
-    # Required lossless compressed input/reference reader only; no oracle, replay,
-    # comparison runner or validation fixtures from the rest of parity/.
-    if name in ('parity/__init__.py', 'parity/output_archive.py'):
+    # Required lossless input reader and retained action-policy identity helper;
+    # neither invokes an oracle, comparison runner or replay. Other parity tools
+    # and validation populations are excluded.
+    if name in ('parity/__init__.py', 'parity/output_archive.py', 'parity/temporal_policy.py'):
         return True
     if name.startswith('user-service/'):
         if path.name in ('bootstrap_stage7b.py', 'seed_local_demo_identities.py', 'seed_local_admin_permissions.py', 'seed_users_and_roles.py'):
@@ -62,6 +69,11 @@ def included(name):
             return False
         return (len(path.parts)>2 and path.parts[1] in ('MTO_API', 'mto_app', 'poogi', 'procurement', 'production', 'import_export', 'scheduler') and path.suffix in ('.py', '.json', '.html')) or name in ('mto/manage.py', 'mto/Downloads/ReportPaths.json')
     if name.startswith('frontend/'):
+        # Keep only the two existing imports used by runtime UI modules. Other
+        # mock payloads are used exclusively by excluded frontend tests.
+        if name.startswith('frontend/src/mock-data/'):
+            return name in ('frontend/src/mock-data/MCGrid.ts',
+                            'frontend/src/mock-data/RRR-Color-Bandwise.ts')
         if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json', 'frontend/.eslintrc.json'):
             return True
         return (name.startswith('frontend/src/') and path.suffix in ('.ts', '.tsx', '.js', '.jsx', '.mjs', '.css', '.scss', '.json', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf')) or name.startswith('frontend/public/')

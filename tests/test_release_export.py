@@ -15,9 +15,11 @@ class ReleaseExportTests(unittest.TestCase):
                      'mta/runtime/migrations/0094_nms_force_display_fixture.py',
                      'mta/runtime/migrations/0104_mdm_target_fixture.py',
                      'mta/config/logistics/ui_columns_v1.json', 'vectorflow/settings.py',
+                     'mta/mdm/target_fixture.py', 'parity/temporal_policy.py',
                      'baseline/complete-daily-state-schema-v3.json', 'parity/output_archive.py',
                      'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/.eslintrc.json',
                      'frontend/public/assets/logo.svg',
+                     'frontend/src/mock-data/MCGrid.ts', 'frontend/src/mock-data/RRR-Color-Bandwise.ts',
                      'release/compose.yaml', 'release/frontend.Dockerfile', 'release/.env.example']:
             with self.subTest(name=name):
                 self.assertTrue(included(name))
@@ -26,9 +28,12 @@ class ReleaseExportTests(unittest.TestCase):
         for name in ['tests/test_any.py', 'mta/runtime/test_logistics.py', 'mta/runtime/dbm_filter_probe.py',
                      'mta/runtime/management/commands/prove_btr_gateway.py',
                      'mta/runtime/management/commands/record_parity.py', 'parity/replay_temporal.py',
+                     'mta/runtime/management/commands/verify_application_reads.py',
+                     'mta/runtime/management/commands/verify_offline_terminal.py',
                      'baseline/synthetic-temporal-business-v1.json', 'legacy/data.dll', 'legacy/run.bat',
                      'user-service/api/management/commands/bootstrap_stage7b.py', 'mto/build_exe.py',
                      'frontend/src/Example.test.tsx', 'frontend/node_modules/x.js',
+                     'frontend/src/mock-data/BPR.ts', 'frontend/src/mock-data/MDM.ts',
                      'release/secrets/password', 'release/.env', 'release/private.pem',
                      '../outside.py', '/absolute.py']:
             with self.subTest(name=name):
