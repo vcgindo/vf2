@@ -156,3 +156,33 @@ class ApplicationCapabilityTests(SimpleTestCase):
                         [(*rows[0][:-1],'BEGIN RETURN NEW; END'),*rows[1:]]):
             cursor.fetchall.return_value=altered
             with self.assertRaises(ValueError):owned._check_application_write_guards(cursor,self.reg)
+
+
+    def test_fresh_production_binding_requires_same_current_source_and_its_own_policy(self):
+        binding = dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
+            implementation_sha256=self.original['adapter_sha256'],
+            profile_digest=owned._production_application_profile_digest())
+        binding['receipt_digest'] = digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        actual = owned._validate_application_binding(binding, self.original,
+            self.original['adapter_sha256'], self.digests, production=True)
+        self.assertEqual(actual['original_registration'], self.original)
+        for production in (False,):
+            with self.assertRaises(ValueError):
+                owned._validate_application_binding(binding, self.original,
+                    self.original['adapter_sha256'], self.digests, production=production)
+        # The historical extension never becomes a generic new-install waiver.
+        with self.assertRaises(ValueError):
+            owned._validate_application_binding(self.binding, self.original, 'c'*64,
+                self.digests, production=True)
+
+    def test_production_binding_rejects_profile_source_catalogue_and_receipt_drift(self):
+        binding = dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
+            implementation_sha256=self.original['adapter_sha256'],
+            profile_digest=owned._production_application_profile_digest())
+        binding['receipt_digest'] = digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        for key,value in [('profile_digest','f'*64),('implementation_sha256','c'*64),
+                          ('objects_digest','f'*64),('receipt_digest','f'*64),('unexpected',True)]:
+            changed=dict(binding,**{key:value})
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                owned._validate_application_binding(changed,self.original,
+                    self.original['adapter_sha256'],self.digests,production=True)

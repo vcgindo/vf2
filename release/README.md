@@ -1,0 +1,31 @@
+# VectorFLOW deployment assembly
+
+This directory contains the portable deployment adapters and dependency/image pins for Step4. It is still being assembled; the service Compose/export/install/operator commands and Linux-container G4 verification are not yet released as a completed package. The sole progress authority is F:/freshvcf/docs/handoff-3005/TRACKER.md. Existing serving instances are unchanged by these source files.
+
+## Installation ownership
+
+MTA and MTO remain separate PostgreSQL databases. Planned configurable defaults are vectorflow_mta and vectorflow_mto. Authentication uses its own identity schema/roles in the MTO database, preserving its existing service separation and keeping auth privileges out of MTA's strict database catalogue. No default production name contains development handoff or fixture identities. Sealed development database names/OIDs/receipts are immutable and are never renamed to achieve this naming policy.
+
+A clean installation must bind the complete current MTA catalogue and source once under the trusted provisioner. The vectorflow-owned-application-v1 profile uses the current initialization implementation for both original namespace and application binding, including exact current logistics objects/grants/guards. It does not invent an obsolete pre-logistics baseline or subtract objects. Historical fresh-owned-ui-workflows-v1 remains separate: its exact old receipt and validated additive subtraction stay unchanged. Both profiles reject unrelated ownership, privileges, PUBLIC/default grants and source/catalogue drift. Only a fresh empty namespace can be registered; runtime roles cannot create or replace these assertions. Registration is an installation operation, never a serving restart operation. Actual empty-install migration/catalogue verification is still required.
+
+The existing sealed development source has exact source/proof dependencies. A clean export cannot silently remove validation files and claim the old seal accepts the resulting code. Clean new-install source binding and any narrowly required, exact sealed-deployment compatibility must be verified before packaged serving, without resealing or copying calculated state.
+
+## Configuration adapters
+
+These Python settings modules are outside the calculation source tree:
+
+- release.mta_settings extends vectorflow.settings; VF_SECRET_KEY and VF_DB_PASSWORD can use corresponding _FILE settings. Existing native selection/admission remains authoritative.
+- release.auth_settings extends apps.settings; SECRET_KEY supports _FILE, CLIENT_CIPHER_KEY is the existing public browser-password cipher configuration, and the authentication service retains its RSA-encrypted DB_PASSWORD_FILE and RSA key paths. It does not receive the MTA password.
+- release.mto_settings extends MTO_API.settings; SECRET_KEY and DB_PASSWORD support corresponding _FILE settings. MTO retains its direct-port ASGI contract.
+
+VF_PUBLIC_URL is an explicit origin. External deployment requires HTTPS; loopback HTTP is permitted for the bounded local proof. VF_ALLOWED_HOSTS requires explicit hosts, never a wildcard. The origin drives CSRF/CORS, secure-cookie and trusted-proxy settings. Only the private gateway may reach service listeners; accepting a forwarded HTTPS header does not authorize direct public backend access. DB_SSLMODE, DB_SSLROOTCERT, DB_SSLCERT, DB_SSLKEY and DB_CONNECT_TIMEOUT are real database connection settings. Internal PostgreSQL TLS and edge TLS deployment proof remain to be completed; do not infer verification from configuration tests.
+
+Actual secrets are supplied outside Git/images, using separately mounted per-service files. Conflicting direct/file values fail rather than choosing an unexpected credential. No default account/password, fixture restore or credential reset is provided. Application signing and database secrets must never be placed in CRA REACT_APP_* values; those are embedded public build configuration.
+
+REACT_APP_AG_GRID_LICENSE_KEY is an optional public build-time override. The exact preexisting VectorFLOW AG Grid Enterprise key remains the default, including its original bytes and version entitlement text. This neither replaces the license nor determines the company's current contractual deployment entitlement. The operator must verify entitlement for the intended deployment with the corporate license owner. Do not infer absence of entitlement solely from embedded no-deployment-add-on wording.
+
+## Version pins and verification boundary
+
+images.lock.json records actual existing Linux/amd64 Python, Node, nginx, PostgreSQL16.15 and Redis7.4 image digests; no floating latest tag or speculative upgrade. requirements-*.lock records the installed versions in the current corresponding service images, excluding build tooling. Frontend dependencies remain package-lock.json/npm ci. These pins are source inputs; they do not themselves prove a clean image build or platform installation. Current verified host tests cover configuration and strict old/new capability branches. G4 proof must still install from a clean export, use real migrations/roles/volumes/connections, and verify affected gateway/UI behavior and restart persistence.
+
+The bounded grid lifecycle change is checkpoint b438fc73: live API tracking/cleanup, mounted layout completions and captured save/reset API checks. Five focused frontend suites/15tests passed, including the original nine. Actual saved-layout/navigation/reload acceptance remains part of packaged G4 UI proof. No full console-cleanliness, performance, every-legacy-branch or production-readiness claim is made. Step5/full failure/backup-restore rehearsal and live cutover are separate.

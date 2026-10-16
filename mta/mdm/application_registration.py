@@ -18,7 +18,7 @@ def _relation(name):
 
 def register_application(cursor, *, expected_database, expected_database_oid,
                          expected_registration_digest, expected_original_implementation,
-                         implementation_sha256):
+                         implementation_sha256, production=False):
     database=owned._database_identity(cursor)
     registration=owned._registered_identity(cursor)
     evidence=owned._catalogue_evidence(cursor,database,registration)
@@ -26,7 +26,8 @@ def register_application(cursor, *, expected_database, expected_database_oid,
     if (database['name']!=expected_database or database['oid']!=expected_database_oid or
             original['registration_digest']!=expected_registration_digest or
             registration['adapter_sha256']!=expected_original_implementation or
-            len(implementation_sha256)!=64 or implementation_sha256==expected_original_implementation):
+            len(implementation_sha256)!=64 or
+            (implementation_sha256==expected_original_implementation) is not production):
         raise ValueError('Application registration explicit identity differs')
     cursor.execute('SELECT rolsuper FROM pg_roles WHERE rolname=current_user')
     if cursor.fetchone()!=(True,):
@@ -79,7 +80,10 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         if acl['scope']=='column' and acl['grantee']==registration['consumer_oid']:
             cursor.execute('REVOKE '+acl['privilege']+' ('+_identifier(acl['column'])+') ON '+
                            _relation(acl['name'])+' FROM '+consumer)
-    for name,grant in owned.APPLICATION_GRANTS.items():
+    permissions = dict(owned.APPLICATION_GRANTS)
+    if production:
+        permissions.update(owned.LOGISTICS_APPLICATION_GRANTS)
+    for name,grant in permissions.items():
         for permission in grant['table']:
             columns=' ('+','.join(map(_identifier,grant['columns']))+')' if permission=='UPDATE' else ''
             cursor.execute('GRANT '+permission+columns+' ON '+_relation(name)+' TO '+consumer)
@@ -96,10 +100,13 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         if function['name'] in owned.APPLICATION_FUNCTIONS:
             cursor.execute('GRANT EXECUTE ON FUNCTION '+identity+' TO '+consumer)
     catalogue=owned._application_catalogue(cursor)
-    digests=owned._check_application_grants(catalogue,registration)
-    binding=dict(policy=owned.APPLICATION_POLICY,original_registration=original,
+    digests=owned._check_application_grants(catalogue,registration,logistics=production)
+    if production:
+        owned._check_logistics_schema(cursor,catalogue,registration)
+    binding=dict(policy=owned.PRODUCTION_APPLICATION_POLICY if production else owned.APPLICATION_POLICY,
+        original_registration=original,
         original_implementation_sha256=expected_original_implementation,
-        implementation_sha256=implementation_sha256,profile_digest=owned._application_profile_digest(),**digests)
+        implementation_sha256=implementation_sha256,profile_digest=owned._production_application_profile_digest() if production else owned._application_profile_digest(),**digests)
     binding['receipt_digest']=digest(binding)
     import json
     cursor.execute('SET LOCAL ROLE fresh_namespace_registrar')

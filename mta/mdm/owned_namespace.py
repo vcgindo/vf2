@@ -276,7 +276,9 @@ def authorize_install(artifact_sha256, adapter_sha256):
         database = _database_identity(cursor)
         registration = _registered_identity(cursor)
         evidence = _catalogue_evidence(cursor, database, registration)
-        if adapter_sha256 == registration['adapter_sha256']:
+        cursor.execute('SELECT to_regclass(%s)', [APPLICATION_REGISTRY])
+        capability_exists = cursor.fetchone()[0] is not None
+        if adapter_sha256 == registration['adapter_sha256'] and not capability_exists:
             identity = _validate(database, registration, evidence,
                 artifact_sha256=artifact_sha256, adapter_sha256=adapter_sha256,
                 installer=True)
@@ -296,7 +298,7 @@ def verify_binding(receipt):
         database = _database_identity(cursor)
         registration = _registered_identity(cursor)
         evidence = _catalogue_evidence(cursor, database, registration)
-        if expected.get('policy') == APPLICATION_POLICY:
+        if expected.get('policy') in (APPLICATION_POLICY, PRODUCTION_APPLICATION_POLICY):
             actual = _validate_application(cursor, database, registration, evidence,
                 artifact_sha256=expected.get('artifact_sha256'),
                 implementation_sha256=expected.get('implementation_sha256'))
@@ -311,6 +313,7 @@ def verify_binding(receipt):
 
 # Explicit UI capability profile. This is source-controlled, never an environment allowlist.
 APPLICATION_POLICY = "fresh-owned-ui-workflows-v1"
+PRODUCTION_APPLICATION_POLICY = "vectorflow-owned-application-v1"
 APPLICATION_REGISTRY = "fresh_control.application_capability"
 APPLICATION_GRANTS = {'mta.fresh_mta_bprliveremark': {'columns': [], 'table': ['INSERT']},
  'mta.fresh_mta_calculationrun': {'columns': ['id'], 'table': ['UPDATE']},
@@ -705,13 +708,22 @@ def _read_application_capability(cursor, registration):
     return value
 
 
-def _validate_application_binding(binding, original, implementation_sha256, catalog_digests):
-    if (set(binding)!=CAPABILITY_FIELDS or binding['policy']!=APPLICATION_POLICY or
+def _production_application_profile_digest():
+    return digest(dict(base=_application_profile_digest(), logistics=LOGISTICS_APPLICATION_GRANTS,
+        logistics_tables=sorted(LOGISTICS_TABLES), logistics_functions=sorted(LOGISTICS_FUNCTIONS),
+        installation='fresh-current-source-full-catalogue-v1'))
+
+
+def _validate_application_binding(binding, original, implementation_sha256, catalog_digests, *, production=False):
+    policy = PRODUCTION_APPLICATION_POLICY if production else APPLICATION_POLICY
+    profile = _production_application_profile_digest() if production else _application_profile_digest()
+    same_implementation = implementation_sha256 == original['adapter_sha256']
+    if (set(binding)!=CAPABILITY_FIELDS or binding['policy']!=policy or
             binding['original_registration']!=original or
             binding['original_implementation_sha256']!=original['adapter_sha256'] or
             binding['implementation_sha256']!=implementation_sha256 or
-            implementation_sha256==original['adapter_sha256'] or
-            binding['profile_digest']!=_application_profile_digest() or
+            same_implementation is not production or
+            binding['profile_digest']!=profile or
             any(binding[k]!=v for k,v in catalog_digests.items()) or
             binding['receipt_digest']!=digest({k:v for k,v in binding.items() if k!='receipt_digest'})):
         _reject('application capability identity or grants differ')
@@ -726,6 +738,13 @@ def _validate_application(cursor, database, registration, evidence, *,
     _check_application_write_guards(cursor,registration)
     catalogue = _application_catalogue(cursor)
     from django.conf import settings
+    if binding.get('policy') == PRODUCTION_APPLICATION_POLICY:
+        # A clean installation records the complete current catalogue once. It
+        # has no historical catalogue to subtract or older adapter to impersonate.
+        digests = _check_application_grants(catalogue, registration, logistics=True)
+        _check_logistics_schema(cursor, catalogue, registration)
+        return _validate_application_binding(binding, original, implementation_sha256,
+            digests, production=True)
     if getattr(settings, 'VF_MTA_LOGISTICS_CURRENT', False):
         # First validate every actual privilege, then the exact additive schema.
         # Only that authenticated delta is removed for the unchanged sealed

@@ -1,6 +1,6 @@
 """Focused catalogue and receipt checks for the fresh owned namespace guard."""
 from copy import deepcopy
-from unittest.mock import MagicMock, patch
+from unittest.mock import call, MagicMock, patch
 
 from django.test import SimpleTestCase
 
@@ -89,7 +89,7 @@ class OwnedNamespaceTests(SimpleTestCase):
         hostile={**self.database,'owner':{**self.owner,'name':'owner"quoted'}}
         live={**hostile,'current_user_oid':10,'session_user_oid':11}
         registration={**self.registration,'owner':hostile['owner']}
-        cursor=MagicMock();context=MagicMock();context.__enter__.return_value=cursor
+        cursor=MagicMock();cursor.fetchone.return_value=(None,);context=MagicMock();context.__enter__.return_value=cursor
         database_connection=MagicMock(in_atomic_block=True);database_connection.cursor.return_value=context
         with patch.object(owned,'connection',database_connection),\
                 patch.object(owned,'_database_identity',side_effect=[hostile,live]),\
@@ -97,7 +97,10 @@ class OwnedNamespaceTests(SimpleTestCase):
                 patch.object(owned,'_catalogue_evidence',return_value=self.evidence):
             result=owned.authorize_install('a'*64,'b'*64)
         self.assertEqual(result['registration']['owner_role'],'owner"quoted')
-        cursor.execute.assert_called_once_with('SET LOCAL ROLE "owner""quoted"')
+        self.assertEqual(cursor.execute.call_args_list, [
+            call('SET LOCAL ROLE "owner""quoted"'),
+            call('SELECT to_regclass(%s)', [owned.APPLICATION_REGISTRY]),
+        ])
 
     def test_runtime_binding_rechecks_live_identity_without_owner_actor(self):
         expected=owned._receipt_identity(self.registration)

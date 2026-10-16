@@ -105,3 +105,27 @@ class LogisticsCapabilityTests(TestCase):
         cursor=MagicMock();cursor.fetchone.return_value=(True,False,'p')
         with self.assertRaisesRegex(ValueError,'table security'):
             owned._check_logistics_schema(cursor,self.catalogue,self.reg)
+
+
+    def test_fresh_production_capability_validates_full_catalogue_without_historical_subtraction(self):
+        full_digests=owned._check_application_grants(self.catalogue,self.reg,logistics=True)
+        binding=dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
+            implementation_sha256=self.original['adapter_sha256'],
+            profile_digest=owned._production_application_profile_digest(),**full_digests)
+        binding['receipt_digest']=digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        expected={**binding,'artifact_sha256':'a'*64}
+        with patch.object(owned,'_database_identity',return_value=self.db), \
+             patch.object(owned,'_registered_identity',return_value=self.reg), \
+             patch.object(owned,'_catalogue_evidence',return_value=self.proof), \
+             patch.object(owned,'_validate_identity',return_value=self.original), \
+             patch.object(owned,'_read_application_capability',return_value=binding), \
+             patch.object(owned,'_check_application_write_guards'), \
+             patch.object(owned,'_application_catalogue',return_value=self.catalogue), \
+             patch.object(owned,'_check_logistics_schema') as schema, \
+             patch.object(owned,'_original_application_catalogue') as historical, \
+             patch.object(owned.connection,'cursor',return_value=MagicMock()):
+            receipt={'owned_namespace':expected}
+            self.assertIs(owned.verify_binding(receipt),receipt)
+            schema.assert_called_once()
+            historical.assert_not_called()
+            self.assertEqual(receipt['owned_namespace'],expected)
