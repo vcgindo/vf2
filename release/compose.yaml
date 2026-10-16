@@ -300,6 +300,7 @@ services:
         REACT_APP_WS_API_HOST: "${VF_PUBLIC_WS_URL:?Set public ws/wss origin}"
         REACT_APP_SECRET_KEY: "${VF_CLIENT_CIPHER_KEY:?}"
         REACT_APP_AG_GRID_LICENSE_KEY: "${REACT_APP_AG_GRID_LICENSE_KEY:-}"
+        FRONTEND_BUILD_HEAP_MIB: "${FRONTEND_BUILD_HEAP_MIB:-4096}"
     environment:
       VF_TLS_MODE: "${VF_TLS_MODE:-http}"
       VF_PUBLIC_URL: "${VF_PUBLIC_URL:?Set public origin}"
