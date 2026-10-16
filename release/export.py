@@ -37,6 +37,8 @@ def included(name):
     if name.startswith('vectorflow/'):
         return path.suffix == '.py'
     if name.startswith('mta/'):
+        if name.startswith('mta/fixtures/'):
+            return False
         if path.suffix not in ('.py', '.json', '.sql'):
             return False
         # Historical migration names can contain "fixture" while defining

@@ -26,6 +26,7 @@ class ReleaseExportTests(unittest.TestCase):
 
     def test_fixtures_runners_workstation_helpers_secrets_and_databases_are_excluded(self):
         for name in ['tests/test_any.py', 'mta/runtime/test_logistics.py', 'mta/runtime/dbm_filter_probe.py',
+                     'mta/fixtures/r1_raw_current_day.json', 'mta/fixtures/r1_importer_master_base.json',
                      'mta/runtime/management/commands/prove_btr_gateway.py',
                      'mta/runtime/management/commands/record_parity.py', 'parity/replay_temporal.py',
                      'mta/runtime/management/commands/verify_application_reads.py',
