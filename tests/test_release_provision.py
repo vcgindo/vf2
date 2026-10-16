@@ -1,9 +1,10 @@
 import os
+from contextlib import nullcontext
 from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from release.provision import identifier, plan
+from release.provision import identifier, plan, provision
 from release.register_mta import render_sql
 from release.configuration import database_options
 
@@ -32,6 +33,35 @@ class ProvisionConfigurationTests(unittest.TestCase):
         os.environ['AUTH_OWNER_ROLE'] = 'fresh_namespace_registrar'
         with self.assertRaises(ValueError):
             plan()
+
+    def test_provision_leaves_native_state_schema_creation_to_migrations(self):
+        statements = []
+
+        class Cursor:
+            def execute(self, statement, parameters=None):
+                statements.append(statement if isinstance(statement, str) else statement.as_string())
+
+            def fetchone(self):
+                return (True,)
+
+            def fetchall(self):
+                return []
+
+        class Database:
+            def cursor(self):
+                return nullcontext(Cursor())
+
+            def transaction(self):
+                return nullcontext()
+
+        with patch('psycopg.connect', side_effect=lambda **kwargs: nullcontext(Database())), \
+                patch('release.provision.secret', return_value='unit-only-not-a-credential'):
+            provision(plan())
+        schemas = [statement for statement in statements if statement.startswith('CREATE SCHEMA')]
+        self.assertEqual(schemas, [
+            'CREATE SCHEMA "mta" AUTHORIZATION "vectorflow_mta_owner"',
+            'CREATE SCHEMA "mto" AUTHORIZATION "vectorflow_mto_owner"',
+            'CREATE SCHEMA "identity" AUTHORIZATION "vectorflow_auth_owner"'])
 
     def test_identifiers_and_migration_role_options_cannot_contain_sql_or_new_settings(self):
         for name in ['x;DROP DATABASE x', 'role name', 'a' * 64, 'owner -c superuser=on']:
