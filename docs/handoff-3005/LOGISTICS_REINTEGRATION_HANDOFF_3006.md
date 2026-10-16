@@ -1,0 +1,53 @@
+# Logistics source reintegration: controller review handoff
+
+16 October 2026. **AWAITING_CONTROLLER_REVIEW; not deployed or accepted.** The nine-route logistics source is integrated and pushed. The restored pre-logistics preview remains on its original pair and native database. A sealed application-capability dependency prevents leaving the additive schema installed; that dependency needs review before another installation or preview replacement.
+
+## Source and preserved baseline
+
+The sole active checkout is `C:/Users/thapa/.codex/worktrees/handoff-3005/freshvcf`, branch `codex/3006-logistics-integration`. It descends from saved baseline `7fe9722716ad255e1eadb4364d8774b48312e7d2`. The remote baseline branch and the prior handoff branch remain unchanged. No new worktree, repository checkout, database, role, container, public port or parallel stack was created.
+
+The later work was first preserved in a verified3,922-file ZIP plus Git stash `9f570b635662be7d6fe1d64f009cd0842bb56a39`. No wholesale merge was performed. Sequential source checkpoints are:
+
+| Commit | Change |
+|---|---|
+| c309f2dc | Six read routes, two aliases, retained typed models/migrations and read dependencies |
+| 4be847f3 | Atomic transit edits/history and single/batch payload, callback, current-value and refresh fixes |
+| dc2716f2 | Open Requests action/ETA/history, clicked-row callback and duplicate-form correction |
+| 0d320fd9 | Planning new/update submit, actual selected-row/parent-code mapping, current transit overlays and exact native producer ancestry |
+
+The implementation branch is pushed to origin. Existing source/model/migration/test modules were reconciled with the preserved component implementation. All seven operational/schema/test modules have identical parsed Python structure; the relocated configuration has identical JSON values. This transfers only their applicable component evidence, not acceptance of new native data or successful UI writes.
+
+The serving-only logistics columns reside under `mta/config/logistics/`, preserving the producer configuration identity. The existing native source-inverse verifier now reconstructs the exact899-file baseline from908 current files across20 explicitly named changes. Original database/OID, namespace, source, initialization and seal validators remain in force. No clone code, route gate, copied identity, guard waiver or clone registration is included. The implicated publication recipe is recomputed using the reconstructed exact prior consumer-module text; it does not borrow a publication seal or recalculate outputs. This shared diff is explicitly included for review.
+
+## Verification and its limits
+
+- Twenty focused host tests passed: read/command HTTP wiring, authentication/method/scope/actor/date/batch/truthful-failure boundaries, adversarial source ancestry and the existing native compatibility checks. They create no database and perform no protected-data mutation.
+- Sixteen frontend tests passed across the mapper, transit, Open Requests and Planning suites. They exercise actual hooks/components with mocked services, including the selected main row, NULL ETA, batch shapes, failed-submit notifications and callback behavior. They are not successful browser business-command proof.
+- Actual PostgreSQL Django check, `makemigrations --check --dry-run` and migration plan passed through a short Python process in the existing backend. Current-source archives were temporarily extracted for Path-based imports and disposed on success/failure. No serving source file or application process was replaced.
+- Ten representative native report families returned200 and complete bodies matched the baseline: shared startup, BPR, RRR, BTR, DBM, Research, Guided, Planning, BOR and MDM. Run, output, publication seal, recipe and configuration identities also match. This used READ ONLY transactions on the same original database and terminal exits0. Logistics current mode was off because initialization and the capability boundary remain unresolved. It is a bounded compatibility check, not the old full API/export campaign or enabled-workflow/browser acceptance.
+- Historical23 affected PostgreSQL/component evidence remains qualified to its original source/fixture boundary. It was not rerun by creating a test database or by inserting component fixtures into protected native data. Snapshot/bind, refresh reset, retention, multiplicity, NULL, immutable-source and atomic rollback evidence is reusable only within that reconciled boundary.
+
+## Owner migration release: installed, verified, then safely backed out
+
+The human explicitly released using existing owner/maintenance access on the same database for0140/0141 and minimal new-object privileges. The existing private maintenance login assumed the existing owner role; credentials were not printed, committed or placed in evidence.
+
+Both migrations applied successfully. Actual readback verified five empty tables owned by `handoff3005_s2_owner`, ten new guards, four exact non-security-definer guard functions and finite runtime grants. The runtime retained no database/schema CREATE, superuser or BYPASSRLS. New history/annotation tables had SELECT and INSERT; UPDATE was limited to the necessary annotation and revision/ordinal columns, and only USAGE was granted on the three new sequences. Existing table privileges were unchanged. A helper initially attempted an id sequence for the non-id owner table; its grant transaction rolled back. The corrected helper verified both migrations already applied and resumed only the grants, without reexecuting migrations.
+
+The subsequent regression caught MDM400: **Fresh owned namespace application grant outside the explicit profile**. The sealed capability also pins the entire objects catalogue: its original digest `603a03686f3abde5fbff0cae71a5fd8e81c1ff08b54905998613cee1ba3b0274` differs from the catalogue after adding the new objects. Merely changing the grants cannot satisfy that original immutable contract.
+
+No validator was weakened, capability row amended, source re-registered or seal rewritten. To preserve the working baseline, the five tables were proved still empty; only this attempt's real0141/0140 reverse migrations and five new Django content-type rows were removed. No database reset, reseed, accepted-row change or sequence rewind occurred. Bookkeeping sequences advanced during Django installation and were not rewound. The source migrations and all successful-installation, privilege, failure and backout receipts remain retained.
+
+After backout, all271 original full table row bags and all eight run headers match exactly. All493 prior relation/sequence ownership and ACL records,459 guard records and173 function records also match. The baseline and committed-source ten-family native read checks again return200 with complete bodies and publication identities equal. **The migrations are pending again; no new logistics schema or privileges remain installed.**
+
+## Exact remaining review decisions
+
+1. Review a strict additive extension of the normal application-capability contract before another schema installation. The failing code is `mta/mdm/owned_namespace.py::_check_application_grants` and `_validate_application_binding`. Any amendment must authenticate the exact new schema/guards/owners/finite grants, preserve validation of the complete original catalogue and sealed capability, and reject every other change. No bypass, renamed clone mechanism, replacement namespace, new registration or automatic resealing is proposed or implemented. This dependency was discovered by the required affected regression; it is not a new report-repair programme.
+2. New-object grants alone cannot enable the two existing request writers. `handoff3005_s2_consumer` currently has SELECT only on `fresh_mta_dailyopenrequest` and `fresh_mta_dailyrequestowner`. The source requires INSERT on the current request fields, UPDATE only Request/RequestDate/UserId/Action/ActionDate/ETA, UPDATE revision on its existing owner, and USAGE of the request id sequence. These **old-object** privileges were not authorized by the new-object-only schema release and were not granted. Any reviewed capability amendment must account for them explicitly; no blanket table access is needed.
+3. Explicit native logistics owner/generation initialization and a safe positive-data boundary remain unreleased. The current native database has one existing request owner but zero current requests and zero transit rows. No new history owner, generation, request, shipment, hierarchy member or calculated output was fabricated. The retained transit NULL hierarchy/empty memberships and Planning Yellow-versus-Red/Black limits remain unchanged. Successful transit/Open Requests/Planning browser writes, their persisted effects and new native mutation/snapshot/retention proofs remain unperformed. Do not relabel component mocks, opening a form, empty grids or historical fixtures as that proof.
+4. Preview replacement retains plan step5 review/release. No candidate image/frontend build, deployment, browser QA, owned preview restart or new loading-time claim was performed. After the reviewed prerequisites, build one version, replace only the single owned preview and complete the bounded affected QA. Human UI approval, G3 acceptance and Step4 remain separate.
+
+## Working preview and evidence
+
+The current URL remains http://127.0.0.1:3006, backend `dd7efc075592` / image `d618da85fb49`, frontend `4fc63d267ce7` / `frontend-build-research-layout1`. Selection remains native database `handoff3005_g3_workflow_20261015_003`, OID296160, run `e9fc81f7-d626-4e0b-b259-234d2a23f950`,18October2026, output `e5dd2e37a047cb4a53ec57615a714552ebfa5406c85ad4c3d9dadfb794a8ad8d`. Original integration seal and accepted cases are unchanged.3005 is unchanged and remains in its previously stopped state. Other protected serving configurations are unchanged. No active owned build, proof process, transaction or disposable container is left at handoff.
+
+Evidence: `D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s3-20261015-001/logistics-reintegration-20261016`. Key records are `source-ancestry-proof.json`, `retained-component-source-reconciliation.json`, `owner-migration-result.json`, `new-schema-runtime-proof.json`, `schema-preservation-comparison.json`, `sealed-capability-dependency.json`, `empty-schema-backout-result.json`, `empty-schema-backout-preservation.json`, `regression-*-after-backout*.json` and `final-preservation.json`. Failed/intermediate attempts remain distinguishable; none is overwritten as a passing acceptance result. TRACKER.md remains the sole live status authority.
