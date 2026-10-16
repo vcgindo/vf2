@@ -4,6 +4,7 @@ from mta.presentation import views
 from mta.presentation import mdm_views, logistics_views
 
 urlpatterns = [
+    path('SubmitRemarksForInTransit', partial(logistics_views.command, operation='transit')),
     path('GetInTransitWhereAboutsData', partial(logistics_views.read, operation='grid')),
     path('GetInTransitWhereAboutsDataCount', partial(logistics_views.read, operation='count')),
     path('GetTransporterDetails', partial(logistics_views.read, operation='contacts')),

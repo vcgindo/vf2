@@ -46,7 +46,7 @@ const RemarkModal = (props:RemarkModalProps)=>{
                             data.map((d:any,index:number)=>{
                                 return(
                                 <RemarkModalTableRow key={index} style={{borderTop:index===0?'none':'dashed 1px gray'}}>
-                                    <UserIcon data={d.UserName}/>
+                                    <UserIcon data={d.UserName == null ? '' : String(d.UserName)}/>
                                     <RemarkModalTableCell>
                                         <RemarkModalRemarkCelLRenderer>
                                             <RemarkText>

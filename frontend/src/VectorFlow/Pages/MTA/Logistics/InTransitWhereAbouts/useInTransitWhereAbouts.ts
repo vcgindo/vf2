@@ -14,7 +14,8 @@ import ShowRemarkCellRenderer from "../../SupplyChainIntelligenceHub/OpenExpedit
 import SubmitRemarkCellRenderer from "../../SupplyChainIntelligenceHub/OpenExpeditingRequests/SubmitRemarkCellRenderer";
 import MasterDetail from "./MasterDetail";
 import { ColorGroupCellRenderer, CurrentLocationCellRenderer, ETACellRenderer } from "./CellRenderers";
-import {getColumnDefinationsMTA, mapInTransitWhereAboutsRowData, mapSubmitRemarkData } from "../../../../../helpers/utils";
+import {getColumnDefinationsMTA, mapInTransitWhereAboutsRowData } from "../../../../../helpers/utils";
+import { mapTransitRemarkBatch } from "../../../../../helpers/logisticsRequests";
 import { useGetInTransitWhereAboutsData, useGetInTransitWhereAboutsDataCount,useGetRemarkDetailsForInTransit, useGetTransporterDetails, useSubmitRemarksForInTransit } from "../../../../../VectorFlow/Services/MTA/Logistics/InTransitWhereAbouts";
 import useBPRFilter from "../../../../../hooks/useBPRFilter";
 import { useUserData } from "../../../../../context";
@@ -355,7 +356,7 @@ const useInTransitWhereAbouts = ()=>{
       setIsSubmitCurrentLocationToolTipOpen(false)
       setIsSubmitRemarkToolTipOpen(false)
       setActiveRow(data)
-      setETAValue(e.currentTarget.value)
+      setETAValue(data.ETA ?? '')
       const { top, left } = e.currentTarget.getBoundingClientRect()
       setSubmitETAToolipPosition({
           top: top ,
@@ -369,7 +370,7 @@ const useInTransitWhereAbouts = ()=>{
     setIsSubmitRemarkToolTipOpen(false)
     setIsSubmitETAToolTipOpen(false)
     setActiveRow(data)
-    setCurrentLocationValue(e.currentTarget.value)
+    setCurrentLocationValue(data.CurrentLoc ?? '')
     const { top, left } = e.currentTarget.getBoundingClientRect()
     setSubmitCurrentLocationToolipPosition({
         top: top ,
@@ -399,7 +400,8 @@ const useInTransitWhereAbouts = ()=>{
         try{
             if(remark.length===0) throw new Error("Remark Cannot Be Empty")
             const toastId = notifyLoader("Submitting Remark")
-            await submitRemark(mapSubmitRemarkData({...activeRow,remark:remark}))
+            await submitRemark(mapTransitRemarkBatch([{...activeRow,remark:remark}]))
+            await getRowData(currentFilter,currentPage)
             toast.dismiss(toastId)
             
             notifySuccess('Remark Has Been Submitted')
@@ -416,7 +418,8 @@ const useInTransitWhereAbouts = ()=>{
         try{
             if(currentLocationValue.length===0) throw new Error("Location Cannot Be Empty")
             const toastId = notifyLoader("Submitting Data")
-            await submitRemark(mapSubmitRemarkData({...activeRow,CurrentLoc:currentLocationValue}))
+            await submitRemark(mapTransitRemarkBatch([{...activeRow,CurrentLoc:currentLocationValue}]))
+            await getRowData(currentFilter,currentPage)
             toast.dismiss(toastId)
             
             notifySuccess('Data Has Been Submitted')
@@ -433,7 +436,8 @@ const useInTransitWhereAbouts = ()=>{
       try{
           if(etaValue.length===0) throw new Error("ETA Cannot Be Empty")
           const toastId = notifyLoader("Submitting Data")
-          await submitRemark(mapSubmitRemarkData({...activeRow,ETA:etaValue}))
+          await submitRemark(mapTransitRemarkBatch([{...activeRow,ETA:etaValue}]))
+          await getRowData(currentFilter,currentPage)
           toast.dismiss(toastId)
           
           notifySuccess('Data Has Been Submitted')
@@ -521,11 +525,10 @@ const useInTransitWhereAbouts = ()=>{
       notifyLoader('Submitting data')
       console.log(editedRows)
      try{
-      const payload = editedRows.map((r)=>{
-        return mapSubmitRemarkData(r)
-      })
-      await submitRemark({data:payload})
+      await submitRemark(mapTransitRemarkBatch(editedRows))
+      await getRowData(currentFilter,currentPage)
       toast.dismiss()
+      notifySuccess('Data Has Been Submitted')
       setEditedRows([])
      }catch(err){
       notifyError("Something went wrong")
@@ -539,6 +542,7 @@ const useInTransitWhereAbouts = ()=>{
     },
     CurrentLoc: {
       cellRenderer: 'currentLocationCellRenderer',
+      onCellClicked: (params: any) => onOpenSubmitCurrentLocation({...params.event,currentTarget:params.event?.target?.closest('[role="gridcell"]')},params.data),
       cellRendererParams: {
         onClick: onOpenSubmitCurrentLocation
       },
@@ -549,6 +553,7 @@ const useInTransitWhereAbouts = ()=>{
     },
     action: {
       cellRenderer: 'submitRemarkCellRenderer',
+      onCellClicked: (params: any) => onOpenSubmitRemark({...params.event,currentTarget:params.event?.target?.closest('[role="gridcell"]')},params.data),
       cellRendererParams: {
         onClick: onOpenSubmitRemark
       },
@@ -556,6 +561,7 @@ const useInTransitWhereAbouts = ()=>{
     },
     ETA: {
       cellRenderer: 'etaCellRenderer',
+      onCellClicked: (params: any) => onOpenSubmitETA({...params.event,currentTarget:params.event?.target?.closest('[role="gridcell"]')},params.data),
       cellRendererParams: {
         onClick: onOpenSubmitETA
       },
