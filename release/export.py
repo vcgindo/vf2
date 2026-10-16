@@ -60,7 +60,7 @@ def included(name):
     if name.startswith('frontend/'):
         if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json'):
             return True
-        return (name.startswith('frontend/src/') and path.suffix in ('.ts', '.tsx', '.css', '.scss', '.json', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf')) or name.startswith('frontend/public/')
+        return (name.startswith('frontend/src/') and path.suffix in ('.ts', '.tsx', '.js', '.jsx', '.mjs', '.css', '.scss', '.json', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf')) or name.startswith('frontend/public/')
     return False
 
 

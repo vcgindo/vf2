@@ -14,7 +14,7 @@ class ReleaseExportTests(unittest.TestCase):
         for name in ['mta/runtime/migrations/0141_logistics_guards.py', 'mta/presentation/logistics_read.py',
                      'mta/config/logistics/ui_columns_v1.json', 'vectorflow/settings.py',
                      'baseline/complete-daily-state-schema-v3.json', 'parity/output_archive.py',
-                     'frontend/src/reportWebVitals.ts', 'frontend/public/assets/logo.svg',
+                     'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/public/assets/logo.svg',
                      'release/compose.yaml', 'release/frontend.Dockerfile', 'release/.env.example']:
             with self.subTest(name=name):
                 self.assertTrue(included(name))
