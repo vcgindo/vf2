@@ -19,6 +19,8 @@ def bpr_context():
     elif daily:
         from mta.presentation.daily_preparation import ancillary_rows
         ancillary = ancillary_rows(run)
+        from mta.presentation.logistics_live import serving_transit_rows
+        ancillary['InTransitData'] = serving_transit_rows(run,ancillary['InTransitData'])
         reader=image_rows
     else:
         ancillary = terminal_ancillary(run)

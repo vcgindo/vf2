@@ -36,7 +36,9 @@ def command(request,payload,*,operation):
             return JsonResponse({'error':'logistics_command_database_mismatch'},status=403)
     run=selected_run()
     try:
-        function=dict(transit=logistics_commands.submit_transit, action=logistics_commands.add_expedite_remark)[operation]
+        function=dict(transit=logistics_commands.submit_transit,
+                      submit=logistics_commands.submit_request,
+                      action=logistics_commands.add_expedite_remark)[operation]
         result=function(run,payload,identity(request))
         return envelope(data=result,message='Data submitted successfully')
     except reader.TargetDenied as exc:

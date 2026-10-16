@@ -1,3 +1,4 @@
+import { mapPlanningRequest } from '../../../../../../../../../helpers/logisticsRequests';
 import {useState,useMemo, useContext, useEffect}from 'react';
 import GridViewTable from "../../../../GridView/GridViewTable";
 import { BPRTagsCellRenderer } from "../../../../../BPR/BPRCellRenderers";
@@ -18,6 +19,7 @@ const ExpediteChildExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyDa
     const [isExpeditingModalOpen,toggleExpeditingModal] =  useState<boolean>(false)
     const [activeRow,setActiveRow] = useState<any>();
     const [currentRowData,setCurrentRowData] = useState<any>();
+    const [requestRow,setRequestRow] = useState<any>();
     const [isSubGridOpen,toggleSubGrid] = useState<any>(true);
 
     const [colDefs, setColDefs] = useState<any>([]);
@@ -27,16 +29,7 @@ const ExpediteChildExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyDa
     const submitOpenExpediteRemark = async(remark:string)=>{
         notifyLoader('Submiting request')
         try{
-            const tempEta:string = currentRowData.eta.substring(0,10).replaceAll('-','/')
-            await submitRemark(
-                    {
-                        "skuCode": currentRowData.sc,
-                        "whCode":currentRowData.wc,
-                        "parentWhCode":currentRowData.pl,
-                        "request":remark,
-                        "eta":tempEta
-                      }
-                )
+            await submitRemark(mapPlanningRequest(requestRow,remark));
         toast.dismiss()
         notifySuccess('Request Submitted successfully')
         }catch(err:any){
@@ -83,6 +76,7 @@ const ExpediteChildExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyDa
         readOnlyEdit:true,
         getMainMenuItems: MainMenuItemsCustomization,
         onRowClicked:(params:any)=>{
+            setRequestRow(params.data);
             if(params.data.intransit && params.data.intransit.length>0){
                 setActiveRow(params.data.intransit)
                 setCurrentRowData(params.data)

@@ -98,6 +98,33 @@ def submit_transit(run,payload,actor):
 
 
 @transaction.atomic
+def submit_request(run,payload,actor):
+    history = live.history_owner(lock=True)
+    owner, requests = live.current_requests(lock=True)
+    sku=_text(payload.get('skuCode'),width=50)
+    location=_text(payload.get('whCode'),width=50)
+    parent=_text(payload.get('parentWhCode'),width=50)
+    reader.authorize_pair(run,payload,sku,location)
+    existing=[r for r in requests if sql_key(r.SKUCode,r.WhCode)==sql_key(sku,location)]
+    request=_text(payload.get('request')); username=_text(actor.get('name'))
+    stamp=_now();_write_context()
+    if existing:
+        # Parent and ETA intentionally do not change on the legacy existing-pair branch.
+        DailyOpenRequest.objects.filter(pk__in=[r.pk for r in existing]).update(
+            Request=request,RequestDate=stamp,UserId=username)
+    else:
+        eta=_datetime(payload.get('eta'),optional=True)
+        DailyOpenRequest.objects.create(owner=owner,ordinal=max((r.ordinal for r in requests),default=-1)+1,
+            SKUCode=sku,WhCode=location,ParentWhCode=parent,Request=request,RequestDate=stamp,
+            Action=None,ActionDate=None,UserId=username,
+            ETA=None if eta is None else eta.replace(tzinfo=timezone.utc))
+    ExpediteRemarkHistory.objects.create(owner=history,ordinal=history.next_ordinal,
+        SKUCode=sku,WHCode=location,Remark=request,UserId=username,RemarkDate=stamp,ETA=None)
+    owner.revision+=1;owner.save(update_fields=['revision'])
+    _finish(history,1)
+
+
+@transaction.atomic
 def add_expedite_remark(run,payload,actor):
     history=live.history_owner(lock=True)
     owner, requests=live.current_requests(lock=True)

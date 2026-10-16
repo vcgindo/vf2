@@ -51,6 +51,8 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     if daily:
         from mta.presentation.daily_transit import PATH as TRANSIT_PATH
         transit=image_rows(run,TRANSIT_PATH)
+        from mta.presentation.logistics_live import serving_transit_rows
+        transit=serving_transit_rows(run,transit)
     else:
         transit=bpr_ancillary(run)['InTransitData']
         if transit:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')

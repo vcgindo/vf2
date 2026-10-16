@@ -53,7 +53,7 @@ class LogisticsReadContractTests(unittest.TestCase):
 
     def test_aliases_match_exact_configuration_and_keep_normal_get_auth(self):
         from mta.presentation import views
-        expected=json.loads((views.CONFIG/'logistics_ui_columns_v1.json').read_text())
+        expected=json.loads((views.CONFIG/'logistics'/'ui_columns_v1.json').read_text())
         for name in ('InTransitWhereAbouts', 'OpenExpeditingRequests'):
             response=self.call('GetUIConfig?reportName='+name, method='GET')
             self.assertEqual(response.status_code, 200)

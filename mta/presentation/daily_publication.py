@@ -50,6 +50,15 @@ def recipe_identity():
         daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in
             (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count,
              daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
+    # Serving-only logistics wiring does not change the frozen producer recipe.
+    # Reconstruct its exact prior source through the existing pinned ancestry;
+    # no run, receipt, configuration or producer algorithm is substituted.
+    from mta.mdm.native_report_compatibility import logistics_producer_sources
+    prior = logistics_producer_sources()
+    if prior is not None:
+        value['daily_shipment_consumers'] = {
+            name: prior.get(name.replace('.', '/')+'.py', text)
+            for name, text in value['daily_shipment_consumers'].items()}
     from mta.presentation import qualified_consumption
     if qualified_consumption.enabled():
         value['qualified_consumption'] = qualified_consumption.recipe()

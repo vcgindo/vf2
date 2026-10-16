@@ -182,6 +182,8 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
         from mta.presentation.daily_preparation import ancillary_rows, source_digest as daily_source_digest
         source_digest = daily_source_digest(run)
         ancillary = ancillary_rows(run)
+        from mta.presentation.logistics_live import serving_transit_rows
+        ancillary['InTransitData'] = serving_transit_rows(run,ancillary['InTransitData'])
     else:
         selected, source_digest = fixture.binding()
         if selected.pk != run.pk:

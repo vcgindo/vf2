@@ -25,6 +25,13 @@ def parent_grid(payload):
     from mta.presentation.excess_read import pagination
     from mta.presentation.expedite_parent import parent_filter, parent_rows
     run = selected_run()
+    from mta.presentation.logistics_live import enabled as logistics_enabled
+    from mta.presentation.daily_preparation import production_branch
+    if logistics_enabled() and production_branch(run) and pagination(payload) is not None:
+        # The implicated selected-row target is supplied by the existing typed
+        # reader, as on the child path. Keep the inherited unpaged restriction.
+        from mta.presentation.planning_expedite_sql import parent_grid as prepared_parent_grid
+        return prepared_parent_grid(run, payload)
     if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE':
         from mta.presentation.planning_expedite_sql import parent_grid as prepared_parent_grid
         return prepared_parent_grid(run, payload)

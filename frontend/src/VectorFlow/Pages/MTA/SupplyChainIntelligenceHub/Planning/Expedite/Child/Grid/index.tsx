@@ -1,3 +1,4 @@
+import { mapPlanningRequest } from '../../../../../../../../helpers/logisticsRequests';
 import {useState,useMemo}from 'react';
 import GridViewTable from "../../../GridView/GridViewTable";
 import { BPRTagsCellRenderer } from "../../../../BPR/BPRCellRenderers";
@@ -16,6 +17,7 @@ const ExpediteChildGrid = ({data,paginationProps,onOpenDailyDataGraph,currentCat
 
     const [isExpeditingModalOpen,toggleExpeditingModal] =  useState<boolean>(false)
     const [currentRowData,setCurrentRowData] = useState<any>();
+    const [requestRow,setRequestRow] = useState<any>();
     const [activeRow,setActiveRow] = useState<any>();
     const [isSubGridOpen,toggleSubGrid] = useState<any>(true);
     const {mutateAsync:submitRemark} = useSubmitOpenExpediteRequest()
@@ -26,20 +28,7 @@ const ExpediteChildGrid = ({data,paginationProps,onOpenDailyDataGraph,currentCat
         }
         notifyLoader('Submiting request')
         try{
-            const tempEta = currentRowData.eta.replaceAll("-","/").substring(0,10)
-            await submitRemark({
-                data:[
-                    {
-                        "wc":"GE04",
-                        "eta":tempEta,
-                        "Request":remark,
-                        "pwc":"",
-                        "sc": currentRowData.sc                    
-                       
-                       
-                      }
-                ]
-            })
+            await submitRemark(mapPlanningRequest(requestRow,remark));
         toast.dismiss()
         notifySuccess('Request Submitted sucessfully')
         }catch(err:any){
@@ -84,6 +73,7 @@ const ExpediteChildGrid = ({data,paginationProps,onOpenDailyDataGraph,currentCat
         // rowSelection:'single',
         readOnlyEdit:true,
         onRowClicked:(params:any)=>{
+            setRequestRow(params.data);
             if(params.data.intransit && params.data.intransit.length>0){
                 setCurrentRowData(params.data)
                 setActiveRow(params.data.intransit)

@@ -71,6 +71,10 @@ def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scop
     params.extend(filters.params)
     columns = {alias:'A.'+quote(field) for alias,field in ALIASES.items()}
     columns.update(DISPLAY)
+    from mta.presentation.logistics_live import enabled as logistics_enabled
+    if logistics_enabled():
+        # Nonvisible command target; pl remains the canonical parent description.
+        columns['parentWhCode']='A."ParentWhCode"'
     if count_direction is not None:
         if not child or count_direction not in ('parent','child'):
             raise ValueError('Invalid Expedite count grain')
@@ -111,6 +115,8 @@ def parent_grid(run,payload):
     from mta.presentation.excess_read import pagination
     paging = pagination(payload)
     selected, params = selected_parent(run,payload)
+    from mta.presentation.logistics_live import enabled as logistics_enabled
+    target_fields=['parentWhCode'] if logistics_enabled() else []
     with transaction.atomic(), connection.cursor() as c:
         # Compilation dominates this bounded prepared-row query. Preserve the
         # caller's setting, including callers that already own a transaction.
@@ -123,7 +129,7 @@ def parent_grid(run,payload):
             raise PublicationUnavailable('parent_expedite_ambiguous_row_number')
         query = ('WITH selected AS ('+selected+'), numbered AS (SELECT branch,'
             'row_number() OVER (PARTITION BY branch ORDER BY age DESC,sk DESC NULLS LAST,lk DESC NULLS LAST,pk DESC NULLS LAST,ordinal,copies.copy_ordinal) AS rn,'
-            +','.join(map(quote,FIELDS))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) '
+            +','.join(map(quote,[*FIELDS,*target_fields]))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) '
             'SELECT * FROM numbered')
         query_params = list(params)
         if paging is not None:
@@ -144,6 +150,8 @@ def parent_grid(run,payload):
             if value is None: continue
             scale = 2 if field in ('pip','pin') else 3 if field == 'p' else None
             values[field] = format(Decimal(str(value)),f'.{scale}f') if scale is not None else str(value)
+        if target_fields:
+            values['parentWhCode']=row['parentWhCode']
         result[target].append(values)
     for branch,target in [('dispatch','expediteDispatchestransit'),('availability','createAvailabilityAtParenttransit')]:
         result[target] = transit_rows(run,branch,'WITH selected AS ('+selected+') SELECT ordinal FROM selected WHERE branch=%s',[*params,branch])
@@ -160,6 +168,9 @@ def child_grid(run,payload):
     daily = production_branch(run)
     transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
              if daily else bpr_ancillary(run)['InTransitData'])
+    if daily:
+        from mta.presentation.logistics_live import serving_transit_rows
+        transit=serving_transit_rows(run,transit)
     requests = empty_requests(run)
     if not daily and (requests or transit):
         raise PublicationUnavailable('child_expedite_requires_approved_empty_request_and_transit_inputs')
@@ -167,13 +178,15 @@ def child_grid(run,payload):
     nested = projections(requests, transit)
     selected,params=selected_parent(run,payload,child=True)
     fields=[*FIELDS,'sap','ec','rlt','sl4','sl5','ll4','ll5','pk']
+    from mta.presentation.logistics_live import enabled as logistics_enabled
+    target_fields=['parentWhCode'] if logistics_enabled() else []
     with connection.cursor() as c:
         c.execute('WITH selected AS ('+selected+') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk '
                   'HAVING count(DISTINCT ROW('+','.join(map(quote,fields))+'))>1 LIMIT 1',params)
         if c.fetchone():raise PublicationUnavailable('child_expedite_ambiguous_row_number')
         query=('WITH selected AS ('+selected+'), numbered AS (SELECT branch,'
             'row_number() OVER (PARTITION BY branch ORDER BY age DESC NULLS LAST,sk DESC NULLS LAST,lk DESC NULLS LAST,pk DESC NULLS LAST,ordinal,copies.copy_ordinal) AS rn,'
-            +','.join(map(quote,fields))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) SELECT * FROM numbered')
+            +','.join(map(quote,[*fields,*target_fields]))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) SELECT * FROM numbered')
         paging=pagination(payload)
         if paging is not None:
             query+=' WHERE rn BETWEEN %s AND %s';params=[*params,(paging[0]-1)*paging[1]+1,paging[0]*paging[1]]

@@ -73,3 +73,16 @@ class LogisticsCommandContractTests(unittest.TestCase):
             self.assertEqual(action.call_args.args,('run',payload,{'id':1,'name':'fixture'}))
         with self.assertRaises(ValueError):
             commands._batch({'data':[{'SKUCode':'337','WHCode':'DP','Remark':'Call'}]},commands.ACTION_FIELDS)
+
+    @override_settings(VF_MTA_LOGISTICS_CURRENT=True,
+        VF_MTA_LOGISTICS_COMMAND_DATABASE='handoff3005_g3_workflow_20261015_003')
+    def test_planning_route_keeps_selected_pair_parent_and_optional_eta(self):
+        cursor=MagicMock();cursor.__enter__.return_value=cursor
+        cursor.fetchone.return_value=('handoff3005_g3_workflow_20261015_003',)
+        payload=dict(skuCode='337',whCode='DP',parentWhCode='LDC001',eta=None,request='Expedite')
+        with patch.object(views.connection,'cursor',return_value=cursor), \
+                patch.object(views,'selected_run',return_value='run'), \
+                patch.object(commands,'submit_request',return_value=None) as submit:
+            response=reads.LogisticsReadContractTests().call('SubmitOpenExpediteRequest',body=payload)
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(submit.call_args.args,('run',payload,{'id':1,'name':'fixture'}))

@@ -30,6 +30,79 @@ READ_PIN_ENV = 'VF_MDM_READ_COMPATIBILITY_SHA256'
 READ_SCHEMA = 'fresh-native-read-source-compatibility-v8'
 READ_CASE = 'handoff3005-getstate-request-scope-v1'
 READ_FILES = {'mta/presentation/request_scope.py', 'mta/mdm/native_report_compatibility.py'}
+
+LOGISTICS_PIN_ENV = 'VF_MDM_LOGISTICS_COMPATIBILITY_SHA256'
+LOGISTICS_DECLARATION = Path('/proof/s3-20261015-001/logistics-reintegration-20261016/source-ancestry.json')
+LOGISTICS_V8_SHA256 = '6967d5b762f1062cfc47f91403a0eddf9f569af3731ba091bb0e7b8e06d42841'
+LOGISTICS_SCHEMA = 'fresh-native-logistics-read-source-v1'
+LOGISTICS_FILES = {
+    'mta/mdm/native_report_compatibility.py',
+    'mta/presentation/views.py', 'mta/presentation/urls.py',
+    'mta/presentation/daily_publication.py',
+    'mta/presentation/bpr_read.py', 'mta/presentation/bpr_prepared.py',
+    'mta/presentation/planning_git_sql.py', 'mta/presentation/planning_expedite_sql.py',
+    'mta/presentation/expedite_read.py',
+    'mta/presentation/logistics_live.py', 'mta/presentation/logistics_read.py',
+    'mta/presentation/logistics_commands.py', 'mta/presentation/logistics_views.py',
+    'mta/runtime/models.py', 'mta/runtime/logistics_models.py',
+    'mta/runtime/migrations/0140_logistics_live.py',
+    'mta/runtime/migrations/0141_logistics_guards.py', 'mta/runtime/test_logistics.py',
+    'mta/config/logistics/ui_columns_v1.json', 'vectorflow/settings.py',
+}
+
+
+def validate_logistics_ancestry(raw, pin, v8_raw, root, files, identity):
+    """Exact native source extension, preserving the original DB and seal checks."""
+    if not isinstance(pin, str) or _sha(raw) != pin:
+        _deny('logistics deployment source is not pinned')
+    value = _read_json(raw)
+    if (set(value) != {'schema', 'v8_sha256', 'current_files', 'current_identity', 'inverse'}
+            or value['schema'] != LOGISTICS_SCHEMA
+            or value['v8_sha256'] != LOGISTICS_V8_SHA256 or _sha(v8_raw) != LOGISTICS_V8_SHA256):
+        _deny('logistics source declaration or retained v8 differs')
+    previous = _read_json(v8_raw)
+    if files != value['current_files'] or identity != value['current_identity']:
+        _deny('logistics running source identity differs')
+    if identity.get('closing_projection_version') != previous['current_identity']['closing_projection_version']:
+        _deny('logistics closing projection version differs')
+    changed = {name for name in set(files) | set(previous['current_files'])
+               if files.get(name) != previous['current_files'].get(name)}
+    if changed != LOGISTICS_FILES or set(value['inverse']) != LOGISTICS_FILES:
+        _deny('logistics changed file boundary differs')
+    reconstructed, overrides = dict(files), {}
+    for name in sorted(LOGISTICS_FILES):
+        after = (Path(root)/name).read_bytes()
+        if _sha(after) != files.get(name):
+            _deny('logistics current bytes differ')
+        before = apply_inverse(after, value['inverse'][name])
+        if name in previous['current_files']:
+            reconstructed[name] = _sha(before)
+            overrides[name] = before
+        else:
+            if before != b'':
+                _deny('logistics added file inverse differs')
+            reconstructed.pop(name)
+    if reconstructed != previous['current_files']:
+        _deny('logistics exact inverse source differs')
+    return reconstructed, overrides, previous['current_identity']
+
+
+def logistics_producer_sources():
+    """Prior producer module text only after complete pinned source validation."""
+    pin = os.environ.get(LOGISTICS_PIN_ENV)
+    if not pin:
+        return None
+    from mta.mdm.location_transition import ROOT, source_files
+    from mta.mdm.production_families import adapter_digest
+    _readonly(LOGISTICS_DECLARATION)
+    _readonly(READ_DECLARATION)
+    files = source_files()
+    identity = dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
+                    source_manifest_digest=digest(files))
+    _, overrides, _ = validate_logistics_ancestry(LOGISTICS_DECLARATION.read_bytes(),
+        pin, READ_DECLARATION.read_bytes(), ROOT, files, identity)
+    return {name: raw.decode('utf-8') for name, raw in overrides.items()}
+
 V7_SHA256 = 'f3fc560e33c4e48761d494814e07404e90f2885d94a5da3a9941b85e1009922d'
 PRIOR_DECLARATION = Path('/proof/s3-20261015-001/g3-hierarchy-execution/'
                          'source-seal-compatibility-v5.json')
@@ -315,7 +388,7 @@ def validate_day6_ancestry(raw, pin, v6_raw, root, files, *, byte_overrides=None
     return source
 
 
-def validate_read_ancestry(raw, pin, v7_raw, root, files, identity):
+def validate_read_ancestry(raw, pin, v7_raw, root, files, identity, *, byte_overrides=None):
     """Authenticate the two exact reader changes before using retained v7 bytes."""
     if not isinstance(pin, str) or _sha(raw) != pin:
         _deny('read deployment declaration is not pinned')
@@ -336,7 +409,7 @@ def validate_read_ancestry(raw, pin, v7_raw, root, files, identity):
         _deny('read changed file boundary differs')
     reconstructed, overrides = dict(files), {}
     for name in sorted(READ_FILES):
-        after = (Path(root) / name).read_bytes()
+        after = _source_bytes(root, name, byte_overrides)
         if _sha(after) != files[name]:
             _deny('read current bytes differ')
         overrides[name] = apply_inverse(after, value['v7_inverse'][name])
@@ -352,11 +425,19 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
         overrides = None
         for path in (DECLARATION, V6_DECLARATION, SOURCE_BEFORE, PRIOR_DECLARATION):
             _readonly(path)
+        if os.environ.get(LOGISTICS_PIN_ENV):
+            _readonly(LOGISTICS_DECLARATION)
+            _readonly(READ_DECLARATION)
+            files, overrides, identity = validate_logistics_ancestry(
+                LOGISTICS_DECLARATION.read_bytes(), os.environ.get(LOGISTICS_PIN_ENV),
+                READ_DECLARATION.read_bytes(), root, files, identity)
         if os.environ.get(READ_PIN_ENV):
             _readonly(READ_DECLARATION)
-            files, overrides, identity = validate_read_ancestry(
+            prior_overrides = overrides or {}
+            files, read_overrides, identity = validate_read_ancestry(
                 READ_DECLARATION.read_bytes(), os.environ.get(READ_PIN_ENV),
-                DECLARATION.read_bytes(), root, files, identity)
+                DECLARATION.read_bytes(), root, files, identity, byte_overrides=prior_overrides)
+            overrides = {**prior_overrides, **read_overrides}
         source_declaration = validate_day6_ancestry(DECLARATION.read_bytes(),
             os.environ.get(PIN_ENV), V6_DECLARATION.read_bytes(), root, files,
             byte_overrides=overrides)

@@ -1,3 +1,4 @@
+import { mapPlanningRequest } from '../../../../../../../../../helpers/logisticsRequests';
 import {useState,useMemo, useEffect, useContext}from 'react';
 import GridViewTable from "../../../../GridView/GridViewTable";
 import { BPRTagsCellRenderer } from "../../../../../BPR/BPRCellRenderers";
@@ -20,6 +21,7 @@ const ExpediteParentExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyD
     const [selectedIntransitData,setSelectedIntransitData] = useState<any>();
     const [selectedStockData,setSelectedStockData] = useState<any>();
     const [currentRowData,setCurrentRowData] = useState<any>();
+    const [requestRow,setRequestRow] = useState<any>();
     const [isSubGridOpen,toggleSubGrid] = useState<any>(true);
 
     const [colDefs, setColDefs] = useState<any>([]);
@@ -29,16 +31,7 @@ const ExpediteParentExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyD
     const submitOpenExpediteRemark = async(remark:string)=>{
         notifyLoader('Submiting request')
         try{
-            const tempEta:string = currentRowData.eta
-            await submitRemark(
-                    {
-                        "skuCode": currentRowData[0].skucode,
-                        "whCode":currentRowData[0].whcode,
-                        "parentWhCode":currentRowData[0].pl,
-                        "request":remark,
-                        "eta":tempEta
-                      }
-                )
+            await submitRemark(mapPlanningRequest(requestRow,remark));
         toast.dismiss()
         notifySuccess('Request Submitted successfully')
         }catch(err:any){
@@ -50,6 +43,7 @@ const ExpediteParentExpediteDispatchesGrid = ({data,paginationProps,onOpenDailyD
     }
     
     const setTransitStockData = (params: any) => {
+        setRequestRow(params.data);
         let stockDataExists, transitDataExists;
         if (data.stockData && data.stockData.length) {
             stockDataExists = data.stockData.filter((stockData: any) => (stockData.skucode == params.data.sc && stockData.whcode == params.data.wc))
