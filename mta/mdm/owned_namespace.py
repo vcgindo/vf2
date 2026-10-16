@@ -753,6 +753,11 @@ def _validate_application(cursor, database, registration, evidence, *,
         _check_logistics_schema(cursor, catalogue, registration)
         return _validate_application_binding(binding, original, implementation_sha256,
             digests, production=True)
+    import os
+    if os.environ.get('VF_MDM_SEALED_EXPORT_LAYOUTS') == '1':
+        _require_sealed_layout_scope(database)
+        _check_application_grants(catalogue, registration, logistics=True, production=True)
+        catalogue = _original_user_preferences_catalogue(catalogue, registration)
     if getattr(settings, 'VF_MTA_LOGISTICS_CURRENT', False):
         # First validate every actual privilege, then the exact additive schema.
         # Only that authenticated delta is removed for the unchanged sealed
@@ -892,6 +897,36 @@ LOGISTICS_SEQUENCES = frozenset(table+'_id_seq' for table in LOGISTICS_TABLES
     if table.rsplit('_',1)[-1] in ('transitannotation','transitremarkhistory','expediteremarkhistory'))
 LOGISTICS_FUNCTIONS = frozenset('mta.'+name+'()' for name in (
     'guard_logistics_owner','guard_transit_generation','guard_transit_annotation','guard_logistics_history'))
+
+
+def _require_sealed_layout_scope(database):
+    from release.sealed_export import PIN_ENV
+    from mta.mdm.native_report_compatibility import DATABASE
+    import os
+    if (not os.environ.get(PIN_ENV)
+            or (database['name'], database['oid']) != DATABASE):
+        _reject('sealed user preferences require the exact export and database')
+
+
+def _original_user_preferences_catalogue(catalogue, registration):
+    """Remove only three authenticated preference ACLs; preserve old OIDs/rows."""
+    table = 'mta.fresh_mta_userreportlayout'
+    sequence = table + '_id_seq'
+    keys = {('table', table, None, 'INSERT'), ('table', table, None, 'DELETE'),
+            ('sequence', sequence, None, 'USAGE')}
+    additions = [g for g in catalogue['grants'] if g['grantee'] == registration['consumer_oid']
+                 and (g['scope'], g['name'], g['column'], g['privilege']) in keys]
+    objects = {o['name']: o for o in catalogue['objects']}
+    if ({(g['scope'], g['name'], g['column'], g['privilege']) for g in additions} != keys
+            or len(additions) != 3
+            or any(g['grantor'] != registration['owner_oid'] or g['grantable']
+                   or g['owner'] != registration['owner_oid']
+                   or g['oid'] != objects[g['name']]['oid'] for g in additions)
+            or objects[table]['kind'] != 'r'
+            or objects[sequence]['kind'] != 'S'
+            or objects[sequence]['sequence_for'] != table + '.id'):
+        _reject('sealed user preference grant authority differs')
+    return dict(catalogue, grants=[g for g in catalogue['grants'] if g not in additions])
 
 
 def _original_application_catalogue(catalogue, registration):

@@ -136,3 +136,68 @@ class LogisticsCapabilityTests(TestCase):
             schema.assert_called_once()
             historical.assert_not_called()
             self.assertEqual(receipt['owned_namespace'],expected)
+
+    def test_sealed_layout_delta_preserves_old_catalogue_and_rejects_broader_grants(self):
+        table='mta.fresh_mta_userreportlayout'
+        self.object(table)
+        self.object(table+'_id_seq',kind='S',sequence_for=table+'.id')
+        self.grant('table',table,'SELECT')
+        before=deepcopy(self.catalogue)
+        old=owned._original_application_catalogue(before,self.reg)
+        original_digests=owned._check_application_grants(old,self.reg)
+        self.grant('table',table,'INSERT')
+        self.grant('table',table,'DELETE')
+        self.grant('sequence',table+'_id_seq','USAGE')
+        owned._check_application_grants(self.catalogue,self.reg,logistics=True,production=True)
+        retained=owned._original_user_preferences_catalogue(self.catalogue,self.reg)
+        self.assertEqual(retained,before)
+        self.assertEqual(owned._check_application_grants(
+            owned._original_application_catalogue(retained,self.reg),self.reg),original_digests)
+        binding=dict(self.binding,**original_digests)
+        binding['receipt_digest']=digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        receipt={'owned_namespace':{**binding,'artifact_sha256':'a'*64}}
+        with override_settings(VF_MTA_LOGISTICS_CURRENT=True), \
+             patch.dict('os.environ',{'VF_MDM_SEALED_EXPORT_LAYOUTS':'1'}), \
+             patch.object(owned,'_database_identity',return_value=self.db), \
+             patch.object(owned,'_registered_identity',return_value=self.reg), \
+             patch.object(owned,'_catalogue_evidence',return_value=self.proof), \
+             patch.object(owned,'_validate_identity',return_value=self.original), \
+             patch.object(owned,'_read_application_capability',return_value=binding), \
+             patch.object(owned,'_check_application_write_guards') as guards, \
+             patch.object(owned,'_require_sealed_layout_scope') as scope, \
+             patch.object(owned,'_application_catalogue',return_value=self.catalogue), \
+             patch.object(owned,'_check_logistics_schema') as schema, \
+             patch.object(owned.connection,'cursor',return_value=MagicMock()):
+            self.assertIs(owned.verify_binding(receipt),receipt)
+            self.assertEqual(receipt['owned_namespace'],{**binding,'artifact_sha256':'a'*64})
+            guards.assert_called_once()
+            scope.assert_called_once_with(self.db)
+            schema.assert_called_once()
+        for kind in ('missing','grantor','grant-option','public','wide-update','sequence-update','other-delete'):
+            altered=deepcopy(self.catalogue)
+            row=next(g for g in altered['grants'] if g['name']==table and g['privilege']=='INSERT')
+            if kind=='missing':altered['grants'].remove(row)
+            if kind=='grantor':row['grantor']=999
+            if kind=='grant-option':row['grantable']=True
+            if kind=='public':row['grantee']=0
+            if kind=='wide-update':altered['grants'].append(dict(row,privilege='UPDATE'))
+            if kind=='sequence-update':altered['grants'].append(dict(
+                next(g for g in altered['grants'] if g['name']==table+'_id_seq'),privilege='UPDATE'))
+            if kind=='other-delete':altered['grants'].append(dict(row,name='mta.fresh_mta_dailyopenrequest',privilege='DELETE'))
+            with self.subTest(kind=kind),self.assertRaises(ValueError):
+                owned._check_application_grants(altered,self.reg,logistics=True,production=True)
+                owned._original_user_preferences_catalogue(altered,self.reg)
+        with self.assertRaises(ValueError):
+            owned._check_application_grants(self.catalogue,self.reg,logistics=True)
+
+    def test_sealed_layout_opt_in_rejects_missing_export_pin_and_other_database(self):
+        from mta.mdm.native_report_compatibility import DATABASE
+        from release.sealed_export import PIN_ENV
+        database=dict(name=DATABASE[0],oid=DATABASE[1])
+        with patch.dict('os.environ',{},clear=True),self.assertRaises(ValueError):
+            owned._require_sealed_layout_scope(database)
+        with patch.dict('os.environ',{PIN_ENV:'a'*64}):
+            owned._require_sealed_layout_scope(database)
+            for value in (dict(database,oid=DATABASE[1]+1),dict(database,name='another_database')):
+                with self.subTest(database=value),self.assertRaises(ValueError):
+                    owned._require_sealed_layout_scope(value)

@@ -52,7 +52,7 @@ LOGISTICS_FILES = {
 }
 
 
-def validate_logistics_ancestry(raw, pin, v8_raw, root, files, identity):
+def validate_logistics_ancestry(raw, pin, v8_raw, root, files, identity, *, byte_overrides=None):
     """Exact native source extension, preserving the original DB and seal checks."""
     if not isinstance(pin, str) or _sha(raw) != pin:
         _deny('logistics deployment source is not pinned')
@@ -72,7 +72,7 @@ def validate_logistics_ancestry(raw, pin, v8_raw, root, files, identity):
         _deny('logistics changed file boundary differs')
     reconstructed, overrides = dict(files), {}
     for name in sorted(LOGISTICS_FILES):
-        after = (Path(root)/name).read_bytes()
+        after = _source_bytes(root, name, byte_overrides)
         if _sha(after) != files.get(name):
             _deny('logistics current bytes differ')
         before = apply_inverse(after, value['inverse'][name])
@@ -100,8 +100,11 @@ def logistics_producer_sources():
     files = source_files()
     identity = dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
                     source_manifest_digest=digest(files))
+    from release.sealed_export import retained_source
+    files, export_overrides, identity = retained_source(
+        ROOT, files, identity, LOGISTICS_DECLARATION.read_bytes())
     _, overrides, _ = validate_logistics_ancestry(LOGISTICS_DECLARATION.read_bytes(),
-        pin, READ_DECLARATION.read_bytes(), ROOT, files, identity)
+        pin, READ_DECLARATION.read_bytes(), ROOT, files, identity, byte_overrides=export_overrides)
     return {name: raw.decode('utf-8') for name, raw in overrides.items()}
 
 V7_SHA256 = 'f3fc560e33c4e48761d494814e07404e90f2885d94a5da3a9941b85e1009922d'
@@ -433,9 +436,12 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
         if os.environ.get(LOGISTICS_PIN_ENV):
             _readonly(LOGISTICS_DECLARATION)
             _readonly(READ_DECLARATION)
+            from release.sealed_export import retained_source
+            files, export_overrides, identity = retained_source(
+                root, files, identity, LOGISTICS_DECLARATION.read_bytes())
             files, overrides, identity = validate_logistics_ancestry(
                 LOGISTICS_DECLARATION.read_bytes(), os.environ.get(LOGISTICS_PIN_ENV),
-                READ_DECLARATION.read_bytes(), root, files, identity)
+                READ_DECLARATION.read_bytes(), root, files, identity, byte_overrides=export_overrides)
             implementation = digest({name: files['mta/'+name] for name in IMPLEMENTATION_FILES})
         if os.environ.get(READ_PIN_ENV):
             _readonly(READ_DECLARATION)
