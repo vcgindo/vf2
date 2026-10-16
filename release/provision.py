@@ -69,7 +69,9 @@ def provision(configuration):
                     for kind in ('INSTALLER', 'RUNTIME'):
                         cursor.execute(sql.SQL('GRANT CONNECT ON DATABASE {} TO {}').format(sql.Identifier(c['databases'][service]), sql.Identifier(c['roles'][name][kind])))
                 cursor.execute('REVOKE ALL ON SCHEMA public FROM PUBLIC')
-                schemas = [('mta', 'MTA'), ('mta_state', 'MTA'), ('mta_opening', 'MTA')] if service == 'MTA' else [('mto', 'MTO'), ('identity', 'AUTH')]
+                # Native migrations0006/0118 create their own state/opening
+                # schemas under the selected MTA owner. Do not pre-create them.
+                schemas = [('mta', 'MTA')] if service == 'MTA' else [('mto', 'MTO'), ('identity', 'AUTH')]
                 for schema, owner in schemas:
                     cursor.execute(sql.SQL('CREATE SCHEMA {} AUTHORIZATION {}').format(sql.Identifier(schema), sql.Identifier(c['roles'][owner]['OWNER'])))
                     cursor.execute(sql.SQL('REVOKE ALL ON SCHEMA {} FROM PUBLIC').format(sql.Identifier(schema)))
