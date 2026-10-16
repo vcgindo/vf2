@@ -1,3 +1,4 @@
+import useLiveGrid, { isLiveGrid } from '../../../../../hooks/useLiveGrid';
 import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { useState,useMemo, useEffect, CSSProperties,useRef } from "react"
 import { AgGridReactProps } from "ag-grid-react"
@@ -32,7 +33,7 @@ const useBPR =()=>{
     const ref = useRef<GridRef>()
     const tempRef = useRef<GridRef>()
 
-    const [internalRef,setInternalRef] = useState<any>()
+    const { api: gridApi, mounted, onGridReady, onGridPreDestroyed } = useLiveGrid();
 
     const {getGridZoom,getScreenZoomValue} = useViewPort()
     const dispatch = useDispatch();
@@ -106,6 +107,7 @@ const useBPR =()=>{
     const getBPRUiConfig = async () => {
         try {
             const response = await getUiConfig(UIColumnConfigName.BPR);
+            if (!mounted.current) return;
             setInitialColumnState(response.data.data);
         } catch (err: any) {
             notifyError("Something Went Wrong")
@@ -137,14 +139,15 @@ const useBPR =()=>{
 
     useEffect(() => {
         if (BPRColumns.length) {
-            if (internalRef?.api) {
-                setMasterUIConfig(internalRef.api.getColumnState());
+            if (isLiveGrid(gridApi)) {
+                setMasterUIConfig(gridApi.getColumnState());
             }
         }
-    }, [internalRef, BPRColumns]);
+    }, [gridApi, BPRColumns]);
     
     const getUserColumnConfig = async () => {
         const stateData = await getState({ "reportname": UserUIColumnConfigName.BPR })
+        if (!mounted.current) return;
         if (stateData.data.data.length !== 0) {
             const parsedContent = JSON.parse(stateData.data.data)
           
@@ -160,14 +163,14 @@ const useBPR =()=>{
     }
 
     useEffect(()=>{
-        if (internalRef && gridState && gridState.columns) {
-            const result = internalRef?.api.applyColumnState({ state: gridState.columns, applyOrder: true });
-            internalRef?.api.sizeColumnsToFit();
+        if (isLiveGrid(gridApi) && BPRColumns.length && gridState?.columns?.length) {
+            const result = gridApi.applyColumnState({ state: gridState.columns, applyOrder: true });
+            gridApi.sizeColumnsToFit();
             if (!result) {
                 console.error("Failed to apply column state", result);
             }
         }
-    },[internalRef,gridState])
+    },[gridApi,gridState,BPRColumns])
 
     const customCellRenderers = useMemo(() => ({
         grapCellRenderer:BPRGraphCellRenderer,
@@ -295,7 +298,8 @@ const useBPR =()=>{
             components:customCellRenderers,
             defaultColDef:defaultColDefObject,
             onCellValueChanged:(params)=>onCellValueChanged(params.data,"SKUCode","WHCode"),
-            onGridReady:(params)=>setInternalRef(params),
+            onGridReady,
+            onGridPreDestroyed,
             onFirstDataRendered:()=>screenRendered('BPR'),
             onRowDataUpdated:()=>screenRendered('BPR'),
             // autoSizeStrategy:{

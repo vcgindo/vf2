@@ -1,3 +1,4 @@
+import useLiveGrid, { isLiveGrid } from '../../../../../hooks/useLiveGrid';
 
 import { CSSProperties, useMemo, useState,useEffect ,useRef} from "react";
 
@@ -35,7 +36,7 @@ const useInTransitWhereAbouts = ()=>{
 
     const {user} = useUserData()
 
-    const [internalRef,setInternalRef] = useState<any>()
+    const { api: gridApi, mounted, onGridReady, onGridPreDestroyed } = useLiveGrid();
 
     const [gridState,setGridState] = useState<{charts:[],columns:[],pivot:boolean}>({
       charts: [],
@@ -123,7 +124,9 @@ const useInTransitWhereAbouts = ()=>{
     useEffect(()=>{
       const getInitialData =async()=>{
         await getRecordCount(currentFilter)
+        if (!mounted.current) return;
         await getRowData(currentFilter, 1)
+        if (!mounted.current) return;
         await getInTransitUiConfig();
       }
       getInitialData()
@@ -132,6 +135,7 @@ const useInTransitWhereAbouts = ()=>{
   const getInTransitUiConfig = async () => {
     try {
       const response = await getUiConfig(UIColumnConfigName.InTransit);
+      if (!mounted.current) return;
       const MappedColumns = getColumnDefinationsMTA(response.data.data, CustomHeader);
       setColDefs(MappedColumns);
       setGridState({
@@ -146,14 +150,15 @@ const useInTransitWhereAbouts = ()=>{
 
   useEffect(() => {
     if (colDefs.length) {
-      if (internalRef?.api) {
-        setMasterUIConfig(internalRef.api.getColumnState());
+      if (isLiveGrid(gridApi)) {
+        setMasterUIConfig(gridApi.getColumnState());
       }
     }
-  }, [internalRef, colDefs]);
+  }, [gridApi, colDefs]);
     
   const getUserColumnConfig = async () => {
     const stateData = await getState({ "reportname": UserUIColumnConfigName.InTransit })
+    if (!mounted.current) return;
     if (stateData.data.data.length !== 0) {
       const parsedContent = JSON.parse(stateData.data.data)
                       
@@ -175,14 +180,14 @@ const useInTransitWhereAbouts = ()=>{
   }, [colDefs]);
 
   useEffect(() => {
-    if (internalRef && gridState && gridState.columns) {
-      const result = internalRef.api.applyColumnState({ state: gridState.columns, applyOrder: true });
-      internalRef?.api.sizeColumnsToFit();
+    if (isLiveGrid(gridApi) && colDefs.length && gridState?.columns?.length) {
+      const result = gridApi.applyColumnState({ state: gridState.columns, applyOrder: true });
+      gridApi.sizeColumnsToFit();
       if (!result) {
         console.error("Failed to apply column state", result);
       }
     }
-  }, [internalRef, gridState]);
+  }, [gridApi, gridState, colDefs]);
     
   const onResetCallback = async () => {
     setGridState({
@@ -231,9 +236,9 @@ const useInTransitWhereAbouts = ()=>{
               cellDataType: false,
               minWidth:140,
               cellStyle: {
-                "text-align": "center",
-                'text-overflow':'ellipsis',
-                'white-space':'nowrap'
+                textAlign: "center",
+                textOverflow:'ellipsis',
+                whiteSpace:'nowrap'
               },
               flex: 1,
           },
@@ -249,7 +254,8 @@ const useInTransitWhereAbouts = ()=>{
               ],
             },
             onCellValueChanged:(params)=>onCellValueChanged(params.data,"OrderNo"),
-            onGridReady:(params)=>setInternalRef(params)
+            onGridReady,
+            onGridPreDestroyed
       }
     },[])
 
@@ -294,6 +300,7 @@ const useInTransitWhereAbouts = ()=>{
           filters:filter
         }
         const countData = await getDataCount(payload)
+        if (!mounted.current) return;
         const count= JSON.parse(countData.data.recordCount)
         setRecordCount(count)
       }catch(err:any){
@@ -313,7 +320,7 @@ const useInTransitWhereAbouts = ()=>{
         filters:filter
       }
       const data = await getData(payload)
-      setRowData(mapInTransitWhereAboutsRowData(data.data.data))
+      if (mounted.current) setRowData(mapInTransitWhereAboutsRowData(data.data.data))
       // setRowData(mapInTransitWhereAboutsRowData(GetInTransitWhereAboutsMockResponse.data))
     }
 
@@ -336,7 +343,7 @@ const useInTransitWhereAbouts = ()=>{
       }
       const data = await getData(payload)
       setCurrentPage(pageNo)
-      setRowData(mapInTransitWhereAboutsRowData(data.data.data))
+      if (mounted.current) setRowData(mapInTransitWhereAboutsRowData(data.data.data))
     }
 
     const onOpenSubmitRemark = (e: React.MouseEvent<HTMLElement>,data:any) => {

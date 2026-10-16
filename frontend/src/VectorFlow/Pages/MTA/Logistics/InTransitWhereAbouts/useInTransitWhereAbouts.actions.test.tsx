@@ -5,6 +5,7 @@ import {notifyError, notifySuccess} from '../../../../../helpers/notify';
 const mockCount=jest.fn(), mockData=jest.fn(), mockHistory=jest.fn();
 const mockSubmit=jest.fn(), mockContacts=jest.fn(), mockConfig=jest.fn(), mockState=jest.fn();
 let mockTransitHeaders:any;
+let mockColumns:any[] = [];
 
 jest.mock('../../../../Services/MTA/Logistics/InTransitWhereAbouts',()=>({
   useGetInTransitWhereAboutsDataCount:()=>({mutateAsync:mockCount,isLoading:false}),
@@ -30,7 +31,7 @@ jest.mock('react-redux',()=>({
   useSelector:(select:any)=>select({mta:{EnvConfig:{IN_TRANSIT_WHEREABOUTS_ROWS_PER_PAGE:'100'}}}),
 }));
 jest.mock('../../../../../helpers/utils',()=>({
-  getColumnDefinationsMTA:(_source:any,headers:any)=>{mockTransitHeaders=headers;return [];},
+  getColumnDefinationsMTA:(_source:any,headers:any)=>{mockTransitHeaders=headers;return mockColumns;},
   mapInTransitWhereAboutsRowData:(rows:any)=>rows,
 }));
 jest.mock('../../../../../helpers/notify',()=>({
@@ -49,7 +50,7 @@ const transitRow=(order:string, overrides:any={})=>({OrderNo:order,SKUCode:'337'
   ReceiverLoc:'RECEIVER-2',SenderLocation:'PARENT-1',CurrentLoc:'OLD-HUB',ETA:null,...overrides});
 
 beforeEach(()=>{
-  jest.clearAllMocks();mockTransitHeaders=undefined;
+  jest.clearAllMocks();mockTransitHeaders=undefined;mockColumns=[];
   mockCount.mockResolvedValue({data:{recordCount:'0'}});
   mockData.mockResolvedValue({data:{data:[]}});
   mockConfig.mockResolvedValue({data:{data:[]}});
@@ -99,4 +100,26 @@ test('a rejected transit modal write reports failure without success',async()=>{
   await act(async()=>{await result.current.onSubmitETA();});
   expect(notifyError).toHaveBeenCalledWith('Scope denied');
   expect(notifySuccess).not.toHaveBeenCalled();
+});
+
+
+test('a delayed saved layout restores only on the live replacement transit grid', async () => {
+  let resolveState!: (value: any) => void;
+  mockColumns = [{ colId: 'OrderNo' }, { colId: 'Qty' }];
+  mockState.mockReturnValue(new Promise(resolve => { resolveState = resolve; }));
+  const { result } = renderHook(useInTransitWhereAbouts);
+  await waitFor(() => expect(mockState).toHaveBeenCalled());
+  const makeApi = () => ({ isDestroyed: jest.fn(() => false), getColumnState: jest.fn(() => mockColumns),
+    applyColumnState: jest.fn(() => true), sizeColumnsToFit: jest.fn() });
+  const first = makeApi(), second = makeApi();
+  act(() => result.current.agGridProps.onGridReady?.({ api: first } as any));
+  act(() => result.current.agGridProps.onGridPreDestroyed?.({ api: first } as any));
+  first.isDestroyed.mockReturnValue(true);
+  const before = first.applyColumnState.mock.calls.length;
+  await act(async () => { resolveState({ data: { data: JSON.stringify({ charts: [], pivot: false,
+    columns: [{ colId: 'Qty', hide: true }, { colId: 'OrderNo' }] }) } }); });
+  expect(first.applyColumnState).toHaveBeenCalledTimes(before);
+  act(() => result.current.agGridProps.onGridReady?.({ api: second } as any));
+  expect(second.applyColumnState).toHaveBeenLastCalledWith({ applyOrder: true,
+    state: [{ colId: 'Qty', hide: true }, { colId: 'OrderNo' }] });
 });

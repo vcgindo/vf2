@@ -1,3 +1,4 @@
+import { isLiveGrid } from './useLiveGrid';
 import { useContext,useEffect } from "react";
 import {
   useResetState,
@@ -118,14 +119,16 @@ const useSaveAllState = (isPlanning?:boolean) => {
   const onSaveState = async (name: string) => {
     try {
       
-      const columnState = ref.current?.api.getColumnState();
+      const api = ref.current?.api;
+      if (!isLiveGrid(api)) return;
+      const columnState = api.getColumnState();
       if(!columnState?.length)
       {
         notifyError("Cannot save layout: The table is empty.");
         return;
       }
-      const chartsState =  ref.current?.api.getChartModels()
-      const isPivot = ref.current?.api.isPivotMode()
+      const chartsState = api.getChartModels()
+      const isPivot = api.isPivotMode()
       const gridState:GridState = {
         pivot:isPivot,
         charts:chartsState,
@@ -136,10 +139,11 @@ const useSaveAllState = (isPlanning?:boolean) => {
         reportname: name,
         state: JSON.stringify(gridState),
       });
+      if (ref.current?.api !== api || !isLiveGrid(api)) return;
       notifySuccess("State has been saved");
-      ref.current?.api.applyColumnState({ state: columnState });
-      ref.current?.api.restoreChart(chartsState)
-      ref.current?.api.setGridOption('pivotMode',isPivot)
+      api.applyColumnState({ state: columnState });
+      chartsState?.forEach(chart => api.restoreChart(chart));
+      api.setGridOption('pivotMode',isPivot)
     } catch (err: any) {
         console.error(err)
       notifyError(err);
@@ -150,7 +154,9 @@ const useSaveAllState = (isPlanning?:boolean) => {
     notifyLoader("Reseting Data");
     try {
       
-      let tempCurrentGridState = ref.current?.api.getColumnState()
+      const api = ref.current?.api;
+      if (!isLiveGrid(api)) return;
+      let tempCurrentGridState = api.getColumnState()
       
       if(!tempCurrentGridState?.length) {
         notifyError("Cannot reset layout: The table is empty.");
@@ -158,8 +164,10 @@ const useSaveAllState = (isPlanning?:boolean) => {
       }
 
       await resetState({"reportname":name});
+      if (ref.current?.api !== api || !isLiveGrid(api)) return;
       if (onResetCallback) {
         await onResetCallback();
+        if (ref.current?.api !== api || !isLiveGrid(api)) return;
       }
 
       tempCurrentGridState = tempCurrentGridState.map((t:any) => {
@@ -177,13 +185,13 @@ const useSaveAllState = (isPlanning?:boolean) => {
           flex: undefined,
         };
       });
-      ref.current.api.applyColumnState({state:tempCurrentGridState,applyOrder:true})
+      api.applyColumnState({state:tempCurrentGridState,applyOrder:true})
       // onResetCallback()
-      ref.current.api.resetColumnState()
-      ref.current.api.setGridOption('pivotMode',false)
-      const charts  = ref.current.api.getChartModels()
+      api.resetColumnState()
+      api.setGridOption('pivotMode',false)
+      const charts  = api.getChartModels()
       charts.forEach((c:any)=>{
-        const tempRef = ref.current.api.getChartRef(c.chartId)
+        const tempRef = api.getChartRef(c.chartId)
         tempRef.destroyChart()
       })
       await onSaveState(name);
