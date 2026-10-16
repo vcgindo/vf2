@@ -4,6 +4,22 @@ This describes the exported Linux/amd64 Docker assembly. Installation and UI evi
 
 ## Release and host preparation
 
+Obtain the source ZIP and its SHA256 from the approved release manifest, verify the digest, and extract into a new release directory. Alternatively, on a clean machine with Git and Python 3, clone the approved repository and export the exact reviewed commit with the existing standard-library exporter:
+
+```sh
+git clone https://github.com/yurtse/freshvcf.git /srv/vectorflow/source
+cd /srv/vectorflow/source
+git fetch origin
+RELEASE_COMMIT=REPLACE_WITH_APPROVED_FULL_40_CHARACTER_COMMIT
+git checkout --detach "$RELEASE_COMMIT"
+test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT"
+python3 -m release.export --repository /srv/vectorflow/source \
+  --revision "$RELEASE_COMMIT" --output "/srv/vectorflow/releases/$RELEASE_COMMIT"
+cd "/srv/vectorflow/releases/$RELEASE_COMMIT"
+```
+
+Replace the commit placeholder before running; the destination must not already exist. Repository access must use the operator's normal Git credentials, never credentials embedded in these commands. The exporter reads committed files and excludes validation populations/runners and secrets; copying the whole checkout is not a production export. Verify `release-source.json` names the approved full commit, then follow the external configuration, image build/load and installation steps below. No application Python dependencies are required merely to run this exporter.
+
 Use Docker Engine with Linux containers and Docker Compose v2. Images and Python dependencies are pinned in `images.lock.json` and `requirements-*.lock`; frontend dependencies use the retained `package-lock.json`. Other CPU architectures and native Windows service installation are not declared supported. The release directory must contain `release-source.json`, the service sources, native SQL/migrations and this directory. No development checkout mount is required.
 
 Record the complete source commit and built image IDs in the deployment inventory. Build from the exported root, not an arbitrary working tree. Keep the preceding export, image IDs, nonsecret configuration and separately protected secrets for rollback. Do not run dependency upgrade commands during installation.
@@ -75,6 +91,12 @@ vf --profile install run --rm auth-install manage.py createsuperuser
 ```
 
 Do not place account passwords on the command line. An account does not by itself grant product/location/application scope. Keep CAPTCHA and authentication enabled.
+
+After the approved population/catalogue is available and the application is serving, sign in normally as that bootstrap administrator. Use **Vector Admin → Manage Roles** (`/vector-admin/manage-roles`) to create the operator-approved MTA roles from the installed permission catalogue. Select the actual application and existing URL/function entries; use the approved role codes and names, not the development fixture's numeric IDs. The installer deliberately creates no requester/reviewer roles or assignments. A reviewer is an ordinary user with the specifically approved review permissions, not a second superuser.
+
+Open **Profile → Manage Users → Add User** to create each approved requester/reviewer through the existing registration form. Select the relevant application role, then its Product and Location permissions (including the required hierarchy levels) and any specifically approved data permissions. Use the form's existing password/notification process and configured mail service; do not seed fixture credentials or mark every account as admin. For an existing account, use the same Manage Users edit workflow. These screens call the retained `/api/user/add-role/`, `/api/user/register/` and `/api/user/edit-user` contracts; role definitions and user scope assignments are separate operations. Empty/unavailable product or location catalogues must be resolved through the approved population/configuration path before assigning scope; they are not permission to select a different run or bypass a denial.
+
+Sign in as each ordinary account and check **Profile → Permissions**, its intended report/MDM menu, and the allowed product/location subset. Confirm the requester lacks reviewer actions and an out-of-scope read/action is denied. Reauthenticate after changing assignments so the issued session reflects them. Keep the native MTA permission/hierarchy files and their configured SHA256 values consistent with that approved deployment; creating an auth account does not generate or replace those files. These are operator setup instructions derived from the existing forms/models, not a completed fresh-account onboarding or business-workflow rehearsal. No users, passwords, roles or scope assignments are automatically imported by this package.
 
 ## Input ownership, initialization, day and span
 
