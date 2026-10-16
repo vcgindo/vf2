@@ -58,7 +58,7 @@ def included(name):
             return False
         return (len(path.parts)>2 and path.parts[1] in ('MTO_API', 'mto_app', 'poogi', 'procurement', 'production', 'import_export', 'scheduler') and path.suffix in ('.py', '.json', '.html')) or name in ('mto/manage.py', 'mto/Downloads/ReportPaths.json')
     if name.startswith('frontend/'):
-        if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json'):
+        if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json', 'frontend/.eslintrc.json'):
             return True
         return (name.startswith('frontend/src/') and path.suffix in ('.ts', '.tsx', '.js', '.jsx', '.mjs', '.css', '.scss', '.json', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf')) or name.startswith('frontend/public/')
     return False
