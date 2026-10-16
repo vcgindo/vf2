@@ -1,0 +1,54 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+pid /tmp/nginx.pid;
+events { worker_connections 1024; }
+http {
+    include /etc/nginx/mime.types;
+    access_log /dev/stdout;
+    client_body_temp_path /tmp/client_temp;
+    proxy_temp_path /tmp/proxy_temp;
+    fastcgi_temp_path /tmp/fastcgi_temp;
+    uwsgi_temp_path /tmp/uwsgi_temp;
+    scgi_temp_path /tmp/scgi_temp;
+    server {
+        listen 127.0.0.1:8081;
+        location = /healthz { default_type application/json; return 200 '{"status":"ok","scope":"gateway-only"}'; }
+    }
+    server {
+        listen ${VF_LISTEN};
+        ${VF_TLS_DIRECTIVES}
+        server_name _;
+        resolver 127.0.0.11 valid=10s ipv6=off;
+        set $auth_service http://auth:10016;
+        set $mto_service http://mto:10015;
+        client_max_body_size 64m;
+        location = /healthz { default_type application/json; return 200 '{"status":"ok","scope":"gateway-only"}'; }
+        location = /readyz { proxy_pass $auth_service/readyz; proxy_set_header Host $host; }
+        location /api/ {
+            proxy_pass $auth_service;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto ${VF_FORWARD_SCHEME};
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_read_timeout ${VF_PROXY_READ_TIMEOUT}s;
+        }
+        location /ws/ {
+            proxy_pass $mto_service;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Proto ${VF_FORWARD_SCHEME};
+            proxy_read_timeout ${VF_PROXY_READ_TIMEOUT}s;
+        }
+        location ^~ /static/ {
+            root /usr/share/nginx/html;
+            try_files $uri =404;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            gzip on; gzip_types application/javascript text/css application/json image/svg+xml;
+        }
+        location = /index.html { root /usr/share/nginx/html; add_header Cache-Control "no-store" always; }
+        location / { root /usr/share/nginx/html; try_files $uri $uri/ /index.html; add_header Cache-Control "no-store" always; }
+    }
+}

@@ -1,0 +1,11 @@
+.env
+*.env
+secrets
+**/.env
+**/*.env
+**/secrets
+**/*.pem
+**/*.key
+**/__pycache__
+**/node_modules
+.git

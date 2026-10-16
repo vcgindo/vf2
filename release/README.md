@@ -1,6 +1,6 @@
 # VectorFLOW deployment assembly
 
-This directory contains the portable deployment adapters and dependency/image pins for Step4. It is still being assembled; the service Compose/export/install/operator commands and Linux-container G4 verification are not yet released as a completed package. The sole progress authority is F:/freshvcf/docs/handoff-3005/TRACKER.md. Existing serving instances are unchanged by these source files.
+This directory contains the portable deployment adapters and dependency/image pins for Step4. It is still being assembled; the service Compose/export/install/operator commands and Linux-container G4 verification are not yet released as a completed package. The sole progress authority is the development handoff tracker, excluded from the production bundle. Existing serving instances are unchanged by these source files.
 
 ## Installation ownership
 
@@ -18,7 +18,7 @@ These Python settings modules are outside the calculation source tree:
 - release.auth_settings extends apps.settings; SECRET_KEY supports _FILE, CLIENT_CIPHER_KEY is the existing public browser-password cipher configuration, and the authentication service retains its RSA-encrypted DB_PASSWORD_FILE and RSA key paths. It does not receive the MTA password.
 - release.mto_settings extends MTO_API.settings; SECRET_KEY and DB_PASSWORD support corresponding _FILE settings. MTO retains its direct-port ASGI contract.
 
-VF_PUBLIC_URL is an explicit origin. External deployment requires HTTPS; loopback HTTP is permitted for the bounded local proof. VF_ALLOWED_HOSTS requires explicit hosts, never a wildcard. The origin drives CSRF/CORS, secure-cookie and trusted-proxy settings. Only the private gateway may reach service listeners; accepting a forwarded HTTPS header does not authorize direct public backend access. DB_SSLMODE, DB_SSLROOTCERT, DB_SSLCERT, DB_SSLKEY and DB_CONNECT_TIMEOUT are real database connection settings. Internal PostgreSQL TLS and edge TLS deployment proof remain to be completed; do not infer verification from configuration tests.
+VF_PUBLIC_URL is an explicit origin. External deployment requires HTTPS; loopback HTTP is permitted for the bounded local proof. VF_ALLOWED_HOSTS requires explicit hosts, never a wildcard. The origin drives CSRF/CORS, secure-cookie and trusted-proxy settings. Only the private gateway may reach service listeners; accepting a forwarded HTTPS header does not authorize direct public backend access. DB_SSLMODE and DB_CONNECT_TIMEOUT are real database connection settings. The database TLS override supplies a CA file to verify the server; service-specific client-certificate configuration is not a default requirement. Internal PostgreSQL TLS and edge TLS deployment proof remain to be completed; do not infer verification from configuration tests.
 
 Actual secrets are supplied outside Git/images, using separately mounted per-service files. Conflicting direct/file values fail rather than choosing an unexpected credential. No default account/password, fixture restore or credential reset is provided. Application signing and database secrets must never be placed in CRA REACT_APP_* values; those are embedded public build configuration.
 

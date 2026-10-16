@@ -1,0 +1,46 @@
+services:
+  mta:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  auth:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  mto:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  mta-install:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  auth-install:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  mto-install:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+  provision:
+    environment:
+      DB_SSLMODE: verify-full
+      DB_SSLROOTCERT: /run/secrets/database_ca
+    secrets:
+      - database_ca
+secrets:
+  database_ca:
+    file: ${VF_DB_CA_FILE:?Provide PostgreSQL certificate authority file}

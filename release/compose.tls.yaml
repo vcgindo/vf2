@@ -1,0 +1,12 @@
+services:
+  frontend:
+    environment:
+      VF_TLS_MODE: https
+    secrets:
+      - tls_certificate
+      - tls_private_key
+secrets:
+  tls_certificate:
+    file: ${VF_TLS_CERTIFICATE_FILE:?Provide TLS certificate chain file}
+  tls_private_key:
+    file: ${VF_TLS_PRIVATE_KEY_FILE:?Provide TLS private key file}

@@ -1,0 +1,660 @@
+{
+  "schema": "vectorflow-identity-catalogue-v1",
+  "source": {
+    "path": "user-service/api/management/commands/seed_users_and_roles.py",
+    "sha256": "6c07442df9c4850f47c564230d355878f8409bd6d721d00ef11fd030399299da"
+  },
+  "applications": [
+    {
+      "application_id": 2,
+      "application_name": "Distribution"
+    },
+    {
+      "application_id": 3,
+      "application_name": "Orders"
+    }
+  ],
+  "permissions": [
+    {
+      "name": "VectorFlow. Master Data Management. Control Panel",
+      "code": "MDM-CP",
+      "description": "VectorFlow. Master Data Management. Control Panel",
+      "url": "/mta/master-data-management/control-panel"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. View-Modify",
+      "code": "MDM-CP-VM",
+      "description": "VectorFlow. Master Data Management. View-Modify",
+      "url": "/mta/master-data-management/control-panel/view-modify"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Add",
+      "code": "MDM-CP-ADD",
+      "description": "VectorFlow. Master Data Management. Add",
+      "url": "/mta/master-data-management/control-panel/add"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Delete",
+      "code": "MDM-CP-DEL",
+      "description": "VectorFlow. Master Data Management. Delete",
+      "url": "/mta/master-data-management/control-panel/delete"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Task Pending For Review",
+      "code": "MDM-TP",
+      "description": "VectorFlow. Master Data Management. Task Pending For Review",
+      "url": "/mta/master-data-management/task-pending"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Task Status",
+      "code": "MDM-TS",
+      "description": "VectorFlow. Master Data Management. Task Status",
+      "url": "/mta/master-data-management/task-status"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Saved Drafts",
+      "code": "MDM-SD",
+      "description": "VectorFlow. Master Data Management. Saved Drafts",
+      "url": "/mta/master-data-management/saved-drafts"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. Planning",
+      "code": "MTA-P",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Planning",
+      "url": "/mta/supply-chain-intelligence-hub/planning"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. BPR",
+      "code": "MTA-BPR",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. BPR",
+      "url": "/mta/supply-chain-intelligence-hub/bpr"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. BOR",
+      "code": "MTA-BOR",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. BOR",
+      "url": "/mta/supply-chain-intelligence-hub/bor"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. RRR",
+      "code": "MTA-RRR",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. RRR",
+      "url": "/mta/supply-chain-intelligence-hub/rrr"
+    },
+    {
+      "name": "VectorFlow. Insights and Trends. Guided Insights",
+      "code": "MTA-GI",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Guided Insights",
+      "url": "/mta/insights-and-trends/guided-insights"
+    },
+    {
+      "name": "VectorFlow. Insights and Trends. Research Insights",
+      "code": "MTA-RI",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Research Insights",
+      "url": "/mta/insights-and-trends/research-insights"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. Open Expediting Requests",
+      "code": "MTA-OER",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Open Expediting Requests",
+      "url": "/mta/supply-chain-intelligence-hub/open-expediting-requests"
+    },
+    {
+      "name": "VectorFlow. Insights and Trends. Buffer Trend Report (BTR)",
+      "code": "MTA-BTR",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Buffer Trend Report (BTR)",
+      "url": "/mta/insights-and-trends/buffer-trend-report"
+    },
+    {
+      "name": "VectorFlow. Insights and Trends. Buffer Trends",
+      "code": "MTA-BT",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Buffer Trends",
+      "url": "/mta/insights-and-trends/buffer-trends"
+    },
+    {
+      "name": "VectorFlow. DBM. DBM Norm Suggestions",
+      "code": "MTA-DBMNS",
+      "description": "VectorFlow. DBM. DBM Norm Suggestions",
+      "url": "/mta/dbm/dbm-norm-suggestions"
+    },
+    {
+      "name": "VectorFlow. Logistics. Intransit Whereabouts",
+      "code": "MTA-IW",
+      "description": "VectorFlow. Logistics. Intransit Whereabouts",
+      "url": "/mta/logistics/intransit-whereabouts"
+    },
+    {
+      "name": "VectorFlow. Procurement. Planning. Simulative Fullkit",
+      "code": "MTO-PL-SF",
+      "description": "VectorFlow. Procurement. Planning. Simulative Fullkit",
+      "url": "/mto/planning/simulative-fullkit"
+    },
+    {
+      "name": "VectorFlow. Procurement. Planning.",
+      "code": "MTO-PR-PL",
+      "description": "VectorFlow. Procurement. Planning.",
+      "url": "/mto/procurement-planning/planning"
+    },
+    {
+      "name": "VectorFlow. Procurement. Material Coverage Open Sales.",
+      "code": "MTO-PR-MCOS",
+      "description": "VectorFlow. Procurement. Material Coverage Open Sales.",
+      "url": "/mto/procurement/material-coverage-open-sales"
+    },
+    {
+      "name": "VectorFlow. Master Data Management. Data Modification History",
+      "code": "MDM-DMH",
+      "description": "VectorFlow. Master Data Management. Data Modification History",
+      "url": "/mta/master-data-management/data-modification-history"
+    },
+    {
+      "name": "VectorFlow. Procurement. Insights and Trends Sales. RMPM Orderwise Coverage",
+      "code": "MTO-PR-RMPM",
+      "description": "VectorFlow. Procurement. Insights and Trends Sales. RMPM Orderwise Coverage",
+      "url": "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage"
+    },
+    {
+      "name": "VectorFlow. Procurement. Material Requirement",
+      "code": "MTO-PR-MR",
+      "description": "VectorFlow. Procurement. Material Requirement",
+      "url": "/mto/procurement/material-requirement"
+    },
+    {
+      "name": "VectorFlow. Procurement. Insights and Trends. Day Wise Coverage",
+      "code": "MTO-PR-DWC",
+      "description": "VectorFlow. Procurement. Insights and Trends. Day Wise Coverage",
+      "url": "/mto/procurement/insights-and-trends/day-wise-coverage"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. SDR",
+      "code": "MTA-SDR",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. SDR",
+      "url": "/mta/supply-chain-intelligence-hub/sdr"
+    },
+    {
+      "name": "VectorFlow. Procurement. Insights and Trends. RMPM Buffer Trend",
+      "code": "MTO-PR-RMPMBT",
+      "description": "VectorFlow. Procurement. Insights and Trends. RMPM Buffer Trend",
+      "url": "/mto/procurement/insights-and-trends/rmpm-buffer-trends"
+    },
+    {
+      "name": "VectorFlow. Procurement. Insights and Trends. Expediting - RM & Supplier",
+      "code": "MTO-PR-RMPM R&S",
+      "description": "VectorFlow. Procurement. Insights and Trends. Expediting - RM & Supplier",
+      "url": "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers"
+    },
+    {
+      "name": "VectorFlow. Production. Enquiry Response",
+      "code": "ER",
+      "description": "VectorFlow. Production. Enquiry Response",
+      "url": "/mto/production-planning-scheduling/enquiry-response"
+    },
+    {
+      "name": "VectorFlow. Production. STPL Full Kit",
+      "code": "MTO-PR-STPL-FULL-KIT",
+      "description": "VectorFlow. Production. STPL Full Kit",
+      "url": "/mto/production-planning-scheduling/insight-and-trends/stpl-full-kits"
+    },
+    {
+      "name": "VectorFlow. Production. BM Trend",
+      "code": "MTO-PR-BM-TRENDS",
+      "description": "VectorFlow. Production. BM Trend",
+      "url": "/mto/production-planning-scheduling/insight-and-trends/bm-trends"
+    },
+    {
+      "name": "VectorFlow. Production. Full Kit Assignment",
+      "code": "MTO-PR-FK-ASSGN",
+      "description": "VectorFlow. Production. Full Kit Assignment",
+      "url": "/mto/production-planning-scheduling/full-kit-assignment"
+    },
+    {
+      "name": "VectorFlow.Production.OrderReScheduling",
+      "code": "MTO-PR-ORD-RESCHEDULE",
+      "description": "VectorFlow.Production.OrderReScheduling",
+      "url": "/mto/production-planning-and-scheduling/order-rescheduling"
+    },
+    {
+      "name": "VectorFlow.Production.InsightsTrends.OrderRisks",
+      "code": "MTO-IT-OR",
+      "description": "VectorFlow.Production.InsightsTrends.OrderRisks",
+      "url": "/mto/production-planning-scheduling/insight-and-trends/order-at-risk"
+    },
+    {
+      "name": "VectorFlow.Production.Dpt.Bm.Rprt",
+      "code": "MTO-PR-DPT-REPORT",
+      "description": "VectorFlow.Production.Dpt.Bm.Rprt",
+      "url": "/mto/production-planning-scheduling/deptwise-bm-report"
+    },
+    {
+      "name": "VectorFlow.Production.Dynamic.Release.Management",
+      "code": "MTO-PR-DRM",
+      "description": "VectorFlow.Production.Dynamic.Release.Management",
+      "url": "/mto/production-planning-scheduling/dynamic-release-mangement"
+    },
+    {
+      "name": "VectorFlow.Production.InsightTrends.OrderBalance",
+      "code": "MTO-PR-IT-OB",
+      "description": "VectorFlow.Production.InsightTrends.OrderBalance",
+      "url": "/mto/production-planning-scheduling/insight-and-trends/order-balance"
+    },
+    {
+      "name": "VectorFlow.Production.InsightsTrends.FOLSummary",
+      "code": "MTO-PR-IT-FOL-SUMM",
+      "description": "VectorFlow.Production.InsightsTrends.FOLSummary",
+      "url": "/mto/production-planning-scheduling/insights-and-trends/fol-summary"
+    },
+    {
+      "name": "VectorFlow.POOGI.InsightsTrends.OtifAnalysis",
+      "code": "MTO-POOGI-IT-OTIF-ANLYS",
+      "description": "VectorFlow.POOGI.InsightsTrends.OtifAnalysis",
+      "url": "/mto/poogi/insight-and-trends/otif-analysis"
+    },
+    {
+      "name": "VectorFlow.Poogi.InsightTrends.Resource.WIP.Profile",
+      "code": "MTO-POOGI-IT-RU-WIP",
+      "description": "VectorFlow.Poogi.InsightTrends.Resource.WIP.Profile",
+      "url": "/mto/poogi/insight-and-trends/resource-utilization-wip-profile"
+    },
+    {
+      "name": "VectorFlow.POOGI.Reasons.DelayedOrders",
+      "code": "MTO-POOGI-RDO",
+      "description": "VectorFlow.POOGI.Reasons.DelayedOrders",
+      "url": "/mto/poogi/reasons-for-delayed-orders"
+    },
+    {
+      "name": "VectorFlow.Production.DDQ",
+      "code": "MTO-PR-DDQ",
+      "description": "VectorFlow.Production.DDQ",
+      "url": "/mto/production-planning-and-scheduling/due-date-quotation"
+    },
+    {
+      "name": "VectorFlow.Poogi.OTANDIF",
+      "code": "MTO.OT.AND.IF",
+      "description": "VectorFlow.Poogi.OTANDIF",
+      "url": "/mto/poogi/insight-and-trends/ot-and-if-analysis"
+    },
+    {
+      "name": "VectorFlow.Poogi.InsightsTrends.TrendsOfFailureReason",
+      "code": "MTO-POOGI-IT-FAILURE-REASON",
+      "description": "VectorFlow.Poogi.InsightsTrends.TrendsOfFailureReason",
+      "url": "/mto/poogi/insight-and-trends/trend-of-failure-reason"
+    },
+    {
+      "name": "VectorFlow.Poogi.InsightTrends.LeadTime",
+      "code": "MTO-POOGI-IT-LT",
+      "description": "VectorFlow.Poogi.InsightTrends.LeadTime",
+      "url": "/mto/poogi/insight-and-trends/lead-time"
+    },
+    {
+      "name": "VectorFlow.Production.InsightTrends.ElapsedTime",
+      "code": "MTO-PR-IT-ET",
+      "description": "VectorFlow.Production.InsightTrends.ElapsedTime",
+      "url": "/mto/production-planning-scheduling/insights-and-trends/elapsed-time"
+    },
+    {
+      "name": "VectoFlow.POOGI.InsightTrends.TopFailureReaons",
+      "code": "MTO-POOGI-IT-TFR",
+      "description": "VectoFlow.POOGI.InsightTrends.TopFailureReaons",
+      "url": "/mto/poogi/insight-and-trends/top-failure-reasons"
+    },
+    {
+      "name": "Vector.Production.Overall.BM.Report",
+      "code": "MTO-PR-OBR",
+      "description": "Vector.Production.Overall.BM.Report",
+      "url": "/mto/production-planning-scheduling/overall-bm-report"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Delivery.BMTrend",
+      "code": "MTO-IH-DP-BM",
+      "description": "VectorFlow.IntelligenceHub.Delivery.BMTrend",
+      "url": "/mto/manufacturing-intelligence-hub/delivery-performance/bm-trends"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Delivery.OTIFAnalysis",
+      "code": "MTO-IH-DP-OTIF",
+      "description": "VectorFlow.IntelligenceHub.Delivery.OTIFAnalysis",
+      "url": "/mto/manufacturing-intelligence-hub/delivery-performance/otif-analysis"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Delivery.OTANDIF",
+      "code": "MTO-IH-DP-OT-AND-IF",
+      "description": "VectorFlow.IntelligenceHub.Delivery.OTANDIF",
+      "url": "/mto/manufacturing-intelligence-hub/delivery-performance/ot-and-if-analysis"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Delivery.LeadTime",
+      "code": "MTO-IH-DP-LD",
+      "description": "VectorFlow.IntelligenceHub.Delivery.LeadTime",
+      "url": "/mto/manufacturing-intelligence-hub/delivery-performance/lead-time"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Congestion.ElapsedTime",
+      "code": "MTO-IH-CA-ET",
+      "description": "VectorFlow.IntelligenceHub.Congestion.ElapsedTime",
+      "url": "/mto/manufacturing-intelligence-hub/congestion-analysis/elapsed-time"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Congestion.OrderAtRisk",
+      "code": "MTO-IH-CA-OAR",
+      "description": "VectorFlow.IntelligenceHub.Congestion.OrderAtRisk",
+      "url": "/mto/manufacturing-intelligence-hub/congestion-analysis/orders-at-risk"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Congestion.OrderBalance",
+      "code": "MTO-IH-CA-OB",
+      "description": "VectorFlow.IntelligenceHub.Congestion.OrderBalance",
+      "url": "/mto/manufacturing-intelligence-hub/congestion-analysis/order-balance"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.FOL",
+      "code": "MTO-IH-FW-FOL",
+      "description": "VectorFlow.IntelligenceHub.Forward.FOL",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/fol-summary"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.STPL.FK",
+      "code": "MTO-IH-FW-STPL-FK",
+      "description": "VectorFlow.IntelligenceHub.Forward.STPL.FK",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/stpl-and-fullkit"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.Day.WiseCoverage",
+      "code": "MTO-IH-FW-DWC",
+      "description": "VectorFlow.IntelligenceHub.Forward.Day.WiseCoverage",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/day-wise-coverage"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.RM.PM.Orderwise",
+      "code": "MTO-IH-FW-RMPM-OW-COV",
+      "description": "VectorFlow.IntelligenceHub.Forward.RM.PM.Orderwise",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-order-wise-coverage"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.RM.Exp.Supp",
+      "code": "MTO-IH-FW-RM-EXP",
+      "description": "VectorFlow.IntelligenceHub.Forward.RM.Exp.Supp",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/expetiting-rm-supplier"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.Forward.RM.PM.Buffer.Trend",
+      "code": "MTO-IH-FW-RM-PM-BUF-TREND",
+      "description": "VectorFlow.IntelligenceHub.Forward.RM.PM.Buffer.Trend",
+      "url": "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-buffer-trend"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.ImprovementAreas.Top.Failure.Reason",
+      "code": "MTO-IH-IA-TFR",
+      "description": "VectorFlow.IntelligenceHub.ImprovementAreas.Top.Failure.Reason",
+      "url": "/mto/manufacturing-intelligence-hub/improvement-areas/top-failure-reasons"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.ImprovementAreas.Trend.Failure.Reason",
+      "code": "MTO-IH-IA-TFFR",
+      "description": "VectorFlow.IntelligenceHub.ImprovementAreas.Trend.Failure.Reason",
+      "url": "/mto/manufacturing-intelligence-hub/improvement-areas/trends-failure-reasons"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.ImprovementAreas.Resource.WIP",
+      "code": "MTO-IH-IA-RS-WIP",
+      "description": "VectorFlow.IntelligenceHub.ImprovementAreas.Resource.WIP",
+      "url": "/mto/manufacturing-intelligence-hub/improvement-areas/resource-wip-profile"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. Merchandising Grid",
+      "code": "MTA-MCGRID",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. Merchandising Grid",
+      "url": "/supply-chain-intelligence-hub/merchandising-grid"
+    },
+    {
+      "name": "VectorFlow : Landing Page",
+      "code": "LP",
+      "description": "VectorFlow : Landing Page",
+      "url": "/landing-page"
+    },
+    {
+      "name": "MDM.control Panel interceptor",
+      "code": "MDM-MTO-CP",
+      "description": "MDM.control Panel interceptor",
+      "url": "/masters-interceptor/control-panel"
+    },
+    {
+      "name": "MDM.saved-drafts interceptor",
+      "code": "MDM-MTO-SD",
+      "description": "MDM.saved-drafts interceptor",
+      "url": "/masters-interceptor/saved-drafts"
+    },
+    {
+      "name": "MDM.task-pending interceptor",
+      "code": "MDM-MTO-TP",
+      "description": "MDM.task-pending interceptor",
+      "url": "/masters-interceptor/task-pending"
+    },
+    {
+      "name": "MDM.taskStatus interceptor",
+      "code": "MDM-MTO-TS",
+      "description": "MDM.taskStatus interceptor",
+      "url": "/masters-interceptor/task-status"
+    },
+    {
+      "name": "MDM.data-modification interceptor",
+      "code": "MDM-MTO-DM",
+      "description": "MDM.data-modification interceptor",
+      "url": "/masters-interceptor/data-modification-history"
+    },
+    {
+      "name": "MDM.MTO.control.panel",
+      "code": "MTO-CP",
+      "description": "MDM.MTO.control.panel",
+      "url": "/mto/master-data-management/control-panel"
+    },
+    {
+      "name": "MDM.MTO.control.panel.add",
+      "code": "MTO-CP-ADD",
+      "description": "MDM.MTO.control.panel.add",
+      "url": "/mto/master-data-management/control-panel/add"
+    },
+    {
+      "name": "MDM.MTO.control.panel.modify",
+      "code": "MTO-CP-MOD",
+      "description": "MDM.MTO.control.panel.modify",
+      "url": "/mto/master-data-management/control-panel/view-modify"
+    },
+    {
+      "name": "MDM.MTO.saved",
+      "code": "MTO-SD",
+      "description": "MDM.MTO.saved",
+      "url": "/mto/master-data-management/saved-drafts"
+    },
+    {
+      "name": "MDM.MTO.taskPending",
+      "code": "MDM.MTO.TaskP",
+      "description": "MDM.MTO.taskPending",
+      "url": "/mto/master-data-management/task-pending"
+    },
+    {
+      "name": "MDM.MTO.taskStatus",
+      "code": "MDM.MTO.TaskS",
+      "description": "MDM.MTO.taskStatus",
+      "url": "/mto/master-data-management/task-status"
+    },
+    {
+      "name": "MDM.MTO.dmh",
+      "code": "MTO-DMH",
+      "description": "MDM.MTO.dmh",
+      "url": "/mto/master-data-management/data-modification-history"
+    },
+    {
+      "name": "VectorFlow.Profile",
+      "code": "VF-P",
+      "description": "VectorFlow. Profile",
+      "url": "/profile"
+    },
+    {
+      "name": "RRR-color",
+      "code": "rrr-color-bandwise",
+      "description": "rrr-color-bandwise",
+      "url": "/mta/supply-chain-intelligence-hub/rrr-color-bandwise"
+    },
+    {
+      "name": "SCIH-BOR-color",
+      "code": "SCIH-BOR-color",
+      "description": "SCIH-BOR-color",
+      "url": "/mta/supply-chain-intelligence-hub/bor-color-bandwise"
+    },
+    {
+      "name": "SCIH-Supplier-Wise-Allocation",
+      "code": "SCIH-Supplier-Wise-Allocation",
+      "description": "SCIH-Supplier-Wise-Allocation",
+      "url": "/mta/supply-chain-intelligence-hub/SupplierWiseAllocation"
+    },
+    {
+      "name": "mto-report-urls",
+      "code": "mto-report-urls",
+      "description": "mto-report-urls",
+      "url": "mto-report-urls"
+    },
+    {
+      "name": "mta-report-urls",
+      "code": "mta-report-urls",
+      "description": "mta-report-urls",
+      "url": "mta-report-urls"
+    },
+    {
+      "name": "VectorFlow. Supply Chain Intelligence Hub. EO",
+      "code": "MTA-EO",
+      "description": "VectorFlow. Supply Chain Intelligence Hub. EO",
+      "url": "/mta/supply-chain-intelligence-hub/eo"
+    },
+    {
+      "name": "VectorFlow.IntelligenceHub.FutureLoadChart",
+      "code": "IH-FOLC",
+      "description": "VectorFlow.IntelligenceHub.FutureLoadChart",
+      "url": "/mto/manufacturing-intelligence-hub/future-order-load-chart"
+    },
+    {
+      "name": "VectorFlow.Production.Scheduling",
+      "code": "Scheduling",
+      "description": "VectorFlow.Production.Scheduling",
+      "url": "/mto/production/scheduling"
+    },
+    {
+      "name": "VectorFlow.Production.FutureLoadChart",
+      "code": "MTO-PR-FOLC",
+      "description": "VectorFlow.Production.FutureLoadChart",
+      "url": "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart"
+    },
+    {
+      "name": "VectorFlow.LoginAuditReport",
+      "code": "US-LAR",
+      "description": "VectorFlow.LoginAuditReport",
+      "url": "/login-audit-report"
+    },
+    {
+      "name": "Bulk Upload",
+      "code": "VectorFlow.Usermanagement.BulkUpload",
+      "description": "bulk upload module",
+      "url": "/profile/bulk-upload"
+    },
+    {
+      "name": "MTO Scheduling",
+      "code": "VectorFlow.Production.Scheduling",
+      "description": "scheduling",
+      "url": "mto/production/scheduling"
+    }
+  ],
+  "features": [
+    {
+      "feature": "Order_Closing",
+      "page": "Overall_BM",
+      "is_active": true
+    },
+    {
+      "feature": "Simulation_Enable",
+      "page": "Procurment_Planning",
+      "is_active": true
+    },
+    {
+      "feature": "Schedule_Orders",
+      "page": "DDQ",
+      "is_active": true
+    },
+    {
+      "feature": "Rewrite_Due_Date",
+      "page": "Order_Rescheduling",
+      "is_active": true
+    },
+    {
+      "feature": "Unschedule_Order",
+      "page": "Order_Rescheduling",
+      "is_active": true
+    },
+    {
+      "feature": "Add_Comments",
+      "page": "Dept-Wise_BM_Report",
+      "is_active": true
+    },
+    {
+      "feature": "POOGI_Reasons",
+      "page": "Reasons_For_Delayed_Order",
+      "is_active": true
+    },
+    {
+      "feature": "Change_Route",
+      "page": "Full_Kit_Assignment",
+      "is_active": true
+    },
+    {
+      "feature": "Deselect_Orders",
+      "page": "Full_Kit_Assignment",
+      "is_active": true
+    },
+    {
+      "feature": "Scheduler_Run_Trigger",
+      "page": "Scheduling",
+      "is_active": true
+    },
+    {
+      "feature": "Bulk_upload",
+      "page": "Bulk_Upload",
+      "is_active": true
+    }
+  ],
+  "configuration": [
+    {
+      "flag": "CLIENT_LOGO",
+      "value": null,
+      "description": null,
+      "isvisible": true
+    },
+    {
+      "flag": "CLIENT_NAME",
+      "value": null,
+      "description": null,
+      "isvisible": true
+    },
+    {
+      "flag": "NUMBER_FORMAT",
+      "value": null,
+      "description": null,
+      "isvisible": true
+    },
+    {
+      "flag": "IDLE_TIMEOUT",
+      "value": "900000",
+      "description": "IDLE_TIMEOUT should be in miliseconds",
+      "isvisible": false
+    },
+    {
+      "flag": "Is_ADS_ACTIVE",
+      "value": false,
+      "description": "To check if user data needs to be verified with ADS for inactivity (Keep values as  False/True only)",
+      "isvisible": false
+    },
+    {
+      "flag": "UserDomain",
+      "value": null,
+      "description": "allow user login requests from the mentioned domain only",
+      "isvisible": false
+    }
+  ]
+}

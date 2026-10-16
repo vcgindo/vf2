@@ -48,6 +48,12 @@ def database_options(options=None):
     for env, key in [('DB_SSLROOTCERT', 'sslrootcert'), ('DB_SSLCERT', 'sslcert'), ('DB_SSLKEY', 'sslkey')]:
         if os.environ.get(env):
             value[key] = os.environ[env]
+    role = os.environ.get('DB_SESSION_ROLE')
+    if role:
+        import re
+        if not re.fullmatch(r'[a-z][a-z0-9_]{0,62}', role):
+            raise ValueError('DB_SESSION_ROLE requires a PostgreSQL identifier')
+        value['options'] = (value.get('options', '') + ' -c role=' + role).strip()
     return value
 
 
