@@ -95,3 +95,28 @@ def submit_transit(run,payload,actor):
     generation.revision += 1
     generation.save(update_fields=['revision'])
     _finish(owner,len(values))
+
+
+@transaction.atomic
+def add_expedite_remark(run,payload,actor):
+    history=live.history_owner(lock=True)
+    owner, requests=live.current_requests(lock=True)
+    values=[]
+    for row in _batch(payload,ACTION_FIELDS):
+        sku=_text(row['SKUCode'],width=50); location=_text(row['WHCode'],width=50)
+        reader.authorize_pair(run,payload,sku,location)
+        eta=_datetime(row['ETA'])
+        values.append(dict(SKUCode=sku,WHCode=location,Remark=_text(row['Remark']),
+            ETA=eta.replace(tzinfo=timezone.utc)))
+    _write_context();stamp=_now(); affected=0
+    from mta.mdm.clock import database_now
+    for i,row in enumerate(values):
+        ExpediteRemarkHistory.objects.create(owner=history,ordinal=history.next_ordinal+i,
+            **row,UserId=_text(actor.get('name')),RemarkDate=stamp)
+        selected=[r.pk for r in requests if sql_key(r.SKUCode,r.WhCode)==sql_key(row['SKUCode'],row['WHCode'])]
+        affected += DailyOpenRequest.objects.filter(pk__in=selected).update(Action=row['Remark'],
+            ActionDate=database_now().replace(tzinfo=timezone.utc),
+            ETA=datetime.combine(row['ETA'].date(),time.min,tzinfo=timezone.utc))
+    owner.revision+=1;owner.save(update_fields=['revision'])
+    _finish(history,len(values))
+    return str(affected+len(values))

@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 from django.test import override_settings
 from django.db import DatabaseError
 from mta.presentation import logistics_commands as commands, logistics_views as views
-from tests.test_logistics_reads import LogisticsReadContractTests
+from tests import test_logistics_reads as reads
 
 
 class LogisticsCommandContractTests(unittest.TestCase):
@@ -34,7 +34,7 @@ class LogisticsCommandContractTests(unittest.TestCase):
     @override_settings(VF_MTA_LOGISTICS_CURRENT=True,
         VF_MTA_LOGISTICS_COMMAND_DATABASE='handoff3005_g3_workflow_20261015_003')
     def test_command_uses_gateway_actor_exact_database_and_truthful_failures(self):
-        helper=LogisticsReadContractTests()
+        helper=reads.LogisticsReadContractTests()
         cursor=MagicMock();cursor.__enter__.return_value=cursor
         cursor.fetchone.return_value=('handoff3005_g3_workflow_20261015_003',)
         with patch.object(views.connection,'cursor',return_value=cursor), \
@@ -55,5 +55,21 @@ class LogisticsCommandContractTests(unittest.TestCase):
 
     def test_command_is_disabled_by_default(self):
         with override_settings(VF_MTA_LOGISTICS_CURRENT=False):
-            response=LogisticsReadContractTests().call('SubmitRemarksForInTransit')
+            response=reads.LogisticsReadContractTests().call('SubmitRemarksForInTransit')
         self.assertEqual(response.status_code,403)
+
+    @override_settings(VF_MTA_LOGISTICS_CURRENT=True,
+        VF_MTA_LOGISTICS_COMMAND_DATABASE='handoff3005_g3_workflow_20261015_003')
+    def test_action_route_preserves_batch_return_and_gateway_actor(self):
+        cursor=MagicMock();cursor.__enter__.return_value=cursor
+        cursor.fetchone.return_value=('handoff3005_g3_workflow_20261015_003',)
+        payload={'data':[{'SKUCode':'337','WHCode':'DP','Remark':'Call','ETA':'2026/10/21'}]}
+        with patch.object(views.connection,'cursor',return_value=cursor), \
+                patch.object(views,'selected_run',return_value='run'), \
+                patch.object(commands,'add_expedite_remark',return_value='3') as action:
+            response=reads.LogisticsReadContractTests().call('AddRemarkForExpedite',body=payload)
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(json.loads(response.content)['data'],'3')
+            self.assertEqual(action.call_args.args,('run',payload,{'id':1,'name':'fixture'}))
+        with self.assertRaises(ValueError):
+            commands._batch({'data':[{'SKUCode':'337','WHCode':'DP','Remark':'Call'}]},commands.ACTION_FIELDS)

@@ -171,17 +171,6 @@ const OpenExpeditingRequests = () => {
         />
       )}
 
-      {isSubmitRemarkToolTipOpen && (
-        <BPRSubmiRemarkToolTip
-          remark={remark}
-          setRemark={updateRemark}
-          style={submitRemarkToolTipPosition}
-          onSuccess={onSubmitRemark}
-          onClose={onCloseSubmitRemark}
-          themeUi={themeUi}
-        />
-      )}
-
       <RemarkModal
         isOpen={isRemarkHistoryToolTipOpen}
         data={remarkHistory}

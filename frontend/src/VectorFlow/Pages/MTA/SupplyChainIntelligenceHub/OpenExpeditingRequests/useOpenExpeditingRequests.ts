@@ -25,6 +25,7 @@ import { GridRef } from "../../../../../VectorFlow/types/MDM"
 import useGetLastRunData from "../../../../../hooks/useGetLastRunData"
 import { useGetUIConfigData } from "../../../../Services/MTA/Common/UIConfig";
 import { UIColumnConfigName, UserUIColumnConfigName } from "../../../../../helpers/Enum";
+import { mapExpediteActionBatch } from "../../../../../helpers/logisticsRequests";
 
 const useOpenExpeditingRequests = () => {
 
@@ -360,11 +361,8 @@ const useOpenExpeditingRequests = () => {
         try{
             if(remark.length===0) throw new Error("Remark cannot be empty")
             const toastId = notifyLoader("Submitting Remark")
-            await addRemark({
-                SKUCode:activeRow.sc,
-                WHCode:activeRow.wc,
-                remark:remark,
-            })
+            await addRemark(mapExpediteActionBatch([{...activeRow,action:remark}]))
+            await onApplyFilter(currentFilter)
             toast.dismiss(toastId)
             
             notifySuccess('Remark Has Been submitted')
@@ -430,14 +428,7 @@ const useOpenExpeditingRequests = () => {
 
       const toastId = notifyLoader("Submitting Remark");
 
-      const payload = editedRows.map((r) => ({
-        SKUCode: r.sc,
-        WHCode: r.wc,
-        Remark: r.action || "",
-        ETA: r.eta,
-      }));
-
-      await addRemark({ data: payload });
+      await addRemark(mapExpediteActionBatch(editedRows));
       toast.dismiss(toastId);
       notifySuccess("Remark saved successfully");
 
@@ -487,6 +478,7 @@ const useOpenExpeditingRequests = () => {
       resizable: false,
     },
     action: {
+      onCellClicked: (params: any) => onOpenSubmitRemark({...params.event,currentTarget:params.event?.target?.closest('[role="gridcell"]')},params.data),
       cellStyle: {
         backgroundColor: 'white',
         border: '1px solid #b9bdba',
