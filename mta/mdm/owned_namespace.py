@@ -315,6 +315,11 @@ def verify_binding(receipt):
 APPLICATION_POLICY = "fresh-owned-ui-workflows-v1"
 PRODUCTION_APPLICATION_POLICY = "vectorflow-owned-application-v1"
 APPLICATION_REGISTRY = "fresh_control.application_capability"
+# Saved grid layouts are mutable user preferences, not calculation state. Keep
+# their exact access out of the historical sealed capability profile.
+PRODUCTION_UI_GRANTS = {
+    'mta.fresh_mta_userreportlayout': {'columns': [], 'table': ['INSERT', 'DELETE']},
+}
 APPLICATION_GRANTS = {'mta.fresh_mta_bprliveremark': {'columns': [], 'table': ['INSERT']},
  'mta.fresh_mta_calculationrun': {'columns': ['id'], 'table': ['UPDATE']},
  'mta.fresh_mta_mdmdraft': {'columns': ['LastModifiedDateTime', 'Masters', 'SearchKeys'],
@@ -594,7 +599,7 @@ def _application_catalogue(cursor):
     return dict(objects=objects,grants=grants,functions=functions)
 
 
-def _check_application_grants(catalogue, registration, *, logistics=False):
+def _check_application_grants(catalogue, registration, *, logistics=False, production=False):
     """Admit only this fixed application profile; the signed row cannot expand it."""
     owner, consumer, acceptor, issuer = (registration[k+'_oid'] for k in ('owner','consumer','acceptor','issuer'))
     registrar = registration['registrar']['oid']
@@ -609,6 +614,8 @@ def _check_application_grants(catalogue, registration, *, logistics=False):
     permissions_by_table = dict(APPLICATION_GRANTS)
     if logistics:
         permissions_by_table.update(LOGISTICS_APPLICATION_GRANTS)
+    if production:
+        permissions_by_table.update(PRODUCTION_UI_GRANTS)
     for name, permissions in permissions_by_table.items():
         if name not in objects or objects[name]['kind'] not in ('r','p'):
             _reject('application write object is absent')
@@ -710,6 +717,7 @@ def _read_application_capability(cursor, registration):
 
 def _production_application_profile_digest():
     return digest(dict(base=_application_profile_digest(), logistics=LOGISTICS_APPLICATION_GRANTS,
+        user_preferences=PRODUCTION_UI_GRANTS,
         logistics_tables=sorted(LOGISTICS_TABLES), logistics_functions=sorted(LOGISTICS_FUNCTIONS),
         installation='fresh-current-source-full-catalogue-v1'))
 
@@ -741,7 +749,7 @@ def _validate_application(cursor, database, registration, evidence, *,
     if binding.get('policy') == PRODUCTION_APPLICATION_POLICY:
         # A clean installation records the complete current catalogue once. It
         # has no historical catalogue to subtract or older adapter to impersonate.
-        digests = _check_application_grants(catalogue, registration, logistics=True)
+        digests = _check_application_grants(catalogue, registration, logistics=True, production=True)
         _check_logistics_schema(cursor, catalogue, registration)
         return _validate_application_binding(binding, original, implementation_sha256,
             digests, production=True)

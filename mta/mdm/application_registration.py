@@ -83,6 +83,7 @@ def register_application(cursor, *, expected_database, expected_database_oid,
     permissions = dict(owned.APPLICATION_GRANTS)
     if production:
         permissions.update(owned.LOGISTICS_APPLICATION_GRANTS)
+        permissions.update(owned.PRODUCTION_UI_GRANTS)
     for name,grant in permissions.items():
         for permission in grant['table']:
             columns=' ('+','.join(map(_identifier,grant['columns']))+')' if permission=='UPDATE' else ''
@@ -100,7 +101,7 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         if function['name'] in owned.APPLICATION_FUNCTIONS:
             cursor.execute('GRANT EXECUTE ON FUNCTION '+identity+' TO '+consumer)
     catalogue=owned._application_catalogue(cursor)
-    digests=owned._check_application_grants(catalogue,registration,logistics=production)
+    digests=owned._check_application_grants(catalogue,registration,logistics=production,production=production)
     if production:
         owned._check_logistics_schema(cursor,catalogue,registration)
     binding=dict(policy=owned.PRODUCTION_APPLICATION_POLICY if production else owned.APPLICATION_POLICY,

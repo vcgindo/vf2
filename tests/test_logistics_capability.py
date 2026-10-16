@@ -108,7 +108,14 @@ class LogisticsCapabilityTests(TestCase):
 
 
     def test_fresh_production_capability_validates_full_catalogue_without_historical_subtraction(self):
-        full_digests=owned._check_application_grants(self.catalogue,self.reg,logistics=True)
+        for name, grants in owned.PRODUCTION_UI_GRANTS.items():
+            self.object(name)
+            self.object(name+'_id_seq', kind='S', sequence_for=name+'.id')
+            self.grant('table', name, 'SELECT')
+            for privilege in grants['table']:
+                self.grant('table', name, privilege)
+            self.grant('sequence', name+'_id_seq', 'USAGE')
+        full_digests=owned._check_application_grants(self.catalogue,self.reg,logistics=True,production=True)
         binding=dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
             implementation_sha256=self.original['adapter_sha256'],
             profile_digest=owned._production_application_profile_digest(),**full_digests)

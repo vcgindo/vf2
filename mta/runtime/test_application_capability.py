@@ -186,3 +186,36 @@ class ApplicationCapabilityTests(SimpleTestCase):
             with self.subTest(key=key),self.assertRaises(ValueError):
                 owned._validate_application_binding(changed,self.original,
                     self.original['adapter_sha256'],self.digests,production=True)
+
+    def test_fresh_ui_layout_access_is_exact_and_not_inherited_by_historical_profile(self):
+        name = 'mta.fresh_mta_userreportlayout'
+        self.object(name)
+        self.object(name+'_id_seq', kind='S', sequence_for=name+'.id')
+        self.grant('table', name, 'SELECT')
+        readonly = deepcopy(self.catalogue)
+        for permission in ('INSERT', 'DELETE'):
+            self.grant('table', name, permission)
+        self.grant('sequence', name+'_id_seq', 'USAGE')
+        owned._check_application_grants(self.catalogue, self.reg, production=True)
+        # Same actual catalogue cannot silently widen an already sealed profile.
+        with self.assertRaises(ValueError):
+            owned._check_application_grants(self.catalogue, self.reg)
+        with self.assertRaises(ValueError):
+            owned._check_application_grants(readonly, self.reg, production=True)
+        for permission in ('UPDATE', 'TRUNCATE', 'REFERENCES', 'TRIGGER'):
+            catalogue = deepcopy(self.catalogue)
+            catalogue['grants'].append(dict(next(g for g in catalogue['grants']
+                if g['name']==name), privilege=permission))
+            with self.subTest(permission=permission), self.assertRaises(ValueError):
+                owned._check_application_grants(catalogue, self.reg, production=True)
+        for changed in ('missing_sequence', 'public', 'grant_option'):
+            catalogue = deepcopy(self.catalogue)
+            grant = next(g for g in catalogue['grants'] if g['name']==name and g['privilege']=='DELETE')
+            if changed == 'missing_sequence':
+                catalogue['grants'] = [g for g in catalogue['grants'] if g['name']!=name+'_id_seq']
+            elif changed == 'public':
+                grant['grantee'] = 0
+            else:
+                grant['grantable'] = True
+            with self.subTest(changed=changed), self.assertRaises(ValueError):
+                owned._check_application_grants(catalogue, self.reg, production=True)

@@ -24,6 +24,17 @@ http {
         client_max_body_size 64m;
         location = /healthz { default_type application/json; return 200 '{"status":"ok","scope":"gateway-only"}'; }
         location = /readyz { proxy_pass $auth_service/readyz; proxy_set_header Host $host; }
+        # Retain the demonstrated Planning response compression contract.
+        location = /api/mta/GetPlanningDataGrid {
+            gzip on; gzip_types application/json; gzip_min_length 1024;
+            gzip_comp_level 1; gzip_vary on;
+            proxy_pass $auth_service;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header X-Forwarded-Proto ${VF_FORWARD_SCHEME};
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_read_timeout ${VF_PROXY_READ_TIMEOUT}s;
+        }
         location /api/ {
             proxy_pass $auth_service;
             proxy_set_header Host $host;
