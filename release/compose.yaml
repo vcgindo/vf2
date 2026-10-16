@@ -587,6 +587,26 @@ services:
     depends_on:
       postgres:
         condition: "service_healthy"
+  auth-worker:
+    extends:
+      service: auth
+    profiles: [maintenance]
+    entrypoint: [python, -m, release.service, auth-worker]
+    mem_limit: "${AUTH_WORKER_MEMORY:-256m}"
+    memswap_limit: "${AUTH_WORKER_MEMORY:-256m}"
+    cpus: "${AUTH_WORKER_CPUS:-0.5}"
+    healthcheck:
+      test: [CMD, python, -c, "import os;os.kill(1,0)"]
+  auth-beat:
+    extends:
+      service: auth
+    profiles: [maintenance]
+    entrypoint: [python, -m, release.service, auth-beat]
+    mem_limit: "${AUTH_BEAT_MEMORY:-128m}"
+    memswap_limit: "${AUTH_BEAT_MEMORY:-128m}"
+    cpus: "${AUTH_BEAT_CPUS:-0.25}"
+    healthcheck:
+      test: [CMD, python, -c, "import os;os.kill(1,0)"]
 secrets:
   postgres_admin_password:
     file: "${VF_SECRETS_DIR:-./secrets}/postgres_admin_password"

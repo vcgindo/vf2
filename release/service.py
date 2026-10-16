@@ -5,6 +5,13 @@ from release.configuration import integer
 
 
 def command(service):
+    if service == 'auth-worker':
+        return ['celery', '-A', 'apps', 'worker', '--loglevel=INFO',
+            '--queues=db_cleanup_queue', '--concurrency=1', '--pool=solo']
+    if service == 'auth-beat':
+        return ['celery', '-A', 'apps', 'beat', '--loglevel=INFO',
+            '--schedule=/var/lib/vectorflow/celerybeat-schedule',
+            '--pidfile=/tmp/celerybeat.pid']
     if service == 'mta':
         return ['gunicorn', 'vectorflow.wsgi:application', '--preload', '--bind', '0.0.0.0:8000',
             '--workers', str(integer('MTA_WORKERS', 2, maximum=4)),
@@ -46,9 +53,10 @@ def check_migrations():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('service', choices=('mta', 'mto', 'auth'))
+    parser.add_argument('service', choices=('mta', 'mto', 'auth', 'auth-worker', 'auth-beat'))
     service = parser.parse_args().service
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'release.' + service + '_settings')
+    settings_service = 'auth' if service.startswith('auth-') else service
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'release.' + settings_service + '_settings')
     args = command(service)
     check_migrations()
     os.execvp(args[0], args)

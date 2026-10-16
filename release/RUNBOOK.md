@@ -151,6 +151,17 @@ If the source/schema remains compatible, roll back using retained exact images/c
 
 ## Diagnostics and operational limits
 
+The optional `maintenance` profile transfers the existing Celery audit-retention
+task and its existing 24-hour beat schedule; it is not an MTO scheduler. Defaults
+start neither worker nor beat. If audit retention is approved for this new
+installation, start `vf --profile maintenance up -d auth-worker auth-beat`.
+Run exactly one beat instance. Its schedule persists in `auth_data`; both use the
+existing auth runtime role, Redis and external auth secrets. The worker listens
+only on `db_cleanup_queue`. The retained task deletes auth audit rows older than
+90 days. Do not enable it against preserved development data or invoke the task
+as a packaging test. Check bounded worker/beat logs and process health separately;
+process health does not certify a cleanup result.
+
 Pending migrations stop serving; use the explicit installation/upgrade path after checking ownership. Missing secrets, a mismatched client cipher key, bad origins or untrusted TLS certificates are configuration errors, not reasons to disable authentication/TLS. A 503 with an absent publication is expected on an empty install. A source/catalogue/receipt mismatch must be investigated at its exact layer; it cannot be waived by returning an empty grid. A 403 must be traced through the existing user/application/product/location scope, never bypassed.
 
 Logs rotate with Compose's configured maximum size/count; service logs and downloads use declared volumes. `FRONTEND_BUILD_HEAP_MIB` configures the Node build process (default 4096MiB), separately from nginx's runtime container limit. A cold lint/build reached the former 2560MiB V8 heap limit; this is a build-resource requirement, not an application calculation change. Record actual memory/CPU limits when assessing an installation. They are deployment settings, not production-capacity proof. Existing preserved native positive transit and Planning submission coverage limitations remain explicit; do not manufacture shipments, recolour dispatches or treat component evidence as a fresh positive UI pass.
