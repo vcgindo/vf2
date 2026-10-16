@@ -62,6 +62,11 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if run.input_digest != expected_digest or (not typed and digest(read_input(run)) != expected_digest):
             raise ValueError('Input snapshot changed during calculation')
         lineage = output.get('Lineage') or [{}]
+        from mta.application.native_report_disposition import verify_commit
+        admitted_disposition = run.production_manifest.get('native_report_disposition')
+        if admitted_disposition is not None and run.production_manifest != {'native_report_disposition': admitted_disposition}:
+            raise ValueError('Native report disposition admission metadata differs')
+        verify_commit(admitted_disposition, lineage, run)
         cohort = lineage[0].get('cohort1')
         if run.kind=='DAILY_CHAIN':
             from mta.application.daily_finalization import configuration,verify_finalization_identity

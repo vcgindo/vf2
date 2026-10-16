@@ -28,14 +28,14 @@ def module(master_id, boundary='current'):
     return import_module('mta.mdm.' + name)
 
 
-def require_installed(source, master_id):
+def require_installed(source, master_id, *, read_only=False):
     master_id = int(master_id)
     if master_id not in NAMES:
         raise ValueError('MDM family is not delivered')
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
         from mta.mdm.production_families import require_binding
-        require_binding(source)
+        require_binding(source, read_only=read_only)
         return
     if master_id in (7, 8, 9):
         from mta.mdm.phase_controls_source import require_installed as require_phase
@@ -63,14 +63,14 @@ def require_installed(source, master_id):
             raise PublicationUnavailable('mdm_family_not_installed')
 
 
-def installed_ids(source):
+def installed_ids(source, *, read_only=False):
     result = [1, *MdmFamilySource.objects.filter(source=source).order_by('master_id').values_list('master_id', flat=True)]
     if source.receipt.get('schema') == 'fresh-production-mdm-source-v1':
         from mta.mdm.production_families import require_binding
-        require_binding(source)
+        require_binding(source, read_only=read_only)
         return result
     for master_id in result:
-        require_installed(source, master_id)
+        require_installed(source, master_id, read_only=read_only)
     return result
 
 

@@ -212,7 +212,7 @@ def initialize_consumers(owner, value, input_sha256):
 
 def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             pick_output_root, execution_revision=None, retry_capture_id=None,
-            predecessor_id=None, predecessor_output_digest=None):
+            predecessor_id=None, predecessor_output_digest=None, report_disposition=None):
     """Read persisted identities only; return every known input/capability issue."""
     from django.core.exceptions import ObjectDoesNotExist
     from mta.runtime.models import ProductionInitialization, CalculationRun
@@ -285,6 +285,8 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
             except (ValueError,TypeError,KeyError,OSError,ObjectDoesNotExist) as error:
                 problem('/predecessor/current_ownership' if parent is not None else '/initialization/current_ownership',
                     'native MDM integration',error)
+    if report_disposition is not None and retry_capture_id is None:
+        problem('/report_disposition','native report disposition','Disposition requires an exact frozen retry')
     if retry_capture_id is not None:
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         try:
@@ -298,7 +300,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 problem('/retry_capture_id','frozen MDM capture','Frozen retry daily input identity differs')
             if owner is not None and frame is not None and (predecessor_id is None or parent_context and 'closing_state' in parent_context):
                 inspect_retry(raw,expected_sha256,owner,frame,parent,parent_context,frozen,
-                    execution_revision,pick_output_root,problem)
+                    execution_revision,pick_output_root,problem,report_disposition=report_disposition)
         except (ValueError,TypeError,ObjectDoesNotExist) as error:
             problem('/retry_capture_id','frozen MDM capture',error)
     report=daily(raw,expected_sha256,frame=frame,predecessor=parent_context,
@@ -351,7 +353,7 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
     return True
 
 
-def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem):
+def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None):
     """Read-only mirror of frozen retry checks; locked execution gates remain."""
     from mta.runtime.validation_storage import read_input
     from mta.runtime.services import read_outputs
@@ -361,12 +363,17 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
     from mta.runtime.production_preflight import frozen_retry
     try:
         day,prior,request,_=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root)
+        from mta.application.native_report_disposition import admit, verify_replay, RETRIES
+        if report_disposition is not None or revision in RETRIES.values():
+            admit(requested=report_disposition,native=True,origin=frozen,parent=parent,
+                initialization=owner,raw=read_input(frozen.run),request_digest=request,execution_revision=revision)
         repeated=MdmDailyInputCapture.objects.select_related('run').filter(source_id=frozen.source_id,
             request_digest=request,run__execution_revision=revision).first()
         if repeated is not None:
             if repeated.origin_id!=frozen.pk or repeated.run.evidence_mode!='production':
                 problem('/retry_capture_id/repeated','frozen MDM capture','Repeated retry identity/evidence policy differs')
             try:
+                verify_replay(repeated.run,repeated.run.production_manifest.get('lineage'),report_disposition)
                 read_outputs(repeated.run)  # Verify only; never restore Pick files.
             except (ValueError,KeyError,TypeError) as error:
                 problem('/retry_capture_id/repeated/output','frozen MDM capture',error)
@@ -389,7 +396,7 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
 
 def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
-            retry_capture_id=None):
+            retry_capture_id=None, report_disposition=None):
     from mta.runtime.models import ProductionInitialization, CalculationRun
     from mta.mdm.initialization import read_initialized_input
     from mta.mdm.production_families import bootstrap_native_families, require_binding, require_initialization
@@ -398,7 +405,7 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
     report,owner,parent,frame=inspect_execution(raw,expected_sha256,initialization_id=initialization_id,
         source_digest=source_digest,configuration_digest=configuration_digest,pick_output_root=pick_output_root,
         predecessor_id=predecessor_id,predecessor_output_digest=predecessor_output_digest,
-        execution_revision=execution_revision,retry_capture_id=retry_capture_id)
+        execution_revision=execution_revision,retry_capture_id=retry_capture_id,report_disposition=report_disposition)
     require(report,'day')
     value = decode(raw, expected_sha256)
     owner = ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
@@ -429,4 +436,4 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
         mdm_source=owner.source if retry_capture_id is None else None,
         mdm_retry=retry_capture_id, evidence_mode='production', pick_output_root=pick_output_root,
         production_initialization=owner, daily_input_sha256=expected_sha256,
-        consumer_opening=value['consumer_opening'])
+        consumer_opening=value['consumer_opening'], report_disposition=report_disposition)

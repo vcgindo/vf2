@@ -274,7 +274,7 @@ class ProductionPreflightTests(unittest.TestCase):
         owner=SimpleNamespace(pk=INIT,source=SimpleNamespace(digest=SOURCE),input_sha256=sha,
             input_digest=OUTPUT,configuration_digest=digest(frame['profile']))
         frozen=SimpleNamespace(pk='capture',source_id=SOURCE)
-        repeated=SimpleNamespace(origin_id='capture',run=SimpleNamespace(evidence_mode='production'))
+        repeated=SimpleNamespace(origin_id='capture',run=SimpleNamespace(evidence_mode='production',status='SUCCEEDED',production_manifest={'lineage':[{}]}))
         problems=[]
         with TemporaryDirectory() as root,patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
             patch('mta.runtime.services.read_outputs',return_value={}) as read, \

@@ -11,7 +11,7 @@ from mta.serialization import canonical_parts
 
 
 def query(run):
-    selected,_=admitted_sources()
+    selected,_=admitted_sources(run)
     if selected.pk!=run.pk: raise ValueError('BOR preparation run differs')
     ctes=[];params=[]
     for alias,table in (('A','SupplierDispatchReq'),('I','SOBData'),('J','MOQData')):

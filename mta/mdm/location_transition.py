@@ -145,8 +145,12 @@ def integration_identity(source, initialization, seal):
     """Identity used to reconstruct the original immutable integration seal."""
     from mta.mdm.production_families import adapter_digest
     if seal.receipt.get('closing_projection_version') == VERSION:
-        return dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
-                    source_manifest_digest=source_manifest_digest())
+        identity = dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
+                        source_manifest_digest=source_manifest_digest())
+        if identity != {key: seal.receipt.get(key) for key in identity}:
+            from mta.mdm.presentation_compatibility import require_exact_presentation_delta
+            return require_exact_presentation_delta(source, initialization, seal, identity)
+        return identity
     if 'closing_projection_version' in seal.receipt:
         raise ValueError('Unknown native closing projection version')
     record = registration()

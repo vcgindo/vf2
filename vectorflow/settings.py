@@ -26,6 +26,24 @@ VF_MTA_PUBLISHED_DIGEST = os.environ.get('VF_MTA_PUBLISHED_DIGEST', '')
 VF_MTA_FIXTURE_FILE = os.environ.get('VF_MTA_FIXTURE_FILE', '')
 VF_MTA_FIXTURE_SHA256 = os.environ.get('VF_MTA_FIXTURE_SHA256', '')
 VF_BTR_REPORTING_GENERATION = os.environ.get('VF_BTR_REPORTING_GENERATION', '')
+VF_MTA_NATIVE_PUBLICATION = os.environ.get('VF_MTA_NATIVE_PUBLICATION', '') == '1'
+VF_MTA_SELECTION_FILE = os.environ.get('VF_MTA_SELECTION_FILE', '')
+VF_MTA_SELECTION = None
+if VF_MTA_SELECTION_FILE:
+    from django.core.exceptions import ImproperlyConfigured
+    from mta.presentation.native_selection import read as read_selection
+    if not VF_MTA_NATIVE_PUBLICATION or not VF_MTA_DAILY_PUBLICATION:
+        raise ImproperlyConfigured('Native daily publication is required for a selection file')
+    try:
+        VF_MTA_SELECTION = read_selection(VF_MTA_SELECTION_FILE)
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        raise ImproperlyConfigured('Native selection file is invalid or unavailable') from exc
+    for setting_name, selection_name in (
+            ('VF_MTA_PUBLISHED_RUN', 'run_id'), ('VF_MTA_PUBLISHED_DIGEST', 'output_digest'),
+            ('VF_BTR_REPORTING_GENERATION', 'btr_generation')):
+        if globals()[setting_name] and globals()[setting_name] != VF_MTA_SELECTION[selection_name]:
+            raise ImproperlyConfigured('Native selection conflicts with '+setting_name)
+        globals()[setting_name] = VF_MTA_SELECTION[selection_name]
 VF_BPR_PREPARED = os.environ.get('VF_BPR_PREPARED', '') == '1'
 VF_GUIDED_PREPARED = os.environ.get('VF_GUIDED_PREPARED', '') == '1'
 VF_RRR_PREPARED = os.environ.get('VF_RRR_PREPARED', '') == '1'

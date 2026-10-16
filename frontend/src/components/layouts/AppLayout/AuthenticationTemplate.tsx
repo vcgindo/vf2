@@ -4,6 +4,7 @@ import { MainService } from '../../../module-main/services/api'
 import { useLocation, useNavigate } from 'react-router'
 import { useUserData } from '../../../context';
 import { listMenuParent } from "../NavbarMenu/listMenu";
+import { markStartup } from '../../../performance/screenProbe';
 
 interface AuthenticationTemplateProps {
   isAnonymous: boolean
@@ -80,7 +81,9 @@ const AuthenticatedTemplate = (
           // A protected-route verification is a new redirect transition. Any
           // failure below still goes through loginRedirect's deduplication.
           clearRedirecting();
+          markStartup('profile-call');
           const response = await MainService.getProfile();
+          markStartup('profile-return');
           const profile = response?.data?.data;
 
           if (!profile) {
@@ -88,6 +91,7 @@ const AuthenticatedTemplate = (
           }
 
           setUser(profile);
+          markStartup('profile-set-user');
 
           const selectedMenu = getSelectedMenuItem(
             location?.pathname

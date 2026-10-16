@@ -59,7 +59,8 @@ class Command(BaseCommand):
             raise CommandError('Planning Expedite customs require retained April input')
         started = time.monotonic()
         with transaction.atomic():
-            type(run).objects.select_for_update().get(pk=run.pk)
+            if not options['verify_only']:
+                type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             assert_unchanged(run, source)
             receipt = PlanningExpediteCustomProjection.objects.filter(run=run).first()

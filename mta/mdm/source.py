@@ -23,7 +23,7 @@ PINS.update({name: receipt['sha256'] for name, receipt in TARGETS.items()})
 SOURCE_DIGEST = hashlib.sha256(json.dumps(PINS, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def source():
+def source(*, read_only=False):
     digest = settings.VF_MDM_SOURCE_DIGEST
     if not digest:
         raise PublicationUnavailable('mdm_source_not_selected')
@@ -37,7 +37,7 @@ def source():
     elif result.dll_digest != DLL:
         raise PublicationUnavailable('mdm_source_not_installed')
     from mta.mdm.integration_source import require_read_binding
-    require_read_binding(result)
+    require_read_binding(result, read_only=read_only)
     return result
 
 

@@ -1,3 +1,4 @@
+import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { settleRequestPair } from "../../requestPair"
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { AgGridReactProps } from 'ag-grid-react'
@@ -9,7 +10,9 @@ import BPRGraphCellRenderer from '../../SupplyChainIntelligenceHub/BPR/BPRGraphC
 
 import { useGetBPRData, useGetBPRDataCount, useGetDailyData } from "./../../../../../VectorFlow/Services/MTA/SupplyChainIntelligenceHub/BPR"
 import { useGetState } from "./../../../../../VectorFlow/Services/MTA/Common/UserUIConfig";
-import { isSameDay, format, addDays } from 'date-fns'
+import { isSameDay } from 'date-fns'
+import { researchHistoryPositions } from './historyPositions'
+import { startResearchLayoutReads, applyResearchSavedLayout } from './layoutReads'
 import { ReseachInsightsGraphState } from '../../../../../VectorFlow/types/BPR'
 import { useGetUpdatedGraphData, useGetHistroricalAvailabilityData } from '../../../../../VectorFlow/Services/MTA/InsightsAndTrends/ResearchInsights'
 import { notifyError, notifyLoader,notifySuccess } from '../../../../../helpers/notify'
@@ -28,6 +31,7 @@ import { useGetUIConfigData } from '../../../../Services/MTA/Common/UIConfig'
 import { UIColumnConfigName, UserUIColumnConfigName } from '../../../../../helpers/Enum'
 
 const useResearchInsights = () => {
+    useScreenProbe('Research');
 
     const { mutateAsync: getUiConfig, isLoading: isUIConfigLoading } = useGetUIConfigData();
 
@@ -76,6 +80,7 @@ const useResearchInsights = () => {
     const showNormChangeHistoryTable = useSelector((state:RootState) => state.mta.showNormChangeHistoryTable);
     const dailyData = useSelector((state:RootState) => state.mta.dailyData);
     const [initialColumnState, setInitialColumnState] = useState<any>(undefined);
+    const savedLayoutRead = useRef<ReturnType<typeof startResearchLayoutReads>['saved']>();
     const [masterUIConfig, setMasterUIConfig] = useState<any>([]);
     const EnvConfig = useSelector((state:RootState) =>state.mta.EnvConfig);
     const RESEARCHINSIGHT_ROWS_PER_PAGE = EnvConfig['RESEARCHINSIGHT_ROWS_PER_PAGE'];
@@ -99,12 +104,22 @@ const useResearchInsights = () => {
 
 
     const [selectedRowsDates, setSelectedRowsDates] = useState<Array<any>>([])
+    useEffect(() => {
+        if (selectedRowsDates.length && graphState !== 'default' && !isUpdatedGraphDataLoading) {
+            screenRendered('Research');
+        }
+    }, [selectedRowsDates, graphState, isUpdatedGraphDataLoading]);
     const {date:lastRunDate} = useGetLastRunData()
 
               
     const getRIUiConfig = async () => {
         try {
-            const response = await getUiConfig(UIColumnConfigName.Research_Insights);
+            const reads = startResearchLayoutReads(
+                () => getUiConfig(UIColumnConfigName.Research_Insights),
+                () => getState({ "reportname": UserUIColumnConfigName.Research_Insights })
+            );
+            savedLayoutRead.current = reads.saved;
+            const response = await reads.configuration;
             setInitialColumnState(response.data.data);
         } catch (err: any) {
             notifyError("Something Went Wrong")
@@ -122,7 +137,7 @@ const useResearchInsights = () => {
                     pivot: false
                 })
                 setResearchInsightsColumns(MappedColumns);
-                getUserColumnConfig();
+                await getUserColumnConfig();
             
             } catch (err: any) {
                 console.log(err)
@@ -144,19 +159,7 @@ const useResearchInsights = () => {
     }, [internalRef, ResearchInsightsColumns]);
           
     const getUserColumnConfig = async () => {
-        const stateData = await getState({ "reportname": UserUIColumnConfigName.Research_Insights })
-        if (stateData.data.data.length !== 0) {
-            const parsedContent = JSON.parse(stateData.data.data)
-                
-            setGridState({
-                charts: parsedContent.charts,
-                columns: parsedContent.columns,
-                pivot: parsedContent.pivot,
-            })
-          
-        } else {
-            console.log("Data not available");
-        }
+        await applyResearchSavedLayout(savedLayoutRead.current!, setGridState);
     }
 
   
@@ -232,7 +235,9 @@ const useResearchInsights = () => {
             suppressRowClickSelection:true,
             components:customCellRenderers,
             defaultColDef:defaultColDefObject,
-            onGridReady:(params)=>setInternalRef(params)
+            onGridReady:(params)=>setInternalRef(params),
+            onFirstDataRendered:()=>screenRendered('Research'),
+            onRowDataUpdated:()=>screenRendered('Research')
         }
     },[])
 
@@ -294,6 +299,7 @@ const useResearchInsights = () => {
     }
 
     const onApplyFilter = async (filter: any) => {
+        beginScreen('Research', 'filter');
         resetState()
         setCurrentFilter(filter)
         setCurrGridPage(1)
@@ -373,24 +379,9 @@ const useResearchInsights = () => {
         setGraphState('default')
     }
 
-    function convertCustomObjToObjects(colorArray: any) {
-        const result: any = [];
-
-        colorArray.forEach((color: any, index: any) => {
-            const date = addDays(new Date(), -(colorArray.length - index) + 1);
-
-
-            const dateString = `${format(date, 'do MMM')}`;
-
-            result.push({ ...color, date: dateString });
-        });
-
-        return result;
-    }
-
     const getColorData = (array: Array<any>) => {
         const colorFrequencyArray: any = [];
-        for (let day = 90-horizon; day <= 90; day++) {
+        for (const { field, date } of researchHistoryPositions(lastRunDate, horizon)) {
             const colorFrequency: any = {
                 Red: 0,
                 Blue: 0,
@@ -400,18 +391,19 @@ const useResearchInsights = () => {
                 White: 0
             };
             array.forEach((obj: any) => {
-                const color = obj[`D${day}`];
+                const color = obj[field];
                 if (color) colorFrequency[color]++
                 else colorFrequency[color] = 0
             })
-            colorFrequencyArray.push(colorFrequency)
+            colorFrequencyArray.push({ ...colorFrequency, date })
         }
-        return convertCustomObjToObjects(colorFrequencyArray)
+        return colorFrequencyArray
     }
 
     const handleOnUpdateGraph = async () => {
         const selectedRows = ref.current?.api.getSelectedRows()
         if (selectedRows && selectedRows.length === 0) return setGraphState('default')
+        beginScreen('Research', 'graph');
         const loaderId = notifyLoader('Loading graph data')
         try {
             const data = await getUpdatedGraphData({
@@ -551,7 +543,7 @@ const useResearchInsights = () => {
             return selfData
         }
         return []
-    }, [graphs, selectedRowsDates, horizon])
+    }, [graphs, selectedRowsDates, horizon, lastRunDate])
 
     const locationGraphData = useMemo(()=>{
         const selectedRows =  ref.current?.api.getSelectedRows()
@@ -572,7 +564,7 @@ const useResearchInsights = () => {
             return locationData
         }
         return []
-    }, [graphs, selectedRowsDates, horizon])
+    }, [graphs, selectedRowsDates, horizon, lastRunDate])
 
     // console.log(selectedRowsDates)
 

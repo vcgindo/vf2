@@ -160,7 +160,7 @@ class NativeBindingReadTests(unittest.TestCase):
         with patch.object(families.MdmFamilySource.objects, 'filter', return_value=query), \
                 patch.object(production, 'require_binding') as require_binding:
             self.assertEqual(families.installed_ids(source), [1, *ids])
-        require_binding.assert_called_once_with(source)
+        require_binding.assert_called_once_with(source, read_only=False)
 
 
 if __name__ == '__main__':

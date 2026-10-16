@@ -22,12 +22,25 @@ def read(run, payload):
     if not _no_active_filters(payload):
         raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
     if run.kind != 'LEGACY_UI_FIXTURE':
-        from mta.presentation.planning_summary_daily import require_ready
-        from mta.presentation.daily_planning.sources import _projected_attributes as daily_attributes
-        from mta.presentation.daily_planning_extension import require
-        require(run, 'overview')
-        receipt = require_ready(run)
-        attrs, _ = daily_attributes(run)
+        from mta.presentation.planning_summary_admission import require_ready
+        from mta.presentation import native_publication
+        if native_publication.enabled():
+            native_publication.require_mode()
+            receipt = require_ready(run)
+            from mta.presentation.selective import image_rows
+            from mta.presentation import hierarchy
+            from mta.presentation.context import permission_catalogue
+            attrs = {name: image_rows(run, 'closing/importer/' + name)
+                     for name in ('SkuAttributeData', 'LocationAttributeData')}
+            manifest = hierarchy.selected_manifest(run)
+            if manifest:
+                attrs = hierarchy.project_attributes(attrs, permission_catalogue(), manifest)
+        else:
+            from mta.presentation.daily_planning.sources import _projected_attributes as daily_attributes
+            from mta.presentation.daily_planning_extension import require
+            require(run, 'overview')
+            receipt = require_ready(run)
+            attrs, _ = daily_attributes(run)
         return counts(receipt, scope(payload, attributes=attrs)), run.business_date.isoformat()
     selected, source = fixture.binding()
     if selected.pk != run.pk:

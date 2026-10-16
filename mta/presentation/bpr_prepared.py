@@ -62,7 +62,7 @@ def _prepared_query(run):
 
 
 def _build(run, payload, importer, ancillary, paging=None, *, count=False, analytics=False,
-           live_remarks=False):
+           live_remarks=False, daily_transit=False):
     ctes, params = [], []
     def add(alias, query, values):
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
@@ -143,6 +143,8 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
     query, values = image_query(run, 'closing/btr/BufferTrendPhysicalInv')
     add('T', query, values)
     select = ','.join(value + ' AS ' + quote(name) for name, value in projection())
+    if daily_transit:
+        select += ',' + column('A', 'EcoColor') + ' AS _base_eco'
     # Reconstruct only selected keys through the existing normalized-key index.
     # OFFSET 0 keeps PostgreSQL from flattening this bounded lookup back into a
     # second whole-estate scan of the wide candidate relation. It does not limit
@@ -165,7 +167,14 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     if not count and not analytics and (not isinstance(paging, tuple) or len(paging) != 2 or
             any(type(value) is not int or value < 1 for value in paging)):
         raise ValueError('positive_BPR_pagination_required')
-    importer, manifest = _projected_attributes(run)
+    if daily:
+        from mta.presentation.selective import image_rows
+        from mta.presentation import hierarchy
+        importer = {name: image_rows(run, 'closing/importer/' + name)
+                    for name in ('SkuAttributeData', 'LocationAttributeData')}
+        manifest = hierarchy.selected_manifest(run)
+    else:
+        importer, manifest = _projected_attributes(run)
     BprPredicate(payload, importer['LocationAttributeData'])
     if manifest:
         raise PublicationUnavailable('BPR_prepared_hierarchy_supplement_not_bound')
@@ -192,7 +201,7 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     from mta.presentation.ancillary_live import serving_live
     query, params = _build(
         run, payload, importer, ancillary, paging, count=count, analytics=analytics,
-        live_remarks=serving_live(run))
+        live_remarks=serving_live(run), daily_transit=daily)
     if query is None:
         if analytics:
             return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline')
@@ -212,4 +221,19 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
             names = [field[0] for field in cursor.description]
             result = [dict(zip(names, row)) for row in cursor.fetchall()]
         cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
+        if daily and not count and not analytics:
+            from mta.presentation.rrr import index, sql_key
+            transit = index(ancillary['InTransitData'], 'SKUCode', 'WhCode')
+            for row in result:
+                base_colour = row.pop('_base_eco')
+                rows = []
+                for source in transit.get(sql_key(row['SKUCode'], row['WHCode']), []):
+                    item = {target: source[field] for target, field in (
+                        ('lc', 'OrderNo'), ('cd', 'CreationDate'), ('slt', 'SLT'),
+                        ('tlt', 'TLT'), ('ag', 'Ageing'), ('eta', 'ETA'),
+                        ('cl', 'CurrentLocationCode'), ('qty', 'InTransitQty'),
+                        ('remarks', 'Remark'))}
+                    item['exeecocolor'] = base_colour
+                    rows.append(item)
+                row['intransit'] = rows or None
         return result

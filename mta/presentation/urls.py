@@ -4,6 +4,7 @@ from mta.presentation import views
 from mta.presentation import mdm_views
 
 urlpatterns = [
+    path('ReportReadIdentity', views.report_read_identity),
     path('GetMasterUIConfiguration', mdm_views.configuration),
     path('GetCount', partial(mdm_views.current, count=True)),
     path('GetMasterData', mdm_views.current),

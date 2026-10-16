@@ -15,28 +15,35 @@ from mta.presentation.context import PermissionCodes, PublicationUnavailable
 
 
 class ReportingSelectionTests(unittest.TestCase):
-    def test_batched_source_identity_is_exact_and_checks_generation_digest(self):
+    def test_complete_source_identity_and_generation_reject_every_image_change(self):
         from datetime import date
         from mta.serialization import digest
-        run = SimpleNamespace(pk=uuid4(), kind='LEGACY_UI_FIXTURE', business_date=date(2026,4,7),
+        run = SimpleNamespace(pk=uuid4(), kind='DAILY_CHAIN', business_date=date(2026,7,7),
                               input_digest='input', output_digest='output', production_digest='production')
-        metadata = {path: {'image': path, 'count': i, 'fields': [['D1','D1','string']]}
-                    for i, path in enumerate(reporting.SOURCES.values())}
-        with patch.object(reporting, 'image_metadata', side_effect=lambda run,path: metadata[path]) as individual:
-            original = reporting.source_identity(run, 2)
-            self.assertEqual(individual.call_count, 13)
-            individual.reset_mock()
-            self.assertEqual(reporting.source_identity(run, 2, metadata=metadata), original)
-            individual.assert_not_called()
-        generation = SimpleNamespace(run_id=run.pk, version=2, source_kind=run.kind,
-            business_date=run.business_date, source_digest=digest(original))
-        with override_settings(VF_BTR_REPORTING_GENERATION=str(uuid4())), \
-                patch.object(reporting.BtrReportingGeneration.objects, 'get', return_value=generation):
-            self.assertIs(reporting.selected_generation(run, metadata=metadata), generation)
-            changed = dict(metadata)
-            path = next(iter(changed)); changed[path] = dict(changed[path], count=999)
-            with self.assertRaisesRegex(PublicationUnavailable, 'source_mismatch'):
-                reporting.selected_generation(run, metadata=changed)
+        metadata = {path: {'image':path, 'count':i, 'fields':[['D1','D1','string']],
+                          'rows_digest':'complete-'+str(i)}
+                    for i,path in enumerate(reporting.SOURCES.values())}
+        with patch.object(reporting, 'image_metadata', side_effect=lambda run,path:metadata[path]) as individual:
+            original = reporting.source_identity(run,2)
+            self.assertEqual([call.args[1] for call in individual.call_args_list], list(reporting.SOURCES.values()))
+            self.assertEqual(original['images'], {role:metadata[path] for role,path in reporting.SOURCES.items()})
+            generation = SimpleNamespace(run_id=run.pk, version=2, source_kind=run.kind,
+                business_date=run.business_date, source_digest=digest(original))
+            with override_settings(VF_BTR_REPORTING_GENERATION=str(uuid4())), \
+                    patch.object(reporting.BtrReportingGeneration.objects, 'get', return_value=generation):
+                self.assertIs(reporting.selected_generation(run), generation)
+                for path in reporting.SOURCES.values():
+                    before = metadata[path]
+                    for changed in ({'count':999}, {'fields':[['D2','D2','string']]},
+                                    {'rows_digest':'same-count-different-values'}):
+                        with self.subTest(path=path, change=changed):
+                            metadata[path] = before | changed
+                            with self.assertRaisesRegex(PublicationUnavailable, 'source_mismatch'):
+                                reporting.selected_generation(run)
+                    metadata[path] = before
+                individual.side_effect = PublicationUnavailable('binding_unavailable')
+                with self.assertRaisesRegex(PublicationUnavailable, 'binding_unavailable'):
+                    reporting.selected_generation(run)
 
     def test_ambiguous_sources_and_permission_bags_keep_accepted_reader(self):
         singleton = PermissionCodes({'sku': 1})

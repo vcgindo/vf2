@@ -12,6 +12,14 @@ class Command(BaseCommand):
         parser.add_argument('--output-digest', required=True)
 
     def handle(self, *args, **options):
+        from mta.presentation import native_publication
+        if native_publication.enabled():
+            from mta.runtime.models import CalculationRun
+            native_publication.require_mode()
+            run = CalculationRun.objects.get(pk=options['run_id'])
+            if run.output_digest != options['output_digest']:
+                raise CommandError('Explicit native output digest required')
+            native_publication.identity(run, verify_rows=True)
         from mta.presentation import qualified_consumption
         if qualified_consumption.enabled():
             from mta.runtime.models import CalculationRun
@@ -24,3 +32,9 @@ class Command(BaseCommand):
                 rows_digest=summary.rows_digest)), sort_keys=True))
         if receipt.status != 'READY':
             raise CommandError('Daily calculation remains unselected: required report layers are incomplete')
+        if native_publication.enabled():
+            # A separate immutable derived receipt preserves the accepted daily
+            # publication seal and the existing aggregate/fallback contract.
+            from django.core.management import call_command
+            call_command('prepare_guided_aggregates', run_id=options['run_id'],
+                         output_digest=options['output_digest'])

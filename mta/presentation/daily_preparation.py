@@ -51,10 +51,10 @@ MISSING_PRODUCERS = {
 }
 
 REQUIRED_LAYERS = (
-    'dbm_sources', 'bpr', 'btr', 'planning_sources', 'planning_grids',
+    'dbm_sources', 'bpr', 'btr', 'rrr', 'planning_sources', 'planning_grids',
     'planning_charts', 'planning_custom', 'planning_git',
     'planning_expedite_grids', 'planning_expedite_custom',
-    'planning_expedite_transit', 'planning_expedite_charts', 'rrr', 'history',
+    'planning_expedite_transit', 'planning_expedite_charts', 'history',
     'research_availability', 'guided_history', 'guided_dbm', 'guided_chronic',
     'bor', 'boroa',
 )
@@ -307,6 +307,14 @@ def prepare_layer(run, name):
     if name == 'btr':
         return _btr_result(run, verify_only=False)
     _require_ancillary(run, name)
+    from mta.presentation import native_publication, daily_native_prepared
+    if native_publication.enabled() and name in daily_native_prepared.BUILDERS:
+        native_publication.require_mode()
+        return daily_native_prepared.prepare(run, name)
+    if native_publication.enabled() and name in ('bor', 'boroa'):
+        native_publication.require_mode()
+        from mta.presentation.daily_bor_prepared import prepare
+        return prepare(run, name)
     if name == 'bor':
         raise PublicationUnavailable('bor_daily_black_fields_missing:ReqTopOfBlack,CumulativeTOBlack')
     if name == 'boroa':
@@ -323,7 +331,8 @@ def verify_layer(run, name, receipt):
     if not isinstance(receipt, dict):
         raise PublicationUnavailable(name + '_daily_receipt_source_changed')
     source = source_digest(run)
-    if name in ('bor','boroa'):
+    from mta.presentation import native_publication
+    if name in ('bor','boroa') and not native_publication.enabled():
         # These cannot have a valid daily receipt until their named producers
         # replace the explicit preparation blockers above.
         return prepare_layer(run, name)
@@ -333,9 +342,18 @@ def verify_layer(run, name, receipt):
         current = _dbm_result(run)
     elif name == 'btr':
         current = _btr_result(run, verify_only=True)
+    elif native_publication.enabled() and name in ('bor', 'boroa'):
+        native_publication.require_mode()
+        from mta.presentation.daily_bor_prepared import prepare
+        current = prepare(run, name, verify_only=True)
     else:
         _require_ancillary(run, name)
-        current = _command_result(run, name, verify_only=True)
+        from mta.presentation import native_publication, daily_native_prepared
+        if native_publication.enabled() and name in daily_native_prepared.BUILDERS:
+            native_publication.require_mode()
+            current = daily_native_prepared.prepare(run, name, verify_only=True)
+        else:
+            current = _command_result(run, name, verify_only=True)
     for field in ('source_digest', 'recipe_digest', 'rows_digest', 'row_count'):
         if field in receipt and current.get(field) != receipt[field]:
             raise PublicationUnavailable(name + '_daily_receipt_changed:' + field)

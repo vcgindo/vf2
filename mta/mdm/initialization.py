@@ -19,9 +19,7 @@ from mta.runtime import opening_storage
 from mta.mdm.initialization_rows import select as initialization_table
 
 
-def implementation_digest():
-    root = Path(__file__).resolve().parents[1]
-    names = ('mdm/initialization.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
+IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
@@ -51,7 +49,20 @@ def implementation_digest():
         'runtime/migrations/0118_initialization_typed_storage.py', 'runtime/migrations/0119_initialization_guards.py',
         'runtime/management/commands/initialize_production.py',
         'config/initialization_storage_v1.json', 'config/production_state_schema_v1.json')
-    return digest({name: hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names})
+
+
+def current_implementation_digest():
+    root = Path(__file__).resolve().parents[1]
+    return digest({name: hashlib.sha256((root/name).read_bytes()).hexdigest()
+                   for name in IMPLEMENTATION_FILES})
+
+
+def implementation_digest():
+    current = current_implementation_digest()
+    if current == '372c8ead5e10c72796b6318ce9eae531fb068182d9445ff727ab531e280d7ee5':
+        return current
+    from mta.mdm.native_report_compatibility import require_exact_implementation_delta
+    return require_exact_implementation_delta(current)
 
 
 def families_for(batches):

@@ -1,0 +1,60 @@
+"""Bounded reuse of successful immutable metadata checks within one read request.
+
+Nothing survives the request. Each subsequent request rechecks live selection,
+permissions, source files and database receipts. Offline callers stay uncached.
+"""
+from contextlib import contextmanager
+from contextvars import ContextVar
+from functools import wraps
+
+_current = ContextVar('presentation_read_request', default=None)
+
+# Explicit read-only routes, including POST-based report and MDM queries.
+# Action, MDM, layout and remark writes never enter this scope.
+READ_ROUTES = frozenset((
+    'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration',
+    'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
+    'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData',
+    'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
+    'GetPlanningDataGridCount', 'GetPlanningDataCustom',
+    'GetResearchInsightData', 'GetHistroricalAvailabilityBPRData',
+    'GetMasterUIConfiguration', 'GetCount', 'GetMasterData',
+))
+
+
+@contextmanager
+def read_request(path):
+    if path.rstrip('/').rsplit('/', 1)[-1] not in READ_ROUTES or _current.get() is not None:
+        yield
+        return
+    token = _current.set({})
+    try:
+        yield
+    finally:
+        _current.reset(token)
+
+
+def _argument(value):
+    if hasattr(value, '_meta') and hasattr(value, 'pk'):
+        return (type(value), value.pk, *(getattr(value, field, None) for field in
+                ('kind', 'status', 'input_digest', 'output_digest', 'production_digest',
+                 'digest', 'implementation_digest', 'receipt_digest')))
+    return value
+
+
+def once_per_request(function):
+    @wraps(function)
+    def read(*args, **kwargs):
+        cache = _current.get()
+        if cache is None:
+            return function(*args, **kwargs)
+        key = (function, tuple(_argument(value) for value in args),
+               tuple(sorted((name, _argument(value)) for name, value in kwargs.items())))
+        if key not in cache:
+            # Failed validation is never cached; exceptions propagate normally.
+            value = function(*args, **kwargs)
+            if len(cache) < 128:
+                cache[key] = value
+            return value
+        return cache[key]
+    return read

@@ -370,3 +370,13 @@ SOURCES={'B':'closing/importer/SkuLocAttributeData','C':'closing/importer/SkuAtt
 def field_name(owner,name):return owner.lower()+'_'+name.lower()
 def source_recipe():return digest(dict(version=1,fields=SOURCE_FIELDS,pins=PINS,requirement_full_digest=REQUIREMENT_FULL_DIGEST))
 def prepared_recipe():return digest(dict(version=1,source=source_recipe(),fields=PREPARED_FIELDS,sources=SOURCES,joins='A-inner-E-left-B-C-D-F-S1-S2-S3',count_owners=['A','B','C','D','E','F'],comparison="lower(rtrim(value::text,' '))"))
+
+
+def production_source_recipe():
+    return digest(dict(schema='fresh-boroa-source-schema-v1', fields=SOURCE_FIELDS))
+
+
+def production_prepared_recipe():
+    return digest(dict(version=1,source=production_source_recipe(),fields=PREPARED_FIELDS,sources=SOURCES,
+        joins='A-inner-E-left-B-C-D-F-S1-S2-S3',count_owners=['A','B','C','D','E','F'],
+        comparison="lower(rtrim(value::text,' '))"))

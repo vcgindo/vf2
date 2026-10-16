@@ -12,6 +12,7 @@ from api.common.api_varibale import APIVariable
 
 
 from api.core import ResponseProfile
+from common.startup_probe import observed
 from api.docs.auth import *
 from common.utils import get_user_permissions, query_from_tuple
 from common.permissions import require_roles_permission
@@ -29,6 +30,7 @@ class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     @profile_doc()
+    @observed('profile_view')
     def get(self, request, format=None):     
         resutl = ResponseProfile(user=request.user)
         return Response(

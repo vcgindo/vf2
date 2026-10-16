@@ -11,6 +11,7 @@ from django.db import transaction
 from mta.runtime.models import DailySourceReceipt, DailyColorSequence
 from mta.runtime.relational_state import save_image, load_image
 from mta.serialization import digest, storage
+from mta.presentation.request_scope import once_per_request
 
 COLOR_PATH = 'metadata/bpr/ColorSequence'
 
@@ -90,6 +91,7 @@ def write_sources(run, output, *, opening=None):
         recipe_digest=recipe_digest(), images=images, images_digest=digest(images))
 
 
+@once_per_request
 def receipt(run):
     value = DailySourceReceipt.objects.get(run=run)
     if (value.input_digest != run.input_digest or value.recipe_digest != recipe_digest()

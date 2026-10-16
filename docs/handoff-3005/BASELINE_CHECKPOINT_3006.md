@@ -1,0 +1,13 @@
+# Saved pre-logistics 3006 baseline
+
+16 October 2026. Remote branch: `codex/3006-pre-logistics-baseline` in yurtse/freshvcf. This checkpoint saves the source of the restored pre-logistics application; it does not integrate the later logistics work. The companion `BASELINE_SOURCE_MANIFEST_3006.json` pins source blobs and retained runtime artifacts. `verify_3006_baseline.py <commit>` checks those source blobs directly in Git, avoiding workstation line-ending conversions.
+
+Runtime identity: backend dd7efc075592c431837ad4166b6be7bdaf522b5def421724797c2bcca1d75d2d, image d618da85fb499f6b5913a5e7d42c35d46be27bdc9c94b9ec190183ae3e042919; frontend4fc63d267ce7f3bcc57fa7bcd477cfaf69dec77f6ab4e5670af469549665ff0b, frontend-build-research-layout1. The source matches899 audited backend files and1906 served-build frontend source files;633 retained compiled frontend artifacts are separately pinned. Source was reconciled against the audited manifest and retained before-files, including the six documented frontend line-ending differences.
+
+The original native handoff3005_g3_workflow_20261015_003/OID296160 remains selected: rune9fc81f7-d626-4e0b-b259-234d2a23f950,18October2026, outpute5dd2e37a047cb4a53ec57615a714552ebfa5406c85ad4c3d9dadfb794a8ad8d. Databases, secrets, Docker images and mutable business facts are not included in Git. Recreating the complete running environment still requires the retained external resources and their pinned configuration/admission evidence. This source checkpoint does not certify a new rebuild or a fresh database deployment.
+
+The commit was assembled with an alternate Git index. The existing handoff branch, real index, dirty/untracked logistics work and serving containers are preserved. No checkout/reset, source overwrite, build, database mutation or deployment forms part of saving this version. The branch is a dedicated recovery reference, not a replacement for the project's default branch.
+
+Fresh restoration QA and its limitations are in PRELOGISTICS_RESTORATION_HANDOFF.md. BPR/filter/reload, RRR, BTR/both views, Planning, expected-empty BOR and MDM reads were exercised;62 backend requests returned200. This is bounded QA, not full application or production acceptance. Later nine-route logistics features are absent from this baseline, while their source/checkpoints/copies remain preserved.
+
+Next work is proposed in LOGISTICS_REINTEGRATION_PLAN_3006.md. It requires a separate implementation handback; the implementer remains paused. TRACKER.md alone records current status. Evidence is retained under D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s3-20261015-001/remote-baseline-checkpoint-20261016 and controller-prelogistics-restoration-20261016.

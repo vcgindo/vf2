@@ -1578,3 +1578,89 @@ source uses a new initialization in the same owned environment.
 ## 14 October 2026 — master3 approval batches over999 rows remain unproved
 
 C05 independent component review identified a modern deviation, not an approved exception or legacy repair: DLL-matched TaskStatusProcessor.deployed.cs1220–1232 and2832–2864 execute business effects and rejection/approval audits per999-row chunk; modern mta/mdm/skuloc_tasks.py approve processes the complete decision list before its audit groups. Mixed statuses across the999-row boundary can differ in statement and timestamp grouping. C05 uses tiny requests, so its component/own-successor proof cannot close unrestricted batch behavior. No runtime limit, semantic repair or waiver is introduced here. See docs/handoff-3005/S2_C05_COMPONENT_PROOF.md and its evidence manifest. Resolve this deviation or explicitly establish the admitted production boundary before claiming broader master3 acceptance.
+
+
+## LEG-DBM-UI-SKULOC-CASE - observed 15 October 2026; disposition pending
+
+Step3 actual3006 DBM Excel download on acceptedJuly7 run ee47bc75-25c3-4cda-8a0a-44fd655fcac5 omits SL1 even though persisted/current API SkuLocAttribute1=LDC001 for SKU5954/DP010290. Retained UI config requests SKULocAttribute1; canonical F:/VFlow_Local/local-runtime/mta-engine/Scripts/DBCreation/UI_ReportConfiguration_2.0.sql line1226 confirms that configuration spelling. API alias is mta/presentation/dbm.py dbm_rows; exact deployedAPI provenance still to reconcile before classifying inherited flaw versus migration error. Input is accepted shallow12pair source; no calculateddata seeded. Affected contract: DBM displayed/exported SKU-location attributes. Actual workbook and complete cell comparison: D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s3-20261015-001/dbm-browser-export-proof.json and dbm-browser-download.xlsx. SL1 blank is not accepted as completevalues; no repair, exceptionwaiver or calculationchange authorized by this entry.
+
+Provenance reconciliation: dbm-alias-provenance.json verifies current deployed DLL0222eb96, retained DBMProcessor7339a2e0 and UI config4b248637 against pinned hashes. DBMProcessor line43 emits SkuLocAttribute1; UI config line1226 requests SKULocAttribute1. Existing recorded deployed-source binding applies; this is inherited presentation casing, not a calculation difference. No new repair/waiver approved.
+
+15 October 2026 human disposition via controller: "blank excel is not a matter of validation....get it out of clearance steps now". EXCLUDED BY HUMAN from Step3 clearance; known inherited limitation, not PASS. Preserve evidence, no repair or further validation cycles required. Only this inherited DBM Excel SL1/SL2 casing-binding blank issue is excluded; unrelated export correctness remains required.
+
+
+## LEG-RESEARCH-MULTIPAIR-DATE-HORIZON - human-approved correction,15 October2026
+
+Research multi-pair plots on acceptedJuly7 output labelOctober8-15 for a7-day horizon. Unchanged retainedfrontend convertCustomObjToObjects used wall-clock new Date(), and getColorData includedD83-D90 (8positions). Actualbrowser research-multi-date-mismatch.json/png preserves beforeevidence. Human explicitly approved date/horizon fix via controller. Authorized boundary: selectedbusinessdate labels and exactly requested history positions,D90=selecteddate; preserve per-colour values/aggregation and otherjourneys, no calculation/input mutation. Singlepair behavior remains unchanged. One necessary normal uncapped build and isolated3006deployment authorized;3005/protectedservices unchanged. Approval is only this presentationdate/count defect, not any other inheritedflaw.
+
+
+## Authorized WithDestLoc MOQ Add destination admission — 15 October 2026
+
+Human authorization in controller chat01a13f25-0358-7171-b95d-be7549993f1a: "Authorize the narrow MOQ exception and continuation". Applies only to master5 WithDestLoc Add template and upload validation for original requests9(reject)/10(approve), SKU337/locationLDC001/supplierPL001/MOQ5. Retained UI_MDMConfig uncompressed SHA256 aeacea2365b77a61c214f98edcbf83f0a58e1432f5b051879044a160bc9442e5 and deployed DLL0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346 identify the retained mismatch: wc.IsAdd=false although configured WithDestLoc mutation requires destination. Source evidence: mdm-coordinated-followup-v1/moq-provenance.md/json under handoff3005-s2-20261013-001/s3-20261015-001.
+
+Exception: project isAdd=true only for WithDestLoc Add using persisted supplier configuration; validate required destination/code and triple-grain uniqueness in that upload path. UI metadata selects upload validation, not backend authorization; existing backend independently retains configured grain, real destination/scopes/reviewer checks. WithoutDestLoc, Modify/Remove, master4, numeric values and all business calculations remain unchanged. Original source seal remains immutable, with only the established externally pinned exact-delta bridge extended for these two MTA files and its own verifier identity. Actual upload/reject/approve/consumer proof remains required; this entry does not claim acceptance. No general legacy repair, backend workaround, default destination, permission change or reseal.
+
+
+## LEG-NORM0-HANDOFF-DAY5 — exact native retry disposition approved 16 October 2026
+
+Direct human release in controller chat01a13f25-0358-7171-b95d-be7549993f1a:
+"Approve the narrow report exception and raise limits to 10 orchestration/9 executions. Tell the agent to verify the fix, retry day five once, finish day six, then stop for review. Preserve the failed run and leave 3005 unchanged."
+
+This is a new case-bound disposition, not a transfer of the historical full-estate exception.
+Canonical source is Scripts/DBM/Norm 0-1-2 Reports/Norm0Data.sql,
+SHA256 c47103cd5d309c8d692766fcef798ab138694627d944dee7c3d25619c9ed9766.
+The inner and outer STRING_AGG lack aggregate ordering; the intermediate INSERT
+SELECT ORDER BY does not define the fragment aggregation order.
+
+Scope: business date2026-10-17, Norm0/horizon30,5954/DP010290, the five retained
+positive observations13-17October with integerConsumption1 and multiplicity1.
+Only Occurances and its detail/export forms may be unavailable, explicitly
+LEGACY_FLAW/NOT_PARITY. Keys/types/row bags, Count5/TotalSale5 and all business
+calculations remain strict. The CSV cell displays an unavailable reason and the
+ZIP includes a bounded metadata sidecar. Typed Occurances remainsNULL; the exact
+reason and authorization are exposed in run-owned report readback. No sorting,
+deduplication, omitted report, fabricated SQL order or unconditional parity PASS.
+
+The original FAILED run04f76972-375c-480f-8d57-16207bb174ae and captured input
+digest53b9d6939b3ad2e3589cd81c47ead6b8e8d4e83f160bf3d3c19f2ff5a718cfee
+remain unchanged. Native raw day SHA496e5dbbb08f7ba0ea3864ee96f7f8213db8cd7edcafba6213efb1977165d130;
+frozen request digest99f576f843ac8b40cfc64965c4126f41d3f6acf5b0cf522d6c9fa00c61e95ff4.
+One explicit execution authorization handoff3005-day05-norm0-occurrences-v1
+binds retry g3-hierarchy-day-05-report-disposition-v1 to this capture, its own
+accepted day4 a2aa00df-b5c4-42f0-8205-e579f0709d2c/outputcfa1a0d366d691dba7ebfca31cf02aba4f93cecd978a77be0a80d2ee2e2eab64,
+initialization25cceb52-e68f-446b-b2d2-5e212ceec173 and its original sealed source.
+It lives outside raw input in the new attempt's bounded admission metadata and
+successful checksum-bound Lineage. Raw report_exceptions remains{}; native and
+frozen-request guards are retained. Exact source compatibility is separately
+pinned in the owned deployment; neither the original seal nor initializer is
+rewritten. No other group/date/horizon/day6 disposition is implied. Other
+ambiguities fail normally, including any new substantive day6 failure.
+
+Evidence: D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s3-20261015-001/
+mdm-finite-continuation-20261016-v1/day05-string-agg-diagnosis and
+mdm-finite-continuation-20261016-v1/day05-report-disposition-v1.
+Live status and proof completion belong only to F:/freshvcf/docs/handoff-3005/TRACKER.md.
+# Day-six native occurrence-text disposition — 16 October 2026
+
+Direct human approval: day-six-only exception and ceilings11 orchestration/10
+executions; verify, retry day six once, stop for review; preserve both failed
+runs and leave3005 unchanged. This supplements, without changing, the separate
+day-five exception. Authoritative status is docs/handoff-3005/TRACKER.md.
+
+Exact scope:5954/DP010290, Norm0/horizon30,2026-10-18; six integer1 observations
+October13–18, each once; Count/TotalSale6. Pinned Norm0Data.sql SHA256
+c47103cd5d309c8d692766fcef798ab138694627d944dee7c3d25619c9ed9766 has unordered
+nested STRING_AGG. Only Occurances text/report-detail/export is unavailable
+with explicit LEGACY_FLAW/NOT_PARITY and qualified completion. No numeric,
+population, multiplicity, ordering, calculation,60/90-horizon or other-group
+change is permitted. Full diagnosis and typed source rows are retained in
+D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s3-20261015-001/mdm-finite-continuation-20261016-v1/day06-string-agg-diagnosis/CAUSE-AND-PROPOSAL.md.
+
+Separate identity handoff3005-day06-norm0-occurrences-v1 binds failedrun
+47d1a1c8-f40c-40fb-916a-20a0ef968ef4, exact frozen request/input/capture and own
+acceptedday5 parent8afb96de-bfaf-4119-902d-f31db149cf54. Observations digest
+d1c160172649346ad81e6c353c37d073f47adbff33d4ed932c219012bb88e594.
+The unchanged original seal and both failed attempts remain preserved.
+Admission/disclosure checks and the source-delta proof are integration guards,
+not a general exception or a claim of full day-six success before execution.
+

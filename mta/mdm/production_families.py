@@ -13,6 +13,7 @@ from django.conf import settings
 from django.db import connection, transaction
 
 from mta.serialization import digest, storage
+from mta.presentation.request_scope import once_per_request
 from mta.mdm.initialization_contract import SOURCE_SCHEMA
 from mta.runtime.models import CalculationRun, ProductionInitialization
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -63,9 +64,16 @@ def _configuration():
             'season': season(), 'force': force()}
 
 
+@once_per_request
+def _opening_input(initialization):
+    from mta.mdm.initialization import read_initialized_input
+    return read_initialized_input(initialization)
+
+
+@once_per_request
 def _verified_initialization(source, *, input_sha256=None, input_schema=None):
     """Verify the immutable H2 seal after optional family rows have been added."""
-    from mta.mdm.initialization import implementation_digest, read_initialized_input
+    from mta.mdm.initialization import implementation_digest
     from mta.mdm.initialization_contract import SCHEMA
     from mta.mdm.owned_namespace import verify_binding
     initialization = ProductionInitialization.objects.select_related('source').get(source=source)
@@ -90,7 +98,7 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
                 content_digest=initialization.input_digest)):
         raise ValueError('Native initialization/source identity drift')
     verify_binding(p)
-    frame = read_initialized_input(initialization)
+    frame = _opening_input(initialization)
     if (digest(frame) != initialization.input_digest
             or digest(frame['profile']) != initialization.configuration_digest
             or digest(frame['recipe']) != initialization.recipe_sha256
@@ -159,9 +167,8 @@ def _provenance(initialization, family, bags):
 
 
 def _expected(initialization, *, frame=None):
-    from mta.mdm.initialization import read_initialized_input
     if frame is None:
-        frame = read_initialized_input(initialization)
+        frame = _opening_input(initialization)
     state = frame['opening']['state']
     settings = state['importer_settings']
     from mta.mdm.force_capture import FIELDS as force_fields, LOG_FIELDS
@@ -293,8 +300,31 @@ def _install(initialization, family, bags, root_digest):
     return owner
 
 
-def require_binding(source):
-    initialization, frame = _verified_initialization(source)
+def _read_execution_identity(seal):
+    """Read a sealed, supported projection without relabelling its producer code.
+
+    The immutable execution hashes describe the producer of these rows, not the
+    currently installed presentation code. Execution and mutation callers never
+    use this admission path.
+    """
+    from mta.mdm.location_projection import VERSION
+    p = seal.receipt
+    if (not isinstance(p, dict) or seal.digest != digest(p)
+            or p.get('closing_projection_version') != VERSION):
+        raise ValueError('Native MDM read execution seal or schema differs')
+    result = {key: p.get(key) for key in
+              ('adapter_digest', 'source_manifest_digest', 'closing_projection_version')}
+    for key in ('adapter_digest', 'source_manifest_digest'):
+        value = result[key]
+        if (not isinstance(value, str) or len(value) != 64
+                or any(c not in '0123456789abcdef' for c in value)):
+            raise ValueError('Native MDM read execution identity is absent or invalid')
+    return result
+
+
+@once_per_request
+def require_binding(source, *, read_only=False):
+    initialization, frame = _verified_initialization(source, input_sha256=None, input_schema=None)
     _, bags = _expected(initialization, frame=frame)
     unchanged_opening = not MdmDailyInputCapture.objects.filter(source=source).exists()
     seal = MdmSourceIntegration.objects.get(source=source)
@@ -302,7 +332,8 @@ def require_binding(source):
     families.update({str(row.master_id): row.digest for row in
                      MdmFamilySource.objects.filter(source=source).order_by('master_id')})
     from mta.mdm.location_transition import integration_identity
-    code_identity = integration_identity(source, initialization, seal)
+    code_identity = (_read_execution_identity(seal) if read_only
+                     else integration_identity(source, initialization, seal))
     receipt = dict(schema=INTEGRATION_SCHEMA, source_digest=source.digest,
         initialization_id=str(initialization.pk),
         initialization_content_digest=initialization.input_digest,

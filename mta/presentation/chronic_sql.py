@@ -29,14 +29,24 @@ def native_fixture(run):
 
 
 def read_chronic(run, payload, kind):
-    if run.kind != 'LEGACY_UI_FIXTURE' or kind not in ('chronic-grid','chronic-loc','chronic-sku'):
-        raise ValueError('fixture_chronic_kind_required')
+    from mta.presentation.daily_preparation import production_branch
+    if (run.kind != 'LEGACY_UI_FIXTURE' and not production_branch(run)) or kind not in (
+            'chronic-grid', 'chronic-loc', 'chronic-sku'):
+        raise ValueError('admitted_chronic_kind_required')
     if not native_fixture(run):
         raise PublicationUnavailable('chronic_SQL_hierarchy_supplement_not_bound')
     attrs = {name: image_rows(run, 'closing/btr/' + name)
              for name in ('SkuAttributeData','LocationAttributeData')}
     predicate = InsightPredicate(payload, attrs['LocationAttributeData'], kind=kind)
     products, locations = scope(payload, attributes=attrs)
+    if production_branch(run):
+        fact_path = 'closing/btr/ChronicUnavalabilityData'
+        fact = image_metadata(run, fact_path)
+        if fact['count'] == 0:
+            # Empty native images have no observed wire fields. Validate the
+            # retained empty population after validating the canonical filter.
+            image_rows(run, fact_path, metadata=fact)
+            return []
     ctes, params, wires = [], [], {}
     paths = {'_a':'closing/btr/ChronicUnavalabilityData',
              '_sku':'closing/btr/SkuAttributeData',

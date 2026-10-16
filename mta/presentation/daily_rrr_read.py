@@ -52,21 +52,35 @@ def projection():
 
 def read(run, payload, *, count=False, export=False):
     from django.conf import settings
-    from mta.presentation.offline_rrr import VERSION as OFFLINE_VERSION
-    if getattr(settings, 'VF_MTA_RRR_COLOUR_EXTENSION', '') == OFFLINE_VERSION:
-        from mta.presentation.offline_rrr import read_published as read_source
-        from mta.runtime.offline_rrr_models import OfflineRrrColourRow as DailyRrrColourRow
+    from mta.presentation import native_publication
+    native = native_publication.enabled()
+    if native:
+        native_publication.require_mode()
+        from mta.runtime.production_report_storage import PATHS
+        source_path = PATHS['RRR_OrderAllocation']
+        # Full typed source/checksum admission precedes the bounded SQL reader.
+        image_rows(run, source_path)
+        source_sql, source_params = image_query(run, source_path)
     else:
-        from mta.presentation.daily_rrr_storage import read as read_source
-        from mta.runtime.daily_rrr_models import DailyRrrColourRow
-    read_source(run)
+        from mta.presentation.offline_rrr import VERSION as OFFLINE_VERSION
+        if getattr(settings, 'VF_MTA_RRR_COLOUR_EXTENSION', '') == OFFLINE_VERSION:
+            from mta.presentation.offline_rrr import read_published as read_source
+            from mta.runtime.offline_rrr_models import OfflineRrrColourRow as DailyRrrColourRow
+        else:
+            from mta.presentation.daily_rrr_storage import read as read_source
+            from mta.runtime.daily_rrr_models import DailyRrrColourRow
+        read_source(run)
+        source_sql = ('SELECT * FROM mta.' + quote(DailyRrrColourRow._meta.db_table)
+                      + ' WHERE receipt_id=%s')
+        source_params = [run.pk]
     importer = {name: image_rows(run, 'closing/importer/'+name)
                 for name in ('SkuAttributeData', 'LocationAttributeData')}
     manifest = hierarchy.selected_manifest(run)
-    importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
+    if manifest or not native:
+        importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     products, locations = scope(payload, attributes=importer)
-    ctes = ['A AS (SELECT * FROM mta.'+quote(DailyRrrColourRow._meta.db_table)+' WHERE receipt_id=%s)']
-    params = [run.pk]
+    ctes = ['A AS (' + source_sql + ')']
+    params = list(source_params)
     for alias, table in (('B', 'SkuLocAttributeData'), ('C', 'SkuAttributeData'),
                          ('D', 'LocationAttributeData'), ('S1', 'SKUDescriptionTbl'),
                          ('S2', 'SiteDescriptionTbl'), ('S3', 'SiteDescriptionTbl')):

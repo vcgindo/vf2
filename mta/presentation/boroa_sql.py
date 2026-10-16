@@ -40,11 +40,24 @@ def remark_query(run):
 def read_boroa(payload,*,count=False,export=False):
     from mta.runtime.boroa_prepared_schema import verify_guards
     run,source=admitted_sources();receipt=BorOaPreparedReceipt.objects.filter(run=run).first()
-    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=prepared_recipe():
+    from mta.presentation import native_publication
+    native = native_publication.enabled()
+    if native:
+        native_publication.require_mode()
+        from mta.presentation.boroa_contract import production_prepared_recipe
+    expected_recipe = production_prepared_recipe() if native else prepared_recipe()
+    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
         raise PublicationUnavailable('BOROA_prepared_receipt_missing_or_changed')
     try:verify_guards(connection)
     except ValueError as exc:raise PublicationUnavailable('BOROA_prepared_guards_changed') from exc
-    attrs,supplement=_projected_attributes(run)
+    if native:
+        from mta.presentation.selective import image_rows
+        from mta.presentation.hierarchy import selected_manifest
+        attrs = {name: image_rows(run, 'closing/importer/' + name)
+                 for name in ('SkuAttributeData', 'LocationAttributeData')}
+        supplement = selected_manifest(run)
+    else:
+        attrs,supplement=_projected_attributes(run)
     if supplement:raise PublicationUnavailable('BOROA_native_hierarchy_required')
     products,locations=scope(payload,attributes=attrs);ctes=[];params=[];join_params=[]
     for alias,codes in [('P',products),('L',locations)]:

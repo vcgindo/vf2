@@ -199,7 +199,7 @@ class Norm0HorizonTests(unittest.TestCase):
         inputs=dict(profile={'delivery':{'batch':batch()}},initialization_binding={'id':RUN,'source_digest':source.digest})
         with patch('mta.runtime.norm0_reports.CalculationRun.objects.get',return_value=run), \
             patch('mta.runtime.norm0_reports.read_input',return_value=inputs), \
-            patch('mta.runtime.norm0_reports.read_outputs',return_value={'Reports':reports}) as read:
+            patch('mta.runtime.norm0_reports.read_outputs',return_value={'Reports':reports,'Lineage':[{}]}) as read:
             receipt=read_reports(run_id=RUN,expected_output_digest=OUTPUT)
             self.assertEqual(receipt['enabled_horizons'],[30,60,90])
             read.reset_mock()

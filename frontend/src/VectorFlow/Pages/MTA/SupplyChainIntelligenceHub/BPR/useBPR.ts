@@ -1,3 +1,4 @@
+import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { useState,useMemo, useEffect, CSSProperties,useRef } from "react"
 import { AgGridReactProps } from "ag-grid-react"
 
@@ -26,6 +27,7 @@ import _ from "lodash"
 
 
 const useBPR =()=>{
+    useScreenProbe('BPR');
 
     const ref = useRef<GridRef>()
     const tempRef = useRef<GridRef>()
@@ -97,10 +99,9 @@ const useBPR =()=>{
     const EnvConfig = useSelector((state:RootState) =>state.mta.EnvConfig);
     const BPR_ROWS_PER_PAGE = EnvConfig['BPR_ROWS_PER_PAGE']; 
     const [userPageSize , setUserPageSize]  = useState<number>(BPR_ROWS_PER_PAGE?parseInt(BPR_ROWS_PER_PAGE):50)   
-    // useEffect(() => {   
-    //     getInitialBPRRowData()
-    //     getBPRUiConfig();
-    // }, []);
+    // Column definitions and saved layout belong to the mounted report.
+    // Applying a row filter must not reload or reset that layout.
+    useEffect(() => { getBPRUiConfig(); }, []);
     
     const getBPRUiConfig = async () => {
         try {
@@ -295,6 +296,8 @@ const useBPR =()=>{
             defaultColDef:defaultColDefObject,
             onCellValueChanged:(params)=>onCellValueChanged(params.data,"SKUCode","WHCode"),
             onGridReady:(params)=>setInternalRef(params),
+            onFirstDataRendered:()=>screenRendered('BPR'),
+            onRowDataUpdated:()=>screenRendered('BPR'),
             // autoSizeStrategy:{
             //     type:"fitCellContents"
             // }
@@ -622,11 +625,11 @@ const useBPR =()=>{
     }
 
     const onApplyFilter = (filter: any) => {
+        beginScreen('BPR', 'filter');
         setCurrFilter(filter)
         getBPRRecordCount(filter)
         setCurrGridPage(1)
         getBPRRowData(filter,1 ,userPageSize)
-        getBPRUiConfig()
     }
 
     const onDeleteFilter = async(parentId:any, filterId:any, value:any)=>{

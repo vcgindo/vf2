@@ -1,7 +1,9 @@
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from common.startup_probe import observed
 
 class CookieJWTAuthentication(JWTAuthentication):
+    @observed('jwt_user')
     def authenticate(self, request):
         # Try to get token from cookies
         access_token = request.COOKIES.get("access_token")

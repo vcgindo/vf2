@@ -138,6 +138,10 @@ def details(source, payload, actor, *, download=False):
                 for _ in range(multiplicity):
                     if task.Actiontype==2:
                         item = dict(new=project(requested,fields),old=project(old,fields))
+                        if not download:
+                            import json
+                            item = {key: json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+                                    for key, value in item.items()}
                     else:
                         item = project(requested,fields,include_nulls=not download)
                         if task.Actiontype==3 and not download and 'sd' in item:

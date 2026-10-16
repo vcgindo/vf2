@@ -48,6 +48,7 @@ from mta.presentation.expedite_charts import queries as expedite_chart_queries,r
 from mta.runtime.models import PickPostProjection
 from mta.presentation import ui_state
 from mta.presentation import actions
+from mta.presentation.request_scope import read_request
 
 CONFIG = Path(__file__).resolve().parents[1] / 'config'
 
@@ -75,6 +76,10 @@ def endpoint(method, *, public=False):
         @csrf_exempt
         @wraps(function)
         def wrapped(request, *args, **kwargs):
+            with read_request(request.path):
+                return dispatch(request, *args, **kwargs)
+
+        def dispatch(request, *args, **kwargs):
             if request.method != method:
                 return JsonResponse({'error': 'method_not_allowed'}, status=405)
             if not public and identity(request) is None:
@@ -376,7 +381,8 @@ def bpr_analytics(request, payload):
         raise PublicationUnavailable('selected_analytics_report_not_connected')
     from django.conf import settings
     from mta.presentation.fixture import enabled as fixture_enabled
-    if fixture_enabled() and settings.VF_BPR_PREPARED:
+    from mta.presentation.native_publication import enabled as native_enabled
+    if (fixture_enabled() or native_enabled()) and settings.VF_BPR_PREPARED:
         from mta.presentation.bpr_prepared import read_bpr
         return envelope(data=read_bpr(selected_run(), payload, analytics=True))
     model, rows = bpr_selected(payload, mode='analytics')
@@ -470,7 +476,11 @@ def bpr_data(request, payload, *, count=False):
                 for k in ('pageNumber', 'recordsPerPage'))):
             raise ValueError('positive_BPR_pagination_required')
     from mta.presentation.fixture import enabled as fixture_enabled
-    if fixture_enabled():
+    from mta.presentation.native_publication import enabled as native_enabled
+    native = native_enabled()
+    if fixture_enabled() or native:
+        if native and not settings.VF_BPR_PREPARED:
+            raise PublicationUnavailable('native_BPR_prepared_reader_required')
         if settings.VF_BPR_PREPARED:
             from mta.presentation.bpr_prepared import read_bpr
         else:
@@ -479,7 +489,7 @@ def bpr_data(request, payload, *, count=False):
             paging=None if count else (paging['pageNumber'], paging['recordsPerPage']))
         if count:
             return envelope(record_count=str(rows))
-        return envelope(data=[response_row(row) for row in rows])
+        return envelope(data=[response_row(row, daily_transit=native) for row in rows])
     model, rows = bpr_selected(payload, mode='count' if count else 'grid')
     if count:
         return envelope(record_count=str(len(rows)))
@@ -568,7 +578,8 @@ def export_data(request, payload):
 @endpoint('POST')
 def planning_overview(request, payload):
     import os
-    if os.environ.get('VF_PLANNING_SUMMARY') == '1':
+    from mta.presentation.native_publication import enabled as native_enabled
+    if native_enabled() or os.environ.get('VF_PLANNING_SUMMARY') == '1':
         from mta.presentation.planning_summary import read
         values, business_date = read(selected_run(), payload)
         return JsonResponse(dict(recordCount=None, data=values, status=200, msg='',
@@ -607,6 +618,7 @@ def planning_context(payload):
 
 @endpoint('POST')
 def planning_graph(request,payload):
+    from mta.presentation.native_publication import enabled as native_enabled
     from mta.presentation.daily_planning_extension import enabled
     if enabled(selected_run()):
         from mta.presentation.daily_planning.dispatch import read
@@ -614,7 +626,7 @@ def planning_graph(request,payload):
     category = str(payload.get('category', '')).casefold()
     if category in ('excessinventory', 'orderfulfillment'):
         from mta.presentation import fixture
-        if fixture.enabled():
+        if native_enabled() or fixture.enabled():
             from mta.presentation.planning_chart_sql import graph
             return envelope(data=graph(selected_run(), payload,
                                        'excess' if category == 'excessinventory' else 'fulfillment'), message='')
@@ -665,6 +677,7 @@ def planning_graph(request,payload):
 
 @endpoint('POST')
 def planning_grid(request, payload, *, count=False):
+    from mta.presentation.native_publication import enabled as native_enabled
     from mta.presentation.daily_planning_extension import enabled
     if enabled(selected_run()):
         from mta.presentation.daily_planning.dispatch import read
@@ -702,7 +715,7 @@ def planning_grid(request, payload, *, count=False):
         raise ValueError('invalid_pagination')
     if excess or fulfillment:
         from mta.presentation import fixture
-        if fixture.enabled():
+        if native_enabled() or fixture.enabled():
             from mta.presentation.planning_grid_sql import read_grid
             projected = read_grid(selected_run(), payload,
                                   family='excess' if excess else 'fulfillment',
@@ -737,6 +750,7 @@ def planning_grid(request, payload, *, count=False):
 
 @endpoint('POST')
 def planning_custom(request, payload):
+    from mta.presentation.native_publication import enabled as native_enabled
     from mta.presentation.daily_planning_extension import enabled
     if enabled(selected_run()):
         from mta.presentation.daily_planning.dispatch import read
@@ -753,7 +767,7 @@ def planning_custom(request, payload):
     from mta.presentation.excess_read import excess_context, custom_grid, pagination
     paging = pagination(payload)
     from mta.presentation import fixture
-    if fixture.enabled():
+    if native_enabled() or fixture.enabled():
         from mta.presentation.planning_custom_sql import custom_grid as prepared_custom_grid
         return envelope(data=prepared_custom_grid(selected_run(), payload, paging,
                         family='fulfillment' if payload['category'] == 'orderFulfillment' else 'excess'))
@@ -818,6 +832,18 @@ def historical_availability(request, payload):
 
 @endpoint('POST')
 def insight_data(request, payload, *, kind):
+    from mta.presentation.report_cache import cached_response
+    return cached_response(request, payload, kind,
+                           lambda: _insight_data(request, payload, kind=kind))
+
+
+@endpoint('POST')
+def report_read_identity(request, payload):
+    from mta.presentation.report_cache import read_identity
+    return envelope(data={'identity': read_identity(selected_run(), payload, identity(request))})
+
+
+def _insight_data(request, payload, *, kind):
     if kind in ('excess-sku', 'excess-value') and settings.VF_MTA_GUIDED_EXCESS_DISPOSITION:
         from mta.presentation.daily_history_disposition import guard
         guard(selected_run(), kind)
@@ -826,7 +852,8 @@ def insight_data(request, payload, *, kind):
     from mta.presentation.insight_response import insight_payload
     from mta.presentation import fixture
     from mta.presentation.chronic_sql import native_fixture
-    if fixture.enabled() and settings.VF_GUIDED_PREPARED and kind in (
+    from mta.presentation.native_publication import enabled as native_enabled
+    if (native_enabled() or (fixture.enabled() and settings.VF_GUIDED_PREPARED)) and kind in (
             'loc', 'sku', 'pie', 'ageing', 'chronic-loc', 'chronic-sku', 'chronic-grid') and native_fixture(selected_run()):
         run = selected_run()
         if kind == 'chronic-grid':
@@ -842,7 +869,8 @@ def insight_data(request, payload, *, kind):
                           for name in ('SkuAttributeData', 'LocationAttributeData')}
             values = read_guided_dbm(run, payload, kind, attributes)
         return envelope(data=insight_payload(values, kind))
-    if fixture.enabled() and (kind.startswith('availability-') or kind.startswith('excess-')):
+    if (fixture.enabled() or native_enabled()) and (
+            kind.startswith('availability-') or kind.startswith('excess-')):
         run = selected_run()
         from mta.presentation.insight_history_sql import read_history
         try:

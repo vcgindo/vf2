@@ -26,7 +26,6 @@ import { GridStateContext } from "../../../../../../context/GridStateContext";
 import { useDispatch, useSelector } from "react-redux";
 import { UPDATE_PLANNING_DATA } from "../../../../../../redux/actions/MTA";
 import { RootState } from "../../../../../../redux/store/store";
-import useGetLocation from "../../../../../../hooks/useGetLocation";
 import { Skeleton } from "../../../../../../components/commons/styled";
 import ConfirmationDataModal from "../../../DBM/DBMNormSuggestions/ConfirmationModal";
 import MTAVFMultiFilter from "../../../Common/MTAVFMultiFilter";
@@ -98,7 +97,6 @@ const ActionToolBar = ({
   const { user } = useUserData();
   const { ref } = useContext(GridStateContext);
 
-  const {locations} = useGetLocation()
   // const {state:multiFilter,setState:setMultiFilter,onDelete} = useBPRFilter()
   const { onSaveState, onResetAllState,onExportToExcelOld} = useSaveAllState(isPlanning);
   const { currentCategory } = useSelector(

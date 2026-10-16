@@ -5,6 +5,7 @@ from api.serializer.profile import *
 import pandas as pd
 from asyncio.log import logger
 from common.mta_catalogue import CatalogueUnavailable, enabled as local_mta_catalogue, payload as mta_catalogue_payload
+from common.startup_probe import permission_request
 
 def get_application_details_by_id(id):
     application = ApplicationMaster.objects.get(application_id=id)
@@ -230,7 +231,7 @@ class ALL_PERMISSIONS:
         try:
             if service_map['mto']['active']:
                 url=service_map['mto']['base_url'].rstrip('/') + '/GetMTOPermissionDetails/'
-                response = requests.request(
+                response = permission_request('permission_mto',
                     method='GET',
                     url=url,
                 ).json()
@@ -269,7 +270,7 @@ class ALL_PERMISSIONS:
                     response = mta_catalogue_payload()
                 else:
                     url=service_map['mta']['base_url'].rstrip('/') + '/api/mta/GetAllPermmision'
-                    response = requests.request(method='GET', url=url).json()
+                    response = permission_request('permission_mta', method='GET', url=url).json()
                 application_details = get_application_details_by_id(service_map['mta']['application_id'])
                 if permission_type=="both":
                     permission_obj={

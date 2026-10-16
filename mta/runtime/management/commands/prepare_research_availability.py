@@ -85,7 +85,8 @@ class Command(BaseCommand):
             raise CommandError('Research availability preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
-            type(run).objects.select_for_update().get(pk=run.pk)
+            if not options['verify_only']:
+                type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             membership_count, membership_digest = accepted_history_source(run, source)
             assert_unchanged(run, source)

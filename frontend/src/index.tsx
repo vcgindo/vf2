@@ -16,7 +16,9 @@ import { Provider } from 'react-redux';
 import {AG_GRID_KEY} from './helpers/constants'
 import {ErrorBoundary} from 'react-error-boundary'
 import VFErrorFallBack from './components/layouts/VFErrorFallBack'
+import { markStartup } from './performance/screenProbe'
 
+markStartup('main-imports-evaluated');
 LicenseManager.setLicenseKey(AG_GRID_KEY);
 // Axios default settings and interceptors
 setupAxios()

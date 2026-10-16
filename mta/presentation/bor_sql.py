@@ -147,12 +147,25 @@ def remark_query(run):
 
 def read_bor(payload,*,count=False,export=False,analytics=False):
     run,source=admitted_sources()
+    from mta.presentation import native_publication
+    native = native_publication.enabled()
+    if native:
+        native_publication.require_mode()
+        from mta.presentation.bor_prepared_fields import production_recipe_digest
+    expected_recipe = production_recipe_digest() if native else recipe_digest()
     receipt=BorPreparedReceipt.objects.filter(run=run).first()
-    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=recipe_digest():
+    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
         raise PublicationUnavailable('BOR_prepared_receipt_missing_or_changed')
     try: verify_guards(connection)
     except ValueError as exc: raise PublicationUnavailable('BOR_prepared_guards_changed') from exc
-    importer,manifest=_projected_attributes(run)
+    if native:
+        from mta.presentation.selective import image_rows
+        from mta.presentation.hierarchy import selected_manifest
+        importer = {name: image_rows(run, 'closing/importer/' + name)
+                    for name in ('SkuAttributeData', 'LocationAttributeData')}
+        manifest = selected_manifest(run)
+    else:
+        importer,manifest=_projected_attributes(run)
     if manifest: raise PublicationUnavailable('BOR_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
     ctes=[];params=[]

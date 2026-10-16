@@ -32,3 +32,8 @@ def recipe_digest():
     from mta.serialization import digest
     return digest(dict(version=1, run=RUN_ID, date=BUSINESS_DATE, native=NATIVE_DIGEST,
                        manifest=MANIFEST_DIGEST, backup=BACKUP_DIGEST, fields=FIELDS, pins=PINS))
+
+
+def production_recipe_digest():
+    from mta.serialization import digest
+    return digest(dict(schema='fresh-bor-source-schema-v1', fields=FIELDS))

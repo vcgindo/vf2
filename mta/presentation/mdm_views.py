@@ -27,8 +27,10 @@ def endpoint(method):
         def wrapped(request, payload, *args, **kwargs):
             from mta.runtime.mdm_models import MdmSource
             from mta.mdm.supplier_revisions import source_lock
-            source_id = MdmSource.objects.filter(digest=settings.VF_MDM_SOURCE_DIGEST,
-                dll_digest=DLL).values_list('pk', flat=True).first()
+            # Native sources have no DLL digest, but use the same publication
+            # lock so validation and rows stay in one source generation.
+            source_id = MdmSource.objects.filter(digest=settings.VF_MDM_SOURCE_DIGEST
+                ).values_list('pk', flat=True).first()
             with source_lock(source_id):
                 return function(request, payload, *args, **kwargs)
         return wrapped
@@ -50,17 +52,18 @@ def response(*, data=None, record_count=None, message=None, status=200, http_sta
 
 @endpoint('POST')
 def configuration(request, payload):
-    installed = source()
+    installed = source(read_only=True)
     screen = drafts.value(payload, 'screenType')
-    return response(data=[row for master_id in families.installed_ids(installed)
-        for row in families.module(master_id).configuration(screen)])
+    return response(data=[row for master_id in families.installed_ids(installed, read_only=True)
+        for row in (families.module(master_id).configuration(screen, source=installed)
+                    if master_id == 5 else families.module(master_id).configuration(screen))])
 
 
 @endpoint('POST')
 def current(request, payload, *, count=False):
-    installed = source()
+    installed = source(read_only=True)
     try:
-        families.require_installed(installed, payload['id'])
+        families.require_installed(installed, payload['id'], read_only=True)
         result = families.module(payload['id']).read(installed, payload, count=count)
     except (DatabaseError, KeyError, ValueError, InvalidOperation):
         # The native SQL helper catches failures and returns empty count/null data.
@@ -72,9 +75,9 @@ def current(request, payload, *, count=False):
 
 @endpoint('POST')
 def seasonality_graph(request, payload):
-    installed = source()
+    installed = source(read_only=True)
     try:
-        families.require_installed(installed, 10)
+        families.require_installed(installed, 10, read_only=True)
         from mta.mdm.season_current import graph
         return response(data=graph(installed, payload))
     except task_reads.TaskDenied as exc:
@@ -138,7 +141,7 @@ def submit(request,payload,action):
 
 @endpoint('GET')
 def task_list(request,payload,pending=False):
-    installed=source()
+    installed=source(read_only=True)
     if pending:
         return response(data=task_reads.pending_rows(installed,identity(request)),message='Data fetched successfully')
     return response(data=task_reads.status_rows(installed,identity(request)))
@@ -146,7 +149,7 @@ def task_list(request,payload,pending=False):
 
 @endpoint('GET')
 def task_count(request,payload,task_id):
-    installed=source()
+    installed=source(read_only=True)
     task = task_reads.header(installed,task_id)
     if task is None:
         return response(status=204,message='Task not present')
@@ -156,7 +159,7 @@ def task_count(request,payload,task_id):
 
 @endpoint('POST')
 def task_details(request,payload,download=False):
-    installed=source()
+    installed=source(read_only=True)
     try:
         task = task_reads.header(installed,drafts.value(payload,'taskId'))
         data = None if task is None else families.module(task.MasterId, 'reads').details(installed,payload,identity(request),download=download)
@@ -169,10 +172,10 @@ def task_details(request,payload,download=False):
 
 @endpoint('POST')
 def task_history(request,payload):
-    installed=source()
+    installed=source(read_only=True)
     try:
         master_id = drafts.value(payload,'masterId')
-        families.require_installed(installed, master_id)
+        families.require_installed(installed, master_id, read_only=True)
         data=families.module(master_id, 'reads').history(installed,payload,identity(request))
         return response(data=data,message='No tasks found which is Approved/Rejected by approver' if data is None else None)
     except task_reads.TaskDenied as exc:
@@ -183,10 +186,10 @@ def task_history(request,payload):
 
 @endpoint('POST')
 def history_skus(request,payload):
-    installed=source()
+    installed=source(read_only=True)
     try:
         master_id = drafts.value(payload,'masterId')
-        families.require_installed(installed, master_id)
+        families.require_installed(installed, master_id, read_only=True)
         return response(data=families.module(master_id, 'reads').history_skus(installed,payload))
     except (DatabaseError,ValueError,TypeError,KeyError) as exc:
         return response(status=500,message='Error '+str(exc))

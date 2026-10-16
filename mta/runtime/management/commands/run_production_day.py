@@ -16,6 +16,7 @@ class Command(BaseCommand):
         parser.add_argument('--predecessor')
         parser.add_argument('--predecessor-output-digest')
         parser.add_argument('--retry-capture')
+        parser.add_argument('--report-disposition')
         parser.add_argument('--inspect',action='store_true')
 
     def handle(self, *args, **options):
@@ -25,6 +26,7 @@ class Command(BaseCommand):
                     initialization_id=options['initialization'],source_digest=options['source_digest'],
                     configuration_digest=options['configuration_digest'],pick_output_root=options['pick_output_root'],
                     execution_revision=options['revision'],retry_capture_id=options['retry_capture'],
+                    report_disposition=options.get('report_disposition'),
                     predecessor_id=options['predecessor'],predecessor_output_digest=options['predecessor_output_digest'])
                 require(report,'day')
                 self.stdout.write(json.dumps(report,sort_keys=True))
@@ -34,7 +36,7 @@ class Command(BaseCommand):
                 configuration_digest=options['configuration_digest'], execution_revision=options['revision'],
                 pick_output_root=options['pick_output_root'], predecessor_id=options['predecessor'],
                 predecessor_output_digest=options['predecessor_output_digest'],
-                retry_capture_id=options['retry_capture'])
+                retry_capture_id=options['retry_capture'],report_disposition=options.get('report_disposition'))
             self.stdout.write(json.dumps(dict(status=run.status, run_id=str(run.pk),
                 predecessor_id=str(run.predecessor_id) if run.predecessor_id else None,
                 business_date=run.business_date.isoformat(), input_digest=run.input_digest,

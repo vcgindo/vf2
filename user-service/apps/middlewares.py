@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api.models import TokenBlacklistAccessToken
 from common.enum import ExcludedApiEndpoints
+from common.startup_probe import observed
 
 class BlockHttpMethodOverrideHeadersMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -38,6 +39,7 @@ If the token is blacklisted, a 401 Unauthorized response is returned.
 Otherwise, the request proceeds as normal.
 """
 class JwtAccessTokenAuthMiddleware(MiddlewareMixin):
+    @observed('jwt_blacklist')
     def process_request(self, request):
         #fetching access token
         ignore_paths = tuple(endpoint.value for endpoint in ExcludedApiEndpoints)

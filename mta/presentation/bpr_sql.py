@@ -85,7 +85,12 @@ class BprSqlFilters(Filters):
 
 
 def _projected_attributes(run):
-    from mta.presentation.fixture import bpr_image_rows
+    from mta.presentation import native_publication
+    if native_publication.enabled():
+        native_publication.require_mode()
+        from mta.presentation.selective import image_rows as bpr_image_rows
+    else:
+        from mta.presentation.fixture import bpr_image_rows
 
     importer = {name: bpr_image_rows(run, 'closing/importer/' + name)
                 for name in ('SkuAttributeData', 'LocationAttributeData')}

@@ -1,0 +1,35 @@
+{
+  "schema": "native-report-colours-v1",
+  "source": "mta/application/r1_rationed_report.py",
+  "source_sha256": "372c7025d77a6e8994a66c3911251e710b42b81cbcbcaeb95821a7062fad2dd6",
+  "rows": [
+    {
+      "Color": "Black",
+      "SequenceNo": 1
+    },
+    {
+      "Color": "Red",
+      "SequenceNo": 2
+    },
+    {
+      "Color": "Yellow",
+      "SequenceNo": 3
+    },
+    {
+      "Color": "Green",
+      "SequenceNo": 4
+    },
+    {
+      "Color": "Blue",
+      "SequenceNo": 5
+    },
+    {
+      "Color": "White",
+      "SequenceNo": 6
+    },
+    {
+      "Color": "Grey",
+      "SequenceNo": 7
+    }
+  ]
+}

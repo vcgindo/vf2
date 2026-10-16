@@ -18,8 +18,11 @@ def read_reports(*,run_id,expected_output_digest):
     if not isinstance(binding,dict) or binding.get('source_digest')!=capture.source.digest:
         raise ValueError('Native Norm0 initialization/source binding differs')
     output=read_outputs(run)  # Existing complete typed receipt/checksum verification.
+    from mta.application.native_report_disposition import verify_commit
+    disposition=(output['Lineage'] or [{}])[0].get('native_report_disposition')
+    verify_commit(disposition,output['Lineage'],run)
     receipt=resultsets(reports=output['Reports'],batch=inputs['profile']['delivery']['batch'],
-        run_id=run.pk,output_digest=run.output_digest)
+        run_id=run.pk,output_digest=run.output_digest,lineage=output['Lineage'])
     receipt.update(business_date=run.business_date.isoformat(),initialization_id=binding['id'],source_digest=capture.source.digest)
     return receipt
 

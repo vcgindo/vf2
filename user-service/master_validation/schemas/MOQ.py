@@ -48,7 +48,17 @@ class MOQValidations:
             #check is Sku Location Combiation is Unique
             # if(len(self.df[(self.df['sc'].str.lower() == row['sc'].lower()) & (self.df['spc'].str.lower() == row['spc'].lower())]) > 1):
             #     error += '{f},{h} should be unique.'.format(f=key_to_header_map['sc'],h=key_to_header_map['spc'])
-            error += check_multiple_column_duplicate(df =self.df,columns=['sc' , 'spc'], row_values=row,key_to_header_map=key_to_header_map)
+            destination_required = screen_type == 'add' and validation_rules.get('moq_destination_required', False)
+            duplicate_columns = ['sc', 'spc']
+            if destination_required:
+                header = key_to_header_map.get('wc', 'Location Code')
+                if 'wc' not in row.index or not isinstance(row['wc'], str) or not row['wc'].strip():
+                    error += header + ' should not be empty.'
+                else:
+                    error += check_for_all_special_char_and_comma_pipe(row['wc'], header)
+                    error += max_length(row['wc'], header, MAX_CODE_LENGTH)
+                    duplicate_columns = ['sc', 'wc', 'spc']
+            error += check_multiple_column_duplicate(df=self.df, columns=duplicate_columns, row_values=row, key_to_header_map=key_to_header_map)
             # if('spc' in row.index):
             #     if(not is_empty(row['spc'])):
             #         regexResult = check_regex(row['spc'],key_to_header_map['spc'],"^[a-zA-Z0-9-]*$")

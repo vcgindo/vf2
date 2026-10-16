@@ -15,6 +15,12 @@ def configuration():
     if hashlib.sha256(raw).hexdigest()!=CONFIG_SHA256:
         raise PublicationUnavailable('BOR_configuration_changed')
     value=json.loads(raw)
+    from mta.presentation import native_publication
+    if native_publication.enabled():
+        # Native publication binds this pinned file in configuration_identity;
+        # it does not depend on the historical fixture staging registry.
+        native_publication.require_mode()
+        return value
     with connection.cursor() as c:
         c.execute('SELECT source,table_name,values_sha256,row_count FROM stage2_owner.tables '
             'WHERE (source=%s AND table_name=%s) OR (source=%s AND table_name=%s)',

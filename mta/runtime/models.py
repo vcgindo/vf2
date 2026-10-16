@@ -318,6 +318,7 @@ class GuidedAvailabilitySnapshotReference(models.Model):
 class GuidedExcessHistoryRow(models.Model):
     """Excess fact and exact importer attribute/pair occurrence ordinals."""
     run = models.ForeignKey(CalculationRun, on_delete=models.PROTECT)
+    fact_run = models.ForeignKey(CalculationRun, null=True, on_delete=models.PROTECT, related_name='+')
     ordinal = models.BigIntegerField()
     fact_ordinal = models.BigIntegerField()
     sku_ordinal = models.BigIntegerField()
@@ -334,7 +335,8 @@ class GuidedExcessHistoryRow(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run', 'ordinal'],
                                                name='fresh_guided_excess_history_ordinal')]
-        indexes = [models.Index(fields=['run', 'report_date'],
+        indexes = [models.Index(fields=['run', 'fact_run', 'fact_ordinal'], name='fresh_guided_excess_fact'),
+                   models.Index(fields=['run', 'report_date'],
                                 name='fresh_guided_excess_date'),
                    models.Index(models.F('run'), Lower(models.Func(models.F('sku_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_excess_sku'),
                    models.Index(models.F('run'), Lower(models.Func(models.F('location_code'), models.Value(' '), function='RTRIM')), models.F('report_date'), name='fresh_guided_excess_loc')]

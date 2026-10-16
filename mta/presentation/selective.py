@@ -19,6 +19,11 @@ def image_metadata(run, path):
         return daily_metadata(run, path)
     item = run.production_manifest.get('images', {}).get(path)
     tables = CATALOG['tables']
+    if path == 'closing/dbm/PhaseOutRecommendation':
+        from mta.runtime.dbm_phase_storage import TABLES, BINDINGS
+        tables = TABLES
+        if item and item['table'] != BINDINGS[path]:
+            raise PublicationUnavailable('selected_report_image_table_mismatch:' + path)
     if path in ('closing/complete/LogisticPickList',
                 'closing/complete/PickListDataForTruckFormation'):
         from mta.runtime.complete_daily_state import TABLES, BINDINGS

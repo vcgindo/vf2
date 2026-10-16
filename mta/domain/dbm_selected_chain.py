@@ -72,6 +72,12 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
 def selected_norm012_stages(today,state,config=None,report_exceptions=None):
     """Actual connected norm-report dispatch, separately bounded for proof."""
     current=state
+    disposition = (report_exceptions or {}).get('native_report_disposition')
+    if disposition is not None:
+        if set(report_exceptions) != {'native_report_disposition'} or config is None or config.get('ActivateNorm0Report30Days') != 1:
+            raise ValueError('Native report disposition cannot widen report exceptions')
+        from mta.application.native_report_disposition import report_group, disclose_export
+        limited_group = report_group(today, state, disposition, norm=0, horizon=30)
     for norm in (0, 1, 2):
         for horizon in ((30, 60, 90) if norm == 0 and config is not None else (30,)):
             if config is not None and config[f'ActivateNorm{norm}Report{horizon}Days'] != 1:
@@ -84,8 +90,12 @@ def selected_norm012_stages(today,state,config=None,report_exceptions=None):
             exclude_all = (scope.get('all_ambiguous_rows') is True
                            and norm in scope.get('norms', [])
                            and horizon in scope.get('horizons', []))
+            if disposition is not None and (norm, horizon) == (0, 30):
+                excluded = limited_group
             for name, current in norm012_stages(
                     today, current, norm, horizon, excluded, exclude_all):
+                if disposition is not None and (norm, horizon, name) == (0, 30, 'export'):
+                    disclose_export(current, disposition)
                 yield report_stage(norm,horizon,name), snapshot(current)
 
 

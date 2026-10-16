@@ -7,8 +7,14 @@ ALIASES = {alias: row['TableField'] for alias, row in FIELDS.items()}
 DRAFT_ALIASES = {alias: name for alias, name in ALIASES.items() if FIELDS[alias]['IsDownload']}
 
 
-def configuration(screen_type):
-    return supplier.configuration(5, screen_type)
+def configuration(screen_type, *, source=None):
+    result = supplier.configuration(5, screen_type)
+    if screen_type == 'add' and source is not None and supplier.setting(source) == 'WithDestLoc':
+        for master in result:
+            for field in master['fields']:
+                if field['key'] == 'wc':
+                    field['isAdd'] = True
+    return result
 
 
 def read(source, payload, *, count=False):

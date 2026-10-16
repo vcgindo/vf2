@@ -62,10 +62,54 @@ REVERSE += '\n' + '\n'.join(f'DROP FUNCTION mta.{name}();' for name in (
     'deny_boroa_source_mutation','guard_boroa_live_remark'))
 
 
+PRODUCTION_BODIES = {
+'guard_boroa_source_build': f"""
+DECLARE owner uuid;
+BEGIN
+ owner := nullif(current_setting('fresh.boroa_source_build',true),'')::uuid;
+ IF NOT mta.daily_prepared_owner(owner) THEN
+  IF owner IS DISTINCT FROM '{RUN_ID}'::uuid THEN RAISE EXCEPTION 'BOROA source owner required'; END IF;
+  PERFORM 1 FROM mta.fresh_mta_calculationrun WHERE id=owner AND kind='LEGACY_UI_FIXTURE'
+   AND status='FIXTURE_BLOCKED' AND business_date=DATE '2026-04-07' FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'BOROA requires retained April fixture'; END IF;
+ END IF;
+ IF EXISTS(SELECT 1 FROM mta.fresh_mta_boroasourcereceipt WHERE run_id=owner)
+ THEN RAISE EXCEPTION 'BOROA source already sealed'; END IF;
+ RETURN NULL;
+END """,
+'guard_boroa_source_row': """
+BEGIN
+ IF NEW.run_id::text IS DISTINCT FROM current_setting('fresh.boroa_source_build',true)
+ THEN RAISE EXCEPTION 'BOROA source row owner differs'; END IF;
+ RETURN NEW;
+END """,
+'guard_boroa_source_receipt': f"""
+BEGIN
+ IF NEW.run_id::text IS DISTINCT FROM current_setting('fresh.boroa_source_build',true)
+ OR (NOT mta.daily_prepared_owner(NEW.run_id) AND (NEW.source_digest IS DISTINCT FROM '{NATIVE_DIGEST}'
+ OR (SELECT count(*) FROM mta.fresh_mta_boroasourcerow WHERE run_id=NEW.run_id)<>3098
+ OR (SELECT count(*) FROM mta.fresh_mta_boroarequirement WHERE run_id=NEW.run_id)<>97097
+ OR (SELECT count(*) FROM mta.fresh_mta_boroainitialremark WHERE run_id=NEW.run_id)<>0))
+ THEN RAISE EXCEPTION 'BOROA source receipt differs'; END IF;
+ RETURN NEW;
+END """,
+}
+
+def production_definitions():
+    return '\n'.join('CREATE OR REPLACE FUNCTION mta.'+name+
+        '() RETURNS trigger LANGUAGE plpgsql AS $$'+body+'$$;' for name,body in PRODUCTION_BODIES.items())
+
+def installed_bodies(connection,bodies):
+    with connection.cursor() as c:
+        c.execute("SELECT EXISTS(SELECT 1 FROM django_migrations WHERE app='fresh_mta' AND name='0139_native_bor_preparation')")
+        if not c.fetchone()[0]: return bodies
+    return {name:PRODUCTION_BODIES.get(name,body) for name,body in bodies.items()}
+
+
 def verify_guards(connection):
     import re
     expected={name:(table,'O',bits,func,None,0,'mta') for name,table,bits,func,*_ in BINDINGS}
-    bodies=dict(re.findall(r'CREATE FUNCTION mta\.(\w+)\(\).*?AS \$\$(.*?)\$\$;',FORWARD,re.S))
+    bodies=installed_bodies(connection,dict(re.findall(r'CREATE FUNCTION mta\.(\w+)\(\).*?AS \$\$(.*?)\$\$;',FORWARD,re.S)))
     with connection.cursor() as c:
         c.execute('SELECT t.tgname,c.relname,t.tgenabled,t.tgtype,p.proname,t.tgqual::text,t.tgnargs,pn.nspname '
             'FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace '

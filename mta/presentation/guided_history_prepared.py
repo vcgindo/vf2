@@ -4,7 +4,9 @@ from django.db import connection
 
 from mta.presentation import fixture
 from mta.presentation.context import PublicationUnavailable
-from mta.presentation.guided_history_fields import schema_digest
+from mta.presentation.guided_history_fields import (
+    native_excess_schema_digest, schema_digest,
+)
 from mta.presentation.insight_filters import unavailable
 from mta.presentation.rrr_sql import Filters, equal
 from mta.presentation.selective import image_metadata, image_query
@@ -31,7 +33,7 @@ def fields_for(node, alias):
     return {node[1][1]} if node[1][0] == alias else set()
 
 
-def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None):
+def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None, payload=None):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily and (not getattr(settings, 'VF_GUIDED_PREPARED', False) or not fixture.enabled()):
@@ -48,11 +50,23 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     except ValueError as exc:
         raise PublicationUnavailable('Guided history prepared guards differ') from exc
     family = 'excess' if kind.startswith('excess-') else 'availability'
+    expected_schema = schema_digest()
+    if daily and family == 'excess':
+        from mta.presentation import native_excess_history
+        history_identity = native_excess_history.identity(run)
+        native_excess_history.require_cutoff(history_identity, cutoff)
+        source = native_excess_history.source_digest(source, history_identity)
+        expected_schema = native_excess_schema_digest()
     receipt = GuidedHistoryPreparedProjection.objects.filter(
         run=run, family=family).first()
     if (receipt is None or receipt.source_digest != source or
-            receipt.schema_digest != schema_digest()):
+            receipt.schema_digest != expected_schema):
         raise PublicationUnavailable('Guided history prepared receipt differs')
+    if payload is not None:
+        from mta.presentation.guided_aggregates import read_aggregate
+        aggregated = read_aggregate(run, cutoff, predicate, payload, kind, minimum_age)
+        if aggregated is not None:
+            return aggregated
     model = GuidedExcessHistoryRow if family == 'excess' else GuidedAvailabilityHistoryRow
     table = 'mta.' + quote(model._meta.db_table)
     ctes = ['H AS (SELECT * FROM '+table+' WHERE run_id=%s AND report_date>%s)']
@@ -78,12 +92,23 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     for node in predicate.sql_terms: fact_fields.update(fields_for(node, '_a'))
     if any(field not in core for field in fact_fields):
         if family == 'excess':
-            from mta.presentation.fixture import receipt as fixture_receipt
-            ctes.append('_fact AS (SELECT *,ordinal vf_ordinal FROM mta.'+
-                        quote(ExcessInventoryRow._meta.db_table)+' WHERE run_id=%s)')
-            params.append(run.pk)
-            item = fixture_receipt(run, 'projection/ExcessInventoryRow')
-            wires['_a'] = dict(zip(item['fields'], item['wire']))
+            fact_where = (' WHERE run_id IN (SELECT DISTINCT fact_run_id FROM H))'
+                          if daily else ' WHERE run_id=%s)')
+            ctes.append('_fact AS (SELECT *,ordinal vf_ordinal FROM mta.' +
+                        quote(ExcessInventoryRow._meta.db_table) + fact_where)
+            if not daily:
+                params.append(run.pk)
+                from mta.presentation.fixture import receipt as fixture_receipt
+                item = fixture_receipt(run, 'projection/ExcessInventoryRow')
+                wires['_a'] = dict(zip(item['fields'], item['wire']))
+            else:
+                wires['_a'] = {
+                    field.name: ('str' if field.get_internal_type() in
+                                 ('CharField', 'TextField', 'DateField') else
+                                 'decimal' if field.get_internal_type() == 'DecimalField'
+                                 else 'int')
+                    for field in ExcessInventoryRow._meta.fields
+                    if field.name not in ('id', 'run')}
         else:
             item=image_metadata(run,'closing/btr/BPR');query,values=image_query(run,'closing/btr/BPR')
             ctes.append('_fact AS ('+query+')');params.extend(values)
@@ -111,15 +136,29 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     try: where=' AND '.join(term(node) for node in predicate.sql_terms) or 'TRUE'
     except PublicationUnavailable as exc: unavailable(str(exc).partition(':')[2])
     for alias,codes in (('P',products),('L',locations)):
-        ctes.append(alias+'(code,weight) AS (VALUES '+','.join(['(%s,%s)']*len(codes))+')')
+        values = 'VALUES '+','.join(['(%s,%s)']*len(codes))
         params.extend(value for code in sorted(codes) for value in (code,codes.multiplicities[code]))
+        # Preserve the deployed normalized fact-code predicate on the small
+        # permission bag, including every duplicate-derived weight.
+        fields = ('SKUCode',) if alias == 'P' else ('WHCode', 'WhCode')
+        code_terms = [node for node in predicate.sql_terms
+                      if node[0] == 'in' and node[1][0] == '_a' and node[1][1] in fields]
+        scope_where = []
+        for node in code_terms:
+            scope_where.append('('+' OR '.join(equal('allowed.code', '%s') for _ in node[2])+')')
+            params.extend(node[2])
+        query = ('SELECT * FROM ('+values+') allowed(code,weight) WHERE '+
+                 ' AND '.join(scope_where)) if scope_where else values
+        ctes.append(alias+'(code,weight) AS ('+query+')')
     core_select=('H.sku_code "SKUCode",H.location_code "WHCode",H.location_code "WhCode",'
                  'H.parent_location_code "ParentWhCode",H.report_date "ReportDate",'
                  'H.physical_inventory_color "PhysicalInventoryColor"'+
                  (',H.amount "Amount"' if family=='excess' else ''))
     joins=' FROM H '
     if '_fact' in relations:
-        joins+='JOIN _fact _a ON H.fact_ordinal=_a.vf_ordinal '
+        joins += ('JOIN _fact _a ON ' +
+                  ('H.fact_run_id=_a.run_id AND ' if daily and family == 'excess' else '') +
+                  'H.fact_ordinal=_a.vf_ordinal ')
     else:
         joins += 'CROSS JOIN LATERAL (SELECT '+core_select+') _a '
     for alias,column in (('_sku','sku_ordinal'),('_location','location_ordinal'),('_pair','pair_ordinal')):

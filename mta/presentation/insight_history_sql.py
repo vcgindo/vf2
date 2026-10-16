@@ -17,8 +17,12 @@ from mta.runtime.relational_state import quote
 
 
 def read_history(run, payload, kind):
+    from mta.presentation.native_publication import enabled, require_mode
+    native = enabled()
+    if native:
+        require_mode()
     excess = kind.startswith('excess-')
-    if excess and run.kind != 'LEGACY_UI_FIXTURE':
+    if excess and run.kind != 'LEGACY_UI_FIXTURE' and not native:
         raise ValueError('normal_excess_history_uses_its_admitted_chain')
     horizon = int(payload.get('horison', 0) if excess else
                   payload.get('horizon', payload.get('horison', 90 if kind == 'availability-trend' else 30)))
@@ -35,14 +39,20 @@ def read_history(run, payload, kind):
         raise PublicationUnavailable(str(exc)) from exc
     predicate = InsightPredicate(payload, attributes['LocationAttributeData'], kind=kind)
     products, locations = scope(payload, attributes=attributes)
-    if run.kind == 'LEGACY_UI_FIXTURE' and not manifest and products and locations:
+    if native and manifest:
+        raise PublicationUnavailable('native_guided_history_hierarchy_not_bound')
+    if native and (not products or not locations):
+        return []
+    if (run.kind == 'LEGACY_UI_FIXTURE' or native) and not manifest and products and locations:
         from mta.presentation.guided_history_prepared import read_prepared
         prepared_rows = read_prepared(
             run, cutoff, predicate, products, locations, kind,
             minimum_age=(int(payload.get('ageing', 1))
-                         if kind == 'availability-ageing' else None))
+                         if kind == 'availability-ageing' else None), payload=payload)
         if prepared_rows is not None:
             return _result(prepared_rows, kind)
+        if native:
+            raise PublicationUnavailable('native_guided_history_prepared_required')
     ctes, params, wires = [], [], {}
     def add(alias, query, values, fields):
         ctes.append(alias + ' AS (' + query + ')'); params.extend(values)

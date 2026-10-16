@@ -12,6 +12,7 @@ from django.utils import timezone
 from mta.runtime.models import CalculationRun, DailyUiPublication, DailyUiPublicationAttempt
 from mta.serialization import digest
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.request_scope import once_per_request
 
 CONFIG_NAMES = ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256',
     'VF_MTA_ACTIONS_ENABLED', 'VF_MTA_ACTION_TIME_ZONE', 'VF_BPR_PREPARED',
@@ -27,6 +28,10 @@ def configuration_identity(*, access=None):
     from mta.presentation import qualified_consumption
     if qualified_consumption.enabled():
         values['qualified_consumption'] = qualified_consumption.PIN_SHA
+    from mta.presentation import native_publication
+    if native_publication.enabled():
+        native_publication.require_mode()
+        values['native_publication'] = True
     if access is not None:
         values.update({name: access[name] for name in
             ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256')})
@@ -34,6 +39,7 @@ def configuration_identity(*, access=None):
         configs={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.glob('*.json'))}))
 
 
+@once_per_request
 def recipe_identity():
     from mta.presentation import daily_preparation
     from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
@@ -59,6 +65,10 @@ def source_identity(run):
     from mta.presentation import qualified_consumption
     if qualified_consumption.enabled():
         value['qualified_consumption'] = qualified_consumption.identity(run)
+    from mta.presentation import native_publication
+    if native_publication.enabled():
+        native_publication.require_mode()
+        value['native_publication'] = native_publication.identity(run)
     return digest(value)
 
 
@@ -156,6 +166,7 @@ def prepare(run_id, *, expected_output_digest):
             cursor.execute('SELECT pg_advisory_unlock(%s)', [lock])
 
 
+@once_per_request
 def require_ready(run, *, verify_rows=False):
     from mta.presentation.daily_preparation import required_layers, verify_layer
     layers_required = required_layers()
@@ -169,6 +180,9 @@ def require_ready(run, *, verify_rows=False):
             or publication.seal_digest != seal_identity(publication)):
         raise PublicationUnavailable('daily_ui_publication_seal_mismatch')
     if publication.configuration_digest != configuration_identity():
+        from mta.presentation import native_publication
+        if native_publication.enabled():
+            raise PublicationUnavailable('native_publication_configuration_changed')
         from mta.presentation.daily_activation import require_activation
         require_activation(run, publication)
     if verify_rows:

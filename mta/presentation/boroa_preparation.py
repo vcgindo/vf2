@@ -9,15 +9,20 @@ from mta.runtime.relational_state import quote
 from mta.serialization import canonical_parts
 
 def query(run):
-    selected,_=admitted_sources()
+    selected,_=admitted_sources(run)
     if selected.pk!=run.pk:raise ValueError('BOROA preparation run differs')
     ctes=[];params=[]
     for alias,model in [('A',BorOaSourceRow),('F',BorOaRequirement)]:
         ctes.append(alias+' AS (SELECT *,ordinal AS vf_ordinal FROM mta.'+quote(model._meta.db_table)+' WHERE run_id=%s)');params.append(run.pk)
     for alias,path in SOURCES.items():
-        if alias=='E':
+        if alias=='E' and run.kind == 'LEGACY_UI_FIXTURE':
             ctes.append('E AS (SELECT *,vf_source_ordinal AS vf_ordinal FROM "stage_demo_bpr_1"."dbo__ColorSequence")');continue
-        sql,values=image_query(run,path);ctes.append(alias+' AS ('+sql+')');params.extend(values)
+        if alias == 'E':
+            from mta.presentation.native_report_colours import query as colour_query
+            sql,values=colour_query()
+        else:
+            sql,values=image_query(run,path)
+        ctes.append(alias+' AS ('+sql+')');params.extend(values)
     ctes.append('S3 AS (SELECT * FROM S2)')
     pair=lambda owner,loc:equal('A."SKUCode"',owner+'."SKUCode"')+' AND '+equal('A."WhCode"',owner+'.'+quote(loc))
     joins=' FROM A JOIN E ON '+equal('A."DispatchColor"','E."Color"')

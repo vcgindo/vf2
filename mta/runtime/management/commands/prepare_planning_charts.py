@@ -60,7 +60,8 @@ class Command(BaseCommand):
             raise CommandError('Planning charts require retained April input')
         started = time.monotonic()
         with transaction.atomic():
-            type(run).objects.select_for_update().get(pk=run.pk)
+            if not options['verify_only']:
+                type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             assert_unchanged(run, source)
             receipt = PlanningChartProjection.objects.filter(run=run).first()

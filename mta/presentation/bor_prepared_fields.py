@@ -36,3 +36,10 @@ def recipe_digest():
     return digest(dict(version=1,source=source_recipe(),sources=SOURCES,fields=FIELDS,
         joins='source-left-requirement-standard-attributes-descriptions-sob-moq',
         ordinals=OWNERS,comparison="lower(rtrim(value::text,' '))"))
+
+
+def production_recipe_digest():
+    from mta.presentation.bor_contract import production_recipe_digest as native_source_recipe
+    return digest(dict(version=1,source=native_source_recipe(),sources=SOURCES,fields=FIELDS,
+        joins='source-left-requirement-standard-attributes-descriptions-sob-moq',
+        ordinals=OWNERS,comparison="lower(rtrim(value::text,' '))"))

@@ -30,6 +30,7 @@ PROJECTIONS = (PickProjection, ExcessProjection, FulfillmentProjection,
                ExpediteProjection, PickPostProjection)
 CONFIG_SETTINGS = (
     'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST',
+    'VF_MTA_NATIVE_PUBLICATION', 'VF_MTA_SELECTION_FILE', 'VF_MTA_SELECTION',
     'VF_MTA_PERMISSIONS_FILE', 'VF_MTA_PERMISSIONS_SHA256',
     'VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256',
     'VF_MTA_TERMINAL_FILE', 'VF_MTA_TERMINAL_SHA256',
@@ -103,6 +104,12 @@ def verify(run):
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_publication import require_ready
         require_ready(run, verify_rows=True)
+        from mta.presentation import native_publication
+        if native_publication.enabled():
+            native_publication.require_mode()
+            native_publication.identity(run, verify_rows=True)
+            from mta.presentation.planning_summary_daily import require_ready as require_summary
+            require_summary(run, verify_rows=True)
     verify_native(run)
 
 
@@ -211,6 +218,11 @@ class AdmittedApplication:
             connections.close_all()
 
     def __call__(self, environ, start_response):
+        from mta.presentation.request_scope import read_request
+        with read_request(environ.get('PATH_INFO', '')):
+            return self._dispatch(environ, start_response)
+
+    def _dispatch(self, environ, start_response):
         if environ.get('PATH_INFO', '').startswith('/api/mta/'):
             try:
                 require_admission()

@@ -8,13 +8,23 @@ from mta.presentation.rrr import sql_key
 
 CONFIG=Path(__file__).resolve().parents[1]/'config/bor_snapshot_config.json'
 CONFIG_SHA256='149e82fec14b483f46c45ac43c44e31006a1ba8c1a42a5cccbbf49871b6bef09'
+# Git stores the same retained configuration with LF line endings. The legacy
+# fixture pin above identifies its CRLF capture; native publication pins Git bytes.
+NATIVE_CONFIG_SHA256='ea1043b8424f042c87b05151b213cde19fd4ac9caabc8b9a76348367a01c32d4'
 
 
 def configuration():
+    from mta.presentation import native_publication
+    native = native_publication.enabled()
     raw=CONFIG.read_bytes()
-    if hashlib.sha256(raw).hexdigest()!=CONFIG_SHA256:
+    if hashlib.sha256(raw).hexdigest()!=(NATIVE_CONFIG_SHA256 if native else CONFIG_SHA256):
         raise PublicationUnavailable('BOR_configuration_changed')
     value=json.loads(raw)
+    if native:
+        # Native publication binds this pinned file in configuration_identity;
+        # it does not depend on the historical fixture staging registry.
+        native_publication.require_mode()
+        return value
     with connection.cursor() as c:
         c.execute('SELECT source,table_name,values_sha256,row_count FROM stage2_owner.tables '
             'WHERE (source=%s AND table_name=%s) OR (source=%s AND table_name=%s)',

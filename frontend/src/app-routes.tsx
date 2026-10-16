@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useRef } from 'react'
+import { traceRoute } from './performance/screenProbe'
 import { useLocation, type RouteObject } from 'react-router-dom'
 import { AppLayout } from './components'
 import { getStoreTransferModuleRoutes } from './module-store-transfer/app-routes-store-transfer'
@@ -15,86 +16,88 @@ import Profile from './module-store-transfer/pages/profile'
 import PageForbidden from './module-store-transfer/pages/forbidden'
 import PageNotFound from './module-store-transfer/pages/notFound'
 import { useTranslation } from 'react-i18next'
-import ControlPanel from './VectorFlow/Pages/MTA/MDM/ControlPanel'
-import ViewModify from './VectorFlow/Pages/MTA/MDM/ViewModify'
-import AddRecord from './VectorFlow/Pages/MTA/MDM/AddRecord'
-import DeleteRecord from './VectorFlow/Pages/MTA/MDM/DeleteRecord'
-import SavedDrafts from './VectorFlow/Pages/MTA/MDM/SavedDrafts'
-import TaskStatus from './VectorFlow/Pages/MTA/MDM/TaskStatus'
-import TaskPendingForReview from './VectorFlow/Pages/MTA/MDM/TaskPendingForReview'
-import BuyerOrderReport from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BuyerOrderReport'
-import Planning from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/Planning'
-import ResearchInsights from './VectorFlow/Pages/MTA/InsightsAndTrends/ResearchInsights'
-import BPR from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BPR'
-import RRR from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/RationedRequirementReport'
-import GuidedInsights from './VectorFlow/Pages/MTA/InsightsAndTrends/GuidedInsights'
-import BufferTrends from './VectorFlow/Pages/MTA/InsightsAndTrends/BufferTrends'
-import BufferTrendReport from './VectorFlow/Pages/MTA/InsightsAndTrends/BTR'
-import DBM from './VectorFlow/Pages/MTA/DBM/DBMNormSuggestions'
-import EnquiryResponse from './VectorFlow/Pages/MTO/Production/EnquiryResponse'
-import OpenExpeditingRequests from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/OpenExpeditingRequests'
-import MaterialCov from './VectorFlow/Pages/MTO/Procurement/MaterialCoverage/MaterialCov'
-import ProcurementPlanning from './VectorFlow/Pages/MTO/Procurement/Planning';
-import SimulateFullKit from './VectorFlow/Pages/MTO/Procurement/Planning/SimulateFullKit';
-import InTransitWhereAbouts from './VectorFlow/Pages/MTA/Logistics/InTransitWhereAbouts'
-import DayWiseCoverage from './VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/DayWiseCoverage'
-import MaterialRequirement from './VectorFlow/Pages/MTO/Procurement/MaterialRequirement/MaterialRequirement'
-import RMPMBufferTrends from './VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMBufferTrends'
-import RMPMOrderwiseCoverage from './VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMOrderwiseCoverage'
-import DptWiseBMReport from './VectorFlow/Pages/MTO/Production/DepartmentWiseBMReport/index';
-import FullKitAssignment from './VectorFlow/Pages/MTO/Production/FullKitAssignement'
-import OrderRescheduling from './VectorFlow/Pages/MTO/Production/OrderRescheduling'
-import RMExpeditionSuppliers from './VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMExpediting/index'
-import BMTrends from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/BMTrends'
-import SupplierDispatchReport from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/SupplierDispatchReport'
-import DataModificationHistory from './VectorFlow/Pages/MTA/MDM/DataModificationHistory'
-import MCGrid from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/MerchandisingGrid'
-import STPLAndFullKits from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/STPLAndFullKits'
-import OrderAtRisk from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/OrderAtRisk'
-import DueDateQuotation from './VectorFlow/Pages/MTO/Production/DueDateQuotation'
-import OrderBalance from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/OrderBalance'
-import OTIFAnalysis from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/OTIFAnalysis'
-import ResourceUtilization from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/ResourceUtilization'
-import FOLSummary from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/FOLSummary'
-import DynamicReleaseManagement from './VectorFlow/Pages/MTO/Production/DynamicReleaseManagement'
-import ReasonForDelayOrder from './VectorFlow/Pages/MTO/Poogi/ReasonOrderChange/index'
-import TopFailureReasons from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/TopFailureReason'
-import OTAndIFAnalysis from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/OTAndIFAnalysis'
-import ElapsedTime from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/ElapsedTime'
-import LeadTime from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/LeadTime'
-import TrendsOfFailureReason from './VectorFlow/Pages/MTO/Poogi/InsightAndTrends/TrendsOfFailureReason'
-import OverallBmReport from './VectorFlow/Pages/MTO/Production/OverallBMReport'
-import LandingPage from './VectorFlow/Pages/Common/LandingPage'
-import MTOControlPanel from './VectorFlow/Pages/MTO/MDM/ControlPanel'
-import MTOViewModify from './VectorFlow/Pages/MTO/MDM/ViewModify'
-import MTOSavedDrafts from './VectorFlow/Pages/MTO/MDM/SavedDrafts'
-import MTOTaskStatus from './VectorFlow/Pages/MTO/MDM/TaskStatus'
-import MTOTaskPendingForReview from './VectorFlow/Pages/MTO/MDM/TaskPendingForReview'
-import MTOAddRecord from './VectorFlow/Pages/MTO/MDM/AddRecord'
-import MTODataModificationHistory from './VectorFlow/Pages/MTO/MDM/DataModificationHistory'
-import MastersInterceptor from './VectorFlow/Pages/Common/MastersInterceptor'
 import {AuthGate,UnAuthGate} from './components/VectorFLOW/layouts/VectorAdmin/AuthGate'
 import VectorAdminLogin from './components/VectorFLOW/layouts/VectorAdmin/Login'
 import Tools from './components/VectorFLOW/layouts/VectorAdmin/Tools'
 import ManageRoles from './components/VectorFLOW/layouts/VectorAdmin/ManageRoles'
 import ManageURLs from './components/VectorFLOW/layouts/VectorAdmin/ManageURLs'
 
-import RRRColorBandwise from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/RationedRequirementReport  Color Bandwise'
-import BuyerOrderReportColorBandwise from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BuyerOrderReport Color Bandwise'
-import SupplierWiseAllocation from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/SupplierWiseAllocation'
 
-import OrderAllocationReport from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/OrderAllocationReport'
-import TotalRequirementReport from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/TotalRequirementReport'
 import BulkUploadPage from './module-store-transfer/pages/bulk-upload'
-import ElephantOrder from './VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/ElephantOrders'
-import Scheduling from './VectorFlow/Pages/MTO/Production/Scheduling'
 import ManageEnvConfig from './components/VectorFLOW/layouts/VectorAdmin/ManageEnvConfig'
-import FutureOrderLoadChart from './VectorFlow/Pages/MTO/Production/InsightsAndTrends/FutureOrderLoadChart'
 import ManagePermissions from './components/VectorFLOW/layouts/VectorAdmin/ManagePermissions'
 import ManageUIReportConfig from './components/VectorFLOW/layouts/VectorAdmin/ManageUIReportConfig'
 import ManageUIMDMConfig from './components/VectorFLOW/layouts/VectorAdmin/ManageUIMDMConfig'
 import { useUserData } from './context'
 import AuditReport from './module-store-transfer/pages/Login-Audit-Report'
+
+// Load page modules only when their existing authorized route renders.
+const ControlPanel = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/ControlPanel'));
+const ViewModify = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/ViewModify'));
+const AddRecord = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/AddRecord'));
+const DeleteRecord = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/DeleteRecord'));
+const SavedDrafts = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/SavedDrafts'));
+const TaskStatus = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/TaskStatus'));
+const TaskPendingForReview = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/TaskPendingForReview'));
+const BuyerOrderReport = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BuyerOrderReport'));
+const Planning = React.lazy(() => traceRoute('Planning', () => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/Planning')));
+const ResearchInsights = React.lazy(() => import('./VectorFlow/Pages/MTA/InsightsAndTrends/ResearchInsights'));
+const BPR = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BPR'));
+const RRR = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/RationedRequirementReport'));
+const GuidedInsights = React.lazy(() => import('./VectorFlow/Pages/MTA/InsightsAndTrends/GuidedInsights'));
+const BufferTrends = React.lazy(() => import('./VectorFlow/Pages/MTA/InsightsAndTrends/BufferTrends'));
+const BufferTrendReport = React.lazy(() => import('./VectorFlow/Pages/MTA/InsightsAndTrends/BTR'));
+const DBM = React.lazy(() => import('./VectorFlow/Pages/MTA/DBM/DBMNormSuggestions'));
+const EnquiryResponse = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/EnquiryResponse'));
+const OpenExpeditingRequests = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/OpenExpeditingRequests'));
+const MaterialCov = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/MaterialCoverage/MaterialCov'));
+const ProcurementPlanning = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/Planning'));
+const SimulateFullKit = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/Planning/SimulateFullKit'));
+const InTransitWhereAbouts = React.lazy(() => import('./VectorFlow/Pages/MTA/Logistics/InTransitWhereAbouts'));
+const DayWiseCoverage = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/DayWiseCoverage'));
+const MaterialRequirement = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/MaterialRequirement/MaterialRequirement'));
+const RMPMBufferTrends = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMBufferTrends'));
+const RMPMOrderwiseCoverage = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMOrderwiseCoverage'));
+const DptWiseBMReport = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/DepartmentWiseBMReport/index'));
+const FullKitAssignment = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/FullKitAssignement'));
+const OrderRescheduling = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/OrderRescheduling'));
+const RMExpeditionSuppliers = React.lazy(() => import('./VectorFlow/Pages/MTO/Procurement/InsightsAndTrends/RMPMExpediting/index'));
+const BMTrends = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/BMTrends'));
+const SupplierDispatchReport = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/SupplierDispatchReport'));
+const DataModificationHistory = React.lazy(() => import('./VectorFlow/Pages/MTA/MDM/DataModificationHistory'));
+const MCGrid = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/MerchandisingGrid'));
+const STPLAndFullKits = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/STPLAndFullKits'));
+const OrderAtRisk = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/OrderAtRisk'));
+const DueDateQuotation = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/DueDateQuotation'));
+const OrderBalance = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/OrderBalance'));
+const OTIFAnalysis = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/OTIFAnalysis'));
+const ResourceUtilization = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/ResourceUtilization'));
+const FOLSummary = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/FOLSummary'));
+const DynamicReleaseManagement = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/DynamicReleaseManagement'));
+const ReasonForDelayOrder = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/ReasonOrderChange/index'));
+const TopFailureReasons = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/TopFailureReason'));
+const OTAndIFAnalysis = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/OTAndIFAnalysis'));
+const ElapsedTime = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/ElapsedTime'));
+const LeadTime = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/LeadTime'));
+const TrendsOfFailureReason = React.lazy(() => import('./VectorFlow/Pages/MTO/Poogi/InsightAndTrends/TrendsOfFailureReason'));
+const OverallBmReport = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/OverallBMReport'));
+const LandingPage = React.lazy(() => import('./VectorFlow/Pages/Common/LandingPage'));
+const MTOControlPanel = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/ControlPanel'));
+const MTOViewModify = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/ViewModify'));
+const MTOSavedDrafts = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/SavedDrafts'));
+const MTOTaskStatus = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/TaskStatus'));
+const MTOTaskPendingForReview = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/TaskPendingForReview'));
+const MTOAddRecord = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/AddRecord'));
+const MTODataModificationHistory = React.lazy(() => import('./VectorFlow/Pages/MTO/MDM/DataModificationHistory'));
+const MastersInterceptor = React.lazy(() => import('./VectorFlow/Pages/Common/MastersInterceptor'));
+const RRRColorBandwise = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/RationedRequirementReport  Color Bandwise'));
+const BuyerOrderReportColorBandwise = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/BuyerOrderReport Color Bandwise'));
+const SupplierWiseAllocation = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/SupplierWiseAllocation'));
+const OrderAllocationReport = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/OrderAllocationReport'));
+const TotalRequirementReport = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/TotalRequirementReport'));
+const ElephantOrder = React.lazy(() => import('./VectorFlow/Pages/MTA/SupplyChainIntelligenceHub/ElephantOrders'));
+const Scheduling = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/Scheduling'));
+const FutureOrderLoadChart = React.lazy(() => import('./VectorFlow/Pages/MTO/Production/InsightsAndTrends/FutureOrderLoadChart'));
 
 // to show loading state for desired page only instead of the entire screen
 const lazyLoad = (children?: React.ReactNode) => {

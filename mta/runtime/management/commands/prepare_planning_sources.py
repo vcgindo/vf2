@@ -57,7 +57,8 @@ class Command(BaseCommand):
         run, initial_source = command_binding(options.get('run_id'))
         start = time.monotonic()
         with transaction.atomic():
-            type(run).objects.select_for_update().get(pk=run.pk)
+            if not options['verify_only']:
+                type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             source, queries = source_queries(run)
             if source != initial_source:

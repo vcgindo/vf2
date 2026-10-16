@@ -28,3 +28,12 @@ ROW_FIELDS = {
 
 def schema_digest():
     return digest({'sources': SOURCES, 'rows': ROW_FIELDS})
+
+
+NATIVE_EXCESS_FIELDS = ('ordinal', 'fact_run_id') + ROW_FIELDS['excess'][1:]
+
+
+def native_excess_schema_digest():
+    """Native owner-bound schema; retained fixture receipts remain unchanged."""
+    return digest({'sources': SOURCES, 'rows': {
+        **ROW_FIELDS, 'excess': NATIVE_EXCESS_FIELDS}})

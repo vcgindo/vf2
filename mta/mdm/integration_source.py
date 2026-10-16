@@ -258,6 +258,10 @@ def capture_identity(source):
 
 def verify_capture(source, snapshot):
     expected = capture_identity(source)
+    _verify_capture_identity(source, snapshot, expected)
+
+
+def _verify_capture_identity(source, snapshot, expected):
     if snapshot.get('integration') != expected:
         raise ValueError('Frozen MDM integration binding differs')
     if expected is not None:
@@ -269,7 +273,7 @@ def verify_capture(source, snapshot):
                 raise ValueError('Frozen MDM family capture roster differs')
 
 
-def require_current_run(source, run, seal):
+def require_current_run(source, run, seal, *, read_only=False):
     """Require this source's own latest consumed generation, never a fallback."""
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
@@ -278,7 +282,11 @@ def require_current_run(source, run, seal):
         snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
         if snapshot is None or snapshot.get('revision_digest') != capture.revision_digest:
             raise ValueError('Native MDM predecessor capture differs')
-        verify_capture(source, snapshot)
+        if read_only:
+            _verify_capture_identity(source, snapshot, dict(schema=SCHEMA,
+                digest=seal.digest, families=seal.receipt['families']))
+        else:
+            verify_capture(source, snapshot)
         for module in ('force', 'season', 'stop_pipo', 'phase_controls'):
             owner = __import__('mta.mdm.'+module+'_source', fromlist=['require_installed']).require_installed(source)
             if owner.last_run_id != run.pk:
@@ -314,11 +322,17 @@ def verify_predecessor(source, run, *, retry_capture=None):
         require_current_run(source, run, seal)
 
 
-def require_read_binding(source):
+def require_read_binding(source, *, read_only=False):
+    from mta.mdm.initialization_contract import SOURCE_SCHEMA
+    if read_only and source.receipt.get('schema') == SOURCE_SCHEMA:
+        from mta.mdm.production_families import require_binding
+        from mta.presentation.context import selected_run
+        seal = require_binding(source, read_only=True)
+        require_current_run(source, selected_run(), seal, read_only=True)
+        return seal
     seal = installed_binding(source)
     if seal is None:
         return
-    from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
         return seal
     from mta.presentation.context import selected_run

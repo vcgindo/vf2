@@ -15,6 +15,7 @@ from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
 from mta.runtime.temporal import command_state
 from mta.presentation import hierarchy
+from mta.presentation.request_scope import once_per_request
 from mta.presentation.permissions import (
     PermissionCodes, expand_permission_ids, materialize_permission_memberships,
 )
@@ -42,13 +43,17 @@ class Publication:
         return self.run.business_date
 
 
+@once_per_request
 def selected_run():
     """Resolve immutable accepted identity without replaying its entire state.
 
     Full verification remains in read_outputs/publication and publication/startup
     acceptance. Routine selective readers verify the images they actually use.
     """
-    from mta.presentation import fixture, operational_admission
+    from mta.presentation import fixture, operational_admission, native_publication
+    native = native_publication.enabled()
+    if native:
+        native_publication.require_mode()
     operational = operational_admission.enabled()
     if fixture.enabled():
         from mta.presentation import qualified_consumption
@@ -69,7 +74,13 @@ def selected_run():
     if run is None or not run.production_manifest or run.output_digest != expected:
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
     from mta.presentation import qualified_consumption
-    if operational:
+    if native:
+        # This complete admission already verifies identity, publication,
+        # summary and the atomic selection. Do not repeat it beforehand.
+        from mta.presentation.native_selection import require_selected
+        require_selected(run)
+        return run
+    elif operational:
         operational_admission.identity(run)
     elif qualified_consumption.enabled():
         qualified_consumption.identity(run)
@@ -107,6 +118,7 @@ def publication():
     return Publication(run, output, dbm, native_output, receipt)
 
 
+@once_per_request
 def permission_catalogue():
     path, expected = settings.VF_MTA_PERMISSIONS_FILE, settings.VF_MTA_PERMISSIONS_SHA256
     if not path or not expected:

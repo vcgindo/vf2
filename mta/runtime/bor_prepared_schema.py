@@ -40,12 +40,51 @@ REVERSE+='\n'+'\n'.join(f'DROP FUNCTION mta.{name}();' for name in (
     'guard_bor_prepared_build','guard_bor_prepared_row','guard_bor_prepared_receipt'))
 
 
+PRODUCTION_BODIES={
+'guard_bor_prepared_build':f"""
+DECLARE owner uuid;
+BEGIN
+ owner:=nullif(current_setting('fresh.bor_prepared_build',true),'')::uuid;
+ IF NOT mta.daily_prepared_owner(owner) AND owner IS DISTINCT FROM '{RUN_ID}'::uuid
+ THEN RAISE EXCEPTION 'BOR preparation owner required'; END IF;
+ PERFORM 1 FROM mta.fresh_mta_calculationrun WHERE id=owner FOR UPDATE;
+ IF NOT EXISTS(SELECT 1 FROM mta.fresh_mta_borsourcereceipt WHERE run_id=owner)
+ THEN RAISE EXCEPTION 'BOR source receipt required'; END IF;
+ IF EXISTS(SELECT 1 FROM mta.fresh_mta_borpreparedreceipt WHERE run_id=owner)
+ THEN RAISE EXCEPTION 'BOR preparation already sealed'; END IF;
+ RETURN NULL;
+END """,
+'guard_bor_prepared_row':"""
+BEGIN
+ IF NEW.run_id::text IS DISTINCT FROM current_setting('fresh.bor_prepared_build',true)
+ THEN RAISE EXCEPTION 'BOR preparation row owner differs'; END IF;
+ RETURN NEW;
+END """,
+'guard_bor_prepared_receipt':"""
+BEGIN
+ IF NEW.run_id::text IS DISTINCT FROM current_setting('fresh.bor_prepared_build',true)
+ OR NEW.row_count IS DISTINCT FROM (SELECT count(*) FROM mta.fresh_mta_borpreparedrow WHERE run_id=NEW.run_id)
+ THEN RAISE EXCEPTION 'BOR prepared receipt differs'; END IF;
+ RETURN NEW;
+END """}
+
+def production_definitions():
+    return '\n'.join('CREATE OR REPLACE FUNCTION mta.'+name+
+        '() RETURNS trigger LANGUAGE plpgsql AS $$'+body+'$$;' for name,body in PRODUCTION_BODIES.items())
+
+def installed_bodies(connection,bodies):
+    with connection.cursor() as c:
+        c.execute("SELECT EXISTS(SELECT 1 FROM django_migrations WHERE app='fresh_mta' AND name='0139_native_bor_preparation')")
+        if not c.fetchone()[0]: return bodies
+    return {name:PRODUCTION_BODIES.get(name,body) for name,body in bodies.items()}
+
+
 def verify_guards(connection):
     import re
     from mta.runtime.bor_source_schema import verify_guards as source_guards
     source_guards(connection)
     expected={name:(table,'O',bits,func,None,0,'mta') for name,table,bits,func,*_ in BINDINGS}
-    bodies=dict(re.findall(r'CREATE FUNCTION mta\.(\w+)\(\).*?AS \$\$(.*?)\$\$;',FORWARD,re.S))
+    bodies=installed_bodies(connection,dict(re.findall(r'CREATE FUNCTION mta\.(\w+)\(\).*?AS \$\$(.*?)\$\$;',FORWARD,re.S)))
     with connection.cursor() as c:
         c.execute('SELECT t.tgname,c.relname,t.tgenabled,t.tgtype,p.proname,t.tgqual::text,t.tgnargs,pn.nspname '
             'FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace '

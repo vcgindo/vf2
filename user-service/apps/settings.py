@@ -89,6 +89,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'common.startup_probe.StartupProbeMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     # 'apps.middlewares.BlockHttpMethodOverrideHeadersMiddleware', # this has been removed as the blocking of the override methods will be done on IIS configuration
     'apps.middlewares.NoCacheHeadersMiddleware',

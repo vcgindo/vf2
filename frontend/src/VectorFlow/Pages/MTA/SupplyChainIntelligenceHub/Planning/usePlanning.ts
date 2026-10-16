@@ -1,3 +1,4 @@
+import { beginScreen, screenRendered, useScreenProbe } from '../../../../../performance/screenProbe';
 import { loadDailyData } from '../../../../../components/VectorFLOW/commons/DailyDataGraphModal/loadDailyData';
 import { settleRequestPair } from "../../requestPair"
 import { useEffect, useState,useMemo,useRef,useCallback } from "react"
@@ -22,6 +23,7 @@ import { UIColumnConfigName } from "../../../../../helpers/Enum";
 import _ from "lodash";
 
 const usePlanning = ()=>{
+    useScreenProbe('Planning');
 
     const initialPlanningCounts = {
         childMonitorCount:0,
@@ -74,6 +76,11 @@ const usePlanning = ()=>{
 
     const [currentGridData,setCurrentGridData] = useState<any>();
     const [fulfillmentError,setFulfillmentError] = useState<string | null>(null);
+    useEffect(() => {
+        if (lastRunDate && !isOverlayVisible && !fulfillmentError && isSelectCategoryOpen) {
+            screenRendered('Planning');
+        }
+    }, [lastRunDate, isOverlayVisible, fulfillmentError, isSelectCategoryOpen, planningCounts]);
     const [chartError,setChartError] = useState<string | null>(null);
 
     const [currentTab,setCurrentTab] = useState<string>('');
@@ -602,6 +609,7 @@ const usePlanning = ()=>{
                     const toastId = notifyLoader('Loading Graphs');
                     setCurrentCategory('GITToChild');
                     setCurrentView('chart');
+                    setCurrentTab('locationWise');
                     const body = {
                         category:'git',
                         type:'child',
@@ -611,7 +619,6 @@ const usePlanning = ()=>{
                     if(!result.data.data.data)throw new Error("Data Not Available") 
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data)
-                    setCurrentTab('locationWise');
                     toast.dismiss(toastId);
                     notifySuccess("Graph Details Fetched Successfully");
                     break;
@@ -620,6 +627,7 @@ const usePlanning = ()=>{
                     const toastId = notifyLoader('Loading Graphs');
                     setCurrentCategory('ExpediteFromParent');
                     setCurrentView('chart');
+                    setCurrentTab('expediteDispatches');
                     const body = {
                         category:'expedite',
                         type:'parent',
@@ -628,7 +636,6 @@ const usePlanning = ()=>{
                     const result = await getPlanningDataGraph(body);
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
-                    setCurrentTab('expediteDispatches');
                     toast.dismiss(toastId);
                     notifySuccess("Graph Details Fetched Successfully");
                     break;
@@ -637,6 +644,7 @@ const usePlanning = ()=>{
                     const toastId = notifyLoader('Loading Graphs');
                     setCurrentCategory('ExpediteToChild');
                     setCurrentView('chart');
+                    setCurrentTab('expediteDispatches');
                     const body = {
                         category:'expedite',
                         type:'child',
@@ -645,7 +653,6 @@ const usePlanning = ()=>{
                     const result = await getPlanningDataGraph(body);
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
-                    setCurrentTab('expediteDispatches');
                     toast.dismiss(toastId);
                     notifySuccess("Graph Details Fetched Successfully");
                     break;
@@ -654,6 +661,7 @@ const usePlanning = ()=>{
                     const toastId = notifyLoader('Loading Graphs');
                     setCurrentCategory('ExcessInventory');
                     setCurrentView('chart');
+                    setCurrentTab('excessInventoryLocation');
                     const body = {
                         category:'excessInventory',
                         type:'review',
@@ -662,7 +670,6 @@ const usePlanning = ()=>{
                     const result = await getPlanningDataGraph(body);
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data)
-                    setCurrentTab('excessInventoryLocation');
                     toast.dismiss(toastId);
                     notifySuccess("Graph Details Fetched Successfully");
                     break;
@@ -671,6 +678,7 @@ const usePlanning = ()=>{
                     const toastId = notifyLoader('Loading Graphs');
                     setCurrentCategory('OrderFulfillment');
                     setCurrentView('chart');
+                    setCurrentTab('orderFulfillmentLocation');
                     const body = {
                         category:'orderFulfillment',
                         type:'review',
@@ -679,7 +687,6 @@ const usePlanning = ()=>{
                     const result = await getPlanningDataGraph(body);
                     setIsSelectCategoryOpen(false);
                     setCurrentGraphData(result.data.data.data);
-                    setCurrentTab('orderFulfillmentLocation');
                     toast.dismiss(toastId);
                     notifySuccess("Graph Details Fetched Successfully");
                     break;
@@ -979,6 +986,7 @@ const usePlanning = ()=>{
     }
 
     const onApplyFilter = async(filter:any)=>{
+        beginScreen('Planning', 'filter');
         if(isSelectCategoryOpen){
             await fetchPlanningDataCount(filter)
             return 

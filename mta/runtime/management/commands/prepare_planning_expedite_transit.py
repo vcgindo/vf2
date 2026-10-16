@@ -55,7 +55,8 @@ class Command(BaseCommand):
             raise CommandError('Planning Expedite transit requires retained April input')
         started = time.monotonic()
         with transaction.atomic():
-            type(run).objects.select_for_update().get(pk=run.pk)
+            if not options['verify_only']:
+                type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             pick_digest = pick_binding(run, verify_values=True)
             receipt = PlanningExpediteTransitProjection.objects.filter(run=run).first()

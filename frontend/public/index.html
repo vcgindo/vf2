@@ -2,6 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>
+      if ('%REACT_APP_VF_SCREEN_PROBE%' === '1') {
+        window.__VF_STARTUP_TRACE = { id: crypto.randomUUID().replace(/-/g, ''), marks: [], longTasks: [] };
+        var vfTrace = window.__VF_STARTUP_TRACE;
+        var vfMark = function (name) { if (vfTrace.marks.length < 120) vfTrace.marks.push({name:name, at:performance.now()}); };
+        vfMark('head-observer');
+        document.addEventListener('DOMContentLoaded', function () { vfMark('DOMContentLoaded'); });
+        window.addEventListener('load', function () { vfMark('window-load'); });
+        document.addEventListener('load', function (event) {
+          var target = event.target;
+          if (target && (target.tagName === 'LINK' || target.tagName === 'SCRIPT')) vfMark(target.tagName + ':' + (target.href || target.src || '').split('?')[0]);
+        }, true);
+        document.addEventListener('DOMContentLoaded', function () {
+          document.fonts.ready.then(function () { vfMark('fonts-ready-after-DCL'); });
+        });
+        try { new PerformanceObserver(function (list) { list.getEntries().forEach(function (entry) { if (vfTrace.longTasks.length < 120) vfTrace.longTasks.push({start:entry.startTime,duration:entry.duration,name:entry.name}); }); }).observe({type:'longtask',buffered:true}); } catch (_) {}
+      }
+    </script>
     <link rel="icon" href="%PUBLIC_URL%/assets/Favicon White.png" />
     <meta name="viewport" content="width=device-width, initial-scale=2" />
     <meta name="theme-color" content="#000000" />
@@ -11,7 +29,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Vector Flow">
     <meta property="og:description" content="Accelerating The Workflow">
-    <link rel="stylesheet" href="/base.css">
+    <link rel="stylesheet" href="%PUBLIC_URL%/base.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">

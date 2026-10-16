@@ -104,7 +104,14 @@ class MasterValidationView(APIView):
     
             ValidationClass = MASTER_ID_TO_VALIDATION[master_id]
 
-            stream = iterator(raw_master_df,ValidationClass(raw_master_df).validation,key_to_header_map,screen_type,{},process_id)
+            # Template validation only; the backend independently enforces configured
+            # MOQ grain, destination ownership, scopes and reviewer permissions.
+            validation_rules = {}
+            if master_id == '5' and screen_type == 'add':
+                validation_rules['moq_destination_required'] = any(
+                    field.get('key') == 'wc' and field.get('isAdd') is True
+                    for field in ui_config)
+            stream = iterator(raw_master_df,ValidationClass(raw_master_df).validation,key_to_header_map,screen_type,validation_rules,process_id)
 
             response =  StreamingHttpResponse(stream,status=200, content_type='text/event-stream')
             response['Cache-Control']= 'no-cache'

@@ -2,8 +2,10 @@ import axios, { AxiosError } from 'axios'
 import qs from 'qs'
 import { cleanObject, loginRedirect } from '../helpers/utils'
 import { MainService } from '../module-main/services/api'
+import { installScreenProbe } from '../performance/screenProbe'
 
 export const setupAxios = () => {
+  installScreenProbe(axios)
   let isRefreshingToken = false
   let isRedirectingForbidden = false
   const requestQueue: any = []

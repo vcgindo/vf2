@@ -11,13 +11,19 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--run-id', required=True)
         parser.add_argument('--output-digest', required=True)
+        parser.add_argument('--selection-file')
 
     def handle(self, *args, **options):
         run=CalculationRun.objects.get(pk=options['run_id'])
-        from mta.presentation import operational_admission
+        from mta.presentation import operational_admission, native_publication
+        native = native_publication.enabled()
+        if native:
+            native_publication.require_mode()
+        elif options.get('selection_file'):
+            raise CommandError('Selection files require explicit native admission')
         operational = operational_admission.enabled()
         if (run.kind!='DAILY_CHAIN' or run.status!='SUCCEEDED' or run.output_digest!=options['output_digest']
-                or (not operational and run.parity_summary.get('status') not in ('PASS','PASS_WITH_LEGACY_FLAWS'))):
+                or (not native and not operational and run.parity_summary.get('status') not in ('PASS','PASS_WITH_LEGACY_FLAWS'))):
             raise CommandError('Explicit independently accepted daily calculation required')
         # Apply the same native readback/catalogue/action/projection checks as
         # startup before emitting any selection values. A UI seal is not a
@@ -36,4 +42,12 @@ class Command(BaseCommand):
         if accepted is not None:
             values.update(VF_MTA_OPERATIONAL_POLICY=accepted.policy,
                           VF_MTA_OPERATIONAL_RECEIPT=accepted.receipt_digest)
+        if native:
+            from mta.presentation.planning_summary_daily import require_ready as require_summary
+            from mta.presentation.native_selection import candidate, write
+            summary = require_summary(run, verify_rows=True)
+            bundle = candidate(run, receipt, summary, native_publication.identity(run))
+            values['native_selection'] = bundle
+            if options.get('selection_file'):
+                write(options['selection_file'], bundle)
         self.stdout.write(json.dumps(values, sort_keys=True))

@@ -55,8 +55,10 @@ def daily_sources_enabled(profile):
     return bool(getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False))
 
 
-def replay_completed(existing, *, complete_pick=False, pick_output_root=None):
+def replay_completed(existing, *, complete_pick=False, pick_output_root=None, report_disposition=None):
     """Verify a completed run before restoring derived files; never calculate."""
+    from mta.application.native_report_disposition import verify_replay
+    verify_replay(existing, existing.production_manifest.get('lineage'), report_disposition)
     output = read_outputs(existing)
     if complete_pick:
         from mta.application.complete_daily_batch_files import write_run_pick_files
@@ -162,7 +164,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
-                consumer_opening=None):
+                consumer_opening=None, report_disposition=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -186,6 +188,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     finalization = configuration(profile)
     finalization_binding = None
     native = production_initialization is not None
+    from mta.application.native_report_disposition import RETRIES
+    if report_disposition is not None or execution_revision in RETRIES.values():
+        if (report_disposition not in RETRIES or not native or mdm_retry is None or report_exceptions
+                or execution_revision != RETRIES[report_disposition]):
+            raise ValueError('Exact native report disposition requires a frozen native retry')
     if 'native_upload_audit' in profile and not native:
         raise ValueError('Native upload audit requires production initialization')
     if native:
@@ -351,7 +358,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         raise ValueError('Daily run identity drift')
                     if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
                     return replay_completed(repeated.run, complete_pick=complete_pick,
-                                            pick_output_root=pick_output_root)
+                                            pick_output_root=pick_output_root, report_disposition=report_disposition)
                 active_leaf_ids=list(MdmDailyInputCapture.objects.filter(
                     source_id=origin_capture.source_id,status='CAPTURED',retries__isnull=True)
                     .values_list('run_id',flat=True))
@@ -382,7 +389,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         raise ValueError('Daily run identity drift')
                     if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
                     return replay_completed(repeated.run, complete_pick=complete_pick,
-                                            pick_output_root=pick_output_root)
+                                            pick_output_root=pick_output_root, report_disposition=report_disposition)
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
                     task_status_log_horizon=task_horizon)
             from mta.mdm.integration_source import verify_predecessor
@@ -444,19 +451,29 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 publication_opening['production_report_opening'] = raw['day']['production_report_opening']
                 publication_opening['production_report_schema'] = raw['day']['production_report_schema']
         source_digest=digest(raw)
+        disposition_binding = None
+        effective_report_exceptions = raw['report_exceptions']
+        if report_disposition is not None:
+            from mta.application.native_report_disposition import admit
+            disposition_binding = admit(requested=report_disposition, native=native,
+                origin=origin_capture, parent=parent, initialization=initialized, raw=raw,
+                request_digest=request_digest, execution_revision=execution_revision)
+            effective_report_exceptions = {'native_report_disposition': disposition_binding}
         existing=CalculationRun.objects.filter(input_digest=source_digest,execution_revision=execution_revision).first()
         if existing is not None:
             if existing.kind!=KIND or existing.predecessor_id!=(parent.pk if parent else None):
                 raise ValueError('Daily run identity drift')
             if existing.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
             return replay_completed(existing, complete_pick=complete_pick,
-                                    pick_output_root=pick_output_root)
+                                    pick_output_root=pick_output_root, report_disposition=report_disposition)
         if parent and parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
             raise ValueError('Predecessor already consumed; no implicit timeline fork')
         new_id=uuid.uuid4()
         fields=dict(id=new_id,input_digest=source_digest,input_payload={},execution_revision=execution_revision,
                     evidence_mode=evidence_mode,
                     kind=KIND,business_date=today,predecessor=parent)
+        if disposition_binding is not None:
+            fields['production_manifest'] = {'native_report_disposition': disposition_binding}
         if parent is None:
             # A unique root key serializes concurrent initial starts without
             # importing a second timeline/run hierarchy. A new intentional
@@ -496,11 +513,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         with evidence_scope(evidence_mode):
             result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
                 lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
-                               calculate_current_day(source, **owned),str(run.pk)),raw['report_exceptions'],native_daily=native)
+                               calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native)
             completed=([r['boundary'] for r in result['MajorBoundaries']] if evidence_mode=='validation'
                        else result.pop('_CompletedBoundaries'))
             if completed!=list(BOUNDARIES):
                 raise ValueError('Incomplete daily boundary roster')
+            lineage = deepcopy(lineage)
+            if disposition_binding is not None:
+                lineage['native_report_disposition'] = disposition_binding
             result['Lineage']=[lineage]
             if finalization is not None:
                 from mta.application.daily_finalization import verify_successor, verify_finalization_identity, ACTIVE_POLICY

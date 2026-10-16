@@ -141,12 +141,32 @@ def prepare(run, *, fail_after_rows=False):
     return _prepare(run,fail_after_rows=fail_after_rows)
 
 
-def require_ready(run):
+def require_ready(run, *, verify_rows=False):
     identities,_,_=binding(run)
     receipt=PlanningSummaryReceipt.objects.filter(run=run,**identities).first()
     if receipt is None:
         raise PublicationUnavailable('planning_summary_generation_unavailable')
     verify(receipt,identities)
+    if verify_rows:
+        verify_contribution_rows(receipt)
     from mta.runtime.planning_summary_schema import verify_guards
     verify_guards(connection)
     return receipt
+
+
+def verify_contribution_rows(receipt):
+    """Startup/selection checksum over complete ordered typed summary rows."""
+    from mta.serialization import rows_digest
+    count = 0
+    def rows():
+        nonlocal count
+        values = PlanningSummaryContribution.objects.filter(receipt=receipt).order_by('ordinal').values_list(
+            'ordinal', 'metric', 'product_key', 'location_key', 'equality_profile', 'occurrence_count')
+        for ordinal, *row in values.iterator(chunk_size=1000):
+            if ordinal != count:
+                raise PublicationUnavailable('planning_summary_ordinals_changed')
+            count += 1
+            yield row
+    checksum = rows_digest(rows())
+    if count != receipt.row_count or checksum != receipt.rows_digest:
+        raise PublicationUnavailable('planning_summary_rows_changed')
