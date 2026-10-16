@@ -36,6 +36,7 @@ LOGISTICS_DECLARATION = Path('/proof/s3-20261015-001/logistics-reintegration-202
 LOGISTICS_V8_SHA256 = '6967d5b762f1062cfc47f91403a0eddf9f569af3731ba091bb0e7b8e06d42841'
 LOGISTICS_SCHEMA = 'fresh-native-logistics-read-source-v1'
 LOGISTICS_FILES = {
+    'mta/mdm/owned_namespace.py',
     'mta/mdm/native_report_compatibility.py',
     'mta/presentation/views.py', 'mta/presentation/urls.py',
     'mta/presentation/daily_publication.py',
@@ -423,6 +424,10 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
     from mta.mdm.initialization import IMPLEMENTATION_FILES, current_implementation_digest
     try:
         overrides = None
+        implementation = current_implementation_digest()
+        if os.environ.get(LOGISTICS_PIN_ENV) and implementation != digest({
+                name: files['mta/'+name] for name in IMPLEMENTATION_FILES}):
+            _deny('logistics implementation source differs')
         for path in (DECLARATION, V6_DECLARATION, SOURCE_BEFORE, PRIOR_DECLARATION):
             _readonly(path)
         if os.environ.get(LOGISTICS_PIN_ENV):
@@ -431,6 +436,7 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
             files, overrides, identity = validate_logistics_ancestry(
                 LOGISTICS_DECLARATION.read_bytes(), os.environ.get(LOGISTICS_PIN_ENV),
                 READ_DECLARATION.read_bytes(), root, files, identity)
+            implementation = digest({name: files['mta/'+name] for name in IMPLEMENTATION_FILES})
         if os.environ.get(READ_PIN_ENV):
             _readonly(READ_DECLARATION)
             prior_overrides = overrides or {}
@@ -445,7 +451,7 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
         return _validate(source, initialization, seal, identity, database,
             raw, _sha(raw), root, files,
             SOURCE_BEFORE.read_bytes(), PRIOR_DECLARATION.read_bytes(),
-            current_implementation_digest(), IMPLEMENTATION_FILES, byte_overrides=overrides)
+            implementation, IMPLEMENTATION_FILES, byte_overrides=overrides)
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
         raise ValueError('Exact native report source compatibility declaration unavailable or invalid') from exc
 
@@ -470,7 +476,10 @@ def require_exact_implementation_delta(current):
                     source_manifest_digest=digest(files))
     result = require_exact_source_delta(source, initialization, seal, identity,
                                         database, ROOT, files)
-    if current != _read_json(DECLARATION.read_bytes())['source']['implementation']['current_digest']:
+    expected_implementation = (digest({name: files['mta/'+name] for name in IMPLEMENTATION_FILES})
+        if os.environ.get(LOGISTICS_PIN_ENV) else
+        _read_json(DECLARATION.read_bytes())['source']['implementation']['current_digest'])
+    if current != expected_implementation:
         _deny('implementation digest differs')
     # The v6 proof only reconstructs the prior installed source. The unchanged
     # v5 verifier remains the authority that admits that prior bridge.

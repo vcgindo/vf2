@@ -591,7 +591,7 @@ def _application_catalogue(cursor):
     return dict(objects=objects,grants=grants,functions=functions)
 
 
-def _check_application_grants(catalogue, registration):
+def _check_application_grants(catalogue, registration, *, logistics=False):
     """Admit only this fixed application profile; the signed row cannot expand it."""
     owner, consumer, acceptor, issuer = (registration[k+'_oid'] for k in ('owner','consumer','acceptor','issuer'))
     registrar = registration['registrar']['oid']
@@ -603,7 +603,10 @@ def _check_application_grants(catalogue, registration):
         if obj['owner'] != expected_owner or not name.startswith(('mta.','mta_state.','mta_opening.','fresh_control.')):
             _reject('application object owner or namespace differs')
     expected = {('table',name,None,'SELECT') for name,o in objects.items() if o['kind']!='S'}
-    for name, permissions in APPLICATION_GRANTS.items():
+    permissions_by_table = dict(APPLICATION_GRANTS)
+    if logistics:
+        permissions_by_table.update(LOGISTICS_APPLICATION_GRANTS)
+    for name, permissions in permissions_by_table.items():
         if name not in objects or objects[name]['kind'] not in ('r','p'):
             _reject('application write object is absent')
         for permission in permissions['table']:
@@ -722,6 +725,14 @@ def _validate_application(cursor, database, registration, evidence, *,
     binding = _read_application_capability(cursor,registration)
     _check_application_write_guards(cursor,registration)
     catalogue = _application_catalogue(cursor)
+    from django.conf import settings
+    if getattr(settings, 'VF_MTA_LOGISTICS_CURRENT', False):
+        # First validate every actual privilege, then the exact additive schema.
+        # Only that authenticated delta is removed for the unchanged sealed
+        # base comparison; no stored identity or original contract is replaced.
+        _check_application_grants(catalogue, registration, logistics=True)
+        _check_logistics_schema(cursor, catalogue, registration)
+        catalogue = _original_application_catalogue(catalogue, registration)
     digests = _check_application_grants(catalogue,registration)
     return _validate_application_binding(binding,original,implementation_sha256,digests)
 
@@ -835,3 +846,110 @@ APPLICATION_FUNCTIONS = frozenset((
     'mta.typed_input_node(root jsonb, path text[])',
     'mta.valid_closing_projection(p fresh_mta_mdmclosingprojectionreceipt)',
 ))
+
+# Additive operational access only. APPLICATION_GRANTS/profile digest above
+# remain the original sealed contract and are still checked in full.
+LOGISTICS_APPLICATION_GRANTS = {
+    'mta.fresh_mta_logisticshistoryowner': {'columns':['next_ordinal','revision'], 'table':['UPDATE']},
+    'mta.fresh_mta_transitlivegeneration': {'columns':['revision'], 'table':['UPDATE']},
+    'mta.fresh_mta_transitannotation': {'columns':['CurrentLocationCode','ETA','Remark'], 'table':['INSERT','UPDATE']},
+    'mta.fresh_mta_transitremarkhistory': {'columns':[], 'table':['INSERT']},
+    'mta.fresh_mta_expediteremarkhistory': {'columns':[], 'table':['INSERT']},
+    'mta.fresh_mta_dailyopenrequest': {'columns':['Request','RequestDate','UserId','Action','ActionDate','ETA'], 'table':['INSERT','UPDATE']},
+    'mta.fresh_mta_dailyrequestowner': {'columns':['revision'], 'table':['UPDATE']},
+}
+LOGISTICS_TABLES = frozenset('mta.fresh_mta_'+name for name in (
+    'logisticshistoryowner','transitlivegeneration','transitannotation',
+    'transitremarkhistory','expediteremarkhistory'))
+LOGISTICS_SEQUENCES = frozenset(table+'_id_seq' for table in LOGISTICS_TABLES
+    if table.rsplit('_',1)[-1] in ('transitannotation','transitremarkhistory','expediteremarkhistory'))
+LOGISTICS_FUNCTIONS = frozenset('mta.'+name+'()' for name in (
+    'guard_logistics_owner','guard_transit_generation','guard_transit_annotation','guard_logistics_history'))
+
+
+def _original_application_catalogue(catalogue, registration):
+    """Subtract only the validated additive delta, preserving all original OIDs."""
+    additions = LOGISTICS_TABLES | LOGISTICS_SEQUENCES | LOGISTICS_FUNCTIONS
+    permissions=set()
+    for name, grants in LOGISTICS_APPLICATION_GRANTS.items():
+        for privilege in grants['table']:
+            if privilege=='UPDATE':
+                permissions.update(('column',name,col,'UPDATE') for col in grants['columns'])
+            else:
+                permissions.add(('table',name,None,privilege))
+        if 'INSERT' in grants['table']:
+            permissions.add(('sequence',name+'_id_seq',None,'USAGE'))
+    for acl in catalogue['grants']:
+        if acl['name'] in additions and (acl['grantee'] not in (registration['owner_oid'],registration['consumer_oid'])
+                or acl['grantor'] != registration['owner_oid'] or acl['grantable']):
+            _reject('logistics object grant authority differs')
+    return dict(objects=[o for o in catalogue['objects'] if o['name'] not in additions],
+        functions=[f for f in catalogue['functions'] if f['name'] not in additions],
+        grants=[g for g in catalogue['grants'] if g['name'] not in additions and not (
+            g['grantee']==registration['consumer_oid'] and
+            (g['scope'],g['name'],g['column'],g['privilege']) in permissions)])
+
+
+def _check_logistics_schema(cursor, catalogue, registration):
+    """Exact retained0140/0141 schema, plus the unchanged request guards."""
+    import re
+    from importlib import import_module
+    from django.apps import apps
+    migration=import_module('mta.runtime.migrations.0140_logistics_live')
+    guards=import_module('mta.runtime.migrations.0141_logistics_guards')
+    models=[apps.get_model('fresh_mta',op.name) for op in migration.Migration.operations]
+    objects={o['name']:o for o in catalogue['objects']}
+    for name in LOGISTICS_TABLES | LOGISTICS_SEQUENCES:
+        obj=objects.get(name)
+        if (obj is None or obj['owner']!=registration['owner_oid']
+                or obj['kind']!=('S' if name in LOGISTICS_SEQUENCES else 'r')
+                or obj['sequence_for']!=(name.removesuffix('_id_seq')+'.id' if name in LOGISTICS_SEQUENCES else None)):
+            _reject('logistics relation identity differs')
+    for model in models:
+        table='mta.'+model._meta.db_table
+        cursor.execute('SELECT relrowsecurity,relforcerowsecurity,relpersistence FROM pg_class WHERE oid=%s',[objects[table]['oid']])
+        if cursor.fetchone()!=(False,False,'p'):
+            _reject('logistics table security differs')
+        cursor.execute("SELECT a.attname,format_type(a.atttypid,a.atttypmod),a.attnotnull,a.attidentity,a.attgenerated,pg_get_expr(d.adbin,d.adrelid) FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum WHERE a.attrelid=%s AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum",[objects[table]['oid']])
+        actual={name:tuple(values) for name,*values in cursor.fetchall()}
+        expected={f.column:(f.db_type(connection).replace('varchar','character varying'),not f.null,
+            'd' if f.get_internal_type()=='BigAutoField' else '', '', None) for f in model._meta.local_fields}
+        if actual!=expected:
+            _reject('logistics column contract differs')
+        # Compare complete constraint semantics, including duplicate ordinals,
+        # positive counters and deferred NO ACTION references to the real owners.
+        cursor.execute("SELECT c.contype,ARRAY(SELECT a.attname FROM unnest(c.conkey) WITH ORDINALITY k(n,i) JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=k.n ORDER BY k.i),CASE WHEN c.contype='f' THEN c.confrelid::regclass::text END,ARRAY(SELECT a.attname FROM unnest(c.confkey) WITH ORDINALITY k(n,i) JOIN pg_attribute a ON a.attrelid=c.confrelid AND a.attnum=k.n ORDER BY k.i),c.condeferrable,c.condeferred,CASE WHEN c.contype='f' THEN c.confupdtype END,CASE WHEN c.contype='f' THEN c.confdeltype END,CASE WHEN c.contype='c' THEN pg_get_constraintdef(c.oid) END FROM pg_constraint c WHERE c.conrelid=%s",[objects[table]['oid']])
+        constraints={(kind,tuple(cols),target,tuple(refs),defer,initial,update,delete,check) for kind,cols,target,refs,defer,initial,update,delete,check in cursor.fetchall()}
+        required={('p',(model._meta.pk.column,),None,(),False,False,None,None,None)}
+        required.update(('u',tuple(model._meta.get_field(n).column for n in c.fields),None,(),False,False,None,None,None) for c in model._meta.constraints)
+        for field in model._meta.local_fields:
+            if field.is_relation:
+                required.add(('f',(field.column,),field.remote_field.model._meta.db_table,(field.target_field.column,),True,True,'a','a',None))
+            if field.get_internal_type().startswith('Positive'):
+                required.add(('c',(field.column,),None,(),False,False,None,None,'CHECK (('+field.column+' >= 0))'))
+        if constraints!=required:
+            _reject('logistics constraint contract differs')
+    bodies=dict(re.findall(r'CREATE FUNCTION mta\.(\w+)\(\).*?AS \$\$(.*?)\$\$;',guards.FORWARD,re.S))
+    cursor.execute("SELECT oid::bigint FROM pg_language WHERE lanname='plpgsql'")
+    language=cursor.fetchone()[0]
+    for f in catalogue['functions']:
+        if f['name'] in LOGISTICS_FUNCTIONS and (f['owner']!=registration['owner_oid'] or f['security_definer']
+                or f['body']!=bodies[f['name'][4:-2]] or f['configuration'] is not None
+                or f['language']!=language or f['returns']!='trigger'):
+            _reject('logistics guard function differs')
+    if not LOGISTICS_FUNCTIONS <= {f['name'] for f in catalogue['functions']}:
+        _reject('logistics guard function absent')
+    tables=[name.split('.')[1] for name in LOGISTICS_TABLES]+['fresh_mta_dailyrequestowner','fresh_mta_dailyopenrequest']
+    cursor.execute("SELECT r.relname,t.tgname,t.tgtype,t.tgenabled,t.tgqual::text,t.tgnargs,pn.nspname,p.proname FROM pg_trigger t JOIN pg_class r ON r.oid=t.tgrelid JOIN pg_namespace n ON n.oid=r.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid JOIN pg_namespace pn ON pn.oid=p.pronamespace WHERE n.nspname='mta' AND r.relname=ANY(%s) AND NOT t.tgisinternal",[tables])
+    expected=[]
+    def add(table,name,kind,function):expected.append(('fresh_mta_'+table,name,kind,'O',None,0,'mta',function))
+    for table,prefix,kind,function in [('logisticshistoryowner','logistics_owner',19,'guard_logistics_owner'),('transitlivegeneration','transit_generation',19,'guard_transit_generation'),('transitannotation','transit_annotation',23,'guard_transit_annotation')]:
+        add(table,prefix+('_write' if table=='transitannotation' else '_update'),kind,function)
+        add(table,prefix+'_immutable',42,'deny_daily_source_mutation')
+    for table in ('transitremarkhistory','expediteremarkhistory'):
+        add(table,'logistics_history_write',31,'guard_logistics_history')
+        add(table,'logistics_history_truncate',34,'deny_daily_source_mutation')
+    for table,prefix,kind,function in [('dailyrequestowner','daily_request_owner',27,'guard_daily_request_owner'),('dailyopenrequest','daily_request_current',31,'guard_daily_request_current')]:
+        add(table,prefix,kind,function);add(table,prefix+'_truncate',34,'deny_daily_source_mutation')
+    if sorted(cursor.fetchall())!=sorted(expected):
+        _reject('logistics or existing request guard contract differs')
