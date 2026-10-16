@@ -38,6 +38,10 @@ def included(name):
     if name.startswith('mta/'):
         if path.suffix not in ('.py', '.json', '.sql'):
             return False
+        # Historical migration names can contain "fixture" while defining
+        # required tables/guards only. Keep the complete native schema chain.
+        if name.startswith('mta/runtime/migrations/'):
+            return path.suffix == '.py'
         if path.stem.endswith(('_probe', '_fixture')) or path.stem.startswith(('prove_', 'test_')):
             return False
         if '/management/commands/' in name and path.stem in EXCLUDED_COMMANDS:

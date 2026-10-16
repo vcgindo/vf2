@@ -12,6 +12,8 @@ from release.export import export, included
 class ReleaseExportTests(unittest.TestCase):
     def test_runtime_schema_sql_and_required_input_integrity_library_remain(self):
         for name in ['mta/runtime/migrations/0141_logistics_guards.py', 'mta/presentation/logistics_read.py',
+                     'mta/runtime/migrations/0094_nms_force_display_fixture.py',
+                     'mta/runtime/migrations/0104_mdm_target_fixture.py',
                      'mta/config/logistics/ui_columns_v1.json', 'vectorflow/settings.py',
                      'baseline/complete-daily-state-schema-v3.json', 'parity/output_archive.py',
                      'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/.eslintrc.json',
