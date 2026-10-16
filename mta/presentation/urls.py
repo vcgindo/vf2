@@ -1,9 +1,15 @@
 from functools import partial
 from django.urls import path
 from mta.presentation import views
-from mta.presentation import mdm_views
+from mta.presentation import mdm_views, logistics_views
 
 urlpatterns = [
+    path('GetInTransitWhereAboutsData', partial(logistics_views.read, operation='grid')),
+    path('GetInTransitWhereAboutsDataCount', partial(logistics_views.read, operation='count')),
+    path('GetTransporterDetails', partial(logistics_views.read, operation='contacts')),
+    path('GetRemarkDetailsForInTransit', partial(logistics_views.read, operation='transit_history')),
+    path('GetOpenExpediteRequest', partial(logistics_views.read, operation='requests')),
+    path('GetRemarkDetailsForExpedite', partial(logistics_views.read, operation='expedite_history')),
     path('ReportReadIdentity', views.report_read_identity),
     path('GetMasterUIConfiguration', mdm_views.configuration),
     path('GetCount', partial(mdm_views.current, count=True)),

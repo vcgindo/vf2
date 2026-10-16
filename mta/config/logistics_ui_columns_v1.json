@@ -1,0 +1,215 @@
+{
+  "InTransitWhereAbouts": [
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "OrderNo",
+      "Col_Position": 1,
+      "Header": "Order No",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "DispatchDate",
+      "Col_Position": 2,
+      "Header": "Dispath Date",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "dbs",
+      "Col_Position": 3,
+      "Header": "Delay Beyond SLA",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "Qty",
+      "Col_Position": 4,
+      "Header": "QTY",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "CurrentLoc",
+      "Col_Position": 5,
+      "Header": "Current Loc",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "on_hand_penetration",
+      "Col_Position": 6,
+      "Header": "On-Hand Inventory penetration",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "action",
+      "Col_Position": 7,
+      "Header": "Action",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "ETA",
+      "Col_Position": 8,
+      "Header": "ETA",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "InTransitWhereAbouts",
+      "Col_Code": "rh",
+      "Col_Position": 9,
+      "Header": "",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    }
+  ],
+  "OpenExpeditingRequests": [
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "sc",
+      "Col_Position": 1,
+      "Header": "SKUCode",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "wc",
+      "Col_Position": 2,
+      "Header": "Receiver Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "pwc",
+      "Col_Position": 3,
+      "Header": "Sender Location",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "qty",
+      "Col_Position": 4,
+      "Header": "RR Qty",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "pic",
+      "Col_Position": 5,
+      "Header": "RECV Priority",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "br",
+      "Col_Position": 6,
+      "Header": "BRAge",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "plpd",
+      "Col_Position": 7,
+      "Header": "PotentialLossPerDay",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "eta",
+      "Col_Position": 8,
+      "Header": "ETA",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "rk",
+      "Col_Position": 9,
+      "Header": "Remark",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    },
+    {
+      "ReportName": "OpenExpeditingRequests",
+      "Col_Code": "action",
+      "Col_Position": 10,
+      "Header": "Action",
+      "Visible": true,
+      "CellAlignment": "left      ",
+      "Value": null,
+      "TagID": null,
+      "DataType": "String"
+    }
+  ]
+}

@@ -177,6 +177,8 @@ def download_report(request, payload, *, report_name):
 @endpoint('GET')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
+    if name in ('InTransitWhereAbouts', 'OpenExpeditingRequests'):
+        return envelope(data=json.loads((CONFIG / 'logistics_ui_columns_v1.json').read_text())[name])
     if name == 'BOR_OA':
         _require_report('boroa')
         from mta.presentation.boroa_sources import admitted_sources
