@@ -135,6 +135,16 @@ class NativeReleaseIdentityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.verify()
 
+    def test_undeclared_top_level_package_or_data_denies(self):
+        for name in ('parity/runner.py', 'development/restore.py', 'undeclared.json'):
+            path=self.root/name
+            path.parent.mkdir(parents=True,exist_ok=True)
+            path.write_bytes(b'undeclared root content')
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                self.verify()
+            path.unlink()
+            if path.parent!=self.root:path.parent.rmdir()
+
     def test_git_export_uses_committed_bytes_despite_dirty_working_source(self):
         from release.export import export
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True, capture_output=True)
@@ -149,7 +159,15 @@ class NativeReleaseIdentityTests(unittest.TestCase):
         self.addCleanup(lambda: shutil.rmtree(destination, ignore_errors=True))
         export(self.root, commit, destination)
         pin = hashlib.sha256((destination / identity.MANIFEST).read_bytes()).hexdigest()
-        admitted = identity.verify(destination, expected_commit=commit, expected_sha256=pin)
+        # The operator archive also has its full-source descriptor. Native
+        # verification applies to its exact image subset, not that wider root.
+        native = json.loads((destination / identity.MANIFEST).read_bytes())
+        candidate = self.root / 'native-subset'
+        candidate.mkdir()
+        for name in (*native['files'], identity.MANIFEST):
+            target=candidate/name;target.parent.mkdir(parents=True,exist_ok=True)
+            target.write_bytes((destination/name).read_bytes())
+        admitted = identity.verify(candidate, expected_commit=commit, expected_sha256=pin)
         self.assertEqual(admitted['source_commit'], commit)
         committed = subprocess.check_output(['git', '-C', str(self.root), 'show', commit + ':vectorflow/settings.py'])
         self.assertEqual((destination / 'vectorflow/settings.py').read_bytes(), committed)

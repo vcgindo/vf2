@@ -117,10 +117,15 @@ def verify(root, *, expected_commit, expected_sha256):
             raise ValueError('Native release file identity is invalid')
     actual = {}
     for path in sorted(root.iterdir()):
-        if path.name in ROOT_FILES or path.suffix in ('.py', '.pyc', '.pyo') or path.name == '__pycache__':
-            if path.is_symlink() or path.name not in ROOT_FILES or not path.is_file():
-                raise ValueError('Native root entry or undeclared executable differs')
+        if path.name in ROOT_FILES:
+            if path.is_symlink() or not path.is_file():
+                raise ValueError('Native root entry differs')
             actual[path.name] = _sha(path.read_bytes())
+        elif path.name not in AREAS and path.name != MANIFEST:
+            # Every root path participates in this finite artifact boundary.
+            # In particular, an undeclared namespace/package directory must
+            # not become an executable import merely because it is not *.py.
+            raise ValueError('Native release undeclared root path differs')
     for area in AREAS:
         directory = root / area
         if not directory.is_dir() or directory.is_symlink():
