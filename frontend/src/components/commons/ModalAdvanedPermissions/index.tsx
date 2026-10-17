@@ -50,13 +50,18 @@ const ModalAdvanedPermissions = (props: any) => {
   } = props;
 
   const [isLoadSpinner, setIsLoadSpinner] = useState<any>(false);
+  const isMtaApplication = storePermission?.some((app: any) =>
+    app.application_id === activeApplication && app.application_name === APPLICATION_NAMES.MTA);
   const applicationState = useQuery(['installed-application-state'], loadApplicationState, {
-    enabled: openModal && activeApplication === 1,
+    enabled: openModal && !!isMtaApplication,
     retry: false, staleTime: 15000, refetchOnWindowFocus: false,
   });
-  const emptyMtaSetup = activeApplication === 1 && applicationState.isSuccess && !!applicationState.data
-    && Array.isArray(allPermissions?.product_permission) && allPermissions.product_permission.length === 0
-    && Array.isArray(allPermissions?.location_permission) && allPermissions.location_permission.length === 0;
+  const emptyMtaSetup = isMtaApplication && applicationState.isSuccess && !!applicationState.data
+    && allPermissions?.application_id === activeApplication && allPermissions.application_name === APPLICATION_NAMES.MTA
+    && Array.isArray(allPermissions.product_permission_ids) && allPermissions.product_permission_ids.length === 0
+    && Array.isArray(allPermissions.location_permission_ids) && allPermissions.location_permission_ids.length === 0
+    && allPermissions.product_permission && Object.keys(allPermissions.product_permission).length === 0
+    && allPermissions.location_permission && Object.keys(allPermissions.location_permission).length === 0;
   const { mutateAsync: mutateRegister } = useRegisterUser();
   const { mutateAsync: mutatePutEditUser } = usePutEditUser();  
   const {mutateAsync: getDBRsettingsData} = useGetDBRsettingsData();
@@ -180,11 +185,11 @@ const ModalAdvanedPermissions = (props: any) => {
 
       productPermissions.push({
         application_id:app.application_id,
-        permissions:app.application_id === 1 && emptyMtaSetup ? [] : dataPrdPermission
+        permissions:app.application_name === APPLICATION_NAMES.MTA && emptyMtaSetup ? [] : dataPrdPermission
       })
       locationPermissions.push({
         application_id:app.application_id,
-        permissions:app.application_id === 1 && emptyMtaSetup ? [] : dataLcPermission
+        permissions:app.application_name === APPLICATION_NAMES.MTA && emptyMtaSetup ? [] : dataLcPermission
       })
   
     });
