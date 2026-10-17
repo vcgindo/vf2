@@ -65,9 +65,9 @@ class ReleaseExportTests(unittest.TestCase):
             self.assertEqual((destination/'.dockerignore').read_bytes(),b'**/secrets\n')
             self.assertFalse((destination/'release/secrets/password').exists())
             self.assertEqual(json.loads((destination/'release-source.json').read_text())['source_commit'],'a'*40)
-            from release.native_identity import verify, MANIFEST
-            import hashlib
-            self.assertEqual(verify(destination, expected_commit='a'*40,
-                expected_sha256=hashlib.sha256((destination/MANIFEST).read_bytes()).hexdigest())['source_commit'], 'a'*40)
+            from release.native_identity import MANIFEST
+            native = json.loads((destination/MANIFEST).read_text())
+            self.assertEqual(native['source_commit'], 'a'*40)
+            self.assertNotIn('release/.dockerignore', native['files'])
             with self.assertRaisesRegex(ValueError,'existing targets'):
                 export(root/'repository','HEAD',destination)

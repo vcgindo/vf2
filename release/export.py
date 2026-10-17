@@ -36,6 +36,8 @@ def included(name):
     if name in ('manage.py', 'requirements.txt'):
         return True
     if name.startswith('release/'):
+        if path.name in ('optional_initialize.py', 'optional-initialization.json'):
+            return False  # Exact operator-only package; never default runtime.
         return path.suffix in ('.py', '.md', '.json', '.yaml', '.sh', '.sql', '.lock') or path.name.endswith('Dockerfile') or path.suffix == '.template' or path.name == '.dockerignore'
     if name.startswith('vectorflow/'):
         return path.suffix == '.py'
@@ -129,4 +131,6 @@ if __name__ == '__main__':
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
     result = export(args.repository,args.revision,args.output)
-    print(json.dumps(dict(source_commit=result['source_commit'],files=len(result['files']),output=str(args.output))))
+    print(json.dumps(dict(source_commit=result['source_commit'],files=len(result['files']),output=str(args.output),
+        source_manifest_sha256=hashlib.sha256((args.output/'release-source.json').read_bytes()).hexdigest(),
+        native_manifest_sha256=hashlib.sha256((args.output/'release-native-source.json').read_bytes()).hexdigest())))

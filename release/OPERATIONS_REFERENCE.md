@@ -14,6 +14,22 @@ Use [RUNBOOK.md](RUNBOOK.md) for the Windows 8080 checklist. This file holds Lin
 
 Step Five commands are references only. The Windows reinstall does not authorize sample loading, initialization, daily execution, publication or recovery testing. Historical development compatibility settings are not fresh-install defaults.
 
+## Cleanup Step6 MTA artifact — build/inspect only
+
+- **Verify the immutable receipt** — Match source ZIP/image archive SHA256 and actual imageID. The complete operator-source descriptor and finite MTA-native descriptor each require an independently supplied pin. The image includes root manage.py/requirements.txt, all native migrations,24commands and required native SQL/schema/resources; build/inspection/operator helpers and optional dated data stay outside it.
+- **Build from an admitted export** — Use a new owned context and the exact eight LinuxCPython3.11amd64 wheels. The builder uses the pinned official Python base, networknone during build,4GiB/2CPU per build step, no old application-image base. Its final stage receives only verified native files and hash-pinned installed dependencies. Preserve build/inspection receipts and failed attempts; do not prune shared Docker state.
+- **Preserve existing services** — No frontend/MTO/auth rebuild or existing-instance upgrade is authorized. Compose no longer builds MTA from a raw context. Use a separately approved MTA image override/new-install assembly only after checking its target and all other retained imageIDs. Current old sealed installations require their original source/images/registrations.
+- **Retain public-origin limits** — Ubuntu packaging proof does not qualify the existing browser bundle for a public HTTPS/WSS origin. The compiled-origin stop condition below remains binding; no frontend rebuild or VPS deployment certification follows.
+
+```sh
+python3 -B -m release.build_mta --source-root /srv/vectorflow/approved-export \
+  --context /srv/vectorflow/owned/new-mta-context --wheelhouse /srv/vectorflow/approved-wheels \
+  --commit APPROVED_FULL_COMMIT --source-sha256 APPROVED_SOURCE_MANIFEST_SHA256 \
+  --native-sha256 APPROVED_NATIVE_MANIFEST_SHA256 --image vectorflow/mta:APPROVED_TAG
+```
+
+Set VF_NATIVE_RELEASE_COMMIT/VF_NATIVE_RELEASE_SHA256/VF_SOURCE_MANIFEST_SHA256 from the independent reviewed receipt. Do not copy a replacement manifest's own hash as authority. Step7/initialization/business execution and live deployment remain separately released.
+
 ## Ubuntu / public VPS checklist
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
@@ -198,10 +214,10 @@ Only the gateway publishes a port. PostgreSQL, Redis and service listeners remai
 
 ## Secrets and image builds
 
-Build the auth image first, using its pinned Dockerfile. Use that image's `release.prepare_secrets` command to generate a **new** secret directory under a private host parent, mounted only for that command. It refuses an existing destination. For example, after choosing the actual image tag:
+For a separately authorized new installation, use the retained exact auth image's `release.prepare_secrets` command to generate a **new** secret directory under a private host parent, mounted only for that command. It refuses an existing destination. Cleanup Step6 reuses the already approved auth image and does not build auth or generate/rotate existing secrets. The following is an installation reference, not Step6 execution:
 
 ```sh
-docker build --platform linux/amd64 -f release/auth.Dockerfile -t vectorflow/auth:RELEASE .
+# Reuse the separately approved exact auth image. No auth build in cleanup Step6.
 docker run --rm --network none --user 0:0 --entrypoint python \
   --mount type=bind,src=/srv/vectorflow/private,dst=/private \
   vectorflow/auth:RELEASE -m release.prepare_secrets --directory /private/secrets \
@@ -214,7 +230,8 @@ The host parent must exist with access restricted to the deployment operator. Th
 
 ```sh
 vf config --quiet
-vf build mta auth
+# Build MTA only through the authenticated cleanup Step6 builder above.
+# Reuse the separately approved exact auth image; no auth build in Step6.
 # Load the exact retained frontend/MTO images from the approved runtime archive.
 # No frontend rebuild or MTO change is part of this release.
 vf config --images
@@ -380,7 +397,7 @@ Roles/URL entries are installed metadata; product/location definitions and assig
 
 ## Separate optional initialization-only procedure — packaged, not executed in Stage Four
 
-The separate optional pack is not in the production export or default install. release/optional-initialization.json pins its ZIP/input/configuration/recipe identities and provenance. It contains declared supplied masters/configuration/initial history/opening, never a later calculated closing. It includes no daily sequence, outputs, accounts or credentials. Full daily execution, action/successor/publication/retry and recovery rehearsal remain Stage Five.
+The optional pack is separate from the production source ZIP/image/default install. Its original optional-initialization.json pins ZIP/input/configuration/recipe identities and provenance; optional_initialize.py is retained byte-exact beside it. The operator pack can be assembled by release.optional_package from the exact approved commit and retained input ZIP, without loading data. It contains supplied initial facts/history/opening, never a later calculated closing, day outputs, accounts or credentials. Execution needs separate target/input authority; Step6 does not grant it.
 
 Under a separately released target/input decision, verify the pack ZIP and input SHA from the manifest. Transfer inputs/initialization.json to a chosen /var/lib/vectorflow/inputs path in the owned writable mta_data volume; a staging container or other transfer mechanism needs explicit resource authority. For an existing approved mta-install transfer process, copy with docker cp to that exact process/volume and verify SHA inside it. Do not start a helper/container merely because this paragraph describes transfer. Never mount the development checkout or a DB dump. Keep raw artifact bytes/provenance unchanged.
 
@@ -389,8 +406,10 @@ Before registration inspect the actual cluster-wide fresh_operational_acceptor m
 ```sh
 # Stage Five / separate target-and-input release required; NOT Stage Four execution.
 vf --profile install run --rm provision -m release.register_mta --input-sha256 3a4bf3a699c57fab7f00e6820f43c0e1b661386c9cf3aa4f21fd4081e110bdbe
-vf --profile install run --rm mta-install -m release.optional_initialize /var/lib/vectorflow/inputs/initialization.json
-vf --profile install run --rm mta-install -m release.optional_initialize /var/lib/vectorflow/inputs/initialization.json --apply
+# Mount the separate exact operator package read-only at /operator only after
+# explicit target/input/container authority. This code is not in the image.
+vf --profile install run --rm mta-install /operator/optional_initialize.py /var/lib/vectorflow/inputs/initialization.json
+vf --profile install run --rm mta-install /operator/optional_initialize.py /var/lib/vectorflow/inputs/initialization.json --apply
 ```
 
 The first optional_initialize invocation only inspects the existing native contract using exact input/configuration/recipe digests. The second explicitly applies once, validates existing native ownership, initializes only supplied masters/opening and binds the complete optional family owners in one transaction. Save its source/opening/content/implementation/receipt identities and independently read back exact typed input/master state. Verify zero calculation/capture/task and no publication. A second apply is refused before mutation; native initialization's underlying identical REVERIFIED policy remains unchanged. Preserve any failed target/receipt; no reset/reseed/registration replacement or automatic retry. Selecting a source for initialized master reads does not create a report publication or permissions.

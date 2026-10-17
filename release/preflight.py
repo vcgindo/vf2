@@ -59,17 +59,10 @@ def configuration(values):
     return values.get('VF_BIND_ADDRESS', '127.0.0.1'), port
 
 
-def source_manifest(root):
-    root = Path(root).resolve()
-    value = json.loads((root/'release-source.json').read_text(encoding='utf-8'))
-    if value.get('schema') != 'vectorflow-release-source-v1' or len(value.get('source_commit', '')) != 40:
-        raise ValueError('Pinned exported source manifest required')
-    for name, expected in value['files'].items():
-        path = (root/name).resolve()
-        if not path.is_relative_to(root) or not path.is_file():
-            raise ValueError('Exported file missing or outside release root')
-        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise ValueError('Exported source changed: '+name)
+def source_manifest(root, *, commit=None, source_sha256=None, native_sha256=None):
+    from release.mta_packaging import source
+    value, _native = source(root, commit=commit, source_sha256=source_sha256,
+        native_sha256=native_sha256)
     return value
 
 
@@ -96,7 +89,9 @@ def inspect(root, env_file, compose_files, *, existing_project=False, subnet=Non
     root, env_file = Path(root).resolve(), Path(env_file).resolve()
     values = environment(env_file)
     bind, port = configuration(values)
-    manifest = source_manifest(root)
+    manifest = source_manifest(root, commit=values.get('VF_NATIVE_RELEASE_COMMIT'),
+        source_sha256=values.get('VF_SOURCE_MANIFEST_SHA256'),
+        native_sha256=values.get('VF_NATIVE_RELEASE_SHA256'))
     if (root/'public-build.json').is_file():
         public = json.loads((root/'public-build.json').read_text(encoding='utf-8'))
         if (public.get('client_cipher_key') != values['VF_CLIENT_CIPHER_KEY']

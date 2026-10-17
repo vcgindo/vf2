@@ -2,7 +2,21 @@
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
-Reinstall **only the 8080 trial** at `I:/VectorFLOW-Trial` using the corrected `bd309169` package. Run each step manually, in order, in the same PowerShell session.
+Cleanup Step6 supplies an MTA source/image artifact only. It does not authorize reinstalling or upgrading8080/3006 or loading optional inputs. The historical8080 procedure below requires its own earlier authority and package; do not apply it to the cleanup release.
+
+- **Verify the package** — Check the source ZIP, saved MTA image archive and independent source/native manifest SHA256 values against the approved delivery receipt. Extract into a new directory. Preserve all existing private files/images/volumes.
+- **Use the authenticated MTA builder** — From that exported source directory, run the command below with exact reviewed pins and eight hash-pinned LinuxCPython3.11 wheels. A raw checkout, dirty export, changed descriptor or missing wheel is refused before Docker build. No frontend/MTO/auth image is built.
+- **Keep installation separate** — Load the saved image only under its target authority; match actual imageID, then set VF_NATIVE_RELEASE_COMMIT/VF_NATIVE_RELEASE_SHA256/VF_SOURCE_MANIFEST_SHA256 from the independent receipt. Compose uses the prebuilt MTA image, not a raw-context build. This release does not authorize starting a deployment.
+- **Keep optional data separate** — The optional operator package contains exact original optional_initialize.py/optional-initialization.json and the separately pinned data ZIP. It is absent from default source ZIP/image. Neither inspect/apply nor generic initialize_production is executed by packaging. See OPERATIONS_REFERENCE.md.
+
+```powershell
+python -B -m release.build_mta --source-root C:/approved/export --context D:/owned/new-mta-context --wheelhouse D:/approved/mta-wheels --commit APPROVED_FULL_COMMIT --source-sha256 APPROVED_SOURCE_MANIFEST_SHA256 --native-sha256 APPROVED_NATIVE_MANIFEST_SHA256 --image vectorflow/mta:APPROVED_TAG
+if ($LASTEXITCODE -ne 0) { throw 'Authenticated MTA build refused; preserve the failed attempt' }
+```
+
+## Historical8080 procedure — not cleanup Step6 execution
+
+Reinstall **only the 8080 trial** at `I:/VectorFLOW-Trial` using the corrected `bd309169` package when separately authorized for that original package. Run each step manually, in order, in the same PowerShell session.
 
 - **1. Prepare Windows** — Start Docker Desktop in Linux-container mode. Check that Python 3 and the approved source ZIP/runtime archive are available.
 - **2. Remove the old trial** — Remove its six containers, eight volumes and network; archive its folder. **This permanently deletes the trial databases and accounts. The folder archive is not a database backup.** Other deployments and Docker images stay untouched.

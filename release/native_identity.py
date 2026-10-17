@@ -17,6 +17,13 @@ SCHEMA = 'vectorflow-native-release-source-v1'
 MANIFEST = 'release-native-source.json'
 AREAS = ('mta', 'vectorflow', 'baseline', 'release')
 ROOT_FILES = frozenset(('manage.py', 'requirements.txt'))
+# Finite MTA image dependencies. The complete operator/source archive has its
+# own independently pinned descriptor; build/inspection tools never enter /app.
+MTA_RELEASE_FILES = frozenset('release/' + name for name in (
+    '__init__.py', 'configuration.py', 'metadata_access.py', 'mta_settings.py',
+    'native_identity.py', 'native_schema.py', 'provision.py', 'register_mta.py',
+    'service.py', 'owned-namespace.sql', 'requirements-mta.lock',
+    'mta-wheels.lock.json', 'images.lock.json', 'mta.Dockerfile'))
 HISTORICAL_SETTINGS = ('VF_MDM_SELECTIVE_COMPATIBILITY_SHA256',
     'VF_MDM_REPORT_COMPATIBILITY_SHA256', 'VF_MDM_READ_COMPATIBILITY_SHA256',
     'VF_MDM_LOGISTICS_COMPATIBILITY_SHA256', 'VF_MDM_SEALED_EXPORT_SHA256',
@@ -32,7 +39,8 @@ def _pin(value, length):
 
 
 def _native(name):
-    return name in ROOT_FILES or bool(PurePosixPath(name).parts) and PurePosixPath(name).parts[0] in AREAS
+    return (name in ROOT_FILES or name in MTA_RELEASE_FILES
+        or bool(PurePosixPath(name).parts) and PurePosixPath(name).parts[0] in AREAS[:3])
 
 
 def _implementation(files, root):

@@ -1,0 +1,64 @@
+{
+  "restriction": "**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**",
+  "schema": "vectorflow-mta-wheel-pins-v1",
+  "platform": "linux/amd64",
+  "python": "3.11",
+  "files": [
+    {
+      "filename": "asgiref-3.12.1-py3-none-any.whl",
+      "name": "asgiref",
+      "version": "3.12.1",
+      "sha256": "fe386d1c2bff7259ea95929266d12a8cf9a8b5a1c2598402967d8792e7a7c094",
+      "bytes": 25478
+    },
+    {
+      "filename": "django-5.2.17-py3-none-any.whl",
+      "name": "Django",
+      "version": "5.2.17",
+      "sha256": "f04fb3b36ee119e1af4fa1d397d5fd6cf12700f49321e84d4f4c642c5b1973db",
+      "bytes": 8315563
+    },
+    {
+      "filename": "gunicorn-23.0.0-py3-none-any.whl",
+      "name": "gunicorn",
+      "version": "23.0.0",
+      "sha256": "ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d",
+      "bytes": 85029
+    },
+    {
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "name": "packaging",
+      "version": "26.3",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+      "bytes": 129956
+    },
+    {
+      "filename": "psycopg-3.3.6-py3-none-any.whl",
+      "name": "psycopg",
+      "version": "3.3.6",
+      "sha256": "a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631",
+      "bytes": 215490
+    },
+    {
+      "filename": "psycopg_binary-3.3.6-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "name": "psycopg-binary",
+      "version": "3.3.6",
+      "sha256": "a2e44a342d2aee40508e28a563d8961c39d9bbd8cae36d8578f0a3c6658aab0f",
+      "bytes": 5267985
+    },
+    {
+      "filename": "sqlparse-0.6.0-py3-none-any.whl",
+      "name": "sqlparse",
+      "version": "0.6.0",
+      "sha256": "b861c0288ce2fa56209a9a6412d2e066ac664b3873b89c26c9d8415e8e32996f",
+      "bytes": 50070
+    },
+    {
+      "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "bytes": 45571
+    }
+  ]
+}
