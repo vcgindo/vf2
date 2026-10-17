@@ -207,7 +207,7 @@ def ui_config(request, payload):
         import hashlib
         definition = Path(__file__).resolve().parents[2] / 'release/setup-report-definitions.json'
         raw = definition.read_bytes()
-        if hashlib.sha256(raw).hexdigest() != 'e5392fb583c67ef9e1a1570c1168799478160b78c132fd4e11a70739e51e0613':
+        if hashlib.sha256(raw).hexdigest() != '3f587e9b68d335ccd43cc4c13e7e872b079b89181bf8d81137d3f78b70676a98':
             raise PublicationUnavailable('setup_report_definition_changed')
         return envelope(data=json.loads(raw)['reports'][name])
     if state is not None and name in ('BOR_OA', 'BuyerOrderReport'):
