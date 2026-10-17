@@ -96,7 +96,7 @@ class NativeBindingTests(unittest.TestCase):
             output_digest='output',production_digest='production',predecessor_id=None,business_date=date(2037,4,10))
         self.capture = NS(status='CONSUMED',source=NS(receipt={'schema':'fresh-production-mdm-source-v1'}))
         self.input = dict(initialization_binding=self.binding,profile=self.profile,lineage={})
-        patches = [patch('mta.runtime.validation_storage.read_input',return_value=self.input),
+        patches = [patch('mta.runtime.input_reader.read_input',return_value=self.input),
             patch('mta.runtime.initialization_models.ProductionInitialization.objects.select_related'),
             patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects.select_related'),
             patch('mta.presentation.daily_sources.receipt',return_value=NS(images_digest='images',recipe_digest='recipe'))]

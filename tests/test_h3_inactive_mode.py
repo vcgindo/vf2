@@ -77,7 +77,7 @@ class InactiveNativeContract(unittest.TestCase):
                     patch('mta.runtime.mdm_models.MdmSource.objects') as sources, \
                     patch('mta.mdm.native_source.require_native'), \
                     patch('mta.mdm.production_families.require_binding'), \
-                    patch('mta.runtime.validation_storage.read_input',return_value={'profile':{'complete_daily':{'policy':policy}}}):
+                    patch('mta.runtime.input_reader.read_input',return_value={'profile':{'complete_daily':{'policy':policy}}}):
                 with self.assertRaisesRegex(ValueError,'mode-bound'):publish(run,capture,{})
                 conn.cursor.assert_not_called()
 

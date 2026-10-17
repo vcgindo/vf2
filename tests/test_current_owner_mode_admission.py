@@ -21,7 +21,7 @@ class CurrentOwnerModeAdmissionTests(unittest.TestCase):
         capture=SimpleNamespace(run=run,run_id=run.pk,nms_active=active)
         query=Mock();query.select_related.return_value=[capture]
         with patch.object(MdmDailyInputCapture.objects,'filter',return_value=query), \
-                patch('mta.runtime.validation_storage.read_input',return_value={
+                patch('mta.runtime.input_reader.read_input',return_value={
                     'profile':{'complete_daily':{'policy':policy}}}), \
                 patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[{'owned':'closing'}]}) as read, \
                 patch.object(daily_current,'verify_current') as verify, \

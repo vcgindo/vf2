@@ -101,7 +101,7 @@ class Command(BaseCommand):
                     raise CommandError('Compared run/output identity differs')
                 read_outputs(run)
                 if modern['action_policy'] != 'retained-fixed-actions':
-                    from mta.runtime.validation_storage import read_input
+                    from mta.runtime.input_reader import read_input
                     from parity.temporal_policy import policy_for_case
                     if policy_for_case({'profile': read_input(run)['profile']}) != modern['action_policy']:
                         raise CommandError('Compared action policy differs from captured run input')

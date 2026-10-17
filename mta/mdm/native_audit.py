@@ -38,7 +38,7 @@ def _policy(capture):
 
 
 def verify(capture, *, sealed=True):
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     run = capture.run
     profile = read_input(run, components=('profile',))['profile']
@@ -117,7 +117,7 @@ def bind(run, daily, profile):
 
 def finalize(run):
     """Run after force OldNorm publication, inside the daily commit transaction."""
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     policy = validate_policy(read_input(run, components=('profile',))['profile'])
     if policy is None:
         if NativeUploadAudit.objects.filter(run=run).exists():
@@ -159,7 +159,7 @@ def finalize(run):
 
 
 def receipt(run):
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     policy = validate_policy(read_input(run, components=('profile',)).get('profile', {}))
     capture = NativeUploadAudit.objects.select_related('run','initialization','predecessor__run').filter(run=run).first()
     if policy is None and capture is None:

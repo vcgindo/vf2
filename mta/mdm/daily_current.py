@@ -38,7 +38,7 @@ def verify_current(source, closing, *, version=None):
 def publish(run, capture, closing):
     from mta.mdm.daily_source import APPROVAL_DAY_ARTIFACT_SHA, SCHEMA
     from mta.application.daily_finalization import ACTIVE_POLICY, POLICY, finish
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.mdm_models import MdmSource
     if not connection.in_atomic_block:
         raise ValueError('Current master publication requires the day transaction')
@@ -112,7 +112,7 @@ def verify_published(run, source):
             or not native and not c.nms_active for c in captures):
         raise ValueError('Current owner chain is unavailable')
     from mta.application.daily_finalization import ACTIVE_POLICY, POLICY
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     for capture in captures:
         profile=read_input(capture.run,components=('profile',))['profile']
         policy=profile.get('complete_daily',{}).get('policy')

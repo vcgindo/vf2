@@ -32,7 +32,7 @@ class MdmConfigurationTests(unittest.TestCase):
                                       mdm_input_capture=self.capture)
 
     def resolve(self, settings=None):
-        with patch('mta.runtime.validation_storage.read_input',
+        with patch('mta.runtime.input_reader.read_input',
                    return_value={'mdm_input':self.snapshot}):
             return capture_configuration_for_day(self.settings if settings is None else settings,
                 predecessor=self.parent,source=self.source)
@@ -89,6 +89,7 @@ class MdmConfigurationTests(unittest.TestCase):
                 patch('mta.runtime.temporal.CalculationRun.objects') as runs, \
                 patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
                 patch('mta.runtime.mdm_models.MdmSource.objects') as sources, \
+                patch('mta.runtime.temporal.read_input', side_effect=lambda run, **kw: run.input_payload), \
                 patch('mta.runtime.temporal.read_outputs',return_value={
                     'ClosingState':[{'importer_settings':self.settings,'dbm':{}}]}), \
                 patch('mta.runtime.temporal.command_state',return_value=({},[])), \

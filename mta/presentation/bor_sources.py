@@ -85,7 +85,7 @@ def _fixture_admitted_sources():
 
 def _production_policy(run):
     from mta.application.production_output_policy import SOURCE_SCHEMA, contract, require
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     day = read_input(run, components=('day',)).get('day')
     if (not isinstance(day, dict) or day.get('production_report_schema') != SOURCE_SCHEMA
             or not isinstance(day.get('production_report_policy'), dict)):

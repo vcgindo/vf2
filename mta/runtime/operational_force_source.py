@@ -2,7 +2,7 @@
 from django.db import connection, transaction
 from mta.runtime.operational_source_models import OperationalForceSource, OperationalCaptureAuthorization
 from mta.runtime.relational_state import save_image, load_image
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.serialization import digest, storage
 from mta.application.timeline_controls import FORCE_CAPTURE_POLICY
 

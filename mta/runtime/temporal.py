@@ -16,7 +16,7 @@ from mta.runtime.services import read_outputs, finish_run, fail_run
 from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.evidence import evidence_mode as evidence_scope
 
 KIND='DAILY_CHAIN'
@@ -164,7 +164,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
-                consumer_opening=None, report_disposition=None):
+                consumer_opening=None, report_disposition=None, checkpoint_writer=None):
     if evidence_mode not in ('production','validation'):
         raise ValueError('Explicit production or validation evidence policy required')
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
@@ -538,7 +538,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 from mta.application.complete_daily_batch_files import write_run_pick_files
                 write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
             return finish_run(run,result,expected_digest=source_digest,
-                              publication_opening=publication_opening)
+                              publication_opening=publication_opening, checkpoint_writer=checkpoint_writer)
     except Exception as error:
         fail_run(run,error)
         raise

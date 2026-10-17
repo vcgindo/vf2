@@ -9,9 +9,8 @@ import django
 django.setup()
 
 from mta.presentation.daily_rrr_colour import OUTPUT_FIELDS
-from mta.presentation.daily_rrr_storage import (
-    APPROVED_OUTPUTS, VERSION, _proof_rows, _source_inputs,
-)
+from mta.presentation.daily_rrr_storage import APPROVED_OUTPUTS, VERSION
+from development.daily_rrr_storage import _proof_rows, _source_inputs
 from mta.runtime.daily_rrr_models import DailyRrrColourReceipt, DailyRrrColourRow
 
 

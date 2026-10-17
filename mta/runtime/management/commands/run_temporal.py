@@ -11,12 +11,13 @@ import subprocess
 import sys
 
 from django.core.management.base import BaseCommand, CommandError
-from mta.runtime.temporal import execute_day, record_command, command_state
+from development.temporal import execute_day
+from mta.runtime.temporal import record_command, command_state
 from mta.runtime.services import read_outputs
-from mta.runtime.validation_storage import export_run
+from development.validation_storage import export_run
 from parity.output_archive import OutputArchive
 from mta.serialization import digest
-from mta.runtime.temporal_continuation import (composed_prefix, copy_prefix_evidence,
+from development.temporal_continuation import (composed_prefix, copy_prefix_evidence,
     successor_index, validate_accepted_prefix, validate_source_transition)
 
 

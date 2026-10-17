@@ -219,7 +219,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     from mta.mdm.initialization import read_initialized_input
     from mta.mdm.production_families import require_initialization, require_binding
     from mta.runtime.production_preflight import daily
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     issues=[];owner=None;parent=None;frame=None;parent_context=None
     def problem(path,owner_name,error):
@@ -334,7 +334,7 @@ def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root):
 def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revision,pick_root):
     """Verify an exact completed normal request without restoring files/writing."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     day,_,request,binding=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root)
     repeated=MdmDailyInputCapture.objects.select_related('run').filter(source=owner.source,
@@ -355,7 +355,7 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
 
 def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None):
     """Read-only mirror of frozen retry checks; locked execution gates remain."""
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.mdm_configuration import capture_configuration_for_day

@@ -140,8 +140,9 @@ def verify_predecessor(options):
 def run_one(options):
     from mta.runtime.models import CalculationRun
     from mta.runtime.services import read_outputs
-    from mta.runtime.temporal import execute_day, record_command, command_state
-    from mta.runtime.validation_storage import export_run
+    from development.temporal import execute_day
+    from mta.runtime.temporal import record_command, command_state
+    from development.validation_storage import export_run
     from mta.runtime.management.commands.prove_sizeable_storage import resources
     from mta.serialization import digest
     from parity.output_archive import OutputArchive

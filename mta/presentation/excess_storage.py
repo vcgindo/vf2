@@ -41,17 +41,3 @@ def write_excess(run, output):
     if read_excess(run,output=output)!=rows:
         raise ValueError('Excess projection readback differs')
     return receipt
-
-
-@transaction.atomic
-def publish_existing(run_id, *, expected_output_digest):
-    from mta.runtime.services import read_outputs
-    run = CalculationRun.objects.select_for_update().get(pk=run_id)
-    if (run.kind!='DAILY_CHAIN' or run.status!='SUCCEEDED' or run.output_digest!=expected_output_digest or
-            run.parity_summary.get('status') not in ('PASS','PASS_WITH_LEGACY_FLAWS')):
-        raise ValueError('Explicit accepted source run required')
-    output = read_outputs(run)
-    if ExcessProjection.objects.filter(run=run).exists():
-        read_excess(run,output=output)
-        return ExcessProjection.objects.get(run=run)
-    return write_excess(run,output)

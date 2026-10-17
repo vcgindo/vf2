@@ -138,7 +138,7 @@ def accepted_closing(source, run, family_ids):
     from mta.mdm.supplier_revisions import lock_transaction
     from mta.presentation.context import selected_run
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     lock_transaction(source.pk)
     source = MdmSource.objects.select_for_update().get(pk=source.pk)
@@ -213,7 +213,7 @@ def bind(source, run, *, require_all_families=False):
     if MdmDailyInputCapture.objects.filter(source=source, status='CAPTURED',
                                            retries__isnull=True).exists():
         raise ValueError('Combined MDM requires its latest own closing and no pending capture')
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     snapshot = read_input(anchor.run, components=('mdm_input',)).get('mdm_input')
     if (not snapshot or snapshot.get('source_id') != source.pk
             or snapshot.get('source_digest') != source.digest
@@ -279,7 +279,7 @@ def require_current_run(source, run, seal, *, read_only=False):
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     if source.receipt.get('schema') == SOURCE_SCHEMA:
         capture = current_capture(source, run)
-        from mta.runtime.validation_storage import read_input
+        from mta.runtime.input_reader import read_input
         snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
         if snapshot is None or snapshot.get('revision_digest') != capture.revision_digest:
             raise ValueError('Native MDM predecessor capture differs')
@@ -295,7 +295,7 @@ def require_current_run(source, run, seal, *, read_only=False):
         return
     capture = current_capture(source, run)
     if seal.receipt.get('schema') == 'fresh-production-mdm-integration-v1' or str(run.pk) != seal.receipt['run_id']:
-        from mta.runtime.validation_storage import read_input
+        from mta.runtime.input_reader import read_input
         snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
         if snapshot is None or snapshot.get('revision_digest') != capture.revision_digest:
             raise ValueError('Combined MDM predecessor capture differs')

@@ -7,7 +7,7 @@ from mta.serialization import digest
 def capture_configuration_for_day(importer_settings, *, predecessor=None, source=None):
     from mta.mdm.daily_input import (capture_configuration, NMS_DATA_HISTORY_HORIZON,
                                     SCHEMA, SQL_DIGEST)
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
 
     horizons = [row for row in importer_settings
                 if row.get('Parameter') == 'TaskStatusLogHorizon']

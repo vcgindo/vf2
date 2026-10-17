@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from mta.runtime.offline_scenario import registry, admit, require_run
-from mta.runtime.temporal_continuation import validate_accepted_prefix, validate_source_transition
+from development.temporal_continuation import validate_accepted_prefix, validate_source_transition
 from mta.presentation.daily_sources import receipt, image_rows
 from mta.presentation.offline_rrr import read
 

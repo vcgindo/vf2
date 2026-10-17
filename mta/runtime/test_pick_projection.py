@@ -8,9 +8,10 @@ from unittest.mock import patch
 from django.db import transaction
 from django.test import TransactionTestCase
 
-from mta.presentation.pick_storage import read_pick_bands, restore_pick_bands, write_pick_bands
+from mta.presentation.pick_storage import read_pick_bands, write_pick_bands
+from development.pick_storage import restore_pick_bands
 from mta.runtime.models import CalculationRun, Checkpoint, PickBand, PickProjection
-from mta.runtime.validation_storage import persist_trace
+from development.validation_storage import persist_trace
 from mta.serialization import digest
 
 
@@ -40,7 +41,7 @@ class PickProjectionTest(TransactionTestCase):
 
     def test_duplicate_rows_wire_identity_and_no_trace_on_read(self):
         self.write()
-        with patch('mta.runtime.validation_storage.evidence_path', side_effect=AssertionError('no trace read')):
+        with patch('development.validation_storage.evidence_path', side_effect=AssertionError('no trace read')):
             self.assertEqual(read_pick_bands(self.run), self.rows)
         self.assertEqual(list(self.run.pick_bands.values_list('ordinal', flat=True).order_by('ordinal')), [0,1])
 

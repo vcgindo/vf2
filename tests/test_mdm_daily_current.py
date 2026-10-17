@@ -29,7 +29,7 @@ class CurrentOwnerTests(unittest.TestCase):
         query = Mock()
         query.select_related.return_value = carriers
         with patch.object(MdmDailyInputCapture.objects, 'filter', return_value=query), \
-                patch('mta.runtime.validation_storage.read_input',
+                patch('mta.runtime.input_reader.read_input',
                     return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}), \
                 patch('mta.runtime.services.read_outputs',
                     side_effect=lambda run: {'ClosingState': [{'own_run': run.pk}]}), \
@@ -67,7 +67,7 @@ class CurrentOwnerTests(unittest.TestCase):
         first = self.carrier('first'); second = self.carrier('second', 'first')
         query = Mock(); query.select_related.return_value = [first, second]
         with patch.object(MdmDailyInputCapture.objects, 'filter', return_value=query), \
-                patch('mta.runtime.validation_storage.read_input',
+                patch('mta.runtime.input_reader.read_input',
                     return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}), \
                 patch('mta.runtime.services.read_outputs', return_value={'ClosingState': [{}]}), \
                 patch.object(daily_current, 'verify_current', side_effect=ValueError('typed readback differs')):
@@ -182,7 +182,7 @@ class CurrentOwnerPostgresTests(unittest.TestCase):
         changed['importer']['SkuAttributeData'][0]['Weight'] = Decimal('2.125')
         changed['importer']['LocationAttributeData'][0]['c4'] = 'updated'
         changed['importer']['SkuLocAttributeData'][0]['PackSize'] = 2
-        with patch('mta.runtime.validation_storage.read_input',
+        with patch('mta.runtime.input_reader.read_input',
                    return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}):
             daily_current.publish(self.run, self.capture, changed)
         daily_current.verify_current(self.source, changed)
@@ -196,7 +196,7 @@ class CurrentOwnerPostgresTests(unittest.TestCase):
         changed['importer']['SkuAttributeData'][0]['Weight'] = Decimal('2.125')
         with self.assertRaisesRegex(ValueError, 'later output failure'), transaction.atomic():
             self.consume()
-            with patch('mta.runtime.validation_storage.read_input',
+            with patch('mta.runtime.input_reader.read_input',
                        return_value={'profile': {'complete_daily': {'policy': ACTIVE_POLICY}}}):
                 daily_current.publish(self.run, self.capture, changed)
             raise ValueError('later output failure')
@@ -215,7 +215,7 @@ class CurrentOwnerPostgresTests(unittest.TestCase):
         row.refresh_from_db(); self.assertEqual(row.SKUCode, 'EXISTING-BEHAVIOR')
         row.delete()
         self.consume()
-        with patch('mta.runtime.validation_storage.read_input',
+        with patch('mta.runtime.input_reader.read_input',
                    return_value={'profile': {'complete_daily': {'policy': POLICY}}}):
             with self.assertRaisesRegex(ValueError, 'active consumed day'):
                 daily_current.publish(self.run, self.capture, self.closing)

@@ -8,7 +8,7 @@ from mta.serialization import digest
 
 
 def authorize_new_run(run):
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     if (transaction.get_autocommit() or run.status != 'RUNNING' or run.completed_at is not None
             or run.output_digest or run.production_digest):
         raise ValueError('Operational authorization requires a new uncalculated run')
@@ -41,7 +41,7 @@ def _rows(source):
 
 
 def write_source(run, calculated, *, calculation_digest):
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     if transaction.get_autocommit() or run.status != 'RUNNING':
         raise ValueError('Live operational capture requires the production transaction')
     authorization = OperationalCaptureAuthorization.objects.get(run=run)

@@ -101,7 +101,7 @@ def main(argv=None):
     import django
     django.setup()
     from mta.runtime.models import CalculationRun
-    from mta.presentation import preacceptance_actions
+    from development import preacceptance_actions
 
     principal = authenticated_context(
         email_environment=options.email_environment,

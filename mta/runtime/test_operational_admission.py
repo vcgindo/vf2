@@ -420,7 +420,7 @@ class OperationalVerifierProtocol(SimpleTestCase):
         remark='sources/bpr/BPRReport_RemarkDetails'
         paths=['mta.presentation.operational_admission.snapshot',
             'mta.presentation.operational_admission.verify_input_domain',
-            'mta.runtime.services.read_outputs','mta.runtime.validation_storage.read_input',
+            'mta.runtime.services.read_outputs','mta.runtime.input_reader.read_input',
             'mta.runtime.operational_runner.validate_configuration',
             'mta.runtime.operational_attempts.verify_attempt',
             'mta.presentation.daily_sources.receipt','mta.presentation.daily_requests.metadata',

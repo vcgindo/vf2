@@ -43,7 +43,7 @@ class DailyInputConsumptionTests(TestCase):
                 SKUCode='SKU', WhCode='LOC', Status='3', ApproverId='2')
             objects[master_id] = task, sub
         snapshot = self._bind()
-        with patch('mta.runtime.validation_storage.read_input',
+        with patch('mta.runtime.input_reader.read_input',
                    return_value={'mdm_input': snapshot}):
             with transaction.atomic():
                 finalize_consumption(self.run)
@@ -137,7 +137,7 @@ class DailyInputConsumptionTests(TestCase):
         snapshot = self._bind()
         later = MdmSkuApproved.objects.create(source=self.source, SKUCode='LATER',
             SKUDescription='Later', ActionType=2, Approved=True, Reverted=False)
-        with patch('mta.runtime.validation_storage.read_input', return_value={'mdm_input': snapshot}):
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
             with transaction.atomic(): finalize_consumption(self.run)
         self.assertFalse(MdmSkuApproved.objects.filter(pk=approved.pk).exists())
         self.assertTrue(MdmSkuApproved.objects.filter(pk=pending.pk).exists())
@@ -178,7 +178,7 @@ class DailyInputConsumptionTests(TestCase):
         MdmSkuApproved.objects.filter(pk=row.pk).update(SKUDescription='After')
         with self.assertRaisesRegex(ValueError, 'changed before consumption'):
             with transaction.atomic():
-                with patch('mta.runtime.validation_storage.read_input',
+                with patch('mta.runtime.input_reader.read_input',
                            return_value={'mdm_input': snapshot}):
                     finalize_consumption(self.run)
         self.assertTrue(MdmSkuApproved.objects.filter(pk=row.pk).exists())
@@ -212,7 +212,7 @@ class DailyInputConsumptionTests(TestCase):
         removal = MdmSkuLocRemoveApproved.objects.create(source=self.source,
             SKUCode='REMOVE', WhCode='LOC', Approved=True)
         snapshot = self._bind()
-        with patch('mta.runtime.validation_storage.read_input', return_value={'mdm_input': snapshot}):
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
             with transaction.atomic(): finalize_consumption(self.run)
         loc_archive = MdmDailyLocationArchive.objects.get(occurrence__source_pk=location.pk)
         add_archive = MdmDailySkuLocAddArchive.objects.get(occurrence__source_pk=addition.pk)
@@ -275,7 +275,7 @@ class DailyInputConsumptionTests(TestCase):
             snapshot = capture_pending_conflicts(snapshot, self.source,
                 compose(snapshot, [row], last_run_date='2026-10-05'))
             bind_capture(self.run, snapshot, request_digest='d' * 64)
-        with patch('mta.runtime.validation_storage.read_input', return_value={'mdm_input': snapshot}):
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
             with transaction.atomic(): finalize_consumption(self.run)
         history.refresh_from_db()
         self.assertEqual((history.Status, history.Comments), ('4', 'Already in Vectorflow'))
@@ -307,7 +307,7 @@ class DailyInputConsumptionTests(TestCase):
         MdmSkuApproved.objects.create(source=self.source, SKUCode='NEW',
             SKUDescription='New', ActionType=2, Approved=True, Reverted=False)
         snapshot = self._bind()
-        with patch('mta.runtime.validation_storage.read_input', return_value={'mdm_input': snapshot}):
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
             with transaction.atomic(): finalize_consumption(self.run)
         self.assertFalse(MdmDailySkuArchive.objects.filter(pk=old.pk).exists())
 
@@ -323,7 +323,7 @@ class DailyInputConsumptionTests(TestCase):
             SKUCode='SKU', SKUDescription='Old', ActionType=2,
             Approved=False, Reverted=False)
         snapshot = self._bind()
-        with patch('mta.runtime.validation_storage.read_input', return_value={'mdm_input': snapshot}):
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
             with transaction.atomic(): finalize_consumption(self.run)
         for model, pk in ((MdmTask, task.pk), (MdmSubTask, sub.pk),
                           (MdmSkuHistory, history.pk), (MdmSkuRequested, requested.pk)):

@@ -18,7 +18,7 @@ from mta.presentation import qualified_consumption as policy
 from mta.presentation.pick_downloads import REPORTS
 from mta.presentation.qualified_session import selected
 from mta.runtime.models import CalculationRun
-from mta.runtime.validation_storage import read_input
+from development.validation_storage import read_input
 from tools.cohort3_auth import issue_actor_tokens
 
 

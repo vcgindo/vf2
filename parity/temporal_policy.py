@@ -7,16 +7,12 @@ threshold, Norm calculation, invented cooling rule or generated external fact.
 """
 from datetime import date, datetime
 
-POLICY = 'own-recommendations-daily-apply-retained-sleep-v1'
-ELIGIBLE_SLEEP_POLICY = 'own-recommendations-apply-eligible-retained-sleep-v1'
-POLICIES = (POLICY, ELIGIBLE_SLEEP_POLICY)
+from mta.temporal.action_policy_identity import (
+    POLICY, ELIGIBLE_SLEEP_POLICY, POLICIES, require_policy_identity)
 
 
 def policy_for_case(case):
-    value = case.get('profile', {}).get('synthetic_action_policy', POLICY)
-    if value not in POLICIES:
-        raise ValueError('Unrecognized explicit action policy')
-    return value
+    return require_policy_identity(case.get('profile', {}))
 
 
 def commands_for_day(case, index, own_suggestions):

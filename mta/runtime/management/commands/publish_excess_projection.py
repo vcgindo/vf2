@@ -2,7 +2,8 @@
 import json
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
-from mta.presentation.excess_storage import publish_existing,read_excess
+from mta.presentation.excess_storage import read_excess
+from development.excess_storage import publish_existing
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
 from mta.runtime.management.commands.verify_application_reads import run_identity

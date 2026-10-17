@@ -11,7 +11,8 @@ from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase, override_settings
 
-from mta.presentation import actions, preacceptance_actions as phase
+from mta.presentation import actions
+from development import preacceptance_actions as phase
 from mta.serialization import digest
 
 
@@ -115,7 +116,7 @@ class PreacceptanceFixtureTests(SimpleTestCase):
         with patch.object(phase, '_sealed', return_value=False), \
                 patch('mta.presentation.daily_sources.receipt',
                       return_value=receipt) as verify_source, \
-                patch('mta.runtime.validation_storage.read_input',
+                patch('mta.runtime.input_reader.read_input',
                       return_value=self.raw), \
                 patch('mta.runtime.services.read_outputs',
                       return_value=self.output), \

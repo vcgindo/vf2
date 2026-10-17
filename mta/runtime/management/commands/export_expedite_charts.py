@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 from django.core.management.base import BaseCommand,CommandError
 from mta.presentation.context import publication
-from mta.presentation.pick_post_storage import publish_existing,read_pick_post
+from mta.presentation.pick_post_storage import read_pick_post
+from development.pick_post_storage import publish_existing
 from mta.presentation.expedite_storage import read_expedite
 from mta.presentation.expedite_charts import queries,response
 from mta.runtime.management.commands.verify_application_reads import run_identity

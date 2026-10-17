@@ -140,7 +140,7 @@ class OperationalReportProtocol(unittest.TestCase):
         install_opening(owner.pk,populations=self.populations)
         with self.assertRaisesRegex(ValueError,'already installed'):
             install_opening(owner.pk,populations=self.populations)
-        from mta.runtime.validation_storage import read_input
+        from mta.runtime.input_reader import read_input
         source=read_input(self.run,components=('profile','day'))
         for populated_source in ('nms','force'):
             changed=deepcopy(source)
@@ -148,7 +148,7 @@ class OperationalReportProtocol(unittest.TestCase):
                 changed['profile']['force_flags']['nms_active']=True
             else:
                 changed['day']['new_force_requests']=[{'request':'not supported'}]
-            with patch('mta.runtime.validation_storage.read_input',return_value=changed):
+            with patch('mta.runtime.input_reader.read_input',return_value=changed):
                 with self.assertRaisesRegex(ValueError,'producer requires'):
                     upload_inputs(owner)
         self.assertFalse(owner.operations.exists())

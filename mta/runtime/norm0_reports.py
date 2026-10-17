@@ -2,7 +2,7 @@
 from mta.application.norm0_reports import resultsets, export_files
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.mdm.initialization_contract import SOURCE_SCHEMA, sha
 
 

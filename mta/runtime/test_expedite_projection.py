@@ -3,7 +3,8 @@ from datetime import date
 from unittest.mock import patch
 from django.db import transaction
 from django.test import TestCase
-from mta.presentation.expedite_storage import write_expedite,read_expedite,publish_existing
+from mta.presentation.expedite_storage import write_expedite, read_expedite
+from development.expedite_storage import publish_existing
 from mta.runtime.models import CalculationRun,ExpediteRow,ExpediteProjection
 from tests.test_expedite_presentation import ExpediteTest
 
@@ -22,7 +23,7 @@ class ExpediteProjectionTest(TestCase):
 
     def test_readback_and_tamper_rejection_without_trace(self):
         write_expedite(self.run,self.output,bands=[])
-        with patch('mta.runtime.validation_storage.evidence_path',side_effect=AssertionError('no trace')):
+        with patch('development.validation_storage.evidence_path',side_effect=AssertionError('no trace')):
             rows=read_expedite(self.run,output=self.output,bands=[])
         self.assertEqual(len(rows),2); self.assertEqual(rows[0],rows[1])
         self.assertEqual(rows[0]['BRAge'],12)

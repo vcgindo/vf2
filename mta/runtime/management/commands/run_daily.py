@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from mta.runtime.daily_bindings import (apply_finalization, apply_operational_sources,
     apply_pick, verify_sha256, shipment_day)
 from mta.runtime.models import CalculationRun, MdmSource
-from mta.runtime.temporal import execute_day
+from development.temporal import execute_day
 
 
 class Command(BaseCommand):

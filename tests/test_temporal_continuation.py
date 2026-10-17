@@ -19,7 +19,7 @@ from django.core.management.base import CommandError
 from mta.runtime.management.commands.run_temporal import Command
 from mta.runtime.management.commands.record_parity import CONTRACTS
 from mta.runtime.temporal import BOUNDARIES, KIND
-from mta.runtime.temporal_continuation import (RUNNER_PATHS, composed_prefix,
+from development.temporal_continuation import (RUNNER_PATHS, composed_prefix,
     copy_prefix_evidence, mapping_digest, validate_accepted_prefix,
     validate_source_transition, successor_index, execution_lineage, _accepted_receipt)
 from mta.serialization import digest
@@ -98,7 +98,7 @@ class TemporalContinuationTests(unittest.TestCase):
         current={'mta/application/a.py':'same', 'mta/presentation/views.py':'new',
             **{path:'new-runner' for path in RUNNER_PATHS}}
         reviewed=[dict(path='mta/presentation/views.py',before='old',after='new')]
-        with patch('mta.runtime.temporal_continuation.REVIEWED_NON_EXECUTION_TRANSITION',
+        with patch('development.temporal_continuation.REVIEWED_NON_EXECUTION_TRANSITION',
                    mapping_digest(reviewed)):
             result=validate_source_transition(old,current)
             self.assertEqual(result['reviewed_non_execution_digest'],mapping_digest(reviewed))

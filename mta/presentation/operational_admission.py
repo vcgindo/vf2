@@ -224,7 +224,7 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
     from mta.mdm.daily_source import require_binding
     from mta.mdm.daily_input import compose
     from mta.application import daily_finalization as final
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     from mta.runtime.temporal import command_state
     _, _, ARTIFACT_SHA, active_nms = policy_identity()
@@ -320,9 +320,9 @@ def verify_input_domain(run, raw, output, artifact_path, finalization_path, pick
         opening_date = str(parent.business_date)
     else:
         opening = raw['opening']
-        from parity.temporal_policy import policy_for_case
+        from mta.temporal.action_policy_identity import require_policy_identity
         identities={case['case']+'-'+ARTIFACT_SHA+'-'+suffix for suffix in
-                    ('daily','retained-fixed-actions',policy_for_case(case))}
+                    ('daily','retained-fixed-actions',require_policy_identity(case.get('profile', {})))}
         if (not isinstance(opening, dict) or opening.get('state') != expected_opening
                 or opening.get('opening_date') != case['opening_date']
                 or opening.get('identity') not in identities
@@ -396,7 +396,7 @@ def verify_operational_opening(attempt):
 
 def verify_candidate(run, publication, attempt, repair, artifact_path, finalization_path, pick_config_path, shipment_path):
     from mta.runtime.services import read_outputs
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.operational_runner import validate_configuration
     from mta.runtime.operational_attempts import verify_attempt
     from mta.presentation import daily_activation, daily_requests, ancillary_live, daily_sources

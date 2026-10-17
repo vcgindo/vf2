@@ -14,8 +14,9 @@ from django.core.management import call_command
 from mta.runtime.management.commands.prove_action_http import INPUT_SHA, REPLAY_SHA, frozen_existing, sha
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
-from mta.runtime.temporal import command_state, execute_day
-from mta.runtime.validation_storage import export_run, read_input
+from development.temporal import execute_day
+from mta.runtime.temporal import command_state
+from development.validation_storage import export_run, read_input
 from mta.serialization import digest
 from parity.output_archive import OutputArchive
 from parity.replay_temporal import compare_day, independent_contracts_pass

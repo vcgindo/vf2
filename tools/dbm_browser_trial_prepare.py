@@ -21,8 +21,8 @@ from mta.runtime.management.commands.prove_action_http import (
 )
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
-from mta.runtime.temporal import execute_day
-from mta.runtime.validation_storage import export_run
+from development.temporal import execute_day
+from development.validation_storage import export_run
 from mta.presentation.admission import PROJECTIONS
 from mta.presentation.selective import image_rows
 from mta.serialization import digest

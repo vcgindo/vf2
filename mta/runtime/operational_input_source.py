@@ -4,7 +4,7 @@ from mta.application.operational_input_capture import INPUT_CAPTURE_POLICY, SCHE
 from mta.application.operational_inputs import PHYSICAL_TABLES
 from mta.runtime.operational_source_models import OperationalInputSource, OperationalCaptureAuthorization
 from mta.runtime.relational_state import save_image, load_image
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.serialization import digest, storage
 
 # Reuse existing typed row layouts, not their working-state images. Every image

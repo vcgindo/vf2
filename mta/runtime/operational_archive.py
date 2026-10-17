@@ -5,7 +5,7 @@ from mta.application.operational_sqlcmd import input_table_bytes
 from mta.application.operational_upload_logs import _schema
 from mta.runtime.operational_input_source import read_input_source
 from mta.runtime.operational_attempts import configuration_value
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 
 # The declared daily-transit-raw-v1 physical reproduction interface follows the
 # retained typed shipment model; it does not infer rows from aggregate GIT.

@@ -105,7 +105,7 @@ def _validated_state(run, files):
     from mta.presentation import daily_sources
     daily_sources.receipt(run)
     from mta.runtime.services import read_outputs
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     raw = read_input(run)
     output = read_outputs(run)
     from mta.presentation.operational_admission import verify_input_domain

@@ -9,7 +9,7 @@ from mta.application.r1_importer_master import MASTER_COLUMNS
 from mta.application.operational_norm_reports import REQUIRED_CONFIGURATION
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.serialization import digest
 
 

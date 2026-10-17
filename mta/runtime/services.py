@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from mta.planning.engine import calculate_current_day
 from mta.runtime.models import CalculationRun, Checkpoint
-from mta.runtime.validation_storage import persist_trace, read_input
+from mta.runtime.input_reader import read_input
 from mta.serialization import storage, digest
 
 
@@ -44,7 +44,7 @@ def read_outputs(run):
     return outputs
 
 
-def finish_run(run, output, *, expected_digest, publication_opening=None):
+def finish_run(run, output, *, expected_digest, publication_opening=None, checkpoint_writer=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     with transaction.atomic():
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -165,7 +165,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
                 write_offline_rrr(run, output)
         for name, rows in output.items():
             if typed and run.evidence_mode=='production':break
-            fields = (persist_trace(run, name, rows) if run.kind == 'DAILY_CHAIN'
+            if run.kind == 'DAILY_CHAIN' and checkpoint_writer is None:
+                raise ValueError('Validation publication requires an explicit offline checkpoint writer')
+            fields = (checkpoint_writer(run, name, rows) if run.kind == 'DAILY_CHAIN'
                       else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))
             Checkpoint.objects.create(run=run, name=name, **fields)
         # Consuming captured MDM rows is part of the same committed boundary.

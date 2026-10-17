@@ -308,7 +308,7 @@ class ProductionPreflightTests(unittest.TestCase):
             patch('mta.mdm.initialization.read_initialized_input',return_value=frame), \
             patch('mta.mdm.production_families.require_initialization'), \
             patch('mta.mdm.production_families.require_binding',side_effect=ValueError('seal drift')), \
-            patch('mta.runtime.validation_storage.read_input',side_effect=inputs), \
+            patch('mta.runtime.input_reader.read_input',side_effect=inputs), \
             patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[{}]}), \
             patch('mta.application.daily_finalization.verify_successor'), \
             patch('mta.runtime.production_daily.inspect_completed_request',return_value=False), \
@@ -338,7 +338,7 @@ class ProductionPreflightTests(unittest.TestCase):
             _,_,expected,binding=inspection_request(raw,sha,owner,frame,None,None,root)
             args=(raw,sha,owner,frame,None,None,'completed',root)
             with patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
-                    patch('mta.runtime.validation_storage.read_input',return_value={
+                    patch('mta.runtime.input_reader.read_input',return_value={
                         'initialization_binding':binding,'daily_input_sha256':sha}) as inputs, \
                     patch('mta.runtime.services.read_outputs',return_value={}) as outputs, \
                     patch('mta.application.complete_daily_batch_files.write_run_pick_files') as files:

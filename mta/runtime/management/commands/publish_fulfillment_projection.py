@@ -4,7 +4,8 @@ import json
 from pathlib import Path
 from django.core.management.base import BaseCommand,CommandError
 from mta.presentation.fulfillment import PRODUCER_SHA
-from mta.presentation.fulfillment_storage import publish_existing,read_fulfillment
+from mta.presentation.fulfillment_storage import read_fulfillment
+from development.fulfillment_storage import publish_existing
 from mta.presentation.fulfillment_views import joined_rows,detail_aliases
 from mta.presentation.fulfillment_grid import fulfillment_grid_rows,fulfillment_grid_config
 from mta.runtime.models import CalculationRun

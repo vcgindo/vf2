@@ -4,7 +4,8 @@ from unittest.mock import patch
 from django.db import transaction
 from django.test import TestCase
 
-from mta.presentation.excess_storage import read_excess, write_excess, publish_existing
+from mta.presentation.excess_storage import read_excess, write_excess
+from development.excess_storage import publish_existing
 from mta.runtime.models import CalculationRun, ExcessInventoryRow, ExcessProjection
 from tests.test_excess_presentation import ExcessProducerTest
 
@@ -21,7 +22,7 @@ class ExcessProjectionTest(TestCase):
 
     def test_typed_population_roundtrip_and_no_evidence_read(self):
         receipt = write_excess(self.run,self.output)
-        with patch('mta.runtime.validation_storage.evidence_path',side_effect=AssertionError('not production')):
+        with patch('development.validation_storage.evidence_path',side_effect=AssertionError('not production')):
             rows = read_excess(self.run,output=self.output)
         self.assertEqual(receipt.row_count,2)
         self.assertEqual(rows[0],rows[1])

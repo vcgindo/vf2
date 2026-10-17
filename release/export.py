@@ -18,7 +18,7 @@ EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'in
     'export_expedite_charts', 'export_fulfillment_charts', 'publish_expedite_projection',
     'publish_fulfillment_projection', 'publish_excess_projection', 'prepare_guided_history_fixture',
     'prepare_guided_dbm_fixture', 'prepare_guided_chronic_fixture',
-    'verify_application_reads', 'verify_offline_terminal'))
+    'verify_application_reads', 'verify_offline_terminal', 'publish_pick_projection'))
 
 
 def included(name):
@@ -58,11 +58,6 @@ def included(name):
         return True
     if name.startswith('baseline/'):
         return path.name in NATIVE_SCHEMAS
-    # Required lossless input reader and retained action-policy identity helper;
-    # neither invokes an oracle, comparison runner or replay. Other parity tools
-    # and validation populations are excluded.
-    if name in ('parity/__init__.py', 'parity/output_archive.py', 'parity/temporal_policy.py'):
-        return True
     if name.startswith('user-service/'):
         if path.name in ('bootstrap_stage7b.py', 'seed_local_demo_identities.py', 'seed_local_admin_permissions.py', 'seed_users_and_roles.py'):
             return False

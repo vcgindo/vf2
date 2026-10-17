@@ -7,7 +7,6 @@ COPY manage.py /app/
 COPY mta /app/mta
 COPY vectorflow /app/vectorflow
 COPY baseline /app/baseline
-COPY parity /app/parity
 COPY release /app/release
 RUN groupadd --gid 10001 vectorflow && useradd --uid 10001 --gid 10001 vectorflow \
     && mkdir -p /var/lib/vectorflow && chown 10001:10001 /var/lib/vectorflow

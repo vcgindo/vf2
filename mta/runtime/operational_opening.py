@@ -56,7 +56,7 @@ def opening_rows(owner, name):
 
 def upload_inputs(owner):
     """Select a sealed native capture or the existing explicit empty opening."""
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     from mta.runtime.operational_attempts import configuration_value
     from mta.runtime.native_audit_models import NativeUploadAudit

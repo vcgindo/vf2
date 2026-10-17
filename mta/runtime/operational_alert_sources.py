@@ -8,7 +8,7 @@ from mta.runtime.operational_force_source import read_force_source
 from mta.runtime.operational_models import OperationalAttempt
 from mta.runtime.operational_native import save_population, read_population
 from mta.runtime.services import read_outputs
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 from mta.serialization import digest
 
 ABORT_OPENING_POLICY = 'cohort2-explicit-abort-opening-v1'

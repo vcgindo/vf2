@@ -5,7 +5,7 @@ from mta.application.complete_daily_batch_files import PICK_NAMES
 from mta.presentation.context import scope
 from mta.presentation.permissions import _sql_equal
 from mta.presentation.selective import image_rows
-from mta.runtime.validation_storage import read_input
+from mta.runtime.input_reader import read_input
 
 
 REPORTS = {

@@ -6,7 +6,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from django.test import SimpleTestCase, override_settings
-from mta.presentation import hierarchy, preacceptance_actions as phase
+from mta.presentation import hierarchy
+from development import preacceptance_actions as phase
 from mta.presentation.context import PublicationUnavailable
 from mta.serialization import digest
 

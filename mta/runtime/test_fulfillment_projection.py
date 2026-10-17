@@ -3,7 +3,8 @@ from datetime import date
 from unittest.mock import patch
 from django.db import transaction
 from django.test import TestCase
-from mta.presentation.fulfillment_storage import write_fulfillment,read_fulfillment,publish_existing
+from mta.presentation.fulfillment_storage import write_fulfillment, read_fulfillment
+from development.fulfillment_storage import publish_existing
 from mta.runtime.models import CalculationRun,Checkpoint,FulfillmentProjection,FulfillmentSummaryRow,FulfillmentDetailRow
 from mta.serialization import digest
 from tests.test_fulfillment_presentation import FulfillmentProducerTest
@@ -23,7 +24,7 @@ class FulfillmentProjectionTest(TestCase):
 
     def test_readback_duplicates_no_trace_and_source_identity(self):
         write_fulfillment(self.run,self.output,self.calculated)
-        with patch('mta.runtime.validation_storage.evidence_path',side_effect=AssertionError('not HTTP production')):
+        with patch('development.validation_storage.evidence_path',side_effect=AssertionError('not HTTP production')):
             rows=read_fulfillment(self.run,output=self.output)
         self.assertEqual((len(rows['summary']),len(rows['details'])),(2,1))
         self.assertEqual(rows['summary'][0],rows['summary'][1])

@@ -44,17 +44,3 @@ def write_pick_post(run,output,*,bands):
     expected=[{**a,**b} for a,b in zip(source,rows)]
     if read_pick_post(run,output=output,bands=bands)!=expected: raise ValueError('Post-ration readback differs')
     return receipt
-
-
-@transaction.atomic
-def publish_existing(run_id,*,expected_output_digest):
-    from mta.runtime.services import read_outputs
-    run=CalculationRun.objects.select_for_update().get(pk=run_id)
-    if (run.kind!='DAILY_CHAIN' or run.status!='SUCCEEDED' or run.output_digest!=expected_output_digest or
-            run.parity_summary.get('status') not in ('PASS','PASS_WITH_LEGACY_FLAWS')):
-        raise ValueError('Explicit accepted source run required')
-    output=read_outputs(run); bands=read_pick_bands(run)
-    if PickPostProjection.objects.filter(run=run).exists():
-        read_pick_post(run,output=output,bands=bands)
-        return PickPostProjection.objects.get(run=run)
-    return write_pick_post(run,output,bands=bands)

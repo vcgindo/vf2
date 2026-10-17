@@ -754,7 +754,7 @@ def finalize_consumption(run, *, output=None):
     if capture.status == 'CONSUMED': return
     if run.status != 'RUNNING':
         raise ValueError('MDM consumption must precede successful run publication')
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
     if not snapshot or snapshot['revision_digest'] != capture.revision_digest:
         raise ValueError('MDM capture/run input identity drift')

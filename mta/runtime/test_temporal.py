@@ -11,8 +11,9 @@ from mta.runtime.models import (CalculationRun, RunCommand, Checkpoint, PickBand
                                 FulfillmentSummaryRow,FulfillmentDetailRow,FulfillmentProjection,
                                 ExpediteRow,ExpediteProjection,PickPostRow,PickPostProjection)
 from mta.runtime.services import read_outputs
-from mta.runtime.temporal import BOUNDARIES, execute_day, record_command
-from mta.runtime.validation_storage import export_run
+from mta.runtime.temporal import BOUNDARIES, record_command
+from development.temporal import execute_day
+from development.validation_storage import export_run
 from parity.output_archive import OutputArchive
 
 
@@ -199,7 +200,7 @@ class TemporalPersistenceTest(TransactionTestCase):
         self.assertTrue((Path(self.directory.name) / str(run.pk) / 'MajorBoundaries.jsonl.gz').is_file())
 
     def test_production_has_required_rows_without_validation_files_and_denies_mode_reuse(self):
-        with patch('mta.runtime.services.persist_trace',side_effect=AssertionError('diagnostic trace')):
+        with patch('development.temporal.persist_trace',side_effect=AssertionError('diagnostic trace')):
             run=self.run_day(evidence_mode='production')
         self.assertEqual(run.validation_digest,'')
         self.assertEqual(run.checkpoints.count(),0)
@@ -226,7 +227,7 @@ class TemporalPersistenceTest(TransactionTestCase):
 
     def test_typed_input_component_readback_and_tamper_denial(self):
         from django.db import connection
-        from mta.runtime.validation_storage import read_input
+        from mta.runtime.input_reader import read_input
         from mta.runtime.receipt_integrity import audit_input
         run=self.run_day()
         raw=read_input(run)

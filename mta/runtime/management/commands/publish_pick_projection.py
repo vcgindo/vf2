@@ -5,7 +5,8 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from mta.presentation.pick_storage import read_pick_bands, restore_pick_bands
+from mta.presentation.pick_storage import read_pick_bands
+from development.pick_storage import restore_pick_bands
 from mta.runtime.models import CalculationRun
 from mta.runtime.management.commands.verify_application_reads import run_identity
 from mta.serialization import digest

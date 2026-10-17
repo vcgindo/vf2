@@ -28,7 +28,7 @@ def require_mode():
 @once_per_request
 def identity(run, *, verify_rows=False):
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
-    from mta.runtime.validation_storage import read_input
+    from mta.runtime.input_reader import read_input
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.presentation import daily_sources

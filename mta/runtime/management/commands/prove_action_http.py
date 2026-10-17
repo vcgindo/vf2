@@ -25,8 +25,9 @@ from django.test import Client, override_settings
 from mta.presentation.context import publication
 from mta.runtime.models import CalculationRun, RunCommand
 from mta.runtime.services import read_outputs
-from mta.runtime.temporal import execute_day, command_state
-from mta.runtime.validation_storage import export_run
+from development.temporal import execute_day
+from mta.runtime.temporal import command_state
+from development.validation_storage import export_run
 from mta.serialization import digest
 from parity.output_archive import OutputArchive
 from parity.replay_temporal import compare_day, independent_contracts_pass

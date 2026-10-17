@@ -3,7 +3,8 @@ import gzip
 import json
 from pathlib import Path
 from django.core.management.base import BaseCommand,CommandError
-from mta.presentation.expedite_storage import publish_existing,read_expedite
+from mta.presentation.expedite_storage import read_expedite
+from development.expedite_storage import publish_existing
 from mta.presentation.expedite_views import counts
 from mta.runtime.models import CalculationRun
 from mta.runtime.services import read_outputs

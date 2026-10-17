@@ -2,7 +2,8 @@ from datetime import date
 from unittest.mock import patch
 from django.db import transaction
 from django.test import TestCase
-from mta.presentation.pick_post_storage import write_pick_post,read_pick_post,publish_existing
+from mta.presentation.pick_post_storage import write_pick_post, read_pick_post
+from development.pick_post_storage import publish_existing
 from mta.runtime.models import CalculationRun,PickPostRow,PickPostProjection
 from tests.test_expedite_charts import PickPostTest
 
@@ -19,7 +20,7 @@ class PickPostProjectionTest(TestCase):
 
     def test_readback_multiplicity_and_tamper_guard(self):
         write_pick_post(self.run,self.output,bands=[])
-        with patch('mta.runtime.validation_storage.evidence_path',side_effect=AssertionError('no trace')):
+        with patch('development.validation_storage.evidence_path',side_effect=AssertionError('no trace')):
             rows=read_pick_post(self.run,output=self.output,bands=[])
         self.assertEqual(len(rows),2); self.assertEqual(rows[0],rows[1])
         PickPostRow.objects.filter(run=self.run,ordinal=1).update(PostPipelineInventoryColor='Green')
