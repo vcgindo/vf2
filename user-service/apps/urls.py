@@ -43,7 +43,7 @@ def readyz(request):
             cursor.execute('SELECT 1')
             checks['identity_database'] = cursor.fetchone()[0] == 1
         url = os.environ.get('MTA_BACKEND_URL', 'http://localhost:5153').rstrip('/')
-        with requests.get(url + '/readyz', timeout=(2, 2)) as response:
+        with requests.get(url + '/readyz', timeout=(2, 10)) as response:
             body = response.json()
             checks['mta'] = response.status_code == 200 and body.get('ready') is True
             candidate = body.get('application')
