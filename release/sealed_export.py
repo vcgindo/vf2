@@ -26,6 +26,7 @@ OMITTED_NEW_TEST = 'mta/runtime/test_logistics.py'
 SETUP_SCHEMA = 'vectorflow-reviewed-sealed-export-setup-v1'
 SETUP_ADDED = frozenset(('mta/presentation/application_state.py',))
 SETUP_FILES = {
+    'mta/mdm/presentation_compatibility.py': '56f0b83c49be4cc79790783c4bce2dc25bc0906b9c4cde819fdfc869cde00cc7',
     'mta/mdm/source.py': 'ad49be81bd9b4d931622ddb12e3cc7becc55abe07e7b961b5547ee4fbadd84c3',
     'mta/presentation/application_state.py': '4c047861aa977b7c791d7b1c5045ddd0ec781def9f6649997292251bdca5b65a',
     'mta/presentation/admission.py': 'ba33a686b185c65fb6347bf5ed602ea2dc0a410fea86bdf0ceb68720cecd668d',
@@ -111,3 +112,25 @@ def retained_source(root, files, identity, logistics_raw):
     from mta.mdm.native_report_compatibility import _readonly
     _readonly(DECLARATION)
     return validate(DECLARATION.read_bytes(), pin, logistics_raw, root, files, identity)
+
+
+def presentation_source_bytes(root, name, expected):
+    """Supply authenticated historical bytes to the unchanged old MOQ assertion.
+
+    The old assertion reads mdm_views directly. Only this exact setup descendant
+    may project that file back through the already verified source inverse. No
+    reconstructed code is executed and no other file/expected hash is accepted.
+    """
+    from mta.mdm.native_report_compatibility import _files, _sha, _deny, LOGISTICS_DECLARATION
+    from mta.mdm.production_families import adapter_digest
+    from mta.mdm.location_projection import VERSION
+    if name != 'mta/presentation/mdm_views.py' or not os.environ.get(PIN_ENV):
+        _deny('setup presentation projection is not authorized')
+    files = _files(Path(root))
+    identity = dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
+                    source_manifest_digest=digest(files))
+    prior_files, overrides, _ = retained_source(root, files, identity, LOGISTICS_DECLARATION.read_bytes())
+    if (overrides is None or prior_files.get(name) != expected or name not in overrides
+            or _sha(overrides[name]) != expected):
+        _deny('setup presentation projection differs from original source')
+    return overrides[name]

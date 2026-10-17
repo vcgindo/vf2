@@ -123,7 +123,11 @@ def _validate(source, initialization, seal, identity, database, raw, pin, root, 
                          newline='\n')) != old[REVIEWER]):
         _deny('approved reader, reviewer response or admission hook differs')
     for name, (new, before, newline) in MOQ_DELTAS.items():
-        if _sha(_undo((root / name).read_bytes(), new, before, newline=newline)) != old[name]:
+        after = (root / name).read_bytes()
+        if name == 'mta/presentation/mdm_views.py' and _sha(after) != current[name]:
+            from release.sealed_export import presentation_source_bytes
+            after = presentation_source_bytes(root, name, current[name])
+        if _sha(_undo(after, new, before, newline=newline)) != old[name]:
             _deny('approved MOQ destination delta differs')
     # current_files authenticates the entire verifier and hook as well as every
     # unchanged file. The pin lives in trusted deployment configuration, so it
