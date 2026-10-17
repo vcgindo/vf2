@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Pre-fork startup admission; retain identity only, never publication rows.
 
 The native publication is immutable. A changed identity fails closed until a
@@ -225,7 +226,15 @@ class AdmittedApplication:
     def _dispatch(self, environ, start_response):
         if environ.get('PATH_INFO', '').startswith('/api/mta/'):
             try:
-                require_admission()
+                from mta.presentation.installation_metadata import (
+                    publication_configured, metadata_request, initialized_master_request, require_installation)
+                if not publication_configured() and metadata_request(environ):
+                    require_installation()
+                elif not publication_configured() and initialized_master_request(environ):
+                    if require_installation() is None:
+                        raise PublicationUnavailable('mdm_source_not_selected')
+                else:
+                    require_admission()
             except Exception:
                 connections.close_all()
                 response = JsonResponse({'error': 'publication_not_admitted'}, status=503)

@@ -1,0 +1,18 @@
+{
+  "restriction": "**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**",
+  "schema": "vectorflow-optional-initialization-procedure-v1",
+  "input_schema": "fresh-production-initialization-input-v1",
+  "pack_sha256": "a404eb8a3cefb610f81d2d73082afed43bca63efba8e15a34013a6fb8fe6327c",
+  "input_sha256": "3a4bf3a699c57fab7f00e6820f43c0e1b661386c9cf3aa4f21fd4081e110bdbe",
+  "configuration_digest": "c3e2e2f1395ca40b0557b0edaceb96a01c2c02b37d8f962e6b732586a9d5d27c",
+  "recipe_digest": "bec684bfefa570e7d86dbbed2b8ae580d04d50787549b6dff5e9a8f7be2185e6",
+  "opening_identity": "HANDOFF3005-G3-CONSOLIDATED-20261015",
+  "opening_date": "2026-10-12",
+  "recipe_projection": "native-base-owner-projection-v1",
+  "recipe_version": "handoff3005-g3-consolidated-ui-v1",
+  "source_evidence": "s3-20261015-001/g3-hierarchy-input-v1/operator-input.json",
+  "norms_provenance": "Retained starting Norms plus explicit Norm36/GCP3 overrides; C03 RCP3 only for337/DP010290",
+  "default_import": false,
+  "calculation_or_daily_execution": false,
+  "qualification": "External declared initial facts/history only, never later calculated closing. Separate operator-selected procedure under explicit target/input authority. Stage4 packages this procedure; sample loading/execution belongs to Stage5."
+}

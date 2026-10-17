@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 from api_gateway.service_config.config import service_map
 import requests
 from api.models import *
@@ -270,7 +271,8 @@ class ALL_PERMISSIONS:
                     response = mta_catalogue_payload()
                 else:
                     url=service_map['mta']['base_url'].rstrip('/') + '/api/mta/GetAllPermmision'
-                    response = permission_request('permission_mta', method='GET', url=url).json()
+                    from common.mta_catalogue import remote_payload
+                    response = remote_payload(permission_request('permission_mta', method='GET', url=url))
                 application_details = get_application_details_by_id(service_map['mta']['application_id'])
                 if permission_type=="both":
                     permission_obj={

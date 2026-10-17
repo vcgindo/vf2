@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Explicit 3005 local delivery of MTA's registered permission definitions.
 
 No effective grants are cached. Read and validate the small immutable metadata
@@ -87,3 +88,30 @@ def payload():
 def validate_configured():
     if enabled():
         payload()
+
+
+def remote_payload(response):
+    """Keep upstream failure distinct from a valid empty permission catalogue."""
+    if response.status_code != 200:
+        raise CatalogueUnavailable('mta_permission_service_unavailable')
+    try:
+        value = response.json()
+        if not isinstance(value, dict) or set(value) != {'product', 'location'}:
+            raise ValueError('Permission response keys differ')
+        for kind, prefix in [('product', 'product_hierarchy_'), ('location', 'location_heirarchy_')]:
+            rows = value[kind]
+            if not isinstance(rows, list):
+                raise ValueError('Permission list required')
+            ids = []
+            for row in rows:
+                if (not isinstance(row, dict) or 'id' not in row
+                        or any(prefix + str(i) not in row for i in (1, 2, 3))):
+                    raise ValueError('Permission record differs')
+                if isinstance(row['id'], bool) or not str(row['id']).isdigit():
+                    raise ValueError('Invalid permission ID')
+                ids.append(str(row['id']))
+            if len(ids) != len(set(ids)):
+                raise ValueError('Duplicate permission ID')
+        return value
+    except (ValueError, TypeError, KeyError) as exc:
+        raise CatalogueUnavailable('mta_permission_response_invalid') from exc

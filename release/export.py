@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Export committed production sources only; never copy a workstation checkout or database."""
 import argparse
 import hashlib
@@ -104,7 +105,7 @@ def export(repository, revision, destination):
     if ignore.is_file():
         (destination/'.dockerignore').write_bytes(ignore.read_bytes())
         records['.dockerignore'] = hashlib.sha256(ignore.read_bytes()).hexdigest()
-    value = dict(schema=SCHEMA, source_commit=commit, files=dict(sorted(records.items())),
+    value = dict(restriction='**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**', schema=SCHEMA, source_commit=commit, files=dict(sorted(records.items())),
         default_data_import=False, qualification='Source export only; image/platform/install/UI proof is separate. Required native SQL/migrations/security/source-integrity libraries retained; no customer/test DB, computed output seed or secret copied.')
     destination.mkdir(parents=True, exist_ok=True)
     (destination/'release-source.json').write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')

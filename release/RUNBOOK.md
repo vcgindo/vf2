@@ -1,5 +1,7 @@
 # VectorFLOW operator runbook
 
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
 This describes the exported Linux/amd64 Docker assembly. Installation and UI evidence are recorded in the development tracker; commands documented here are not claims that a recovery rehearsal has passed. Do not execute these instructions against a sealed development database or another application's resources. Installation creates empty databases; it imports no demonstration inputs, calculated state, accounts or passwords.
 
 ## Release and host preparation
@@ -44,16 +46,19 @@ Build the auth image first, using its pinned Dockerfile. Use that image's `relea
 docker build --platform linux/amd64 -f release/auth.Dockerfile -t vectorflow/auth:RELEASE .
 docker run --rm --network none --user 0:0 --entrypoint python \
   --mount type=bind,src=/srv/vectorflow/private,dst=/private \
-  vectorflow/auth:RELEASE -m release.prepare_secrets --directory /private/secrets
+  vectorflow/auth:RELEASE -m release.prepare_secrets --directory /private/secrets \
+  --public-client-cipher-key PUBLIC_CIPHER_FROM_DELIVERED_PUBLIC_BUILD_JSON
 ```
 
-The host parent must exist with access restricted to the deployment operator. The generated directory is mode 0700; files are read-only and separately mounted only into the services that need them. Enforce equivalent host ACLs on Windows; Linux mode bits do not establish Windows ACL protection. Save the returned **public** client cipher key as `VF_CLIENT_CIPHER_KEY`. It must match the frontend build and auth service. Database passwords, signing secrets and RSA private keys must never appear in frontend build arguments or images. Back up the private files separately; regeneration is credential/key rotation, not restart.
+The host parent must exist with access restricted to the deployment operator. The generated directory is mode 0700; files are read-only and separately mounted only into the services that need them. Enforce equivalent host ACLs on Windows; Linux mode bits do not establish Windows ACL protection. For the frozen-frontend package pass the exact public cipher from delivered public-build.json through the existing --public-client-cipher-key option; do not choose a new browser cipher. Save that same **public** client cipher key as `VF_CLIENT_CIPHER_KEY`. It must match the frontend build and auth service. Database passwords, signing secrets and RSA private keys must never appear in frontend build arguments or images. Back up the private files separately; regeneration is credential/key rotation, not restart.
 
 `REACT_APP_AG_GRID_LICENSE_KEY` is an optional public build override; blank retains the exact original corporate key. Confirm deployment entitlement with the corporate license owner. The embedded key text does not establish the current contract. Build the remaining images and inspect the complete rendered assembly before installing:
 
 ```sh
 vf config --quiet
-vf build mta auth mto frontend
+vf build mta auth
+# Load the exact retained frontend/MTO images from the approved runtime archive.
+# No frontend rebuild or MTO change is part of this release.
 vf config --images
 ```
 
@@ -76,11 +81,16 @@ vf --profile install run --rm provision -m release.grant_service AUTH
 vf --profile install run --rm provision -m release.grant_service MTO
 ```
 
-Before MTA registration, obtain the approved initialization artifact's SHA256. Registration binds that identity and the exact current implementation/catalogue; it imports no facts. Never substitute a test artifact merely to obtain readiness.
+Install finite read-only MTA metadata access without choosing a business artifact:
 
 ```sh
-vf --profile install run --rm provision -m release.register_mta --input-sha256 INITIALIZATION_SHA256
+vf --profile install run --rm provision -m release.metadata_access
+vf --profile install run --rm provision -m release.metadata_access --apply
 ```
+
+This grants SELECT on exactly django_migrations, ProductionInitialization, MdmSource, CalculationRun and UserReportLayout in the mta schema, plus schema USAGE. It creates no input/source/run, account, permission population or registry. Runtime validation rejects additional business-table privileges, role inheritance, schema creation and temporary-object privileges. The command refuses an existing registered target rather than changing its immutable catalogue. The existing registered runtime instead validates its original namespace/capability read-only; no new grant or registration is needed for that path.
+
+Input-bound MTA registration is **not an empty-install step**. Obtain the exact approved input SHA only if separately selecting the optional initialization procedure. It remains a one-time operation on an untouched target with exclusive cluster authority; no dummy SHA or re-registration.
 
 Only the installation profile receives the provisioning credential. Runtime roles have no database/schema ownership or migration authority. Auth/MTO runtime grants are confined to their respective schemas; MTA uses its stricter immutable capability catalogue. A normal serving restart checks migrations without applying them.
 
@@ -98,7 +108,9 @@ Open **Profile → Manage Users → Add User** to create each approved requester
 
 Sign in as each ordinary account and check **Profile → Permissions**, its intended report/MDM menu, and the allowed product/location subset. Confirm the requester lacks reviewer actions and an out-of-scope read/action is denied. Reauthenticate after changing assignments so the issued session reflects them. Keep the native MTA permission/hierarchy files and their configured SHA256 values consistent with that approved deployment; creating an auth account does not generate or replace those files. These are operator setup instructions derived from the existing forms/models, not a completed fresh-account onboarding or business-workflow rehearsal. No users, passwords, roles or scope assignments are automatically imported by this package.
 
-## Input ownership, initialization, day and span
+## Stage Five reference: input ownership, initialization, day and span
+
+Stage Four packages these procedures only. Sample loading, initialization execution, day/span/calculation/action/publication and recovery execution require Stage Five release and an exact target/input decision. They are not Stage Four closure tests.
 
 Operator input artifacts, generated PICK files, evidence and publication selection belong in the durable `mta_data` volume under `/var/lib/vectorflow`. Copy supplied files into that volume using an explicitly owned one-off container or a dedicated volume transfer procedure; never mount a development checkout or dump a database into the package. Hash files after transfer. Preserve raw/processed provenance separately. Optional demonstration inputs must be separately selected and must contain external/master/opening/daily facts only, with no calculated outputs seeded as inputs.
 
@@ -195,3 +207,120 @@ Fresh installations do not use historical compatibility declarations. The option
 For the separately approved retained-development layout check only, `VF_MDM_SEALED_EXPORT_LAYOUTS=1` additionally admits exactly owner-issued INSERT/DELETE on `mta.fresh_mta_userreportlayout` and USAGE on its ID sequence for the existing consumer. It requires the exact original database and export opt-in. The complete current privilege catalogue and all original capability identities, guards and catalogue rows remain checked; only those three authenticated ACL rows are removed for the unchanged historical comparison. UPDATE, TRUNCATE, grant option, PUBLIC access and other objects are not admitted. Disable this option for fresh installations: their existing production profile already specifies this finite preference access. This qualification is not a general database-copy, source-override or upgrade mechanism; the immutable development declaration and development proof resources are not shipped as production inputs.
 
 The optional initialization input pack is not a complete execution trial. Step Five must define and freeze a coherent daily input sequence before any complete input-to-successor execution claim. No daily sequence or accepted output has been fabricated or replayed during packaging.
+
+
+## Clean Windows folder: pinned acquisition, external config and image selection
+
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
+These are operator commands for an explicitly authorized NEW deployment, not instructions to reset or repurpose an existing trial. The supported process platform remains Linux/amd64 Docker Engine/Compose on Windows. Native Windows services and another CPU architecture are unproved. Do not use PowerShell variables named HOME/CODEX_HOME or import secrets into Git. Replace the commit/path placeholders with the delivered manifest/operator choices before running.
+
+```powershell
+$SourceRoot = 'C:/VectorFLOW/source'
+$ExportRoot = 'C:/VectorFLOW/releases/approved'
+$ApprovedCommit = 'REPLACE_WITH_APPROVED_FULL_40_CHARACTER_COMMIT'
+if ($ApprovedCommit -notmatch '^[0-9a-f]{40}$') { throw 'Choose the delivered full source commit first' }
+git clone https://github.com/yurtse/freshvcf.git $SourceRoot
+if ($LASTEXITCODE) { throw 'Clone failed; use normal Git credentials' }
+git -C $SourceRoot fetch origin
+git -C $SourceRoot checkout --detach $ApprovedCommit
+if ($LASTEXITCODE) { throw 'Pinned checkout failed' }
+if ((git -C $SourceRoot rev-parse HEAD).Trim() -ne $ApprovedCommit) { throw 'Commit differs' }
+Push-Location $SourceRoot
+try {
+  python -m release.export --repository $SourceRoot --revision $ApprovedCommit --output $ExportRoot
+  if ($LASTEXITCODE) { throw 'Export failed; preserve it rather than overwrite' }
+} finally { Pop-Location }
+```
+
+Alternatively verify the delivered source ZIP SHA256 with Get-FileHash and Expand-Archive into a new folder. Both paths must produce the matching release-source.json and unchanged managed files. The source exporter needs only Python standard library and Git. A complete checkout is not the production export.
+
+Copy release/.env.example to a private operator.env outside Git. Set VF_RELEASE to the delivered source tag/commit, VF_PROJECT to the chosen project, absolute VF_SECRETS_DIR, separate database/role names and matching HTTP/WS origins/hosts. A blank VF_RELEASE intentionally causes Compose's “Set pinned release”; an override image file does not supply every missing interpolation variable. Avoid conflicting shell environment values: Compose shell variables take precedence over the env file. Record the effective project/env/override list without printing secrets.
+
+For this corrected8080 release the original frontend image and assets are frozen, including its existing public cipher and ws://127.0.0.1:8080 build configuration. Preserve the matching private auth configuration. A different frontend origin/cipher requires a separately authorized frontend build exception; changing only runtime environment cannot rewrite compiled assets. No such rebuild is performed or implicitly authorized here. Existing corporate AG Grid wiring is unchanged; no entitlement claim follows from embedded key text.
+
+Choose one image path: load the verified delivered archive and exact loaded-images override; or build only MTA/auth from the exact export using consistent VF_RELEASE tags while loading the frozen frontend/MTO/PG/Redis images from that archive. Use Docker image inspect IDs, not matching tag names, as proof. Base dependencies remain pinned. Do not run a whole-assembly rebuild, npm update or pip upgrade. Build auth first if a new installation needs its existing prepare_secrets command; existing keys/passwords must never be regenerated for restart/upgrade. The private host parent must already exist with operator-only Windows ACLs; verify the directory remains outside Git.
+
+```powershell
+$ReleaseRoot = 'C:/VectorFLOW/releases/approved'
+$OperatorFile = 'C:/VectorFLOW/private/operator.env'
+$ImageOverride = "$ReleaseRoot/loaded-images.yaml"
+$ProjectLine = @(Get-Content -LiteralPath $OperatorFile | Where-Object { $_ -match '^\s*VF_PROJECT\s*=' })
+if ($ProjectLine.Count -ne 1) { throw 'Configure exactly one VF_PROJECT in operator.env' }
+$DeploymentProject = ($ProjectLine[0] -split '=', 2)[1].Trim().Trim('"').Trim("'")
+function vf {
+  & docker compose --project-name $DeploymentProject --env-file $OperatorFile `
+    -f "$ReleaseRoot/release/compose.yaml" -f $ImageOverride @args
+  if ($LASTEXITCODE) { throw 'Compose failed; preserve the failure and state' }
+}
+# Load the approved companion runtime archive before preflight; verify its SHA256 first.
+docker load --input "$ReleaseRoot/vectorflow-stage4-runtime.tar.gz"
+if ($LASTEXITCODE) { throw 'Image load failed' }
+# On a NEW installation only, prepare NEW private files under an operator-only ACL parent.
+# Preserve existing secrets; this helper refuses an existing destination.
+$PublicBuild = Get-Content -Raw -LiteralPath "$ReleaseRoot/public-build.json" | ConvertFrom-Json
+$RuntimeImages = Get-Content -Raw -LiteralPath "$ReleaseRoot/runtime-images.json" | ConvertFrom-Json
+$PrivateParent = 'C:/VectorFLOW/private'
+docker run --rm --network none --user 0:0 --entrypoint python `
+  --mount "type=bind,src=$PrivateParent,dst=/private" $RuntimeImages.services.auth.image_id `
+  -m release.prepare_secrets --directory /private/secrets `
+  --public-client-cipher-key $PublicBuild.client_cipher_key
+if ($LASTEXITCODE) { throw 'New-secret preparation failed; never overwrite existing keys' }
+# Configure operator.env with this public cipher, absolute secret directory and delivered origins.
+# The function uses the exact VF_PROJECT read from operator.env.
+python "$ReleaseRoot/release/preflight.py" --source-root $ReleaseRoot --env-file $OperatorFile `
+  --compose-file "$ReleaseRoot/release/compose.yaml" --compose-file $ImageOverride
+if ($LASTEXITCODE) { throw 'Read-only preflight refused; do not start installation' }
+vf config --quiet
+# These steps are ONLY for the separately authorized new deployment:
+vf up -d postgres redis
+vf --profile install run --rm provision -m release.provision
+vf --profile install run --rm provision -m release.provision --apply
+vf --profile install run --rm mta-install manage.py migrate --plan
+vf --profile install run --rm mta-install manage.py migrate --noinput
+vf --profile install run --rm auth-install manage.py migrate --noinput
+vf --profile install run --rm mto-install manage.py migrate --noinput
+vf --profile install run --rm auth-install -m release.install_identity
+vf --profile install run --rm provision -m release.grant_service AUTH
+vf --profile install run --rm provision -m release.grant_service MTO
+vf --profile install run --rm provision -m release.metadata_access --apply
+# Existing interactive administrator command; never put its password in this script.
+vf --profile install run --rm auth-install manage.py createsuperuser
+vf up -d mta auth mto frontend
+vf ps
+```
+
+The function derives VF_PROJECT from the private operator file; it does not import or print secret values. For an existing owned deployment preflight can explicitly allow its occupied port with --allow-existing-project; it verifies ownership, not just that the port responds. This flag does not authorize an upgrade. Fresh install must never borrow/reset the8080 trial or sealed development databases.
+
+Preflight checks source digests, Linux/amd64, Compose, image IDs, required secret files, distinct database names, explicit HTTP/WS origins and port ownership. It never starts resources, pulls, builds, initializes or cleans up. Windows file ACLs and corporate licence entitlement remain operator checks. An offline host needs the complete matching image archive and all build dependencies if choosing source build; a local smoke check does not certify offline installation.
+
+## Network and failure diagnostics
+
+An occupied gateway port is a listener/ownership problem. “All predefined address pools” is Docker bridge allocation exhaustion, not a port conflict or a reason to change application algorithms. Inspect docker network ls/inspect and Windows Get-NetRoute before choosing an explicitly approved private subnet. The preflight optional --network-subnet checks Docker overlap, but host routes must also be reviewed. Use a small operator override declaring that checked subnet on the existing application network for a NEW install only; include it consistently after the base file. No global prune, shared engine/WSL restart, automatic new port or network replacement. Preserve existing project subnet/network/volumes.
+
+Health200 means liveness. Ready503 with no publication is expected; it must not be relabelled ready to clear a screen. Metadata now requires installed schema/role/config authority but no business day. Real original MDM family options/environment/report definitions can load while data views stay unavailable. Planning requires an actual businessDate; its initialization opening date is not a report date. BPR's columns/layout/date/data calls have different prerequisites. Preserve original blank/unavailable behavior rather than add new UI, fake dates/metrics or blanket empty200.
+
+For a reported500 record the exact method/path, HTTP status, envelope status/body, corresponding backend stack/prerequisite and actual role/scope. The initial BPR500 report lacked an attributable retained stack; inspected metadata failures were503 publication_not_admitted before BPR handler execution. That is an expected unavailable disposition, not a claim that an arbitrary500 was fixed. Retained legacy description/filter500 paths are separate limitations. Anonymous401, URL/function403, failed upstream permission503 and valid empty population catalogues remain distinct. No hidden catalogue omission, blanket grant or scope widening.
+
+Roles/URL entries are installed metadata; product/location definitions and assignments are separately approved real configuration. The unchanged ordinary-user form requires legitimate MTA scope selections; role-only empty-population onboarding is not introduced. SMTP and existing password/notification behavior remain external dependencies. No account/scope generation is part of package installation.
+
+## Separate optional initialization-only procedure — packaged, not executed in Stage Four
+
+The separate optional pack is not in the production export or default install. release/optional-initialization.json pins its ZIP/input/configuration/recipe identities and provenance. It contains declared supplied masters/configuration/initial history/opening, never a later calculated closing. It includes no daily sequence, outputs, accounts or credentials. Full daily execution, action/successor/publication/retry and recovery rehearsal remain Stage Five.
+
+Under a separately released target/input decision, verify the pack ZIP and input SHA from the manifest. Transfer inputs/initialization.json to a chosen /var/lib/vectorflow/inputs path in the owned writable mta_data volume; a staging container or other transfer mechanism needs explicit resource authority. For an existing approved mta-install transfer process, copy with docker cp to that exact process/volume and verify SHA inside it. Do not start a helper/container merely because this paragraph describes transfer. Never mount the development checkout or a DB dump. Keep raw artifact bytes/provenance unchanged.
+
+Before registration inspect the actual cluster-wide fresh_operational_acceptor membership: exactly the one intended installer may be its member, as enforced by the unchanged validator. A second database in the same cluster does not isolate roles. Do not amend another registration, add another acceptor member, use a dummy SHA, or change a guard. The empty metadata install has no input-bound registration; this explicit OPTIONAL stage registers once after actual input selection and exclusive authority are established. If that authority is absent, stop and obtain an exact target decision.
+
+```sh
+# Stage Five / separate target-and-input release required; NOT Stage Four execution.
+vf --profile install run --rm provision -m release.register_mta --input-sha256 3a4bf3a699c57fab7f00e6820f43c0e1b661386c9cf3aa4f21fd4081e110bdbe
+vf --profile install run --rm mta-install -m release.optional_initialize /var/lib/vectorflow/inputs/initialization.json
+vf --profile install run --rm mta-install -m release.optional_initialize /var/lib/vectorflow/inputs/initialization.json --apply
+```
+
+The first optional_initialize invocation only inspects the existing native contract using exact input/configuration/recipe digests. The second explicitly applies once, validates existing native ownership, initializes only supplied masters/opening and binds the complete optional family owners in one transaction. Save its source/opening/content/implementation/receipt identities and independently read back exact typed input/master state. Verify zero calculation/capture/task and no publication. A second apply is refused before mutation; native initialization's underlying identical REVERIFIED policy remains unchanged. Preserve any failed target/receipt; no reset/reseed/registration replacement or automatic retry. Selecting a source for initialized master reads does not create a report publication or permissions.
+
+## MTA/auth-only correction of an existing registered empty trial
+
+Preserve source/images/config/secrets/account/scope/registration/database identities first. Verify new code against the existing immutable namespace/capability using read-only runtime connections. Do not rerun provision, migrations, grants or registration against that sealed target. Keep its original frontend/MTO/PG/Redis/container network/port/volumes/start states. Select only reviewed MTA/auth image IDs in a final operator override and replace only those two services with --no-deps --no-build --pull never; one necessary MTA/auth restart/reload is the persistence proof. Preserve old images/export/override and compatible rollback; do not select an old image over changed schema or silently re-enable the withdrawn setup release. Current approved correction does not change schema or the original registration.

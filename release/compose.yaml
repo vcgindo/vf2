@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 name: "${VF_PROJECT:-vectorflow}"
 services:
   postgres:
@@ -91,6 +92,7 @@ services:
       VF_DB_PORT: "${DB_PORT:-5432}"
       VF_DB_NAME: "${MTA_DB_NAME:-vectorflow_mta}"
       VF_DB_USER: "${MTA_RUNTIME_ROLE:-vectorflow_mta_runtime}"
+      MTA_OWNER_ROLE: "${MTA_OWNER_ROLE:-vectorflow_mta_owner}"
       VF_DB_PASSWORD_FILE: "/run/secrets/mta_runtime_password"
       VF_SECRET_KEY_FILE: "/run/secrets/mta_secret"
       MTA_WORKERS: "${MTA_WORKERS:-2}"

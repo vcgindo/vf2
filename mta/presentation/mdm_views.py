@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Existing MDM wire routes over isolated, typed application master owners."""
 from decimal import Decimal, InvalidOperation
 from functools import wraps
@@ -52,6 +53,9 @@ def response(*, data=None, record_count=None, message=None, status=200, http_sta
 
 @endpoint('POST')
 def configuration(request, payload):
+    from mta.presentation.installation_metadata import publication_configured, configuration as metadata
+    if not publication_configured():
+        return response(data=metadata(drafts.value(payload, 'screenType')))
     installed = source(read_only=True)
     screen = drafts.value(payload, 'screenType')
     return response(data=[row for master_id in families.installed_ids(installed, read_only=True)

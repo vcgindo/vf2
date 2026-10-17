@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Preserved MTA HTTP envelopes over the accepted relational publication.
 
 Identity is asserted only by the private authenticated user-service gateway;
@@ -119,6 +120,10 @@ def scoped(rows, payload, location_key, *, attributes, preserve_join_multiplicit
 
 @endpoint('GET', public=True)
 def all_permissions(request, payload):
+    from mta.presentation.installation_metadata import publication_configured, require_installation
+    if (not publication_configured() and require_installation() is None
+            and not settings.VF_MTA_PERMISSIONS_FILE and not settings.VF_MTA_PERMISSIONS_SHA256):
+        return JsonResponse({'product': [], 'location': []})
     catalogue = permission_catalogue()
     return JsonResponse({kind: [dict(id=r['id'], **{
         field + str(i): r['level_' + str(i)] for i in range(1, 4)}) for r in catalogue[source]['records']]

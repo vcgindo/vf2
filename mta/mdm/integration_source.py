@@ -1,3 +1,4 @@
+# **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Explicit combined ownership seal; never an installer or acceptance issuer.
 
 Historical root and family receipts stay immutable. The new seal describes only
@@ -328,6 +329,14 @@ def require_read_binding(source, *, read_only=False):
         from mta.mdm.production_families import require_binding
         from mta.presentation.context import selected_run
         seal = require_binding(source, read_only=True)
+        from mta.presentation.installation_metadata import publication_configured
+        if not publication_configured():
+            from mta.runtime.models import CalculationRun
+            from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+            if (CalculationRun.objects.exists()
+                    or MdmDailyInputCapture.objects.filter(source=source).exists()):
+                raise ValueError('Initialized master read requires an untouched native opening')
+            return seal
         require_current_run(source, selected_run(), seal, read_only=True)
         return seal
     seal = installed_binding(source)
