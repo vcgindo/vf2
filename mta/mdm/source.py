@@ -31,6 +31,13 @@ def source(*, read_only=False):
     if result is None:
         raise PublicationUnavailable('mdm_source_not_installed')
     if result.receipt.get('schema') == 'fresh-production-mdm-source-v1':
+        if read_only:
+            from mta.presentation.admission import require_application_state
+            state = require_application_state()
+            if state is not None and state['initialized']:
+                if state['source_digest'] != result.digest:
+                    raise PublicationUnavailable('initialization_source_identity_differs')
+                return result
         from mta.mdm.native_source import require_base
         for master_id in (1, 2, 3):
             require_base(result, master_id)

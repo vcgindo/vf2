@@ -59,6 +59,85 @@ vf config --images
 
 For offline installation, transfer these exact built images with Docker image save/load and verify their IDs. Pulling a tag with a matching name is not sufficient identity verification.
 
+## Windows PowerShell: clean-folder path
+
+Python 3, Docker Desktop in Linux-container mode and Compose v2 must already be installed. This is a new-install procedure: choose a new export folder, private operator folder and explicitly approved project/port. Do not run it over the preserved trial or another deployment. The following reads the versioned delivery manifest; it does not rely on controller drive paths. The source ZIP and manifest must come from the same approved delivery.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Get-Command python, docker | Out-Null
+$ManifestFile = (Resolve-Path (Read-Host 'Path to release-artifacts-<version>.json')).Path
+$Release = Get-Content -LiteralPath $ManifestFile -Raw | ConvertFrom-Json
+$DeliveryDir = Split-Path -Parent $ManifestFile
+$SourceZip = Join-Path $DeliveryDir $Release.source_archive.file
+if ((Get-FileHash -LiteralPath $SourceZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Release.source_archive.sha256) { throw 'Source ZIP differs' }
+$ExportRoot = Read-Host 'New absolute export folder'
+if (Test-Path -LiteralPath $ExportRoot) { throw 'Preserve existing folder; do not overwrite it' }
+Expand-Archive -LiteralPath $SourceZip -DestinationPath $ExportRoot
+$ExportRoot = (Resolve-Path $ExportRoot).Path
+$Source = Get-Content -LiteralPath (Join-Path $ExportRoot 'release-source.json') -Raw | ConvertFrom-Json
+if ($Source.source_commit -ne $Release.source_commit) { throw 'Source/manifest commit differs' }
+Set-Location -LiteralPath $ExportRoot
+$DockerInfo = docker info --format '{{json .}}' | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0 -or $DockerInfo.OSType -ne 'linux') { throw 'Docker Linux containers are required' }
+docker compose version
+if ($LASTEXITCODE -ne 0) { throw 'Compose v2 is required' }
+$PrivateRoot = Read-Host 'New absolute private operator folder outside the export'
+if (Test-Path -LiteralPath $PrivateRoot) { throw 'Never replace existing secrets/configuration' }
+New-Item -ItemType Directory -Path $PrivateRoot | Out-Null
+$PrivateRoot = (Resolve-Path $PrivateRoot).Path
+if ($PrivateRoot.StartsWith($ExportRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Private configuration must be outside the build context' }
+$OperatorIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+icacls $PrivateRoot /inheritance:r /grant:r "${OperatorIdentity}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F'
+if ($LASTEXITCODE -ne 0) { throw 'Private folder ACL setup failed' }
+$Commit = $Source.source_commit
+$AuthImage = "vectorflow/auth:$Commit"
+docker build --platform linux/amd64 -f release/auth.Dockerfile -t $AuthImage .
+if ($LASTEXITCODE -ne 0) { throw 'Auth image build failed' }
+$SecretReceipt = docker run --rm --network none --user 0:0 --entrypoint python --mount "type=bind,src=$PrivateRoot,dst=/private" $AuthImage -m release.prepare_secrets --directory /private/secrets | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'New secret generation failed; preserve partial files' }
+$OperatorEnv = Join-Path $PrivateRoot 'operator.env'
+$EnvText = Get-Content -LiteralPath 'release/.env.example' -Raw
+$Project = Read-Host 'Unique approved Compose project name'
+$HttpPort = Read-Host 'Explicitly approved free loopback HTTP port'
+$Values = [ordered]@{
+  VF_RELEASE = $Commit
+  VF_PROJECT = $Project
+  VF_HTTP_PORT = $HttpPort
+  VF_PUBLIC_URL = "http://127.0.0.1:$HttpPort"
+  VF_PUBLIC_WS_URL = "ws://127.0.0.1:$HttpPort"
+  VF_SECRETS_DIR = (Join-Path $PrivateRoot 'secrets').Replace('\','/')
+  VF_CLIENT_CIPHER_KEY = $SecretReceipt.public_client_cipher_key
+}
+foreach ($Key in $Values.Keys) {
+  if ([string]::IsNullOrWhiteSpace($Values[$Key]) -or $Values[$Key] -match '[\r\n]') { throw "Missing/invalid $Key" }
+  $EnvText = [regex]::Replace($EnvText, "(?m)^$Key=.*$", [Text.RegularExpressions.MatchEvaluator]{ param($Match) $Key + '=' + $Values[$Key] })
+}
+[IO.File]::WriteAllText($OperatorEnv, $EnvText, [Text.UTF8Encoding]::new($false))
+function vf {
+  & docker compose --env-file $OperatorEnv -f (Join-Path $ExportRoot 'release/compose.yaml') @args
+  if ($LASTEXITCODE -ne 0) { throw 'Compose command failed; preserve the failure and resources' }
+}
+python -m release.preflight --env-file $OperatorEnv
+if ($LASTEXITCODE -ne 0) { throw 'Read-only configuration preflight failed' }
+vf build mta auth mto frontend
+$Images = @(vf config --images | Sort-Object -Unique | ForEach-Object {
+  $Image = @(docker image inspect $_ | ConvertFrom-Json)[0]
+  if ($LASTEXITCODE -ne 0) { throw 'Image inspection failed' }
+  @{ tag = $_; image_id = $Image.Id; platform = ($Image.Os + '/' + $Image.Architecture) }
+})
+$ImageManifest = Join-Path $PrivateRoot 'built-image-identities.json'
+[IO.File]::WriteAllText($ImageManifest, (@{ source_commit=$Commit; images=$Images } | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
+python -m release.preflight --env-file $OperatorEnv --images-manifest $ImageManifest
+if ($LASTEXITCODE -ne 0) { throw 'Release/image/port preflight failed' }
+```
+
+The first preflight explicitly reports `image_identity_verified=false`; the second checks every configured local image against the recorded build IDs. A local source build is recorded as such, not asserted to have the delivery archive's image IDs. Keep the generated image inventory with the source ZIP hash. For loading prebuilt images instead, verify the runtime archive and image override hashes from the same delivery, use `docker image load --input` and its supplied image-ID override, and pass the delivery manifest to preflight. Its public frontend cipher/WebSocket build values must match the operator configuration; a changed origin requires the documented frontend build with that origin, not a silent image claim.
+
+Continue using the same `vf` function for **One-time empty installation** below; the commands are identical in PowerShell (enter each command on one line). Create the bootstrap administrator with the interactive `createsuperuser` command, start the application, then use the existing role/user workflows. Expected empty readiness is 503 with explicit application availability, not a command failure to repair by selecting arbitrary data. `Invoke-WebRequest` in PowerShell may throw on that expected 503; retain its response body or use `curl.exe -i` when available.
+
+If Docker reports automatic address-pool exhaustion, it is not a port conflict. Read `docker network ls`, `docker network inspect` and host/VPN routes (`Get-NetRoute`) before choosing any subnet. Preserve all existing networks. An administrator may separately approve an unused private subnet, add `VF_APPLICATION_SUBNET` to the operator env, and include `-f release/compose.network-subnet.yaml` in both `vf` and `release.preflight --compose-file` calls. Preflight rejects overlap with existing Docker networks; the operator must also compare host/VPN routes. Do not prune, restart Docker/WSL, delete networks or silently choose a fallback subnet. No supplied example allocates another public port or authorizes changing an existing serving resource.
+
 ## One-time empty installation
 
 Confirm the target cluster is exclusively owned by this installation. Preserve existing resources; do not use prune, reset, volume deletion or an existing database as an installation shortcut. Provisioning refuses any target database or role that already exists, including its registrar roles. A failure after database creation can leave partial new resources: preserve the failure and inventory, investigate it, and obtain a specific cleanup disposition rather than rerunning with different names until something passes.
@@ -74,13 +153,18 @@ vf --profile install run --rm mto-install manage.py migrate --noinput
 vf --profile install run --rm auth-install -m release.install_identity
 vf --profile install run --rm provision -m release.grant_service AUTH
 vf --profile install run --rm provision -m release.grant_service MTO
+vf --profile install run --rm provision -m release.installed_application
 ```
 
-Before MTA registration, obtain the approved initialization artifact's SHA256. Registration binds that identity and the exact current implementation/catalogue; it imports no facts. Never substitute a test artifact merely to obtain readiness.
+MTA installation does not choose a trial input or register a namespace. The final command grants the dedicated runtime schema USAGE and SELECT on exactly the migration/initialization/source/run identity tables. It creates no source, initialization or business population. Installed source bytes, completed migrations, owner/session attributes and this finite grant profile are checked at startup. Keep all MTA selection/source/permission/hierarchy settings blank on this first empty start.
 
 ```sh
-vf --profile install run --rm provision -m release.register_mta --input-sha256 INITIALIZATION_SHA256
+vf up -d mta auth mto frontend
+curl PUBLIC_ORIGIN/healthz
+curl -i PUBLIC_ORIGIN/readyz
 ```
+
+Expect liveness 200 and data readiness 503 with `application.available=true`, `installed=true`, `initialized=false`, `publication_selected=false`, `state=installed`. Normal login and assigned screen definitions work in this state; no trial, fake scope, report date or calculated result is required. Missing/altered configured selections, inconsistent initialized state, source drift and unexpected grants remain failures, not empty success. A namespace is registered only after the operator separately chooses the optional initialization below or another explicitly approved native input.
 
 Only the installation profile receives the provisioning credential. Runtime roles have no database/schema ownership or migration authority. Auth/MTO runtime grants are confined to their respective schemas; MTA uses its stricter immutable capability catalogue. A normal serving restart checks migrations without applying them.
 
@@ -92,13 +176,45 @@ vf --profile install run --rm auth-install manage.py createsuperuser
 
 Do not place account passwords on the command line. An account does not by itself grant product/location/application scope. Keep CAPTCHA and authentication enabled.
 
-After the approved population/catalogue is available and the application is serving, sign in normally as that bootstrap administrator. Use **Vector Admin → Manage Roles** (`/vector-admin/manage-roles`) to create the operator-approved MTA roles from the installed permission catalogue. Select the actual application and existing URL/function entries; use the approved role codes and names, not the development fixture's numeric IDs. The installer deliberately creates no requester/reviewer roles or assignments. A reviewer is an ordinary user with the specifically approved review permissions, not a second superuser.
+Once the empty application is serving, sign in normally as that bootstrap administrator. Use **Vector Admin → Manage Roles** (`/vector-admin/manage-roles`) to create the operator-approved MTA roles from the installed permission catalogue. Select the actual application and existing URL/function entries; use the approved role codes and names, not the development fixture's numeric IDs. The installer deliberately creates no requester/reviewer roles or assignments. A reviewer is an ordinary user with the specifically approved review permissions, not a second superuser.
 
-Open **Profile → Manage Users → Add User** to create each approved requester/reviewer through the existing registration form. Select the relevant application role, then its Product and Location permissions (including the required hierarchy levels) and any specifically approved data permissions. Use the form's existing password/notification process and configured mail service; do not seed fixture credentials or mark every account as admin. For an existing account, use the same Manage Users edit workflow. These screens call the retained `/api/user/add-role/`, `/api/user/register/` and `/api/user/edit-user` contracts; role definitions and user scope assignments are separate operations. Empty/unavailable product or location catalogues must be resolved through the approved population/configuration path before assigning scope; they are not permission to select a different run or bypass a denial.
+Open **Profile → Manage Users → Add User** to create each approved requester/reviewer through the existing registration form. Select the relevant application role, then its Product and Location permissions (including the required hierarchy levels) and any specifically approved data permissions. Use the form's existing password/notification process and configured mail service; do not seed fixture credentials or mark every account as admin. For an existing account, use the same Manage Users edit workflow. These screens call the retained `/api/user/add-role/`, `/api/user/register/` and `/api/user/edit-user` contracts; role definitions and user scope assignments are separate operations. Before a business population exists, legitimate empty product/location lists contain no assignable IDs. An upstream catalogue failure is a separate 503 error. Application/URL roles may be configured with no population scope; assign only the approved actual hierarchy after initialization/catalogue configuration. Do not invent IDs, select a different run or bypass a denial.
 
 Sign in as each ordinary account and check **Profile → Permissions**, its intended report/MDM menu, and the allowed product/location subset. Confirm the requester lacks reviewer actions and an out-of-scope read/action is denied. Reauthenticate after changing assignments so the issued session reflects them. Keep the native MTA permission/hierarchy files and their configured SHA256 values consistent with that approved deployment; creating an auth account does not generate or replace those files. These are operator setup instructions derived from the existing forms/models, not a completed fresh-account onboarding or business-workflow rehearsal. No users, passwords, roles or scope assignments are automatically imported by this package.
 
-## Input ownership, initialization, day and span
+## Optional retained initialization-only bootstrap
+
+This procedure is separate from installation. It requires an explicitly approved, untouched trial target; it must not be applied to a sealed development case, an exhausted ledger or the preserved user installation. It contains no day sequence and does not execute Stage Five. The default source export includes only `release/optional-initialization.json`, not the external input pack.
+
+The separate `vectorflow-optional-initialization-input-pack.zip` is SHA256 `a404eb8a3cefb610f81d2d73082afed43bca63efba8e15a34013a6fb8fe6327c`. Its `manifest.json` is SHA256 `137abb72235b2fa1803839909a66813f629e95a8e62888456f7eafa4e13db295`. The input `inputs/initialization.json` is 621390 bytes, SHA256 `3a4bf3a699c57fab7f00e6820f43c0e1b661386c9cf3aa4f21fd4081e110bdbe`; configuration digest `c3e2e2f1395ca40b0557b0edaceb96a01c2c02b37d8f962e6b732586a9d5d27c`; recipe digest `bec684bfefa570e7d86dbbed2b8ae580d04d50787549b6dff5e9a8f7be2185e6`. Opening identity is `HANDOFF3005-G3-CONSOLIDATED-20261015`, date 12 October 2026, with declared initial facts/history and retained Norm overrides, not a later calculated closing. Exact master counts and recipe identity are in the shipped JSON manifest.
+
+Extract the verified external ZIP to a new operator folder. Bind only that folder read-only for the transfer command; never bind a development checkout. The destination is a new file in the durable MTA data volume. Both transfer and bootstrap refuse repeats; preserve failed partial transfers rather than overwriting them. In PowerShell, define `$InputDir` as the absolute extracted pack directory and use:
+
+```powershell
+$Pack = (Resolve-Path (Read-Host "Path to the separate initialization ZIP")).Path
+if ((Get-FileHash -LiteralPath $Pack -Algorithm SHA256).Hash.ToLowerInvariant() -ne "a404eb8a3cefb610f81d2d73082afed43bca63efba8e15a34013a6fb8fe6327c") { throw "Input pack differs" }
+$InputDir = Read-Host "New absolute folder for this pack"
+if (Test-Path -LiteralPath $InputDir) { throw "Preserve existing folder; choose a new input destination" }
+Expand-Archive -LiteralPath $Pack -DestinationPath $InputDir
+if ((Get-FileHash -LiteralPath (Join-Path $InputDir "manifest.json") -Algorithm SHA256).Hash.ToLowerInvariant() -ne "137abb72235b2fa1803839909a66813f629e95a8e62888456f7eafa4e13db295") { throw "Pack manifest differs" }
+vf --profile install run --rm --no-deps --volume "${InputDir}:/operator-input:ro" mta-install -m release.optional_initialize --input /operator-input/inputs/initialization.json --stage-to /var/lib/vectorflow/inputs/optional-initialization.json
+vf --profile install run --rm --no-deps mta-install -m release.optional_initialize --input /var/lib/vectorflow/inputs/optional-initialization.json --inspect
+```
+
+For a POSIX shell, the corresponding transfer is `vf --profile install run --rm --no-deps --volume "$INPUT_DIR:/operator-input:ro" mta-install -m release.optional_initialize --input /operator-input/inputs/initialization.json --stage-to /var/lib/vectorflow/inputs/optional-initialization.json`. Inspect uses the same arguments as PowerShell. Inspect must return `OPTIONAL_INITIALIZATION_INSPECTED_NOT_APPLIED` and native installation eligibility true. Day eligibility remains false because no day facts were supplied. Inspect creates no registration or input rows.
+
+After separately choosing this input, register the existing current-source namespace once and apply initialization. Registration refuses an existing registration; no replacement/reseal path is provided. The wrapper uses the unchanged native initializer and existing typed opening-owner bootstrap for families 1-13, inside one transaction. It refuses any existing initialization/source/run/task/capture before mutation. It does not call execute_day, accept a workflow, create a recommendation or publish a report.
+
+```sh
+vf --profile install run --rm --no-deps provision -m release.register_mta --input-sha256 3a4bf3a699c57fab7f00e6820f43c0e1b661386c9cf3aa4f21fd4081e110bdbe
+vf --profile install run --rm --no-deps mta-install -m release.optional_initialize --input /var/lib/vectorflow/inputs/optional-initialization.json --apply
+```
+
+Save the JSON receipt: status `OPTIONAL_INITIALIZATION_APPLIED_NO_DAY`, real source/opening/integration digests, opening date and `accepted_day=false`. Set **only** `MTA_SOURCE_DIGEST` to the returned source digest in the private operator env; leave `MTA_SELECTION_FILE` blank. Recreate MTA with `vf up -d --no-deps mta`. Gateway readiness remains 503 with `state=initialized`; supported master reads now use the verified untouched initial opening, while reports still await a published day. A second wrapper apply must exit nonzero with `second initialization is refused` and preserve the first receipt, rows and zero runs. The lower-level native command retains its historical identical-input REVERIFIED behavior; this wrapper is the documented one-shot optional procedure.
+
+No users, scope assignments, daily facts, generated PICK, accepted outputs or publications are in this pack. Loading it does not constitute an operational trial. Preserve the supplied file and emitted receipts.
+
+## Separately approved operating inputs, day and span
 
 Operator input artifacts, generated PICK files, evidence and publication selection belong in the durable `mta_data` volume under `/var/lib/vectorflow`. Copy supplied files into that volume using an explicitly owned one-off container or a dedicated volume transfer procedure; never mount a development checkout or dump a database into the package. Hash files after transfer. Preserve raw/processed provenance separately. Optional demonstration inputs must be separately selected and must contain external/master/opening/daily facts only, with no calculated outputs seeded as inputs.
 
@@ -143,7 +259,7 @@ curl --fail PUBLIC_ORIGIN/readyz
 vf logs --tail 100 mta auth mto frontend
 ```
 
-`/healthz` is process/gateway liveness. `/readyz` verifies identity database and selected MTA dependencies; it normally returns 503 before legitimate publication. Container health alone is not whole-application readiness and the gateway readiness response does not certify MTO scheduler output. Verify MTO routing/WebSocket integration separately without inventing scheduler runs. No scheduler execution or MTO output validation is introduced by installation.
+`/healthz` is process/gateway liveness. `/readyz` verifies identity database and selected MTA dependencies. Before legitimate publication it returns 503; a validated empty or initialized application also reports its separate nonsecret `application` availability/setup state. A broken configuration does not receive that successful setup state. Container health alone is not whole-application readiness and the gateway readiness response does not certify MTO scheduler output. Verify MTO routing/WebSocket integration separately without inventing scheduler runs. No scheduler execution or MTO output validation is introduced by installation.
 
 For status, retain `vf ps`, readiness bodies, the last operation/publication receipts and bounded logs. Check actual run status/output/publication against the explicit selection through the existing application/API; HTTP 200 or a row count alone is insufficient. After a source-compatible restart, require the same selected run/output/publication and usable affected report/layout interactions:
 

@@ -1,4 +1,5 @@
 import React from "react"
+import { useApplicationSetup } from '../../../../../components/layouts/AppLayout/ApplicationSetup';
 import { useUserData } from "../../../../../context"
 import VFButtonOutline from "../../../../../components/VectorFLOW/commons/VFButtonOutline"
 import VFButton from "../../../../../components/VectorFLOW/commons/VFButton"
@@ -44,6 +45,7 @@ export interface VFTaskBarProps{
 
 
 const VFTaskBar =(props:VFTaskBarProps)=>{
+    const applicationSetup = useApplicationSetup();
 
     const{
         masterProgress,
@@ -268,6 +270,16 @@ const VFTaskBar =(props:VFTaskBarProps)=>{
             </VFButtonOutline>
         )
     }
+
+    if (applicationSetup) return (
+        <TaskBarContainer data-testid="taskbar" style={{width:width}}>
+            <VFTaskBarButtonGroup>
+                <BackButton />
+                <VFButton themeUi={themeUi} disabled>Modify Data</VFButton>
+                <span>Master reads are available. Changes require a published operational day.</span>
+            </VFTaskBarButtonGroup>
+        </TaskBarContainer>
+    );
 
     switch(masterProgress){
         case "default": 

@@ -124,7 +124,8 @@ def draft(request, draft_id=None):
     if request.method not in allowed:
         return JsonResponse({'error': 'method_not_allowed'}, status=405)
 
-    @endpoint(request.method)
+    reading = draft_id is not None and request.method == 'POST'
+    @endpoint(request.method, requires='source' if reading else 'publication')
     def handle(request, payload):
         installed = source()
         actor = identity(request)
@@ -142,7 +143,7 @@ def draft(request, draft_id=None):
     return handle(request)
 
 
-@endpoint('POST')
+@endpoint('POST', requires='publication')
 def submit(request,payload,action):
     installed=source()
     try:
@@ -211,7 +212,7 @@ def history_skus(request,payload):
         return response(status=500,message='Error '+str(exc))
 
 
-@endpoint('POST')
+@endpoint('POST', requires='publication')
 def approve(request,payload):
     installed=source()
     try:
@@ -225,7 +226,7 @@ def approve(request,payload):
         return JsonResponse(dict(status=500,msg=None,taskId=None,errorCount=None,error=None,conflictErrorCount=None,conflictError=None),status=500)
 
 
-@endpoint('DELETE')
+@endpoint('DELETE', requires='publication')
 def delete_task(request,payload):
     installed=source()
     try:

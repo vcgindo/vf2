@@ -45,7 +45,8 @@ const ReportDefinition = ({ title, reports = [], chart }: ReportProps) => {
 type MasterProps = PropsWithChildren<{ operation: 'modify' | 'add' | 'remove'; title?: string; history?: boolean }>;
 export const SetupMaster = (props: MasterProps) => {
   const state = useApplicationSetup();
-  return state && !state.initialized ? <MasterDefinition {...props} /> : <>{props.children}</>;
+  return state && (!state.initialized || props.operation !== 'modify')
+    ? <MasterDefinition {...props} /> : <>{props.children}</>;
 };
 
 export const SetupWorkflow = ({ title, kind, children }: PropsWithChildren<{
@@ -64,6 +65,7 @@ export const SetupWorkflow = ({ title, kind, children }: PropsWithChildren<{
 };
 
 const MasterDefinition = ({ operation, title, history }: MasterProps) => {
+  const state = useApplicationSetup();
   const [selected, setSelected] = useState('');
   const configuration = useQuery(['setup-master-definition', operation], async ({ signal }) => {
     const response = await MDMService.getMasterUIConfiguration(operation, { signal, timeout: 15000 });
@@ -76,7 +78,9 @@ const MasterDefinition = ({ operation, title, history }: MasterProps) => {
     .map((column: any) => ({ ...column, editable: false })) : [];
   return <section aria-label={title || 'Master data configuration'} style={{ padding: 16 }}>
     <h2>{title || ({ modify: 'View / Modify', add: 'Add Record', remove: 'Delete Record' }[operation])}</h2>
-    <p role="status">Initial data has not been loaded. Master fields can be inspected; reading, uploading, changing and submitting business data require initialization.</p>
+    <p role="status">{state?.initialized
+      ? 'Initial data is installed. Master fields can be inspected; uploading and submitting changes require a published operational day.'
+      : 'Initial data has not been loaded. Master fields can be inspected; reading, uploading, changing and submitting business data require initialization.'}</p>
     {configuration.isLoading ? <p role="status">Loading master definitions…</p>
       : configuration.isError ? <p role="alert">Master definitions are unavailable. Ask the operator to check the installed release.</p>
         : <>

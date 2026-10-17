@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import connection
 
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.request_scope import once_per_request
 
 
 class SetupRequired(PublicationUnavailable):
@@ -20,6 +21,33 @@ def publication_configured():
         'VF_MTA_SELECTION', 'VF_MTA_FIXTURE_FILE', 'VF_MTA_FIXTURE_SHA256'))
 
 
+@once_per_request
+def initialized_source():
+    """Read only the sealed, untouched initialization, never a run substitute."""
+    from mta.runtime.models import MdmSource, ProductionInitialization, CalculationRun
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    if (publication_configured() or CalculationRun.objects.exists()
+            or MdmSource.objects.count() != 1 or ProductionInitialization.objects.count() != 1
+            or MdmDailyInputCapture.objects.exists()):
+        raise PublicationUnavailable('untouched_initialization_required')
+    if not settings.VF_MDM_SOURCE_DIGEST:
+        raise PublicationUnavailable('mdm_source_not_selected')
+    installed = MdmSource.objects.filter(digest=settings.VF_MDM_SOURCE_DIGEST).first()
+    if installed is None or not ProductionInitialization.objects.filter(source=installed).exists():
+        raise PublicationUnavailable('initialization_source_identity_differs')
+    from mta.mdm.production_families import require_binding
+    # Validates the original initialization, namespace, all 13 owner receipts,
+    # typed opening readback and unchanged current master/optional-owner bags.
+    require_binding(installed, read_only=True)
+    from mta.mdm.initialization import read_initialized_input, verify_current_masters
+    from mta.mdm.master_owners import owner_batches
+    owner = ProductionInitialization.objects.select_related('source').get(source=installed)
+    frame = read_initialized_input(owner)
+    verify_current_masters(installed, owner_batches(frame['opening']['state'], strict=True))
+    return installed
+
+
+@once_per_request
 def setup_state():
     """Validate current installation/source, with no inferred publication."""
     if publication_configured():
@@ -31,12 +59,7 @@ def setup_state():
     if counts not in ((0, 0), (1, 1)):
         raise PublicationUnavailable('inconsistent_initialization_source')
     if counts == (1, 1):
-        # source() owns the actual initialization/namespace/family read checks.
-        # The source digest must be explicitly supplied from its real receipt.
-        from mta.mdm.source import source
-        installed = source(read_only=True)
-        if not ProductionInitialization.objects.filter(source=installed).exists():
-            raise PublicationUnavailable('initialization_source_identity_differs')
+        installed = initialized_source()
         return dict(installed=True, initialized=True, publication_selected=False,
                     state='initialized', source_digest=installed.digest)
     if settings.VF_MDM_SOURCE_DIGEST:

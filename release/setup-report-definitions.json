@@ -1,0 +1,300 @@
+{
+  "schema": "vectorflow-retained-setup-report-definitions-v1",
+  "sources": {
+    "columns_values_sha256": "8321656053f4d1db587e357811f771cefaccdcec101dce405da6055e492b5b9f",
+    "types_values_sha256": "e012a2a42123dd252bfb14f082d90ebf1e88156426000b3773db402e15f7d029"
+  },
+  "reports": {
+    "OrderAllocationReport": [
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKUCode",
+        "Col_Position": 1,
+        "Header": "SKUCode",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKUDescription",
+        "Col_Position": 2,
+        "Header": "SKU Description",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "DestWhCode",
+        "Col_Position": 3,
+        "Header": "Location Code",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "WHDescription",
+        "Col_Position": 4,
+        "Header": "Location Description",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SrcWhCode",
+        "Col_Position": 5,
+        "Header": "Parent WhCode",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "ParentWhDesc",
+        "Col_Position": 6,
+        "Header": "ParentWh Desc",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "OrderKey",
+        "Col_Position": 7,
+        "Header": "OrderKey",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "DueDate",
+        "Col_Position": 8,
+        "Header": "DueDate",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "OrderColor",
+        "Col_Position": 9,
+        "Header": "OrderColor",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "BPP",
+        "Col_Position": 10,
+        "Header": "BPP",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*",
+        "DataType": "Number"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "Qty",
+        "Col_Position": 11,
+        "Header": "Pending Qty",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "OrderWiseAllocatedQty",
+        "Col_Position": 12,
+        "Header": "OrderWiseAllocatedQty",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "PackSizeWiseAllocatedQty",
+        "Col_Position": 13,
+        "Header": "PackSizeWiseAllocatedQty",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKULocAttr9",
+        "Col_Position": 99,
+        "Header": "Continuous Black(With Plant WIP)",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKULocAttr10",
+        "Col_Position": 99,
+        "Header": "Continuous Black and Red(With Plant WIP)",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKULocAttr12",
+        "Col_Position": 99,
+        "Header": "Continuous Black(Without Plant WIP)",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "SKULocAttr13",
+        "Col_Position": 99,
+        "Header": "Continuous Black and Red(Without Plant WIP)",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error",
+        "DataType": "String"
+      },
+      {
+        "ReportName": "OrderAllocationReport",
+        "Col_Code": "dailydatagraph",
+        "Col_Position": 14,
+        "Header": "",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "DataType": "String"
+      }
+    ],
+    "ElephantOrderReport": [
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "CustomerOrderID",
+        "Col_Position": 1,
+        "Header": "Order ID",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "SKUCode",
+        "Col_Position": 2,
+        "Header": "SKU Code",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "SKUDescription",
+        "Col_Position": 3,
+        "Header": "SKU Name",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "WhCode",
+        "Col_Position": 4,
+        "Header": "Location Code",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "Qty",
+        "Col_Position": 5,
+        "Header": "Quantity",
+        "Visible": true,
+        "CellAlignment": "right     ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "TopmostWhCode",
+        "Col_Position": 6,
+        "Header": "Topmost Location Code",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "TopmostWhNorm",
+        "Col_Position": 8,
+        "Header": "Topmost Location Norm",
+        "Visible": true,
+        "CellAlignment": "left      ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "RLTUptoSuppOrPlant",
+        "Col_Position": 9,
+        "Header": "RLT Upto Supplier/Plant",
+        "Visible": true,
+        "CellAlignment": "center    ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "IntroDate",
+        "Col_Position": 10,
+        "Header": "Introduction Date",
+        "Visible": true,
+        "CellAlignment": "center    ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "CustomerExpectedDate",
+        "Col_Position": 11,
+        "Header": "Customer Expected Date",
+        "Visible": true,
+        "CellAlignment": "center    ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "EPD",
+        "Col_Position": 12,
+        "Header": "Earliest Possible Due Date",
+        "Visible": true,
+        "CellAlignment": "center    ",
+        "Value": "*Error*"
+      },
+      {
+        "ReportName": "ElephantOrderReport",
+        "Col_Code": "DueDate",
+        "Col_Position": 13,
+        "Header": "Due Date",
+        "Visible": true,
+        "CellAlignment": "center    ",
+        "Value": "*Error*"
+      }
+    ]
+  }
+}

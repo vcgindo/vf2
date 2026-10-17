@@ -201,6 +201,15 @@ def ui_config(request, payload):
     name = request.GET.get('reportName')
     from mta.presentation.admission import require_application_state
     state = require_application_state()
+    if state is not None and name in ('OrderAllocationReport', 'ElephantOrderReport'):
+        # Retained column definitions only. Their operational reader availability
+        # and the published-mode wire contract are unchanged.
+        import hashlib
+        definition = Path(__file__).resolve().parents[2] / 'release/setup-report-definitions.json'
+        raw = definition.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != 'e5392fb583c67ef9e1a1570c1168799478160b78c132fd4e11a70739e51e0613':
+            raise PublicationUnavailable('setup_report_definition_changed')
+        return envelope(data=json.loads(raw)['reports'][name])
     if state is not None and name in ('BOR_OA', 'BuyerOrderReport'):
         if name == 'BOR_OA':
             from mta.presentation.boroa_configuration import configuration, ui_columns

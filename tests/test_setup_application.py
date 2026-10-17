@@ -75,6 +75,16 @@ class SetupApplicationTests(unittest.TestCase):
         self.assertEqual(value['location'], [])
         self.assertEqual(value['application']['state'], 'installed')
 
+    def test_empty_report_definitions_do_not_enable_published_unsupported_readers(self):
+        for name, count in (('OrderAllocationReport', 18), ('ElephantOrderReport', 12)):
+            request = self.request('/api/mta/GetUIConfig?reportName=' + name, method='get')
+            with patch.object(admission, 'require_application_state', return_value=INSTALLED):
+                result = views.ui_config(request)
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(len(json.loads(result.content)['data']), count)
+            with patch.object(admission, 'require_application_state', return_value=None):
+                self.assertEqual(views.ui_config(request).status_code, 404)
+
     def test_setup_availability_does_not_claim_business_readiness(self):
         from vectorflow.urls import ready
         with patch('vectorflow.urls.connection.cursor') as cursor, \
@@ -100,6 +110,65 @@ class SetupApplicationTests(unittest.TestCase):
         with patch('mta.runtime.models.CalculationRun.objects.exists', return_value=True):
             with self.assertRaisesRegex(PublicationUnavailable, 'existing_runs_require'):
                 application_state.setup_state()
+
+    @override_settings(VF_MTA_PUBLISHED_RUN='', VF_MTA_PUBLISHED_DIGEST='', VF_MTA_SELECTION_FILE='',
+                       VF_MTA_SELECTION=None, VF_MTA_FIXTURE_FILE='', VF_MTA_FIXTURE_SHA256='',
+                       VF_MDM_SOURCE_DIGEST='chosen-initial-source')
+    def test_initialized_reader_requires_untouched_sealed_owners_not_a_selected_run(self):
+        from mta.runtime.models import CalculationRun, MdmSource, ProductionInitialization
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        installed = Mock(digest='chosen-initial-source')
+        with patch.object(CalculationRun.objects, 'exists', return_value=False), \
+                patch.object(MdmSource.objects, 'count', return_value=1), \
+                patch.object(ProductionInitialization.objects, 'count', return_value=1), \
+                patch.object(MdmDailyInputCapture.objects, 'exists', return_value=False), \
+                patch.object(MdmSource.objects, 'filter') as sources, \
+                patch.object(ProductionInitialization.objects, 'filter') as owners, \
+                patch('mta.mdm.production_families.require_binding') as binding, \
+                patch.object(ProductionInitialization.objects, 'select_related'), \
+                patch('mta.mdm.initialization.read_initialized_input', return_value={'opening': {'state': {}}}), \
+                patch('mta.mdm.master_owners.owner_batches', return_value=[]) as batches, \
+                patch('mta.mdm.initialization.verify_current_masters') as masters:
+            sources.return_value.first.return_value = installed
+            owners.return_value.exists.return_value = True
+            self.assertIs(application_state.initialized_source(), installed)
+            binding.assert_called_once_with(installed, read_only=True)
+            masters.assert_called_once_with(installed, [])
+            binding.reset_mock()
+            with patch.object(MdmDailyInputCapture.objects, 'exists', return_value=True):
+                with self.assertRaisesRegex(PublicationUnavailable, 'untouched_initialization'):
+                    application_state.initialized_source()
+            binding.assert_not_called()
+            with override_settings(VF_MDM_SOURCE_DIGEST=''):
+                with self.assertRaisesRegex(PublicationUnavailable, 'mdm_source_not_selected'):
+                    application_state.initialized_source()
+
+    def test_mdm_writes_still_require_publication_after_initialization(self):
+        state = dict(INSTALLED, initialized=True, state='initialized', source_digest='source')
+        with patch.object(admission, 'require_application_state', return_value=state), \
+                patch.object(mdm_views, 'source', side_effect=AssertionError('write must not reach source')):
+            for function, kwargs, method in ((mdm_views.submit, {'action': 'add'}, 'post'),
+                    (mdm_views.approve, {}, 'post'), (mdm_views.delete_task, {}, 'delete')):
+                response = function(self.request('/api/mta/write', method=method), **kwargs)
+                self.assertEqual(response.status_code, 409)
+                self.assertEqual(json.loads(response.content)['detail'], 'published_operational_day_required')
+
+    @override_settings(VF_MDM_SOURCE_DIGEST='chosen-initial-source')
+    def test_source_initial_read_path_is_limited_to_validated_setup(self):
+        from mta.mdm import source as sources
+        installed = Mock(digest='chosen-initial-source', receipt={'schema': 'fresh-production-mdm-source-v1'})
+        state = dict(INSTALLED, initialized=True, state='initialized', source_digest=installed.digest)
+        with patch.object(sources.MdmSource.objects, 'filter') as rows, \
+                patch.object(admission, 'require_application_state', return_value=state), \
+                patch('mta.mdm.integration_source.require_read_binding') as selected_binding:
+            rows.return_value.first.return_value = installed
+            self.assertIs(sources.source(read_only=True), installed)
+            selected_binding.assert_not_called()
+            with patch.object(admission, 'require_application_state', return_value=None), \
+                    patch('mta.mdm.native_source.require_base') as base:
+                self.assertIs(sources.source(read_only=True), installed)
+                self.assertEqual(base.call_count, 3)
+                selected_binding.assert_called_once_with(installed, read_only=True)
 
     @override_settings(VF_MTA_ALLOW_UNSELECTED_STARTUP=True, VF_MTA_DAILY_PUBLICATION=True,
                        VF_MTA_PUBLISHED_RUN='', VF_MTA_PUBLISHED_DIGEST='',
