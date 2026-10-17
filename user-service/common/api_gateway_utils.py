@@ -298,10 +298,8 @@ class ALL_PERMISSIONS:
                         "permission":PRODUCT_LOCATION_MAPPER.flat_to_nested_location(response['location']) if nested else response['location']
                     })
         except CatalogueUnavailable:
-            # Local-mode failures must not become a successful empty catalogue.
+            # Failed MTA definitions must never become a successful omission.
             raise
         except Exception as e:
-            if local_mta_catalogue():
-                raise CatalogueUnavailable('mta_catalogue_assembly_unavailable') from e
-            logger.exception("Error fetching mta permissions")
+            raise CatalogueUnavailable('mta_catalogue_assembly_unavailable') from e
         return all_permissions
