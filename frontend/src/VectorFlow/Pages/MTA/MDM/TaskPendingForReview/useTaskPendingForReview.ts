@@ -1,3 +1,4 @@
+import { pendingTaskColumns } from '../workflowDefinitions';
 import { ColDef, ColGroupDef } from "ag-grid-enterprise"
 import { useEffect, useRef, useState } from "react"
 import { useApproveTask, useGetMasterUIConfiguration, useGetPendingTasks, useGetTaskCount, useGetTaskDetails } from "../../../../../VectorFlow/Services/MTA/MDM"
@@ -325,37 +326,7 @@ useEffect(() => {
     }
 
     useEffect(()=>{
-        setViewTableColDefs(mapPendingTaskToColumnDefs([
-            {
-                field:"SrNo",
-                colId:"SrNo",
-                headerName:"Sr No.",
-            },
-            {
-                field:"PendingSince",
-                colId:"PendingSince",
-                headerName:"Pending Since",
-            },
-            {
-                field:"ageing",
-                colId:"ageing",
-                headerName:"Ageing",
-            },
-            {
-                field:"TaskName",
-                colId:"TaskName",
-                headerName:"Task Name",
-                cellRenderer:TaskPendingLinkCellRenderer,
-                cellRendererParams:{
-                    onClick:handleOnClick
-                }
-            },
-            {
-                field:"RequesterName",
-                colId:"RequesterName",
-                headerName:"Requester",                  
-            }
-        ]))
+        setViewTableColDefs(mapPendingTaskToColumnDefs(pendingTaskColumns(TaskPendingLinkCellRenderer, handleOnClick)))
         
     },[])
     return{

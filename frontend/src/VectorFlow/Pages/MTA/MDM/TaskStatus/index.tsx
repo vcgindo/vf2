@@ -1,3 +1,4 @@
+import { taskStatusColumns } from '../workflowDefinitions';
 import React, { useRef, useState } from "react"
 
 import VFTable from "../../../../../components/VectorFLOW/commons/VFTable"
@@ -175,63 +176,7 @@ const TaskStatus = ()=>{
                     ]
                   }}
                 rowData={rowData}
-                columnDefs={mapTaskStatusToColDefs([
-                    {
-                        field:"TaskID",
-                        colId:"TaskID",
-                        headerName:"Task Id",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        },
-                        cellRenderer: 'agGroupCellRenderer' 
-                    },
-                    {
-                        field:"PendingSince",
-                        colId:"PendingSince",
-                        headerName:"Date",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        }
-                    },
-                    {
-                        field:"TaskName",
-                        colId:"TaskName",
-                        headerName:"Activity",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        }
-                    },
-                    {
-                        field:"Approver",
-                        colId:"Approver",
-                        headerName:"Approver Name",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        }
-                    },
-                    {
-                        field:"Requester",
-                        colId:"Requester",
-                        headerName:"Requester Name",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        }
-                    },
-                    {
-                        field:"TaskStatus",
-                        colId:"TaskStatus",
-                        headerName:"Status",
-                        flex:1,
-                        cellStyle: {
-                            "textAlign": "center",
-                        }
-                    }
-                ],globalStyles.chooseThemeColor[themeUi].color4)}
+                columnDefs={mapTaskStatusToColDefs(taskStatusColumns,globalStyles.chooseThemeColor[themeUi].color4)}
                 pagination
                 // paginationPageSize={10}            
                 paginationPageSize={parseInt(TASKSTATUS_PAGE || '200')}  
