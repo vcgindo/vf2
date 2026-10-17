@@ -88,6 +88,8 @@ services:
       DB_CONNECT_TIMEOUT: "${DB_CONNECT_TIMEOUT:-5}"
       LOG_LEVEL: "${LOG_LEVEL:-INFO}"
       DJANGO_SETTINGS_MODULE: "release.mta_settings"
+      VF_NATIVE_RELEASE_COMMIT: "${VF_NATIVE_RELEASE_COMMIT:?Set exact native source commit}"
+      VF_NATIVE_RELEASE_SHA256: "${VF_NATIVE_RELEASE_SHA256:?Set independent native manifest SHA256}"
       VF_DB_HOST: "${DB_HOST:-postgres}"
       VF_DB_PORT: "${DB_PORT:-5432}"
       VF_DB_NAME: "${MTA_DB_NAME:-vectorflow_mta}"

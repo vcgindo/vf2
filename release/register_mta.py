@@ -31,9 +31,16 @@ def register(input_sha256):
     from mta.mdm import owned_namespace as owned
     from mta.mdm.application_registration import register_application
     from mta.mdm.initialization import current_implementation_digest
+    from release.native_identity import require_current
+    release_identity = require_current()
     c = plan()
     implementation = current_implementation_digest()
     with transaction.atomic():
+        from django.db.migrations.executor import MigrationExecutor
+        executor = MigrationExecutor(connection)
+        executor.loader.check_consistent_history(connection)
+        if executor.migration_plan(executor.loader.graph.leaf_nodes()):
+            raise ValueError('Fresh native registration requires complete real migrations')
         with connection.cursor() as cursor:
             cursor.execute('SELECT current_database(),oid::bigint FROM pg_database WHERE datname=current_database()')
             database, oid = cursor.fetchone()
@@ -64,7 +71,8 @@ def register(input_sha256):
     connection.close()
     return dict(status='FRESH_CURRENT_SOURCE_CAPABILITY_REGISTERED_NO_INPUT_OR_CALCULATION',
         database=database, database_oid=oid, namespace=original['registration_id'],
-        policy=binding['policy'], receipt_digest=binding['receipt_digest'], implementation_sha256=implementation)
+        policy=binding['policy'], receipt_digest=binding['receipt_digest'], implementation_sha256=implementation,
+        release_identity=release_identity, schema_digest=binding['schema_digest'])
 
 
 def main():

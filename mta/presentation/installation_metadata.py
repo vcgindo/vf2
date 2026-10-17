@@ -38,6 +38,8 @@ def initialized_master_request(environ):
 
 @once_per_request
 def require_installation():
+    from release.native_identity import require_current
+    require_current()
     if publication_configured() or not getattr(settings, 'VF_MTA_ALLOW_UNSELECTED_STARTUP', False):
         raise PublicationUnavailable('publication_configuration_requires_admission')
     if (not getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)

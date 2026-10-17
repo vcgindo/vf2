@@ -267,7 +267,7 @@ def authorize_install(artifact_sha256, adapter_sha256):
     with connection.cursor() as cursor:
         database = _database_identity(cursor)
         if database['name'] in LEGACY_DATABASES:
-            return dict(database_name=database['name'], registration=None)
+            _reject('historical database requires its pinned original release')
         if not _plain_role(database['owner'], login=False):
             _reject('database owner is not the dedicated unprivileged NOLOGIN role')
         # The owner comes only from pg_database. SET LOCAL is transaction-scoped;
@@ -278,14 +278,11 @@ def authorize_install(artifact_sha256, adapter_sha256):
         evidence = _catalogue_evidence(cursor, database, registration)
         cursor.execute('SELECT to_regclass(%s)', [APPLICATION_REGISTRY])
         capability_exists = cursor.fetchone()[0] is not None
-        if adapter_sha256 == registration['adapter_sha256'] and not capability_exists:
-            identity = _validate(database, registration, evidence,
-                artifact_sha256=artifact_sha256, adapter_sha256=adapter_sha256,
-                installer=True)
-        else:
-            identity = _validate_application(cursor, database, registration, evidence,
-                artifact_sha256=artifact_sha256, implementation_sha256=adapter_sha256,
-                installer=True)
+        if not capability_exists:
+            _reject('fresh native application capability is required')
+        identity = _validate_application(cursor, database, registration, evidence,
+            artifact_sha256=artifact_sha256, implementation_sha256=adapter_sha256,
+            installer=True)
         return dict(database_name=database['name'], registration=identity)
 
 
@@ -298,14 +295,11 @@ def verify_binding(receipt):
         database = _database_identity(cursor)
         registration = _registered_identity(cursor)
         evidence = _catalogue_evidence(cursor, database, registration)
-        if expected.get('policy') in (APPLICATION_POLICY, PRODUCTION_APPLICATION_POLICY):
-            actual = _validate_application(cursor, database, registration, evidence,
-                artifact_sha256=expected.get('artifact_sha256'),
-                implementation_sha256=expected.get('implementation_sha256'))
-        else:
-            actual = _validate(database, registration, evidence,
-                artifact_sha256=expected.get('artifact_sha256'),
-                adapter_sha256=expected.get('adapter_sha256'))
+        if expected.get('policy') != PRODUCTION_APPLICATION_POLICY:
+            _reject('historical receipt requires its pinned original release')
+        actual = _validate_application(cursor, database, registration, evidence,
+            artifact_sha256=expected.get('artifact_sha256'),
+            implementation_sha256=expected.get('implementation_sha256'))
     if actual != expected:
         _reject('receipt registration differs')
     return receipt
@@ -522,7 +516,8 @@ APPLICATION_GRANTS = {'mta.fresh_mta_bprliveremark': {'columns': [], 'table': ['
 
 CAPABILITY_GUARD_BODY = "BEGIN RAISE EXCEPTION 'Application capability is immutable'; END"
 CAPABILITY_FIELDS = frozenset(('policy', 'original_registration', 'original_implementation_sha256',
-    'implementation_sha256', 'profile_digest', 'objects_digest', 'grants_digest', 'receipt_digest'))
+    'implementation_sha256', 'profile_digest', 'objects_digest', 'grants_digest', 'receipt_digest',
+    'release_identity', 'schema_digest'))
 
 
 def _application_profile_digest():
@@ -723,6 +718,10 @@ def _production_application_profile_digest():
 
 
 def _validate_application_binding(binding, original, implementation_sha256, catalog_digests, *, production=False):
+    from release.native_identity import require_current
+    release_identity = require_current()
+    if not production or binding.get('release_identity') != release_identity:
+        _reject('fresh release identity differs; historical installation stays pinned')
     policy = PRODUCTION_APPLICATION_POLICY if production else APPLICATION_POLICY
     profile = _production_application_profile_digest() if production else _application_profile_digest()
     same_implementation = implementation_sha256 == original['adapter_sha256']
@@ -740,33 +739,25 @@ def _validate_application_binding(binding, original, implementation_sha256, cata
 
 def _validate_application(cursor, database, registration, evidence, *,
                           artifact_sha256, implementation_sha256, installer=False):
+    from release.native_schema import schema_digest
     original = _validate_identity(database,registration,evidence,
         artifact_sha256=artifact_sha256,adapter_sha256=registration['adapter_sha256'],installer=installer)
     binding = _read_application_capability(cursor,registration)
+    cursor.execute('SELECT rolinherit FROM pg_roles WHERE oid=ANY(%s) ORDER BY oid',
+        [[registration[k+'_oid'] for k in ('owner','issuer','consumer','acceptor')] + [registration['registrar']['oid']]])
+    if cursor.fetchall() != [(False,)] * 5:
+        _reject('native roles require NOINHERIT')
     _check_application_write_guards(cursor,registration)
     catalogue = _application_catalogue(cursor)
-    from django.conf import settings
     if binding.get('policy') == PRODUCTION_APPLICATION_POLICY:
         # A clean installation records the complete current catalogue once. It
         # has no historical catalogue to subtract or older adapter to impersonate.
         digests = _check_application_grants(catalogue, registration, logistics=True, production=True)
         _check_logistics_schema(cursor, catalogue, registration)
+        digests['schema_digest'] = schema_digest(cursor)
         return _validate_application_binding(binding, original, implementation_sha256,
             digests, production=True)
-    import os
-    if os.environ.get('VF_MDM_SEALED_EXPORT_LAYOUTS') == '1':
-        _require_sealed_layout_scope(database)
-        _check_application_grants(catalogue, registration, logistics=True, production=True)
-        catalogue = _original_user_preferences_catalogue(catalogue, registration)
-    if getattr(settings, 'VF_MTA_LOGISTICS_CURRENT', False):
-        # First validate every actual privilege, then the exact additive schema.
-        # Only that authenticated delta is removed for the unchanged sealed
-        # base comparison; no stored identity or original contract is replaced.
-        _check_application_grants(catalogue, registration, logistics=True)
-        _check_logistics_schema(cursor, catalogue, registration)
-        catalogue = _original_application_catalogue(catalogue, registration)
-    digests = _check_application_grants(catalogue,registration)
-    return _validate_application_binding(binding,original,implementation_sha256,digests)
+    _reject('historical capability requires its pinned original release')
 
 # Consumer row-lock permission must not become a calculation writer. Typed command
 # INSERTs belong only to the newly recorded action; existing closing images stay immutable.
@@ -899,57 +890,10 @@ LOGISTICS_FUNCTIONS = frozenset('mta.'+name+'()' for name in (
     'guard_logistics_owner','guard_transit_generation','guard_transit_annotation','guard_logistics_history'))
 
 
-def _require_sealed_layout_scope(database):
-    from release.sealed_export import PIN_ENV
-    from mta.mdm.native_report_compatibility import DATABASE
-    import os
-    if (not os.environ.get(PIN_ENV)
-            or (database['name'], database['oid']) != DATABASE):
-        _reject('sealed user preferences require the exact export and database')
 
 
-def _original_user_preferences_catalogue(catalogue, registration):
-    """Remove only three authenticated preference ACLs; preserve old OIDs/rows."""
-    table = 'mta.fresh_mta_userreportlayout'
-    sequence = table + '_id_seq'
-    keys = {('table', table, None, 'INSERT'), ('table', table, None, 'DELETE'),
-            ('sequence', sequence, None, 'USAGE')}
-    additions = [g for g in catalogue['grants'] if g['grantee'] == registration['consumer_oid']
-                 and (g['scope'], g['name'], g['column'], g['privilege']) in keys]
-    objects = {o['name']: o for o in catalogue['objects']}
-    if ({(g['scope'], g['name'], g['column'], g['privilege']) for g in additions} != keys
-            or len(additions) != 3
-            or any(g['grantor'] != registration['owner_oid'] or g['grantable']
-                   or g['owner'] != registration['owner_oid']
-                   or g['oid'] != objects[g['name']]['oid'] for g in additions)
-            or objects[table]['kind'] != 'r'
-            or objects[sequence]['kind'] != 'S'
-            or objects[sequence]['sequence_for'] != table + '.id'):
-        _reject('sealed user preference grant authority differs')
-    return dict(catalogue, grants=[g for g in catalogue['grants'] if g not in additions])
 
 
-def _original_application_catalogue(catalogue, registration):
-    """Subtract only the validated additive delta, preserving all original OIDs."""
-    additions = LOGISTICS_TABLES | LOGISTICS_SEQUENCES | LOGISTICS_FUNCTIONS
-    permissions=set()
-    for name, grants in LOGISTICS_APPLICATION_GRANTS.items():
-        for privilege in grants['table']:
-            if privilege=='UPDATE':
-                permissions.update(('column',name,col,'UPDATE') for col in grants['columns'])
-            else:
-                permissions.add(('table',name,None,privilege))
-        if 'INSERT' in grants['table']:
-            permissions.add(('sequence',name+'_id_seq',None,'USAGE'))
-    for acl in catalogue['grants']:
-        if acl['name'] in additions and (acl['grantee'] not in (registration['owner_oid'],registration['consumer_oid'])
-                or acl['grantor'] != registration['owner_oid'] or acl['grantable']):
-            _reject('logistics object grant authority differs')
-    return dict(objects=[o for o in catalogue['objects'] if o['name'] not in additions],
-        functions=[f for f in catalogue['functions'] if f['name'] not in additions],
-        grants=[g for g in catalogue['grants'] if g['name'] not in additions and not (
-            g['grantee']==registration['consumer_oid'] and
-            (g['scope'],g['name'],g['column'],g['privilege']) in permissions)])
 
 
 def _check_logistics_schema(cursor, catalogue, registration):

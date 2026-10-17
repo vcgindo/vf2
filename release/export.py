@@ -94,7 +94,8 @@ def export(repository, revision, destination):
     if destination.exists() or destination == repository or repository in destination.parents:
         raise ValueError('Choose a new external export directory; existing targets are never replaced')
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', revision + '^{commit}']).decode().strip()
-    archive = subprocess.check_output(['git', '-C', str(repository), 'archive', '--format=tar', commit])
+    archive = subprocess.check_output(['git', '-C', str(repository), '-c', 'core.autocrlf=false',
+        'archive', '--format=tar', commit])
     records = {}
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
         for member in tar.getmembers():
@@ -115,6 +116,9 @@ def export(repository, revision, destination):
         default_data_import=False, qualification='Source export only; image/platform/install/UI proof is separate. Required native SQL/migrations/security/source-integrity libraries retained; no customer/test DB, computed output seed or secret copied.')
     destination.mkdir(parents=True, exist_ok=True)
     (destination/'release-source.json').write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+    from release.native_identity import declaration, MANIFEST
+    native = declaration(destination, commit, records)
+    (destination/MANIFEST).write_text(json.dumps(native, sort_keys=True, indent=2)+'\n', encoding='utf-8')
     return value
 
 

@@ -100,3 +100,6 @@ mta/runtime/test_native_location_add.py -text -eol whitespace=cr-at-eol
 # Retain baseline7fe9722 byte-pinned day-six source/test files on this descendant.
 /mta/application/native_report_disposition.py -text -eol whitespace=cr-at-eol
 /tests/test_native_report_disposition.py -text -eol whitespace=cr-at-eol
+
+# Offline historical sources retain exact original committed bytes.
+/development/step5_originals/** -text -eol whitespace=cr-at-eol

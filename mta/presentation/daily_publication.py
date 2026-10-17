@@ -40,10 +40,6 @@ def recipe_identity():
     from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
     from mta.presentation import daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read
     value = dict(roster=daily_preparation.roster_identity(), layers=daily_preparation.required_layers(), coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare), daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count, daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
-    from mta.mdm.native_report_compatibility import logistics_producer_sources
-    prior = logistics_producer_sources()
-    if prior is not None:
-        value['daily_shipment_consumers'] = {name: prior.get(name.replace('.', '/') + '.py', text) for name, text in value['daily_shipment_consumers'].items()}
     return digest(value)
 
 

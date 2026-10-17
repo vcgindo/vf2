@@ -46,6 +46,11 @@ class ReleaseExportTests(unittest.TestCase):
         data=io.BytesIO()
         with tarfile.open(fileobj=data, mode='w') as tar:
             for name, raw in [('manage.py', b'print("entry")'), ('release/.dockerignore', b'**/secrets\n'),
+                              ('requirements.txt', b'Django==5.2.17\n'),
+                              ('mta/mdm/initialization.py', b"IMPLEMENTATION_FILES = ('mdm/initialization.py',)\n"),
+                              ('mta/runtime/migrations/0142_native_evidence_default.py', b'# migration\n'),
+                              ('vectorflow/settings.py', b'# settings\n'),
+                              ('baseline/production-state-schema.json', b'{}\n'),
                               ('release/secrets/password', b'not-exported'), ('tests/test_any.py', b'not-exported')]:
                 entry=tarfile.TarInfo(name);entry.size=len(raw)
                 tar.addfile(entry,io.BytesIO(raw))
@@ -54,9 +59,15 @@ class ReleaseExportTests(unittest.TestCase):
             destination=root/'export'
             with patch('release.export.subprocess.check_output',side_effect=[b'a'*40+b'\n',data.getvalue()]):
                 receipt=export(root/'repository','HEAD',destination)
-            self.assertEqual(set(receipt['files']),{'manage.py','release/.dockerignore','.dockerignore'})
+            self.assertEqual(set(receipt['files']),{'manage.py','requirements.txt','release/.dockerignore','.dockerignore',
+                'mta/mdm/initialization.py', 'mta/runtime/migrations/0142_native_evidence_default.py',
+                'vectorflow/settings.py', 'baseline/production-state-schema.json'})
             self.assertEqual((destination/'.dockerignore').read_bytes(),b'**/secrets\n')
             self.assertFalse((destination/'release/secrets/password').exists())
             self.assertEqual(json.loads((destination/'release-source.json').read_text())['source_commit'],'a'*40)
+            from release.native_identity import verify, MANIFEST
+            import hashlib
+            self.assertEqual(verify(destination, expected_commit='a'*40,
+                expected_sha256=hashlib.sha256((destination/MANIFEST).read_bytes()).hexdigest())['source_commit'], 'a'*40)
             with self.assertRaisesRegex(ValueError,'existing targets'):
                 export(root/'repository','HEAD',destination)

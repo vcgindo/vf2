@@ -20,6 +20,10 @@ def register_application(cursor, *, expected_database, expected_database_oid,
                          expected_registration_digest, expected_original_implementation,
                          implementation_sha256, production=False):
     database=owned._database_identity(cursor)
+    from release.native_identity import require_current
+    release_identity = require_current()
+    if not production or release_identity['implementation_sha256'] != implementation_sha256:
+        raise ValueError('Fresh native release capability required; historical targets stay pinned')
     registration=owned._registered_identity(cursor)
     evidence=owned._catalogue_evidence(cursor,database,registration)
     original=owned._validate_identity(database,registration,evidence)
@@ -108,6 +112,9 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         original_registration=original,
         original_implementation_sha256=expected_original_implementation,
         implementation_sha256=implementation_sha256,profile_digest=owned._production_application_profile_digest() if production else owned._application_profile_digest(),**digests)
+    binding['release_identity'] = release_identity
+    from release.native_schema import schema_digest
+    binding['schema_digest'] = schema_digest(cursor)
     binding['receipt_digest']=digest(binding)
     import json
     cursor.execute('SET LOCAL ROLE fresh_namespace_registrar')

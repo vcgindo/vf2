@@ -161,6 +161,8 @@ def require_admission():
 class AdmittedApplication:
     """The production WSGI boundary; direct offline proof commands are unchanged."""
     def __init__(self, application):
+        from release.native_identity import require_current
+        require_current()
         from mta.presentation.native_mode import require_configuration
         require_configuration()
         self.application = application

@@ -58,11 +58,12 @@ def current_implementation_digest():
 
 
 def implementation_digest():
+    from release.native_identity import require_current
+    identity = require_current()
     current = current_implementation_digest()
-    if current == '372c8ead5e10c72796b6318ce9eae531fb068182d9445ff727ab531e280d7ee5':
-        return current
-    from mta.mdm.native_report_compatibility import require_exact_implementation_delta
-    return require_exact_implementation_delta(current)
+    if identity['implementation_sha256'] != current:
+        raise ValueError('Native release implementation differs')
+    return current
 
 
 def families_for(batches):
