@@ -13,7 +13,7 @@ export interface ApplicationState {
 const ApplicationSetupContext = createContext<ApplicationState | null>(null);
 export const useApplicationSetup = () => useContext(ApplicationSetupContext);
 
-const loadState = async (): Promise<ApplicationState | null> => {
+export const loadApplicationState = async (): Promise<ApplicationState | null> => {
   const response = await axios.get('readyz', {
     timeout: 15000,
     validateStatus: status => status === 200 || status === 503,
@@ -30,7 +30,7 @@ const loadState = async (): Promise<ApplicationState | null> => {
 export const ApplicationSetup = ({ children }: PropsWithChildren<unknown>) => {
   const { pathname } = useLocation();
   const enabled = pathname.startsWith('/mta/') || pathname === '/supply-chain-intelligence-hub/merchandising-grid';
-  const state = useQuery(['installed-application-state'], loadState, {
+  const state = useQuery(['installed-application-state'], loadApplicationState, {
     enabled, retry: false, staleTime: 15000, refetchOnWindowFocus: false,
   });
   if (!enabled) return <>{children}</>;

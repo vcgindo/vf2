@@ -18,6 +18,8 @@ import {
 import { useUserData } from "../../../context";
 import _ from "lodash";
 import { APPLICATION_NAMES } from "../../../helpers/constants";
+import { useQuery } from "@tanstack/react-query";
+import { loadApplicationState } from "../../layouts/AppLayout/ApplicationSetup";
 
 const ModalAdvanedPermissions = (props: any) => {
   const { t } = useTranslation();
@@ -48,6 +50,13 @@ const ModalAdvanedPermissions = (props: any) => {
   } = props;
 
   const [isLoadSpinner, setIsLoadSpinner] = useState<any>(false);
+  const applicationState = useQuery(['installed-application-state'], loadApplicationState, {
+    enabled: openModal && activeApplication === 1,
+    retry: false, staleTime: 15000, refetchOnWindowFocus: false,
+  });
+  const emptyMtaSetup = activeApplication === 1 && applicationState.isSuccess && !!applicationState.data
+    && Array.isArray(allPermissions?.product_permission) && allPermissions.product_permission.length === 0
+    && Array.isArray(allPermissions?.location_permission) && allPermissions.location_permission.length === 0;
   const { mutateAsync: mutateRegister } = useRegisterUser();
   const { mutateAsync: mutatePutEditUser } = usePutEditUser();  
   const {mutateAsync: getDBRsettingsData} = useGetDBRsettingsData();
@@ -101,8 +110,8 @@ const ModalAdvanedPermissions = (props: any) => {
     }
     return storePermission.some((permission) => 
       permission.application_id === 1 &&
-      permission.productPermission?.brand?.length > 0 && 
-      permission.locationPermission?.lcRegion?.length > 0
+      (emptyMtaSetup || (permission.productPermission?.brand?.length > 0 &&
+      permission.locationPermission?.lcRegion?.length > 0))
     );
   };
 
@@ -171,11 +180,11 @@ const ModalAdvanedPermissions = (props: any) => {
 
       productPermissions.push({
         application_id:app.application_id,
-        permissions:dataPrdPermission
+        permissions:app.application_id === 1 && emptyMtaSetup ? [] : dataPrdPermission
       })
       locationPermissions.push({
         application_id:app.application_id,
-        permissions:dataLcPermission
+        permissions:app.application_id === 1 && emptyMtaSetup ? [] : dataLcPermission
       })
   
     });
@@ -407,6 +416,7 @@ const ModalAdvanedPermissions = (props: any) => {
                       </span>
                     </Dialog.Title>
                     <div className="advanced-permission-container">
+                      {emptyMtaSetup && <p role="status">No product or location scopes are available yet. This account will receive only the selected application role, with no population access.</p>}
                       {stepperDetails?.length > 1 && 
                         (<div style={{margin:'20px',minWidth:'500px'}}>
                           <UserMangementStepper
