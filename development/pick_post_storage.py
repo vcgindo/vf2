@@ -16,4 +16,3 @@ def publish_existing(run_id,*,expected_output_digest):
         read_pick_post(run,output=output,bands=bands)
         return PickPostProjection.objects.get(run=run)
     return write_pick_post(run,output,bands=bands)
-

@@ -16,4 +16,3 @@ def publish_existing(run_id, *, expected_output_digest):
         read_excess(run,output=output)
         return ExcessProjection.objects.get(run=run)
     return write_excess(run,output)
-

@@ -16,4 +16,3 @@ def publish_existing(run_id,*,expected_output_digest):
         read_expedite(run,output=output,bands=bands)
         return ExpediteProjection.objects.get(run=run)
     return write_expedite(run,output,bands=bands)
-

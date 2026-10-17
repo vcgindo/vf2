@@ -25,4 +25,3 @@ def publish_existing(run_id,*,expected_output_digest):
     calculated=list(iter_rows(evidence_path(run,'CalculationOutputs'),dict(sha256=checkpoint.evidence_sha256,
                     digest=checkpoint.digest,row_count=checkpoint.row_count)))
     return write_fulfillment(run,output,calculated)
-

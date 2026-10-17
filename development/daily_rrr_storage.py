@@ -159,4 +159,3 @@ def install(run_id, *, expected_output_digest, expected_seal):
     if _read_rows(receipt) != rows:
         raise ValueError('RRR colour typed readback differs')
     return receipt
-

@@ -33,4 +33,3 @@ def restore_pick_bands(run_id, *, expected_output_digest):
         production_digest=run.production_digest, evidence_path=checkpoint.evidence_path,
         evidence_sha256=checkpoint.evidence_sha256,
         parity_receipt_sha256=run.parity_summary['sha256']))
-
