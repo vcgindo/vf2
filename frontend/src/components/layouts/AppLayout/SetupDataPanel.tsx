@@ -89,7 +89,8 @@ const MasterDefinition = ({ operation, title, history }: MasterProps) => {
           </select></label>
           {configuration.data?.setupRequirements?.filter((item: any) => String(item.masterId) === family?.id)
             .map((item: any) => <p key={item.setting}>This master also requires the initialized {item.setting} setting.</p>)}
-          <VFTable columnDefs={history ? [...historyColumns, ...columns] : columns} rowData={[]} height="420px" overlayNoRowsTemplate="Initial data not loaded" />
+          <VFTable columnDefs={history ? [...historyColumns, ...columns] : columns} rowData={[]} height="420px"
+            overlayNoRowsTemplate={state?.initialized ? "No published operational day" : "Initial data not loaded"} />
           <button type="button" disabled>{operation === 'add' ? 'Upload' : 'Show All'}</button>{' '}
           {!history && <button type="button" disabled>Submit</button>}
         </>}

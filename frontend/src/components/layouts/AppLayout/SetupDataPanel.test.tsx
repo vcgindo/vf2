@@ -84,3 +84,14 @@ test('the empty reviewer page retains workflow headers and cannot start a task r
   expect(get).toHaveBeenCalledTimes(1);
   expect(post).not.toHaveBeenCalled();
 });
+
+
+test('initialized add configuration labels the missing publication truthfully', async () => {
+  get.mockResolvedValue(ready(true));
+  post.mockResolvedValue({ status: 200, data: { data: [{ id: '1', name: 'SKU', fields: [] }] } });
+  open(<SetupMaster operation="add"><OperationalPage /></SetupMaster>);
+  expect(await screen.findByText('No published operational day')).toBeInTheDocument();
+  expect(screen.queryByText('Initial data not loaded')).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Upload' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled();
+});
