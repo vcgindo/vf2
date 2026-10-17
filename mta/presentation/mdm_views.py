@@ -104,12 +104,12 @@ def seasonality_graph(request, payload):
 
 @endpoint('GET')
 def all_drafts(request, payload):
-    return response(data=drafts.listing(source(), identity(request)), message='Data fetched successfully')
+    return response(data=drafts.listing(source(read_only=True), identity(request)), message='Data fetched successfully')
 
 
 @endpoint('GET')
 def draft_count(request, payload, draft_id):
-    installed = source()
+    installed = source(read_only=True)
     try:
         return response(record_count=drafts.count(installed, draft_id, identity(request)))
     except drafts.DraftDenied as exc:
@@ -127,7 +127,7 @@ def draft(request, draft_id=None):
     reading = draft_id is not None and request.method == 'POST'
     @endpoint(request.method, requires='source' if reading else 'publication')
     def handle(request, payload):
-        installed = source()
+        installed = source(read_only=reading)
         actor = identity(request)
         try:
             if request.method == 'DELETE':

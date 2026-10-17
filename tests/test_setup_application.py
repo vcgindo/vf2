@@ -153,6 +153,20 @@ class SetupApplicationTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 409)
                 self.assertEqual(json.loads(response.content)['detail'], 'published_operational_day_required')
 
+    def test_initialized_draft_listing_uses_verified_read_source_without_publication(self):
+        installed = Mock()
+        state = dict(INSTALLED, initialized=True, state='initialized', source_digest='source')
+        with patch.object(admission, 'require_application_state', return_value=state), \
+                patch.object(mdm_views, 'source', return_value=installed) as selected, \
+                patch('mta.runtime.mdm_models.MdmSource.objects.filter') as rows, \
+                patch('mta.mdm.supplier_revisions.source_lock'), \
+                patch.object(mdm_views.drafts, 'listing', return_value=[]):
+            rows.return_value.values_list.return_value.first.return_value = 1
+            response = mdm_views.all_drafts(self.request('/api/mta/allDrafts', method='get'))
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(json.loads(response.content)['data'], [])
+            selected.assert_called_once_with(read_only=True)
+
     @override_settings(VF_MDM_SOURCE_DIGEST='chosen-initial-source')
     def test_source_initial_read_path_is_limited_to_validated_setup(self):
         from mta.mdm import source as sources
