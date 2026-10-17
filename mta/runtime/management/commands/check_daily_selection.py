@@ -14,8 +14,8 @@ class Command(BaseCommand):
         parser.add_argument('--selection-file')
 
     def handle(self, *args, **options):
-        from mta.presentation.native_mode import require_configuration
-        require_configuration()
+        from mta.presentation.native_publication import require_mode
+        require_mode()
         run = CalculationRun.objects.get(pk=options['run_id'])
         from mta.presentation import native_publication
         native = native_publication.enabled()

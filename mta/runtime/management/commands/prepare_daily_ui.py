@@ -12,8 +12,8 @@ class Command(BaseCommand):
         parser.add_argument('--output-digest', required=True)
 
     def handle(self, *args, **options):
-        from mta.presentation.native_mode import require_configuration
-        require_configuration()
+        from mta.presentation.native_publication import require_mode
+        require_mode()
         from mta.presentation import native_publication
         if native_publication.enabled():
             from mta.runtime.models import CalculationRun

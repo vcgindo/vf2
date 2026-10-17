@@ -13,16 +13,25 @@ import django
 django.setup()
 from mta.presentation import daily_publication, planning_summary_daily as daily
 from mta.presentation.context import PublicationUnavailable
+from django.test import override_settings
 from mta.runtime.management.commands.prepare_daily_ui import Command
 
 
 class DailySummaryTests(unittest.TestCase):
+    @override_settings(VF_MTA_NATIVE_PUBLICATION=True, VF_MTA_DAILY_PUBLICATION=True)
     def test_command_calls_complete_reporting_coordinator(self):
         publication=SimpleNamespace(run_id='run',status='READY',seal_digest='seal',layers={})
         summary=SimpleNamespace(pk='summary',status='READY',rows_digest='rows')
-        with patch('mta.runtime.management.commands.prepare_daily_ui.prepare_reporting_generation',return_value=(publication,summary)) as prepare:
+        run=SimpleNamespace(output_digest='output')
+        with patch('django.db.backends.base.base.BaseDatabaseWrapper.ensure_connection',side_effect=AssertionError('no DB authority')), \
+             patch('mta.runtime.models.CalculationRun.objects.get',return_value=run), \
+             patch('mta.presentation.native_publication.identity') as identity, \
+             patch('django.core.management.call_command') as aggregate, \
+             patch('mta.runtime.management.commands.prepare_daily_ui.prepare_reporting_generation',return_value=(publication,summary)) as prepare:
             Command(stdout=MagicMock()).handle(run_id='run',output_digest='output')
         prepare.assert_called_once_with('run',expected_output_digest='output')
+        identity.assert_called_once_with(run,verify_rows=True)
+        aggregate.assert_called_once_with('prepare_guided_aggregates',run_id='run',output_digest='output')
 
     def test_coordinator_prepares_summary_only_after_base_ready(self):
         run=SimpleNamespace(pk='run')

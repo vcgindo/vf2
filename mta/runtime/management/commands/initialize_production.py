@@ -18,6 +18,8 @@ class Command(BaseCommand):
         parser.add_argument('--inspect', action='store_true')
 
     def handle(self, *args, **options):
+        from mta.presentation.native_mode import require_configuration
+        require_configuration()
         try:
             raw = options['input'].read_bytes()
             parameters = dict(expected_configuration=options['configuration_digest'],

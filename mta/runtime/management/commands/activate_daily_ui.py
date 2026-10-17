@@ -14,6 +14,8 @@ class Command(BaseCommand):
         parser.add_argument('--publication-seal', required=True)
 
     def handle(self, *args, **options):
+        from mta.presentation.native_publication import require_mode
+        require_mode()
         run = CalculationRun.objects.get(pk=options['run_id'])
         result = activate(run, expected_output_digest=options['output_digest'],
             expected_seal=options['publication_seal'])

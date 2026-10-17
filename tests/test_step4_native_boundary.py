@@ -226,4 +226,25 @@ class Step4NativeBoundaryTests(unittest.TestCase):
                     self.assertEqual(output.getvalue(),'')
 
 
+
+    def test_native_command_guards_reject_before_input_query_or_writer(self):
+        from importlib import import_module
+        from mta.presentation.daily_preparation import command_binding
+        commands=('prepare_daily_ui','activate_daily_ui','check_daily_selection','prepare_guided_aggregates',
+                  'initialize_production','run_production_day')
+        for name in commands:
+            command=import_module('mta.runtime.management.commands.'+name).Command(stdout=io.StringIO())
+            with self.subTest(command=name),override_settings(VF_MTA_FIXTURE_FILE='retired.json'):
+                with self.assertRaisesRegex(PublicationUnavailable,'removed_historical_mode'):
+                    command.handle()
+        for name in commands[:4]:
+            command=import_module('mta.runtime.management.commands.'+name).Command(stdout=io.StringIO())
+            with self.subTest(command=name),override_settings(VF_MTA_NATIVE_PUBLICATION=False,VF_MTA_DAILY_PUBLICATION=False):
+                with self.assertRaisesRegex(PublicationUnavailable,'native_daily_publication_required'):
+                    command.handle()
+        with override_settings(VF_MTA_NATIVE_PUBLICATION=False,VF_MTA_DAILY_PUBLICATION=False):
+            with self.assertRaisesRegex(PublicationUnavailable,'native_daily_publication_required'):
+                command_binding('explicit-run-not-queried')
+
+
 if __name__=='__main__':unittest.main()

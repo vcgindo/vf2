@@ -20,6 +20,8 @@ class Command(BaseCommand):
         parser.add_argument('--inspect',action='store_true')
 
     def handle(self, *args, **options):
+        from mta.presentation.native_mode import require_configuration
+        require_configuration()
         try:
             if options['inspect']:
                 report,*_=inspect_execution(options['input'].read_bytes(),options['sha256'],

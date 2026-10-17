@@ -159,6 +159,8 @@ def command_binding(run_id=None):
     require_configuration()
     if run_id is None:
         raise PublicationUnavailable('explicit_native_preparation_run_required')
+    from mta.presentation.native_publication import require_mode
+    require_mode()
     from mta.runtime.models import CalculationRun
     run = CalculationRun.objects.get(pk=run_id)
     return run, source_digest(run)
