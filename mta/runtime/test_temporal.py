@@ -12,9 +12,7 @@ from mta.runtime.models import (CalculationRun, RunCommand, Checkpoint, PickBand
                                 ExpediteRow,ExpediteProjection,PickPostRow,PickPostProjection)
 from mta.runtime.services import read_outputs
 from mta.runtime.temporal import BOUNDARIES, record_command
-from development.temporal import execute_day
-from development.validation_storage import export_run
-from parity.output_archive import OutputArchive
+from mta.runtime.temporal import execute_day
 
 
 @override_settings(VF_MTA_DAILY_PUBLICATION=False)
@@ -42,11 +40,7 @@ class TemporalPersistenceTest(TransactionTestCase):
                     CalculationOutputs=[dict(capability='r1_ration_bifurcation', rows=[]),
                                         dict(capability='r1_order_route',rows=[])],
                     BPRFinal=[dict(BPR_Table=[],vf_RationedReqReport=[])],
-                    MajorBoundaries=[dict(boundary=name, state={}) for name in BOUNDARIES])
-        from mta.evidence import validating
-        if not validating():
-            result.pop('MajorBoundaries')
-            result['_CompletedBoundaries']=list(BOUNDARIES)
+                    _CompletedBoundaries=list(BOUNDARIES))
         return result
 
     def run_day(self, index=0, **kwargs):
@@ -147,7 +141,7 @@ class TemporalPersistenceTest(TransactionTestCase):
     def test_incomplete_boundary_roster_is_durable_failed_not_publication(self):
         def incomplete(*args):
             output = self.calculate(*args)
-            output['MajorBoundaries'].pop()
+            output['_CompletedBoundaries'].pop()
             return output
         with patch('mta.runtime.temporal.calculate_day', side_effect=incomplete):
             with self.assertRaisesMessage(ValueError, 'Incomplete daily boundary roster'):
@@ -157,29 +151,19 @@ class TemporalPersistenceTest(TransactionTestCase):
         self.assertEqual(run.status, 'FAILED')
         self.assertEqual(run.checkpoints.count(), 0)
 
-    def test_validation_boundaries_are_external_and_exactly_verified(self):
+    def test_native_business_root_is_verified_without_trace_checkpoints(self):
         run = self.run_day()
         self.assertNotIn('MajorBoundaries', read_outputs(run))
-        checkpoint = run.checkpoints.get(name='MajorBoundaries')
-        self.assertEqual(checkpoint.rows, [])
-        self.assertEqual(checkpoint.row_count, 8)
-        manifest = export_run(run, Path(self.directory.name) / 'export')
-        archive = OutputArchive(manifest)
-        self.assertEqual([r['boundary'] for r in archive.iter_rows('MajorBoundaries')], list(BOUNDARIES))
-        self.assertEqual(archive['ClosingState'], read_outputs(run)['ClosingState'])
-        archive.verify(run.output_digest,run.validation_digest)
-        Checkpoint.objects.filter(pk=checkpoint.pk).update(evidence_sha256='0'*64)
-        with self.assertRaisesMessage(ValueError, 'evidence file drift'):
-            export_run(run, Path(self.directory.name) / 'tampered-export')
+        self.assertEqual(run.checkpoints.count(), 0)
+        self.assertEqual(read_outputs(run)['ClosingState'], [self.state])
+        CalculationRun.objects.filter(pk=run.pk).update(output_roster=[*run.output_roster, 'MajorBoundaries'])
+        with self.assertRaisesMessage(ValueError, 'manifest/roster/root drift'):
+            read_outputs(run)
 
-    def test_atomic_failure_keeps_unpublished_trace_but_no_checkpoint_or_action(self):
-        create = Checkpoint.objects.create
-        def fail_trace(**fields):
-            if fields['name'] == 'MajorBoundaries':
-                raise RuntimeError('injected after external trace write')
-            return create(**fields)
-        with patch('mta.runtime.services.Checkpoint.objects.create', side_effect=fail_trace):
-            with self.assertRaisesMessage(RuntimeError, 'after external trace'):
+    def test_late_consumer_failure_rolls_back_typed_outputs_and_actions(self):
+        with patch('mta.presentation.pick_post_storage.write_pick_post',
+                   side_effect=RuntimeError('injected after typed consumer writes')):
+            with self.assertRaisesMessage(RuntimeError, 'after typed consumer writes'):
                 self.run_day()
         run = CalculationRun.objects.get(execution_revision=self.revision)
         self.assertEqual(run.status, 'FAILED')
@@ -197,11 +181,11 @@ class TemporalPersistenceTest(TransactionTestCase):
         self.assertFalse(PickPostProjection.objects.filter(run=run).exists())
         self.assertFalse(PickPostRow.objects.filter(run=run).exists())
         self.assertEqual(run.output_digest, '')
-        self.assertTrue((Path(self.directory.name) / str(run.pk) / 'MajorBoundaries.jsonl.gz').is_file())
+        self.assertFalse(list(Path(self.directory.name).rglob('*.gz')))
 
     def test_production_has_required_rows_without_validation_files_and_denies_mode_reuse(self):
-        with patch('development.temporal.persist_trace',side_effect=AssertionError('diagnostic trace')):
-            run=self.run_day(evidence_mode='production')
+        with patch('mta.runtime.services.Checkpoint.objects.create',side_effect=AssertionError('diagnostic trace')):
+            run=self.run_day()
         self.assertEqual(run.validation_digest,'')
         self.assertEqual(run.checkpoints.count(),0)
         self.assertEqual(read_outputs(run)['ClosingState'],[self.state])
@@ -217,10 +201,8 @@ class TemporalPersistenceTest(TransactionTestCase):
         read_excess(run,output=output)
         read_expedite(run,output=output,bands=bands)
         read_pick_post(run,output=output,bands=bands)
-        with self.assertRaisesMessage(ValueError,'evidence policy identity drift'):
+        with self.assertRaisesRegex(TypeError,'evidence_mode'):
             self.run_day(evidence_mode='validation')
-        with self.assertRaisesMessage(ValueError,'requires validation evidence'):
-            export_run(run,Path(self.directory.name)/'denied')
         PickProjection.objects.filter(run=run).update(calculation_digest='0'*64)
         with self.assertRaisesMessage(ValueError,'Required daily source receipt drift'):
             read_pick_bands(run)

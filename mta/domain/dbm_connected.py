@@ -1,6 +1,5 @@
 """Fixed ingestion, suspension1–26 and currently available Rules1–6 chain."""
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from mta.domain.dbm_ingestion import ingest_dbm
 from mta.domain import dbm_suspensions as s, dbm_rules as r
 
@@ -8,9 +7,9 @@ from mta.domain import dbm_suspensions as s, dbm_rules as r
 def connected_stages(today, state, facts):
     """Yield actual complete predecessor state; never accept stage answers."""
     current = ingest_dbm(today, state, facts)
-    yield 'ingestion', snapshot(current)
+    yield 'ingestion', current
     current = s.prepare_suspensions(current)
-    yield 'suspension1-5', snapshot(current)
+    yield 'suspension1-5', current
     steps = (
         s.suspend_introductions, s.apply_accepted_norm_stock,
         s.apply_accepted_norm_consumption, s.apply_forced_norm_stock,
@@ -28,15 +27,15 @@ def connected_stages(today, state, facts):
     )
     for number, calculate in enumerate(steps, 6):
         current = calculate(today, current)
-        yield f'suspension{number}', snapshot(current)
+        yield f'suspension{number}', current
     for number, calculate in enumerate((r.stockout_type_a, r.virtual_stockout,
             r.stockout_type_b, r.too_much_in_red, r.too_much_in_green,
             r.spike_recommendation), 1):
         current = calculate(today, current)
-        yield f'rule{number}', snapshot(current)
+        yield f'rule{number}', current
 
 
 def calculate_connected(today, state, facts):
-    snapshots = [{'stage': name, 'state': output}
-                 for name, output in connected_stages(today, state, facts)]
-    return {**snapshots[-1]['state'], 'ConnectedStages': snapshots}
+    for _, current in connected_stages(today, state, facts):
+        pass
+    return current

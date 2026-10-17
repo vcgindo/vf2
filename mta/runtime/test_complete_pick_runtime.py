@@ -50,7 +50,7 @@ class CompletePickRuntimeTests(TransactionTestCase):
                                  ('LogisticPickList', 'PickListDataForTruckFormation')}
 
     def test_pick_files_retry_from_own_typed_state(self):
-        run = self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+        run = self.run_day(pick_output_root=self.directory.name)
         state = read_outputs(run)['ClosingState'][0]['complete']
         self.assertEqual(state, self.state['complete'])
         reports = reports_from_pick_state(state)
@@ -60,13 +60,13 @@ class CompletePickRuntimeTests(TransactionTestCase):
                 self.assertEqual((Path(self.directory.name)/str(run.pk)/folder/name).read_bytes(), expected)
         target = Path(self.directory.name)/str(run.pk)/'download'/PICK_NAMES['logistic']
         target.unlink()
-        again = self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+        again = self.run_day(pick_output_root=self.directory.name)
         self.assertEqual(again.pk, run.pk)
         self.assertEqual(len(self.seen), 1)
         self.assertEqual(target.read_bytes(), sqlcmd_bytes(reports['logistic']['resultsets']))
 
     def test_initial_opening_collision_restores_files_without_calculation(self):
-        run = self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+        run = self.run_day(pick_output_root=self.directory.name)
         target = Path(self.directory.name)/str(run.pk)/'output'/PICK_NAMES['remaining_summary']
         expected = target.read_bytes()
         target.unlink()
@@ -74,7 +74,7 @@ class CompletePickRuntimeTests(TransactionTestCase):
         # observe the row, while the unique opening key did.
         with patch.object(CalculationRun.objects, 'filter') as candidates:
             candidates.return_value.first.return_value = None
-            again = self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+            again = self.run_day(pick_output_root=self.directory.name)
         self.assertEqual(again.pk, run.pk)
         self.assertEqual(len(self.seen), 1)
         self.assertEqual(target.read_bytes(), expected)
@@ -83,18 +83,18 @@ class CompletePickRuntimeTests(TransactionTestCase):
         with patch('mta.application.complete_daily_batch_files.write_run_pick_files',
                    side_effect=OSError('deliberate Pick file failure')):
             with self.assertRaisesMessage(OSError, 'deliberate Pick file failure'):
-                self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+                self.run_day(pick_output_root=self.directory.name)
         run = CalculationRun.objects.get(execution_revision=self.revision)
         self.assertEqual(run.status, 'FAILED')
         self.assertFalse(run.production_manifest)
         with self.assertRaises(ValueError):
-            self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+            self.run_day(pick_output_root=self.directory.name)
         self.assertEqual(CalculationRun.objects.filter(execution_revision=self.revision).count(), 1)
 
     def test_partial_files_are_isolated_from_previously_completed_run(self):
         import shutil
         import uuid
-        completed = self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+        completed = self.run_day(pick_output_root=self.directory.name)
         folder = Path(self.directory.name)/str(completed.pk)
         before = {p.relative_to(folder).as_posix():p.read_bytes() for p in folder.rglob('*.csv')}
         self.revision = 'pick-partial-'+str(uuid.uuid4())
@@ -107,7 +107,7 @@ class CompletePickRuntimeTests(TransactionTestCase):
             return original(source,target,*args,**kwargs)
         with patch('mta.application.complete_daily_batch_files.shutil.copyfile', side_effect=fail_second):
             with self.assertRaisesMessage(OSError, 'deliberate second-file failure'):
-                self.run_day(evidence_mode='production', pick_output_root=self.directory.name)
+                self.run_day(pick_output_root=self.directory.name)
         failed = CalculationRun.objects.get(execution_revision=self.revision)
         self.assertEqual(failed.status,'FAILED')
         self.assertFalse(failed.production_manifest)

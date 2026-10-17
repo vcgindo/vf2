@@ -14,7 +14,6 @@ from mta.application.norm0_reports import resultsets, export_files
 from mta.domain.dbm_selected_chain import selected_norm012_stages
 from mta.domain.dbm_norm012 import AmbiguousReport, NORM0_EXPORT_STAGES
 from mta.temporal.chain import retain_dbm_stages
-from mta.evidence import evidence_mode
 
 
 def day6state():
@@ -25,9 +24,8 @@ def day6state():
 
 
 def reports(source=None, limited=True, configuration=None):
-    with evidence_mode('production'):
-        stages = retain_dbm_stages(selected_norm012_stages('2026-10-18', source or day6state(),
-            configuration or batch(), {'native_report_disposition': d.binding(d.DAY6_ID)} if limited else None), [])
+    stages = retain_dbm_stages(selected_norm012_stages('2026-10-18', source or day6state(),
+        configuration or batch(), {'native_report_disposition': d.binding(d.DAY6_ID)} if limited else None), [])
     return [dict(stage=n,tables=v) for n,v in stages if n in NORM0_EXPORT_STAGES.values()]
 
 

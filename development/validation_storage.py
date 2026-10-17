@@ -5,7 +5,11 @@ from pathlib import Path
 
 from parity.output_archive import OutputArchive, write_rows
 from parity.output_archive import iter_rows
-from mta.temporal.chain import DELIVERY_TABLES
+TABLES=('ClosingState','MasterValidation','SupplierStages','DailyStages','ControlStages','OrderStages',
+        'CalculationInput','CalculationOutputs','CalculationRun','BPRStages','DBMStages')
+
+DELIVERY_TABLES = TABLES + ('BPRFinal', 'DBMFinal', 'Reports', 'BTRFinal', 'BTRStages',
+                           'MajorBoundaries', 'Lineage', 'PublicationContext')
 from mta.serialization import digest
 
 TRACE_NAMES = frozenset(('MasterValidation', 'SupplierStages', 'DailyStages',

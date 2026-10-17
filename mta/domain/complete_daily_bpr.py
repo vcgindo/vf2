@@ -6,11 +6,10 @@ here. SQL TRY/CATCH errors are exposed to the caller rather than represented as 
 successful empty result. Dynamic execution-flag SQL remains the completion owner.
 Native collation and FLOAT conversions must be supplied explicitly: these are
 semantic inputs, not permission to approximate SQL formatting or repair data.
-Statement snapshots retain scratch rows; final scratch populations are empty.
-Production consumes live stage values with final_stage; validation snapshots them.
+Intermediate working scratch rows are cleared before returning final populations.
+Stage consumers exhaust the statements before reading final business populations.
 """
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from datetime import date, datetime
 import math
 
@@ -86,7 +85,7 @@ def post_bpr_stages(*, sku_loc_attributes, pick_list_report, master_data_raw,
                       'NMSAllItems': nms_all_items,
                       'IntermediateTables': intermediate_tables})
     state['IntermediateTables'] = {name: [] for name in intermediate_tables}
-    yield 'truncate-intermediate-before', snapshot(state)
+    yield 'truncate-intermediate-before', state
     nonself = [r for r in pick_list_report
                if r['WhCode'] is not None and r['ParentWhCode'] is not None
                and not equal(r['WhCode'], r['ParentWhCode'])]
@@ -94,7 +93,7 @@ def post_bpr_stages(*, sku_loc_attributes, pick_list_report, master_data_raw,
     _update(state['SkuLocAttributeData'], nonself, pair,
             lambda r: str(_int(r['RationedReq'], 'Pick.RationedReq')),
             'c3', equal, 'PostBPR rationed c3')
-    yield 'rationed-c3', snapshot(state)
+    yield 'rationed-c3', state
     dispatch = []
     raw_fields = (('SKUCode', 'SKUCode'), ('WhCode', 'WhCode'),
                   ('ParentWhCode', 'ParentWhCode'))
@@ -135,21 +134,23 @@ def post_bpr_stages(*, sku_loc_attributes, pick_list_report, master_data_raw,
                              'c3': _text(text, 'SkuLocAttributeData.c3', 50, nullable=True)})
     _update(state['SkuLocAttributeData'], dispatch, pair, lambda r: r['c3'],
             'c3', equal, 'PostBPR dispatch c3')
-    yield 'dispatch-c3', snapshot(state)
+    yield 'dispatch-c3', state
     attrs = state['SkuLocAttributeData']
     for table, loc, field in (('BPR_Table', 'WhCode', 'SKULocAttr3'),
                               ('ImporterSkuLocAttributeData', 'LocCode', 'c3'),
                               ('NMSAllItems', 'WhCode', 'SKULocAtt03')):
         _update(state[table], attrs, (('SKUCode', 'SKUCode'), (loc, 'LocCode')),
                 lambda r: r['c3'], field, equal, 'PostBPR propagation ' + table)
-        yield 'propagate-' + table, snapshot(state)
+        yield 'propagate-' + table, state
     state['IntermediateTables'] = {name: [] for name in intermediate_tables}
-    yield 'truncate-intermediate-after', snapshot(state)
+    yield 'truncate-intermediate-after', state
 
 
 def post_bpr_calculated_attributes(**populations_and_adapters):
     """Return final PostBPR populations without retaining diagnostic snapshots."""
-    return final_stage(post_bpr_stages(**populations_and_adapters))[-1][1]
+    for _, state in post_bpr_stages(**populations_and_adapters):
+        pass
+    return state
 
 
 def production_suggestion_stages(*, supplier_dispatch_req, plants,
@@ -174,9 +175,9 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
     required = ('TempProductionOrderReq', 'TempConsolidatedProdOrderReq', 'PlantStock')
     if any(name not in scratch for name in required):
         raise ValueError('SCHEMA_REQUIRED: production suggestion intermediate tables')
-    yield 'truncate-intermediate-before', snapshot(state)
+    yield 'truncate-intermediate-before', state
     state['ProdOrderSuggestions'] = []
-    yield 'truncate-suggestions', snapshot(state)
+    yield 'truncate-suggestions', state
     for req in supplier_dispatch_req:
         for plant in plants:
             if not _match(req, plant, (('SupplierCode', 'PlantCode'),), equal):
@@ -194,7 +195,7 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
                     row[target] = _int(owner[source], 'TempProductionOrderReq.' + target,
                                        nullable=target == 'Stock')
                 scratch['TempProductionOrderReq'].append(row)
-    yield 'insert-production-req', snapshot(state)
+    yield 'insert-production-req', state
     consolidated = scratch['TempConsolidatedProdOrderReq']
     for row in scratch['TempProductionOrderReq']:
         hits = [r for r in consolidated if _match(row, r,
@@ -208,7 +209,7 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
             for color in ('Red', 'Yellow', 'Green'):
                 hits[0][color] = _int(hits[0][color] + row[color], 'SUM(' + color + ')')
     consolidated.sort(key=lambda r: sort_key(r['SKUCode']))
-    yield 'consolidate-production-req', snapshot(state)
+    yield 'consolidate-production-req', state
     for daily in daily_consumption:
         if today is None or daily['ReportDate'] is None or _date(daily['ReportDate']) != today:
             continue
@@ -219,12 +220,12 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
                     'WHCode': _text(daily['WHCode'], 'PlantStock.WHCode', 50),
                     'Stock': _int(0 if daily['Stock'] is None else daily['Stock'], 'PlantStock.Stock'),
                     'GIT': _int(daily['GIT'], 'PlantStock.GIT')})
-    yield 'insert-plant-stock', snapshot(state)
+    yield 'insert-plant-stock', state
     _update(consolidated, scratch['PlantStock'],
             (('SKUCode', 'SKUCode'), ('PlantCode', 'WHCode')),
             lambda r: _int(r['Stock'] + r['GIT'], 'PlantStock.Stock+GIT'),
             'RemPlantEcoStk', equal, 'production plant stock')
-    yield 'update-plant-eco-stock', snapshot(state)
+    yield 'update-plant-eco-stock', state
     for color in ('Red', 'Yellow', 'Green'):
         for row in consolidated:
             eligible = (row['Red'] > 0 if color == 'Red' else
@@ -235,20 +236,22 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
                 row[color] = 0 if stock >= req else _int(req - stock, color + '-stock')
                 row['RemPlantEcoStk'] = _int(stock - req, 'stock-' + color) if stock >= req else 0
                 row['EcoColor'] = color
-        yield 'net-' + color.lower(), snapshot(state)
+        yield 'net-' + color.lower(), state
     for row in consolidated:
         row['TotalReq'] = _int(_int(row['Red'] + row['Yellow'], 'Red+Yellow') + row['Green'], 'TotalReq')
-    yield 'total-production-req', snapshot(state)
+    yield 'total-production-req', state
     if today is None and any(r['TotalReq'] > 0 for r in consolidated):
         raise ValueError('NONNULL_CONSTRAINT: ProdOrderSuggestions.ReportDate')
     state['ProdOrderSuggestions'] = [{k: r[k] for k in (
         'SKUCode', 'PlantCode', 'Red', 'Yellow', 'Green', 'TotalReq', 'EcoColor')}
         | {'ReportDate': today} for r in consolidated if r['TotalReq'] > 0]
-    yield 'insert-suggestions', snapshot(state)
+    yield 'insert-suggestions', state
     state['IntermediateTables'] = {name: [] for name in intermediate_tables}
-    yield 'truncate-intermediate-after', snapshot(state)
+    yield 'truncate-intermediate-after', state
 
 
 def production_order_suggestions(**populations_and_settings):
     """Return final suggestions and cleared scratch populations."""
-    return final_stage(production_suggestion_stages(**populations_and_settings))[-1][1]
+    for _, state in production_suggestion_stages(**populations_and_settings):
+        pass
+    return state

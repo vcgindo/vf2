@@ -1,3 +1,4 @@
+from tests.stage_values import capture_stages
 """Source-owned phase horizons, dispatch, typed retention and computed carry."""
 from copy import deepcopy
 from datetime import date,timedelta
@@ -165,7 +166,7 @@ class ConnectedPhaseTests(unittest.TestCase):
 
     def test_all_enabled_actual_position_auto_queue_and_closing_without_phase_workflow_mutation(self):
         value,facts,config=self.setup_flow();before=deepcopy(value)
-        stages=list(connected_dbm_stages(TODAY,value,facts,config));names=[name for name,_ in stages]
+        stages=capture_stages(connected_dbm_stages(TODAY,value,facts,config));names=[name for name,_ in stages]
         self.assertEqual(names[names.index('norm1-advisory'):names.index('auto-acceptance')+1],
                          ['norm1-advisory','phase-recommendation-30','phase-recommendation-60','phase-recommendation-90','auto-acceptance'])
         for horizon in phase.HORIZONS:
@@ -200,10 +201,10 @@ class ConnectedPhaseTests(unittest.TestCase):
     def test_inactive_real_dispatch_unchanged_and_single_horizon_uses_only_explicit_tolerance(self):
         value,facts,config=self.setup_flow();config['batch']=batch(())
         with patch.object(phase,'phase_recommendation',side_effect=AssertionError('inactive called')):
-            inactive=list(connected_dbm_stages(TODAY,value,facts,config))
+            inactive=capture_stages(connected_dbm_stages(TODAY,value,facts,config))
         self.assertFalse(any(name.startswith('phase-recommendation-') for name,_ in inactive))
         for horizon in phase.HORIZONS:
-            config['batch']=batch((horizon,));stages=list(connected_dbm_stages(TODAY,value,facts,config))
+            config['batch']=batch((horizon,));stages=capture_stages(connected_dbm_stages(TODAY,value,facts,config))
             self.assertEqual([name for name,_ in stages if name.startswith('phase-')],[f'phase-recommendation-{horizon}'])
             for (name,expected),(actual,current) in zip(inactive,[(n,s) for n,s in stages if not n.startswith('phase-')]):
                 self.assertEqual(name,actual)

@@ -1,7 +1,7 @@
 """Complementary inactive-native input/finalization checks; no persisted day."""
 from copy import deepcopy
 import unittest
-from tests.test_h3_daily_integration import frame, calculate_day, calculate_current_day, evidence_mode
+from tests.test_h3_daily_integration import frame, calculate_day, calculate_current_day
 from tests.production_h3_fixture import supplied_input, supplied_day
 from tests.initialization_input_fixture import encoded
 from tests.test_production_daily_contract import encoded_day
@@ -107,10 +107,9 @@ class InactiveNativeContract(unittest.TestCase):
         f=inactive_frame();prior=f['opening']['state'];opening='2037-04-09'
         for today in ('2037-04-10','2037-04-11'):
             day=working_day(decode(*encoded_day(inactive_day(today,root=today.endswith('10')))),f['profile'])
-            with evidence_mode('production'):
-                result=calculate_day(deepcopy(prior),opening,day,f['profile'],'component-inactive-'+today,
-                    lambda source,**owned:(calculate_current_day(source,defer_pick=True,**owned),'component-inactive-'+today),
-                    native_daily=True)
+            result=calculate_day(deepcopy(prior),opening,day,f['profile'],'component-inactive-'+today,
+                lambda source,**owned:(calculate_current_day(source,defer_pick=True,**owned),'component-inactive-'+today),
+                native_daily=True)
             result['Lineage']=[dict(cohort1=result.pop('_Cohort1'))]
             verify_successor(result,f['profile'],today)
             prior=result['ClosingState'][0]

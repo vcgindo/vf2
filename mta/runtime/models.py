@@ -21,7 +21,7 @@ class CalculationRun(models.Model):
     business_date = models.DateField()
     input_payload = models.JSONField()
     input_manifest_digest = models.CharField(max_length=64, blank=True)
-    evidence_mode = models.CharField(max_length=16, default='validation')
+    evidence_mode = models.CharField(max_length=16, default='production')
     validation_digest = models.CharField(max_length=64, blank=True)
     status = models.CharField(max_length=16, default='RUNNING')
     output_digest = models.CharField(max_length=64, blank=True)

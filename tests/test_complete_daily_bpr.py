@@ -4,7 +4,7 @@ import math
 import unittest
 from unittest.mock import patch
 
-from mta.evidence import evidence_mode, final_stage
+from tests.stage_values import capture_stages
 
 from mta.domain.complete_daily_bpr import (
     post_bpr_calculated_attributes, post_bpr_stages,
@@ -58,25 +58,19 @@ def production_input():
 
 
 class PostBPRTests(unittest.TestCase):
-    def test_production_validation_modes_equal_without_diagnostic_deepcopy(self):
+    def test_native_final_values_match_external_capture_without_mutating_early_values(self):
         inputs = post_input()
         inputs['sku_loc_attributes'] *= 2
         inputs['pick_list_report'][0]['VirtualNorm'] = None
-        with evidence_mode('validation'):
-            validation = final_stage(post_bpr_stages(**inputs))
-        with evidence_mode('production'), patch('mta.evidence.deepcopy', side_effect=AssertionError('diagnostic copy')):
-            production = final_stage(post_bpr_stages(**inputs))
-            final = post_bpr_calculated_attributes(**inputs)
-        self.assertEqual(len(production), 1)
-        self.assertGreater(len(validation), 1)
-        self.assertEqual(production[-1], validation[-1])
-        self.assertEqual(final, validation[-1][1])
+        captured = capture_stages(post_bpr_stages(**inputs))
+        final = post_bpr_calculated_attributes(**inputs)
+        self.assertEqual(final, captured[-1][1])
 
     def test_statement_order_propagation_multiplicity_and_no_mutation(self):
         inputs = post_input()
         inputs['sku_loc_attributes'] *= 2
         original = deepcopy(inputs['sku_loc_attributes'])
-        stages = dict(post_bpr_stages(**inputs))
+        stages = dict(capture_stages(post_bpr_stages(**inputs)))
         self.assertEqual(stages['rationed-c3']['SkuLocAttributeData'][0]['c3'], '3')
         result = stages['truncate-intermediate-after']
         self.assertEqual([r['c3'] for r in result['SkuLocAttributeData']], ['8', '8'])
@@ -137,26 +131,20 @@ class ProductionTests(unittest.TestCase):
         without_report_colors = production_order_suggestions(**inputs)
         inputs['rationed_req_report'][0].update(ReqTopOfRed=999, ReqTopOfYellow=None, ReqTopOfGreen=-999)
         self.assertEqual(production_order_suggestions(**inputs), without_report_colors)
-        stages = dict(production_suggestion_stages(**inputs))
+        stages = dict(capture_stages(production_suggestion_stages(**inputs)))
         inserted = stages['insert-production-req']['IntermediateTables']['TempProductionOrderReq'][0]
         self.assertEqual((inserted['Red'], inserted['Yellow'], inserted['Green']), (3, 4, 5))
         self.assertEqual((inserted['Norm'], inserted['Stock'], inserted['GIT']), (10, None, 0))
 
-    def test_production_validation_modes_equal_with_required_business_scratch(self):
+    def test_native_final_values_match_external_capture_with_required_business_scratch(self):
         inputs = production_input()
         inputs['supplier_dispatch_req'] *= 2
         inputs['plants'] *= 2
         inputs['daily_consumption'][0]['Stock'] = None
-        with evidence_mode('validation'):
-            validation = final_stage(production_suggestion_stages(**inputs))
-        with evidence_mode('production'), patch('mta.evidence.deepcopy', side_effect=AssertionError('diagnostic copy')):
-            production = final_stage(production_suggestion_stages(**inputs))
-            final = production_order_suggestions(**inputs)
-        self.assertEqual(len(production), 1)
-        self.assertGreater(len(validation), 1)
-        self.assertEqual(production[-1], validation[-1])
-        self.assertEqual(final, validation[-1][1])
-        stages = dict(validation)
+        captured = capture_stages(production_suggestion_stages(**inputs))
+        final = production_order_suggestions(**inputs)
+        self.assertEqual(final, captured[-1][1])
+        stages = dict(captured)
         self.assertEqual(len(stages['insert-production-req']['IntermediateTables']['TempProductionOrderReq']), 4)
         self.assertEqual(len(stages['insert-plant-stock']['IntermediateTables']['PlantStock']), 2)
         self.assertEqual(stages['insert-plant-stock']['IntermediateTables']['PlantStock'][0]['Stock'], 0)
@@ -164,7 +152,7 @@ class ProductionTests(unittest.TestCase):
     def test_sequential_netting_and_original_inputs(self):
         inputs = production_input()
         original = deepcopy(inputs)
-        stages = dict(production_suggestion_stages(**inputs))
+        stages = dict(capture_stages(production_suggestion_stages(**inputs)))
         red = stages['net-red']['IntermediateTables']['TempConsolidatedProdOrderReq'][0]
         self.assertEqual((red['Red'], red['RemPlantEcoStk'], red['EcoColor']), (0, 2, 'Red'))
         result = stages['truncate-intermediate-after']
@@ -177,7 +165,7 @@ class ProductionTests(unittest.TestCase):
         inputs = production_input()
         inputs['supplier_dispatch_req'] *= 2
         inputs['plants'] *= 2
-        stages = dict(production_suggestion_stages(**inputs))
+        stages = dict(capture_stages(production_suggestion_stages(**inputs)))
         self.assertEqual(len(stages['insert-production-req']['IntermediateTables']['TempProductionOrderReq']), 4)
         row = stages['truncate-intermediate-after']['ProdOrderSuggestions'][0]
         self.assertEqual((row['Red'], row['Yellow'], row['Green'], row['TotalReq']), (7, 16, 20, 43))

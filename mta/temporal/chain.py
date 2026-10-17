@@ -5,7 +5,6 @@ an internal projection of actual current producers, never an external answer.
 """
 
 from copy import deepcopy
-from mta.evidence import validating, final_stage
 
 from decimal import Decimal
 
@@ -60,8 +59,6 @@ def connected_btr_stages(today, prior, facts, delivery, *, bpr_daily, supplier_d
 
 def retain_dbm_stages(selected,completed_boundaries):
     """Retain each report before staging tables clear; never key by norm alone."""
-    if validating():
-        return list(selected)
     required_reports=('norm-change-export','norm-change-history','norm1-advisory',
                       *NORM0_EXPORT_STAGES.values(),'norm1-export','norm2-export',*PHASE_STAGES)
     tables=('ReportHeader','ReportRows','Norm0Norm1Norm2Report',
@@ -95,11 +92,6 @@ def dbm_report_images(stages):
 
 CAPABILITY='r2_calculation_timeline'
 
-TABLES=('ClosingState','MasterValidation','SupplierStages','DailyStages','ControlStages','OrderStages',
-        'CalculationInput','CalculationOutputs','CalculationRun','BPRStages','DBMStages')
-
-DELIVERY_TABLES = TABLES + ('BPRFinal', 'DBMFinal', 'Reports', 'BTRFinal', 'BTRStages',
-                           'MajorBoundaries', 'Lineage', 'PublicationContext')
 
 SHARED_CONTROLS={'dbm_master':'DBMMaster','suggestions':'Suggestions','reason_codes':'ReasonCodes',
     'acceptance':'NormAcceptanceTbl','phase_out':'PhaseOutTbl','phase_in':'PhaseInTbl','seasonality':'Seasonality',
@@ -279,15 +271,10 @@ def additional_native(prepared, importer):
 
 def calculate_day(prior, opening_date, day, profile, identity, execute_calculation,
                   report_exceptions=None, *, native_daily=False):
-    # Finish calculation before normalization so its temporary frames are gone.
-    # Replacing one owned checkpoint at a time preserves the exact json_value
-    # representation without a simultaneous second copy of the complete trace.
+    # Native producers retain only their required business outputs/captures.
     result = _calculate_day_native(prior, opening_date, day, profile, identity,
                                    execute_calculation, report_exceptions,
                                    **({'native_daily':True} if native_daily else {}))
-    if validating():
-        for name in result:
-            result[name] = json_value(result[name])
     return result
 
 
@@ -360,24 +347,21 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         controls['importer_settings'].extend(deepcopy(profile['daily']['settings']))
         from mta.application.timeline_controls import timeline_control_stages, EXTRA_TABLES
         from mta.domain.control_carry import TABLES as CONTROL_TABLES
-        connected = final_stage(timeline_control_stages(today, opening_date, controls,
-            prior['control_aux'], day, {**delivery['controls'], 'force_flags': profile['force_flags']},
-            daily_final['DailyDataProcessed'], importer['SkuLocAttributeData'],
-            force_alert_capture=force_alert_capture))
-        for _, state, _ in connected:
-            delivery_control_types(state)
+        for _, complete, diagnostics in timeline_control_stages(today, opening_date, controls,
+                prior['control_aux'], day, {**delivery['controls'], 'force_flags': profile['force_flags']},
+                daily_final['DailyDataProcessed'], importer['SkuLocAttributeData'],
+                force_alert_capture=force_alert_capture):
+            pass
+        delivery_control_types(complete)
         if completion is not None:
-            # The accepted compound control generator is fully consumed even
-            # when evidence mode retains only its final snapshot.
+            # All ordered control statements finish before completion is marked.
             daily_finalization.mark(completion, 'UpdateNormChanges.sql')
-        control = [(name, state) for name, state, _ in connected]
-        complete = connected[-1][1]
         control_final = {n: deepcopy(complete[n]) for n in CONTROL_TABLES}
         control_aux = {n: deepcopy(complete[n]) for n in EXTRA_TABLES}
-        diagnostics = connected[-1][2]
     else:
-        control=final_stage(control_stages(today,opening_date,controls,profile['force_flags'],day['accepted_feed'],day['new_force_requests']))
-        control_final=deepcopy(control[-1][1])
+        for _, control_state in control_stages(today,opening_date,controls,profile['force_flags'],day['accepted_feed'],day['new_force_requests']):
+            pass
+        control_final=deepcopy(control_state)
     completed_boundaries=['controls']
     importer['MasterData']=deepcopy(control_final['importer_master'])
     importer['ForceNormChange']=deepcopy(control_final['force_requests'])
@@ -403,10 +387,11 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     order_input={**deepcopy(prior['orders']),'BPRMaster':bpr_master,'DBMMaster':deepcopy(control_final['dbm_master']),
         'AdditionalMasterData':additional_native(prepared,importer),'LastBatchRunTbl':[{'LastRunDate':opening_date+'T00:00:00'}],
         'PSOData':[],'IntermediateTables':deepcopy(control_final['IntermediateTables'])}
-    orders=final_stage(order_stages(today,opening_date,order_input,day['order_feed_status'],day['order_feed']))
+    for _, order_state in order_stages(today,opening_date,order_input,day['order_feed_status'],day['order_feed']):
+        pass
     if completion is not None:
         daily_finalization.mark(completion, 'ImportSpikeOrders.sql', 'CalculateDD.sql')
-    source['orders'].extend(calculation_order_rows(orders[-1][1]))
+    source['orders'].extend(calculation_order_rows(order_state))
     native_stock = {}
     if 'production_report_policy' in day:
         native_stock['_production_sources'] = True
@@ -414,7 +399,7 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         native_stock['_owned_daily_stock'] = dict(daily_consumption=generated_bpr_daily_state(
             {'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily),
             attributes=importer['SkuLocAttributeData'])
-    calculated,calculation_id=execute_calculation(source, _owned_order_closing=orders[-1][1], **native_stock)
+    calculated,calculation_id=execute_calculation(source, _owned_order_closing=order_state, **native_stock)
     if completion is not None:
         daily_finalization.mark(completion, *daily_finalization.CALCULATION_SCRIPTS)
     from mta.application.r1_rationed_report import rationed_report
@@ -424,7 +409,7 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     if 'production_report_policy' in day:
         from mta.application.production_order_sources import produce as produce_order_sources
         calculated['r1_allocated_orders'] = produce_order_sources(today=today, calculated=calculated,
-            orders=orders[-1][1]['SpikeOrderData'], dbm_master=control_final['dbm_master'],
+            orders=order_state['SpikeOrderData'], dbm_master=control_final['dbm_master'],
             attributes=importer['SkuLocAttributeData'], daily_consumption=native_stock['_owned_daily_stock']['daily_consumption'])
     if completion is not None:
         daily_finalization.mark(completion, 'GenerateRationReqReport.sql')
@@ -457,9 +442,8 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         'PhaseInTbl':control_final['phase_in'],'PhaseOutTbl':control_final['phase_out'],'LastBatchRunTbl':[{'LastRunDate':now}],
         'DailyDataForBPR':[],'PenetrationAndColor':[],'BPRExceptions':[],'BPR_Table':[],
         'IntermediateTables':deepcopy(control_final['IntermediateTables'])}
-    bpr_stages,late=constructor_then_late(today,constructor,report)
+    _,late=constructor_then_late(today,constructor,report)
     completed_boundaries.append('final-bpr-bluezone')
-    bpr_stages.append(('UpdateBPR.sql',{**late,'vf_RationedReqReport':report}))
     if completion is not None:
         daily_finalization.mark(completion, '01. ImportData.sql', 'CollectDataForBPR.sql',
             'CalculatePenetrationAndColor.sql', 'GenerateBPR.sql', 'UpdateBPR.sql')
@@ -516,8 +500,7 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         'bpr':{'BPRMaster':bpr_master,'Plants':deepcopy(prior['bpr']['Plants']),'NoNormMaster':deepcopy(prior['bpr']['NoNormMaster']),
                'DailyConsumption':deepcopy(late['BPRDailyConsumption'])},
         'supplier':{'SOBData':supplier_state['refreshed_sob'],'MOQData':supplier_state['refreshed_moq']},
-        'orders':{n:deepcopy(orders[-1][1][n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
-    snapshots=lambda stages:[{'stage':n,'state':v} for n,v in stages]
+        'orders':{n:deepcopy(order_state[n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
     if complete is not None:
         closing['complete'] = complete
     if pick_state is not None:
@@ -528,13 +511,6 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     if pick_state is not None:
         from mta.serialization import digest
         result['_PickSourceDigests'] = {name: digest(rows) for name, rows in pick_sources.items()}
-    if validating():
-        result.update({'MasterValidation':[master],
-        'SupplierStages':[{'stage':n,**v} for n,v in supplier.items()],
-        'DailyStages':[{'stage':n,**v} for n,v in daily.items()],
-        'ControlStages':snapshots(control),'OrderStages':snapshots(orders),'CalculationInput':[source],
-        'CalculationOutputs':[{'capability':n,'rows':v} for n,v in calculated.items()],
-        'CalculationRun':[{'run_id':calculation_id}], 'BPRStages':snapshots(bpr_stages),'DBMStages':snapshots(dbm_stages)})
     if delivery is not None:
         from mta.domain.btr_finalization import btr_stages
         for attr in closing['importer']['SkuLocAttributeData']:
@@ -557,40 +533,31 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             if (r['SKUCode'], r['WhCode'], r['ParentWhCode']) in pick_keys
             and (r['SKUCode'], r['WhCode']) == (m['SKUCode'], m['WhCode'])
             and r['WhCode'] != r['ParentWhCode'] and r['DispatchColor'] in ('Black', 'Red', 'Yellow')]
-        trends = final_stage(connected_btr_stages(today, prior['btr'], btr_facts, delivery,
-            bpr_daily=late['BPRDailyConsumption'],
-            supplier_dispatch_req=None if complete is None else complete['SupplierDispatchReq']))
+        for _, trend_state in connected_btr_stages(today, prior['btr'], btr_facts, delivery,
+                bpr_daily=late['BPRDailyConsumption'],
+                supplier_dispatch_req=None if complete is None else complete['SupplierDispatchReq']):
+            pass
         if complete is not None and str(delivery['btr_settings']['CaptureDispatchExecutionEfficiency'])=='1':
             from mta.domain.btr_rationing_history import STAGE
             daily_finalization.mark(complete, STAGE)
         completed_boundaries.append('btr-insights')
         # ExtendedOCP and Category share the Importer standard-attribute table.
         # Its final writer is BTR UpdateCategoryCol, after the DBM snapshot.
-        final_dbm['SKULocStandardAttributes'] = deepcopy(trends[-1][1]['SKULocStandardAttributes'])
+        final_dbm['SKULocStandardAttributes'] = deepcopy(trend_state['SKULocStandardAttributes'])
         closing['dbm'] = deepcopy(final_dbm)
-        closing.update(control_aux=control_aux, btr=deepcopy(trends[-1][1]),
+        closing.update(control_aux=control_aux, btr=deepcopy(trend_state),
                        consumer_context=deepcopy(prior['consumer_context']),
                        publication_context=deepcopy(prior['publication_context']))
         if nms is not None:
             closing['consumer_context']['NMSAllItems'] = nms['NMSAllItems']
-        stages = dict(dbm_stages)
         # Reports that overwrite the same legacy staging tables stay separate
         # consumer-visible families in the enclosing immutable run.
         reports = dbm_report_images(dbm_stages)
         reports.append({'stage': 'controls', 'tables': diagnostics})
         result.update(BPRFinal=[late], DBMFinal=[final_dbm], Reports=reports,
-            BTRFinal=[trends[-1][1]],
+            BTRFinal=[trend_state],
             PublicationContext=[deepcopy(prior['publication_context'])], Lineage=[])
-        if validating():
-            result.update(BTRStages=snapshots(trends),
-                MajorBoundaries=[{'boundary': n, 'state': v} for n, v in (
-                ('controls', {'controls': control[-1][1], 'diagnostics': diagnostics}),
-                ('final-bpr-bluezone', late), ('dbm-imported', stages['ingestion']),
-                ('final-suspensions', stages['suspension26']),
-                ('final-suggestions', stages['discard']), ('post-rule-reports', dbm_stages[-1][1]),
-                ('btr-insights', trends[-1][1]), ('closing-state', closing))])
-        else:
-            result['_CompletedBoundaries']=[*completed_boundaries,'closing-state']
+        result['_CompletedBoundaries']=[*completed_boundaries,'closing-state']
         if finalization is not None:
             if finalization['policy'] != daily_finalization.ACTIVE_POLICY:
                 closing['importer_settings'] = daily_finalization.finish(

@@ -191,13 +191,12 @@ print('supported imports PASS; no database access')
             saved[1].to_red = 9
             with self.assertRaisesRegex(ValueError, 'values/multiplicity'):pick.read_pick_bands(run)
 
-    def test_offline_writer_is_explicit_and_production_adapter_does_not_supply_it(self):
+    def test_historical_trace_day_adapter_rejects_before_native_execution(self):
         from development import temporal as offline
-        with patch.object(offline, '_execute_day', return_value='run') as execute:
-            self.assertEqual(offline.execute_day(day={'business_date': 'unit-only'}), 'run')
-            self.assertIs(execute.call_args.kwargs['checkpoint_writer'], offline.persist_trace)
-            offline.execute_day(day={}, evidence_mode='production')
-            self.assertNotIn('checkpoint_writer', execute.call_args.kwargs)
+        with patch('mta.runtime.temporal.execute_day', side_effect=AssertionError('must not execute')):
+            with self.assertRaisesRegex(ValueError, 'Historical validation-day execution is unsupported'):
+                offline.execute_day(day={}, evidence_mode='validation')
+
 
 
 if __name__ == '__main__':unittest.main()

@@ -98,8 +98,7 @@ class DailyBindingCommandTests(SimpleTestCase):
         calls = []
         result = SimpleNamespace(status='SUCCEEDED', pk='fixture-run',
             business_date=date(2026, 10, 9), input_digest='i' * 64,
-            output_digest='o' * 64, validation_digest='v' * 64,
-            evidence_mode='production')
+            output_digest='o' * 64, validation_digest='v' * 64)
         source = SimpleNamespace(pk=7, digest='d' * 64)
         with patch.object(run_daily.MdmSource.objects, 'get', return_value=source), \
                 patch('mta.mdm.daily_source.require_binding'), \

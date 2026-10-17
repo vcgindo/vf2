@@ -20,7 +20,6 @@ from mta.mdm.integration_source import replace_working_inputs
 from mta.domain.elephant_orders import apply_due_dates
 from mta.temporal.chain import calculate_day
 from mta.planning.engine import calculate_current_day
-from mta.evidence import evidence_mode
 from mta.serialization import digest,storage
 from mta.runtime import relational_state as typed
 
@@ -77,9 +76,8 @@ def coupled(profile,prior,opening,today,*,fmt='WithDestLoc',parent=None,positive
     def calculate(source,**owned):
         if observe is not None:observe(source,owned)
         return calculate_current_day(source,defer_pick=True,**owned),'pure-component-'+today
-    with evidence_mode('production'):
-        result=calculate_day(working,opening,day,profile,'pure-component-'+today,
-            calculate,native_daily=True)
+    result=calculate_day(working,opening,day,profile,'pure-component-'+today,
+        calculate,native_daily=True)
     return result,frozen
 
 

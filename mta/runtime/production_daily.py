@@ -434,6 +434,6 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
     return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,
-        mdm_retry=retry_capture_id, evidence_mode='production', pick_output_root=pick_output_root,
+        mdm_retry=retry_capture_id, pick_output_root=pick_output_root,
         production_initialization=owner, daily_input_sha256=expected_sha256,
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition)

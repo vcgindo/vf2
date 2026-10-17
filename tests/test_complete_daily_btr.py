@@ -5,7 +5,7 @@ from decimal import Decimal
 import unittest
 from unittest.mock import patch
 
-from mta.evidence import evidence_mode, final_stage
+from tests.stage_values import capture_stages
 
 from mta.domain.complete_daily_btr import (
     post_btr_calculated_attributes, post_btr_stages, _penetration)
@@ -95,7 +95,7 @@ class RMTests(unittest.TestCase):
     def test_three_simultaneous_na_to_zero_passes_not_prior_color_copy(self):
         data = inputs()
         data['buffer_trend_report'] = [trend(ending=('Black', None, None, None, None, 'Black'))]
-        stages = dict(post_btr_stages(**data))
+        stages = dict(capture_stages(post_btr_stages(**data)))
         def colors(stage):
             return [r['TechColor'] for r in stages[stage]['IntermediateTables']['GulfOil_TechColorData']][-6:]
         self.assertEqual(colors('rm-tech-fill-1'), ['Black', '0', 'NA', 'NA', 'NA', 'Black'])
@@ -125,27 +125,21 @@ class RMTests(unittest.TestCase):
     def test_rm_cross_apply_retains_null_calendar(self):
         data = inputs()
         data['buffer_trend_dates'][0]['D61'] = None
-        stages = dict(post_btr_stages(**data))
+        stages = dict(capture_stages(post_btr_stages(**data)))
         self.assertIsNone(stages['rm-tech-insert-colors']['IntermediateTables']['GulfOil_TechColorData'][0]['ReportDate'])
 
 
 class FGTests(unittest.TestCase):
-    def test_production_validation_modes_equal_without_diagnostic_deepcopy(self):
+    def test_native_final_values_match_external_capture_without_mutating_early_values(self):
         data = fg_inputs()
         data['location_attributes'] *= 2
         data['sku_loc_attributes'] *= 2
         data['req_calculation'][1]['VirtualNorm'] = None
         data['buffer_trend_report'] = [trend('p', ending=('Black', None, 'Black'))]
-        with evidence_mode('validation'):
-            validation = final_stage(post_btr_stages(**data))
-        with evidence_mode('production'), patch('mta.evidence.deepcopy', side_effect=AssertionError('diagnostic copy')):
-            production = final_stage(post_btr_stages(**data))
-            final = post_btr_calculated_attributes(**data)
-        self.assertEqual(len(production), 1)
-        self.assertGreater(len(validation), 1)
-        self.assertEqual(production[-1], validation[-1])
-        self.assertEqual(final, validation[-1][1])
-        stages = dict(validation)
+        captured = capture_stages(post_btr_stages(**data))
+        final = post_btr_calculated_attributes(**data)
+        self.assertEqual(final, captured[-1][1])
+        stages = dict(captured)
         scratch = stages['rm-tech-fill-1']['IntermediateTables']['GulfOil_TechColorData']
         self.assertEqual(scratch[-2]['TechColor'], '0')
         self.assertEqual(len(stages['fg-insert-today']['FGTrendData']), 4)
@@ -173,7 +167,7 @@ class FGTests(unittest.TestCase):
         data['location_attributes'] *= 2
         data['importer_sku_loc_attributes'] *= 2
         data['sku_loc_attributes'] *= 2
-        stages = dict(post_btr_stages(**data))
+        stages = dict(capture_stages(post_btr_stages(**data)))
         today = [r for r in stages['fg-insert-today']['FGTrendData'] if r['ReportDate'] == TODAY.isoformat()]
         self.assertEqual(len(today), 4)
         grid = stages['fg-tech-insert-colors']['IntermediateTables']['GulfOil_TechColorData']
@@ -216,7 +210,7 @@ class FGTests(unittest.TestCase):
     def test_unpivot_drops_null_and_scalar_rejects_multiple_even_equal(self):
         data = fg_inputs()
         data['buffer_trend_dates'][0]['D61'] = None
-        stages = dict(post_btr_stages(**data))
+        stages = dict(capture_stages(post_btr_stages(**data)))
         self.assertEqual(len(stages['fg-tech-insert-colors']['IntermediateTables']['GulfOil_TechColorData']), 29)
         data['last_batch_run'] *= 2
         with self.assertRaisesRegex(ValueError, 'SCALAR_SUBQUERY_MULTIPLE_ROWS'):

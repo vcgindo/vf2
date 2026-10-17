@@ -20,7 +20,6 @@ from mta.application.norm0_reports import resultsets, export_files
 from mta.domain.dbm_norm012 import AmbiguousReport, NORM0_EXPORT_STAGES
 from mta.domain.dbm_selected_chain import selected_norm012_stages
 from mta.temporal.chain import retain_dbm_stages
-from mta.evidence import evidence_mode
 from mta.serialization import digest
 
 RUN = '842136be-162e-4da7-a692-686224e007cf'
@@ -48,9 +47,8 @@ def batch(horizons=(30,60,90)):
 
 
 def reports(source=None, exceptions=None, configuration=None):
-    with evidence_mode('production'):
-        stages=retain_dbm_stages(selected_norm012_stages(d.DAY, source or state(),
-            configuration or batch(), exceptions), [])
+    stages=retain_dbm_stages(selected_norm012_stages(d.DAY, source or state(),
+        configuration or batch(), exceptions), [])
     return [dict(stage=name,tables=value) for name,value in stages if name in NORM0_EXPORT_STAGES.values()]
 
 

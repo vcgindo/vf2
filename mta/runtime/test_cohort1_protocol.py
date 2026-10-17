@@ -10,7 +10,7 @@ from mta.runtime.test_temporal import TemporalPersistenceTest
 from mta.runtime.models import CalculationRun
 from mta.runtime.mdm_models import MdmSource, MdmTask, MdmSubTask, MdmSkuHistory
 from mta.runtime.mdm_daily_models import MdmPairExclusionSource
-from development.temporal import execute_day
+from mta.runtime.temporal import execute_day
 from mta.runtime.services import read_outputs
 from mta.runtime.input_reader import read_input
 from mta.runtime.relational_state import table_sql

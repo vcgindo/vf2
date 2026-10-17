@@ -17,7 +17,6 @@ from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
 from mta.runtime.input_reader import read_input
-from mta.evidence import evidence_mode as evidence_scope
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
@@ -161,12 +160,10 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
 
 
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
-                report_exceptions=None, mdm_source=None, mdm_retry=None, evidence_mode='validation',
+                report_exceptions=None, mdm_source=None, mdm_retry=None,
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
-                consumer_opening=None, report_disposition=None, checkpoint_writer=None):
-    if evidence_mode not in ('production','validation'):
-        raise ValueError('Explicit production or validation evidence policy required')
+                consumer_opening=None, report_disposition=None):
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
         raise ValueError('Explicit execution revision required')
@@ -198,8 +195,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     if native:
         from mta.mdm.initialization_contract import sha
         sha(daily_input_sha256, 'native daily input')
-        if evidence_mode != 'production' or finalization_config is not None or report_exceptions:
-            raise ValueError('Native daily execution requires production evidence and unchanged calculations')
+        if finalization_config is not None or report_exceptions:
+            raise ValueError('Native daily execution requires unchanged calculations')
         if finalization is None:
             raise ValueError('Native daily execution requires initialized finalization configuration')
     elif finalization is not None:
@@ -356,7 +353,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if repeated is not None:
                     if repeated.origin_id!=origin_capture.pk:
                         raise ValueError('Daily run identity drift')
-                    if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
+                    if repeated.run.evidence_mode!='production':raise ValueError('Daily evidence policy identity drift')
                     return replay_completed(repeated.run, complete_pick=complete_pick,
                                             pick_output_root=pick_output_root, report_disposition=report_disposition)
                 active_leaf_ids=list(MdmDailyInputCapture.objects.filter(
@@ -387,7 +384,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if repeated is not None:
                     if repeated.run.predecessor_id!=(parent.pk if parent else None):
                         raise ValueError('Daily run identity drift')
-                    if repeated.run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
+                    if repeated.run.evidence_mode!='production':raise ValueError('Daily evidence policy identity drift')
                     return replay_completed(repeated.run, complete_pick=complete_pick,
                                             pick_output_root=pick_output_root, report_disposition=report_disposition)
                 capture_snapshot=select_capture(mdm_source,nms_active=nms_active,
@@ -463,14 +460,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         if existing is not None:
             if existing.kind!=KIND or existing.predecessor_id!=(parent.pk if parent else None):
                 raise ValueError('Daily run identity drift')
-            if existing.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
+            if existing.evidence_mode!='production':raise ValueError('Daily evidence policy identity drift')
             return replay_completed(existing, complete_pick=complete_pick,
                                     pick_output_root=pick_output_root, report_disposition=report_disposition)
         if parent and parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists():
             raise ValueError('Predecessor already consumed; no implicit timeline fork')
         new_id=uuid.uuid4()
         fields=dict(id=new_id,input_digest=source_digest,input_payload={},execution_revision=execution_revision,
-                    evidence_mode=evidence_mode,
+                    evidence_mode='production',
                     kind=KIND,business_date=today,predecessor=parent)
         if disposition_binding is not None:
             fields['production_manifest'] = {'native_report_disposition': disposition_binding}
@@ -483,7 +480,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if not created:
                 if run.input_digest!=source_digest or read_input(run)!=raw:
                     raise ValueError('Opening already used for different facts; explicit new trial required')
-                if run.evidence_mode!=evidence_mode:raise ValueError('Daily evidence policy identity drift')
+                if run.evidence_mode!='production':raise ValueError('Daily evidence policy identity drift')
                 return replay_completed(run, complete_pick=complete_pick,
                                         pick_output_root=pick_output_root)
         else:
@@ -510,35 +507,33 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             bind_requests(run, raw['request_inputs'])
             bind_snapshots(run, raw['remark_inputs'])
     try:
-        with evidence_scope(evidence_mode):
-            result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-                lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
-                               calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native)
-            completed=([r['boundary'] for r in result['MajorBoundaries']] if evidence_mode=='validation'
-                       else result.pop('_CompletedBoundaries'))
-            if completed!=list(BOUNDARIES):
-                raise ValueError('Incomplete daily boundary roster')
-            lineage = deepcopy(lineage)
-            if disposition_binding is not None:
-                lineage['native_report_disposition'] = disposition_binding
-            result['Lineage']=[lineage]
-            if finalization is not None:
-                from mta.application.daily_finalization import verify_successor, verify_finalization_identity, ACTIVE_POLICY
-                lineage['cohort1'] = result.pop('_Cohort1')
-                # Active MDM archive/clear/task writers execute transactionally
-                # in finish_run. Their markers cannot be complete before then.
-                if finalization['policy'] != ACTIVE_POLICY:
-                    verify_successor(result, profile, today.isoformat())
-                else:
-                    verify_finalization_identity(result,profile,today.isoformat())
-            if complete_pick:
-                source_digests = result.pop('_PickSourceDigests', None)
-                if source_digests is not None:
-                    lineage['pick_source_digests'] = source_digests
-                from mta.application.complete_daily_batch_files import write_run_pick_files
-                write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
-            return finish_run(run,result,expected_digest=source_digest,
-                              publication_opening=publication_opening, checkpoint_writer=checkpoint_writer)
+        result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
+            lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
+                           calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native)
+        completed=result.pop('_CompletedBoundaries')
+        if completed!=list(BOUNDARIES):
+            raise ValueError('Incomplete daily boundary roster')
+        lineage = deepcopy(lineage)
+        if disposition_binding is not None:
+            lineage['native_report_disposition'] = disposition_binding
+        result['Lineage']=[lineage]
+        if finalization is not None:
+            from mta.application.daily_finalization import verify_successor, verify_finalization_identity, ACTIVE_POLICY
+            lineage['cohort1'] = result.pop('_Cohort1')
+            # Active MDM archive/clear/task writers execute transactionally
+            # in finish_run. Their markers cannot be complete before then.
+            if finalization['policy'] != ACTIVE_POLICY:
+                verify_successor(result, profile, today.isoformat())
+            else:
+                verify_finalization_identity(result,profile,today.isoformat())
+        if complete_pick:
+            source_digests = result.pop('_PickSourceDigests', None)
+            if source_digests is not None:
+                lineage['pick_source_digests'] = source_digests
+            from mta.application.complete_daily_batch_files import write_run_pick_files
+            write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
+        return finish_run(run,result,expected_digest=source_digest,
+                          publication_opening=publication_opening)
     except Exception as error:
         fail_run(run,error)
         raise

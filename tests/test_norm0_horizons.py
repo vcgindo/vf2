@@ -18,7 +18,6 @@ django.setup()
 from mta.domain.dbm_norm012 import data_stage,detail_stage,export_stage,AmbiguousReport,NORM0_EXPORT_STAGES,CHRONOLOGICAL_RULE
 from mta.domain.dbm_selected_chain import selected_norm012_stages
 from mta.temporal.chain import retain_dbm_stages
-from mta.evidence import evidence_mode
 from mta.application.norm0_reports import resultsets,export_files
 from mta.application.report_encoding import norm_report_bytes
 from mta.serialization import digest
@@ -51,8 +50,7 @@ def batch(horizons=(30,60,90)):
 
 def retained_reports(source,configuration=None):
     configuration=batch() if configuration is None else configuration
-    with evidence_mode('production'):
-        stages=retain_dbm_stages(selected_norm012_stages(TODAY,source,configuration),[])
+    stages=retain_dbm_stages(selected_norm012_stages(TODAY,source,configuration),[])
     return [dict(stage=name,tables=value) for name,value in stages if name in NORM0_EXPORT_STAGES.values()]
 
 

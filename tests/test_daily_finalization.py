@@ -6,6 +6,13 @@ from mta.application import daily_finalization as final
 
 
 class DailyFinalizationTests(unittest.TestCase):
+    def setUp(self):
+        from unittest.mock import patch
+        guard=patch('django.db.backends.base.base.BaseDatabaseWrapper.ensure_connection',
+                    side_effect=AssertionError('No database in focused finalization tests'))
+        guard.start()
+        self.addCleanup(guard.stop)
+
     def test_active_completion_metadata_cannot_select_an_inactive_or_missing_writer(self):
         from mta.serialization import digest
         profile=dict(complete_daily=dict(policy=final.ACTIVE_POLICY,consumption_days=43,remark_days=13))
@@ -38,11 +45,13 @@ class DailyFinalizationTests(unittest.TestCase):
         from mta.serialization import digest
         profile=dict(complete_daily=dict(policy=final.ACTIVE_POLICY,consumption_days=43,remark_days=13))
         run=SimpleNamespace(pk='run',status='RUNNING',kind='DAILY_CHAIN',checkpoints=MagicMock(),
-            input_payload={},input_digest=digest(dict(profile=profile)),business_date=date(2037,4,10))
+            input_payload={'schema':'fresh-daily-input-manifest-v2'}, evidence_mode='production', production_manifest={},
+            input_digest=digest(dict(profile=profile)),business_date=date(2037,4,10))
         run.checkpoints.exists.return_value=False
         output=dict(ClosingState=[dict(complete=dict(ScriptExecutedFlag=deepcopy(final.FLAG_SEED)))],
             Lineage=[dict(cohort1=dict(policy=final.POLICY))])
-        with patch('mta.runtime.services.transaction.atomic',return_value=nullcontext()), \
+        with patch('mta.runtime.receipt_integrity.audit_input'), \
+                patch('mta.runtime.services.transaction.atomic',return_value=nullcontext()), \
                 patch('mta.runtime.services.CalculationRun.objects') as runs, \
                 patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
                 patch('mta.runtime.services.read_input',return_value=dict(profile=profile)), \

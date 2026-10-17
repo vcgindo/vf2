@@ -1,6 +1,5 @@
 """Complete selected ingestion-starting DBM sequence, preserving every boundary."""
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from mta.domain.dbm_connected import connected_stages
 from mta.domain.dbm_delisting import delisting_recommendation
 from mta.domain.dbm_postrules import postrule_stages
@@ -30,7 +29,7 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
             raise ValueError('Explicit automatic acceptance flag 0/1 required')
         phase_configuration(config)
     for name, current in connected_stages(today, state, facts):
-        yield name, snapshot(current)
+        yield name, current
     if conditional_active:
         for name, calculate in (
                 ('rule7', conditional.order_norm_zero_increase),
@@ -39,12 +38,12 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
                 ('rule11', lambda d, s: conditional.norm_two_consumption_decrease(d, s,
                     multiple_rlt=config[conditional.MULTIPLIERS[1]], importer_vf_settings=conditional_settings))):
             current = calculate(today, current)
-            yield name, snapshot(current)
+            yield name, current
     if config is None or active('DelistingofNormRuleActive'):
         current = delisting_recommendation(today, current)
-        yield 'rule12', snapshot(current)
+        yield 'rule12', current
     for name, current in postrule_stages(today, current):
-        yield name, snapshot(current)
+        yield name, current
     for name, calculate in (
         ('order-summary', update_order_summary),
         ('norm1-advisory', norm1_advisory),
@@ -59,14 +58,14 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
                 or (name == 'norm-change-history' and config['ActivateNormChangeLogReport'] != 1)):
             continue
         current = calculate(today, current)
-        yield name, snapshot(current)
+        yield name, current
         if name == 'norm1-advisory' and config is not None:
             for stage, current in phase_stages(today, current, config):
-                yield stage, snapshot(current)
+                yield stage, current
     for name,current in selected_norm012_stages(today,current,config,report_exceptions):
         yield name,current
     current = daily_cleanup(today, current, 370 if config is None else config['DailyConsumptionHorizonDBM'])
-    yield 'daily-cleanup', snapshot(current)
+    yield 'daily-cleanup', current
 
 
 def selected_norm012_stages(today,state,config=None,report_exceptions=None):
@@ -96,9 +95,10 @@ def selected_norm012_stages(today,state,config=None,report_exceptions=None):
                     today, current, norm, horizon, excluded, exclude_all):
                 if disposition is not None and (norm, horizon, name) == (0, 30, 'export'):
                     disclose_export(current, disposition)
-                yield report_stage(norm,horizon,name), snapshot(current)
+                yield report_stage(norm,horizon,name), current
 
 
 def selected_chain(today, state, facts):
-    snapshots = [{'stage': name, 'state': value} for name, value in selected_stages(today, state, facts)]
-    return {**snapshots[-1]['state'], 'SelectedDBMStages': snapshots}
+    for _, current in selected_stages(today, state, facts):
+        pass
+    return current

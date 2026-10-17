@@ -44,7 +44,7 @@ def read_outputs(run):
     return outputs
 
 
-def finish_run(run, output, *, expected_digest, publication_opening=None, checkpoint_writer=None):
+def finish_run(run, output, *, expected_digest, publication_opening=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     with transaction.atomic():
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -56,6 +56,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, checkp
         if run.status != 'RUNNING' or run.checkpoints.exists():
             raise ValueError('Run changed during calculation')
         typed=run.input_payload.get('schema')=='fresh-daily-input-manifest-v2'
+        if run.kind == 'DAILY_CHAIN' and (not typed or run.evidence_mode != 'production'):
+            raise ValueError('Native daily publication requires typed production input')
         if typed:
             from mta.runtime.receipt_integrity import audit_input
             audit_input(run)
@@ -163,13 +165,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, checkp
                 write_sources(run, output, opening=publication_opening)
                 from mta.presentation.offline_rrr import write as write_offline_rrr
                 write_offline_rrr(run, output)
-        for name, rows in output.items():
-            if typed and run.evidence_mode=='production':break
-            if run.kind == 'DAILY_CHAIN' and checkpoint_writer is None:
-                raise ValueError('Validation publication requires an explicit offline checkpoint writer')
-            fields = (checkpoint_writer(run, name, rows) if run.kind == 'DAILY_CHAIN'
-                      else dict(rows=storage(rows), row_count=len(rows), digest=digest(rows)))
-            Checkpoint.objects.create(run=run, name=name, **fields)
+        if run.kind != 'DAILY_CHAIN':
+            for name, rows in output.items():
+                Checkpoint.objects.create(run=run, name=name,
+                    rows=storage(rows), row_count=len(rows), digest=digest(rows))
         # Consuming captured MDM rows is part of the same committed boundary.
         # A readback/storage failure leaves both queues and run unconsumed.
         from mta.mdm.daily_input import finalize_consumption
@@ -184,13 +183,12 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, checkp
             run.production_digest=digest(run.production_manifest)
             run.output_roster=list(OPERATIONAL_ROSTER)
             run.output_digest=output_root(run)
-            run.validation_digest=digest(output) if run.evidence_mode=='validation' else ''
         else:
             run.output_roster = sorted(output)
             run.output_digest = digest(output)
         if run.kind!='DAILY_CHAIN':run.production_digest=digest(output)
         run.completed_at = timezone.now()
-        run.save(update_fields=['status', 'output_roster', 'output_digest', 'production_digest', 'production_manifest', 'completed_at','validation_digest'])
+        run.save(update_fields=['status', 'output_roster', 'output_digest', 'production_digest', 'production_manifest', 'completed_at'])
     return run
 
 

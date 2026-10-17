@@ -15,9 +15,8 @@ class NativeProducerIntegrationTests(unittest.TestCase):
             exclusions=[],supplier_feeds=coupled.complete_feeds(frozen,prior),
             production_report_policy=dict(bor_history_horizon=90,rrr_history_horizon=90))
         coupled.replace_working_inputs(frozen,prior,day,None)
-        with coupled.evidence_mode('production'):
-            actual=coupled.calculate_day(prior,'2037-04-09',day,frame['profile'],'component-h4',
-                lambda source,**owned:(coupled.calculate_current_day(source,defer_pick=True,**owned),'component-h4'),native_daily=True)
+        actual=coupled.calculate_day(prior,'2037-04-09',day,frame['profile'],'component-h4',
+            lambda source,**owned:(coupled.calculate_current_day(source,defer_pick=True,**owned),'component-h4'),native_daily=True)
         for name in ('ClosingState','BPRFinal','DBMFinal','BTRFinal','Reports'):
             self.assertEqual(actual[name],baseline[name],name)
         old={item['capability']:item['rows'] for item in baseline['CalculationOutputs']}

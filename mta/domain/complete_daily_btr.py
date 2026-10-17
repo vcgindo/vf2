@@ -4,10 +4,9 @@ Opening FG history, all populations and native text equality are explicit.
 No inferred history, FGRM filtering of RM branches, prior-colour copying, or
 business-rule repair. Errors are exposed, not converted into legacy CATCH rows;
 partial-write/error orchestration and native differential proof remain external.
-Production consumes live stage values with final_stage; validation snapshots them.
+Stage consumers exhaust the statements before reading final business populations.
 """
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 
@@ -230,7 +229,7 @@ def post_btr_stages(*, buffer_trend_report, buffer_trend_report_econ,
     state['IntermediateTables'] = {name: [] for name in intermediate_tables}
     if SCRATCH not in intermediate_tables:
         raise ValueError('SCHEMA_REQUIRED: ' + SCRATCH)
-    yield 'truncate-intermediate-before', snapshot(state)
+    yield 'truncate-intermediate-before', state
     if len(last_batch_run) > 1:
         raise ValueError('SCALAR_SUBQUERY_MULTIPLE_ROWS: LastBatchRunTbl')
     today = _date(_v(last_batch_run[0], 'LastRunDate')) if last_batch_run else None
@@ -239,21 +238,21 @@ def post_btr_stages(*, buffer_trend_report, buffer_trend_report_econ,
             ('rm-tech', buffer_trend_report, 'c12', 'c13'),
             ('rm-econ', buffer_trend_report_econ, 'c9', 'c10')):
         state['IntermediateTables'][SCRATCH] = _colour_rows(trends, buffer_trend_dates, equal)
-        yield label + '-insert-colors', snapshot(state)
+        yield label + '-insert-colors', state
         for step in range(1, 4):
             _fill_pass(state['IntermediateTables'][SCRATCH], equal)
-            yield label + '-fill-' + str(step), snapshot(state)
+            yield label + '-fill-' + str(step), state
         for field, eligible in ((black_field, ('Black',)), (br_field, ('Black', 'Red'))):
             _assign(attributes, _ages(state['IntermediateTables'][SCRATCH], eligible, equal),
                     (('SKUCode', 'SKUCode'), ('LocCode', 'WhCode')), (field,), ('Age',), equal,
                     'RM PostBTR ' + field)
-            yield label + '-update-' + field, snapshot(state)
+            yield label + '-update-' + field, state
         if label == 'rm-tech':
             state['IntermediateTables'][SCRATCH] = []
-            yield 'rm-tech-truncate-colors', snapshot(state)
+            yield 'rm-tech-truncate-colors', state
     history = state['FGTrendData']
     history[:] = [r for r in history if today is None or _date(r['ReportDate']) != today]
-    yield 'fg-delete-today', snapshot(state)
+    yield 'fg-delete-today', state
     for current in req_calculation:
         for location in location_attributes:
             if not _join(current, location, (('WhCode', 'WhCode'),), equal):
@@ -284,33 +283,33 @@ def post_btr_stages(*, buffer_trend_report, buffer_trend_report_econ,
                         row[field] = _int(_v(source, source_field), 'vf_ReqCalculation.' + source_field,
                                           nullable=source_field == 'VirtualNorm')
                     history.append(row)
-    yield 'fg-insert-today', snapshot(state)
+    yield 'fg-insert-today', state
     for row in history:
         if today is not None and _date(row['ReportDate']) == today:
             row['TechPen'], row['EcoPen'] = _penetration(row, False), _penetration(row, True)
-    yield 'fg-update-penetration', snapshot(state)
+    yield 'fg-update-penetration', state
     for row in history:
         if today is not None and _date(row['ReportDate']) == today:
             row['TechColor'], row['EcoColor'] = _band(row['TechPen']), _band(row['EcoPen'])
-    yield 'fg-update-colors', snapshot(state)
+    yield 'fg-update-colors', state
     if today is not None:
         cutoff = (date.fromisoformat(today) - timedelta(days=30)).isoformat()
         history[:] = [r for r in history if _date(r['ReportDate']) >= cutoff]
-    yield 'fg-prune-history', snapshot(state)
+    yield 'fg-prune-history', state
     for label, color, black_field, br_field in (
             ('fg-tech', 'TechColor', 'c12', 'c13'), ('fg-econ', 'EcoColor', 'c9', 'c10')):
         state['IntermediateTables'][SCRATCH] = []
-        yield label + '-truncate-colors', snapshot(state)
+        yield label + '-truncate-colors', state
         state['IntermediateTables'][SCRATCH] = _fg_grid(history, buffer_trend_dates, today, color, equal)
-        yield label + '-insert-colors', snapshot(state)
+        yield label + '-insert-colors', state
         for step in range(1, 4):
             _fill_pass(state['IntermediateTables'][SCRATCH], equal)
-            yield label + '-fill-' + str(step), snapshot(state)
+            yield label + '-fill-' + str(step), state
         for field, eligible in ((black_field, ('Black',)), (br_field, ('Black', 'Red'))):
             _fg_assign(attributes, history, bor_with_order_allocation,
                        _ages(state['IntermediateTables'][SCRATCH], eligible, equal),
                        field, eligible, equal)
-            yield label + '-update-' + field, snapshot(state)
+            yield label + '-update-' + field, state
     for table, location, fields in (
             ('BPR_Table', 'WhCode', ('SKULocAttr9', 'SKULocAttr10', 'SKULocAttr12', 'SKULocAttr13')),
             ('BPRSkuLocAttributeData', 'LocCode', ATTRS),
@@ -319,11 +318,13 @@ def post_btr_stages(*, buffer_trend_report, buffer_trend_report_econ,
             ('NMSAllItems', 'WhCode', ('SKULocAtt09', 'SKULocAtt10', 'SKULocAtt12', 'SKULocAtt13'))):
         _assign(state[table], attributes, (('SKUCode', 'SKUCode'), (location, 'LocCode')),
                 fields, ATTRS, equal, 'PostBTR propagation ' + table)
-        yield 'propagate-' + table, snapshot(state)
+        yield 'propagate-' + table, state
     state['IntermediateTables'] = {name: [] for name in intermediate_tables}
-    yield 'truncate-intermediate-after', snapshot(state)
+    yield 'truncate-intermediate-after', state
 
 
 def post_btr_calculated_attributes(**populations_and_settings):
-    """Return final independent populations; statement capture is optional."""
-    return final_stage(post_btr_stages(**populations_and_settings))[-1][1]
+    """Return final independent populations after all ordered statements."""
+    for _, state in post_btr_stages(**populations_and_settings):
+        pass
+    return state

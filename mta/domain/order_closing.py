@@ -5,7 +5,6 @@ Generated identity ordering uses
 the explicitly approved production feed-row rule, not canonical parity.
 """
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -79,7 +78,7 @@ def order_stages(today, opening_date, state, feed_status, feed):
         for row in rows:
             row['IsSpike'], row['IsElephant'] = bool(row['IsSpike']), bool(row['IsElephant'])
     s['OrderIdentity'] = [{'Seed': 1, 'Increment': 1, 'LastValue': counter}]
-    yield 'ImportSpikeOrders.sql', snapshot(s)
+    yield 'ImportSpikeOrders.sql', s
 
     # Literal selected SQL level loop: one INSERT SELECT per level. Its anti-join
     # intentionally omits WhCode. All candidates see the pre-insert population.
@@ -134,4 +133,4 @@ def order_stages(today, opening_date, state, feed_status, feed):
             'FirstServicingWhCode':row['FirstServicingWhCode'],'DueDate':row['DueDate'],'IntroDate':today})
     counter += len(resolved)
     s['OrderIdentity'] = [{'Seed': 1, 'Increment': 1, 'LastValue': counter}]
-    yield 'CalculateDD.sql', snapshot(s)
+    yield 'CalculateDD.sql', s

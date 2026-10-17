@@ -1,6 +1,5 @@
 """Own-state composition of the accepted Norm controls, preserving native fields."""
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from datetime import date
 
 from mta.application.r1_norm_updates import import_forced_norms, apply_norm_updates, clear_force_requests, key
@@ -33,9 +32,9 @@ def control_stages(today, opening_date, state, flags, accepted_feed, new_force_r
     s = import_forced_norms(s, **flags)
     if not early_return:
         for row in s['forced']: row['ChangeDate'] = today
-    yield 'ImportForceNormChange.sql', snapshot(s)
+    yield 'ImportForceNormChange.sql', s
     s = insert_parent_suggestions(s, today)
-    yield 'InsertParentOrderTypeSuggestions.sql', snapshot(s)
+    yield 'InsertParentOrderTypeSuggestions.sql', s
 
     # Accepted arithmetic has a full accepted master/log/trigger checkpoint and
     # preserves acceptance separately. Forced updates do not mutate acceptance.
@@ -48,13 +47,13 @@ def control_stages(today, opening_date, state, flags, accepted_feed, new_force_r
     accepted.update(dbm_master=updated['accepted_checkpoint']['master'],
                     log=updated['accepted_checkpoint']['log'],
                     triggers=updated['accepted_checkpoint']['triggers'], acceptance=updated['acceptance'])
-    yield 'UpdateAcceptedNorms.sql', snapshot(accepted)
+    yield 'UpdateAcceptedNorms.sql', accepted
     for row in updated['forced']: row['ChangeDate'] = dates[key(row)]
     forced = {name: deepcopy(updated[name]) for name in TABLES}
     forced['importer_master'] = deepcopy(s['importer_master'])
     forced['triggers'] = deepcopy(updated['export'])
-    yield 'UpdateForceChangedNorms.sql', snapshot(forced)
+    yield 'UpdateForceChangedNorms.sql', forced
     exported = {name: deepcopy(updated[name]) for name in TABLES}
-    yield 'UpdateNormChanges.sql', snapshot(exported)
+    yield 'UpdateNormChanges.sql', exported
     final = clear_force_requests(exported, **flags)
-    yield 'ClearForceNormChange.sql', snapshot(final)
+    yield 'ClearForceNormChange.sql', final

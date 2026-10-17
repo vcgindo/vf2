@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
-from mta.evidence import snapshot, final_stage
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 from xml.sax.saxutils import quoteattr
@@ -569,29 +568,29 @@ def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None):
         current = {**deepcopy(prior), POPULATION:collect(today,prior[POPULATION],
             facts['vf_RationedReqReport'],facts.get('BPRDailyConsumption'),facts.get('SupplierDispatchReq'),
             settings['RationingHistoryHorizonBTR'])}
-        yield STAGE, snapshot(current)
+        yield STAGE, current
     current = _import_bpr(today, current, facts)
-    yield "1. Import BPR.sql", snapshot(current)
+    yield "1. Import BPR.sql", current
     current = _generate_trends(today, current, facts)
-    yield "2. GenerateBufferTrend.sql", snapshot(current)
+    yield "2. GenerateBufferTrend.sql", current
     current = _update_br_age(current, facts, "BufferTrendDispatch", selected["br_tolerance"], True)
-    yield "UpdateBRAge.sql", snapshot(current)
+    yield "UpdateBRAge.sql", current
     current = _update_br_age(current, facts, "BufferTrendPhysicalInv", selected["br_tolerance"])
-    yield "UpdateBRAgePhysicalInv.sql", snapshot(current)
+    yield "UpdateBRAgePhysicalInv.sql", current
     current = _availability(current)
-    yield "CalculateAvailabilityPhysicalInv.sql", snapshot(current)
+    yield "CalculateAvailabilityPhysicalInv.sql", current
     current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"])
-    yield "GenerateColorAgeingReport.sql", snapshot(current)
+    yield "GenerateColorAgeingReport.sql", current
     current = _snapshot(current)
-    yield "3. GenerateSnapshotForUI.sql", snapshot(current)
+    yield "3. GenerateSnapshotForUI.sql", current
     current = _count_graph(current)
-    yield "BufferTrendCountGraph.sql", snapshot(current)
+    yield "BufferTrendCountGraph.sql", current
     current = _chronic(current, facts)
-    yield "CollectChronicUnavailabilityData.sql", snapshot(current)
+    yield "CollectChronicUnavailabilityData.sql", current
     current = _norm_suggestions(today, current, facts, selected)
-    yield "CollectDBMNormSuggestionsData.sql", snapshot(current)
+    yield "CollectDBMNormSuggestionsData.sql", current
     current = _categories(today, current, facts, selected)
-    yield "UpdateCategoryCol.sql", snapshot(current)
+    yield "UpdateCategoryCol.sql", current
 
 
 def btr_finalization(today, prior, facts, settings):

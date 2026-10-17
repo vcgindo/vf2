@@ -108,7 +108,7 @@ class NativeMdmCaptureDateTests(SimpleTestCase):
                 mdm_retry=self.failed if retry else None,mdm_source=None if retry else self.source)
             if native:
                 options.update(production_initialization=self.initialized,daily_input_sha256='e'*64,
-                               evidence_mode='production',consumer_opening={})
+                               consumer_opening={})
             with self.assertRaises(ValueError if wrong_date else CaptureReached) as error:
                 temporal.execute_day(**options)
             if wrong_date:
