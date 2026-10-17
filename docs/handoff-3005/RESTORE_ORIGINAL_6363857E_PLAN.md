@@ -10,3 +10,9 @@ Direct human restoration instruction17October2026 supersedes the completed gap-f
 4. Prove exact baseline source/file/image/assets/origins; normalexistinglogin/reload/originalscreens and expected blankMDM/notready errors. Complete trialbusiness/catalogue/registration/database/stableaccount/private/protected preservation and noactivejobs. Reuse applicable baseline evidence rather than repeat gap-fill acceptance. Commit/push actualremote=HEAD/clean, exact recovery/rollback record, stop after proof without a routine review hold.
 
 Required exits are proof, not operational QA: baseline limitations must remain visible. No repair/substitute setup UI, MTO programme, initialization/calculation/publication/StageFive/cutover. Recovery rollback means preserved newer source/images/config can be selected only under fresh authority, without resetting a database or deleting history. All newly authored recovery records retain the restriction above; raw original logs/files are preserved as evidence and not rewritten.
+
+## Recovery evidence reference
+
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
+Additive content-restoration commit0032b24b9c87a87ad657eb42c7ca09ceb15bd14b restores the exact6363857e production tree; only this recovery documentation differs. Local actual-image/source/private/data/original-screen/reload receipts and exact newer-release preservation/future rollback reference are in D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s4-restore-original-6363857e-20261017/README.md and I:/VectorFLOW-Trial/RESTORATION-6363857E.md. Original blankMDM/ready503 retained; no operational gap-fill acceptance inherited. Newer701 release withdrawn, not deleted. Sole live status is TRACKER.md. No further continuation is authorized by this reference.
