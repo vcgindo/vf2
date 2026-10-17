@@ -262,4 +262,6 @@ Use new source/export folders. The export also needs the approved runtime archiv
 - Secrets: keep `private` restricted to the Windows operator. Keep passwords and private keys out of Git.
 - Scope: only this trial may be removed/recreated. Frontend/MTO code and images stay unchanged.
 
-[Linux installation, operating commands, optional inputs, backup/restore and upgrade details](OPERATIONS_REFERENCE.md).
+[Ubuntu / public VPS checklist](OPERATIONS_REFERENCE.md#ubuntu--public-vps-checklist) — includes the public-origin stop condition and HTTPS commands.
+
+[Operating commands, optional inputs, backup/restore and upgrade details](OPERATIONS_REFERENCE.md).

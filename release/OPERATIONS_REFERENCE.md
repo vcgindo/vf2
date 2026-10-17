@@ -4,6 +4,7 @@
 
 Use [RUNBOOK.md](RUNBOOK.md) for the Windows 8080 checklist. This file holds Linux deployment commands, operating limits and recovery details. Shell blocks below use a POSIX shell, not PowerShell.
 
+- [Ubuntu / public VPS checklist](#ubuntu--public-vps-checklist)
 - [Linux assembly and roles](#release-and-host-preparation)
 - [Step Five execution](#stage-five-reference-input-ownership-initialization-day-and-span)
 - [Backup and restore](#durable-storage-backup-and-restore)
@@ -12,6 +13,154 @@ Use [RUNBOOK.md](RUNBOOK.md) for the Windows 8080 checklist. This file holds Lin
 - [Optional input procedure](#separate-optional-initialization-only-procedure--packaged-not-executed-in-stage-four)
 
 Step Five commands are references only. The Windows reinstall does not authorize sample loading, initialization, daily execution, publication or recovery testing. Historical development compatibility settings are not fresh-install defaults.
+
+## Ubuntu / public VPS checklist
+
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
+**Status: TLS wiring checked locally; public deployment not yet qualified.** The delivered `bd309169` frontend is built for localhost8080. Its scheduling chunk `2.95dd74e4.chunk.js` opens `ws://127.0.0.1:8080/ws/scheduler/{runId}/`. Setting `VF_PUBLIC_WS_URL` at runtime does not change that JavaScript. Most HTTP calls are relative and can use the public host; the confirmed blocker is the compiled scheduling WebSocket origin.
+
+**Stop before public installation until an approved frontend artifact matches the intended HTTPS/WSS domain.** A configuration-only frontend rebuild still needs an explicit exception to the freeze. This guide does not authorize or perform it. Do not patch assets, disable browser checks, expose localhost8080 publicly or claim the current bundle supports public WSS.
+
+- **1. Prepare the VPS** — Use Ubuntu on x86_64/amd64, Docker Engine and Compose v2, Python3, Git if cloning, and OpenSSL. Follow [Docker's Ubuntu installation instructions](https://docs.docker.com/engine/install/ubuntu/). Point the domain's A/AAAA records to this VPS. Keep SSH access; allow only the intended HTTPS listener through the provider firewall. Docker-published ports can bypass UFW rules: see [Docker firewall guidance](https://docs.docker.com/engine/network/packet-filtering-firewalls/). Do not publish PostgreSQL, Redis, auth, MTA or MTO ports.
+- **2. Transfer the approved release** — Verify its source/runtime SHA256 values against the approved release manifest. Extract into a new `/srv/vectorflow/releases/...` folder. Include `release-source.json`, `runtime-images.json`, `loaded-images.yaml` and `public-build.json`. A Git export needs these companions too; the current localhost archive is not a public-origin release.
+- **3. Configure the domain and certificates** — Create a private `/srv/vectorflow/operator.env` from `release/.env.example`. Set the values below for the actual domain, not the example. Keep MTA/MTO database names separate. Supply a trusted certificate full chain and matching private key through the existing TLS secrets; certificate issuance/renewal is an operator task.
+
+<details>
+<summary>Show public configuration</summary>
+
+```dotenv
+VF_PROJECT=vectorflow-production
+VF_RELEASE=REPLACE_WITH_APPROVED_FULL_SOURCE_COMMIT
+VF_BIND_ADDRESS=0.0.0.0
+VF_HTTP_PORT=443
+VF_PUBLIC_URL=https://vectorflow.example.com
+VF_PUBLIC_WS_URL=wss://vectorflow.example.com
+VF_ALLOWED_HOSTS=vectorflow.example.com,localhost,127.0.0.1,mta,mto,auth
+VF_TLS_MODE=https
+VF_TLS_CERTIFICATE_FILE=/srv/vectorflow/private/tls/fullchain.pem
+VF_TLS_PRIVATE_KEY_FILE=/srv/vectorflow/private/tls/privkey.pem
+VF_SECRETS_DIR=/srv/vectorflow/private/secrets
+VF_CLIENT_CIPHER_KEY=REPLACE_WITH_PUBLIC_BUILD_CLIENT_CIPHER
+MTA_DB_NAME=vectorflow_mta
+MTO_DB_NAME=vectorflow_mto
+DB_HOST=postgres
+DB_SSLMODE=disable
+```
+
+Keep `DB_SSLMODE=disable` only for the bundled private PostgreSQL network. An external PostgreSQL server requires its separate verify-full/CA configuration. The TLS override makes NGINX listen with TLS on **container80**, mapped to **host443**. No host HTTP80 listener or automatic HTTP redirect is configured; use HTTPS directly. Certificate-renewal ports depend on the operator's chosen issuance method.
+
+</details>
+
+- **4. Check frontend compatibility** — Run this non-mutating gate before creating resources. It must reject the currently delivered localhost package for a public domain.
+
+<details>
+<summary>Show origin gate and image loading</summary>
+
+```sh
+set -eu
+ReleaseRoot=/srv/vectorflow/releases/APPROVED_RELEASE
+OperatorFile=/srv/vectorflow/operator.env
+cd "$ReleaseRoot"
+python3 - "$OperatorFile" <<'PY'
+import json, sys
+from pathlib import Path
+from urllib.parse import urlsplit
+from release.preflight import environment, configuration
+v = environment(sys.argv[1])
+configuration(v)
+source = json.loads(Path("release-source.json").read_text())
+build = json.loads(Path("public-build.json").read_text())
+images = json.loads(Path("runtime-images.json").read_text())
+host = urlsplit(v["VF_PUBLIC_URL"]).hostname
+if v["VF_PUBLIC_URL"].startswith("http:") or host in ("localhost", "127.0.0.1", "::1") or host.endswith(".example.com"):
+    raise SystemExit("STOP: configure the actual public HTTPS domain")
+if v["VF_RELEASE"] != source["source_commit"]:
+    raise SystemExit("STOP: VF_RELEASE differs from the approved source manifest")
+if build.get("public_origin") != v["VF_PUBLIC_URL"] or build.get("websocket_origin") != v["VF_PUBLIC_WS_URL"]:
+    raise SystemExit("STOP: frontend was not built for this public HTTPS/WSS origin; explicit build approval required")
+if build.get("frontend_image") != images["services"]["frontend"]["image_id"] or build.get("client_cipher_key") != v["VF_CLIENT_CIPHER_KEY"]:
+    raise SystemExit("STOP: frontend identity/public cipher mismatch")
+print("Public build metadata matches; actual VPS/browser tests are still required")
+PY
+# Only after verifying the archive hash against the approved manifest:
+docker load --input "$ReleaseRoot/vectorflow-stage4-runtime.tar.gz"
+```
+
+</details>
+
+- **5. Create secrets and install the empty application** — Use a NEW owned cluster/volume set. Never provision into the existing trial or a sealed database. Keep the public cipher from the approved frontend build; generate new private database/signing/RSA secrets. Stop on any failure.
+
+<details>
+<summary>Show HTTPS install commands — only after the origin gate passes</summary>
+
+```sh
+set -eu
+umask 077
+install -d -m 700 /srv/vectorflow/private
+AuthImage=$(python3 -c 'import json; print(json.load(open("runtime-images.json"))["services"]["auth"]["image_id"])')
+PublicCipher=$(python3 -c 'import json; print(json.load(open("public-build.json"))["client_cipher_key"])')
+docker run --rm --network none --user 0:0 --entrypoint python \
+  --mount type=bind,src=/srv/vectorflow/private,dst=/private "$AuthImage" \
+  -m release.prepare_secrets --directory /private/secrets --public-client-cipher-key "$PublicCipher"
+chmod 600 "$OperatorFile"
+# TLS files must already exist and be readable by the frontend through their secret mounts.
+test -s /srv/vectorflow/private/tls/fullchain.pem
+test -s /srv/vectorflow/private/tls/privkey.pem
+VpsDomain=$(python3 -c 'from release.preflight import environment; from urllib.parse import urlsplit; import sys; print(urlsplit(environment(sys.argv[1])["VF_PUBLIC_URL"]).hostname)' "$OperatorFile")
+openssl x509 -in /srv/vectorflow/private/tls/fullchain.pem -noout -checkhost "$VpsDomain"
+openssl x509 -in /srv/vectorflow/private/tls/fullchain.pem -noout -checkend 86400
+openssl pkey -in /srv/vectorflow/private/tls/privkey.pem -noout -check
+DeploymentProject=$(python3 -c 'from release.preflight import environment; import sys; print(environment(sys.argv[1])["VF_PROJECT"])' "$OperatorFile")
+vf() {
+  docker compose --project-name "$DeploymentProject" --env-file "$OperatorFile" \
+    -f "$ReleaseRoot/release/compose.yaml" -f "$ReleaseRoot/loaded-images.yaml" \
+    -f "$ReleaseRoot/release/compose.tls.yaml" "$@"
+}
+python3 release/preflight.py --source-root "$ReleaseRoot" --env-file "$OperatorFile" \
+  --compose-file "$ReleaseRoot/release/compose.yaml" --compose-file "$ReleaseRoot/loaded-images.yaml" \
+  --compose-file "$ReleaseRoot/release/compose.tls.yaml"
+vf config --quiet
+vf up -d --wait postgres redis
+vf --profile install run --rm --no-deps provision -m release.provision
+vf --profile install run --rm --no-deps provision -m release.provision --apply
+vf --profile install run --rm --no-deps mta-install manage.py migrate --plan
+vf --profile install run --rm --no-deps mta-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps auth-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps mto-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps auth-install -m release.install_identity
+vf --profile install run --rm --no-deps provision -m release.grant_service AUTH
+vf --profile install run --rm --no-deps provision -m release.grant_service MTO
+vf --profile install run --rm --no-deps provision -m release.metadata_access --apply
+vf --profile install run --rm --no-deps auth-install manage.py createsuperuser
+vf up -d --wait mta auth mto frontend
+```
+
+Use the same Compose file order for every command, including renewal/restart. No frontend or MTO build command is part of this procedure. Clear conflicting shell configuration values before preflight; shell variables override the env file. Host secret directories must remain private; Compose file secrets are mounts, not a substitute for host access controls. See [Docker's secrets documentation](https://docs.docker.com/compose/how-tos/use-secrets/).
+
+</details>
+
+- **6. Verify from outside the VPS** — Check trusted TLS, normal login/CAPTCHA, original MDM families and reload. Check the browser Network panel: API calls use the public host, no mixed-content errors, and scheduling uses `wss://YOUR_DOMAIN/ws/scheduler/...`, never the visitor's localhost. Do not disable CAPTCHA, use `curl -k` or invent a scheduling run. A successful scheduling session needs its legitimate run/data; that operational proof belongs to Step Five.
+
+<details>
+<summary>Show TLS and service checks</summary>
+
+```sh
+# Run these on the approved VPS after startup:
+vf exec -T frontend nginx -t -c /tmp/vectorflow.conf
+vf ps
+vf logs --tail 50 frontend auth mta
+# Run these from an external machine with the real domain:
+curl --fail --show-error https://YOUR_DOMAIN/healthz
+curl --show-error --output /dev/null --write-out '%{http_code}\n' https://YOUR_DOMAIN/readyz
+# Expected before publication: health200, readiness503.
+```
+
+</details>
+
+- **7. Record the release and stop** — Record source/image IDs, domain, certificate expiry/renewal ownership and test results. Keep backups/rollback available. Sample loading, daily execution, publication and recovery rehearsal remain Step Five. Renew certificates before expiry and recreate/reload only the approved gateway after checking the certificate; no automatic renewal job is shipped here.
+
+**Verification on 17 October 2026:** local Compose rendering confirmed only frontend host443→container80, TLS secret names and HTTPS auth origin. The shipped scheduling chunk independently confirms the localhost WebSocket constant. No VPS hostname, DNS access, SSH credentials or real certificate was supplied; public reachability, live certificate trust and public-origin login/WSS have **not** been tested. Do not label this a verified public production deployment.
 
 ## Release and host preparation
 
