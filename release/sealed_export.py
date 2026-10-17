@@ -20,6 +20,19 @@ INSTALLATION_FILES = frozenset(('mta/mdm/application_registration.py', 'mta/mdm/
 VERIFIER = 'mta/mdm/native_report_compatibility.py'
 LAYOUT_VERIFIER = 'mta/mdm/owned_namespace.py'
 OMITTED_NEW_TEST = 'mta/runtime/test_logistics.py'
+# Exact source-only setup descendant of the reviewed export. The original
+# 908-file seal, 721-file reviewed projection and 187 omissions stay fixed.
+# These hashes are committed Linux export bytes, not operator-selected values.
+SETUP_SCHEMA = 'vectorflow-reviewed-sealed-export-setup-v1'
+SETUP_ADDED = frozenset(('mta/presentation/application_state.py',))
+SETUP_FILES = {
+    'mta/mdm/source.py': 'ad49be81bd9b4d931622ddb12e3cc7becc55abe07e7b961b5547ee4fbadd84c3',
+    'mta/presentation/application_state.py': '4c047861aa977b7c791d7b1c5045ddd0ec781def9f6649997292251bdca5b65a',
+    'mta/presentation/admission.py': 'ba33a686b185c65fb6347bf5ed602ea2dc0a410fea86bdf0ceb68720cecd668d',
+    'mta/presentation/mdm_views.py': '618f771e1284bccf5f131d90ec4475e4bb84a938fcad509a775e6cfd6fe08c35',
+    'mta/presentation/views.py': 'c3550dc4d5ebe24d04af8a61c6cd4a08cbf9c5eb32ff897ae2906620c5ff70f6',
+    'vectorflow/urls.py': '409b86050d2d8a38ce671db2424be9ba1df9d9f1ac63b5865719fe28be752f61',
+}
 
 
 def validate(raw, pin, logistics_raw, root, files, identity):
@@ -31,10 +44,11 @@ def validate(raw, pin, logistics_raw, root, files, identity):
     value = _read_json(raw)
     if (set(value) != {'schema', 'reviewed_commit', 'reviewed_files', 'omitted_files',
                       'installation_inverse', 'descendant_inverse', 'current_files', 'current_identity'}
-            or value['schema'] != SCHEMA or value['reviewed_commit'] != REVIEWED_COMMIT
+            or value['schema'] not in (SCHEMA, SETUP_SCHEMA) or value['reviewed_commit'] != REVIEWED_COMMIT
             or _sha(logistics_raw) != LOGISTICS_SHA256):
         _deny('sealed export declaration or original lineage differs')
     original = _read_json(logistics_raw)
+    setup = value['schema'] == SETUP_SCHEMA
     reviewed, omitted = value['reviewed_files'], value['omitted_files']
     if (len(original['current_files']) != 908 or len(reviewed) != 721 or len(omitted) != 187
             or digest(reviewed) != REVIEWED_DIGEST or digest(omitted) != OMITTED_DIGEST
@@ -43,16 +57,20 @@ def validate(raw, pin, logistics_raw, root, files, identity):
             or any(original['current_files'].get(n) != h for n, h in omitted.items())):
         _deny('sealed export fixed omission or reviewed roster differs')
     if (files != value['current_files'] or files != _files(Path(root))
-            or set(files) != set(reviewed) or identity != value['current_identity']
+            or set(files) != set(reviewed) | (SETUP_ADDED if setup else set())
+            or identity != value['current_identity']
             or identity.get('source_manifest_digest') != digest(files)
             or identity.get('closing_projection_version') != VERSION):
         _deny('sealed export actual source or identity differs')
+    if setup and any(files.get(name) != checksum for name, checksum in SETUP_FILES.items()):
+        _deny('sealed export setup descendant bytes differ')
     for name in files:
         path = Path(root) / name
         if path.is_symlink() or any(p.is_symlink() for p in path.parents if p != Path(root).parent):
             _deny('sealed export symbolic source is not admitted')
-    descendants = {n for n in files if files[n] != reviewed[n]}
-    if (descendants not in ({VERIFIER}, {VERIFIER, LAYOUT_VERIFIER})
+    descendants = {n for n in files if files[n] != reviewed.get(n)}
+    setup_names = set(SETUP_FILES) if setup else set()
+    if (descendants not in ({VERIFIER} | setup_names, {VERIFIER, LAYOUT_VERIFIER} | setup_names)
             or set(value['descendant_inverse']) != descendants
             or set(value['installation_inverse']) != INSTALLATION_FILES
             or {n for n in reviewed if reviewed[n] != original['current_files'][n]} != INSTALLATION_FILES):
@@ -64,11 +82,11 @@ def validate(raw, pin, logistics_raw, root, files, identity):
             _deny('sealed export current bytes differ')
         reviewed_bytes = (apply_inverse(current, value['descendant_inverse'][name])
                           if name in descendants else current)
-        if _sha(reviewed_bytes) != reviewed[name]:
+        if _sha(reviewed_bytes) != reviewed.get(name, _sha(b'')):
             _deny('sealed export reviewed inverse differs')
         prior = (apply_inverse(reviewed_bytes, value['installation_inverse'][name])
                  if name in INSTALLATION_FILES else reviewed_bytes)
-        if _sha(prior) != original['current_files'][name]:
+        if _sha(prior) != original['current_files'].get(name, _sha(b'')):
             _deny('sealed export original inverse differs')
         overrides[name] = prior
     # This omitted test was an added file in the PINNED logistics declaration.

@@ -27,7 +27,7 @@ const loadState = async (): Promise<ApplicationState | null> => {
   throw new Error('Application configuration is unavailable. Ask the deployment operator to check readiness.');
 };
 
-export const ApplicationSetup = ({ children }: PropsWithChildren<{}>) => {
+export const ApplicationSetup = ({ children }: PropsWithChildren<unknown>) => {
   const { pathname } = useLocation();
   const enabled = pathname.startsWith('/mta/') || pathname === '/supply-chain-intelligence-hub/merchandising-grid';
   const state = useQuery(['installed-application-state'], loadState, {
