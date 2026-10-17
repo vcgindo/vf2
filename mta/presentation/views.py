@@ -71,7 +71,9 @@ def _require_report(report):
     require_report(report)
 
 
-def endpoint(method, *, public=False):
+def endpoint(method, *, public=False, requires='publication'):
+    if requires not in ('installation', 'source', 'publication'):
+        raise ValueError('Unknown application prerequisite')
     def decorate(function):
         @csrf_exempt
         @wraps(function)
@@ -90,6 +92,11 @@ def endpoint(method, *, public=False):
                 payload = json.loads(request.body.decode('utf-8') or '{}')
                 if not isinstance(payload, dict):
                     raise ValueError('JSON body must be an object')
+                from mta.presentation.admission import require_application_state
+                from mta.presentation.application_state import prerequisite
+                state = require_application_state()
+                if state is not None and requires != 'installation':
+                    prerequisite(state, population=requires == 'source')
                 from mta.presentation import fixture
                 if fixture.enabled() and not public:
                     if not fixture.actor_allowed(identity(request),payload):
@@ -101,6 +108,10 @@ def endpoint(method, *, public=False):
                 # Canonical Guided controller: HTTP500 and responseMessage null fields.
                 return envelope(status=500)
             except PublicationUnavailable as exc:
+                from mta.presentation.application_state import SetupRequired
+                if isinstance(exc, SetupRequired):
+                    return JsonResponse({'error': 'application_setup_required', 'detail': str(exc),
+                                         'application': exc.state}, status=409)
                 return JsonResponse({'error': str(exc)}, status=503)
             except (ValueError, TypeError) as exc:
                 return JsonResponse({'error': 'invalid_request', 'detail': str(exc)}, status=400)
@@ -117,8 +128,12 @@ def scoped(rows, payload, location_key, *, attributes, preserve_join_multiplicit
                        int(row.get('SKUCode') in products and row.get(location_key) in locations))]
 
 
-@endpoint('GET', public=True)
+@endpoint('GET', public=True, requires='installation')
 def all_permissions(request, payload):
+    from mta.presentation.admission import require_application_state
+    state = require_application_state()
+    if state is not None and not settings.VF_MTA_PERMISSIONS_FILE and not settings.VF_MTA_PERMISSIONS_SHA256:
+        return JsonResponse({'product': [], 'location': [], 'application': state})
     catalogue = permission_catalogue()
     return JsonResponse({kind: [dict(id=r['id'], **{
         field + str(i): r['level_' + str(i)] for i in range(1, 4)}) for r in catalogue[source]['records']]
@@ -147,13 +162,20 @@ def descriptions(request, payload, *, kind):
     return envelope(data=selected_descriptions(payload, kind))
 
 
-@endpoint('GET')
+@endpoint('GET', requires='installation')
 def environment(request, payload):
     values = json.loads((CONFIG / 'mta_environment_configuration.json').read_text())
-    return envelope(data=[dict(ConfigKey=str(k), ConfigValue=str(v)) for k, v in sorted(values.items())])
+    response = envelope(data=[dict(ConfigKey=str(k), ConfigValue=str(v)) for k, v in sorted(values.items())])
+    from mta.presentation.admission import require_application_state
+    state = require_application_state()
+    if state is not None:
+        value = json.loads(response.content)
+        value['application'] = state
+        return JsonResponse(value)
+    return response
 
 
-@endpoint('GET')
+@endpoint('GET', requires='installation')
 def report_paths(request, payload):
     return envelope(data=json.loads((CONFIG / 'mta_report_paths.json').read_text()))
 
@@ -174,9 +196,17 @@ def download_report(request, payload, *, report_name):
     return FileResponse(stream, as_attachment=True, filename=filename, content_type='text/csv')
 
 
-@endpoint('GET')
+@endpoint('GET', requires='installation')
 def ui_config(request, payload):
     name = request.GET.get('reportName')
+    from mta.presentation.admission import require_application_state
+    state = require_application_state()
+    if state is not None and name in ('BOR_OA', 'BuyerOrderReport'):
+        if name == 'BOR_OA':
+            from mta.presentation.boroa_configuration import configuration, ui_columns
+        else:
+            from mta.presentation.bor_configuration import configuration, ui_columns
+        return envelope(data=ui_columns(configuration()))
     if name in ('InTransitWhereAbouts', 'OpenExpeditingRequests'):
         return envelope(data=json.loads((CONFIG / 'logistics' / 'ui_columns_v1.json').read_text())[name])
     if name == 'BOR_OA':
@@ -391,12 +421,14 @@ def bpr_analytics(request, payload):
     return envelope(data=model.analytics(rows))
 
 
-@endpoint('GET')
+@endpoint('GET', requires='installation')
 def bor_ui_config(request, payload):
-    _require_report('bor')
-    from mta.presentation.bor_sources import admitted_sources
     from mta.presentation.bor_configuration import configuration, ui_columns
-    admitted_sources()
+    from mta.presentation.admission import require_application_state
+    if require_application_state() is None:
+        _require_report('bor')
+        from mta.presentation.bor_sources import admitted_sources
+        admitted_sources()
     return envelope(data=ui_columns(configuration()))
 
 

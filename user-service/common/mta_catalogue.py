@@ -23,6 +23,25 @@ def enabled():
     return value == '1'
 
 
+def remote_payload(url):
+    """An upstream failure is not an empty product/location catalogue."""
+    from requests import RequestException
+    from common.startup_probe import permission_request
+    try:
+        response = permission_request('permission_mta', method='GET', url=url,
+                                      timeout=(3.05, 15))
+        if response.status_code != 200:
+            raise CatalogueUnavailable('mta_catalogue_upstream_unavailable')
+        value = response.json()
+        if (not isinstance(value, dict)
+                or not isinstance(value.get('product'), list)
+                or not isinstance(value.get('location'), list)):
+            raise CatalogueUnavailable('mta_catalogue_upstream_invalid')
+        return value
+    except (RequestException, ValueError) as exc:
+        raise CatalogueUnavailable('mta_catalogue_upstream_unavailable') from exc
+
+
 def _read(prefix):
     path, expected = (os.environ.get(prefix + suffix, '') for suffix in ('_FILE', '_SHA256'))
     if not path or not expected:
