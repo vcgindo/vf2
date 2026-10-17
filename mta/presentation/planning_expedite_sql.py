@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """SQL parent Expedite grid over prepared occurrences and nested-transit matches."""
 from copy import deepcopy
 from decimal import Decimal
@@ -158,51 +159,48 @@ def parent_grid(run,payload):
     return dict(data=result,uiConfig=[dict(header=h,colCode=c,colPosition=p) for h,c,p in PARENT_COLUMNS])
 
 
-def child_grid(run,payload):
-    from datetime import datetime,time,timedelta
+def child_grid(run, payload):
+    from datetime import datetime, time, timedelta
     from mta.presentation.expedite_read import PARENT_COLUMNS
     from mta.presentation.excess_read import pagination
     from mta.presentation.planning_expedite_requests import empty_requests
-    from mta.presentation.fixture import bpr_ancillary
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
-             if daily else bpr_ancillary(run)['InTransitData'])
+    transit = __import__('mta.presentation.daily_preparation', fromlist=['ancillary_row']).ancillary_row(run, 'InTransitData') if daily else removed_mode('historical_fixture')
     if daily:
         from mta.presentation.logistics_live import serving_transit_rows
-        transit=serving_transit_rows(run,transit)
+        transit = serving_transit_rows(run, transit)
     requests = empty_requests(run)
     if not daily and (requests or transit):
         raise PublicationUnavailable('child_expedite_requires_approved_empty_request_and_transit_inputs')
     from mta.presentation.expedite_child_sources import projections
     nested = projections(requests, transit)
-    selected,params=selected_parent(run,payload,child=True)
-    fields=[*FIELDS,'sap','ec','rlt','sl4','sl5','ll4','ll5','pk']
+    selected, params = selected_parent(run, payload, child=True)
+    fields = [*FIELDS, 'sap', 'ec', 'rlt', 'sl4', 'sl5', 'll4', 'll5', 'pk']
     from mta.presentation.logistics_live import enabled as logistics_enabled
-    target_fields=['parentWhCode'] if logistics_enabled() else []
+    target_fields = ['parentWhCode'] if logistics_enabled() else []
     with connection.cursor() as c:
-        c.execute('WITH selected AS ('+selected+') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk '
-                  'HAVING count(DISTINCT ROW('+','.join(map(quote,fields))+'))>1 LIMIT 1',params)
-        if c.fetchone():raise PublicationUnavailable('child_expedite_ambiguous_row_number')
-        query=('WITH selected AS ('+selected+'), numbered AS (SELECT branch,'
-            'row_number() OVER (PARTITION BY branch ORDER BY age DESC NULLS LAST,sk DESC NULLS LAST,lk DESC NULLS LAST,pk DESC NULLS LAST,ordinal,copies.copy_ordinal) AS rn,'
-            +','.join(map(quote,[*fields,*target_fields]))+' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) SELECT * FROM numbered')
-        paging=pagination(payload)
+        c.execute('WITH selected AS (' + selected + ') SELECT 1 FROM selected GROUP BY branch,age,sk,lk,pk HAVING count(DISTINCT ROW(' + ','.join(map(quote, fields)) + '))>1 LIMIT 1', params)
+        if c.fetchone():
+            raise PublicationUnavailable('child_expedite_ambiguous_row_number')
+        query = 'WITH selected AS (' + selected + '), numbered AS (SELECT branch,row_number() OVER (PARTITION BY branch ORDER BY age DESC NULLS LAST,sk DESC NULLS LAST,lk DESC NULLS LAST,pk DESC NULLS LAST,ordinal,copies.copy_ordinal) AS rn,' + ','.join(map(quote, [*fields, *target_fields])) + ' FROM selected CROSS JOIN LATERAL generate_series(1,weight) copies(copy_ordinal)) SELECT * FROM numbered'
+        paging = pagination(payload)
         if paging is not None:
-            query+=' WHERE rn BETWEEN %s AND %s';params=[*params,(paging[0]-1)*paging[1]+1,paging[0]*paging[1]]
-        c.execute(query+' ORDER BY branch,rn',params)
-        names=[col[0] for col in c.description]
-        rows=[dict(zip(names,row)) for row in c.fetchall()]
-    result=dict(expediteDispatches=[],createAvailabilityAtParent=[])
+            query += ' WHERE rn BETWEEN %s AND %s'
+            params = [*params, (paging[0] - 1) * paging[1] + 1, paging[0] * paging[1]]
+        c.execute(query + ' ORDER BY branch,rn', params)
+        names = [col[0] for col in c.description]
+        rows = [dict(zip(names, row)) for row in c.fetchall()]
+    result = dict(expediteDispatches=[], createAvailabilityAtParent=[])
     for row in rows:
-        target='expediteDispatches' if row.pop('branch')=='dispatch' else 'createAvailabilityAtParent'
-        rlt=row.pop('rlt')
+        target = 'expediteDispatches' if row.pop('branch') == 'dispatch' else 'createAvailabilityAtParent'
+        rlt = row.pop('rlt')
         parent = row.pop('pk')
         row.update(nested(row['sc'], row['wc'], parent))
-        row.update(eta=None if rlt is None else
-                   (datetime.combine(run.business_date,time())+timedelta(days=rlt)).isoformat())
-        for field in ('pip','pin','p'):
-            if row[field] is not None:row[field]=float(row[field])
+        row.update(eta=None if rlt is None else (datetime.combine(run.business_date, time()) + timedelta(days=rlt)).isoformat())
+        for field in ('pip', 'pin', 'p'):
+            if row[field] is not None:
+                row[field] = float(row[field])
         result[target].append(row)
-    positions={'rq':12,'pin':11}
-    return dict(data=result,uiConfig=[dict(header=h,colCode=c,colPosition=positions.get(c,p)) for h,c,p in PARENT_COLUMNS])
+    positions = {'rq': 12, 'pin': 11}
+    return dict(data=result, uiConfig=[dict(header=h, colCode=c, colPosition=positions.get(c, p)) for h, c, p in PARENT_COLUMNS])

@@ -14,17 +14,14 @@ def inputs(output, business_date):
 
 
 def read_excess(run, *, output):
-    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import projection_rows
-        return projection_rows(run,ExcessInventoryRow,report_date=str(run.business_date))
     receipt = ExcessProjection.objects.get(run=run)
-    if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)):
+    if receipt.producer_sha256 != PRODUCER_SHA or receipt.source_digest != digest(inputs(output, run.business_date)):
         raise ValueError('Excess projection source identity differs')
-    records = list(ExcessInventoryRow.objects.filter(run=run).order_by('ordinal').values('ordinal',*FIELDS))
-    if [r['ordinal'] for r in records]!=list(range(receipt.row_count)):
+    records = list(ExcessInventoryRow.objects.filter(run=run).order_by('ordinal').values('ordinal', *FIELDS))
+    if [r['ordinal'] for r in records] != list(range(receipt.row_count)):
         raise ValueError('Excess projection population/order drift')
-    rows = storage([{name:row[name] for name in FIELDS} for row in records])
-    if digest(rows)!=receipt.rows_digest:
+    rows = storage([{name: row[name] for name in FIELDS} for row in records])
+    if digest(rows) != receipt.rows_digest:
         raise ValueError('Excess projection values/types/multiplicity drift')
     return rows
 

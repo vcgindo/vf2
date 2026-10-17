@@ -1,8 +1,8 @@
+from mta.presentation.native_mode import removed_mode
 """Exact stable memberships for retained Research and Buffer Trends readers."""
 import inspect
 import re
 
-from mta.presentation import fixture
 from mta.presentation.rrr_sql import equal, key
 from mta.presentation.selective import image_query
 from mta.runtime.relational_state import quote
@@ -27,7 +27,7 @@ def source_signatures(run):
         from mta.presentation.selective import image_metadata
         source_digest(run)
         return digest({path: image_metadata(run, path) for path in SOURCES.values()})
-    return digest(fixture.image_metadata_batch(run, list(SOURCES.values())))
+    return digest(removed_mode('historical_fixture'))
 
 
 def _relations(run, names):

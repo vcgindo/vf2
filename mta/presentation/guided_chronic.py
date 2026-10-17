@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """Prepared occurrence reader for the fixture Chronic grid only."""
 from django.conf import settings
 from django.db import connection, transaction
@@ -120,38 +121,46 @@ def build_query(run, payload, attributes):
 def read_guided_chronic(run, payload):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily: raise ValueError('guided_chronic_admitted_run_required')
-    if not daily and not getattr(settings, 'VF_GUIDED_PREPARED', False):
+    if not daily:
+        raise ValueError('guided_chronic_admitted_run_required')
+    if not daily and (not getattr(settings, 'VF_GUIDED_PREPARED', False)):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
-    from mta.presentation import fixture, hierarchy
-    try: manifest = hierarchy.selected_manifest(run)
-    except hierarchy.HierarchyUnavailable as exc: raise PublicationUnavailable(str(exc)) from exc
+    from mta.presentation import hierarchy
+    try:
+        manifest = hierarchy.selected_manifest(run)
+    except hierarchy.HierarchyUnavailable as exc:
+        raise PublicationUnavailable(str(exc)) from exc
     if manifest:
         raise PublicationUnavailable('chronic_SQL_hierarchy_supplement_not_bound')
     if daily:
         from mta.presentation.daily_preparation import source_digest
-        selected, source = run, source_digest(run)
+        selected, source = (run, source_digest(run))
     else:
-        selected, source = fixture.binding()
+        selected, source = removed_mode('historical_fixture')
     receipt = GuidedChronicPreparedProjection.objects.filter(run_id=run.pk).first()
-    if selected.pk != run.pk or receipt is None or receipt.source_digest != source or receipt.schema_digest != schema_digest():
+    if selected.pk != run.pk or receipt is None or receipt.source_digest != source or (receipt.schema_digest != schema_digest()):
         raise PublicationUnavailable('Guided_Chronic_prepared_receipt_missing_or_changed')
-    try: verify_guards(connection)
-    except ValueError as exc: raise PublicationUnavailable('Guided_Chronic_prepared_guards_changed') from exc
-    attributes = {name: image_rows(run, 'closing/btr/' + name)
-                  for name in ('SkuAttributeData', 'LocationAttributeData')}
+    try:
+        verify_guards(connection)
+    except ValueError as exc:
+        raise PublicationUnavailable('Guided_Chronic_prepared_guards_changed') from exc
+    attributes = {name: image_rows(run, 'closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     query, params, outputs = build_query(run, payload, attributes)
-    if query is None: return []
+    if query is None:
+        return []
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.execute("SELECT current_setting('jit')"); previous_jit = cursor.fetchone()[0]
-        cursor.execute('SET LOCAL jit=off'); cursor.execute(query, params); records = cursor.fetchall()
+        cursor.execute("SELECT current_setting('jit')")
+        previous_jit = cursor.fetchone()[0]
+        cursor.execute('SET LOCAL jit=off')
+        cursor.execute(query, params)
+        records = cursor.fetchall()
         cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
     result = []
     for record in records:
-        item = {name: wire_value(value, wire) for (name, wire), value in zip(outputs, record)
-                if value is not None}
+        item = {name: wire_value(value, wire) for (name, wire), value in zip(outputs, record) if value is not None}
         for field in ('PhysicalInventoryPen', 'PipelineInventoryPen'):
-            if field in item: item[field] = float(item[field])
+            if field in item:
+                item[field] = float(item[field])
         copies = item.pop('_copies', 1)
-        result.extend(dict(item) for _ in range(copies))
+        result.extend((dict(item) for _ in range(copies)))
     return result

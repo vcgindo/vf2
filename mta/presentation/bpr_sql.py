@@ -89,18 +89,14 @@ def _projected_attributes(run):
     if native_publication.enabled():
         native_publication.require_mode()
         from mta.presentation.selective import image_rows as bpr_image_rows
-    else:
-        from mta.presentation.fixture import bpr_image_rows
-
-    importer = {name: bpr_image_rows(run, 'closing/importer/' + name)
-                for name in ('SkuAttributeData', 'LocationAttributeData')}
+    importer = {name: bpr_image_rows(run, 'closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:
             importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
-    return importer, manifest
+    return (importer, manifest)
 
 
 def _values_cte(rows, columns, casts=None):
@@ -263,25 +259,4 @@ def read_bpr(run, payload, *, paging=None, count=False):
     caller.  Normal reads, analytics and exports must continue through
     ``ReadModel``.
     """
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
-        raise ValueError('BPR SQL reader is fixture-only')
-    if not count and (not isinstance(paging, tuple) or len(paging) != 2 or
-                      any(type(value) is not int or value < 1 for value in paging)):
-        raise ValueError('positive_BPR_pagination_required')
-    importer, manifest = _projected_attributes(run)
-    # Preserve every accepted/unavailable filter decision in the established
-    # predicate.  BprSqlFilters only compiles branches this validation accepts.
-    BprPredicate(payload, importer['LocationAttributeData'])
-    from mta.presentation.fixture import bpr_ancillary
-    ancillary = bpr_ancillary(run)
-    if ancillary['InTransitData']:
-        raise PublicationUnavailable('nonempty_BPR_transit_wire_not_yet_validated')
-    query, values = _build(run, payload, importer, manifest, ancillary, paging, count)
-    if query is None:
-        return 0 if count else []
-    with connection.cursor() as cursor:
-        cursor.execute(query, values)
-        if count:
-            return cursor.fetchone()[0]
-        names = [column[0] for column in cursor.description]
-        return [dict(zip(names, row)) for row in cursor.fetchall()]
+    raise ValueError('BPR SQL reader is fixture-only')

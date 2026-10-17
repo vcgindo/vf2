@@ -1,8 +1,8 @@
+from mta.presentation.native_mode import removed_mode
 """One-time native RRR occurrence membership for the retained April fixture."""
 import inspect
 import re
 
-from mta.presentation import fixture
 from mta.presentation.rrr_sql import equal, key
 from mta.presentation.selective import image_query
 from mta.runtime.relational_state import CATALOG, quote
@@ -26,12 +26,11 @@ def source_signatures(run):
         from mta.runtime.models import PickProjection
         source_digest(run)
         dimensions = {path: image_metadata(run, path) for _, path in SOURCES}
-        pick = PickProjection.objects.filter(run=run).values(
-            'version','calculation_digest','rows_digest','row_count','provenance').get()
+        pick = PickProjection.objects.filter(run=run).values('version', 'calculation_digest', 'rows_digest', 'row_count', 'provenance').get()
     else:
-        dimensions = fixture.image_metadata_batch(run, [path for _, path in SOURCES])
-        pick = fixture.receipt(run, 'projection/PickBand')
-    return digest(dimensions), digest(pick)
+        dimensions = removed_mode('historical_fixture')
+        pick = removed_mode('historical_fixture')
+    return (digest(dimensions), digest(pick))
 
 
 def bands_query(run):

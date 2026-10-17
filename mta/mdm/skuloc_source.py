@@ -22,13 +22,6 @@ COUNTS={'MasterMapper':1,'UI_MDMConfig':37,'NMSAllItems':97097,
 SOURCE_DIGEST=hashlib.sha256(json.dumps(PINS,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
-def _verify(path,name):
-    target=Path(path)/(name+'.json.gz')
-    digest=hashlib.sha256()
-    with gzip.open(target,'rb') as stream:
-        for chunk in iter(lambda:stream.read(1024*1024),b''): digest.update(chunk)
-    if digest.hexdigest()!=PINS[name]:
-        raise ValueError('MDM SKU-location source identity mismatch: '+name)
 
 
 def _read(path,name):
@@ -42,26 +35,3 @@ def _read(path,name):
 
 def installed(source):
     return MdmFamilySource.objects.filter(source=source,master_id=3,digest=SOURCE_DIGEST).exists()
-
-
-def install_skuloc(path,source):
-    if source.dll_digest!=DLL:
-        raise ValueError('MDM SKU-location DLL identity mismatch')
-    # Verify every pin before opening the install transaction, releasing each
-    # large current owner before reading the next one.
-    for name in PINS: _verify(path,name)
-    with transaction.atomic():
-        if MdmFamilySource.objects.filter(source=source,master_id=3).exists():
-            raise ValueError('MDM SKU-location source already installed; reset is prohibited')
-        family=MdmFamilySource.objects.create(source=source,master_id=3,digest=SOURCE_DIGEST,
-            receipt={name:{'sha256':PINS[name],'rows':COUNTS[name]} for name in PINS})
-        for name,model in (('NMSAllItems',MdmSkuLocCurrent),('SkuLocAttributeData',MdmSkuLocPair),('MasterData',MdmSkuLocMasterPair)):
-            rows=_read(path,name)
-            for start in range(0,len(rows),500):
-                model.objects.bulk_create([model(source=source,owner='Importer',ordinal=start+i,**row)
-                    for i,row in enumerate(rows[start:start+500],1)],batch_size=500)
-            del rows
-        with connection.cursor() as cursor:
-            for model in (MdmSkuLocCurrent,MdmSkuLocPair,MdmSkuLocMasterPair):
-                cursor.execute('ANALYZE '+connection.ops.quote_name(model._meta.db_table))
-    return family

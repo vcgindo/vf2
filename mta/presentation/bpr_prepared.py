@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """Read the sealed native BPR candidate bag; request semantics remain live."""
 from django.db import connection, transaction
 
@@ -159,19 +160,16 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
 
 
 def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
-    from mta.presentation import fixture
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
+    if not daily:
         raise ValueError('BPR prepared reader requires an admitted source run')
-    if not count and not analytics and (not isinstance(paging, tuple) or len(paging) != 2 or
-            any(type(value) is not int or value < 1 for value in paging)):
+    if not count and (not analytics) and (not isinstance(paging, tuple) or len(paging) != 2 or any((type(value) is not int or value < 1 for value in paging))):
         raise ValueError('positive_BPR_pagination_required')
     if daily:
         from mta.presentation.selective import image_rows
         from mta.presentation import hierarchy
-        importer = {name: image_rows(run, 'closing/importer/' + name)
-                    for name in ('SkuAttributeData', 'LocationAttributeData')}
+        importer = {name: image_rows(run, 'closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
         manifest = hierarchy.selected_manifest(run)
     else:
         importer, manifest = _projected_attributes(run)
@@ -183,15 +181,14 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
         source_digest = daily_source_digest(run)
         ancillary = ancillary_rows(run)
         from mta.presentation.logistics_live import serving_transit_rows
-        ancillary['InTransitData'] = serving_transit_rows(run,ancillary['InTransitData'])
+        ancillary['InTransitData'] = serving_transit_rows(run, ancillary['InTransitData'])
     else:
-        selected, source_digest = fixture.binding()
+        selected, source_digest = removed_mode('historical_fixture')
         if selected.pk != run.pk:
             raise PublicationUnavailable('BPR_prepared_receipt_missing_or_changed')
-        ancillary = fixture.bpr_ancillary(run)
+        ancillary = removed_mode('historical_fixture')
     receipt = BprPreparedProjection.objects.filter(run_id=run.pk).first()
-    if receipt is None or receipt.source_digest != source_digest or \
-            receipt.schema_digest != schema_digest():
+    if receipt is None or receipt.source_digest != source_digest or receipt.schema_digest != schema_digest():
         raise PublicationUnavailable('BPR_prepared_receipt_missing_or_changed')
     from mta.runtime.bpr_prepared_schema import verify_guards
     try:
@@ -201,21 +198,15 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     if not daily and ancillary['InTransitData']:
         raise PublicationUnavailable('nonempty_BPR_transit_wire_not_yet_validated')
     from mta.presentation.ancillary_live import serving_live
-    query, params = _build(
-        run, payload, importer, ancillary, paging, count=count, analytics=analytics,
-        live_remarks=serving_live(run), daily_transit=daily)
+    query, params = _build(run, payload, importer, ancillary, paging, count=count, analytics=analytics, live_remarks=serving_live(run), daily_transit=daily)
     if query is None:
         if analytics:
-            return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline')
-                     for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey')}]
+            return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline') for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey')}]
         return 0 if count else []
-    # The finite fixture plan spent 3.25 of 3.38 seconds compiling JIT code.
-    # Keep this choice local, including when a caller owns an outer transaction.
-    # A failed query rolls back this savepoint and its SET LOCAL together.
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.execute("SELECT current_setting('jit')")
         previous_jit = cursor.fetchone()[0]
-        cursor.execute("SET LOCAL jit=off")
+        cursor.execute('SET LOCAL jit=off')
         cursor.execute(query, params)
         if count:
             result = cursor.fetchone()[0]
@@ -223,18 +214,14 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
             names = [field[0] for field in cursor.description]
             result = [dict(zip(names, row)) for row in cursor.fetchall()]
         cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
-        if daily and not count and not analytics:
+        if daily and (not count) and (not analytics):
             from mta.presentation.rrr import index, sql_key
             transit = index(ancillary['InTransitData'], 'SKUCode', 'WhCode')
             for row in result:
                 base_colour = row.pop('_base_eco')
                 rows = []
                 for source in transit.get(sql_key(row['SKUCode'], row['WHCode']), []):
-                    item = {target: source[field] for target, field in (
-                        ('lc', 'OrderNo'), ('cd', 'CreationDate'), ('slt', 'SLT'),
-                        ('tlt', 'TLT'), ('ag', 'Ageing'), ('eta', 'ETA'),
-                        ('cl', 'CurrentLocationCode'), ('qty', 'InTransitQty'),
-                        ('remarks', 'Remark'))}
+                    item = {target: source[field] for target, field in (('lc', 'OrderNo'), ('cd', 'CreationDate'), ('slt', 'SLT'), ('tlt', 'TLT'), ('ag', 'Ageing'), ('eta', 'ETA'), ('cl', 'CurrentLocationCode'), ('qty', 'InTransitQty'), ('remarks', 'Remark'))}
                     item['exeecocolor'] = base_colour
                     rows.append(item)
                 row['intransit'] = rows or None

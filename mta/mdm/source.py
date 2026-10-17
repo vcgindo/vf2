@@ -34,37 +34,8 @@ def source(*, read_only=False):
         from mta.mdm.native_source import require_base
         for master_id in (1, 2, 3):
             require_base(result, master_id)
-    elif result.dll_digest != DLL:
-        raise PublicationUnavailable('mdm_source_not_installed')
+    else:
+        raise PublicationUnavailable('historical_mdm_source_mode_removed')
     from mta.mdm.integration_source import require_read_binding
     require_read_binding(result, read_only=read_only)
     return result
-
-
-def install_sku(path):
-    """Install qualified raw masters once; never reset or borrow report rows."""
-    rows = {}
-    for table, expected in PINS.items():
-        raw = gzip.decompress((Path(path) / (table.replace('/', '-') + '.json.gz')).read_bytes())
-        if hashlib.sha256(raw).hexdigest() != expected:
-            raise ValueError('MDM source identity mismatch: ' + table)
-        rows[table] = json.loads(raw)
-    with transaction.atomic():
-        if MdmSource.objects.filter(digest=SOURCE_DIGEST).exists():
-            raise ValueError('MDM source already installed; reset is prohibited')
-        installed = MdmSource.objects.create(digest=SOURCE_DIGEST, dll_digest=DLL,
-            database_name='VFTEST_Fresh_S2_VM_20261003_002_Importer',
-            receipt={name: {'sha256': PINS[name], 'rows': len(values)} for name, values in rows.items()})
-        for table, model in (('SKUAttributeData', MdmSkuAttributes), ('SKUDescriptionTbl', MdmSkuDescription)):
-            for owner in ('Importer', 'BPR', 'BTR', 'DBM'):
-                name = table if owner == 'Importer' else owner + '/' + table
-                model.objects.bulk_create([model(source=installed, owner=owner, ordinal=i, **row)
-                    for i, row in enumerate(rows[name], 1)], batch_size=500)
-        MdmSkuUse.objects.bulk_create([MdmSkuUse(source=installed,ordinal=i,**row)
-            for i,row in enumerate(rows['SkuUse'],1)],batch_size=2000)
-        # Initial bulk installation needs current expression-index statistics;
-        # autovacuum cannot see these rows before the install transaction commits.
-        with connection.cursor() as cursor:
-            for model in (MdmSkuAttributes,MdmSkuDescription):
-                cursor.execute('ANALYZE '+connection.ops.quote_name(model._meta.db_table))
-    return installed

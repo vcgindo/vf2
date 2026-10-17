@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """Prepared GIT location reads with native directional permission ownership."""
 from types import SimpleNamespace
 from django.db import connection
@@ -6,7 +7,6 @@ from mta.presentation.planning_grid_sql import GridFilters
 from mta.presentation.planning_sources import admitted_sources
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.context import scope,PublicationUnavailable
-from mta.presentation.fixture import bpr_ancillary
 from mta.presentation.selective import image_query,image_rows
 from mta.presentation.rrr_sql import equal
 from mta.runtime.models import PlanningGitMasterRow
@@ -54,7 +54,7 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
         from mta.presentation.logistics_live import serving_transit_rows
         transit=serving_transit_rows(run,transit)
     else:
-        transit=bpr_ancillary(run)['InTransitData']
+        transit=removed_mode('historical_fixture')['InTransitData']
         if transit:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
     importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
     if manifest:raise PublicationUnavailable('planning_git_native_hierarchy_required')

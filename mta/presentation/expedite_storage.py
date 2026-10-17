@@ -15,19 +15,18 @@ def inputs(output,bands):
         ages=closing['btr']['ExpediteDispatches'])
 
 
-def read_expedite(run,*,output,bands=None):
-    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import projection_rows
-        return projection_rows(run,ExpediteRow)
-    if bands is None: bands=read_pick_bands(run)
-    receipt=ExpediteProjection.objects.get(run=run)
-    if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,bands)):
+def read_expedite(run, *, output, bands=None):
+    if bands is None:
+        bands = read_pick_bands(run)
+    receipt = ExpediteProjection.objects.get(run=run)
+    if receipt.producer_sha256 != PRODUCER_SHA or receipt.source_digest != digest(inputs(output, bands)):
         raise ValueError('Expedite projection source identity differs')
-    records=list(ExpediteRow.objects.filter(run=run).order_by('ordinal').values('ordinal',*FIELDS))
-    if [r['ordinal'] for r in records]!=list(range(receipt.row_count)):
+    records = list(ExpediteRow.objects.filter(run=run).order_by('ordinal').values('ordinal', *FIELDS))
+    if [r['ordinal'] for r in records] != list(range(receipt.row_count)):
         raise ValueError('Expedite projection population/order drift')
-    rows=storage([{name:row[name] for name in FIELDS} for row in records])
-    if digest(rows)!=receipt.rows_digest: raise ValueError('Expedite projection values/types/multiplicity drift')
+    rows = storage([{name: row[name] for name in FIELDS} for row in records])
+    if digest(rows) != receipt.rows_digest:
+        raise ValueError('Expedite projection values/types/multiplicity drift')
     return rows
 
 

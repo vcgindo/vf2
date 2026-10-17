@@ -24,19 +24,14 @@ def configuration_identity(*, access=None):
     from pathlib import Path
     import hashlib
     root = Path(__file__).resolve().parents[1] / 'config'
-    values = {name:getattr(settings, name) for name in CONFIG_NAMES}
-    from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
-        values['qualified_consumption'] = qualified_consumption.PIN_SHA
+    values = {name: getattr(settings, name) for name in CONFIG_NAMES}
     from mta.presentation import native_publication
     if native_publication.enabled():
         native_publication.require_mode()
         values['native_publication'] = True
     if access is not None:
-        values.update({name: access[name] for name in
-            ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256')})
-    return digest(dict(settings=values,
-        configs={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.glob('*.json'))}))
+        values.update({name: access[name] for name in ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256')})
+    return digest(dict(settings=values, configs={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(root.glob('*.json'))}))
 
 
 @once_per_request
@@ -44,36 +39,18 @@ def recipe_identity():
     from mta.presentation import daily_preparation
     from mta.presentation import expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count
     from mta.presentation import daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read
-    value = dict(roster=daily_preparation.roster_identity(),
-        layers=daily_preparation.required_layers(),
-        coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare),
-        daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in
-            (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count,
-             daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
-    # Serving-only logistics wiring does not change the frozen producer recipe.
-    # Reconstruct its exact prior source through the existing pinned ancestry;
-    # no run, receipt, configuration or producer algorithm is substituted.
+    value = dict(roster=daily_preparation.roster_identity(), layers=daily_preparation.required_layers(), coordinator=inspect.getsource(daily_preparation), publication=inspect.getsource(prepare), daily_shipment_consumers={module.__name__: inspect.getsource(module) for module in (expedite_child_sources, planning_expedite_sql, planning_git_sql, daily_git_count, daily_git_charts, daily_git_custom, daily_git_read, daily_git_preparation, git_read)})
     from mta.mdm.native_report_compatibility import logistics_producer_sources
     prior = logistics_producer_sources()
     if prior is not None:
-        value['daily_shipment_consumers'] = {
-            name: prior.get(name.replace('.', '/')+'.py', text)
-            for name, text in value['daily_shipment_consumers'].items()}
-    from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
-        value['qualified_consumption'] = qualified_consumption.recipe()
+        value['daily_shipment_consumers'] = {name: prior.get(name.replace('.', '/') + '.py', text) for name, text in value['daily_shipment_consumers'].items()}
     return digest(value)
 
 
 def source_identity(run):
     from mta.presentation.daily_sources import receipt
     source = receipt(run)
-    value = dict(input=run.input_digest, output=run.output_digest,
-        production=run.production_digest, manifest=run.production_manifest,
-        daily_sources=source.images_digest, daily_recipe=source.recipe_digest)
-    from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
-        value['qualified_consumption'] = qualified_consumption.identity(run)
+    value = dict(input=run.input_digest, output=run.output_digest, production=run.production_digest, manifest=run.production_manifest, daily_sources=source.images_digest, daily_recipe=source.recipe_digest)
     from mta.presentation import native_publication
     if native_publication.enabled():
         native_publication.require_mode()

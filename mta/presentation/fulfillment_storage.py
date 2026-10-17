@@ -26,19 +26,16 @@ def _read(run,receipt):
     return result
 
 
-def read_fulfillment(run,*,output):
-    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import projection_rows
-        return dict(summary=projection_rows(run,FulfillmentSummaryRow),details=projection_rows(run,FulfillmentDetailRow))
-    receipt=FulfillmentProjection.objects.get(run=run)
-    if run.production_manifest.get('version')==2:
+def read_fulfillment(run, *, output):
+    receipt = FulfillmentProjection.objects.get(run=run)
+    if run.production_manifest.get('version') == 2:
         from mta.runtime.receipt_integrity import verify_root
         verify_root(run)
-    elif receipt.calculation_digest!=Checkpoint.objects.get(run=run,name='CalculationOutputs').digest:
+    elif receipt.calculation_digest != Checkpoint.objects.get(run=run, name='CalculationOutputs').digest:
         raise ValueError('Fulfilment calculation identity differs')
-    if receipt.producer_sha256!=PRODUCER_SHA or receipt.source_digest!=digest(inputs(output,run.business_date)):
+    if receipt.producer_sha256 != PRODUCER_SHA or receipt.source_digest != digest(inputs(output, run.business_date)):
         raise ValueError('Fulfilment producer/input identity differs')
-    return _read(run,receipt)
+    return _read(run, receipt)
 
 
 def write_fulfillment(run,output,calculated, *, calculation_digest=None):

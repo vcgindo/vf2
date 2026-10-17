@@ -72,26 +72,14 @@ def require_activation(run, publication):
 
 def activate(run, *, expected_output_digest, expected_seal):
     from mta.runtime.models import DailyUiPublication, DailyUiActivation
-    from mta.presentation.daily_publication import (source_identity, recipe_identity,
-        seal_identity)
+    from mta.presentation.daily_publication import source_identity, recipe_identity, seal_identity
     from mta.presentation.daily_preparation import required_layers, verify_layer
-    from mta.presentation import qualified_consumption
-    qualified = qualified_consumption.enabled()
-    if qualified:
-        qualified_consumption.verify(run)
-    if (str(run.pk) == str(settings.VF_MTA_PUBLISHED_RUN)
-            or run.output_digest != expected_output_digest
-            or (not qualified and run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'))):
+    qualified = False
+    if str(run.pk) == str(settings.VF_MTA_PUBLISHED_RUN) or run.output_digest != expected_output_digest or (not qualified and run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS')):
         raise PublicationUnavailable('explicit_unselected_accepted_daily_activation_required')
     with transaction.atomic():
         publication = DailyUiPublication.objects.select_for_update().get(run=run)
-        if (publication.status != 'READY' or publication.seal_digest != expected_seal
-                or publication.output_digest != run.output_digest
-                or publication.source_digest != source_identity(run)
-                or publication.recipe_digest != recipe_identity()
-                or publication.seal_digest != seal_identity(publication)
-                or set(publication.layers) != set(required_layers())
-                or any(v.get('status') != 'READY' for v in publication.layers.values())):
+        if publication.status != 'READY' or publication.seal_digest != expected_seal or publication.output_digest != run.output_digest or (publication.source_digest != source_identity(run)) or (publication.recipe_digest != recipe_identity()) or (publication.seal_digest != seal_identity(publication)) or (set(publication.layers) != set(required_layers())) or any((v.get('status') != 'READY' for v in publication.layers.values())):
             raise PublicationUnavailable('daily_activation_original_seal_mismatch')
         expected = values(run, publication)
         access_manifest(run, verify_attributes=True)
@@ -104,7 +92,4 @@ def activate(run, *, expected_output_digest, expected_seal):
             return require_activation(run, publication)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.daily_activation',%s,true)", [str(run.pk)])
-            if qualified:
-                cursor.execute("SELECT set_config('fresh.qualified_daily_activation',%s,true)",
-                               [qualified_consumption.PIN_SHA])
         return DailyUiActivation.objects.create(publication=publication, **expected)

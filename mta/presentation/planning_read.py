@@ -21,27 +21,17 @@ def terminal_git_reports(rationed, ancillary):
 
 def planning_overview_context():
     run = selected_run()
-    if run.kind == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import bpr_ancillary
-        ancillary = bpr_ancillary(run)
-    elif (run.kind == 'DAILY_CHAIN' and
-          getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+    if run.kind == 'DAILY_CHAIN' and getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_preparation import ancillary_rows
         ancillary = ancillary_rows(run)
     else:
         ancillary = terminal_ancillary(run)
     rationed = image_rows(run, 'reports/bpr/vf_RationedReqReport')
     reports = terminal_git_reports(rationed, ancillary)
-    importer = {name: image_rows(run, 'closing/importer/' + name) for name in (
-        'MasterData', 'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
-        'SKUDescriptionTbl', 'SiteDescriptionTbl')}
+    importer = {name: image_rows(run, 'closing/importer/' + name) for name in ('MasterData', 'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData', 'SKUDescriptionTbl', 'SiteDescriptionTbl')}
     standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
-    native = dict(BPRReports=[{'vf_RationedReqReport': rationed}], ClosingState=[dict(
-        importer=importer, dbm={'SKULocStandardAttributes': standards},
-        orders={'SpikeOrderData': image_rows(run, 'closing/orders/SpikeOrderData')},
-        btr={'ExpediteDispatches': image_rows(run, 'closing/btr/ExpediteDispatches')})])
-    reports.update(excess=read_excess(run, output=native), expedite=read_expedite(run, output=native),
-                   fulfillment=read_fulfillment(run, output=native)['summary'])
+    native = dict(BPRReports=[{'vf_RationedReqReport': rationed}], ClosingState=[dict(importer=importer, dbm={'SKULocStandardAttributes': standards}, orders={'SpikeOrderData': image_rows(run, 'closing/orders/SpikeOrderData')}, btr={'ExpediteDispatches': image_rows(run, 'closing/btr/ExpediteDispatches')})])
+    reports.update(excess=read_excess(run, output=native), expedite=read_expedite(run, output=native), fulfillment=read_fulfillment(run, output=native)['summary'])
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:

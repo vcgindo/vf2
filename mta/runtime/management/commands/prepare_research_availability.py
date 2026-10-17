@@ -6,7 +6,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
-from mta.presentation import fixture, history_preparation
+from mta.presentation import history_preparation
 from mta.presentation.research_availability_preparation import (
     RUN_ID, bands_query, recipe_digest, verify_guards,
 )
@@ -81,7 +81,7 @@ class Command(BaseCommand):
             raise CommandError('Research availability preparation requires PostgreSQL')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, source = command_binding(options.get('run_id'))
-        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and (str(run.pk) != RUN_ID or str(run.business_date) != '2026-04-07')):
+        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE', 'DAILY_CHAIN'):
             raise CommandError('Research availability preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
@@ -98,29 +98,16 @@ class Command(BaseCommand):
                     raise CommandError('Unsealed Research availability band rows exist; no replacement allowed')
                 sql, params = bands_query(run)
                 with connection.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT set_config('fresh.research_availability_band_build',%s,true)",
-                        [str(run.pk)],
-                    )
-                    cursor.execute(
-                        'INSERT INTO mta.' + quote(ResearchAvailabilityBand._meta.db_table)
-                        + ' (run_id,' + ','.join(map(quote, FIELDS)) + ') SELECT %s,'
-                        + ','.join(map(quote, FIELDS)) + ' FROM (' + sql + ') source',
-                        [run.pk, *params],
-                    )
+                    cursor.execute("SELECT set_config('fresh.research_availability_band_build',%s,true)", [str(run.pk)])
+                    cursor.execute('INSERT INTO mta.' + quote(ResearchAvailabilityBand._meta.db_table) + ' (run_id,' + ','.join(map(quote, FIELDS)) + ') SELECT %s,' + ','.join(map(quote, FIELDS)) + ' FROM (' + sql + ') source', [run.pk, *params])
                     cursor.execute('ANALYZE mta.' + quote(ResearchAvailabilityBand._meta.db_table))
             source_result = source_readback(run)
             stored_result = prepared_readback(run)
             if source_result != stored_result or source_result[0] != membership_count:
                 raise CommandError('Research availability prepared rows differ from full source reconstruction')
-            expected = dict(
-                status='READY', source_digest=source,
-                membership_digest=membership_digest,
-                recipe_digest=recipe_digest(), row_count=source_result[0],
-                rows_digest=source_result[1],
-            )
+            expected = dict(status='READY', source_digest=source, membership_digest=membership_digest, recipe_digest=recipe_digest(), row_count=source_result[0], rows_digest=source_result[1])
             if receipt is not None:
-                if any(getattr(receipt, name) != value for name, value in expected.items()):
+                if any((getattr(receipt, name) != value for name, value in expected.items())):
                     raise CommandError('Research availability band receipt differs')
             else:
                 ResearchAvailabilityBandProjection.objects.create(run=run, **expected)
@@ -129,7 +116,4 @@ class Command(BaseCommand):
             if (final_count, final_digest) != (membership_count, membership_digest):
                 raise CommandError('Accepted history prepared source changed before commit')
             verify_guards(connection)
-        self.stdout.write(json.dumps(dict(
-            expected, status='PASS', created=receipt is None,
-            seconds=time.monotonic() - started,
-        ), sort_keys=True))
+        self.stdout.write(json.dumps(dict(expected, status='PASS', created=receipt is None, seconds=time.monotonic() - started), sort_keys=True))

@@ -26,49 +26,8 @@ PINS.update({name: receipt['sha256'] for name, receipt in TARGETS.items()})
 SOURCE_DIGEST = hashlib.sha256(json.dumps(PINS, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def _read(path, name):
-    raw = gzip.decompress((Path(path) / (name.replace('/', '-') + '.json.gz')).read_bytes())
-    if hashlib.sha256(raw).hexdigest() != PINS[name]:
-        raise ValueError('MDM Location source identity mismatch: ' + name)
-    return json.loads(raw)
 
 
 def installed(source):
     return MdmFamilySource.objects.filter(source=source, master_id=2,
         digest=SOURCE_DIGEST).exists()
-
-
-def install_location(path, source):
-    """Install qualified raw bags once without changing the SKU root receipt."""
-    if source.dll_digest != DLL:
-        raise ValueError('MDM Location DLL identity mismatch')
-    rows = {name: _read(path, name) for name in PINS}
-    with transaction.atomic():
-        if MdmFamilySource.objects.filter(source=source, master_id=2).exists():
-            raise ValueError('MDM Location source already installed; reset is prohibited')
-        item = lambda name: {'sha256': PINS[name], 'rows': len(rows[name])}
-        family = MdmFamilySource.objects.create(source=source, master_id=2,
-            digest=SOURCE_DIGEST, receipt={
-                'processed': {name: item(name) for name in
-                    ('LocationAttributeData', 'SiteDescriptionTbl',
-                     'delete-use-direct', 'delete-use-parent')},
-                'supporting': {name: item(name) for name in
-                    ('MasterMapper', 'UI_MDMConfig', 'LOCATION_PERMISSION',
-                     'DraftLocationMaster', 'UIUploadLogNMSLocations')},
-                'evidence_only': {name: item(name) for name in TARGETS},
-            })
-        for table, model in (('LocationAttributeData', MdmLocationAttributes),
-                             ('SiteDescriptionTbl', MdmLocationDescription)):
-            model.objects.bulk_create([model(source=source, owner='Importer', ordinal=i, **row)
-                for i, row in enumerate(rows[table], 1)], batch_size=500)
-        uses = []
-        for kind in ('direct', 'parent'):
-            for ordinal, row in enumerate(rows['delete-use-' + kind], 1):
-                code = row['LocCode' if kind == 'direct' else 'ParentWhCode']
-                uses.append(MdmLocationUse(source=source, use_kind=kind,
-                    ordinal=ordinal, WHCode=code))
-        MdmLocationUse.objects.bulk_create(uses, batch_size=2000)
-        with connection.cursor() as cursor:
-            for model in (MdmLocationAttributes, MdmLocationDescription):
-                cursor.execute('ANALYZE ' + connection.ops.quote_name(model._meta.db_table))
-    return family

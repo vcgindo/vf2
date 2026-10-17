@@ -50,58 +50,26 @@ def binding():
 
 def native_binding():
     """Bounded metadata/file identity; no operational rows or input snapshot."""
-    from mta.presentation import fixture
-    if fixture.enabled():
-        return fixture.binding()
     run = selected_run()
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     files = list((Path(__file__).resolve().parents[1] / 'config').glob('*.json'))
-    files += [Path(configuration[name]) for name in (
-        'VF_MTA_PERMISSIONS_FILE', 'VF_MTA_HIERARCHY_FILE', 'VF_MTA_TERMINAL_FILE')
-        if configuration[name]]
+    files += [Path(configuration[name]) for name in ('VF_MTA_PERMISSIONS_FILE', 'VF_MTA_HIERARCHY_FILE', 'VF_MTA_TERMINAL_FILE') if configuration[name]]
     if configuration['VF_MTA_EXCESS_HISTORY_FILE']:
         files.append(Path(configuration['VF_MTA_EXCESS_HISTORY_FILE']))
     hashes = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in files}
     projections = {}
     for model in PROJECTIONS:
-        # These models contain only bounded provenance, version/count/digest
-        # metadata. Do not include operational row relations in this identity.
         fields = [f.attname for f in model._meta.fields if f.name not in ('id', 'run')]
         projections[model.__name__] = list(model.objects.filter(run=run).values(*fields))
-    value = dict(version=1, run_id=str(run.pk), business_date=str(run.business_date),
-        input_digest=run.input_digest, output_digest=run.output_digest,
-        production_digest=run.production_digest,
-        parity_digest=digest(run.parity_summary),
-        manifest_digest=digest(run.production_manifest), output_roster=run.output_roster,
-        checkpoints=list(run.checkpoints.order_by('name').values('name', 'digest', 'row_count')),
-        configuration=configuration, files=hashes, projections=projections)
-    from mta.presentation import operational_admission
-    if operational_admission.enabled():
-        accepted = operational_admission.identity(run)
-        value['operational_acceptance'] = accepted.receipt_digest
-    from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
-        value['qualified_consumption'] = qualified_consumption.identity(run)
-        from mta.presentation.daily_planning_extension import reader_digest
-        value['qualified_planning_reader'] = reader_digest()
+    value = dict(version=1, run_id=str(run.pk), business_date=str(run.business_date), input_digest=run.input_digest, output_digest=run.output_digest, production_digest=run.production_digest, parity_digest=digest(run.parity_summary), manifest_digest=digest(run.production_manifest), output_roster=run.output_roster, checkpoints=list(run.checkpoints.order_by('name').values('name', 'digest', 'row_count')), configuration=configuration, files=hashes, projections=projections)
     if configuration['VF_MTA_EXCESS_HISTORY_FILE'] or configuration['VF_MTA_EXCESS_HISTORY_SHA256']:
         from mta.presentation.excess_history import selected_manifest, admission_identity
         value['excess_history'] = admission_identity(run, selected_manifest(run))
-    return run, digest(value)
+    return (run, digest(value))
 
 
 def verify(run):
     """Reuse native readback and the existing consumer validators once."""
-    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import verify as verify_fixture
-        return verify_fixture(run)
-    from mta.presentation import operational_admission
-    if operational_admission.enabled():
-        operational_admission.verify(run)
-        return
-    from mta.presentation import qualified_consumption
-    if qualified_consumption.enabled():
-        qualified_consumption.verify(run)
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_publication import require_ready
         require_ready(run, verify_rows=True)
@@ -193,6 +161,8 @@ def require_admission():
 class AdmittedApplication:
     """The production WSGI boundary; direct offline proof commands are unchanged."""
     def __init__(self, application):
+        from mta.presentation.native_mode import require_configuration
+        require_configuration()
         self.application = application
         # The new isolated shell can start before its first synthetic day exists.
         # Only a completely absent identity is allowed; a malformed, rejected or

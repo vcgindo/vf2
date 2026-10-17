@@ -18,16 +18,12 @@ from mta.serialization import digest
 
 
 def source_pins():
-    manifest = json.loads((Path(__file__).resolve().parents[2]/'baseline/manifest.json').read_text())
-    registered = {row['path'].replace('\\', '/').lower(): row['sha256'] for row in manifest['engine_sources']}
-    names = sorted({value for seed in ALERT_SEEDS for value in (seed['wrapper'], seed['sql'])})
-    result = {}
-    for name in names:
-        matches = [value for path, value in registered.items() if path.endswith('/'+name.lower())]
-        if len(matches) != 1:
-            raise ValueError('Canonical alert source pin absent or ambiguous: '+name)
-        result[name] = matches[0]
-    return result
+    pins = json.loads((Path(__file__).resolve().parents[2] /
+                       'baseline/operational-alert-source-pins.json').read_text())
+    names = {value for seed in ALERT_SEEDS for value in (seed['wrapper'], seed['sql'])}
+    if set(pins) != names or any(not isinstance(value, str) or len(value) != 64 for value in pins.values()):
+        raise ValueError('Canonical alert source pin roster differs')
+    return pins
 
 
 ALERT_OPERATION = dict(name='GenericLocalAlerts', stage='source-positioned-alerts',

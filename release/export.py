@@ -9,7 +9,7 @@ import subprocess
 import tarfile
 
 SCHEMA = 'vectorflow-release-source-v1'
-NATIVE_SCHEMAS = frozenset(('complete-daily-state-schema-v3.json', 'daily-input-extra-schema-v2.json',
+NATIVE_SCHEMAS = frozenset(('operational-alert-source-pins.json', 'complete-daily-state-schema-v3.json', 'daily-input-extra-schema-v2.json',
     'production-state-schema.json', 'cohort2-native-source-schema.json', 'cohort2-alert-source-schema.json',
     'cohort2-restore-cast-qualification.json', 'cohort2-runtime-restore-cast-qualification.json'))
 EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'install_daily_input_source',
@@ -20,6 +20,8 @@ EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'in
     'prepare_guided_dbm_fixture', 'prepare_guided_chronic_fixture',
     'verify_application_reads', 'verify_offline_terminal', 'publish_pick_projection'))
 
+
+SUPPORTED_MTA_COMMANDS = frozenset(('initialize_production', 'run_production_day', 'prepare_daily_ui', 'activate_daily_ui', 'check_daily_selection', 'prepare_guided_aggregates', 'prepare_history_reports', 'prepare_planning_charts', 'prepare_planning_custom', 'prepare_planning_expedite_charts', 'prepare_planning_expedite_custom', 'prepare_planning_expedite_grids', 'prepare_planning_expedite_transit', 'prepare_planning_git', 'prepare_planning_grids', 'prepare_planning_sources', 'prepare_research_availability', 'prepare_rrr', 'build_btr_reporting', 'build_btr_snapshot', 'prepare_bor_membership', 'prepare_boroa_membership', 'cohort2_operational', 'register_operational_configuration'))
 
 def included(name):
     path = PurePosixPath(name)
@@ -38,6 +40,15 @@ def included(name):
     if name.startswith('vectorflow/'):
         return path.suffix == '.py'
     if name.startswith('mta/'):
+        if '/management/commands/' in name and path.suffix == '.py' and path.stem != '__init__':
+            return path.stem in SUPPORTED_MTA_COMMANDS
+        if name in (
+                'mta/presentation/fixture.py', 'mta/presentation/dbm_fixture_read.py',
+                'mta/presentation/fixture_count_plan.py', 'mta/presentation/qualified_consumption.py',
+                'mta/presentation/daily_planning_extension.py', 'mta/presentation/operational_admission.py'):
+            return False
+        if name.startswith('mta/presentation/daily_planning/'):
+            return False
         if name.startswith('mta/fixtures/'):
             return False
         if path.suffix not in ('.py', '.json', '.sql'):

@@ -1,8 +1,9 @@
+from mta.presentation.native_mode import removed_mode
 """Readers over sealed history memberships; request semantics remain live."""
 from django.conf import settings
 from django.db import connection
 
-from mta.presentation import fixture, hierarchy, history_native
+from mta.presentation import hierarchy, history_native
 from mta.presentation.context import permission_catalogue, scope, PublicationUnavailable
 from mta.presentation.history_preparation import RUN_ID, recipe_digest, source_signatures, verify_guards
 from mta.presentation.rrr import sql_key
@@ -20,9 +21,7 @@ def admitted(run):
     """Serve only explicit fixture opt-in; enabled missing sources fail closed."""
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
-        return None
-    if run.kind == 'LEGACY_UI_FIXTURE' and str(getattr(run, 'pk', '')) != RUN_ID:
+    if not daily:
         return None
     if not getattr(settings, 'VF_HISTORY_REPORTS_PREPARED', False):
         return None
@@ -32,15 +31,14 @@ def admitted(run):
     try:
         if daily:
             from mta.presentation.daily_preparation import source_digest
-            selected, source = run, source_digest(run)
+            selected, source = (run, source_digest(run))
         else:
-            selected, source = fixture.binding()
+            selected, source = removed_mode('historical_fixture')
         dimensions = source_signatures(run)
         verify_guards(connection)
     except (ValueError, PublicationUnavailable) as exc:
         raise PublicationUnavailable('history_prepared_admission_changed') from exc
-    if (receipt.status != 'READY' or selected.pk != run.pk or source != receipt.source_digest
-            or dimensions != receipt.dimension_digest or recipe_digest() != receipt.recipe_digest):
+    if receipt.status != 'READY' or selected.pk != run.pk or source != receipt.source_digest or (dimensions != receipt.dimension_digest) or (recipe_digest() != receipt.recipe_digest):
         raise PublicationUnavailable('history_prepared_receipt_missing_or_changed')
     return receipt
 
@@ -102,28 +100,22 @@ def read_research(run, payload):
 
 
 def _dimension_ctes(run, attributes, manifest, *, metadata=None):
-    ctes, params = [], []
-    for alias, table, prefix in (('sa','SkuAttributeData','SL'), ('la','LocationAttributeData','LL')):
+    ctes, params = ([], [])
+    for alias, table, prefix in (('sa', 'SkuAttributeData', 'SL'), ('la', 'LocationAttributeData', 'LL')):
         path = 'closing/btr/' + table
-        query, values = image_query(run, path,
-            **({} if metadata is None else {'metadata': metadata[path]}))
+        query, values = image_query(run, path, **{} if metadata is None else {'metadata': metadata[path]})
         if not manifest:
-            ctes.append(alias + ' AS (' + query + ')'); params.extend(values); continue
-        ctes.append(alias + 'native AS (' + query + ')'); params.extend(values)
+            ctes.append(alias + ' AS (' + query + ')')
+            params.extend(values)
+            continue
+        ctes.append(alias + 'native AS (' + query + ')')
+        params.extend(values)
         rows = attributes[table]
         ctes.append(alias + 'hierarchy AS (VALUES ' + ','.join(['(%s,%s,%s,%s)'] * len(rows)) + ')')
-        params.extend(v for ordinal, row in enumerate(rows)
-                      for v in (ordinal, *[row[prefix + str(i)] for i in (1,2,3)]))
-        fields = [name for name, _ in CATALOG['tables']['BTR/' + table]
-                  if name not in [prefix + str(i) for i in (1,2,3)]]
-        from mta.presentation import qualified_consumption
-        if qualified_consumption.enabled():
-            qualified_consumption.owner(run)
-            fields.insert(0, 'vf_ordinal')
-        ctes.append(alias + ' AS (SELECT ' + ','.join('N.' + quote(name) for name in fields) + ','
-                    + ','.join('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1,2,3))
-                    + ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1)')
-    return ctes, params
+        params.extend((v for ordinal, row in enumerate(rows) for v in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)])))
+        fields = [name for name, _ in CATALOG['tables']['BTR/' + table] if name not in [prefix + str(i) for i in (1, 2, 3)]]
+        ctes.append(alias + ' AS (SELECT ' + ','.join(('N.' + quote(name) for name in fields)) + ',' + ','.join(('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1, 2, 3))) + ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1)')
+    return (ctes, params)
 
 
 def read_historical_availability(run, payload):

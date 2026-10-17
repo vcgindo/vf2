@@ -30,18 +30,13 @@ NORMAL_COLUMNS = (
 
 def terminal_context(payload):
     run = selected_run()
-    if run.kind == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import bpr_ancillary
-        ancillary = bpr_ancillary(run)
-    elif (run.kind == 'DAILY_CHAIN' and
-          getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)):
+    if run.kind == 'DAILY_CHAIN' and getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         from mta.presentation.daily_preparation import ancillary_rows
         ancillary = ancillary_rows(run)
     else:
         ancillary = terminal_ancillary(run)
     terminal_git_reports(image_rows(run, 'reports/bpr/vf_RationedReqReport'), ancillary)
-    importer = {name: image_rows(run, 'closing/importer/'+name)
-                for name in ('SkuAttributeData', 'LocationAttributeData')}
+    importer = {name: image_rows(run, 'closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:
@@ -75,7 +70,7 @@ def validate_filters(payload, context, *, child_count=False):
 def grid(payload, *, count=False):
     run = selected_run()
     from mta.presentation.daily_preparation import production_branch
-    if getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' or production_branch(run):
+    if production_branch(run):
         from mta.presentation.planning_git_sql import grid as prepared_grid
         return prepared_grid(run, payload, count=count)
     context = terminal_context(payload)
@@ -87,8 +82,8 @@ def grid(payload, *, count=False):
     if not count and kind == 'child':
         raise PublicationUnavailable('LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120; combined child grid unavailable')
     if count:
-        return [dict(locationwise=0, **({'transporterwise': 0} if kind == 'child' else {}))]
-    return dict(data=[], uiConfig=[dict(header=h, colCode=c, colPosition=p) for h,c,p in NORMAL_COLUMNS])
+        return [dict(locationwise=0, **{'transporterwise': 0} if kind == 'child' else {})]
+    return dict(data=[], uiConfig=[dict(header=h, colCode=c, colPosition=p) for h, c, p in NORMAL_COLUMNS])
 
 
 def custom(payload):
@@ -140,19 +135,4 @@ def transporter_context(payload):
     rows empty. It does not prove location grid/count or aggregate GIT empty.
     """
     run = selected_run()
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE':
-        return terminal_context(payload)
-    from mta.presentation.fixture import bpr_ancillary
-    from mta.presentation.planning_sources import admitted_sources
-    from mta.presentation.bpr_sql import _projected_attributes
-    admitted_sources(run)
-    from mta.presentation.daily_preparation import production_branch
-    transit = (__import__('mta.presentation.daily_preparation', fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
-               if production_branch(run) else bpr_ancillary(run)['InTransitData'])
-    if transit:
-        raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
-    attributes, manifest = _projected_attributes(run)
-    if manifest:
-        raise PublicationUnavailable('planning_transporter_native_hierarchy_required')
-    products, locations = scope(payload, attributes=attributes)
-    return SimpleNamespace(run=run, attributes=attributes, products=products, locations=locations)
+    return terminal_context(payload)

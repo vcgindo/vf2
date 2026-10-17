@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """One-time Planning source SELECTs, never engine execution or HTTP joins.
 
 These expressions feed separately sealed presentation outputs. They must not be
@@ -29,25 +30,18 @@ def source_queries(run):
     The preparation caller owns the transaction, source receipt and sealing.
     No API handler should call this function to reconstruct these stable bags.
     """
-    from mta.presentation import fixture
     from mta.presentation.selective import image_query
     from mta.presentation.context import PublicationUnavailable
     if getattr(run, 'kind', None) == 'DAILY_CHAIN':
         from mta.presentation.daily_preparation import source_digest as daily_source_digest
         source_digest = daily_source_digest(run)
     else:
-        selected, source_digest = fixture.binding()
-        if (getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' or
-                selected.pk != run.pk or str(run.business_date) != '2026-04-07'):
-            raise PublicationUnavailable('planning_preparation_requires_retained_april_fixture')
+        selected, source_digest = removed_mode('historical_fixture')
+        raise PublicationUnavailable('planning_preparation_requires_retained_april_fixture')
     master, master_params = image_query(run, 'closing/importer/MasterData')
     rationed, rationed_params = image_query(run, 'reports/bpr/vf_RationedReqReport')
     standard, standard_params = image_query(run, 'closing/dbm/SKULocStandardAttributes')
-    return source_digest, {
-        'bpr_master': (bpr_master_query(master), master_params, BPR_FIELDS),
-        'git_master': (git_master_query(rationed, standard),
-                       rationed_params + standard_params, GIT_FIELDS),
-    }
+    return (source_digest, {'bpr_master': (bpr_master_query(master), master_params, BPR_FIELDS), 'git_master': (git_master_query(rationed, standard), rationed_params + standard_params, GIT_FIELDS)})
 
 
 def bpr_master_query(source_query):

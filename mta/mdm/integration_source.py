@@ -195,60 +195,8 @@ def current_capture(source, run):
     return capture
 
 
-@transaction.atomic
-def bind(source, run, *, require_all_families=False):
-    """Seal an explicitly installed roster after accepted same-source closing."""
-    from mta.mdm.supplier_revisions import lock_transaction
-    from mta.presentation.context import selected_run
-    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    lock_transaction(source.pk)
-    source = MdmSource.objects.select_for_update().get(pk=source.pk)
-    require_unsealed(source)
-    families = owner_identity(source)
-    if require_all_families and set(families) != {str(i) for i in range(1, 14)}:
-        raise ValueError('Complete MDM integration requires all thirteen masters')
-    if selected_run().pk != run.pk:
-        raise ValueError('Combined MDM requires the explicit accepted selected publication')
-    anchor = current_capture(source, run)
-    if MdmDailyInputCapture.objects.filter(source=source, status='CAPTURED',
-                                           retries__isnull=True).exists():
-        raise ValueError('Combined MDM requires its latest own closing and no pending capture')
-    from mta.runtime.input_reader import read_input
-    snapshot = read_input(anchor.run, components=('mdm_input',)).get('mdm_input')
-    if (not snapshot or snapshot.get('source_id') != source.pk
-            or snapshot.get('source_digest') != source.digest
-            or snapshot.get('revision_digest') != anchor.revision_digest):
-        raise ValueError('Combined MDM accepted capture has a different original source identity')
-    from importlib import import_module
-    for mid, family in ((6, 'stop_pipo'), (7, 'phase_controls'), (10, 'season'), (13, 'force')):
-        if str(mid) in families:
-            owner = import_module('mta.mdm.' + family + '_source').require_installed(source)
-            if owner.last_run_id != run.pk:
-                raise ValueError('Combined MDM families require the same committed predecessor')
-    p = dict(schema=SCHEMA, source_digest=source.digest, families=families,
-        adapter_sha256=adapter_digest(), configuration=configuration_digest({int(mid) for mid in families}),
-        run_id=str(anchor.run_id), output_digest=anchor.run.output_digest,
-        capture_digest=anchor.revision_digest)
-    if require_all_families:
-        from mta.mdm.supplier_source import require_installed
-        supplier = require_installed(source, 4)
-        if (supplier.provenance.get('schema') != DAILY_OWNER_SCHEMA
-                or supplier.provenance.get('run_id') != str(run.pk)
-                or supplier.provenance.get('capture_digest') != anchor.revision_digest):
-            raise ValueError('Complete MDM supplier owner requires the same accepted closing')
-        p['required_families'] = list(range(1, 14))
-    seal = MdmSourceIntegration.objects.create(source=source, digest=digest(p), receipt=p)
-    installed_binding(source)
-    return seal
 
 
-@transaction.atomic
-def bind_complete(source, run):
-    """Onboard all optional families from one closing and seal them atomically."""
-    from importlib import import_module
-    for family in ('supplier', 'stop_pipo', 'phase_controls', 'force', 'season'):
-        import_module('mta.mdm.' + family + '_source').bind(source, run)
-    return bind(source, run, require_all_families=True)
 
 
 def capture_identity(source):

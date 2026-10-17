@@ -1,8 +1,8 @@
+from mta.presentation.native_mode import removed_mode
 """The ten unfiltered SCIH counts over exact prepared grains and typed facts."""
 from django.db import connection
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.context import PublicationUnavailable,scope
-from mta.presentation.fixture import bpr_ancillary
 from mta.presentation.planning_git_sql import grid as git_grid
 from mta.presentation.planning_grid_sql import read_grid
 from mta.presentation.planning_expedite_sql import counts as expedite_counts
@@ -15,7 +15,7 @@ def counts(run,payload):
         raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
     from mta.presentation.daily_preparation import production_branch
     transit=(__import__('mta.presentation.daily_preparation',fromlist=['ancillary_row']).ancillary_row(run,'InTransitData')
-             if production_branch(run) else bpr_ancillary(run)['InTransitData'])
+             if production_branch(run) else removed_mode('historical_fixture')['InTransitData'])
     if transit:
         raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
     importer,manifest=_projected_attributes(run)

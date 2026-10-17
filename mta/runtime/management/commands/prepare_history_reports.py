@@ -6,7 +6,6 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
-from mta.presentation import fixture
 from mta.presentation.history_preparation import (
     RUN_ID, availability_query, graph_query, recipe_digest, research_history_query,
     research_master_query, source_signatures, verify_guards,
@@ -68,7 +67,7 @@ class Command(BaseCommand):
             raise CommandError('History report preparation requires PostgreSQL')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, source = command_binding(options.get('run_id'))
-        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and (str(run.pk) != RUN_ID or str(run.business_date) != '2026-04-07')):
+        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE', 'DAILY_CHAIN'):
             raise CommandError('History preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
@@ -76,36 +75,27 @@ class Command(BaseCommand):
                 type(run).objects.select_for_update().get(pk=run.pk)
             verify_guards(connection)
             assert_unchanged(run, source)
-            dimension_digest, recipe = source_signatures(run), recipe_digest()
+            dimension_digest, recipe = (source_signatures(run), recipe_digest())
             receipt = HistoryPreparedProjection.objects.filter(run=run).first()
             if receipt is None:
                 if options['verify_only']:
                     raise CommandError('History prepared receipt is absent')
-                if any(model.objects.filter(run=run).exists() for _, model, _, _ in POPULATIONS):
+                if any((model.objects.filter(run=run).exists() for _, model, _, _ in POPULATIONS)):
                     raise CommandError('Unsealed history prepared rows exist; no replacement allowed')
                 with connection.cursor() as cursor:
                     cursor.execute("SELECT set_config('fresh.history_prepared_build',%s,true)", [str(run.pk)])
                     for _, model, builder, order in POPULATIONS:
                         query, params = builder(run)
                         fields = [name for name in fields_for(model) if name != 'ordinal']
-                        cursor.execute('INSERT INTO mta.' + quote(model._meta.db_table)
-                            + ' (run_id,ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,'
-                            + 'row_number() OVER (ORDER BY '
-                            + ','.join(quote(name) + ' NULLS FIRST' for name in order) + ')-1,'
-                            + ','.join(map(quote, fields)) + ' FROM (' + query + ') members',
-                            [run.pk, *params])
+                        cursor.execute('INSERT INTO mta.' + quote(model._meta.db_table) + ' (run_id,ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,' + 'row_number() OVER (ORDER BY ' + ','.join((quote(name) + ' NULLS FIRST' for name in order)) + ')-1,' + ','.join(map(quote, fields)) + ' FROM (' + query + ') members', [run.pk, *params])
                         cursor.execute('ANALYZE mta.' + quote(model._meta.db_table))
             results = {name: readback(run, model) for name, model, _, _ in POPULATIONS}
-            expected = dict(status='READY', source_digest=source, dimension_digest=dimension_digest,
-                            recipe_digest=recipe,
-                            **{name + '_count': value[0] for name, value in results.items()},
-                            **{name + '_digest': value[1] for name, value in results.items()})
+            expected = dict(status='READY', source_digest=source, dimension_digest=dimension_digest, recipe_digest=recipe, **{name + '_count': value[0] for name, value in results.items()}, **{name + '_digest': value[1] for name, value in results.items()})
             if receipt is not None:
-                if any(getattr(receipt, name) != value for name, value in expected.items()):
+                if any((getattr(receipt, name) != value for name, value in expected.items())):
                     raise CommandError('History prepared receipt differs')
             else:
                 HistoryPreparedProjection.objects.create(run=run, **expected)
             assert_unchanged(run, source)
             verify_guards(connection)
-        self.stdout.write(json.dumps(dict(expected, status='PASS', created=receipt is None,
-                                         seconds=time.monotonic()-started), sort_keys=True))
+        self.stdout.write(json.dumps(dict(expected, status='PASS', created=receipt is None, seconds=time.monotonic() - started), sort_keys=True))

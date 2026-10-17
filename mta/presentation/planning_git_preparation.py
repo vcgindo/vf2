@@ -1,6 +1,6 @@
+from mta.presentation.native_mode import removed_mode
 """One-time GIT location membership; count LEFT pair versus grid INNER pair."""
 from mta.presentation.planning_sources import admitted_sources
-from mta.presentation.fixture import bpr_ancillary
 from mta.presentation.planning_grid_preparation import DIMENSIONS
 from mta.presentation.rrr_sql import equal,key
 from mta.presentation.selective import image_query
@@ -9,7 +9,7 @@ from mta.runtime.relational_state import quote
 
 def git_occurrences(run):
     query,params=admitted_sources(run)['git_master']
-    if bpr_ancillary(run)['InTransitData']:
+    if removed_mode('historical_fixture')['InTransitData']:
         raise ValueError('GIT preparation requires qualified empty shipment source')
     ctes=['a AS ('+query+')'];params=list(params)
     for alias,table in DIMENSIONS:

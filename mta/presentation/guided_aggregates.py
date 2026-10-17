@@ -19,12 +19,7 @@ MEMBER_TABLE = 'mta.fresh_mta_reportscopemember'
 
 def source_binding(run):
     """Bind the existing rollups to immutable prepared history and its scopes."""
-    from mta.presentation import fixture, native_publication
-    if run.kind == 'LEGACY_UI_FIXTURE':
-        selected, source = fixture.binding()
-        if selected.pk != run.pk:
-            raise PublicationUnavailable('Guided_aggregate_run_changed')
-        return source
+    from mta.presentation import native_publication
     native_publication.require_mode()
     native_publication.require_publication(run)
     from mta.presentation.daily_preparation import source_digest
@@ -35,17 +30,12 @@ def source_binding(run):
     verify_guards(connection)
     daily = source_digest(run)
     history = native_excess_history.identity(run)
-    expected = {'availability': (daily, schema_digest()),
-                'excess': (native_excess_history.source_digest(daily, history),
-                           native_excess_schema_digest())}
+    expected = {'availability': (daily, schema_digest()), 'excess': (native_excess_history.source_digest(daily, history), native_excess_schema_digest())}
     rows = list(GuidedHistoryPreparedProjection.objects.filter(run=run).order_by('family'))
-    if {row.family for row in rows} != set(expected) or any(
-            (row.source_digest, row.schema_digest) != expected[row.family] for row in rows):
+    if {row.family for row in rows} != set(expected) or any(((row.source_digest, row.schema_digest) != expected[row.family] for row in rows)):
         raise PublicationUnavailable('Guided_aggregate_prepared_source_changed')
-    fields = [field.attname for field in GuidedHistoryPreparedProjection._meta.fields
-              if field.name not in ('id', 'run', 'created_at')]
-    return digest(dict(version=1, daily=daily, permissions=permission_catalogue(),
-        history=[{field: getattr(row, field) for field in fields} for row in rows]))
+    fields = [field.attname for field in GuidedHistoryPreparedProjection._meta.fields if field.name not in ('id', 'run', 'created_at')]
+    return digest(dict(version=1, daily=daily, permissions=permission_catalogue(), history=[{field: getattr(row, field) for field in fields} for row in rows]))
 
 
 def recipe_digest():
@@ -71,12 +61,13 @@ def permission_classes(records, attributes, code, prefix):
 
 
 def read_aggregate(run, cutoff, predicate, payload, kind, minimum_age=None):
+
     def eligible(node):
-        return all(eligible(child) for child in node[1]) if node[0]=='or' else node[1]==('_location','LocationType')
-    if predicate.children or not all(eligible(node) for node in predicate.sql_terms):
+        return all((eligible(child) for child in node[1])) if node[0] == 'or' else node[1] == ('_location', 'LocationType')
+    if predicate.children or not all((eligible(node) for node in predicate.sql_terms)):
         return None
     from mta.presentation.native_publication import enabled
-    if run.kind != 'LEGACY_UI_FIXTURE' and not (enabled() and run.kind == 'DAILY_CHAIN'):
+    if not (enabled() and run.kind == 'DAILY_CHAIN'):
         return None
     receipt = ReportAggregateReceipt.objects.filter(run=run).first()
     if receipt is None:
@@ -90,7 +81,7 @@ def read_aggregate(run, cutoff, predicate, payload, kind, minimum_age=None):
     for key, dimension in (('product_permissions', 'products'), ('location_permissions', 'locations')):
         assigned = payload.get(key, [])
         records = catalogue[dimension]['records']
-        if not isinstance(assigned, list) or any(isinstance(v, bool) or not str(v).isdigit() for v in assigned):
+        if not isinstance(assigned, list) or any((isinstance(v, bool) or not str(v).isdigit() for v in assigned)):
             raise ValueError('invalid_permission_scope_id')
         assigned = {int(value) for value in assigned}
         if assigned - {row['id'] for row in records}:
@@ -100,44 +91,42 @@ def read_aggregate(run, cutoff, predicate, payload, kind, minimum_age=None):
         return []
     source_family = 'excess' if kind.startswith('excess-') else 'availability'
     family = 'ageing' if kind == 'availability-ageing' else source_family
-    params = [run.pk, source_family, permissions[0], run.pk, source_family,
-              permissions[1], run.pk, family, cutoff]
+    params = [run.pk, source_family, permissions[0], run.pk, source_family, permissions[1], run.pk, family, cutoff]
     weight = '(P.weight::numeric*L.weight::numeric)'
-    sql = ('WITH P AS (SELECT class_key,sum(weight) weight FROM '+MEMBER_TABLE+
-           " WHERE run_id=%s AND family=%s AND dimension='product' AND permission_id=ANY(%s) GROUP BY class_key),"+
-           'L AS (SELECT class_key,sum(weight) weight FROM '+MEMBER_TABLE+
-           " WHERE run_id=%s AND family=%s AND dimension='location' AND permission_id=ANY(%s) GROUP BY class_key) ")
+    sql = 'WITH P AS (SELECT class_key,sum(weight) weight FROM ' + MEMBER_TABLE + " WHERE run_id=%s AND family=%s AND dimension='product' AND permission_id=ANY(%s) GROUP BY class_key)," + 'L AS (SELECT class_key,sum(weight) weight FROM ' + MEMBER_TABLE + " WHERE run_id=%s AND family=%s AND dimension='location' AND permission_id=ANY(%s) GROUP BY class_key) "
     where = 'R.run_id=%s AND R.family=%s AND R.report_date>%s'
-    from mta.presentation.rrr_sql import Filters,equal
+    from mta.presentation.rrr_sql import Filters, equal
+
     class Compiler(Filters):
-        def column(self,owner,name):
-            return 'R.location_type::text','text'
+
+        def column(self, owner, name):
+            return ('R.location_type::text', 'text')
     compiler = Compiler({})
+
     def term(node):
-        if node[0]=='or': return '('+' OR '.join(term(child) for child in node[1])+')'
-        if node[0]=='in':
+        if node[0] == 'or':
+            return '(' + ' OR '.join((term(child) for child in node[1])) + ')'
+        if node[0] == 'in':
             compiler.params.extend(node[2])
-            return '('+' OR '.join(equal('R.location_type','%s') for _ in node[2])+')'
-        return compiler.compare(*node[1],node[2],node[3])
+            return '(' + ' OR '.join((equal('R.location_type', '%s') for _ in node[2])) + ')'
+        return compiler.compare(*node[1], node[2], node[3])
     if predicate.sql_terms:
-        where += ' AND '+' AND '.join(term(node) for node in predicate.sql_terms)
+        where += ' AND ' + ' AND '.join((term(node) for node in predicate.sql_terms))
     if kind == 'availability-trend':
-        select = ('R.report_date,R.location_type,trunc(100::numeric*sum(R.nonblack_count*'+weight+
-                  ')/nullif(sum(R.nonnull_count*'+weight+'),0))')
+        select = 'R.report_date,R.location_type,trunc(100::numeric*sum(R.nonblack_count*' + weight + ')/nullif(sum(R.nonnull_count*' + weight + '),0))'
         tail = ' GROUP BY R.report_date,R.location_type HAVING sum(R.nonnull_count)>0 ORDER BY R.report_date,min(R.first_ordinal)'
     elif kind == 'availability-ageing':
-        where += ' AND R.snapshot_age>=%s'; params.append(int(minimum_age))
-        select = 'R.report_date,' + ','.join('sum(R.'+colour+'_count*'+weight+')' for colour in ('black', 'red', 'white'))
+        where += ' AND R.snapshot_age>=%s'
+        params.append(int(minimum_age))
+        select = 'R.report_date,' + ','.join(('sum(R.' + colour + '_count*' + weight + ')' for colour in ('black', 'red', 'white')))
         tail = ' GROUP BY R.report_date ORDER BY R.report_date'
     else:
         value = 'R.amount' if kind == 'excess-value' else 'R.excess_white_count'
-        select = 'R.report_date,R.location_type,sum('+value+'*'+weight+')'
+        select = 'R.report_date,R.location_type,sum(' + value + '*' + weight + ')'
         tail = ' GROUP BY R.report_date,R.location_type'
         if kind == 'excess-sku':
             tail += ' HAVING sum(R.excess_white_count)>0'
         tail += " ORDER BY R.report_date,coalesce(R.location_type,'-')"
     with connection.cursor() as cursor:
-        cursor.execute(sql+' SELECT '+select+' FROM '+AGGREGATE_TABLE+
-            ' R JOIN P ON R.product_class=P.class_key JOIN L ON R.location_class=L.class_key WHERE '+where+tail,
-            params[:9]+compiler.params+params[9:])
+        cursor.execute(sql + ' SELECT ' + select + ' FROM ' + AGGREGATE_TABLE + ' R JOIN P ON R.product_class=P.class_key JOIN L ON R.location_class=L.class_key WHERE ' + where + tail, params[:9] + compiler.params + params[9:])
         return cursor.fetchall()

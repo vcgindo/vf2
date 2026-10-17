@@ -6,7 +6,6 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
-from mta.presentation import fixture
 from mta.presentation.planning_source_sql import (
     BPR_FIELDS, GIT_FIELDS,
     source_queries, validate_target_lengths, recipe_digest,

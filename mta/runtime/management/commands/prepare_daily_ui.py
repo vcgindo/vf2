@@ -12,6 +12,8 @@ class Command(BaseCommand):
         parser.add_argument('--output-digest', required=True)
 
     def handle(self, *args, **options):
+        from mta.presentation.native_mode import require_configuration
+        require_configuration()
         from mta.presentation import native_publication
         if native_publication.enabled():
             from mta.runtime.models import CalculationRun
@@ -20,21 +22,10 @@ class Command(BaseCommand):
             if run.output_digest != options['output_digest']:
                 raise CommandError('Explicit native output digest required')
             native_publication.identity(run, verify_rows=True)
-        from mta.presentation import qualified_consumption
-        if qualified_consumption.enabled():
-            from mta.runtime.models import CalculationRun
-            run = CalculationRun.objects.get(pk=options['run_id'])
-            qualified_consumption.verify(run)
         receipt, summary = prepare_reporting_generation(options['run_id'], expected_output_digest=options['output_digest'])
-        self.stdout.write(json.dumps(dict(run_id=str(receipt.run_id), status=receipt.status,
-            seal_digest=receipt.seal_digest, layers=receipt.layers,
-            planning_summary=dict(generation=str(summary.pk), status=summary.status,
-                rows_digest=summary.rows_digest)), sort_keys=True))
+        self.stdout.write(json.dumps(dict(run_id=str(receipt.run_id), status=receipt.status, seal_digest=receipt.seal_digest, layers=receipt.layers, planning_summary=dict(generation=str(summary.pk), status=summary.status, rows_digest=summary.rows_digest)), sort_keys=True))
         if receipt.status != 'READY':
             raise CommandError('Daily calculation remains unselected: required report layers are incomplete')
         if native_publication.enabled():
-            # A separate immutable derived receipt preserves the accepted daily
-            # publication seal and the existing aggregate/fallback contract.
             from django.core.management import call_command
-            call_command('prepare_guided_aggregates', run_id=options['run_id'],
-                         output_digest=options['output_digest'])
+            call_command('prepare_guided_aggregates', run_id=options['run_id'], output_digest=options['output_digest'])

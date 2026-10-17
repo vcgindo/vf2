@@ -16,6 +16,8 @@ def enabled():
 
 def require_mode():
     """Native admission cannot borrow a fixture or synthetic acceptance policy."""
+    from mta.presentation.native_mode import require_configuration
+    require_configuration()
     if not enabled() or not getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
         raise PublicationUnavailable('native_daily_publication_required')
     if any(getattr(settings, name, '') for name in (

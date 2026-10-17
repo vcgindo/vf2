@@ -267,63 +267,52 @@ def image_metadata(run, path):
 
 
 def image_rows(run, path, *, include_live=False):
-    # The two-owner presentation supplement is read-only. Keep image_metadata
-    # strict: the write workflow uses it to require an actual captured owner.
-    from mta.presentation.qualified_consumption import empty_query
-    supplement = empty_query(run, path)
+    supplement = None
     if supplement is not None:
         with connection.cursor() as cursor:
             cursor.execute(*supplement)
             fields = [column[0] for column in cursor.description]
-            return [{field: value for field, value in zip(fields, row)
-                     if field != 'vf_ordinal'} for row in cursor.fetchall()]
+            return [{field: value for field, value in zip(fields, row) if field != 'vf_ordinal'} for row in cursor.fetchall()]
     family = family_for_path(path)
     live_model, captured_model, fields = _models(family)
     capture = _capture(run, family)
     records = list(captured_model.objects.filter(capture=capture).order_by('ordinal'))
     rows = [_wire(row, fields) for row in records]
-    stored = [dict(source_ordinal=row.source_ordinal, **values)
-              for row, values in zip(records, rows)]
-    if (len(rows) != capture.row_count or [row.ordinal for row in records] != list(range(len(rows))) or
-            _rows_digest(stored) != capture.rows_digest):
+    stored = [dict(source_ordinal=row.source_ordinal, **values) for row, values in zip(records, rows)]
+    if len(rows) != capture.row_count or [row.ordinal for row in records] != list(range(len(rows))) or _rows_digest(stored) != capture.rows_digest:
         raise PublicationUnavailable('daily_remark_capture_changed:' + family)
     if include_live:
         current_owner = owner(family)
         if current_owner.provenance_digest != capture.provenance_digest:
             raise PublicationUnavailable('daily_remark_owner_provenance_changed:' + family)
-        live = live_model.objects.filter(
-            owner=current_owner, ordinal__gte=capture.watermark)
+        live = live_model.objects.filter(owner=current_owner, ordinal__gte=capture.watermark)
         if capture.cutoff is not None:
             live = live.filter(RemarkDate__gt=capture.cutoff)
-        rows.extend(_wire(row, fields) for row in live.order_by('ordinal'))
-    return [{field: (value.isoformat() if field == 'RemarkDate' else value)
-             for field, value in row.items()} for row in rows]
+        rows.extend((_wire(row, fields) for row in live.order_by('ordinal')))
+    return [{field: value.isoformat() if field == 'RemarkDate' else value for field, value in row.items()} for row in rows]
 
 
 def image_query(run, path, *, include_live=False):
-    from mta.presentation.qualified_consumption import empty_query
-    supplement = empty_query(run, path)
+    supplement = None
     if supplement is not None:
         return supplement
     family = family_for_path(path)
     live_model, captured_model, fields = _models(family)
     capture = _capture(run, family)
-    selected = ','.join(quote(field) for field in fields)
-    captured = ('SELECT ordinal AS vf_ordinal,' + selected + ' FROM mta.' +
-                quote(captured_model._meta.db_table) + ' WHERE capture_id=%s')
+    selected = ','.join((quote(field) for field in fields))
+    captured = 'SELECT ordinal AS vf_ordinal,' + selected + ' FROM mta.' + quote(captured_model._meta.db_table) + ' WHERE capture_id=%s'
     params = [capture.pk]
     if not include_live:
-        return captured, params
+        return (captured, params)
     current_owner = owner(family)
     if current_owner.provenance_digest != capture.provenance_digest:
         raise PublicationUnavailable('daily_remark_owner_provenance_changed:' + family)
-    live = ('SELECT (%s + ordinal - %s) AS vf_ordinal,' + selected + ' FROM mta.' +
-            quote(live_model._meta.db_table) + ' WHERE owner_id=%s AND ordinal>=%s')
+    live = 'SELECT (%s + ordinal - %s) AS vf_ordinal,' + selected + ' FROM mta.' + quote(live_model._meta.db_table) + ' WHERE owner_id=%s AND ordinal>=%s'
     live_params = [capture.row_count, capture.watermark, family, capture.watermark]
     if capture.cutoff is not None:
         live += ' AND "RemarkDate">%s'
         live_params.append(capture.cutoff)
-    return captured + ' UNION ALL ' + live, [*params, *live_params]
+    return (captured + ' UNION ALL ' + live, [*params, *live_params])
 
 
 def publication_rows(run):

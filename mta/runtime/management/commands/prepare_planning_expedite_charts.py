@@ -5,7 +5,6 @@ import time
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
-from mta.presentation import fixture
 from mta.presentation.planning_expedite_chart_preparation import members, prepost_members, production_prepost_members, recipe_digest, production_recipe_digest
 from mta.presentation.planning_expedite_transit_preparation import pick_binding
 from mta.runtime.models import PlanningExpediteChartProjection, PlanningExpediteChartMember, PlanningExpeditePrepostMember
@@ -55,8 +54,6 @@ class Command(BaseCommand):
             raise CommandError('Planning Expedite chart requires PostgreSQL')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, source = command_binding(options.get('run_id'))
-        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
-            raise CommandError('Planning Expedite chart requires retained April input')
         started = time.monotonic()
         with transaction.atomic():
             if not options['verify_only']:
@@ -67,32 +64,30 @@ class Command(BaseCommand):
             if receipt is None:
                 if options['verify_only']:
                     raise CommandError('Planning Expedite chart receipt absent')
-                if any(model.objects.filter(run=run).exists() for _,model in MODELS):
+                if any((model.objects.filter(run=run).exists() for _, model in MODELS)):
                     raise CommandError('Unsealed chart rows exist; no replacement allowed')
                 with connection.cursor() as c:
-                    c.execute("SELECT set_config('fresh.planning_expedite_chart_build',%s,true)",[str(run.pk)])
-                    for family,model in MODELS:
-                        grains = GRAINS if family=='member' else [(None,None)]
-                        for direction,grain in grains:
+                    c.execute("SELECT set_config('fresh.planning_expedite_chart_build',%s,true)", [str(run.pk)])
+                    for family, model in MODELS:
+                        grains = GRAINS if family == 'member' else [(None, None)]
+                        for direction, grain in grains:
                             prepost = production_prepost_members if run.kind == 'DAILY_CHAIN' else prepost_members
-                            query,params = members(run,direction,grain) if family=='member' else prepost(run)
-                            fields=[f for f in fields_for(model) if f not in ('ordinal','direction','family')]
-                            order=['scope_ordinal','fact_ordinal','master_ordinal','description_ordinal','location_ordinal'] if family=='member' else ['scope_ordinal','fact_ordinal']
-                            extra_columns='direction,family,' if family=='member' else ''
-                            extra_values='%s,%s,' if family=='member' else ''
-                            extra_params=[direction,grain] if family=='member' else []
-                            c.execute('INSERT INTO mta.'+quote(model._meta.db_table)+' (run_id,'+extra_columns+'ordinal,'+','.join(map(quote,fields))+') SELECT %s,'+extra_values+
-                                'row_number() OVER (ORDER BY '+','.join(quote(f)+' NULLS FIRST' for f in order)+')-1,'+','.join(map(quote,fields))+' FROM ('+query+') ingredients',[run.pk,*extra_params,*params])
+                            query, params = members(run, direction, grain) if family == 'member' else prepost(run)
+                            fields = [f for f in fields_for(model) if f not in ('ordinal', 'direction', 'family')]
+                            order = ['scope_ordinal', 'fact_ordinal', 'master_ordinal', 'description_ordinal', 'location_ordinal'] if family == 'member' else ['scope_ordinal', 'fact_ordinal']
+                            extra_columns = 'direction,family,' if family == 'member' else ''
+                            extra_values = '%s,%s,' if family == 'member' else ''
+                            extra_params = [direction, grain] if family == 'member' else []
+                            c.execute('INSERT INTO mta.' + quote(model._meta.db_table) + ' (run_id,' + extra_columns + 'ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,' + extra_values + 'row_number() OVER (ORDER BY ' + ','.join((quote(f) + ' NULLS FIRST' for f in order)) + ')-1,' + ','.join(map(quote, fields)) + ' FROM (' + query + ') ingredients', [run.pk, *extra_params, *params])
             values = {}
-            for family,model in MODELS:
-                values[family+'_count'],values[family+'_digest'] = readback(run,model)
+            for family, model in MODELS:
+                values[family + '_count'], values[family + '_digest'] = readback(run, model)
             recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
-            expected = dict(source_digest=source,recipe_digest=recipe,pick_digest=pick_digest,**values)
+            expected = dict(source_digest=source, recipe_digest=recipe, pick_digest=pick_digest, **values)
             if receipt:
-                if any(getattr(receipt,name) != value for name,value in expected.items()):
+                if any((getattr(receipt, name) != value for name, value in expected.items())):
                     raise CommandError('Planning Expedite chart receipt differs')
             else:
-                PlanningExpediteChartProjection.objects.create(run=run,**expected)
+                PlanningExpediteChartProjection.objects.create(run=run, **expected)
             assert_unchanged(run, source)
-        self.stdout.write(json.dumps(dict(status='PASS',created=receipt is None,
-                                         seconds=time.monotonic()-started,**expected),sort_keys=True))
+        self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None, seconds=time.monotonic() - started, **expected), sort_keys=True))

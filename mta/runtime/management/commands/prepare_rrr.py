@@ -6,7 +6,6 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 
-from mta.presentation import fixture
 from mta.presentation.rrr_preparation import (
     bands_query, membership_query, recipe_digest, source_signatures,
     validate_positions, verify_guards,
@@ -45,8 +44,7 @@ class Command(BaseCommand):
     help = __doc__
 
     def add_arguments(self, parser):
-        parser.add_argument('--verify-only', action='store_true',
-                            help='Verify the sealed membership without inserting rows.')
+        parser.add_argument('--verify-only', action='store_true', help='Verify the sealed membership without inserting rows.')
         parser.add_argument('--run-id')
 
     def handle(self, *args, **options):
@@ -54,7 +52,7 @@ class Command(BaseCommand):
             raise CommandError('RRR preparation requires PostgreSQL')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, source = command_binding(options.get('run_id'))
-        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE','DAILY_CHAIN') or (run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07'):
+        if getattr(run, 'kind', None) not in ('LEGACY_UI_FIXTURE', 'DAILY_CHAIN'):
             raise CommandError('RRR preparation requires the retained April fixture')
         started = time.monotonic()
         with transaction.atomic():
@@ -75,26 +73,17 @@ class Command(BaseCommand):
                     validate_positions(cursor, run, bands_sql, bands_params)
                     query, params = membership_query(run, bands_sql, bands_params)
                     fields = [name for name in fields_for(RrrPreparedMembership) if name != 'ordinal']
-                    order = ('band_ordinal', 'rationed_ordinal', 'standard_ordinal', 'pair_ordinal',
-                             'sku_ordinal', 'location_ordinal', 'left_pair_ordinal')
+                    order = ('band_ordinal', 'rationed_ordinal', 'standard_ordinal', 'pair_ordinal', 'sku_ordinal', 'location_ordinal', 'left_pair_ordinal')
                     cursor.execute("SELECT set_config('fresh.rrr_prepared_build',%s,true)", [str(run.pk)])
-                    cursor.execute('INSERT INTO mta.' + quote(RrrPreparedMembership._meta.db_table)
-                                   + ' (run_id,ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,'
-                                   + 'row_number() OVER (ORDER BY '
-                                   + ','.join(quote(name) + ' NULLS FIRST' for name in order) + ')-1,'
-                                   + ','.join(map(quote, fields)) + ' FROM (' + query + ') members',
-                                   [run.pk, *params])
+                    cursor.execute('INSERT INTO mta.' + quote(RrrPreparedMembership._meta.db_table) + ' (run_id,ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,' + 'row_number() OVER (ORDER BY ' + ','.join((quote(name) + ' NULLS FIRST' for name in order)) + ')-1,' + ','.join(map(quote, fields)) + ' FROM (' + query + ') members', [run.pk, *params])
                     cursor.execute('ANALYZE mta.' + quote(RrrPreparedMembership._meta.db_table))
             count, rows_digest = readback(run)
-            expected = dict(source_digest=source, dimension_digest=dimension_digest,
-                            pick_digest=pick_digest, recipe_digest=recipe,
-                            row_count=count, rows_digest=rows_digest)
+            expected = dict(source_digest=source, dimension_digest=dimension_digest, pick_digest=pick_digest, recipe_digest=recipe, row_count=count, rows_digest=rows_digest)
             if receipt is not None:
-                if any(getattr(receipt, name) != value for name, value in expected.items()):
+                if any((getattr(receipt, name) != value for name, value in expected.items())):
                     raise CommandError('RRR prepared receipt differs')
             else:
                 RrrPreparedProjection.objects.create(run=run, **expected)
             assert_unchanged(run, source)
             verify_guards(connection)
-        self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
-                                         seconds=time.monotonic()-started, **expected), sort_keys=True))
+        self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None, seconds=time.monotonic() - started, **expected), sort_keys=True))

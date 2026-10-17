@@ -1,3 +1,4 @@
+from mta.presentation.native_mode import removed_mode
 """Sealed SQL readers for the four daily Guided DBM projections."""
 from django.conf import settings
 from django.db import connection, transaction
@@ -152,20 +153,18 @@ def read_guided_dbm(run, payload, kind, attributes):
     """Return the existing small raw projection contract from the sealed bag."""
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
-    if getattr(run, 'kind', None) != 'LEGACY_UI_FIXTURE' and not daily:
+    if not daily:
         raise ValueError('Guided DBM prepared reader requires an admitted source run')
-    if not daily and not getattr(settings, 'VF_GUIDED_PREPARED', False):
+    if not daily and (not getattr(settings, 'VF_GUIDED_PREPARED', False)):
         raise PublicationUnavailable('Guided_prepared_trial_disabled')
     if daily:
         from mta.presentation.daily_preparation import source_digest as daily_source_digest
         source_digest = daily_source_digest(run)
         selected = run
     else:
-        from mta.presentation import fixture
-        selected, source_digest = fixture.binding()
+        selected, source_digest = removed_mode('historical_fixture')
     receipt = GuidedDbmPreparedProjection.objects.filter(run_id=run.pk).first()
-    if selected.pk != run.pk or receipt is None or receipt.source_digest != source_digest or \
-            receipt.schema_digest != schema_digest():
+    if selected.pk != run.pk or receipt is None or receipt.source_digest != source_digest or (receipt.schema_digest != schema_digest()):
         raise PublicationUnavailable('Guided_DBM_prepared_receipt_missing_or_changed')
     from mta.runtime.guided_dbm_schema import verify_guards
     try:
@@ -181,8 +180,6 @@ def read_guided_dbm(run, payload, kind, attributes):
         cursor.execute('SET LOCAL jit=off')
         cursor.execute(query, params)
         names = [item[0] for item in cursor.description]
-        rows = [{name: value for name, value in zip(names, record)
-                 if name != 'first_ordinal' and value is not None}
-                for record in cursor.fetchall()]
+        rows = [{name: value for name, value in zip(names, record) if name != 'first_ordinal' and value is not None} for record in cursor.fetchall()]
         cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
         return rows

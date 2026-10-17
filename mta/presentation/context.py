@@ -50,16 +50,10 @@ def selected_run():
     Full verification remains in read_outputs/publication and publication/startup
     acceptance. Routine selective readers verify the images they actually use.
     """
-    from mta.presentation import fixture, operational_admission, native_publication
-    native = native_publication.enabled()
-    if native:
-        native_publication.require_mode()
-    operational = operational_admission.enabled()
-    if fixture.enabled():
-        from mta.presentation import qualified_consumption
-        if qualified_consumption.enabled():
-            raise PublicationUnavailable('qualified_consumption_fixture_conflict')
-        return fixture.selected_run()
+    from mta.presentation import native_publication
+    from mta.presentation.native_mode import require_configuration
+    require_configuration()
+    native_publication.require_mode()
     from mta.presentation.daily_preparation import roster_identity
     roster_identity()
     identifier = settings.VF_MTA_PUBLISHED_RUN
@@ -73,36 +67,15 @@ def selected_run():
     run = CalculationRun.objects.filter(pk=identifier, kind='DAILY_CHAIN', status='SUCCEEDED').first()
     if run is None or not run.production_manifest or run.output_digest != expected:
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
-    from mta.presentation import qualified_consumption
-    if native:
-        # This complete admission already verifies identity, publication,
-        # summary and the atomic selection. Do not repeat it beforehand.
-        from mta.presentation.native_selection import require_selected
-        require_selected(run)
-        return run
-    elif operational:
-        operational_admission.identity(run)
-    elif qualified_consumption.enabled():
-        qualified_consumption.identity(run)
-    elif run.parity_summary.get('status') not in ('PASS', 'PASS_WITH_LEGACY_FLAWS'):
-        raise PublicationUnavailable('publication_acceptance_required')
-    if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
-        from mta.presentation.daily_publication import require_ready
-        require_ready(run)
-        from mta.presentation.planning_summary_daily import require_ready as require_summary
-        require_summary(run)
+    from mta.presentation.native_selection import require_selected
+    require_selected(run)
     return run
 
 
 def publication():
-    from mta.presentation import fixture
-    if fixture.enabled():
-        raise PublicationUnavailable('fixture_whole_publication_unavailable')
     run = selected_run()
     output = read_outputs(run)
     dbm, _ = command_state(run, output['DBMFinal'][0])
-    # Compatibility input shape only: the BTR consumer needs final ration rows,
-    # not a persisted or reconstructed internal calculation-stage trace.
     output = {**output, 'BPRStages': [{'state': output['BPRReports'][0]}]}
     native_output = output
     try:
@@ -111,16 +84,13 @@ def publication():
             output, dbm = hierarchy.project(output, dbm, permission_catalogue(), manifest)
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
-    receipt = None if manifest is None else dict(
-        version=manifest['version'], sha256=settings.VF_MTA_HIERARCHY_SHA256,
-        catalogue_sha256=manifest['catalogue_sha256'], run_id=str(run.pk),
-        fields=manifest['allowed_fields'], native_state_unchanged=True)
+    receipt = None if manifest is None else dict(version=manifest['version'], sha256=settings.VF_MTA_HIERARCHY_SHA256, catalogue_sha256=manifest['catalogue_sha256'], run_id=str(run.pk), fields=manifest['allowed_fields'], native_state_unchanged=True)
     return Publication(run, output, dbm, native_output, receipt)
 
 
 @once_per_request
 def permission_catalogue():
-    path, expected = settings.VF_MTA_PERMISSIONS_FILE, settings.VF_MTA_PERMISSIONS_SHA256
+    path, expected = (settings.VF_MTA_PERMISSIONS_FILE, settings.VF_MTA_PERMISSIONS_SHA256)
     if not path or not expected:
         raise PublicationUnavailable('permission_catalogue_not_configured')
     try:
@@ -130,8 +100,7 @@ def permission_catalogue():
     if hashlib.sha256(raw).hexdigest() != expected:
         raise PublicationUnavailable('permission_catalogue_identity_mismatch')
     value = json.loads(raw)
-    from mta.presentation import fixture
-    expected_version = 'legacy-ui-fixture-permissions-v1' if fixture.enabled() else 'block1-permissions-v1'
+    expected_version = 'block1-permissions-v1'
     if value.get('version') != expected_version:
         raise PublicationUnavailable('unsupported_permission_catalogue')
     for kind in ('products', 'locations'):

@@ -5,7 +5,6 @@ import time
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
-from mta.presentation import fixture
 from mta.presentation.planning_expedite_custom_preparation import custom_occurrences, production_custom_occurrences, recipe_digest, production_recipe_digest
 from mta.runtime.models import PlanningExpediteCustomProjection, PlanningExpediteCustomOccurrence
 from mta.runtime.planning_expedite_custom_schema import verify_guards
@@ -55,8 +54,6 @@ class Command(BaseCommand):
             raise CommandError('Planning Expedite custom preparation requires PostgreSQL')
         from mta.presentation.daily_preparation import command_binding, assert_unchanged
         run, source = command_binding(options.get('run_id'))
-        if run.kind == 'LEGACY_UI_FIXTURE' and str(run.business_date) != '2026-04-07':
-            raise CommandError('Planning Expedite customs require retained April input')
         started = time.monotonic()
         with transaction.atomic():
             if not options['verify_only']:
@@ -67,7 +64,7 @@ class Command(BaseCommand):
             if receipt is None:
                 if options['verify_only']:
                     raise CommandError('Planning Expedite custom receipt absent')
-                if any(model.objects.filter(run=run).exists() for _, model in MODELS):
+                if any((model.objects.filter(run=run).exists() for _, model in MODELS)):
                     raise CommandError('Unsealed Planning Expedite custom rows exist; no replacement allowed')
                 with connection.cursor() as c:
                     c.execute("SELECT set_config('fresh.planning_expedite_custom_build',%s,true)", [str(run.pk)])
@@ -75,11 +72,8 @@ class Command(BaseCommand):
                     builder = production_custom_occurrences if run.kind == 'DAILY_CHAIN' else custom_occurrences
                     query, params = builder(run)
                     fields = [f for f in fields_for(model) if f != 'ordinal']
-                    order = ['fact_ordinal','nms_ordinal','bpr_ordinal','parent_description_ordinal']
-                    c.execute('INSERT INTO mta.'+quote(model._meta.db_table)+' (run_id,ordinal,'
-                              +','.join(map(quote,fields))+') SELECT %s,row_number() OVER (ORDER BY '
-                              +','.join(quote(f)+' NULLS FIRST' for f in order)+')-1,'+','.join(map(quote,fields))
-                              +' FROM ('+query+') occurrences',[run.pk,*params])
+                    order = ['fact_ordinal', 'nms_ordinal', 'bpr_ordinal', 'parent_description_ordinal']
+                    c.execute('INSERT INTO mta.' + quote(model._meta.db_table) + ' (run_id,ordinal,' + ','.join(map(quote, fields)) + ') SELECT %s,row_number() OVER (ORDER BY ' + ','.join((quote(f) + ' NULLS FIRST' for f in order)) + ')-1,' + ','.join(map(quote, fields)) + ' FROM (' + query + ') occurrences', [run.pk, *params])
             values = {}
             for family, model in MODELS:
                 count, checksum = readback(run, model)
@@ -88,10 +82,9 @@ class Command(BaseCommand):
             recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
             expected = dict(source_digest=source, recipe_digest=recipe, **values)
             if receipt:
-                if any(getattr(receipt, name) != value for name, value in expected.items()):
+                if any((getattr(receipt, name) != value for name, value in expected.items())):
                     raise CommandError('Planning Expedite custom receipt differs')
             else:
                 PlanningExpediteCustomProjection.objects.create(run=run, **expected)
             assert_unchanged(run, source)
-        self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None,
-                                         seconds=time.monotonic()-started, **expected), sort_keys=True))
+        self.stdout.write(json.dumps(dict(status='PASS', created=receipt is None, seconds=time.monotonic() - started, **expected), sort_keys=True))

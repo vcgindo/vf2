@@ -101,25 +101,18 @@ def read_graph(run, payload):
     days = int(payload.get('Days', payload.get('days', 90)))
     if not 1 <= days <= 90:
         raise ValueError('Buffer graph days outside retained columns')
-    columns = tuple(f'D{i}' for i in range(91 - days, 91))
+    columns = tuple((f'D{i}' for i in range(91 - days, 91)))
     filters = GraphFilters(payload)
     try:
         where = filters.compile()
     except PublicationUnavailable as exc:
         unavailable(str(exc).partition(':')[2])
     metadata = None
-    if (getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE' and
-            getattr(settings, 'VF_HISTORY_REPORTS_PREPARED', False)):
-        from mta.presentation.fixture import image_metadata_batch
-        history = ('BufferTrendDispatch' if str(payload.get('bufferTrendType', 'tech')).lower() == 'eco'
-                   else 'BufferTrendPhysicalInv')
-        metadata = image_metadata_batch(run, ['closing/btr/' + name for name in
-            ('SkuAttributeData', 'LocationAttributeData', 'BufferTrendDates', 'SkuLocAttributeData', history)])
+
     def rows(name):
         path = 'closing/btr/' + name
-        return image_rows(run, path, **({} if metadata is None else {'metadata': metadata[path]}))
-    attributes = {name: rows(name)
-                  for name in ('SkuAttributeData', 'LocationAttributeData')}
+        return image_rows(run, path, **{} if metadata is None else {'metadata': metadata[path]})
+    attributes = {name: rows(name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:
@@ -130,16 +123,15 @@ def read_graph(run, payload):
     dates = rows('BufferTrendDates')
     from mta.presentation import history_prepared_sql
     if history_prepared_sql.admitted(run) is not None:
-        return history_prepared_sql.read_graph(run, payload, columns=columns, filters=filters,
-            where=where, attributes=attributes, manifest=manifest,
-            products=products, locations=locations, dates=dates,
-            **({} if metadata is None else {'metadata': metadata}))
+        return history_prepared_sql.read_graph(run, payload, columns=columns, filters=filters, where=where, attributes=attributes, manifest=manifest, products=products, locations=locations, dates=dates, **{} if metadata is None else {'metadata': metadata})
     if not products or not locations:
         return graph_response([dict(D=c, **{a: None for a, _ in COLOURS}) for c in columns], dates)
-    ctes, values = [], []
+    ctes, values = ([], [])
+
     def add(alias, query, params):
         ctes.append(alias + ' AS (' + query + ')')
         values.extend(params)
+
     def image(alias, name):
         query, params = image_query(run, 'closing/btr/' + name)
         add(alias, query, params)
@@ -152,30 +144,19 @@ def read_graph(run, payload):
             continue
         image(alias + 'native', table)
         rows = attributes[table]
-        add(alias + 'hierarchy', 'VALUES ' + ','.join(['(%s,%s,%s,%s)'] * len(rows)),
-            [v for ordinal, row in enumerate(rows) for v in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)])])
+        add(alias + 'hierarchy', 'VALUES ' + ','.join(['(%s,%s,%s,%s)'] * len(rows)), [v for ordinal, row in enumerate(rows) for v in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)])])
         fields = [n for n, _ in CATALOG['tables']['BTR/' + table] if n not in [prefix + str(i) for i in (1, 2, 3)]]
-        add(alias, 'SELECT ' + ','.join('N.' + quote(n) for n in fields) + ',' +
-            ','.join('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1, 2, 3)) +
-            ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1', [])
+        add(alias, 'SELECT ' + ','.join(('N.' + quote(n) for n in fields)) + ',' + ','.join(('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1, 2, 3))) + ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1', [])
     for alias, codes in (('P', products), ('L', locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         add(alias, 'VALUES ' + ','.join(['(%s)'] * len(members)), members)
-    joins = (' JOIN P ON ' + equal('A."SKUCode"', 'P.column1') +
-        ' JOIN L ON ' + equal('A."WhCode"', 'L.column1') +
-        ' JOIN sa ON ' + equal('A."SKUCode"', 'sa."SKUCode"') +
-        ' JOIN la ON ' + equal('A."WhCode"', 'la."WHCode"') +
-        ' LEFT JOIN sla ON ' + equal('A."SKUCode"', 'sla."SKUCode"') + ' AND ' + equal('A."WhCode"', 'sla."LocCode"'))
+    joins = ' JOIN P ON ' + equal('A."SKUCode"', 'P.column1') + ' JOIN L ON ' + equal('A."WhCode"', 'L.column1') + ' JOIN sa ON ' + equal('A."SKUCode"', 'sa."SKUCode"') + ' JOIN la ON ' + equal('A."WhCode"', 'la."WHCode"') + ' LEFT JOIN sla ON ' + equal('A."SKUCode"', 'sla."SKUCode"') + ' AND ' + equal('A."WhCode"', 'sla."LocCode"')
     if filters.children:
-        joins += ' JOIN la parent ON ' + equal('A."ParentWhCode"', 'parent."WHCode"') + ' AND (' + \
-            ' OR '.join(equal('parent."LocationType"', '%s') for _ in filters.children) + ')'
+        joins += ' JOIN la parent ON ' + equal('A."ParentWhCode"', 'parent."WHCode"') + ' AND (' + ' OR '.join((equal('parent."LocationType"', '%s') for _ in filters.children)) + ')'
         values.extend(filters.children)
-    # Aggregate in PostgreSQL; do not deserialize both 90-wide histories.
-    projection = ','.join('sum(CASE WHEN ' + equal('A.' + quote(c), "'" + colour + "'") +
-        ' THEN 1 ELSE 0 END)::integer' for c in columns for _, colour in COLOURS)
+    projection = ','.join(('sum(CASE WHEN ' + equal('A.' + quote(c), "'" + colour + "'") + ' THEN 1 ELSE 0 END)::integer' for c in columns for _, colour in COLOURS))
     with connection.cursor() as cursor:
-        cursor.execute('WITH ' + ','.join(ctes) + ' SELECT ' + projection + ' FROM A' + joins + ' WHERE ' + where,
-                       values + filters.params)
+        cursor.execute('WITH ' + ','.join(ctes) + ' SELECT ' + projection + ' FROM A' + joins + ' WHERE ' + where, values + filters.params)
         totals = cursor.fetchone()
     counts = [dict(D=c, **{a: totals[i * 6 + j] for j, (a, _) in enumerate(COLOURS)}) for i, c in enumerate(columns)]
     return graph_response(counts, dates)

@@ -140,120 +140,98 @@ def read_rrr(run, payload, *, paging, count=False):
     from mta.presentation.rrr_prepared_sql import admitted_relation, read_prepared
     prepared = admitted_relation(run)
     if prepared is not None:
-        return read_prepared(run, payload, paging=paging, count=count,
-                             relation=prepared[0], relation_params=prepared[1])
-    importer = {name:image_rows(run,'closing/importer/'+name)
-                for name in ('SkuAttributeData','LocationAttributeData')}
+        return read_prepared(run, payload, paging=paging, count=count, relation=prepared[0], relation_params=prepared[1])
+    importer = {name: image_rows(run, 'closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:
-            importer = hierarchy.project_attributes(importer,permission_catalogue(),manifest)
+            importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
-    # Preserve the accepted predicate's structural/legacy-invalid branch guards.
-    rrr_predicate(payload,importer)
-    products, locations = scope(payload,attributes=importer)
-    try: bands = read_pick_bands(run)
+    rrr_predicate(payload, importer)
+    products, locations = scope(payload, attributes=importer)
+    try:
+        bands = read_pick_bands(run)
     except PickProjection.DoesNotExist as exc:
         raise PublicationUnavailable('selected_run_pick_projection_not_published') from exc
-    if not products or not locations or not bands: return 0 if count else []
+    if not products or not locations or (not bands):
+        return 0 if count else []
+    ctes, params = ([], [])
+    fixture = False
 
-    ctes, params = [], []
-    fixture = getattr(run, 'kind', None) == 'LEGACY_UI_FIXTURE'
     def add(name, query, values, *, materialized=False):
-        mode = ' AS NOT MATERIALIZED (' if fixture else (' AS MATERIALIZED (' if materialized else ' AS (')
-        ctes.append(name + mode + query + ')'); params.extend(values)
-    for alias, path in (('R','reports/bpr/vf_RationedReqReport'),
-            ('S','closing/dbm/SKULocStandardAttributes'),('B','closing/importer/SkuLocAttributeData')):
-        query, values = image_query(run,path); add(alias,query,values)
-    for alias, table, code, prefix in (('C','SkuAttributeData','SKUCode','SL'),('D','LocationAttributeData','WHCode','LL')):
-        query, values = image_query(run,'closing/importer/'+table)
+        mode = ' AS MATERIALIZED (' if materialized else ' AS ('
+        ctes.append(name + mode + query + ')')
+        params.extend(values)
+    for alias, path in (('R', 'reports/bpr/vf_RationedReqReport'), ('S', 'closing/dbm/SKULocStandardAttributes'), ('B', 'closing/importer/SkuLocAttributeData')):
+        query, values = image_query(run, path)
+        add(alias, query, values)
+    for alias, table, code, prefix in (('C', 'SkuAttributeData', 'SKUCode', 'SL'), ('D', 'LocationAttributeData', 'WHCode', 'LL')):
+        query, values = image_query(run, 'closing/importer/' + table)
         if manifest:
-            add(alias+'native',query,values)
+            add(alias + 'native', query, values)
             rows = importer[table]
-            add(alias+'hierarchy','VALUES '+','.join(['(%s,%s,%s,%s)']*len(rows)),
-                [v for ordinal,row in enumerate(rows) for v in (ordinal,*[row[prefix+str(i)] for i in (1,2,3)])])
-            columns = [n for n,_ in CATALOG['tables']['Importer/'+table] if n not in [prefix+str(i) for i in (1,2,3)]]
-            add(alias,'SELECT '+','.join('N.'+quote(n) for n in columns)+','+
-                ','.join('H.column'+str(i+1)+' AS '+quote(prefix+str(i)) for i in (1,2,3))+
-                ' FROM '+alias+'native N JOIN '+alias+'hierarchy H ON N.vf_ordinal=H.column1',[])
-        else: add(alias,query,values)
-    add('bands','VALUES '+','.join(['(%s,%s,%s,%s,%s,%s,%s,%s)']*len(bands)),
-        [v for b in bands for v in (b['sku_code'],b['location_code'],b['parent_location_code'],
-                                   *[int(b[k]) for k in ('to_black','to_red','to_yellow','to_green','to_blue')])])
-    virtual = equal('K.column2','K.column3')
-    copies = dict(ParentWhCode='WhCode',ParentWhName='WhName',ParentNorm='Norm',
-        TechPenParent='TechPen',TechColorParent='TechColor',EcoPenParent='EcoPen',EcoColorParent='EcoColor',
-        LeftoverParentStock='LeftoverStock',ParentPackSize='PackSize',AvgSiblingsNorm='AvgChildrenNorm',
-        ParentStockPercentageForRationing='StockPercentageForRationing',ParentNormPercentReservation='NormPercentReservation')
-    zero = set(('Req','AllocatedForVirtualNormReq','AllocatedForNormReq','AllocatedForSnPReq','RationedReq',
-        'RationedCasePacks','LeftoverStock','SpikeOverdueAtParent','ResidualChildrenSnP','AvgChildrenNorm'))
+            add(alias + 'hierarchy', 'VALUES ' + ','.join(['(%s,%s,%s,%s)'] * len(rows)), [v for ordinal, row in enumerate(rows) for v in (ordinal, *[row[prefix + str(i)] for i in (1, 2, 3)])])
+            columns = [n for n, _ in CATALOG['tables']['Importer/' + table] if n not in [prefix + str(i) for i in (1, 2, 3)]]
+            add(alias, 'SELECT ' + ','.join(('N.' + quote(n) for n in columns)) + ',' + ','.join(('H.column' + str(i + 1) + ' AS ' + quote(prefix + str(i)) for i in (1, 2, 3))) + ' FROM ' + alias + 'native N JOIN ' + alias + 'hierarchy H ON N.vf_ordinal=H.column1', [])
+        else:
+            add(alias, query, values)
+    add('bands', 'VALUES ' + ','.join(['(%s,%s,%s,%s,%s,%s,%s,%s)'] * len(bands)), [v for b in bands for v in (b['sku_code'], b['location_code'], b['parent_location_code'], *[int(b[k]) for k in ('to_black', 'to_red', 'to_yellow', 'to_green', 'to_blue')])])
+    virtual = equal('K.column2', 'K.column3')
+    copies = dict(ParentWhCode='WhCode', ParentWhName='WhName', ParentNorm='Norm', TechPenParent='TechPen', TechColorParent='TechColor', EcoPenParent='EcoPen', EcoColorParent='EcoColor', LeftoverParentStock='LeftoverStock', ParentPackSize='PackSize', AvgSiblingsNorm='AvgChildrenNorm', ParentStockPercentageForRationing='StockPercentageForRationing', ParentNormPercentReservation='NormPercentReservation')
+    zero = set(('Req', 'AllocatedForVirtualNormReq', 'AllocatedForNormReq', 'AllocatedForSnPReq', 'RationedReq', 'RationedCasePacks', 'LeftoverStock', 'SpikeOverdueAtParent', 'ResidualChildrenSnP', 'AvgChildrenNorm'))
     selections = []
     for name, kind in CATALOG['tables']['BPR/vf_RationedReqReport']:
-        original = 'R.'+quote(name)
-        if name in copies: expression='CASE WHEN '+virtual+' THEN R.'+quote(copies[name])+' ELSE '+original+' END'
-        elif name in zero or name=='IsNormed':
-            expression='CASE WHEN '+virtual+' THEN '+('FALSE' if name=='IsNormed' else '0')+' ELSE '+original+' END'
-        elif name=='AllocatedForDirectOrders': expression='CASE WHEN '+virtual+' THEN '+original+' ELSE 0 END'
-        else: expression=original
-        selections.append(expression+' AS '+quote(name))
-    for i,name in enumerate(('TOR_B','TOR_R','TOY','TOG','TOBlue'),4):
-        selections.append('K.column'+str(i)+' AS '+quote(name))
-    add('A','SELECT '+','.join(selections)+' FROM R JOIN bands K ON '+equal('R."SKUCode"','K.column1')+
-        ' AND '+equal('R."WhCode"','K.column2'),[],materialized=True)
-    for alias, codes in (('P',products),('L',locations)):
-        # An actual permission bag, not an unbounded generate_series estimate.
+        original = 'R.' + quote(name)
+        if name in copies:
+            expression = 'CASE WHEN ' + virtual + ' THEN R.' + quote(copies[name]) + ' ELSE ' + original + ' END'
+        elif name in zero or name == 'IsNormed':
+            expression = 'CASE WHEN ' + virtual + ' THEN ' + ('FALSE' if name == 'IsNormed' else '0') + ' ELSE ' + original + ' END'
+        elif name == 'AllocatedForDirectOrders':
+            expression = 'CASE WHEN ' + virtual + ' THEN ' + original + ' ELSE 0 END'
+        else:
+            expression = original
+        selections.append(expression + ' AS ' + quote(name))
+    for i, name in enumerate(('TOR_B', 'TOR_R', 'TOY', 'TOG', 'TOBlue'), 4):
+        selections.append('K.column' + str(i) + ' AS ' + quote(name))
+    add('A', 'SELECT ' + ','.join(selections) + ' FROM R JOIN bands K ON ' + equal('R."SKUCode"', 'K.column1') + ' AND ' + equal('R."WhCode"', 'K.column2'), [], materialized=True)
+    for alias, codes in (('P', products), ('L', locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
-        add(alias,'VALUES '+','.join(['(%s)']*len(members)),members)
-    filters = Filters(payload); where = filters.compile()
-    # Correlated bounded joins prevent PostgreSQL from expanding the complete
-    # estate before selecting the small produced Pick bag. OFFSET 0 is only a
-    # planner fence: it removes no occurrence and introduces no tie-break.
-    # The native VM fixture has 97k positions and 8k Pick subjects. Its retained
-    # plan rescanned 97k-row relations for each subject behind these fences.
-    # Allow PostgreSQL to flatten the identical joins for this fixture; retain
-    # every predicate, LEFT join, duplicate and the existing final ORDER BY.
-    fence='' if getattr(run,'kind',None)=='LEGACY_UI_FIXTURE' else ' OFFSET 0'
-    joins = ' FROM A JOIN LATERAL (SELECT * FROM S WHERE '+equal('A."SKUCode"','S."SKUCode"')+' AND '+equal('A."WhCode"','S."WhCode"')+fence+') S ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+fence+') B ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM C WHERE '+equal('A."SKUCode"','C."SKUCode"')+fence+') C ON TRUE'
-    joins += ' JOIN LATERAL (SELECT * FROM D WHERE '+equal('A."WhCode"','D."WHCode"')+fence+') D ON TRUE'
-    joins += ' LEFT JOIN LATERAL (SELECT * FROM B WHERE '+equal('A."SKUCode"','B."SKUCode"')+' AND '+equal('A."WhCode"','B."LocCode"')+fence+') sla ON TRUE'
+        add(alias, 'VALUES ' + ','.join(['(%s)'] * len(members)), members)
+    filters = Filters(payload)
+    where = filters.compile()
+    fence = ' OFFSET 0'
+    joins = ' FROM A JOIN LATERAL (SELECT * FROM S WHERE ' + equal('A."SKUCode"', 'S."SKUCode"') + ' AND ' + equal('A."WhCode"', 'S."WhCode"') + fence + ') S ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM B WHERE ' + equal('A."SKUCode"', 'B."SKUCode"') + ' AND ' + equal('A."WhCode"', 'B."LocCode"') + fence + ') B ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM C WHERE ' + equal('A."SKUCode"', 'C."SKUCode"') + fence + ') C ON TRUE'
+    joins += ' JOIN LATERAL (SELECT * FROM D WHERE ' + equal('A."WhCode"', 'D."WHCode"') + fence + ') D ON TRUE'
+    joins += ' LEFT JOIN LATERAL (SELECT * FROM B WHERE ' + equal('A."SKUCode"', 'B."SKUCode"') + ' AND ' + equal('A."WhCode"', 'B."LocCode"') + fence + ') sla ON TRUE'
     joins += ' JOIN P ON A."SKUCode"=P.column1 JOIN L ON A."WhCode"=L.column1'
     if filters.children:
-        joins += (' JOIN D parent ON '+equal('A."ParentWhCode"','parent."WHCode"')+' AND ('+
-            ' OR '.join(equal('parent."LocationType"','%s') for _ in filters.children)+')')
+        joins += ' JOIN D parent ON ' + equal('A."ParentWhCode"', 'parent."WHCode"') + ' AND (' + ' OR '.join((equal('parent."LocationType"', '%s') for _ in filters.children)) + ')'
         params.extend(filters.children)
     params.extend(filters.params)
-    columns = [(name,'A.'+quote(name)) for name in DIRECT_FIELDS]
-    columns += [(name,'A.'+quote(source)) for name,source in ALIASES.items()]
-    columns += [(prefix.lower()+str(i),owner+'.'+quote(prefix+str(i)))
-                for owner,prefix in (('C','SL'),('D','LL')) for i in range(1,6)]
-    columns += [(prefix+str(i),'COALESCE('+owner+'.'+quote('c'+str(i))+",'-')")
-                for prefix,owner in (('SKULocAttr','B'),('SKUAttr','C'),('LocAttr','D')) for i in range(1,16)]
-    select = 'count(*)' if count else ','.join(('COALESCE('+value+",'-')" if name in NULL_DASH else value)+' AS '+quote(name)
-                                             for name,value in columns)
-    query = 'WITH '+','.join(ctes)+' SELECT '+select+joins+' WHERE '+where
+    columns = [(name, 'A.' + quote(name)) for name in DIRECT_FIELDS]
+    columns += [(name, 'A.' + quote(source)) for name, source in ALIASES.items()]
+    columns += [(prefix.lower() + str(i), owner + '.' + quote(prefix + str(i))) for owner, prefix in (('C', 'SL'), ('D', 'LL')) for i in range(1, 6)]
+    columns += [(prefix + str(i), 'COALESCE(' + owner + '.' + quote('c' + str(i)) + ",'-')") for prefix, owner in (('SKULocAttr', 'B'), ('SKUAttr', 'C'), ('LocAttr', 'D')) for i in range(1, 16)]
+    select = 'count(*)' if count else ','.join((('COALESCE(' + value + ",'-')" if name in NULL_DASH else value) + ' AS ' + quote(name) for name, value in columns))
+    query = 'WITH ' + ','.join(ctes) + ' SELECT ' + select + joins + ' WHERE ' + where
     if not count:
-        query += ' ORDER BY A."DispatchColorSequence" NULLS FIRST, A."DispatchPen" DESC NULLS LAST,'+key('A."WhCode"')+','+key('A."SKUCode"')
+        query += ' ORDER BY A."DispatchColorSequence" NULLS FIRST, A."DispatchPen" DESC NULLS LAST,' + key('A."WhCode"') + ',' + key('A."SKUCode"')
         if paging is not None:
             query += ' LIMIT %s OFFSET %s'
-            params.extend((paging[1],(paging[0]-1)*paging[1]))
+            params.extend((paging[1], (paging[0] - 1) * paging[1]))
     with connection.cursor() as cursor:
-        # Retain pick_rows' unique-position/parent guard. Repeated band rows are
-        # valid; repeated produced ration positions must not silently multiply.
-        source_query, source_params = image_query(run,'reports/bpr/vf_RationedReqReport')
-        identities = sorted({(b['sku_code'],b['location_code'],b['parent_location_code']) for b in bands})
-        cursor.execute('WITH positions AS ('+source_query+'), selected AS (VALUES '+
-            ','.join(['(%s,%s,%s)']*len(identities))+') SELECT K.column1,K.column2 FROM selected K '+
-            'LEFT JOIN positions R ON '+equal('R."SKUCode"','K.column1')+' AND '+equal('R."WhCode"','K.column2')+
-            ' GROUP BY K.column1,K.column2,K.column3 HAVING count(R.vf_ordinal)<>1 OR '+
-            '(NOT '+equal('K.column2','K.column3')+' AND bool_and('+equal('R."ParentWhCode"','K.column3')+') IS DISTINCT FROM TRUE)',
-            source_params+[v for row in identities for v in row])
-        if cursor.fetchone(): raise ValueError('Pick band requires its unique produced rationed-report position/parent')
-        cursor.execute(query,params)
-        if count: return cursor.fetchone()[0]
-        rows = [dict(zip((c[0] for c in cursor.description),row)) for row in cursor.fetchall()]
-    if any(r['ParentNorm'] is None for r in rows):
+        source_query, source_params = image_query(run, 'reports/bpr/vf_RationedReqReport')
+        identities = sorted({(b['sku_code'], b['location_code'], b['parent_location_code']) for b in bands})
+        cursor.execute('WITH positions AS (' + source_query + '), selected AS (VALUES ' + ','.join(['(%s,%s,%s)'] * len(identities)) + ') SELECT K.column1,K.column2 FROM selected K ' + 'LEFT JOIN positions R ON ' + equal('R."SKUCode"', 'K.column1') + ' AND ' + equal('R."WhCode"', 'K.column2') + ' GROUP BY K.column1,K.column2,K.column3 HAVING count(R.vf_ordinal)<>1 OR ' + '(NOT ' + equal('K.column2', 'K.column3') + ' AND bool_and(' + equal('R."ParentWhCode"', 'K.column3') + ') IS DISTINCT FROM TRUE)', source_params + [v for row in identities for v in row])
+        if cursor.fetchone():
+            raise ValueError('Pick band requires its unique produced rationed-report position/parent')
+        cursor.execute(query, params)
+        if count:
+            return cursor.fetchone()[0]
+        rows = [dict(zip((c[0] for c in cursor.description), row)) for row in cursor.fetchall()]
+    if any((r['ParentNorm'] is None for r in rows)):
         raise ValueError('Canonical RRR ParentNorm NULL conversion is not comparable')
     return rows

@@ -50,22 +50,17 @@ def selected_pairs(payload):
 
 @transaction.atomic
 def submit(payload, actor, operation, *, preacceptance=None):
-    from mta.presentation import fixture
     if preacceptance is None:
-        if fixture.enabled():
-            raise ActionDenied('demo_read_only')
         if not settings.VF_MTA_ACTIONS_ENABLED:
             raise ActionDenied('demo_read_only')
     elif not isinstance(preacceptance, PreacceptanceActionContext):
         raise ActionDenied('invalid_preacceptance_context')
     selected = selected_pairs(payload)
-    # Lock before read/authorization/message calculation so it sees the same
-    # command overlay that record_command will consume. No second state writer.
     if preacceptance is None:
         CalculationRun.objects.select_for_update().get(pk=settings.VF_MTA_PUBLISHED_RUN)
         context = publication()
         action_timestamp = timestamp()
-        idempotency_key = 'http-'+str(uuid4())
+        idempotency_key = 'http-' + str(uuid4())
     else:
         CalculationRun.objects.select_for_update().get(pk=preacceptance.run.pk)
         context = preacceptance
@@ -75,18 +70,16 @@ def submit(payload, actor, operation, *, preacceptance=None):
     if OperationalAcceptance.objects.filter(run_id=context.run.pk).exists():
         raise ActionDenied('operational_acceptance_sealed')
     products, locations = scope(payload, attributes=context.output['ClosingState'][0]['importer'])
-    if any(sku not in products or location not in locations for sku,location in selected):
+    if any((sku not in products or location not in locations for sku, location in selected)):
         raise ActionDenied('selected_pair_outside_authenticated_scope')
     chosen = set(selected)
     suggestions = [row for row in context.dbm['Suggestions'] if key(row) in chosen]
     if operation == 'APPLY':
         keys = {key(row) for row in suggestions}
-        masters = Counter(key(row) for row in context.dbm['DBMMaster'])
-        affected = sum(key(row) in keys for row in context.dbm['NormAcceptanceTbl'])
-        affected += sum(masters[key(row)] for row in suggestions)
+        masters = Counter((key(row) for row in context.dbm['DBMMaster']))
+        affected = sum((key(row) in keys for row in context.dbm['NormAcceptanceTbl']))
+        affected += sum((masters[key(row)] for row in suggestions))
     else:
-        affected = 2*len(suggestions)  # insert sleep + delete suggestions
-    event = record_command(context.run, operation=operation, selected=[list(pair) for pair in selected],
-        timestamp=action_timestamp, actor=str(actor), idempotency_key=idempotency_key)
-    return event, dict(data='' if operation=='APPLY' else None,
-                       message='Saved Succesfully' if affected else None)
+        affected = 2 * len(suggestions)
+    event = record_command(context.run, operation=operation, selected=[list(pair) for pair in selected], timestamp=action_timestamp, actor=str(actor), idempotency_key=idempotency_key)
+    return (event, dict(data='' if operation == 'APPLY' else None, message='Saved Succesfully' if affected else None))

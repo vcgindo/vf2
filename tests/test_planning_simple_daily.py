@@ -20,8 +20,7 @@ class DailySummaryTests(unittest.TestCase):
     def test_command_calls_complete_reporting_coordinator(self):
         publication=SimpleNamespace(run_id='run',status='READY',seal_digest='seal',layers={})
         summary=SimpleNamespace(pk='summary',status='READY',rows_digest='rows')
-        with patch('mta.presentation.qualified_consumption.enabled',return_value=False), \
-             patch('mta.runtime.management.commands.prepare_daily_ui.prepare_reporting_generation',return_value=(publication,summary)) as prepare:
+        with patch('mta.runtime.management.commands.prepare_daily_ui.prepare_reporting_generation',return_value=(publication,summary)) as prepare:
             Command(stdout=MagicMock()).handle(run_id='run',output_digest='output')
         prepare.assert_called_once_with('run',expected_output_digest='output')
 

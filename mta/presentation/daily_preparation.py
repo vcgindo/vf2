@@ -91,7 +91,6 @@ DBM_IMAGES = tuple('closing/dbm/' + name for name in (
 ))
 
 COMMANDS = {
-    'bpr': 'prepare_bpr_fixture',
     'planning_sources': 'prepare_planning_sources',
     'planning_grids': 'prepare_planning_grids',
     'planning_charts': 'prepare_planning_charts',
@@ -104,9 +103,6 @@ COMMANDS = {
     'rrr': 'prepare_rrr',
     'history': 'prepare_history_reports',
     'research_availability': 'prepare_research_availability',
-    'guided_history': 'prepare_guided_history_fixture',
-    'guided_dbm': 'prepare_guided_dbm_fixture',
-    'guided_chronic': 'prepare_guided_chronic_fixture',
     'bor': 'prepare_bor_membership',
     'boroa': 'prepare_boroa_membership',
 }
@@ -158,24 +154,19 @@ def source_digest(run):
 
 
 def command_binding(run_id=None):
-    """Resolve an explicit daily build or retain the command's fixture binding."""
+    """Native preparation requires the caller's explicit committed run."""
+    from mta.presentation.native_mode import require_configuration
+    require_configuration()
     if run_id is None:
-        from mta.presentation.fixture import binding
-        return binding()
+        raise PublicationUnavailable('explicit_native_preparation_run_required')
     from mta.runtime.models import CalculationRun
     run = CalculationRun.objects.get(pk=run_id)
     return run, source_digest(run)
 
 
 def assert_unchanged(run, expected):
-    if getattr(run, 'kind', None) == 'DAILY_CHAIN':
-        if source_digest(run) != expected:
-            raise PublicationUnavailable('daily_preparation_source_changed')
-        return
-    from mta.presentation.fixture import binding
-    selected, source = binding()
-    if selected.pk != run.pk or source != expected:
-        raise PublicationUnavailable('fixture_preparation_source_changed')
+    if source_digest(run) != expected:
+        raise PublicationUnavailable('daily_preparation_source_changed')
 
 
 def recipe_for(run, module):
@@ -297,6 +288,8 @@ def _require_ancillary(run, layer):
 
 def prepare_layer(run, name):
     """Build one explicit finite layer; callers own retry/readiness state."""
+    from mta.presentation.native_publication import require_mode
+    require_mode()
     if name not in REQUIRED_LAYERS:
         raise ValueError('Unknown daily preparation layer: ' + str(name))
     if name not in required_layers():
@@ -308,10 +301,10 @@ def prepare_layer(run, name):
         return _btr_result(run, verify_only=False)
     _require_ancillary(run, name)
     from mta.presentation import native_publication, daily_native_prepared
-    if native_publication.enabled() and name in daily_native_prepared.BUILDERS:
+    if name in daily_native_prepared.BUILDERS:
         native_publication.require_mode()
         return daily_native_prepared.prepare(run, name)
-    if native_publication.enabled() and name in ('bor', 'boroa'):
+    if name in ('bor', 'boroa'):
         native_publication.require_mode()
         from mta.presentation.daily_bor_prepared import prepare
         return prepare(run, name)
@@ -324,6 +317,8 @@ def prepare_layer(run, name):
 
 def verify_layer(run, name, receipt):
     """Verify an unchanged successful layer without rebuilding it."""
+    from mta.presentation.native_publication import require_mode
+    require_mode()
     if name not in REQUIRED_LAYERS:
         raise ValueError('Unknown daily preparation layer: ' + str(name))
     if name not in required_layers():
@@ -342,14 +337,14 @@ def verify_layer(run, name, receipt):
         current = _dbm_result(run)
     elif name == 'btr':
         current = _btr_result(run, verify_only=True)
-    elif native_publication.enabled() and name in ('bor', 'boroa'):
+    elif name in ('bor', 'boroa'):
         native_publication.require_mode()
         from mta.presentation.daily_bor_prepared import prepare
         current = prepare(run, name, verify_only=True)
     else:
         _require_ancillary(run, name)
         from mta.presentation import native_publication, daily_native_prepared
-        if native_publication.enabled() and name in daily_native_prepared.BUILDERS:
+        if name in daily_native_prepared.BUILDERS:
             native_publication.require_mode()
             current = daily_native_prepared.prepare(run, name, verify_only=True)
         else:

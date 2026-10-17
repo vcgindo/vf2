@@ -62,17 +62,8 @@ def read(run, payload, *, count=False, export=False):
         image_rows(run, source_path)
         source_sql, source_params = image_query(run, source_path)
     else:
-        from mta.presentation.offline_rrr import VERSION as OFFLINE_VERSION
-        if getattr(settings, 'VF_MTA_RRR_COLOUR_EXTENSION', '') == OFFLINE_VERSION:
-            from mta.presentation.offline_rrr import read_published as read_source
-            from mta.runtime.offline_rrr_models import OfflineRrrColourRow as DailyRrrColourRow
-        else:
-            from mta.presentation.daily_rrr_storage import read as read_source
-            from mta.runtime.daily_rrr_models import DailyRrrColourRow
-        read_source(run)
-        source_sql = ('SELECT * FROM mta.' + quote(DailyRrrColourRow._meta.db_table)
-                      + ' WHERE receipt_id=%s')
-        source_params = [run.pk]
+        from mta.presentation.native_mode import removed_mode
+        removed_mode('historical_rrr_source')
     importer = {name: image_rows(run, 'closing/importer/'+name)
                 for name in ('SkuAttributeData', 'LocationAttributeData')}
     manifest = hierarchy.selected_manifest(run)

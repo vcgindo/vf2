@@ -12,27 +12,22 @@ def inputs(output,bands):
     return storage(pick_rows(bpr['vf_RationedReqReport'],bands))
 
 
-def read_pick_post(run,*,output,bands=None):
-    if getattr(run,'kind',None) == 'LEGACY_UI_FIXTURE':
-        from mta.presentation.fixture import projection_rows
-        if bands is None:bands=read_pick_bands(run)
-        source=inputs(output,bands)
-        rows=projection_rows(run,PickPostRow)
-        if len(source)!=len(rows) or any(any(a[n]!=b[n] for n in FIELDS[:3]) for a,b in zip(source,rows)):
-            raise ValueError('Fixture post-ration source ordinal identity differs')
-        return [{**a,**b} for a,b in zip(source,rows)]
-    if bands is None: bands=read_pick_bands(run)
-    source=inputs(output,bands); receipt=PickPostProjection.objects.get(run=run)
-    if receipt.source_digest!=digest(source) or receipt.producers_digest!=digest(SOURCE_HASHES):
+def read_pick_post(run, *, output, bands=None):
+    if bands is None:
+        bands = read_pick_bands(run)
+    source = inputs(output, bands)
+    receipt = PickPostProjection.objects.get(run=run)
+    if receipt.source_digest != digest(source) or receipt.producers_digest != digest(SOURCE_HASHES):
         raise ValueError('Post-ration source identity drift')
-    records=list(PickPostRow.objects.filter(run=run).order_by('ordinal').values('ordinal',*FIELDS))
-    if [r['ordinal'] for r in records]!=list(range(receipt.row_count)) or len(source)!=receipt.row_count:
+    records = list(PickPostRow.objects.filter(run=run).order_by('ordinal').values('ordinal', *FIELDS))
+    if [r['ordinal'] for r in records] != list(range(receipt.row_count)) or len(source) != receipt.row_count:
         raise ValueError('Post-ration population/order drift')
-    rows=storage([{f:r[f] for f in FIELDS} for r in records])
-    if digest(rows)!=receipt.rows_digest: raise ValueError('Post-ration typed values/multiplicity drift')
-    if any(any(a[n]!=b[n] for n in FIELDS[:3]) for a,b in zip(source,rows)):
+    rows = storage([{f: r[f] for f in FIELDS} for r in records])
+    if digest(rows) != receipt.rows_digest:
+        raise ValueError('Post-ration typed values/multiplicity drift')
+    if any((any((a[n] != b[n] for n in FIELDS[:3])) for a, b in zip(source, rows))):
         raise ValueError('Post-ration source ordinal identity drift')
-    return [{**a,**b} for a,b in zip(source,rows)]
+    return [{**a, **b} for a, b in zip(source, rows)]
 
 
 def write_pick_post(run,output,*,bands):
