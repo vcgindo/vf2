@@ -321,6 +321,219 @@ vf --profile install run --rm mta-install -m release.optional_initialize /var/li
 
 The first optional_initialize invocation only inspects the existing native contract using exact input/configuration/recipe digests. The second explicitly applies once, validates existing native ownership, initializes only supplied masters/opening and binds the complete optional family owners in one transaction. Save its source/opening/content/implementation/receipt identities and independently read back exact typed input/master state. Verify zero calculation/capture/task and no publication. A second apply is refused before mutation; native initialization's underlying identical REVERIFIED policy remains unchanged. Preserve any failed target/receipt; no reset/reseed/registration replacement or automatic retry. Selecting a source for initialized master reads does not create a report publication or permissions.
 
+## Manual destruction and clean reinstall of the 8080 Windows trial
+
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
+This is the user's explicitly requested **destructive local-trial reinstall** procedure for `I:/VectorFLOW-Trial`, project `vectorflow-localtrial`, on `127.0.0.1:8080`. It is not an upgrade or production rollback. This request permits removing/recreating this trial's MTO container and data as part of the whole trial; it does not permit editing MTO code/configuration or touching another MTO instance. Run these blocks manually in order in the same PowerShell session. Documentation validation does not mean these commands were executed.
+
+Deleting the eight named volumes permanently removes the trial PostgreSQL cluster (both MTA/MTO databases, identity accounts, roles, sealed registration and the approved metadata-verification database/roles), Redis sessions, generated files, downloads and service logs. The subsequent installation creates new empty databases and requires a newly created administrator. The old `trial` account will not survive. Archiving the source folder below is **not a database backup**. If any database contents must be retained, stop here and arrange a database/volume backup first.
+
+Keep Docker images, the approved source/runtime archives and the protected 3005/3006/3002/3003/3004 resources. Do not use Docker Desktop "delete all", `docker system prune`, `docker volume prune`, `docker network prune`, a shared Docker/WSL restart, or an unqualified fleet-wide remove command.
+
+### 1. Verify the exact owned resources, then destroy only this trial
+
+The inventory checked on 17 October 2026 contains six service containers, the eight volumes below and one network. These checks deliberately stop if that footprint has changed or another container uses any trial resource. Do not relax the checks to make deletion pass.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$TrialRoot = [IO.Path]::GetFullPath('I:/VectorFLOW-Trial')
+if ($TrialRoot.TrimEnd('\','/') -ne 'I:\VectorFLOW-Trial') {
+  throw 'Unexpected absolute cleanup root'
+}
+if (-not (Test-Path -LiteralPath "$TrialRoot/operator.env" -PathType Leaf)) {
+  throw 'Original trial folder not found; do not guess another target'
+}
+$TrialProject = 'vectorflow-localtrial'
+$TrialNetwork = 'vectorflow-localtrial_application'
+$ExpectedServices = @('auth','mta','frontend','mto','postgres','redis')
+$ExpectedVolumes = @(
+  'vectorflow-localtrial_auth_data',
+  'vectorflow-localtrial_auth_logs',
+  'vectorflow-localtrial_mta_data',
+  'vectorflow-localtrial_mto_data',
+  'vectorflow-localtrial_mto_downloads',
+  'vectorflow-localtrial_mto_logs',
+  'vectorflow-localtrial_postgres_data',
+  'vectorflow-localtrial_redis_data'
+)
+function Invoke-TrialDocker {
+  $OutputLines = & docker @args
+  if ($LASTEXITCODE -ne 0) { throw 'Docker command failed; stop and inspect' }
+  $OutputLines
+}
+$TrialContainerIds = @(Invoke-TrialDocker ps -aq --filter "label=com.docker.compose.project=$TrialProject")
+if ($TrialContainerIds.Count -ne 6) { throw 'Expected exactly six trial containers' }
+$TrialContainers = @(Invoke-TrialDocker inspect @TrialContainerIds | ConvertFrom-Json)
+$ActualServices = @($TrialContainers | ForEach-Object { $_.Config.Labels.'com.docker.compose.service' })
+if (Compare-Object ($ExpectedServices | Sort-Object) ($ActualServices | Sort-Object)) {
+  throw 'Unexpected service roster'
+}
+$ActualVolumes = @(Invoke-TrialDocker volume ls -q --filter "label=com.docker.compose.project=$TrialProject")
+if (Compare-Object ($ExpectedVolumes | Sort-Object) ($ActualVolumes | Sort-Object)) {
+  throw 'Unexpected volume roster'
+}
+$VolumeRows = @(Invoke-TrialDocker volume inspect @ExpectedVolumes | ConvertFrom-Json)
+foreach ($VolumeRow in $VolumeRows) {
+  if ($VolumeRow.Labels.'com.docker.compose.project' -ne $TrialProject) {
+    throw 'Volume ownership differs'
+  }
+}
+$NetworkRows = @(Invoke-TrialDocker network inspect $TrialNetwork | ConvertFrom-Json)
+if ($NetworkRows.Count -ne 1 -or $NetworkRows[0].Labels.'com.docker.compose.project' -ne $TrialProject) {
+  throw 'Network ownership differs'
+}
+$AllContainerIds = @(Invoke-TrialDocker ps -aq)
+$AllContainers = @(Invoke-TrialDocker inspect @AllContainerIds | ConvertFrom-Json)
+foreach ($ContainerRow in $AllContainers) {
+  if ($ContainerRow.Config.Labels.'com.docker.compose.project' -eq $TrialProject) { continue }
+  $SharedVolumes = @($ContainerRow.Mounts | Where-Object { $_.Type -eq 'volume' -and $_.Name -in $ExpectedVolumes })
+  $SharedNetwork = @($ContainerRow.NetworkSettings.Networks.PSObject.Properties.Name) -contains $TrialNetwork
+  if ($SharedVolumes.Count -gt 0 -or $SharedNetwork) {
+    throw "Another container references trial resources: $($ContainerRow.Name)"
+  }
+}
+$TrialContainers | Select-Object Name, @{Name='Service';Expression={$_.Config.Labels.'com.docker.compose.service'}}
+$ExpectedVolumes
+$TrialNetwork
+if ((Read-Host 'Permanently delete this trial database, accounts and files? Type DESTROY-8080') -cne 'DESTROY-8080') {
+  throw 'Cleanup cancelled'
+}
+# Exact validated container IDs only; no other project's container is selected.
+Invoke-TrialDocker container stop --time 30 @TrialContainerIds
+Invoke-TrialDocker container rm @TrialContainerIds
+Invoke-TrialDocker volume rm @ExpectedVolumes
+Invoke-TrialDocker network rm $TrialNetwork
+
+# Verify removal. A partial failure is a stop, not permission for global cleanup.
+if (@(Invoke-TrialDocker ps -aq --filter "label=com.docker.compose.project=$TrialProject").Count) {
+  throw 'Trial containers remain'
+}
+if (@(Invoke-TrialDocker volume ls -q --filter "label=com.docker.compose.project=$TrialProject").Count) {
+  throw 'Trial volumes remain'
+}
+if (@(Invoke-TrialDocker network ls -q --filter "label=com.docker.compose.project=$TrialProject").Count) {
+  throw 'Trial network remains'
+}
+if (Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue) {
+  throw '8080 is still occupied; identify its owner, do not kill an unrelated process'
+}
+
+# Preserve original sources/operator files/secrets privately, rather than delete them.
+# Resolve both absolute paths and require the same intended parent before moving.
+$TrialParent = Split-Path -Parent $TrialRoot
+$RetiredRoot = [IO.Path]::GetFullPath((Join-Path $TrialParent ("VectorFLOW-Trial.retired-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))))
+if ((Split-Path -Parent $RetiredRoot) -ne $TrialParent -or $RetiredRoot -eq $TrialRoot -or (Test-Path -LiteralPath $RetiredRoot)) {
+  throw 'Unsafe or existing archive destination'
+}
+Set-Location -LiteralPath $TrialParent
+Move-Item -LiteralPath $TrialRoot -Destination $RetiredRoot
+Write-Host "Old folder preserved at $RetiredRoot; it contains private secrets, not a database backup."
+```
+
+The eight volumes remove the complete **trial-owned** PostgreSQL cluster, so no separate DROP DATABASE, DROP ROLE, migration reversal, registration edit or deletion of the verification database is needed. No old volume is reused for the new installation. Images are intentionally retained.
+
+### 2. Extract the corrected package into a new folder
+
+This subsection uses the exact already delivered local package. A future release must substitute its own approved manifest and hashes; do not substitute the withdrawn 701e package. The runnable application is pinned to `bd309169b8f494ed8c93f47302327d74c341923b`; a documentation-only follow-up commit does not require rebuilding the frozen frontend/MTO or these images.
+
+```powershell
+$PackageDirectory = 'D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s4-deployment-gap-implementation-20261017'
+$SourceZip = Join-Path $PackageDirectory 'vectorflow-stage4-source-bd309169.zip'
+$RuntimeArchive = Join-Path $PackageDirectory 'export-bd309169/vectorflow-stage4-runtime.tar.gz'
+if ((Get-FileHash -LiteralPath $SourceZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne '2afce44024bad553249fb38dbfb4796b38a77cd56b2bb318b82c29a4d5a807ad') {
+  throw 'Source ZIP differs'
+}
+if ((Get-FileHash -LiteralPath $RuntimeArchive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '8d5d2c5db40c3cac9a5b4cf7f14faade8afc37e82a376953c4eeb5c338790520') {
+  throw 'Runtime archive differs'
+}
+if (Test-Path -LiteralPath $TrialRoot) { throw 'Fresh destination already exists' }
+Expand-Archive -LiteralPath $SourceZip -DestinationPath $TrialRoot
+Copy-Item -LiteralPath $RuntimeArchive -Destination "$TrialRoot/vectorflow-stage4-runtime.tar.gz"
+# Reuse the known local subnet configuration, NOT an old image/upgrade override.
+Copy-Item -LiteralPath "$RetiredRoot/network-local.yaml" -Destination "$TrialRoot/network-local.yaml"
+$SourceManifest = Get-Content -Raw -LiteralPath "$TrialRoot/release-source.json" | ConvertFrom-Json
+if ($SourceManifest.source_commit -ne 'bd309169b8f494ed8c93f47302327d74c341923b') {
+  throw 'Wrong release'
+}
+Invoke-TrialDocker load --input "$TrialRoot/vectorflow-stage4-runtime.tar.gz"
+```
+
+Use the new package's `loaded-images.yaml`. Do **not** copy the retired `loaded-images.yaml`, `frontend-local.yaml`, either previous Stage4 image override, or the withdrawn 701e override. Those old overrides can pin old backend images. The network override carries only the previously selected subnet `198.18.57.0/28`; inspect `docker network ls/inspect` and `Get-NetRoute` before reusing it. If overlap exists, stop and choose a reviewed non-overlapping subnet. Do not change Docker daemon pools or prune other networks.
+
+### 3. Create new private settings and run the empty installation
+
+The databases and accounts are new. Generate new private signing/database/RSA secrets while retaining the public client cipher from `public-build.json`, which matches the unchanged frontend. Do not reuse the old secret directory by accident. A new administrator is created interactively below.
+
+```powershell
+$PublicBuild = Get-Content -Raw -LiteralPath "$TrialRoot/public-build.json" | ConvertFrom-Json
+$RuntimeImages = Get-Content -Raw -LiteralPath "$TrialRoot/runtime-images.json" | ConvertFrom-Json
+$PrivateRoot = New-Item -ItemType Directory -Path "$TrialRoot/private" -ErrorAction Stop
+$OperatorIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
+& icacls $PrivateRoot.FullName /inheritance:r /grant:r "${OperatorIdentity}:(OI)(CI)F"
+if ($LASTEXITCODE) { throw 'Private directory ACL setup failed' }
+Invoke-TrialDocker run --rm --network none --user 0:0 --entrypoint python --mount "type=bind,src=$($PrivateRoot.FullName),dst=/private" $RuntimeImages.services.auth.image_id -m release.prepare_secrets --directory /private/secrets --public-client-cipher-key $PublicBuild.client_cipher_key
+Copy-Item -LiteralPath "$TrialRoot/release/.env.example" -Destination "$TrialRoot/operator.env"
+# Edit only the new operator configuration, not application code.
+$OperatorLines = @(Get-Content -LiteralPath "$TrialRoot/operator.env")
+$TrialSettings = @{
+  VF_PROJECT = 'vectorflow-localtrial'
+  VF_RELEASE = 'bd309169b8f494ed8c93f47302327d74c341923b'
+  VF_SECRETS_DIR = "$TrialRoot/private/secrets"
+  VF_CLIENT_CIPHER_KEY = $PublicBuild.client_cipher_key
+  VF_BIND_ADDRESS = '127.0.0.1'
+  VF_HTTP_PORT = '8080'
+  VF_PUBLIC_URL = 'http://127.0.0.1:8080'
+  VF_PUBLIC_WS_URL = 'ws://127.0.0.1:8080'
+}
+foreach ($SettingName in $TrialSettings.Keys) {
+  $Pattern = '^' + [regex]::Escape($SettingName) + '='
+  if (@($OperatorLines | Where-Object { $_ -match $Pattern }).Count -ne 1) {
+    throw "Missing or duplicate setting: $SettingName"
+  }
+  $OperatorLines = @($OperatorLines | ForEach-Object {
+    if ($_ -match $Pattern) { "$SettingName=$($TrialSettings[$SettingName])" } else { $_ }
+  })
+  # Compose shell environment overrides its env file. Remove stale values for this session.
+  Remove-Item -LiteralPath "Env:$SettingName" -ErrorAction SilentlyContinue
+}
+$OperatorLines | Set-Content -LiteralPath "$TrialRoot/operator.env" -Encoding utf8
+function vf {
+  & docker compose --project-name vectorflow-localtrial --env-file "$TrialRoot/operator.env" `
+    -f "$TrialRoot/release/compose.yaml" -f "$TrialRoot/loaded-images.yaml" `
+    -f "$TrialRoot/network-local.yaml" @args
+  if ($LASTEXITCODE) { throw 'Compose failed; stop at this step and preserve the failure' }
+}
+python "$TrialRoot/release/preflight.py" --source-root $TrialRoot --env-file "$TrialRoot/operator.env" `
+  --compose-file "$TrialRoot/release/compose.yaml" --compose-file "$TrialRoot/loaded-images.yaml" `
+  --compose-file "$TrialRoot/network-local.yaml"
+if ($LASTEXITCODE) { throw 'Preflight refused; do not provision' }
+vf config --quiet
+vf up -d --wait postgres redis
+vf --profile install run --rm --no-deps provision -m release.provision
+vf --profile install run --rm --no-deps provision -m release.provision --apply
+vf --profile install run --rm --no-deps mta-install manage.py migrate --plan
+vf --profile install run --rm --no-deps mta-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps auth-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps mto-install manage.py migrate --noinput
+vf --profile install run --rm --no-deps auth-install -m release.install_identity
+vf --profile install run --rm --no-deps provision -m release.grant_service AUTH
+vf --profile install run --rm --no-deps provision -m release.grant_service MTO
+vf --profile install run --rm --no-deps provision -m release.metadata_access
+vf --profile install run --rm --no-deps provision -m release.metadata_access --apply
+vf --profile install run --rm --no-deps auth-install manage.py createsuperuser
+vf up -d --wait mta auth mto frontend
+vf ps
+Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:8080/healthz'
+Start-Process 'http://127.0.0.1:8080'
+```
+
+The private-directory ACL command restricts the new directory to the current Windows operator; inspect resulting ACLs on your filesystem before retaining secrets there. Check other stale `VF_*`, `MTA_*`, `MTO_*`, `AUTH_*` or `DB_*` process environment settings if Compose reports a different effective configuration; never print secret values as a diagnostic. Use a fresh PowerShell session if necessary and rerun only the non-destructive preparation before provisioning, not database creation after partial failure.
+
+If any install step fails, stop at that step; do not paste the remainder or rerun provisioning blindly over partial databases. No automatic cleanup/retry is implied. On successful empty installation: health200, readiness503 without a publication, original MDM metadata/family definitions available, zero initialization/source/calculation rows, and no old login/session. Existing BPR/Planning no-publication limitations remain explicit. Do not load the separate optional input pack, register an input SHA, execute a day or publish a run as part of this reinstall. Those are separate Stage5 work.
+
+A direct Git clone/export path remains documented in "Clean Windows folder". It must still use the matching approved runtime archive/public-build/loaded-image descriptors with the frozen frontend. This local reinstall block intentionally consumes the verified delivered ZIP; it does not pretend Git alone stores Docker image layers.
+
 ## MTA/auth-only correction of an existing registered empty trial
 
 Preserve source/images/config/secrets/account/scope/registration/database identities first. Verify new code against the existing immutable namespace/capability using read-only runtime connections. Do not rerun provision, migrations, grants or registration against that sealed target. Keep its original frontend/MTO/PG/Redis/container network/port/volumes/start states. Select only reviewed MTA/auth image IDs in a final operator override and replace only those two services with --no-deps --no-build --pull never; one necessary MTA/auth restart/reload is the persistence proof. Preserve old images/export/override and compatible rollback; do not select an old image over changed schema or silently re-enable the withdrawn setup release. Current approved correction does not change schema or the original registration.
