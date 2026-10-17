@@ -23,7 +23,6 @@ from mta.serialization import digest
 
 logger = logging.getLogger(__name__)
 _admitted = None
-_setup_release = None
 
 # Only projections consumed by the routes already implemented in this build.
 # Missing future BOR/MDM/logistics consumers are not admission prerequisites.
@@ -190,38 +189,22 @@ def require_admission():
     return _admitted
 
 
-def require_application_state():
-    """Only the source/schema-validated startup can expose setup metadata."""
-    if _setup_release is None:
-        return None
-    from mta.presentation.application_state import setup_state
-    return setup_state()
-
-
 class AdmittedApplication:
     """The production WSGI boundary; direct offline proof commands are unchanged."""
     def __init__(self, application):
-        global _setup_release
-        _setup_release = None
         self.application = application
         # The new isolated shell can start before its first synthetic day exists.
         # Only a completely absent identity is allowed; a malformed, rejected or
         # partially configured selection must still abort startup as before.
-        from mta.presentation.application_state import publication_configured, setup_state
         if (getattr(settings, 'VF_MTA_ALLOW_UNSELECTED_STARTUP', False)
                 and getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)
-                and not publication_configured()):
+                and not settings.VF_MTA_PUBLISHED_RUN and not settings.VF_MTA_PUBLISHED_DIGEST
+                and not getattr(settings, 'VF_MTA_FIXTURE_FILE', '')
+                and not getattr(settings, 'VF_MTA_FIXTURE_SHA256', '')):
             global _admitted
             _admitted = None
-            try:
-                from release.installed_application import verify_export
-                release = verify_export()
-                state = setup_state()
-                _setup_release = release
-                logger.warning('Installed application admitted: release=%s state=%s; data readiness false',
-                               release, state['state'])
-            finally:
-                connections.close_all()
+            logger.warning('No daily publication selected; shell alive, report readiness false')
+            connections.close_all()
             return
         try:
             result = admit()
@@ -242,10 +225,7 @@ class AdmittedApplication:
     def _dispatch(self, environ, start_response):
         if environ.get('PATH_INFO', '').startswith('/api/mta/'):
             try:
-                if _setup_release is None:
-                    require_admission()
-                else:
-                    require_application_state()
+                require_admission()
             except Exception:
                 connections.close_all()
                 response = JsonResponse({'error': 'publication_not_admitted'}, status=503)

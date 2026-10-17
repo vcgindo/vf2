@@ -9,7 +9,6 @@ import {
 } from "../../index";
 import { useEffect, useState } from "react";
 import { AuthenticationTemplate } from "./AuthenticationTemplate";
-import { ApplicationSetup } from './ApplicationSetup';
 import * as GridSystem from "../../../styles/gridSystem";
 import { ISTStatusContext } from "../../../context/ISTStatusContext";
 import { useTranslation } from "react-i18next";
@@ -107,7 +106,7 @@ const AppLayout = () => {
               }}
             >
               <Header urlExcludeHeader={urlExclusdeHeader} />
-              <ApplicationSetup><Outlet /></ApplicationSetup>
+              <Outlet />
             </ISTStatusContext.Provider>
           </GridSystem.SCCol8>
         </GridSystem.SCRow>

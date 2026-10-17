@@ -1,4 +1,3 @@
-import { savedDraftFields } from '../workflowDefinitions';
 import React from "react"
 import useSavedDrafts from "./useSavedDrafts"
 import { mapDraftDataToTableRowData, mapDraftToColumnDefs } from "../../../../../helpers/utils"
@@ -39,7 +38,67 @@ const SavedDrafts = ()=>{
   return(
     <div style={{paddingTop:'20px',height:'95%'}}>
       <VFTable
-          columnDefs={mapDraftToColumnDefs(savedDraftFields,{
+          columnDefs={mapDraftToColumnDefs([
+            {
+                
+              displayName: "Sr No.",
+              key: "sr_no",
+              visible: true,
+              isAdd:true,
+              isDownload:true, 
+              isDelete:true,
+              isEdit:true,
+              "col_Position":'1',
+              "isApplicable":true,
+              dataType:'String'
+            },
+            {
+              displayName: "Last Modification Date",
+              key: "LastModifiedDateTime",
+              visible: true,
+              isAdd:true,
+              isDownload:true, 
+              isDelete:true,
+              isEdit:true,
+              "col_Position":'2',
+              "isApplicable":true,
+              dataType:'String'
+            },
+            {
+              displayName: "Instance Name",
+              key: "Masters",
+              visible: true,
+              isAdd:true,
+              isDownload:true,
+              isEdit:true,
+              isDelete:true,
+              "col_Position":'3',
+              "isApplicable":true,
+              dataType:'String'
+            },
+            // {
+            //   displayName: "Search Key",
+            //   key: "SearchKeys",
+            //   visible: true,
+            //   isAdd:true,
+            //   isDownload:true,
+            //   isEdit:true,
+            //   "col_Position":'4',
+            //   "isApplicable":true
+            // },
+            {
+                displayName:"Action",
+                key:"action",
+                visible:true,
+                isAdd:true,
+                isDownload:true,
+                isDelete:true,
+                isEdit:true,
+                "col_Position":'5',
+                "isApplicable":true,
+                dataType:'String'
+            }
+          ],{
             cellRendererParams:{
               onEdit:onEditDraft,
               onDelete:openDeleteModal

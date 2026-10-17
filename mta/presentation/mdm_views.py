@@ -14,7 +14,7 @@ from mta.mdm.source import DLL, source
 from mta.presentation.views import endpoint as gateway_endpoint, identity
 
 
-def endpoint(method, *, requires='source'):
+def endpoint(method):
     """Keep source admission and response assembly in one owned generation.
 
     The existing session lock permits native statement commits in decisions;
@@ -22,14 +22,9 @@ def endpoint(method, *, requires='source'):
     Authentication and payload checks still execute first in the gateway wrapper.
     """
     def decorate(function):
-        @gateway_endpoint(method, requires=requires)
+        @gateway_endpoint(method)
         @wraps(function)
         def wrapped(request, payload, *args, **kwargs):
-            if requires == 'installation':
-                from mta.presentation.admission import require_application_state
-                state = require_application_state()
-                if state is not None and not state['initialized']:
-                    return function(request, payload, *args, **kwargs)
             from mta.runtime.mdm_models import MdmSource
             from mta.mdm.supplier_revisions import source_lock
             # Native sources have no DLL digest, but use the same publication
@@ -55,21 +50,10 @@ def response(*, data=None, record_count=None, message=None, status=200, http_sta
         status=http_status if http_status is not None else status, encoder=MdmEncoder)
 
 
-@endpoint('POST', requires='installation')
+@endpoint('POST')
 def configuration(request, payload):
-    screen = drafts.value(payload, 'screenType')
-    from mta.presentation.admission import require_application_state
-    state = require_application_state()
-    if state is not None and not state['initialized']:
-        result = response(data=[row for master_id in families.NAMES
-            for row in families.module(master_id).configuration(screen)])
-        value = json.loads(result.content)
-        value['application'] = state
-        if screen == 'add':
-            value['setupRequirements'] = [dict(masterId=5, setting='NMSMOQInputDataFormat',
-                                              state='not_configured')]
-        return JsonResponse(value)
     installed = source(read_only=True)
+    screen = drafts.value(payload, 'screenType')
     return response(data=[row for master_id in families.installed_ids(installed, read_only=True)
         for row in (families.module(master_id).configuration(screen, source=installed)
                     if master_id == 5 else families.module(master_id).configuration(screen))])
@@ -104,12 +88,12 @@ def seasonality_graph(request, payload):
 
 @endpoint('GET')
 def all_drafts(request, payload):
-    return response(data=drafts.listing(source(read_only=True), identity(request)), message='Data fetched successfully')
+    return response(data=drafts.listing(source(), identity(request)), message='Data fetched successfully')
 
 
 @endpoint('GET')
 def draft_count(request, payload, draft_id):
-    installed = source(read_only=True)
+    installed = source()
     try:
         return response(record_count=drafts.count(installed, draft_id, identity(request)))
     except drafts.DraftDenied as exc:
@@ -124,10 +108,9 @@ def draft(request, draft_id=None):
     if request.method not in allowed:
         return JsonResponse({'error': 'method_not_allowed'}, status=405)
 
-    reading = draft_id is not None and request.method == 'POST'
-    @endpoint(request.method, requires='source' if reading else 'publication')
+    @endpoint(request.method)
     def handle(request, payload):
-        installed = source(read_only=reading)
+        installed = source()
         actor = identity(request)
         try:
             if request.method == 'DELETE':
@@ -143,7 +126,7 @@ def draft(request, draft_id=None):
     return handle(request)
 
 
-@endpoint('POST', requires='publication')
+@endpoint('POST')
 def submit(request,payload,action):
     installed=source()
     try:
@@ -212,7 +195,7 @@ def history_skus(request,payload):
         return response(status=500,message='Error '+str(exc))
 
 
-@endpoint('POST', requires='publication')
+@endpoint('POST')
 def approve(request,payload):
     installed=source()
     try:
@@ -226,7 +209,7 @@ def approve(request,payload):
         return JsonResponse(dict(status=500,msg=None,taskId=None,errorCount=None,error=None,conflictErrorCount=None,conflictError=None),status=500)
 
 
-@endpoint('DELETE', requires='publication')
+@endpoint('DELETE')
 def delete_task(request,payload):
     installed=source()
     try:

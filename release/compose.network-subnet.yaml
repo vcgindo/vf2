@@ -1,7 +1,0 @@
-# Optional only after read-only Docker and host/VPN conflict checks.
-# This does not attach, replace or delete an existing network.
-networks:
-  application:
-    ipam:
-      config:
-        - subnet: "${VF_APPLICATION_SUBNET:?Choose an approved unused private subnet}"

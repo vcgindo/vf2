@@ -1,4 +1,3 @@
-import { historyColumns } from '../workflowDefinitions';
 import { useEffect, useMemo, useState } from "react"
 import { Field } from "../../../../../VectorFlow/types/MDM";
 import { useGetMasterUIConfiguration, useGetSkuLoc, useGetTaskMastersHistory} from "../../../../../VectorFlow/Services/MTA/MDM"
@@ -154,7 +153,25 @@ const useDataModificationHistory = () => {
 
 
     const staticColDefs:any= useMemo(()=>{
-        return historyColumns.map(column => ({ ...column }));
+        return[
+                {
+                    headerName: "Date",
+                    colId: 'Date',
+                    field: 'PendingSince',
+                    sort: 'desc',
+                   
+                },
+                {
+                    headerName: "RequesterName",
+                    colId: 'Requester',
+                    field: 'RequesterName',
+                },
+                {
+                    headerName: "ApproverName",
+                    colId: 'Approver',
+                    field: 'ApproverName',
+                },  
+        ]
     },[]);
  
     const areValuesEqual = (value1: any, value2: any) => {

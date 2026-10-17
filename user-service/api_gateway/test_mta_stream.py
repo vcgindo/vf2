@@ -153,31 +153,3 @@ class ReadinessTests(SimpleTestCase):
             response = readyz(None)
         self.assertEqual(response.status_code, 503)
         self.assertIn(b'"mta": false', response.content)
-
-
-    def test_initialized_setup_with_bounded_read_deadline(self):
-        from apps.urls import readyz
-        connection = MagicMock()
-        connection.cursor.return_value.__enter__.return_value.fetchone.return_value = (1,)
-        upstream = MagicMock()
-        upstream.__enter__.return_value = upstream
-        upstream.status_code = 503
-        upstream.json.return_value = {'application': {
-            'available': True, 'installed': True, 'initialized': True,
-            'publication_selected': False, 'state': 'initialized'}}
-        with patch('apps.urls.connection', connection), \
-             patch('apps.urls.requests.get', return_value=upstream) as get:
-            response = readyz(None)
-        self.assertEqual(response.status_code, 503)
-        self.assertIn(b'"available": true', response.content)
-        self.assertEqual(get.call_args.kwargs['timeout'], (2, 10))
-
-    def test_readiness_timeout_cannot_become_empty_success(self):
-        from apps.urls import readyz
-        connection = MagicMock()
-        connection.cursor.return_value.__enter__.return_value.fetchone.return_value = (1,)
-        with patch('apps.urls.connection', connection), \
-             patch('apps.urls.requests.get', side_effect=requests.ReadTimeout):
-            response = readyz(None)
-        self.assertEqual(response.status_code, 503)
-        self.assertNotIn(b'"application"', response.content)

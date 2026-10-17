@@ -1,6 +1,5 @@
 import React, { Suspense, useEffect, useRef } from 'react'
 import { traceRoute } from './performance/screenProbe'
-import { SetupMaster, SetupReport, SetupWorkflow } from './components/layouts/AppLayout/SetupDataPanel'
 import { useLocation, type RouteObject } from 'react-router-dom'
 import { AppLayout } from './components'
 import { getStoreTransferModuleRoutes } from './module-store-transfer/app-routes-store-transfer'
@@ -391,7 +390,7 @@ export const initRoutes = (): RouteObject[] => {
         {
           index: true,
           path: 'view-modify',
-          element: lazyLoad(<SetupMaster operation="modify"><ViewModify /></SetupMaster>  )
+          element: lazyLoad(<ViewModify />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -402,7 +401,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupWorkflow kind="drafts" title="Saved Drafts"><SavedDrafts /></SetupWorkflow>  )
+          element: lazyLoad(<SavedDrafts />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -413,7 +412,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupWorkflow kind="status" title="Task Status"><TaskStatus /></SetupWorkflow>  )
+          element: lazyLoad(<TaskStatus />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -424,7 +423,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupWorkflow kind="review" title="Tasks Pending for Review"><TaskPendingForReview /></SetupWorkflow>  )
+          element: lazyLoad(<TaskPendingForReview />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -435,7 +434,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupMaster operation="add"><AddRecord /></SetupMaster>  )
+          element: lazyLoad(<AddRecord />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -446,7 +445,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupMaster operation="remove"><DeleteRecord /></SetupMaster>  )
+          element: lazyLoad(<DeleteRecord />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -457,7 +456,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupMaster operation="modify" title="Data Modification History" history><DataModificationHistory /></SetupMaster>  )
+          element: lazyLoad(<DataModificationHistory />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -621,7 +620,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Planning" reports={["GIT_From_Parent", "GIT_To_Child_LW", "GIT_To_Child_TW", "GIT_To_Child_CS", "Expedit_From_Parent_ED", "Expedite_To_Parent_CAAP", "Expedit_To_Child_ED", "Expedite_To_Child_CS", "Excess_Inventory_Review", "Excess_Inventory_Review_CS", "Order_Fulfillment_Review", "Order_Fulfillment_Review_CS"]}><Planning /></SetupReport>  )
+          element: lazyLoad(<Planning />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -632,7 +631,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Planning" reports={["GIT_From_Parent", "GIT_To_Child_LW", "GIT_To_Child_TW", "GIT_To_Child_CS", "Expedit_From_Parent_ED", "Expedite_To_Parent_CAAP", "Expedit_To_Child_ED", "Expedite_To_Child_CS", "Excess_Inventory_Review", "Excess_Inventory_Review_CS", "Order_Fulfillment_Review", "Order_Fulfillment_Review_CS"]}><Planning /></SetupReport>  )
+          element: lazyLoad(<Planning />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -643,7 +642,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="BPR" reports={["AdminBPR"]}><BPR /></SetupReport>  )
+          element: lazyLoad(<BPR />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -654,7 +653,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Open Expediting Requests" reports={["OpenExpeditingRequests"]}><OpenExpeditingRequests /></SetupReport>  )
+          element: lazyLoad(<OpenExpeditingRequests />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -665,7 +664,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Merchandising Grid"><MCGrid /></SetupReport>  )
+          element: lazyLoad(<MCGrid />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -676,7 +675,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="In-Transit Whereabouts" reports={["InTransitWhereAbouts"]}><InTransitWhereAbouts /></SetupReport>  )
+          element: lazyLoad(<InTransitWhereAbouts />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -709,7 +708,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Buyer Order Report" reports={["BuyerOrderReport"]}><BuyerOrderReport /></SetupReport>  )
+          element: lazyLoad(<BuyerOrderReport />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -720,7 +719,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Research Insights" reports={["ResearchInsight"]}><ResearchInsights /></SetupReport>  )
+          element: lazyLoad(<ResearchInsights />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -731,7 +730,7 @@ export const initRoutes = (): RouteObject[] => {
       children:[
         {
         index:true,
-        element:lazyLoad(<SetupReport title="Rationed Requirement Report - Color Bandwise" reports={["RRR_OA"]}><RRRColorBandwise/></SetupReport>  )
+        element:lazyLoad(<RRRColorBandwise/>  )
         } ,
         ...getStoreTransferModuleRoutes()
       ]
@@ -742,7 +741,7 @@ export const initRoutes = (): RouteObject[] => {
       children:[
         {
         index:true,
-        element:lazyLoad(<SetupReport title="Buyer Order Report - Color Bandwise" reports={["BOR_OA"]}><BuyerOrderReportColorBandwise/></SetupReport>  )
+        element:lazyLoad(<BuyerOrderReportColorBandwise/>  )
         } ,
         ...getStoreTransferModuleRoutes()
       ]
@@ -753,7 +752,7 @@ export const initRoutes = (): RouteObject[] => {
       children:[
         {
         index:true,
-        element:lazyLoad(<SetupReport title="Supplier Wise Allocation" reports={["SupplierWiseAllocation"]}><SupplierWiseAllocation/></SetupReport>  )
+        element:lazyLoad(<SupplierWiseAllocation/>  )
         } ,
         ...getStoreTransferModuleRoutes()
       ]
@@ -764,7 +763,7 @@ export const initRoutes = (): RouteObject[] => {
       children:[
         {
         index:true,
-        element:lazyLoad(<SetupReport title="Order Allocation Report" reports={["OrderAllocationReport"]}><OrderAllocationReport/></SetupReport>  )
+        element:lazyLoad(<OrderAllocationReport/>  )
         } ,
         ...getStoreTransferModuleRoutes()
       ]
@@ -775,7 +774,7 @@ export const initRoutes = (): RouteObject[] => {
       children:[
         {
         index:true,
-        element:lazyLoad(<SetupReport title="Total Requirement Report" reports={["RRR_OA"]}><TotalRequirementReport/></SetupReport>  )
+        element:lazyLoad(<TotalRequirementReport/>  )
         } ,
         ...getStoreTransferModuleRoutes()
       ]
@@ -786,7 +785,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Guided Insights" chart><GuidedInsights /></SetupReport>  )
+          element: lazyLoad(<GuidedInsights />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -797,7 +796,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Buffer Trend Report" reports={["BufferTrendReport"]} chart><BufferTrendReport /></SetupReport>  )
+          element: lazyLoad(<BufferTrendReport />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -808,7 +807,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Rationed Requirement Report" reports={["RationRequirementReport"]}><RRR /></SetupReport>  )
+          element: lazyLoad(<RRR />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -819,7 +818,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Buffer Trends" chart><BufferTrends /></SetupReport>  )
+          element: lazyLoad(<BufferTrends />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -830,7 +829,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="DBM Norm Suggestions" reports={["NormSuggestion"]}><DBM /></SetupReport>  )
+          element: lazyLoad(<DBM />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -910,7 +909,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="DBM Norm Suggestions" reports={["NormSuggestion"]}><DBM /></SetupReport>  )
+          element: lazyLoad(<DBM />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -1033,7 +1032,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Supplier Dispatch Report" reports={["SupplierDispatchReport"]}><SupplierDispatchReport /></SetupReport>  )
+          element: lazyLoad(<SupplierDispatchReport />  )
         },
         ...getStoreTransferModuleRoutes()
       ]
@@ -1044,7 +1043,7 @@ export const initRoutes = (): RouteObject[] => {
       children: [
         {
           index: true,
-          element: lazyLoad(<SetupReport title="Elephant Orders" reports={["ElephantOrderReport"]}><ElephantOrder /></SetupReport>  )
+          element: lazyLoad(<ElephantOrder />  )
         },
         ...getStoreTransferModuleRoutes()
       ]

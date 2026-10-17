@@ -33,7 +33,6 @@ def healthz(request):
 
 def readyz(request):
     checks = {'identity_database': False, 'mta': False}
-    application = None
     try:
         if local_catalogue():
             checks['mta_catalogue'] = False
@@ -43,24 +42,14 @@ def readyz(request):
             cursor.execute('SELECT 1')
             checks['identity_database'] = cursor.fetchone()[0] == 1
         url = os.environ.get('MTA_BACKEND_URL', 'http://localhost:5153').rstrip('/')
-        with requests.get(url + '/readyz', timeout=(2, 10)) as response:
-            body = response.json()
-            checks['mta'] = response.status_code == 200 and body.get('ready') is True
-            candidate = body.get('application')
-            if (response.status_code == 503 and isinstance(candidate, dict)
-                    and candidate.get('available') is True and candidate.get('installed') is True
-                    and candidate.get('publication_selected') is False
-                    and candidate.get('state') in ('installed', 'initialized')):
-                application = dict(candidate, available=checks['identity_database'])
+        with requests.get(url + '/readyz', timeout=(2, 2)) as response:
+            checks['mta'] = response.status_code == 200 and response.json().get('ready') is True
     except Exception:
         pass
     ready = all(checks.values())
-    value = {'status': 'ready' if ready else 'unavailable',
+    return JsonResponse({'status': 'ready' if ready else 'unavailable',
         'service': 'user-service', 'scope': 'identity-and-mta-dependencies',
-        'checks': checks}
-    if application is not None:
-        value['application'] = application
-    return JsonResponse(value, status=200 if ready else 503)
+        'checks': checks}, status=200 if ready else 503)
 
 
 urlpatterns = [

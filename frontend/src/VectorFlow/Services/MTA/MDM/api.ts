@@ -5,8 +5,8 @@ import { GetMasterDataPayload } from '../../../types/MDM';
 
 export namespace MDMService {
 
-  export const getMasterUIConfiguration = async (screenType:string, request: { signal?: AbortSignal; timeout?: number } = {}) => {
-    return await axios.post(process.env.REACT_APP_API_HOST + `api/mta/GetMasterUIConfiguration`,{screenType:screenType},request);
+  export const getMasterUIConfiguration = async (screenType:string) => {
+    return await axios.post(process.env.REACT_APP_API_HOST + `api/mta/GetMasterUIConfiguration`,{screenType:screenType});
   }
 
   export const getCount = async (body:GetMasterDataPayload) => {
