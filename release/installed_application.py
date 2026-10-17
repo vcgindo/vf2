@@ -70,24 +70,24 @@ def require_setup_grants(cursor, *, owner, runtime):
                    "has_schema_privilege(current_user,'mta','CREATE')")
     if cursor.fetchone() != (False, False, False):
         raise ValueError('Setup runtime has installation privileges')
-    cursor.execute("SELECT n.nspname,a.privilege_type,a.is_grantable FROM pg_namespace n "
+    cursor.execute("SELECT n.nspname,r.rolname,a.privilege_type,a.is_grantable FROM pg_namespace n "
                    "CROSS JOIN LATERAL aclexplode(n.nspacl) a LEFT JOIN pg_roles r ON r.oid=a.grantee "
                    "WHERE n.nspname IN ('mta','mta_state','mta_opening','fresh_control','public') "
                    "AND (r.rolname=%s OR a.grantee=0)", [runtime])
-    if set(cursor.fetchall()) != {('mta', 'USAGE', False)}:
+    if set(cursor.fetchall()) != {('mta', runtime, 'USAGE', False)}:
         raise ValueError('Setup schema grants differ from the finite read profile')
     cursor.execute("SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
                    "JOIN pg_roles r ON r.oid=c.relowner WHERE r.rolname=%s "
                    "AND n.nspname NOT IN ('pg_catalog','information_schema') LIMIT 1", [runtime])
     if cursor.fetchone() is not None:
         raise ValueError('Setup runtime must not own database relations')
-    cursor.execute("SELECT n.nspname,c.relname,a.privilege_type,a.is_grantable FROM pg_class c "
+    cursor.execute("SELECT n.nspname,c.relname,r.rolname,a.privilege_type,a.is_grantable FROM pg_class c "
                    "JOIN pg_namespace n ON n.oid=c.relnamespace "
                    "CROSS JOIN LATERAL aclexplode(c.relacl) a LEFT JOIN pg_roles r ON r.oid=a.grantee "
                    "WHERE n.nspname IN ('mta','mta_state','mta_opening','fresh_control') "
                    "AND (r.rolname=%s OR a.grantee=0)",
                    [runtime])
-    if set(cursor.fetchall()) != {('mta', name, 'SELECT', False) for name in SETUP_TABLES}:
+    if set(cursor.fetchall()) != {('mta', name, runtime, 'SELECT', False) for name in SETUP_TABLES}:
         raise ValueError('Setup runtime grants differ from the finite read profile')
     cursor.execute("SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace "
                    "CROSS JOIN LATERAL aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a "
@@ -143,12 +143,12 @@ def grant_setup():
         # session_user remains the provisioner in this maintenance transaction;
         # validate the exact table-grant roster here, then normal runtime startup
         # validates role/session identity and effective privileges independently.
-        cursor.execute("SELECT n.nspname,c.relname,a.privilege_type,a.is_grantable FROM pg_class c "
+        cursor.execute("SELECT n.nspname,c.relname,r.rolname,a.privilege_type,a.is_grantable FROM pg_class c "
                        "JOIN pg_namespace n ON n.oid=c.relnamespace "
                        "CROSS JOIN LATERAL aclexplode(c.relacl) a LEFT JOIN pg_roles r ON r.oid=a.grantee "
                        "WHERE n.nspname IN ('mta','mta_state','mta_opening','fresh_control') "
                        "AND (r.rolname=%s OR a.grantee=0)", [roles['RUNTIME']])
-        if set(cursor.fetchall()) != {('mta', name, 'SELECT', False) for name in SETUP_TABLES}:
+        if set(cursor.fetchall()) != {('mta', name, roles['RUNTIME'], 'SELECT', False) for name in SETUP_TABLES}:
             raise ValueError('Setup grant profile differs; transaction rolled back')
     return dict(status='EMPTY_APPLICATION_SETUP_GRANTS_INSTALLED_NO_TRIAL_OR_REGISTRATION',
                 database=config['databases']['MTA'], runtime_role=roles['RUNTIME'])

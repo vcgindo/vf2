@@ -442,6 +442,9 @@ def require_exact_source_delta(source, initialization, seal, identity, database,
             files, overrides, identity = validate_logistics_ancestry(
                 LOGISTICS_DECLARATION.read_bytes(), os.environ.get(LOGISTICS_PIN_ENV),
                 READ_DECLARATION.read_bytes(), root, files, identity, byte_overrides=export_overrides)
+            # Keep authenticated export inverses for files unchanged by the
+            # older logistics declaration; later assertions still inspect them.
+            overrides = {**(export_overrides or {}), **overrides}
             implementation = digest({name: files['mta/'+name] for name in IMPLEMENTATION_FILES})
         if os.environ.get(READ_PIN_ENV):
             _readonly(READ_DECLARATION)
