@@ -9,3 +9,16 @@ secrets
 **/__pycache__
 **/node_modules
 .git
+# Never send private environment variants or delivery archives to a builder.
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+**/*.enc
+**/*.pfx
+**/*.p12
+**/*.dump
+**/*.bak
+**/*.zip
+**/*.tar.gz
+**/*.tgz
+**/artifacts

@@ -1,16 +1,21 @@
-# VectorFLOW deployment assembly
-
-For a clean Git checkout build, use [SOURCE_BUILD.md](SOURCE_BUILD.md). It builds from one committed export and records new image identities; its runtime equivalence is established by the separately tracked bounded Step5 comparison.
-
-**Current Windows release:** use [RUNBOOK.md](RUNBOOK.md), [windows-final-release.json](windows-final-release.json) and [windows-final-images.yaml](windows-final-images.yaml) for the final six-component build. Blank deployment is separate from optional business-input loading and daily execution. The blank runtime check is pending human execution; prior initialized connected proof is in [the final handoff](../docs/handoff-3005/STEP5_CONNECTED_HANDOFF.md). Historical single-source examples below do not override these composite image pins or the native `prepare_daily_ui` → `check_daily_selection` procedure. Host port selection uses `VF_HTTP_PORT` in the private env file; the current frontend's compiled WebSocket-origin limitation is documented in the runbook.
+# VectorFLOW production release
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
-Cleanup Step 5 adds exact fresh native source admission. `release.export` generates `release-native-source.json` from the selected committed export, covering MTA/vectorflow/release/native baseline, root `manage.py` and root `requirements.txt`. Independently supply its reviewed SHA256 in `VF_NATIVE_RELEASE_SHA256` and full commit in `VF_NATIVE_RELEASE_COMMIT`; an adjacent self-declared manifest is not trusted. Registration checks complete real migrations and binds the actual schema fingerprint and exact release identity into the existing immutable registrar-owned capability. Runtime checks retain database/OID/roles/ACL/native grants/receipt ownership and reject changed source or schema. Historical compatibility settings and undeclared executable files are denied. No development proof mount or reconstructed source is needed or accepted.
+## Supported installation routes
 
-Old installations require their complete pinned original releases; this cleanup is not an in-place upgrade or a replacement registration. Archived historical sources are excluded. Step6 built an actual MTA image from the pinned official Python base, independently admitted committed export and eight hash-pinned wheels. The complete source descriptor authenticates the operator archive; the finite native descriptor authenticates ALL MTA image files, including both root files and full migration roster. Operator/build/inspection tools, other service sources and the separate optional adapter/manifest/data are outside the MTA image. The unchanged generic initializer remains a supported explicit command. Actual image/filesystem/every application-layer/dependency/import proof is recorded externally; a build exit alone is not acceptance. Final Step7/Step5 acceptance supersedes that historical Step6 checkpoint; public deployment/cutover remains unapproved.
+- [SOURCE_BUILD.md](SOURCE_BUILD.md): one clean committed Git revision → production export → four application images plus pinned PostgreSQL/Redis → exact-image installation files → blank installation. No old application image or workstation helper is a build input. This route's independent installation/comparison remains **pending**.
+- [RUNBOOK.md](RUNBOOK.md): Windows step-by-step installation of the recorded prebuilt six-component package, then a separate optional data-onboarding section. [windows-final-release.json](windows-final-release.json) and [windows-final-images.yaml](windows-final-images.yaml) describe that immutable retained package; they are not the image identities of a new Git build.
 
-This directory contains the portable deployment adapters, service assembly, export command and dependency/image pins for Step4. Use RUNBOOK.md for explicit installation and operation. The sole progress and acceptance authority is the development handoff tracker, excluded from the production bundle. Running a documented command is not evidence that a recovery rehearsal has passed.
+Use the generated installation descriptor/override for a new Git build. Never mix it with the old package's source seal or database. Both routes create a blank installation first; no sample masters, opening facts, daily calculations or prepared reports are automatically loaded.
+
+Build dependencies and base images are pinned in the committed lock files. `compose.yaml` and the optional TLS overrides use the documented private env/secrets interfaces. Host HTTP mapping is controlled by `VF_HTTP_PORT`; browser WebSocket origin is currently a build-time setting and must match. This does not implement the separately discussed runtime-origin change. Public HTTPS/WSS deployment still needs its real destination configuration and authorization.
+
+No production secrets, customer dumps, evidence archives, generated images, caches or workstation-only scripts belong in Git or an application layer. Required operator modules are committed here; generated image IDs and manifests come from the selected clean build. The finite MTA runtime intentionally excludes installer-only operator helpers, which the runbook mounts from the verified export outside `/app` when needed.
+
+## Retained engineering reference
+
+The sections below explain provenance, security and earlier phase checks. They are historical reference, **not an alternate operator procedure**. Earlier checkpoint statuses do not override the current handoff tracker, SOURCE_BUILD.md or RUNBOOK.md. `OPERATIONS_REFERENCE.md` is also reference material; use the current runbook's native `prepare_daily_ui` → `check_daily_selection` admission path, not historical parity activation examples.
 
 ## Installation ownership
 

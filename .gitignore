@@ -17,3 +17,16 @@ dist/
 *.sqlite3
 *.pem
 *.key
+
+# Private deployment variants and generated delivery outputs (examples remain tracked).
+.env.*
+!.env.example
+!.env.*.example
+secrets/
+artifacts/
+*.enc
+*.pfx
+*.p12
+*.tar.gz
+*.tgz
+*.7z

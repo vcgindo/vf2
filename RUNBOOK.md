@@ -1,4 +1,14 @@
-# Fresh build runbook
+# Production installation entry point
+
+**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
+
+Use [release/SOURCE_BUILD.md](release/SOURCE_BUILD.md) for a clean Git build, or [release/RUNBOOK.md](release/RUNBOOK.md) for the retained image package. Blank installation is separate from optional master/opening loading and daily execution. The Git route is still under independent verification; no new installation PASS is implied.
+
+Everything below is retained **historical development material**, including its old dates, services, holds and status statements. It is not the current production installation checklist and must not override the linked procedures or current human authorization. Do not execute its startup/setup commands for a new deployment.
+
+---
+
+# Historical development runbook
 
 ## Operator entry point — 7 October 2026
 
