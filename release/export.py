@@ -10,7 +10,8 @@ import tarfile
 
 SCHEMA = 'vectorflow-release-source-v1'
 NATIVE_SCHEMAS = frozenset(('operational-alert-source-pins.json', 'complete-daily-state-schema-v3.json', 'daily-input-extra-schema-v2.json',
-    'production-state-schema.json', 'cohort2-native-source-schema.json', 'cohort2-alert-source-schema.json',
+    'production-state-schema.json', 'planning-april-empty-requests-v1.json',
+    'cohort2-native-source-schema.json', 'cohort2-alert-source-schema.json',
     'cohort2-restore-cast-qualification.json', 'cohort2-runtime-restore-cast-qualification.json'))
 EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'install_daily_input_source',
     'verify_current_day_receipts', 'export_pick_consumer', 'export_norm0_reports', 'export_insight_consumer',
