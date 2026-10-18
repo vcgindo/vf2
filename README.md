@@ -8,7 +8,7 @@ Production application source for MTA, authentication, the existing frontend and
 
 There are two installation routes. Both must end at a blank application; master/opening loading and daily execution are separate operations.
 
-- **Build from Git:** [release/SOURCE_BUILD.md](release/SOURCE_BUILD.md) gives the committed export/build commands and then uses the same blank-install procedure. It includes Docker definitions, locked dependencies, env templates and generated exact-image installation settings. Independent clean-clone installation/comparison is **not yet accepted**; the current attempt was stopped for delivery-completeness review.
+- **Build from Git:** [release/SOURCE_BUILD.md](release/SOURCE_BUILD.md) gives the committed export/build commands and then uses the same blank-install procedure. Root `compose.yaml` builds all four applications from the same committed source; `docker compose run --rm install` installs only empty schemas/system metadata and your new administrator. No manual export/hash/image-override steps. Independent verification is recorded in the existing handoff tracker.
 - **Install the retained prebuilt images:** [release/RUNBOOK.md](release/RUNBOOK.md) Part A installs the recorded six-component package. Its initialized application scope passed Step5; the separate blank operator check is still explicitly qualified there. Part B documents optional data onboarding and daily operation.
 
 Do not use the historical root runbook, preview Compose files or workstation validation scripts to install a production target. Public deployment/cutover needs its destination, HTTPS/WSS, capacity and recovery decisions; localhost acceptance does not establish those.

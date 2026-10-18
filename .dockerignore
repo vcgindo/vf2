@@ -1,23 +1,24 @@
-.git
-.local
-.venv
-**/__pycache__
-**/node_modules
-frontend
-mto
-user-service
-*.env
-.env
-# Never send private environment variants or delivery archives to a builder.
+# Git is required only in the source-export build stage. Never copy secrets/build output.
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+**/.env
 **/.env.*
 !**/.env.example
 !**/.env.*.example
+**/*.env
+**/secrets
+**/artifacts
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/.venv
+**/.local
+**/*.pem
+**/*.key
 **/*.enc
 **/*.pfx
 **/*.p12
 **/*.dump
 **/*.bak
-**/*.zip
 **/*.tar.gz
-**/*.tgz
-**/artifacts
+**/*.zip
+frontend/build

@@ -1,0 +1,140 @@
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+name: "${VF_PROJECT:-vectorflow}"
+services:
+  postgres:
+    extends: {file: release/compose.yaml, service: postgres}
+    secrets: !reset []
+    volumes:
+      - postgres_secrets:/run/secrets:ro
+    depends_on:
+      secret-init: {condition: service_completed_successfully, required: false}
+  redis:
+    extends: {file: release/compose.yaml, service: redis}
+  mta:
+    extends: {file: release/compose.yaml, service: mta}
+    build: {context: ., dockerfile: release/compose.Dockerfile, target: mta}
+    secrets: !reset []
+    volumes:
+      - mta_runtime_secrets:/run/secrets:ro
+  auth:
+    extends: {file: release/compose.yaml, service: auth}
+    build: {context: ., dockerfile: release/compose.Dockerfile, target: auth}
+    secrets: !reset []
+    volumes:
+      - auth_runtime_secrets:/run/secrets:ro
+  mto:
+    extends: {file: release/compose.yaml, service: mto}
+    build: {context: ., dockerfile: release/compose.Dockerfile, target: mto}
+    secrets: !reset []
+    volumes:
+      - mto_runtime_secrets:/run/secrets:ro
+  frontend:
+    extends: {file: release/compose.yaml, service: frontend}
+    build: {context: ., dockerfile: release/compose.Dockerfile, target: frontend}
+  secret-init:
+    image: "${VF_IMAGE_PREFIX:-vectorflow}/auth:${VF_RELEASE:-source}"
+    pull_policy: never
+    profiles: [install]
+    user: "0:0"
+    entrypoint: [python, -m, release.compose_secrets]
+    network_mode: none
+    read_only: true
+    tmpfs: [/tmp]
+    restart: "no"
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "1"
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - secret_store:/secrets/private
+      - postgres_secrets:/secrets/postgres
+      - mta_runtime_secrets:/secrets/mta-runtime
+      - mta_installer_secrets:/secrets/mta-installer
+      - auth_runtime_secrets:/secrets/auth-runtime
+      - auth_installer_secrets:/secrets/auth-installer
+      - mto_runtime_secrets:/secrets/mto-runtime
+      - mto_installer_secrets:/secrets/mto-installer
+      - provision_secrets:/secrets/provision
+      - install_receipts:/receipts
+  provision:
+    extends: {file: release/compose.yaml, service: provision}
+    secrets: !reset []
+    entrypoint: [python, /opt/vectorflow/image_entrypoint.py]
+    command: [/operator/blank_database.py, provision]
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - provision_secrets:/run/secrets:ro
+    depends_on:
+      secret-init: {condition: service_completed_successfully}
+  mta-install:
+    extends: {file: release/compose.yaml, service: mta-install}
+    secrets: !reset []
+    entrypoint: [python, /opt/vectorflow/image_entrypoint.py]
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: "2"
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - mta_installer_secrets:/run/secrets:ro
+    depends_on:
+      provision: {condition: service_completed_successfully}
+  auth-install:
+    extends: {file: release/compose.yaml, service: auth-install}
+    secrets: !reset []
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - auth_installer_secrets:/run/secrets:ro
+    depends_on:
+      mta-install: {condition: service_completed_successfully}
+  mto-install:
+    extends: {file: release/compose.yaml, service: mto-install}
+    secrets: !reset []
+    read_only: true
+    tmpfs: [/tmp]
+    volumes:
+      - mto_installer_secrets:/run/secrets:ro
+    depends_on:
+      auth-install: {condition: service_completed_successfully}
+  database-finish:
+    extends: {service: provision}
+    command: [/operator/blank_database.py, finish]
+    volumes:
+      - install_receipts:/receipts
+    depends_on:
+      mto-install: {condition: service_completed_successfully}
+  install:
+    extends: {service: auth-install}
+    entrypoint: [python, -m, release.compose_install]
+    command: []
+    environment:
+      VF_ADMIN_EMAIL: "${VF_ADMIN_EMAIL:-}"
+      VF_ADMIN_NAME: "${VF_ADMIN_NAME:-}"
+      VF_ADMIN_PASSWORD: "${VF_ADMIN_PASSWORD:-}"
+    volumes:
+      - install_receipts:/receipts
+    depends_on:
+      database-finish: {condition: service_completed_successfully}
+volumes:
+  postgres_data: {}
+  redis_data: {}
+  mta_data: {}
+  auth_data: {}
+  auth_logs: {}
+  mto_data: {}
+  mto_downloads: {}
+  mto_logs: {}
+  secret_store: {}
+  postgres_secrets: {}
+  mta_runtime_secrets: {}
+  mta_installer_secrets: {}
+  auth_runtime_secrets: {}
+  auth_installer_secrets: {}
+  mto_runtime_secrets: {}
+  mto_installer_secrets: {}
+  provision_secrets: {}
+  install_receipts: {}
+networks:
+  application: {driver: bridge}
