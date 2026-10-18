@@ -4,10 +4,33 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from release.configuration import database_options, integer, load_secret, public_url, secret, security
+from release.configuration import database_options, integer, load_secret, public_url, secret, security, email_settings
 
 
 class ReleaseConfigurationTests(unittest.TestCase):
+    def test_optional_smtp_and_explicit_starttls_or_ssl(self):
+        self.assertEqual(email_settings()['EMAIL_HOST'], '')
+        os.environ.update(EMAIL_HOST='smtp.example.invalid', EMAIL_FROM='sender@example.invalid',
+                          EMAIL_USER='sender', EMAIL_PASS='test-only', EMAIL_PORT='587')
+        config = email_settings()
+        self.assertTrue(config['EMAIL_USE_TLS'])
+        self.assertFalse(config['EMAIL_USE_SSL'])
+        self.assertEqual(config['EMAIL_TIMEOUT'], 15)
+        self.assertEqual(config['EMAIL_HOST_PASSWORD'], 'test-only')
+        os.environ.update(EMAIL_USE_TLS='false', EMAIL_USE_SSL='true', EMAIL_PORT='465')
+        config = email_settings()
+        self.assertFalse(config['EMAIL_USE_TLS'])
+        self.assertTrue(config['EMAIL_USE_SSL'])
+        self.assertEqual(config['EMAIL_PORT'], 465)
+
+    def test_smtp_rejects_invalid_transport_incomplete_credentials_and_missing_sender(self):
+        for updates in ({'EMAIL_USE_SSL':'true'}, {'EMAIL_USE_TLS':'maybe'},
+                        {'EMAIL_PORT':'70000'}, {'EMAIL_TIMEOUT':'0'},
+                        {'EMAIL_USER':'sender'}, {'EMAIL_HOST':'smtp.example.invalid'}):
+            with self.subTest(updates=updates), patch.dict(os.environ, updates):
+                with self.assertRaises(ValueError):
+                    email_settings()
+
     def setUp(self):
         self.environment = patch.dict(os.environ, {}, clear=True)
         self.environment.start()

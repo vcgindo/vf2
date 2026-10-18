@@ -8,6 +8,7 @@ from common.utils import get_value_of_dict
 from rest_framework.response import Response
 from rest_framework import status
 from api.utils import Util
+from api.common.mail_config import smtp_configured
 
 from common.send_mail import mail_update_user
 from common.permissions import can_update_user
@@ -153,6 +154,11 @@ class ResetPasswordService:
                 AuthCode.CAN_NOT_UPDATE, status=HttpStatusCode.BAD_REQUEST
             )
         
+        if not smtp_configured():
+            return None, Response(
+                AuthCode.SMTP_NOT_CONFIGURED_PASSWORD_RESET, status=HttpStatusCode.BAD_REQUEST
+            )
+
         new_password = User.all_objects.make_random_password(
                 allowed_chars=APIVariable.allowed_chars
             ) 
@@ -160,14 +166,15 @@ class ResetPasswordService:
             # Send email
             data= mail_update_user(user.email,new_password, user.name)
 
-            Util.send_html_email(data)
+            if Util.send_html_email(data) != 1:
+                raise RuntimeError('Email backend did not accept the reset notification')
         except Exception as e:
             logger.exception("Unexpected error occurred")
-            return Response(
+            return None, Response(
                 AuthCode.SEND_MAIL_ERROR,status=HttpStatusCode.BAD_REQUEST
             )
         user.set_password(new_password)
-        user.save()
+        user.save(update_fields=['password'])
         return user, Response(
             AuthCode.RESET_PASSWORD_SUCCESS, status=HttpStatusCode.OK
         )

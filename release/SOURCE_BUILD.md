@@ -55,6 +55,35 @@ Open `http://127.0.0.1:<VF_HTTP_PORT>` and sign in normally with your new admini
 
 For a restart use `docker compose stop`, followed by the SAME `docker compose up -d --no-build --wait`. Restart never provisions, migrates, loads data or rotates secrets. Never use `down -v` to fix an error. Volumes contain the installation database, private keys, files and receipts; retain them together for recovery.
 
+### Configure SMTP for password reset and account notifications
+
+SMTP is optional for installation/login, but password reset needs a working mail provider. Set these keys in your ignored local `.env`; no mail credentials are included in an image or build:
+
+```dotenv
+EMAIL_HOST=smtp.your-provider.example
+EMAIL_PORT=587
+EMAIL_USER=your-provider-login
+EMAIL_PASS='your-private-app-password'
+EMAIL_FROM=authorized-sender@your-domain.example
+EMAIL_NAME=VectorFLOW
+EMAIL_USE_TLS=true
+EMAIL_USE_SSL=false
+EMAIL_TIMEOUT=15
+```
+
+Use the provider's real values, not this example. For implicit TLS on port465, use `EMAIL_USE_TLS=false` and `EMAIL_USE_SSL=true`. Never enable both. Username/password may both be blank only for a provider-authorized relay; do not disable authentication to work around a rejected login. The sender must be permitted by your provider. Single-quote env passwords containing `$` so Compose does not interpolate them. Keep `.env` private and out of Git; `docker compose config` and container inspection can expose its resolved secrets, so do not share their output.
+
+After changing SMTP settings, recreate **only auth**, then check the connection without sending mail or changing any password:
+
+```powershell
+docker compose up -d --no-deps --no-build --wait auth
+if ($LASTEXITCODE -ne 0) { throw 'Auth startup failed; inspect SMTP configuration' }
+docker compose exec -T auth python -m release.check_smtp
+if ($LASTEXITCODE -ne 0) { throw 'SMTP is not ready; password reset remains unavailable' }
+```
+
+This uses an image built from this revision; older images need an **auth-only** rebuild after updating the clone (`docker compose build auth`), never a frontend/MTO rebuild or repeat blank install. Runtime and installer receive the same SMTP settings. A blank host means email is unavailable; reset returns a clear error without changing the password. Provider rejection/timeout likewise leaves the password unchanged. A successful reset uses the existing admin action, emails the generated password to the selected user and changes only that user's password after SMTP accepts the message. Do not test it on a real account unless its owner expects the reset. The check above proves connection/TLS/login, not inbox delivery; verify an authorized recipient's receipt separately. Test-recipient domains such as `.invalid` cannot receive real email. Never print or share the generated password.
+
 ## Separate operation: master/opening loading and daily execution
 
 Run the blocks below **in order, in the same PowerShell7 session, from your clone directory**, after completing steps1–4. They use your existing `.env`, project, port and built images. **No build or repeat installation is needed.** This is the first data load into that NEW blank installation, not a reset/replay procedure.

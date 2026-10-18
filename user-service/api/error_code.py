@@ -27,7 +27,7 @@ class AuthCode:
     EMAIL_IS_EXISTS = construct_response_code(
          __prefix_code, 400, 10, "Email already exists")
     SEND_MAIL_ERROR = construct_response_code(
-        __prefix_code, 400, 11, "Unable to send the emai"
+        __prefix_code, 400, 11, "Unable to send the email. Please check the email service configuration."
     )
     USER_DELETE_SUCCESS = construct_response_code(
         __prefix_code, 200, 12, "User Deleted Successfully"
@@ -88,6 +88,9 @@ class AuthCode:
     )
     SMTP_NOT_ENABLED_PASSWORD_RESET = construct_response_code(
         __prefix_code, 200, 37, "Password reset is currently unavailable because the email service is not active. Please check the server configuration or contact your system administrator for assistance."
+    )
+    SMTP_NOT_CONFIGURED_PASSWORD_RESET = construct_response_code(
+        __prefix_code, 400, 39, "Password reset is unavailable: configure the SMTP server and sender. The password has not changed."
     )
     SMTP_NOT_ENABLED_ADD_USER = construct_response_code(
         __prefix_code, 200, 38, {

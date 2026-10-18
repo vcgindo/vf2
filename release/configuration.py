@@ -28,6 +28,32 @@ def integer(name, default, *, minimum=1, maximum=65535):
     return value
 
 
+def email_settings():
+    """Optional SMTP, shared by the auth runtime and installer; never build secrets."""
+    def flag(name, default):
+        value = os.environ.get(name, default).lower()
+        if value not in ('true', 'false', '1', '0'):
+            raise ValueError(name + ': use true or false')
+        return value in ('true', '1')
+
+    host = os.environ.get('EMAIL_HOST', '').strip()
+    sender = os.environ.get('EMAIL_FROM', '').strip()
+    username = os.environ.get('EMAIL_USER', '')
+    password = os.environ.get('EMAIL_PASS', '')
+    tls, ssl = flag('EMAIL_USE_TLS', 'true'), flag('EMAIL_USE_SSL', 'false')
+    if tls and ssl:
+        raise ValueError('Enable EMAIL_USE_TLS or EMAIL_USE_SSL, not both')
+    if host and not sender:
+        raise ValueError('EMAIL_FROM is required when EMAIL_HOST is configured')
+    if bool(username) != bool(password):
+        raise ValueError('Supply both EMAIL_USER and EMAIL_PASS, or neither for an authorized relay')
+    return dict(EMAIL_HOST=host, EMAIL_PORT=integer('EMAIL_PORT', 587),
+        EMAIL_HOST_USER=username, EMAIL_HOST_PASSWORD=password,
+        EMAIL_USE_TLS=tls, EMAIL_USE_SSL=ssl,
+        EMAIL_TIMEOUT=integer('EMAIL_TIMEOUT', 15, maximum=120),
+        DEFAULT_FROM_EMAIL=sender)
+
+
 def public_url():
     value = os.environ.get('VF_PUBLIC_URL', '').rstrip('/')
     url = urlsplit(value)

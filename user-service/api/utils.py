@@ -326,13 +326,15 @@ class Util:
     
     @staticmethod
     def send_html_email(data):
+        from email.utils import formataddr
         text_content = strip_tags(data['html_content'])
+        sender = os.environ.get('EMAIL_FROM') or settings.DEFAULT_FROM_EMAIL
+        display_name = os.environ.get('EMAIL_NAME', '')
         email_kwargs = {
                 "subject": data['subject'],
                 "body": text_content,
-                "from_email": os.environ.get('EMAIL_FROM'),
+                "from_email": formataddr((display_name, sender)) if display_name else sender,
                 "to": data['to_email'],
-                "headers": {'From': os.environ.get('EMAIL_NAME')},
             }
 
         if data.get('cc'):
@@ -346,7 +348,7 @@ class Util:
             with open(dependency_error_zip_file_path, 'rb') as f:
                 email.attach('master_dependency_validation_error_files.7z', f.read(), 'application/x-7z-compressed')
         
-        email.send()
+        return email.send()
 
     @staticmethod
     def send_html_email_bulk(data_list):
