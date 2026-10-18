@@ -21,4 +21,5 @@
 **/*.bak
 **/*.tar.gz
 **/*.zip
+!examples/starter-data/vectorflow-starter-inputs-v1.zip
 frontend/build
