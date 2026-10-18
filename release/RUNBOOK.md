@@ -101,7 +101,7 @@ $Settings = @{
   VF_CLIENT_CIPHER_KEY=$Release.public_client_cipher_key
   VF_BIND_ADDRESS='127.0.0.1'
   VF_PUBLIC_URL=$PublicUrl; VF_PUBLIC_WS_URL="ws://127.0.0.1:$HttpPort"
-  POSTGRES_MEMORY='2g'; MTA_MEMORY='4g'; MTA_WORKERS='1'
+  MTA_WORKERS='1'
   MTA_SELECTION_FILE=''; MTA_PERMISSIONS_FILE=''; MTA_PERMISSIONS_SHA256=''
   MTA_HIERARCHY_FILE=''; MTA_HIERARCHY_SHA256=''
 }
@@ -127,7 +127,9 @@ function vf {
 }
 ```
 
-The override pins all six runtime services AND four installer profiles, including provision. MTA installer/daily workers use4GiB/2CPU sequentially with the serving MTA stopped. Keep default separate `vectorflow_mta` / `vectorflow_mto` logical databases and service roles on this new cluster. Auth has a separate identity schema in the MTO database. No frontend/MTO source or image change is involved.
+The override pins all six runtime services AND four installer profiles, including provision. MTA installer/daily workers run sequentially with the serving MTA stopped; the current Compose files and image override impose no CPU/memory/swap ceiling. Keep default separate `vectorflow_mta` / `vectorflow_mto` logical databases and service roles on this new cluster. Auth has a separate identity schema in the MTO database. No frontend/MTO source or image change is involved.
+
+The current Git configuration removes resource-test defaults; historical immutable delivery archives and running installations are not rewritten. Use the current configuration files when applying this updated resource policy. Docker/host allocations still bound available compute. Worker counts, timeouts, security and application behavior remain unchanged.
 
 ### 3. Verify configuration and absence before creation
 
@@ -320,7 +322,7 @@ Keep this override on subsequent `vf` calls/restarts. Do not enable historical f
 
 ### 3. Inspect and execute the first daily input ONCE
 
-Keep the serving MTA stopped during its exclusive4GiB/2CPU worker. Ordinary execution owns ingestion/capture/calculation and inherent consumer writes; verify input/output findings separately afterward. On any failed/partial attempt preserve actual rows/files and reconcile before a reviewed retry; never repeat an accepted date.
+Keep the serving MTA stopped during its exclusive daily worker. CPU/memory sizing belongs to the deployment, not this procedure. Ordinary execution owns ingestion/capture/calculation and inherent consumer writes; verify input/output findings separately afterward. On any failed/partial attempt preserve actual rows/files and reconcile before a reviewed retry; never repeat an accepted date.
 
 ```powershell
 $DayHash = $Release.optional_raw_inputs.files.'day-01.json'

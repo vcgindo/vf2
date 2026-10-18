@@ -20,9 +20,6 @@ services:
     image: "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
     pull_policy: never
   mta-install:
-    mem_limit: "4g"
-    memswap_limit: "4g"
-    cpus: "2"
     image: "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043"
     pull_policy: never
   auth-install:

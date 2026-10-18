@@ -1,0 +1,59 @@
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+# Optional ROOT Compose testing only. Never loaded by normal build/install/up.
+services:
+  postgres:
+    mem_limit: 2g
+    memswap_limit: 2g
+    cpus: "1"
+  redis:
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.5"
+  mta:
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: "2"
+  auth:
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "1"
+  mto:
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "1"
+  frontend:
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: "0.5"
+    build:
+      args:
+        FRONTEND_BUILD_HEAP_MIB: "4096"
+        VF_CONSTRAINED_BUILD: "1"
+  secret-init:
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "1"
+  provision:
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "1"
+  mta-install:
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: "2"
+  auth-install:
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "1"
+  mto-install:
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "1"
+  database-finish:
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: "1"
+  install:
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: "1"

@@ -39,7 +39,6 @@ def installation_files(source, output, proof, public_cipher):
     services={name:{'image':image,'pull_policy':'never'} for name,image in images.items()}
     for name,component in (('mta-install','mta'),('auth-install','auth'),('mto-install','mto'),('provision','mta')):
         services[name]={'image':images[component],'pull_policy':'never'}
-    services['mta-install'].update(mem_limit='4g',memswap_limit='4g',cpus='2')
     # JSON is a YAML subset understood by Docker Compose.
     (output/'source-build-images.yaml').write_text(json.dumps({'x-restriction':proof['restriction'],'services':services},indent=2)+'\n')
     release={'restriction':proof['restriction'],'schema':'vectorflow-source-build-install-v1',
@@ -159,17 +158,16 @@ def build(repository, revision, output, *, image_prefix, public_origin, websocke
             source_sha256=proof['source_sha256'],native_sha256=proof['native_sha256'],image=image,runner=run,
             owner='clean-git-build-'+tag)
         proof['images']['mta']={'tag':image};save()
-        for component,memory in (('auth','4g'),('mto','4g'),('frontend','6g')):
+        for component in ('auth','mto','frontend'):
             proof['active_component']=component;save()
             image=image_prefix+'/'+component+':'+tag
-            command=['docker','build','--pull=false','--memory='+memory,'--memory-swap='+memory,
-                '--cpu-period=100000','--cpu-quota=200000','--rm=false',
+            command=['docker','build','--pull=false','--rm=false',
                 '--label','vectorflow.owner=clean-git-build-'+tag,
                 '-f',str(source/'release'/ (component+'.Dockerfile')),'-t',image]
             if component=='frontend':
                 for key,value in {'REACT_APP_API_HOST':'/','REACT_APP_VF_API_HOST_MTO':'/api/mto',
                     'REACT_APP_WS_API_HOST':websocket_origin,'REACT_APP_SECRET_KEY':public_cipher,
-                    'REACT_APP_AG_GRID_LICENSE_KEY':'','FRONTEND_BUILD_HEAP_MIB':'4096'}.items():
+                    'REACT_APP_AG_GRID_LICENSE_KEY':''}.items():
                     command.extend(['--build-arg',key+'='+value])
             command.append(str(source))
             result=run(command)

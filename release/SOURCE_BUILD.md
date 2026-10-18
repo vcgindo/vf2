@@ -25,15 +25,15 @@ The chosen port must be free; do not replace another serving instance. Use an ac
 ## 2. Build
 
 ```powershell
-# Serial classic-builder recipe with a 6GiB per-build memory ceiling.
-$env:DOCKER_BUILDKIT = '0'
-docker compose --parallel 1 build --memory 6g
+docker compose build
 if ($LASTEXITCODE -ne 0) { throw 'Build failed; stop and retain output' }
 ```
 
 The build automatically prepares committed source, native manifests and pinned dependencies, then builds MTA, auth, MTO and frontend. PostgreSQL and Redis use their pinned official images. All four application images come from the SAME Git commit. No hand-created source context, image-ID override or helper outside the repository is required.
 
-Provide at least35GiB free disk and sufficient Docker/host RAM. The tested command limits build memory to6GiB and serializes builds; it is not a disk quota or CPU quota. Retain build logs and stop on a disk/resource failure. This recipe requires a Docker version that still supports its classic builder; do not silently discard the memory limit if your platform rejects it. Runtime limits remain separate (MTA4GiB/2CPU, PostgreSQL2GiB/1CPU and the existing service limits).
+Normal build/install/up imposes no container CPU, memory or swap ceiling and does not force serial Compose builds. Docker Desktop/host allocations and normal tool defaults still apply; this is not automatic capacity sizing. Worker counts, database timeouts and security controls are unchanged. Keep adequate disk space for dependencies, images and build cache.
+
+Optional resource-controlled testing uses `release/compose.resource-test.yaml`. Explicitly add `-f compose.yaml -f release/compose.resource-test.yaml` to the same build/install/up commands ONLY for that test. It restores finite test ceilings and constrained compiler settings; it is never loaded by default. For build-only tuning without runtime ceilings, optionally set `FRONTEND_BUILD_HEAP_MIB` in `.env`; blank uses Node's default. These are test/operator choices, not production minimums. Do not use an optional test override when deploying without resource ceilings.
 
 ## 3. Install the blank application — ONE command
 

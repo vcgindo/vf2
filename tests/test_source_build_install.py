@@ -33,6 +33,8 @@ class SourceBuildInstallationTests(unittest.TestCase):
                     ('auth-install','auth'),('mto-install','mto'),('frontend','frontend')):
                 self.assertEqual(services[alias]['image'],app_images[component]['id'])
                 self.assertEqual(services[alias]['pull_policy'],'never')
+            for row in services.values():
+                self.assertFalse({'mem_limit','memswap_limit','cpus'} & row.keys())
             release=json.loads((output/'installation-release.json').read_text())
             self.assertNotIn('runtime_archive',release)
             self.assertEqual(release['component_sources']['mta'],proof['source_commit'])

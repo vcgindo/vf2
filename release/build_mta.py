@@ -23,8 +23,7 @@ def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, im
     base=json.loads((Path(root)/'release/images.lock.json').read_text())['python_mta']
     if base != 'python:3.11.14-slim-bookworm@sha256:65a93d69fa75478d554f4ad27c85c1e69fa184956261b4301ebaf6dbb0a3543d':
         raise ValueError('Reviewed MTA dependency base differs')
-    arguments=['docker','build','--pull=false','--network=none','--memory=4g','--memory-swap=4g',
-        '--cpu-period=100000','--cpu-quota=200000','--rm=false',
+    arguments=['docker','build','--pull=false','--network=none','--rm=false',
         '--label','vectorflow.owner='+owner,
         '--build-arg','VF_NATIVE_RELEASE_COMMIT='+commit,
         '--build-arg','VF_NATIVE_RELEASE_SHA256='+native_sha256,
@@ -32,8 +31,8 @@ def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, im
         '--build-arg','PACKAGING_TOOL_SHA256='+receipt['packaging_tool_sha256'],
         '--tag',image,str(Path(context).resolve())]
     import os
-    # Legacy builder honors the explicit per-RUN CPU/memory bounds. No new
-    # builder container/service/network, no remote dependency access.
+    # Retain the verified offline classic-builder transport, without prescribing
+    # CPU/memory allocations. Dependency/network restrictions stay unchanged.
     result=runner(arguments,env={**os.environ,'DOCKER_BUILDKIT':'0'},check=False)
     if result.returncode:
         raise ValueError('MTA build failed; preserve its exact stopped attempts')

@@ -67,7 +67,7 @@ class MtaPackagingTests(unittest.TestCase):
         self.assertNotIn('release/optional_initialize.py',actual)
         args=self.runner.call_args.args[0]
         self.assertIn('--network=none',args)
-        self.assertIn('--memory=4g',args)
+        self.assertFalse(any(arg.startswith(('--memory','--cpu-')) for arg in args))
         self.assertEqual(self.runner.call_args.kwargs['env']['DOCKER_BUILDKIT'],'0')
 
     def test_raw_checkout_rejected_before_docker(self):

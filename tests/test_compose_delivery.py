@@ -103,7 +103,7 @@ class RoutedSecretTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('docker'), 'Docker CLI needed for Compose configuration checks')
 class ComposeConfigurationTests(unittest.TestCase):
-    def config(self, install=False):
+    def config(self, install=False, resource_test=False, prebuilt=False):
         root = Path(__file__).resolve().parents[1]
         env = dict(os.environ)
         for line in (root / '.env.example').read_text().splitlines():
@@ -111,7 +111,9 @@ class ComposeConfigurationTests(unittest.TestCase):
                 env.pop(line.split('=',1)[0], None)
         env['VF_HTTP_PORT'] = '8097'
         env['VF_PROJECT'] = 'unit-compose'
-        command = ['docker','compose','--env-file','.env.example']
+        command = ['docker','compose','--env-file','.env.example', '-f', 'release/compose.yaml' if prebuilt else 'compose.yaml']
+        if resource_test:
+            command += ['-f','release/compose.resource-test.yaml']
         if install:
             command += ['--profile','install']
         result = subprocess.run(command + ['config','--format','json'], cwd=root, env=env,
@@ -136,6 +138,30 @@ class ComposeConfigurationTests(unittest.TestCase):
             self.assertEqual(len(mounted), 1)
             self.assertEqual(mounted[0]['source'], role+'_secrets')
             self.assertTrue(mounted[0]['read_only'])
+
+    def test_normal_runtime_and_installation_have_no_inherited_resource_ceilings(self):
+        for prebuilt in (False, True):
+            with self.subTest(prebuilt=prebuilt):
+                c = self.config(install=True, prebuilt=prebuilt)
+                for name, row in c['services'].items():
+                    self.assertFalse({'mem_limit','memswap_limit','cpus','cpu_quota','cpu_period'} & row.keys(), name)
+                    self.assertFalse(row.get('deploy',{}).get('resources',{}).get('limits'), name)
+                args = c['services']['frontend']['build']['args']
+                self.assertEqual(args['FRONTEND_BUILD_HEAP_MIB'], '')
+                self.assertEqual(args['VF_CONSTRAINED_BUILD'], '0')
+
+    def test_resource_test_override_is_explicit_and_preserves_install_security(self):
+        normal = self.config(install=True)
+        bounded = self.config(install=True, resource_test=True)
+        self.assertEqual(set(normal['services']), set(bounded['services']))
+        for name, row in bounded['services'].items():
+            self.assertRegex(str(row['mem_limit']), r'^[1-9][0-9]*(?:[kKmMgG][bB]?)?$', name)
+            self.assertEqual(row['memswap_limit'], row['mem_limit'], name)
+            self.assertGreater(float(row['cpus']), 0, name)
+            for field in ('profiles','user','read_only','security_opt','ports','depends_on','environment','volumes'):
+                self.assertEqual(row.get(field), normal['services'][name].get(field), (name,field))
+        self.assertEqual(bounded['services']['frontend']['build']['args']['VF_CONSTRAINED_BUILD'], '1')
+        self.assertEqual(bounded['services']['frontend']['build']['args']['FRONTEND_BUILD_HEAP_MIB'], '4096')
 
     def test_installation_orders_secrets_provision_migrations_and_metadata(self):
         c = self.config(install=True)['services']
