@@ -57,14 +57,128 @@ For a restart use `docker compose stop`, followed by the SAME `docker compose up
 
 ## Separate operation: master/opening loading and daily execution
 
-These are supported explicit native commands, not installation/startup effects:
+Run the blocks below **in order, in the same PowerShell7 session, from your clone directory**, after completing steps1–4. They use your existing `.env`, project, port and built images. **No build or repeat installation is needed.** This is the first data load into that NEW blank installation, not a reset/replay procedure.
+
+The optional Git example `examples/starter-data/vectorflow-starter-inputs-v1.zip` is the unchanged approved RAW synthetic pack:200SKU/20location definitions, a small active population, opening17October2026 and daily facts for18–19October2026. It contains no account, password, database, calculated output or automatic loader; it is excluded from production image export. These steps run **only18October/day1**. Historical facts show loading/calculation/reporting; they do not become today's facts or automatically prove current-date Apply/Sleep/reviewer workflows.
+
+### 5. Extract the starter inputs outside Git
 
 ```powershell
-docker compose run --rm --no-deps mta-install manage.py initialize_production --help
-docker compose run --rm --no-deps mta-install manage.py run_production_day --help
+$ErrorActionPreference = 'Stop'
+$Project = (docker compose config --format json | ConvertFrom-Json).name
+if ($LASTEXITCODE -ne 0 -or -not $Project) { throw 'Compose configuration failed' }
+$SampleZip = (Resolve-Path './examples/starter-data/vectorflow-starter-inputs-v1.zip').Path
+if ((Get-FileHash $SampleZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne '71bb16ec321d7ee683ddfca718f129451a36df9ee5540abdb4b2329ba1a5b63f') { throw 'Starter pack differs' }
+$InputRoot = Join-Path $env:LOCALAPPDATA "VectorFLOW/$Project/starter"
+if (Test-Path $InputRoot) { throw 'Starter directory exists; reconcile previous work instead of loading again' }
+if (Select-String -Path .env -Pattern '^\s*COMPOSE_(FILE|PATH_SEPARATOR)\s*=' -Quiet) { throw 'Existing Compose override: merge deliberately; do not overwrite it' }
+Expand-Archive -LiteralPath $SampleZip -DestinationPath $InputRoot
+$InputRoot = (Resolve-Path $InputRoot).Path.Replace('\','/')
+$Receipts = New-Item -ItemType Directory -Path "$InputRoot/receipts"
+$OpeningHash = (Get-FileHash "$InputRoot/initialization.json" -Algorithm SHA256).Hash.ToLowerInvariant()
+$DayHash = (Get-FileHash "$InputRoot/day-01.json" -Algorithm SHA256).Hash.ToLowerInvariant()
+$PermissionHash = (Get-FileHash "$InputRoot/permissions.json" -Algorithm SHA256).Hash.ToLowerInvariant()
+$ConfigurationDigest = 'c3e2e2f1395ca40b0557b0edaceb96a01c2c02b37d8f962e6b732586a9d5d27c'
+$RecipeDigest = 'bec684bfefa570e7d86dbbed2b8ae580d04d50787549b6dff5e9a8f7be2185e6'
 ```
 
-Use a separately reviewed input/access packet, register its actual opening hash once, initialize masters/opening, then run an actual supplied day through its own persisted predecessor. `--help` above loads no data. [RUNBOOK.md Part B](RUNBOOK.md#b-optional-load-mastersopening-then-execute-a-supplied-day) describes the native operation parameters, preparation and selection contracts for the retained package; its prebuilt-file/env setup is NOT needed by this root Compose installation. Root `provision` and `mta-install` supply their own baked image identity automatically. Keep real inputs outside Git and mount them read-only only for the explicit operation. Do not copy calculated outputs, old database seals or demo accounts into a blank installation.
+Keep this input/receipt directory for restart/recovery. Do not edit input dates, facts or digests. If any following command fails, **stop and retain the error/receipts**; do not repeat registration, reset volumes or replay an accepted day. `--help` only displays usage; `--inspect` only checks the supplied operation.
+
+### 6. Register this opening and load its masters/opening ONCE
+
+Only the MTA API is stopped while its explicit worker owns the data operation. PostgreSQL, auth, frontend and MTO remain installed; MTO is not changed. `provision -m release.register_mta` below is the registration subcommand, **not** another blank installation. Keep the image's default entrypoint: it supplies its baked source identity.
+
+```powershell
+docker compose stop mta
+if ($LASTEXITCODE -ne 0) { throw 'Could not stop the MTA API' }
+docker compose run --rm --no-deps provision -m release.register_mta --input-sha256 $OpeningHash
+if ($LASTEXITCODE -ne 0) { throw 'Registration failed; do not repeat or reset' }
+docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py initialize_production /input/initialization.json --sha256 $OpeningHash --configuration-digest $ConfigurationDigest --recipe-digest $RecipeDigest --inspect
+if ($LASTEXITCODE -ne 0) { throw 'Opening inspection failed' }
+$InitJson = docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py initialize_production /input/initialization.json --sha256 $OpeningHash --configuration-digest $ConfigurationDigest --recipe-digest $RecipeDigest
+$InitExit = $LASTEXITCODE
+$InitJson | Set-Content "$Receipts/initialization.json" -Encoding utf8
+if ($InitExit -ne 0) { throw 'Initialization failed; preserve state' }
+$Init = $InitJson | ConvertFrom-Json
+if ($Init.status -ne 'INITIALIZED') { throw 'Expected one NEW initialization; reconcile existing state' }
+```
+
+### 7. Persist the matching access configuration, then execute day1
+
+The read-time catalogue defines the sample product/location groups; it does **not** grant any user access. Freeze its hash and source digest before preparing reports. This small override stays outside Git; `.env` records it so ordinary subsequent Compose commands/restarts keep the populated configuration. Do not remove that `COMPOSE_FILE` entry after loading data. The semicolon separator is explicit for this Windows procedure.
+
+```powershell
+$DataCompose = "$InputRoot/compose.starter.json"
+$Access = @{
+  VF_MDM_SOURCE_DIGEST = $Init.source_digest
+  VF_MTA_PERMISSIONS_FILE = '/access/permissions.json'
+  VF_MTA_PERMISSIONS_SHA256 = $PermissionHash
+}
+$PermissionMount = @{type='bind'; source="$InputRoot/permissions.json"; target='/access/permissions.json'; read_only=$true}
+$Data = @{services=@{
+  mta = @{environment=$Access.Clone(); volumes=@($PermissionMount)}
+  'mta-install' = @{environment=$Access.Clone(); volumes=@($PermissionMount)}
+}}
+$Data | ConvertTo-Json -Depth 8 | Set-Content $DataCompose -Encoding utf8
+Add-Content .env "`nCOMPOSE_PATH_SEPARATOR=;`nCOMPOSE_FILE=`"compose.yaml;$DataCompose`""
+docker compose config --quiet
+if ($LASTEXITCODE -ne 0) { throw 'Populated Compose configuration failed' }
+
+$Revision = 'starter-day1-' + (Get-Date -Format 'yyyyMMddTHHmmss')
+$DayArgs = @('manage.py','run_production_day','/input/day-01.json','--sha256',$DayHash,
+  '--initialization',$Init.opening_id,'--source-digest',$Init.source_digest,
+  '--configuration-digest',$ConfigurationDigest,'--revision',$Revision,
+  '--pick-output-root','/var/lib/vectorflow/pick')
+docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @DayArgs --inspect
+if ($LASTEXITCODE -ne 0) { throw 'Day1 inspection failed' }
+$DayJson = docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @DayArgs
+$DayExit = $LASTEXITCODE
+$DayJson | Set-Content "$Receipts/day-01.json" -Encoding utf8
+if ($DayExit -ne 0) { throw 'Day1 failed; preserve the attempt instead of replaying' }
+$Day = $DayJson | ConvertFrom-Json
+if ($Day.status -ne 'SUCCEEDED') { throw 'Day1 did not succeed; do not continue' }
+```
+
+This loads the supplied daily operational facts and calculates the distribution day from its own initialized opening. A successful calculation is not yet the serving/UI selection.
+
+### 8. Prepare/select day1 and start its UI backend
+
+```powershell
+docker compose run --rm --no-deps mta-install manage.py prepare_daily_ui --run-id $Day.run_id --output-digest $Day.output_digest
+if ($LASTEXITCODE -ne 0) { throw 'Report preparation incomplete; preserve partial receipts' }
+docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py prepare_native_input_archive --run-id $Day.run_id --output-digest $Day.output_digest --opening-file /input/initialization.json --daily-file /input/day-01.json
+if ($LASTEXITCODE -ne 0) { throw 'Native input download preparation failed' }
+$MtaVolume = (docker compose config --format json | ConvertFrom-Json).volumes.mta_data.name
+if ($LASTEXITCODE -ne 0 -or -not $MtaVolume) { throw 'MTA data volume could not be resolved' }
+# Runtime role validates and writes ONLY the selection file; this one-off mount is RW.
+# Do not override the source-built image entrypoint with --entrypoint python.
+docker compose run --rm --no-deps -v "${MtaVolume}:/var/lib/vectorflow" mta manage.py check_daily_selection --run-id $Day.run_id --output-digest $Day.output_digest --selection-file /var/lib/vectorflow/selection.json
+if ($LASTEXITCODE -ne 0) { throw 'Selection validation failed' }
+$Data.services.mta.environment['VF_MTA_SELECTION_FILE'] = '/var/lib/vectorflow/selection.json'
+$Data | ConvertTo-Json -Depth 8 | Set-Content $DataCompose -Encoding utf8
+docker compose up -d --no-build --wait mta
+if ($LASTEXITCODE -ne 0) { throw 'Populated MTA startup failed; inspect logs' }
+docker compose ps
+```
+
+The serving MTA retains its read-only data mount; the installer keeps its own secrets. No frontend build, MTO operation, parity hook, fixture mode or historical activation command is involved. Keep the same `.env`, data override, input/receipt directory and named volumes together.
+
+### 9. Grant your new administrator MTA data scopes and open the results
+
+1. Open the **same URL/port chosen in `.env`** and sign in normally with the administrator you created during installation. No demo login is added.
+2. In **Manage Users**, edit that administrator and open its advanced permissions. For **Distribution / MTA only**, select the starter product and location groups, save, then refresh/reopen the report. Leave MTO roles/permissions unchanged. These are real scoped grants on YOUR NEW installation, not fixture flags or permission bypasses.
+3. For complete starter coverage select all three product entries: `B1 Product` root71001, `Selected/Leaf`71002 and `Other/Leaf`71003; and all four location entries: `B1 Location` root72001, `Parent/Leaf`72002, `Receiving/Leaf`72003 and `Other/Leaf`72004. Administrator status alone does not supply these MTA data scopes.
+4. Open Distribution's **BPR**, **Planning** and **Master Data Management** screens. Verify the last run is18October2026 and that scoped starter rows appear. `InputData.zip` uses the native JSON/typed-capture format, not a legacy CSV archive. An empty/denied grid is not success: check the selected run and saved MTA scopes; do not load the inputs again.
+
+Optional read-only checks (no extra calculation):
+
+```powershell
+$Url = (docker compose config --format json | ConvertFrom-Json).services.mta.environment.VF_PUBLIC_URL
+Invoke-RestMethod "$Url/readyz"
+docker compose logs --tail 40 mta
+```
+
+Afterwards, ordinary `docker compose stop` / `docker compose up -d --no-build --wait` keep the selected data because `.env` retains the override. To continue another time, recover `$Init`/`$Day` from saved receipts; do not rerun steps5–7. A separately requested day2 would use `day-02.json`, its own hash/new revision, and `--predecessor $Day.run_id --predecessor-output-digest $Day.output_digest`; these steps deliberately do not execute it. Production onboarding requires its own authentic input/access packet, not this sample. The [advanced/prebuilt runbook Part B](RUNBOOK.md#b-optional-load-mastersopening-then-execute-a-supplied-day) remains a separate route; do not mix its `vf`, `$Release` or native pins with this source-built procedure.
 
 ## Release boundary
 

@@ -14,6 +14,9 @@ dist/
 *.bak
 *.tar
 *.zip
+# Reviewed optional RAW synthetic starter pack; release export excludes ZIP files.
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+!examples/starter-data/vectorflow-starter-inputs-v1.zip
 *.sqlite3
 *.pem
 *.key
