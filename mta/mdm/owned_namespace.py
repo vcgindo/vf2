@@ -315,6 +315,10 @@ PRODUCTION_UI_GRANTS = {
     'mta.fresh_mta_userreportlayout': {'columns': [], 'table': ['INSERT', 'DELETE']},
 }
 APPLICATION_GRANTS = {'mta.fresh_mta_bprliveremark': {'columns': [], 'table': ['INSERT']},
+ # All three native remark writers append through the same guarded owner path.
+ # Keep UPDATE/DELETE unavailable; registration grants only dependent sequence USAGE.
+ 'mta.fresh_mta_borliveremarkdaily': {'columns': [], 'table': ['INSERT']},
+ 'mta.fresh_mta_boroaliveremarkdaily': {'columns': [], 'table': ['INSERT']},
  'mta.fresh_mta_calculationrun': {'columns': ['id'], 'table': ['UPDATE']},
  'mta.fresh_mta_mdmdraft': {'columns': ['LastModifiedDateTime', 'Masters', 'SearchKeys'],
                             'table': ['INSERT', 'UPDATE', 'DELETE']},
