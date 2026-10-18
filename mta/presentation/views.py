@@ -150,6 +150,17 @@ def report_paths(request, payload):
 
 @endpoint('GET')
 def download_report(request, payload, *, report_name):
+    if report_name == 'InputData':
+        if identity(request).get('entitlements') != ['mta-input-archive']:
+            return JsonResponse({'error': 'mta_input_archive_forbidden'}, status=403)
+        from mta.application.native_input_archive import ArchiveDenied, open_archive
+        try:
+            stream, filename = open_archive(selected_run())
+        except ArchiveDenied as error:
+            return JsonResponse({'error': str(error)}, status=403)
+        from django.http import FileResponse
+        return FileResponse(stream, as_attachment=True, filename=filename,
+            content_type='application/zip')
     from mta.presentation.pick_downloads import PickDownloadDenied, open_report
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
@@ -361,6 +372,22 @@ def boroa_data(request, payload, *, count=False):
     try:
         rows = read_boroa(payload, count=count)
         return envelope(data=[{'count': rows}]) if count else envelope(data=rows if rows else '')
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return envelope(status=500)
+
+
+@endpoint('POST')
+def supplier_allocation_data(request, payload, *, count=False):
+    _require_report('boroa')
+    from mta.presentation.supplier_allocation import read
+    from django.db import DatabaseError
+    try:
+        # The legacy supplier account name is the key. Never accept a browser
+        # user/name override, even when its product/location scope is broad.
+        rows = read(payload, identity(request).get('name'), count=count)
+        return envelope(data=[{'count': rows}]) if count else envelope(data=rows)
     except PublicationUnavailable:
         raise
     except (ValueError, KeyError, TypeError, DatabaseError):

@@ -62,6 +62,8 @@ urlpatterns = [
     path('BORUIConfig', views.bor_ui_config),
     path('GetBOROrderAllocationReportData', views.boroa_data),
     path('GetBOROrderAllocationReportDataCount', partial(views.boroa_data, count=True)),
+    path('getSupplierWiseAllocationReportData', views.supplier_allocation_data),
+    path('getSupplierWiseAllocationReportDataCount', partial(views.supplier_allocation_data, count=True)),
     path('AddBOROARemark', views.boroa_remark),
     path('GetBOROARemarkDetails', partial(views.boroa_remark, history=True)),
     path('BORData', views.bor_data),

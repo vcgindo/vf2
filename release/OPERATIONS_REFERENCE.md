@@ -4,6 +4,14 @@
 
 Use [RUNBOOK.md](RUNBOOK.md) for the Windows 8080 checklist. This file holds Linux deployment commands, operating limits and recovery details. Shell blocks below use a POSIX shell, not PowerShell.
 
+## Native InputData export
+
+The human-approved native archive format (`fresh-native-input-download-v1`) replaces the historical CSV-member ZIP. After a successful ordinary native day, prepare its immutable export with `python manage.py prepare_native_input_archive --run-id <UUID> --output-digest <SHA256> --opening-file <original-native-opening.json> --daily-file <original-native-day.json>`. Use the exact original supplied files: missing or changed hashes fail; neither original bytes nor captured inputs are reconstructed from calculated answers. The command performs no calculation and does not change operational rows.
+
+`InputData.zip` contains exactly `NativeOpeningInput.json`, `NativeDailyInput.json`, `NativeCapturedInput.json`, `NativeInputSchema.json` and `manifest.json`. The capture includes actual consumed MDM/queue/history inputs; the schema preserves native field types, NULLs, duplicate occurrences and order. Source/run/date/input/output pins and every member hash are verified again at download. Bounds are64MiB compressed and256MiB expanded. Include the per-run archive in the matching MTA file backup; never overwrite a prior export or reseal an old database for a new source release.
+
+The existing `/api/mta/DownloadReports/InputData` route requires the gateway-derived `mta-input-archive` entitlement, issued only to an authenticated administrator. It is a whole-input export, not a scoped partial report. The four existing Pick downloads retain their original scope/entitlement policies. Supplier allocation uses the authenticated supplier account name and the unchanged native dispatch/filter contract; browser-provided identity cannot select another supplier. This format/security amendment is the18October2026 combined completion-packet approval, not a general authentication or frontend/MTO exception. Runtime/connected acceptance is recorded only in the handoff tracker.
+
 - [Ubuntu / public VPS checklist](#ubuntu--public-vps-checklist)
 - [Linux assembly and roles](#release-and-host-preparation)
 - [Step Five execution](#stage-five-reference-input-ownership-initialization-day-and-span)

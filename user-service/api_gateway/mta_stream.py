@@ -1,3 +1,4 @@
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """Bounded forwarding of large MTA read responses under Django ASGI.
 
 The MTA service owns these JSON/download bodies. The gateway still authenticates
@@ -20,6 +21,7 @@ PICK_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + key for key in (
     'LogisticPickListReport', 'LogisticRemainingQtySummary',
     'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt',
 ))
+INPUT_ARCHIVE_PATHS = frozenset(('/api/mta/DownloadReports/InputData',))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
     'RRRDataCount', 'GetBPRDataCount', 'GetBTRDataCount', 'DBMDataCount',
 ))
@@ -30,11 +32,11 @@ _END = object()
 
 
 def streams_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS | PICK_DOWNLOAD_PATHS
+    return request.method in ('GET', 'POST') and request.path in READ_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
 
 
 def bounded_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS
+    return request.method in ('GET', 'POST') and request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
 
 
 class UpstreamChunks:

@@ -1,3 +1,4 @@
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 import json
 import os
 import requests
@@ -6,7 +7,7 @@ from api.models import User_Application_Product_Permission
 from api_gateway.utils import getAllUserDetails
 from django.http import JsonResponse
 from rest_framework.response import Response
-from api_gateway.mta_stream import (PICK_DOWNLOAD_PATHS, streams_mta_read,
+from api_gateway.mta_stream import (INPUT_ARCHIVE_PATHS, PICK_DOWNLOAD_PATHS, streams_mta_read,
     bounded_mta_read, UPSTREAM_TIMEOUT)
 from api_gateway.inprocess_mta import request as mta_request
 
@@ -47,7 +48,11 @@ class MTA_INTERCEPTOR:
             'name': request.user.name,
             'email': request.user.email,
         }
-        if request.path in PICK_DOWNLOAD_PATHS:
+        if request.path in INPUT_ARCHIVE_PATHS:
+            if not request.user.is_admin:
+                return JsonResponse({'error': 'mta_input_archive_admin_required'}, status=403)
+            identity['entitlements'] = ['mta-input-archive']
+        elif request.path in PICK_DOWNLOAD_PATHS:
             granted = (request.user.is_admin or Permission.objects.filter(
                 url='mta-report-urls', role_id__user_id=request.user.id,
                 role_id__application_id=application_id).exists())

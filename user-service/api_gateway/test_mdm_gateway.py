@@ -9,6 +9,38 @@ from api_gateway.interceptors import mta_interceptor as module
 
 
 class MdmGatewayTests(SimpleTestCase):
+    def test_native_input_archive_requires_real_admin_before_upstream(self):
+        request=SimpleNamespace(COOKIES={'access_token':'owned-test-token'},
+            user=SimpleNamespace(id=3,name='Requester',email='owned@fixture.local',is_admin=False),
+            data={'is_admin':True,'entitlements':['mta-input-archive']},
+            path='/api/mta/DownloadReports/InputData',query_params={},method='GET',FILES={})
+        with patch.object(module,'mta_request',side_effect=AssertionError('no upstream')):
+            denied=module.MTA_INTERCEPTOR().forward(request,
+                {'mta':{'base_url':'http://owned-test','application_id':2}})
+        self.assertEqual(denied.status_code,403)
+        request.COOKIES={}
+        self.assertEqual(module.MTA_INTERCEPTOR().forward(request,
+            {'mta':{'base_url':'http://owned-test','application_id':2}}).status_code,401)
+
+    def test_native_input_admin_header_is_server_derived_and_bounded(self):
+        from api_gateway.mta_stream import bounded_mta_read, streams_mta_read
+        request=SimpleNamespace(COOKIES={'access_token':'owned-test-token'},
+            user=SimpleNamespace(id=3,name='Actual admin',email='owned@fixture.local',is_admin=True),
+            data={'user':{'id':999},'entitlements':['forged']},
+            path='/api/mta/DownloadReports/InputData',query_params={},method='GET',FILES={})
+        upstream=requests.Response();upstream.status_code=200;upstream._content=b'zip'
+        with patch.object(module,'authenticated_mta_context',return_value={
+                    'product_permissions':[],'location_permissions':[]}), \
+                patch.object(module,'mta_request',return_value=upstream) as send:
+            module.MTA_INTERCEPTOR().forward(request,
+                {'mta':{'base_url':'http://owned-test','application_id':2}})
+        header=json.loads(send.call_args.kwargs['headers']['X-VectorFLOW-Identity'])
+        self.assertEqual(header,{'id':3,'name':'Actual admin','email':'owned@fixture.local',
+            'entitlements':['mta-input-archive']})
+        self.assertTrue(bounded_mta_read(request));self.assertTrue(streams_mta_read(request))
+        request.path+='/unknown'
+        self.assertFalse(bounded_mta_read(request));self.assertFalse(streams_mta_read(request))
+
     def forward(self,path,payload,rows=None):
         upstream=requests.Response()
         upstream.status_code=200

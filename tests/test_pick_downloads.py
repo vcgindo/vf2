@@ -13,7 +13,7 @@ os.environ.setdefault('VF_SECRET_KEY', 'unit-only')
 import django
 django.setup()
 
-from django.test import Client
+from django.test import Client, override_settings
 from mta.presentation.context import PublicationUnavailable
 from mta.presentation import pick_downloads
 
@@ -163,16 +163,15 @@ class PickDownloadTests(unittest.TestCase):
             failed = client.get('/api/mta/DownloadReports/LogisticPickListReport', **IDENTITY)
         self.assertEqual(failed.status_code, 503)
 
-    def test_http_denies_fixture_before_selected_run(self):
+    def test_http_denies_removed_fixture_configuration_before_database_access(self):
         client = Client()
-        with patch('mta.presentation.fixture.enabled', return_value=True), \
-                patch('mta.presentation.fixture.actor_allowed', return_value=True), \
-                patch('mta.presentation.views.selected_run',
-                      side_effect=AssertionError('must not select')):
+        with override_settings(VF_MTA_FIXTURE_FILE='forbidden-historical-mode'), \
+                patch('mta.presentation.context.CalculationRun.objects.filter',
+                      side_effect=AssertionError('must not read database')):
             denied = client.get('/api/mta/DownloadReports/LogisticPickListReport',
                                 **IDENTITY)
-        self.assertEqual(denied.status_code, 403)
-        self.assertEqual(denied.json()['error'], 'fixture_pick_download_denied')
+        self.assertEqual(denied.status_code, 503)
+        self.assertEqual(denied.json()['error'], 'removed_historical_mode:VF_MTA_FIXTURE_FILE')
 
     def test_non_completed_daily_run_is_denied_before_state_access(self):
         for run in (SimpleNamespace(kind='LEGACY_UI_FIXTURE', status='SUCCEEDED'),
