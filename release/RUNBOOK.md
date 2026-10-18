@@ -350,8 +350,9 @@ vf --profile install run --rm --no-deps mta-install manage.py prepare_daily_ui -
 vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py prepare_native_input_archive --run-id $Day.run_id --output-digest $Day.output_digest --opening-file /input/initialization.json --daily-file /input/day-01.json
 # One-off RUNTIME selection writer: this owned data volume is RW only here.
 # The normal serving API stays RO; no installer/admin secret is added.
-$MtaVolume = (vf config --format json | ConvertFrom-Json).volumes.mta_data.name
-vf run --rm --no-deps --entrypoint python -v "${MtaVolume}:/var/lib/vectorflow" mta manage.py check_daily_selection --run-id $Day.run_id --output-digest $Day.output_digest --selection-file /var/lib/vectorflow/selection.json
+$SelectionComposeFile = Join-Path $PrivateRoot 'selection-writer.json'
+@{services=@{mta=@{volumes=@(@{type='volume'; source='mta_data'; target='/var/lib/vectorflow'; read_only=$false})}}} | ConvertTo-Json -Depth 8 | Set-Content $SelectionComposeFile -Encoding utf8
+vf -f $SelectionComposeFile run --rm --no-deps --entrypoint python mta manage.py check_daily_selection --run-id $Day.run_id --output-digest $Day.output_digest --selection-file /var/lib/vectorflow/selection.json
 Set-OperatorValue 'MTA_SELECTION_FILE' '/var/lib/vectorflow/selection.json'
 vf up --no-build --pull never -d --wait --force-recreate mta
 vf restart auth frontend
