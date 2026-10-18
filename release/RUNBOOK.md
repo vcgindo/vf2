@@ -369,6 +369,8 @@ Keep the installation administrator protected. Use **Manage Users → Add New Us
 
 Apply/Sleep/MDM actions must be genuine actor transitions accepted once and consumed by their own date-compatible successor. Do not force suggestions, backdate actions, bypass CAPTCHA or change facts to create eligibility. The historical sample is not an automatic current-date workflow campaign.
 
+After metadata repair, reload the administrator's browser page so Manage Users fetches fresh role/permission data. Verify an ordinary user's **Edit → Next → Update User** using its existing selections; roles, scopes and password must remain unchanged. The protected administrator's self-edit restriction and the separate email-dependent password-reset operation are unchanged. See source-build step9 for troubleshooting; do not reinstall or reseed users.
+
 ## C. Restart, backup and rollback
 
 - Restart this same project/image/DB-OID/volume/config/access/secret set; retain `$DataComposeFile` in `vf` after Part B. Startup never provisions, migrates, loads, calculates or prepares.

@@ -186,6 +186,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Role metadata differs; preserve state and insp
 
 Refresh **Manage Users** afterwards. No build/service replacement, frontend/MTO change or data replay is needed for this repair. New installations include these role definitions automatically. The retained source has three unresolved role-link references (`/` twice and `intercept-task-status` once); the original seeder skipped them, and this catalogue preserves that behavior without inventing new routes or grants.
 
+After repairing metadata, reload the administrator's browser page before reopening **Manage Users**. A page left open during installation/repair or a failed permission request can retain missing catalogue data; its Edit click may then fail before contacting the edit API. Refreshing reloads the catalogue without changing credentials or permissions. To verify ordinary-user editing, click the operator row's **Edit** icon, check its existing role, click **Next**, check its existing product/location selections, then **Update User**. Saving unchanged settings must succeed and preserve the role, scopes and password. Do not change/reset the password as part of this check. A continuing failure after refresh requires the actual browser/API error; do not repeat installation or grant administrator privileges to the operator. Password reset is a separate email-dependent operation and is not certified by this edit check.
+
 Optional read-only checks (no extra calculation):
 
 ```powershell
