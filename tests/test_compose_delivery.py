@@ -124,6 +124,7 @@ class ComposeConfigurationTests(unittest.TestCase):
         front = c['services']['frontend']
         self.assertEqual(front['ports'][0]['published'], '8097')
         self.assertEqual(front['build']['args']['REACT_APP_WS_API_HOST'], 'ws://127.0.0.1:8097')
+        self.assertEqual(front['build']['args']['REACT_APP_MTO_BM_REPORT_ROWS_PER_PAGE'], '5000')
         self.assertEqual(c['services']['auth']['environment']['VF_PUBLIC_URL'], 'http://127.0.0.1:8097')
         self.assertFalse(c.get('secrets'))
         self.assertEqual(c['services']['mta']['image'], 'unit-compose/mta:source')

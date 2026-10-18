@@ -31,7 +31,12 @@ services:
       - mto_runtime_secrets:/run/secrets:ro
   frontend:
     extends: {file: release/compose.yaml, service: frontend}
-    build: {context: ., dockerfile: release/compose.Dockerfile, target: frontend}
+    build:
+      context: .
+      dockerfile: release/compose.Dockerfile
+      target: frontend
+      args:
+        REACT_APP_MTO_BM_REPORT_ROWS_PER_PAGE: "${VF_MTO_BM_REPORT_ROWS_PER_PAGE:-5000}"
   secret-init:
     image: "${VF_IMAGE_PREFIX:-vectorflow}/auth:${VF_RELEASE:-source}"
     pull_policy: never

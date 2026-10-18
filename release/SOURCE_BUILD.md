@@ -16,7 +16,9 @@ notepad .env
 
 Choose a NEW `VF_PROJECT` and a free `VF_HTTP_PORT`. Leave the documented database/role defaults unless you are deliberately configuring a different installation. Both HTTP and WebSocket origins derive from that port before building. The frontend is unchanged and still compiles the socket origin at build time; changing the port later requires a matching rebuild.
 
-Set `VF_ADMIN_EMAIL` and `VF_ADMIN_NAME`. You may leave `VF_ADMIN_PASSWORD` blank to enter/confirm it privately during installation, or put your NEW password in this ignored local env file. No default/demo users are installed. Real signing/database/RSA secrets are generated privately by installation and are not build arguments or image contents. Do not commit `.env`.
+Set `VF_ADMIN_EMAIL` and `VF_ADMIN_NAME`. You may leave `VF_ADMIN_PASSWORD` blank to enter/confirm it privately during installation, or put your NEW password in this ignored local env file. The existing password policy requires at least8 characters, an uppercase letter and a special character; common/similar passwords are rejected. No default/demo users are installed. Real signing/database/RSA secrets are generated privately by installation and are not build arguments or image contents. Do not commit `.env`.
+
+The accepted MTO BM-report page size remains5000 through `VF_MTO_BM_REPORT_ROWS_PER_PAGE`; no frontend or MTO code is changed.
 
 The chosen port must be free; do not replace another serving instance. Use an actual fresh clone with a `.git` directory. Committed source is exported automatically during Docker build; a dirty tracked checkout is rejected. Record `git rev-parse HEAD` for the installed revision.
 
