@@ -194,7 +194,70 @@ Invoke-RestMethod "$Url/readyz"
 docker compose logs --tail 40 mta
 ```
 
-Afterwards, ordinary `docker compose stop` / `docker compose up -d --no-build --wait` keep the selected data because `.env` retains the override. To continue another time, recover `$Init`/`$Day` from saved receipts; do not rerun steps5–7. A separately requested day2 would use `day-02.json`, its own hash/new revision, and `--predecessor $Day.run_id --predecessor-output-digest $Day.output_digest`; these steps deliberately do not execute it. Production onboarding requires its own authentic input/access packet, not this sample. The [advanced/prebuilt runbook Part B](RUNBOOK.md#b-optional-load-mastersopening-then-execute-a-supplied-day) remains a separate route; do not mix its `vf`, `$Release` or native pins with this source-built procedure.
+Afterwards, ordinary `docker compose stop` / `docker compose up -d --no-build --wait` keep the selected data because `.env` retains the override. Installation is the blank application setup (steps1–4); initialization is the one-time master/opening load (steps5–6); daily processing is input ingestion, calculation, preparation and selection for a particular date (steps7–8). Step9 is user onboarding. Repeating a daily run does not mean repeating installation or initialization. Production onboarding requires its own authentic input/access packet, not this sample. The [advanced/prebuilt runbook Part B](RUNBOOK.md#b-optional-load-mastersopening-then-execute-a-supplied-day) remains a separate route; do not mix its `vf`, `$Release` or native pins with this source-built procedure.
+
+### 10. Execute day2 from the saved day1 result, then show it in the UI
+
+This optional operation uses the already-extracted **19October2026** `day-02.json` and the SAME initialized source/configuration, users, scopes, volumes and images. It consumes its own persisted18October/day1 predecessor. Run these blocks once, in order, from the same clone directory in PowerShell7. No build, registration, master reload or new user is needed. On any error stop and retain the attempt; never rerun an accepted day or continue to publication after a failed command.
+
+Restore context (also works in a new PowerShell session):
+
+```powershell
+$ErrorActionPreference = 'Stop'
+$Project = (docker compose config --format json | ConvertFrom-Json).name
+if ($LASTEXITCODE -ne 0 -or -not $Project) { throw 'Compose configuration failed' }
+$InputRoot = (Resolve-Path (Join-Path $env:LOCALAPPDATA "VectorFLOW/$Project/starter")).Path.Replace('\','/')
+$Receipts = "$InputRoot/receipts"
+$Init = Get-Content "$Receipts/initialization.json" -Raw | ConvertFrom-Json
+$Previous = Get-Content "$Receipts/day-01.json" -Raw | ConvertFrom-Json
+if ($Previous.status -ne 'SUCCEEDED' -or $Previous.business_date -ne '2026-10-18') { throw 'Expected successful starter day1 receipt' }
+if (Test-Path "$Receipts/day-02.json") { throw 'A day2 receipt exists; inspect it instead of executing again' }
+$Day2Hash = (Get-FileHash "$InputRoot/day-02.json" -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($Day2Hash -ne 'd702d8e6d5ddfa09687d5138b43b546c76d3204257f3a76a048b62e6f565934b') { throw 'Day2 input differs' }
+$DataCompose = "$InputRoot/compose.starter.json"
+$SelectionCompose = "$InputRoot/compose.selection-writer.json"
+if (-not (Test-Path $SelectionCompose)) { throw 'Complete corrected step8 first; selection-writer override is missing' }
+$Revision = 'starter-day2-' + (Get-Date -Format 'yyyyMMddTHHmmss')
+$Day2Args = @('manage.py','run_production_day','/input/day-02.json','--sha256',$Day2Hash,
+  '--initialization',$Init.opening_id,'--source-digest',$Init.source_digest,
+  '--configuration-digest',$Init.configuration_digest,'--revision',$Revision,
+  '--pick-output-root','/var/lib/vectorflow/pick',
+  '--predecessor',$Previous.run_id,'--predecessor-output-digest',$Previous.output_digest)
+```
+
+Stop only the MTA API for its exclusive worker, inspect, then execute once:
+
+```powershell
+docker compose stop mta
+if ($LASTEXITCODE -ne 0) { throw 'Could not stop MTA' }
+docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @Day2Args --inspect
+if ($LASTEXITCODE -ne 0) { throw 'Day2 inspection failed; no calculation should follow' }
+$Day2Json = docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @Day2Args
+$Day2Exit = $LASTEXITCODE
+$Day2Json | Set-Content "$Receipts/day-02.json" -Encoding utf8
+if ($Day2Exit -ne 0) { throw 'Day2 failed; preserve state and do not replay' }
+$Day2 = $Day2Json | ConvertFrom-Json
+if ($Day2.status -ne 'SUCCEEDED') { throw 'Day2 did not succeed' }
+```
+
+Prepare the actual day2 results and download, select them, then restart the same backend:
+
+```powershell
+docker compose run --rm --no-deps mta-install manage.py prepare_daily_ui --run-id $Day2.run_id --output-digest $Day2.output_digest
+if ($LASTEXITCODE -ne 0) { throw 'Day2 report preparation failed; preserve partial receipts' }
+docker compose run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py prepare_native_input_archive --run-id $Day2.run_id --output-digest $Day2.output_digest --opening-file /input/initialization.json --daily-file /input/day-02.json
+if ($LASTEXITCODE -ne 0) { throw 'Day2 input archive preparation failed' }
+# Clear the old selection ONLY in this one-off writer, so day1's BTR generation
+# is not mistaken for the new candidate. All native admission checks still run.
+docker compose -f compose.yaml -f $DataCompose -f $SelectionCompose run --rm --no-deps -e 'VF_MTA_SELECTION_FILE=' mta manage.py check_daily_selection --run-id $Day2.run_id --output-digest $Day2.output_digest --selection-file /var/lib/vectorflow/selection.json
+if ($LASTEXITCODE -ne 0) { throw 'Day2 selection failed' }
+docker compose up -d --no-build --wait mta
+if ($LASTEXITCODE -ne 0) { throw 'Day2 MTA startup failed' }
+$Url = (docker compose config --format json | ConvertFrom-Json).services.mta.environment.VF_PUBLIC_URL
+Invoke-RestMethod "$Url/readyz"
+```
+
+Refresh BPR/Planning in the existing scoped operator session and verify **19Oct2026** is displayed with the new results. Ordinary serving still uses its original read-only data mount and persistent selection path. The shipped pack stops at day2; a third or later date requires another authentic daily input. Do not copy day2, change its date or reinitialize to manufacture a later run.
 
 ## Release boundary
 
