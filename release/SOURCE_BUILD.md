@@ -124,6 +124,10 @@ Add-Content .env "`nCOMPOSE_PATH_SEPARATOR=;`nCOMPOSE_FILE=`"compose.yaml;$DataC
 docker compose config --quiet
 if ($LASTEXITCODE -ne 0) { throw 'Populated Compose configuration failed' }
 
+# The native preflight requires an existing owned Pick output directory.
+docker compose run --rm --no-deps mta-install python -c "from pathlib import Path; Path('/var/lib/vectorflow/pick').mkdir(parents=True, exist_ok=True)"
+if ($LASTEXITCODE -ne 0) { throw 'Pick output directory could not be created' }
+
 $Revision = 'starter-day1-' + (Get-Date -Format 'yyyyMMddTHHmmss')
 $DayArgs = @('manage.py','run_production_day','/input/day-01.json','--sha256',$DayHash,
   '--initialization',$Init.opening_id,'--source-digest',$Init.source_digest,

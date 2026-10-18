@@ -325,6 +325,9 @@ Keep this override on subsequent `vf` calls/restarts. Do not enable historical f
 Keep the serving MTA stopped during its exclusive daily worker. CPU/memory sizing belongs to the deployment, not this procedure. Ordinary execution owns ingestion/capture/calculation and inherent consumer writes; verify input/output findings separately afterward. On any failed/partial attempt preserve actual rows/files and reconcile before a reviewed retry; never repeat an accepted date.
 
 ```powershell
+# Prebuilt route entrypoint is already Python; create only the owned output directory.
+vf --profile install run --rm --no-deps mta-install -c "from pathlib import Path; Path('/var/lib/vectorflow/pick').mkdir(parents=True, exist_ok=True)"
+if ($LASTEXITCODE -ne 0) { throw 'Pick output directory could not be created' }
 $DayHash = $Release.optional_raw_inputs.files.'day-01.json'
 $Revision = 'manual-first-day-' + (Get-Date -Format 'yyyyMMddTHHmmss')
 $DayArguments = @('manage.py','run_production_day','/input/day-01.json','--sha256',$DayHash,
