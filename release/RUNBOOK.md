@@ -26,6 +26,7 @@ $InstallRoot = [IO.Path]::GetFullPath('C:/VectorFLOW-Clean')
 $DocsRoot = [IO.Path]::GetFullPath('C:/Transfers/vectorflow-step5-windows-docs')
 $RuntimeZip = 'C:/Transfers/vectorflow-step5-local-3c1dcf93.zip'
 $Release = Get-Content -Raw -LiteralPath "$DocsRoot/release/windows-final-release.json" | ConvertFrom-Json
+$ImageOverridePath = "$DocsRoot/release/windows-final-images.yaml"
 if (Test-Path -LiteralPath $InstallRoot) { throw 'Use a NEW directory; do not overwrite' }
 if ((Get-FileHash -LiteralPath $RuntimeZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Release.runtime_archive_sha256) { throw 'Runtime ZIP differs' }
 New-Item -ItemType Directory -Path $InstallRoot | Out-Null
@@ -111,7 +112,7 @@ foreach ($Line in Get-Content -LiteralPath $OperatorFile) {
   if ($Line -match '^([A-Z][A-Z0-9_]*)=') { Remove-Item -LiteralPath "Env:$($Matches[1])" -ErrorAction SilentlyContinue }
 }
 $ComposeArguments = @('--project-name',$Project,'--env-file',$OperatorFile,
-  '-f',"$AppRoot/release/compose.yaml",'-f',"$DocsRoot/release/windows-final-images.yaml")
+  '-f',"$AppRoot/release/compose.yaml",'-f',$ImageOverridePath)
 $DataComposeFile = $null
 function vf {
   $DockerArguments = @('compose') + $script:ComposeArguments

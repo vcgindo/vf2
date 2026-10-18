@@ -21,7 +21,7 @@ class ReleaseExportTests(unittest.TestCase):
                      'mta/mdm/target_fixture.py', 'mta/runtime/input_reader.py',
                      'baseline/complete-daily-state-schema-v3.json',
                      'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/.eslintrc.json',
-                     'frontend/public/assets/logo.svg',
+                     'frontend/public/assets/logo.svg', 'frontend/tsconfig.paths.json',
                      'frontend/src/mock-data/MCGrid.ts', 'frontend/src/mock-data/RRR-Color-Bandwise.ts',
                      'release/compose.yaml', 'release/frontend.Dockerfile', 'release/frontend-build.cjs', 'release/.env.example']:
             with self.subTest(name=name):
@@ -67,6 +67,8 @@ class ReleaseExportTests(unittest.TestCase):
         with tarfile.open(fileobj=data, mode='w') as tar:
             for name, raw in [('manage.py', b'print("entry")'), ('release/.dockerignore', b'**/secrets\n'),
                               ('requirements.txt', b'Django==5.2.17\n'),
+                              ('frontend/tsconfig.json', b'{"extends":"./tsconfig.paths.json"}\n'),
+                              ('frontend/tsconfig.paths.json', b'{"compilerOptions":{"baseUrl":"."}}\n'),
                               ('mta/mdm/initialization.py', b"IMPLEMENTATION_FILES = ('mdm/initialization.py',)\n"),
                               ('mta/runtime/migrations/0142_native_evidence_default.py', b'# migration\n'),
                               ('vectorflow/settings.py', b'# settings\n'),
@@ -85,6 +87,7 @@ class ReleaseExportTests(unittest.TestCase):
             with patch('release.export.subprocess.check_output',side_effect=[b'a'*40+b'\n',data.getvalue()]):
                 receipt=export(root/'repository','HEAD',destination)
             self.assertEqual(set(receipt['files']),{'manage.py','requirements.txt','release/.dockerignore','.dockerignore',
+                'frontend/tsconfig.json', 'frontend/tsconfig.paths.json',
                 'mta/mdm/initialization.py', 'mta/runtime/migrations/0142_native_evidence_default.py',
                 'vectorflow/settings.py', 'baseline/production-state-schema.json', schema_name})
             self.assertEqual((destination/schema_name).read_bytes(), schema)

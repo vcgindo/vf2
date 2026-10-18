@@ -86,7 +86,8 @@ def included(name):
         if name.startswith('frontend/src/mock-data/'):
             return name in ('frontend/src/mock-data/MCGrid.ts',
                             'frontend/src/mock-data/RRR-Color-Bandwise.ts')
-        if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json', 'frontend/.eslintrc.json'):
+        if name in ('frontend/package.json', 'frontend/package-lock.json', 'frontend/tsconfig.json',
+                    'frontend/tsconfig.paths.json', 'frontend/.eslintrc.json'):
             return True
         return (name.startswith('frontend/src/') and path.suffix in ('.ts', '.tsx', '.js', '.jsx', '.mjs', '.css', '.scss', '.json', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.woff', '.woff2', '.ttf')) or name.startswith('frontend/public/')
     return False
@@ -97,7 +98,7 @@ def export(repository, revision, destination):
     if destination.exists() or destination == repository or repository in destination.parents:
         raise ValueError('Choose a new external export directory; existing targets are never replaced')
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', revision + '^{commit}']).decode().strip()
-    archive = subprocess.check_output(['git', '-C', str(repository), '-c', 'core.autocrlf=false',
+    archive = subprocess.check_output(['git', '-C', str(repository), '-c', 'core.autocrlf=false', '-c', 'core.eol=lf',
         'archive', '--format=tar', commit])
     records = {}
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:

@@ -22,6 +22,49 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def installation_files(source, output, proof, public_cipher):
+    """Use the normal runbook with these exact newly built image identities."""
+    images={name:row['id'] for name,row in proof['images'].items()}
+    locks=json.loads((source/'release/images.lock.json').read_text())
+    for name in ('postgres','redis'):
+        reference=locks[name]
+        checked=subprocess.run(['docker','image','inspect',reference],capture_output=True,text=True)
+        if checked.returncode:
+            subprocess.run(['docker','pull','--platform','linux/amd64',reference],check=True)
+            checked=subprocess.run(['docker','image','inspect',reference],check=True,capture_output=True,text=True)
+        inspected=json.loads(checked.stdout)[0]
+        if (inspected['Architecture'],inspected['Os'])!=('amd64','linux'):
+            raise ValueError('Unexpected platform: '+name)
+        images[name]=inspected['Id']
+    services={name:{'image':image,'pull_policy':'never'} for name,image in images.items()}
+    for name,component in (('mta-install','mta'),('auth-install','auth'),('mto-install','mto'),('provision','mta')):
+        services[name]={'image':images[component],'pull_policy':'never'}
+    services['mta-install'].update(mem_limit='4g',memswap_limit='4g',cpus='2')
+    # JSON is a YAML subset understood by Docker Compose.
+    (output/'source-build-images.yaml').write_text(json.dumps({'x-restriction':proof['restriction'],'services':services},indent=2)+'\n')
+    release={'restriction':proof['restriction'],'schema':'vectorflow-source-build-install-v1',
+        'code_commit':proof['source_commit'],
+        'component_sources':{name:proof['source_commit'] for name in proof['images']},
+        'images':images,'native_manifest_sha256':proof['native_sha256'],
+        'mta_source_manifest_sha256':proof['source_sha256'],
+        'public_origin':proof['public_origin'],'websocket_origin':proof['websocket_origin'],
+        'public_client_cipher_key':public_cipher,
+        'optional_raw_inputs':json.loads((source/'release/windows-final-release.json').read_text())['optional_raw_inputs'],
+        'verification_boundary':'Built from Git; blank and connected runtime acceptance remain separate.'}
+    (output/'installation-release.json').write_text(json.dumps(release,indent=2)+'\n')
+    values={'VF_RELEASE':proof['source_commit'],'VF_NATIVE_RELEASE_COMMIT':proof['source_commit'],
+        'VF_NATIVE_RELEASE_SHA256':proof['native_sha256'],'VF_SOURCE_MANIFEST_SHA256':proof['source_sha256'],
+        'VF_PUBLIC_URL':proof['public_origin'],'VF_PUBLIC_WS_URL':proof['websocket_origin'],
+        'VF_HTTP_PORT':str(urlsplit(proof['public_origin']).port or (443 if proof['public_origin'].startswith('https:') else 80)),
+        'VF_CLIENT_CIPHER_KEY':public_cipher}
+    lines=(source/'release/.env.example').read_text().splitlines()
+    lines=[line.split('=',1)[0]+'='+values[line.split('=',1)[0]]
+        if '=' in line and line.split('=',1)[0] in values else line for line in lines]
+    (output/'operator.env.template').write_text('# '+proof['restriction']+'\n'+'\n'.join(lines)+'\n')
+    proof['installation_files']={name:digest(output/name) for name in
+        ('source-build-images.yaml','installation-release.json','operator.env.template')}
+
+
 def wheels(source, destination):
     """Download only independently hash-pinned wheels, or verify a cache."""
     destination.mkdir(exist_ok=True)
@@ -69,6 +112,10 @@ def build(repository, revision, output, *, image_prefix, public_origin, websocke
     save()
     source=output/'export'
     record=export(repository,revision,source)
+    config=json.loads((source/'frontend/tsconfig.json').read_text())
+    extends=config.get('extends')
+    if extends and (not extends.startswith('./') or not (source/'frontend'/extends).is_file()):
+        raise ValueError('Frontend TypeScript parent configuration absent from committed export')
     commit=record['source_commit'];tag=commit[:12]
     proof.update(source_commit=commit,source_sha256=digest(source/'release-source.json'),
                  native_sha256=digest(source/'release-native-source.json'))
@@ -127,11 +174,14 @@ def build(repository, revision, output, *, image_prefix, public_origin, websocke
             command.append(str(source))
             result=run(command)
             if result.returncode:raise ValueError(component+' build failed; preserve logs/attempts')
+            if component=='frontend' and 'TS5083:' in (output/'frontend-build.log').read_text():
+                raise ValueError('Frontend build lost a required TypeScript configuration')
             proof['images'][component]={'tag':image};save()
         for component,value in proof['images'].items():
             inspected=json.loads(subprocess.check_output(['docker','image','inspect',value['tag']]))[0]
             value.update(id=inspected['Id'],architecture=inspected['Architecture'],os=inspected['Os'])
             if (value['architecture'],value['os'])!=('amd64','linux'):raise ValueError('Unexpected image platform')
+        installation_files(source,output,proof,public_cipher)
         proof['status']='BUILT_FROM_ONE_COMMITTED_EXPORT_RUNTIME_ACCEPTANCE_PENDING'
         proof.pop('active_component',None);save()
         return proof
