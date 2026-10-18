@@ -64,7 +64,7 @@ const Planning = () => {
     function parseFloatAllNumericStrings(data: DataItem[]) {
       return data.map((item: DataItem) => {
         for (const key in item) {
-          if (!isNaN(item[key]) && typeof item[key] === 'string' && item[key].trim() !== '') {
+          if (!['sc', 'wc', 'parentWhCode'].includes(key) && !isNaN(item[key]) && typeof item[key] === 'string' && item[key].trim() !== '') {
             item[key] = parseFloat(item[key]);
           }
         }
