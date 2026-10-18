@@ -1,281 +1,371 @@
-# Windows deployment runbook
+# Windows: deploy the blank production application, then load data separately
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
-Cleanup Step6 supplies an MTA source/image artifact only. It does not authorize reinstalling or upgrading8080/3006 or loading optional inputs. The historical8080 procedure below requires its own earlier authority and package; do not apply it to the cleanup release.
+This replaces the historical bd309169/8080 destructive reinstall procedure. Run each numbered step manually, in order, in the same PowerShell session on a NEW target. Stop at the first failure and retain its output. Do not reset, reprovision, adopt an old installation or replay an accepted day.
 
-- **Verify the package** — Check the source ZIP, saved MTA image archive and independent source/native manifest SHA256 values against the approved delivery receipt. Extract into a new directory. Preserve all existing private files/images/volumes.
-- **Use the authenticated MTA builder** — From that exported source directory, run the command below with exact reviewed pins and eight hash-pinned LinuxCPython3.11 wheels. A raw checkout, dirty export, changed descriptor or missing wheel is refused before Docker build. No frontend/MTO/auth image is built.
-- **Keep installation separate** — Load the saved image only under its target authority; match actual imageID, then set VF_NATIVE_RELEASE_COMMIT/VF_NATIVE_RELEASE_SHA256/VF_SOURCE_MANIFEST_SHA256 from the independent receipt. Compose uses the prebuilt MTA image, not a raw-context build. This release does not authorize starting a deployment.
-- **Keep optional data separate** — The optional operator package contains exact original optional_initialize.py/optional-initialization.json and the separately pinned data ZIP. It is absent from default source ZIP/image. Neither inspect/apply nor generic initialize_production is executed by packaging. See OPERATIONS_REFERENCE.md.
+**Part A is deployment:** six prebuilt production components, empty application schemas, system metadata, a new administrator and normal authenticated access. It stops before business registration, master/opening ingestion, daily calculation or publication. **Part B is optional data onboarding and daily operation.** Business reports need data; a blank installation must not fabricate report results.
 
-```powershell
-python -B -m release.build_mta --source-root C:/approved/export --context D:/owned/new-mta-context --wheelhouse D:/approved/mta-wheels --commit APPROVED_FULL_COMMIT --source-sha256 APPROVED_SOURCE_MANIFEST_SHA256 --native-sha256 APPROVED_NATIVE_MANIFEST_SHA256 --image vectorflow/mta:APPROVED_TAG
-if ($LASTEXITCODE -ne 0) { throw 'Authenticated MTA build refused; preserve the failed attempt' }
-```
+**Acceptance status:** the initialized connected application/workflows/cold recovery passed Step5. These blank-install commands have source, syntax and configuration checks. The HUMAN OPERATOR must execute and validate the blank six-component installation; that runtime checkpoint remains PENDING. Static checks are not a fresh-install PASS.
 
-## Historical8080 procedure — not cleanup Step6 execution
+## A. Deploy and validate a blank installation
 
-Reinstall **only the 8080 trial** at `I:/VectorFLOW-Trial` using the corrected `bd309169` package when separately authorized for that original package. Run each step manually, in order, in the same PowerShell session.
+### 1. Obtain the final runtime and current Windows documentation
 
-- **1. Prepare Windows** — Start Docker Desktop in Linux-container mode. Check that Python 3 and the approved source ZIP/runtime archive are available.
-- **2. Remove the old trial** — Remove its six containers, eight volumes and network; archive its folder. **This permanently deletes the trial databases and accounts. The folder archive is not a database backup.** Other deployments and Docker images stay untouched.
+Use Windows with Docker Desktop in Linux/amd64 mode, Compose v2, Python3 and PowerShell. Declared running-service RAM caps total approximately8.25GiB, plus Docker/Windows overhead; provide disk for images, volumes, logs and backups. These are small-data limits, not production-volume sizing.
 
-<details>
-<summary>Show cleanup commands</summary>
+- Runtime: `vectorflow-step5-local-3c1dcf93.zip`,494874161bytes; SHA256 `7fb66c10bbcfa5dfb8c71df21f82390f46951398838081a2a2f0dbecac6b9056`.
+- Current documentation companion or the current remote documentation commit: this runbook, `windows-final-release.json`, `windows-final-images.yaml` and final handoff. Check the companion's independently supplied ZIP hash before extracting it into `$DocsRoot`.
+- Optional raw-input ZIP: named and pinned in `windows-final-release.json`. Keep it unopened throughout Part A. It contains synthetic raw masters/opening, two supplied days and matching scope catalogue; no account, password, database or calculated output.
+
+Keep the runtime ZIP immutable. Its enclosed handoff predates final archive verification; the current companion records the subsequent PASS. Use THIS runbook instead of the old runbook inside its source ZIP. Git contains documentation/source, not Docker layers or private backups. No application rebuild is needed.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-$TrialRoot = [IO.Path]::GetFullPath('I:/VectorFLOW-Trial')
-if ($TrialRoot.TrimEnd('\','/') -ne 'I:\VectorFLOW-Trial') {
-  throw 'Unexpected absolute cleanup root'
+$InstallRoot = [IO.Path]::GetFullPath('C:/VectorFLOW-Clean')
+$DocsRoot = [IO.Path]::GetFullPath('C:/Transfers/vectorflow-step5-windows-docs')
+$RuntimeZip = 'C:/Transfers/vectorflow-step5-local-3c1dcf93.zip'
+$Release = Get-Content -Raw -LiteralPath "$DocsRoot/release/windows-final-release.json" | ConvertFrom-Json
+if (Test-Path -LiteralPath $InstallRoot) { throw 'Use a NEW directory; do not overwrite' }
+if ((Get-FileHash -LiteralPath $RuntimeZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Release.runtime_archive_sha256) { throw 'Runtime ZIP differs' }
+New-Item -ItemType Directory -Path $InstallRoot | Out-Null
+$BundleRoot = Join-Path $InstallRoot 'bundle'
+$AppRoot = Join-Path $InstallRoot 'source'
+$PrivateRoot = Join-Path $InstallRoot 'private'
+$ReceiptsRoot = Join-Path $InstallRoot 'receipts'
+Expand-Archive -LiteralPath $RuntimeZip -DestinationPath $BundleRoot
+python "$BundleRoot/verify-package.py"
+if ($LASTEXITCODE -ne 0) { throw 'Package verification failed' }
+$SourceZip = Join-Path $BundleRoot $Release.source_archive
+if ((Get-FileHash -LiteralPath $SourceZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Release.source_archive_sha256) { throw 'Source ZIP differs' }
+Expand-Archive -LiteralPath $SourceZip -DestinationPath $AppRoot
+New-Item -ItemType Directory -Path $PrivateRoot,$ReceiptsRoot | Out-Null
+function Invoke-VFDocker {
+  $Result = & docker @args
+  if ($LASTEXITCODE -ne 0) { throw 'Docker failed: stop and preserve the command/output' }
+  $Result
 }
-if (-not (Test-Path -LiteralPath "$TrialRoot/operator.env" -PathType Leaf)) {
-  throw 'Original trial folder not found; do not guess another target'
+Invoke-VFDocker info --format '{{.OSType}}/{{.Architecture}}'
+Invoke-VFDocker compose version
+# Require Linux/amd64 (Docker may spell it linux/x86_64).
+Invoke-VFDocker load --input "$BundleRoot/runtime-images.tar.gz"
+foreach ($Property in $Release.images.PSObject.Properties) {
+  $Actual = Invoke-VFDocker image inspect $Property.Value --format '{{.Id}}'
+  if ($Actual -ne $Property.Value) { throw "Wrong loaded image: $($Property.Name)" }
 }
-$TrialProject = 'vectorflow-localtrial'
-$TrialNetwork = 'vectorflow-localtrial_application'
-$ExpectedServices = @('auth','mta','frontend','mto','postgres','redis')
-$ExpectedVolumes = @(
-  'vectorflow-localtrial_auth_data',
-  'vectorflow-localtrial_auth_logs',
-  'vectorflow-localtrial_mta_data',
-  'vectorflow-localtrial_mto_data',
-  'vectorflow-localtrial_mto_downloads',
-  'vectorflow-localtrial_mto_logs',
-  'vectorflow-localtrial_postgres_data',
-  'vectorflow-localtrial_redis_data'
-)
-function Invoke-TrialDocker {
-  $OutputLines = & docker @args
-  if ($LASTEXITCODE -ne 0) { throw 'Docker command failed; stop and inspect' }
-  $OutputLines
-}
-$TrialContainerIds = @(Invoke-TrialDocker ps -aq --filter "label=com.docker.compose.project=$TrialProject")
-if ($TrialContainerIds.Count -ne 6) { throw 'Expected exactly six trial containers' }
-$TrialContainers = @(Invoke-TrialDocker inspect @TrialContainerIds | ConvertFrom-Json)
-$ActualServices = @($TrialContainers | ForEach-Object { $_.Config.Labels.'com.docker.compose.service' })
-if (Compare-Object ($ExpectedServices | Sort-Object) ($ActualServices | Sort-Object)) {
-  throw 'Unexpected service roster'
-}
-$ActualVolumes = @(Invoke-TrialDocker volume ls -q --filter "label=com.docker.compose.project=$TrialProject")
-if (Compare-Object ($ExpectedVolumes | Sort-Object) ($ActualVolumes | Sort-Object)) {
-  throw 'Unexpected volume roster'
-}
-$VolumeRows = @(Invoke-TrialDocker volume inspect @ExpectedVolumes | ConvertFrom-Json)
-foreach ($VolumeRow in $VolumeRows) {
-  if ($VolumeRow.Labels.'com.docker.compose.project' -ne $TrialProject) {
-    throw 'Volume ownership differs'
-  }
-}
-$NetworkRows = @(Invoke-TrialDocker network inspect $TrialNetwork | ConvertFrom-Json)
-if ($NetworkRows.Count -ne 1 -or $NetworkRows[0].Labels.'com.docker.compose.project' -ne $TrialProject) {
-  throw 'Network ownership differs'
-}
-$AllContainerIds = @(Invoke-TrialDocker ps -aq)
-$AllContainers = @(Invoke-TrialDocker inspect @AllContainerIds | ConvertFrom-Json)
-foreach ($ContainerRow in $AllContainers) {
-  if ($ContainerRow.Config.Labels.'com.docker.compose.project' -eq $TrialProject) { continue }
-  $SharedVolumes = @($ContainerRow.Mounts | Where-Object { $_.Type -eq 'volume' -and $_.Name -in $ExpectedVolumes })
-  $SharedNetwork = @($ContainerRow.NetworkSettings.Networks.PSObject.Properties.Name) -contains $TrialNetwork
-  if ($SharedVolumes.Count -gt 0 -or $SharedNetwork) {
-    throw "Another container references trial resources: $($ContainerRow.Name)"
-  }
-}
-$TrialContainers | Select-Object Name, @{Name='Service';Expression={$_.Config.Labels.'com.docker.compose.service'}}
-$ExpectedVolumes
-$TrialNetwork
-if ((Read-Host 'Permanently delete this trial database, accounts and files? Type DESTROY-8080') -cne 'DESTROY-8080') {
-  throw 'Cleanup cancelled'
-}
-# Exact validated container IDs only; no other project's container is selected.
-Invoke-TrialDocker container stop --time 30 @TrialContainerIds
-Invoke-TrialDocker container rm @TrialContainerIds
-Invoke-TrialDocker volume rm @ExpectedVolumes
-Invoke-TrialDocker network rm $TrialNetwork
-
-# Verify removal. A partial failure is a stop, not permission for global cleanup.
-if (@(Invoke-TrialDocker ps -aq --filter "label=com.docker.compose.project=$TrialProject").Count) {
-  throw 'Trial containers remain'
-}
-if (@(Invoke-TrialDocker volume ls -q --filter "label=com.docker.compose.project=$TrialProject").Count) {
-  throw 'Trial volumes remain'
-}
-if (@(Invoke-TrialDocker network ls -q --filter "label=com.docker.compose.project=$TrialProject").Count) {
-  throw 'Trial network remains'
-}
-if (Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue) {
-  throw '8080 is still occupied; identify its owner, do not kill an unrelated process'
-}
-
-# Preserve original sources/operator files/secrets privately, rather than delete them.
-# Resolve both absolute paths and require the same intended parent before moving.
-$TrialParent = Split-Path -Parent $TrialRoot
-$RetiredRoot = [IO.Path]::GetFullPath((Join-Path $TrialParent ("VectorFLOW-Trial.retired-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))))
-if ((Split-Path -Parent $RetiredRoot) -ne $TrialParent -or $RetiredRoot -eq $TrialRoot -or (Test-Path -LiteralPath $RetiredRoot)) {
-  throw 'Unsafe or existing archive destination'
-}
-Set-Location -LiteralPath $TrialParent
-Move-Item -LiteralPath $TrialRoot -Destination $RetiredRoot
-Write-Host "Old folder preserved at $RetiredRoot; it contains private secrets, not a database backup."
 ```
 
-</details>
+The component revisions intentionally differ: MTA9e312c04, frontend3c1dcf93, authb4e4baf6, unchanged MTO bd309169, PostgreSQL16.15 and Redis7.4. Never substitute the documentation commit for a runtime/native identity. Preserve the extracted source bytes; installer helpers use this verified source, not an arbitrary checkout.
 
-- **3. Extract the package** — Verify its hashes, extract to the new folder and load the images. Copy only the old network override; do not reuse old image or upgrade overrides.
+### 2. Generate private secrets and configure the new target
 
-<details>
-<summary>Show package commands</summary>
+Choose the installation host port in `VF_HTTP_PORT` in the private env file; the default is8080. Compose maps that variable to frontend container port80. HTTP API/download paths are relative to the browser origin. The retained frontend's MTO WebSocket origin, however, is compiled as `ws://127.0.0.1:8080`: selecting another port changes the HTTP listener and public URL, but does not rewrite that WebSocket origin. Full MTO socket use at a different port requires a separately approved matching frontend artifact from unchanged source. This documentation does not build/change frontend or MTO. Public HTTPS/WSS additionally needs destination/TLS decisions.
 
-```powershell
-$PackageDirectory = 'D:/freshvcf-build/evidence/handoff3005-s2-20261013-001/s4-deployment-gap-implementation-20261017'
-$SourceZip = Join-Path $PackageDirectory 'vectorflow-stage4-source-bd309169.zip'
-$RuntimeArchive = Join-Path $PackageDirectory 'export-bd309169/vectorflow-stage4-runtime.tar.gz'
-if ((Get-FileHash -LiteralPath $SourceZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne '2afce44024bad553249fb38dbfb4796b38a77cd56b2bb318b82c29a4d5a807ad') {
-  throw 'Source ZIP differs'
-}
-if ((Get-FileHash -LiteralPath $RuntimeArchive -Algorithm SHA256).Hash.ToLowerInvariant() -ne '8d5d2c5db40c3cac9a5b4cf7f14faade8afc37e82a376953c4eeb5c338790520') {
-  throw 'Runtime archive differs'
-}
-if (Test-Path -LiteralPath $TrialRoot) { throw 'Fresh destination already exists' }
-Expand-Archive -LiteralPath $SourceZip -DestinationPath $TrialRoot
-Copy-Item -LiteralPath $RuntimeArchive -Destination "$TrialRoot/vectorflow-stage4-runtime.tar.gz"
-# Reuse the known local subnet configuration, NOT an old image/upgrade override.
-Copy-Item -LiteralPath "$RetiredRoot/network-local.yaml" -Destination "$TrialRoot/network-local.yaml"
-$SourceManifest = Get-Content -Raw -LiteralPath "$TrialRoot/release-source.json" | ConvertFrom-Json
-if ($SourceManifest.source_commit -ne 'bd309169b8f494ed8c93f47302327d74c341923b') {
-  throw 'Wrong release'
-}
-Invoke-TrialDocker load --input "$TrialRoot/vectorflow-stage4-runtime.tar.gz"
-```
-
-</details>
-
-The copied subnet is `198.18.57.0/28`. Check `docker network ls/inspect` and `Get-NetRoute` for overlap before reusing it. Do not prune networks or change Docker daemon settings.
-
-- **4. Create settings and secrets** — Generate new private keys/passwords. Keep the public cipher that matches the unchanged frontend. Use the new package's `loaded-images.yaml`.
-
-<details>
-<summary>Show configuration commands</summary>
+The supplied `public_client_cipher_key` is intentionally PUBLIC configuration compiled into the browser. Auth must match it. It is not a database/signing/RSA secret. Generate new private values below; never copy the existing trial's secrets or accounts.
 
 ```powershell
-$PublicBuild = Get-Content -Raw -LiteralPath "$TrialRoot/public-build.json" | ConvertFrom-Json
-$RuntimeImages = Get-Content -Raw -LiteralPath "$TrialRoot/runtime-images.json" | ConvertFrom-Json
-$PrivateRoot = New-Item -ItemType Directory -Path "$TrialRoot/private" -ErrorAction Stop
 $OperatorIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-& icacls $PrivateRoot.FullName /inheritance:r /grant:r "${OperatorIdentity}:(OI)(CI)F"
-if ($LASTEXITCODE) { throw 'Private directory ACL setup failed' }
-Invoke-TrialDocker run --rm --network none --user 0:0 --entrypoint python --mount "type=bind,src=$($PrivateRoot.FullName),dst=/private" $RuntimeImages.services.auth.image_id -m release.prepare_secrets --directory /private/secrets --public-client-cipher-key $PublicBuild.client_cipher_key
-Copy-Item -LiteralPath "$TrialRoot/release/.env.example" -Destination "$TrialRoot/operator.env"
-# Edit only the new operator configuration, not application code.
-$OperatorLines = @(Get-Content -LiteralPath "$TrialRoot/operator.env")
-$TrialSettings = @{
-  VF_PROJECT = 'vectorflow-localtrial'
-  VF_RELEASE = 'bd309169b8f494ed8c93f47302327d74c341923b'
-  VF_SECRETS_DIR = "$TrialRoot/private/secrets"
-  VF_CLIENT_CIPHER_KEY = $PublicBuild.client_cipher_key
-  VF_BIND_ADDRESS = '127.0.0.1'
-  VF_HTTP_PORT = '8080'
-  VF_PUBLIC_URL = 'http://127.0.0.1:8080'
-  VF_PUBLIC_WS_URL = 'ws://127.0.0.1:8080'
-}
-foreach ($SettingName in $TrialSettings.Keys) {
-  $Pattern = '^' + [regex]::Escape($SettingName) + '='
-  if (@($OperatorLines | Where-Object { $_ -match $Pattern }).Count -ne 1) {
-    throw "Missing or duplicate setting: $SettingName"
-  }
-  $OperatorLines = @($OperatorLines | ForEach-Object {
-    if ($_ -match $Pattern) { "$SettingName=$($TrialSettings[$SettingName])" } else { $_ }
-  })
-  # Compose shell environment overrides its env file. Remove stale values for this session.
-  Remove-Item -LiteralPath "Env:$SettingName" -ErrorAction SilentlyContinue
-}
-$OperatorLines | Set-Content -LiteralPath "$TrialRoot/operator.env" -Encoding utf8
+& icacls $PrivateRoot /inheritance:r /grant:r "${OperatorIdentity}:(OI)(CI)F" '*S-1-5-18:(OI)(CI)F'
+if ($LASTEXITCODE -ne 0) { throw 'Private ACL setup failed' }
+Invoke-VFDocker run --rm --network none --user 0:0 --entrypoint python `
+  --mount "type=bind,source=$PrivateRoot,target=/private" $Release.images.auth `
+  -m release.prepare_secrets --directory /private/secrets --public-client-cipher-key $Release.public_client_cipher_key
+$OperatorFile = Join-Path $PrivateRoot 'operator.env'
+Copy-Item -LiteralPath "$BundleRoot/operator.env.template" -Destination $OperatorFile
+notepad $OperatorFile
 ```
 
-</details>
-
-- **5. Install and start** — Run preflight, create the empty databases, apply migrations and metadata grants, then create a new administrator. **Stop at the first failure; do not rerun provisioning over a partial install.**
-
-<details>
-<summary>Show installation commands</summary>
+Set `VF_HTTP_PORT` to your free host port (1–65535), save and close the editor before continuing. Leave `VF_BIND_ADDRESS=127.0.0.1` for this local build. Edit the env file rather than Compose or application code.
 
 ```powershell
-function vf {
-  & docker compose --project-name vectorflow-localtrial --env-file "$TrialRoot/operator.env" `
-    -f "$TrialRoot/release/compose.yaml" -f "$TrialRoot/loaded-images.yaml" `
-    -f "$TrialRoot/network-local.yaml" @args
-  if ($LASTEXITCODE) { throw 'Compose failed; stop at this step and preserve the failure' }
+$PortLine = @(Get-Content -LiteralPath $OperatorFile | Where-Object { $_ -match '^VF_HTTP_PORT=' })
+if ($PortLine.Count -ne 1) { throw 'One VF_HTTP_PORT setting is required' }
+[int]$HttpPort = 0
+if (-not [int]::TryParse(($PortLine[0] -split '=',2)[1], [ref]$HttpPort) -or $HttpPort -lt 1 -or $HttpPort -gt 65535) { throw 'Invalid VF_HTTP_PORT' }
+$PublicUrl = "http://127.0.0.1:$HttpPort"
+function Set-OperatorValue([string]$Name, [string]$Value) {
+  $Lines = @(Get-Content -LiteralPath $script:OperatorFile)
+  $Pattern = '^' + [regex]::Escape($Name) + '='
+  if (@($Lines | Where-Object { $_ -match $Pattern }).Count -ne 1) { throw "Missing/duplicate setting: $Name" }
+  $Lines = @($Lines | ForEach-Object { if ($_ -match $Pattern) { "$Name=$Value" } else { $_ } })
+  [IO.File]::WriteAllLines($script:OperatorFile, $Lines, [Text.UTF8Encoding]::new($false))
 }
-python "$TrialRoot/release/preflight.py" --source-root $TrialRoot --env-file "$TrialRoot/operator.env" `
-  --compose-file "$TrialRoot/release/compose.yaml" --compose-file "$TrialRoot/loaded-images.yaml" `
-  --compose-file "$TrialRoot/network-local.yaml"
-if ($LASTEXITCODE) { throw 'Preflight refused; do not provision' }
+$Project = 'vectorflow-clean'
+$Settings = @{
+  VF_PROJECT=$Project; VF_RELEASE=$Release.code_commit
+  VF_NATIVE_RELEASE_COMMIT=$Release.component_sources.mta
+  VF_NATIVE_RELEASE_SHA256=$Release.native_manifest_sha256
+  VF_SOURCE_MANIFEST_SHA256=$Release.mta_source_manifest_sha256
+  VF_SECRETS_DIR=(Join-Path $PrivateRoot 'secrets').Replace('\','/')
+  VF_CLIENT_CIPHER_KEY=$Release.public_client_cipher_key
+  VF_BIND_ADDRESS='127.0.0.1'
+  VF_PUBLIC_URL=$PublicUrl; VF_PUBLIC_WS_URL="ws://127.0.0.1:$HttpPort"
+  POSTGRES_MEMORY='2g'; MTA_MEMORY='4g'; MTA_WORKERS='1'
+  MTA_SELECTION_FILE=''; MTA_PERMISSIONS_FILE=''; MTA_PERMISSIONS_SHA256=''
+  MTA_HIERARCHY_FILE=''; MTA_HIERARCHY_SHA256=''
+}
+foreach ($Name in $Settings.Keys) { Set-OperatorValue $Name $Settings[$Name] }
+# Clear only keys declared in this new env file in this PowerShell session:
+# shell environment otherwise overrides Compose's operator file.
+foreach ($Line in Get-Content -LiteralPath $OperatorFile) {
+  if ($Line -match '^([A-Z][A-Z0-9_]*)=') { Remove-Item -LiteralPath "Env:$($Matches[1])" -ErrorAction SilentlyContinue }
+}
+$ComposeArguments = @('--project-name',$Project,'--env-file',$OperatorFile,
+  '-f',"$AppRoot/release/compose.yaml",'-f',"$DocsRoot/release/windows-final-images.yaml")
+$DataComposeFile = $null
+function vf {
+  $DockerArguments = @('compose') + $script:ComposeArguments
+  if ($script:DataComposeFile) { $DockerArguments += @('-f',$script:DataComposeFile) }
+  $DockerArguments += $args
+  $InputLines = @($input)
+  if ($InputLines.Count) {
+    $Result = $InputLines | & docker @DockerArguments
+    if ($LASTEXITCODE -ne 0) { throw 'Docker failed: stop and preserve the command/output' }
+    $Result
+  } else { Invoke-VFDocker @DockerArguments }
+}
+```
+
+The override pins all six runtime services AND four installer profiles, including provision. MTA installer/daily workers use4GiB/2CPU sequentially with the serving MTA stopped. Keep default separate `vectorflow_mta` / `vectorflow_mto` logical databases and service roles on this new cluster. Auth has a separate identity schema in the MTO database. No frontend/MTO source or image change is involved.
+
+### 3. Verify configuration and absence before creation
+
+```powershell
 vf config --quiet
-vf up -d --wait postgres redis
+vf --profile install config --images
+$Configuration = vf --profile install config --format json | ConvertFrom-Json
+$Expected = @{}
+foreach ($Property in $Release.images.PSObject.Properties) { $Expected[$Property.Name]=$Property.Value }
+$Expected['mta-install']=$Release.images.mta
+$Expected['auth-install']=$Release.images.auth
+$Expected['mto-install']=$Release.images.mto
+$Expected['provision']=$Release.images.mta
+foreach ($Name in $Expected.Keys) {
+  if ($Configuration.services.$Name.image -ne $Expected[$Name]) { throw "Wrong image: $Name" }
+}
+foreach ($Secret in $Configuration.secrets.PSObject.Properties) {
+  if (-not (Test-Path -LiteralPath $Secret.Value.file -PathType Leaf)) { throw "Missing secret: $($Secret.Name)" }
+}
+if (Get-NetTCPConnection -LocalPort $HttpPort -State Listen -ErrorAction SilentlyContinue) { throw 'Chosen VF_HTTP_PORT occupied; do not replace another deployment' }
+if (@(Invoke-VFDocker ps -aq --filter "label=com.docker.compose.project=$Project").Count) { throw 'Project containers exist; do not adopt/reset' }
+if (@(Invoke-VFDocker volume ls -q --filter "label=com.docker.compose.project=$Project").Count) { throw 'Project volumes exist; do not adopt/reset' }
+if (@(Invoke-VFDocker network ls -q --filter "label=com.docker.compose.project=$Project").Count) { throw 'Project network exists; do not adopt/reset' }
+```
+
+Do not run the older single-source `release.preflight` build gate against contradictory source3c1/MTA9e pins. This composite release is checked using the immutable archive/source and each prebuilt component's own identity. Docker allocates the new project's network; address-pool/host-route conflicts require explicit subnet review, not copying old networks or restarting/pruning Docker.
+
+### 4. Install empty schemas and system metadata only
+
+```powershell
+vf up --no-build --pull never -d --wait postgres redis
 vf --profile install run --rm --no-deps provision -m release.provision
 vf --profile install run --rm --no-deps provision -m release.provision --apply
+vf --profile install run --rm --no-deps mta-install manage.py check --database default
 vf --profile install run --rm --no-deps mta-install manage.py migrate --plan
 vf --profile install run --rm --no-deps mta-install manage.py migrate --noinput
 vf --profile install run --rm --no-deps auth-install manage.py migrate --noinput
 vf --profile install run --rm --no-deps mto-install manage.py migrate --noinput
 vf --profile install run --rm --no-deps auth-install -m release.install_identity
-vf --profile install run --rm --no-deps provision -m release.grant_service AUTH
-vf --profile install run --rm --no-deps provision -m release.grant_service MTO
+# grant_service is an operator helper, excluded from the minimal MTA runtime.
+# Mount just that verified file outside /app for this offline provisioner.
+$GrantHelper = "$AppRoot/release/grant_service.py"
+vf --profile install run --rm --no-deps -v "${GrantHelper}:/operator/grant_service.py:ro" provision /operator/grant_service.py AUTH
+vf --profile install run --rm --no-deps -v "${GrantHelper}:/operator/grant_service.py:ro" provision /operator/grant_service.py MTO
 vf --profile install run --rm --no-deps provision -m release.metadata_access
 vf --profile install run --rm --no-deps provision -m release.metadata_access --apply
+```
+
+Provisioning refuses existing names; never repeat it over a partial install. Identity installation creates application/permission/feature/configuration definitions only. Do not run `seed_users_and_roles`, restore development data or register MTA against a dummy input hash. Business registration belongs in Part B, when the real opening input exists.
+
+Set bounded defaults ONLY for the two MTA login roles in their new DB; no global or other-role timeout change:
+
+```powershell
+@'
+ALTER ROLE vectorflow_mta_runtime IN DATABASE vectorflow_mta SET idle_in_transaction_session_timeout='300s';
+ALTER ROLE vectorflow_mta_runtime IN DATABASE vectorflow_mta SET statement_timeout='300s';
+ALTER ROLE vectorflow_mta_runtime IN DATABASE vectorflow_mta SET lock_timeout='5s';
+ALTER ROLE vectorflow_mta_installer IN DATABASE vectorflow_mta SET idle_in_transaction_session_timeout='300s';
+ALTER ROLE vectorflow_mta_installer IN DATABASE vectorflow_mta SET statement_timeout='300s';
+ALTER ROLE vectorflow_mta_installer IN DATABASE vectorflow_mta SET lock_timeout='5s';
+'@ | vf exec -T --user postgres postgres psql -U postgres -d postgres -v ON_ERROR_STOP=1
+```
+
+### 5. Create the new administrator and start the production services
+
+```powershell
 vf --profile install run --rm --no-deps auth-install manage.py createsuperuser
-vf up -d --wait mta auth mto frontend
+# Supply your own email/name/password and required tc field interactively.
+vf up --no-build --pull never -d --wait mta auth mto frontend
 vf ps
-Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:8080/healthz'
-Start-Process 'http://127.0.0.1:8080'
+Invoke-WebRequest -UseBasicParsing "$PublicUrl/healthz"
+Start-Process $PublicUrl
 ```
 
-</details>
+Complete normal login/CAPTCHA yourself. No default trial, supplier or reviewer is installed. Add ordinary users/roles through existing administration when needed. Keep credentials outside Git/images. Optional auth-worker/auth-beat maintenance profiles are unchanged; they are not a seventh component required to make the six runtime services healthy.
 
-- **6. Sign in** — Open `http://127.0.0.1:8080` with the new administrator. The old `trial` account no longer exists.
-- **7. Check the installation** — MDM family definitions should load. Health returns200. Readiness remains503 until publication. BPR/Planning may retain their original unavailable views because no business data has been loaded.
-- **8. Stop here** — Sample loading, initialization, daily runs, publication and recovery testing belong to Step Five.
-
-<details>
-<summary>Show status and logs</summary>
+### 6. Validate the BLANK checkpoint, then stop
 
 ```powershell
-vf ps
-vf logs --tail 50 mta auth
-Invoke-WebRequest -UseBasicParsing 'http://127.0.0.1:8080/healthz'
+@'
+import django,json
+django.setup()
+from django.db import connection,transaction
+from mta.runtime.models import ProductionInitialization,MdmSource,CalculationRun,RunCommand,DailyUiPublication
+with transaction.atomic():
+ with connection.cursor() as c:c.execute('SET TRANSACTION READ ONLY')
+ counts={m.__name__:m.objects.count() for m in (ProductionInitialization,MdmSource,CalculationRun,RunCommand,DailyUiPublication)}
+ assert not any(counts.values()),counts
+ with connection.cursor() as c:
+  c.execute("SELECT to_regclass('fresh_control.owned_namespace')")
+  assert c.fetchone()[0] is None,'Blank deployment must not register business inputs'
+print(json.dumps({'blank_business_counts':counts,'business_registration':False}))
+connection.close()
+'@ | vf --profile install run --rm --no-deps -T --entrypoint python mta-install -
+@'
+import django,urllib.request,urllib.error
+django.setup()
+from django.db import connection
+from mta.presentation.installation_metadata import require_installation
+assert require_installation() is None
+with connection.cursor() as c:
+ c.execute("SELECT current_user,current_database(),current_setting('idle_in_transaction_session_timeout'),current_setting('statement_timeout'),current_setting('lock_timeout')")
+ assert c.fetchone()==('vectorflow_mta_runtime','vectorflow_mta','5min','5min','5s')
+assert urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=10).status==200
+try:
+ urllib.request.urlopen('http://127.0.0.1:8000/readyz',timeout=10)
+except urllib.error.HTTPError as e:
+ assert e.code==503
+else:raise AssertionError('Blank target cannot claim a published business generation')
+print('PASS installation metadata; no business publication selected')
+'@ | vf exec -T mta python -
 ```
 
-</details>
+Record actual results in `$ReceiptsRoot`, then report them against the sole handoff tracker:
 
-<details>
-<summary>Optional: clone the pinned source instead of using its ZIP</summary>
+- Six intended services healthy, exact images selected, only the intended frontend listener published. No backend/PG/Redis host listener.
+- New administrator login works; original navigation and MDM family configuration load. No sample users, masters, opening, accepted runs, workflows or publication.
+- `/healthz`200 and the finite installation-metadata check PASS. MTA `/readyz` is **503 until publication**. Data-dependent reports/masters remain explicitly unavailable. This is not populated-report acceptance or permission to return invented empty200s.
+- Unexpected auth failures, missing installed metadata, crashes,500s or missing required routes are failures to report, not successful deployment because a container is running.
+- `vf stop`, then `vf up --no-build --pull never -d --wait` restarts this SAME new project. Login and blank checks still work; it performs no provisioning/migration/import/calculation. Never use `down -v`.
+
+**Part A ends here.** It remains PENDING until you execute and record these checks. Do not include sample loading or daily runs in blank deployment. Functions needing data are verified after the separate data operation.
+
+## B. Optional: load masters/opening, then execute a supplied day
+
+This is a deliberate operator action, not startup. Use the separately pinned raw sample pack or a separately reviewed real onboarding packet. The sample is opening17Oct2026/days18–19Oct2026,200SKU/20location definitions and a small active population, including the already-approved positive shipment/order/consumption facts. No calculated outputs are supplied. Do not change dates/quantities/rules to manufacture eligibility. Historical data can prove loading/calculation/reports; current-date Apply/Sleep/reviewer tests need a date-compatible input/action case.
+
+### 1. Verify real inputs, register their opening hash and initialize once
 
 ```powershell
-$SourceRoot = 'I:/VectorFLOW-Source'
-$ExportRoot = 'I:/VectorFLOW-Export'
-$ApprovedCommit = 'bd309169b8f494ed8c93f47302327d74c341923b'
-git clone https://github.com/yurtse/freshvcf.git $SourceRoot
-if ($LASTEXITCODE) { throw 'Clone failed' }
-git -C $SourceRoot checkout --detach $ApprovedCommit
-if ($LASTEXITCODE) { throw 'Pinned checkout failed' }
-python "$SourceRoot/release/export.py" --repository $SourceRoot --revision $ApprovedCommit --output $ExportRoot
-if ($LASTEXITCODE) { throw 'Export failed' }
+$OptionalZip = Join-Path 'C:/Transfers' $Release.optional_raw_inputs.archive
+if ((Get-FileHash -LiteralPath $OptionalZip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Release.optional_raw_inputs.sha256) { throw 'Raw input pack differs' }
+$InputRoot = Join-Path $PrivateRoot 'inputs'
+if (Test-Path -LiteralPath $InputRoot) { throw 'Inputs already exist; do not overwrite' }
+Expand-Archive -LiteralPath $OptionalZip -DestinationPath $InputRoot
+foreach ($Property in $Release.optional_raw_inputs.files.PSObject.Properties) {
+  if ((Get-FileHash -LiteralPath (Join-Path $InputRoot $Property.Name) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Property.Value) { throw "Input differs: $($Property.Name)" }
+}
+vf stop mta
+$NativePins = @('-e',"VF_NATIVE_RELEASE_COMMIT=$($Release.component_sources.mta)",'-e',"VF_NATIVE_RELEASE_SHA256=$($Release.native_manifest_sha256)")
+$OpeningHash = $Release.optional_raw_inputs.files.'initialization.json'
+$ConfigurationDigest = $Release.optional_raw_inputs.configuration_digest
+$RecipeDigest = $Release.optional_raw_inputs.recipe_digest
+vf --profile install run --rm --no-deps @NativePins provision -m release.register_mta --input-sha256 $OpeningHash
+vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py initialize_production /input/initialization.json --sha256 $OpeningHash --configuration-digest $ConfigurationDigest --recipe-digest $RecipeDigest --inspect
+$InitJson = vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py initialize_production /input/initialization.json --sha256 $OpeningHash --configuration-digest $ConfigurationDigest --recipe-digest $RecipeDigest
+$InitJson | Set-Content -LiteralPath "$ReceiptsRoot/initialization-result.json" -Encoding utf8
+$Initialization = $InitJson | ConvertFrom-Json
+if ($Initialization.status -ne 'INITIALIZED') { throw 'Expected one new initialization; reconcile before proceeding' }
 ```
 
-Use new source/export folders. The export also needs the approved runtime archive and its `runtime-images.json`, `loaded-images.yaml` and `public-build.json` companions from the delivered package. Git does not contain Docker image layers. Step3's ZIP already supplies those companions.
+Registration is one-time source/schema/input binding, deferred until real input is supplied. Separate native MTA installations need separate PG clusters because canonical acceptor membership is cluster-wide. No reset/reregistration/reseal or running a different source/image against the old sealed database. Restarts never register or initialize.
 
-</details>
+### 2. Freeze matching access/source configuration
 
-**Quick checks**
+The sample `permissions.json` is a read-time catalogue, NOT a user grant. Assign appropriate scopes to users on YOUR NEW identity installation through normal administration. Sample product root71001/leaves71002–71003 and location root72001/leaves72002–72004 describe the retained sample; do not add them to unrelated accounts. For production use real authoritative catalogue/actors. Freeze access hash, native hierarchy, timezone/actions and reader flags BEFORE preparation.
 
-- Missing `VF_RELEASE`: set it in `operator.env` and clear a conflicting shell value.
-- Port8080 busy: identify its owner; do not terminate another deployment.
-- Docker address pools exhausted: review the subnet override. This is not a port conflict.
-- Accounts: no default users are installed. Create the administrator in Step5; ordinary users need real roles/scopes.
-- Secrets: keep `private` restricted to the Windows operator. Keep passwords and private keys out of Git.
-- Scope: only this trial may be removed/recreated. Frontend/MTO code and images stay unchanged.
+```powershell
+$PermissionPath = (Join-Path $InputRoot 'permissions.json').Replace('\','/')
+$PermissionHash = $Release.optional_raw_inputs.files.'permissions.json'
+$SourceDigest = $Initialization.source_digest
+$DataComposeFile = Join-Path $PrivateRoot 'data-configuration.yaml'
+@"
+services:
+  mta:
+    environment:
+      VF_MDM_SOURCE_DIGEST: "$SourceDigest"
+      VF_MTA_PERMISSIONS_FILE: /access/permissions.json
+      VF_MTA_PERMISSIONS_SHA256: "$PermissionHash"
+    volumes:
+      - type: bind
+        source: "$PermissionPath"
+        target: /access/permissions.json
+        read_only: true
+  mta-install:
+    environment:
+      VF_MDM_SOURCE_DIGEST: "$SourceDigest"
+      VF_MTA_PERMISSIONS_FILE: /access/permissions.json
+      VF_MTA_PERMISSIONS_SHA256: "$PermissionHash"
+    volumes:
+      - type: bind
+        source: "$PermissionPath"
+        target: /access/permissions.json
+        read_only: true
+"@ | Set-Content -LiteralPath $DataComposeFile -Encoding utf8
+vf config --quiet
+```
 
-[Ubuntu / public VPS checklist](OPERATIONS_REFERENCE.md#ubuntu--public-vps-checklist) — includes the public-origin stop condition and HTTPS commands.
+Keep this override on subsequent `vf` calls/restarts. Do not enable historical fixtures/rosters, prepare with empty access then change its hash, or use `activate_daily_ui`.
 
-[Operating commands, optional inputs, backup/restore and upgrade details](OPERATIONS_REFERENCE.md).
+### 3. Inspect and execute the first daily input ONCE
+
+Keep the serving MTA stopped during its exclusive4GiB/2CPU worker. Ordinary execution owns ingestion/capture/calculation and inherent consumer writes; verify input/output findings separately afterward. On any failed/partial attempt preserve actual rows/files and reconcile before a reviewed retry; never repeat an accepted date.
+
+```powershell
+$DayHash = $Release.optional_raw_inputs.files.'day-01.json'
+$Revision = 'manual-first-day-' + (Get-Date -Format 'yyyyMMddTHHmmss')
+$DayArguments = @('manage.py','run_production_day','/input/day-01.json','--sha256',$DayHash,
+  '--initialization',$Initialization.opening_id,'--source-digest',$SourceDigest,
+  '--configuration-digest',$ConfigurationDigest,'--revision',$Revision,
+  '--pick-output-root','/var/lib/vectorflow/pick')
+vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @DayArguments --inspect
+$DayJson = vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install @DayArguments
+$DayJson | Set-Content -LiteralPath "$ReceiptsRoot/day-01-result.json" -Encoding utf8
+$Day = $DayJson | ConvertFrom-Json
+if ($Day.status -ne 'SUCCEEDED') { throw 'Preserve the failed execution; do not replay' }
+```
+
+Retain actual run/input/output/source IDs and complete typed input/capture/output audits; compare expected values. Counts/exit0 alone do not establish business acceptance. A successor uses `day-02.json` with its independent hash/new revision and adds **`--predecessor $Day.run_id --predecessor-output-digest $Day.output_digest`** to the same inspect/execute procedure. Use its own persisted predecessor; never copy another engine's outputs or run a span automatically.
+
+### 4. Prepare, verify and select this actual run, then serve
+
+```powershell
+vf --profile install run --rm --no-deps mta-install manage.py prepare_daily_ui --run-id $Day.run_id --output-digest $Day.output_digest
+vf --profile install run --rm --no-deps -v "${InputRoot}:/input:ro" mta-install manage.py prepare_native_input_archive --run-id $Day.run_id --output-digest $Day.output_digest --opening-file /input/initialization.json --daily-file /input/day-01.json
+# One-off RUNTIME selection writer: this owned data volume is RW only here.
+# The normal serving API stays RO; no installer/admin secret is added.
+$MtaVolume = (vf config --format json | ConvertFrom-Json).volumes.mta_data.name
+vf run --rm --no-deps --entrypoint python -v "${MtaVolume}:/var/lib/vectorflow" mta manage.py check_daily_selection --run-id $Day.run_id --output-digest $Day.output_digest --selection-file /var/lib/vectorflow/selection.json
+Set-OperatorValue 'MTA_SELECTION_FILE' '/var/lib/vectorflow/selection.json'
+vf up --no-build --pull never -d --wait --force-recreate mta
+vf restart auth frontend
+vf ps
+```
+
+Preparation owns its per-layer transactions; do not put it inside outer atomic/READ ONLY, replay partial layers silently or fabricate READY rows. Require20native layers, Planning summary, Guided aggregates and exact output/config/selection. For later dates use that run/output and daily-file path, not day1 variables.
+
+### 5. Validate populated functionality separately
+
+MTA readiness must now be200/native admitted. With correctly scoped real actors, verify selected date, full expected report values, original filters/reload, supplier view, downloads and required requester/reviewer actions. InputData.zip has native opening/daily/captured JSON, schema and manifest (five members), replacing the legacy CSV-member archive. It is an administrator-only whole-input export. Compare actual files with admitted selected-run files. Retained NULL/availability/legacy-flaw qualifications are in the handoff; unexpected denials/errors are not empty successes.
+
+Apply/Sleep/MDM actions must be genuine actor transitions accepted once and consumed by their own date-compatible successor. Do not force suggestions, backdate actions, bypass CAPTCHA or change facts to create eligibility. The historical sample is not an automatic current-date workflow campaign.
+
+## C. Restart, backup and rollback
+
+- Restart this same project/image/DB-OID/volume/config/access/secret set; retain `$DataComposeFile` in `vf` after Part B. Startup never provisions, migrates, loads, calculates or prepares.
+- Quiesce writes and stop the owned MTA worker/API and PG before cold capture. Preserve whole PG cluster plus matching MTA Pick/selection files, access/config/private secrets with hashes and numeric owners/modes. Auth/MTO share the separate MTO database; include their matching volumes/secrets for complete operational backup. Newly executed Step5 recovery covers MTA+PG/restored UI, not a new full auth/MTO disaster rehearsal.
+- Restore into NEW empty owned volumes with matching PG/image/OIDs/roles/capabilities/files/secrets. Verify all bytes/owners first, then identities/full values and authenticated reports. A logical dump into a new OID plus reseal is not equivalent.
+- Fresh install does not prove in-place sealed upgrade. Keep the original image+DB+MTA/config/secret pair; never use an old image on a newly registered DB. Protected-service replacement, destructive restore and public cutover remain separately coordinated.
+- `vf stop` pauses this manual project. No `down -v`, volume/account reset, Docker prune or shared Docker/WSL restart. Leave existing8080/3005/3006/3002/3003/3004 untouched.
+
+See [final connected handoff](../docs/handoff-3005/STEP5_CONNECTED_HANDOFF.md) for identities/evidence/limits. The sole live tracker is `F:/freshvcf/docs/handoff-3005/TRACKER.md`; the repository tracker is a pointer. Record **Part A manual blank validation** and **Part B optional populated validation** separately. No scheduled review is invoked by this runbook.

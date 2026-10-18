@@ -1,0 +1,36 @@
+# DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+# Prebuilt component revisions differ; never build/select all profiles by one tag.
+services:
+  mta:
+    image: "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043"
+    pull_policy: never
+  frontend:
+    image: "sha256:1f641e282fc03ba7cf1c92e9b217360d2d5096b94d7aa1e13025b2c4cf8174f7"
+    pull_policy: never
+  auth:
+    image: "sha256:d30e0e216248e75ccaeee4b7e21b166995bfb93d2331591dc5dc4b5586e79bca"
+    pull_policy: never
+  mto:
+    image: "sha256:10b698f422126d1cba5c834c2fd1487532d3def90415c7addd82e9d01115be50"
+    pull_policy: never
+  postgres:
+    image: "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea"
+    pull_policy: never
+  redis:
+    image: "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+    pull_policy: never
+  mta-install:
+    mem_limit: "4g"
+    memswap_limit: "4g"
+    cpus: "2"
+    image: "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043"
+    pull_policy: never
+  auth-install:
+    image: "sha256:d30e0e216248e75ccaeee4b7e21b166995bfb93d2331591dc5dc4b5586e79bca"
+    pull_policy: never
+  mto-install:
+    image: "sha256:10b698f422126d1cba5c834c2fd1487532d3def90415c7addd82e9d01115be50"
+    pull_policy: never
+  provision:
+    image: "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043"
+    pull_policy: never

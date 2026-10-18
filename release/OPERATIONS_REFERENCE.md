@@ -1,5 +1,7 @@
 # Deployment and operations reference
 
+**Current Windows release:** [RUNBOOK.md](RUNBOOK.md) and its `windows-final-release.json` / `windows-final-images.yaml` companions supersede historical single-source installation and parity-roster activation examples below for the final six-component build. Use native `prepare_daily_ui` → `check_daily_selection`, with access/configuration frozen before preparation. Blank deployment ends before optional business registration/loading/daily execution and awaits human manual validation. See [the final handoff](../docs/handoff-3005/STEP5_CONNECTED_HANDOFF.md) for completed initialized connected proof and limits. The remaining Linux/historical examples are reference material, not a fresh acceptance claim or authority to replace an existing service.
+
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
 Use [RUNBOOK.md](RUNBOOK.md) for the Windows 8080 checklist. This file holds Linux deployment commands, operating limits and recovery details. Shell blocks below use a POSIX shell, not PowerShell.

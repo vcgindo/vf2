@@ -1,0 +1,50 @@
+{
+  "restriction": "DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.",
+  "schema": "vectorflow-step5-windows-operator-v1",
+  "runtime_archive": "vectorflow-step5-local-3c1dcf93.zip",
+  "runtime_archive_sha256": "7fb66c10bbcfa5dfb8c71df21f82390f46951398838081a2a2f0dbecac6b9056",
+  "runtime_archive_bytes": 494874161,
+  "code_commit": "3c1dcf9386527b9aa104e1af98244643e39a3eed",
+  "component_sources": {
+    "mta": "9e312c046e105af290a48d9bbd7ce0e7612f588d",
+    "frontend": "3c1dcf9386527b9aa104e1af98244643e39a3eed",
+    "auth": "b4e4baf64ceaceeec51d617770893cf6f2615d51",
+    "mto": "bd309169b8f494ed8c93f47302327d74c341923b"
+  },
+  "images": {
+    "mta": "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043",
+    "frontend": "sha256:1f641e282fc03ba7cf1c92e9b217360d2d5096b94d7aa1e13025b2c4cf8174f7",
+    "auth": "sha256:d30e0e216248e75ccaeee4b7e21b166995bfb93d2331591dc5dc4b5586e79bca",
+    "mto": "sha256:10b698f422126d1cba5c834c2fd1487532d3def90415c7addd82e9d01115be50",
+    "postgres": "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea",
+    "redis": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+  },
+  "native_manifest_sha256": "657a2827bd67243019fd80b3e1422eed71da68ab6030bcf8ac7749e7156a9f4f",
+  "mta_source_manifest_sha256": "be2ba0c804def4f7d69c1cc6ec441959bb174940d6c74e6b38645784a9ebfce1",
+  "public_origin": "http://127.0.0.1:8080",
+  "websocket_origin": "ws://127.0.0.1:8080",
+  "host_port_env": "VF_HTTP_PORT",
+  "host_port_note": "Host HTTP port is selected in operator.env. HTTP APIs use relative paths. This immutable frontend retains its compiled ws://127.0.0.1:8080 MTO socket origin; a different socket origin requires an approved matching frontend artifact, not only an env change.",
+  "public_client_cipher_key": "4468c3e3a8d5d468558c4f2198c2c400",
+  "public_client_cipher_note": "Intentionally public, already compiled into browser JavaScript; not a database/signing/RSA secret. Auth must match this fixed artifact.",
+  "source_archive": "source-3c1dcf93.zip",
+  "source_archive_sha256": "6d41acb8a8677f17ebeb979c3be97f0aec4fa8b626e51431f1da8f8282c0356a",
+  "optional_raw_inputs": {
+    "archive": "vectorflow-step5-optional-raw-inputs-v2-20261018.zip",
+    "sha256": "71bb16ec321d7ee683ddfca718f129451a36df9ee5540abdb4b2329ba1a5b63f",
+    "files": {
+      "initialization.json": "3e4614c2eba81ed31c3bf885e7ba3ffc02913bae23f015c3ea638c1534e449f4",
+      "day-01.json": "6c534e61840bb50da4927dbdb59cda29aced7432de58a26b5d9dd7ed3e14cb32",
+      "day-02.json": "d702d8e6d5ddfa09687d5138b43b546c76d3204257f3a76a048b62e6f565934b",
+      "permissions.json": "18df4d8e84633848062c45e1896615a7a46d350d0c0cd8657f38cb7b0948c356"
+    },
+    "configuration_digest": "c3e2e2f1395ca40b0557b0edaceb96a01c2c02b37d8f962e6b732586a9d5d27c",
+    "recipe_digest": "bec684bfefa570e7d86dbbed2b8ae580d04d50787549b6dff5e9a8f7be2185e6",
+    "opening_date": "2026-10-17",
+    "daily_dates": [
+      "2026-10-18",
+      "2026-10-19"
+    ]
+  },
+  "verification_boundary": "Commands/configuration statically checked. Final six-component blank runtime installation is for the human operator to run and validate; no such new execution is claimed."
+}
