@@ -42,7 +42,7 @@ docker compose run --rm install
 if ($LASTEXITCODE -ne 0) { throw 'Installation failed; stop, retain state and inspect the error' }
 ```
 
-This explicitly generates private per-service secrets, creates new databases/least-privilege roles, applies real migrations, installs system/permission metadata and creates your new administrator. Enter any administrator fields not supplied in `.env` when prompted. It does NOT register an opening, load masters/facts, calculate a day or prepare/publish reports. Existing databases/roles/users are not reset or overwritten; an already-installed target is refused.
+This explicitly generates private per-service secrets, creates new databases/least-privilege roles, applies real migrations, installs the existing application roles with their page/feature permission mappings, and creates your new administrator. Enter any administrator fields not supplied in `.env` when prompted. Application role definitions are system metadata; no operational users, business scopes or role assignments are seeded. It does NOT register an opening, load masters/facts, calculate a day or prepare/publish reports. Existing databases/roles/users are not reset or overwritten; an already-installed target is refused.
 
 ## 4. Start and verify
 
@@ -167,12 +167,24 @@ docker compose ps
 
 The serving MTA retains its read-only data mount; the installer keeps its own secrets. No frontend build, MTO operation, parity hook, fixture mode or historical activation command is involved. Keep the same `.env`, data override, input/receipt directory and named volumes together.
 
-### 9. Grant your new administrator MTA data scopes and open the results
+### 9. Create a normal scoped MTA user and open the results
 
 1. Open the **same URL/port chosen in `.env`** and sign in normally with the administrator you created during installation. No demo login is added.
-2. In **Manage Users**, edit that administrator and open its advanced permissions. For **Distribution / MTA only**, select the starter product and location groups, save, then refresh/reopen the report. Leave MTO roles/permissions unchanged. These are real scoped grants on YOUR NEW installation, not fixture flags or permission bypasses.
-3. For complete starter coverage select all three product entries: `B1 Product` root71001, `Selected/Leaf`71002 and `Other/Leaf`71003; and all four location entries: `B1 Location` root72001, `Parent/Leaf`72002, `Receiving/Leaf`72003 and `Other/Leaf`72004. Administrator status alone does not supply these MTA data scopes.
-4. Open Distribution's **BPR**, **Planning** and **Master Data Management** screens. Verify the last run is18October2026 and that scoped starter rows appear. `InputData.zip` uses the native JSON/typed-capture format, not a legacy CSV archive. An empty/denied grid is not success: check the selected run and saved MTA scopes; do not load the inputs again.
+2. In **Manage Users → Add New User**, enter a new operator name/email/password. Under **Distribution**, select the existing **BPRManager** role for starter Planning/BPR access, then **Next**. Do not assign Orders/MTO roles. The protected installation administrator is deliberately excluded from its own management table and cannot be edited there; do not change that protection.
+3. In the normal advanced product/location permission steps, select the starter hierarchy and complete **Add User**. For complete starter coverage include all three product entries: `B1 Product` root71001, `Selected/Leaf`71002 and `Other/Leaf`71003; and all four location entries: `B1 Location` root72001, `Parent/Leaf`72002, `Receiving/Leaf`72003 and `Other/Leaf`72004. These are explicit real MTA data grants on YOUR NEW installation. Administrator status alone does not supply them. If SMTP is disabled, the existing UI can report that the user was created without an email; retain the password you entered and check the table before attempting creation again.
+4. Sign in normally as that operator in a separate browser session. Open Distribution's **BPR** and **Planning** screens. In BPR's initial Filter dialog, **Show All** loads the account's authorized rows. Planning requires choosing a report category; its **Grid View icon** opens the row view. Verify the last run is18October2026 and scoped starter rows appear. MDM additionally requires the existing **MasterUpdater** or **MasterApprover** role for its respective workflow; those roles are not needed for this report-access check. Whole-input `InputData.zip` remains administrator-only and uses native JSON/typed-capture format. An empty/denied grid is not success: check the selected run and saved MTA scopes; do not load the inputs again.
+
+If an earlier blank install has an empty role selector, update the clone and run this **missing-system-metadata repair only** from its directory. It uses the trusted checked-out installer with the existing auth installer's DB authority, adds missing original role definitions/mappings, refuses conflicting definitions, and does not change users/passwords/scopes or existing assignments. Do not rerun blank installation or historical fixture/account seeders.
+
+```powershell
+git pull --ff-only
+if ($LASTEXITCODE -ne 0) { throw 'Git update failed' }
+$IdentityTools = (Resolve-Path './release').Path.Replace('\','/')
+docker compose run --rm --no-deps -v "${IdentityTools}:/repair:ro" auth-install /repair/install_identity.py --repair-missing-roles
+if ($LASTEXITCODE -ne 0) { throw 'Role metadata differs; preserve state and inspect the error' }
+```
+
+Refresh **Manage Users** afterwards. No build/service replacement, frontend/MTO change or data replay is needed for this repair. New installations include these role definitions automatically. The retained source has three unresolved role-link references (`/` twice and `intercept-task-status` once); the original seeder skipped them, and this catalogue preserves that behavior without inventing new routes or grants.
 
 Optional read-only checks (no extra calculation):
 

@@ -656,5 +656,677 @@
       "description": "allow user login requests from the mentioned domain only",
       "isvisible": false
     }
-  ]
+  ],
+  "roles": [
+    {
+      "name": "SuperAdmin",
+      "description": "Must have access to all pages",
+      "code": "SUPERADMIN",
+      "is_visible": false,
+      "application_id": 3
+    },
+    {
+      "name": "Admin",
+      "description": "Must have access to User Administration",
+      "code": "ADMIN",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "VectorConsultant",
+      "description": "Must have access to all pages",
+      "code": "VectorConsultant",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "DBMManager",
+      "description": "No Description Available",
+      "code": "DBMManager",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "BPRManager",
+      "description": "No Description Available",
+      "code": "BPRManager",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "MasterUpdater",
+      "description": "No Description Available",
+      "code": "MasterUpdater",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "MasterApprover",
+      "description": "No Description Available",
+      "code": "MasterApprover",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "Supplier",
+      "description": "Only has access to Supplier Dispatch Report and Supplier Wise Allocation Report",
+      "code": "Supplier",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "PermissionsManager",
+      "description": "No Description Available",
+      "code": "PermissionsManager",
+      "is_visible": true,
+      "application_id": 2
+    },
+    {
+      "name": "MTO Admin",
+      "description": "Only has access to User Administration",
+      "code": "MTOADMIN",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "MTO VectorConsultant",
+      "description": "Must have access to all pages",
+      "code": "MTOVectorConsultant",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Salesperson",
+      "description": "Only has access to Enquiry Response",
+      "code": "Salesperson",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Master Scheduler",
+      "description": "Only has access to DDQ, Order rescheduling",
+      "code": "MasterScheduler",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Production Planner",
+      "description": "No Description Available",
+      "code": "ProductionPlanner",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Production Planner - View Only",
+      "description": "No Description Available",
+      "code": "ProductionPlanner-ViewOnly",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Dept Manager",
+      "description": "Only has access to Dept-wise BM Report",
+      "code": "DeptManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Dept Manager - View Only",
+      "description": "Only has access to Dept-wise BM Report",
+      "code": "DeptManager-ViewOnly",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Production Manager - View Only",
+      "description": "Only has Overall Production Incharge",
+      "code": "ProductionManager-ViewOnly",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Production Manager",
+      "description": "Only has Overall Production Incharge",
+      "code": "ProductionManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Procurement Manager",
+      "description": "Only has Procurement Incharge",
+      "code": "ProcurementManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Procurement Manager - View Only",
+      "description": "Only has Procurement Incharge",
+      "code": "ProcurementManager-ViewOnly",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "POOGI Manager",
+      "description": "Only has POOGI Incharge",
+      "code": "POOGIManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Plant Head",
+      "description": "Only has health of Production Check",
+      "code": "PlantHead",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Master Data Updater",
+      "description": "Only has MDM",
+      "code": "MasterDataUpdater",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "Master Data Approver",
+      "description": "Only has MDM",
+      "code": "MasterDataApprover",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "BMReportManager",
+      "description": "Must have access to BM report Page",
+      "code": "BMReportManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "SchedulerManager",
+      "description": "Access to production Scheduler with run trigger Permission",
+      "code": "SchedulerManager",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "SchedulerManagerViewer",
+      "description": "Access to production Scheduler without run trigger",
+      "code": "SchedulerManagerViewer",
+      "is_visible": true,
+      "application_id": 3
+    },
+    {
+      "name": "MasterRouteManager",
+      "description": "user with this role can change route in DDQ but cant schedule it",
+      "code": "MasterRouteManager",
+      "is_visible": true,
+      "application_id": 3
+    }
+  ],
+  "role_permissions": {
+    "SuperAdmin": [
+      "/mta/master-data-management/control-panel",
+      "/mta/master-data-management/control-panel/view-modify",
+      "/mta/master-data-management/control-panel/add",
+      "/mta/master-data-management/control-panel/delete",
+      "/mta/master-data-management/task-pending",
+      "/mta/master-data-management/task-status",
+      "/mta/master-data-management/saved-drafts",
+      "/mta/supply-chain-intelligence-hub/planning",
+      "/mta/supply-chain-intelligence-hub/bpr",
+      "/mta/supply-chain-intelligence-hub/bor",
+      "/mta/supply-chain-intelligence-hub/rrr",
+      "/mta/insights-and-trends/guided-insights",
+      "/mta/insights-and-trends/research-insights",
+      "/mta/supply-chain-intelligence-hub/open-expediting-requests",
+      "/mta/insights-and-trends/buffer-trend-report",
+      "/mta/insights-and-trends/buffer-trends",
+      "/mta/dbm/dbm-norm-suggestions",
+      "/mta/logistics/intransit-whereabouts",
+      "/mto/planning/simulative-fullkit",
+      "/mto/procurement-planning/planning",
+      "/mto/procurement/material-coverage-open-sales",
+      "/mta/master-data-management/data-modification-history",
+      "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage",
+      "/mto/procurement/material-requirement",
+      "/mto/procurement/insights-and-trends/day-wise-coverage",
+      "/mta/supply-chain-intelligence-hub/sdr",
+      "/mto/procurement/insights-and-trends/rmpm-buffer-trends",
+      "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers",
+      "/mto/production-planning-scheduling/enquiry-response",
+      "/mto/production-planning-scheduling/insight-and-trends/stpl-full-kits",
+      "/mto/production-planning-scheduling/insight-and-trends/bm-trends",
+      "/mto/production-planning-scheduling/full-kit-assignment",
+      "/mto/production-planning-and-scheduling/order-rescheduling",
+      "/mto/production-planning-scheduling/insight-and-trends/order-at-risk",
+      "/mto/production-planning-scheduling/deptwise-bm-report",
+      "/mto/production-planning-scheduling/dynamic-release-mangement",
+      "/mto/production-planning-scheduling/insight-and-trends/order-balance",
+      "/mto/production-planning-scheduling/insights-and-trends/fol-summary",
+      "/mto/poogi/insight-and-trends/otif-analysis",
+      "/mto/poogi/insight-and-trends/resource-utilization-wip-profile",
+      "/mto/poogi/reasons-for-delayed-orders",
+      "/mto/production-planning-and-scheduling/due-date-quotation",
+      "/mto/poogi/insight-and-trends/ot-and-if-analysis",
+      "/mto/poogi/insight-and-trends/trend-of-failure-reason",
+      "/mto/poogi/insight-and-trends/lead-time",
+      "/mto/production-planning-scheduling/insights-and-trends/elapsed-time",
+      "/mto/poogi/insight-and-trends/top-failure-reasons",
+      "/mto/production-planning-scheduling/overall-bm-report",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/bm-trends",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/otif-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/ot-and-if-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/lead-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/elapsed-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/orders-at-risk",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/order-balance",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/fol-summary",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/stpl-and-fullkit",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/day-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-order-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/expetiting-rm-supplier",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-buffer-trend",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/top-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/trends-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/resource-wip-profile",
+      "/supply-chain-intelligence-hub/merchandising-grid",
+      "/landing-page",
+      "/masters-interceptor/control-panel",
+      "/masters-interceptor/saved-drafts",
+      "/masters-interceptor/task-pending",
+      "/masters-interceptor/task-status",
+      "/masters-interceptor/data-modification-history",
+      "/mto/master-data-management/control-panel",
+      "/mto/master-data-management/control-panel/add",
+      "/mto/master-data-management/control-panel/view-modify",
+      "/mto/master-data-management/saved-drafts",
+      "/mto/master-data-management/task-pending",
+      "/mto/master-data-management/task-status",
+      "/mto/master-data-management/data-modification-history",
+      "/profile",
+      "/mta/supply-chain-intelligence-hub/rrr-color-bandwise",
+      "/mta/supply-chain-intelligence-hub/bor-color-bandwise",
+      "/mta/supply-chain-intelligence-hub/SupplierWiseAllocation",
+      "mto-report-urls",
+      "mta-report-urls",
+      "/mta/supply-chain-intelligence-hub/eo",
+      "/mto/manufacturing-intelligence-hub/future-order-load-chart",
+      "/mto/production/scheduling",
+      "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart",
+      "/login-audit-report",
+      "/profile/bulk-upload",
+      "mto/production/scheduling"
+    ],
+    "VectorConsultant": [
+      "/login-audit-report"
+    ],
+    "Admin": [
+      "/landing-page",
+      "/profile",
+      "/login-audit-report"
+    ],
+    "DBMManager": [
+      "/mta/supply-chain-intelligence-hub/planning",
+      "/mta/supply-chain-intelligence-hub/bpr",
+      "/mta/supply-chain-intelligence-hub/rrr",
+      "/mta/insights-and-trends/guided-insights",
+      "/mta/insights-and-trends/research-insights",
+      "/mta/supply-chain-intelligence-hub/open-expediting-requests",
+      "/mta/insights-and-trends/buffer-trend-report",
+      "/mta/insights-and-trends/buffer-trends",
+      "/mta/dbm/dbm-norm-suggestions",
+      "/mta/supply-chain-intelligence-hub/bor-color-bandwise"
+    ],
+    "BPRManager": [
+      "/mta/supply-chain-intelligence-hub/planning",
+      "/mta/supply-chain-intelligence-hub/bpr",
+      "/mta/supply-chain-intelligence-hub/rrr",
+      "/mta/insights-and-trends/guided-insights",
+      "/mta/insights-and-trends/research-insights",
+      "/mta/supply-chain-intelligence-hub/open-expediting-requests",
+      "/mta/insights-and-trends/buffer-trend-report",
+      "/mta/insights-and-trends/buffer-trends",
+      "/mta/logistics/intransit-whereabouts",
+      "/mta/supply-chain-intelligence-hub/bor-color-bandwise"
+    ],
+    "MasterUpdater": [
+      "/masters-interceptor/control-panel",
+      "/masters-interceptor/saved-drafts",
+      "/mta/master-data-management/control-panel",
+      "/mta/master-data-management/control-panel/view-modify",
+      "/mta/master-data-management/control-panel/add",
+      "/mta/master-data-management/control-panel/delete",
+      "/mta/master-data-management/task-status",
+      "/mta/master-data-management/saved-drafts",
+      "mta-report-urls"
+    ],
+    "MasterApprover": [
+      "/landing-page",
+      "/masters-interceptor/task-pending",
+      "/mta/master-data-management/control-panel/add",
+      "/mta/master-data-management/control-panel/delete",
+      "/mta/master-data-management/task-pending"
+    ],
+    "Supplier": [
+      "/mta/supply-chain-intelligence-hub/sdr",
+      "/mta/supply-chain-intelligence-hub/SupplierWiseAllocation",
+      "/profile"
+    ],
+    "MTO VectorConsultant": [
+      "/mta/master-data-management/control-panel",
+      "/mta/master-data-management/control-panel/view-modify",
+      "/mta/master-data-management/control-panel/add",
+      "/mta/master-data-management/control-panel/delete",
+      "/mta/master-data-management/task-pending",
+      "/mta/master-data-management/task-status",
+      "/mta/master-data-management/saved-drafts",
+      "/mta/supply-chain-intelligence-hub/planning",
+      "/mta/supply-chain-intelligence-hub/bpr",
+      "/mta/supply-chain-intelligence-hub/bor",
+      "/mta/supply-chain-intelligence-hub/rrr",
+      "/mta/insights-and-trends/guided-insights",
+      "/mta/insights-and-trends/research-insights",
+      "/mta/supply-chain-intelligence-hub/open-expediting-requests",
+      "/mta/insights-and-trends/buffer-trend-report",
+      "/mta/insights-and-trends/buffer-trends",
+      "/mta/dbm/dbm-norm-suggestions",
+      "/mta/logistics/intransit-whereabouts",
+      "/mto/planning/simulative-fullkit",
+      "/mto/procurement-planning/planning",
+      "/mto/procurement/material-coverage-open-sales",
+      "/mta/master-data-management/data-modification-history",
+      "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage",
+      "/mto/procurement/material-requirement",
+      "/mto/procurement/insights-and-trends/day-wise-coverage",
+      "/mta/supply-chain-intelligence-hub/sdr",
+      "/mto/procurement/insights-and-trends/rmpm-buffer-trends",
+      "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers",
+      "/mto/production-planning-scheduling/enquiry-response",
+      "/mto/production-planning-scheduling/insight-and-trends/stpl-full-kits",
+      "/mto/production-planning-scheduling/insight-and-trends/bm-trends",
+      "/mto/production-planning-scheduling/full-kit-assignment",
+      "/mto/production-planning-and-scheduling/order-rescheduling",
+      "/mto/production-planning-scheduling/insight-and-trends/order-at-risk",
+      "/mto/production-planning-scheduling/deptwise-bm-report",
+      "/mto/production-planning-scheduling/dynamic-release-mangement",
+      "/mto/production-planning-scheduling/insight-and-trends/order-balance",
+      "/mto/production-planning-scheduling/insights-and-trends/fol-summary",
+      "/mto/poogi/insight-and-trends/otif-analysis",
+      "/mto/poogi/insight-and-trends/resource-utilization-wip-profile",
+      "/mto/poogi/reasons-for-delayed-orders",
+      "/mto/production-planning-and-scheduling/due-date-quotation",
+      "/mto/poogi/insight-and-trends/ot-and-if-analysis",
+      "/mto/poogi/insight-and-trends/trend-of-failure-reason",
+      "/mto/poogi/insight-and-trends/lead-time",
+      "/mto/production-planning-scheduling/insights-and-trends/elapsed-time",
+      "/mto/poogi/insight-and-trends/top-failure-reasons",
+      "/mto/production-planning-scheduling/overall-bm-report",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/bm-trends",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/otif-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/ot-and-if-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/lead-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/elapsed-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/orders-at-risk",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/order-balance",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/fol-summary",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/stpl-and-fullkit",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/day-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-order-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/expetiting-rm-supplier",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-buffer-trend",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/top-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/trends-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/resource-wip-profile",
+      "/supply-chain-intelligence-hub/merchandising-grid",
+      "/landing-page",
+      "/masters-interceptor/control-panel",
+      "/masters-interceptor/saved-drafts",
+      "/masters-interceptor/task-pending",
+      "/masters-interceptor/task-status",
+      "/masters-interceptor/data-modification-history",
+      "/mto/master-data-management/control-panel",
+      "/mto/master-data-management/control-panel/add",
+      "/mto/master-data-management/control-panel/view-modify",
+      "/mto/master-data-management/saved-drafts",
+      "/mto/master-data-management/task-pending",
+      "/mto/master-data-management/task-status",
+      "/mto/master-data-management/data-modification-history",
+      "/profile",
+      "/mta/supply-chain-intelligence-hub/rrr-color-bandwise",
+      "/mta/supply-chain-intelligence-hub/bor-color-bandwise",
+      "/mta/supply-chain-intelligence-hub/SupplierWiseAllocation",
+      "mto-report-urls",
+      "mta-report-urls",
+      "/mta/supply-chain-intelligence-hub/eo",
+      "/mto/manufacturing-intelligence-hub/future-order-load-chart",
+      "/mto/production/scheduling",
+      "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart",
+      "/login-audit-report",
+      "/profile/bulk-upload",
+      "mto/production/scheduling"
+    ],
+    "MTO Admin": [
+      "/landing-page",
+      "/profile",
+      "/login-audit-report"
+    ],
+    "BMReportManager": [
+      "/mto/procurement/material-coverage-open-sales",
+      "/mto/procurement-planning/planning",
+      "/mto/production-planning-and-scheduling/due-date-quotation",
+      "/mto/production-planning-and-scheduling/order-rescheduling",
+      "/mto/production-planning-scheduling/deptwise-bm-report",
+      "/mto/production-planning-scheduling/overall-bm-report",
+      "/mto/production-planning-scheduling/insight-and-trends/bm-trends",
+      "/mto/poogi/insight-and-trends/otif-analysis",
+      "/mto/poogi/insight-and-trends/ot-and-if-analysis",
+      "/mto/poogi/insight-and-trends/lead-time"
+    ],
+    "Salesperson": [
+      "/mto/production-planning-scheduling/enquiry-response",
+      "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart"
+    ],
+    "Master Scheduler": [
+      "/mto/production-planning-and-scheduling/due-date-quotation",
+      "/mto/production-planning-and-scheduling/order-rescheduling"
+    ],
+    "Production Planner": [
+      "/mto/procurement/material-coverage-open-sales",
+      "/mto/procurement-planning/planning",
+      "/mto/procurement/material-requirement",
+      "/mto/procurement/insights-and-trends/day-wise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-buffer-trends",
+      "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers",
+      "/mto/production-planning-scheduling/full-kit-assignment",
+      "/mto/production-planning-scheduling/dynamic-release-mangement",
+      "/mto/production-planning-scheduling/insight-and-trends/bm-trends",
+      "/mto/production-planning-scheduling/insights-and-trends/fol-summary",
+      "/mto/production-planning-scheduling/insight-and-trends/stpl-full-kits",
+      "/mto/production-planning-scheduling/insights-and-trends/elapsed-time",
+      "/mto/production-planning-scheduling/insight-and-trends/order-at-risk",
+      "/mto/production-planning-scheduling/insight-and-trends/order-balance",
+      "/mto/planning/simulative-fullkit"
+    ],
+    "Dept Manager": [
+      "/mto/production-planning-scheduling/deptwise-bm-report"
+    ],
+    "Dept Manager - View Only": [
+      "/mto/production-planning-scheduling/deptwise-bm-report"
+    ],
+    "Production Manager - View Only": [
+      "/mto/production-planning-scheduling/overall-bm-report",
+      "/mto/production-planning-scheduling/insight-and-trends/bm-trends",
+      "/mto/production-planning-scheduling/insights-and-trends/fol-summary",
+      "/mto/production-planning-scheduling/insight-and-trends/stpl-full-kits",
+      "/mto/production-planning-scheduling/insights-and-trends/elapsed-time",
+      "/mto/production-planning-scheduling/insight-and-trends/order-balance",
+      "/mto/production-planning-scheduling/insight-and-trends/order-at-risk",
+      "/mto/manufacturing-intelligence-hub/future-order-load-chart",
+      "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart"
+    ],
+    "Production Manager": [
+      "/mto/production-planning-scheduling/overall-bm-report",
+      "/mto/production-planning-scheduling/insights-and-trends/fol-summary",
+      "/mto/production-planning-scheduling/insights-and-trends/elapsed-time",
+      "/mto/production-planning-scheduling/insight-and-trends/order-at-risk",
+      "/mto/production-planning-scheduling/insight-and-trends/order-balance",
+      "/mto/manufacturing-intelligence-hub/future-order-load-chart",
+      "/mto/production-planning-scheduling/insight-and-trends/future-order-load-chart"
+    ],
+    "Procurement Manager": [
+      "/mto/procurement/material-coverage-open-sales",
+      "/mto/procurement-planning/planning",
+      "/mto/procurement/material-requirement",
+      "/mto/procurement/insights-and-trends/day-wise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-buffer-trends",
+      "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers",
+      "/mto/planning/simulative-fullkit"
+    ],
+    "Procurement Manager - View Only": [
+      "/mto/procurement/material-coverage-open-sales",
+      "/mto/procurement-planning/planning",
+      "/mto/procurement/material-requirement",
+      "/mto/procurement/insights-and-trends/day-wise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-orderwise-coverage",
+      "/mto/procurement/insights-and-trends/rmpm-buffer-trends",
+      "/mto/procurement/insights-and-trends/rmpm-expediting-rm-suppliers",
+      "/mto/planning/simulative-fullkit"
+    ],
+    "POOGI Manager": [
+      "/mto/poogi/insight-and-trends/resource-utilization-wip-profile",
+      "/mto/poogi/insight-and-trends/otif-analysis",
+      "/mto/poogi/insight-and-trends/ot-and-if-analysis",
+      "/mto/poogi/insight-and-trends/lead-time",
+      "/mto/poogi/insight-and-trends/trend-of-failure-reason",
+      "/mto/poogi/insight-and-trends/top-failure-reasons",
+      "/mto/poogi/reasons-for-delayed-orders"
+    ],
+    "Plant Head": [
+      "/mto/manufacturing-intelligence-hub/delivery-performance/bm-trends",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/otif-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/ot-and-if-analysis",
+      "/mto/manufacturing-intelligence-hub/delivery-performance/lead-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/elapsed-time",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/orders-at-risk",
+      "/mto/manufacturing-intelligence-hub/congestion-analysis/order-balance",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/fol-summary",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/stpl-and-fullkit",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/day-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-order-wise-coverage",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/expetiting-rm-supplier",
+      "/mto/manufacturing-intelligence-hub/forward-exceution/rm-pm-buffer-trend",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/top-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/trends-failure-reasons",
+      "/mto/manufacturing-intelligence-hub/improvement-areas/resource-wip-profile"
+    ],
+    "Master Data Updater": [
+      "/masters-interceptor/control-panel",
+      "/masters-interceptor/saved-drafts",
+      "/masters-interceptor/task-status",
+      "/mto/master-data-management/control-panel",
+      "/mto/master-data-management/control-panel/add",
+      "/mto/master-data-management/control-panel/view-modify",
+      "/mto/master-data-management/saved-drafts",
+      "/mto/master-data-management/task-status"
+    ],
+    "Master Data Approver": [
+      "/masters-interceptor/control-panel",
+      "/masters-interceptor/saved-drafts",
+      "/masters-interceptor/task-pending",
+      "/masters-interceptor/task-status",
+      "/mto/master-data-management/control-panel",
+      "/mto/master-data-management/control-panel/add",
+      "/mto/master-data-management/control-panel/view-modify",
+      "/mto/master-data-management/saved-drafts",
+      "/mto/master-data-management/task-pending",
+      "/mto/master-data-management/task-status"
+    ],
+    "SchedulerManager": [
+      "/mto/production/scheduling"
+    ],
+    "SchedulerManagerViewer": [
+      "/mto/production/scheduling"
+    ]
+  },
+  "role_features": {
+    "SuperAdmin": [
+      "Order_Closing",
+      "Simulation_Enable",
+      "Schedule_Orders",
+      "Rewrite_Due_Date",
+      "Unschedule_Order",
+      "Add_Comments",
+      "POOGI_Reasons",
+      "Change_Route",
+      "Deselect_Orders",
+      "Scheduler_Run_Trigger",
+      "Bulk_upload"
+    ],
+    "VectorConsultant": [
+      "Order_Closing",
+      "Simulation_Enable",
+      "Schedule_Orders",
+      "Rewrite_Due_Date",
+      "Unschedule_Order",
+      "Add_Comments",
+      "POOGI_Reasons",
+      "Change_Route",
+      "Deselect_Orders",
+      "Scheduler_Run_Trigger",
+      "Bulk_upload"
+    ],
+    "MTO VectorConsultant": [
+      "Order_Closing",
+      "Simulation_Enable",
+      "Schedule_Orders",
+      "Rewrite_Due_Date",
+      "Unschedule_Order",
+      "Add_Comments",
+      "POOGI_Reasons",
+      "Change_Route",
+      "Deselect_Orders",
+      "Scheduler_Run_Trigger",
+      "Bulk_upload"
+    ],
+    "Production Manager": [
+      "Order_Closing"
+    ],
+    "Procurement Manager": [
+      "Simulation_Enable"
+    ],
+    "Master Scheduler": [
+      "Schedule_Orders",
+      "Rewrite_Due_Date",
+      "Unschedule_Order"
+    ],
+    "Dept Manager": [
+      "Add_Comments"
+    ],
+    "POOGI Manager": [
+      "POOGI_Reasons"
+    ],
+    "Production Planner": [
+      "Change_Route",
+      "Deselect_Orders"
+    ],
+    "SchedulerManager": [
+      "Scheduler_Run_Trigger"
+    ]
+  },
+  "unresolved_source_links": {
+    "role_permissions": {
+      "Admin": [
+        "/"
+      ],
+      "MasterUpdater": [
+        "intercept-task-status"
+      ],
+      "MTO Admin": [
+        "/"
+      ]
+    },
+    "role_features": {}
+  },
+  "restriction": "DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization."
 }

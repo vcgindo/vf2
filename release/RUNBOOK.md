@@ -365,6 +365,8 @@ Preparation owns its per-layer transactions; do not put it inside outer atomic/R
 
 MTA readiness must now be200/native admitted. With correctly scoped real actors, verify selected date, full expected report values, original filters/reload, supplier view, downloads and required requester/reviewer actions. InputData.zip has native opening/daily/captured JSON, schema and manifest (five members), replacing the legacy CSV-member archive. It is an administrator-only whole-input export. Compare actual files with admitted selected-run files. Retained NULL/availability/legacy-flaw qualifications are in the handoff; unexpected denials/errors are not empty successes.
 
+Keep the installation administrator protected. Use **Manage Users → Add New User** to create an ordinary operator with the existing Distribution role (for example **BPRManager**) and explicitly assign its product/location scopes before signing in as that operator. The administrator cannot edit itself through this table. Original system roles/page/feature mappings belong to installation metadata; an empty role selector is an installer defect, not a reason to reseed accounts or bypass access checks. For an older source-built installation, the targeted metadata-only repair is documented in [source-build step9](SOURCE_BUILD.md#9-create-a-normal-scoped-mta-user-and-open-the-results).
+
 Apply/Sleep/MDM actions must be genuine actor transitions accepted once and consumed by their own date-compatible successor. Do not force suggestions, backdate actions, bypass CAPTCHA or change facts to create eligibility. The historical sample is not an automatic current-date workflow campaign.
 
 ## C. Restart, backup and rollback
