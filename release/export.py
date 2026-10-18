@@ -39,7 +39,7 @@ def included(name):
     if name.startswith('release/'):
         if path.name in ('optional_initialize.py', 'optional-initialization.json'):
             return False  # Exact operator-only package; never default runtime.
-        return path.suffix in ('.py', '.md', '.json', '.yaml', '.sh', '.sql', '.lock') or path.name.endswith('Dockerfile') or path.suffix == '.template' or path.name == '.dockerignore'
+        return path.suffix in ('.py', '.md', '.json', '.yaml', '.sh', '.sql', '.lock', '.cjs') or path.name.endswith('Dockerfile') or path.suffix == '.template' or path.name == '.dockerignore'
     if name.startswith('vectorflow/'):
         return path.suffix == '.py'
     if name.startswith('mta/'):

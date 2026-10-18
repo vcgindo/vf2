@@ -17,7 +17,8 @@ ENV REACT_APP_API_HOST=$REACT_APP_API_HOST REACT_APP_VF_API_HOST_MTO=$REACT_APP_
 # Retain the demonstrated CRA build policy. Build logs and focused tests remain
 # separate evidence; successful asset emission is not a clean TypeScript audit.
 ENV CI=false TSC_COMPILE_ON_ERROR=true
-RUN npm run build
+COPY release/frontend-build.cjs /build-tools/frontend-build.cjs
+RUN node /build-tools/frontend-build.cjs
 FROM nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
 COPY --from=build /app/build /usr/share/nginx/html
 COPY release/nginx.template /etc/nginx/templates/vectorflow.template

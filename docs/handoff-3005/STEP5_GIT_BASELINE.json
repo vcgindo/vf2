@@ -1,0 +1,108 @@
+{
+  "restriction": "DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.",
+  "schema": "step5-clean-git-build-baseline-v1",
+  "frozen_utc": "2026-10-18T15:44:52.471802+00:00",
+  "human_authority": "Freeze this Step5 baseline and proceed with a clean Git clone, build and bounded comparison.",
+  "baseline": "FINAL_ACCEPTED_STEP5_INITIALIZED_CONNECTED_APPLICATION",
+  "runtime_package": {
+    "path": "D:\\vf5\\required-functions\\remark-closure\\delivery\\vectorflow-step5-local-3c1dcf93.zip",
+    "sha256": "7fb66c10bbcfa5dfb8c71df21f82390f46951398838081a2a2f0dbecac6b9056"
+  },
+  "component_images": {
+    "mta": "sha256:784404077a5f84f4559de1992e20d70a5e533ad1f7906ac907345c45abd7e043",
+    "frontend": "sha256:1f641e282fc03ba7cf1c92e9b217360d2d5096b94d7aa1e13025b2c4cf8174f7",
+    "auth": "sha256:d30e0e216248e75ccaeee4b7e21b166995bfb93d2331591dc5dc4b5586e79bca",
+    "mto": "sha256:10b698f422126d1cba5c834c2fd1487532d3def90415c7addd82e9d01115be50",
+    "postgres": "sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea",
+    "redis": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+  },
+  "records": {
+    "D:\\vf5\\required-functions\\remark-closure\\delivery\\component-manifest.json": {
+      "sha256": "ead3de12d7bb102ab1b8fd25b9033886e409ddcca40dec8ca6064f0916d5631f",
+      "bytes": 2743
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\delivery\\handoff-package-proof.json": {
+      "sha256": "de576061f984a873752fc2093c2c9184c5cf2b4a9c193ef1af079219d0e12d8d",
+      "bytes": 4977
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\final-closure-proof.json": {
+      "sha256": "85416861098a8f076c3333d6fe2f00a519c9e91a2adde72e96f27806d7aa45d9",
+      "bytes": 7053
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\window-identifier3\\actual-ui-actions-proof.json": {
+      "sha256": "a26c8fb7c43c97388d6913fa2d8ec4e5ef2ac2c721a53af0209f54171cc761fc",
+      "bytes": 8447
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\publication-finalize\\publication-proof.json": {
+      "sha256": "14b87ca7dde69af536d506ba5030412619e8a367692b1078a73a49a46d4ed0f7",
+      "bytes": 37657
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\recovery-readback-continuation\\lifecycle.json": {
+      "sha256": "e4d1011227db20564b8b2079e9a14f01f5747a95e835c99e29a080298c28b621",
+      "bytes": 44333
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\window-final-ui\\final-browser-proof.json": {
+      "sha256": "ce6d89400688bf13711c6c891437beaccc9ee7a068a0e615fafb4667dcf5a4f4",
+      "bytes": 3617
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\input\\initialization.json": {
+      "sha256": "3e4614c2eba81ed31c3bf885e7ba3ffc02913bae23f015c3ea638c1534e449f4",
+      "bytes": 621399
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\input\\day-01.json": {
+      "sha256": "6c534e61840bb50da4927dbdb59cda29aced7432de58a26b5d9dd7ed3e14cb32",
+      "bytes": 6963
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\input\\day-02.json": {
+      "sha256": "d702d8e6d5ddfa09687d5138b43b546c76d3204257f3a76a048b62e6f565934b",
+      "bytes": 6307
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\resume1\\complete-run-bound-prepared-models.json.gz": {
+      "sha256": "b93f765f3f55669a636b22068da575a6f879ce832615b64cc499aa581018a266",
+      "bytes": 29045
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\resume1\\native-opening-complete-typed-readback.json.gz": {
+      "sha256": "5e9c1c92d237e0ef22b12bb85d2d80b71abc786366a5827417dab82248fc7259",
+      "bytes": 52846
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\resume1\\step5-remarks-native-20261018-day01-complete-input.json.gz": {
+      "sha256": "89c8e27964f61222846f84afa086cfa1b92390f0a60928b2a98651a15166dd70",
+      "bytes": 36502
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\resume1\\step5-remarks-native-20261018-day01-complete-output-lineage.json.gz": {
+      "sha256": "2bd45382f0f5130092ba57c91e5e4f5c4a8e52ae12005c1ddfe64418d64fc22b",
+      "bytes": 83264
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\resume1\\step5-remarks-native-20261018-day01-complete-source-capture-history.json.gz": {
+      "sha256": "59cffad27818db375739647cf65f913cfcb6a78bbd9c948079ea6bcf7d7b3673",
+      "bytes": 60914
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\successor\\step5-required-native-20261018-day02-complete-input.json.gz": {
+      "sha256": "d7a87799d14733a0049a7f4ac19a978d3597d936175051f0b453585fa66d662f",
+      "bytes": 22037
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\successor\\step5-required-native-20261018-day02-complete-output-lineage.json.gz": {
+      "sha256": "e0d618af62352057c04a46ccd076713444418d7ddd9ae2dbb604b3e260f89b2d",
+      "bytes": 83120
+    },
+    "D:\\vf5\\required-functions\\remark-closure\\successor\\step5-required-native-20261018-day02-complete-source-capture-history.json.gz": {
+      "sha256": "1f3e6a6e4a212e1ef7daca8996078396931cb171111a2c64326b4e40a8a7ec72",
+      "bytes": 59413
+    }
+  },
+  "business_dates": [
+    "2026-10-18",
+    "2026-10-19"
+  ],
+  "comparison": "Complete typed business values, NULLs, duplicate ordinals, meaningful dates/order and own lineage. Map only explicitly identified generated identity fields. No field waiver.",
+  "blank_install": "Independent empty-install acceptance; no earlier full-six blank runtime PASS inherited.",
+  "workflow_dates": "Verify live civil-date eligibility before real actor actions; no backdating or input-date changes.",
+  "resources": "New private owned resources only; existing services/data unchanged. Sequential bounded builds, no prune/reset. No inherited Step5 DB/volume reuse.",
+  "exclusions": [
+    "No frontend or MTO behavior changes",
+    "No pending WebSocket fix",
+    "No legacy/twelve-day campaign",
+    "No public deployment/cutover",
+    "No existing-service switch without a real approved window"
+  ]
+}

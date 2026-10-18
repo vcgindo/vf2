@@ -23,7 +23,7 @@ class ReleaseExportTests(unittest.TestCase):
                      'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/.eslintrc.json',
                      'frontend/public/assets/logo.svg',
                      'frontend/src/mock-data/MCGrid.ts', 'frontend/src/mock-data/RRR-Color-Bandwise.ts',
-                     'release/compose.yaml', 'release/frontend.Dockerfile', 'release/.env.example']:
+                     'release/compose.yaml', 'release/frontend.Dockerfile', 'release/frontend-build.cjs', 'release/.env.example']:
             with self.subTest(name=name):
                 self.assertTrue(included(name))
 

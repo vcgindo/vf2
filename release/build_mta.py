@@ -14,7 +14,7 @@ from release.mta_packaging import prepare, files
 
 
 def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, image,
-          runner=subprocess.run):
+          runner=subprocess.run, owner='cleanup-step6-20261017'):
     if not re.fullmatch(r'[a-z0-9][a-z0-9._:/-]{0,199}',image) or ':' not in image:
         raise ValueError('Explicit local MTA image tag required')
     receipt=prepare(root,context,wheelhouse,commit=commit,source_sha256=source_sha256,native_sha256=native_sha256)
@@ -25,7 +25,7 @@ def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, im
         raise ValueError('Reviewed MTA dependency base differs')
     arguments=['docker','build','--pull=false','--network=none','--memory=4g','--memory-swap=4g',
         '--cpu-period=100000','--cpu-quota=200000','--rm=false',
-        '--label','vectorflow.owner=cleanup-step6-20261017',
+        '--label','vectorflow.owner='+owner,
         '--build-arg','VF_NATIVE_RELEASE_COMMIT='+commit,
         '--build-arg','VF_NATIVE_RELEASE_SHA256='+native_sha256,
         '--build-arg','VF_SOURCE_MANIFEST_SHA256='+source_sha256,

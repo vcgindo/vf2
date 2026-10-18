@@ -1,5 +1,7 @@
 # VectorFLOW deployment assembly
 
+For a clean Git checkout build, use [SOURCE_BUILD.md](SOURCE_BUILD.md). It builds from one committed export and records new image identities; its runtime equivalence is established by the separately tracked bounded Step5 comparison.
+
 **Current Windows release:** use [RUNBOOK.md](RUNBOOK.md), [windows-final-release.json](windows-final-release.json) and [windows-final-images.yaml](windows-final-images.yaml) for the final six-component build. Blank deployment is separate from optional business-input loading and daily execution. The blank runtime check is pending human execution; prior initialized connected proof is in [the final handoff](../docs/handoff-3005/STEP5_CONNECTED_HANDOFF.md). Historical single-source examples below do not override these composite image pins or the native `prepare_daily_ui` → `check_daily_selection` procedure. Host port selection uses `VF_HTTP_PORT` in the private env file; the current frontend's compiled WebSocket-origin limitation is documented in the runbook.
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
