@@ -110,6 +110,7 @@ class ComposeConfigurationTests(unittest.TestCase):
             if line and not line.startswith('#') and '=' in line:
                 env.pop(line.split('=',1)[0], None)
         env['VF_HTTP_PORT'] = '8097'
+        env['VF_PROJECT'] = 'unit-compose'
         command = ['docker','compose','--env-file','.env.example']
         if install:
             command += ['--profile','install']
@@ -125,6 +126,8 @@ class ComposeConfigurationTests(unittest.TestCase):
         self.assertEqual(front['build']['args']['REACT_APP_WS_API_HOST'], 'ws://127.0.0.1:8097')
         self.assertEqual(c['services']['auth']['environment']['VF_PUBLIC_URL'], 'http://127.0.0.1:8097')
         self.assertFalse(c.get('secrets'))
+        self.assertEqual(c['services']['mta']['image'], 'unit-compose/mta:source')
+        self.assertIn('idle_in_transaction_session_timeout=30s', c['services']['postgres']['command'])
         for service in ('postgres','mta','auth','mto'):
             self.assertNotIn('VF_ADMIN_PASSWORD', c['services'][service].get('environment',{}))
             role = 'postgres' if service=='postgres' else service+'_runtime'
@@ -139,6 +142,7 @@ class ComposeConfigurationTests(unittest.TestCase):
         for previous, current in zip(sequence, sequence[1:]):
             self.assertEqual(c[current]['depends_on'][previous]['condition'], 'service_completed_successfully')
         self.assertEqual(c['secret-init']['network_mode'], 'none')
+        self.assertEqual(c['auth-install']['depends_on']['redis']['condition'], 'service_healthy')
         for name in sequence:
             self.assertEqual(c[name]['profiles'], ['install'])
         self.assertEqual(c['install']['entrypoint'], ['python','-m','release.compose_install'])

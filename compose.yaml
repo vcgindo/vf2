@@ -3,6 +3,7 @@ name: "${VF_PROJECT:-vectorflow}"
 services:
   postgres:
     extends: {file: release/compose.yaml, service: postgres}
+    command: [postgres, -c, "idle_in_transaction_session_timeout=${POSTGRES_IDLE_TIMEOUT:-30s}", -c, "statement_timeout=${POSTGRES_STATEMENT_TIMEOUT:-300s}", -c, "lock_timeout=${POSTGRES_LOCK_TIMEOUT:-5s}"]
     secrets: !reset []
     volumes:
       - postgres_secrets:/run/secrets:ro
@@ -89,6 +90,7 @@ services:
       - auth_installer_secrets:/run/secrets:ro
     depends_on:
       mta-install: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   mto-install:
     extends: {file: release/compose.yaml, service: mto-install}
     secrets: !reset []
