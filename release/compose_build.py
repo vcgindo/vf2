@@ -13,11 +13,19 @@ from release.export import export
 from release.mta_packaging import prepare
 
 
+def require_clean(repository):
+    # Windows checkout conversion may normalize CRLF even in older mixed-EOL
+    # blobs. Only CR-at-EOL differences are ignored; spaces and real edits fail.
+    # The exported bytes still come exclusively from Git objects, not this tree.
+    subprocess.run(['git', '-C', str(repository), '-c', 'core.safecrlf=false',
+                    'diff', '--ignore-cr-at-eol', '--exit-code', 'HEAD'], check=True)
+
+
 def build(repository, output):
     repository, output = Path(repository), Path(output)
     if not (repository / '.git').is_dir():
         raise ValueError('Build from a fresh Git clone, not a copied tree or linked worktree')
-    subprocess.run(['git', '-C', str(repository), 'diff', '--exit-code', 'HEAD'], check=True)
+    require_clean(repository)
     commit = subprocess.check_output(['git', '-C', str(repository), 'rev-parse', 'HEAD']).decode().strip()
     output.mkdir()
     record = export(repository, commit, output / 'export')

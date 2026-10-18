@@ -13,7 +13,29 @@ import unittest
 from unittest.mock import patch
 
 from release.compose_secrets import ROUTES, ensure
+from release.compose_build import require_clean
 from release.image_entrypoint import configure
+
+
+class GitCheckoutTests(unittest.TestCase):
+    def test_checkout_eol_conversion_is_allowed_but_real_edits_and_spaces_are_not(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return subprocess.run(['git','-C',str(root),*args], check=True, capture_output=True)
+            git('init')
+            git('config','core.autocrlf','false')
+            (root/'.gitattributes').write_text('example.txt -text\n')
+            path = root/'example.txt'
+            path.write_bytes(b'value=1\r\nnext=2\n')
+            git('add','.')
+            git('-c','user.name=Unit','-c','user.email=unit@example.invalid','commit','-m','Unit input')
+            path.write_bytes(b'value=1\nnext=2\n')
+            require_clean(root)
+            for changed in (b'value=2\nnext=2\n', b'value=1 \nnext=2\n'):
+                path.write_bytes(changed)
+                with self.assertRaises(subprocess.CalledProcessError):
+                    require_clean(root)
 
 
 class ImageIdentityTests(unittest.TestCase):
