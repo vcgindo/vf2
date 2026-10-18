@@ -80,11 +80,11 @@ const useDownloadHandler = () => {
       if (decryptedUserId) headers['User-ID'] = decryptedUserId;
       if (decryptedUserName) headers['User-Name'] = decryptedUserName;
       
-        const response = await fetch(`${process.env.REACT_APP_API_HOST}api/mta/DownloadReports/${encodeURIComponent(reportName)}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_HOST}api/mta/DownloadReports/${encodeURIComponent(reportName)}`, {
           headers,
-          credentials: 'include',
+          responseType: 'blob',
         })
-        if (!response.ok) {
+        if (response.status < 200 || response.status >= 300) {
           if (response.status == 404) {
             notifyError("File not found");
           } else {
@@ -93,7 +93,7 @@ const useDownloadHandler = () => {
           return false;
         } else {
           // Convert response to blob object
-          const blob = await response.blob()
+          const blob = response.data
           // Create download URL for blob object
           const url = URL.createObjectURL(blob)
   
@@ -114,7 +114,7 @@ const useDownloadHandler = () => {
       
     } catch (error: any) {
       console.log(error,"error")
-      notifyError('Error while downloading');
+      notifyError((error?.status ?? error?.response?.status) === 404 ? 'File not found' : 'Error while downloading');
       return false;
     }
   
