@@ -1402,6 +1402,28 @@ history navigation remains unavailable. No transfer to other sources or dates.
 
 # NMS supplier source findings — 8 October 2026
 
+**Narrow superseding authorization, 18 October 2026:** human in controller chat
+01a13f25-0358-7171-b95d-be7549993f1a answered "Approve the narrow correction and
+window" to call_7e64514aebe644cda99ddc066eb1d622. Exact proposal predecision
+SHA256a4bb0fac7bdfc16af48937716fc0992961718d07d06bfc29473e8f4a3e4fe0c9,
+D:/vf5/required-functions/moq-correction-proposal/decision.json. Only WithDestLoc
+MOQ Modify now exposes the existing immutable destination column through MTA
+metadata, uses full SKU/destination/supplier identity and matching Raw2 history,
+and replaces approved ActionType2 raw MOQ values at ordinary ingestion instead
+of deleting without replacement. This intentionally departs from the three
+documented failures below; no legacy parity is claimed for this corrected
+contract. Actual failed original UI request is preserved in
+D:/vf5/required-functions/window-continuation. Other format/SOB/Add/Remove
+semantics, duplicate occurrences, actor/scopes/review and calculation algorithms
+remain unchanged. Focused tests and actual connected approval/own-successor proof
+are required; this authorization itself is not acceptance.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+The sole approved presentation exception here is showing that existing master5
+destination field via backend metadata; frontend code/build and MTO are unchanged.
+
 Scope: isolated SOB(master4)/MOQ(master5) delivery. Authority is deployed API
 DLL `0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346`,
 not recovered C#. No calculation exception or legacy repair is approved here.

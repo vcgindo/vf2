@@ -9,11 +9,13 @@ DRAFT_ALIASES = {alias: name for alias, name in ALIASES.items() if FIELDS[alias]
 
 def configuration(screen_type, *, source=None):
     result = supplier.configuration(5, screen_type)
-    if screen_type == 'add' and source is not None and supplier.setting(source) == 'WithDestLoc':
+    if source is not None and supplier.setting(source) == 'WithDestLoc':
         for master in result:
             for field in master['fields']:
                 if field['key'] == 'wc':
-                    field['isAdd'] = True
+                    field['visible'] = True
+                    if screen_type == 'add':
+                        field['isAdd'] = True
     return result
 
 

@@ -1,7 +1,8 @@
-"""Supplier portion of pinned NMSImportData.sql (500–568).
+"""Supplier intake, with the approved destination-MOQ Modify correction.
 
 This consumer neither activates NMS nor executes a day. Its caller must supply
 the captured queue bags, persisted raw opening and Intermediate LocationMaster.
+Other marker/format behavior retains pinned NMSImportData.sql (500–568).
 """
 from copy import deepcopy
 
@@ -43,7 +44,10 @@ def compose_supplier_inputs(raw, queues, *, moq_format, locations):
         deleted.discard(None)  # SQL NULL does not join to NULL.
         rows = [row for row in result[raw_name] if _identity(row, destination) not in deleted]
         for row in eligible:
-            if row['ActionType'] != 1:
+            # Authorized correction: a destination MOQ modification replaces
+            # the matching raw value; it must not silently delete the MOQ.
+            if row['ActionType'] != 1 and not (
+                    queue_name == 'NMSMOQWithDestination' and row['ActionType'] == 2):
                 continue
             item = {'SKUCode': row['SKUCode'], 'SupplierCode': row['SupplierCode'],
                     'SupplierDescription': 'ND', scalar: row[scalar]}

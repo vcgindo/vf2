@@ -133,7 +133,7 @@ def submit(source, payload, actor, action):
         exclude([r for r in allowed if (r['sc'], r['wc']) not in pairs],
                 'Either SKU Code or Location code or both does not exist ')
     raw_rows = list(raw_model.objects.filter(source=source).order_by('ordinal'))
-    eligibility_names = names[:2] if master_id == 5 and destination and action != 1 else names
+    eligibility_names = names[:2] if master_id == 5 and destination and action == 3 else names
     existing = {row_key(r, eligibility_names, raw=True, sql=False) for r in raw_rows}
     if master_id == 4:
         message = (' These are Duplicate SKUCodes , Location Codes and SupplierCode ' if action == 1 else
@@ -170,9 +170,9 @@ def submit(source, payload, actor, action):
         assignment_rows = data if master_id == 4 or action == 3 else chunk
         selected = approvers(source, assignment_rows, payload['all_users'], destination)
         ids = ','.join(str(u['id']) for u in selected); user_names = ','.join(u['name'] for u in selected)
-        # The deployed MOQ history query always uses Raw1. WhCode cannot be
-        # compiled against it. Preserve the native failed batch, not a repair.
-        if master_id == 5 and action in (2, 3) and 'wc' in keys:
+        # Preserve the deployed Remove failure. The explicitly approved
+        # destination-Modify correction below uses its own matching Raw2 rows.
+        if master_id == 5 and action == 3 and 'wc' in keys:
             log.warning('Native MOQ history batch contains unavailable Raw1.WhCode')
             continue
         try:
@@ -184,6 +184,10 @@ def submit(source, payload, actor, action):
             if action == 1:
                 history = converted
             elif master_id == 4:
+                wanted = {payload_key(r, names) for r in chunk}
+                history = [{n: getattr(r, 'WHCode' if n == 'WhCode' else n) for n in fields}
+                           for r in raw_rows if row_key(r, names, raw=True) in wanted]
+            elif destination and action == 2:
                 wanted = {payload_key(r, names) for r in chunk}
                 history = [{n: getattr(r, 'WHCode' if n == 'WhCode' else n) for n in fields}
                            for r in raw_rows if row_key(r, names, raw=True) in wanted]
