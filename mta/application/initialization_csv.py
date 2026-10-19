@@ -12,7 +12,9 @@ import re
 from mta.application.production_csv_files import decode_json, regular
 from mta.mdm.initialization_contract import decode
 from mta.mdm.initialization_rows import SCALARS, EMPTY_STRUCTURES, schema
-from mta.serialization import digest
+from mta.serialization import digest, canonical_parts
+from mta.row_sequences import RecordRows, is_record_rows
+from mta.application.streamed_input import StreamedInput
 
 SCHEMA = 'vectorflow-initialization-csv-v1'
 MANIFEST = 'opening-manifest.json'
@@ -68,11 +70,14 @@ def _value(cell, kind):
     return result
 
 
-def create(value, destination):
+def create(value, destination, *, streamed=False):
     """Developer pack writer; all row populations are CSV, never output seeds."""
-    raw = _canonical(value)
+    checksum = hashlib.sha256()
+    for part in canonical_parts(value, ensure_ascii=False):checksum.update(part)
+    native_sha256 = checksum.hexdigest()
+    raw = StreamedInput(value, native_sha256)
     configuration, recipe = digest(value['configuration']), digest(value['recipe'])
-    decode(raw, hashlib.sha256(raw).hexdigest(), expected_configuration=configuration,
+    decode(raw, native_sha256, expected_configuration=configuration,
            expected_recipe=recipe)
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
@@ -83,59 +88,55 @@ def create(value, destination):
             if '$csv' in item:
                 raise ValueError('Reserved CSV reference key')
             return {key: pack(child, path + '/' + key) for key, child in item.items()}
-        if not isinstance(item, list):
+        if not is_record_rows(item):
             return item
         native = _native_path(path)
         scalar = native in SCALARS
-        rows = [{'value': child} for child in item] if scalar else [_flatten(row) for row in item]
-        if rows:
-            names = list(rows[0])
-            if any(set(row) != set(names) for row in rows):
-                raise ValueError('CSV population has inconsistent field rosters: ' + path)
-        elif native in EMPTY_STRUCTURES:
-            names = ['_empty']
-        else:
-            _, fields = schema(native if scalar else native + '/values', [])
-            names = list(fields)
+        rows = ([{'value': child} for child in item] if scalar else
+            RecordRows(len(item), lambda: (_flatten(row) for row in item)))
+        names = list(rows[0]) if rows else (['_empty'] if native in EMPTY_STRUCTURES
+            else list(schema(native if scalar else native + '/values', [])[1]))
+        types = {name:set() for name in names}
+        for row in rows:
+            if set(row) != set(names):raise ValueError('CSV population has inconsistent field rosters: ' + path)
+            for name in names:
+                if row[name] is not None:types[name].add(type(row[name]))
         columns = []
         for name in names:
-            types = {type(row[name]) for row in rows if row[name] is not None}
-            if types <= {str}:
-                kind = 'text'
-            elif types <= {int, float}:
-                kind = 'number'
-            elif types <= {int, bool}:
-                kind = 'bit'
-            else:
-                raise ValueError('Mixed scalar representations in CSV column: ' + path + '/' + name)
-            columns.append(dict(name=name, kind=kind))
+            kinds = types[name]
+            if kinds <= {str}:kind = 'text'
+            elif kinds <= {int,float}:kind = 'number'
+            elif kinds <= {int,bool}:kind = 'bit'
+            else:raise ValueError('Mixed scalar representations in CSV column: '+path+'/'+name)
+            columns.append(dict(name=name,kind=kind))
         filename = f'{len(populations)+1:03d}-' + path.removeprefix('input/').replace('/', '-') + '.csv'
-        stream = io.StringIO(newline='')
-        writer = csv.writer(stream, lineterminator='\r\n')
-        writer.writerow(names)
-        for row in rows:
-            writer.writerow([_cell(row[name]) for name in names])
-        payload = stream.getvalue().encode('utf-8')
-        (destination / filename).write_bytes(payload)
+        with (destination / filename).open('w', encoding='utf-8', newline='') as stream:
+            writer = csv.writer(stream, lineterminator='\r\n')
+            writer.writerow(names)
+            for row in rows:
+                writer.writerow([_cell(row[name]) for name in names])
+        checksum = hashlib.sha256()
+        with (destination / filename).open('rb') as stream:
+            for block in iter(lambda: stream.read(1024*1024), b''):checksum.update(block)
         populations[filename] = dict(path=path, scalar=scalar, columns=columns,
-            rows=len(rows), sha256=hashlib.sha256(payload).hexdigest())
+            rows=len(rows), sha256=checksum.hexdigest())
         return {'$csv': filename}
 
     template = pack(value)
     manifest = dict(schema=SCHEMA, template=template, populations=populations,
-        native_input_sha256=hashlib.sha256(raw).hexdigest(),
+        native_input_sha256=native_sha256,
         configuration_digest=configuration, recipe_digest=recipe)
     (destination / MANIFEST).write_bytes(_canonical(manifest))
     (destination / 'READY').write_bytes(b'')
     # Reconstruct using the production reader, not only the writer's own values.
-    assembled = read(destination, hashlib.sha256((destination / MANIFEST).read_bytes()).hexdigest(),
+    assembled = read_streamed(destination, hashlib.sha256((destination / MANIFEST).read_bytes()).hexdigest(),
                      expected_configuration=configuration, expected_recipe=recipe)
-    if assembled != raw:
-        raise ValueError('CSV pack does not reconstruct the exact native input')
-    return manifest, assembled
+    # read_streamed verifies the complete canonical identity before returning.
+    if assembled.sha256 != native_sha256:raise ValueError('CSV native identity differs')
+    return manifest, assembled if streamed else _canonical(value)
 
 
-def read(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
+def read_streamed(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
     """Read and fully validate every byte BEFORE entering the native initializer."""
     root = Path(directory).absolute()
     regular(root / 'READY', root)
@@ -175,39 +176,60 @@ def read(directory, expected_manifest_sha256, *, expected_configuration, expecte
                 or not isinstance(c['name'], str) or c['kind'] not in ('text', 'number', 'bit')
                 for c in spec['columns'])):
             raise ValueError('Invalid opening CSV columns')
-        payload = regular(root / filename, root).read_bytes()
-        if hashlib.sha256(payload).hexdigest() != spec['sha256']:
+        source = regular(root / filename, root)
+        identity = (source.stat().st_size, source.stat().st_mtime_ns)
+        checksum = hashlib.sha256()
+        with source.open('rb') as stream:
+            for block in iter(lambda: stream.read(1024*1024), b''):checksum.update(block)
+        if checksum.hexdigest() != spec['sha256']:
             raise ValueError('Opening CSV checksum differs: ' + filename)
-        try:
-            reader = csv.reader(io.StringIO(payload.decode('utf-8-sig'), newline=''), strict=True)
-            if next(reader, None) != names:
-                raise ValueError('Opening CSV headers/order differ: ' + filename)
-            rows = []
-            for ordinal, cells in enumerate(reader, 1):
-                if len(cells) != len(names):
-                    raise ValueError(f'{filename}:record{ordinal}: CSV row width differs')
-                row = {}
-                for cell, column in zip(cells, spec['columns']):
-                    try:
-                        value = _value(cell, column['kind'])
-                    except ValueError as error:
-                        raise ValueError(f'{filename}:record{ordinal}:{column["name"]}: {error}') from error
-                    name = column['name']
-                    if name.startswith('policy/'):
-                        row.setdefault('policy', {})[name.removeprefix('policy/')] = value
-                    else:
-                        row[name] = value
-                rows.append(row['value'] if spec['scalar'] else row)
-        except (UnicodeError, csv.Error) as error:
-            raise ValueError('Malformed opening CSV: ' + filename) from error
-        if len(rows) != spec['rows']:
+        def records():
+            regular(source, root)
+            if (source.stat().st_size, source.stat().st_mtime_ns) != identity:
+                raise ValueError('Opening CSV changed: ' + filename)
+            try:
+                with source.open('r', encoding='utf-8-sig', newline='') as stream:
+                    reader = csv.reader(stream, strict=True)
+                    if next(reader, None) != names:
+                        raise ValueError('Opening CSV headers/order differ: ' + filename)
+                    for ordinal, cells in enumerate(reader, 1):
+                        if len(cells) != len(names):
+                            raise ValueError(f'{filename}:record{ordinal}: CSV row width differs')
+                        row = {}
+                        for cell, column in zip(cells, spec['columns']):
+                            try:value = _value(cell, column['kind'])
+                            except ValueError as error:
+                                raise ValueError(f'{filename}:record{ordinal}:{column["name"]}: {error}') from error
+                            name = column['name']
+                            if name.startswith('policy/'):
+                                row.setdefault('policy', {})[name.removeprefix('policy/')] = value
+                            else:row[name] = value
+                        yield row
+            except (UnicodeError, csv.Error) as error:
+                raise ValueError('Malformed opening CSV: ' + filename) from error
+            if (source.stat().st_size, source.stat().st_mtime_ns) != identity:
+                raise ValueError('Opening CSV changed: ' + filename)
+        if spec['scalar']:
+            rows = [row['value'] for row in records()]
+        elif path.startswith('input/opening/state/') and spec['rows'] > 10000:
+            rows = RecordRows.from_rows(records())
+        else:rows = list(records())
+        # Validate every cell and population now, even for lazy histories.
+        if sum(1 for _ in rows) != spec['rows']:
             raise ValueError('Opening CSV row count differs: ' + filename)
         return rows
 
     value = unpack(manifest['template'])
     if used != set(manifest['populations']):
         raise ValueError('Unreferenced opening CSV population')
-    native = _canonical(value)
+    native = StreamedInput(value, manifest['native_input_sha256'])
     decode(native, manifest['native_input_sha256'], expected_configuration=expected_configuration,
            expected_recipe=expected_recipe)
     return native
+
+
+def read(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
+    """Compatibility API for bounded callers needing canonical bytes."""
+    value = read_streamed(directory, expected_manifest_sha256,
+        expected_configuration=expected_configuration, expected_recipe=expected_recipe)
+    return b''.join(canonical_parts(value.snapshot(value.sha256), ensure_ascii=False))

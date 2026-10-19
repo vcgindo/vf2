@@ -5,6 +5,7 @@ are typed images. Projection sequences borrow their source without building a
 second population; insert batching belongs to relational_state.bulk.
 """
 from collections.abc import Sequence
+from mta.row_sequences import RecordRows
 from mta.serialization import digest, storage
 from mta.runtime.relational_state import STORAGE_TABLES, save_image, load_image
 
@@ -25,7 +26,7 @@ class Rows(Sequence):
 def shape(value, path=()):
     if isinstance(value,dict):
         return ['dict',[[k,shape(v,(*path,k))] for k,v in value.items()]]
-    if isinstance(value,(list,tuple)):return ['list',list(path)]
+    if isinstance(value,(list,tuple,RecordRows)):return ['list',list(path)]
     return ['value',list(path)]
 
 
@@ -154,7 +155,7 @@ def save_input(run,raw, *, image_writer=None, table_selector=None):
     def pack(value,path):
         if isinstance(value,dict):
             return {'object':[[k,pack(v,path+'/'+k)] for k,v in value.items()]}
-        if not isinstance(value,(list,tuple,Rows)):
+        if not isinstance(value,(list,tuple,Rows,RecordRows)):
             return {'scalar':storage(value)}
         if not value:
             if table_selector:
@@ -235,7 +236,15 @@ def read_input(run, *, components=None, image_reader=None):
             if template[0]=='dict':return {k:rebuild(v,row) for k,v in template[1]}
             if template[0]=='list':return []
             return row['/'.join(template[1])]
-        rows=[rebuild(node['shapes'][item['shape_id']],row) for item,row in zip(types,scalars)]
+        def records():
+            for item,row in zip(types,scalars):
+                shape_id = item['shape_id']
+                if type(shape_id) is not int or not 0 <= shape_id < len(node['shapes']):
+                    raise ValueError('Typed input shape identity drift')
+                yield rebuild(node['shapes'][shape_id],row)
+        # Nested child owners require mutable parents; flat histories do not.
+        rows = (RecordRows(len(types), records) if not node['children'] and len(types)>10000
+                else list(records()))
         for field,child,link in node['children']:
             values=unpack(child);links=read(link)
             if len(values)!=len(links):raise ValueError('Typed input child population drift')

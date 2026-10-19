@@ -3,6 +3,7 @@ SCHEMA = 'fresh-production-day-input-v1'
 FEED_SCHEMA = 'fresh-production-day-input-v2'
 SOURCE_SCHEMA = 'fresh-production-day-input-v3'
 STOCK_FEED_SCHEMA = 'fresh-production-day-input-v4'
+ACTIVE_STOCK_SCHEMA = 'fresh-production-day-input-v5'
 STOCK_TABLE = 'Intermediate/AdditionalDataStockForReqCalc'
 SUPPLIER_TABLES = dict(SOBDataRaw='Intermediate/TempSOBDataRaw',
     MOQDataRaw1='Intermediate/TempMOQDataRaw1', MOQDataRaw2='Intermediate/TempMOQDataRaw2')
@@ -19,9 +20,9 @@ DAY_FIELDS = {*DAY_TABLES, 'business_date', 'order_feed_status', 'control_reques
 
 
 def day_tables(intake):
-    return {**DAY_TABLES, **({'requirement_stock':STOCK_TABLE} if intake==STOCK_FEED_SCHEMA else {})}
+    return {**DAY_TABLES, **({'requirement_stock':STOCK_TABLE} if intake in (STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA) else {})}
 
 
 def day_fields(intake):
     return DAY_FIELDS | ({'raw_master','supplier_feeds'} if intake in (FEED_SCHEMA,STOCK_FEED_SCHEMA) else set()) | (
-        {'requirement_stock'} if intake==STOCK_FEED_SCHEMA else set())
+        {'requirement_stock'} if intake in (STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA) else set())

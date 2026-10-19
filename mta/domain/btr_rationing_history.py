@@ -3,9 +3,11 @@ from copy import deepcopy
 from datetime import date, timedelta
 from decimal import Decimal
 import hashlib
+from itertools import chain
 import json
 from pathlib import Path
 from mta.domain.complete_daily_scalars import ascii_equal
+from mta.row_sequences import history_rows, is_record_rows
 
 raw = (Path(__file__).resolve().parents[1]/'config/btr_rationing_history_v1.json').read_bytes()
 if hashlib.sha256(raw).hexdigest() != '6a8878abacc19604e2abc7cc5adf85e55bdd449e73b01fb235c6002a1be40764':
@@ -119,10 +121,12 @@ def collect(today, prior, report, daily, supplier, horizon):
         cutoff=today-timedelta(days=horizon)
     except (OverflowError,ValueError) as error:
         raise ValueError('BTR history cutoff outside date range') from error
-    if not all(isinstance(rows,list) for rows in (prior,report,daily,supplier)):
+    if not all(is_record_rows(rows) for rows in (prior,report,daily,supplier)):
         raise ValueError('Explicit BTR history owner populations required')
     for row in prior:
         validate_target(row)
+    if not isinstance(prior,list):
+        return _collect_record_rows(today, prior, report, daily, supplier, cutoff)
     result=[deepcopy(row) for row in prior if row['ReportDate'] is None or
             row_date(row['ReportDate']) != today and row_date(row['ReportDate']) > cutoff]
     result.extend({c['name']:(today.isoformat() if c['name']=='ReportDate' else INSERT_LITERALS[c['name']]
@@ -170,3 +174,68 @@ def collect(today, prior, report, daily, supplier, horizon):
     for row in result:
         validate_target(row)
     return result
+
+
+def _collect_record_rows(today, prior, report, daily, supplier, cutoff):
+    """Apply the mutable SQL-shaped updates while streaming retained history."""
+    current=[{c['name']:(today.isoformat() if c['name']=='ReportDate' else INSERT_LITERALS[c['name']]
+                       if c['name'] in INSERT_LITERALS else None if c['name'] in OMITTED else source_value(c,row[c['name']]))
+                   for c in COLUMNS} for row in report]
+    target_keys={pair(row) for row in current}
+    receipts=_unique_values([r for r in daily if row_date(r['ReportDate'])==today and pair(r,'WHCode') in target_keys],
+                           lambda r:pair(r,'WHCode'),('Receipts','Consumption'),'daily UPDATE')
+    for row in current:
+        if pair(row) in receipts:
+            row['Receipts'],row['Consumption']=receipts[pair(row)]
+        validate_target(row)
+
+    def inferred_dispatch(row):
+        if row_date(row['ReportDate'])!=today-timedelta(days=1) or pair(row) not in current_by_key:
+            return row['Dispatch']
+        values=[]
+        for incoming in current_by_key[pair(row)]:
+            delta=integer(incoming['GIT']-row['GIT'],'GIT difference')
+            values.append(integer(delta+incoming['Receipts'],'inferred Dispatch'))
+        if len(set(values)) != 1:
+            raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting BTR history adjacent-date UPDATE')
+        return values[0]
+
+    def retained_rows():
+        for source in prior:
+            if not (source['ReportDate'] is None or
+                    row_date(source['ReportDate']) != today and row_date(source['ReportDate']) > cutoff):
+                continue
+            row=deepcopy(source)
+            validate_target(row)
+            row['Dispatch']=inferred_dispatch(row)
+            if row['Dispatch'] is not None and row['Dispatch']<0:
+                row['Dispatch']=0
+            validate_target(row)
+            yield row
+
+    current_by_key={}
+    for row in current:
+        current_by_key.setdefault(pair(row),[]).append(row)
+    # Preserve the original guard order without retaining a second disk copy:
+    # adjacent-date arithmetic is checked before supplier aggregation.
+    for row in prior:
+        if (row['ReportDate'] is None or
+                row_date(row['ReportDate']) != today and row_date(row['ReportDate']) > cutoff):
+            inferred_dispatch(row)
+    totals={}
+    for row in supplier:
+        identity=pair(row,'WHCode')
+        if identity is not None:
+            totals.setdefault(identity,[]).append(row['DispatchReq'])
+    for identity,values in totals.items():
+        present=[integer(value,'DispatchReq') for value in values if value is not None]
+        positive=sum(v for v in present if v>0)
+        negative=sum(v for v in present if v<0)
+        if positive and negative and (positive>=2**31 or negative<-(2**31)):
+            raise ValueError('SOURCE_ORDER_AMBIGUITY: BTR history SUM accumulation overflow')
+        totals[identity]=integer(sum(present),'SUM DispatchReq') if present else None
+    for row in current:
+        if pair(row) in totals:
+            row['SupplierDispatchReq']=totals[pair(row)]
+        validate_target(row)
+    return history_rows(chain(retained_rows(),current),like=prior)

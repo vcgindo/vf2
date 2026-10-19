@@ -16,6 +16,8 @@ from mta.mdm import initialization_rows as native_rows
 from mta.mdm.master_owners import business_fields, typed_field
 from mta.runtime import mdm_models, mdm_skuloc_models
 from mta.serialization import digest
+from mta.row_sequences import is_record_rows
+from mta.application.streamed_input import StreamedInput
 
 SCHEMA = 'fresh-production-preflight-v1'
 STAGES = ('installation', 'day', 'preparation', 'activation')
@@ -65,7 +67,7 @@ class Requirements:
         return value
 
     def bag(self, value, path, owner):
-        if not isinstance(value, list):
+        if not is_record_rows(value):
             self.add(path, owner, 'BAG_REQUIRED', 'Explicit row list required, including empty populations')
             return None
         return value
@@ -130,6 +132,11 @@ def require(report, stage):
 
 def parse(raw, sha256, collector, path):
     collector.check(path+'/sha256', 'input identity', lambda: contract.sha(sha256, path))
+    if type(raw) is StreamedInput:
+        try:return raw.snapshot(sha256)
+        except ValueError as error:
+            collector.add(path+'/sha256', 'input identity', 'HASH_DIFFERS', str(error))
+            return None
     if not isinstance(raw, bytes):
         collector.add(path, 'input identity', 'BYTES_REQUIRED', 'Exact UTF-8 input bytes required')
         return None
@@ -492,7 +499,7 @@ def initialization(raw, sha256, *, expected_configuration, expected_recipe):
                         continue
                     at='/opening/state/'+section+'/'+name
                     if rows and (section=='dbm' and name not in contract.DBM_CARRY
-                        or section=='btr' and name not in contract.BTR_BASE
+                        or section=='btr' and name not in contract.BTR_CARRY
                         or section=='complete' and name in contract.COMPLETE_OUTPUTS
                         or section=='controls' and name in ('suggestions','forced','triggers','accepted','raw_master')):
                         c.add(at,section,'CALCULATED_OPENING_FORBIDDEN','Initial input cannot seed producer-owned future output')
@@ -503,7 +510,7 @@ def initialization(raw, sha256, *, expected_configuration, expected_recipe):
                         c.records(rows,at,section,model=MODELS[name])
                     else:
                         c.records(rows,at,section,native_path='input'+at)
-                    if isinstance(rows,list):
+                    if is_record_rows(rows):
                         for i,row in enumerate(rows):
                             if isinstance(row,dict):
                                 for field in contract.HISTORY_DATES & set(row):
@@ -526,7 +533,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
           pick_output_root=None, execution_revision=None, retry_capture_id=None, context_issues=()):
     from mta.runtime.production_daily import (SCHEMA as DAY_SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES,
         DAY_FIELDS, DAY_TABLES, CONTROL_TABLES, decode, working_day, rows as validate_rows)
-    from mta.application.native_daily_contract import STOCK_FEED_SCHEMA,day_fields,day_tables
+    from mta.application.native_daily_contract import STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA,day_fields,day_tables
     c = Requirements('day')
     full_capabilities(c)
     for item in context_issues:
@@ -597,7 +604,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                             supported_identifier(c,row['WhCode'],'/day/'+name+'/'+str(i)+'/WhCode','native Pick partition')
                         if isinstance(row,dict) and name=='raw_daily' and row.get('ReportDate') != day.get('business_date'):
                             c.add('/day/'+name+'/'+str(i)+'/ReportDate','daily facts','DATE_DIFFERS','Daily fact date must match business_date')
-            if intake==STOCK_FEED_SCHEMA and 'requirement_stock' in day:
+            if intake in (STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA) and 'requirement_stock' in day:
                 from mta.application.requirement_stock import validate as validate_stock
                 c.check('/day/requirement_stock','native requirement-stock facts',
                     lambda:validate_stock(day['requirement_stock'],day.get('business_date')))

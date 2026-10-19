@@ -15,6 +15,7 @@ from itertools import islice
 
 from django.db import connection
 from mta.serialization import digest, storage, rows_digest, canonical_parts
+from mta.row_sequences import RecordRows
 
 CATALOG=json.loads((Path(__file__).resolve().parents[2]/'mta/config/production_state_schema_v1.json').read_text())
 if digest(CATALOG)!='84f01ea82866a3898dd134eafac32bca4e35daa193aca9d55da4716074b1e512':
@@ -97,6 +98,30 @@ def bulk(sql,records):
             cursor.executemany(sql,batch)
 
 
+def describe_rows(rows, columns, image):
+    """One complete ordered pass; avoid one history scan per output column."""
+    fields=list(rows[0]) if rows else []
+    native=[];kinds={field:set() for field in fields}
+    for field in fields:
+        if field.casefold() not in columns:
+            raise ValueError('Unmapped operational column '+image+'/'+field)
+        native.append(columns[field.casefold()])
+    checksum=hashlib.sha256(b'[');count=0
+    for row in rows:
+        if set(row)!=set(fields):raise ValueError('Mixed operational row shape: '+image)
+        if count:checksum.update(b',')
+        for part in canonical_parts(row):checksum.update(part)
+        for field in fields:
+            if row[field] is not None:kinds[field].add(wire_type(row[field]))
+            if len(kinds[field])>1:raise ValueError('Mixed wire types in operational column '+image+'/'+field)
+        count+=1
+    checksum.update(b']')
+    if count!=len(rows):raise ValueError('Operational source population drift')
+    metadata=dict(image=image,count=count,digest=checksum.hexdigest(),fields=[
+        [field,name,next(iter(kinds[field]),'str')] for field,(name,_) in zip(fields,native)])
+    return metadata,fields,native
+
+
 def save_image(run,image,binding,rows, *, table=None):
     key=(table if table is not None else BTR_BINDINGS[binding] if binding in BTR_BINDINGS else PHASE_BINDINGS[binding] if binding in PHASE_BINDINGS else COMPLETE_BINDINGS[binding]
          if binding in COMPLETE_BINDINGS else '/'.join(CATALOG['bindings'][binding]))
@@ -112,19 +137,10 @@ def save_image(run,image,binding,rows, *, table=None):
     if key == 'BPR/ElephantOrders':
         from mta.domain.elephant_orders import validate as validate_elephants
         validate_elephants(list(rows))
-    metadata=dict(image=image,table=key,count=len(rows),digest=rows_digest(rows),fields=[])
-    if not rows:return metadata
-    fields=list(rows[0])
-    if any(set(row)!=set(fields) for row in rows):raise ValueError('Mixed operational row shape: '+image)
     columns={name.casefold():(name,kind) for name,kind in STORAGE_TABLES[key]}
-    native=[]
-    for field in fields:
-        if field.casefold() not in columns:raise ValueError('Unmapped operational column '+image+'/'+field)
-        name,kind=columns[field.casefold()]
-        types={wire_type(row[field]) for row in rows if row[field] is not None}
-        if len(types)>1:raise ValueError('Mixed wire types in operational column '+image+'/'+field)
-        metadata['fields'].append([field,name,next(iter(types),'str')])
-        native.append((name,kind))
+    metadata,fields,native=describe_rows(rows,columns,image)
+    metadata['table']=key
+    if not rows:return metadata
     query='INSERT INTO '+table_sql(key)+' (vf_run_id,vf_image,vf_ordinal,'+','.join(quote(n) for n,_ in native)+') VALUES ('+','.join(['%s']*(len(native)+3))+')'
     records=((run.pk,image,index,*[db_value(row[field],kind) for field,(_,kind) in zip(fields,native)])
              for index,row in enumerate(rows))
@@ -136,7 +152,7 @@ def iter_image(run,item):
     if item['table'] not in STORAGE_TABLES:raise ValueError('Unknown operational table')
     fields=item['fields']
     checksum=hashlib.sha256(b'[');count=0
-    with connection.cursor() as cursor:
+    with connection.chunked_cursor() as cursor:
         cursor.execute('SELECT vf_ordinal'+(' ,'+','.join(quote(n) for _,n,_ in fields) if fields else '')+
             ' FROM '+table_sql(item['table'])+' WHERE vf_run_id=%s AND vf_image=%s ORDER BY vf_ordinal',
             [run.pk,item['image']])
@@ -154,6 +170,8 @@ def iter_image(run,item):
 
 
 def load_image(run,item):
+    if item['count'] > 10000:
+        return RecordRows.from_rows(iter_image(run,item))
     return list(iter_image(run,item))
 
 

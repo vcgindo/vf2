@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from mta.application.native_daily_contract import DAY_TABLES, SUPPLIER_TABLES, SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA
-from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, STOCK_TABLE
+from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA, STOCK_TABLE
 from mta.runtime.relational_state import STORAGE_TABLES
 from mta.application.production_source_inputs import RAW_TABLE, DIRECTORY_TABLE
 
@@ -22,7 +22,7 @@ FILES = {
 
 
 def feeds(intake):
-    if intake not in (SCHEMA, FEED_SCHEMA, STOCK_FEED_SCHEMA):
+    if intake not in (SCHEMA, FEED_SCHEMA, STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA):
         raise ValueError('Explicit supported native intake schema required')
     physical = json.loads((Path(__file__).resolve().parents[2] /
         'baseline/cohort2-native-source-schema.json').read_bytes())['tables']
@@ -54,7 +54,7 @@ def feeds(intake):
         for name, table in SUPPLIER_TABLES.items():
             add(name + '.csv', 'day/supplier_feeds/' + name, table,
                 'Importer/' + name)
-    if intake == STOCK_FEED_SCHEMA:
+    if intake in (STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA):
         add('AdditionalDataStockForReqCalc.csv','day/requirement_stock',STOCK_TABLE,
             'Importer/AdditionalDataStockForReqCalc')
     add('InTransitRaw.csv', 'producer_sources/shipments/rows', RAW_TABLE)

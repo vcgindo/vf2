@@ -13,7 +13,7 @@ import django
 django.setup()
 
 from mta.application.requirement_stock import apply,validate
-from mta.application.native_daily_contract import FEED_SCHEMA,STOCK_FEED_SCHEMA,STOCK_TABLE
+from mta.application.native_daily_contract import SCHEMA,FEED_SCHEMA,STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA,STOCK_TABLE
 from mta.application.production_csv_contract import feeds
 from mta.application.production_csv import assemble
 from mta.application.production_csv_files import load_binding
@@ -36,6 +36,34 @@ class RequirementStockTests(unittest.TestCase):
         self.assertEqual({k:v for k,v in new.items() if k in old},old)
         self.assertEqual(set(new)-set(old),{'AdditionalDataStockForReqCalc.csv'})
         self.assertEqual(new['AdditionalDataStockForReqCalc.csv']['table'],STOCK_TABLE)
+
+    def test_active_stock_schema_preserves_captured_master_and_supplier_owners(self):
+        from tests.production_h3_fixture import supplied_day
+        from tests.test_h3_daily_integration import frame
+        from tests.test_production_daily_contract import encoded_day
+        from mta.runtime.production_daily import working_day
+        prior=feeds(SCHEMA);active=feeds(ACTIVE_STOCK_SCHEMA)
+        self.assertEqual({name:spec for name,spec in active.items() if name in prior},prior)
+        self.assertEqual(set(active)-set(prior),{'AdditionalDataStockForReqCalc.csv'})
+        self.assertNotIn('MasterDataRaw.csv',active)
+        value=supplied_day('2037-04-10',root=True)
+        # v3 supplies the existing external producer owners; only intake changes.
+        from tools.create_daily_csv_example import create as example
+        with tempfile.TemporaryDirectory() as td:
+            root=example(Path(__file__).resolve().parents[1]/'examples/starter-data/vectorflow-starter-inputs-v1.zip',Path(td)/'csv')
+            binding=load_binding(root/'binding-template.json');binding['intake_schema']=ACTIVE_STOCK_SCHEMA
+            batch=json.loads((root/DAY/'batch.json').read_bytes())
+            batch['feeds']['AdditionalDataStockForReqCalc.csv']='PRESENT'
+            payloads={name:(root/DAY/name).read_bytes() for name in batch['feeds'] if name!='AdditionalDataStockForReqCalc.csv'}
+            payloads['AdditionalDataStockForReqCalc.csv']=encode_csv(active['AdditionalDataStockForReqCalc.csv']['columns'],[record()])
+            raw,positions=assemble(batch,binding,payloads,first_day=True)
+            parsed=decode(raw,hashlib.sha256(raw).hexdigest())
+            actual=working_day(parsed,frame()['profile'])
+            self.assertEqual(actual['requirement_stock'],[record()])
+            self.assertEqual(actual['raw_master'],[])
+            self.assertTrue(all(rows==[] for rows in actual['supplier_feeds'].values()))
+            parsed['day']['raw_master']=[]
+            with self.assertRaisesRegex(ValueError,'roster'):decode(*encoded_day(parsed))
 
     def test_csv_decode_and_typed_capture_keep_null_duplicate_order_and_date(self):
         with tempfile.TemporaryDirectory() as td:

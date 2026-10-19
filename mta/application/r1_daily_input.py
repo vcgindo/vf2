@@ -11,6 +11,8 @@ import re
 
 from mta.application.r1_importer_master import TABLE_COLUMNS as MASTER_TABLES, _sql_key, _distinct
 from mta.application.r1_supplier_input import sorted_rows
+from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.row_sequences import RecordRows, is_record_rows
 
 SCHEMA = "r1-daily-input-v1"
 METRICS = ("Stock", "Consumption", "GIT", "Receipts", "PSO")
@@ -44,10 +46,9 @@ class _SqlError(Exception):
 
 
 def _typed_rows(rows, fields, nullable=()):
-    if not isinstance(rows, list):
+    if not is_record_rows(rows):
         raise ValueError("Daily source table must be a row list")
-    output = []
-    for row in rows:
+    def typed_row(row):
         if not isinstance(row, dict) or set(row) - set(fields):
             raise ValueError("Unknown daily source field")
         typed = {}
@@ -67,8 +68,13 @@ def _typed_rows(rows, fields, nullable=()):
                 if not isinstance(v, str) or not v.isascii() or len(v) > limit:
                     raise ValueError("Daily text requires bounded ASCII; wider collation unproven")
             typed[f] = v
-        output.append(typed)
-    return output
+        return typed
+    if isinstance(rows,RecordRows):
+        for row in rows:
+            typed_row(row)
+        return RecordRows(len(rows),lambda:(typed_row(row) for row in rows),
+                          getitem=lambda ordinal:typed_row(rows[ordinal]))
+    return [typed_row(row) for row in rows]
 
 
 def validate_module_configuration(flags, sources=None):
@@ -165,6 +171,12 @@ def process_daily_validation(entry, master_validation, business_date, now):
     tables["RejectedMaster"] = deepcopy(master["RejectedMaster"])
     stages = {}
 
+    def grouped(rows, key=_key):
+        result = {}
+        for row in rows:
+            result.setdefault(key(row), []).append(row)
+        return result
+
     def collect():
         plants = {_sql_key(r["PlantCode"]) for r in prior["Plants"]}
         current = {_key(r) for r in master["MasterData"]}
@@ -233,12 +245,15 @@ def process_daily_validation(entry, master_validation, business_date, now):
         sources=entry.get('module_sources',{})
         for flag,name in MODULE_PAIRS.items():
             if flags[flag]:
-                tables['DailyDataProcessed'].extend(deepcopy(row) for row in rows for source in sources[name]
-                    if _key(row)==_key(source) and row['Stock'] is not None)
+                source_counts=Counter(_key(source) for source in sources[name])
+                tables['DailyDataProcessed'].extend(deepcopy(row) for row in rows
+                    for _ in range(source_counts.get(_key(row),0)) if row['Stock'] is not None)
         if flags['VectorDMSActive']:
+            code_counts=Counter(_sql_key(code) for code in entry['vector_dms_codes'])
+            master_counts=Counter(_key(current) for current in master['MasterData'])
             tables['DailyDataProcessed'].extend(deepcopy(row) for row in rows
-                for code in entry['vector_dms_codes'] for current in master['MasterData']
-                if _sql_key(row['WhCode'])==_sql_key(code) and _key(row)==_key(current) and row['Stock'] is not None)
+                for _ in range(code_counts.get(_sql_key(row['WhCode']),0)*master_counts.get(_key(row),0))
+                if row['Stock'] is not None)
         return "APPLIED"
 
     def locations():
@@ -264,15 +279,16 @@ def process_daily_validation(entry, master_validation, business_date, now):
         else:
             output = []
             yesterday = (date.fromisoformat(business_date) - timedelta(days=1)).isoformat()
+            by_key = grouped(rows)
             for target in targets:
-                matches = [r for r in rows if _key(r) == _key(target)]
+                matches = by_key.get(_key(target), [])
                 source = _winner(matches, METRICS)
                 row = {**target, **dict.fromkeys(METRICS, 0), "ReportDate": business_date}
                 if source:
                     row.update({f: source[f] or 0 for f in METRICS})
                 if number == 3 and (source is None or source["Stock"] is None):
-                    history = [r for r in prior["DailyConsumption"] if _key(r, "WHCode") == _key(target)
-                               and r["ReportDate"] == yesterday]
+                    history = [r for r in history_index.matching(prior["DailyConsumption"],_key(target))
+                               if r["ReportDate"] == yesterday]
                     old = _winner(history, ("Stock",))
                     row["Stock"] = (old["Stock"] or 0) if old else 0
                 output.append(row)
@@ -283,13 +299,19 @@ def process_daily_validation(entry, master_validation, business_date, now):
         if not tables["DailyDataRaw"]:
             return "EARLY_RETURN"
         names = []
+        keys_by_wh = {}
+        for row in master["MasterData"]:
+            keys_by_wh.setdefault(_sql_key(row["WhCode"]),set()).add(_key(row))
+        stocked = {_key(row) for row in tables["DailyDataRaw"] if row["Stock"] is not None}
+        sites_by_wh = {}
+        for row in master["SiteDescriptionTbl"]:
+            sites_by_wh.setdefault(_sql_key(row["WHCode"]),[]).append(row)
         for row in master["MasterData"]:
             wh = _sql_key(row["WhCode"])
-            keys = {_key(r) for r in master["MasterData"] if _sql_key(r["WhCode"]) == wh}
-            if any(_key(r) in keys and r["Stock"] is not None for r in tables["DailyDataRaw"]):
+            if stocked & keys_by_wh[wh]:
                 continue
             names.extend({"WHCode": row["WhCode"], "WHDescription": d["WHDescription"]}
-                         for d in master["SiteDescriptionTbl"] if _sql_key(d["WHCode"]) == wh)
+                         for d in sites_by_wh.get(wh,()))
         names = _distinct(names, ("WHCode", "WHDescription"))
         setting = _scalar(entry["vf_settings"], "GenerateBPRForMissingInventoryLoc")
         if setting == 0:
@@ -311,11 +333,12 @@ def process_daily_validation(entry, master_validation, business_date, now):
             tables["DailyDataRaw"] = deepcopy(tables["DailyDataProcessed"])
         return "APPLIED"
 
-    for stage, operation in zip(STAGES, (collect, base, lambda: mode(3), lambda: mode(2), lambda: mode(1), missing, dbm)):
-        try:
-            outcome = operation()
-        except _SqlError:
-            outcome = "SQL_ERROR"
-        stages[stage] = {"outcome": outcome, "tables":
-            {k: sorted_rows(v) for k, v in tables.items()} if stage==STAGES[-1] else {}}
+    with OrdinalLookup(prior["DailyConsumption"],key=lambda row:_key(row,"WHCode")) as history_index:
+        for stage, operation in zip(STAGES, (collect, base, lambda: mode(3), lambda: mode(2), lambda: mode(1), missing, dbm)):
+            try:
+                outcome = operation()
+            except _SqlError:
+                outcome = "SQL_ERROR"
+            stages[stage] = {"outcome": outcome, "tables":
+                {k: sorted_rows(v) for k, v in tables.items()} if stage==STAGES[-1] else {}}
     return stages

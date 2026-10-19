@@ -14,7 +14,7 @@ from mta.runtime.relational_state import STORAGE_TABLES
 
 from mta.application.native_daily_contract import (
     SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES, DAY_TABLES, CONTROL_TABLES, DAY_FIELDS)
-from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, STOCK_TABLE, day_tables, day_fields
+from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA, STOCK_TABLE, day_tables, day_fields
 
 
 def rows(value, table, label):
@@ -86,7 +86,7 @@ def decode(raw, expected_sha256):
     if not isinstance(value, dict) or set(value) != envelope or value['schema'] not in (SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA):
         raise ValueError('Complete native daily envelope required')
     intake = value.get('intake_schema', value['schema'])
-    if intake not in (SCHEMA, FEED_SCHEMA, STOCK_FEED_SCHEMA):
+    if intake not in (SCHEMA, FEED_SCHEMA, STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA):
         raise ValueError('Explicit active/inactive native intake schema required')
     day = value['day']
     fields = day_fields(intake)
@@ -105,7 +105,7 @@ def decode(raw, expected_sha256):
         validate(value['producer_sources'], day['business_date'])
     for name, table in day_tables(intake).items():
         rows(day[name], table, name)
-    if intake == STOCK_FEED_SCHEMA:
+    if intake in (STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA):
         from mta.application.requirement_stock import validate
         validate(day['requirement_stock'],day['business_date'])
     _typed_rows(day['raw_daily'], DAILY_COLUMNS, DAILY_COLUMNS[:-1])
@@ -150,7 +150,7 @@ def working_day(value, profile):
         if intake not in (FEED_SCHEMA,STOCK_FEED_SCHEMA):
             raise ValueError('Inactive NMS requires explicit v2 master and supplier raw feeds')
     elif policy == ACTIVE_POLICY:
-        if intake != SCHEMA:
+        if intake not in (SCHEMA, ACTIVE_STOCK_SCHEMA):
             raise ValueError('Active NMS requires v1 intake from its captured owners')
     else:
         raise ValueError('Native daily execution requires a supported finalization policy')

@@ -8,51 +8,29 @@
 
 ### Current checkpoint — 20 October2026
 
-The human subsequently released the whole comparison through step7. Historical
-stop/pending wording below describes earlier attempts only. Legacy has now
-passed the approved BOR and supplier mappings, remaining BPR/Planning and DBM
-business stages. The current continuation is processing BTR and remaining
-reports; final execution/readback is not yet complete. All earlier failed
-attempts and checkpoints are retained. Timings are split active phases, not an
-uninterrupted daily benchmark. Terminal shared-tempdb shrink was denied and
-excluded without increasing privileges or replaying the completed DBM rule.
 
-Modern source includes the separately approved independent-vehicle Pick
-alignment, historical BTR carry admission and versioned requirement-stock CSV
-connection. Focused tests cover the actual CSV-to-connected-calculation path,
-typed/NULL/duplicate/date guards and retained old intake formats. These are
-not a large-data initialization/day or full parity result.
 
-**New step6 admission blocker:** the production CSV opening reader constructs
-all history rows as Python dictionaries; initialization then deep-copies the
-opening. The frozen DBM DailyConsumption31,040,788/SuspendHistory8,483,159 and
-BTR BPR8,483,003/RationingHistory2,882,051 populations require at least
-20,880,562,288 bytes (19.447GiB) for one set of row dictionaries alone, measured
-with the running image's Python3.11 container sizes. Docker reports
-16,594,939,904bytes (15.455GiB) total. Two dictionary copies alone exceed
-38.89GiB. Values, lists, CSV/JSON text, all other history and runtime/services
-are additional. This is a source-derived memory lower bound, **not an observed
-OOM or completed modern performance measurement**. Evidence:
-`modern-opening-memory-admission.json` under the external benchmark root.
-No history truncation, output seeding, capacity increase or risky initialization
-has been attempted. Full-history memory processing needs a separately bounded
-implementation decision before this exact modern comparison can proceed.
+The corrected legacy calculation and all remaining native report/finalization stages are preserved. Combined split-active time is **1,920.976851seconds (32minutes0.98seconds)**, not an uninterrupted day benchmark. All8owned corrected databases are READ_ONLY/OFFLINE; full verified native backups and complete final core relations are retained. No owned request or user transaction remains. Final flags IsBatchFileExecuted/IsBPRBatchFileExecuted remain0: NMSClearInputTables/NMSImportData were deliberately outside the normalized-CSV source boundary. Do not relabel this as a complete customer-source native batch. Evidence: corrected-legacy-attempt-01/dbm-after-maintenance/final-legacy-readback.json and final-native-checkpoint/proof.json. The original failed attempts remain unchanged.
 
-There is also an unresolved intake-ownership boundary, recorded in
-`modern-intake-ownership-admission.json`: the frozen source has NMSActive=1,
-while the approved v4 extension adds requirement stock to the inactive-NMS
-external-master route. The existing active route still requires its captured
-master/queue owners. No configuration switch, master override or acceptance
-waiver is authorized by adding the feed. The exact whole opening/profile/day
-binding has not passed native admission. These are remaining step6 limits,
-not proved engine defects or permission to alter the frozen case.
 
-All63 affected focused checks pass, including seven requirement-stock checks,
-the real connected calculation's effective override, old CSV modes,
-historical-date guards, vehicle isolation and source-variant boundaries.
-The actual216row stock feed also passes complete typed parsing, date checks
-and ordinal retention. Neither result substitutes for full-scale PostgreSQL
-initialization/readback or modern day acceptance.
+
+The latest human approval releases only bounded full-history memory handling, with all rows/types/NULLs/duplicate ordinals/formulas and active-NMS ownership unchanged. The implementation now seals streamed CSV/typed PostgreSQL history into private compressed execution caches; removes whole-history copies; keeps exact source ordinals for indexed rules; and folds BTR history aggregates without retaining source row dictionaries. PostgreSQL typed images and existing manifests remain operational truth. No schema, calculation formula, frontend, MTO, auth or resource-cap change. Native installer/daily scratch uses its existing disk-backed state volume. Current service images have not been replaced by these changes.
+
+
+
+Active-NMS stock intake uses additive v5 (v1captured owners plus ONLY requirement_stock); v4 retains its existing inactive external-master/supplier shape. No NMSActive flag is switched and no external master is substituted. The actual frozen case must still prove the full initialized master/history/configuration, captured effective inputs and ordinary daily output; component tests are not that proof.
+
+
+
+Source verification:90affected tests passed (one invalid test-module name caused a loader error, corrected with24passing actual BTR tests);15native export/identity tests passed. The complete connected focused native day has identical eager/streamed output digest. A10,001record openingCSV/fulltyped reconstruction, corruption/ordinal/tail denials and source-independent sealed lifetime pass. Actual running-image Python3.11.14 compiles33changedPython files; its PostgreSQL driver passed a10,001row READ_ONLY named-cursor check with closed transaction. This is not new-image persistence/full-data runtime acceptance. Independent source review found3integrity defects; all were corrected with focused regressions. Receipt: full-history-memory-source-proof.json.3005sixidentities/images/start/status remain exact.
+
+
+
+**New exact blocker before the modern run:** the CSV coordinator prepares InputData.zip under a256MiB uncompressed/64MiBcompressed limit. DBM DailyConsumption alone needs at least3,104,078,801canonicalbytes, excluding every other history and the second captured-input member. The memory approval does not silently increase this export policy. A concrete UNAPPLIED streaming ZIP candidate preserves all5members/fullhashes/authentitlements and existing small archive bytes;9focused old archive tests pass. Proposed benchmark-only opt-in caps are64GiB expanded/4GiBcompressed, with existing defaults unchanged, original resource/failure guards and no omitted history. Large originals/CSV packs would use an exclusively new I:/VectorFLOW-benchmark-20261020 directory; checksum receipts remain onD:. Decision: full-history-archive-proposal/decision.json. No limit change, image build, modern initialization/day, extra legacy execution or frontend/MTO/auth change has occurred. Steps6–7 remain incomplete.
+
+
+
+### Original attempt and workload (historical; current checkpoint supersedes its status)
 
 The human authorized the seven-step benchmark through legacy day one, then instructed a stop while independently resetting the modern installation. After read-only source inspection, the human chose **"Use synthetic next-day benchmark"**: copy the large3005 snapshot as opening, generate one conserved next-day raw CSV workload, and exclude unavailable GulfOil customer-source preprocessing from timing.
 

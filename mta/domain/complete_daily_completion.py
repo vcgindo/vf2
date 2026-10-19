@@ -8,6 +8,7 @@ by the invoking engine; these functions expose conversion failures.
 """
 from copy import deepcopy
 from datetime import date, datetime, time, timedelta
+from mta.row_sequences import history_rows
 
 
 def _eq(left, right, equal):
@@ -122,6 +123,7 @@ def prune_bpr_history(populations, last_batch_run, *, consumption_days, remark_d
     today = _typed_datetime(today).date()
     for name, field, horizon in spec:
         cutoff = datetime.combine(today - timedelta(days=horizon), time())
-        result[name] = [row for row in result[name]
-                        if row[field] is None or _typed_datetime(row[field]) > cutoff]
+        result[name] = history_rows((row for row in result[name]
+                        if row[field] is None or _typed_datetime(row[field]) > cutoff),
+                        like=populations[name])
     return result

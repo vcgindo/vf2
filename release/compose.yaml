@@ -9,6 +9,7 @@ services:
     read_only: true
     tmpfs: [/tmp]
     environment:
+      VF_WORK_ROOT: "/var/lib/vectorflow/work"
       VF_MTA_SELECTION_FILE: ""
       VF_MTA_PUBLISHED_RUN: ""
       VF_MTA_PUBLISHED_DIGEST: ""
@@ -355,6 +356,7 @@ services:
       - "migrate"
       - "--noinput"
     environment:
+      VF_WORK_ROOT: "/var/lib/vectorflow/work"
       VF_PUBLIC_URL: "${VF_PUBLIC_URL:?Set public origin}"
       VF_ALLOWED_HOSTS: "${VF_ALLOWED_HOSTS:-localhost,127.0.0.1,mta,mto,auth}"
       DB_SSLMODE: "${DB_SSLMODE:-disable}"

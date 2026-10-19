@@ -2,6 +2,7 @@
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 import math
+from mta.row_sequences import RecordRows, is_record_rows
 
 from mta.runtime.relational_state import CATALOG, STORAGE_TABLES, COMPLETE_BINDINGS
 from mta.application.r1_daily_input import PRIOR_TABLES
@@ -125,23 +126,24 @@ def validate_tree(value, path='input'):
     if isinstance(value, dict):
         for key, child in value.items():
             validate_tree(child, path+'/'+key)
-    elif isinstance(value, list):
+    elif is_record_rows(value):
         if path in SCALARS:
             select(('value',), path, [{'value': item} for item in value])
         else:
             # Flatten the declared policy object, without admitting arbitrary
             # nested bags or manufacturing absent fields.
-            rows = []
-            for row in value:
-                if not isinstance(row, dict):
-                    raise ValueError('Explicit initialization record required: '+path)
-                flat = {}
-                for key, item in row.items():
-                    if isinstance(item, dict) and key == 'policy' and path.endswith('/policies'):
-                        flat.update({'policy/'+name: child for name, child in item.items()})
-                    elif isinstance(item, (dict, list)):
-                        raise ValueError('Undeclared nested initialization field: '+path+'/'+key)
-                    else:
-                        flat[key] = item
-                rows.append(flat)
+            def flatten():
+                for row in value:
+                    if not isinstance(row, dict):
+                        raise ValueError('Explicit initialization record required: '+path)
+                    flat = {}
+                    for key, item in row.items():
+                        if isinstance(item, dict) and key == 'policy' and path.endswith('/policies'):
+                            flat.update({'policy/'+name: child for name, child in item.items()})
+                        elif isinstance(item, (dict, list)):
+                            raise ValueError('Undeclared nested initialization field: '+path+'/'+key)
+                        else:
+                            flat[key] = item
+                    yield flat
+            rows = RecordRows(len(value), flatten) if isinstance(value, RecordRows) else list(flatten())
             select(rows[0] if rows else (), path+'/values', rows)

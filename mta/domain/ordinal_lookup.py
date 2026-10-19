@@ -10,6 +10,7 @@ from pathlib import Path
 import os
 import sqlite3
 import tempfile
+from mta.row_sequences import RecordRows
 
 _indexes = ContextVar('dbm_ordinal_indexes', default=None)
 
@@ -28,8 +29,10 @@ class OrdinalLookup:
     batch_size = 256
     cache_kib = 2048
 
-    def __init__(self, rows):
-        self.rows = rows
+    def __init__(self, rows, key=pair):
+        self.owner = rows
+        self.rows = rows.ordinal_source() if isinstance(rows,RecordRows) else rows
+        self.key = key
         self.count = len(rows)
         self.candidate_rows = 0
         base = Path(os.environ.get('VF_WORK_ROOT',
@@ -45,7 +48,7 @@ class OrdinalLookup:
             self.db.execute('CREATE TABLE candidate(sku BLOB NOT NULL, loc BLOB NOT NULL, ordinal INTEGER NOT NULL)')
             self.db.executemany('INSERT INTO candidate VALUES(?,?,?)',
                 ((encode(key[0]), encode(key[1]), ordinal)
-                 for ordinal, row in enumerate(rows) for key in (pair(row),)))
+                 for ordinal, row in enumerate(self.rows) for key in (self.key(row),)))
             self.db.execute('CREATE INDEX candidate_pair ON candidate(sku,loc,ordinal)')
             self.db.commit()
         except BaseException:
@@ -61,15 +64,15 @@ class OrdinalLookup:
     def __exit__(self, *args):self.close()
 
     def matching(self, rows, key):
-        if rows is not self.rows or len(rows) != self.count:
+        if rows is not self.owner or len(rows) != self.count:
             raise ValueError('Ordinal lookup owner changed')
         cursor = self.db.execute('SELECT ordinal FROM candidate WHERE sku=? AND loc=? ORDER BY ordinal',
                                  (encode(key[0]), encode(key[1])))
         try:
             while batch := cursor.fetchmany(self.batch_size):
                 for (ordinal,) in batch:
-                    row = rows[ordinal]
-                    if pair(row) != key:raise ValueError('Ordinal lookup source reordered or mutated')
+                    row = self.rows[ordinal]
+                    if self.key(row) != key:raise ValueError('Ordinal lookup source reordered or mutated')
                     self.candidate_rows += 1
                     yield row
         finally:

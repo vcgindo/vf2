@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 
 from mta.serialization import digest, storage
+from mta.row_sequences import is_record_rows
+from mta.application.streamed_input import StreamedInput
 from mta.mdm.master_owners import owner_batches
 from mta.application.r1_importer_master import PRIOR_TABLES
 from mta.application.daily_finalization import configuration, validate_flag_roster, REQUIRED
@@ -41,6 +43,7 @@ DBM_CARRY = frozenset(('DBMMaster', 'DBMSettingsTbl', 'DailyConsumption',
     'VFSettings', 'ui_ReportConfigurations'))
 BTR_BASE = frozenset(('LastBatchRunTbl', 'LocationAttributeData', 'SKUDescriptionTbl',
     'SKULocStandardAttributes', 'SiteDescriptionTbl', 'SkuAttributeData', 'SkuLocAttributeData'))
+BTR_CARRY = BTR_BASE | {'BPR', 'RationingHistory'}
 COMPLETE_OUTPUTS = frozenset(('FGTrendData', 'DataSanitizationResult', 'ProdOrderSuggestions',
     'RuntimeReports', 'SupplierDispatchReq', 'LogisticPickList', 'PickListDataForTruckFormation'))
 HISTORY_DATES = frozenset(('ReportDate', 'AcceptanceDate', 'NormChangeDate',
@@ -159,7 +162,7 @@ def initial_state(state, opening_date):
             value = row.get('ReportDate')
             if not isinstance(value, str) or date.fromisoformat(value[:10]) > opening_date:
                 raise ValueError('BTR carry requires a dated historical row: '+table)
-    for section, allowed in (('dbm', DBM_CARRY), ('btr', BTR_BASE | {'BPR', 'RationingHistory'})):
+    for section, allowed in (('dbm', DBM_CARRY), ('btr', BTR_CARRY)):
         for name, rows in state[section].items():
             if rows and name not in allowed:
                 raise ValueError('Initial opening cannot seed calculated output: '+section+'/'+name)
@@ -174,7 +177,7 @@ def initial_state(state, opening_date):
     for section, populations in state.items():
         bags = populations.values() if isinstance(populations, dict) else (populations,)
         for rows in bags:
-            if not isinstance(rows, list):
+            if not is_record_rows(rows):
                 continue
             for row in rows:
                 for field in HISTORY_DATES & set(row):
@@ -208,11 +211,14 @@ def object_pairs(pairs):
 
 def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
     sha(expected_sha256, 'input'); sha(expected_configuration, 'configuration'); sha(expected_recipe, 'recipe')
-    if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected_sha256:
+    if type(raw) is StreamedInput:
+        value = raw.snapshot(expected_sha256)
+    elif isinstance(raw, bytes) and hashlib.sha256(raw).hexdigest() == expected_sha256:
+        def nonfinite(value):
+            raise ValueError('Nonfinite input number: '+value)
+        value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
+    else:
         raise ValueError('Operator input bytes differ')
-    def nonfinite(value):
-        raise ValueError('Nonfinite input number: '+value)
-    value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
     if not isinstance(value, dict) or set(value) != {'schema', 'recipe', 'configuration', 'masters', 'opening', 'pair_exclusions'}:
         raise ValueError('Complete versioned initialization envelope required')
     if value['schema'] != SCHEMA:
@@ -315,7 +321,7 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
         for name, rows in state[section].items():
             if name == 'IntermediateTables' and rows in ({}, []):
                 continue
-            if not isinstance(rows, list):
+            if not is_record_rows(rows):
                 raise ValueError('Explicit opening bag required: '+section+'/'+name)
     for table, fields in BPR_TABLES.items():
         nullable = ('ParentWhCode', 'SKUIntroDate') if table == 'BPRMaster' else ('Stock',) if table == 'DailyConsumption' else ()
@@ -330,7 +336,7 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
         ('supplier', ('SOBData', 'MOQData')),
         ('consumer_context', ('NMSAllItems',)),
         ('complete', REQUIRED), ('dbm', ('DBMMaster', 'Suggestions', 'NormAcceptanceTbl'))):
-        if any(name not in state[section] or not isinstance(state[section][name], list) for name in populations):
+        if any(name not in state[section] or not is_record_rows(state[section][name]) for name in populations):
             raise ValueError('Required opening populations missing: '+section)
     if state['dbm']['Suggestions'] or state['controls']['suggestions'] or state['complete']['ProdOrderSuggestions']:
         raise ValueError('Initial opening cannot seed future suggestions/results')

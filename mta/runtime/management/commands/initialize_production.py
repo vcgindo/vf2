@@ -27,9 +27,9 @@ class Command(BaseCommand):
             parameters = dict(expected_configuration=options['configuration_digest'],
                               expected_recipe=options['recipe_digest'])
             if options.get('csv'):
-                from mta.application.initialization_csv import read
-                raw = read(options['input'], options['sha256'], **parameters)
-                input_sha256 = hashlib.sha256(raw).hexdigest()
+                from mta.application.initialization_csv import read_streamed
+                raw = read_streamed(options['input'], options['sha256'], **parameters)
+                input_sha256 = raw.sha256
             else:
                 raw = options['input'].read_bytes()
                 input_sha256 = options['sha256']

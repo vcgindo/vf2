@@ -23,6 +23,7 @@ IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_contract.py
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
+        'row_sequences.py','application/streamed_input.py',
         'mdm/skuloc_tasks.py', 'mdm/skuloc_audit.py',
         'mdm/native_audit.py', 'mdm/native_audit_policy.py',
         'runtime/native_audit_models.py', 'runtime/operational_opening.py',

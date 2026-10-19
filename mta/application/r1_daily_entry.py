@@ -1,9 +1,11 @@
 """Project each engine's generated daily population into its R1 consumers."""
 from copy import deepcopy
+from itertools import chain
 
 from mta.application.r1_daily_input import STAGES, PRIOR_TABLES, validate_daily_entry
 from mta.application.r1_importer_master import _sql_key
 from mta.application.r1_supplier_entry import RAW_SUPPLIER_SCHEMA, validate_supplier_run
+from mta.row_sequences import history_rows
 
 RAW_DAILY_SCHEMA = "r1-current-day-input-v8"
 DAILY_CONSUMPTION_FIELDS = PRIOR_TABLES["DailyConsumption"]
@@ -43,13 +45,16 @@ def generated_daily_view(payload, master_validation, daily_stages):
     day = payload["raw_master_entry"]["business_date"]
     master = master_validation["tables"]["MasterData"]
     processed = daily_stages[STAGES[-1]]["tables"]["DailyDataProcessed"]
+    processed_by_key = {}
+    for row in processed:
+        processed_by_key.setdefault((_sql_key(row["SKUCode"]), _sql_key(row["WhCode"])), []).append(row)
     view = supplier_input_skeleton(payload)
     inventory = []
     stocks = {}
     for row in master:
         key = row["SKUCode"], row["WhCode"]
-        matches = [r for r in processed if r["ReportDate"] == day
-                   and (_sql_key(r["SKUCode"]), _sql_key(r["WhCode"])) == tuple(_sql_key(v) for v in key)]
+        matches = [r for r in processed_by_key.get(tuple(_sql_key(v) for v in key),())
+                   if r["ReportDate"] == day]
         if len(matches) != 1 or matches[0]["Stock"] is None:
             raise ValueError("R1 daily missing/duplicate current physical stock: downstream integration unproven; no invented default")
         source = matches[0]
@@ -65,13 +70,15 @@ def generated_daily_view(payload, master_validation, daily_stages):
 def generated_bpr_daily_state(payload, daily_stages):
     """01.ImportData: retain prior dates, import processed current date only."""
     day = payload["raw_master_entry"]["business_date"]
-    rows = [deepcopy(r) for r in payload["raw_daily_entry"]["prior_bpr"]["DailyConsumption"] if r["ReportDate"] != day]
-    for row in daily_stages[STAGES[-1]]["tables"]["DailyDataProcessed"]:
-        if row["ReportDate"] == day:
-            r = {**row, "WHCode": row["WhCode"], "BlueZone": 0}
-            del r["WhCode"]
-            rows.append(r)
-    return rows
+    previous = payload["raw_daily_entry"]["prior_bpr"]["DailyConsumption"]
+    retained = (deepcopy(r) for r in previous if r["ReportDate"] != day)
+    def current():
+        for row in daily_stages[STAGES[-1]]["tables"]["DailyDataProcessed"]:
+            if row["ReportDate"] == day:
+                result = {**row, "WHCode": row["WhCode"], "BlueZone": 0}
+                del result["WhCode"]
+                yield result
+    return history_rows(chain(retained,current()),like=previous)
 
 
 def auxiliary_stock_balances(daily_consumption, physical_balances, attributes, business_date):

@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import date, timedelta
-from itertools import groupby
+from itertools import chain, groupby
 from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.row_sequences import history_rows
 
 
 def _day(value):
@@ -43,18 +44,19 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
             if key in blues and blues[key] != row['BlueZone']:
                 raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting BPR BlueZone rows')
             blues[key] = row['BlueZone']
-    result = [deepcopy(row) for row in previous if _day(row['ReportDate']) != today]
+    retained = (deepcopy(row) for row in previous if _day(row['ReportDate']) != today)
+    current = []
     for row in raw:
         key = _key(row)
         if _day(row['ReportDate']) != today or row['WhCode'] in excluded:
             continue
         for _ in range(master_counts.get(key, 0)):
-            result.append({
+            current.append({
                 'SKUCode': row['SKUCode'], 'WhCode': row['WhCode'],
                 **{field: row[field] for field in ('Stock', 'Consumption', 'GIT', 'Receipts')},
                 'BlueZone': blues.get(key, 0), 'ReportDate': row['ReportDate'],
             })
-    return result
+    return history_rows(chain(retained, current), like=previous)
 
 
 def import_exclusions(exclusions, masters):

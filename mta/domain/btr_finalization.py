@@ -7,11 +7,13 @@ undefined latest-row or update-source choices are rejected.
 """
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from copy import deepcopy
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
+from itertools import chain
 from xml.sax.saxutils import quoteattr
+from mta.row_sequences import history_rows, is_record_rows
 
 
 DAYS = tuple(f"D{i}" for i in range(1, 91))
@@ -64,7 +66,7 @@ def _require_rows(container, names, label):
     if missing:
         raise ValueError(f"{label} roster drift: missing {missing}")
     for name in names:
-        if not isinstance(container[name], list):
+        if not is_record_rows(container[name]):
             raise ValueError(f"{label}.{name} must be a row list")
 
 
@@ -116,17 +118,28 @@ def _import_bpr(today, prior, facts):
         imported["WHCode"] = imported.pop("WhCode")
         incoming.append(imported | {"ReportDate": today.isoformat()})
     cutoff = today - timedelta(days=90)
-    result["BPR"] = [
+    retained = (
         deepcopy(row) for row in prior["BPR"]
         if _day(row["ReportDate"]) != today and _day(row["ReportDate"]) > cutoff
-    ] + incoming
+    )
+    result["BPR"] = history_rows(chain(retained, incoming), like=prior["BPR"])
 
     location_fields = ("WHCode", "LocationType", "LogisticsLocation", "LL1", "LL2", "LL3", "LL4", "LL5") + tuple(f"c{i}" for i in range(1, 16))
     sku_fields = ("SKUCode", "ElephantOrderCapping", "Weight", "Volume", "SL1", "SL2", "SL3", "SL4", "SL5") + tuple(f"c{i}" for i in range(1, 16))
     sku_loc_fields = ("SKUCode", "LocCode", "PackSize", "SpikeThreshold", "PSOThreshold", "FGRMFlag", "StockPercentForRationing", "NormPercentReservation", "NonNMS") + tuple(f"c{i}" for i in range(1, 16))
-    live_locations = {row["WHCode"] for row in result["BPR"]} | {row["ParentWhCode"] for row in result["BPR"]}
-    live_skus = {row["SKUCode"] for row in result["BPR"]}
-    live_sku_locs = {(row["SKUCode"], row["WHCode"]) for row in result["BPR"]}
+    live_locations, live_skus, live_sku_locs = set(), set(), set()
+    latest_days, latest_parents = {}, {}
+    for row in result["BPR"]:
+        key = row["SKUCode"], row["WHCode"]
+        report_day = _day(row["ReportDate"])
+        live_locations.update((row["WHCode"], row["ParentWhCode"]))
+        live_skus.add(row["SKUCode"])
+        live_sku_locs.add(key)
+        if key not in latest_days or report_day > latest_days[key]:
+            latest_days[key] = report_day
+            latest_parents[key] = {row["ParentWhCode"]}
+        elif report_day == latest_days[key] and len(latest_parents[key]) < 2:
+            latest_parents[key].add(row["ParentWhCode"])
     result["LocationAttributeData"] = _sync(
         prior["LocationAttributeData"], facts["LocationAttributeData"], lambda r: r["WHCode"],
         location_fields, live_locations, "BPRDatabase.LocationAttributeData")
@@ -147,10 +160,7 @@ def _import_bpr(today, prior, facts):
     cwh = {row["pwhCode"] for row in facts["CWH_List"]}
     distributors = {row["WhCode"] for row in facts["DistributorList"]}
     latest = {}
-    for key in live_sku_locs:
-        rows = [row for row in result["BPR"] if (row["SKUCode"], row["WHCode"]) == key]
-        latest_day = max(_day(row["ReportDate"]) for row in rows)
-        parents = {row["ParentWhCode"] for row in rows if _day(row["ReportDate"]) == latest_day}
+    for key, parents in latest_parents.items():
         if len(parents) != 1:
             raise ValueError(f"SOURCE_ORDER_AMBIGUITY: latest BPR parent {key}")
         latest[key] = next(iter(parents))
@@ -175,17 +185,20 @@ def _sql_max(values):
 
 
 def _latest_norms(bpr, dbm):
-    by_key = defaultdict(list)
+    latest_days = {}
+    values = {}
     for row in bpr:
-        by_key[_key(row)].append(row)
+        key, report_day = _key(row), _day(row["ReportDate"])
+        value = row["Norm"], row["VirtualNorm"], row["ParentWhCode"]
+        if key not in latest_days or report_day > latest_days[key]:
+            latest_days[key], values[key] = report_day, {value}
+        elif report_day == latest_days[key] and len(values[key]) < 2:
+            values[key].add(value)
     result = {}
-    for key, rows in by_key.items():
-        latest_day = max(_day(row["ReportDate"]) for row in rows)
-        values = {(row["Norm"], row["VirtualNorm"], row["ParentWhCode"])
-                  for row in rows if _day(row["ReportDate"]) == latest_day}
-        if len(values) != 1:
+    for key, candidates in values.items():
+        if len(candidates) != 1:
             raise ValueError(f"SOURCE_ORDER_AMBIGUITY: latest BTR norm {key}")
-        result[key] = next(iter(values))
+        result[key] = next(iter(candidates))
     current = _unique_source(dbm, _key, ("Norm", "ParentWhCode"), "DBMMaster norm")
     for key, (norm, parent) in current.items():
         if key in result:
@@ -195,14 +208,19 @@ def _latest_norms(bpr, dbm):
 
 def _pivot(bpr, today, value_field):
     start = today - timedelta(days=89)
-    cells = defaultdict(list)
+    cells = {}
     for row in bpr:
         report_day = _day(row["ReportDate"])
         if start <= report_day <= today:
-            cells[(_key(row), report_day)].append(row[value_field])
+            cell = _key(row), report_day
+            value = row[value_field]
+            if cell not in cells or cells[cell] is None:
+                cells[cell] = value
+            elif value is not None:
+                cells[cell] = max(cells[cell], value)
     keys = {key for key, _ in cells}
     return {
-        key: {f"D{offset + 1}": _sql_max(cells.get((key, start + timedelta(days=offset)), []))
+        key: {f"D{offset + 1}": cells.get((key, start + timedelta(days=offset)))
               for offset in range(90)}
         for key in keys
     }
@@ -307,22 +325,23 @@ def _colour_age(today, state, enabled, tolerance):
     if not enabled:
         return result
     start = today - timedelta(days=89)
-    history = defaultdict(lambda: defaultdict(list))
+    history = defaultdict(dict)
     for row in result["BPR"]:
         report_day = _day(row["ReportDate"])
         if start <= report_day <= today:
             key = _key(row)
             values = (row["TechColor"] or "0", row["EcoColor"] or "0",
                       row["DispatchColor"] or "0", row["PhysicalInventoryColor"] or "0")
-            if history[key][report_day] and history[key][report_day][0] != values:
+            previous = history[key].get(report_day)
+            if previous is not None and previous[0] != values:
                 raise ValueError(f"SOURCE_ORDER_AMBIGUITY: conflicting BPR colours {key} {report_day}")
-            history[key][report_day].append(values)
+            history[key][report_day] = (values, 1 if previous is None else previous[1] + 1)
     normalized = {}
     for key, dated in history.items():
         rows = []
         for i in range(90):
-            source_rows = dated.get(start + timedelta(days=i))
-            rows.append([*source_rows[0], len(source_rows)] if source_rows else ["0", "0", "0", "0", 1])
+            source = dated.get(start + timedelta(days=i))
+            rows.append([*source[0], source[1]] if source else ["0", "0", "0", "0", 1])
         missing_today = rows[-1][0] == "0"
         if not missing_today:
             tech = _fill_forward([row[0] for row in rows], tolerance, "0")
@@ -391,17 +410,23 @@ def _snapshot(state):
 
 def _count_graph(state):
     result = deepcopy(state)
-    groups = defaultdict(list)
+    groups = defaultdict(Counter)
+    fields = (("Tech", "TechColor"), ("Eco", "EcoColor"),
+              ("Dispatch", "DispatchColor"), ("PhysicalInv", "PhysicalInventoryColor"))
+    colours = ("Black", "Red", "Yellow", "Green", "White")
     for row in result["BPR"]:
-        groups[(_day(row["ReportDate"]), row["ParentWhCode"], row["WHCode"])].append(row)
+        counts = groups[(_day(row["ReportDate"]), row["ParentWhCode"], row["WHCode"])]
+        for prefix, field in fields:
+            value = row[field]
+            if value in colours:
+                counts[prefix, value] += 1
     output = []
     ordering = lambda item: (item[0][0], str(item[0][1]), str(item[0][2]))
-    for (report_day, parent, location), rows in sorted(groups.items(), key=ordering):
+    for (report_day, parent, location), counts in sorted(groups.items(), key=ordering):
         row = {"ReportDate": report_day.isoformat(), "SrcWhCode": parent, "DestWhCode": location}
-        for prefix, field in (("Tech", "TechColor"), ("Eco", "EcoColor"),
-                              ("Dispatch", "DispatchColor"), ("PhysicalInv", "PhysicalInventoryColor")):
-            for colour in ("Black", "Red", "Yellow", "Green", "White"):
-                row[prefix + colour] = sum(item[field] == colour for item in rows)
+        for prefix, _ in fields:
+            for colour in colours:
+                row[prefix + colour] = counts[prefix, colour]
         output.append(row)
     result["BufferTrendGraph"] = output
     return result

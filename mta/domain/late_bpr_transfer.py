@@ -2,6 +2,7 @@
 from copy import deepcopy
 
 from mta.domain.dbm_ingestion import _key, import_daily_observations
+from mta.row_sequences import RecordRows, history_rows
 
 FIELD_MAP = {'ResidualSnP': 'ResidualSnP', 'NormReq': 'NormReq', 'BlueReq': 'BlueReq',
              'Req': 'Req', 'RationedQTY': 'RationedReq', 'LeftoverParentStock': 'LeftoverParentStock'}
@@ -32,12 +33,29 @@ def update_bpr(state):
         if _key(row) in sources:
             row.update(zip(FIELD_MAP, sources[_key(row)]))
     blue_index = list(FIELD_MAP).index('BlueReq')
-    for row in result['BPRDailyConsumption']:
-        if str(row['ReportDate'])[:10] == today and _key(row) in sources:
-            value = sources[_key(row)][blue_index]
-            if value is None:
-                raise ValueError('NONNULL_CONSTRAINT: BPR DailyConsumption.BlueZone')
-            row['BlueZone'] = value
+    daily = result['BPRDailyConsumption']
+    if isinstance(daily, RecordRows):
+        # Retain the SQL-shaped constraint check before exposing a lazy result.
+        for row in daily:
+            if str(row['ReportDate'])[:10] == today and _key(row) in sources:
+                if sources[_key(row)][blue_index] is None:
+                    raise ValueError('NONNULL_CONSTRAINT: BPR DailyConsumption.BlueZone')
+
+        def updated_daily():
+            for source in daily:
+                row = deepcopy(source)
+                if str(row['ReportDate'])[:10] == today and _key(row) in sources:
+                    row['BlueZone'] = sources[_key(row)][blue_index]
+                yield row
+
+        result['BPRDailyConsumption'] = history_rows(updated_daily(), like=daily)
+    else:
+        for row in daily:
+            if str(row['ReportDate'])[:10] == today and _key(row) in sources:
+                value = sources[_key(row)][blue_index]
+                if value is None:
+                    raise ValueError('NONNULL_CONSTRAINT: BPR DailyConsumption.BlueZone')
+                row['BlueZone'] = value
     return result
 
 

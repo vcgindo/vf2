@@ -1,7 +1,9 @@
 """Canonical final-family history and contributor reason arithmetic."""
 from copy import deepcopy
 from datetime import date,timedelta
+from itertools import chain
 from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.row_sequences import history_rows
 
 REASONS=('RedReasonStockType','GreenReasonStockType','RedReasonConsumptionType','GreenReasonConsumptionType')
 CONTRIBUTORS=(('SuspendCustomSKUTbl',1,(0,1,2,3)),('SuspendNormsInSleepModeTbl',2,(0,1,2,3)),
@@ -20,7 +22,7 @@ def gather_suspension_history(today,state):
     key=lambda r:(r['SKUCode'],r.get('WhCode',r.get('WHCode')))
     day=lambda v:date.fromisoformat(v) if isinstance(v,str) else v
     result=deepcopy(state)
-    previous=[r for r in result['SuspendHistory'] if day(r['ReportDate'])>today-timedelta(days=90) and day(r['ReportDate'])!=today]
+    previous=(r for r in result['SuspendHistory'] if day(r['ReportDate'])>today-timedelta(days=90) and day(r['ReportDate'])!=today)
     current=[]
     with OrdinalLookup(state['SuspendConsumptionType']) as consumption_index:
         for stock in state['SuspendStockType']:
@@ -38,5 +40,5 @@ def gather_suspension_history(today,state):
                 if len(outcomes)>1:raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting suspension history contributor '+table)
                 if outcomes:
                     for i,amount in zip(indices,outcomes.pop()):row[REASONS[i]]+=amount
-    result['SuspendHistory']=previous+current
+    result['SuspendHistory']=history_rows(chain(previous,current),like=state['SuspendHistory'])
     return result

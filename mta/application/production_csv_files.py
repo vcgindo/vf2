@@ -54,12 +54,14 @@ def load_binding(path):
         if filename.is_absolute():
             raise ValueError('Onboarding files must be relative to the binding directory')
         source = regular(path.parent / filename, path.parent)
-        payload = source.read_bytes()
-        if sha256(payload).hexdigest() != value[prefix + '_sha256']:
+        checksum=sha256()
+        with source.open('rb') as stream:
+            for block in iter(lambda:stream.read(1024*1024),b''):checksum.update(block)
+        if checksum.hexdigest() != value[prefix + '_sha256']:
             raise ValueError('Onboarding original checksum differs: ' + prefix)
         result['_' + prefix + '_path'] = str(source)
         if prefix == 'consumer_opening':
-            result['consumer_opening'] = decode_json(payload)
+            result['consumer_opening'] = decode_json(source.read_bytes())
     result['_binding_digest'] = digest(value)
     return result
 
