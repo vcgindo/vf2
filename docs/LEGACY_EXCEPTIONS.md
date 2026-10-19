@@ -1,5 +1,15 @@
 # Legacy behavior and explicit exceptions
 
+## Unresolved large-data Pick numeric overflow — 19 October 2026
+
+This records a failed isolated stress case, **not a repair approval or parity waiver**. Human authorized one synthetic next day from the retained3005 large snapshot and a stop after legacy day one. Frozen input: case SHA256c872e22ceacdefdaeafc2255ae2bd35a9472de44e58f216ea6b133a6f9663104; daily CSV SHA2565714e18c51c4a65bb636bedc8437b4003d870e2c7da11eb97b72660184afce20;7April opening/8April synthetic day;97,097daily rows. Protected source databases and3005 were not changed.
+
+Canonical source `Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql` SHA256b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb returned SQL8115 at the cumulative weight/volume insert beginning line111. A read-only projection yielded cumulative weight13,145,646,112.000, outside `decimal(13,3)` maximum9,999,999,999.999. The target definition matches canonical Intermediate DDL and read-only original Demo scratch metadata; restored BPR cumulative fields also have that type. The source VM Intermediate backup itself is unavailable, so this is not a claim that every legacy installation fails identically.
+
+Affected contract: Pick truck formation and all later full-day closing/report/timing acceptance. Native TRY/CATCH emits an error result set while SQLCMD exits0; the external guard caught it and denied subsequent SQL. Final BPR UpdateBPR, remaining reports, DBM and BTR were not run. Native BPR/RRR intermediate97,097row populations and305.277seconds through driver stop do not prove a completed day. No quantities, schema, rules, ordering or assertions were altered to obtain success. Failed targets/rows/logs are retained READ_ONLY/OFFLINE with no active owned jobs/open user transactions. Modern execution/parity remains unperformed. See `docs/handoff-3005/LARGE_DATA_DAY1_BENCHMARK.md` and external evidence `D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019`.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
 ## Canonical NULL transit-tag correction — 13 October 2026
 
 This corrects a modern divergence, not an exception to legacy calculation. The
