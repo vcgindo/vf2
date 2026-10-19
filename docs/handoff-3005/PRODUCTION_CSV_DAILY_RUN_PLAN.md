@@ -149,7 +149,7 @@ Proposed new names below are deliberate implementation locations, not claims tho
 | `release/export.py`, `release/mta_packaging.py`, operator-file packaging in `release/build_release.py` | Add only new native command/schema imports and ship wrapper with operator assets. | Clone-built and prebuilt delivery both contain necessary objects; optional sample/helper stays outside runtime. |
 | `release/SOURCE_BUILD.md`, `RUNBOOK.md`, `OPERATIONS_REFERENCE.md` | One daily command, schema reference, onboarding prerequisite, error/recovery table and Task Scheduler/cron examples. | Sample loading remains separate; no scheduler automatically enabled. |
 | `tools/create_daily_csv_example.py` (new, development only) | Convert exact retained optional raw starter package into the documented CSV batch/templates. | No calculated seeds, silent date shift, customer data, new facts or production runtime import. |
-| Focused `tests/test_production_csv*.py`, `tests/test_daily_feed*.py`, `mta/runtime/test_daily_feed.py` | Parser/ownership/state/PG/publication/host-wrapper tests. | No mirrored count-only tests or new legacy campaign. |
+| Focused `tests/test_production_csv*.py`, external fresh-target PostgreSQL/native proof receipts | Parser/ownership/state/PG/publication/host-wrapper tests. | No mirrored count-only tests or new legacy campaign. |
 
 No planned edits to frontend, MTO, auth accounts/scopes/policy, calculations, canonical SQL, retained inputs or historical parity comparisons. A discovered need to change those boundaries stops only that affected work for a concrete decision; it does not justify more speculative research or a redesigned delivery programme.
 
@@ -178,7 +178,7 @@ Use the retained starter raw inputs/current configuration, not regenerated answe
 | Duplicate/concurrent invocation | Real PostgreSQL locks/constraints; competing invocation fails before engine; identical completed batch performs no engine call; different bytes for consumed date conflict. |
 | Publication interruption | Cause one controlled preparation failure after the same Day1 commit; preserve READY layers; explicit resume finishes publication with unchanged run/output and zero recalculation. |
 | Serving interruption | Controlled host-runner start/readiness failure; verify pending status/selection preservation, explicit resume of serving only, correct process-loaded generation. Test rollback limits rather than assuming old serving remains valid. |
-| Packaging/installation | Real additive migration, runtime-only grants, export/import/command availability; wrapper present outside image; no raw samples/secrets/test helpers in runtime; no CPU/memory prescriptions introduced. |
+| Packaging/installation | Real additive migration, unchanged serving grants/trusted CLI authority, export/import/command availability; wrapper present outside image; no raw samples/secrets/test helpers in runtime; no CPU/memory prescriptions introduced. |
 | Application acceptance | Existing authenticated original UI shows expected BPR/RRR/Planning/date and prepared DBM/report values under existing authorized scopes; five supported native downloads still match their contracts. No new user/permission/MDM business campaign inferred. |
 | Preservation | Original current instance/3005/unrelated resources retained; test terminal state, no jobs/open transactions, precise evidence/diff/remote HEAD. |
 

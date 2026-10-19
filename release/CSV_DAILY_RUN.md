@@ -14,7 +14,17 @@ The developer helper `tools/create_daily_csv_example.py` converts the retained *
 python -m tools.create_daily_csv_example --output C:/VectorFLOW-input/csv-example
 ```
 
-Alternatively invoke the same repository helper through the already built MTA image, mounting the helper and raw ZIP read-only and the parent output directory read-write. Python is not a host prerequisite for installation or routine daily processing. The example contains18/19October2026 raw facts, not a general production-data generator. Do not change their dates to fabricate further days.
+Alternatively invoke the same repository helper through the already built MTA image:
+
+```powershell
+$ExampleParent = (New-Item -ItemType Directory -Force C:/VectorFLOW-input).FullName
+$Helper = (Resolve-Path ./tools/create_daily_csv_example.py).Path
+$RawZip = (Resolve-Path ./examples/starter-data/vectorflow-starter-inputs-v1.zip).Path
+docker compose run --rm --no-deps -v "${Helper}:/helper.py:ro" -v "${RawZip}:/starter.zip:ro" -v "${ExampleParent}:/examples" mta-install /helper.py --source /starter.zip --output /examples/csv-example
+if ($LASTEXITCODE -ne 0) { throw 'Example conversion failed; preserve the directory' }
+```
+
+This mounts the helper and raw ZIP read-only and its new parent output directory read-write; an existing destination is refused. Python is not a host prerequisite for installation or routine daily processing. The example contains18/19October2026 raw facts, not a general production-data generator. Do not change their dates to fabricate further days.
 
 After native initialization, copy `binding-template.json` to `binding.json` and set `initialization_id` and `source_digest` from the initialization receipt. All other template values bind the same retained originals/configuration; verify rather than replacing hashes. Retain `initialization.json`, `consumer-opening.json`, `permissions.json` and the receipt. Configure the same permissions/source digest for the MTA service before preparation, using existing onboarding instructions. Permissions catalogue files do not grant a user access.
 
@@ -44,11 +54,12 @@ CSV is UTF-8 (optional initial BOM), comma-separated, LF or CRLF, ordinary quote
 Run in the deployment directory with the same `.env`/Compose configuration used to start it:
 
 ```powershell
-pwsh -NoProfile -File ./release/run_daily.ps1 -BusinessDate 2026-10-18 -InspectOnly
 pwsh -NoProfile -File ./release/run_daily.ps1 -BusinessDate 2026-10-18
 ```
 
 The normal operation freezes original files, validates CSV and native prerequisites, uses its own immediate persisted predecessor, stops **only MTA**, executes the native day once, prepares the existing full report roster/Planning/guided aggregates and native input download, validates admission, atomically selects that generation, restarts only MTA and verifies the actual process admitted the exact run/output before recording PUBLISHED. It does not rewrite report algorithms or load calculated fixtures. Auth, frontend, MTO, Redis and PostgreSQL remain running. The first day uses the initialized opening; later days use their own prior successful output. No manual predecessor UUID is required.
+
+Optional `-InspectOnly` performs a read-only CSV/native preflight without reservation, snapshot or execution. It requires the owned Pick output directory to exist (normal staging creates it automatically). A first inspection may therefore report this genuine prerequisite; normal processing still validates before stopping MTA. Inspect is not a substitute for execution or publication.
 
 For the retained successor, place its completed batch and run the SAME command with `-BusinessDate 2026-10-19`. Repeating identical published input returns the original receipt and performs no calculation/selection/restart; it does not select an older day over a newer one. Changed input for an already committed date is refused. A manual/scheduled invocation uses exactly this entry point. Windows Task Scheduler can execute `pwsh -NoProfile -File <absolute-clone>/release/run_daily.ps1 -BusinessDate <explicit-business-date>` with its **Start in** set to the deployment directory. The upstream scheduler must supply the business date; do not guess today's civil date for historical/delayed business feeds. No Celery beat/cron service is installed by this feature.
 

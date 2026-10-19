@@ -103,7 +103,7 @@ class RoutedSecretTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('docker'), 'Docker CLI needed for Compose configuration checks')
 class ComposeConfigurationTests(unittest.TestCase):
-    def config(self, install=False, resource_test=False, prebuilt=False):
+    def config(self, install=False, resource_test=False, prebuilt=False, daily=False):
         root = Path(__file__).resolve().parents[1]
         env = dict(os.environ)
         for line in (root / '.env.example').read_text().splitlines():
@@ -116,6 +116,8 @@ class ComposeConfigurationTests(unittest.TestCase):
             command += ['-f','release/compose.resource-test.yaml']
         if install:
             command += ['--profile','install']
+        if daily:
+            command += ['--profile','daily']
         result = subprocess.run(command + ['config','--format','json'], cwd=root, env=env,
             capture_output=True, text=True, check=True)
         return json.loads(result.stdout)
@@ -138,6 +140,22 @@ class ComposeConfigurationTests(unittest.TestCase):
             self.assertEqual(len(mounted), 1)
             self.assertEqual(mounted[0]['source'], role+'_secrets')
             self.assertTrue(mounted[0]['read_only'])
+
+    def test_daily_worker_reuses_trusted_cli_without_listener_or_serving_grant_change(self):
+        for prebuilt in (False,True):
+            c=self.config(daily=True,prebuilt=prebuilt)
+            worker=c['services']['daily']; api=c['services']['mta']
+            self.assertEqual(worker['image'],api['image'])
+            self.assertFalse(worker.get('ports'))
+            self.assertTrue(worker['read_only'])
+            self.assertEqual(worker['restart'],'no')
+            self.assertEqual(worker['environment']['DB_SESSION_ROLE'],'vectorflow_mta_owner')
+            self.assertEqual(worker['environment']['VF_DB_USER'],'vectorflow_mta_installer')
+            self.assertEqual(api['environment']['VF_DB_USER'],'vectorflow_mta_runtime')
+            for key in ('VF_MTA_SELECTION_FILE','VF_MTA_PUBLISHED_RUN','VF_MTA_PUBLISHED_DIGEST','VF_BTR_REPORTING_GENERATION'):
+                self.assertEqual(worker['environment'][key],'')
+            self.assertFalse(any('docker.sock' in v['target'] for v in worker['volumes']))
+            self.assertEqual(set(c['x-vectorflow-daily']),{'input_dir','binding_file','state_dir'})
 
     def test_normal_runtime_and_installation_have_no_inherited_resource_ceilings(self):
         for prebuilt in (False, True):

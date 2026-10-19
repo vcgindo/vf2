@@ -6,6 +6,8 @@ services:
     profiles: [daily]
     entrypoint: [python, /opt/vectorflow/image_entrypoint.py]
     command: [manage.py, process_daily_csv, --help]
+    # Daily work uses an already installed database; never activate provisioning.
+    depends_on: !reset {}
     environment:
       VF_MTA_SELECTION_FILE: ""
       VF_MTA_PUBLISHED_RUN: ""
