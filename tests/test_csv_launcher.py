@@ -45,7 +45,7 @@ function global:docker {
     $call=@($args)
     ConvertTo-Json -InputObject $call -Compress | Add-Content ./calls.jsonl
     $global:LASTEXITCODE=0
-    if ($Failure -eq 'validation' -and $call -contains '--validate-only') { $global:LASTEXITCODE=1; return }
+    if ($Failure -eq 'validation' -and $call -contains '--validate-only') { $global:LASTEXITCODE=1; '{"issue":"CSV column invalid"}'; return }
     if ($Failure -eq 'registration' -and $call -contains 'release.register_mta') { $global:LASTEXITCODE=1; return }
     if ($Failure -eq 'configuration' -and $call -contains '--env-file') { $global:LASTEXITCODE=1; return }
     if ($call -contains '/helper.py') {
@@ -105,6 +105,7 @@ else { & ./vf.ps1 $Operation }
         self.assertFalse(any('stop' in c or 'release.register_mta' in c for c in self.calls()))
         self.assertEqual(json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))['phase'],'CSV')
         self.assertNotIn('VF_DAILY_INPUT_DIR', (self.root/'.env').read_text())
+        self.assertIn('CSV column invalid',(self.state/'onboarding-docker.log').read_text(encoding='utf-8-sig'))
         r=self.run_launcher();self.assertEqual(r.returncode,0,r.stderr)
         self.assertEqual(len(list(self.state.glob('onboarding-rejected-*.json'))),1)
 

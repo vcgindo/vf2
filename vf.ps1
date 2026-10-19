@@ -107,9 +107,9 @@ try {
         function Compose([string[]]$Arguments, [switch]$Json) {
             $text = & docker compose @Arguments 2>> (Join-Path $state 'onboarding-docker.log')
             $code = $LASTEXITCODE
+            if ($text) { Add-Content -LiteralPath (Join-Path $state 'onboarding-docker.log') -Value $text }
             if ($code -ne 0) { throw "Docker operation failed (exit $code); see $state/onboarding-docker.log and onboarding.json" }
             if ($Json) { return ($text -join "`n") | ConvertFrom-Json -AsHashtable }
-            if ($text) { Add-Content -LiteralPath (Join-Path $state 'onboarding-docker.log') -Value $text }
         }
         SaveReceipt
         try {
