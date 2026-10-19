@@ -11,7 +11,7 @@ from mta.serialization import digest, storage
 from mta.runtime.models import CalculationRun, MdmSource, ProductionInitialization
 from mta.runtime.mdm_models import MdmFamilySource, MdmTask, MdmSubTask
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-from mta.mdm.initialization_contract import decode, SOURCE_SCHEMA, SCHEMA, CURRENT_MASTER_PATHS
+from mta.mdm.initialization_contract import decode, SOURCE_SCHEMA, SCHEMA, CURRENT_LIST_PATHS
 from mta.mdm.master_owners import business_fields, owner_batches
 from mta.mdm.owned_namespace import authorize_install, verify_binding
 from mta.runtime.input_storage import save_input, read_input
@@ -95,7 +95,7 @@ def read_initialized_input(owner):
     # These are the initializer's explicit current-list contracts. Operational
     # histories outside these roots remain streamed and fully checksum-checked.
     return read_input(owner, image_reader=opening_storage.load_image,
-        materialized_roots=(*CURRENT_MASTER_PATHS, 'input/profile', 'input/pair_exclusions'))
+        materialized_roots=(*CURRENT_LIST_PATHS, 'input/profile', 'input/pair_exclusions'))
 
 
 def verify(owner, *, expected_frame=None, current_masters=False):

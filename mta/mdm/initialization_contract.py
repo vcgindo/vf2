@@ -31,6 +31,7 @@ CURRENT_MASTER_PATHS = frozenset(
     'input/opening/state/'+section+'/'+table
     for section, tables in MASTER_TABLES.items() for table in tables
 ) | {'input/opening/state/consumer_context/NMSAllItems'}
+CURRENT_LIST_PATHS = CURRENT_MASTER_PATHS | {'input/opening/state/orders/SpikeOrderData'}
 STATE_SECTIONS = frozenset(('importer', 'importer_settings', 'bpr', 'supplier',
     'orders', 'controls', 'dbm', 'btr', 'control_aux', 'consumer_context',
     'publication_context', 'complete'))

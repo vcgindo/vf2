@@ -4,6 +4,7 @@ import unittest
 from mta.domain.complete_daily_scalars import (
     ascii_equal, identifier_sort_key, try_cast_float, round_float_zero,
     float_to_nvarchar, datetime_to_nvarchar, parse_datetime,
+    IDENTIFIER_WEIGHTS,
 )
 
 
@@ -27,8 +28,19 @@ class ScalarTests(unittest.TestCase):
         self.assertNotEqual(identifier_sort_key('AB'),identifier_sort_key('A-B'))
         primary=list('!"#$%&()*,./:;?@[\\]^_`{|}~+<=>0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         self.assertEqual(sorted(reversed(primary),key=identifier_sort_key),primary)
-        for value in ('',' ','A B','A\tB','\x00','ß','é'):
+        for value in ('',' ',' A','A\tB','\x00','ß','é'):
             with self.assertRaisesRegex(ValueError,'UNQUALIFIED'):identifier_sort_key(value)
+
+    def test_native_nvarchar_internal_space_order_preserves_ties_and_old_keys(self):
+        # READ ONLY SQL_Latin1_General_CP1_CI_AS NVARCHAR ranks, including the
+        # actual large-case parent location. No binary spelling tie-break.
+        expected=['A','A  B','A B',"A' B",'A- B',"A 'B",'A -B','A- B C','A B0','A B00','A B-C']
+        # Keep the complete native rank order rather than assuming VARCHAR
+        # punctuation rules are the same as the actual NVARCHAR owners.
+        self.assertEqual(sorted(reversed(expected),key=identifier_sort_key),expected)
+        self.assertEqual(identifier_sort_key('a b '),identifier_sort_key('A B'))
+        self.assertEqual(identifier_sort_key('Grease Vendor  '),identifier_sort_key('GREASE VENDOR'))
+        self.assertEqual(identifier_sort_key('AB'),((IDENTIFIER_WEIGHTS['A'],IDENTIFIER_WEIGHTS['B']),(0,)))
 
     def test_try_cast_does_not_accept_python_extensions(self):
         for value in ('NaN', 'Inf', '1_000', '0x1', '1,000', '1e999', 'invalid'):

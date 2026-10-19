@@ -31,13 +31,14 @@ def identifier_sort_key(value):
 
     Apostrophe/hyphen have positional secondary weights. Other punctuation,
     digits and case-folded letters retain their verified primary weights.
-    Controls, internal ordinary spaces and Unicode remain explicit denials.
+    Internal ordinary spaces have the qualified lowest primary weight.
+    Controls, leading ordinary spaces and Unicode remain explicit denials.
     """
-    if not isinstance(value, str) or re.fullmatch(r'[!-~]+ *', value) is None:
+    if not isinstance(value, str) or re.fullmatch(r'[!-~][ -~]*', value) is None:
         raise ValueError('UNQUALIFIED_SCALAR_DOMAIN: printable ASCII identifier ordering')
     primary, secondary = [], []
     for char in value.rstrip(' ').upper():
-        weight = IDENTIFIER_WEIGHTS[char]
+        weight = -1 if char == ' ' else IDENTIFIER_WEIGHTS[char]
         if char in "'-":
             secondary.append((len(primary), weight))
         else:

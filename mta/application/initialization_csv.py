@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 
 from mta.application.production_csv_files import decode_json, regular
-from mta.mdm.initialization_contract import decode, CURRENT_MASTER_PATHS
+from mta.mdm.initialization_contract import decode, CURRENT_LIST_PATHS
 from mta.mdm.initialization_rows import SCALARS, EMPTY_STRUCTURES, schema
 from mta.serialization import digest, canonical_parts
 from mta.row_sequences import RecordRows, is_record_rows
@@ -212,9 +212,9 @@ def read_streamed(directory, expected_manifest_sha256, *, expected_configuration
         if spec['scalar']:
             rows = [row['value'] for row in records()]
         elif (path.startswith('input/opening/state/') and spec['rows'] > 10000
-              and _native_path(path) not in CURRENT_MASTER_PATHS):
+              and _native_path(path) not in CURRENT_LIST_PATHS):
             rows = RecordRows.from_rows(records())
-        # Current master owners require explicit fully checked lists. Histories
+        # Current master/order owners require explicit checked lists. Histories
         # keep their streamed representation independently of population size.
         else:rows = list(records())
         # Validate every cell and population now, even for lazy histories.

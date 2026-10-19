@@ -22,6 +22,41 @@ from tests.initialization_input_fixture import supplied_input,encoded
 
 
 class StreamedOpeningTests(unittest.TestCase):
+    def test_large_current_open_orders_retain_order_validator_list_contract(self):
+        from mta.mdm.initialization import read_initialized_input
+        from mta.mdm.initialization_rows import select
+        from mta.runtime import opening_storage
+        from mta.application.r1_order_input import validate_order_input
+        value=supplied_input()
+        expected=[dict(OrderKey=i+1,CustomerOrderId='ORDER-'+str(i),PartId=1,IsSpike=0,IsElephant=0,
+            OriginalQty=1,Qty=1,SKUCode='SUPPLIED-Z9',WhCode='OWN-WH8',CustomerExpectedDate=None,
+            FirstServicingWhCode=None,DueDate=None,IntroDate='2037-04-08') for i in range(10001)]
+        value['opening']['state']['orders']['SpikeOrderData']=expected
+        value['opening']['state']['orders']['OrderIdentity']=[dict(Seed=1,Increment=1,LastValue=10001)]
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)/'opening'
+            manifest,native=create(value,root,streamed=True)
+            args=dict(expected_configuration=manifest['configuration_digest'],expected_recipe=manifest['recipe_digest'])
+            frame=decode(native,native.sha256,**args)[1]
+            images={}
+            def writer(owner,path,binding,rows,*,table):
+                columns={name.casefold():(name,kind) for name,kind in opening_storage.STORAGE_TABLES[table]}
+                metadata,_,_=describe_rows(rows,columns,path);metadata['table']=table
+                images[path]=[dict(row) for row in rows]
+                return metadata
+            owner=SimpleNamespace(input_digest=digest(frame))
+            owner.input_payload=save_input(owner,frame,image_writer=writer,table_selector=select)
+            owner.input_manifest_digest=digest(owner.input_payload)
+            with patch.object(opening_storage,'load_image',lambda owner,meta:RecordRows(
+                    len(images[meta['image']]),lambda:iter(images[meta['image']]))):
+                actual=read_initialized_input(owner)
+            orders=actual['opening']['state']['orders']['SpikeOrderData']
+            self.assertIs(type(orders),list)
+            self.assertEqual(orders,expected)
+            self.assertEqual(digest(actual),digest(frame))
+            validate_order_input(dict(opening_date='2037-04-08',opening_identity='supplied',feed_status='PRESENT',
+                feed_rows=[],opening_orders=orders,closure_history=[],identity_last_value=10001),'2037-04-09')
+
     def test_all_large_current_owners_survive_csv_and_typed_roundtrip(self):
         from copy import deepcopy
         from mta.mdm.initialization_contract import MASTER_TABLES, CURRENT_MASTER_PATHS

@@ -35,7 +35,7 @@ def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, im
     # CPU/memory allocations. Dependency/network restrictions stay unchanged.
     result=runner(arguments,env={**os.environ,'DOCKER_BUILDKIT':'0'},check=False)
     if result.returncode:
-        raise ValueError('MTA build failed; preserve its exact stopped attempts')
+        raise ValueError('MTA build failed; inspect the build log')
     return dict(status='MTA_IMAGE_BUILD_COMPLETED_INSPECTION_STILL_REQUIRED',image=image,
         source_commit=commit,source_sha256=source_sha256,native_sha256=native_sha256,
         context_files=receipt['files'],build_arguments=arguments)
