@@ -36,10 +36,25 @@ $receiptFile = Join-Path $operationRoot 'operation.json'
 $overrideFile = Join-Path $operationRoot 'compose.daily.json'
 $attempt = $null
 function ComposeCall([string[]]$Arguments, [switch]$Json) {
-    $lines = & docker compose --profile daily -f $overrideFile @Arguments 2>&1
-    $exit = $LASTEXITCODE
-    $text = ($lines | ForEach-Object { "$_" }) -join "`n"
-    Add-Content -LiteralPath (Join-Path $operationRoot 'commands.log') -Value ($text + "`nEXIT=$exit") -Encoding utf8
+    $start = [Diagnostics.ProcessStartInfo]::new('docker')
+    $start.UseShellExecute = $false
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.WorkingDirectory = (Get-Location).Path
+    foreach ($item in (@('compose','--profile','daily','-f',$overrideFile) + $Arguments)) {
+        $start.ArgumentList.Add([string]$item)
+    }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    $null = $process.Start()
+    $outTask = $process.StandardOutput.ReadToEndAsync()
+    $errTask = $process.StandardError.ReadToEndAsync()
+    $process.WaitForExit()
+    $text = $outTask.GetAwaiter().GetResult()
+    $diagnostic = $errTask.GetAwaiter().GetResult()
+    $exit = $process.ExitCode
+    $process.Dispose()
+    Add-Content -LiteralPath (Join-Path $operationRoot 'commands.log') -Value ($text + "`n" + $diagnostic + "`nEXIT=$exit") -Encoding utf8
     if ($exit -ne 0) { throw "Daily operation failed (exit $exit). Read $operationRoot/commands.log; state is retained." }
     if ($Json) { return $text | ConvertFrom-Json -AsHashtable }
 }

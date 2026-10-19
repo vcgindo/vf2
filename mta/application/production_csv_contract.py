@@ -46,7 +46,8 @@ def feeds(intake):
 
     for name, filename in FILES.items():
         add(filename, 'day/' + name, DAY_TABLES[name],
-            'Importer/DailyDataRaw' if name == 'raw_daily' else None)
+            'Importer/DailyDataRaw' if name == 'raw_daily' else
+            'Importer/MasterDataRaw' if name == 'raw_no_norm' else None)
     if intake == FEED_SCHEMA:
         add('MasterDataRaw.csv', 'day/raw_master', 'Importer/MasterDataRaw')
         for name, table in SUPPLIER_TABLES.items():

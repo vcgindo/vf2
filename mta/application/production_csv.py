@@ -70,6 +70,8 @@ def parse_csv(raw, columns, filename):
 
 
 def batch_contract(value, binding, business_date):
+    if date.fromisoformat(business_date).isoformat() != business_date:
+        raise ValueError('Business date must use YYYY-MM-DD')
     if (not isinstance(value, dict) or set(value) != {'schema', 'batch_id', 'business_date', 'feeds'}
             or value['schema'] != SCHEMA_VERSION or value['business_date'] != business_date
             or not isinstance(value['batch_id'], str) or not 1 <= len(value['batch_id']) <= 120):

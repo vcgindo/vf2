@@ -176,7 +176,8 @@ def diagnostics(attempt, error):
         with target.open('x', encoding='utf-8', newline='') as stream:
             writer = csv.DictWriter(stream, fieldnames=columns, extrasaction='ignore')
             writer.writeheader()
-            writer.writerows(records)
+            from mta.application.operational_inputs import _cell
+            writer.writerows({key:_cell(value) for key,value in row.items()} for row in records)
 
 
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):
@@ -188,8 +189,23 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
         # a filesystem intake receipt without fabricating a database day/run.
         root = Path(work_root) / ('rejected-' + str(uuid.uuid4()))
         root.mkdir(parents=True, exist_ok=False)
+        copied = {}
+        try:
+            import shutil
+            safe = contained(source, input_root)
+            original = root / 'original'
+            original.mkdir()
+            for item in safe.iterdir():
+                item = regular(item, input_root)
+                target = original / item.name
+                with item.open('rb') as incoming, target.open('xb') as outgoing:
+                    shutil.copyfileobj(incoming, outgoing)
+                copied[item.name] = hashlib.sha256(target.read_bytes()).hexdigest()
+        except (OSError, ValueError) as capture_error:
+            copied['capture_error'] = str(capture_error)[:300]
         atomic_json(root / 'result.json', dict(status='REJECTED', phase='BATCH',
-            business_date=business_date, error=dict(type=type(error).__name__, message=str(error)[:2000])))
+            business_date=business_date, preserved=copied,
+            error=dict(type=type(error).__name__, message=str(error)[:2000])))
         raise
     request_key = digest(dict(initialization=str(owner.pk), date=business_date,
                               binding=binding['_binding_digest'], batch=manifest['digest']))

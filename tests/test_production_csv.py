@@ -17,6 +17,14 @@ from mta.application.production_csv_files import load_binding, regular, snapshot
 
 
 class ProductionCsvTests(unittest.TestCase):
+    def test_both_intake_modes_have_complete_exact_decimal_metadata(self):
+        from mta.application.production_csv_contract import feeds
+        from mta.application.native_daily_contract import SCHEMA, FEED_SCHEMA
+        for mode in (SCHEMA,FEED_SCHEMA):
+            for name,spec in feeds(mode).items():
+                for column in spec['columns']:
+                    if column['type'] in ('decimal','numeric'):
+                        self.assertRegex(column['parameters'], r'^\d+,\s*\d+$', (name,column))
     def test_normal_csv_syntax_and_exact_text_null_duplicates(self):
         columns = [dict(name='SKU', type='nvarchar', parameters='50', nullable=True),
                    dict(name='Qty', type='int', nullable=True)]
