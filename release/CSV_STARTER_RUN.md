@@ -14,16 +14,21 @@ For a clone/image built before the CSV opening importer, first `git pull --ff-on
 
 ```powershell
 $ErrorActionPreference = 'Stop'
+# Set this only when using an already prepared, verified CSV pack.
+# Example: 'I:/VectorFLOW-input/starter-csv-complete-20261019'
+$PreparedCsvPack = ''
 $Project = (docker compose config --format json | ConvertFrom-Json).name
 if ($LASTEXITCODE -ne 0 -or -not $Project) { throw 'Compose configuration failed' }
 if (Select-String -Path .env -Pattern '^\s*COMPOSE_(FILE|PATH_SEPARATOR)\s*=' -Quiet) { throw 'Existing Compose override: merge deliberately, do not overwrite' }
 $Parent = (New-Item -ItemType Directory -Force (Join-Path $env:LOCALAPPDATA "VectorFLOW/$Project")).FullName.Replace('\','/')
-$InputRoot = "$Parent/starter-csv"
-if (Test-Path $InputRoot) { throw 'CSV directory exists; reconcile, do not reload' }
-$Helper = (Resolve-Path ./tools/create_daily_csv_example.py).Path
-$RawZip = (Resolve-Path ./examples/starter-data/vectorflow-starter-inputs-v1.zip).Path
-docker compose run --rm --no-deps -v "${Helper}:/helper.py:ro" -v "${RawZip}:/starter.zip:ro" -v "${Parent}:/examples" mta-install /helper.py --source /starter.zip --output /examples/starter-csv --csv-onboarding
-if ($LASTEXITCODE -ne 0) { throw 'CSV pack preparation failed' }
+$InputRoot = if ($PreparedCsvPack) { (Resolve-Path $PreparedCsvPack).Path.Replace('\','/') } else { "$Parent/starter-csv" }
+if (-not $PreparedCsvPack) {
+  if (Test-Path $InputRoot) { throw 'CSV directory exists; reconcile, do not reload' }
+  $Helper = (Resolve-Path ./tools/create_daily_csv_example.py).Path
+  $RawZip = (Resolve-Path ./examples/starter-data/vectorflow-starter-inputs-v1.zip).Path
+  docker compose run --rm --no-deps -v "${Helper}:/helper.py:ro" -v "${RawZip}:/starter.zip:ro" -v "${Parent}:/examples" mta-install /helper.py --source /starter.zip --output /examples/starter-csv --csv-onboarding
+  if ($LASTEXITCODE -ne 0) { throw 'CSV pack preparation failed' }
+}
 $Receipts = New-Item -ItemType Directory "$InputRoot/receipts"
 $Opening = Get-Content "$InputRoot/opening/opening-manifest.json" -Raw | ConvertFrom-Json
 $ManifestHash = (Get-FileHash "$InputRoot/opening/opening-manifest.json" -Algorithm SHA256).Hash.ToLowerInvariant()
