@@ -137,6 +137,17 @@ class OpeningCsvTests(unittest.TestCase):
         binding = json.loads((root / 'binding-template.json').read_bytes())
         self.assertEqual(binding['opening_sha256'], self.manifest['native_input_sha256'])
 
+    def test_validate_only_has_no_namespace_inspection_or_initializer_call(self):
+        from mta.runtime.management.commands.initialize_production import Command
+        output=io.StringIO()
+        with patch('mta.presentation.native_mode.require_configuration'), \
+             patch('mta.runtime.management.commands.initialize_production.initialize') as initialize, \
+             patch('mta.runtime.management.commands.initialize_production.inspect') as inspect:
+            Command(stdout=output).handle(input=self.root,sha256=self.pin(),csv=True,inspect=False,validate_only=True,
+                configuration_digest=self.options['expected_configuration'],recipe_digest=self.options['expected_recipe'])
+        self.assertEqual(json.loads(output.getvalue())['status'],'INPUT_VALIDATED_NO_DATABASE_CHANGE')
+        initialize.assert_not_called();inspect.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

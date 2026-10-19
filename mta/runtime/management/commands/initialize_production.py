@@ -18,6 +18,7 @@ class Command(BaseCommand):
         parser.add_argument('--recipe-digest', required=True)
         parser.add_argument('--inspect', action='store_true')
         parser.add_argument('--csv', action='store_true', help='Read a complete CSV opening directory; --sha256 pins its opening-manifest.json')
+        parser.add_argument('--validate-only', action='store_true', help='Validate input bytes/contracts without namespace/database operations')
 
     def handle(self, *args, **options):
         from mta.presentation.native_mode import require_configuration
@@ -32,6 +33,11 @@ class Command(BaseCommand):
             else:
                 raw = options['input'].read_bytes()
                 input_sha256 = options['sha256']
+            if options.get('validate_only'):
+                decode(raw, input_sha256, **parameters)
+                self.stdout.write(json.dumps(dict(status='INPUT_VALIDATED_NO_DATABASE_CHANGE',
+                    input_sha256=input_sha256), sort_keys=True))
+                return
             if options['inspect']:
                 report=inspect(raw,input_sha256,**parameters)
                 report.update(implementation_digest=implementation_digest(),input_sha256=input_sha256,

@@ -1,5 +1,13 @@
 # Fresh VectorFLOW migration
 
+## Operator simplicity (direct user instruction,19October2026)
+
+Keep routine installation/intake coordination in repository-owned commands.
+Operators configure paths, initialize once and run a business date; do not ask
+them to hand-wire hashes, registration UUIDs, JSON bindings, Compose overrides
+or report/selection phases. Reuse existing owners/guards internally. A runbook
+is not a substitute for the missing command interface. Preserve frontend/MTO.
+
 ## New 3005 production handoff authority
 
 For this five-step handoff ONLY, docs/handoff-3005/PLAN.md governs scope and acceptance. The sole live status/blocker/decision/evidence tracker is F:/freshvcf/docs/handoff-3005/TRACKER.md; the local TRACKER.md is a pointer. This supersedes the older MIGRATION.md queue requirement for this effort. Do not inherit historical completion claims or automatically merge rejected handoff work. Preserve business semantics and protected resources. Step 1 is accepted. The direct human release on 13 October 2026 supersedes the prior hold and authorizes Step 2 only: isolated native initialization/daily execution and compact functional proofs under G2.1–G2.4. Read the canonical tracker for active boundaries and resource ownership. No serving changes; stop before unreleased Step 3.

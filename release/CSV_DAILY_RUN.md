@@ -4,7 +4,11 @@
 
 Installation stays blank. Register and initialize authentic masters/opening once using the existing native onboarding procedure. CSV intake is the subsequent dated operation; it never installs a database, initializes again or creates users/scopes. This release supports fresh installation with its new metadata migration and current-source registration. An existing sealed installation needs a separately verified upgrade; do not run migrations/reseal it by copying these instructions.
 
-## Configure once after onboarding
+## Normal operator commands
+
+Use [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md): set VF_CSV_INPUT_DIR (or explicitly generate the sample with `./vf.ps1 csv-sample`), run `./vf.ps1 csv-init` ONCE, then `./vf.ps1 csv-day YYYY-MM-DD`. Registration, binding, source/access hashes, receipts and serving lifecycle are internal. The remaining sections describe the contract and advanced existing-onboarding integration, not additional steps for the normal launcher path.
+
+## Advanced: binding an independently initialized installation
 
 For a blank installed application, [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md) supplies the complete CSV master/opening→day1→day2 path. `initialize_production --csv` validates CSV then delegates to the existing atomic initializer; it does not change daily calculation/report preparation. The original JSON initializer remains supported for existing callers. Generated JSON control/provenance files are internal artifacts, not manually supplied JSON business feeds.
 
