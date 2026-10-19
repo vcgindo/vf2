@@ -6,7 +6,7 @@ Installation stays blank. Register and initialize authentic masters/opening once
 
 ## Normal operator commands
 
-Use [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md): set VF_CSV_INPUT_DIR (or explicitly generate the sample with `./vf.ps1 csv-sample`), run `./vf.ps1 csv-init` ONCE, then `./vf.ps1 csv-day YYYY-MM-DD`. Registration, binding, source/access hashes, receipts and serving lifecycle are internal. The remaining sections describe the contract and advanced existing-onboarding integration, not additional steps for the normal launcher path.
+Windows PowerShell5.1 and PowerShell7 are supported. Use [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md): set VF_CSV_INPUT_DIR (or explicitly generate the sample with `./vf.ps1 csv-sample`), run `./vf.ps1 csv-init` ONCE, then `./vf.ps1 csv-day YYYY-MM-DD`. Registration, binding, source/access hashes, receipts and serving lifecycle are internal. The remaining sections describe the contract and advanced existing-onboarding integration, not additional steps for the normal launcher path.
 
 ## Advanced: binding an independently initialized installation
 
@@ -60,14 +60,14 @@ CSV is UTF-8 (optional initial BOM), comma-separated, LF or CRLF, ordinary quote
 Run in the deployment directory with the same `.env`/Compose configuration used to start it:
 
 ```powershell
-pwsh -NoProfile -File ./release/run_daily.ps1 -BusinessDate 2026-10-18
+./release/run_daily.ps1 -BusinessDate 2026-10-18
 ```
 
 The normal operation freezes original files, validates CSV and native prerequisites, uses its own immediate persisted predecessor, stops **only MTA**, executes the native day once, prepares the existing full report roster/Planning/guided aggregates and native input download, validates admission, atomically selects that generation, restarts only MTA and verifies the actual process admitted the exact run/output before recording PUBLISHED. It does not rewrite report algorithms or load calculated fixtures. Auth, frontend, MTO, Redis and PostgreSQL remain running. The first day uses the initialized opening; later days use their own prior successful output. No manual predecessor UUID is required.
 
 Optional `-InspectOnly` performs a read-only CSV/native preflight without reservation, snapshot or execution. It requires the owned Pick output directory to exist (normal staging creates it automatically). A first inspection may therefore report this genuine prerequisite; normal processing still validates before stopping MTA. Inspect is not a substitute for execution or publication.
 
-For the retained successor, place its completed batch and run the SAME command with `-BusinessDate 2026-10-19`. Repeating identical published input returns the original receipt and performs no calculation/selection/restart; it does not select an older day over a newer one. Changed input for an already committed date is refused. A manual/scheduled invocation uses exactly this entry point. Windows Task Scheduler can execute `pwsh -NoProfile -File <absolute-clone>/release/run_daily.ps1 -BusinessDate <explicit-business-date>` with its **Start in** set to the deployment directory. The upstream scheduler must supply the business date; do not guess today's civil date for historical/delayed business feeds. No Celery beat/cron service is installed by this feature.
+For the retained successor, place its completed batch and run the SAME command with `-BusinessDate 2026-10-19`. Repeating identical published input returns the original receipt and performs no calculation/selection/restart; it does not select an older day over a newer one. Changed input for an already committed date is refused. A manual/scheduled invocation uses exactly this entry point. Windows Task Scheduler can execute `powershell.exe -NoProfile -File <absolute-clone>/release/run_daily.ps1 -BusinessDate <explicit-business-date>` with its **Start in** set to the deployment directory. The upstream scheduler must supply the business date; do not guess today's civil date for historical/delayed business feeds. No Celery beat/cron service is installed by this feature.
 
 ## Diagnose and resume safely
 
@@ -78,7 +78,7 @@ Native rules may reject rows or carry prior values while completing the day. The
 If calculation committed but preparation/startup failed, preserve everything, resolve the exact problem and explicitly resume:
 
 ```powershell
-pwsh -NoProfile -File ./release/run_daily.ps1 -BusinessDate 2026-10-18 -Resume
+./release/run_daily.ps1 -BusinessDate 2026-10-18 -Resume
 ```
 
 Resume uses the linked SUCCEEDED run and existing READY layers; it does **not** calculate the day again. Preserved input archives must validate byte-for-byte; an existing corrupt/partial archive is refused, never overwritten. A preparation failure remains pending until all layers pass. Selection/startup recovery uses the same complete generation. After entering calculation, MTA stays in maintenance on failure: copying yesterday's selection cannot undo current master/queue/history changes. Do not restart an old generation as a claimed data rollback. Full rollback/recovery requires the matched cold database/files/configuration/secret backup documented in the existing operations runbook.

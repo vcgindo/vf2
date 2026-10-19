@@ -16,11 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @unittest.skipUnless(shutil.which('pwsh'), 'PowerShell7 required for operator boundary checks')
 class CsvLauncherTests(unittest.TestCase):
+    shell = 'pwsh'
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         (self.root / 'release').mkdir()
         shutil.copyfile(ROOT / 'vf.ps1', self.root / 'vf.ps1')
+        shutil.copyfile(ROOT / 'release/powershell_compat.ps1', self.root / 'release/powershell_compat.ps1')
         (self.root / '.env').write_text('VF_PROJECT=test\nCOMPOSE_FILE="compose.yaml;extra.json"\nEMAIL_PASS=preserve-this-exactly\n')
         self.pack = self.root / 'pack';self.pack.mkdir();(self.pack / 'opening').mkdir()
         native=b'original-opening';consumer=b'original-consumer-opening'
@@ -72,7 +75,11 @@ else { & ./vf.ps1 $Operation }
         env=dict(os.environ)
         for key in ('COMPOSE_FILE','COMPOSE_PATH_SEPARATOR'):
             env.pop(key,None)
-        return subprocess.run(['pwsh','-NoProfile','-File',str(self.root/'driver.ps1'),'-Failure',failure,'-Operation',operation,'-Date',date],cwd=self.root,env=env,capture_output=True,text=True)
+        if self.shell == 'powershell.exe':
+            # Do not load PS7 modules inherited from this test runner into PS5.
+            env.pop('PSModulePath', None)
+            env.pop('PSMODULEPATH', None)
+        return subprocess.run([self.shell,'-NoProfile','-File',str(self.root/'driver.ps1'),'-Failure',failure,'-Operation',operation,'-Date',date],cwd=self.root,env=env,capture_output=True,text=True)
 
     def calls(self):
         p=self.root/'calls.jsonl'
@@ -92,6 +99,7 @@ else { & ./vf.ps1 $Operation }
         self.assertIn('compose.yaml;extra.json;',env)
         self.assertIn('MTA_SELECTION_FILE="/var/lib/vectorflow/selection.json"',env)
         binding=json.loads((self.pack/'binding.json').read_text(encoding='utf-8-sig'))
+        self.assertFalse((self.pack/'binding.json').read_bytes().startswith(b'\xef\xbb\xbf'))
         self.assertEqual(binding['initialization_id'],'new-opening')
         override=json.loads((self.pack/'compose.csv.json').read_text(encoding='utf-8-sig'))
         self.assertEqual(set(override['services']),{'mta','mta-install'})
@@ -138,6 +146,11 @@ else { & ./vf.ps1 $Operation }
         self.assertTrue((target/'opening/opening-manifest.json').exists())
         self.assertIn('VF_CSV_INPUT_DIR="'+str(target).replace('\\','/')+'"',(self.root/'.env').read_text())
         self.assertFalse(any('stop' in c or 'release.register_mta' in c for c in self.calls()))
+
+
+@unittest.skipUnless(os.name == 'nt' and shutil.which('powershell.exe'), 'Windows PowerShell5.1 required')
+class WindowsPowerShellCsvLauncherTests(CsvLauncherTests):
+    shell = 'powershell.exe'
 
 
 if __name__=='__main__':unittest.main()

@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 5.1
 <#
 One repository-owned CSV-to-selected-application operation. Run in the deployment directory.
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
@@ -12,13 +12,14 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
+. "$PSScriptRoot/powershell_compat.ps1"
 $null = [datetime]::ParseExact($BusinessDate, 'yyyy-MM-dd', [cultureinfo]::InvariantCulture)
 $configText = & docker compose --profile daily config --format json
 if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
-$config = ($configText -join "`n") | ConvertFrom-Json -AsHashtable
+$config = ConvertFrom-VfJson ($configText -join "`n")
 $daily = $config['x-vectorflow-daily']
 foreach ($key in @('input_dir','binding_file','state_dir')) {
-    if (-not $daily[$key] -or -not [IO.Path]::IsPathFullyQualified($daily[$key])) {
+    if (-not $daily[$key] -or -not (Test-VfAbsolutePath $daily[$key])) {
         throw "Set an absolute VF_DAILY_$($key.ToUpperInvariant()) in the private env file"
     }
 }
@@ -41,9 +42,7 @@ function ComposeCall([string[]]$Arguments, [switch]$Json) {
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
     $start.WorkingDirectory = (Get-Location).Path
-    foreach ($item in (@('compose','--profile','daily','-f',$overrideFile) + $Arguments)) {
-        $start.ArgumentList.Add([string]$item)
-    }
+    Set-VfProcessArguments $start (@('compose','--profile','daily','-f',$overrideFile) + $Arguments)
     $process = [Diagnostics.Process]::new()
     $process.StartInfo = $start
     $null = $process.Start()
@@ -56,7 +55,7 @@ function ComposeCall([string[]]$Arguments, [switch]$Json) {
     $process.Dispose()
     Add-Content -LiteralPath (Join-Path $operationRoot 'commands.log') -Value ($text + "`n" + $diagnostic + "`nEXIT=$exit") -Encoding utf8
     if ($exit -ne 0) { throw "Daily operation failed (exit $exit). Read $operationRoot/commands.log; state is retained." }
-    if ($Json) { return $text | ConvertFrom-Json -AsHashtable }
+    if ($Json) { return ConvertFrom-VfJson $text }
 }
 function Worker([string[]]$Arguments) {
     return ComposeCall -Arguments (@('run','--rm','--no-deps','-T','daily','manage.py','process_daily_csv') + $Arguments) -Json
@@ -88,14 +87,14 @@ try {
     $config.services.daily.volumes = $volumes + @(
         @{type='bind';source=$inputRoot;target='/incoming';read_only=$true},
         @{type='bind';source=$bindingFile.DirectoryName;target='/onboarding';read_only=$true})
-    $config | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $overrideFile -Encoding utf8
+    Write-VfUtf8 $overrideFile ($config | ConvertTo-Json -Depth 100)
     if ($config.services.mta.environment.VF_MTA_SELECTION_FILE -ne '/var/lib/vectorflow/selection.json') {
         throw 'Configure MTA_SELECTION_FILE=/var/lib/vectorflow/selection.json before daily operations; do not change selection during an existing run.'
     }
     if (-not $InputDirectory) { $InputDirectory = Join-Path $inputRoot $BusinessDate }
     $source = [IO.Path]::GetFullPath($InputDirectory)
-    $relative = [IO.Path]::GetRelativePath($inputRoot, $source).Replace('\','/')
-    if ($relative -eq '..' -or $relative.StartsWith('../') -or [IO.Path]::IsPathFullyQualified($relative)) {
+    $relative = Get-VfRelativePath $inputRoot $source
+    if ($relative -eq '..' -or $relative.StartsWith('../') -or (Test-VfAbsolutePath $relative)) {
         throw 'Input directory must stay inside VF_DAILY_INPUT_DIR'
     }
     $sourceArgs = @('--date',$BusinessDate,'--input-directory',('/incoming/' + $relative))
@@ -125,11 +124,11 @@ try {
             $maintenance = $false
         }
     }
-    $attempt | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $receiptFile -Encoding utf8
+    Write-VfUtf8 $receiptFile ($attempt | ConvertTo-Json -Depth 100)
     $attempt | ConvertTo-Json -Depth 100
 } catch {
-    @{status='STOPPED';business_date=$BusinessDate;maintenance=$maintenance;execution_invoked=$executing;
-      attempt=$attempt;error=$_.Exception.Message} | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $receiptFile -Encoding utf8
+    Write-VfUtf8 $receiptFile (@{status='STOPPED';business_date=$BusinessDate;maintenance=$maintenance;execution_invoked=$executing;
+      attempt=$attempt;error=$_.Exception.Message} | ConvertTo-Json -Depth 30)
     # After entering the native boundary, old selection may no longer represent
     # current mutable state. Never pretend a file rollback undoes a committed day.
     if ($maintenance) { Write-Warning 'MTA remains in maintenance. Preserve state and use explicit -Resume only for a proven committed publication/serving failure.' }

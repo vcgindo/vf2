@@ -7,6 +7,9 @@ Operators configure paths, initialize once and run a business date; do not ask
 them to hand-wire hashes, registration UUIDs, JSON bindings, Compose overrides
 or report/selection phases. Reuse existing owners/guards internally. A runbook
 is not a substitute for the missing command interface. Preserve frontend/MTO.
+Windows operator launchers must work in the standard Windows PowerShell5.1
+shell as well as PowerShell7; verify both before handoff instead of adding an
+unnecessary shell upgrade requirement.
 
 ## New 3005 production handoff authority
 

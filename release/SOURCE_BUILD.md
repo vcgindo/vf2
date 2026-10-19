@@ -2,7 +2,7 @@
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
-Requires Git, Windows PowerShell7 and Docker Desktop with Linux/amd64 containers and Compose2.24.4 or later. Host Python/Node and the old image ZIP are not needed. This is a NEW blank installation, not an upgrade/reset of an existing deployment.
+Requires Git, Windows PowerShell5.1 or PowerShell7 and Docker Desktop with Linux/amd64 containers and Compose2.24.4 or later. Host Python/Node and the old image ZIP are not needed. This is a NEW blank installation, not an upgrade/reset of an existing deployment.
 
 ## 1. Clone and configure
 

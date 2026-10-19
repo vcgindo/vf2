@@ -1,4 +1,4 @@
-#requires -Version 7.0
+#requires -Version 5.1
 <#
 Operator entry point: keep Docker/configuration plumbing inside the repository.
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
@@ -12,6 +12,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
+. "$PSScriptRoot/release/powershell_compat.ps1"
 Push-Location $PSScriptRoot
 try {
     function WriteEnvironment([hashtable]$Changes) {
@@ -28,14 +29,21 @@ try {
         $candidate = Join-Path $PSScriptRoot ('.env.csv-' + [guid]::NewGuid().ToString('N'))
         try {
             [IO.File]::WriteAllText($candidate,$text,[Text.UTF8Encoding]::new($false))
-            $diagnostic = & docker compose --env-file $candidate config --quiet 2>&1
-            if ($LASTEXITCODE -ne 0) { throw 'Generated CSV environment failed Compose validation; original .env is unchanged' }
+            $preference = $ErrorActionPreference
+            try {
+                # PS5 turns ordinary redirected native stderr into error records.
+                # Docker's exit code, rather than progress output, decides failure.
+                $ErrorActionPreference = 'Continue'
+                $diagnostic = & docker compose --env-file $candidate config --quiet 2>&1
+                $code = $LASTEXITCODE
+            } finally { $ErrorActionPreference = $preference }
+            if ($code -ne 0) { throw 'Generated CSV environment failed Compose validation; original .env is unchanged' }
             [IO.File]::Replace($candidate,$path,[NullString]::Value)
         } finally { Remove-Item -LiteralPath $candidate -Force -ErrorAction SilentlyContinue }
     }
     $configText = & docker compose --profile daily config --format json
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
-    $config = ($configText -join "`n") | ConvertFrom-Json -AsHashtable
+    $config = ConvertFrom-VfJson ($configText -join "`n")
     if ($Operation -eq 'csv-day') {
         if (-not $BusinessDate) { throw 'Usage: ./vf.ps1 csv-day YYYY-MM-DD' }
         & "$PSScriptRoot/release/run_daily.ps1" -BusinessDate $BusinessDate -InspectOnly:$InspectOnly -Resume:$Resume
@@ -46,7 +54,7 @@ try {
         if ($BusinessDate -or $InspectOnly -or $Resume) { throw 'csv-sample takes no date, InspectOnly or Resume argument' }
         $sample = $config['x-vectorflow-csv']['input_dir']
         if (-not $sample) { $sample = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "VectorFLOW/$($config.name)/csv-input" }
-        if (-not [IO.Path]::IsPathFullyQualified($sample)) { throw 'CSV input directory must be absolute' }
+        if (-not (Test-VfAbsolutePath $sample)) { throw 'CSV input directory must be absolute' }
         if (Test-Path -LiteralPath $sample) { throw 'CSV directory already exists; use csv-init or reconcile, never overwrite a pack' }
         $parent = (New-Item -ItemType Directory -Force -Path (Split-Path $sample -Parent)).FullName
         $leaf = Split-Path $sample -Leaf
@@ -61,13 +69,13 @@ try {
     }
     if ($BusinessDate -or $InspectOnly -or $Resume) { throw 'csv-init takes no date, InspectOnly or Resume argument' }
     $root = $config['x-vectorflow-csv']['input_dir']
-    if (-not $root -or -not [IO.Path]::IsPathFullyQualified($root)) {
+    if (-not $root -or -not (Test-VfAbsolutePath $root)) {
         throw 'Set VF_CSV_INPUT_DIR in .env to the absolute CSV pack directory, then rerun ./vf.ps1 csv-init'
     }
     $root = (Resolve-Path -LiteralPath $root).Path.Replace('\','/')
     $state = $config['x-vectorflow-daily']['state_dir']
     if (-not $state) { $state = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "VectorFLOW/$($config.name)/daily-operations" }
-    if (-not [IO.Path]::IsPathFullyQualified($state)) { throw 'Daily state directory must be absolute' }
+    if (-not (Test-VfAbsolutePath $state)) { throw 'Daily state directory must be absolute' }
     $null = New-Item -ItemType Directory -Force -Path $state
     $lock = [IO.File]::Open((Join-Path $state 'daily.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
     $receiptPath = Join-Path $state 'onboarding.json'
@@ -82,13 +90,13 @@ try {
             }
         }
         $manifest = Join-Path $root 'opening/opening-manifest.json'
-        $opening = Get-Content -LiteralPath $manifest -Raw | ConvertFrom-Json -AsHashtable
+        $opening = ConvertFrom-VfJson (Get-Content -LiteralPath $manifest -Raw)
         $manifestHash = (Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash.ToLowerInvariant()
-        $binding = Get-Content -LiteralPath (Join-Path $root 'binding-template.json') -Raw | ConvertFrom-Json -AsHashtable
+        $binding = ConvertFrom-VfJson (Get-Content -LiteralPath (Join-Path $root 'binding-template.json') -Raw)
         foreach ($entry in @(@('opening',$opening.native_input_sha256), @('consumer_opening',$binding.consumer_opening_sha256))) {
             $prefix,$expected = $entry
             $relative = $binding[$prefix + '_file']
-            if (-not $relative -or [IO.Path]::IsPathFullyQualified($relative) -or $relative -match '(^|[/\\])\.\.([/\\]|$)') {
+            if (-not $relative -or (Test-VfAbsolutePath $relative) -or $relative -match '(^|[/\\])\.\.([/\\]|$)') {
                 throw 'Invalid onboarding reference'
             }
             $hash = (Get-FileHash -LiteralPath (Join-Path $root $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -103,13 +111,17 @@ try {
         $separatorLines = @(Get-Content -LiteralPath .env | Where-Object { $_ -match '^\s*COMPOSE_PATH_SEPARATOR\s*=' })
         if ($separatorLines.Count -and ($separatorLines[-1] -split '=',2)[1].Trim().Trim('"').Trim("'") -ne ';') { throw 'Windows Compose path separator must be ;' }
         $receipt = @{status='VALIDATING';phase='CSV';input_dir=$root;manifest_sha256=$manifestHash;project=$config.name}
-        function SaveReceipt { $receipt | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $receiptPath -Encoding utf8 }
+        function SaveReceipt { Write-VfUtf8 $receiptPath ($receipt | ConvertTo-Json -Depth 30) }
         function Compose([string[]]$Arguments, [switch]$Json) {
-            $text = & docker compose @Arguments 2>> (Join-Path $state 'onboarding-docker.log')
-            $code = $LASTEXITCODE
+            $preference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $text = & docker compose @Arguments 2>> (Join-Path $state 'onboarding-docker.log')
+                $code = $LASTEXITCODE
+            } finally { $ErrorActionPreference = $preference }
             if ($text) { Add-Content -LiteralPath (Join-Path $state 'onboarding-docker.log') -Value $text }
             if ($code -ne 0) { throw "Docker operation failed (exit $code); see $state/onboarding-docker.log and onboarding.json" }
-            if ($Json) { return ($text -join "`n") | ConvertFrom-Json -AsHashtable }
+            if ($Json) { return ConvertFrom-VfJson ($text -join "`n") }
         }
         SaveReceipt
         try {
@@ -128,12 +140,12 @@ try {
             if ($initial.status -ne 'INITIALIZED' -or $initial.input_sha256 -ne $opening.native_input_sha256) { throw 'Expected one NEW matching initialization' }
             $receipt.initialization=$initial; $receipt.phase='CONFIGURATION'; SaveReceipt
             $binding.initialization_id=$initial.opening_id; $binding.source_digest=$initial.source_digest
-            $binding | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath (Join-Path $root 'binding.json') -Encoding utf8
+            Write-VfUtf8 (Join-Path $root 'binding.json') ($binding | ConvertTo-Json -Depth 100)
             $access=@{VF_MDM_SOURCE_DIGEST=$initial.source_digest;VF_MTA_PERMISSIONS_FILE='/access/permissions.json';VF_MTA_PERMISSIONS_SHA256=$permissionHash}
             $mount=@{type='bind';source=$permissionFile.Replace('\','/');target='/access/permissions.json';read_only=$true}
             $data=@{services=@{mta=@{environment=$access.Clone();volumes=@($mount)};'mta-install'=@{environment=$access.Clone();volumes=@($mount)}}}
             $override=Join-Path $root 'compose.csv.json'
-            $data | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $override -Encoding utf8
+            Write-VfUtf8 $override ($data | ConvertTo-Json -Depth 8)
             # Preserve the effective existing Compose files instead of replacing overrides.
             WriteEnvironment @{COMPOSE_PATH_SEPARATOR=';';COMPOSE_FILE=($files + ';' + $override.Replace('\','/'));
                 VF_DAILY_INPUT_DIR=$root;VF_DAILY_BINDING_FILE="$root/binding.json";

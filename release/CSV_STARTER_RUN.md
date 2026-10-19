@@ -2,7 +2,7 @@
 
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 
-After blank installation steps1–4, use this path instead of the JSON starter steps. Run from your clone in PowerShell7. The repository launcher calls Docker internally and handles the required MTA lifecycle; application containers are not given Docker-daemon access. Frontend, MTO, auth and PostgreSQL stay unchanged.
+After blank installation steps1–4, use this path instead of the JSON starter steps. Run from your clone in Windows PowerShell5.1 (the default Windows shell) or PowerShell7. No shell upgrade is needed. The repository launcher calls Docker internally and handles the required MTA lifecycle; application containers are not given Docker-daemon access. Frontend, MTO, auth and PostgreSQL stay unchanged.
 
 ## 5. Choose the CSV pack once
 
