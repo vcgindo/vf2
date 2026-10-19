@@ -86,6 +86,10 @@ class StreamedOpeningTests(unittest.TestCase):
                 rows=module.load_image(SimpleNamespace(pk='owned'),metadata)
                 self.assertIsInstance(rows,RecordRows)
                 self.assertEqual(rows[-1],expected[-1])
+                with tempfile.TemporaryDirectory() as work,patch.dict(os.environ,{'VF_WORK_ROOT':work}):
+                    cached=module.load_image(SimpleNamespace(pk='owned'),metadata)
+                    self.assertTrue(hasattr(cached,'_data'))
+                    self.assertEqual(list(cached),expected)
                 with self.assertRaisesRegex(ValueError,'drift'):
                     module.load_image(SimpleNamespace(pk='owned'),dict(metadata,digest='0'*64))
                 with self.assertRaisesRegex(ValueError,'drift'):

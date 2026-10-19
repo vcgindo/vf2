@@ -1,5 +1,6 @@
 """Typed initialization-owned images; no CalculationRun is created or borrowed."""
 import hashlib
+import os
 import json
 from pathlib import Path
 from django.db import connection
@@ -75,5 +76,11 @@ def iter_image(owner, meta):
 
 def load_image(owner, meta):
     if meta['count'] > 10000:
-        return RecordRows.from_rows(iter_image(owner,meta))
+        if os.environ.get('VF_WORK_ROOT'):
+            return RecordRows.from_rows(iter_image(owner,meta))
+        # Serving roots are read-only. Certify the complete immutable typed
+        # image before returning, then rescan without an application spool.
+        # Installer/daily workers use the existing writable disk cache above.
+        for _ in iter_image(owner,meta):pass
+        return RecordRows(meta['count'],lambda:iter_image(owner,meta))
     return list(iter_image(owner, meta))

@@ -148,6 +148,78 @@ class NativeArchiveTests(unittest.TestCase):
             self.assertEqual(response['Content-Type'],'application/zip')
             self.assertEqual(b''.join(response.streaming_content),b'zip-bytes')
 
+    def test_opt_in_large_member_streams_with_bounded_heap(self):
+        import tracemalloc
+        from mta.row_sequences import RecordRows
+        self.captured['rows']=RecordRows(3000,lambda:({'value':'X'*4096} for _ in range(3000)))
+        self.run.input_digest=digest(self.captured)
+        with patch.object(module,'MAX_UNCOMPRESSED',1024*1024):
+            with self.assertRaisesRegex(module.ArchiveDenied,'size_limit'):self.prepare()
+            with patch.dict(os.environ,{'VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES':str(32*1024**2),
+                    'VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES':str(2*1024**2)}):
+                tracemalloc.start()
+                try:
+                    result=self.prepare()
+                    stream,name=module.open_archive(self.run);stream.close()
+                    _,peak=tracemalloc.get_traced_memory()
+                finally:tracemalloc.stop()
+        self.assertGreater(result['manifest']['files']['NativeCapturedInput.json']['bytes'],12*1024**2-1024**2)
+        self.assertLess(peak,8*1024**2)
+        self.assertEqual(name,'InputData.zip')
+
+    def test_invalid_or_unbounded_policy_is_denied(self):
+        for name,values in (
+            ('VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES',('0','-1','unlimited',str(4*1024**3+1))),
+            ('VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES',('0','',str(64*1024**3+1)))):
+            for value in values:
+                with self.subTest(name=name,value=value),patch.dict(os.environ,{name:value}):
+                    with self.assertRaisesRegex(module.ArchiveDenied,'invalid_size_policy'):self.prepare()
+        self.assertFalse((self.download/'InputData.zip').exists())
+
+    def test_failed_partial_is_preserved_but_never_promoted(self):
+        with patch.object(module,'MAX_COMPRESSED',10):
+            with self.assertRaisesRegex(module.ArchiveDenied,'compressed_limit'):self.prepare()
+        partials=list(self.download.glob('.InputData.zip.*.partial'))
+        self.assertEqual(len(partials),1)
+        original=partials[0].read_bytes()
+        self.assertFalse((self.download/'InputData.zip').exists())
+        self.prepare()
+        self.assertEqual(partials[0].read_bytes(),original)
+
+    def test_changed_original_during_streaming_denies_promotion(self):
+        original=module._file_parts
+        count=0
+        def changed(path):
+            nonlocal count
+            if Path(path)==self.daily:
+                count+=1
+                if count==2:
+                    yield b'changed after preverification'
+                    return
+            yield from original(path)
+        with patch.object(module,'_file_parts',side_effect=changed):
+            with self.assertRaisesRegex(module.ArchiveDenied,'original_hash'):self.prepare()
+        self.assertFalse((self.download/'InputData.zip').exists())
+        self.assertEqual(len(list(self.download.glob('.InputData.zip.*.partial'))),1)
+
+    def test_default_small_archive_bytes_remain_identical_to_original_format(self):
+        payloads={'NativeOpeningInput.json':self.opening.read_bytes(),
+            'NativeDailyInput.json':self.daily.read_bytes(),
+            'NativeCapturedInput.json':module._canonical(self.captured),
+            'NativeInputSchema.json':module._canonical(self.run.input_payload)}
+        manifest=dict(module._pins(self.run,self.captured),files={name:dict(bytes=len(raw),
+            sha256=module._sha(raw)) for name,raw in payloads.items()})
+        payloads['manifest.json']=module._canonical(manifest)
+        reference=io.BytesIO()
+        import stat
+        with zipfile.ZipFile(reference,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+            for name,raw in payloads.items():
+                info=zipfile.ZipInfo(name,(1980,1,1,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED
+                info.external_attr=(stat.S_IFREG|0o440)<<16
+                archive.writestr(info,raw)
+        result=self.prepare()
+        self.assertEqual(Path(result['path']).read_bytes(),reference.getvalue())
+
     def test_command_is_in_production_export(self):
         from release.export import included
         self.assertTrue(included('mta/runtime/management/commands/prepare_native_input_archive.py'))

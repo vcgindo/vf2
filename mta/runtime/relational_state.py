@@ -8,6 +8,7 @@ column wire types and checksums only, not operational row values.
 from datetime import date, datetime
 from decimal import Decimal
 import hashlib
+import os
 import json
 from pathlib import Path
 import re
@@ -171,7 +172,13 @@ def iter_image(run,item):
 
 def load_image(run,item):
     if item['count'] > 10000:
-        return RecordRows.from_rows(iter_image(run,item))
+        if os.environ.get('VF_WORK_ROOT'):
+            return RecordRows.from_rows(iter_image(run,item))
+        # Serving roots are read-only. Certify the complete immutable typed
+        # image before returning, then rescan without an application spool.
+        # Installer/daily workers use the existing writable disk cache above.
+        for _ in iter_image(run,item):pass
+        return RecordRows(item['count'],lambda:iter_image(run,item))
     return list(iter_image(run,item))
 
 

@@ -87,6 +87,8 @@ services:
     image: "${VF_IMAGE_PREFIX:-vectorflow}/mta:${VF_RELEASE:?Set pinned release}"
     pull_policy: "never"
     environment:
+      VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES: "${VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES:-67108864}"
+      VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES: "${VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES:-268435456}"
       VF_PUBLIC_URL: "${VF_PUBLIC_URL:?Set public origin}"
       VF_ALLOWED_HOSTS: "${VF_ALLOWED_HOSTS:-localhost,127.0.0.1,mta,mto,auth}"
       DB_SSLMODE: "${DB_SSLMODE:-disable}"
@@ -356,6 +358,8 @@ services:
       - "migrate"
       - "--noinput"
     environment:
+      VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES: "${VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES:-67108864}"
+      VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES: "${VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES:-268435456}"
       VF_WORK_ROOT: "/var/lib/vectorflow/work"
       VF_PUBLIC_URL: "${VF_PUBLIC_URL:?Set public origin}"
       VF_ALLOWED_HOSTS: "${VF_ALLOWED_HOSTS:-localhost,127.0.0.1,mta,mto,auth}"

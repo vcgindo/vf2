@@ -152,6 +152,11 @@ class ComposeConfigurationTests(unittest.TestCase):
             self.assertEqual(worker['environment']['DB_SESSION_ROLE'],'vectorflow_mta_owner')
             self.assertEqual(worker['environment']['VF_DB_USER'],'vectorflow_mta_installer')
             self.assertEqual(api['environment']['VF_DB_USER'],'vectorflow_mta_runtime')
+            for key,expected in (('VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES','67108864'),('VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES','268435456')):
+                self.assertEqual(worker['environment'][key],expected)
+                self.assertEqual(api['environment'][key],expected)
+            self.assertEqual(worker['environment']['VF_WORK_ROOT'],'/var/lib/vectorflow/work')
+            self.assertNotIn('VF_WORK_ROOT',api['environment'])
             for key in ('VF_MTA_SELECTION_FILE','VF_MTA_PUBLISHED_RUN','VF_MTA_PUBLISHED_DIGEST','VF_BTR_REPORTING_GENERATION'):
                 self.assertEqual(worker['environment'][key],'')
             self.assertFalse(any('docker.sock' in v['target'] for v in worker['volumes']))

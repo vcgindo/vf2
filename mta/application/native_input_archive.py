@@ -60,112 +60,153 @@ def _pins(run, captured):
         output_digest=run.output_digest)
 
 
-def _original(path, expected):
-    path = Path(path)
-    if any(p.is_symlink() for p in (path, *path.parents)):
+def _limits():
+    # Defaults are unchanged. Larger local cases need explicit operator opt-in.
+    try:
+        expanded=int(os.environ.get('VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES',MAX_UNCOMPRESSED))
+        compressed=int(os.environ.get('VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES',MAX_COMPRESSED))
+    except (ValueError,TypeError) as error:
+        raise ArchiveDenied('native_input_archive_invalid_size_policy') from error
+    if not 0<expanded<=64*1024**3 or not 0<compressed<=4*1024**3:
+        raise ArchiveDenied('native_input_archive_invalid_size_policy')
+    return expanded,compressed
+
+
+def _buffered_parts(parts):
+    # Feed bounded chunks to deflate instead of one call for every JSON token.
+    pending=bytearray()
+    for part in parts:
+        pending.extend(part)
+        if len(pending)>=1024*1024:
+            yield bytes(pending);pending.clear()
+    if pending:yield bytes(pending)
+
+
+def _file_parts(path):
+    path=Path(path)
+    if any(p.is_symlink() for p in (path,*path.parents)):
         raise ArchiveDenied('native_input_original_symlink_denied')
     try:
         with path.open('rb') as stream:
             if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
                 raise ArchiveDenied('native_input_original_not_file')
-            raw = stream.read(MAX_UNCOMPRESSED + 1)
+            while block:=stream.read(1024*1024):yield block
     except OSError as error:
         raise ArchiveDenied('native_input_original_unavailable') from error
-    if len(raw) > MAX_UNCOMPRESSED or _sha(raw) != expected:
-        raise ArchiveDenied('native_input_original_hash_or_size_drift')
-    return raw
+
+
+def _file_identity(path):
+    checksum=hashlib.sha256();count=0
+    for block in _file_parts(path):checksum.update(block);count+=len(block)
+    return dict(bytes=count,sha256=checksum.hexdigest())
+
+
+def _zip_info(name,size):
+    info=zipfile.ZipInfo(name,(1980,1,1,0,0,0));info.file_size=size
+    info.compress_type=zipfile.ZIP_DEFLATED
+    info.external_attr=(stat.S_IFREG|0o440)<<16
+    return info
 
 
 def prepare(run, opening_file, daily_file):
-    captured = _inputs(run)
-    payloads = {
-        'NativeOpeningInput.json': _original(opening_file,
-            captured['initialization_binding']['input_sha256']),
-        'NativeDailyInput.json': _original(daily_file, captured['daily_input_sha256']),
-        'NativeCapturedInput.json': _canonical(captured),
-        'NativeInputSchema.json': _canonical(run.input_payload),
+    captured=_inputs(run)
+    expanded_limit,compressed_limit=_limits()
+    files={
+        'NativeOpeningInput.json':lambda:_file_parts(opening_file),
+        'NativeDailyInput.json':lambda:_file_parts(daily_file),
+        'NativeCapturedInput.json':lambda:_buffered_parts(canonical_parts(captured)),
+        'NativeInputSchema.json':lambda:_buffered_parts(canonical_parts(run.input_payload)),
     }
-    manifest = dict(_pins(run, captured), files={name: dict(bytes=len(raw),
-        sha256=_sha(raw)) for name, raw in payloads.items()})
-    payloads['manifest.json'] = _canonical(manifest)
-    if sum(map(len, payloads.values())) > MAX_UNCOMPRESSED:
-        raise ArchiveDenied('native_input_archive_size_limit')
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-        for name, raw in payloads.items():
-            info = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = (stat.S_IFREG | 0o440) << 16
-            archive.writestr(info, raw)
-    if buffer.tell() > MAX_COMPRESSED:
-        raise ArchiveDenied('native_input_archive_compressed_limit')
-    # Pick owns the existing per-run download directory; never create another
-    # root or overwrite a prior export, including a preserved partial file.
-    from mta.presentation.pick_downloads import _owned_file, PickDownloadDenied
-    try:
-        sibling = _owned_file(run, 'LogisticPickListReport.csv')
-    except PickDownloadDenied as error:
-        raise ArchiveDenied(str(error)) from error
-    target = sibling.parent / FILENAME
+    hashes={
+        'NativeOpeningInput.json':captured['initialization_binding']['input_sha256'],
+        'NativeDailyInput.json':captured['daily_input_sha256'],
+        'NativeCapturedInput.json':run.input_digest,
+        'NativeInputSchema.json':run.input_manifest_digest,
+    }
+    metadata={};total=0
+    # Measure and certify before creating a file, retaining the existing guards.
+    for name,factory in files.items():
+        checksum=hashlib.sha256();size=0
+        for block in factory():
+            size+=len(block);total+=len(block);checksum.update(block)
+            if total>expanded_limit:raise ArchiveDenied('native_input_archive_size_limit')
+        actual=checksum.hexdigest()
+        if actual!=hashes[name]:raise ArchiveDenied('native_input_original_hash_or_size_drift')
+        metadata[name]=dict(bytes=size,sha256=actual)
+    manifest=dict(_pins(run,captured),files=metadata)
+    manifest_bytes=_canonical(manifest)
+    if total+len(manifest_bytes)>expanded_limit:raise ArchiveDenied('native_input_archive_size_limit')
+    files['manifest.json']=lambda:iter((manifest_bytes,))
+    metadata={**metadata,'manifest.json':dict(bytes=len(manifest_bytes),sha256=_sha(manifest_bytes))}
+    from mta.presentation.pick_downloads import _owned_file,PickDownloadDenied
+    try:sibling=_owned_file(run,'LogisticPickListReport.csv')
+    except PickDownloadDenied as error:raise ArchiveDenied(str(error)) from error
+    target=sibling.parent/FILENAME
+    import uuid
+    temporary=target.with_name('.'+FILENAME+'.'+uuid.uuid4().hex+'.partial')
+    # A failed partial is retained and never promoted/reused as accepted output.
+    with temporary.open('xb') as output:
+        with zipfile.ZipFile(output,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+            for name,factory in files.items():
+                item=metadata[name];checksum=hashlib.sha256();size=0
+                with archive.open(_zip_info(name,item['bytes']),'w',force_zip64=item['bytes']>=zipfile.ZIP64_LIMIT) as member:
+                    for block in factory():
+                        size+=len(block)
+                        if size>item['bytes']:raise ArchiveDenied('native_input_original_hash_or_size_drift')
+                        checksum.update(block);member.write(block)
+                        if output.tell()>compressed_limit:raise ArchiveDenied('native_input_archive_compressed_limit')
+                if dict(bytes=size,sha256=checksum.hexdigest())!=item:
+                    raise ArchiveDenied('native_input_original_hash_or_size_drift')
+        if output.tell()>compressed_limit:raise ArchiveDenied('native_input_archive_compressed_limit')
+        output.flush();os.fsync(output.fileno())
+    actual=_file_identity(temporary)
     if target.exists():
-        stream, _ = open_archive(run)
-        try:
-            if stream.read(MAX_COMPRESSED + 1) != buffer.getvalue():
-                raise ArchiveDenied('native_input_archive_existing_bytes_differ')
-        finally:
-            stream.close()
+        stream,_=open_archive(run)
+        stream.close()
+        if _file_identity(target)!=actual:raise ArchiveDenied('native_input_archive_existing_bytes_differ')
     else:
-        with target.open('xb') as stream:
-            stream.write(buffer.getvalue())
-    return dict(path=str(target), bytes=target.stat().st_size,
-        sha256=_sha(buffer.getvalue()), manifest=manifest)
+        try:os.link(temporary,target)  # Atomic exclusive promotion; never overwrite.
+        except FileExistsError:
+            stream,_=open_archive(run);stream.close()
+            if _file_identity(target)!=actual:raise ArchiveDenied('native_input_archive_existing_bytes_differ')
+    temporary.unlink()
+    return dict(path=str(target),**actual,manifest=manifest)
 
 
 def open_archive(run):
-    captured = _inputs(run)
-    from mta.presentation.pick_downloads import _owned_file, PickDownloadDenied
+    captured=_inputs(run)
+    expanded_limit,compressed_limit=_limits()
+    from mta.presentation.pick_downloads import _owned_file,PickDownloadDenied
+    try:path=_owned_file(run,FILENAME)
+    except PickDownloadDenied as error:raise ArchiveDenied(str(error)) from error
+    stream=path.open('rb')
     try:
-        path = _owned_file(run, FILENAME)
-    except PickDownloadDenied as error:
-        raise ArchiveDenied(str(error)) from error
-    stream = path.open('rb')
-    try:
-        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
-            raise ArchiveDenied('native_input_archive_not_file')
-        if os.fstat(stream.fileno()).st_size > MAX_COMPRESSED:
-            raise ArchiveDenied('native_input_archive_compressed_limit')
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):raise ArchiveDenied('native_input_archive_not_file')
+        if os.fstat(stream.fileno()).st_size>compressed_limit:raise ArchiveDenied('native_input_archive_compressed_limit')
         with zipfile.ZipFile(stream) as archive:
-            infos = archive.infolist()
-            if len(infos) != 5 or {item.filename for item in infos} != MEMBERS:
-                raise ArchiveDenied('native_input_archive_member_drift')
-            if (sum(item.file_size for item in infos) > MAX_UNCOMPRESSED
-                    or any(item.flag_bits & 1 or item.is_dir()
-                        or stat.S_ISLNK(item.external_attr >> 16)
-                        or item.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
-                        for item in infos)):
+            infos=archive.infolist()
+            if len(infos)!=5 or {item.filename for item in infos}!=MEMBERS:raise ArchiveDenied('native_input_archive_member_drift')
+            if (sum(item.file_size for item in infos)>expanded_limit or
+                any(item.flag_bits&1 or item.is_dir() or stat.S_ISLNK(item.external_attr>>16)
+                    or item.compress_type not in (zipfile.ZIP_STORED,zipfile.ZIP_DEFLATED) for item in infos)):
                 raise ArchiveDenied('native_input_archive_member_denied')
-            manifest = json.loads(archive.read('manifest.json'))
-            expected = _pins(run, captured)
-            if (not isinstance(manifest, dict) or set(manifest) != set(expected) | {'files'}
-                    or any(manifest[k] != v for k, v in expected.items())
-                    or not isinstance(manifest['files'], dict)
-                    or set(manifest['files']) != MEMBERS - {'manifest.json'}):
-                raise ArchiveDenied('native_input_archive_manifest_drift')
-            hashes = {
-                'NativeOpeningInput.json': captured['initialization_binding']['input_sha256'],
-                'NativeDailyInput.json': captured['daily_input_sha256'],
-                'NativeCapturedInput.json': run.input_digest,
-                'NativeInputSchema.json': run.input_manifest_digest,
-            }
-            for name, expected_hash in hashes.items():
-                raw = archive.read(name)
-                if (_sha(raw) != expected_hash or manifest['files'][name] !=
-                        dict(bytes=len(raw), sha256=expected_hash)):
+            if archive.getinfo('manifest.json').file_size>1024*1024:raise ArchiveDenied('native_input_archive_manifest_drift')
+            manifest=json.loads(archive.read('manifest.json'));expected=_pins(run,captured)
+            if (not isinstance(manifest,dict) or set(manifest)!=set(expected)|{'files'}
+                or any(manifest[k]!=v for k,v in expected.items()) or not isinstance(manifest['files'],dict)
+                or set(manifest['files'])!=MEMBERS-{'manifest.json'}):raise ArchiveDenied('native_input_archive_manifest_drift')
+            hashes={'NativeOpeningInput.json':captured['initialization_binding']['input_sha256'],
+                'NativeDailyInput.json':captured['daily_input_sha256'],
+                'NativeCapturedInput.json':run.input_digest,'NativeInputSchema.json':run.input_manifest_digest}
+            for name,expected_hash in hashes.items():
+                checksum=hashlib.sha256();size=0
+                with archive.open(name) as member:
+                    while block:=member.read(1024*1024):checksum.update(block);size+=len(block)
+                if checksum.hexdigest()!=expected_hash or manifest['files'][name]!=dict(bytes=size,sha256=expected_hash):
                     raise ArchiveDenied('native_input_archive_file_drift')
-        stream.seek(0)
-        return stream, FILENAME
+        stream.seek(0);return stream,FILENAME
     except BaseException as error:
         stream.close()
-        if isinstance(error, (OSError, zipfile.BadZipFile, KeyError, TypeError, ValueError)):
-            raise ArchiveDenied('native_input_archive_invalid: ' + str(error)) from error
+        if isinstance(error,(OSError,zipfile.BadZipFile,KeyError,TypeError,ValueError)):
+            raise ArchiveDenied('native_input_archive_invalid: '+str(error)) from error
         raise
