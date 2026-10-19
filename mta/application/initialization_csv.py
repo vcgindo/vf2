@@ -211,8 +211,11 @@ def read_streamed(directory, expected_manifest_sha256, *, expected_configuration
                 raise ValueError('Opening CSV changed: ' + filename)
         if spec['scalar']:
             rows = [row['value'] for row in records()]
-        elif path.startswith('input/opening/state/') and spec['rows'] > 10000:
+        elif (path.startswith('input/opening/state/') and spec['rows'] > 10000
+              and path != 'input/opening/state/consumer_context/NMSAllItems'):
             rows = RecordRows.from_rows(records())
+        # NMSAllItems is a current master owner, like /masters populations.
+        # Its unchanged owner validator requires an explicit fully checked list.
         else:rows = list(records())
         # Validate every cell and population now, even for lazy histories.
         if sum(1 for _ in rows) != spec['rows']:

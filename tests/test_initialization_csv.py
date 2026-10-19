@@ -19,7 +19,7 @@ os.environ.setdefault('VF_SECRET_KEY', 'offline-csv-contract-only')
 import django
 django.setup()
 
-from mta.application.initialization_csv import create, read, MANIFEST, _value
+from mta.application.initialization_csv import create, read, read_streamed, MANIFEST, _value
 from mta.mdm.initialization_contract import decode
 from mta.serialization import digest
 from tools.create_daily_csv_example import create as daily_example
@@ -56,6 +56,23 @@ class OpeningCsvTests(unittest.TestCase):
         self.assertEqual(decode(actual, hashlib.sha256(actual).hexdigest(), **self.options), original)
         self.assertEqual(len(list(self.root.glob('*.csv'))), len(self.manifest['populations']))
         self.assertNotIn('"SKUCode"', json.dumps(self.manifest['template']))
+
+    def test_large_current_nms_owner_stays_a_validated_list(self):
+        from copy import deepcopy
+        rows = self.value['opening']['state']['consumer_context']['NMSAllItems']
+        expected = [deepcopy(rows[i % len(rows)]) for i in range(10001)]
+        self.value['opening']['state']['consumer_context']['NMSAllItems'] = expected
+        target = self.root.parent / 'large-current-owner'
+        manifest, native = create(self.value, target, streamed=True)
+        options = dict(expected_configuration=manifest['configuration_digest'],
+                       expected_recipe=manifest['recipe_digest'])
+        actual = read_streamed(target,
+            hashlib.sha256((target / MANIFEST).read_bytes()).hexdigest(), **options)
+        value = actual.snapshot(native.sha256)
+        current = value['opening']['state']['consumer_context']['NMSAllItems']
+        self.assertIs(type(current), list)
+        self.assertEqual(current, expected)  # Every value, NULL and duplicate ordinal.
+        decode(actual, native.sha256, **options)  # Full unchanged owner validators.
 
     def test_text_null_numbers_booleans_and_duplicate_ordinals_are_lossless(self):
         self.assertEqual([_value(x, 'text') for x in ('00337', '', 'a,b\nnext', '\\N')],

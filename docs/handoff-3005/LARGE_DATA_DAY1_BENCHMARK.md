@@ -8,6 +8,10 @@
 
 ### Current checkpoint — 20 October2026
 
+The human clarified that the requested modern benchmark is a **fresh-start performance test**, with97,097current master pairs and one April8CSV run. Historical parity is not an exit criterion. No legacy rerun is required; its retained full-history timing is reference only and must not be used as an equivalent-workload speed ratio. Historical BPR/DBM consumption, suspension/recommendation logs and BTR trend/rationing populations start empty. Current master Norms/settings and outstanding orders remain declared opening facts. CSV preparation, initialization, daily processing/report publication and usable original UI will be timed separately; no modern result is claimed before actual execution.
+
+Large CSV validation identified a representation defect before any modern database mutation: `read_streamed` converted NMSAllItems above10,000rows to history RecordRows, while the unchanged current-master owner requires an explicit validated list. The narrow correction keeps only that current owner on the same list path as `/masters`; history streaming and every field/value/NULL/ordinal validator remain unchanged. A10,001-row current-owner roundtrip regression covers the boundary. Source/image identities and measured results follow in the sole tracker/external evidence. Frontend, MTO and auth remain unchanged.
+
 
 
 The corrected legacy calculation and all remaining native report/finalization stages are preserved. Combined split-active time is **1,920.976851seconds (32minutes0.98seconds)**, not an uninterrupted day benchmark. All8owned corrected databases are READ_ONLY/OFFLINE; full verified native backups and complete final core relations are retained. No owned request or user transaction remains. Final flags IsBatchFileExecuted/IsBPRBatchFileExecuted remain0: NMSClearInputTables/NMSImportData were deliberately outside the normalized-CSV source boundary. Do not relabel this as a complete customer-source native batch. Evidence: corrected-legacy-attempt-01/dbm-after-maintenance/final-legacy-readback.json and final-native-checkpoint/proof.json. The original failed attempts remain unchanged.
