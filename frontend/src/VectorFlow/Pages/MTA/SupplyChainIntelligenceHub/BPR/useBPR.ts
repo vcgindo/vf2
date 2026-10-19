@@ -95,47 +95,33 @@ const useBPR =()=>{
     const [gridState,setGridState] = useState<any>()
     const [generalFilterOptions,setGeneralFilterOptions] = useState();
     const columnsNotToBeIncluded = ['remarks','rh','dailydatagraph']
-    const [initialColumnState, setInitialColumnState] = useState<any>(undefined);
     const [masterUIConfig, setMasterUIConfig] = useState<any>([]);
+    const layoutRequested = useRef(false);
+    const [isLayoutLoading, setIsLayoutLoading] = useState(false);
     const EnvConfig = useSelector((state:RootState) =>state.mta.EnvConfig);
     const BPR_ROWS_PER_PAGE = EnvConfig['BPR_ROWS_PER_PAGE']; 
     const [userPageSize , setUserPageSize]  = useState<number>(BPR_ROWS_PER_PAGE?parseInt(BPR_ROWS_PER_PAGE):50)   
-    // Column definitions and saved layout belong to the mounted report.
-    // Applying a row filter must not reload or reset that layout.
-    useEffect(() => { getBPRUiConfig(); }, []);
-    
-    const getBPRUiConfig = async () => {
+    // Open the filter first. Initialize report-only columns/layout on the first
+    // confirmation, then preserve them across later filters in this mount.
+    const ensureBPRLayout = async () => {
+        if (layoutRequested.current) return;
+        layoutRequested.current = true;
+        setIsLayoutLoading(true);
         try {
             const response = await getUiConfig(UIColumnConfigName.BPR);
             if (!mounted.current) return;
-            setInitialColumnState(response.data.data);
+            const columns = getColumnDefinationsMTA(response.data.data, CustomHeader);
+            setGridState({ charts: [], columns, pivot: false });
+            setBPRColumns(columns);
+            setGeneralFilterOptions(convertUiConfigToOptions(response.data.data));
+            await getUserColumnConfig();
         } catch (err: any) {
-            notifyError("Something Went Wrong")
+            layoutRequested.current = false;
+            if (mounted.current) notifyError("Something Went Wrong");
+        } finally {
+            if (mounted.current) setIsLayoutLoading(false);
         }
     }
-
-    useEffect(() => {
-        const getTableState = async () => {
-            try {
-                const MappedColumns = getColumnDefinationsMTA(initialColumnState, CustomHeader);
-                  
-                setGridState({
-                    charts: [],
-                    columns: MappedColumns,
-                    pivot: false
-                })
-                setBPRColumns(MappedColumns);
-                getUserColumnConfig();
-                
-            } catch (err: any) {
-                console.log(err)
-            }
-        }
-        if (initialColumnState !== undefined) {
-            getTableState();
-            setGeneralFilterOptions(convertUiConfigToOptions(initialColumnState));
-        }
-    }, [initialColumnState]);
 
     useEffect(() => {
         if (BPRColumns.length) {
@@ -630,6 +616,7 @@ const useBPR =()=>{
 
     const onApplyFilter = (filter: any) => {
         beginScreen('BPR', 'filter');
+        void ensureBPRLayout();
         setCurrFilter(filter)
         getBPRRecordCount(filter)
         setCurrGridPage(1)
@@ -659,7 +646,7 @@ const useBPR =()=>{
     
     return {
         isSubGridOpen,
-        isLoading :  isUIConfigLoading || isBPRDataCountLoading || isRowDataLoading,
+        isLoading :  isLayoutLoading || isUIConfigLoading || isBPRDataCountLoading || isRowDataLoading,
         isError,
         activeRow,
         BPRColumns,
