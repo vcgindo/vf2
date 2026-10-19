@@ -10,6 +10,10 @@ Affected contract: Pick truck formation and all later full-day closing/report/ti
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
+### Root cause clarified after follow-up investigation
+
+The decimal overflow above is a downstream symptom. The unchanged GenerateLogisticPickList.sql joins each ranked requirement to both configured vehicles, pools them in a parent/logistics cumulative window and cross-matches vehicles in residual UPDATEs. A temporary-table reproduction starts from valid RRR840/1080, produces negative picked quantities in iteration1 and increases residuals until overflow. See LARGE_DATA_DAY1_BENCHMARK.md for exact rows and full evidence. The test-only independent-vehicle candidate terminates with nonnegative quantities and exact grouped quantity conservation, but is **not approved/applied production or oracle behavior**. No blanket multi-vehicle waiver, wider decimal, arbitrary vehicle selection or changed comparison baseline is inferred. Explicit disposition is required before an isolated corrected-legacy daily attempt; modern behavior is unchanged.
+
 ## Canonical NULL transit-tag correction — 13 October 2026
 
 This corrects a modern divergence, not an exception to legacy calculation. The
