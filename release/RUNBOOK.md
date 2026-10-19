@@ -8,6 +8,8 @@ This replaces the historical bd309169/8080 destructive reinstall procedure. Run 
 
 **Part A is deployment:** six prebuilt production components, empty application schemas, system metadata, a new administrator and normal authenticated access. It stops before business registration, master/opening ingestion, daily calculation or publication. **Part B is optional data onboarding and daily operation.** Business reports need data; a blank installation must not fabricate report results.
 
+The administrator created by the current installer has full page/action permissions and dynamic data access across MTA and MTO. Gateway requests use all IDs in the current per-application permission catalogue for that authenticated administrator; they do not require manually seeded product/location/order grants. This is included in images built from the corrected source, not retroactively added to an older immutable package. Ordinary users retain explicit roles and data scopes. Empty applications still have no report rows, and an unavailable catalogue fails with503. Do not rerun blank installation to repair an existing administrator: update only the auth/gateway image to the verified version while preserving its environment, credentials and volumes. Frontend and MTO images remain unchanged.
+
 **Acceptance status:** the initialized connected application/workflows/cold recovery passed Step5. These blank-install commands have source, syntax and configuration checks. The HUMAN OPERATOR must execute and validate the blank six-component installation; that runtime checkpoint remains PENDING. Static checks are not a fresh-install PASS.
 
 ## A. Deploy and validate a blank installation

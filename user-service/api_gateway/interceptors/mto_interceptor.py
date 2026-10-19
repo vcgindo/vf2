@@ -2,6 +2,7 @@ import requests
 from rest_framework.response import Response
 from api_gateway.utils import getApproverList
 from api.models import User_Application_Location_Permission,User_Application_Product_Permission, User
+from common.data_scopes import effective_data_scopes
 
 
 class MTO_INTERCEPTOR:
@@ -42,8 +43,11 @@ class MTO_INTERCEPTOR:
             # Wrap the list in a dictionary
             data = {'data': data}
         forwardUsers = request.GET.get('forwardUsers') if request.GET.get('forwardUsers') else None
-        product_permissions = list(User_Application_Product_Permission.objects.filter(application_id=application_id,user_id=user_id).values_list('productfilter_id',flat=True))
-        location_permissions = list(User_Application_Location_Permission.objects.filter(application_id=application_id,user_id=user_id).values_list('locationfilter_id',flat=True))
+        # Preserve the retained MTO header identity contract (LEG-015), but never
+        # expand a header-selected subject using someone else's admin session.
+        product_permissions, location_permissions = effective_data_scopes(user_id, application_id,
+            administrator=(getattr(request.user, 'is_admin', False) is True
+                           and request.user.id == user_id), services=service_map)
         data['product_permissions'] = product_permissions
         data['location_permissions'] = location_permissions
         data['user'] = user_dict

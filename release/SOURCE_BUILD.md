@@ -46,6 +46,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Installation failed; stop, retain state and in
 
 This explicitly generates private per-service secrets, creates new databases/least-privilege roles, applies real migrations, installs the existing application roles with their page/feature permission mappings, and creates your new administrator. Enter any administrator fields not supplied in `.env` when prompted. Application role definitions are system metadata; no operational users, business scopes or role assignments are seeded. It does NOT register an opening, load masters/facts, calculate a day or prepare/publish reports. Existing databases/roles/users are not reset or overwritten; an already-installed target is refused.
 
+The installed administrator has all page/action permissions and full **current data access** across MTA and MTO. The authenticated gateway resolves its product/location/order scope IDs from each application's current permission catalogue on every request; no manual administrator scope assignment or sample grant seeding is needed. A blank application still has no business results. After onboarding, Planning, BPR and DBM use the available data automatically. Ordinary users continue to need explicit roles and data scopes; an Admin role label alone does not replace the server-side administrator account flag. An unavailable permission catalogue returns503 rather than granting unrestricted access or silently presenting an empty result.
+
 ## 4. Start and verify
 
 ```powershell

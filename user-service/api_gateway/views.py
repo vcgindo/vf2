@@ -6,6 +6,7 @@ import requests
 from django.http import JsonResponse,HttpResponse,StreamingHttpResponse
 import logging
 from .mta_stream import streamed_response, bounded_mta_read
+from common.mta_catalogue import CatalogueUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ class API_GATEWAY_VIEW(APIView):
     def _forward(request, application_name):
         try:
             return service_map[application_name]['interceptor']().forward(request, service_map)
+        except CatalogueUnavailable:
+            return JsonResponse({'error': 'application_scope_catalogue_unavailable'}, status=503)
         except requests.RequestException as error:
             if not bounded_mta_read(request):
                 raise

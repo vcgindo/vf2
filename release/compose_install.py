@@ -34,8 +34,10 @@ def install():
     install_catalogue()
     user = User.all_objects.create_superuser(email=email, name=name, tc=True, password=password)
     assert user.is_admin and user.is_active and user.check_password(password)
+    from common.data_scopes import ADMIN_DATA_ACCESS_POLICY
     result = dict(status='BLANK_INSTALLATION_COMPLETE', source_commit=expected['source_commit'],
-                  administrator_email=user.email, sample_loaded=False, daily_runs=0, business_registration=False)
+                  administrator_email=user.email, administrator_data_access=ADMIN_DATA_ACCESS_POLICY,
+                  sample_loaded=False, daily_runs=0, business_registration=False)
     with Path('/receipts/install.json').open('x') as stream:
         json.dump(result, stream, sort_keys=True)
     connection.close()

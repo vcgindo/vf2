@@ -10,10 +10,13 @@ from rest_framework.response import Response
 from api_gateway.mta_stream import (INPUT_ARCHIVE_PATHS, PICK_DOWNLOAD_PATHS, streams_mta_read,
     bounded_mta_read, UPSTREAM_TIMEOUT)
 from api_gateway.inprocess_mta import request as mta_request
+from common.data_scopes import effective_data_scopes
 
 
-def authenticated_mta_context(request, application_id=2):
+def authenticated_mta_context(request, application_id=2, *, services=None):
     """Derive MTA identity and scopes only from the authenticated gateway user."""
+    products, locations = effective_data_scopes(request.user.id, application_id,
+        administrator=getattr(request.user, 'is_admin', False) is True, services=services)
     return {
         'actor': request.user.id,
         'identity': {
@@ -21,16 +24,8 @@ def authenticated_mta_context(request, application_id=2):
             'name': request.user.name,
             'email': request.user.email,
         },
-        'product_permissions': list(
-            User_Application_Product_Permission.objects.filter(
-                application_id=application_id, user_id=request.user.id
-            ).values_list('productfilter_id', flat=True)
-        ),
-        'location_permissions': list(
-            User_Application_Location_Permission.objects.filter(
-                application_id=application_id, user_id=request.user.id
-            ).values_list('locationfilter_id', flat=True)
-        ),
+        'product_permissions': products,
+        'location_permissions': locations,
     }
 
 
@@ -77,7 +72,7 @@ class MTA_INTERCEPTOR:
                 json=request.data if request.method not in ('GET', 'DELETE') else None,
             )
 
-        context = authenticated_mta_context(request, application_id)
+        context = authenticated_mta_context(request, application_id, services=service_map)
         # print("REQUEST DATA",request.data)
         data = request.data.copy() if hasattr(request.data, 'copy') else request.data
 

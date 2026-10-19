@@ -107,6 +107,20 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(admin.role_id.count(), 0)
         self.assertEqual(Roles.user_id.through.objects.count(), 0)
 
+    def test_fresh_installer_admin_has_full_dynamic_access_without_business_grant_seeding(self):
+        from api.models import User
+        from common.data_scopes import effective_data_scopes
+        from unittest.mock import patch
+        installer.install()
+        # Same account factory used by compose_install, with no role/scope seed.
+        admin = User.all_objects.create_superuser(email='admin@fixture.invalid', name='Admin',
+                                                 tc=True, password='Contract!952')
+        self.assertTrue(admin.is_admin)
+        self.assertEqual(admin.role_id.count(), 0)
+        with patch('common.data_scopes._administrator_scopes', return_value=([1, 2], [3])) as catalogue:
+            self.assertEqual(effective_data_scopes(admin.id, 2, administrator=admin.is_admin), ([1, 2], [3]))
+        catalogue.assert_called_once()
+
     def test_conflicting_existing_role_rolls_back_all_new_metadata(self):
         from api.models import Roles
         self.base()
