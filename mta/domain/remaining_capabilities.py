@@ -230,7 +230,7 @@ def calculate_pick_cases_state(cases, *, allow_priority_ties=False):
             multiplicities[key] = value
     groups = {}
     for row in state['LogisticPickList']:
-        groups.setdefault((*_native_partition(row['ParentWHCode'], row['LogisticLocation']), row['TruckCount']), []).append(row)
+        groups.setdefault((*_native_partition(row['ParentWHCode'], row['LogisticLocation']), row['TruckCount'], row['VehicleName'].rstrip(' ').upper()), []).append(row)
     # Native division of the SUM(decimal(13,3)) values yields decimal(38,6).
     with localcontext() as context:
         context.prec = 80
@@ -361,7 +361,7 @@ def _calculate_native_pick_cases(cases, state):
             for configured in row['_vehicles']:
                 _native_queue([dict(row)], configured, allow_priority_ties=True)
                 rows.append(dict(row, _vehicle=configured))
-    originals = {(*_native_partition(r['from_location'], r['logistics_location']), r['_native_sr_no']): dict(r)
+    originals = {(*_native_partition(r['from_location'], r['logistics_location']), r['_native_sr_no'], r['_vehicle']['name'].rstrip(' ').upper()): dict(r)
                  for r in rows}
     truck = 0
     while rows:
@@ -369,7 +369,7 @@ def _calculate_native_pick_cases(cases, state):
         truck += 1
         groups, snapshots = {}, []
         for row in rows:
-            groups.setdefault(_native_partition(row['from_location'], row['logistics_location']), []).append(row)
+            groups.setdefault((*_native_partition(row['from_location'], row['logistics_location']), row['_vehicle']['name'].rstrip(' ').upper()), []).append(row)
         for group in groups.values():
             cw = cv = None
             ranks = {}
@@ -382,7 +382,7 @@ def _calculate_native_pick_cases(cases, state):
         # Native join omits WHCode/NewSRNo: preserve cross-occurrence flags.
         for row in rows:
             for snap in snapshots:
-                if (equal(row['sku'], snap['sku']) and row['priority']==snap['priority'] and
+                if (equal(row['_vehicle']['name'], snap['_vehicle']['name']) and equal(row['sku'], snap['sku']) and row['priority']==snap['priority'] and
                         _native_partition(row['from_location'], row['logistics_location']) ==
                         _native_partition(snap['from_location'], snap['logistics_location'])):
                     vehicle = snap['_vehicle']
@@ -391,7 +391,7 @@ def _calculate_native_pick_cases(cases, state):
                         row['_no_truck_flag'] = True
         start = len(state['LogisticPickList'])
         for key, group in groups.items():
-            current = [s for s in snapshots if _native_partition(s['from_location'],s['logistics_location'])==key]
+            current = [s for s in snapshots if (*_native_partition(s['from_location'],s['logistics_location']),s['_vehicle']['name'].rstrip(' ').upper())==key]
             crossing = [s['_native_sr_no'] for s in current
                         if _pick_compare(s['cw'],d(s['_vehicle']['weight_capacity']))
                         or _pick_compare(s['cv'],d(s['_vehicle']['volume_capacity']))]
@@ -439,11 +439,11 @@ def _calculate_native_pick_cases(cases, state):
         for row in rows:
             candidates = []
             for snap in snapshots:
-                if not (equal(row['to_location'],snap['to_location']) and equal(row['from_location'],snap['from_location'])
+                if not (equal(row['_vehicle']['name'],snap['_vehicle']['name']) and equal(row['to_location'],snap['to_location']) and equal(row['from_location'],snap['from_location'])
                         and row['_native_sr_no']==snap['_native_sr_no']):
                     continue
                 for picked in formed:
-                    if (equal(row['to_location'],picked['WHCode']) and equal(row['from_location'],picked['ParentWHCode'])
+                    if (equal(row['_vehicle']['name'],picked['VehicleName']) and equal(row['to_location'],picked['WHCode']) and equal(row['from_location'],picked['ParentWHCode'])
                             and row['_native_sr_no']==picked['NewSRNo']==picked['MinSRNo']):
                         cap = snap['_vehicle']
                         candidates.append(row['quantity']-picked['ColorWiseAlloction'] if
@@ -458,7 +458,7 @@ def _calculate_native_pick_cases(cases, state):
             row['quantity'] = quantity
         kept = []
         for row in rows:
-            matches = [r for r in state['LogisticPickList'] if equal(row['sku'],r['SKUCode']) and
+            matches = [r for r in state['LogisticPickList'] if equal(row['_vehicle']['name'],r['VehicleName']) and equal(row['sku'],r['SKUCode']) and
                 equal(row['to_location'],r['WHCode']) and equal(row['from_location'],r['ParentWHCode']) and
                 row['priority']==r['Priority']]
             if any(row['_native_sr_no'] < r['MinSRNo'] or
@@ -472,7 +472,7 @@ def _calculate_native_pick_cases(cases, state):
             raise ValueError('Canonical Pick nontermination: zero progress or NULL underfilled queue')
     picks = []
     for native in state['LogisticPickList']:
-        row = originals[(*_native_partition(native['ParentWHCode'],native['LogisticLocation']),native['NewSRNo'])]
+        row = originals[(*_native_partition(native['ParentWHCode'],native['LogisticLocation']),native['NewSRNo'], native['VehicleName'].rstrip(' ').upper())]
         if native['ColorWiseAlloction'] > 0:
             picks.append({**_pick_row(row,native['TruckCount'],Decimal(native['ColorWiseAlloction']),native=True),
                           'vehicle':native['VehicleName']})

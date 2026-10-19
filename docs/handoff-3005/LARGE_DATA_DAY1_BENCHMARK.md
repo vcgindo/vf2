@@ -6,6 +6,54 @@
 
 ## Scope and result
 
+### Current checkpoint — 20 October2026
+
+The human subsequently released the whole comparison through step7. Historical
+stop/pending wording below describes earlier attempts only. Legacy has now
+passed the approved BOR and supplier mappings, remaining BPR/Planning and DBM
+business stages. The current continuation is processing BTR and remaining
+reports; final execution/readback is not yet complete. All earlier failed
+attempts and checkpoints are retained. Timings are split active phases, not an
+uninterrupted daily benchmark. Terminal shared-tempdb shrink was denied and
+excluded without increasing privileges or replaying the completed DBM rule.
+
+Modern source includes the separately approved independent-vehicle Pick
+alignment, historical BTR carry admission and versioned requirement-stock CSV
+connection. Focused tests cover the actual CSV-to-connected-calculation path,
+typed/NULL/duplicate/date guards and retained old intake formats. These are
+not a large-data initialization/day or full parity result.
+
+**New step6 admission blocker:** the production CSV opening reader constructs
+all history rows as Python dictionaries; initialization then deep-copies the
+opening. The frozen DBM DailyConsumption31,040,788/SuspendHistory8,483,159 and
+BTR BPR8,483,003/RationingHistory2,882,051 populations require at least
+20,880,562,288 bytes (19.447GiB) for one set of row dictionaries alone, measured
+with the running image's Python3.11 container sizes. Docker reports
+16,594,939,904bytes (15.455GiB) total. Two dictionary copies alone exceed
+38.89GiB. Values, lists, CSV/JSON text, all other history and runtime/services
+are additional. This is a source-derived memory lower bound, **not an observed
+OOM or completed modern performance measurement**. Evidence:
+`modern-opening-memory-admission.json` under the external benchmark root.
+No history truncation, output seeding, capacity increase or risky initialization
+has been attempted. Full-history memory processing needs a separately bounded
+implementation decision before this exact modern comparison can proceed.
+
+There is also an unresolved intake-ownership boundary, recorded in
+`modern-intake-ownership-admission.json`: the frozen source has NMSActive=1,
+while the approved v4 extension adds requirement stock to the inactive-NMS
+external-master route. The existing active route still requires its captured
+master/queue owners. No configuration switch, master override or acceptance
+waiver is authorized by adding the feed. The exact whole opening/profile/day
+binding has not passed native admission. These are remaining step6 limits,
+not proved engine defects or permission to alter the frozen case.
+
+All63 affected focused checks pass, including seven requirement-stock checks,
+the real connected calculation's effective override, old CSV modes,
+historical-date guards, vehicle isolation and source-variant boundaries.
+The actual216row stock feed also passes complete typed parsing, date checks
+and ordinal retention. Neither result substitutes for full-scale PostgreSQL
+initialization/readback or modern day acceptance.
+
 The human authorized the seven-step benchmark through legacy day one, then instructed a stop while independently resetting the modern installation. After read-only source inspection, the human chose **"Use synthetic next-day benchmark"**: copy the large3005 snapshot as opening, generate one conserved next-day raw CSV workload, and exclude unavailable GulfOil customer-source preprocessing from timing.
 
 **Steps1–4 completed for the legacy portion. Original step5 attempt failed in Pick. After explicit human approval, the isolated vehicle correction PASSED in the one corrected rerun; that attempt stopped at a later BOR report schema mismatch. DBM/BTR remain unexecuted. There is still no completed-day legacy timing baseline and no modern run/comparison.**

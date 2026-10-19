@@ -76,6 +76,24 @@ class ApprovedLegacyVariantTest(unittest.TestCase):
         for encoding in ('utf-8', 'utf-16', 'utf-16-le'):
             self.assertEqual(decode_output(text.encode(encoding)), text)
 
+    def test_report_approval_is_bound_to_its_exact_writer_and_bytes(self):
+        from tools.large_data_legacy_sqlcmd import validate_source
+        path='Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationData.sql'
+        receipt={**self.approval,'decision':'APPROVE_REPORT_FIX_AND_REMAINING_STAGE_CONTINUATION'}
+        self.assertTrue(validate_source(self.variant,self.original,self.pin,path,
+                                       report_approval=receipt))
+        for wrong_path, raw in ((self.path,self.variant),(path,self.variant+b'changed')):
+            with self.assertRaises(ValueError):
+                validate_source(raw,self.original,self.pin,wrong_path,report_approval=receipt)
+
+    def test_supplier_approval_cannot_authorize_another_script(self):
+        from tools.large_data_legacy_sqlcmd import validate_source
+        receipt={**self.approval,'decision':'APPROVE_BOUNDED_ALIGNMENT_AND_CONTINUATION'}
+        path='Scripts/BPR/Ration_Scripts/GenSupplierWiseReq.sql'
+        self.assertTrue(validate_source(self.variant,self.original,self.pin,path,supplier_approval=receipt))
+        with self.assertRaises(ValueError):
+            validate_source(self.variant,self.original,self.pin,self.path,supplier_approval=receipt)
+
 
 if __name__=='__main__':
     unittest.main()

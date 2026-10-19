@@ -45,3 +45,24 @@ differences, never parity. No repeated SQL observation can establish a unique
 winner that the source does not specify. Existing numerical/encoding/spelling
 limits in the table above also remain declared rejections, not compatibility
 claims. The approval is limited to qualified Pick closure; deterministic behavior remains required.
+
+## 20 October 2026 — approved independent vehicle alternatives
+
+The direct human decision `Approve bounded alignment and continuation`
+(question `call_acacf315228e440abde2ceb4d85ef199`, decision SHA256
+`dad787818997f4494006b11e45afb41236e4b8751e4f1a112bfb65fb5073236b`)
+supersedes the cross-vehicle ambiguity denial above only for independent
+configured vehicle alternatives. Modern cumulative, boundary, residual,
+delete and load-type joins retain VehicleName, matching the separately
+approved isolated corrected-legacy producer. Quantities, dimensions,
+capacities and ranking policy are unchanged. Different capacities do not
+share their cumulative stock or residual UPDATE candidates. Equal-capacity
+alternatives also remain separate. This is an approved calculation correction,
+not unchanged-canonical parity.
+
+Conflicting duplicate-SKU dimensions, NULL exclusions, unsupported numeric
+domains, no-progress guards and qualified ranking ties retain their existing
+boundaries. Six focused vehicle/conservation/single-vehicle/NULL/ambiguity
+checks pass; the large modern day and complete comparison remain pending.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

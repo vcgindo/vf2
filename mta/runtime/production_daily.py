@@ -14,6 +14,7 @@ from mta.runtime.relational_state import STORAGE_TABLES
 
 from mta.application.native_daily_contract import (
     SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES, DAY_TABLES, CONTROL_TABLES, DAY_FIELDS)
+from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, STOCK_TABLE, day_tables, day_fields
 
 
 def rows(value, table, label):
@@ -45,6 +46,8 @@ def input_table(fields, path, records):
     if path.startswith('input/day/') and path.endswith('/values'):
         name = path.removeprefix('input/day/').removesuffix('/values')
         table = DAY_TABLES.get(name) or CONTROL_TABLES.get(name.removeprefix('control_requests/'))
+        if name == 'requirement_stock':
+            table = STOCK_TABLE
         if name == 'raw_master':
             table = 'Importer/MasterDataRaw'
         if name.startswith('supplier_feeds/'):
@@ -83,13 +86,13 @@ def decode(raw, expected_sha256):
     if not isinstance(value, dict) or set(value) != envelope or value['schema'] not in (SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA):
         raise ValueError('Complete native daily envelope required')
     intake = value.get('intake_schema', value['schema'])
-    if intake not in (SCHEMA, FEED_SCHEMA):
+    if intake not in (SCHEMA, FEED_SCHEMA, STOCK_FEED_SCHEMA):
         raise ValueError('Explicit active/inactive native intake schema required')
     day = value['day']
-    fields = DAY_FIELDS | ({'raw_master', 'supplier_feeds'} if intake == FEED_SCHEMA else set())
+    fields = day_fields(intake)
     if not isinstance(day, dict) or set(day) != fields:
         raise ValueError('Native day population roster differs; outputs/master answers are forbidden')
-    if intake == FEED_SCHEMA:
+    if intake in (FEED_SCHEMA, STOCK_FEED_SCHEMA):
         rows(day['raw_master'], 'Importer/MasterDataRaw', 'raw_master')
         if not isinstance(day['supplier_feeds'], dict) or set(day['supplier_feeds']) != set(SUPPLIER_TABLES):
             raise ValueError('Explicit supplier raw feed roster required')
@@ -100,8 +103,11 @@ def decode(raw, expected_sha256):
     if value['schema'] == SOURCE_SCHEMA:
         from mta.application.production_source_inputs import validate
         validate(value['producer_sources'], day['business_date'])
-    for name, table in DAY_TABLES.items():
+    for name, table in day_tables(intake).items():
         rows(day[name], table, name)
+    if intake == STOCK_FEED_SCHEMA:
+        from mta.application.requirement_stock import validate
+        validate(day['requirement_stock'],day['business_date'])
     _typed_rows(day['raw_daily'], DAILY_COLUMNS, DAILY_COLUMNS[:-1])
     if any(row['ReportDate'] != day['business_date'] for row in day['raw_daily']):
         raise ValueError('Daily facts must match their declared business date')
@@ -141,7 +147,7 @@ def working_day(value, profile):
     day = deepcopy(value['day'])
     intake = value.get('intake_schema', value['schema'])
     if policy == POLICY:
-        if intake != FEED_SCHEMA:
+        if intake not in (FEED_SCHEMA,STOCK_FEED_SCHEMA):
             raise ValueError('Inactive NMS requires explicit v2 master and supplier raw feeds')
     elif policy == ACTIVE_POLICY:
         if intake != SCHEMA:

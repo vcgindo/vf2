@@ -526,6 +526,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
           pick_output_root=None, execution_revision=None, retry_capture_id=None, context_issues=()):
     from mta.runtime.production_daily import (SCHEMA as DAY_SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES,
         DAY_FIELDS, DAY_TABLES, CONTROL_TABLES, decode, working_day, rows as validate_rows)
+    from mta.application.native_daily_contract import STOCK_FEED_SCHEMA,day_fields,day_tables
     c = Requirements('day')
     full_capabilities(c)
     for item in context_issues:
@@ -562,13 +563,13 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
             c.add('/schema','production_daily','SCHEMA_INVALID','Unknown native day schema')
         day = value.get('day')
         intake=value.get('intake_schema',value.get('schema'))
-        fields=DAY_FIELDS | ({'raw_master','supplier_feeds'} if intake==FEED_SCHEMA else set())
+        fields=day_fields(intake)
         if c.object(day,'/day','production_daily',fields) is not None:
             if value.get('schema')==SOURCE_SCHEMA:
                 from mta.application.production_source_inputs import validate
                 c.check('/producer_sources','native external facts',
                     lambda:validate(value.get('producer_sources'),day.get('business_date')))
-            if intake==FEED_SCHEMA:
+            if intake in (FEED_SCHEMA,STOCK_FEED_SCHEMA):
                 c.check('/day/raw_master','external master feed',lambda:validate_rows(day['raw_master'],'Importer/MasterDataRaw','raw_master'))
                 feeds={'raw_master':day.get('raw_master')}
                 if c.object(day.get('supplier_feeds'),'/day/supplier_feeds','external supplier feeds',SUPPLIER_TABLES) is not None:
@@ -583,7 +584,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                             for field in ('SKUCode','WhCode','WHCode','ParentWhCode','SupplierCode'):
                                 if field in row:
                                     supported_identifier(c,row[field],'/day/'+name+'/'+str(i)+'/'+field,'native external feed')
-            for name,table in DAY_TABLES.items():
+            for name,table in day_tables(intake).items():
                 if name in day:
                     fields=dict(native_rows.STORAGE_TABLES[table])
                     if name=='order_feed': fields.pop('Type')
@@ -596,6 +597,10 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                             supported_identifier(c,row['WhCode'],'/day/'+name+'/'+str(i)+'/WhCode','native Pick partition')
                         if isinstance(row,dict) and name=='raw_daily' and row.get('ReportDate') != day.get('business_date'):
                             c.add('/day/'+name+'/'+str(i)+'/ReportDate','daily facts','DATE_DIFFERS','Daily fact date must match business_date')
+            if intake==STOCK_FEED_SCHEMA and 'requirement_stock' in day:
+                from mta.application.requirement_stock import validate as validate_stock
+                c.check('/day/requirement_stock','native requirement-stock facts',
+                    lambda:validate_stock(day['requirement_stock'],day.get('business_date')))
             requests=day.get('control_requests')
             if c.object(requests,'/day/control_requests','MDM queues',CONTROL_TABLES) is not None:
                 for name,table in CONTROL_TABLES.items():

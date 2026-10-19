@@ -1,5 +1,56 @@
 # Legacy behavior and explicit exceptions
 
+## Large-data decisions now approved — 20 October 2026
+
+These dispositions supersede only the corresponding pending wording in the
+historical failure records below. Status remains solely in
+`F:/freshvcf/docs/handoff-3005/TRACKER.md`.
+
+* **Vehicle alternatives:** direct human isolated-legacy approval followed by
+  `Approve bounded alignment and continuation` permits the same VehicleName
+  partitioning in modern Pick. Exact combined decision SHA256
+  `dad787818997f4494006b11e45afb41236e4b8751e4f1a112bfb65fb5073236b`.
+  Cross-vehicle cumulative/residual/update/delete/load-type joins are separated;
+  dimensions, quantities, capacity and ranking rules are retained. The
+  corrected legacy baseline is explicitly different from unchanged canonical
+  SQL. Duplicate-SKU ambiguities and other Pick denials are not waived.
+* **Restored report schema compatibility:** approved BOR mapping names the
+  canonical26 fields in the restored41-column table, retaining15nullable
+  attributes; decision SHA256
+  `6502ddaf2e3bf525e898c1954f4482f7a71d7ffd9179bea79425bc01b10120db`.
+  The combined decision above names the28 supplier/vendor writer columns in
+  their30-column targets, retaining the two existing default-zero Black fields.
+  No Black-field calculation or historical-value parity is invented. These
+  are exact isolated legacy variants; canonical source remains unchanged.
+* **Shared maintenance:** native DBM03.1 finished its business statements, then
+  its terminal `DBCC SHRINKDATABASE(tempdb)` was denied7983 to the restricted
+  principal. Under the user's routine-issue delegation, that administrative
+  operation is excluded; no server rights are granted and shared tempdb is not
+  changed. Only unexecuted03.2andlater stages continue after checkpoint and
+  prefix reconciliation. The native failed-call receipt remains failed. This
+  is not an accepted calculation retry or an assertion waiver.
+* **Past BTR carry:** `Approve historical carry admission`, decision SHA256
+  `7f55ff6ed45af6bdf36897fd76b451e4d9c47d914e4ec251e913dc5d4ab562e6`,
+  permits only existing BTR/BPR and BTR/RationingHistory populations dated no
+  later than the opening. Fresh snapshots, future dates and other calculated
+  output seeds remain forbidden. Existing typed tables are reused.
+* **Raw requirement stock:** `Approve required CSV input connection`, decision
+  SHA256 `2c69027483749ac6593f2f44a1263632980e73b67319b3a092123baf7ca10492`,
+  permits an explicit v4 intake adding the same216 raw requirement-stock rows
+  already used by legacy. Existing14-file intake versions stay unchanged.
+  The existing stock override uses SQL ISNULL semantics; unknown prior stock
+  remains NULL, ordinary daily validation owns current stock, and conflicting
+  effective UPDATE candidates are refused. No zero, formula, schema or new
+  business fact is introduced.
+
+Modern focused regression and source integration are distinct from full-scale
+acceptance. The full frozen opening currently exceeds available Docker memory
+even for row containers alone; no large modern initialization/day or complete
+cross-engine parity is claimed. Evidence and precise lower bound:
+`D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/modern-opening-memory-admission.json`.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
 ## Unresolved large-data Pick numeric overflow — 19 October 2026
 
 This records a failed isolated stress case, **not a repair approval or parity waiver**. Human authorized one synthetic next day from the retained3005 large snapshot and a stop after legacy day one. Frozen input: case SHA256c872e22ceacdefdaeafc2255ae2bd35a9472de44e58f216ea6b133a6f9663104; daily CSV SHA2565714e18c51c4a65bb636bedc8437b4003d870e2c7da11eb97b72660184afce20;7April opening/8April synthetic day;97,097daily rows. Protected source databases and3005 were not changed.

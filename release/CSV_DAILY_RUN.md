@@ -71,6 +71,36 @@ For the retained successor, place its completed batch and run the SAME command w
 
 ## Diagnose and resume safely
 
+### Optional versioned requirement-stock feed
+
+Existing v1/v2 intake bindings retain their original file rosters. A binding
+explicitly selecting `fresh-production-day-input-v4` adds exactly one file to
+the existing fourteen-file v2 roster: `AdditionalDataStockForReqCalc.csv`.
+Its header is `SKUCode,WhCode,StockForReqCalc,ReportDate`; stock is a signed
+SQL integer or the existing `\N` NULL token, and every date must equal the
+batch business date. Declare it PRESENT even when it contains only a header.
+The outer generated native envelope remains v3; the intake version is v4.
+This extension uses the existing inactive-NMS external-master intake mode.
+The active-NMS captured-master/queue route retains its v1 intake requirement;
+do not change NMSActive or bypass captured ownership merely to admit a pack.
+
+This is a raw input to the existing stock-for-requirement override, not a
+computed result. NULL retains current validated stock under the original
+SQL ISNULL rule. Conflicting effective UPDATE candidates and pairs outside
+the consuming master are refused. Raw values, duplicate occurrences and
+ordinals remain in the typed input capture and original CSV archive. Current
+physical stock must still be supplied or produced by the ordinary daily
+validation policy; this feed does not invent a zero or bypass that validation.
+Unknown prior opening stock can be NULL without making unrelated required
+configuration nullable.
+
+Opening history may contain BTR/BPR and BTR/RationingHistory only on or before
+the opening date. This does not admit fresh reports, future recommendations
+or current-day calculated output seeds. The current initializer materializes
+complete CSV populations and copies the decoded opening in memory. Large
+historical openings need a separate capacity/admission check: small starter
+success does not establish full-history large-data readiness.
+
 Format/native preflight rejection happens before stopping serving or creating a calculation. Durable MTA attempt directories hold original files/checksums, generated native input, record-line mappings, preflight, validation/business rejection CSVs, phase log, selection candidate and result. Malformed batch declarations without a usable identity receive a separate rejected intake receipt. The host state directory holds operation receipts and command output; it never retains its temporary resolved Compose configuration containing private settings. Keep both with the database/volume backup.
 
 Native rules may reject rows or carry prior values while completing the day. These are reported as actual business rejections, not automatically waived or turned into format errors. A genuine failed native run is retained and never automatically retried/replayed/reset. Diagnose it before authorizing a corrected attempt. Unfinished attempts block later dates.

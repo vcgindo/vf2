@@ -154,7 +154,12 @@ def initial_state(state, opening_date):
             int(values[0])  # Existing selected producer parser; no new ranges.
         except (ValueError, TypeError) as error:
             raise ValueError('Selected DBM setting integer differs: '+name) from error
-    for section, allowed in (('dbm', DBM_CARRY), ('btr', BTR_BASE)):
+    for table in ('BPR', 'RationingHistory'):
+        for row in state['btr'].get(table, []):
+            value = row.get('ReportDate')
+            if not isinstance(value, str) or date.fromisoformat(value[:10]) > opening_date:
+                raise ValueError('BTR carry requires a dated historical row: '+table)
+    for section, allowed in (('dbm', DBM_CARRY), ('btr', BTR_BASE | {'BPR', 'RationingHistory'})):
         for name, rows in state[section].items():
             if rows and name not in allowed:
                 raise ValueError('Initial opening cannot seed calculated output: '+section+'/'+name)
@@ -305,8 +310,6 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
     if state['dbm'].get('PhaseOutRecommendation'):
         raise ValueError('Initial opening cannot seed phase recommendations')
     state['dbm'].setdefault('PhaseOutRecommendation', [])
-    if state['btr'].get('RationingHistory'):
-        raise ValueError('Initial opening cannot seed calculated rationing history')
     state['btr'].setdefault('RationingHistory', [])
     for section in STATE_SECTIONS - {'importer_settings', 'publication_context'}:
         for name, rows in state[section].items():

@@ -104,6 +104,8 @@ def select(fields, path, rows):
         for field, kind in expected.items():
             if path.startswith('input/profile/'):
                 nullable = {'policy/pso_override', 'policy/spike_override'}
+                if path=='input/profile/calculation/stock_openings/values':
+                    nullable.add('stock')  # Unknown PRIOR stock; current daily producer owns its replacement.
                 if '/logistics/items/' in path:
                     # Producer-owned attributes retain canonical NULL exclusion.
                     nullable |= {'logistics_location', 'pack_size', 'weight', 'volume'}

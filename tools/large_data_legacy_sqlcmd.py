@@ -24,18 +24,26 @@ SQLCMD = Path('C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/180/Tools/B
 CANONICAL = Path('F:/VFlow_Local/local-runtime/mta-engine')
 
 
-def validate_source(raw, original, pin, relative, approval=None):
-    """One exact human-approved legacy variant; canonical pin stays mandatory."""
+def validate_source(raw, original, pin, relative, approval=None, report_approval=None, supplier_approval=None):
+    """Exact approved variants only; original canonical pins stay mandatory."""
     if pin is None or hashlib.sha256(original).hexdigest() != pin:
         raise ValueError('Unpinned canonical SQL source: '+relative)
     if raw == original:
         return False
-    if (not approval or approval.get('decision') != 'APPROVE_ISOLATED_LEGACY_CORRECTION_AND_ONE_RERUN'
-            or relative != 'Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql'
-            or approval.get('canonical_sha256') != pin
-            or hashlib.sha256(raw).hexdigest() != approval.get('proposed_sha256')):
-        raise ValueError('Canonical SQL bytes changed without exact variant approval')
-    return True
+    variants = (
+        (approval, 'APPROVE_ISOLATED_LEGACY_CORRECTION_AND_ONE_RERUN',
+         'Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql'),
+        (report_approval, 'APPROVE_REPORT_FIX_AND_REMAINING_STAGE_CONTINUATION',
+         'Scripts/BPR/OrderAllocationReports/CollectBOR_OrderAllocationData.sql'),
+        (supplier_approval, 'APPROVE_BOUNDED_ALIGNMENT_AND_CONTINUATION',
+         'Scripts/BPR/Ration_Scripts/GenSupplierWiseReq.sql'),
+    )
+    for receipt, decision, allowed_path in variants:
+        if (receipt and receipt.get('decision') == decision and relative == allowed_path
+                and receipt.get('canonical_sha256') == pin
+                and hashlib.sha256(raw).hexdigest() == receipt.get('proposed_sha256')):
+            return True
+    raise ValueError('Canonical SQL bytes changed without exact variant approval')
 
 
 def decode_output(raw):
@@ -84,8 +92,12 @@ def execute(argv):
             pin = next((p['sha256'] for p in pins if Path(p['path'])==original),None)
             approval_path = EVIDENCE/'correction-approval.json'
             approval = json.loads(approval_path.read_text()) if approval_path.exists() else None
+            report_path = EVIDENCE/'report-continuation-approval.json'
+            report_approval = json.loads(report_path.read_text()) if report_path.exists() else None
+            supplier_path = EVIDENCE/'supplier-continuation-approval.json'
+            supplier_approval = json.loads(supplier_path.read_text()) if supplier_path.exists() else None
             approved_variant = validate_source(raw, original.read_bytes(), pin,
-                original.relative_to(CANONICAL).as_posix(), approval)
+                original.relative_to(CANONICAL).as_posix(), approval, report_approval, supplier_approval)
             encoding = 'utf-16' if raw.startswith((b'\xff\xfe',b'\xfe\xff')) else 'utf-8-sig' if raw.startswith(b'\xef\xbb\xbf') else 'cp1252'
             sql = raw.decode(encoding)
             source = str(original)

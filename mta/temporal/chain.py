@@ -390,6 +390,9 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             row['Tags'] = tag['Tags']
         daily_finalization.mark(completion, 'NMSCreateSnapshot.sql', 'UpdateInTransitDataTags.sql')
     source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
+    if 'requirement_stock' in day:
+        from mta.application.requirement_stock import apply as apply_requirement_stock
+        apply_requirement_stock(source,day['requirement_stock'],today)
     prepared=prepare_r1_current_day(source)
     bpr_master=[{'SKUCode':r['sku_code'],'WHCode':r['location_code'],'Norm':r['norm'],
                  'ParentWhCode':r['parent_location_code'],'SKUIntroDate':r['sku_intro_date']} for r in prepared.master_state['bpr_master']]
