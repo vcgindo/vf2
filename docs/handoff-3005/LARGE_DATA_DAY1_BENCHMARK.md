@@ -6,6 +6,16 @@
 
 ## Scope and result
 
+### Actual initialization failure — 20 October2026 02:45IST
+
+The FIRST fresh-start CSV initialization failed during final full typed readback: `input_storage.read_input` reconstructs flat populations above10,000rows as `RecordRows`, while the unchanged current master owner requires a list (`MdmSkuLocPair`). This is a source representation defect, not a business-value/parity difference. Native failed-command wall2443.292258seconds (40m43.29s), CPU1535.635251processor-seconds, process peakRSS2,883,723,264bytes (~2.686GiB); container wrapper2447.011seconds. Exit1/PID0/nonOOM, no disk/deadline guard failure. These are FAILED initialization load+verification measurements, NOT successful initialization or daily throughput. No daily attempt occurred.
+
+Actual READ_ONLY reconciliation proves sources0/initializations0/runs0/opening shape rows0 and no other user transaction. The transaction rolled back; original immutable namespace6f777266/implementationfb37cd4c remains. Retain old worker/logs/accounting and registration; no reset, repeat registration, silent capability replacement or automatic full-load retry. Correction needs complete current-owner CSV AND typed-readback threshold coverage, not another one-population exception. Current APIs remain in maintenance; frontend/MTO/auth and protected resources unchanged. Evidence: `modern-fresh-performance/initialization-failure-reconciliation.json`.
+
+Latest human timing clarification: distinguish CSV normalization/validation, persistence, calculation+required commit, report preparation and UI. Do not subtract guessed overheads. Current production code retains text SKU/location identities; integer surrogate keys are NOT an implemented assumption and cannot be silently credited to these statistics. No historical parity or new legacy run.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
 ### Current checkpoint — 20 October2026
 
 The human clarified that the requested modern benchmark is a **fresh-start performance test**, with97,097current master pairs and one April8CSV run. Historical parity is not an exit criterion. No legacy rerun is required; its retained full-history timing is reference only and must not be used as an equivalent-workload speed ratio. Historical BPR/DBM consumption, suspension/recommendation logs and BTR trend/rationing populations start empty. Current master Norms/settings and outstanding orders remain declared opening facts. CSV preparation, initialization, daily processing/report publication and usable original UI will be timed separately; no modern result is claimed before actual execution.
