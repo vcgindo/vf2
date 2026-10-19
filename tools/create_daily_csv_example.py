@@ -13,7 +13,7 @@ from mta.application.operational_inputs import encode_csv
 from mta.serialization import digest
 
 
-def create(source, destination):
+def create(source, destination, *, csv_onboarding=False):
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
     with zipfile.ZipFile(source) as archive:
@@ -59,6 +59,16 @@ def create(source, destination):
         (destination / 'binding-template.json').write_text(json.dumps(base, indent=2) + '\n', encoding='utf-8')
         from mta.application.production_csv_contract import describe
         (destination / 'csv-schema.json').write_text(json.dumps(describe(base['intake_schema']), indent=2) + '\n', encoding='utf-8')
+        if csv_onboarding:
+            from mta.application.initialization_csv import create as create_opening
+            _, native = create_opening(json.loads(opening), destination / 'opening')
+            # This is an automatically reconstructed provenance/download artifact.
+            # Operators submit opening/*.csv to initialize_production --csv.
+            (destination / 'native-opening.json').write_bytes(native)
+            (destination / 'initialization.json').unlink()
+            base['opening_file'] = 'native-opening.json'
+            base['opening_sha256'] = hashlib.sha256(native).hexdigest()
+            (destination / 'binding-template.json').write_text(json.dumps(base, indent=2) + '\n', encoding='utf-8')
     return destination
 
 
@@ -66,5 +76,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, default=Path('examples/starter-data/vectorflow-starter-inputs-v1.zip'))
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--csv-onboarding', action='store_true', help='Also export all master/opening populations as CSV')
     args = parser.parse_args()
-    print(create(args.source, args.output))
+    if args.csv_onboarding:
+        import os
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'release.mta_settings')
+        import django
+        django.setup()
+    print(create(args.source, args.output, csv_onboarding=args.csv_onboarding))

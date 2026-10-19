@@ -96,6 +96,8 @@ The optional Git example `examples/starter-data/vectorflow-starter-inputs-v1.zip
 
 ### 5. Extract the starter inputs outside Git
 
+**For CSV master/opening loading and CSV day1/day2, use [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md) from step5 instead of the remaining JSON starter steps below.** It uses the same installed application and native owners. Do not mix onboarding paths or initialize twice.
+
 ```powershell
 $ErrorActionPreference = 'Stop'
 $Project = (docker compose config --format json | ConvertFrom-Json).name

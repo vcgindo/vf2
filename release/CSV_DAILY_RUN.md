@@ -6,6 +6,8 @@ Installation stays blank. Register and initialize authentic masters/opening once
 
 ## Configure once after onboarding
 
+For a blank installed application, [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md) supplies the complete CSV master/opening→day1→day2 path. `initialize_production --csv` validates CSV then delegates to the existing atomic initializer; it does not change daily calculation/report preparation. The original JSON initializer remains supported for existing callers. Generated JSON control/provenance files are internal artifacts, not manually supplied JSON business feeds.
+
 Keep the original initialization file and first-day consumer opening in a private onboarding directory. Create `binding.json` from its reviewed template with the actual initialization UUID, source/configuration digests, exact original opening SHA256, native intake schema, explicit report policy/horizons, first-day report opening and validation flags. Relative `opening_file` and `consumer_opening_file` references stay inside this directory and carry SHA256 checksums. Never insert calculated outputs or approval requests into this binding. Changing a binding while a day is pending is refused.
 
 The developer helper `tools/create_daily_csv_example.py` converts the retained **raw** starter pack to two dated CSV batches and a binding template. It performs no calculation and is excluded from production images. For local examples only, run it with host Python from the clone:
