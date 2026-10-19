@@ -6,6 +6,10 @@
 
 ## Scope and result
 
+### Current-owner correction — 20 October2026
+
+The initializer now explicitly preserves all11declared current-owner list populations, configuration and exclusions during typed reconstruction; CSV admission uses that same owner roster. Generic daily/history readers retain streaming by default. A complete10,001-row-per-owner CSV→native decode→typed save/reconstruction→strict owner-validation regression passes with exact values/NULLs/duplicate order; a separate large configuration/exclusion regression passes. All26affected initialization tests and10packaging tests PASS. No schema/formula/SQL/frontend/MTO/auth change. MTA builds now remove intermediate containers automatically (`--rm=true --force-rm`). At human direction, completed/failed owned benchmark containers and obsolete benchmark images are disposable; retain only the concise cause/lesson and final measurements. New-source image/full97,097-pair initialization and sole daily run remain unproved at this source checkpoint.
+
 ### Actual initialization failure — 20 October2026 02:45IST
 
 The FIRST fresh-start CSV initialization failed during final full typed readback: `input_storage.read_input` reconstructs flat populations above10,000rows as `RecordRows`, while the unchanged current master owner requires a list (`MdmSkuLocPair`). This is a source representation defect, not a business-value/parity difference. Native failed-command wall2443.292258seconds (40m43.29s), CPU1535.635251processor-seconds, process peakRSS2,883,723,264bytes (~2.686GiB); container wrapper2447.011seconds. Exit1/PID0/nonOOM, no disk/deadline guard failure. These are FAILED initialization load+verification measurements, NOT successful initialization or daily throughput. No daily attempt occurred.

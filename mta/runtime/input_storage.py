@@ -217,7 +217,7 @@ def save_input(run,raw, *, image_writer=None, table_selector=None):
     return manifest
 
 
-def read_input(run, *, components=None, image_reader=None):
+def read_input(run, *, components=None, image_reader=None, materialized_roots=()):
     reader = image_reader or load_image
     value=run.input_payload
     if (value.get('schema')!=SCHEMA or value['content_digest']!=run.input_digest
@@ -242,8 +242,12 @@ def read_input(run, *, components=None, image_reader=None):
                 if type(shape_id) is not int or not 0 <= shape_id < len(node['shapes']):
                     raise ValueError('Typed input shape identity drift')
                 yield rebuild(node['shapes'][shape_id],row)
+        # Callers retain their declared collection contract without teaching
+        # generic typed storage about a particular master or configuration.
+        path = node['shape_image'].removesuffix('/shape')
+        materialized = any(path == root or path.startswith(root+'/') for root in materialized_roots)
         # Nested child owners require mutable parents; flat histories do not.
-        rows = (RecordRows(len(types), records) if not node['children'] and len(types)>10000
+        rows = (RecordRows(len(types), records) if not materialized and not node['children'] and len(types)>10000
                 else list(records()))
         for field,child,link in node['children']:
             values=unpack(child);links=read(link)

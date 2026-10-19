@@ -67,6 +67,9 @@ class MtaPackagingTests(unittest.TestCase):
         self.assertNotIn('release/optional_initialize.py',actual)
         args=self.runner.call_args.args[0]
         self.assertIn('--network=none',args)
+        self.assertIn('--rm=true',args)
+        self.assertIn('--force-rm',args)
+        self.assertNotIn('--rm=false',args)
         self.assertFalse(any(arg.startswith(('--memory','--cpu-')) for arg in args))
         self.assertEqual(self.runner.call_args.kwargs['env']['DOCKER_BUILDKIT'],'0')
 

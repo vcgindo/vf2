@@ -22,6 +22,86 @@ from tests.initialization_input_fixture import supplied_input,encoded
 
 
 class StreamedOpeningTests(unittest.TestCase):
+    def test_all_large_current_owners_survive_csv_and_typed_roundtrip(self):
+        from copy import deepcopy
+        from mta.mdm.initialization_contract import MASTER_TABLES, CURRENT_MASTER_PATHS
+        from mta.mdm.master_owners import owner_batches
+        from mta.mdm.initialization import read_initialized_input
+        from mta.mdm.initialization_rows import select
+        from mta.runtime import opening_storage
+        value=supplied_input()
+        for section,tables in MASTER_TABLES.items():
+            for table in tables:
+                rows=value['masters'][section][table]
+                value['masters'][section][table]=[deepcopy(rows[i%len(rows)]) for i in range(10001)]
+        rows=value['opening']['state']['consumer_context']['NMSAllItems']
+        value['opening']['state']['consumer_context']['NMSAllItems']=[deepcopy(rows[i%len(rows)]) for i in range(10001)]
+        history=dict(SKUCode='00337',WHCode='L',Stock=None,Consumption=1,GIT=2,
+            Receipts=3,PSO=4,BlueZone=5,ReportDate='2037-04-08')
+        value['opening']['state']['bpr']['DailyConsumption']=[dict(history) for _ in range(10001)]
+        value['opening']['state']['bpr']['DailyConsumption'][-1]['Consumption']=2
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)/'opening'
+            manifest,native=create(value,root,streamed=True)
+            args=dict(expected_configuration=manifest['configuration_digest'],expected_recipe=manifest['recipe_digest'])
+            stream=read_streamed(root,hashlib.sha256((root/MANIFEST).read_bytes()).hexdigest(),**args)
+            frame=decode(stream,native.sha256,**args)[1]
+            expected_batches=owner_batches(frame['opening']['state'],strict=True)
+            actual_paths={'input'+path for _,_,_,_,path in expected_batches if ':' not in path}
+            self.assertEqual(actual_paths,CURRENT_MASTER_PATHS)
+            images={}
+            def writer(owner,path,binding,rows,*,table):
+                columns={name.casefold():(name,kind) for name,kind in opening_storage.STORAGE_TABLES[table]}
+                metadata,_,_=describe_rows(rows,columns,path)
+                metadata['table']=table
+                images[path]=[dict(row) for row in rows]
+                return metadata
+            owner=SimpleNamespace(input_digest=digest(frame))
+            owner.input_payload=save_input(owner,frame,image_writer=writer,table_selector=select)
+            owner.input_manifest_digest=digest(owner.input_payload)
+            def reader(owner,metadata):
+                return RecordRows(len(images[metadata['image']]),lambda:iter(images[metadata['image']]))
+            with patch.object(opening_storage,'load_image',reader):
+                actual=read_initialized_input(owner)
+            self.assertEqual(digest(actual),digest(frame))
+            actual_batches=owner_batches(actual['opening']['state'],strict=True)
+            self.assertEqual(actual_batches,expected_batches)  # All fields/NULLs/duplicate ordinals.
+            for path in CURRENT_MASTER_PATHS:
+                target=actual
+                for part in path.split('/')[1:]:target=target[part]
+                self.assertIs(type(target),list,path)
+                self.assertEqual(len(target),10001,path)
+            self.assertIsInstance(actual['opening']['state']['bpr']['DailyConsumption'],RecordRows)
+            self.assertEqual(actual['opening']['state']['bpr']['DailyConsumption'][-1]['Consumption'],2)
+            # Generic daily readers retain their original streaming default.
+            generic=read_input(owner,image_reader=reader)
+            self.assertIsInstance(generic['opening']['state']['importer']['SkuLocAttributeData'],RecordRows)
+
+    def test_current_configuration_and_exclusions_preserve_large_list_contract(self):
+        from mta.mdm.initialization import read_initialized_input
+        from mta.runtime import opening_storage
+        from mta.mdm.initialization_rows import select
+        value=supplied_input();raw,sha,args=encoded(value)
+        frame=decode(raw,sha,**args)[1]
+        row=frame['profile']['calculation']['stock_openings'][0]
+        frame['profile']['calculation']['stock_openings']=[dict(row) for _ in range(10001)]
+        frame['pair_exclusions']=[dict(SKUCode='00337',WhCode=None) for _ in range(10001)]
+        images={}
+        def writer(owner,path,binding,rows,*,table):
+            columns={name.casefold():(name,kind) for name,kind in opening_storage.STORAGE_TABLES[table]}
+            metadata,_,_=describe_rows(rows,columns,path);metadata['table']=table
+            images[path]=[dict(row) for row in rows]
+            return metadata
+        owner=SimpleNamespace(input_digest=digest(frame))
+        owner.input_payload=save_input(owner,frame,image_writer=writer,table_selector=select)
+        owner.input_manifest_digest=digest(owner.input_payload)
+        with patch.object(opening_storage,'load_image',lambda owner,meta:RecordRows(
+                len(images[meta['image']]),lambda:iter(images[meta['image']]))):
+            actual=read_initialized_input(owner)
+        self.assertIs(type(actual['profile']['calculation']['stock_openings']),list)
+        self.assertIs(type(actual['pair_exclusions']),list)
+        self.assertEqual(digest(actual),digest(frame))
+
     def test_large_csv_full_native_decode_and_typed_reconstruction(self):
         value=supplied_input()
         row=dict(SKUCode='00337',WHCode='L',Stock=None,Consumption=1,GIT=2,

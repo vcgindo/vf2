@@ -23,7 +23,7 @@ def build(root, context, wheelhouse, *, commit, source_sha256, native_sha256, im
     base=json.loads((Path(root)/'release/images.lock.json').read_text())['python_mta']
     if base != 'python:3.11.14-slim-bookworm@sha256:65a93d69fa75478d554f4ad27c85c1e69fa184956261b4301ebaf6dbb0a3543d':
         raise ValueError('Reviewed MTA dependency base differs')
-    arguments=['docker','build','--pull=false','--network=none','--rm=false',
+    arguments=['docker','build','--pull=false','--network=none','--rm=true','--force-rm',
         '--label','vectorflow.owner='+owner,
         '--build-arg','VF_NATIVE_RELEASE_COMMIT='+commit,
         '--build-arg','VF_NATIVE_RELEASE_SHA256='+native_sha256,
