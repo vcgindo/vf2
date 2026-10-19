@@ -57,3 +57,5 @@ Stop at the first error; preserve its named receipt. A CSV-format failure before
 ```
 
 Resume never recalculates an accepted day. A genuinely failed calculation requires diagnosis; no automatic business retry. Existing fully published dates are not replayed. Keep `.env`, the entire CSV pack, generated binding/access files, receipts and daily state with matched database/files/secrets backups. See [CSV_DAILY_RUN.md](CSV_DAILY_RUN.md) for the detailed CSV schema and diagnostics, not extra routine commands.
+
+The final serving check is a read-only repository operator executed inside MTA. It loads the container's own image identity and verifies admission, selected run and readiness before recording `PUBLISHED`. A verifier-only correction can be used without rebuilding or modifying an already initialized image; it cannot bypass native admission or change calculations.

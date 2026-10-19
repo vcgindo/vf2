@@ -39,11 +39,12 @@ $null = New-Item -ItemType Directory -Path $operationRoot
 $receiptFile = Join-Path $operationRoot 'operation.json'
 $overrideFile = Join-Path $operationRoot 'compose.daily.json'
 $attempt = $null
-function ComposeCall([string[]]$Arguments, [switch]$Json) {
+function ComposeCall([string[]]$Arguments, [switch]$Json, [string]$InputText) {
     $start = [Diagnostics.ProcessStartInfo]::new('docker')
     $start.UseShellExecute = $false
     $start.RedirectStandardOutput = $true
     $start.RedirectStandardError = $true
+    $start.RedirectStandardInput = $PSBoundParameters.ContainsKey('InputText')
     $start.WorkingDirectory = (Get-Location).Path
     Set-VfProcessArguments $start (@('compose','--profile','daily','-f',$overrideFile) + $Arguments)
     $process = [Diagnostics.Process]::new()
@@ -51,6 +52,11 @@ function ComposeCall([string[]]$Arguments, [switch]$Json) {
     $null = $process.Start()
     $outTask = $process.StandardOutput.ReadToEndAsync()
     $errTask = $process.StandardError.ReadToEndAsync()
+    if ($start.RedirectStandardInput) {
+        $bytes = [Text.Encoding]::UTF8.GetBytes($InputText)
+        $process.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
+        $process.StandardInput.BaseStream.Close()
+    }
     $process.WaitForExit()
     $text = $outTask.GetAwaiter().GetResult()
     $diagnostic = $errTask.GetAwaiter().GetResult()
@@ -123,7 +129,10 @@ try {
             }
             $attempt = Worker -Arguments (@('select') + $attemptArgs)
             ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--wait','mta')
-            $proof = ComposeCall -Arguments @('exec','-T','mta','python','-m','release.daily_serving_check','--run-id',$attempt.run_id,'--output-digest',$attempt.output_digest) -Json
+            # Run the repository-owned read-only check without patching or
+            # rebuilding the sealed image that owns this committed run.
+            $verifier = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'daily_serving_check.py'))
+            $proof = ComposeCall -Arguments @('exec','-T','mta','python','-','--run-id',$attempt.run_id,'--output-digest',$attempt.output_digest) -InputText $verifier -Json
             $attempt = Worker -Arguments (@('acknowledge') + $attemptArgs + @('--proof',($proof | ConvertTo-Json -Depth 20 -Compress)))
             $maintenance = $false
         }

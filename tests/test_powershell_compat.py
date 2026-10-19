@@ -44,11 +44,15 @@ class DockerStub {
         else if (args.Contains("release.register_mta")) Console.WriteLine("{\"status\":\"registered\"}");
         else if (args.Contains("process_daily_csv")) {
             if (args.Contains("inspect")) Console.WriteLine("{\"status\":\"VALIDATED\"}");
+            else if (args.Contains("stage") && Environment.GetEnvironmentVariable("VF_TEST_PREPARED") == "1") Console.WriteLine("{\"status\":\"PREPARED\",\"phase\":\"SERVE\",\"attempt_id\":\"test\",\"run_id\":\"test\",\"output_digest\":\"test\"}");
             else if (args.Contains("stage")) Console.WriteLine("{\"status\":\"VALIDATED\",\"phase\":\"VALIDATED\",\"attempt_id\":\"test\"}");
             else if (args.Contains("acknowledge")) Console.WriteLine("{\"status\":\"PUBLISHED\"}");
             else Console.WriteLine("{\"status\":\"PREPARED\",\"run_id\":\"test\",\"output_digest\":\"test\"}");
         }
-        else if (args.Contains("release.daily_serving_check")) Console.WriteLine("{\"test\":\"quote \\\" and space\"}");
+        else if (args.Contains("-") && args.Contains("--run-id")) {
+            File.WriteAllText(Environment.GetEnvironmentVariable("VF_TEST_LOG") + ".stdin", Console.In.ReadToEnd(), new UTF8Encoding(false));
+            Console.WriteLine("{\"test\":\"quote \\\" and space\"}");
+        }
         return 0;
     }
 }''', encoding='utf-8')
@@ -131,6 +135,14 @@ Write-VfUtf8 ($Output+'.args') (ConvertTo-Json -InputObject $expected)
                 self.assertEqual(sum('execute' in call for call in calls), 1)
                 acknowledge = next(call for call in calls if 'acknowledge' in call)
                 self.assertEqual(json.loads(acknowledge[acknowledge.index('--proof')+1]), {'test': 'quote " and space'})
+                self.assertEqual(Path(str(log)+'.stdin').read_bytes(), (ROOT/'release/daily_serving_check.py').read_bytes())
+                # The same committed PREPARED attempt resumes verification only.
+                env['VF_TEST_PREPARED'] = '1'
+                result = self.run_shell(shell, ROOT/'release/run_daily.ps1', '-BusinessDate', '2026-10-19', '-Resume', env=env, cwd=folder)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                resumed = [json.loads(line) for line in log.read_text().splitlines()][len(calls):]
+                self.assertFalse(any('execute' in call for call in resumed))
+                self.assertEqual(sum('acknowledge' in call for call in resumed), 1)
 
     def test_launcher_accepts_real_native_progress_on_stderr_in_both_shells(self):
         from tests.test_csv_launcher import CsvLauncherTests
