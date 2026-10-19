@@ -12,21 +12,8 @@ from mta.application.r1_daily_input import DAILY_COLUMNS, _typed_rows
 from mta.application.r1_importer_master import RAW_COLUMNS, NO_NORM_COLUMNS
 from mta.runtime.relational_state import STORAGE_TABLES
 
-SCHEMA = 'fresh-production-day-input-v1'
-FEED_SCHEMA = 'fresh-production-day-input-v2'
-SOURCE_SCHEMA = 'fresh-production-day-input-v3'
-SUPPLIER_TABLES = dict(SOBDataRaw='Intermediate/TempSOBDataRaw',
-    MOQDataRaw1='Intermediate/TempMOQDataRaw1', MOQDataRaw2='Intermediate/TempMOQDataRaw2')
-DAY_TABLES = dict(raw_daily='Intermediate/DailyData', raw_non_nms='Importer/MasterDataRaw',
-    raw_no_norm='Intermediate/NoNormMasterRaw', accepted_feed='Importer/AcceptedNorms',
-    order_raw='DBM/OrderData', new_force_requests='Importer/ForceNormChange',
-    order_feed='Intermediate/PSODataInput',
-    distributor_transactions='input/production_transaction',
-    vendor_transactions='input/production_transaction')
-CONTROL_TABLES = dict(phase_requests='Importer/PhaseOut', phase_stops='Importer/PhaseOutStop',
-    phase_in_requests='Importer/PhaseInNorms', season_requests='Importer/Seasonality')
-DAY_FIELDS = {*DAY_TABLES, 'business_date', 'order_feed_status', 'control_requests',
-    'phase_controls_input_validation', 'seasonality_input_validation'}
+from mta.application.native_daily_contract import (
+    SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES, DAY_TABLES, CONTROL_TABLES, DAY_FIELDS)
 
 
 def rows(value, table, label):
@@ -396,7 +383,7 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
 
 def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
-            retry_capture_id=None, report_disposition=None):
+            retry_capture_id=None, report_disposition=None, feed_attempt=None):
     from mta.runtime.models import ProductionInitialization, CalculationRun
     from mta.mdm.initialization import read_initialized_input
     from mta.mdm.production_families import bootstrap_native_families, require_binding, require_initialization
@@ -436,4 +423,5 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
         mdm_source=owner.source if retry_capture_id is None else None,
         mdm_retry=retry_capture_id, pick_output_root=pick_output_root,
         production_initialization=owner, daily_input_sha256=expected_sha256,
-        consumer_opening=value['consumer_opening'], report_disposition=report_disposition)
+        consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
+        feed_attempt=feed_attempt)

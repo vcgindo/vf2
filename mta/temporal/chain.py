@@ -290,16 +290,25 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     completion = prior['complete'] if finalization is not None else None
     master_input,daily_input=entry_inputs(prior,opening_date,day,profile,identity)
     master=process_importer_master(master_input)
-    if master['outcome']!='APPLIED':raise ValueError('Connected master producer did not apply')
+    if master['outcome']!='APPLIED':
+        from mta.application.intake_errors import NativeIntakeRejected
+        raise NativeIntakeRejected('Connected master producer did not apply',
+            stage='ValidateAndProcessMaster', rejections=master['tables']['RejectedMaster'])
     if completion is not None:
         daily_finalization.mark(completion, 'ValidateAndProcessMaster.sql')
     supplier=process_supplier_validation(day['supplier_feeds'],master,master_input['settings'],now)
     supplier_final=supplier[SUPPLIER_STAGES[-1]]['tables']
-    if any(v['outcome']=='SQL_ERROR' for v in supplier.values()):raise ValueError('Supplier producer failed')
+    if any(v['outcome']=='SQL_ERROR' for v in supplier.values()):
+        from mta.application.intake_errors import NativeIntakeRejected
+        raise NativeIntakeRejected('Supplier producer failed', stage='SupplierValidation',
+            rejections=supplier_final['RejectedMaster'])
     daily_master=deepcopy(master)
     for table in ('SiteDescriptionTbl','RejectedMaster'):daily_master['tables'][table]=supplier_final[table]
     daily=process_daily_validation(daily_input,daily_master,today,now)
-    if any(v['outcome']=='SQL_ERROR' for v in daily.values()):raise ValueError('Daily producer failed')
+    if any(v['outcome']=='SQL_ERROR' for v in daily.values()):
+        from mta.application.intake_errors import NativeIntakeRejected
+        raise NativeIntakeRejected('Daily producer failed', stage='DailyValidation',
+            rejections=daily[DAILY_STAGES[-1]]['tables']['RejectedMaster'])
     daily_final=daily[DAILY_STAGES[-1]]['tables']
     importer=deepcopy(master['tables'])
     importer['SiteDescriptionTbl']=deepcopy(supplier_final['SiteDescriptionTbl'])

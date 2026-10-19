@@ -73,7 +73,10 @@ class NativeArchiveTests(unittest.TestCase):
         stream,name=module.open_archive(self.run)
         with stream:self.assertEqual(module._sha(stream.read()),result['sha256'])
         self.assertEqual(name,'InputData.zip')
-        with self.assertRaises(FileExistsError):self.prepare()
+        self.assertEqual(self.prepare(), result)
+        # Resume verifies the preserved bytes instead of overwriting corruption.
+        (self.download/'InputData.zip').write_bytes(b'partial previous attempt')
+        with self.assertRaises(module.ArchiveDenied):self.prepare()
 
     def test_original_hash_drift_denies_before_file_creation(self):
         self.daily.write_bytes(b'changed')

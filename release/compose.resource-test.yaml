@@ -1,6 +1,10 @@
 # DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 # Optional ROOT Compose testing only. Never loaded by normal build/install/up.
 services:
+  daily:
+    mem_limit: 4g
+    memswap_limit: 4g
+    cpus: "2"
   postgres:
     mem_limit: 2g
     memswap_limit: 2g

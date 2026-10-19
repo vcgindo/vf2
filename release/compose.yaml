@@ -1,6 +1,18 @@
 # **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 name: "${VF_PROJECT:-vectorflow}"
 services:
+  daily:
+    extends: {service: mta-install}
+    profiles: [daily]
+    entrypoint: [python]
+    command: [manage.py, process_daily_csv, --help]
+    read_only: true
+    tmpfs: [/tmp]
+    environment:
+      VF_MTA_SELECTION_FILE: ""
+      VF_MTA_PUBLISHED_RUN: ""
+      VF_MTA_PUBLISHED_DIGEST: ""
+      VF_BTR_REPORTING_GENERATION: ""
   postgres:
     platform: "linux/amd64"
     restart: "no"
@@ -629,3 +641,8 @@ volumes:
 networks:
   application:
     driver: "bridge"
+
+x-vectorflow-daily:
+  input_dir: "${VF_DAILY_INPUT_DIR:-}"
+  binding_file: "${VF_DAILY_BINDING_FILE:-}"
+  state_dir: "${VF_DAILY_STATE_DIR:-}"

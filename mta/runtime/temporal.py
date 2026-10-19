@@ -163,7 +163,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 report_exceptions=None, mdm_source=None, mdm_retry=None,
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
-                consumer_opening=None, report_disposition=None):
+                consumer_opening=None, report_disposition=None, feed_attempt=None):
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
         raise ValueError('Explicit execution revision required')
@@ -493,6 +493,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             run.input_payload=save_input(run,raw)
         run.input_manifest_digest=digest(run.input_payload)
         run.save(update_fields=['input_payload','input_manifest_digest'])
+        if feed_attempt is not None:
+            from mta.runtime.daily_feed_models import DailyFeedAttempt
+            attempt = DailyFeedAttempt.objects.select_for_update().get(pk=feed_attempt)
+            if (not native or attempt.initialization_id != production_initialization.pk
+                    or attempt.business_date != today or attempt.input_sha256 != daily_input_sha256
+                    or attempt.status != 'RUNNING' or attempt.run_id is not None):
+                raise ValueError('CSV attempt does not own this native day')
+            attempt.run = run
+            attempt.save(update_fields=['run', 'updated_at'])
         if 'operational_sources' in profile:
             from mta.runtime.operational_source import authorize_new_run
             authorize_new_run(run)

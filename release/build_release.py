@@ -22,7 +22,7 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def installation_files(source, output, proof, public_cipher):
+def installation_files(source, output, proof, public_cipher, repository=None):
     """Use the normal runbook with these exact newly built image identities."""
     images={name:row['id'] for name,row in proof['images'].items()}
     locks=json.loads((source/'release/images.lock.json').read_text())
@@ -62,6 +62,15 @@ def installation_files(source, output, proof, public_cipher):
     (output/'operator.env.template').write_text('# '+proof['restriction']+'\n'+'\n'.join(lines)+'\n')
     proof['installation_files']={name:digest(output/name) for name in
         ('source-build-images.yaml','installation-release.json','operator.env.template')}
+    if repository is not None:
+        # Operator scripts stay outside all application images. Copy committed
+        # bytes, never an uncommitted workstation helper.
+        for name in ('release/run_daily.ps1', 'release/CSV_DAILY_RUN.md'):
+            raw = subprocess.check_output(['git','-C',str(repository),'show',proof['source_commit']+':'+name])
+            target = output/name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(raw)
+            proof['installation_files'][name] = digest(target)
 
 
 def wheels(source, destination):
@@ -179,7 +188,7 @@ def build(repository, revision, output, *, image_prefix, public_origin, websocke
             inspected=json.loads(subprocess.check_output(['docker','image','inspect',value['tag']]))[0]
             value.update(id=inspected['Id'],architecture=inspected['Architecture'],os=inspected['Os'])
             if (value['architecture'],value['os'])!=('amd64','linux'):raise ValueError('Unexpected image platform')
-        installation_files(source,output,proof,public_cipher)
+        installation_files(source,output,proof,public_cipher,repository)
         proof['status']='BUILT_FROM_ONE_COMMITTED_EXPORT_RUNTIME_ACCEPTANCE_PENDING'
         proof.pop('active_component',None);save()
         return proof

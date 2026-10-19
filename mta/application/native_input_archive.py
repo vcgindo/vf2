@@ -107,8 +107,16 @@ def prepare(run, opening_file, daily_file):
     except PickDownloadDenied as error:
         raise ArchiveDenied(str(error)) from error
     target = sibling.parent / FILENAME
-    with target.open('xb') as stream:
-        stream.write(buffer.getvalue())
+    if target.exists():
+        stream, _ = open_archive(run)
+        try:
+            if stream.read(MAX_COMPRESSED + 1) != buffer.getvalue():
+                raise ArchiveDenied('native_input_archive_existing_bytes_differ')
+        finally:
+            stream.close()
+    else:
+        with target.open('xb') as stream:
+            stream.write(buffer.getvalue())
     return dict(path=str(target), bytes=target.stat().st_size,
         sha256=_sha(buffer.getvalue()), manifest=manifest)
 

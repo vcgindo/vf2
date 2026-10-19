@@ -6,6 +6,8 @@ Requires Git, Windows PowerShell7 and Docker Desktop with Linux/amd64 containers
 
 ## 1. Clone and configure
 
+For the subsequent production CSV operation, see [CSV_DAILY_RUN.md](CSV_DAILY_RUN.md). Installation/onboarding remain separate; the optional daily command reuses existing calculation and full report preparation, then selects and restarts only MTA. Do not apply this new migration to an existing sealed namespace as an undocumented upgrade.
+
 ```powershell
 git clone --depth 1 --single-branch --branch codex/3006-logistics-integration `
   git@github.com:yurtse/freshvcf.git C:/VectorFLOW
