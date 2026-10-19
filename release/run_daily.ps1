@@ -14,7 +14,10 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 . "$PSScriptRoot/powershell_compat.ps1"
 $null = [datetime]::ParseExact($BusinessDate, 'yyyy-MM-dd', [cultureinfo]::InvariantCulture)
-$configText = & docker compose --profile daily config --format json
+# Resolve every declared service so optional dependencies on inactive installer
+# profiles remain defined in the snapshot. This config command starts nothing;
+# execution below still enables only daily and always uses --no-deps.
+$configText = & docker compose --profile '*' config --format json
 if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
 $config = ConvertFrom-VfJson ($configText -join "`n")
 $daily = $config['x-vectorflow-daily']
@@ -88,6 +91,7 @@ try {
         @{type='bind';source=$inputRoot;target='/incoming';read_only=$true},
         @{type='bind';source=$bindingFile.DirectoryName;target='/onboarding';read_only=$true})
     Write-VfUtf8 $overrideFile ($config | ConvertTo-Json -Depth 100)
+    ComposeCall -Arguments @('config','--quiet')
     if ($config.services.mta.environment.VF_MTA_SELECTION_FILE -ne '/var/lib/vectorflow/selection.json') {
         throw 'Configure MTA_SELECTION_FILE=/var/lib/vectorflow/selection.json before daily operations; do not change selection during an existing run.'
     }

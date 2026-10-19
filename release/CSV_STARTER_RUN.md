@@ -4,6 +4,8 @@
 
 After blank installation steps1–4, use this path instead of the JSON starter steps. Run from your clone in Windows PowerShell5.1 (the default Windows shell) or PowerShell7. No shell upgrade is needed. The repository launcher calls Docker internally and handles the required MTA lifecycle; application containers are not given Docker-daemon access. Frontend, MTO, auth and PostgreSQL stay unchanged.
 
+Run one command at a time. Wait for its success before entering the next; stop at any error. After initialization succeeds, never repeat `csv-init` to recover a daily-run failure.
+
 ## 5. Choose the CSV pack once
 
 For an existing CSV pack, set only its absolute path in your ignored `.env`:
