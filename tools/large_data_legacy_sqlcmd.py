@@ -24,6 +24,28 @@ SQLCMD = Path('C:/Program Files/Microsoft SQL Server/Client SDK/ODBC/180/Tools/B
 CANONICAL = Path('F:/VFlow_Local/local-runtime/mta-engine')
 
 
+def validate_source(raw, original, pin, relative, approval=None):
+    """One exact human-approved legacy variant; canonical pin stays mandatory."""
+    if pin is None or hashlib.sha256(original).hexdigest() != pin:
+        raise ValueError('Unpinned canonical SQL source: '+relative)
+    if raw == original:
+        return False
+    if (not approval or approval.get('decision') != 'APPROVE_ISOLATED_LEGACY_CORRECTION_AND_ONE_RERUN'
+            or relative != 'Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql'
+            or approval.get('canonical_sha256') != pin
+            or hashlib.sha256(raw).hexdigest() != approval.get('proposed_sha256')):
+        raise ValueError('Canonical SQL bytes changed without exact variant approval')
+    return True
+
+
+def decode_output(raw):
+    if raw.startswith((b'\xff\xfe', b'\xfe\xff')):
+        return raw.decode('utf-16', errors='replace')
+    if raw and raw[1::2].count(0) > len(raw) // 4:
+        return raw.decode('utf-16-le', errors='replace')
+    return raw.decode('utf-8-sig', errors='replace')
+
+
 def execute(argv):
     case, isolation = bindings()
     failure = EVIDENCE/'day-failure.json'
@@ -35,6 +57,7 @@ def execute(argv):
     sql = None
     source = None
     output = None
+    approved_variant = False
     i = 0
     while i < len(argv):
         key = argv[i]
@@ -57,12 +80,12 @@ def execute(argv):
                 raise ValueError('SQL file outside frozen canonical copy')
             original = CANONICAL/source.relative_to((EVIDENCE/'canonical').resolve())
             raw = source.read_bytes()
-            if raw != original.read_bytes():
-                raise ValueError('Canonical SQL bytes changed')
             pins = json.loads((ROOT/'baseline/manifest.json').read_text())['engine_sources']
             pin = next((p['sha256'] for p in pins if Path(p['path'])==original),None)
-            if pin is None or hashlib.sha256(raw).hexdigest()!=pin:
-                raise ValueError('Unpinned canonical SQL source: '+str(original))
+            approval_path = EVIDENCE/'correction-approval.json'
+            approval = json.loads(approval_path.read_text()) if approval_path.exists() else None
+            approved_variant = validate_source(raw, original.read_bytes(), pin,
+                original.relative_to(CANONICAL).as_posix(), approval)
             encoding = 'utf-16' if raw.startswith((b'\xff\xfe',b'\xfe\xff')) else 'utf-8-sig' if raw.startswith(b'\xef\xbb\xbf') else 'cp1252'
             sql = raw.decode(encoding)
             source = str(original)
@@ -120,17 +143,19 @@ def execute(argv):
     started = time.perf_counter()
     proc = subprocess.run([str(SQLCMD),'-S','localhost','-d',database,'-b','-i',str(sql_path),*passthrough],
         stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-    text = proc.stdout.decode('utf-8',errors='replace')
+    text = decode_output(proc.stdout)
     sys.stdout.buffer.write(proc.stdout)
     sys.stdout.buffer.flush()
     report_bytes = output.read_bytes() if output and output.exists() else b''
-    report = report_bytes.decode('utf-16' if report_bytes.startswith((b'\xff\xfe',b'\xfe\xff')) else 'utf-8',errors='replace')
+    report = decode_output(report_bytes)
     caught = bool(re.search(r'(?im)^\s*(?:Msg \d+, Level|Sqlcmd: Error|ERROR\s+ErrorNumber|ErrorNumber\s+ErrorSeverity)',text+'\n'+report))
     failed = caught or (proc.returncode!=0 and not count_query)
     receipt = dict(source=source,source_text_sha256=raw_sha,bound_sha256=hashlib.sha256(bound.encode()).hexdigest(),
         bound_file=str(sql_path),database=database,seconds=time.perf_counter()-started,
         exit_code=proc.returncode,count_query=count_query,failed=failed,
-        output=str(output) if output else None)
+        output=str(output) if output else None,
+        approved_calculation_variant=approved_variant,
+        baseline_kind='CORRECTED_LEGACY' if (EVIDENCE/'correction-approval.json').exists() else 'UNCHANGED_LEGACY')
     with (EVIDENCE/'sql-calls.jsonl').open('a',encoding='utf-8') as stream:
         stream.write(json.dumps(receipt)+'\n')
     if failed:

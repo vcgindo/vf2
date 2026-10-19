@@ -1,3 +1,4 @@
+import hashlib
 import unittest
 
 from tools.large_data_benchmark import next_row
@@ -34,6 +35,46 @@ class SyntheticBenchmarkFactsTest(unittest.TestCase):
         self.assertEqual(actual['Stock'],30)
         self.assertIsNone(actual['Consumption'])
         self.assertIsNone(actual['Receipts'])
+
+
+class ApprovedLegacyVariantTest(unittest.TestCase):
+    path = 'Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql'
+
+    def setUp(self):
+        self.original = b'original SQL'
+        self.variant = b'approved corrected SQL'
+        self.pin = hashlib.sha256(self.original).hexdigest()
+        self.approval = dict(decision='APPROVE_ISOLATED_LEGACY_CORRECTION_AND_ONE_RERUN',
+            canonical_sha256=self.pin, proposed_sha256=hashlib.sha256(self.variant).hexdigest())
+
+    def validate(self, raw, *, path=None, original=None, approval=None):
+        from tools.large_data_legacy_sqlcmd import validate_source
+        return validate_source(raw, original or self.original, self.pin, path or self.path, approval)
+
+    def test_unchanged_canonical_bytes_need_no_exception(self):
+        self.assertFalse(self.validate(self.original))
+
+    def test_only_exact_approved_variant_is_accepted(self):
+        self.assertTrue(self.validate(self.variant, approval=self.approval))
+        for variant in (b'unapproved SQL', self.variant+b' extra edit'):
+            with self.assertRaises(ValueError):
+                self.validate(variant, approval=self.approval)
+
+    def test_approval_does_not_apply_to_another_producer(self):
+        with self.assertRaises(ValueError):
+            self.validate(self.variant, path='Scripts/DBM/Calculate.sql', approval=self.approval)
+
+    def test_unapproved_variant_and_changed_original_pin_are_denied(self):
+        with self.assertRaises(ValueError):
+            self.validate(self.variant)
+        with self.assertRaises(ValueError):
+            self.validate(self.variant, original=b'changed canonical SQL', approval=self.approval)
+
+    def test_native_unicode_error_result_is_readable_with_or_without_bom(self):
+        from tools.large_data_legacy_sqlcmd import decode_output
+        text = 'ERROR ErrorNumber ErrorSeverity\r\nArithmetic overflow'
+        for encoding in ('utf-8', 'utf-16', 'utf-16-le'):
+            self.assertEqual(decode_output(text.encode(encoding)), text)
 
 
 if __name__=='__main__':

@@ -1,0 +1,106 @@
+--- canonical/GenerateLogisticPickList.sql
++++ isolated-candidate/GenerateLogisticPickList.sql
+@@ -121,8 +121,8 @@
+ 		Insert into [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation with (tablock)
+ 		Select NewSRNo,SKUCode,WHCode,ParentWHCode,TotalWeight,TotalVolume,VehicleWeightCapacity
+ 				,VehicleVolumeCapacity,RemainingWeight,RemainingVolume,DispatchColor,VehicleName,[Priority]
+-				,CumulativeWeight=sum(TotalWeight) Over (Partition by ParentWhCode,LogisticLocation  order by NewSrNo) --+ RemainingWeight
+-				,CumulativeVolume=sum(TotalVolume) Over (Partition by ParentWhCode,LogisticLocation  order by NewSrNo)-- + RemainingVolume
++				,CumulativeWeight=sum(TotalWeight) Over (Partition by ParentWhCode,LogisticLocation,VehicleName order by NewSrNo) --+ RemainingWeight
++				,CumulativeVolume=sum(TotalVolume) Over (Partition by ParentWhCode,LogisticLocation,VehicleName order by NewSrNo)-- + RemainingVolume
+ 				,ColorWiseAlloction,LogisticLocation
+ 		From CteCalTotalWeightandVolume
+ 		
+@@ -130,14 +130,14 @@
+ 		Update PickListDataForTruckFormation with(Tablock)
+ 		set  NoTruckFlag=1	
+ 		from PickListDataForTruckFormation A
+-		Inner Join [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation B on A.SKUCode=B.SKUCode and  A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode and A.Priority=B.Priority
++		Inner Join [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation B on A.SKUCode=B.SKUCode and  A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode and A.Priority=B.Priority and A.VehicleName=B.VehicleName
+ 			where B.CumulativeWeight < B.VehicleWeightCapacity and B.CumulativeVolume < B.VehicleVolumeCapacity
+ 
+ 		PRINT N'Calculate Cumulative weight and Truck formation ' + ' --> ' + convert(nvarchar(21), SYSDATETIME())
+ 		Insert into [$(IntermediateDatabase)].dbo.[PickListOfTruckFull] with(Tablock)
+-		Select distinct MinSrNo=Min(NewSrNo) Over (Partition by ParentWhCode,LogisticLocation  order by NewSrNo) 
++		Select distinct MinSrNo=Min(NewSrNo) Over (Partition by ParentWhCode,LogisticLocation,VehicleName order by NewSrNo) 
+ 			,SKUCode,WHCode,ParentWHCode,VehicleWeightCapacity,CumulativeWeight
+-			,VehicleVolumeCapacity,CumulativeVolume,LogisticLocation
++			,VehicleVolumeCapacity,CumulativeVolume,LogisticLocation,VehicleName
+ 		From [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation
+ 		Where (CumulativeWeight>=VehicleWeightCapacity or CumulativeVolume>=VehicleVolumeCapacity)
+ 
+@@ -150,10 +150,10 @@
+ 			,A.CumulativeVolume
+ 			,A.VehicleVolumeCapacity,IsTruckFormed=Null
+ 			, TruckCnt=@TruckCnt+1,RemainingWeight=NULL,RemainingVolume=NULL
+-			,A.LogisticLocation,[TransportLoadType]=null,[DispatchColor],VehicleName,[Priority]
++			,A.LogisticLocation,[TransportLoadType]=null,[DispatchColor],A.VehicleName,[Priority]
+ 			,ColorWiseAlloction 
+ 		from [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation A
+-		left join  [$(IntermediateDatabase)].dbo.[PickListOfTruckFull] B on A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode
++		left join  [$(IntermediateDatabase)].dbo.[PickListOfTruckFull] B on A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode and A.VehicleName=B.VehicleName
+ 		where A.NewSRNo<MinSrNo 
+ 		order by ParentWHCode,A.LogisticLocation,NewSRNo
+ 
+@@ -172,7 +172,7 @@
+ 			, TruckCnt=@TruckCnt+1,RemainingWeight=A.CumulativeWeight-A.VehicleWeightCapacity,RemainingVolume=A.CumulativeVolume-A.VehicleVolumeCapacity
+ 			,A.LogisticLocation,[TransportLoadType]=null,A.[DispatchColor],A.VehicleName,A.[Priority],ColorWiseAlloction
+ 		from  [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation A
+-			inner join  [$(IntermediateDatabase)].dbo.[PickListOfTruckFull] B on A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode
++			inner join  [$(IntermediateDatabase)].dbo.[PickListOfTruckFull] B on A.LogisticLocation=B.LogisticLocation and A.ParentWHCode=B.ParentWHCode and A.VehicleName=B.VehicleName
+ 		where NewSRNo=MinSrNo
+ 		order by ParentWHCode,A.LogisticLocation,NewSRNo
+ 
+@@ -200,8 +200,8 @@
+ 									end 
+ 		from PickListDataForTruckFormation A
+ 		Inner Join [$(IntermediateDatabase)].dbo.CumulativeDataTruckFormation B 
+-				on  A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.NewSRNo=B.NewSRNo
+-		inner join [LogisticPickList] C on A.WHCode=C.WHCode and A.ParentWHCode=C.ParentWHCode and A.NewSRNo=C.NewSRNo and TruckCount=@TruckCnt+1
++				on  A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.NewSRNo=B.NewSRNo and A.VehicleName=B.VehicleName
++		inner join [LogisticPickList] C on A.WHCode=C.WHCode and A.ParentWHCode=C.ParentWHCode and A.NewSRNo=C.NewSRNo and TruckCount=@TruckCnt+1 and A.VehicleName=C.VehicleName
+ 		inner join SkuAttributeData D on A.SKUCode=D.SKUCode
+ 		where  A.NewSRNo=C.MinSRNo 
+ 
+@@ -209,14 +209,14 @@
+ 		delete A with (Tablock)
+ 		from PickListDataForTruckFormation A
+ 		Inner Join [LogisticPickList] B 
+-		on A.SKUCode=B.SkuCode and A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.[Priority]=B.[Priority]
++		on A.SKUCode=B.SkuCode and A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.[Priority]=B.[Priority] and A.VehicleName=B.VehicleName
+ 		where A.NewSRNo < MinSrNo
+ 
+ 		PRINT N'Delete records where truck is formed from PickListDataForTruckFormation' + ' --> ' + convert(nvarchar(21), SYSDATETIME())
+ 		delete A with (Tablock)
+ 		from PickListDataForTruckFormation A
+ 		Inner Join [LogisticPickList] B 
+-		on A.SKUCode=B.SkuCode and A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.[Priority]=B.[Priority]
++		on A.SKUCode=B.SkuCode and A.WHCode=B.WHCode and A.ParentWHCode=B.ParentWHCode and A.[Priority]=B.[Priority] and A.VehicleName=B.VehicleName
+ 		where A.NewSRNo=MinSrNo and (A.ColorWiseAlloction=0 ) 
+ 
+ 		set @maxNo=(select count(1) from PickListDataForTruckFormation where NoTruckFlag=0)
+@@ -234,20 +234,20 @@
+ 	PRINT N'Update TransportLoadType' + ' --> ' + convert(nvarchar(21), SYSDATETIME())
+ 	;with cteTotalWeightAndVolume as
+ 	(
+-		Select ParentWHCode ,LogisticLocation ,TruckCount,TotalWeighInTruck=sum(TotalWeight),TotalVolumeInTruck=sum(TotalVolume) 
++		Select ParentWHCode ,LogisticLocation ,TruckCount,VehicleName,TotalWeighInTruck=sum(TotalWeight),TotalVolumeInTruck=sum(TotalVolume) 
+ 		from [LogisticPickList] A
+ 		Inner join SkuAttributeData B on A.SKUCode=B.SKUCode
+-		group by ParentWHCode ,LogisticLocation, TruckCount
++		group by ParentWHCode ,LogisticLocation, TruckCount,VehicleName
+ 	)
+ 	,cteWeightVolumeRatio as
+ 	(
+-		Select ParentWHCode ,LogisticLocation ,Ratio =(TotalWeighInTruck/TotalVolumeInTruck),TruckCount
++		Select ParentWHCode ,LogisticLocation ,Ratio =(TotalWeighInTruck/TotalVolumeInTruck),TruckCount,VehicleName
+ 		From cteTotalWeightAndVolume
+ 	)
+ 	Update A with( tablock)
+ 	set A.TransportLoadType =case when Ratio >= 4.5 then 'MXL' else 'SXL' end 
+ 	From [LogisticPickList] A
+-	Inner join cteWeightVolumeRatio B on A.ParentWHCode=B.ParentWHCode and A.LogisticLocation=B.LogisticLocation and A.TruckCount=B.TruckCount
++	Inner join cteWeightVolumeRatio B on A.ParentWHCode=B.ParentWHCode and A.LogisticLocation=B.LogisticLocation and A.TruckCount=B.TruckCount and A.VehicleName=B.VehicleName
+ 
+ 	PRINT N'Update TotalWeight and TotalVolume in PickListDataForTruckFormation' + ' --> ' + convert(nvarchar(21), SYSDATETIME())
+ 	Update A with( tablock)

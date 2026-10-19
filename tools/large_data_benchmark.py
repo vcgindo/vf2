@@ -21,7 +21,10 @@ from uuid import UUID, uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-EVIDENCE = Path('D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019')
+BASE_EVIDENCE = Path('D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019')
+EVIDENCE = Path(os.environ.get('VF_LARGE_BENCHMARK_EVIDENCE', str(BASE_EVIDENCE))).resolve()
+if not EVIDENCE.is_relative_to(BASE_EVIDENCE.resolve()):
+    raise ValueError('Benchmark attempt must stay inside the original evidence root')
 SOURCE = 'VFTEST_Fresh_S2_VM_20261003_002_'
 ROLES = ('Importer', 'BPR', 'BTR', 'DBM')
 DAY = '2026-04-08'
@@ -200,6 +203,12 @@ def freeze():
 
 def bindings():
     case = json.loads((EVIDENCE/'case.json').read_text())
+    execution_owner = EVIDENCE/'execution-owner.json'
+    if execution_owner.exists():
+        attempt = json.loads(execution_owner.read_text())
+        if attempt['case_sha256'] != sha(EVIDENCE/'case.json'):
+            raise ValueError('Attempt changed the frozen business case')
+        case = dict(case, owner=attempt['owner'])
     owner = UUID(case['owner'])
     from parity import legacy_isolation as isolation
     if isolation._lease is not None:
