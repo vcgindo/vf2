@@ -3,8 +3,9 @@
 20 October 2026. **The full modern day is not yet accepted.** The routing correction
 is committed as `be07a07443df14283152aab4b35dd4de1203d8d4`; the next attempt passed
 initialization, CSV validation and input capture, then failed at a downstream
-zero-quantity order guard. The small external candidate diagnostic passes, but
-the candidate has not been applied or run against the large database.
+zero-quantity order guard. The human-approved two-check correction is now applied;
+64 affected tests pass. Its packaged-image smoke and the approved fresh
+source-bound continuation remain required before a large-day success claim.
 `F:/freshvcf/docs/handoff-3005/TRACKER.md` is the sole live status authority.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

@@ -89,9 +89,12 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
   amended to zero, and multipart Spikes amended to zero. All ten existing
   fixture output digests remain identical; eight invalid-quantity checks still
   reject. This is pure candidate testing, with no database or benchmark replay.
-- **Status/authority:** candidate prepared outside the production tree;
-  application/build and another source-bound benchmark continuation require the
-  concrete decision recorded in the sole tracker. The full day remains failed.
+- **Status/authority:** human “Approve zero-order correction and continuation”
+  to `call_798281cd3593406597007b099b172f39`, decision SHA256
+  `14f8df7f6eb8eb5985f981422f07b0c4c216ee34913629b7c34c85d86be8fd1c`.
+  The exact two-check candidate is applied.64 affected tests pass, including
+  seven permanent zero-order tests. The fresh source-bound continuation still
+  requires packaged-image smoke before runtime; no successful large day claimed.
 
 ## Verification boundary
 

@@ -56,7 +56,7 @@ class ThresholdPolicy:
 
 
 def classify_spike(quantity: Decimal, norm_at_acceptance: Decimal, policy: ThresholdPolicy) -> bool:
-    quantity = number(quantity, "order quantity", integer=True, positive=True)
+    quantity = number(quantity, "order quantity", integer=True)
     spike, _ = policy.thresholds(norm_at_acceptance)
     with localcontext() as ctx:
         ctx.prec = 50
@@ -97,7 +97,7 @@ def collect_orders(orders: tuple[AcceptedOrder, ...], sku_code: str,
             raise ValueError("Order outside SKU-location closure")
         if type(order.is_spike) is not bool:
             raise ValueError("Established boolean order classification required")
-        quantity = number(order.quantity, "outstanding quantity", integer=True, positive=True)
+        quantity = number(order.quantity, "outstanding quantity", integer=True)
         if order.accepted_on > business_date:
             raise ValueError("Order not accepted at snapshot business date")
         if not order.is_spike:
