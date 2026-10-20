@@ -9,9 +9,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 
-from mta.domain.validation import RuleBlocked, ZERO, ceiling, number, signed_number
+from mta.domain.validation import ZERO, ceiling, number, signed_number
 
 
+# Historical receipt identifiers only; the approved final location key now
+# resolves this former denial. Retain imports for older diagnostic callers.
 RRR_TIE_BLOCKER = "RRR-PACK-TIE-GAP09"
 RRR_TIE_REASON = (
     "Recovered RationPacksize.sql has no unique final key after penetration, "
@@ -137,18 +139,15 @@ def allocate_rrr(*, parent_stock: Decimal, parent_pack_size: Decimal,
     # but cannot receive the later one-pack residual.
     eligible = [index for index, value in enumerate(penetration)
                 if value >= Decimal("0.333333") and not children[index].virtual]
+    # Approved production policy: preserve penetration severity, prefer lower
+    # rationing Norm, then RLT/priority and finally lexical location code.
+    # This deliberately differs from legacy Norm DESC / unspecified final tie.
     eligible.sort(key=lambda index: (
-        -penetration[index], -children[index].virtual_norm,
+        -penetration[index], children[index].virtual_norm,
         children[index].replenishment_lead_time_days, children[index].location_priority,
+        children[index].location_code,
     ))
     packs_available = int(leftover // pack)
-    if 0 < packs_available < len(eligible):
-        def boundary(index):
-            child = children[index]
-            return (penetration[index], child.virtual_norm,
-                    child.replenishment_lead_time_days, child.location_priority)
-        if boundary(eligible[packs_available - 1]) == boundary(eligible[packs_available]):
-            raise RuleBlocked(RRR_TIE_BLOCKER, RRR_TIE_REASON)
     residual = [ZERO for _ in children]
     for index in eligible[:packs_available]:
         residual[index] = pack

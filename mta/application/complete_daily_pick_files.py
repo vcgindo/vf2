@@ -193,7 +193,39 @@ def project_reports(*, logistic_pick_list, pick_list_data_for_truck_formation):
     """Require both explicit own stage populations; absent is never empty."""
     if not isinstance(logistic_pick_list, (list, tuple)) or not isinstance(pick_list_data_for_truck_formation, (list, tuple)):
         raise ValueError('Explicit native Pick stage table populations required')
-    return dict(logistic=logistic_pick_list_report(logistic_pick_list),
+    reports = dict(logistic=logistic_pick_list_report(logistic_pick_list),
         remaining_summary=remaining_quantity_summary_report(pick_list_data_for_truck_formation),
         remaining_details=remaining_quantity_details_report(pick_list_data_for_truck_formation),
         transport_summary=transport_requirement_summary_report(logistic_pick_list))
+    # Producer-owned, typed markers survive storage/readback. Do not infer a
+    # historical weight-only decision merely from a missing product dimension.
+    fields = ('ParentWHCode', 'LogisticLocation')
+    unverified = {_key(row, fields) for row in logistic_pick_list
+                  if row['TransportLoadType'] == 'WEIGHT_ONLY'}
+    unverified.update(_key(row, fields) for row in pick_list_data_for_truck_formation
+                      if row.get('RemainingVolume', 0) is None)
+    if unverified:
+        for report in reports.values():
+            header, body = report['resultsets']
+            indexes = [body['fields'].index(field) for field in fields]
+            volume_index = next((i for i, field in enumerate(body['fields'])
+                                 if field in ('TotalVolume', 'TotalRemVolume', 'RemainingTotalVol')), None)
+            flagged = []
+            for values in body['rows']:
+                key = _key(dict(zip(fields, (values[i] for i in indexes))), fields)
+                warning = 'WEIGHT_ONLY: VOLUME UNVERIFIED; CHECK LOAD SPACE' if key in unverified else ''
+                values = list(values)
+                if warning and volume_index is not None:
+                    # A known partial SUM must not look like a verified total.
+                    values[volume_index] = None
+                flagged.append(tuple(values) + (warning,))
+            header['fields'] += ('',)
+            header['types'] += ('varchar(19)',)
+            header['rows'] = [tuple(header['rows'][0]) + ('Capacity Validation',)]
+            body['fields'] += ('CapacityValidation',)
+            body['types'] += ('varchar(64)',)
+            body['rows'] = flagged
+            report['capacity_policy'] = 'missing-volume-weight-only-v1'
+            for row, values in zip(report['transient_rows'], flagged):
+                row.update(zip(body['fields'], values))
+    return reports

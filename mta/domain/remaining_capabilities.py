@@ -206,8 +206,8 @@ def calculate_pick_list_state(case: dict, *, allow_priority_ties=False) -> dict:
     Priority ties require explicit
     opt-in under the bounded canonical-order witness qualification; opting in
     retains the existing input-order choice and adds no business tie-break. It is
-    not the native-table input adapter. Ambiguous native updates and canonical
-    nontermination remain explicit failures. No source defaults are added.
+    not the native-table input adapter. Missing-volume queues use the approved
+    weight-only policy. Other ambiguous updates/nontermination still fail.
     """
     result = calculate_pick_cases_state([case], allow_priority_ties=allow_priority_ties)
     for row in result['allocations']:
@@ -235,6 +235,12 @@ def calculate_pick_cases_state(cases, *, allow_priority_ties=False):
     with localcontext() as context:
         context.prec = 80
         for rows in groups.values():
+            if any(row['TransportLoadType'] == 'WEIGHT_ONLY' for row in rows):
+                # Missing volume is never converted to zero or a density guess.
+                # Persist the qualification in the existing typed text column.
+                for row in rows:
+                    row['TransportLoadType'] = 'WEIGHT_ONLY'
+                continue
             weight = _pick_sum(None if row['TotalWeight'] is None else row['TotalWeight'] *
                               multiplicities[row['SKUCode'].rstrip(' ').upper()] for row in rows)
             volume = _pick_sum(None if row['TotalVolume'] is None else row['TotalVolume'] *
@@ -353,6 +359,11 @@ def _calculate_native_pick_cases(cases, state):
     for key in sorted(queues):
         queue = queues[key]
         queue.sort(key=lambda row: row['priority'])  # stable permitted tie order
+        weight_only = any(row['volume'] is None for row in queue)
+        if weight_only and any(row['weight'] is None or d(row['weight']) <= 0 for row in queue):
+            raise ValueError('Weight-only Pick requires known positive weight for every queue item')
+        for row in queue:
+            row['_weight_only'] = weight_only
         vehicle = queue[0]['_vehicle']
         _native_queue(queue, vehicle, allow_priority_ties=state['_allow_priority_ties'])
         # Canonical ROW_NUMBER precedes the vehicle join: all vehicle
@@ -377,7 +388,8 @@ def _calculate_native_pick_cases(cases, state):
                 ranks.setdefault(row['_native_sr_no'], []).append(row)
             for peers in ranks.values():
                 cw = _pick_sum([cw] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['weight']) for r in peers])
-                cv = _pick_sum([cv] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['volume']) for r in peers])
+                cv = (None if group[0]['_weight_only'] else
+                      _pick_sum([cv] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['volume']) for r in peers]))
                 snapshots.extend(dict(r,cw=cw,cv=cv) for r in peers)
         # Native join omits WHCode/NewSRNo: preserve cross-occurrence flags.
         for row in rows:
@@ -386,8 +398,9 @@ def _calculate_native_pick_cases(cases, state):
                         _native_partition(row['from_location'], row['logistics_location']) ==
                         _native_partition(snap['from_location'], snap['logistics_location'])):
                     vehicle = snap['_vehicle']
-                    if (snap['cw'] is not None and snap['cv'] is not None and
-                            snap['cw'] < d(vehicle['weight_capacity']) and snap['cv'] < d(vehicle['volume_capacity'])):
+                    if (snap['cw'] is not None and snap['cw'] < d(vehicle['weight_capacity']) and
+                            (snap['_weight_only'] or
+                             (snap['cv'] is not None and snap['cv'] < d(vehicle['volume_capacity'])))):
                         row['_no_truck_flag'] = True
         start = len(state['LogisticPickList'])
         for key, group in groups.items():
@@ -414,7 +427,15 @@ def _calculate_native_pick_cases(cases, state):
                     tw, tv = _pick_product(row['quantity'],row['weight']), _pick_product(row['quantity'],row['volume'])
                     tw = None if tw is None else tw-(row['cw']-weight_cap) if over_w else tw
                     tv = None if tv is None else tv-(row['cv']-volume_cap) if over_v else tv
-                    if over_w and over_v:
+                    if row['_weight_only'] and over_w:
+                        # Cumulative rows retain the native second attribute
+                        # join's multiplicity. Use that same effective weight
+                        # at the boundary, never a negative residual allocation.
+                        unit_weight = d(row['weight']) * row.get('_join_multiplicity', 1)
+                        before_weight = row['cw'] - row['quantity'] * unit_weight
+                        allocation = max(ZERO, min(row['quantity'],
+                            (weight_cap - before_weight) / unit_weight))
+                    elif over_w and over_v:
                         allocation = min(tw/d(row['weight']),tv/d(row['volume']))
                     elif over_w and within_v:
                         allocation = tw/d(row['weight'])
@@ -428,7 +449,8 @@ def _calculate_native_pick_cases(cases, state):
                     IsTruckFormed=True if boundary else None,TruckCount=truck,
                     RemainingWeigt=_native_decimal(row['cw']-weight_cap) if boundary and row['cw'] is not None else None,
                     RemainingVolume=_native_decimal(row['cv']-volume_cap) if boundary and row['cv'] is not None else None,
-                    TransportLoadType=None,ColorWiseAlloction=int(allocation))
+                    TransportLoadType='WEIGHT_ONLY' if row['_weight_only'] else None,
+                    ColorWiseAlloction=int(allocation))
                 # Both native INSERTs SELECT DISTINCT the full projection.
                 if native not in distinct:
                     distinct.append(native)
@@ -480,7 +502,8 @@ def _calculate_native_pick_cases(cases, state):
         native = _native_pick_identity(row,row['_vehicle'])
         native.update(TotalWeight=_native_decimal(_pick_product(row['quantity'],row['weight'])),
             TotalVolume=_native_decimal(_pick_product(row['quantity'],row['volume'])),
-            RemainingWeight=Decimal('0.000'),RemainingVolume=Decimal('0.000'),
+            RemainingWeight=Decimal('0.000'),
+            RemainingVolume=None if row['_weight_only'] else Decimal('0.000'),
             ColorWiseAlloction=int(row['quantity']),NoTruckFlag=row['_no_truck_flag'])
         state['PickListDataForTruckFormation'].append(native)
         picks.append({**_pick_row(row,None,ZERO,remaining=row['quantity'],native=True), 'vehicle':row['_vehicle']['name']})

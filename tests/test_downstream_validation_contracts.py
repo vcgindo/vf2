@@ -9,7 +9,6 @@ from mta.domain.dbm_norm012 import data_stage, AmbiguousReport
 from mta.domain.r1_current_day import PsoRationInput, allocate_spike_pso
 from mta.domain.rrr import RationChild, allocate_rrr
 from mta.domain.remaining_capabilities import calculate_pick_cases_state
-from mta.domain.validation import RuleBlocked
 
 
 class SignedPsoStockTests(unittest.TestCase):
@@ -107,11 +106,11 @@ class NormNullAggregationTests(unittest.TestCase):
 
 
 class ConditionalLegacyRiskTests(unittest.TestCase):
-    def test_rrr_only_denies_tie_that_crosses_scarce_last_pack(self):
+    def test_rrr_approved_location_tie_break_for_scarce_last_pack(self):
         children = tuple(RationChild("S", loc, "P", D(10), D(0), D(0), 1) for loc in ("A", "B"))
         for order in (children, children[::-1]):
-            with self.assertRaisesRegex(RuleBlocked, "RRR-PACK-TIE"):
-                allocate_rrr(parent_stock=D(5), parent_pack_size=D(5), children=order)
+            result = allocate_rrr(parent_stock=D(5), parent_pack_size=D(5), children=order)
+            self.assertEqual({r.location_code: r.final_quantity for r in result}, {"A": 5, "B": 0})
             for stock, expected in ((0, (0, 0)), (10, (5, 5)), (20, (10, 10))):
                 result = allocate_rrr(parent_stock=D(stock), parent_pack_size=D(5), children=order)
                 self.assertEqual(tuple(r.final_quantity for r in result), expected)
@@ -122,15 +121,17 @@ class ConditionalLegacyRiskTests(unittest.TestCase):
                            "logistics_location": "C", "dispatch_color": "Black",
                            "weight": 1, "volume": volume, "buckets": {"to_black": qty}}]}
 
-    def test_pick_null_underfilled_stops_but_exact_fit_preserves_null(self):
-        with self.assertRaisesRegex(ValueError, "Canonical Pick nontermination"):
-            calculate_pick_cases_state([self.case(None)], allow_priority_ties=True)
+    def test_pick_approved_weight_only_underfilled_and_exact_fit_preserve_null(self):
+        result = calculate_pick_cases_state([self.case(None)], allow_priority_ties=True)
+        self.assertEqual(result["LogisticPickList"], [])
+        self.assertIsNone(result["PickListDataForTruckFormation"][0]["RemainingVolume"])
         case = self.case(None, 100)
         before = deepcopy(case)
         result = calculate_pick_cases_state([case], allow_priority_ties=True)
         row, = result["LogisticPickList"]
         self.assertIsNone(row["TotalVolume"])
         self.assertEqual(row["ColorWiseAlloction"], 100)
+        self.assertEqual(row["TransportLoadType"], "WEIGHT_ONLY")
         self.assertEqual(case, before)
 
     def test_pick_null_exclusion_and_mixed_partition_preserve_prefix_semantics(self):
@@ -140,11 +141,8 @@ class ConditionalLegacyRiskTests(unittest.TestCase):
         other = deepcopy(case["items"][0])
         other.update(case="two", sku="T", volume=1)
         case["items"].append(other)
-        # SUM is cumulative. A NULL-only prefix remains unflagged even when
-        # a later row supplies a volume; do not treat a mixed group as safe.
-        with self.assertRaisesRegex(ValueError, "Canonical Pick nontermination"):
-            calculate_pick_cases_state([case], allow_priority_ties=True)
-        case["items"].reverse()
-        result = calculate_pick_cases_state([case], allow_priority_ties=True)
-        self.assertEqual(len(result["PickListDataForTruckFormation"]), 2)
-        self.assertTrue(all(r["NoTruckFlag"] for r in result["PickListDataForTruckFormation"]))
+        for items in (case["items"], case["items"][::-1]):
+            result = calculate_pick_cases_state([{**case, "items": items}], allow_priority_ties=True)
+            self.assertEqual(len(result["PickListDataForTruckFormation"]), 2)
+            self.assertTrue(all(r["NoTruckFlag"] for r in result["PickListDataForTruckFormation"]))
+            self.assertTrue(all(r["RemainingVolume"] is None for r in result["PickListDataForTruckFormation"]))

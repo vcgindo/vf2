@@ -1,5 +1,52 @@
 # Legacy behavior and explicit exceptions
 
+## Approved RRR ranking and missing-volume Pick policy — 20 October 2026
+
+Direct human instruction: “Approve lower Norm priority with location code as the
+final tie-break, and weight-only Pick when volume is missing, clearly flagged.
+Implement and verify with focused tests. Keep frontend and MTO unchanged; don't
+start the daily run yet.”
+
+- **RRR:** `RationPacksize.sql` sorts penetration DESC, Norm DESC, RLT ASC,
+  configured priority ASC, without a unique final key (source SHA256
+  `316dacda0806d94355556a796bc713c5da650493bb7ad213fd98a6a889c1891e`).
+  The approved modern order is penetration DESC, rationing/virtual Norm ASC,
+  RLT ASC, configured priority ASC, then exact location-code text ASC.
+  This changes only residual pack ranking; equalization, rounding, virtual-node
+  exclusion, quantities and pack conservation retain their existing rules.
+  Lower Norm uses the same rationing Norm column as the former DESC key, not a
+  newly substituted physical master Norm. The final text comparison is lexical,
+  not natural-number sorting. These allocations are an approved policy
+  difference, not strict legacy parity.
+- **Pick:** `GenerateLogisticPickList.sql` can leave a NULL-volume underfilled
+  prefix unflagged indefinitely (source SHA256
+  `b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb`).
+  A positive-dispatch parent/logistics queue containing any missing volume now
+  uses weight-only capacity for every independent vehicle option. Every member
+  must have a known positive weight; no weight, volume, density or fact is
+  fabricated. Complete-volume queues retain their existing computation.
+  Input quantities, known per-item volumes and NULLs remain intact.
+- **Persistent qualification:** formed rows use the existing typed
+  `TransportLoadType=WEIGHT_ONLY`; cumulative/remaining volume is NULL.
+  Underfilled residual rows use NULL `RemainingVolume`, meaning volume capacity
+  was not verified, instead of the former zero placeholder. No schema changes.
+  Both markers survive ordinary typed storage and regeneration.
+- **Operator warning:** when any queue uses the fallback, all four existing Pick
+  CSV reports include a final `Capacity Validation` column. Affected queue rows
+  say `WEIGHT_ONLY: VOLUME UNVERIFIED; CHECK LOAD SPACE`. Their aggregate volume
+  is NULL instead of a misleading partial/zero total. Unaffected report rows
+  have a blank warning; when no fallback exists, report columns and bytes retain
+  the old contract. No frontend or MTO change; this is not a new UI badge.
+  A weight-only result is not evidence that the load physically fits.
+
+Focused proof: `tests/test_approved_ration_pick_policies.py` and updated
+`tests/test_downstream_validation_contracts.py`, plus adjacent Pick, RRR,
+file-generation and component-flow checks. Saved-state reconstruction tests are
+not a claim that PostgreSQL or the full production day was rerun. Daily execution
+remains separately approval-gated.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
 ## Large-data decisions now approved — 20 October 2026
 
 These dispositions supersede only the corresponding pending wording in the

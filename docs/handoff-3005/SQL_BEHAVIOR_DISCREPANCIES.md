@@ -12,6 +12,44 @@ finding. Do not infer parity or broaden an exception from a passing count.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
+## SQL-008/009 — approved RRR tie policy and weight-only Pick
+
+Direct human approval on 20 October 2026 supersedes only the two unresolved
+policy dispositions in the historical audit below. RRR now ranks residual packs
+by penetration DESC, rationing Norm ASC, RLT ASC, configured priority ASC and
+exact location-code text ASC. Pick uses weight-only capacity for any
+parent/logistics queue containing a positive item with missing volume; every
+queue item must have a known positive weight. Original attribute occurrences
+and their cumulative join multiplicity are retained, including at the capacity
+boundary. No negative allocation or default dimension is permitted.
+
+Formed rows persist `WEIGHT_ONLY` in TransportLoadType; residual rows persist
+unknown RemainingVolume as NULL. The four existing Pick CSVs add a final
+Capacity Validation column only when a fallback is present, flag affected
+queues for a manual load-space check and expose their aggregate volume as NULL.
+Complete-volume queues retain their computation; all-known reports retain
+their existing columns/bytes. Exact decision/source pins and compatibility
+limits are in `docs/LEGACY_EXCEPTIONS.md`.
+
+These are approved business-policy changes, not new assertions of legacy
+parity. Focused tests cover permutations, rank precedence, pack conservation,
+independent vehicles, mixed/NULL queues, duplicate attributes, weight bounds,
+retained NULLs, invalid weights and saved-state report regeneration. No
+frontend/MTO/schema change, image build, master reload or daily execution is
+part of this correction. The full daily run requires explicit new approval.
+
+Verification: 100 focused tests passed (99-test affected batch plus one
+historical-marker compatibility test). The affected batch comprises
+`test_approved_ration_pick_policies`, `test_downstream_validation_contracts`,
+`test_pick_stage_state`, `test_pick_vehicle_options`,
+`test_complete_daily_pick_files`, `test_complete_daily_batch_files`,
+`test_production_rrr`, `test_h3_daily_integration`, `test_policy_contract_integrity`,
+`test_zero_quantity_orders`, `test_established_order_routes` and
+`test_pick_downloads`. Independent review identified a negative allocation
+risk for identical duplicate SKU attributes in the new fallback; corrected
+using effective per-unit weight including the retained join multiplier, with
+an explicit duplicate-occurrence conservation/capacity regression.
+
 ## SQL-001 — historical servicing warehouse no longer on the current route
 
 - **Evidence:** canonical `Scripts/BPR/Ration_Scripts/CalculateRoute.sql`, SHA256
