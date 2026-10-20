@@ -64,6 +64,35 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
   This blocks an uncertified branch; it does not copy incomplete output or repair
   the legacy algorithm. Supported shallow routes/formulas are unchanged.
 
+## SQL-004 — zero-quantity orders pass intake but fail demand calculation
+
+- **Observed failure:** run `a4accc28-8af1-40b2-ac66-0b02e8771e8a` completed
+  input capture, then failed in `collect_orders` with “outstanding quantity
+  outside supported nonnegative range”. No output committed; no OOM occurred.
+- **Trigger:** the frozen opening contains30 zero-quantity orders. The daily
+  feed contains1,393 zero rows, of which30 match the opening BPR master closure.
+  Neither population contains negative quantities.
+- **Legacy behavior:** `ImportSpikeOrders.sql` retains matching orders and
+  updates their Qty, including zero; it closes absent identities rather than
+  treating zero as omission. `CalculateReq.sql` sums Qty for PSO and due Spike
+  demand, and separately filters positive remainder for allocation.
+- **Modern defect:** `r1_order_input.validate_order_input` accepts nonnegative
+  SQL integers and reconciliation retains zero correctly. Downstream
+  `collect_orders` and the direct `classify_spike` seam require positive
+  quantities, contradicting that accepted source contract.
+- **Proposed correction:** permit zero at those two quantity checks only.
+  Preserve the order, key/part identity, original quantity, dates, classification
+  and normal closure rules. Keep negative, fractional, nonfinite and oversized
+  inputs rejected. Do not remove zero rows or alter the global number validator.
+- **External candidate proof:** four small complete requirement/rationing/BOR/Pick
+  cases pass: new zero PSO, retained zero PSO with empty feed, existing Spike
+  amended to zero, and multipart Spikes amended to zero. All ten existing
+  fixture output digests remain identical; eight invalid-quantity checks still
+  reject. This is pure candidate testing, with no database or benchmark replay.
+- **Status/authority:** candidate prepared outside the production tree;
+  application/build and another source-bound benchmark continuation require the
+  concrete decision recorded in the sole tracker. The full day remains failed.
+
 ## Verification boundary
 
 Permanent coverage: `tests/test_established_order_routes.py`, plus adjacent order

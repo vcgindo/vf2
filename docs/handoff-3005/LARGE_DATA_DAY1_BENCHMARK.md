@@ -1,13 +1,31 @@
 # Large-data fresh-start benchmark
 
-20 October 2026. **The full modern day is not yet accepted.** The policy correction
-passed intake/capture, but calculation found an established-order routing gap.
-The narrow routing correction is approved; its diagnostic and regression checks pass.
+20 October 2026. **The full modern day is not yet accepted.** The routing correction
+is committed as `be07a07443df14283152aab4b35dd4de1203d8d4`; the next attempt passed
+initialization, CSV validation and input capture, then failed at a downstream
+zero-quantity order guard. The small external candidate diagnostic passes, but
+the candidate has not been applied or run against the large database.
 `F:/freshvcf/docs/handoff-3005/TRACKER.md` is the sole live status authority.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
 ## Workload and measurement boundary
+
+Latest route-corrected attempt: initialization2,839.033415seconds; CSV
+validation434.560216seconds; native preflight/bootstrap502.480926seconds;
+input capture1,124.519835seconds. Daily execution stopped after2,213.197469seconds,
+including those last two phases, with peak process RSS7,879,434,240bytes and
+exit1/non-OOM. The remaining586.196708seconds is time until calculation failure,
+not completed calculation time. Run `a4accc28-8af1-40b2-ac66-0b02e8771e8a` is FAILED,
+output digest empty, and no other database clients remain. No report/UI acceptance
+or whole-day performance conclusion is established.
+
+The zero-order discrepancy is SQL-004 in `SQL_BEHAVIOR_DISCREPANCIES.md`.
+Source intake and legacy SQL allow zero outstanding quantities, while two
+downstream modern demand checks require strictly positive values.30 applicable
+zero orders are present in this population. Candidate tests preserve all ten
+existing complete fixture outputs, handle four zero-order flows and retain
+eight invalid-input denials. No frozen fact is removed or changed.
 
 Load 97,097 distinct SKU/location combinations once, with their necessary opening
 facts and configuration, then run the single synthetic 8 April 2026 day from the
