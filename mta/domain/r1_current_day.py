@@ -21,11 +21,14 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING
 
+from mta.domain.validation import RuleBlocked
+
 
 ZERO = Decimal("0")
 NO_PERCENT_RESERVATION = 0
 STOCK_PERCENT_RESERVATION = 1
 NORM_PERCENT_RESERVATION = 2
+ROUTE_SOURCE_LIMIT = 100  # CalculateRoute.sql stops after 100 iterations.
 
 
 def _decimal(value: object, label: str, *, non_negative: bool = True) -> Decimal:
@@ -215,6 +218,8 @@ def route_new_spike_order(
     while True:
         if current in visited:
             raise ValueError("Cyclic Spike route")
+        if len(chain) >= ROUTE_SOURCE_LIMIT:
+            raise RuleBlocked("R1_ROUTE_SOURCE_LIMIT", "CalculateRoute.sql stops after 100 route nodes; deeper paths are not certified")
         visited.add(current)
         node = node_by_location[current]
         chain.append(node)
@@ -280,8 +285,7 @@ def route_established_spike_order(
     if not all((order_id, sku_code, source_location_code, first_servicing_location_code)):
         raise ValueError("Established Spike identity and first service are required")
     node_by_location = {node.location_code: node for node in nodes}
-    if (len(node_by_location) != len(nodes) or source_location_code not in node_by_location
-            or first_servicing_location_code not in node_by_location):
+    if len(node_by_location) != len(nodes) or source_location_code not in node_by_location:
         raise ValueError("Established Spike route lies outside the declared hierarchy closure")
     current, date_at_current = source_location_code, due_date
     child_location_code: str | None = None
@@ -290,15 +294,23 @@ def route_established_spike_order(
     while True:
         if current in visited:
             raise ValueError("Cyclic established Spike route")
+        if len(route) >= ROUTE_SOURCE_LIMIT:
+            raise RuleBlocked("R1_ROUTE_SOURCE_LIMIT", "CalculateRoute.sql stops after 100 route nodes; deeper paths are not certified")
         visited.add(current)
         route.append({
             "location_code": current,
             "child_location_code": child_location_code,
             "due_date": date_at_current.isoformat(),
         })
-        if current == first_servicing_location_code:
+        # Retained identifiers use the selected ASCII SQL collation: case and
+        # trailing spaces do not turn an on-path historical node into a fallback.
+        if current.rstrip(" ").upper() == first_servicing_location_code.rstrip(" ").upper():
             break
         node = node_by_location[current]
+        # CalculateRoute.sql retains the historical first-service field when
+        # hierarchy changes, but walks the current route to the supplier/plant.
+        if not node.has_bpr_master and node.parent_location_code is None:
+            break
         if node.parent_location_code is None or node.rlt_to_parent_days is None:
             raise ValueError("Established Spike reaches no declared first-service node")
         if node.rlt_to_parent_days < 0 or node.parent_location_code not in node_by_location:

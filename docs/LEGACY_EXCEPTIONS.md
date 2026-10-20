@@ -1820,3 +1820,22 @@ match. Small complete-flow and production-Python proofs do not claim the large
 benchmark day has passed.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+## Established-order routing after hierarchy changes — 20 October 2026
+
+Canonical `Scripts/BPR/Ration_Scripts/CalculateRoute.sql` explicitly retains
+historical first-service fields when the current hierarchy changes, traversing
+to the current supplier/plant if the old first-service node is not reached.
+The port's rejection of that case was a migration gap, not an authorized legacy
+exception. Direct human approval to `call_d113a503430a43b89d047558a0b284e9`
+releases the narrow correction. All1,511 previously valid routes are unchanged;
+three retained orders use the source-defined fallback. Selected ASCII SQL
+case/trailing-space equality is retained without rewriting stored identifiers.
+Historical order DueDate/quantity/classification and invalid-graph checks remain.
+
+The SQL's 100-iteration route limit is an explicitly blocked deep-path boundary
+in both modern route walkers; the frozen graph has at most6 route nodes. This
+neither invents deep-route results nor claims parity for canonical truncated output.
+No new legacy campaign, facts, frontend or MTO change is authorized by this note.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

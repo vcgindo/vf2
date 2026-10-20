@@ -1,7 +1,8 @@
 # Large-data fresh-start benchmark
 
-20 October 2026. **The full modern day is not yet accepted.** The policy-integrity
-correction is approved and applied; focused regression verification is in progress.
+20 October 2026. **The full modern day is not yet accepted.** The policy correction
+passed intake/capture, but calculation found an established-order routing gap.
+The narrow routing correction is approved; its diagnostic and regression checks pass.
 `F:/freshvcf/docs/handoff-3005/TRACKER.md` is the sole live status authority.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
@@ -64,24 +65,79 @@ native flows and unchanged full output digests for both existing MOQ forms.
 The isolated production-Python 3.11 rehearsal passed in 7.180 seconds. This is
 focused correctness evidence, not execution of the large benchmark day.
 
-## Last completed measurements before the policy correction
+## Established-order routing assessment
 
-These measurements are from source `9a1572080c063ec5dcac7feca07734d79a9ea55d`,
-image `sha256:adc2177bfac819a25b746e738963b5b8a961b48c226dd6c8d6d2e55e2297853a`.
-They are not claimed as measurements of the new correction.
+The port assumed an order's historical first-service warehouse must still belong
+to the current hierarchy. Canonical `CalculateRoute.sql` explicitly permits the
+hierarchy to change: retain the old first-service field and original DueDate,
+but traverse current parent/RLT edges to the current supplier/plant if needed.
+The fix changes only established-route construction. New-order classification,
+quantities, due-date generation, allocation formulas and publication are unchanged.
+
+The actual opening has 1,514 established Spike orders. Complete route comparison
+preserves all 1,511 previously valid routes; three retained orders require the
+canonical fallback. This is a migration correction, not legacy repair or new facts.
+The existing off-path fixture had no executable regression reference in the
+original or current tracked test suite; it is now exercised through preparation,
+requirements and report/Pick producers. Twelve-day evidence for a different
+dataset did not certify this branch.
+
+| Related scenario | Diagnostic result / proof |
+| --- | --- |
+| Historical warehouse retired or no longer present | Three actual orders pass; original servicing field and DueDate retained |
+| Historical warehouse exists on another branch | Retained off-path fixture passes complete current-day producer path |
+| Case/trailing-space variant of historical code | SQL-equivalent comparison stops at the correct current node; stored text is not rewritten |
+| Parent/RLT changes, including zero-day edge | Current route dates change; original order DueDate remains fixed |
+| On-path service, service at source, new Spike/PSO | Existing behavior and complete unaffected output digests pass |
+| Removed source, amended/closed orders, multipart identity | Existing order-owner, counter, next-opening and allocation checks pass |
+| Duplicate nodes, cycle, broken parent/RLT or missing historical fields | Still rejected; no blanket hierarchy waiver |
+
+The affected suite covers 57 tests. One existing typed-readback test mocked
+`cursor` although production now uses `chunked_cursor`; the mock was corrected
+with every value/order/successor assertion retained. These unit checks do not
+replace new-image, PostgreSQL commit/readback, publication or UI acceptance.
+
+Impact can propagate beyond three route rows: requirements and shared allocation
+consume routes, then BOR/Pick, persisted closing state and reports consume those
+results. Full-day verification therefore remains required. The domain comparison
+above is not a claim that all downstream results stay identical to a rejected run.
+
+The related deep-hierarchy discrepancy is now guarded: canonical
+`CalculateRoute.sql` stops after 100 iterations, and both modern route walkers
+explicitly block paths beyond that certified boundary. No deeper-path parity or
+silent legacy truncation/repair is introduced. The full frozen master graph has
+maximum physical depth 5 (6 route nodes including the terminal), so this condition
+does not block the approved case. Arbitrary Unicode identifier collation and
+unsupported ambiguous SQL joins are not newly certified.
+
+The durable finding ledger is [SQL_BEHAVIOR_DISCREPANCIES.md](SQL_BEHAVIOR_DISCREPANCIES.md).
+
+Direct human authority: “Approve narrow routing correction and continuation”,
+question `call_d113a503430a43b89d047558a0b284e9`, decision SHA256
+`c41d429f496c95c233d2c864e6a5364fdf82a8e3cfeb5a08aad0f74aa0afd4fc`.
+The diagnostic additionally preserves the selected ASCII SQL equality rule when
+deciding whether historical service has been reached. Original candidate bytes
+and actual approval remain unchanged in external evidence.
+
+## Completed measurements before the routing correction
+
+These measurements are from source `a7b62d4ce5ba3a518332121281ab15cc47628cc5`,
+image `sha256:f6ffeb220806bd829e363d11e45d134742d51617d12a2598ad70f155d1b7c864`.
+They are not claimed as measurements of the routing correction.
 
 | Operation | Native wall seconds | Result |
 | --- | ---: | --- |
-| Master/opening initialization and complete typed readback | 2555.610 | PASS; CPU1616.447s, peakRSS3,537,629,184bytes |
-| Daily CSV admission | 462.753 | PASS; no calculation at this boundary |
-| Native daily preflight/bootstrap | 454.477 | PASS within the failed daily attempt |
-| Complete input capture | 1166.673 | CAPTURED within the failed daily attempt |
-| Whole daily invocation | 1989.562 | FAILED at the incorrect threshold validator; not a completed-day timing |
+| Master/opening initialization and complete typed readback | 2487.863 | PASS; CPU1584.569s, peakRSS3,538,018,304bytes |
+| Daily CSV admission | 503.116 | PASS; no calculation at this boundary |
+| Native daily preflight/bootstrap | 452.422 | PASS within the failed daily attempt |
+| Complete input capture | 1110.154 | CAPTURED within the failed daily attempt |
+| Whole daily invocation | 2064.944 | FAILED at established-route closure; peakRSS7,818,489,856bytes; not a completed-day timing |
 | Calculation/commit, reports and large-data UI | — | Not yet accepted |
 
-The failed run has no output digest and no open client transaction. All 97,097
-policies match the CSV in both typed opening and captured input, including all
-values, NULLs and ordinals. No policy loss or output seeding was found.
+The failed run has no output digest and no open client transaction. The command
+container was removed after actual Exit1/PID0/non-OOM proof. No output seeding or
+master loss was found. CSV-stage resource sampling has a qualified observation
+gap; continuous capacity observation is not claimed.
 
 ## Source, frozen case and next execution
 
@@ -93,11 +149,11 @@ values, NULLs and ordinals. No policy loss or output seeding was found.
 - Recipe SHA256: `b76147260e3f58cd2fbe16a370bfe7d562f3160843595a2e9bfb853ae4fe176d`.
 - April8 native input SHA256: `30ddb9bd8c4ddbc51ffd743d23c4c8d5ef0146416baf37cfa58e9580899a41bc`.
 - Evidence root: `D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019`.
-- Audit/proposal/approval and production-Python smoke: `policy-integrity-correction/` in that evidence root.
+- Routing assessment/proposal/approval: `modern-fresh-performance/policy-integrity/established-route-proposal/` in that evidence root.
 
 After focused regressions: commit/push, one MTA-only build, actual new-image
 smoke before database creation, then one absent source-bound database
-`vectorflow_mta_perf_policy_20261020` on the same owned PostgreSQL/roles/volume/
+`vectorflow_mta_perf_route_20261020` on the same owned PostgreSQL/roles/volume/
 private network. Existing initialization seals are never rewritten or reused
 under a different implementation. Load the same opening, execute only April8,
 prepare/select existing reports and perform the agreed small original-UI check.

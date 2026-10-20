@@ -243,7 +243,7 @@ class ConnectedIdentityTests(unittest.TestCase):
             with patch.object(typed,'bulk',side_effect=lambda query,values:records.extend(values)):
                 meta=typed.save_image(run,path,path,storage(closing[name]))
             cursor=MagicMock();cursor.fetchmany.side_effect=[[tuple(r[2:]) for r in records],[]]
-            with patch.object(typed.connection,'cursor') as context:
+            with patch.object(typed.connection,'chunked_cursor') as context:
                 context.return_value.__enter__.return_value=cursor
                 own[name]=typed.load_image(run,meta)
             self.assertEqual(own[name],storage(closing[name]))
