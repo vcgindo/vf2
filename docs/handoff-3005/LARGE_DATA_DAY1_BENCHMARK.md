@@ -1,150 +1,63 @@
-# Large-data synthetic benchmark — legacy day-one result
+# Large-data fresh-start benchmark — measured result
 
-19 October 2026. The sole current status authority is `F:/freshvcf/docs/handoff-3005/TRACKER.md`. This is the frozen result of a separate benchmark follow-up; it does not reopen the original Step5 production handoff.
-
-**DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
-
-## Scope and result
-
-### Full frozen-day admission — 20 October2026
-
-Actual fresh initialization PASSED:97,097distinct master pairs/source1/opening1, historical BPR/DBM/BTR rows0,2291.006seconds load+fullverification, peak processRSS4,046,016,512bytes, database1,124,662,295bytes. No daily calculation has executed. Subsequent daily preflight exposed two additional compatibility gaps:10,256current open orders must retain their existing explicit-list contract, and a valid source parent identifier contains an internal ordinary space. The same current-list rule now covers orders in CSV AND typed reconstruction. Internal-space ordering was qualified with READ_ONLY SQL against the actual six NVARCHAR Pick columns/SQL_Latin1_General_CP1_CI_AS: all346rank/tie groups (all234configured locations plus punctuation/space edges) match the actual production function; all previously admitted sort keys remain identical. No renaming, fact/default/formula change, new tie-break or Unicode waiver. The initial VARCHAR probe was rejected because its punctuation ordering differs from the actual NVARCHAR owners.
-
-All47focused initialization/scalar/packaging tests PASS170.687seconds. The COMPLETE SAME frozen opening+daily input then passed pure production preflight in398.145seconds with zero day issues, no database access and no engine call. This is input-contract proof, not execution/presentation acceptance. One combined final MTA image and fresh same-footprint namespace will execute the still-unused April8day; no legacy rerun/history import/extra date. At human direction, discard obsolete benchmark command/build containers and images; keep the final image/case and concise lessons. Source-domain limit remains qualified printable ASCII including internal spaces; leading spaces, controls and Unicode remain explicit denials. Frontend/MTO/auth remain unchanged.
-
-### Current-owner correction — 20 October2026
-
-The initializer now explicitly preserves all11declared current-owner list populations, configuration and exclusions during typed reconstruction; CSV admission uses that same owner roster. Generic daily/history readers retain streaming by default. A complete10,001-row-per-owner CSV→native decode→typed save/reconstruction→strict owner-validation regression passes with exact values/NULLs/duplicate order; a separate large configuration/exclusion regression passes. All26affected initialization tests and10packaging tests PASS. No schema/formula/SQL/frontend/MTO/auth change. MTA builds now remove intermediate containers automatically (`--rm=true --force-rm`). At human direction, completed/failed owned benchmark containers and obsolete benchmark images are disposable; retain only the concise cause/lesson and final measurements. New-source image/full97,097-pair initialization and sole daily run remain unproved at this source checkpoint.
-
-### Actual initialization failure — 20 October2026 02:45IST
-
-The FIRST fresh-start CSV initialization failed during final full typed readback: `input_storage.read_input` reconstructs flat populations above10,000rows as `RecordRows`, while the unchanged current master owner requires a list (`MdmSkuLocPair`). This is a source representation defect, not a business-value/parity difference. Native failed-command wall2443.292258seconds (40m43.29s), CPU1535.635251processor-seconds, process peakRSS2,883,723,264bytes (~2.686GiB); container wrapper2447.011seconds. Exit1/PID0/nonOOM, no disk/deadline guard failure. These are FAILED initialization load+verification measurements, NOT successful initialization or daily throughput. No daily attempt occurred.
-
-Actual READ_ONLY reconciliation proves sources0/initializations0/runs0/opening shape rows0 and no other user transaction. The transaction rolled back; original immutable namespace6f777266/implementationfb37cd4c remains. Retain old worker/logs/accounting and registration; no reset, repeat registration, silent capability replacement or automatic full-load retry. Correction needs complete current-owner CSV AND typed-readback threshold coverage, not another one-population exception. Current APIs remain in maintenance; frontend/MTO/auth and protected resources unchanged. Evidence: `modern-fresh-performance/initialization-failure-reconciliation.json`.
-
-Latest human timing clarification: distinguish CSV normalization/validation, persistence, calculation+required commit, report preparation and UI. Do not subtract guessed overheads. Current production code retains text SKU/location identities; integer surrogate keys are NOT an implemented assumption and cannot be silently credited to these statistics. No historical parity or new legacy run.
+20 October 2026. Status: **blocked before a completed modern daily run**. The sole status authority is `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
-### Current checkpoint — 20 October2026
+## Workload
 
-The human clarified that the requested modern benchmark is a **fresh-start performance test**, with97,097current master pairs and one April8CSV run. Historical parity is not an exit criterion. No legacy rerun is required; its retained full-history timing is reference only and must not be used as an equivalent-workload speed ratio. Historical BPR/DBM consumption, suspension/recommendation logs and BTR trend/rationing populations start empty. Current master Norms/settings and outstanding orders remain declared opening facts. CSV preparation, initialization, daily processing/report publication and usable original UI will be timed separately; no modern result is claimed before actual execution.
+The requested case contains **97,097 distinct SKU/location master pairs**, 2,189 SKUs and 235 catalogue locations. One unused untyped catalogue location is excluded from the calculation configuration, which contains 234 locations. The opening is 7 April 2026; the single synthetic CSV business date is 8 April. There is **no imported historical BPR, DBM or BTR population**. The 10,256 outstanding orders are current opening facts.
 
-Large CSV validation identified a representation defect before any modern database mutation: `read_streamed` converted NMSAllItems above10,000rows to history RecordRows, while the unchanged current-master owner requires an explicit validated list. The narrow correction keeps only that current owner on the same list path as `/masters`; history streaming and every field/value/NULL/ordinal validator remain unchanged. A10,001-row current-owner roundtrip regression covers the boundary. Source/image identities and measured results follow in the sole tracker/external evidence. Frontend, MTO and auth remain unchanged.
+The daily CSV contains 97,097 rows: 18,788 known-stock and 78,309 NULL-stock rows, with 829 positive-consumption and 590 positive-receipt rows. Native missing-input rules retain ownership of NULL handling. This is not 100,000 fully active transactions. Product and location identities remain text codes; integer-surrogate performance is not implemented or credited.
 
+## Actual measurements
 
+| Boundary | Result | Wall time | CPU / memory |
+| --- | --- | ---: | --- |
+| CSV master/opening initialization, typed persistence and complete native readback | PASS | 2,088.524 s — 34m 48.5s | 1,326.722 processor-seconds; peak process RSS 4,074,659,840 bytes (3.795 GiB) |
+| Daily CSV admission, including opening-state integrity and input validation | PASS | 529.162 s — 8m 49.2s | 513.181 processor-seconds; peak process RSS 2,255,724,544 bytes (2.101 GiB) |
+| Ordinary daily execution command | Interrupted after PostgreSQL terminated its connection | 6,971.147 s — 116m 11.1s until controlled stop | Last live cgroup CPU 6,829.005 processor-seconds; observed container peak 4,022,800,384 bytes (3.747 GiB) |
+| Completed calculation, typed closing state, report preparation/publication and usable UI | **Not reached** | No successful timing available | No success or throughput claim |
 
-The corrected legacy calculation and all remaining native report/finalization stages are preserved. Combined split-active time is **1,920.976851seconds (32minutes0.98seconds)**, not an uninterrupted day benchmark. All8owned corrected databases are READ_ONLY/OFFLINE; full verified native backups and complete final core relations are retained. No owned request or user transaction remains. Final flags IsBatchFileExecuted/IsBPRBatchFileExecuted remain0: NMSClearInputTables/NMSImportData were deliberately outside the normalized-CSV source boundary. Do not relabel this as a complete customer-source native batch. Evidence: corrected-legacy-attempt-01/dbm-after-maintenance/final-legacy-readback.json and final-native-checkpoint/proof.json. The original failed attempts remain unchanged.
+The daily execution CPU/memory observation was taken at 01:20:35.688 UTC, immediately before stopping the worker. It is not a terminal process-RSS measurement. The worker had no CPU/RAM ceiling and no recorded CPU throttling. The existing Docker VM has approximately 15.46 GiB and 16 logical CPUs; PostgreSQL shares that VM with existing services. No resource leveling or capacity increase was introduced.
 
+These timings exclude image building, fixture preparation, development tests and the legacy run. They include the ordinary repository command's internal validation. The execution command also owns capture, calculation, persistence and existing reporting; its elapsed time must not be labelled pure calculation time. No guessed overhead is subtracted and no linear scaling estimate is made.
 
+## Verified outcome and blocker
 
-The latest human approval releases only bounded full-history memory handling, with all rows/types/NULLs/duplicate ordinals/formulas and active-NMS ownership unchanged. The implementation now seals streamed CSV/typed PostgreSQL history into private compressed execution caches; removes whole-history copies; keeps exact source ordinals for indexed rules; and folds BTR history aggregates without retaining source row dictionaries. PostgreSQL typed images and existing manifests remain operational truth. No schema, calculation formula, frontend, MTO, auth or resource-cap change. Native installer/daily scratch uses its existing disk-backed state volume. Current service images have not been replaced by these changes.
+The final source correction preserves all declared current-master list contracts and current open orders through CSV admission and typed reconstruction. All 47 affected initialization/scalar/packaging tests passed. Actual full-scale initialization and daily admission then passed, including full native opening readback; this is more than a row-count check.
 
+At 01:19:44.339 UTC, PostgreSQL logged termination of the benchmark connection for the database-scoped **300-second idle-in-transaction timeout**. The sole benchmark backend disappeared while the Python worker remained CPU-active. Its observed SQL activity had repeatedly read opening and master integrity data. Static source confirms that `production_families._opening_input` and `_verified_initialization` use `once_per_request`; that decorator explicitly leaves offline callers uncached. Several daily entry paths invoke those checks. This identifies repeated reconstruction/validation as a concrete performance concern; no profiler-derived attribution to one function or pure-math timing is claimed.
 
+The exact owned worker was stopped after that database-session failure. It exited 137 because of the controlled stop, **not OOM**. The 120-minute command guard had not fired. No timeout was relaxed, no calculation was retried, and no second day was attempted.
 
-Active-NMS stock intake uses additive v5 (v1captured owners plus ONLY requirement_stock); v4 retains its existing inactive external-master/supplier shape. No NMSActive flag is switched and no external master is substituted. The actual frozen case must still prove the full initialized master/history/configuration, captured effective inputs and ordinary daily output; component tests are not that proof.
+Read-only reconciliation after stopping proves:
 
+- One source and one successful initialization; 97,097 master rows and 97,097 distinct pairs.
+- Zero committed calculation runs, daily captures or publications; zero imported BPR/DBM/BTR history rows.
+- No other client transaction in the benchmark database.
+- The CSV attempt remains `RUNNING / CALCULATE`, with no run ID, because the process was interrupted. This is retained interrupted metadata, not an accepted day or an automatic retry instruction.
 
+The initialized database is 1,139,891,223 bytes. The outstanding acceptance is a successful ordinary daily run, closing state, existing native reports and original UI. The large-scale validation/transaction-lifetime problem must be resolved before claiming that acceptance. There is no historical-parity, completed-day performance or public-deployment claim.
 
-Source verification:90affected tests passed (one invalid test-module name caused a loader error, corrected with24passing actual BTR tests);15native export/identity tests passed. The complete connected focused native day has identical eager/streamed output digest. A10,001record openingCSV/fulltyped reconstruction, corruption/ordinal/tail denials and source-independent sealed lifetime pass. Actual running-image Python3.11.14 compiles33changedPython files; its PostgreSQL driver passed a10,001row READ_ONLY named-cursor check with closed transaction. This is not new-image persistence/full-data runtime acceptance. Independent source review found3integrity defects; all were corrected with focused regressions. Receipt: full-history-memory-source-proof.json.3005sixidentities/images/start/status remain exact.
+## Source, case and cleanup
 
+- Branch: `codex/3006-logistics-integration`.
+- Tested code commit: `a2784e30a6e351877efb1f4aa4456d90e157687e`, committed and pushed.
+- Image: `sha256:c1ba11fa6dcdf9e19c0b5384851a83ac733aeb7002b3ed295b4b2eb03fea10c7`.
+- Opening input SHA256: `27b3893b0f8a0f0db0197439c760677e9dc6dca07ad00f26fc4297781dd57a70`.
+- Opening CSV manifest SHA256: `889e2021cca5d0665718a7bf827673c7995d47443489c05c50aefd6d9ec61489`.
+- Frozen first-day input SHA256: `30ddb9bd8c4ddbc51ffd743d23c4c8d5ef0146416baf37cfa58e9580899a41bc`.
+- Current database: `vectorflow_mta_perf_final_20261020`, OID 50303; opening `aceac0a6-b461-4677-ad72-51476349511f`.
+- Reusable CSV case: `I:/VectorFLOW-benchmark-20261020/fresh-start`.
+- Final measurements: `D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/modern-fresh-performance/final-result.json`.
 
+All completed/failed benchmark command containers have been removed. Obsolete benchmark image versions and owned abandoned build containers were removed; future MTA builds remove intermediate containers automatically. The superseded benchmark database `vectorflow_mta_perf_20261020` was ownership/fingerprint checked and deleted, with zero runs/captures/publications. Only the current image and successfully initialized case remain for the unresolved benchmark; duplicate failed versions are not retained in Docker.
 
-**Archive continuation approved and integrated:** human reply to call_926c5c2695354c88996a0050e09e6128 approves packet9ca077418297139ae118a2ffbd30aea5a3f8cdbfcf5323598838e3f4a67bdec6. The same5complete archive members now stream to disk with complete original/captured hashes, original entitlement and identical small archive bytes. Existing defaults remain256MiB expanded/64MiBcompressed; the benchmark explicitly opts into64GiB/4GiB. Only MTA/installer/daily receive the optional configuration. Failed partials remain unpromoted.15archive checks pass;32affected archive/storage/Compose/export checks pass. A12MiB captured member uses less than8MiB traced heap. API readers certify complete immutable typed images before rescan, avoiding the read-only root/tmpfs; installer/daily cache uses its existing writable state volume. No full-history value, formula, NMSowner, frontend/MTO/auth or active resource change.
+The original `vectorflow_mta` installation database remains untouched. All six 3005 container IDs, images, start times and states match the pre-benchmark snapshot; the four large source SQL databases remain ONLINE/READ_ONLY. Frontend, MTO and auth were not changed. No browser testing occurred because daily results were unavailable. No automatic review or extra test campaign was started.
 
-The large CSV pack and original copies will use exclusively new I:/VectorFLOW-benchmark-20261020, with receipts underD:. Original disk/failure guards and20GiB C:/I:reserve remain. The one combined MTA build, complete authentic opening/configuration/typed input admission, same single modernApril8day and all applicable comparison/UI proof remain pending; this source proof is not runtime acceptance. Legacy state and all failed artifacts remain preserved. Evidence: full-history-archive-proposal/human-approval.json and integration-proof.json.
+Automatic approval blocked deletion of old host-side build folders/logs/draft input with the reason “blocked by policy”; those files remain. No alternate deletion path was used.
 
-### Original attempt and workload (historical; current checkpoint supersedes its status)
+## Retained legacy reference
 
-The human authorized the seven-step benchmark through legacy day one, then instructed a stop while independently resetting the modern installation. After read-only source inspection, the human chose **"Use synthetic next-day benchmark"**: copy the large3005 snapshot as opening, generate one conserved next-day raw CSV workload, and exclude unavailable GulfOil customer-source preprocessing from timing.
-
-**Steps1–4 completed for the legacy portion. Original step5 attempt failed in Pick. After explicit human approval, the isolated vehicle correction PASSED in the one corrected rerun; that attempt stopped at a later BOR report schema mismatch. DBM/BTR remain unexecuted. There is still no completed-day legacy timing baseline and no modern run/comparison.**
-
-| Step | Observed outcome |
-| --- | --- |
-| 1. Freeze workload | Complete:7April2026 opening;8April synthetic day;2,189SKUs/235locations;97,097daily rows; retained90-date history. |
-| 2. Prepare CSV pack | Complete: full14-file daily raw roster and explicit216-row requirement-stock support input. Complete source/typed-parser comparisons; actual legacy SQL load/readback subsequently passed. Whole modern opening/binding admission remains unproved. |
-| 3. Isolate targets | Complete:8new SQL databases and a new disabled restricted login;17.818seconds for schema setup. No serving-network/port change. |
-| 4. Initialize legacy opening | Complete: restore the same recorded four native backup sets; dates/populations and denial to protected sources verified.252.775seconds including verification. This is snapshot restore, not CSV master-import throughput. |
-| 5. Run legacy day one | Failed: SQL8115, arithmetic overflow, `GenerateLogisticPickList.sql`. BPR/RRR had97,097rows each, but subsequent Pick/report finalization, DBM and BTR were not executed. Those intermediate counts are not whole-day acceptance. |
-
-The97,097daily rows include18,788known-stock and78,309NULL-stock rows. Only known-stock rows have a provable numeric conservation identity. NULL availability remains for native missing-input rules. Generated receipts/consumption retain source values where possible, cap consumption at available stock, and derive closing stock.829rows have positive consumption;590have positive receipts. This is not100,000fully populated daily transactions or a general capacity proof.
-
-## Native failure
-
-Pinned producer: `F:/VFlow_Local/local-runtime/mta-engine/Scripts/BPR/Ration_Scripts/GenerateLogisticPickList.sql`, SHA256`b5044bcb979e57c270d944fdcf3a7998bee33484a384dae89aaaf414c7d05dfb`.
-
-Its cumulative truck-formation insert at source lines111–127 calculates running weight by parent/logistic location. One retained expression result was **13,145,646,112.000**; the destination `CumulativeWeight decimal(13,3)` permits at most **9,999,999,999.999**. Another result was13,693,789,388.000. A read-only projection of the unchanged expression reproduced the out-of-range values. No producer rerun was performed for that diagnosis.
-
-The isolated scratch column matches the pinned canonical Intermediate DDL and the existing protected `Demo_IntermediateDB_1` column metadata. The restored BPR closing schema also uses `decimal(13,3)` cumulative fields. SKU attributes remained2,189distinct source/target rows; the failure was not attributed to duplicated SKU attribute loading. The original VM's matching Intermediate backup was not supplied, so the conclusion is about this measured canonical isolated run, not every legacy installation.
-
-The native script catches the SQL error and returns a result set with `ERROR`, `ErrorNumber8115` and `ErrorLine111`; SQLCMD itself exits0. The benchmark guard checks those error result sets and blocked every subsequent SQL call. BAT echo lines saying "finished" do not prove that later SQL executed. The initial clock stage set all four role dates to8April; that also does not prove DBM/BTR ran.
-
-## Measurements and qualifications
-
-| Observed stage | Seconds |
-| --- | ---: |
-| Reset flags and set clock | 3.012 |
-| CSV load plus complete external typed readback | 63.038 |
-| Native input validation | 38.032 |
-| Native norm/control processing | 28.024 |
-| BPR/RRR/Pick stage, ending in failure | 173.142 |
-| Total through driver stop | **305.277** |
-
-Peak observed shared SQL process RSS was6,552,653,824bytes (about6.10GiB); shared process CPU increased415.359processor-seconds. These are instrumented measurements including existing SQL background activity and warmed restore buffers. No SQL service/cache restart or memory ceiling was introduced. Existing SQL maximum memory was unrestricted; existing MAXDOP8 was recorded and unchanged. The host has16logical CPUs and34,010,619,904physical-memory bytes.
-
-**305.277seconds is time through a failed partial attempt, not successful daily throughput.** CSV loading includes an extra full readback; wall timing includes Python transport/guard overhead. Per-call native SQLCMD timings are retained separately. There is no modern speedup ratio, cross-engine parity claim, percentile estimate or extrapolation to other populations.
-
-Native business SQL and BAT conditions were retained. External adapters bind only owned database/path variables, load normalized typed raw CSV, impersonate the disabled restricted login with NO REVERT, and detect failures. They do not call the modern calculation producer or the reset-and-seed legacy parity runner. Customer file collection/Interface transformations, external notifications, operational backup jobs and serving/UI work are outside the measured shared boundary. Portable7-Zip26.04 was obtained from the [official download page](https://www.7-zip.org/download.html) into benchmark-owned evidence; no system installation/PATH change. Failure occurred before report compression, so it supplies no compression timing.
-
-## Retained evidence and stopping point
-
-Root: `D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019`.
-
-- `case.json`: SHAc872e22ceacdefdaeafc2255ae2bd35a9472de44e58f216ea6b133a6f9663104.
-- `csv/DailyDataRaw.csv`: SHA5714e18c51c4a65bb636bedc8437b4003d870e2c7da11eb97b72660184afce20.
-- `csv-pack.json`, `csv-pack-verification.json`, `input-load.json`: complete CSV/source/parser/SQL readbacks, not merely counts.
-- `targets.json`, `initialization.json`: ownership, schema setup, native backup identities, initialization timing and actual permission denials.
-- `day-attempt.json`, `day-failure.json`, `sql-calls.jsonl`, original logs and bound SQL: failed attempt and exact execution prefix. Earlier pre-business observer startup failure is separately preserved; it ran no daily SQL and caused no business replay.
-- `failure-confirmed.json`, `failed-pick-input.csv`, `failed-pick-input-proof.json`, `original-demo-scratch-schema-readonly.json`: exact failure, full3,454-row failed Pick input and metadata diagnosis.
-- `resource-context.json`, `resources.jsonl`, `legacy-day1-failed-result.json`: observations and limits.
-- `owned-terminal-state.json`: all8owned targets retained READ_ONLY/OFFLINE; shared SQL service remains running. No active owned jobs/open user transactions remained before stopping them.
-- `3005-before-day.json`, `3005-after-day.json`: all six3005container IDs/images/start times/states unchanged. Four protected source databases remain ONLINE/READ_ONLY. No modern installation command or mutation occurred.
-
-Owned namespace: `VFTEST_Fresh_Benchmark_1cd1a13f1dbb41d3b33e7c826edd5816_*`; files: `D:/freshvcf-build/sqlserver/large-data-benchmark-1cd1a13f-1dbb-41d3-b33e-7c826edd5816`. Nothing was reset/deleted/reseeded to conceal failure. The standalone harness refuses replay once business SQL has executed. The failed physical state is retained for inspection; it is not a successful opening for another daily run.
-
-Stop here as requested. A change to workload, numeric storage/rules, acceptance boundary or a new daily attempt needs a separate decision. Do not automatically repair the legacy oracle or run modern while the human prepares its blank installation.
-
-Before any later modern comparison, establish equivalent full native opening/history and binding. The216configured additional requirement-stock rows are outside the public14-file daily CSV roster; their exact native source/binding path must be proved, not silently omitted. The supporting source export is retained unchanged, with a separate dated8April projection. No new production feature or input waiver has been inferred from that finding.
-
-## Follow-up diagnosis — existing multi-vehicle Pick defect
-
-The19October user requested investigation and a fix after the failed attempt. The initial decimal-limit diagnosis identified the failing storage operation, but **was not the underlying cause**. No decimal widening is recommended.
-
-Read-only source/failed-row tracing confirms ordinary producer allocations: SKU212100215100/P066_1002 has RationedReq840 (TOY630/TOG210); SKU221170230400/P017_1001 has RationedReq1080 (TOR_B600/TOY480). The failed32–34million quantities are mutated loop residuals, not raw input quantities or initial RRR allocations. SKU attributes remain unique; dimensions and both21MT/24MT vehicle options are inherited unchanged.
-
-The canonical producer ranks requirements before joining vehicle options. Its cumulative windows partition only by parent/logistics location, pooling both vehicle copies. Boundary and residual joins also omit vehicle identity. In a session-local temporary-table reproduction, the first iteration allocates negative quantities: for SKU212100215100, -526/-511 for the two vehicles; residual630 increases to1156 under that observed SQL UPDATE winner. SKU221170230400 similarly produces -496/-481. Subsequent iterations amplify the residual until the unchanged decimal field overflows. Native UPDATE has conflicting vehicle candidates; row ranking and UPDATE winner are not uniquely specified. This is an existing canonical SQL defect exposed by the synthetic workload, not a proven CSV loader or modern-engine defect.
-
-A **test-only proposed correction** keeps the two configured vehicle options independent throughout cumulative windows, truck-boundary staging/joins, residual updates/deletes and load-type aggregation. Scratch PickListOfTruckFull carries VehicleName. It selects no arbitrary vehicle, changes no raw quantity/dimension/capacity and does not widen decimals. Applied only to session-local temporary tables containing the retained complete pre-Pick population, it terminates after50iterations with zero negative formed/residual rows, zero grouped quantity-conservation mismatches,6,603formed rows and1,481flagged residual rows. Both configured vehicle names remain. These are focused diagnostic checks, not full-day, full-parity, UI or regression acceptance; diagnostic elapsed time is not a daily benchmark.
-
-Evidence: root-cause-row-trace.json; pick-temp-reproducer.sql/json; pick-vehicle-candidate-temp.sql/json; pick-vehicle-candidate-changes.json; diagnosis-terminal-state.json. Reviewable unapplied original-SQL patch and decision: D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/pick-correction-proposal/. Decision SHA256fbb90e2cd8783552f761142acb791d20be51675b8abe8a017680924a834b16da.
-
-**Decision needed before application:** the repository mandate forbids silently repairing legacy flaws. Keeping each configured vehicle alternative independent changes the native calculation contract and therefore creates a corrected-legacy baseline. It must not be labelled unchanged legacy parity. Approve this precise isolated correction and one separately owned attempt of the same frozen April8workload before implementation/re-execution. Preserve the original8failed databases and canonical SQL. A modern rule change or modern execution is not released by this proposal; an aligned comparison needs an explicit subsequent scope decision. No automatic rerun has occurred.
-
-All8failed targets are again READ_ONLY/OFFLINE, with no active owned requests or user transactions. The4protected sources remain ONLINE/READ_ONLY.3005, original SQL files, modern installation, frontend and MTO were not changed.
-
-## Approved correction executed — Pick passes; later report mismatch stops the day
-
-Human reply to call_98195d12502940dbacd9b5277ee7fd97: **"Approve isolated legacy correction and one rerun"**. Proposal SHA fbb90e2cd8783552f761142acb791d20be51675b8abe8a017680924a834b16da; actual approval receipt recorded before creation of the new targets. Owner cb27310d-dc74-4eb8-b152-624b9c1c5bc2, evidence subdirectory `corrected-legacy-attempt-01/`, separate8owned databases/files. The original case and all CSV feeds remain byte-identical. New SQL source variant SHA9999cc27102d176401a24081bf61d6fe6ef7aaa339e110e5ebea18ca5facd438; only isolated Pick SQL/scratch schema changed, original canonical source stayed pinned. External bridge allows only the exact approved producer/hash and labels every call CORRECTED_LEGACY.9focused generator/variant-pin/Unicode-error-reader tests pass.
-
-The new opening restore/verification took242.927seconds, outside the daily timing. Actual Pick SQL completed successfully in38.161seconds. Final6,568formed rows and1,516residual rows have no negative quantities, no unflagged unfinished rows and zero complete grouped SKU/location/parent/priority/vehicle quantity-conservation mismatches. Both complete typed relations are retained as compressed evidence. The earlier temp reproduction's6,603/1,481counts are not asserted as row-by-row parity: canonical ranking ties can change formed-row splits. Invariants and the actual rerun's complete rows are the proof for this attempt.
-
-The one rerun then stopped on unchanged `CollectBOR_OrderAllocationData.sql` SHAe06d22c31b0b51b6ba375c4bdf8ddeac52806d6e0b5b1c362a77dd8d3b4b18da: SQL213, column/value count mismatch. Canonical creation DDL and writer use26columns; the restored snapshot table has those26plus15nullableSKULocAtt01–15attributes. The implicit INSERT supplies26values for41columns. Snapshot and target schemas match; this is a benchmark snapshot/engine compatibility gap that setup should have detected before execution. It is separate from the truck-allocation defect.
-
-The failed report batch did not execute its statements: its script flag remains0 and BOR retains3,098old snapshot rows. External guard denied all later SQL. No UpdateBPR/final BPR reports, post-BPR site attributes, DBM or BTR execution is claimed. Reset4.021s; CSVload/fullreadback163.170s; validation58.094s; norms33.037s; partial BPR/RRR/Pick/reports203.152s; total461.537seconds is another FAILED partial attempt, not full-day throughput.
-
-A narrow **unapplied** compatibility proposal explicitly names the same26destination columns and retains all41columns. Temporary-table execution produces3,098rows with zero complete26-field typed/duplicate differences versus the canonical26-column destination; all15extra columns remain present and NULL under the writer's unassigned nullable-field behavior. No formula, default business fact, supplier text, datatype, raw input or quantity change is proposed. Proof: `bor-explicit-columns-temp-proof.json`; exact patch/decision: `corrected-legacy-attempt-01/bor-report-compatibility-proposal/decision.json`, SHA6502ddaf2e3bf525e898c1954f4482f7a71d7ffd9179bea79425bc01b10120db. This producer was not included in the earlier one-script exception; approval is required before modifying it or resuming the failed day.
-
-Proposed continuation preserves a cold copy of the failed owned files and all failed receipts, reconciles the accepted prefix, then runs only the previously unexecuted report operation and original remaining BPR-finalization/DBM/BTR stages. It never repeats ingestion, validation, norm processing, BPR requirements, rationing or Pick, nor creates a second business date. A continued run would have separately measured active phases; their sum must not be called one uninterrupted wall-clock benchmark. No continuation or new daily attempt has been executed.
-
-Both8-database attempts are now READ_ONLY/OFFLINE. No active owned work is left; a completed temp diagnostic's idle connection was closed specifically to release its own offline-transition lock (no business transaction was open).3005container identity/image/start/state matches the original receipt. Original failed files/hashes, protected four databases, canonical legacy code, modern installation, frontend and MTO remain unchanged. No Docker resources/services were created/restarted/replaced.
+The corrected legacy result remains a separate full-history, split-phase reference: 1,920.976851 active seconds, excluding customer-source preprocessing. It is not the same fresh-start workload and supplies no modern speedup ratio. No legacy rerun was performed for this fresh-start test.
