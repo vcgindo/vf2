@@ -76,7 +76,7 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
         key = row['SKUCode'], row['WhCode']
         if chronological and any(value is None for value in key):
             continue  # SQL equality joins do not match NULL keys.
-        if chronological and row['ReportDate'] is None:
+        if row['ReportDate'] is None:
             continue  # SQL WHERE denies NULL dates; no invented date.
         if _day(row['ReportDate']) > today - timedelta(days=horizon):
             observations[key].extend([row] * len(image[key]))
@@ -85,7 +85,7 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
     for key, rows in observations.items():
         if not rows:
             continue
-        positive = [r for r in rows if (r['Consumption'] is not None or not chronological)
+        positive = [r for r in rows if r['Consumption'] is not None
                     and r['Consumption'] > 0]
         if chronological:
             # Approved60/90 production rule, not canonical unordered text parity.
@@ -97,8 +97,10 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
         ambiguous = not chronological and len(set(fragments)) > 1
         if ambiguous and not exclude_all_occurrence_order and key not in excluded:
             raise AmbiguousReport('Unordered occurrence STRING_AGG has distinct fragments')
-        total=report_total(rows) if chronological else sum(r['Consumption'] for r in rows)
-        if chronological:report_int(len(positive),'Count')
+        # Both source branches use SUM(int), ignoring NULL inputs. An all-NULL
+        # group still fails the native NOT NULL TotalSale target; never seed 0.
+        total=report_total(rows)
+        report_int(len(positive),'Count')
         for description in image[key]:
             result.append({'SKUCode': key[0], 'WHCode': key[1], 'Count': len(positive),
                            'Occurances': None if ambiguous else ', '.join(fragments),

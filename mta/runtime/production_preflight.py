@@ -312,8 +312,8 @@ def configuration(c, profile, state, prefix='/configuration'):
                     c.add(prefix+'/delivery/batch/'+name,'dbm_selected_chain','REPORT_FLAG_INVALID',
                         'Explicit report flag0/1 required; supported horizons are not disabled',stages=('day',))
             from mta.domain.dbm_report_dates import horizon_days
-            for name in ('DBMNormChangeReportHorizon','NormChangeLogHorizon'):
-                if name in batch and (name == 'DBMNormChangeReportHorizon' or batch.get('ActivateNormChangeLogReport') == 1):
+            for name in ('DBMNormChangeReportHorizon','NormChangeLogHorizon','DailyConsumptionHorizonDBM'):
+                if name in batch and (name != 'NormChangeLogHorizon' or batch.get('ActivateNormChangeLogReport') == 1):
                     c.check(prefix+'/delivery/batch/'+name,'DBM report cutoff',
                         lambda name=name: horizon_days(batch[name]),stages=('day',))
             if 'AutoDBMActive' in batch and (type(batch['AutoDBMActive']) is not int or batch['AutoDBMActive'] not in (0, 1)):
@@ -684,8 +684,9 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                 batch=frame.get('profile',{}).get('delivery',{}).get('batch',{})
                 if isinstance(batch,dict):
                     from mta.domain.dbm_report_dates import horizon_cutoff
-                    for name,inclusive in (('DBMNormChangeReportHorizon',True),('NormChangeLogHorizon',False)):
-                        if name in batch and (inclusive or batch.get('ActivateNormChangeLogReport') == 1):
+                    for name,inclusive in (('DBMNormChangeReportHorizon',True),('NormChangeLogHorizon',False),
+                                           ('DailyConsumptionHorizonDBM',False)):
+                        if name in batch and (name != 'NormChangeLogHorizon' or batch.get('ActivateNormChangeLogReport') == 1):
                             c.check('/profile/delivery/batch/'+name,'DBM report cutoff',
                                 lambda name=name,inclusive=inclusive: horizon_cutoff(day.get('business_date'),batch[name],inclusive=inclusive))
     c.check('/input','production_daily.decode',lambda:decode(raw,sha256))

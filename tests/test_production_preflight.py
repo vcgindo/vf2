@@ -121,7 +121,7 @@ class ProductionPreflightTests(unittest.TestCase):
     def test_configured_dbm_history_horizons_remove_only_selected_horizon_limits(self):
         value=initialized_input()
         value['configuration']['delivery']['batch'].update(DBMNormChangeReportHorizon=30,
-            NormChangeLogHorizon=90,ActivateNormChangeLogReport=1)
+            NormChangeLogHorizon=90,ActivateNormChangeLogReport=1,DailyConsumptionHorizonDBM=365)
         frame=context(value);raw,sha=encoded_day(day_input('2037-04-10',root=True))
         with TemporaryDirectory() as root:
             report=pf.daily(raw,sha,frame=frame,initialization_id=INIT,source_digest=SOURCE,
@@ -135,7 +135,7 @@ class ProductionPreflightTests(unittest.TestCase):
 
     def test_bad_dbm_horizon_cutoffs_are_reported_before_day_execution(self):
         raw,sha=encoded_day(day_input('2037-04-10',root=True))
-        for name in ('DBMNormChangeReportHorizon','NormChangeLogHorizon'):
+        for name in ('DBMNormChangeReportHorizon','NormChangeLogHorizon','DailyConsumptionHorizonDBM'):
             for horizon in (True,'30',-(2**31),2**31-1):
                 with self.subTest(name=name,horizon=horizon),TemporaryDirectory() as root:
                     frame=context();frame['profile']['delivery']['batch'][name]=horizon

@@ -438,7 +438,11 @@ def allocate_spike_pso(
         norm_requirement = _integer(row.norm_requirement, "norm requirement")
         total_requirement = _integer(row.total_requirement, "total requirement")
         normal_rationed = _integer(row.normal_rationed_quantity, "normal rationed quantity")
-        parent_stock = _integer(row.parent_stock, "parent stock")
+        # CollectDataForPSORationing retains signed adjusted stock unless a
+        # normal-ration leftover replaces it. PSORationing only assigns a
+        # positive proportional amount to RawAllocation; negative stock is
+        # carried into the leftover, not an invalid order/demand quantity.
+        parent_stock = _signed_integer(row.parent_stock, "parent stock")
         pack = _integer(row.parent_pack_size, "parent pack size")
         if pack <= ZERO:
             raise ValueError("Parent pack size must be positive")
