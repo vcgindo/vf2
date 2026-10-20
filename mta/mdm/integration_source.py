@@ -308,8 +308,8 @@ def replace_working_inputs(snapshot, prior, day, predecessor):
     root_digest = digest(prior) if predecessor is None else None
     from mta.mdm.force_capture import prepare_working_input as prepare_force
     from mta.mdm.season_capture import prepare_working_input as prepare_season
-    changes = (prepare_force(snapshot, prior, day, predecessor),
-               prepare_season(snapshot, prior, day, predecessor))
+    changes = (prepare_force(snapshot, prior, day, predecessor, opening_digest=root_digest),
+               prepare_season(snapshot, prior, day, predecessor, opening_digest=root_digest))
     for apply in changes:
         if apply is not None:
             apply()

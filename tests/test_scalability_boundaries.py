@@ -3,7 +3,10 @@
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 import hashlib
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
+from copy import deepcopy
+from datetime import date
+from decimal import Decimal
 import json
 import os
 from pathlib import Path
@@ -32,6 +35,112 @@ def owner():
 
 
 class ScalabilityBoundaryTests(unittest.TestCase):
+    def test_native_root_preparation_preserves_full_wire_and_working_isolation(self):
+        from mta.runtime.temporal import prepare_native_opening
+        from mta.serialization import storage, digest
+        initialized = owner()
+        initialized.source = SimpleNamespace(pk=3, digest='source')
+        frame = dict(profile={'rule': Decimal('1.20')}, opening=dict(identity='root',
+            opening_date='2026-04-07', state={'rows': [dict(code='a', value=None),
+                dict(code='a', value=Decimal('2.00'), when=date(2026, 4, 7))]}))
+        wire = storage(frame)
+        _, (initial, prior, opening_date, lineage) = prepare_native_opening(
+            initialized, frame, wire['profile'], deepcopy(frame['opening']), None)
+        self.assertEqual(initial, wire['opening'])
+        self.assertEqual(prior, wire['opening']['state'])
+        self.assertEqual(opening_date, '2026-04-07')
+        self.assertEqual(lineage['opening_digest'], digest(wire['opening']))
+        prior['rows'][0]['value'] = 7
+        self.assertIsNone(initial['state']['rows'][0]['value'])
+        self.assertIsNone(frame['opening']['state']['rows'][0]['value'])
+        changed = deepcopy(frame['opening'])
+        changed['state']['rows'].reverse()
+        with self.assertRaisesRegex(ValueError, 'initial opening differs'):
+            prepare_native_opening(initialized, frame, wire['profile'], changed, None)
+
+    def test_locked_native_seal_drift_stops_before_consumers_or_capture(self):
+        from mta.runtime import temporal
+        from mta.mdm import production_families, initialization
+        from mta.runtime.models import ProductionInitialization
+        initialized = owner()
+        initialized.source = SimpleNamespace(pk=3, digest='source')
+        changed = deepcopy(initialized)
+        changed.receipt_digest = 'another-seal'
+        profile = {'delivery': {'site_code': 'test'},
+                   'complete_pick': {'policy': 'canonical-tied-order-v1'}}
+        frame = dict(profile=profile, opening=dict(identity='root', opening_date='2026-04-07', state={}))
+        locked = MagicMock()
+        locked.select_related.return_value.get.return_value = changed
+        with patch.object(temporal.transaction, 'get_autocommit', return_value=True), \
+                patch.object(temporal.transaction, 'atomic', side_effect=lambda: nullcontext()), \
+                patch.object(temporal, 'connection'), \
+                patch('mta.mdm.supplier_revisions.source_lock', side_effect=lambda key: nullcontext()), \
+                patch('mta.application.daily_finalization.configuration', return_value={'policy': 'native'}), \
+                patch.object(temporal, 'resolved_pick_root', return_value='pick'), \
+                patch.object(production_families, 'prepare_opening', return_value=initialized), \
+                patch.object(production_families, 'require_initialization') as admission, \
+                patch.object(initialization, 'read_initialized_input', return_value=frame), \
+                patch.object(ProductionInitialization.objects, 'select_for_update', return_value=locked), \
+                patch('mta.runtime.production_daily.initialize_consumers') as consumers, \
+                patch.object(temporal.CalculationRun.objects, 'create') as create:
+            with self.assertRaisesRegex(ValueError, 'changed after immutable opening preparation'):
+                temporal.execute_day(day={'business_date': '2026-04-08'}, profile=profile,
+                    execution_revision='seal-drift-proof', opening=frame['opening'],
+                    production_initialization=initialized, mdm_source=initialized.source,
+                    daily_input_sha256='a'*64, pick_output_root='pick')
+        admission.assert_not_called()
+        consumers.assert_not_called()
+        create.assert_not_called()
+
+    def test_live_owner_comparison_preserves_nulls_duplicate_count_and_order(self):
+        from mta.mdm.production_families import _same_bags
+        expected = {'enabled': '1', 'rows': [dict(code='a', qty=None),
+            dict(code='a', qty=Decimal('1.00')), dict(code='a', qty=Decimal('1.00'))]}
+        def observed(rows):
+            return {'enabled': '1', 'rows': (row for row in rows)}
+        self.assertTrue(_same_bags(observed(expected['rows']), expected))
+        self.assertFalse(_same_bags(observed(expected['rows'][:-1]), expected))
+        self.assertFalse(_same_bags(observed(expected['rows'][::-1]), expected))
+        changed = deepcopy(expected['rows'])
+        changed[0]['qty'] = 0
+        self.assertFalse(_same_bags(observed(changed), expected))
+        self.assertFalse(_same_bags({'rows': iter(expected['rows'])}, expected))
+
+    def test_combined_family_anchors_hash_actual_unmodified_root_once(self):
+        from mta.mdm import integration_source
+        from mta.serialization import digest
+        prior = {'rows': [{'value': None}, {'value': 0}, {'value': 0}]}
+        before = deepcopy(prior)
+        captured = []
+        def prepare(snapshot, actual, day, predecessor, *, opening_digest):
+            self.assertEqual(actual, before)
+            captured.append(opening_digest)
+            return lambda: actual['rows'].append({'value': 'applied'})
+        with patch.object(integration_source, 'digest', wraps=digest) as root_hash, \
+                patch('mta.mdm.force_capture.prepare_working_input', side_effect=prepare), \
+                patch('mta.mdm.season_capture.prepare_working_input', side_effect=prepare), \
+                patch('mta.mdm.stop_pipo_capture.replace_working_input'), \
+                patch('mta.mdm.phase_controls_capture.replace_working_input'):
+            integration_source.replace_working_inputs({}, prior, {}, None)
+        self.assertEqual(root_hash.call_count, 1)
+        self.assertEqual(captured, [digest(before), digest(before)])
+        self.assertEqual(len(prior['rows']), 5)
+
+    def test_capture_model_batches_preserve_all_occurrences_in_bounded_order(self):
+        from mta.mdm.daily_input import _create_capture_rows
+        batches, observed = [], []
+        model = MagicMock()
+        model.side_effect = lambda **value: SimpleNamespace(**value)
+        def insert(batch, **kwargs):
+            self.assertEqual(kwargs['batch_size'], 500)
+            batches.append(len(batch))
+            observed.extend((row.ordinal, row.value) for row in batch)
+        model.objects.bulk_create.side_effect = insert
+        _create_capture_rows(model, (model(ordinal=i, value=None if i % 3 else 0)
+            for i in range(1001)))
+        self.assertEqual(batches, [500, 500, 1])
+        self.assertEqual(observed, [(i, None if i % 3 else 0) for i in range(1001)])
+
     def test_opening_cache_is_operation_identity_and_failure_scoped(self):
         source = owner()
         build = MagicMock(side_effect=lambda: object())

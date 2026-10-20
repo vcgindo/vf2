@@ -45,7 +45,7 @@ def replace_working_input(snapshot, prior, day, predecessor):
         apply()
 
 
-def prepare_working_input(snapshot, prior, day, predecessor):
+def prepare_working_input(snapshot, prior, day, predecessor, *, opening_digest=None):
     if 'season' not in snapshot:
         return
     frozen = snapshot['season']
@@ -54,7 +54,8 @@ def prepare_working_input(snapshot, prior, day, predecessor):
     a = frozen['anchor']
     if (a['run_id'] != (str(predecessor.pk) if predecessor else None)
             or a['output_digest'] != (predecessor.output_digest if predecessor else '')
-            or predecessor is None and digest(prior) != a['root_state_digest']
+            or predecessor is None and (digest(prior) if opening_digest is None else opening_digest)
+                != a['root_state_digest']
             or digest(prior['control_aux']['season_requests']) != a['queue_digest']
             or digest(prior['dbm']['Seasonality']) != a['current_digest']):
         raise ValueError('Seasonality does not descend from its selected opening/predecessor')

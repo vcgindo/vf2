@@ -53,22 +53,34 @@ def capture(source):
 def location_master(location_rows):
     """NMSImportData LocationMaster FULL JOIN plus approved description UPDATE."""
     descriptions = location_rows['descriptions']; approved = location_rows['approved']
-    equal = lambda a, b: a is not None and b is not None and sql_key(a) == sql_key(b)
+    approved_by_key, updates_by_key = {}, {}
+    for right in approved:
+        if right['WHCode'] is not None:
+            key = sql_key(right['WHCode'])
+            approved_by_key.setdefault(key, []).append(right)
+            if right['Approved'] and right['ActionType'] == 1:
+                updates_by_key.setdefault(key, []).append(right['WHDescription'])
+    description_keys = {sql_key(left['WHCode']) for left in descriptions if left['WHCode'] is not None}
     rows = []
     for left in descriptions:
-        matches = [r for r in approved if equal(left['WHCode'], r['WHCode'])] or [None]
+        matches = approved_by_key.get(sql_key(left['WHCode']), ()) or [None]
         for right in matches:
             rows.append(dict(WHCode=left['WHCode'], WHDescription=left['WHDescription']
                 if left['WHDescription'] is not None else right['WHDescription'] if right else None))
     rows.extend(dict(WHCode=r['WHCode'], WHDescription=r['WHDescription']) for r in approved
-                if not any(equal(r['WHCode'], left['WHCode']) for left in descriptions))
+                if r['WHCode'] is None or sql_key(r['WHCode']) not in description_keys)
+    resolved_updates = {}
     for row in rows:
-        values = [r['WHDescription'] for r in approved if r['Approved'] and r['ActionType'] == 1
-                  and equal(row['WHCode'], r['WHCode'])]
+        key = sql_key(row['WHCode'])
+        if key in resolved_updates:
+            row['WHDescription'] = resolved_updates[key]
+            continue
+        values = updates_by_key.get(key, ())
         if values:
             if any(value != values[0] for value in values[1:]):
                 raise ValueError('SOURCE_ORDER_AMBIGUITY: supplier LocationMaster UPDATE')
             row['WHDescription'] = values[0]
+            resolved_updates[key] = values[0]
     return rows
 
 

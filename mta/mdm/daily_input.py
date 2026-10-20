@@ -516,7 +516,58 @@ def _lock_completion_candidates(snapshot, capture, *, deferred_tasks=()):
     return locked
 
 
+class _UniqueRows:
+    """Index candidates once; validate duplicate values only when consumed."""
+
+    def __init__(self, rows, fields):
+        self.fields = fields
+        self.by_key = {}
+        self.resolved = {}
+        for row in rows:
+            key = tuple(sql_key(row.get(field)) for field in fields)
+            self.by_key.setdefault(key, []).append(row)
+
+    def unique(self, keys, label):
+        key = tuple(sql_key(keys[field]) for field in self.fields)
+        if key not in self.resolved:
+            candidates = self.by_key.get(key, ())
+            projection = _unique(candidates, keys, label)
+            # Keep only the validated source reference. Clean projections are
+            # short-lived consumer values, not a second full attribute image.
+            self.resolved[key] = candidates[0] if projection is not None else None
+            return projection
+        source = self.resolved[key]
+        return {k: v for k, v in source.items() if k != 'id'} if source is not None else None
+
+
+class _DistinctRows:
+    """Stable exact projected-row DISTINCT, with list equality as fallback."""
+
+    def __init__(self, fields):
+        self.fields = fields
+        self.rows = []
+        self.seen = set()
+        self.unhashable = []
+
+    def append(self, row):
+        # All projections have the same complete fields. Omit their shared
+        # NULLs from the lookup key, preserving raw values and Python equality.
+        key = tuple((field, row[field]) for field in self.fields if row[field] is not None)
+        try:
+            hash(key)
+        except TypeError:
+            if row not in self.rows:
+                self.rows.append(row)
+                self.unhashable.append(row)
+        else:
+            if key not in self.seen and row not in self.unhashable:
+                self.seen.add(key)
+                self.rows.append(row)
+
+
 def _unique(rows, keys, label):
+    if isinstance(rows, _UniqueRows):
+        return rows.unique(keys, label)
     matches = [row for row in rows if all(sql_key(row.get(k)) == sql_key(v)
                                          for k, v in keys.items())]
     clean = [{k: v for k, v in row.items() if k != 'id'} for row in matches]
@@ -572,13 +623,13 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
         result.append(row)
 
     sku_codes = {sql_key(row.get('SKUCode')) for row in result}
-    additions = []
+    distinct_additions = _DistinctRows(master_columns)
     for staged in rows['sku']['descriptions']:
         if sql_key(staged['SKUCode']) not in sku_codes:
             row = {**blank(), 'SKUCode': staged['SKUCode'],
                    'SKUDescription': staged['SKUDescription']}
-            if row not in additions: additions.append(row)  # SELECT DISTINCT
-    result.extend(additions)
+            distinct_additions.append(row)  # SELECT DISTINCT
+    result.extend(distinct_additions.rows)
     location_codes = {sql_key(row.get('WhCode')) for row in result}
     additions = []
     for staged in rows['location']['descriptions']:
@@ -589,13 +640,13 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
     result.extend(additions)
 
     sku_codes = {sql_key(row.get('SKUCode')) for row in result}
-    additions = []
+    distinct_additions = _DistinctRows(master_columns)
     for staged in rows['sku']['approved']:
         if staged['Approved'] and staged['ActionType'] == 1 and sql_key(staged['SKUCode']) not in sku_codes:
             row = {**blank(), **{k: staged[k] for k in ('SKUCode', 'SKUDescription',
                 'ElephantOrderCapping', 'Weight', 'Volume', *('SL%d' % i for i in range(1, 6)))}}
-            if row not in additions: additions.append(row)  # SELECT DISTINCT
-    result.extend(additions)
+            distinct_additions.append(row)  # SELECT DISTINCT
+    result.extend(distinct_additions.rows)
     location_codes = {sql_key(row.get('WhCode')) for row in result}
     for staged in rows['location']['approved']:  # native statement has no DISTINCT
         if staged['Approved'] and staged['ActionType'] == 1 and sql_key(staged['WHCode']) not in location_codes:
@@ -614,12 +665,15 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
     result = [r for r in result if pair(r) not in removed_pairs]
 
     sku_overlay = [r for r in rows['sku']['approved'] if r['Approved'] and r['ActionType'] == 1]
+    sku_attributes = _UniqueRows(rows['sku']['attributes'], ('SKUCode',))
+    sku_descriptions = _UniqueRows(rows['sku']['descriptions'], ('SKUCode',))
+    sku_approved = _UniqueRows(sku_overlay, ('SKUCode',))
     for row in result:
         if row.get('SKUCode') is None: continue
         key = {'SKUCode': row['SKUCode']}
-        attr = _unique(rows['sku']['attributes'], key, 'SKU')
-        desc = _unique(rows['sku']['descriptions'], key, 'SKU')
-        approved = _unique(sku_overlay, key, 'SKU')
+        attr = _unique(sku_attributes, key, 'SKU')
+        desc = _unique(sku_descriptions, key, 'SKU')
+        approved = _unique(sku_approved, key, 'SKU')
         for name in SKU_FIELDS:
             target = 'SKUAtt' + name[1:].zfill(2) if name.startswith('c') else name
             if approved is not None: row[target] = approved[name]
@@ -630,12 +684,15 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
     location_overlay = [r for r in rows['location']['approved'] if r['Approved'] and r['ActionType'] == 1]
     location_master = {sql_key(r['WHCode']) for r in
                        (*rows['location']['descriptions'], *rows['location']['approved'])}
+    location_attributes = _UniqueRows(rows['location']['attributes'], ('WHCode',))
+    location_descriptions = _UniqueRows(rows['location']['descriptions'], ('WHCode',))
+    location_approved = _UniqueRows(location_overlay, ('WHCode',))
     for row in result:
         if row.get('WhCode') is None or sql_key(row['WhCode']) not in location_master: continue
         key = {'WHCode': row['WhCode']}
-        attr = _unique(rows['location']['attributes'], key, 'Location')
-        desc = _unique(rows['location']['descriptions'], key, 'Location')
-        approved = _unique(location_overlay, key, 'Location')
+        attr = _unique(location_attributes, key, 'Location')
+        desc = _unique(location_descriptions, key, 'Location')
+        approved = _unique(location_approved, key, 'Location')
         for name in LOCATION_FIELDS:
             target = 'LocAtt' + name[1:].zfill(2) if name.startswith('c') else name
             if approved is not None: row[target] = approved[name]
@@ -643,6 +700,9 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
             elif attr is not None: row[target] = attr[name]
 
     pair_modify = [r for r in rows['skuloc']['modifications'] if r['Approved']]
+    pair_attributes = _UniqueRows(rows['skuloc']['attributes'], ('SKUCode', 'LocCode'))
+    pair_additions = _UniqueRows(pair_adds, ('SKUCode', 'WhCode'))
+    pair_modifications = _UniqueRows(pair_modify, ('SKUCode', 'WhCode'))
     core = ('ParentWhCode', 'MinNorm', 'RLT', 'RCP', 'GCP', 'OCP', 'MinOrderCount')
     pair_core = {}
     for row in result:
@@ -655,9 +715,9 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
     for row in result:
         if None in pair(row): continue
         keys = {'SKUCode': row['SKUCode'], 'LocCode': row['WhCode']}
-        attr = _unique(rows['skuloc']['attributes'], keys, 'SKU-location')
-        added = _unique(pair_adds, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
-        modified = _unique(pair_modify, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
+        attr = _unique(pair_attributes, keys, 'SKU-location')
+        added = _unique(pair_additions, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
+        modified = _unique(pair_modifications, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
         if attr is not None:
             for name in ('PackSize', 'SpikeThreshold', 'PSOThreshold', 'FGRMFlag',
                          'StockPercentForRationing', 'NormPercentReservation'):
@@ -687,13 +747,21 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
         parent_row = None
         if parent is not None and sql_key(parent) in location_master:
             key = {'WHCode': parent}
-            description = _unique(rows['location']['descriptions'], key, 'Location')
-            approved = _unique(location_overlay, key, 'Location')
+            description = _unique(location_descriptions, key, 'Location')
+            approved = _unique(location_approved, key, 'Location')
             parent_row = approved if approved is not None else description
         row['ParentDescription'] = (parent_row['WHDescription']
                                     if parent_row is not None and parent_row.get('WHDescription') is not None
                                     else 'ND')
     return result
+
+
+def _create_capture_rows(model, records):
+    """Retain only one bounded model batch inside the caller's atomic writer."""
+    from itertools import islice
+    records = iter(records)
+    while batch := list(islice(records, 500)):
+        model.objects.bulk_create(batch, batch_size=500)
 
 
 def bind_capture(run, snapshot, *, request_digest, origin=None):
@@ -707,19 +775,19 @@ def bind_capture(run, snapshot, *, request_digest, origin=None):
         sku_revision_digest=snapshot['revision_digests']['sku'],
         location_revision_digest=snapshot['revision_digests']['location'],
         skuloc_revision_digest=snapshot['revision_digests']['skuloc'])
-    MdmDailyInputOccurrence.objects.bulk_create([MdmDailyInputOccurrence(
-        capture=capture, **row) for row in snapshot['occurrences']])
-    MdmDailyInputTask.objects.bulk_create([MdmDailyInputTask(capture=capture,
+    _create_capture_rows(MdmDailyInputOccurrence, (MdmDailyInputOccurrence(
+        capture=capture, **row) for row in snapshot['occurrences']))
+    _create_capture_rows(MdmDailyInputTask, (MdmDailyInputTask(capture=capture,
         family=row['family'], task_id=row['task_id'], task_pk=row['task_pk'],
         subtask_pk=row['subtask_pk'], action_type=row['action_type'],
         prior_subtask_status=row['subtask_status'], task_digest=row['task_digest'],
-        history_digest=row['history_digest']) for row in snapshot['tasks']])
-    MdmDailyInputHistory.objects.bulk_create([MdmDailyInputHistory(capture=capture,
-        **row) for row in snapshot['history_transitions']])
-    MdmDailyPairExclusion.objects.bulk_create([MdmDailyPairExclusion(
+        history_digest=row['history_digest']) for row in snapshot['tasks']))
+    _create_capture_rows(MdmDailyInputHistory, (MdmDailyInputHistory(capture=capture,
+        **row) for row in snapshot['history_transitions']))
+    _create_capture_rows(MdmDailyPairExclusion, (MdmDailyPairExclusion(
         capture=capture, ordinal=ordinal, SKUCode=row.get('SKUCode'),
         WhCode=row.get('WhCode'))
-        for ordinal, row in enumerate(snapshot['pair_exclusions'], 1)])
+        for ordinal, row in enumerate(snapshot['pair_exclusions'], 1)))
     return capture
 
 

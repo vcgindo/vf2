@@ -41,6 +41,39 @@ future volumes. No timeout or resource increase is introduced. Native phase
 logs distinguish input capture, calculation, atomic commit and reporting; no
 guessed overhead subtraction or linear extrapolation is allowed.
 
+### Complete capture-path follow-up
+
+The first corrected image completed full initialization in 2,527.618 seconds
+(peak process RSS 3,538,034,688 bytes) and daily CSV admission in 454.776 seconds
+(peak RSS 1,494,384,640 bytes). Its ordinary execution then reached native
+preflight/bootstrap in 514.543 seconds but again lost the PostgreSQL session to
+the unchanged 300-second idle-in-transaction limit. The exact worker was stopped
+after that observed database failure; it was not OOM. Read-only reconciliation
+found one initialization and zero calculation runs or captures. This is not a
+completed-day result.
+
+The remaining capture composition performed full attribute scans per master.
+Ordered key indexes now preserve lazy ambiguity checks, exact duplicate values,
+NULL behavior and source order. Stable full-row DISTINCT preserves first
+occurrences. Supplier location/description joins also use ordered indexes.
+Validated source references are retained instead of another cleaned row image.
+Complete root comparison/copying is prepared before the transaction and bound
+to the refreshed locked initialization/source seal; live admission still runs
+inside the snapshot. Family overlays share one hash of the actual unmodified
+working state, complete live owner rows compare incrementally, and capture
+models are constructed in batches of 500. No timeout, formula, input, schema,
+frontend or MTO change is included.
+
+The affected consolidated suite passed 225 tests with one existing optional
+integration skip; focused follow-up passed 56 tests. Legacy component test
+mocks were updated for the existing typed-production input and server cursor
+contracts, retaining their producer/consumption/carry assertions. Differential
+tests compare complete old/new composition outcomes or exact errors, including
+NULLs, duplicates, normalized codes and unused ambiguous keys. Scan-count tests
+show linear indexed lookup growth rather than per-master population scans.
+New packaged full-day verification remains pending; these checks do not prove
+arbitrary future capacity or a completed performance benchmark.
+
 ## Workload
 
 The requested case contains **97,097 distinct SKU/location master pairs**, 2,189 SKUs and 235 catalogue locations. One unused untyped catalogue location is excluded from the calculation configuration, which contains 234 locations. The opening is 7 April 2026; the single synthetic CSV business date is 8 April. There is **no imported historical BPR, DBM or BTR population**. The 10,256 outstanding orders are current opening facts.

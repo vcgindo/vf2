@@ -29,6 +29,17 @@ def opening_operation(function):
     return run
 
 
+def sealed_identity(owner):
+    """Bind prepared immutable material to the complete refreshed DB seal."""
+    from django.db import connections
+    alias = getattr(getattr(owner, '_state', None), 'db', None) or 'default'
+    database = connections[alias].settings_dict
+    return (alias, database.get('HOST'), database.get('PORT'), database.get('NAME'),
+            owner.pk, owner.source_id, owner.input_digest, owner.input_manifest_digest,
+            owner.receipt_digest, owner.configuration_digest, owner.recipe_sha256,
+            owner.implementation_digest, owner.input_sha256)
+
+
 def immutable(owner, name, build):
     """Only sealed rows/derived facts; source, queues and admissions stay live.
 
@@ -39,13 +50,7 @@ def immutable(owner, name, build):
     cache = _current.get()
     if cache is None:
         return build()
-    from django.db import connections
-    alias = getattr(getattr(owner, '_state', None), 'db', None) or 'default'
-    database = connections[alias].settings_dict
-    key = (name, alias, database.get('HOST'), database.get('PORT'), database.get('NAME'),
-           owner.pk, owner.source_id, owner.input_digest, owner.input_manifest_digest,
-           owner.receipt_digest, owner.configuration_digest, owner.recipe_sha256,
-           owner.implementation_digest, owner.input_sha256)
+    key = (name, *sealed_identity(owner))
     if key not in cache:
         # Store only successful results, and only a bounded number of openings.
         value = build()

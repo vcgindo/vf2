@@ -106,13 +106,15 @@ class CoupledDailyTests(unittest.TestCase):
                     if r['ScriptName']=='GenerateBPR.sql')['IsScriptExecuted']=False
                 output['Lineage'][0]['cohort1']['flag_digest']=digest(output['ClosingState'][0]['complete']['ScriptExecutedFlag'])
             run=SimpleNamespace(pk='component',status='RUNNING',kind='DAILY_CHAIN',checkpoints=MagicMock(),
-                input_payload={},input_digest=digest(frozen),business_date=date(2037,4,10))
+                input_payload={'schema':'fresh-daily-input-manifest-v2'}, evidence_mode='production',
+                production_manifest={}, input_digest=digest(frozen),business_date=date(2037,4,10))
             run.checkpoints.exists.return_value=False
             with self.subTest(case=case), \
                     patch('mta.runtime.services.transaction.atomic',return_value=nullcontext()), \
                     patch('mta.runtime.services.CalculationRun.objects') as runs, \
                     patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
                     patch('mta.runtime.services.read_input',return_value=frozen), \
+                    patch('mta.runtime.receipt_integrity.audit_input'), \
                     patch('mta.mdm.daily_input.finalize_consumption',side_effect=lambda *a,**k:events.append('consume')), \
                     patch('mta.mdm.daily_current.publish',side_effect=publish), \
                     patch('mta.runtime.relational_state.save_daily',side_effect=stop_before_storage):
@@ -171,7 +173,7 @@ class CoupledDailyTests(unittest.TestCase):
                     with patch.object(typed,'bulk',side_effect=lambda sql,values:records.extend(values)):
                         meta=typed.save_image(run,path,path,closing[section][name])
                     cursor=MagicMock();cursor.fetchmany.side_effect=[[tuple(r[2:]) for r in records],[]]
-                    with patch.object(typed.connection,'cursor') as context:
+                    with patch.object(typed.connection,'chunked_cursor') as context:
                         context.return_value.__enter__.return_value=cursor
                         own[section][name]=typed.load_image(run,meta)
                     self.assertEqual(own[section][name],closing[section][name])

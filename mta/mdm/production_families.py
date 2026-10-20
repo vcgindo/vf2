@@ -165,13 +165,31 @@ def _create_rows(model, source, rows, *, ordinal=False, mapping=None):
 def _read_rows(model, source, *, ordinal=False, mapping=None):
     names = _fields(model)
     ordering = 'ordinal' if ordinal else 'id'
-    result = list(model.objects.filter(source=source).order_by(ordering).values(*names))
-    if model.__name__ == 'MdmForceUploadLog':
-        from mta.mdm.force_capture import native_log
-        result = [native_log(row) for row in result]
-    if mapping:
-        result = [{mapping.get(name, name): row[name] for name in names} for row in result]
-    return storage(result)
+    rows = model.objects.filter(source=source).order_by(ordering).values(*names)
+    for row in rows.iterator(chunk_size=500):
+        if model.__name__ == 'MdmForceUploadLog':
+            from mta.mdm.force_capture import native_log
+            row = native_log(row)
+        if mapping:
+            row = {mapping.get(name, name): row[name] for name in names}
+        yield storage(row)
+
+
+def _same_bags(actual, expected):
+    """Compare every live value/occurrence in order without whole-table copies."""
+    from itertools import zip_longest
+    from mta.row_sequences import RecordRows
+    if actual.keys() != expected.keys():
+        return False
+    missing = object()
+    for name, value in expected.items():
+        if isinstance(value, (list, tuple, RecordRows)):
+            for observed, wanted in zip_longest(actual[name], value, fillvalue=missing):
+                if observed is missing or wanted is missing or storage(observed) != storage(wanted):
+                    return False
+        elif storage(actual[name]) != storage(value):
+            return False
+    return True
 
 
 def _provenance(initialization, family, bags):
@@ -260,7 +278,7 @@ def _verify_owner(source, owner, family, initialization, frame, bags, unchanged_
             or owner.receipt_digest != digest(expected)
             or hasattr(owner, 'root_state_digest')
             and owner.root_state_digest != immutable(initialization, 'root-digest', lambda: digest(frame['opening']['state']))
-            or unchanged_opening and storage(_actual(source, family)) != storage(bags[family])):
+            or unchanged_opening and not _same_bags(_actual(source, family), bags[family])):
         raise ValueError('Native MDM '+family+' opening owner differs')
     rows = list(MdmFamilySource.objects.filter(source=source,
         master_id__in=GROUPS[family]).order_by('master_id'))

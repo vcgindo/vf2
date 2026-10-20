@@ -38,6 +38,7 @@ def compose_supplier_inputs(raw, queues, *, moq_format, locations):
         key = _key(row['WHCode'])
         if key is not None:
             descriptions.setdefault(key, []).append(row['WHDescription'])
+    resolved_descriptions = {}
     for raw_name, queue_name, scalar, destination in selected:
         eligible = [row for row in queues[queue_name] if row['Approved'] == 1]
         deleted = {_identity(row, destination, queue=True) for row in eligible}
@@ -55,11 +56,14 @@ def compose_supplier_inputs(raw, queues, *, moq_format, locations):
                 item['WHCode'] = row['WhCode']
             rows.append(item)
         for row in rows:
-            matches = descriptions.get(_key(row['SupplierCode']), [None])
-            values = ['ND' if value is None else value for value in matches]
-            if any(value != values[0] for value in values[1:]):
-                raise ValueError('SOURCE_ORDER_AMBIGUITY: supplier description UPDATE')
-            row['SupplierDescription'] = values[0]
+            key = _key(row['SupplierCode'])
+            if key not in resolved_descriptions:
+                matches = descriptions.get(key, (None,))
+                values = ['ND' if value is None else value for value in matches]
+                if any(value != values[0] for value in values[1:]):
+                    raise ValueError('SOURCE_ORDER_AMBIGUITY: supplier description UPDATE')
+                resolved_descriptions[key] = values[0]
+            row['SupplierDescription'] = resolved_descriptions[key]
         result[raw_name] = rows
     return result
 

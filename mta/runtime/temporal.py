@@ -19,7 +19,7 @@ from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
 from mta.runtime.input_reader import read_input
-from mta.runtime.opening_scope import opening_operation, release_opening
+from mta.runtime.opening_scope import opening_operation, release_opening, sealed_identity
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
@@ -30,6 +30,28 @@ logger = logging.getLogger(__name__)
 def resolved_pick_root(value):
     from pathlib import Path
     return str(Path(value).resolve(strict=True))
+
+
+def prepare_native_opening(owner, frame, profile, opening, predecessor):
+    """Do complete immutable root copying/comparison before the writer snapshot.
+
+    The caller must compare this exact seal with the locked initialization and
+    still perform its live source/admission checks inside the transaction.
+    """
+    identity = (sealed_identity(owner), owner.source.digest)
+    if storage(frame['profile']) != profile:
+        raise ValueError('Native daily configuration differs from its initialization')
+    if predecessor is not None:
+        return identity, None
+    initial = storage(opening)
+    # The ordinary native entry already passes this very immutable opening.
+    # Other callers retain the complete normalized value comparison.
+    if opening is not frame['opening'] and initial != storage(frame['opening']):
+        raise ValueError('Native initial opening differs from its typed initialization')
+    if not isinstance(initial.get('identity'), str) or not initial['identity']:
+        raise ValueError('Explicit initial timeline identity required')
+    return identity, (initial, deepcopy(initial['state']), initial['opening_date'],
+        dict(opening_identity=initial['identity'], opening_digest=digest(initial)))
 
 
 def request_input(*, day, profile, initial, lineage, report_exceptions=None,
@@ -198,6 +220,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             raise ValueError('Exact native report disposition requires a frozen native retry')
     if 'native_upload_audit' in profile and not native:
         raise ValueError('Native upload audit requires production initialization')
+    prepared_root = None
     if native:
         from mta.mdm.initialization_contract import sha
         sha(daily_input_sha256, 'native daily input')
@@ -237,8 +260,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         # checked inside the capture snapshot below.
         from mta.mdm.production_families import prepare_opening
         from mta.mdm.initialization import read_initialized_input
-        prepare_opening(production_initialization.source)
-        read_initialized_input(production_initialization)
+        prepared_owner = prepare_opening(production_initialization.source)
+        prepared_frame = read_initialized_input(prepared_owner)
+        prepared_seal, prepared_root = prepare_native_opening(
+            prepared_owner, prepared_frame, profile, opening, predecessor)
+        del prepared_frame, prepared_owner
     # Acquire before REPEATABLE READ establishes its first snapshot, including
     # before any source FK/header locks. Release after freezing, not calculation.
     with source_lock(supplier_lock_source), transaction.atomic():
@@ -254,18 +280,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             from mta.mdm.production_families import require_initialization
             initialized = ProductionInitialization.objects.select_for_update().select_related('source').get(
                 pk=production_initialization.pk)
+            if (sealed_identity(initialized), initialized.source.digest) != prepared_seal:
+                raise ValueError('Native initialization changed after immutable opening preparation')
             require_initialization(initialized.source)
-            initialized_frame = read_initialized_input(initialized)
             if mdm_source is not None and mdm_source.pk != initialized.source_id:
                 raise ValueError('Native daily source differs from its initialization')
             if mdm_retry is not None and supplier_lock_source != initialized.source_id:
                 raise ValueError('Native retry source differs from its initialization')
             if mdm_source is None and mdm_retry is None:
                 raise ValueError('Native daily execution requires its owned MDM source/capture')
-            if storage(initialized_frame['profile']) != profile:
-                raise ValueError('Native daily configuration differs from its initialization')
-            if predecessor is None and storage(opening) != storage(initialized_frame['opening']):
-                raise ValueError('Native initial opening differs from its typed initialization')
             initialization_binding = dict(id=str(initialized.pk), source_digest=initialized.source.digest,
                 input_sha256=initialized.input_sha256, content_digest=initialized.input_digest,
                 configuration_digest=initialized.configuration_digest)
@@ -319,6 +342,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             opening_date=parent.business_date.isoformat()
             lineage=dict(run_id=str(parent.pk),output_digest=parent.output_digest,commands=commands)
             initial=None
+        elif prepared_root is not None:
+            initial, prior, opening_date, lineage = prepared_root
+            if date.fromisoformat(opening_date)>=today:raise ValueError('Opening must precede current facts')
         else:
             initial=storage(opening)
             if not isinstance(initial.get('identity'),str) or not initial['identity']:

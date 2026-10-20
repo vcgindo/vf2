@@ -60,7 +60,7 @@ def replace_working_input(snapshot, prior, day, predecessor):
         apply()
 
 
-def prepare_working_input(snapshot, prior, day, predecessor):
+def prepare_working_input(snapshot, prior, day, predecessor, *, opening_digest=None):
     """Validate the unmodified opening before any combined family overlay."""
     if 'force' not in snapshot:
         return
@@ -71,7 +71,8 @@ def prepare_working_input(snapshot, prior, day, predecessor):
     expected_id = str(predecessor.pk) if predecessor else None
     expected_digest = predecessor.output_digest if predecessor else ''
     if (anchor['run_id'] != expected_id or anchor['output_digest'] != expected_digest
-            or predecessor is None and digest(prior) != anchor['root_state_digest']
+            or predecessor is None and (digest(prior) if opening_digest is None else opening_digest)
+                != anchor['root_state_digest']
             or digest(prior['importer']['ForceNormChange']) != anchor['queue_digest']
             or digest(prior['controls']['upload_log']) != anchor['log_digest']):
         raise ValueError('Force source does not descend from selected opening/predecessor')
