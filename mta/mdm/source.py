@@ -27,6 +27,11 @@ def source(*, read_only=False):
     digest = settings.VF_MDM_SOURCE_DIGEST
     if not digest:
         raise PublicationUnavailable('mdm_source_not_selected')
+    if read_only:
+        from mta.runtime.ingestion_admission import certified_source
+        certified = certified_source(digest)
+        if certified is not None:
+            return certified
     result = MdmSource.objects.filter(digest=digest).first()
     if result is None:
         raise PublicationUnavailable('mdm_source_not_installed')

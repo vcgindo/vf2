@@ -364,6 +364,10 @@ def _read_execution_identity(seal):
 
 @once_per_request
 def require_binding(source, *, read_only=False):
+    if read_only:
+        from mta.runtime.ingestion_admission import certified_source
+        if certified_source(source.digest) is not None:
+            return MdmSourceIntegration.objects.get(source=source)
     initialization, frame = _verified_initialization(source)
     _, bags = _expected(initialization, frame=frame)
     unchanged_opening = not MdmDailyInputCapture.objects.filter(source=source).exists()

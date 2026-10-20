@@ -1303,6 +1303,9 @@ from mta.runtime.planning_summary_models import (PlanningSummaryReceipt,
     PlanningSummaryContribution, PlanningSummaryAttempt)
 
 from mta.runtime.initialization_models import ProductionInitialization
+from mta.runtime.ingestion_models import (
+    InitializationCertification, MasterInputRevision, IngestionReleaseCompatibility,
+    IngestionRevisionState)
 from mta.runtime.daily_feed_models import DailyFeedAttempt
 
 from mta.runtime.mdm_projection_models import MdmClosingProjectionReceipt

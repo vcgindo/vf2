@@ -633,7 +633,9 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
         _reject('application function identity is ambiguous')
     for name,func in functions.items():
         expected_owner = registrar if name.startswith('fresh_control.') else owner
-        if func['security_definer'] or func['owner']!=expected_owner or not name.startswith(('mta.','fresh_control.')):
+        from mta.runtime.ingestion_ownership import is_revision_guard
+        if ((func['security_definer'] and not is_revision_guard(func))
+                or func['owner']!=expected_owner or not name.startswith(('mta.','fresh_control.'))):
             _reject('application function authority differs')
     if not APPLICATION_FUNCTIONS <= functions.keys():
         _reject('application helper function is absent')
@@ -950,7 +952,15 @@ def _check_logistics_schema(cursor, catalogue, registration):
     if not LOGISTICS_FUNCTIONS <= {f['name'] for f in catalogue['functions']}:
         _reject('logistics guard function absent')
     tables=[name.split('.')[1] for name in LOGISTICS_TABLES]+['fresh_mta_dailyrequestowner','fresh_mta_dailyopenrequest']
+    revision_enabled = any(f['name']=='mta.ingestion_watch()' for f in catalogue['functions'])
+    if revision_enabled:
+        from mta.runtime.ingestion_ownership import require_guard_coverage
+        require_guard_coverage(cursor)
     cursor.execute("SELECT r.relname,t.tgname,t.tgtype,t.tgenabled,t.tgqual::text,t.tgnargs,pn.nspname,p.proname FROM pg_trigger t JOIN pg_class r ON r.oid=t.tgrelid JOIN pg_namespace n ON n.oid=r.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid JOIN pg_namespace pn ON pn.oid=p.pronamespace WHERE n.nspname='mta' AND r.relname=ANY(%s) AND NOT t.tgisinternal",[tables])
+    observed = cursor.fetchall()
+    if revision_enabled:
+        revision_names = {'ingestion_watch_'+op for op in ('insert','update','delete','truncate')}
+        observed = [row for row in observed if row[1] not in revision_names]
     expected=[]
     def add(table,name,kind,function):expected.append(('fresh_mta_'+table,name,kind,'O',None,0,'mta',function))
     for table,prefix,kind,function in [('logisticshistoryowner','logistics_owner',19,'guard_logistics_owner'),('transitlivegeneration','transit_generation',19,'guard_transit_generation'),('transitannotation','transit_annotation',23,'guard_transit_annotation')]:
@@ -961,5 +971,5 @@ def _check_logistics_schema(cursor, catalogue, registration):
         add(table,'logistics_history_truncate',34,'deny_daily_source_mutation')
     for table,prefix,kind,function in [('dailyrequestowner','daily_request_owner',27,'guard_daily_request_owner'),('dailyopenrequest','daily_request_current',31,'guard_daily_request_current')]:
         add(table,prefix,kind,function);add(table,prefix+'_truncate',34,'deny_daily_source_mutation')
-    if sorted(cursor.fetchall())!=sorted(expected):
+    if sorted(observed)!=sorted(expected):
         _reject('logistics or existing request guard contract differs')

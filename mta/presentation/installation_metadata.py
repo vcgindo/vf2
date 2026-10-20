@@ -39,7 +39,6 @@ def initialized_master_request(environ):
 @once_per_request
 def require_installation():
     from release.native_identity import require_current
-    require_current()
     if publication_configured() or not getattr(settings, 'VF_MTA_ALLOW_UNSELECTED_STARTUP', False):
         raise PublicationUnavailable('publication_configuration_requires_admission')
     if (not getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)
@@ -51,6 +50,13 @@ def require_installation():
         from mta.presentation.context import permission_catalogue
         permission_catalogue()  # Configured-but-missing/corrupt is never empty.
     try:
+        from mta.runtime.ingestion_admission import certified_source
+        selected_source = getattr(settings, 'VF_MDM_SOURCE_DIGEST', '')
+        if selected_source:
+            certified = certified_source(selected_source)
+            if certified is not None:
+                return certified
+        require_current()
         from release.metadata_access import validate_read_profile
         from django.db.migrations.executor import MigrationExecutor
         with connection.cursor() as cursor:

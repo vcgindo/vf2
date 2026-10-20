@@ -62,6 +62,10 @@ def register(input_sha256):
             for schema in ('mta_state', 'mta_opening'):
                 cursor.execute('GRANT USAGE ON SCHEMA ' + owned._quote_identifier(schema) +
                     ' TO ' + owned._quote_identifier(c['roles']['MTA']['RUNTIME']) + ',fresh_operational_acceptor')
+            # Install the empty append-only transition authority before sealing
+            # this catalogue. It activates no certificate or alternate release.
+            from mta.runtime.ingestion_authority import bootstrap
+            bootstrap(cursor, [c['roles']['MTA']['OWNER'], c['roles']['MTA']['RUNTIME']])
             registration = owned._registered_identity(cursor)
             original = owned._receipt_identity(registration)
             binding = register_application(cursor, expected_database=database, expected_database_oid=oid,
