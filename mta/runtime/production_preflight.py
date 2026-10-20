@@ -268,6 +268,8 @@ def configuration(c, profile, state, prefix='/configuration'):
                     supported_identifier(c,row['location_code'],prefix+'/calculation/locations/'+str(i)+'/location_code','native Pick partition')
         if 'policies' in calc:
             c.check(prefix+'/calculation/policies', 'r1_input', lambda: native_rows.validate_tree(calc['policies'], 'input/profile/calculation/policies'))
+            from mta.application.r1_additional_master import validate_policy_rows
+            c.check(prefix+'/calculation/policies', 'r1_input', lambda: validate_policy_rows(calc['policies']))
         logistics = calc.get('logistics')
         if c.object(logistics, prefix+'/calculation/logistics', 'r1_input', ('items', 'vehicles', 'location_vehicles')) is not None:
             for name in ('items', 'vehicles', 'location_vehicles'):
@@ -287,6 +289,11 @@ def configuration(c, profile, state, prefix='/configuration'):
             if supplied is not None and 'importer_vf_settings' in supplied:
                 c.records(supplied['importer_vf_settings'], prefix+'/delivery/conditional_dbm/importer_vf_settings',
                     'Importer VFSettings', native_path='input/profile/delivery/conditional_dbm/importer_vf_settings')
+        controls = delivery.get('controls')
+        if isinstance(controls, dict) and 'start_percent' in controls:
+            from mta.application.r1_phase_in import phase_start_percent
+            c.check(prefix+'/delivery/controls/start_percent', 'phase-in configuration',
+                    lambda: phase_start_percent(controls['start_percent']))
         batch = delivery.get('batch')
         batch_fields = ('AutoDBMActive', 'DBMNormChangeReportHorizon', 'NormChangeLogHorizon',
             'GatherSuspensionHistory', 'ActivateNormChangeLogReport', 'DailyConsumptionHorizonDBM',
@@ -460,9 +467,10 @@ def initialization(raw, sha256, *, expected_configuration, expected_recipe):
                             if isinstance(row,dict) and owner=='importer':
                                 for field,text_value in row.items():
                                     if isinstance(text_value,str) and not text_value.isascii():
-                                        c.add('/masters/'+owner+'/'+name+'/'+str(i)+'/'+field,'r1_importer_master',
-                                            'MASTER_TEXT_DOMAIN_UNQUALIFIED','Selected master input requires bounded ASCII text',
-                                            category='capability',stages=('day',))
+                                        from mta.application.r1_importer_master import _typed_row
+                                        c.check('/masters/'+owner+'/'+name+'/'+str(i)+'/'+field,'r1_importer_master',
+                                            lambda field=field,text_value=text_value: _typed_row({field:text_value}, (field,)),
+                                            code='MASTER_TEXT_DOMAIN_UNQUALIFIED',category='capability',stages=('day',))
                                 if name=='MasterData' and isinstance(row.get('WhCode'),str) and isinstance(row.get('ParentWhCode'),str):
                                     from mta.application.r1_importer_master import _sql_key
                                     if _sql_key(row['WhCode'].strip(' '))==_sql_key(row['ParentWhCode'].strip(' ')):

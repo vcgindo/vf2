@@ -10,6 +10,32 @@ from mta.domain.demand import ThresholdPolicy
 from mta.domain.validation import RuleBlocked, number
 
 
+def validate_policy_rows(rows):
+    """Cheap shared semantic admission; never calculate or change input values."""
+    seen, defaults = set(), None
+    for row in rows:
+        if (not isinstance(row, dict)
+                or set(row) - {'sku_code', 'location_code', 'policy', 'controls', 'rationing_priority'}
+                or not {'sku_code', 'location_code', 'policy'} <= set(row)):
+            raise ValueError('Invalid R1 policy row')
+        key = row['sku_code'], row['location_code']
+        if any(item is None for item in key):
+            raise ValueError('NULL in required policy identity')
+        if any(type(item) is not str or not item for item in key) or key in seen:
+            raise ValueError('Duplicate or invalid R1 policy identity')
+        seen.add(key)
+        supplied = row['policy']
+        required = {'spike_high', 'spike_low', 'pso_high', 'pso_low'}
+        if (not isinstance(supplied, dict) or not required <= set(supplied)
+                or set(supplied) - required - {'spike_override', 'pso_override'}):
+            raise ValueError('Complete threshold defaults and optional overrides required')
+        policy = ThresholdPolicy.from_mapping({'spike_override': None, 'pso_override': None, **supplied})
+        current = policy.spike_high, policy.spike_low, policy.pso_high, policy.pso_low
+        if defaults is not None and current != defaults:
+            raise ValueError('Legacy threshold defaults are global; use explicit per-item overrides')
+        defaults = current
+
+
 def calculate_additional_master(foundation: dict, policies: list[dict]) -> tuple[dict, ...]:
     masters = {(r["sku_code"], r["location_code"]): r for r in foundation["sku_locations"]}
     if len(masters) != len(foundation["sku_locations"]):

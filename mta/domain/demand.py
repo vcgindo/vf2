@@ -5,10 +5,10 @@ This module does not invent promises, route orders, or allocate advance stock.
 """
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, localcontext
+from decimal import Decimal, InvalidOperation, localcontext
 
 from mta.domain.models import RequirementInput
-from mta.domain.validation import ZERO, ceiling, day, identity, number, percent, signed_number
+from mta.domain.validation import ZERO, ceiling, day, identity, number, signed_number
 
 
 @dataclass(frozen=True)
@@ -20,13 +20,35 @@ class ThresholdPolicy:
     spike_override: Decimal | None = None
     pso_override: Decimal | None = None
 
+    @classmethod
+    def from_mapping(cls, value):
+        fields = ('spike_high', 'spike_low', 'pso_high', 'pso_low',
+                  'spike_override', 'pso_override')
+        if not isinstance(value, dict) or set(value) != set(fields):
+            raise ValueError('Complete Spike/PSO threshold policy required')
+        parsed = {}
+        for name in fields:
+            item = value[name]
+            if item is None and name.endswith('_override'):
+                parsed[name] = None
+            else:
+                if type(item) not in (str, int):
+                    raise ValueError('Exact threshold string or integer required: ' + name)
+                try:
+                    exact = Decimal(item)
+                except InvalidOperation as error:
+                    raise ValueError('Exact numeric threshold required: ' + name) from error
+                parsed[name] = number(exact, name)
+        return cls(**parsed)
+
     def thresholds(self, norm: Decimal) -> tuple[Decimal, Decimal]:
         number(norm, "Norm", integer=True)
+        # These are demand multipliers (Norm * value / 100), not bounded shares.
         for value in (self.spike_high, self.spike_low, self.pso_high, self.pso_low):
-            percent(value)
+            number(value, 'Spike/PSO threshold')
         for value in (self.spike_override, self.pso_override):
             if value is not None:
-                percent(value)
+                number(value, 'Spike/PSO threshold override')
         spike = self.spike_high if norm >= 3 else self.spike_low
         pso = self.pso_high if norm >= 3 else self.pso_low
         return (spike if self.spike_override is None else self.spike_override,

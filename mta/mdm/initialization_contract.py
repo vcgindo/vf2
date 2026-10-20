@@ -72,6 +72,8 @@ def scalar_configuration(profile):
     if set(calc) != {'skus', 'locations', 'stock_openings', 'policies', 'logistics',
                     'stock_configuration', 'allocation', 'replenishment_exclusions'}:
         raise ValueError('Undeclared calculation configuration')
+    from mta.application.r1_additional_master import validate_policy_rows
+    validate_policy_rows(calc['policies'])
     fields(calc['stock_configuration'], {'reservation_type': 'int',
         'reservation_for_rationing_only': 'bit'}, 'stock_configuration', required=True)
     if calc['stock_configuration']['reservation_type'] not in (0, 1, 2) or type(calc['stock_configuration']['reservation_for_rationing_only']) is not bool:
@@ -111,6 +113,8 @@ def scalar_configuration(profile):
     phase_configuration(delivery['batch'])
     fields(delivery['controls'], {'from_ui': 'bit', 'start_percent': 'numeric',
         'history_horizon': 'int'}, 'delivery/controls', required=True)
+    from mta.application.r1_phase_in import phase_start_percent
+    phase_start_percent(delivery['controls']['start_percent'])
     btr_kinds={'CaptureDispatchExecutionEfficiency': 'int',
         'GenerateColorAgeingReport': 'int', 'BRAgeColorTolerance': 'int',
         'CARNoColorToleranceDuration': 'int', 'NormSuggestion_Upward': 'nvarchar',

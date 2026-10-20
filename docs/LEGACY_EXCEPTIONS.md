@@ -1795,3 +1795,28 @@ The supplier account's authenticated name is its SupplierCode. Both reads requir
 Affected input/contract: the caller invokes ordinary Commons.filterQuery, not filterQueryForReports. It replaces A.ParentWhCode with the nonexistent SKULoc attribute B.ParentWhCode, and never appends the separately generated sqlJoinFilter; a forchildren-only join is therefore ignored while an explicit parent-code filter fails. Numeric Norm/Stock/GIT/VirtualNorm predicates are unqualified: count can bind them, but data has the same names in A and F and fails as ambiguous. PIC/OHIC/category/coverage/trend owners missing from this query remain errors; they must not be redirected to other colors/columns. Unknown numeric operators retain empty-predicate/dangling-conjunction behavior. Source-backed tests cover these distinctions; real packaged native DB/UI proof is still required. No calculation/filter flaw repair, invented order or successful invalid-filter claim is authorized.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+
+## Qualified native policy admission correction — 20 October2026
+
+Direct human “Approved, resume the corrections” approves exact decision SHA256
+b93f95bc81b0e778aa0865dbbfc931c71c48e41ecb248cd0ed549eaee2fa65af. This restores
+the canonical accepted domain; it does not repair a legacy algorithm or waive
+parity. GenerateAddionalMasterData.sql chooses global high/low thresholds and
+non-NULL item overrides. ImportSpikeOrders.sql and CalculateReq.sql use
+`Norm * threshold / 100` without a100ceiling. Source master validation rejects
+negative overrides. The frozen97,097-pair opening contains97,011 Spike overrides
+of100,000 or1,000,000; both modern demand consumers incorrectly used a bounded
+percentage validator. Only their threshold domain is corrected; true percentages,
+exact precision/ranges, NULL overrides, global defaults and formulas remain.
+
+Early initialization/day admission now checks that same policy meaning before
+expensive processing. The raw four-default and runtime six-field contracts remain
+separate. Native phase configuration decimal text is converted to the selected
+SQL FLOAT operation with its existing0–100bound. Description diagnostics use the
+already approved field domain; no new characters or facts are admitted here.
+The original policy CSV and complete typed opening/capture values/NULLs/ordinals
+match. Small complete-flow and production-Python proofs do not claim the large
+benchmark day has passed.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

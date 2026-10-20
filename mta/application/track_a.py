@@ -141,7 +141,7 @@ def calculate_track_a(payload, *, allow_negative_stock_for_requirement=False):
         row, position = nodes[key], inventory[key]
         phase_out_member = any(c['type'] == 'phase_out' for c in row['controls'])
         keys(row['policy'], ('spike_high','spike_low','pso_high','pso_low','spike_override','pso_override'))
-        policy = ThresholdPolicy(**{k: None if v is None and k.endswith('_override') else exact_percent(v) for k,v in row['policy'].items()})
+        policy = ThresholdPolicy.from_mapping(row['policy'])
         orders = []
         for order in row['orders']:
             keys(order, ('order_id','quantity','accepted_on','due_date','is_spike'))

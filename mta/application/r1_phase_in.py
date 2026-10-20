@@ -2,10 +2,27 @@
 from collections import defaultdict, Counter
 from copy import deepcopy
 from math import floor
+from decimal import Decimal, InvalidOperation
+
+
+def phase_start_percent(value):
+    """Normalize configured decimal text to the selected SQL FLOAT operation."""
+    if value is None:
+        return None
+    if type(value) not in (str, int, float):
+        raise ValueError('Explicit phase percentage required')
+    try:
+        parsed = Decimal(str(value))
+    except InvalidOperation as error:
+        raise ValueError('Finite phase percentage required') from error
+    if not parsed.is_finite() or not 0 <= parsed <= 100:
+        raise ValueError('Phase percentage must be between 0 and 100')
+    return float(parsed)
 from mta.application.r1_norm_updates import key
 
 
 def collect_phase_in(state, day, *, from_ui, start_percent):
+    start_percent = phase_start_percent(start_percent)
     out = deepcopy(state)
     image = [r for r in out['phase_in_requests'] if not from_ui or r['Approved'] != 0]
     phase_keys = {key(r) for r in out['phase_in']}
