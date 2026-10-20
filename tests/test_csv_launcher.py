@@ -25,6 +25,7 @@ class CsvLauncherTests(unittest.TestCase):
         shutil.copyfile(ROOT / 'vf.ps1', self.root / 'vf.ps1')
         shutil.copyfile(ROOT / 'release/powershell_compat.ps1', self.root / 'release/powershell_compat.ps1')
         (self.root / '.env').write_text('VF_PROJECT=test\nCOMPOSE_FILE="compose.yaml;extra.json"\nEMAIL_PASS=preserve-this-exactly\n')
+        shutil.copyfile(ROOT / 'release/csv_onboarding.py', self.root / 'release/csv_onboarding.py')
         self.pack = self.root / 'pack';self.pack.mkdir();(self.pack / 'opening').mkdir()
         native=b'original-opening';consumer=b'original-consumer-opening'
         (self.pack / 'native-opening.json').write_bytes(native)
@@ -42,7 +43,7 @@ class CsvLauncherTests(unittest.TestCase):
         # delegation rather than running a second native day campaign here.
         (self.root / 'release/run_daily.ps1').write_text("param($BusinessDate,[switch]$InspectOnly,[switch]$Resume)\n@{date=$BusinessDate;inspect=[bool]$InspectOnly;resume=[bool]$Resume}|ConvertTo-Json|Set-Content ./daily-call.json\n")
         (self.root / 'driver.ps1').write_text('''
-param($Failure='', $Operation='csv-init', $Date='')
+param($Failure='', $Operation='csv-init', $Date='', [switch]$Resume)
 $ErrorActionPreference='Stop'
 function global:docker {
     $call=@($args)
@@ -57,6 +58,9 @@ function global:docker {
         '{}'|Set-Content "$path/opening/opening-manifest.json"
         return
     }
+    if ($call -contains 'complete') { if ($Failure -eq 'families') { $global:LASTEXITCODE=1; return }; '{"status":"MDM_FAMILIES_READY"}'; return }
+    if ($call -contains 'check') { '{"status":"INITIALIZED_MASTER_SERVING_READY"}'; return }
+    if ($call -contains 'inspect') { if ($Failure -eq 'wrong-database') { $global:LASTEXITCODE=1; return }; '{"status":"OPENING_RECONCILED"}'; return }
     if ($call -contains '--quiet') { return }
     if ($call -contains 'config') { Get-Content ./config.json -Raw; return }
     if ($call -contains '--validate-only') { Get-Content ./validated.json -Raw; return }
@@ -65,13 +69,13 @@ function global:docker {
     if ($call -contains 'initialize_production') { Get-Content ./initial.json -Raw; return }
 }
 if ($Operation -eq 'csv-day') { & ./vf.ps1 $Operation $Date -Resume }
-else { & ./vf.ps1 $Operation }
+else { & ./vf.ps1 $Operation -Resume:$Resume }
 ''')
 
     def tearDown(self):
         self.temp.cleanup()
 
-    def run_launcher(self, failure='', operation='csv-init', date=''):
+    def run_launcher(self, failure='', operation='csv-init', date='', resume=False):
         env=dict(os.environ)
         for key in ('COMPOSE_FILE','COMPOSE_PATH_SEPARATOR'):
             env.pop(key,None)
@@ -79,7 +83,7 @@ else { & ./vf.ps1 $Operation }
             # Do not load PS7 modules inherited from this test runner into PS5.
             env.pop('PSModulePath', None)
             env.pop('PSMODULEPATH', None)
-        return subprocess.run([self.shell,'-NoProfile','-File',str(self.root/'driver.ps1'),'-Failure',failure,'-Operation',operation,'-Date',date],cwd=self.root,env=env,capture_output=True,text=True)
+        return subprocess.run([self.shell,'-NoProfile','-File',str(self.root/'driver.ps1'),'-Failure',failure,'-Operation',operation,'-Date',date] + (['-Resume'] if resume else []),cwd=self.root,env=env,capture_output=True,text=True)
 
     def calls(self):
         p=self.root/'calls.jsonl'
@@ -91,13 +95,15 @@ else { & ./vf.ps1 $Operation }
         self.assertEqual(sum('--validate-only' in c for c in calls),1)
         self.assertEqual(sum('release.register_mta' in c for c in calls),1)
         self.assertEqual(sum('stop' in c for c in calls),1)
-        self.assertFalse(any('up' in c or 'build' in c or 'install' in c for c in calls))
+        self.assertEqual(sum('up' in c for c in calls),1)
+        self.assertFalse(any('build' in c or 'install' in c for c in calls))
+        self.assertLess(next(i for i,c in enumerate(calls) if 'complete' in c), next(i for i,c in enumerate(calls) if 'up' in c))
         receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
         self.assertEqual(receipt['status'],'INITIALIZED')
         env=(self.root/'.env').read_text()
         self.assertIn('EMAIL_PASS=preserve-this-exactly',env)
         self.assertIn('compose.yaml;extra.json;',env)
-        self.assertIn('MTA_SELECTION_FILE="/var/lib/vectorflow/selection.json"',env)
+        self.assertIn('MTA_SELECTION_FILE=""',env)
         binding=json.loads((self.pack/'binding.json').read_text(encoding='utf-8-sig'))
         self.assertFalse((self.pack/'binding.json').read_bytes().startswith(b'\xef\xbb\xbf'))
         self.assertEqual(binding['initialization_id'],'new-opening')
@@ -107,6 +113,29 @@ else { & ./vf.ps1 $Operation }
         before=len(calls)
         r=self.run_launcher();self.assertNotEqual(r.returncode,0)
         self.assertFalse(any('stop' in c or 'release.register_mta' in c for c in self.calls()[before:]))
+
+    def test_resume_finishes_same_opening_without_registration_or_loading(self):
+        self.assertNotEqual(self.run_launcher('configuration').returncode,0)
+        before=len(self.calls())
+        result=self.run_launcher(resume=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        calls=self.calls()[before:]
+        self.assertFalse(any('release.register_mta' in c or 'initialize_production' in c for c in calls))
+        self.assertLess(next(i for i,c in enumerate(calls) if 'inspect' in c), next(i for i,c in enumerate(calls) if 'stop' in c))
+
+    def test_resume_wrong_database_never_stops_or_bootstraps(self):
+        self.assertEqual(self.run_launcher().returncode,0)
+        before=len(self.calls())
+        old=(self.state/'onboarding.json').read_bytes()
+        self.assertNotEqual(self.run_launcher('wrong-database',resume=True).returncode,0)
+        self.assertFalse(any('stop' in c or 'complete' in c for c in self.calls()[before:]))
+        self.assertEqual((self.state/'onboarding.json').read_bytes(),old)
+
+    def test_family_failure_never_starts_metadata_or_claims_initialized(self):
+        self.assertNotEqual(self.run_launcher('families').returncode,0)
+        self.assertFalse(any('up' in c for c in self.calls()))
+        receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
+        self.assertEqual((receipt['status'],receipt['phase']),('STOPPED','MASTER_FAMILIES'))
 
     def test_bad_csv_validation_never_stops_api_or_registers_namespace(self):
         r=self.run_launcher('validation');self.assertNotEqual(r.returncode,0)
@@ -137,6 +166,15 @@ else { & ./vf.ps1 $Operation }
         receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
         self.assertEqual(receipt['phase'],'CONFIGURATION')
         self.assertEqual(receipt['initialization']['opening_id'],'new-opening')
+
+    def test_new_sample_pairs_its_receipts_when_no_state_directory_was_selected(self):
+        cfg=json.loads((self.root/'config.json').read_text())
+        cfg['x-vectorflow-csv']['input_dir']=str(self.root/'new-pack')
+        cfg['x-vectorflow-daily']['state_dir']=''
+        (self.root/'config.json').write_text(json.dumps(cfg))
+        result=self.run_launcher(operation='csv-sample')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('VF_DAILY_STATE_DIR="'+str(self.root/'new-pack').replace('\\','/')+'-operations"',(self.root/'.env').read_text())
 
     def test_sample_generation_is_explicit_and_never_touches_business_services(self):
         target=self.root/'fresh-sample'

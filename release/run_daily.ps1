@@ -96,11 +96,11 @@ try {
     $config.services.daily.volumes = $volumes + @(
         @{type='bind';source=$inputRoot;target='/incoming';read_only=$true},
         @{type='bind';source=$bindingFile.DirectoryName;target='/onboarding';read_only=$true})
+    $selection = $config.services.mta.environment.VF_MTA_SELECTION_FILE
+    if ($selection -notin @('', '/var/lib/vectorflow/selection.json')) { throw 'Unsupported MTA selection path; existing configuration retained' }
+    $config.services.mta.environment.VF_MTA_SELECTION_FILE = '/var/lib/vectorflow/selection.json'
     Write-VfUtf8 $overrideFile ($config | ConvertTo-Json -Depth 100)
     ComposeCall -Arguments @('config','--quiet')
-    if ($config.services.mta.environment.VF_MTA_SELECTION_FILE -ne '/var/lib/vectorflow/selection.json') {
-        throw 'Configure MTA_SELECTION_FILE=/var/lib/vectorflow/selection.json before daily operations; do not change selection during an existing run.'
-    }
     if (-not $InputDirectory) { $InputDirectory = Join-Path $inputRoot $BusinessDate }
     $source = [IO.Path]::GetFullPath($InputDirectory)
     $relative = Get-VfRelativePath $inputRoot $source
@@ -115,6 +115,21 @@ try {
         if ($attempt.status -eq 'PUBLISHED') {
             # Do not select an older completed day or rerun its calculation.
             $attempt['message'] = 'Already published; no calculation, selection or restart performed.'
+            if ($Resume) {
+                $verifier = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'daily_serving_check.py'))
+                # Use the runtime role in a disposable no-port process. Native
+                # admission must prove this is STILL the selected latest day
+                # before touching the serving container. Never rewrite selection.
+                $null = ComposeCall -Arguments @('run','--rm','--no-deps','-T','--entrypoint','python','mta','-',
+                    '--run-id',$attempt.run_id,'--output-digest',$attempt.output_digest,'--admission-only') -InputText $verifier -Json
+                if (-not $selection) { Write-VfEnvironment -Root (Get-Location).Path -Changes @{MTA_SELECTION_FILE='/var/lib/vectorflow/selection.json'} }
+                $maintenance = $true
+                ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--force-recreate','--wait','mta')
+                $null = ComposeCall -Arguments @('exec','-T','mta','python','-','--run-id',$attempt.run_id,
+                    '--output-digest',$attempt.output_digest) -InputText $verifier -Json
+                $maintenance = $false
+                $attempt['message'] = 'Existing selected publication serving verified; no calculation or selection replay.'
+            }
         } else {
             if ($attempt.status -in @('FAILED','REJECTED')) { throw 'Preserved failed/rejected attempt requires diagnosis; automatic retry is forbidden.' }
             if ($attempt.phase -ne 'VALIDATED' -and -not $Resume) { throw 'Existing committed/pending attempt: rerun with -Resume after reviewing its receipt.' }
@@ -128,7 +143,10 @@ try {
                 $attempt = Worker -Arguments $executeArgs
             }
             $attempt = Worker -Arguments (@('select') + $attemptArgs)
-            ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--wait','mta')
+            # Persist only after successful native selection, so initialized
+            # metadata works before day one and future restarts use this selection.
+            if (-not $selection) { Write-VfEnvironment -Root (Get-Location).Path -Changes @{MTA_SELECTION_FILE='/var/lib/vectorflow/selection.json'} }
+            ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--force-recreate','--wait','mta')
             # Run the repository-owned read-only check without patching or
             # rebuilding the sealed image that owns this committed run.
             $verifier = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'daily_serving_check.py'))
@@ -140,12 +158,19 @@ try {
     Write-VfUtf8 $receiptFile ($attempt | ConvertTo-Json -Depth 100)
     $attempt | ConvertTo-Json -Depth 100
 } catch {
+    $failure = $_
     Write-VfUtf8 $receiptFile (@{status='STOPPED';business_date=$BusinessDate;maintenance=$maintenance;execution_invoked=$executing;
       attempt=$attempt;error=$_.Exception.Message} | ConvertTo-Json -Depth 30)
     # After entering the native boundary, old selection may no longer represent
     # current mutable state. Never pretend a file rollback undoes a committed day.
-    if ($maintenance) { Write-Warning 'MTA remains in maintenance. Preserve state and use explicit -Resume only for a proven committed publication/serving failure.' }
-    throw
+    if ($maintenance) {
+        # A service may have started before readiness failed, or an operator may
+        # have started it during the day. Maintenance must be actual, not prose.
+        try { ComposeCall -Arguments @('stop','mta') }
+        catch { Write-Warning 'Could not confirm MTA stopped; inspect the named container before further work.' }
+        Write-Warning 'Publication/serving is unverified. MTA stop requested; preserve state and use explicit -Resume after diagnosis.'
+    }
+    throw $failure
 } finally {
     if ($lock) { $lock.Dispose() }
     # The resolved deployment can contain private settings. Retain diagnostic

@@ -14,6 +14,24 @@ from release.daily_serving_check import configure_image
 
 
 class ServingCheckBootstrapTests(unittest.TestCase):
+    def test_admission_only_checks_selected_identity_before_service_recovery(self):
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
+        os.environ.setdefault('VF_SECRET_KEY', 'serving-unit-only')
+        import django
+        django.setup()
+        from django.test import override_settings
+        from release.daily_serving_check import check
+        with override_settings(VF_MTA_SELECTION_FILE='/selected.json'), \
+                patch('release.daily_serving_check.configure_image'), \
+                patch('mta.presentation.admission.admit', return_value={'run_id':'latest','output_digest':'digest'}), \
+                patch('mta.presentation.native_selection.read', return_value={'selection_digest':'selection'}) as read, \
+                patch('urllib.request.urlopen') as http:
+            self.assertTrue(check('latest','digest',admission_only=True)['selected'])
+            with self.assertRaisesRegex(ValueError, 'another run'):
+                check('older','old-digest',admission_only=True)
+            self.assertEqual(read.call_count,1)
+            http.assert_not_called()
+
     def test_packaged_bootstrap_loads_from_its_real_location(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

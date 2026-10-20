@@ -54,3 +54,30 @@ function Set-VfProcessArguments($StartInfo, [string[]]$Values) {
         $StartInfo.Arguments = $quoted -join ' '
     }
 }
+
+function Write-VfEnvironment([string]$Root, [hashtable]$Changes) {
+    $path = Join-Path $Root '.env'
+    $text = [IO.File]::ReadAllText($path)
+    foreach ($Name in $Changes.Keys) {
+        $Value = [string]$Changes[$Name]
+        if ($Value -match '[\r\n"$`]') { throw "Unsupported characters in $Name" }
+        $pattern = '(?m)^\s*' + [regex]::Escape($Name) + '\s*=.*$'
+        $line = $Name + '="' + $Value + '"'
+        if ([regex]::IsMatch($text,$pattern)) { $text = [regex]::Replace($text,$pattern,[System.Text.RegularExpressions.MatchEvaluator]{param($m) $line}) }
+        else { $text += "`n$line`n" }
+    }
+    $candidate = Join-Path $Root ('.env.csv-' + [guid]::NewGuid().ToString('N'))
+    try {
+        [IO.File]::WriteAllText($candidate,$text,[Text.UTF8Encoding]::new($false))
+        $preference = $ErrorActionPreference
+        try {
+            # PS5 turns ordinary redirected native stderr into error records.
+            # Docker's exit code, rather than progress output, decides failure.
+            $ErrorActionPreference = 'Continue'
+            $diagnostic = & docker compose --env-file $candidate config --quiet 2>&1
+            $code = $LASTEXITCODE
+        } finally { $ErrorActionPreference = $preference }
+        if ($code -ne 0) { throw 'Generated CSV environment failed Compose validation; original .env is unchanged' }
+        [IO.File]::Replace($candidate,$path,[NullString]::Value)
+    } finally { Remove-Item -LiteralPath $candidate -Force -ErrorAction SilentlyContinue }
+}

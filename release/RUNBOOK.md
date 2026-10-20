@@ -388,3 +388,5 @@ Configure the ignored deployment env file's `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_U
 - `vf stop` pauses this manual project. No `down -v`, volume/account reset, Docker prune or shared Docker/WSL restart. Leave existing8080/3005/3006/3002/3003/3004 untouched.
 
 See [final connected handoff](../docs/handoff-3005/STEP5_CONNECTED_HANDOFF.md) for identities/evidence/limits. The sole live tracker is `F:/freshvcf/docs/handoff-3005/TRACKER.md`; the repository tracker is a pointer. Record **Part A manual blank validation** and **Part B optional populated validation** separately. No scheduled review is invoked by this runbook.
+
+CSV initialization and day1/day2: use [CSV_STARTER_RUN.md](CSV_STARTER_RUN.md). Initialization completes all13 MDM families and restores master-data access before the first calculation. For a committed opening whose configuration/serving failed, `./vf.ps1 csv-init -Resume` reconciles that same database without reloading; it refuses after daily work starts. New installations need their own external CSV pack and daily receipt directory; a fresh Git clone does not clear these directories.

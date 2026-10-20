@@ -18,7 +18,7 @@ def configure_image(identity=Path('/opt/vectorflow/release.json')):
         configure(identity)
 
 
-def check(run_id, output_digest):
+def check(run_id, output_digest, *, admission_only=False):
     configure_image()
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'release.mta_settings')
     import django
@@ -29,9 +29,12 @@ def check(run_id, output_digest):
     expected = admit()
     if expected['run_id'] != run_id or expected['output_digest'] != output_digest:
         raise ValueError('MTA container is configured for another run/output')
+    selected = read(settings.VF_MTA_SELECTION_FILE)
+    if admission_only:
+        return dict(selected=True, run_id=run_id, output_digest=output_digest,
+                    selection_digest=selected['selection_digest'])
     with urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=10) as response:
         actual = json.load(response)
-    selected = read(settings.VF_MTA_SELECTION_FILE)
     if actual.get('ready') is not True or actual.get('admission_digest') != expected['admission_digest']:
         raise ValueError('Serving process has not admitted the selected generation')
     return dict(ready=True, run_id=run_id, output_digest=output_digest,
@@ -42,5 +45,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--run-id', required=True)
     parser.add_argument('--output-digest', required=True)
+    parser.add_argument('--admission-only', action='store_true',
+                        help='Validate the existing selected latest run before service-only recovery')
     args = parser.parse_args()
-    print(json.dumps(check(args.run_id, args.output_digest), sort_keys=True))
+    print(json.dumps(check(args.run_id, args.output_digest, admission_only=args.admission_only), sort_keys=True))

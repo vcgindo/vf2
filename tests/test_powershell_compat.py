@@ -42,14 +42,19 @@ class DockerStub {
             else Console.WriteLine(File.ReadAllText(Environment.GetEnvironmentVariable("VF_TEST_INITIAL")));
         }
         else if (args.Contains("release.register_mta")) Console.WriteLine("{\"status\":\"registered\"}");
+        else if (args.Contains("complete")) Console.WriteLine("{\"status\":\"MDM_FAMILIES_READY\"}");
+        else if (args.Contains("check")) {Console.In.ReadToEnd(); Console.WriteLine("{\"status\":\"INITIALIZED_MASTER_SERVING_READY\"}");}
         else if (args.Contains("process_daily_csv")) {
-            if (args.Contains("inspect")) Console.WriteLine("{\"status\":\"VALIDATED\"}");
+            if (args.Contains("stage") && Environment.GetEnvironmentVariable("VF_TEST_PUBLISHED") == "1") Console.WriteLine("{\"status\":\"PUBLISHED\",\"phase\":\"FINISHED\",\"attempt_id\":\"test\",\"run_id\":\"test\",\"output_digest\":\"test\"}");
+            else if (args.Contains("inspect")) Console.WriteLine("{\"status\":\"VALIDATED\"}");
             else if (args.Contains("stage") && Environment.GetEnvironmentVariable("VF_TEST_PREPARED") == "1") Console.WriteLine("{\"status\":\"PREPARED\",\"phase\":\"SERVE\",\"attempt_id\":\"test\",\"run_id\":\"test\",\"output_digest\":\"test\"}");
             else if (args.Contains("stage")) Console.WriteLine("{\"status\":\"VALIDATED\",\"phase\":\"VALIDATED\",\"attempt_id\":\"test\"}");
             else if (args.Contains("acknowledge")) Console.WriteLine("{\"status\":\"PUBLISHED\"}");
             else Console.WriteLine("{\"status\":\"PREPARED\",\"run_id\":\"test\",\"output_digest\":\"test\"}");
         }
         else if (args.Contains("-") && args.Contains("--run-id")) {
+            if (args.Contains("--admission-only") && Environment.GetEnvironmentVariable("VF_TEST_BAD_SELECTION") == "1") return 1;
+            if (!args.Contains("--admission-only") && Environment.GetEnvironmentVariable("VF_TEST_SERVING_FAIL") == "1") return 1;
             File.WriteAllText(Environment.GetEnvironmentVariable("VF_TEST_LOG") + ".stdin", Console.In.ReadToEnd(), new UTF8Encoding(false));
             Console.WriteLine("{\"test\":\"quote \\\" and space\"}");
         }
@@ -116,9 +121,10 @@ Write-VfUtf8 ($Output+'.args') (ConvertTo-Json -InputObject $expected)
                 binding = folder / 'binding.json'; binding.write_text('{}')
                 state = folder / 'state'
                 config = dict(name='test', services={
-                    'mta': dict(image='test-only', environment=dict(VF_MTA_SELECTION_FILE='/var/lib/vectorflow/selection.json'), volumes=[]),
+                    'mta': dict(image='test-only', environment=dict(VF_MTA_SELECTION_FILE=''), volumes=[]),
                     'daily': dict(image='test-only', environment={}, volumes=[], build={}),
                 }, **{'x-vectorflow-daily': dict(input_dir=str(incoming), binding_file=str(binding), state_dir=str(state))})
+                (folder/'.env').write_text('MTA_SELECTION_FILE=\nKEEP=unchanged\n')
                 config_file = folder / 'config.json'; config_file.write_text(json.dumps(config))
                 log = folder / 'calls.jsonl'
                 env = dict(self.env, VF_TEST_LOG=str(log), VF_TEST_CONFIG=str(config_file))
@@ -128,11 +134,14 @@ Write-VfUtf8 ($Output+'.args') (ConvertTo-Json -InputObject $expected)
                 self.assertEqual(len(operations), 1)
                 self.assertEqual(json.loads(operations[0].read_text())['status'], 'PUBLISHED')
                 self.assertFalse(list(state.glob('*/compose.daily.json')))
+                self.assertIn('MTA_SELECTION_FILE="/var/lib/vectorflow/selection.json"',(folder/'.env').read_text())
+                self.assertIn('KEEP=unchanged',(folder/'.env').read_text())
                 calls = [json.loads(line) for line in log.read_text().splitlines()]
                 self.assertEqual(calls[0][:3], ['compose', '--profile', '*'])
                 self.assertIn('--quiet', calls[1])
-                self.assertTrue(all(call[call.index('--profile')+1] == 'daily' for call in calls[1:]))
+                self.assertTrue(all(call[call.index('--profile')+1] == 'daily' for call in calls[1:] if '--profile' in call))
                 self.assertEqual(sum('execute' in call for call in calls), 1)
+                self.assertIn('--force-recreate',next(c for c in calls if 'up' in c))
                 acknowledge = next(call for call in calls if 'acknowledge' in call)
                 self.assertEqual(json.loads(acknowledge[acknowledge.index('--proof')+1]), {'test': 'quote " and space'})
                 self.assertEqual(Path(str(log)+'.stdin').read_bytes(), (ROOT/'release/daily_serving_check.py').read_bytes())
@@ -143,6 +152,26 @@ Write-VfUtf8 ($Output+'.args') (ConvertTo-Json -InputObject $expected)
                 resumed = [json.loads(line) for line in log.read_text().splitlines()][len(calls):]
                 self.assertFalse(any('execute' in call for call in resumed))
                 self.assertEqual(sum('acknowledge' in call for call in resumed), 1)
+                # A published latest day can recover serving without selecting
+                # or calculating again; an old/nonmatching selection cannot.
+                for bad in (False, True):
+                    before=len(log.read_text().splitlines())
+                    env['VF_TEST_PUBLISHED']='1'
+                    env['VF_TEST_BAD_SELECTION']='1' if bad else '0'
+                    result=self.run_shell(shell,ROOT/'release/run_daily.ps1','-BusinessDate','2026-10-19','-Resume',env=env,cwd=folder)
+                    self.assertEqual(result.returncode == 0,not bad,result.stderr)
+                    recovery=[json.loads(line) for line in log.read_text().splitlines()][before:]
+                    self.assertFalse(any('execute' in c or 'select' in c or 'acknowledge' in c for c in recovery))
+                    self.assertEqual(sum('up' in c for c in recovery),0 if bad else 1)
+                before=len(log.read_text().splitlines())
+                env['VF_TEST_BAD_SELECTION']='0'; env['VF_TEST_SERVING_FAIL']='1'
+                result=self.run_shell(shell,ROOT/'release/run_daily.ps1','-BusinessDate','2026-10-19','-Resume',env=env,cwd=folder)
+                self.assertNotEqual(result.returncode,0)
+                failed=[json.loads(line) for line in log.read_text().splitlines()][before:]
+                self.assertEqual(sum('stop' in c for c in failed),1)
+                self.assertFalse(any('execute' in c or 'select' in c for c in failed))
+
+
 
     def test_launcher_accepts_real_native_progress_on_stderr_in_both_shells(self):
         from tests.test_csv_launcher import CsvLauncherTests
