@@ -1766,6 +1766,26 @@ Authority: direct human approval of docs/handoff-3005/INHERITED_LOGISTICS_GAP_PL
 2. **Server authorization of every affected order/pair.** Source: broad OrderNo-only transit updates/correlated details/history, pair-only expedite updates/history (parent omitted), and weaker explicit history scope in the matched controllers/processors. Inputs: authenticated gateway actor/scopes and full source populations, including the same order spanning authorized and denied targets, repeated requests and alternate parents. Affected contract: authorize all canonical broad targets on the server, ignoring a forged body actor; deny the whole operation when any broad target is denied. Never silently narrow an update, broaden grants or omit denied siblings to obtain success. Retain order/pair multiplicity inside the fully authorized population.
 
 Deployed type reconciliation is not a business exception: sealed original VM Demo_BPR_1 sys.columns metadata gives transit history UserId nullable int and expedite history UserId nullable nvarchar(max), matching gateway id/name writers respectively. Stale creation DDL/frozen state bigint for expedite history does not authorize a live name-to-ID cast. New live history follows deployed metadata; accepted frozen tables, six-day inputs/outputs, original seal and prior exceptions remain unchanged. No calculation, additional day, workflow replay, latency campaign, MTO change or3005 mutation is included.
+## Qualified description text admission — 20 October2026
+
+This is an explicitly approved native port admission correction, not a legacy
+algorithm repair or a parity waiver. Frozen opening SHA256
+27b3893b0f8a0f0db0197439c760677e9dc6dca07ad00f26fc4297781dd57a70 contains
+161 SKU descriptions with U+00A0, U+00AE or U+2013. Actual read-only source
+VFTEST_Fresh_S2_VM_20261003_002_Importer metadata gives SKUDescriptionTbl and
+SiteDescriptionTbl description columns varchar(125),
+SQL_Latin1_General_CP1_CI_AS. A 2,568-case actual/edge native grouping check
+matches the existing comparison key. The original bytes/values stay unchanged.
+
+Human approval of description-admission-decision.json SHA256
+6c47632737b0d9f97b82bf8af020ecc73e4935c31edcf4355462dca0da73e539 releases
+only these three characters in SKUDescription/WHDescription/ParentDescription.
+Existing lengths, ASCII identifiers/custom fields, other Unicode denials,
+NULL/duplicate/source-order/ambiguity and calculation rules remain. No generic
+Unicode collation or whole-dataset parity is claimed. Native qualifier and
+applied-code smoke receipts are outside Git in the existing benchmark evidence
+root. Frontend and MTO are unchanged.
+
 ## Retained SupplierWiseAllocation filter failures — 18 October2026
 
 This records source-derived failures, **not permission to repair them or waive missing positive acceptance**. Direct human kept Step5 open for the excluded functions. Authority is canonical deployed API DLL SHA2560222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346: matched PlanningProcessor SHA92b724daad539f775e366c0a60a00ff26109cf4a1c89474589e61364445763f1, SupplierWiseAllocationReportDataCount/Data; retained pinned CommonsProcessor SHA6a79e4cd927c3a4bee0f72c9dab6f327bfcfcf9ef7dda21f1c906e8762be767b (historical accepted source evidence f3-preview-source-001). This is reuse of pinned source, not a new successful legacy execution.

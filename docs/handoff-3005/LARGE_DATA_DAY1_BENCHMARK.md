@@ -74,6 +74,34 @@ show linear indexed lookup growth rather than per-master population scans.
 New packaged full-day verification remains pending; these checks do not prove
 arbitrary future capacity or a completed performance benchmark.
 
+### Capture passed; original description text admitted explicitly
+
+Image `af2b7f1c…`/source `a90abded…` completed initialization in 2,621.196
+seconds and daily CSV admission in 441.915 seconds. Native preflight/bootstrap
+took 468.033 seconds; input capture then committed in 1,268.071 seconds without
+the previous transaction timeout. Run `aba1c902-f8fd-465b-8384-1375adae7fcc`
+subsequently failed at the Importer text validator, before successful calculation
+or report preparation. It retains a typed CAPTURED input and FAILED status;
+no accepted day is claimed. Worker Exit1/nonOOM/guard-null was recorded and its
+container removed.
+
+The original catalogue has 161 descriptions containing U+00A0 (non-breaking
+space), U+00AE (registered sign), or U+2013 (en dash). A read-only scan of all
+1,692,304 text-bearing CSV rows found these only in SKU-description populations.
+Actual source metadata is `varchar(125)` with
+`SQL_Latin1_General_CP1_CI_AS`. All 2,568 actual/edge equality groups match the
+unchanged comparison function. No characters are replaced or trimmed differently.
+
+The human approved exact decision packet SHA256
+`6c47632737b0d9f97b82bf8af020ecc73e4935c31edcf4355462dca0da73e539`.
+Only those three characters gain admission in the existing bounded description
+fields. Identifiers/custom fields remain ASCII, other Unicode remains rejected,
+and formulas/NULL/duplicates/order/ambiguity rules stay unchanged. The quick
+applied-code smoke passed all 2,189 actual descriptions and complete small
+native BPR/DBM/Pick/BTR flows for each character in 1.956 seconds. All 56 focused
+regression checks passed. This is source/component proof; the new packaged
+image and same single-day benchmark still require actual verification.
+
 ## Workload
 
 The requested case contains **97,097 distinct SKU/location master pairs**, 2,189 SKUs and 235 catalogue locations. One unused untyped catalogue location is excluded from the calculation configuration, which contains 234 locations. The opening is 7 April 2026; the single synthetic CSV business date is 8 April. There is **no imported historical BPR, DBM or BTR population**. The 10,256 outstanding orders are current opening facts.

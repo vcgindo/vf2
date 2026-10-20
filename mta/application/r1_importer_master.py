@@ -129,7 +129,9 @@ def _typed_row(row, fields):
             result[field] = value
         else:
             limit = 125 if field in DESCRIPTIONS else 100 if field == "ReasonDescription" else 256 if field == "RequestedBy" else 10 if field == "FGRMFlag" else 50
-            if not isinstance(value, str) or len(value) > limit or not value.isascii():
+            if (not isinstance(value, str) or len(value) > limit
+                    or not value.isascii() and (field not in DESCRIPTIONS
+                        or any(ord(char) > 127 and char not in "\u00a0\u00ae\u2013" for char in value))):
                 raise ValueError(f"Importer {field} requires bounded ASCII source text; wider collation is unproven")
             result[field] = value
     return result
