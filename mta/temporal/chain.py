@@ -230,9 +230,12 @@ def calculation_source(today, opening_date, profile, importer, dbm_master, proce
     for r in masters:
         a=attrs[r['sku_code'],r['location_code']]
         r.update(pack_size=a['PackSize'],elephant_order_capping=skus[r['sku_code']]['ElephantOrderCapping'])
+    processed_by_key = {}
+    for p in processed:
+        processed_by_key.setdefault((p['SKUCode'], p['WhCode'], p['ReportDate']), []).append(p)
     positions=[]
     for r in masters:
-        matches=[p for p in processed if (p['SKUCode'],p['WhCode'],p['ReportDate'])==(r['sku_code'],r['location_code'],today)]
+        matches=processed_by_key.get((r['sku_code'],r['location_code'],today), ())
         if len(matches)!=1 or matches[0]['Stock'] is None:
             raise ValueError('Missing/ambiguous current physical stock reaches calculation; no substituted input')
         p=matches[0]
@@ -538,12 +541,14 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         # an opening/current-day prepared expedite result is never the input.
         pick_keys = {(r['sku_code'], r['location_code'], r['parent_location_code'])
                      for r in calculated['r1_ration_bifurcation']}
+        master_by_key = {}
+        for m in importer['MasterData']:
+            master_by_key.setdefault((m['SKUCode'], m['WhCode']), []).append(m)
         btr_facts['ExpediteDispatches'] = [
             {'SKUCode': r['SKUCode'], 'WhCode': r['WhCode'],
              'BRAge': None, 'BRAgeRedCount': None, 'BRAgeBlackCount': None}
-            for r in report for m in importer['MasterData']
+            for r in report for m in master_by_key.get((r['SKUCode'], r['WhCode']), ())
             if (r['SKUCode'], r['WhCode'], r['ParentWhCode']) in pick_keys
-            and (r['SKUCode'], r['WhCode']) == (m['SKUCode'], m['WhCode'])
             and r['WhCode'] != r['ParentWhCode'] and r['DispatchColor'] in ('Black', 'Red', 'Yellow')]
         for _, trend_state in connected_btr_stages(today, prior['btr'], btr_facts, delivery,
                 bpr_daily=late['BPRDailyConsumption'],

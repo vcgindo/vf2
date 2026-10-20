@@ -1,9 +1,8 @@
 """Native BOR/BOROA source and stable-occurrence preparation for one daily run."""
-import hashlib
 import inspect
-import json
 from datetime import datetime, timezone
 from decimal import Decimal
+from itertools import islice
 
 from django.db import connection, transaction
 
@@ -11,6 +10,7 @@ from mta.presentation.context import PublicationUnavailable
 from mta.presentation.selective import image_metadata, image_rows
 from mta.runtime.relational_state import quote
 from mta.serialization import digest
+from mta.row_sequences import RecordRows
 
 
 PATHS = {
@@ -105,31 +105,35 @@ def _source_rows(run, layer, name, fields):
 
 
 def _source_expected(run, layer, sources, fields, source_recipe):
+    from mta.presentation.bor_sources import capture_digest
     captures = {}
+    expected = dict(recipe_digest=source_recipe())
     for name in sources.MODELS:
         rows = _source_rows(run, layer, name, fields[name])
-        wire = []
-        for row in rows:
-            value = {}
-            for field in fields[name]:
-                item = row[field]
-                if isinstance(item, datetime):
-                    item = item.isoformat()
-                elif isinstance(item, Decimal):
-                    item = str(item)
-                if name == 'SOBData' and field == 'SOB' and item is not None:
-                    item = float(item)
-                if name == 'BORReport_RemarkDetails' and field == 'RemarkDate':
-                    stamp = datetime.fromisoformat(item)
-                    item = (stamp.astimezone(timezone.utc).replace(tzinfo=None)
-                            if stamp.tzinfo else stamp).isoformat()
-                value[field] = item
-            wire.append(value)
-        raw = json.dumps(wire, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()
-        checksum = hashlib.sha256(raw).hexdigest()
+        def wire_rows():
+            for row in rows:
+                value = {}
+                for field in fields[name]:
+                    item = row[field]
+                    if isinstance(item, datetime):
+                        item = item.isoformat()
+                    elif isinstance(item, Decimal):
+                        item = str(item)
+                    if name == 'SOBData' and field == 'SOB' and item is not None:
+                        item = float(item)
+                    if name == 'BORReport_RemarkDetails' and field == 'RemarkDate':
+                        stamp = datetime.fromisoformat(item)
+                        item = (stamp.astimezone(timezone.utc).replace(tzinfo=None)
+                                if stamp.tzinfo else stamp).isoformat()
+                    value[field] = item
+                yield value
+        wire = RecordRows.from_rows(wire_rows())
+        del rows
+        checksum = capture_digest(wire)
         sources.validate_capture(name, wire, expected_count=len(wire), expected_digest=checksum)
         captures[name] = wire
-    return captures, dict(recipe_digest=source_recipe())
+        expected[sources.DIGEST_FIELDS[name]] = checksum
+    return captures, expected
 
 
 def _to_model_values(fields, name, row):
@@ -150,6 +154,7 @@ def _prepare_source(run, layer, source, modules, *, verify_only):
      source_schema, _) = modules
     captures, expected = _source_expected(run, layer, sources, fields, source_recipe)
     expected['source_digest'] = source
+    expected_values = {field: expected[field] for field in sources.DIGEST_FIELDS.values()}
     receipt = SourceReceipt.objects.filter(run=run).first()
     if receipt is None:
         if verify_only:
@@ -162,23 +167,18 @@ def _prepare_source(run, layer, source, modules, *, verify_only):
                            ['fresh.' + layer + '_source_build', str(run.pk)])
         for name, rows in captures.items():
             model = sources.MODELS[name]
-            model.objects.bulk_create([
-                model(run=run, ordinal=ordinal, **_to_model_values(fields, name, row))
-                for ordinal, row in enumerate(rows)], batch_size=300)
+            values = (model(run=run, ordinal=ordinal, **_to_model_values(fields, name, row))
+                      for ordinal, row in enumerate(rows))
+            while batch := list(islice(values, 300)):
+                model.objects.bulk_create(batch, batch_size=300)
         actual = sources.verify_values(run)
-        expected_values = {sources.DIGEST_FIELDS[name]: hashlib.sha256(json.dumps(
-            rows, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
-            for name, rows in captures.items()}
         if actual != expected_values:
             _fail(layer.upper() + '_source_typed_readback_changed')
         expected.update(actual)
         receipt = SourceReceipt.objects.create(run=run, **expected)
     else:
-        expected.update(sources.verify_values(run))
-        expected_values = {sources.DIGEST_FIELDS[name]: hashlib.sha256(json.dumps(
-            rows, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()).hexdigest()
-            for name, rows in captures.items()}
-        if any(expected[key] != value for key, value in expected_values.items()):
+        actual = sources.verify_values(run)
+        if actual != expected_values:
             _fail(layer.upper() + '_source_producer_values_changed')
     if any(getattr(receipt, key) != value for key, value in expected.items()):
         _fail(layer.upper() + '_source_receipt_changed')

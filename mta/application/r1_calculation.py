@@ -52,6 +52,11 @@ def calculate_r1_requirements(prepared, payload):
     daily, stock_allocations, git_allocations = [], [], []
     first, frozen_cnr = {}, {}
     stock_at_source = {k: ZERO for k in nodes}
+    routes_by_source, routes_by_destination = {}, {}
+    for route in prepared.routes:
+        routes_by_source.setdefault(key(route), []).append(route)
+        destination = (route["sku_code"], route["child_location_code"])
+        routes_by_destination.setdefault(destination, []).append(route)
 
     def req(k, previous, routed, *, cnr=None, direct=None):
         child_rows = [previous[c] for c in children[k]]
@@ -130,10 +135,11 @@ def calculate_r1_requirements(prepared, payload):
 
     for level in levels:
         current = sorted(k for k in nodes if depths[k] == level)
+        current_keys = set(current)
         # Due routes are created at the source depth before advance allocation.
         for route in prepared.routes:
             src = (route["sku_code"], route["location_code"])
-            if src in current and date.fromisoformat(route["due_date"]) <= today:
+            if src in current_keys and date.fromisoformat(route["due_date"]) <= today:
                 append_route(route, remaining.get(route["order_id"], ZERO), "stock")
         for k in current:
             need = sum((first[c].requirement for c in children[k]), ZERO) + demands[k].due_spike + demands[k].pso
@@ -141,7 +147,7 @@ def calculate_r1_requirements(prepared, payload):
                          - (Decimal(masters[k]["base_norm"]) * threshold).to_integral_value(rounding=ROUND_FLOOR), ZERO)
             pack = Decimal(masters[k]["pack_size"])
             available = int(excess // pack)
-            eligible = candidates(r for r in prepared.routes if (r["sku_code"], r["location_code"]) == k)
+            eligible = candidates(routes_by_source.get(k, ()))
             for route in eligible:
                 requested = int((remaining[route["order_id"]] / pack).to_integral_value(rounding=ROUND_CEILING))
                 qty = min(requested, available) * pack
@@ -151,9 +157,8 @@ def calculate_r1_requirements(prepared, payload):
         # A child's first-pass routed demand sees only the still-unallocated
         # quantity on an already-due incoming route (parent executes later).
         for k in current:
-            routed = sum((max(remaining.get(r["order_id"], ZERO), ZERO) for r in prepared.routes
-                          if (r["sku_code"], r["child_location_code"]) == k
-                          and date.fromisoformat(r["due_date"]) <= today), ZERO)
+            routed = sum((max(remaining.get(r["order_id"], ZERO), ZERO) for r in routes_by_destination.get(k, ())
+                          if date.fromisoformat(r["due_date"]) <= today), ZERO)
             first[k] = req(k, first, routed)
             frozen_cnr[k] = first[k].cnr
         # Incoming GIT at this depth precedes parent stock at the next depth.
@@ -165,9 +170,8 @@ def calculate_r1_requirements(prepared, payload):
                       - first[k].additional_demand - norms[k].value, ZERO)
             quotas[k] = int(min(git, eco) // Decimal(masters[k]["pack_size"]))
             if k in parents:
-                groups.setdefault(parents[k], []).extend(r for r in prepared.routes
-                    if (r["sku_code"], r["child_location_code"]) == k
-                    and (r["sku_code"], r["location_code"]) == parents[k])
+                groups.setdefault(parents[k], []).extend(r for r in routes_by_destination.get(k, ())
+                    if (r["sku_code"], r["location_code"]) == parents[k])
         for parent, routes in sorted(groups.items()):
             cumulative = 0
             for route in candidates(routes):

@@ -46,6 +46,10 @@ def read_outputs(run):
 
 def finish_run(run, output, *, expected_digest, publication_opening=None):
     """Only writer of a run's complete output, shared by both engine entries."""
+    # Immutable profile reconstruction happens once before the atomic writer.
+    # The full input audit and run/input digest checks remain inside it.
+    frozen_profile = (read_input(run, components=('profile',))['profile']
+                      if run.kind == 'DAILY_CHAIN' else None)
     with transaction.atomic():
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         from mta.mdm.supplier_revisions import lock_transaction
@@ -72,7 +76,6 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         cohort = lineage[0].get('cohort1')
         if run.kind=='DAILY_CHAIN':
             from mta.application.daily_finalization import configuration,verify_finalization_identity
-            frozen_profile=read_input(run,components=('profile',))['profile']
             if configuration(frozen_profile) is not None or cohort is not None:
                 verify_finalization_identity(output,frozen_profile,run.business_date.isoformat())
         if cohort is not None:
@@ -109,7 +112,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             # inside the transaction so any failure rolls every writer back.
             if configured_policy == ACTIVE_POLICY:
                 from mta.application.daily_finalization import verify_successor
-                verify_successor(output, read_input(run, components=('profile',))['profile'],
+                verify_successor(output, frozen_profile,
                                  run.business_date.isoformat())
         # Keep one atomic publication, but serialize/write one checkpoint at
         # a time rather than retaining a second whole temporal output graph.
@@ -129,20 +132,20 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             # calculations, existing manifests, checkpoints or output digests.
             from mta.presentation.pick_storage import write_pick_bands
             calculation_digest=digest(output['CalculationOutputs'])
-            capture_policy = read_input(run, components=('profile',))['profile'].get('operational_sources')
+            capture_policy = frozen_profile.get('operational_sources')
             if capture_policy is not None:
                 from mta.application.operational_capture import CAPTURE_POLICY
                 from mta.runtime.operational_source import write_source
                 if capture_policy != CAPTURE_POLICY:
                     raise ValueError('Unsupported operational source capture policy')
                 write_source(run, output['CalculationOutputs'], calculation_digest=calculation_digest)
-            input_capture = read_input(run, components=('profile',))['profile'].get('operational_input_sources')
+            input_capture = frozen_profile.get('operational_input_sources')
             if input_capture is not None:
                 from mta.runtime.operational_input_source import write_input_source
                 write_input_source(run, output.pop('_OperationalInputTables', None))
             elif '_OperationalInputTables' in output:
                 raise ValueError('Unexpected processed input capture without opt-in')
-            force_capture = read_input(run, components=('profile',))['profile'].get('operational_force_sources')
+            force_capture = frozen_profile.get('operational_force_sources')
             if force_capture is not None:
                 from mta.runtime.operational_force_source import write_force_source
                 write_force_source(run, output.pop('_OperationalForceSources', None))

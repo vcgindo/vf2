@@ -11,6 +11,8 @@ import json
 import os
 from pathlib import Path
 import uuid
+import logging
+from time import perf_counter
 
 from django.db import connection, transaction
 from mta.serialization import digest, storage
@@ -18,6 +20,18 @@ from mta.application.production_csv import assemble, batch_contract, CsvIntakeEr
 from mta.application.production_csv_files import contained, regular, load_binding, snapshot, decode_json
 from mta.runtime.daily_feed_models import DailyFeedAttempt
 from mta.runtime.models import ProductionInitialization, CalculationRun
+from mta.application.streamed_input import JsonInputFile
+logger = logging.getLogger(__name__)
+
+
+def file_identity(path):
+    checksum = hashlib.sha256()
+    size = 0
+    with Path(path).open('rb') as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            checksum.update(block)
+            size += len(block)
+    return dict(bytes=size, sha256=checksum.hexdigest())
 
 
 def atomic_json(path, value):
@@ -52,12 +66,23 @@ def job_lock(owner):
                 "AND objid=(hashtextextended(%s,0)&4294967295)::oid)", [pid, key, key])
             if cursor.fetchone() != (True,):
                 raise ValueError('Daily worker lock/session was lost; automatic takeover is forbidden')
+    failed = False
     try:
         yield check
+    except BaseException:
+        failed = True
+        raise
     finally:
-        if not connection.needs_rollback:
-            with connection.cursor() as cursor:
-                cursor.execute('SELECT pg_advisory_unlock(hashtextextended(%s,0))', [key])
+        # Never reconnect merely to unlock a dead session, or mask the actual
+        # daily failure with a second exception from its lost connection.
+        if (not connection.needs_rollback and connection.connection is not None
+                and not connection.connection.closed):
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('SELECT pg_advisory_unlock(hashtextextended(%s,0))', [key])
+            except Exception:
+                if not failed:
+                    raise
 
 
 def binding_owner(filename):
@@ -81,10 +106,10 @@ def _batch(source, binding, business_date, root):
         raise ValueError('Batch directory differs from its explicit file roster')
     payloads, receipts = {}, {}
     for name in sorted(names):
-        payload = regular(source / name, root).read_bytes()
-        receipts[name] = dict(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest())
+        path = regular(source / name, root)
+        receipts[name] = file_identity(path)
         if name.endswith('.csv'):
-            payloads[name] = payload
+            payloads[name] = path
     manifest = dict(schema='vectorflow-csv-snapshot-v1', files=receipts)
     manifest['digest'] = digest(manifest)
     return batch, payloads, manifest
@@ -200,7 +225,7 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
                 target = original / item.name
                 with item.open('rb') as incoming, target.open('xb') as outgoing:
                     shutil.copyfileobj(incoming, outgoing)
-                copied[item.name] = hashlib.sha256(target.read_bytes()).hexdigest()
+                copied[item.name] = file_identity(target)['sha256']
         except (OSError, ValueError) as capture_error:
             copied['capture_error'] = str(capture_error)[:300]
         atomic_json(root / 'result.json', dict(status='REJECTED', phase='BATCH',
@@ -230,12 +255,12 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
             if captured != manifest:
                 raise ValueError('Input changed between inspection and immutable snapshot')
             parent = predecessor(owner, business_date)
-            payloads = {name:(root / 'original' / name).read_bytes()
+            payloads = {name:regular(root / 'original' / name, root)
                         for name, state in frozen['feeds'].items() if state == 'PRESENT'}
-            raw, positions = assemble(frozen, binding, payloads, first_day=parent is None)
-            (root / 'native-day.json').write_bytes(raw)
+            raw, positions = assemble(frozen, binding, payloads, first_day=parent is None,
+                                      output_file=root / 'native-day.json')
             atomic_json(root / 'record-lines.json', positions)
-            attempt.input_sha256 = hashlib.sha256(raw).hexdigest()
+            attempt.input_sha256 = file_identity(root / 'native-day.json')['sha256']
             attempt.predecessor = parent
             attempt.predecessor_output_digest = parent.output_digest if parent else ''
             attempt.save(update_fields=['input_sha256', 'predecessor', 'predecessor_output_digest', 'updated_at'])
@@ -277,8 +302,9 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
             else:
                 if attempt.phase not in ('VALIDATED', 'CALCULATE'):
                     raise ValueError('No proven unexecuted native boundary')
-                raw = regular(root / 'native-day.json', root).read_bytes()
-                if hashlib.sha256(raw).hexdigest() != attempt.input_sha256:
+                native_path = regular(root / 'native-day.json', root)
+                raw = JsonInputFile(native_path)
+                if file_identity(native_path)['sha256'] != attempt.input_sha256:
                     raise ValueError('Frozen native input bytes differ')
                 check()
                 save(attempt, 'CALCULATE')
@@ -298,6 +324,7 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                 from mta.application.intake_errors import NativeIntakeRejected
                 diagnostics(attempt, NativeIntakeRejected('Native rejections', stage='completed', rejections=records))
             from mta.presentation.daily_publication import prepare_reporting_generation
+            prepare_started = perf_counter()
             receipt, summary = prepare_reporting_generation(str(run.pk), expected_output_digest=run.output_digest)
             if receipt.status != 'READY' or summary.status != 'READY':
                 raise ValueError('Full report generation is not ready')
@@ -312,16 +339,29 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
             from mta.presentation.native_publication import identity
             candidate_value = candidate(run, receipt, summary, identity(run))
             atomic_json(root / 'candidate-selection.json', candidate_value)
+            logger.warning('daily_phase run=%s phase=report_preparation_and_admission seconds=%.6f',
+                           run.pk, perf_counter()-prepare_started)
             attempt.candidate_selection_digest = candidate_value['selection_digest']
             attempt.save(update_fields=['candidate_selection_digest', 'updated_at'])
             check()
             return save(attempt, 'PREPARED', 'PREPARED')
         except Exception as error:
-            attempt.refresh_from_db()
-            diagnostics(attempt, error)
-            committed = attempt.run_id and attempt.run.status == 'SUCCEEDED'
-            save(attempt, attempt.phase, 'COMMITTED' if committed else 'FAILED',
-                dict(type=type(error).__name__, message=str(error)[:2000]))
+            try:
+                check()
+                attempt.refresh_from_db()
+                diagnostics(attempt, error)
+                committed = attempt.run_id and attempt.run.status == 'SUCCEEDED'
+                save(attempt, attempt.phase, 'COMMITTED' if committed else 'FAILED',
+                    dict(type=type(error).__name__, message=str(error)[:2000]))
+            except Exception as recording_error:
+                # Database status is deliberately untouched if ownership or
+                # connectivity is lost. Reconciliation must establish what
+                # committed before any explicit recovery is permitted.
+                atomic_json(root / 'interrupted.json', dict(
+                    status='INTERRUPTED_RECONCILIATION_REQUIRED',
+                    attempt_id=str(attempt.attempt_id), phase=attempt.phase,
+                    error=dict(type=type(error).__name__, message=str(error)[:2000]),
+                    recording_error=str(recording_error)[:2000]))
             raise
 
 

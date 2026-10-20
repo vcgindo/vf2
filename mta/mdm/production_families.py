@@ -14,6 +14,7 @@ from django.db import connection, transaction
 
 from mta.serialization import digest, storage
 from mta.presentation.request_scope import once_per_request
+from mta.runtime.opening_scope import immutable, opening_operation
 from mta.mdm.initialization_contract import SOURCE_SCHEMA
 from mta.runtime.models import CalculationRun, ProductionInitialization
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -73,7 +74,7 @@ def _opening_input(initialization):
 @once_per_request
 def _verified_initialization(source, *, input_sha256=None, input_schema=None):
     """Verify the immutable H2 seal after optional family rows have been added."""
-    from mta.mdm.initialization import implementation_digest
+    from mta.mdm.initialization import implementation_digest, opening_digests
     from mta.mdm.initialization_contract import SCHEMA
     from mta.mdm.owned_namespace import verify_binding
     initialization = ProductionInitialization.objects.select_related('source').get(source=source)
@@ -99,15 +100,18 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
         raise ValueError('Native initialization/source identity drift')
     verify_binding(p)
     frame = _opening_input(initialization)
-    if (digest(frame) != initialization.input_digest
-            or digest(frame['profile']) != initialization.configuration_digest
-            or digest(frame['recipe']) != initialization.recipe_sha256
+    hashes = opening_digests(initialization, frame)
+    immutable(initialization, 'root-digest', lambda: hashes['state'])
+    if (hashes['content'] != initialization.input_digest
+            or hashes['profile'] != initialization.configuration_digest
+            or hashes['recipe'] != initialization.recipe_sha256
             or frame['opening']['identity'] != initialization.opening_identity
             or frame['opening']['opening_date'] != initialization.opening_date.isoformat()):
         raise ValueError('Native opening/configuration full readback drift')
     from mta.mdm.initialization import families_for
     from mta.mdm.master_owners import owner_batches
-    if p.get('families') != families_for(owner_batches(frame['opening']['state'], strict=True)):
+    if p.get('families') != immutable(initialization, 'families',
+            lambda: families_for(owner_batches(frame['opening']['state'], strict=True))):
         raise ValueError('Native initialization master projection identity drift')
     return initialization, frame
 
@@ -115,6 +119,15 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
 def require_initialization(source, *, input_sha256=None, input_schema=None):
     return _verified_initialization(source, input_sha256=input_sha256,
                                     input_schema=input_schema)[0]
+
+
+def prepare_opening(source):
+    """Precompute immutable family facts without opening a write transaction."""
+    initialization, frame = _verified_initialization(source)
+    _, bags = _expected(initialization, frame=frame)
+    for family in GROUPS:
+        _provenance(initialization, family, bags[family])
+    return initialization
 
 
 def _setting(rows, name):
@@ -142,7 +155,11 @@ def _create_rows(model, source, rows, *, ordinal=False, mapping=None):
                 stamp = stamp.replace(tzinfo=ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE))
             values['ActionTimeStamp'] = stamp
         records.append(model(source=source, **({'ordinal': index} if ordinal else {}), **values))
-    model.objects.bulk_create(records, batch_size=500)
+        if len(records) == 500:
+            model.objects.bulk_create(records, batch_size=500)
+            records.clear()
+    if records:
+        model.objects.bulk_create(records, batch_size=500)
 
 
 def _read_rows(model, source, *, ordinal=False, mapping=None):
@@ -163,10 +180,15 @@ def _provenance(initialization, family, bags):
         initialization_id=str(initialization.pk),
         initialization_content_digest=initialization.input_digest,
         configuration_sha256=_configuration()[family],
-        opening_bag_digests={name: digest(storage(rows)) for name, rows in sorted(bags.items())})
+        opening_bag_digests=immutable(initialization, 'bag-digests:'+family,
+            lambda: {name: digest(storage(rows)) for name, rows in sorted(bags.items())}))
 
 
 def _expected(initialization, *, frame=None):
+    return immutable(initialization, 'family-bags', lambda: _build_expected(initialization, frame=frame))
+
+
+def _build_expected(initialization, *, frame=None):
     if frame is None:
         frame = _opening_input(initialization)
     state = frame['opening']['state']
@@ -237,7 +259,7 @@ def _verify_owner(source, owner, family, initialization, frame, bags, unchanged_
     if (source.receipt.get('schema') != SOURCE_SCHEMA or owner.provenance != expected
             or owner.receipt_digest != digest(expected)
             or hasattr(owner, 'root_state_digest')
-            and owner.root_state_digest != digest(frame['opening']['state'])
+            and owner.root_state_digest != immutable(initialization, 'root-digest', lambda: digest(frame['opening']['state']))
             or unchanged_opening and storage(_actual(source, family)) != storage(bags[family])):
         raise ValueError('Native MDM '+family+' opening owner differs')
     rows = list(MdmFamilySource.objects.filter(source=source,
@@ -324,7 +346,7 @@ def _read_execution_identity(seal):
 
 @once_per_request
 def require_binding(source, *, read_only=False):
-    initialization, frame = _verified_initialization(source, input_sha256=None, input_schema=None)
+    initialization, frame = _verified_initialization(source)
     _, bags = _expected(initialization, frame=frame)
     unchanged_opening = not MdmDailyInputCapture.objects.filter(source=source).exists()
     seal = MdmSourceIntegration.objects.get(source=source)
@@ -354,8 +376,22 @@ def require_binding(source, *, read_only=False):
     return seal
 
 
-@transaction.atomic
+@opening_operation
 def bootstrap_native_families(initialization):
+    # Decode/hash the sealed opening before opening a write transaction. Live
+    # owners and receipts are still checked again under the source lock below.
+    _verified_initialization(initialization.source)
+    _expected(initialization)
+    from mta.mdm.initialization import opening_digests
+    root_digest = opening_digests(initialization, _opening_input(initialization))['state']
+    immutable(initialization, 'root-digest', lambda: root_digest)
+    for family in GROUPS:
+        _provenance(initialization, family, _expected(initialization)[1][family])
+    with transaction.atomic():
+        return _bootstrap_native_families(initialization)
+
+
+def _bootstrap_native_families(initialization):
     from mta.mdm.initialization import verify
     from mta.mdm.supplier_revisions import source_lock
     identity, source_id = initialization.pk, initialization.source_id
@@ -371,7 +407,7 @@ def bootstrap_native_families(initialization):
             raise ValueError('Native MDM bootstrap requires an untouched initialized opening')
         verify(initialization, current_masters=True)
         frame, bags = _expected(initialization)
-        root_digest = digest(frame['opening']['state'])
+        root_digest = immutable(initialization, 'root-digest', lambda: digest(frame['opening']['state']))
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.native_mdm_families',%s,true), "
                 "set_config('fresh.mdm_supplier_bootstrap',%s,true), "

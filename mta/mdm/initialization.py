@@ -1,7 +1,7 @@
 """Atomic native instance initialization from supplied masters and opening facts."""
 from collections import Counter
 import hashlib
-from itertools import islice
+from itertools import islice, zip_longest
 import json
 from pathlib import Path
 import uuid
@@ -16,6 +16,7 @@ from mta.mdm.master_owners import business_fields, owner_batches
 from mta.mdm.owned_namespace import authorize_install, verify_binding
 from mta.runtime.input_storage import save_input, read_input
 from mta.runtime import opening_storage
+from mta.runtime.opening_scope import immutable, opening_operation
 from mta.mdm.initialization_rows import select as initialization_table
 
 
@@ -23,7 +24,7 @@ IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_contract.py
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
-        'row_sequences.py','application/streamed_input.py',
+        'row_sequences.py','application/streamed_input.py','runtime/opening_scope.py',
         'mdm/skuloc_tasks.py', 'mdm/skuloc_audit.py',
         'mdm/native_audit.py', 'mdm/native_audit_policy.py',
         'runtime/native_audit_models.py', 'runtime/operational_opening.py',
@@ -81,9 +82,11 @@ def verify_current_masters(source, batches):
     models = {}
     for _, model, scope, rows, path in batches:
         fields = [field.name for field in business_fields(model)]
-        actual = list(model.objects.filter(source=source, **scope).order_by('ordinal').values(*fields))
-        if storage(actual) != storage(rows):
-            raise ValueError('Native master typed readback differs: '+path)
+        actual = model.objects.filter(source=source, **scope).order_by('ordinal').values(*fields).iterator(chunk_size=500)
+        missing = object()
+        for observed, expected in zip_longest(actual, rows, fillvalue=missing):
+            if observed is missing or expected is missing or storage(observed) != storage(expected):
+                raise ValueError('Native master typed readback differs: '+path)
         counts[model] += len(rows)
         models[model] = model
     for model in models:
@@ -94,8 +97,14 @@ def verify_current_masters(source, batches):
 def read_initialized_input(owner):
     # These are the initializer's explicit current-list contracts. Operational
     # histories outside these roots remain streamed and fully checksum-checked.
-    return read_input(owner, image_reader=opening_storage.load_image,
-        materialized_roots=(*CURRENT_LIST_PATHS, 'input/profile', 'input/pair_exclusions'))
+    return immutable(owner, 'frame', lambda: read_input(owner, image_reader=opening_storage.load_image,
+        materialized_roots=(*CURRENT_LIST_PATHS, 'input/profile', 'input/pair_exclusions')))
+
+
+def opening_digests(owner, frame):
+    return immutable(owner, 'digests', lambda: dict(content=digest(frame),
+        profile=digest(frame['profile']), recipe=digest(frame['recipe']),
+        state=digest(frame['opening']['state'])))
 
 
 def verify(owner, *, expected_frame=None, current_masters=False):
@@ -117,14 +126,15 @@ def verify(owner, *, expected_frame=None, current_masters=False):
         raise ValueError('Native initialization/source identity drift')
     verify_binding(p)
     frame = read_initialized_input(owner)
-    if (digest(frame) != owner.input_digest or digest(frame['profile']) != owner.configuration_digest
-            or digest(frame['recipe']) != owner.recipe_sha256
+    hashes = opening_digests(owner, frame)
+    if (hashes['content'] != owner.input_digest or hashes['profile'] != owner.configuration_digest
+            or hashes['recipe'] != owner.recipe_sha256
             or frame['opening']['identity'] != owner.opening_identity
             or frame['opening']['opening_date'] != owner.opening_date.isoformat()
-            or expected_frame is not None and storage(frame) != storage(expected_frame)):
+            or expected_frame is not None and hashes['content'] != digest(expected_frame)):
         raise ValueError('Native opening/configuration full readback drift')
     batches = owner_batches(frame['opening']['state'], strict=True)
-    families = families_for(batches)
+    families = immutable(owner, 'families', lambda: families_for(batches))
     if p.get('families') != families:
         raise ValueError('Native master projection identity drift')
     actual = {str(row.master_id): (row.digest, row.receipt)
@@ -149,6 +159,7 @@ def bind_source(source, *, input_sha256, input_schema):
     return source
 
 
+@opening_operation
 def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe):
     from mta.runtime.production_preflight import initialization as inspect, require
     require(inspect(raw,expected_sha256,expected_configuration=expected_configuration,
@@ -156,6 +167,10 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
     value, frame, batches = decode(raw, expected_sha256,
         expected_configuration=expected_configuration, expected_recipe=expected_recipe)
     implementation = implementation_digest()
+    # Full immutable CPU work precedes the atomic writer; all database guards,
+    # current-master readback and sealing stay in the transaction.
+    content_digest = digest(frame)
+    families = families_for(batches)
     with transaction.atomic():
         namespace = authorize_install(expected_sha256, implementation)
         if namespace['registration'] is None:
@@ -174,14 +189,13 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
                 or MdmTask.objects.exists() or MdmSubTask.objects.exists()):
             raise ValueError('Native initialization requires a fresh instance; existing ownership cannot be replaced')
         identity = uuid.uuid4()
-        families = families_for(batches)
         receipt = dict(schema=SOURCE_SCHEMA, initialization_id=str(identity),
             input_schema=SCHEMA, input_sha256=expected_sha256,
             recipe_sha256=expected_recipe, configuration_digest=expected_configuration,
             implementation_digest=implementation, database=namespace['database_name'],
             owned_namespace=namespace['registration'], families=families,
             opening_identity=frame['opening']['identity'], opening_date=frame['opening']['opening_date'],
-            content_digest=digest(frame), qualification='INITIALIZATION_ONLY_NO_ACCEPTED_DAY')
+            content_digest=content_digest, qualification='INITIALIZATION_ONLY_NO_ACCEPTED_DAY')
         source = MdmSource.objects.create(digest=digest(receipt), dll_digest='',
             implementation_digest=implementation, database_name=namespace['database_name'], receipt=receipt)
         with connection.cursor() as cursor:
@@ -190,7 +204,7 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
             opening_identity=frame['opening']['identity'], opening_date=frame['opening']['opening_date'],
             input_sha256=expected_sha256, recipe_sha256=expected_recipe,
             configuration_digest=expected_configuration, implementation_digest=implementation,
-            input_digest=digest(frame))
+            input_digest=content_digest)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.production_initialization',%s,true), "
                 "set_config('fresh.mdm_current_bootstrap',%s,true)", [str(owner.pk), str(source.pk)])

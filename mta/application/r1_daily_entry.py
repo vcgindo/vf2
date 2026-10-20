@@ -130,6 +130,10 @@ def native_auxiliary_stock_balances(daily_consumption, physical_balances, attrib
     key = lambda sku, loc: (_sql_key(sku), _sql_key(loc))
     physical = {key(r['sku_code'], r['location_code']) for r in physical_balances}
     output, seen = [], {}
+    percentages = {}
+    if reservation_type == 1:
+        for attr in attributes:
+            percentages.setdefault(key(attr['SKUCode'], attr['LocCode']), []).append(attr['StockPercentForRationing'])
     for row in daily_consumption:
         if row['ReportDate'] != business_date:
             continue
@@ -142,8 +146,7 @@ def native_auxiliary_stock_balances(daily_consumption, physical_balances, attrib
         rationing = max(stock, 0)
         reserved = 0
         if reservation_type == 1:
-            values = [r['StockPercentForRationing'] for r in attributes
-                      if key(r['SKUCode'], r['LocCode']) == identity]
+            values = percentages.get(identity, ())
             if values:
                 if any(v != values[0] for v in values[1:]):
                     raise ValueError('SOURCE_ORDER_AMBIGUITY: auxiliary stock-percent reservation')

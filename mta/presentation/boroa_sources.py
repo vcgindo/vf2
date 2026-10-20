@@ -1,9 +1,8 @@
 """Admission and exact readback of the isolated BOR-OA opening snapshot."""
-import hashlib,json
 from datetime import datetime
 from decimal import Decimal,InvalidOperation
 from django.db import connection
-from mta.presentation.bor_sources import native_binding as bor_native_binding
+from mta.presentation.bor_sources import native_binding as bor_native_binding, capture_digest
 from mta.presentation.boroa_contract import SOURCE_FIELDS,PINS,source_recipe
 from mta.presentation.context import PublicationUnavailable
 from mta.runtime.boroa_models import BorOaSourceRow,BorOaRequirement,BorOaInitialRemark,BorOaSourceReceipt
@@ -40,7 +39,7 @@ def validate_capture(name,rows, *, expected_count=None, expected_digest=None):
                     if d.is_finite() and d==d.quantize(Decimal(1).scaleb(-spec['scale'])):continue
                 except InvalidOperation:pass
             raise ValueError('BOROA capture type differs: '+field)
-    sha=hashlib.sha256(json.dumps(rows,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+    sha=capture_digest(rows)
     if sha!=expected_digest:raise ValueError('BOROA capture values differ: '+name)
     return sha
 
@@ -50,22 +49,21 @@ def verify_values(run):
     values={}
     for name,model in MODELS.items():
         fields=list(SOURCE_FIELDS[name])
-        records=list(model.objects.filter(run=run).order_by('ordinal').values('ordinal',*fields))
-        if [row.pop('ordinal') for row in records] != list(range(len(records))):
-            raise PublicationUnavailable('BOROA_source_ordinal_population_changed:'+name)
-        rows=[]
-        for record in records:
-            row={}
-            for field,spec in SOURCE_FIELDS[name].items():
-                value=record[field]
-                if spec['kind']=='datetime' and value is not None:
-                    value=value.isoformat()
-                elif spec['kind']=='decimal' and value is not None:
-                    value=str(value)
-                row[field]=value
-            rows.append(row)
-        raw=json.dumps(rows,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()
-        values[DIGEST_FIELDS[name]]=hashlib.sha256(raw).hexdigest()
+        def rows():
+            records=model.objects.filter(run=run).order_by('ordinal').values('ordinal',*fields)
+            for ordinal,record in enumerate(records.iterator(chunk_size=300)):
+                if record.pop('ordinal') != ordinal:
+                    raise PublicationUnavailable('BOROA_source_ordinal_population_changed:'+name)
+                row={}
+                for field,spec in SOURCE_FIELDS[name].items():
+                    value=record[field]
+                    if spec['kind']=='datetime' and value is not None:
+                        value=value.isoformat()
+                    elif spec['kind']=='decimal' and value is not None:
+                        value=str(value)
+                    row[field]=value
+                yield row
+        values[DIGEST_FIELDS[name]]=capture_digest(rows())
     return values
 
 def admitted_sources(run=None):

@@ -201,7 +201,7 @@ def save_export(run,image,rows):
 
 def iter_export(run,item):
     checksum=hashlib.sha256(b'[');count=0
-    with connection.cursor() as cursor:
+    with connection.chunked_cursor() as cursor:
         if item.get('version')==2:
             cursor.execute('SELECT r.row_ordinal,r.column_count,c.column_ordinal,c.value_type,'
                 'c.text_value,c.integer_value,c.real_value,c.boolean_value '
@@ -233,12 +233,17 @@ def iter_export(run,item):
                 count+=1
                 yield row
             if pending is not None:raise ValueError('Extra report rows')
+    # A named server cursor owns one statement. Use a separate cursor for the
+    # orphan check after the streamed export result has been exhausted.
+    if item.get('version')==2:
+        with connection.cursor() as cursor:
             cursor.execute('SELECT count(*) FROM mta_state.report_export_cell c WHERE c.vf_run_id=%s '
                 'AND c.vf_image=%s AND NOT EXISTS (SELECT 1 FROM mta_state.report_export_row r '
                 'WHERE r.vf_run_id=c.vf_run_id AND r.vf_image=c.vf_image AND r.row_ordinal=c.row_ordinal)',
                 [run.pk,item['image']])
             if cursor.fetchone()[0]:raise ValueError('Orphan report cells')
-        else:
+    else:
+        with connection.chunked_cursor() as cursor:
             # Accepted version-one receipts retain their original row-length manifest.
             cursor.execute('SELECT row_ordinal,column_ordinal,value_type,text_value,integer_value,real_value,boolean_value '
                 'FROM mta_state.report_export_cell WHERE vf_run_id=%s AND vf_image=%s ORDER BY row_ordinal,column_ordinal',
@@ -263,6 +268,12 @@ def iter_export(run,item):
 
 
 def load_export(run,item):
+    if item['count'] > 10000:
+        # Export rows contain nested variable-width cells and cannot use the
+        # flat RecordRows spool. Reiterate the fully checked typed relation.
+        for _ in iter_export(run,item):
+            pass
+        return RecordRows(item['count'], lambda: iter_export(run,item))
     return list(iter_export(run,item))
 
 

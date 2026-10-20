@@ -167,9 +167,13 @@ def process_supplier_validation(raw, master_validation, settings, now):
             parents = [(r["SKUCode"], r["WhCode"], r["ParentWhCode"]) for r in master["MasterData"]
                        if (_sql_key(r["SKUCode"]), _sql_key(r["WhCode"])) not in sob_keys]
             parents.extend((r["SKUCode"], r["WHCode"], r["SupplierCode"]) for r in tables["SOBDataRaw"])
-            tables[table] = [{**r, "WHCode": wh} for r in tables["MOQDataRaw1"] for sku, wh, parent in parents
-                             if parent is not None and r["SupplierCode"] is not None and r["SKUCode"] is not None
-                             and (_sql_key(r["SKUCode"]), _sql_key(r["SupplierCode"])) == (_sql_key(sku), _sql_key(parent))]
+            parents_by_key = {}
+            for sku, wh, parent in parents:
+                if parent is not None:
+                    parents_by_key.setdefault((_sql_key(sku), _sql_key(parent)), []).append(wh)
+            tables[table] = [{**r, "WHCode": wh} for r in tables["MOQDataRaw1"]
+                             if r["SupplierCode"] is not None and r["SKUCode"] is not None
+                             for wh in parents_by_key.get((_sql_key(r["SKUCode"]), _sql_key(r["SupplierCode"])), ())]
         outcome = validate(table)
         stages[stage] = {"outcome": outcome, "tables":
             {}}

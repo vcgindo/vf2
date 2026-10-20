@@ -73,6 +73,16 @@ def _join(a, b, fields=("SKUCode", "WhCode")):
     return None not in ka and None not in kb and ka == kb
 
 
+def _join_index(rows, fields=("SKUCode", "WhCode")):
+    """SQL equality candidates, retaining every occurrence in source order."""
+    result = {}
+    for row in rows:
+        key = _key(row, fields)
+        if None not in key:
+            result.setdefault(key, []).append(row)
+    return result
+
+
 def _distinct(rows, fields):
     found = {}
     for row in rows:
@@ -235,7 +245,8 @@ def process_importer_master(payload):
 
     added_non_nms, auto_force = [], []
     if payload["import_non_nms"]:
-        added_non_nms = deepcopy([r for r in nonnms if not any(_join(r, n) for n in raw)])
+        raw_by_key = _join_index(raw)
+        added_non_nms = deepcopy([r for r in nonnms if _key(r) not in raw_by_key])
 
         def names(old, candidates, keyfield, valuefield):
             result = defaultdict(set)
@@ -268,14 +279,16 @@ def process_importer_master(payload):
                         raise LegacyMasterAmbiguity("UNPROVEN: consumed Non-NMS name UPDATE has multiple source values")
                     row[field] = next(iter(values))
         prior_attrs = tables["SkuLocAttributeData"]
+        prior_attrs_by_key = _join_index(prior_attrs, ("SKUCode", "LocCode"))
         for population, expected in ((added_non_nms, 0), (raw, 1)):
             for row in population:
-                for attr in prior_attrs:
-                    if _join(row, {"SKUCode": attr["SKUCode"], "WhCode": attr["LocCode"]}) and attr["NonNMS"] == expected:
+                for attr in prior_attrs_by_key.get(_key(row), ()):
+                    if attr["NonNMS"] == expected:
                         auto_force.append({"SKUCode": row["SKUCode"], "WhCode": row["WhCode"], "NewNorm": row["Norm"], "Approved": 1, "RequestedBy": None})
         raw.extend(deepcopy(added_non_nms))
 
-    overlap = [r for r in raw for n in tables["NoNormMasterRaw"] if _join(r, n)]
+    no_norm_by_key = _join_index(tables["NoNormMasterRaw"])
+    overlap = [r for r in raw for n in no_norm_by_key.get(_key(r), ())]
     if overlap:
         tables["NoNormMasterRaw"].clear()
         return reject(overlap, 20, "Both Master file and No Norm Master file rejected,both have same SKU-Locations")
@@ -379,23 +392,28 @@ def process_importer_master(payload):
     existing_locations = {_sql_key(r["WHCode"]) for r in tables["LocationAttributeData"]}
     tables["LocationAttributeData"].extend({f: r["WHCode"] if f == "WHCode" else None for f in LOC_ATTRIBUTES}
                                           for r in tables["SiteDescriptionTbl"] if _sql_key(r["WHCode"]) not in existing_locations)
+    non_nms_by_key = _join_index(added_non_nms)
     tables["SkuLocAttributeData"] = [
         {"SKUCode": r["SKUCode"], "LocCode": r["WhCode"], **{f: r[f] for f in SKULOC_ATTRIBUTES[2:8]},
-         "NonNMS": int(any(_join(r, n) for n in added_non_nms)), **{f"c{i}": r[f"SKULocAtt{i:02}"] for i in range(1, 16)}} for r in norms
+         "NonNMS": int(_key(r) in non_nms_by_key), **{f"c{i}": r[f"SKULocAtt{i:02}"] for i in range(1, 16)}} for r in norms
     ]
     prior = tables["MasterData"]
+    norms_by_key = _join_index(norms)
     for row in prior:
-        if not any(_join(row, n) for n in norms):
+        if _key(row) not in norms_by_key:
             tables["RetiredNormsTbl"].append({"SKUCode": row["SKUCode"], "WhCode": row["WhCode"], "Norm": row["Norm"], "Event_Date": day, "Event_Type": 0})
-    retained = [r for r in prior if any(_join(r, n) for n in norms)]
+    retained = [r for r in prior if _key(r) in norms_by_key]
     if setting("UpdatePWh_RLT_RCP_GCP", 1) == 1:
         for row in retained:
-            incoming = next(n for n in norms if _join(row, n))
+            incoming = norms_by_key[_key(row)][0]
             row.update({f: incoming[f] for f in REFRESH})
-    new = [r for r in norms if not any(_join(r, p) for p in retained)]
+    retained_by_key = _join_index(retained)
+    new = [r for r in norms if _key(r) not in retained_by_key]
+    retired_by_key = _join_index(tables["RetiredNormsTbl"])
     for row in new:
-        if any(_join(row, h) for h in tables["RetiredNormsTbl"]):
+        if _key(row) in retired_by_key:
             tables["RetiredNormsTbl"].append({"SKUCode": row["SKUCode"], "WhCode": row["WhCode"], "Norm": row["Norm"], "Event_Date": day, "Event_Type": 1})
     tables["MasterData"] = retained + [{f: day if f == "SKUIntroDate" else r[f] for f in MASTER_COLUMNS} for r in new]
-    tables["ForceNormChange"] = [r for r in tables["ForceNormChange"] if not any(_join(r, a) for a in auto_force)] + auto_force
+    auto_force_by_key = _join_index(auto_force)
+    tables["ForceNormChange"] = [r for r in tables["ForceNormChange"] if _key(r) not in auto_force_by_key] + auto_force
     return finish("APPLIED")

@@ -4,8 +4,11 @@ from datetime import date
 import hashlib
 import json
 import uuid
+import logging
+from time import perf_counter
 
 from mta.serialization import digest, storage
+from mta.runtime.opening_scope import opening_operation
 from mta.mdm.initialization_contract import object_pairs, sha
 from mta.mdm.initialization_rows import scalar
 from mta.application.r1_daily_input import DAILY_COLUMNS, _typed_rows
@@ -15,6 +18,7 @@ from mta.runtime.relational_state import STORAGE_TABLES
 from mta.application.native_daily_contract import (
     SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES, DAY_TABLES, CONTROL_TABLES, DAY_FIELDS)
 from mta.application.native_daily_contract import STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA, STOCK_TABLE, day_tables, day_fields
+logger = logging.getLogger(__name__)
 
 
 def rows(value, table, label):
@@ -75,11 +79,15 @@ def input_table(fields, path, records):
 
 def decode(raw, expected_sha256):
     sha(expected_sha256, 'daily input')
-    if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected_sha256:
-        raise ValueError('Daily operator input bytes differ')
     def nonfinite(value):
         raise ValueError('Nonfinite daily number: '+value)
-    value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
+    from mta.application.streamed_input import JsonInputFile
+    if isinstance(raw, JsonInputFile):
+        value = raw.decode(expected_sha256, object_pairs_hook=object_pairs, parse_constant=nonfinite)
+    else:
+        if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected_sha256:
+            raise ValueError('Daily operator input bytes differ')
+        value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
     envelope = {'schema', 'day', 'consumer_opening'}
     if isinstance(value, dict) and value.get('schema') == SOURCE_SCHEMA:
         envelope |= {'intake_schema', 'producer_sources'}
@@ -203,6 +211,7 @@ def initialize_consumers(owner, value, input_sha256):
         raise ValueError('Native remark owner provenance differs')
 
 
+@opening_operation
 def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             pick_output_root, execution_revision=None, retry_capture_id=None,
             predecessor_id=None, predecessor_output_digest=None, report_disposition=None):
@@ -387,9 +396,11 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
         problem('/retry_capture_id/request','frozen MDM capture',error)
 
 
+@opening_operation
 def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
             retry_capture_id=None, report_disposition=None, feed_attempt=None):
+    started = perf_counter()
     from mta.runtime.models import ProductionInitialization, CalculationRun
     from mta.mdm.initialization import read_initialized_input
     from mta.mdm.production_families import bootstrap_native_families, require_binding, require_initialization
@@ -424,6 +435,8 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
         raise ValueError('Non-NMS feed requires its initialized active configuration')
     from mta.mdm.location_transition import admit
     admit(owner.source, day['business_date'], parent)
+    logger.warning('daily_phase initialization=%s phase=native_preflight_and_bootstrap seconds=%.6f',
+                   owner.pk, perf_counter()-started)
     return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,

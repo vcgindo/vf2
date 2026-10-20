@@ -225,7 +225,7 @@ def read_streamed(directory, expected_manifest_sha256, *, expected_configuration
     value = unpack(manifest['template'])
     if used != set(manifest['populations']):
         raise ValueError('Unreferenced opening CSV population')
-    native = StreamedInput(value, manifest['native_input_sha256'])
+    native = StreamedInput.take(value, manifest['native_input_sha256'])
     decode(native, manifest['native_input_sha256'], expected_configuration=expected_configuration,
            expected_recipe=expected_recipe)
     return native

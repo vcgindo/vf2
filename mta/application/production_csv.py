@@ -6,11 +6,58 @@ import csv
 from datetime import datetime, date
 import io
 import json
+from contextlib import ExitStack
+from collections.abc import Sequence
+from itertools import islice
+from pathlib import Path
+import tempfile
+import os
 
 from mta.application.operational_inputs import NULL, typed_value
 from mta.application.production_csv_contract import SCHEMA_VERSION, feeds
 from mta.application.native_daily_contract import SOURCE_SCHEMA, CONTROL_TABLES
-from mta.serialization import storage
+from mta.serialization import storage, canonical_parts
+
+
+class IssueRows(Sequence):
+    """Complete variable-shaped diagnostics without an unbounded error list."""
+    def __init__(self):
+        root = os.environ.get('VF_WORK_ROOT')
+        if root:
+            Path(root).mkdir(parents=True, exist_ok=True)
+        self._rows = tempfile.TemporaryFile(mode='w+t', encoding='utf-8', dir=root)
+        self._count = 0
+
+    def append(self, row):
+        self._rows.seek(0, 2)
+        self._rows.write(json.dumps(row, ensure_ascii=False) + '\n')
+        self._count += 1
+
+    def extend(self, rows):
+        for row in rows:
+            self.append(row)
+
+    def __len__(self):
+        return self._count
+
+    def __iter__(self):
+        self._rows.flush()
+        self._rows.seek(0)
+        for line in self._rows:
+            yield json.loads(line)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return list(islice(iter(self), *index.indices(len(self))))
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        return next(islice(iter(self), index, index + 1))
+
+    def __del__(self):
+        if hasattr(self, '_rows'):
+            self._rows.close()
 
 
 class CsvIntakeError(ValueError):
@@ -22,10 +69,20 @@ class CsvIntakeError(ValueError):
 
 
 def parse_csv(raw, columns, filename):
-    issues, output, ordinals = [], [], []
     try:
-        text = raw.decode('utf-8-sig')
-        reader = csv.reader(io.StringIO(text, newline=''), strict=True)
+        with ExitStack() as stack:
+            stream = (stack.enter_context(raw.open('r', encoding='utf-8-sig', newline=''))
+                      if isinstance(raw, Path) else io.StringIO(raw.decode('utf-8-sig'), newline=''))
+            return _parse_csv_stream(stream, columns, filename)
+    except UnicodeError as error:
+        raise CsvIntakeError([dict(file=filename, record=1, column='',
+            message=type(error).__name__ + ': ' + str(error)[:300])]) from error
+
+
+def _parse_csv_stream(stream, columns, filename):
+    issues, output, ordinals = IssueRows(), [], []
+    try:
+        reader = csv.reader(stream, strict=True)
         header = next(reader, None)
         expected = [c['name'] for c in columns]
         if header != expected:
@@ -85,7 +142,7 @@ def batch_contract(value, binding, business_date):
     return roster
 
 
-def assemble(batch, binding, payloads, *, first_day):
+def assemble(batch, binding, payloads, *, first_day, output_file=None):
     """Only files own external facts; DB queues and successors keep their owners."""
     business_date = batch['business_date']
     date.fromisoformat(business_date)
@@ -108,7 +165,7 @@ def assemble(batch, binding, payloads, *, first_day):
                 provenance=dict(batch_id=batch['batch_id'], format=SCHEMA_VERSION), rows=[]),
             transporters=dict(schema='daily-transporter-raw-v1', business_date=business_date,
                 provenance=dict(batch_id=batch['batch_id'], format=SCHEMA_VERSION), rows=[])))
-    mappings, errors = {}, []
+    mappings, errors = {}, IssueRows()
     for filename, spec in roster.items():
         try:
             rows, positions = (parse_csv(payloads[filename], spec['columns'], filename)
@@ -123,6 +180,12 @@ def assemble(batch, binding, payloads, *, first_day):
             errors.extend(error.issues)
     if errors:
         raise CsvIntakeError(errors)
+    if output_file is not None:
+        from mta.application.streamed_input import JsonInputFile
+        with Path(output_file).open('xb') as stream:
+            for part in canonical_parts(value, ensure_ascii=False):
+                stream.write(part)
+        return JsonInputFile(output_file), mappings
     raw = json.dumps(storage(value), ensure_ascii=False, sort_keys=True,
                      separators=(',', ':'), allow_nan=False).encode('utf-8')
     return raw, mappings

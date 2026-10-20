@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from django.db import connection
 from mta.presentation.bor_contract import RUN_ID, BUSINESS_DATE, NATIVE_DIGEST, FIELDS, PINS, recipe_digest
 from mta.presentation.context import PublicationUnavailable
+from mta.row_sequences import RecordRows
 from mta.runtime.models import BorSourceReceipt, BorSourceRow, BorSobRow, BorMoqRow, BorInitialRemark
 from mta.runtime.bor_source_schema import verify_guards
 
@@ -62,12 +63,25 @@ def native_binding(run=None):
     _production_policy(run)
     return (run, source_digest(run))
 
+def capture_digest(rows):
+    """Exact source JSON array checksum, preserving declared field insertion order."""
+    checksum = hashlib.sha256(b'[')
+    encoder = json.JSONEncoder(ensure_ascii=False, separators=(',', ':'), allow_nan=False)
+    for ordinal, row in enumerate(rows):
+        if ordinal:
+            checksum.update(b',')
+        for part in encoder.iterencode(row):
+            checksum.update(part.encode())
+    checksum.update(b']')
+    return checksum.hexdigest()
+
+
 def validate_capture(name, rows, *, expected_count=None, expected_digest=None):
     if expected_count is None and expected_digest is None:
         raise ValueError('Explicit native source count/digest required')
     if type(expected_count) is not int or expected_count < 0 or not isinstance(expected_digest, str) or len(expected_digest) != 64:
         raise ValueError('Explicit source count/digest required')
-    if not isinstance(rows,list) or len(rows)!=expected_count:
+    if not isinstance(rows,(list,RecordRows)) or len(rows)!=expected_count:
         raise ValueError('BOR capture count differs: '+name)
     for row in rows:
         if list(row)!=list(FIELDS[name]):
@@ -84,7 +98,7 @@ def validate_capture(name, rows, *, expected_count=None, expected_digest=None):
                 limit=100 if kind=='nullable100' else 50
                 if kind=='nullable_text' or len(v)<=limit: continue
             raise ValueError('BOR capture type/length differs: '+name+'/'+field)
-    checksum=hashlib.sha256(json.dumps(rows,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+    checksum=capture_digest(rows)
     if checksum!=expected_digest:
         raise ValueError('BOR capture values differ: '+name)
     return checksum
@@ -93,12 +107,13 @@ def verify_values(run):
     values = {}
     for name, model in MODELS.items():
         fields = list(FIELDS[name])
-        records = list(model.objects.filter(run=run).order_by('ordinal').values('ordinal', *fields))
-        if [row.pop('ordinal') for row in records] != list(range(len(records))):
-            raise PublicationUnavailable('BOR_source_ordinal_population_changed:' + name)
-        rows = wire_rows(name, records)
-        raw = json.dumps(rows, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode()
-        values[DIGEST_FIELDS[name]] = hashlib.sha256(raw).hexdigest()
+        def rows():
+            records = model.objects.filter(run=run).order_by('ordinal').values('ordinal', *fields)
+            for ordinal, record in enumerate(records.iterator(chunk_size=300)):
+                if record.pop('ordinal') != ordinal:
+                    raise PublicationUnavailable('BOR_source_ordinal_population_changed:' + name)
+                yield wire_rows(name, [record])[0]
+        values[DIGEST_FIELDS[name]] = capture_digest(rows())
     return values
 
 def admitted_sources(run=None):

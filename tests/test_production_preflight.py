@@ -412,7 +412,10 @@ class ProductionPreflightTests(unittest.TestCase):
         with TemporaryDirectory() as root:
             file=Path(root)/'supplied.json';file.write_bytes(raw)
             out=io.StringIO()
-            with patch('mta.runtime.management.commands.initialize_production.initialize') as install:
+            # This source-only CLI test has no exported release identity. The
+            # independently pinned packaged command is exercised in runtime.
+            with patch('mta.runtime.management.commands.initialize_production.initialize') as install, \
+                    patch('mta.runtime.management.commands.initialize_production.implementation_digest', return_value='d'*64):
                 call_command('initialize_production',str(file),sha256=sha,
                     configuration_digest=args['expected_configuration'],recipe_digest=args['expected_recipe'],inspect=True,stdout=out)
             install.assert_not_called()
@@ -427,7 +430,8 @@ class ProductionPreflightTests(unittest.TestCase):
         raw,sha,args=encoded(value)
         with TemporaryDirectory() as root:
             file=Path(root)/'supplied.json';file.write_bytes(raw);out=io.StringIO()
-            with self.assertRaises(CommandError):
+            with patch('mta.runtime.management.commands.initialize_production.implementation_digest', return_value='d'*64), \
+                    self.assertRaises(CommandError):
                 call_command('initialize_production',str(file),sha256=sha,
                     configuration_digest=args['expected_configuration'],recipe_digest=args['expected_recipe'],inspect=True,stdout=out)
         paths={q['path'] for q in json.loads(out.getvalue())['issues']}

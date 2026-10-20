@@ -6,6 +6,8 @@ in this service. Parent locking freezes which actions a next day consumes.
 from copy import deepcopy
 from datetime import date, datetime, timedelta
 import uuid
+import logging
+from time import perf_counter
 
 from django.db import connection, transaction
 from django.conf import settings
@@ -17,10 +19,12 @@ from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
 from mta.runtime.input_reader import read_input
+from mta.runtime.opening_scope import opening_operation, release_opening
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
             'final-suggestions','post-rule-reports','btr-insights','closing-state')
+logger = logging.getLogger(__name__)
 
 
 def resolved_pick_root(value):
@@ -159,11 +163,13 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     return event
 
 
+@opening_operation
 def execute_day(*, day, profile, execution_revision, predecessor=None, opening=None,
                 report_exceptions=None, mdm_source=None, mdm_retry=None,
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None):
+    started = perf_counter()
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
         raise ValueError('Explicit execution revision required')
@@ -225,6 +231,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         supplier_lock_source = MdmDailyInputCapture.objects.get(
             run_id=getattr(mdm_retry, 'pk', mdm_retry)).source_id
+    if native:
+        # Sealed opening decoding/hashing is not write-transaction work. The
+        # locked initialization/source identities and all live owners are still
+        # checked inside the capture snapshot below.
+        from mta.mdm.production_families import prepare_opening
+        from mta.mdm.initialization import read_initialized_input
+        prepare_opening(production_initialization.source)
+        read_initialized_input(production_initialization)
     # Acquire before REPEATABLE READ establishes its first snapshot, including
     # before any source FK/header locks. Release after freezing, not calculation.
     with source_lock(supplier_lock_source), transaction.atomic():
@@ -515,10 +529,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             from mta.presentation.ancillary_live import bind_snapshots
             bind_requests(run, raw['request_inputs'])
             bind_snapshots(run, raw['remark_inputs'])
+    release_opening()
+    logger.warning('daily_phase run=%s phase=input_capture seconds=%.6f', run.pk, perf_counter()-started)
     try:
+        calculated_at = perf_counter()
         result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
             lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
                            calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native)
+        logger.warning('daily_phase run=%s phase=calculation seconds=%.6f', run.pk, perf_counter()-calculated_at)
         completed=result.pop('_CompletedBoundaries')
         if completed!=list(BOUNDARIES):
             raise ValueError('Incomplete daily boundary roster')
@@ -541,8 +559,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 lineage['pick_source_digests'] = source_digests
             from mta.application.complete_daily_batch_files import write_run_pick_files
             write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
-        return finish_run(run,result,expected_digest=source_digest,
-                          publication_opening=publication_opening)
+        commit_at = perf_counter()
+        finished = finish_run(run,result,expected_digest=source_digest,
+                              publication_opening=publication_opening)
+        logger.warning('daily_phase run=%s phase=commit seconds=%.6f', run.pk, perf_counter()-commit_at)
+        return finished
     except Exception as error:
         fail_run(run,error)
         raise

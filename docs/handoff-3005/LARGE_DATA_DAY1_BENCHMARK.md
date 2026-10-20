@@ -1,8 +1,45 @@
 # Large-data fresh-start benchmark — measured result
 
-20 October 2026. Status: **blocked before a completed modern daily run**. The sole status authority is `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
+20 October 2026. Status: **cohesive backend scalability correction implemented; new-image large-day verification pending**. The sole status authority is `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+## Authorized engineering correction
+
+Human instruction "set goal and implement this" releases one cohesive correction,
+not a new historical-parity or optimization programme. Ordered lookup groups
+replace full-population scans in master/daily, route/allocation and expedite
+joins. SQL NULL exclusion, duplicate matches, source order, ambiguity checks and
+business formulas are retained. Immutable opening reconstruction, family
+projections and hashes are reused only within an explicit identity-bound
+operation, with expensive sealed-input work before the write transaction.
+Live owners/queues/tasks and all atomic commit/integrity checks remain active.
+
+CSV intake reads files individually and streams the exact existing canonical
+native envelope to its archived file. The parser hashes the same descriptor it
+decodes. Complete validation errors use disk-backed records. BOR/BOROA source
+preparation, Planning contribution checksums and typed export readback are
+streamed/batched. CSV opening ownership transfer removes one redundant graph
+copy while retaining isolated mutable snapshots. Lost-session reporting writes
+an explicit reconciliation-required filesystem receipt without inventing a
+database failure status or automatically retrying a business day.
+
+The consolidated affected run passed 178 tests (one pre-existing optional
+integration skip), including large CSV/typed threshold and eager/streamed
+equivalence checks. Additional focused native-family batching checks also pass.
+Two source-only CLI
+tests needed their existing release-identity dependency mocked explicitly;
+production independent release pins remain mandatory. Independent source review
+identified the hash/parse descriptor gap, which was corrected and given a
+regression test. Indexed joins passed 1,148 old/new result-or-error comparisons.
+These are source proofs, not successful large-case execution timings.
+
+Residual limits: current-master/native validator contracts still require
+materialized lists, JSON decoding still constructs its input text and graph,
+and typed persistence throughput/capacity is not established for arbitrary
+future volumes. No timeout or resource increase is introduced. Native phase
+logs distinguish input capture, calculation, atomic commit and reporting; no
+guessed overhead subtraction or linear extrapolation is allowed.
 
 ## Workload
 

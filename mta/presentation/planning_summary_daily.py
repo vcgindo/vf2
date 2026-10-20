@@ -116,9 +116,7 @@ def _prepare(run, *, fail_after_rows=False):
                     [result.pk,*params])
                 if fail_after_rows:
                     raise RuntimeError('injected_planning_summary_interruption')
-                rows=list(PlanningSummaryContribution.objects.filter(receipt=result).order_by('ordinal').values_list(
-                    'metric','product_key','location_key','equality_profile','occurrence_count'))
-                result.row_count=len(rows);result.rows_digest=digest(rows)
+                result.row_count,result.rows_digest=_contribution_receipt(result)
                 result.metrics=list(METRICS);result.status='READY';result.save()
         attempt.status='READY';attempt.completed_at=timezone.now();attempt.save()
         return result
@@ -154,8 +152,8 @@ def require_ready(run, *, verify_rows=False):
     return receipt
 
 
-def verify_contribution_rows(receipt):
-    """Startup/selection checksum over complete ordered typed summary rows."""
+def _contribution_receipt(receipt):
+    """Checksum complete ordered typed rows without a population-sized list."""
     from mta.serialization import rows_digest
     count = 0
     def rows():
@@ -168,5 +166,11 @@ def verify_contribution_rows(receipt):
             count += 1
             yield row
     checksum = rows_digest(rows())
+    return count, checksum
+
+
+def verify_contribution_rows(receipt):
+    """Startup/selection checksum over complete ordered typed summary rows."""
+    count, checksum = _contribution_receipt(receipt)
     if count != receipt.row_count or checksum != receipt.rows_digest:
         raise PublicationUnavailable('planning_summary_rows_changed')

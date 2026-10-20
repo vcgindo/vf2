@@ -132,6 +132,15 @@ def require(report, stage):
 
 def parse(raw, sha256, collector, path):
     collector.check(path+'/sha256', 'input identity', lambda: contract.sha(sha256, path))
+    from mta.application.streamed_input import JsonInputFile
+    if isinstance(raw, JsonInputFile):
+        try:
+            def nonfinite(value):
+                raise ValueError('Nonfinite JSON value')
+            return raw.decode(sha256, object_pairs_hook=contract.object_pairs, parse_constant=nonfinite)
+        except (ValueError, UnicodeError) as error:
+            collector.add(path, 'input parser', 'JSON_INVALID', str(error))
+            return None
     if type(raw) is StreamedInput:
         try:return raw.snapshot(sha256)
         except ValueError as error:
