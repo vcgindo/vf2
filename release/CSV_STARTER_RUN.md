@@ -28,7 +28,7 @@ An existing pack is never overwritten. A pack with `binding.json` belongs to its
 .\vf.ps1 csv-init
 ```
 
-The command validates the entire CSV pack before stopping MTA, registers the fresh namespace, invokes the existing atomic initializer, completes all13 native MDM families from that same opening, and records the actual receipt. It writes the daily binding/access configuration, preserves existing `.env`/Compose settings and restarts MTA with initialized master-data access. Calculated reports become available after day1 publishes. No UUID, hash, JSON file or report policy is entered manually. Other services remain running; registration/initialization are never silently repeated.
+The command parses and validates the complete CSV pack once in one installer process, registers the fresh namespace, then atomically writes the typed opening, all13 native MDM families and one final full certification. The final audit reconstructs the persisted opening independently; it does not trust the prepared input as readback. Exact equal declared populations share one typed image, and uniform rows store their shape once. Existing v2 openings remain readable. The registrar activates only this current-release certification. Only after success does the launcher stop/reconfigure MTA. It writes the daily binding/access configuration, preserves existing `.env`/Compose settings and restarts MTA with initialized master-data access. Calculated reports become available after day1 publishes. No UUID, hash, JSON file or report policy is entered manually. Other services remain running; registration/initialization are never silently repeated.
 
 ## 7. Execute day1 through selected UI reports
 
@@ -61,3 +61,18 @@ Resume never recalculates an accepted day. A genuinely failed calculation requir
 The final serving check is a read-only repository operator executed inside MTA. It loads the container's own image identity and verifies admission, selected run and readiness before recording `PUBLISHED`. A verifier-only correction can be used without rebuilding or modifying an already initialized image; it cannot bypass native admission or change calculations.
 
 This lifecycle repair is host orchestration only. An already initialized installation can pull these launcher changes and use its existing source-bound MTA image; do not rebuild/reinstall that database to apply the repair. Publication selection is configured only after the first native selection succeeds, and persists for subsequent restarts. Missing/corrupt publication after a daily run remains an error.
+
+
+Milestone2 source implements this one-pass path for a fresh build. It does not
+upgrade or relabel an existing older source-bound installation. That supported
+transition and the final image/connected daily acceptance belong to the later
+handoff milestone; do not rebuild and point the new code at an older opening
+as an improvised upgrade.
+
+For an interrupted `csv-init`, `-Resume` checks the recorded pack, database/OID,
+namespace, native release, configuration and sealed input. It can recover a
+registration or initialization committed just before its receipt write. It never
+repeats registration or master loading, and cannot adopt unrelated or already
+consumed data. Family writes and certification roll back together on failure.
+A failure after certification resumes activation/configuration/serving only.
+No extra command, hash or UUID is required from the operator.

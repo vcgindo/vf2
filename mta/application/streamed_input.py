@@ -64,12 +64,24 @@ class StreamedInput:
         return result
 
     def snapshot(self, expected_sha256):
+        value = self._checked(expected_sha256)
+        return deepcopy(value)
+
+    def _checked(self, expected_sha256):
+        if self._value is None:
+            raise ValueError('Input ownership was already transferred')
         checksum = hashlib.sha256()
         for part in canonical_parts(self._value, ensure_ascii=False):
             checksum.update(part)
         if expected_sha256 != self.sha256 or checksum.hexdigest() != expected_sha256:
             raise ValueError('Operator input bytes differ')
-        return deepcopy(self._value)
+        return self._value
+
+    def take_snapshot(self, expected_sha256):
+        """Move the CSV reader's private graph to the one initialization owner."""
+        value = self._checked(expected_sha256)
+        self._value = None
+        return value
 
     def __eq__(self, other):
         # Compatibility at command/test boundaries without encoding large inputs.

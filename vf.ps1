@@ -67,7 +67,7 @@ try {
             if ($previous.status -eq 'STOPPED' -and $previous.phase -eq 'CSV') {
                 # Only a pre-database format failure may be attempted again.
                 Move-Item -LiteralPath $receiptPath -Destination (Join-Path $state ('onboarding-rejected-' + [guid]::NewGuid().ToString('N') + '.json'))
-            } elseif ($Resume -and $previous.initialization -and $previous.registration) {
+            } elseif ($Resume -and ($previous.registration -or $previous.phase -eq 'REGISTRATION')) {
                 $resumeReceipt = ConvertFrom-VfJson (Get-Content -LiteralPath $receiptPath -Raw)
             } else {
                 throw "Onboarding already has a receipt at $receiptPath. Do not register/load twice. For an initialized opening before any daily work use csv-init -Resume; for another installation use a separate VF_DAILY_STATE_DIR and an unbound CSV pack. Daily failures use csv-day."
@@ -113,39 +113,27 @@ try {
             if ($Json) { return ConvertFrom-VfJson ($text -join "`n") }
         }
         $helper = Join-Path $PSScriptRoot 'release/csv_onboarding.py'
-        $finishArguments = @('run','--rm','--no-deps','-T','-e','VF_MTA_SELECTION_FILE=','-e','VF_MTA_PUBLISHED_RUN=','-e','VF_MTA_PUBLISHED_DIGEST=',
-            '-v',"${helper}:/operator/csv_onboarding.py:ro",'-v',"${state}:/onboarding:ro",'-v',"${root}:/input:ro",'mta-install','/operator/csv_onboarding.py')
         if ($resumeReceipt) {
-            if ($resumeReceipt.manifest_sha256 -ne $manifestHash -or $resumeReceipt.project -ne $config.name) { throw 'Receipt pack/project differs; no changes performed' }
-            # Reconcile against the live database BEFORE changing files or stopping MTA.
-            $null = Compose -Arguments ($finishArguments + @('inspect','--receipt','/onboarding/onboarding.json','--input-directory','/input')) -Json
+            if ($resumeReceipt.manifest_sha256 -ne $manifestHash -or $resumeReceipt.project -ne $config.name -or
+                ($resumeReceipt.pack_pins -and (($resumeReceipt.pack_pins['binding-template.json'] -ne $packPins['binding-template.json']) -or
+                    ($resumeReceipt.pack_pins['permissions.json'] -ne $packPins['permissions.json'])))) { throw 'Receipt pack/project differs; no changes performed' }
             $receipt = $resumeReceipt
-            $receipt.pack_pins = $packPins
         }
         SaveReceipt
         try {
-            if (-not $resumeReceipt) {
-                $initArguments = @('run','--rm','--no-deps','-T','-v',"${root}:/input:ro",'mta-install','manage.py','initialize_production','/input/opening','--csv',
-                    '--sha256',$manifestHash,'--configuration-digest',$opening.configuration_digest,'--recipe-digest',$opening.recipe_digest)
-                $validated = Compose -Arguments ($initArguments + '--validate-only') -Json
-                if ($validated.status -ne 'INPUT_VALIDATED_NO_DATABASE_CHANGE' -or $validated.input_sha256 -ne $opening.native_input_sha256) {
-                    throw 'CSV pack validation did not confirm the bound native input'
-                }
-                $receipt.phase='REGISTRATION'; SaveReceipt
-                Compose -Arguments @('stop','mta')
-                $registration = Compose -Arguments @('run','--rm','--no-deps','-T','provision','-m','release.register_mta','--input-sha256',$opening.native_input_sha256) -Json
-                $receipt.registration = $registration; $receipt.phase='INITIALIZATION'; SaveReceipt
-                $null = Compose -Arguments ($initArguments + '--inspect') -Json
-                $initial = Compose -Arguments $initArguments -Json
-                if ($initial.status -ne 'INITIALIZED' -or $initial.input_sha256 -ne $opening.native_input_sha256) { throw 'Expected one NEW matching initialization' }
-                $receipt.initialization=$initial; $receipt.phase='CONFIGURATION'; SaveReceipt
-            } else {
-                $initial=$receipt.initialization
-                Compose -Arguments @('stop','mta')
+            # One repository-owned process parses once, writes all families,
+            # certifies, then activates. It records committed checkpoints itself.
+            $initializeArguments = @('run','--rm','--no-deps','-T','-v',"${state}:/onboarding",'-v',"${root}:/input:ro",
+                'provision','-m','release.initialize_csv','--input-directory','/input','--manifest-sha256',$manifestHash,
+                '--configuration-digest',$opening.configuration_digest,'--recipe-digest',$opening.recipe_digest,
+                '--receipt','/onboarding/onboarding.json')
+            if ($resumeReceipt) { $initializeArguments += '--resume' }
+            $receipt = Compose -Arguments $initializeArguments -Json
+            $initial = $receipt.initialization
+            if (-not $initial -or $receipt.families.status -ne 'MDM_FAMILIES_READY' -or $initial.input_sha256 -ne $opening.native_input_sha256) {
+                throw 'Native initialization/certification did not complete'
             }
-            $receipt.phase='MASTER_FAMILIES'; SaveReceipt
-            $receipt.families = Compose -Arguments ($finishArguments + @('complete','--receipt','/onboarding/onboarding.json','--input-directory','/input')) -Json
-            if ($receipt.families.status -ne 'MDM_FAMILIES_READY') { throw 'Native MDM family completion failed' }
+            Compose -Arguments @('stop','mta')
             $receipt.phase='CONFIGURATION'; SaveReceipt
             $binding.initialization_id=$initial.opening_id; $binding.source_digest=$initial.source_digest
             Write-VfUtf8 (Join-Path $root 'binding.json') ($binding | ConvertTo-Json -Depth 100)
@@ -167,7 +155,11 @@ try {
             $receipt.status='INITIALIZED';$receipt.phase='READY_FOR_FIRST_CSV_DAY'; SaveReceipt
             Write-Output "CSV masters/opening initialized. Run ./vf.ps1 csv-day YYYY-MM-DD. MTA is serving all initialized MDM families; calculated reports become available after day one. Receipt: $receiptPath"
         } catch {
-            $receipt.status='STOPPED';$receipt.error=$_.Exception.Message; SaveReceipt
+            # The driver may have committed a checkpoint before failing. Never
+            # overwrite its receipt with the launcher's older in-memory copy.
+            $failureMessage=$_.Exception.Message
+            if (Test-Path -LiteralPath $receiptPath) { $receipt=ConvertFrom-VfJson (Get-Content -LiteralPath $receiptPath -Raw) }
+            $receipt.status='STOPPED';$receipt.error=$failureMessage; SaveReceipt
             throw
         }
     } finally { $lock.Dispose() }

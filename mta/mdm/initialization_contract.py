@@ -228,6 +228,16 @@ def decode(raw, expected_sha256, *, expected_configuration, expected_recipe):
         value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
     else:
         raise ValueError('Operator input bytes differ')
+    return decode_value(value, expected_configuration=expected_configuration, expected_recipe=expected_recipe)
+
+
+def decode_value(value, *, expected_configuration, expected_recipe):
+    """Validate an exclusively owned, already authenticated parsed envelope.
+
+    The public byte/StreamedInput entry above remains the identity boundary.
+    Initialization preparation reuses this validator without parsing again.
+    """
+    sha(expected_configuration, 'configuration'); sha(expected_recipe, 'recipe')
     if not isinstance(value, dict) or set(value) != {'schema', 'recipe', 'configuration', 'masters', 'opening', 'pair_exclusions'}:
         raise ValueError('Complete versioned initialization envelope required')
     if value['schema'] != SCHEMA:

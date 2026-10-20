@@ -424,11 +424,36 @@ def state_requirements(c, state, profile, prefix='/opening/state', *, initial=Tr
 def initialization(raw, sha256, *, expected_configuration, expected_recipe):
     c = Requirements('installation')
     value = parse(raw, sha256, c, '/input')
+    return initialization_value(value, c, expected_configuration=expected_configuration,
+        expected_recipe=expected_recipe)[0]
+
+
+def initialization_value(value, c, *, expected_configuration, expected_recipe):
+    """Aggregate unchanged semantic diagnostics over one authenticated parse.
+
+    A successful authoritative decode already checked every typed row. Reuse
+    that result rather than invoking all field validators a second time. On
+    invalid input retain the complete per-field diagnostic aggregation.
+    """
+    decoded = None
+    try:
+        decoded = contract.decode_value(value, expected_configuration=expected_configuration,
+            expected_recipe=expected_recipe)
+    except (ValueError, TypeError, KeyError, OverflowError, DecimalException, ValidationError) as error:
+        c.add('/input','initialization_contract.decode','CONTRACT_INVALID',str(error),stages=('installation',))
+    if decoded is not None:
+        # Private operation-local collector: no public skip/compatibility flag.
+        class ValidatedRequirements(Requirements):
+            def records(self, *args, **kwargs):
+                return None
+        checked = ValidatedRequirements('installation')
+        checked.issues = c.issues
+        c = checked
     full_capabilities(c)
     c.add('/day','production_daily','DAILY_INPUT_REQUIRED',
           'Installation inspection has no supplied day facts or persisted day context',stages=('day',))
     if c.object(value, '', 'initialization', ('schema','recipe','configuration','masters','opening','pair_exclusions')) is None:
-        return c.report()
+        return c.report(), decoded
     if value.get('schema') != contract.SCHEMA:
         c.add('/schema','initialization','SCHEMA_INVALID','Unknown initialization schema')
     recipe=value.get('recipe')
@@ -540,9 +565,7 @@ def initialization(raw, sha256, *, expected_configuration, expected_recipe):
     configuration(c,value.get('configuration'),state)
     # Preserve the authoritative full validator; aggregation never blesses a
     # partial/subset replacement for its installation/semantic requirements.
-    c.check('/input','initialization_contract.decode',lambda: contract.decode(raw,sha256,
-        expected_configuration=expected_configuration,expected_recipe=expected_recipe), stages=('installation',))
-    return c.report()
+    return c.report(), decoded
 
 
 def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,

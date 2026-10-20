@@ -9,7 +9,7 @@ from mta.serialization import digest
 
 def read_input(run, *, components=None):
     value = run.input_payload
-    if value.get('schema') == input_storage.SCHEMA:
+    if value.get('schema') in (input_storage.SCHEMA, input_storage.V3):
         return input_storage.read_input(run, components=components)
     # The separate current-day entry persists its ordinary request inline.
     # A daily-chain input must always use the typed owner/manifest boundary.

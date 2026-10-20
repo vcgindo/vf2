@@ -20,7 +20,7 @@ from mta.runtime.opening_scope import immutable, opening_operation
 from mta.mdm.initialization_rows import select as initialization_table
 
 
-IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
+IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation.py', 'runtime/input_v3.py', 'runtime/input_reader.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
@@ -161,17 +161,31 @@ def bind_source(source, *, input_sha256, input_schema):
 
 @opening_operation
 def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe):
-    from mta.runtime.production_preflight import initialization as inspect, require
-    require(inspect(raw,expected_sha256,expected_configuration=expected_configuration,
-        expected_recipe=expected_recipe),'installation')
-    value, frame, batches = decode(raw, expected_sha256,
+    return _initialize(raw, expected_sha256, expected_configuration=expected_configuration,
+        expected_recipe=expected_recipe, complete=False)
+
+
+@opening_operation
+def initialize_complete(raw, expected_sha256, *, expected_configuration, expected_recipe):
+    """One prepared opening, atomic all-family write and final full certification."""
+    return _initialize(raw, expected_sha256, expected_configuration=expected_configuration,
+        expected_recipe=expected_recipe, complete=True)
+
+
+def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe, complete):
+    from mta.mdm.initialization_preparation import PreparedInitialization, prepare
+    prepared = raw if type(raw) is PreparedInitialization else prepare(raw, expected_sha256,
         expected_configuration=expected_configuration, expected_recipe=expected_recipe)
+    _, frame, batches = prepared.claim(expected_sha256, expected_configuration, expected_recipe)
     implementation = implementation_digest()
     # Full immutable CPU work precedes the atomic writer; all database guards,
     # current-master readback and sealing stay in the transaction.
-    content_digest = digest(frame)
-    families = families_for(batches)
+    content_digest, families = prepared.content_digest, prepared.families
+    own_transaction = not connection.in_atomic_block
     with transaction.atomic():
+        if own_transaction:
+            with connection.cursor() as cursor:
+                cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
         namespace = authorize_install(expected_sha256, implementation)
         if namespace['registration'] is None:
             raise ValueError('Native initialization requires registered namespace ownership')
@@ -184,6 +198,9 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
                 raise ValueError('Instance already initialized; overwrite/reset is prohibited')
             if MdmDailyInputCapture.objects.filter(source=existing.source).exists():
                 raise ValueError('Initialization consumed; H3 continuation must use its persisted predecessor')
+            if complete:
+                _complete(existing, frame)
+                return existing, False
             return verify(existing, expected_frame=frame, current_masters=True), False
         if (MdmSource.objects.exists() or CalculationRun.objects.exists()
                 or MdmTask.objects.exists() or MdmSubTask.objects.exists()):
@@ -212,7 +229,6 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
             records = (model(source=source, ordinal=i, **scope, **row) for i, row in enumerate(rows, 1))
             while batch := list(islice(records, 500)):
                 model.objects.bulk_create(batch, batch_size=500)
-        verify_current_masters(source, batches)
         for key in ('2', '3'):
             MdmFamilySource.objects.create(source=source, master_id=int(key),
                 digest=digest(families[key]), receipt=families[key])
@@ -220,16 +236,38 @@ def initialize(raw, expected_sha256, *, expected_configuration, expected_recipe)
         install_pair_exclusions(source, frame['pair_exclusions'], provenance=dict(
             schema=SOURCE_SCHEMA, input_sha256=expected_sha256, configuration_digest=expected_configuration,
             initialization_id=str(owner.pk)))
-        owner.input_payload = save_input(owner, frame, image_writer=opening_storage.save_image,
-            table_selector=initialization_table)
+        from mta.runtime.input_v3 import opening_aliases
+        owner.input_payload = save_input(owner, frame, version=3, aliases=opening_aliases(frame),
+            image_writer=opening_storage.save_image, table_selector=initialization_table)
         owner.input_manifest_digest = digest(owner.input_payload)
         owner.receipt = dict(schema='native-initialization-seal-v1', source_digest=source.digest,
             manifest_digest=owner.input_manifest_digest, content_digest=owner.input_digest)
         owner.receipt_digest = digest(owner.receipt)
         owner.save(update_fields=('input_payload', 'input_manifest_digest', 'receipt', 'receipt_digest'))
         owner.opening_date = owner._meta.get_field('opening_date').to_python(owner.opening_date)
-        verify(owner, expected_frame=frame, current_masters=True)
+        if complete:
+            _complete(owner, frame)
+        else:
+            verify(owner, expected_frame=frame, current_masters=True)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.production_initialization','',true), "
                 "set_config('fresh.mdm_current_bootstrap','',true)")
         return owner, True
+
+
+def _complete(owner, frame):
+    from mta.mdm import production_families as families
+    from mta.runtime.ingestion_certification import certify_locked
+    from mta.runtime.ingestion_models import InitializationCertification
+    if InitializationCertification.objects.filter(initialization=owner).exists():
+        # Re-entry is not permission to certify again or bypass admission.
+        from mta.runtime.ingestion_admission import _admit
+        from release.native_identity import require_current
+        with connection.cursor() as cursor:
+            _admit(cursor, owner.pk, require_current())
+        return
+    _, bags = families._expected(owner, frame=frame)
+    families._write_family_roster(owner, frame, bags)
+    from release.native_identity import require_current
+    with connection.cursor() as cursor:
+        certify_locked(owner.pk, require_current(), cursor)

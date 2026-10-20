@@ -299,3 +299,23 @@ Refresh BPR/Planning in the existing scoped operator session and verify **19Oct2
 ## Release boundary
 
 Root `compose.yaml` is this source-build route. `release/compose.yaml` remains the retained prebuilt/advanced assembly; its immutable package is unchanged. Frontend/MTO application source and behavior are unchanged. Build/blank-install verification evidence belongs in the existing handoff tracker; public HTTPS/WSS, production data, capacity and cutover are separate decisions. This guide does not itself claim those have passed.
+
+
+### Initialization source changes (ingestion milestone2)
+
+The existing `vf.ps1 csv-init` interface now calls the image-owned
+`release.initialize_csv` through the existing provisioning service. That one
+process owns CSV preparation, the scoped installer connection, all-family
+initialization and registrar activation. It uses the existing MTA data volume
+for temporary preparation spools. Provisioning receives the same independent
+native source pins as MTA; it gains no Docker socket or serving endpoint.
+No frontend, MTO or auth build is part of this change.
+
+The low-level JSON/CSV `initialize_production` command keeps its existing base
+initialization contract and explicit inspection options. Normal CSV onboarding
+uses the complete certified path rather than repeatedly invoking those options.
+Milestone2 verifies source-level behavior on disposable PostgreSQL; the final
+packaged image and supported upgrade of an already-bound older installation
+remain the later handoff milestone.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

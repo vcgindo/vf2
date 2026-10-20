@@ -10,6 +10,7 @@ from mta.serialization import digest, storage
 from mta.runtime.relational_state import STORAGE_TABLES, save_image, load_image
 
 SCHEMA='fresh-daily-input-manifest-v2'
+V3='fresh-daily-input-manifest-v3'
 
 
 class Rows(Sequence):
@@ -135,7 +136,20 @@ def choose_table(fields,path,rows=None):
     return min(candidates,key=lambda key:(not key.startswith('input/'),len(STORAGE_TABLES[key]),key))
 
 
-def save_input(run,raw, *, image_writer=None, table_selector=None):
+def save_input(run,raw, *, image_writer=None, table_selector=None, version=None,
+               schema=None, aliases=None, identity_resolver=None):
+    if version == 3 or schema == V3:
+        if version not in (None, 3) or schema not in (None, V3):
+            raise ValueError('Typed input schema/version conflict')
+        if identity_resolver is not None and image_writer is None:
+            raise ValueError('Trusted typed-input identity helper requires a test image writer')
+        from mta.runtime import input_v3
+        return input_v3.save_input(run, raw, image_writer=image_writer or save_image,
+            table_selector=table_selector or choose_table, aliases=aliases,
+            identity_resolver=identity_resolver,
+            explicit_table_selector=table_selector is not None)
+    if version not in (None, 2) or schema not in (None, SCHEMA) or aliases is not None or identity_resolver is not None:
+        raise ValueError('Typed input v3 options require explicit version 3')
     writer = image_writer or save_image
     selector = table_selector or choose_table
     images={}
@@ -217,7 +231,17 @@ def save_input(run,raw, *, image_writer=None, table_selector=None):
     return manifest
 
 
-def read_input(run, *, components=None, image_reader=None, materialized_roots=()):
+def read_input(run, *, components=None, image_reader=None, materialized_roots=(),
+               identity_resolver=None):
+    if run.input_payload.get('schema') == V3:
+        if identity_resolver is not None and image_reader is None:
+            raise ValueError('Trusted typed-input identity helper requires a test image reader')
+        from mta.runtime import input_v3
+        return input_v3.read_input(run, components=components,
+            image_reader=image_reader or load_image, materialized_roots=materialized_roots,
+            identity_resolver=identity_resolver)
+    if identity_resolver is not None:
+        raise ValueError('Typed input identity resolver requires version 3')
     reader = image_reader or load_image
     value=run.input_payload
     if (value.get('schema')!=SCHEMA or value['content_digest']!=run.input_digest

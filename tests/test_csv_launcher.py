@@ -49,8 +49,22 @@ function global:docker {
     $call=@($args)
     ConvertTo-Json -InputObject $call -Compress | Add-Content ./calls.jsonl
     $global:LASTEXITCODE=0
-    if ($Failure -eq 'validation' -and $call -contains '--validate-only') { $global:LASTEXITCODE=1; '{"issue":"CSV column invalid"}'; return }
-    if ($Failure -eq 'registration' -and $call -contains 'release.register_mta') { $global:LASTEXITCODE=1; return }
+    if ($call -contains 'release.initialize_csv') {
+        $receipt=Get-Content ./state/onboarding.json -Raw|ConvertFrom-Json
+        if ($Failure -eq 'wrong-database') { $global:LASTEXITCODE=1; return }
+        if ($Failure -eq 'validation') { $global:LASTEXITCODE=1; '{"issue":"CSV column invalid"}'; return }
+        $receipt.phase='REGISTRATION'
+        if ($Failure -eq 'registration') { $receipt|ConvertTo-Json -Depth 30|Set-Content ./state/onboarding.json; $global:LASTEXITCODE=1; return }
+        $receipt|Add-Member -Force -NotePropertyName registration -NotePropertyValue @{status='registered'}
+        $receipt.phase='INITIALIZATION'
+        if ($Failure -eq 'families') { $receipt|ConvertTo-Json -Depth 30|Set-Content ./state/onboarding.json; $global:LASTEXITCODE=1; return }
+        $receipt|Add-Member -Force -NotePropertyName initialization -NotePropertyValue (Get-Content ./initial.json -Raw|ConvertFrom-Json)
+        $receipt|Add-Member -Force -NotePropertyName families -NotePropertyValue @{status='MDM_FAMILIES_READY'}
+        $receipt.phase='CONFIGURATION'
+        $receipt|ConvertTo-Json -Depth 30|Set-Content ./state/onboarding.json
+        $receipt|ConvertTo-Json -Depth 30
+        return
+    }
     if ($Failure -eq 'configuration' -and $call -contains '--env-file') { $global:LASTEXITCODE=1; return }
     if ($call -contains '/helper.py') {
         $path=(Get-Content ./config.json -Raw|ConvertFrom-Json).'x-vectorflow-csv'.input_dir
@@ -92,12 +106,13 @@ else { & ./vf.ps1 $Operation -Resume:$Resume }
     def test_initialization_hides_bindings_and_preserves_existing_configuration(self):
         r=self.run_launcher();self.assertEqual(r.returncode,0,r.stderr)
         calls=self.calls()
-        self.assertEqual(sum('--validate-only' in c for c in calls),1)
-        self.assertEqual(sum('release.register_mta' in c for c in calls),1)
+        self.assertEqual(sum('release.initialize_csv' in c for c in calls),1)
+        self.assertFalse(any('--validate-only' in c or '--inspect' in c or 'complete' in c for c in calls))
+        self.assertEqual(sum('release.initialize_csv' in c for c in calls),1)
         self.assertEqual(sum('stop' in c for c in calls),1)
         self.assertEqual(sum('up' in c for c in calls),1)
         self.assertFalse(any('build' in c or 'install' in c for c in calls))
-        self.assertLess(next(i for i,c in enumerate(calls) if 'complete' in c), next(i for i,c in enumerate(calls) if 'up' in c))
+        self.assertLess(next(i for i,c in enumerate(calls) if 'release.initialize_csv' in c), next(i for i,c in enumerate(calls) if 'up' in c))
         receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
         self.assertEqual(receipt['status'],'INITIALIZED')
         env=(self.root/'.env').read_text()
@@ -121,7 +136,8 @@ else { & ./vf.ps1 $Operation -Resume:$Resume }
         self.assertEqual(result.returncode,0,result.stderr)
         calls=self.calls()[before:]
         self.assertFalse(any('release.register_mta' in c or 'initialize_production' in c for c in calls))
-        self.assertLess(next(i for i,c in enumerate(calls) if 'inspect' in c), next(i for i,c in enumerate(calls) if 'stop' in c))
+        self.assertLess(next(i for i,c in enumerate(calls) if 'release.initialize_csv' in c), next(i for i,c in enumerate(calls) if 'stop' in c))
+        self.assertTrue(any('--resume' in c for c in calls))
 
     def test_resume_wrong_database_never_stops_or_bootstraps(self):
         self.assertEqual(self.run_launcher().returncode,0)
@@ -129,13 +145,13 @@ else { & ./vf.ps1 $Operation -Resume:$Resume }
         old=(self.state/'onboarding.json').read_bytes()
         self.assertNotEqual(self.run_launcher('wrong-database',resume=True).returncode,0)
         self.assertFalse(any('stop' in c or 'complete' in c for c in self.calls()[before:]))
-        self.assertEqual((self.state/'onboarding.json').read_bytes(),old)
+        self.assertEqual(json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))['initialization'],json.loads(old)['initialization'])
 
     def test_family_failure_never_starts_metadata_or_claims_initialized(self):
         self.assertNotEqual(self.run_launcher('families').returncode,0)
         self.assertFalse(any('up' in c for c in self.calls()))
         receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
-        self.assertEqual((receipt['status'],receipt['phase']),('STOPPED','MASTER_FAMILIES'))
+        self.assertEqual((receipt['status'],receipt['phase']),('STOPPED','INITIALIZATION'))
 
     def test_bad_csv_validation_never_stops_api_or_registers_namespace(self):
         r=self.run_launcher('validation');self.assertNotEqual(r.returncode,0)
@@ -152,6 +168,18 @@ else { & ./vf.ps1 $Operation -Resume:$Resume }
         self.assertEqual(json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))['phase'],'REGISTRATION')
         before=len(self.calls());self.assertNotEqual(self.run_launcher().returncode,0)
         self.assertFalse(any('release.register_mta' in c for c in self.calls()[before:]))
+
+    def test_explicit_resume_can_reconcile_registration_commit_before_receipt_field(self):
+        self.assertNotEqual(self.run_launcher('registration').returncode,0)
+        receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
+        self.assertEqual(receipt['phase'],'REGISTRATION')
+        self.assertNotIn('registration',receipt)
+        before=len(self.calls())
+        result=self.run_launcher(resume=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        calls=self.calls()[before:]
+        self.assertTrue(any('release.initialize_csv' in c and '--resume' in c for c in calls))
+        self.assertFalse(any('release.register_mta' in c or 'initialize_production' in c for c in calls))
 
     def test_daily_entry_delegates_to_existing_repository_orchestrator(self):
         r=self.run_launcher(operation='csv-day',date='2026-10-19');self.assertEqual(r.returncode,0,r.stderr)

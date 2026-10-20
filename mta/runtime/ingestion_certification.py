@@ -23,6 +23,15 @@ def certify_current(initialization_id):
         raise ValueError('Certification owns its complete audit transaction')
     from release.native_identity import require_current
     release = require_current()
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        return certify_locked(initialization_id, release, cursor)
+
+
+def certify_locked(initialization_id, release, cursor):
+    """Final full audit in the initializer's owned atomic write transaction."""
+    if not connection.in_atomic_block:
+        raise ValueError('Certification requires the atomic initialization owner')
     from release.native_schema import schema_digest
     from mta.runtime.ingestion_models import InitializationCertification, IngestionRevisionState, MasterInputRevision
     from mta.runtime.initialization_models import ProductionInitialization
@@ -33,51 +42,54 @@ def certify_current(initialization_id):
     from mta.mdm.master_owners import owner_batches
     from mta.mdm.daily_input import _capture_pair_exclusions
     from mta.runtime.ingestion_admission import registration
-    with transaction.atomic(), connection.cursor() as cursor:
-        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
-        cursor.execute('SELECT current_user,pg_get_userbyid(datdba),datname,oid::bigint '
-            'FROM pg_database WHERE datname=current_database()')
-        user, owner_role, database, oid = cursor.fetchone()
-        if user != owner_role:
-            raise ValueError('Certification requires the dedicated database owner')
-        # Locks cover approved writers; the complete scan is an explicit one-off
-        # maintenance operation, never a serving/readiness cost.
-        cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('fresh.production.initialization',0))")
-        cursor.execute('LOCK TABLE mta.fresh_mta_productioninitialization IN SHARE ROW EXCLUSIVE MODE')
-        original, capability = registration(cursor)
-        if capability['release_identity'] != release:
-            raise ValueError('Current certification cannot relabel an older capability')
-        roles = [original[k]['name'] for k in ('owner', 'issuer', 'consumer')]
-        from mta.runtime.ingestion_ownership import tables
-        from psycopg import sql
-        # SHARE blocks direct SQL writers as well as cooperating application locks.
-        for schema, table, kind in tables(cursor):
-            if kind != 'authority':
-                cursor.execute(sql.SQL('LOCK TABLE {}.{} IN SHARE MODE').format(sql.Identifier(schema), sql.Identifier(table)))
-        guard = security_digest(cursor, roles)
-        if (InitializationCertification.objects.exists() or IngestionRevisionState.objects.exists()
-                or MasterInputRevision.objects.exists()):
-            raise ValueError('Certification exists; replacement/reseal prohibited')
-        owner = ProductionInitialization.objects.select_related('source').get(pk=initialization_id)
-        if CalculationRun.objects.exists() or MdmDailyInputCapture.objects.exists():
-            raise ValueError('Opening certification must precede the first daily capture')
-        checked, frame = families._verified_initialization(owner.source)
-        if checked.pk != owner.pk:
-            raise ValueError('Initialization audit owner differs')
-        verify_current_masters(owner.source, owner_batches(frame['opening']['state'], strict=True))
-        if _capture_pair_exclusions(owner.source)['rows'] != frame['pair_exclusions']:
-            raise ValueError('Full pair-exclusion audit differs')
-        integration = families.require_binding(owner.source, read_only=True)
-        body = dict(id=uuid4(), initialization_id=owner.pk, contract=CONTRACT,
-            database_name=database, database_oid=oid, namespace=original['registration_id'],
-            source_digest=owner.source.digest, content_digest=owner.input_digest,
-            configuration_digest=owner.configuration_digest, schema_digest=schema_digest(cursor),
-            guard_digest=guard, release_digest=release['manifest_sha256'],
-            populations=dict(opening_manifest=owner.input_manifest_digest, integration=integration.digest),
-            families=list(FAMILIES), authority_roles=roles)
-        cert = InitializationCertification.objects.create(**body, receipt_digest=receipt(body))
-        IngestionRevisionState.objects.create(initialization=owner)
-        revision = dict(id=uuid4(), initialization_id=owner.pk, parent_id=None, run_id=None,
-            master_epoch=0, configuration_epoch=0, partitions=dict(opening_master_root=digest(integration.receipt['families'])))
-        MasterInputRevision.objects.create(**revision, receipt_digest=receipt(revision), status='ACCEPTED')
-        return cert
+    cursor.execute('SELECT current_user,pg_get_userbyid(datdba),datname,oid::bigint '
+        'FROM pg_database WHERE datname=current_database()')
+    user, owner_role, database, oid = cursor.fetchone()
+    if user != owner_role:
+        raise ValueError('Certification requires the dedicated database owner')
+    # Locks cover approved writers; the complete scan is an explicit one-off
+    # maintenance operation, never a serving/readiness cost.
+    cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('fresh.production.initialization',0))")
+    cursor.execute('LOCK TABLE mta.fresh_mta_productioninitialization IN SHARE ROW EXCLUSIVE MODE')
+    original, capability = registration(cursor)
+    if capability['release_identity'] != release:
+        raise ValueError('Current certification cannot relabel an older capability')
+    roles = [original[k]['name'] for k in ('owner', 'issuer', 'consumer')]
+    from mta.runtime.ingestion_ownership import tables
+    from psycopg import sql
+    # SHARE blocks direct SQL writers as well as cooperating application locks.
+    for schema, table, kind in tables(cursor):
+        if kind != 'authority':
+            cursor.execute(sql.SQL('LOCK TABLE {}.{} IN SHARE MODE').format(sql.Identifier(schema), sql.Identifier(table)))
+    guard = security_digest(cursor, roles)
+    if (InitializationCertification.objects.exists() or IngestionRevisionState.objects.exists()
+            or MasterInputRevision.objects.exists()):
+        raise ValueError('Certification exists; replacement/reseal prohibited')
+    owner = ProductionInitialization.objects.select_related('source').get(pk=initialization_id)
+    if CalculationRun.objects.exists() or MdmDailyInputCapture.objects.exists():
+        raise ValueError('Opening certification must precede the first daily capture')
+    # Certification must derive expectations from persisted rows, never the
+    # initializer's prepared-family cache. Subsequent audit readers share only
+    # this independently reconstructed opening within this transaction.
+    from mta.runtime.opening_scope import release_opening
+    release_opening()
+    checked, frame = families._verified_initialization(owner.source)
+    if checked.pk != owner.pk:
+        raise ValueError('Initialization audit owner differs')
+    verify_current_masters(owner.source, owner_batches(frame['opening']['state'], strict=True))
+    if _capture_pair_exclusions(owner.source)['rows'] != frame['pair_exclusions']:
+        raise ValueError('Full pair-exclusion audit differs')
+    integration = families.require_binding(owner.source, read_only=True)
+    body = dict(id=uuid4(), initialization_id=owner.pk, contract=CONTRACT,
+        database_name=database, database_oid=oid, namespace=original['registration_id'],
+        source_digest=owner.source.digest, content_digest=owner.input_digest,
+        configuration_digest=owner.configuration_digest, schema_digest=schema_digest(cursor),
+        guard_digest=guard, release_digest=release['manifest_sha256'],
+        populations=dict(opening_manifest=owner.input_manifest_digest, integration=integration.digest),
+        families=list(FAMILIES), authority_roles=roles)
+    cert = InitializationCertification.objects.create(**body, receipt_digest=receipt(body))
+    IngestionRevisionState.objects.create(initialization=owner)
+    revision = dict(id=uuid4(), initialization_id=owner.pk, parent_id=None, run_id=None,
+        master_epoch=0, configuration_epoch=0, partitions=dict(opening_master_root=digest(integration.receipt['families'])))
+    MasterInputRevision.objects.create(**revision, receipt_digest=receipt(revision), status='ACCEPTED')
+    return cert

@@ -429,31 +429,50 @@ def _bootstrap_native_families(initialization):
             raise ValueError('Native MDM bootstrap requires an untouched initialized opening')
         verify(initialization, current_masters=True)
         frame, bags = _expected(initialization)
-        root_digest = immutable(initialization, 'root-digest', lambda: digest(frame['opening']['state']))
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT set_config('fresh.native_mdm_families',%s,true), "
-                "set_config('fresh.mdm_supplier_bootstrap',%s,true), "
-                "set_config('fresh.stop_pipo_install',%s,true), "
-                "set_config('fresh.phase_controls_install',%s,true), "
-                "set_config('fresh.season_eligibility_source',%s,true)",
-                [str(initialization.pk), str(source.pk), str(source.pk), str(source.pk), str(source.pk)])
-        owners = {family: _install(initialization, family, bags[family], root_digest)
-                  for family in ('supplier', 'force', 'season', 'stop_pipo', 'phase_controls')}
-        families = {'1': digest(source.receipt['families']['1'])}
-        families.update({str(row.master_id): row.digest for row in
-                         MdmFamilySource.objects.filter(source=source).order_by('master_id')})
-        from mta.mdm.location_transition import source_manifest_digest
-        from mta.mdm.location_projection import VERSION
-        receipt = dict(schema=INTEGRATION_SCHEMA, source_digest=source.digest,
-            initialization_id=str(initialization.pk),
-            initialization_content_digest=initialization.input_digest,
-            families=families, required_families=list(range(1, 14)),
-            configuration=_configuration(), adapter_digest=adapter_digest(),
-            closing_projection_version=VERSION, source_manifest_digest=source_manifest_digest())
-        MdmSourceIntegration.objects.create(source=source, receipt=receipt, digest=digest(receipt))
-        for family, owner in owners.items():
-            _verify_owner(source, owner, family, initialization, frame, bags, True)
+        seal = _write_family_roster(initialization, frame, bags)
         seal = require_binding(source)
         with connection.cursor() as cursor:
             cursor.execute("SELECT set_config('fresh.native_mdm_families','',true)")
         return seal
+
+
+def _write_family_roster(initialization, frame, bags):
+    """Write from the initializer's prepared owners; caller owes final audit.
+
+    Private atomic path only. Existing integrations are audited by certification,
+    never rewritten; partial family rosters fail rather than being repaired.
+    """
+    if not connection.in_atomic_block:
+        raise ValueError('Native family writer requires atomic initialization')
+    source = initialization.source
+    existing = MdmSourceIntegration.objects.filter(source=source).first()
+    if existing is not None:
+        return existing
+    if (CalculationRun.objects.exists() or MdmDailyInputCapture.objects.filter(source=source).exists()
+            or MdmFamilySource.objects.filter(source=source).exclude(master_id__in=(2,3)).exists()):
+        raise ValueError('Native MDM bootstrap requires an untouched initialized opening')
+    root_digest = immutable(initialization, 'root-digest', lambda: digest(frame['opening']['state']))
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.native_mdm_families',%s,true), "
+            "set_config('fresh.mdm_supplier_bootstrap',%s,true), "
+            "set_config('fresh.stop_pipo_install',%s,true), "
+            "set_config('fresh.phase_controls_install',%s,true), "
+            "set_config('fresh.season_eligibility_source',%s,true)",
+            [str(initialization.pk), str(source.pk), str(source.pk), str(source.pk), str(source.pk)])
+    for family in ('supplier', 'force', 'season', 'stop_pipo', 'phase_controls'):
+        _install(initialization, family, bags[family], root_digest)
+    families = {'1': digest(source.receipt['families']['1'])}
+    families.update({str(row.master_id): row.digest for row in
+                     MdmFamilySource.objects.filter(source=source).order_by('master_id')})
+    from mta.mdm.location_transition import source_manifest_digest
+    from mta.mdm.location_projection import VERSION
+    receipt = dict(schema=INTEGRATION_SCHEMA, source_digest=source.digest,
+        initialization_id=str(initialization.pk),
+        initialization_content_digest=initialization.input_digest,
+        families=families, required_families=list(range(1, 14)),
+        configuration=_configuration(), adapter_digest=adapter_digest(),
+        closing_projection_version=VERSION, source_manifest_digest=source_manifest_digest())
+    seal = MdmSourceIntegration.objects.create(source=source, receipt=receipt, digest=digest(receipt))
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.native_mdm_families','',true)")
+    return seal

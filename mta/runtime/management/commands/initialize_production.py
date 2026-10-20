@@ -27,19 +27,22 @@ class Command(BaseCommand):
             parameters = dict(expected_configuration=options['configuration_digest'],
                               expected_recipe=options['recipe_digest'])
             if options.get('csv'):
-                from mta.application.initialization_csv import read_streamed
-                raw = read_streamed(options['input'], options['sha256'], **parameters)
+                from mta.application.initialization_csv import read_prepared
+                raw = read_prepared(options['input'], options['sha256'], **parameters)
                 input_sha256 = raw.sha256
             else:
                 raw = options['input'].read_bytes()
                 input_sha256 = options['sha256']
             if options.get('validate_only'):
-                decode(raw, input_sha256, **parameters)
+                from mta.mdm.initialization_preparation import PreparedInitialization, prepare
+                if type(raw) is not PreparedInitialization:
+                    raw = prepare(raw, input_sha256, **parameters)
                 self.stdout.write(json.dumps(dict(status='INPUT_VALIDATED_NO_DATABASE_CHANGE',
                     input_sha256=input_sha256), sort_keys=True))
                 return
             if options['inspect']:
-                report=inspect(raw,input_sha256,**parameters)
+                from mta.mdm.initialization_preparation import PreparedInitialization
+                report = raw.report if type(raw) is PreparedInitialization else inspect(raw,input_sha256,**parameters)
                 report.update(implementation_digest=implementation_digest(),input_sha256=input_sha256,
                     status='INPUT_CONTRACT_VALIDATED_NOT_INSTALLED' if report['stage_eligibility']['installation'] else 'INPUT_REQUIREMENTS_INCOMPLETE')
                 require(report,'installation')

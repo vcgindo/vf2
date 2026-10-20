@@ -135,7 +135,14 @@ class OpeningCsvTests(unittest.TestCase):
         with patch('mta.presentation.native_mode.require_configuration'), \
              patch('mta.runtime.management.commands.initialize_production.initialize', return_value=(owner, True)) as initialize:
             Command(stdout=output).handle(**options)
-        initialize.assert_called_once_with(self.raw, hashlib.sha256(self.raw).hexdigest(), **self.options)
+        initialize.assert_called_once()
+        prepared, sha = initialize.call_args.args
+        self.assertEqual(sha, hashlib.sha256(self.raw).hexdigest())
+        self.assertEqual(initialize.call_args.kwargs, self.options)
+        decoded = prepared.claim(sha,self.options['expected_configuration'],self.options['expected_recipe'])
+        self.assertEqual(digest(decoded[1]),digest(decode(self.raw,sha,**self.options)[1]))
+        with self.assertRaisesRegex(ValueError,'already consumed'):
+            prepared.claim(sha,self.options['expected_configuration'],self.options['expected_recipe'])
         output = io.StringIO()
         with patch('mta.presentation.native_mode.require_configuration'), \
              patch('mta.runtime.management.commands.initialize_production.initialize') as initialize:

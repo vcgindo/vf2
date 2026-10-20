@@ -37,12 +37,16 @@ class DockerStub {
         if (args.Contains("config")) {
             if (!args.Contains("--quiet")) Console.WriteLine(File.ReadAllText(Environment.GetEnvironmentVariable("VF_TEST_CONFIG")));
         }
-        else if (args.Contains("initialize_production")) {
-            if (args.Contains("--validate-only")) Console.WriteLine(File.ReadAllText(Environment.GetEnvironmentVariable("VF_TEST_VALIDATED")));
-            else Console.WriteLine(File.ReadAllText(Environment.GetEnvironmentVariable("VF_TEST_INITIAL")));
+        else if (args.Contains("release.initialize_csv")) {
+            string state = Path.Combine(Environment.CurrentDirectory,"state","onboarding.json");
+            var receipt = json.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(state));
+            receipt["registration"] = new {status="registered"};
+            receipt["initialization"] = json.DeserializeObject(File.ReadAllText(Environment.GetEnvironmentVariable("VF_TEST_INITIAL")));
+            receipt["families"] = new {status="MDM_FAMILIES_READY"};
+            receipt["phase"] = "CONFIGURATION";
+            File.WriteAllText(state,json.Serialize(receipt),new UTF8Encoding(false));
+            Console.WriteLine(json.Serialize(receipt));
         }
-        else if (args.Contains("release.register_mta")) Console.WriteLine("{\"status\":\"registered\"}");
-        else if (args.Contains("complete")) Console.WriteLine("{\"status\":\"MDM_FAMILIES_READY\"}");
         else if (args.Contains("check")) {Console.In.ReadToEnd(); Console.WriteLine("{\"status\":\"INITIALIZED_MASTER_SERVING_READY\"}");}
         else if (args.Contains("process_daily_csv")) {
             if (args.Contains("stage") && Environment.GetEnvironmentVariable("VF_TEST_PUBLISHED") == "1") Console.WriteLine("{\"status\":\"PUBLISHED\",\"phase\":\"FINISHED\",\"attempt_id\":\"test\",\"run_id\":\"test\",\"output_digest\":\"test\"}");

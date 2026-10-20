@@ -136,7 +136,7 @@ def create(value, destination, *, streamed=False):
     return manifest, assembled if streamed else _canonical(value)
 
 
-def read_streamed(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
+def read_streamed(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe, _prepare=False):
     """Read and fully validate every byte BEFORE entering the native initializer."""
     root = Path(directory).absolute()
     regular(root / 'READY', root)
@@ -226,9 +226,19 @@ def read_streamed(directory, expected_manifest_sha256, *, expected_configuration
     if used != set(manifest['populations']):
         raise ValueError('Unreferenced opening CSV population')
     native = StreamedInput.take(value, manifest['native_input_sha256'])
+    if _prepare:
+        from mta.mdm.initialization_preparation import prepare
+        return prepare(native,manifest['native_input_sha256'],expected_configuration=expected_configuration,
+            expected_recipe=expected_recipe)
     decode(native, manifest['native_input_sha256'], expected_configuration=expected_configuration,
            expected_recipe=expected_recipe)
     return native
+
+
+def read_prepared(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
+    """Normal initialization: parse CSV cells and validate the native contract once."""
+    return read_streamed(directory,expected_manifest_sha256,expected_configuration=expected_configuration,
+        expected_recipe=expected_recipe,_prepare=True)
 
 
 def read(directory, expected_manifest_sha256, *, expected_configuration, expected_recipe):
