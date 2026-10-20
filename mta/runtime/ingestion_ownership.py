@@ -63,7 +63,7 @@ def domain(schema, table):
         return 'authority'
     if table in MASTER:
         return 'mixed' if table in ('fresh_mta_mdmskuloccurrent', 'fresh_mta_mdmskulocmasterpair') else DataOwner.MASTER.value
-    if table in FACT or schema == 'mta_state' and table.startswith('input_'):
+    if table in FACT or schema == 'mta_state' and table.startswith(('input_', 'batch_')):
         return DataOwner.FACT.value
     if table in CONFIGURATION or any(part in table for part in ('configuration', 'setting')):
         return DataOwner.CONFIGURATION.value
@@ -105,3 +105,23 @@ def require_guard_coverage(cursor):
             raise ValueError('Missing or incorrectly classified ingestion writer: ' + '.'.join(table))
     if set(actual) != set(expected):
         raise ValueError('Unexpected ingestion revision participant')
+
+
+def business_trigger_rows(cursor, rows):
+    """Separate only independently verified ingestion watches from old guards.
+
+    Existing report guards still require their exact roster and SQL bodies.
+    An extra/disabled/rebound watch is an error, never ignored by its prefix.
+    """
+    if not any(row[0].startswith('ingestion_watch_') for row in rows):
+        return rows
+    require_guard_coverage(cursor)
+    cursor.execute("SELECT p.prosrc,p.prosecdef,p.proconfig,pg_get_function_result(p.oid) "
+        "FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace "
+        "WHERE n.nspname='mta' AND p.proname='ingestion_watch' AND p.pronargs=0")
+    observed=cursor.fetchall()
+    if len(observed)!=1 or not is_revision_guard(dict(name='mta.ingestion_watch()',
+            body=observed[0][0],security_definer=observed[0][1],
+            configuration=observed[0][2],returns=observed[0][3])):
+        raise ValueError('Ingestion watch function contract differs')
+    return [row for row in rows if not row[0].startswith('ingestion_watch_')]

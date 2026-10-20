@@ -58,6 +58,27 @@ class LegacyMasterAmbiguity(ValueError):
     """No exact result is claimed for a source selection without a winner."""
 
 
+def apply_raw_ansi_padding(row):
+    """Apply the old MasterDataRaw VARCHAR padding behavior to one row."""
+    for field in DESCRIPTIONS:
+        if row[field] is not None:
+            row[field] = row[field].rstrip(" ") or (" " if row[field] else "")
+    return row
+
+
+def normalize_master_row(row, business_date, *, trim):
+    """Apply the canonical producer's row-local normalization in place."""
+    if trim:
+        for field in ("SKUCode", "WhCode", "ParentWhCode", *SKU_LEVELS, *LOC_LEVELS,
+                      "LocationType", "LogisticsLocation", *RAW_CUSTOM):
+            if row[field] is not None:
+                row[field] = row[field].strip(" ")
+    for field in DESCRIPTIONS:
+        row[field] = (row[field] or "").strip(" ") or "-ND-"
+    row["SKUIntroDate"] = row["SKUIntroDate"] or business_date
+    return row
+
+
 def _sql_key(value):
     # Tested ASCII subset of SQL_Latin1_General_CP1_CI_AS. Unicode collation
     # equivalence is not silently approximated by Python Unicode casefold.
@@ -193,11 +214,9 @@ def process_importer_master(payload):
     # with ANSI_PADDING OFF. Its INSERT trims trailing spaces before the SQL
     # producer begins; NonNMS/NoNorm/description tables have padding ON.
     for row in raw:
-        for field in DESCRIPTIONS:
-            if row[field] is not None:
-                # SQL Server retains one space for a nonempty all-space
-                # value in this old ANSI_PADDING-OFF column, but not for ''.
-                row[field] = row[field].rstrip(" ") or (" " if row[field] else "")
+        # SQL Server retains one space for a nonempty all-space value in these
+        # old ANSI_PADDING-OFF columns, but not for ''.
+        apply_raw_ansi_padding(row)
     reject_count = len(tables["RejectedMaster"])
     retired_count = len(tables["RetiredNormsTbl"])
 
@@ -221,14 +240,7 @@ def process_importer_master(payload):
 
     def normalize(rows, *, trim):
         for row in rows:
-            if trim:
-                for field in ("SKUCode", "WhCode", "ParentWhCode", *SKU_LEVELS, *LOC_LEVELS,
-                              "LocationType", "LogisticsLocation", *RAW_CUSTOM):
-                    if row[field] is not None:
-                        row[field] = row[field].strip(" ")
-            for field in DESCRIPTIONS:
-                row[field] = (row[field] or "").strip(" ") or "-ND-"
-            row["SKUIntroDate"] = row["SKUIntroDate"] or day
+            normalize_master_row(row, day, trim=trim)
 
     if payload["import_non_nms"]:
         nonnms[:] = [r for r in nonnms if r["SKUCode"] is not None or r["WhCode"] is not None]

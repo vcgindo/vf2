@@ -261,6 +261,10 @@ def fresh_feeds(prior, day, *, policy=POLICY):
     working = deepcopy(day)
     for name in ('raw_master', 'raw_non_nms', 'raw_no_norm', 'raw_daily',
                  'accepted_feed', 'order_feed'):
+        from mta.application.persistent_master import NmsMasterRows
+        if name == 'raw_master' and isinstance(day[name],NmsMasterRows):
+            working[name]=day[name]
+            continue
         working[name] = []
         working[name].extend(deepcopy(day[name]))
     working['supplier_feeds'] = {}

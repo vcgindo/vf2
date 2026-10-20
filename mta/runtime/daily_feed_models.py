@@ -2,6 +2,7 @@
 import uuid
 from django.db import models
 from django.db.models import Q
+from mta.runtime.ingestion_models import bounded
 
 
 class DailyFeedAttempt(models.Model):
@@ -23,6 +24,12 @@ class DailyFeedAttempt(models.Model):
     archive_path = models.TextField()
     prior_selection_digest = models.CharField(max_length=64, blank=True)
     candidate_selection_digest = models.CharField(max_length=64, blank=True)
+    accepted_facts = models.JSONField(default=dict)
+    prepared_context = models.JSONField(default=dict)
+    certification = models.ForeignKey('fresh_mta.InitializationCertification', null=True,
+        blank=True, related_name='daily_feed_attempts', on_delete=models.PROTECT)
+    master_revision = models.ForeignKey('fresh_mta.MasterInputRevision', null=True,
+        blank=True, related_name='daily_feed_attempts', on_delete=models.PROTECT)
     error = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -35,4 +42,6 @@ class DailyFeedAttempt(models.Model):
             models.UniqueConstraint(fields=('initialization', 'business_date'),
                 condition=Q(status__in=('RUNNING', 'COMMITTED', 'PREPARED', 'PUBLISHED')),
                 name='csv_one_live_initialized_date'),
+            bounded('accepted_facts', 'csv_accepted_facts_bound'),
+            bounded('prepared_context', 'csv_prepared_context_bound'),
         ]

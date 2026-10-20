@@ -78,6 +78,25 @@ class NativeArchiveTests(unittest.TestCase):
         (self.download/'InputData.zip').write_bytes(b'partial previous attempt')
         with self.assertRaises(module.ArchiveDenied):self.prepare()
 
+    def test_prepared_v3_root_and_expanded_capture_have_distinct_verified_hashes(self):
+        from mta.runtime.input_v3 import content_root, V3, CONTENT_KIND
+        identity=dict(database_name='proof',database_oid=123,source_digest='a'*64,
+            initialization_id='00000000-0000-0000-0000-000000000001')
+        self.run.input_payload=dict(schema=V3,content_kind=CONTENT_KIND,content_identity=identity,
+            owner_references={},batch_references={})
+        self.run.input_digest=content_root(self.captured,identity)
+        self.run.input_manifest_digest=digest(self.run.input_payload)
+        self.assertNotEqual(self.run.input_digest,digest(self.captured))
+        result=self.prepare()
+        with zipfile.ZipFile(result['path']) as archive:
+            manifest=json.loads(archive.read('manifest.json'))
+            self.assertEqual(manifest['schema'],'fresh-native-input-download-v2')
+            self.assertEqual(manifest['input_digest'],self.run.input_digest)
+            self.assertEqual(manifest['captured_input_digest'],digest(self.captured))
+        stream,_=module.open_archive(self.run);stream.close()
+        self.captured['rows'].append({'value':'tampered'})
+        with self.assertRaisesRegex(module.ArchiveDenied,'identity_drift'):module.open_archive(self.run)
+
     def test_original_hash_drift_denies_before_file_creation(self):
         self.daily.write_bytes(b'changed')
         with self.assertRaisesRegex(module.ArchiveDenied,'original_hash'):self.prepare()

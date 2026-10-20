@@ -168,12 +168,13 @@ def result(attempt):
     return value
 
 
-def save(attempt, phase, status=None, error=None):
+def save(attempt, phase, status=None, error=None, *, _persist=True):
     attempt.phase = phase
     if status:
         attempt.status = status
     attempt.error = error or {}
-    attempt.save(update_fields=['phase', 'status', 'error', 'updated_at'])
+    if _persist:
+        attempt.save(update_fields=['phase', 'status', 'error', 'updated_at'])
     value = result(attempt)
     root = Path(attempt.archive_path)
     root.mkdir(parents=True, exist_ok=True)
@@ -207,24 +208,28 @@ def diagnostics(attempt, error):
 
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):
     binding, owner = binding_owner(binding_file)
+    identity=uuid.uuid4()
+    root=Path(work_root).absolute()/str(identity)
+    root.mkdir(parents=True,exist_ok=False)
     try:
-        batch, _, manifest = _batch(source, binding, business_date, input_root)
+        # Hash originals once, while making the immutable attempt snapshot.
+        batch,manifest=snapshot(source,root/'original',input_root)
+        batch_contract(batch,binding,business_date)
     except Exception as error:
         # Malformed batch declarations have no usable business identity. Preserve
         # a filesystem intake receipt without fabricating a database day/run.
-        root = Path(work_root) / ('rejected-' + str(uuid.uuid4()))
-        root.mkdir(parents=True, exist_ok=False)
         copied = {}
         try:
             import shutil
             safe = contained(source, input_root)
             original = root / 'original'
-            original.mkdir()
+            original.mkdir(exist_ok=True)
             for item in safe.iterdir():
                 item = regular(item, input_root)
                 target = original / item.name
-                with item.open('rb') as incoming, target.open('xb') as outgoing:
-                    shutil.copyfileobj(incoming, outgoing)
+                if not target.exists():
+                    with item.open('rb') as incoming, target.open('xb') as outgoing:
+                        shutil.copyfileobj(incoming, outgoing)
                 copied[item.name] = file_identity(target)['sha256']
         except (OSError, ValueError) as capture_error:
             copied['capture_error'] = str(capture_error)[:300]
@@ -237,37 +242,42 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
     with job_lock(owner):
         old = DailyFeedAttempt.objects.filter(request_key=request_key).first()
         if old:
+            import shutil
+            shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
             return result(old)
         if DailyFeedAttempt.objects.filter(initialization=owner).exclude(status__in=('PUBLISHED', 'REJECTED')).exists():
             raise ValueError('An unfinished daily attempt requires reconciliation/resume first')
         if CalculationRun.objects.filter(business_date=business_date,
                 mdm_input_capture__source=owner.source, status__in=('RUNNING', 'SUCCEEDED')).exists():
             raise ValueError('This initialized date already has a running or committed native day')
-        identity = uuid.uuid4()
-        root = Path(work_root).absolute() / str(identity)
         attempt = DailyFeedAttempt.objects.create(attempt_id=identity, initialization=owner,
             business_date=business_date, batch_id=batch['batch_id'], request_key=request_key,
             batch_digest=manifest['digest'], binding_digest=binding['_binding_digest'],
             archive_path=str(root))
         try:
             Path(pick_root).mkdir(parents=True, exist_ok=True)
-            frozen, captured = snapshot(source, root / 'original', input_root)
-            if captured != manifest:
-                raise ValueError('Input changed between inspection and immutable snapshot')
+            frozen=batch
             parent = predecessor(owner, business_date)
             payloads = {name:regular(root / 'original' / name, root)
                         for name, state in frozen['feeds'].items() if state == 'PRESENT'}
             raw, positions = assemble(frozen, binding, payloads, first_day=parent is None,
-                                      output_file=root / 'native-day.json')
+                                      output_file=root / 'native-day.json', _transfer=True)
             atomic_json(root / 'record-lines.json', positions)
-            attempt.input_sha256 = file_identity(root / 'native-day.json')['sha256']
+            attempt.input_sha256 = raw.sha256
             attempt.predecessor = parent
             attempt.predecessor_output_digest = parent.output_digest if parent else ''
             attempt.save(update_fields=['input_sha256', 'predecessor', 'predecessor_output_digest', 'updated_at'])
-            report = _native_inspect(raw, attempt.input_sha256,
-                _parameters(binding, owner, parent, 'csv-v1-' + attempt.batch_digest, pick_root))
+            from mta.runtime.daily_preparation import prepare
+            from mta.runtime.ingestion_admission import preparation_source
+            raw = prepare(raw, attempt.input_sha256)
+            ready = preparation_source(owner.source.digest)
+            arguments = _parameters(binding, owner, parent, 'csv-v1-' + attempt.batch_digest, pick_root)
+            report = _native_inspect(raw, attempt.input_sha256, arguments)
             atomic_json(root / 'preflight.json', report)
-            return save(attempt, 'VALIDATED')
+            if ready is not None:
+                from mta.runtime.accepted_daily import seal
+                seal(attempt, raw, arguments, ready)
+            return save(attempt, 'VALIDATED', _persist=ready is None)
         except Exception as error:
             root.mkdir(parents=True, exist_ok=True)
             diagnostics(attempt, error)
@@ -302,16 +312,22 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
             else:
                 if attempt.phase not in ('VALIDATED', 'CALCULATE'):
                     raise ValueError('No proven unexecuted native boundary')
-                native_path = regular(root / 'native-day.json', root)
-                raw = JsonInputFile(native_path)
-                if file_identity(native_path)['sha256'] != attempt.input_sha256:
-                    raise ValueError('Frozen native input bytes differ')
+                arguments = _parameters(binding, owner, attempt.predecessor,
+                    'csv-v1-' + attempt.batch_digest, pick_root)
+                if attempt.accepted_facts:
+                    from mta.runtime.accepted_daily import read
+                    raw = read(attempt, arguments)
+                else:
+                    native_path = regular(root / 'native-day.json', root)
+                    raw = JsonInputFile(native_path)
+                    if file_identity(native_path)['sha256'] != attempt.input_sha256:
+                        raise ValueError('Frozen native input bytes differ')
                 check()
-                save(attempt, 'CALCULATE')
+                if not attempt.accepted_facts:
+                    save(attempt, 'CALCULATE')
                 from mta.runtime.production_daily import execute as native_execute
                 native_execute(raw, attempt.input_sha256,
-                    **_parameters(binding, owner, attempt.predecessor,
-                        'csv-v1-' + attempt.batch_digest, pick_root), feed_attempt=attempt.pk)
+                    **arguments, feed_attempt=attempt.pk)
                 attempt.refresh_from_db()
                 if not attempt.run_id or attempt.run.status != 'SUCCEEDED':
                     raise ValueError('Native day did not commit its owned output')

@@ -141,3 +141,28 @@ class OwnershipContractTests(unittest.TestCase):
                     {'release_identity':{**release,'implementation_sha256':'4'*64}},
                     {'extra':'unsupported'}):
                 with self.subTest(change=change),self.assertRaises(ValueError): validate(change)
+
+
+class ReportGuardCompatibilityTests(unittest.TestCase):
+    def test_only_independently_verified_revision_triggers_are_separated(self):
+        from unittest.mock import MagicMock
+        from importlib import import_module
+        from mta.runtime.ingestion_ownership import business_trigger_rows
+        rows=[('bor_original_guard','table','O'),('ingestion_watch_insert','table','O')]
+        cursor=MagicMock()
+        body=import_module('mta.runtime.migrations.0145_ingestion_revision_guards').SQL
+        body=body.split('CREATE FUNCTION mta.ingestion_watch()',1)[1].split('AS $$',1)[1].split('$$;',1)[0]
+        body=body.replace('UPDATE mta.fresh_mta_initializationcertification SET',
+            'UPDATE mta.fresh_mta_ingestionrevisionstate SET').replace("WHERE status='CERTIFIED';",
+            "WHERE initialization_id IN (SELECT initialization_id FROM mta.fresh_mta_initializationcertification WHERE status='CERTIFIED');")
+        cursor.fetchall.return_value=[(body,True,['search_path=pg_catalog, mta'],'trigger')]
+        with patch('mta.runtime.ingestion_ownership.require_guard_coverage') as verify:
+            self.assertEqual(business_trigger_rows(cursor,rows),rows[:1])
+            verify.assert_called_once_with(cursor)
+        with patch('mta.runtime.ingestion_ownership.require_guard_coverage',side_effect=ValueError('wrong binding')):
+            with self.assertRaisesRegex(ValueError,'wrong binding'):business_trigger_rows(cursor,rows)
+        cursor.fetchall.return_value=[('replaced',True,['search_path=pg_catalog, mta'],'trigger')]
+        with patch('mta.runtime.ingestion_ownership.require_guard_coverage'):
+            with self.assertRaisesRegex(ValueError,'function contract'):business_trigger_rows(cursor,rows)
+        untouched=[('unexpected_business_guard','table','O')]
+        self.assertEqual(business_trigger_rows(cursor,untouched),untouched)

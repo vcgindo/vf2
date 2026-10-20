@@ -66,6 +66,8 @@ def audit_input(run):
     from mta.runtime.relational_state import iter_image
     for metadata in run.input_payload['images'].values():
         for _ in iter_image(run,metadata):pass
+    from mta.runtime.input_storage import audit_references
+    audit_references(run)
 
 
 def audit_output(run):

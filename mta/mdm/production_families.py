@@ -14,7 +14,8 @@ from django.db import connection, transaction
 
 from mta.serialization import digest, storage
 from mta.presentation.request_scope import once_per_request
-from mta.runtime.opening_scope import immutable, opening_operation
+from mta.runtime.opening_scope import (immutable, opening_operation,
+    certify_opening, require_certified_opening, current_certified_opening)
 from mta.mdm.initialization_contract import SOURCE_SCHEMA
 from mta.runtime.models import CalculationRun, ProductionInitialization
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -117,12 +118,148 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
 
 
 def require_initialization(source, *, input_sha256=None, input_schema=None):
+    initialization, handle = _private_certified(source)
+    if handle is not None:
+        _certified_metadata(initialization, handle)
+        from mta.mdm.initialization_contract import SCHEMA
+        if ((input_sha256 is not None and input_sha256 != initialization.input_sha256)
+                or (input_schema is not None and input_schema != SCHEMA)):
+            raise ValueError('Certified native initialization input identity differs')
+        return initialization
     return _verified_initialization(source, input_sha256=input_sha256,
                                     input_schema=input_schema)[0]
 
 
+def certified_handle(initialization, attempt, admission):
+    """Bind an already admitted daily attempt to this private operation only."""
+    certification = attempt.certification
+    revision = attempt.master_revision
+    if (not isinstance(admission, dict)
+            or admission.get('initialization_id') != str(initialization.pk)
+            or admission.get('source_digest') != initialization.source.digest
+            or admission.get('configuration_digest') != initialization.configuration_digest
+            or admission.get('certification_digest') != certification.receipt_digest
+            or admission.get('master_revision_id') != str(revision.pk)
+            or attempt.initialization_id != initialization.pk
+            or certification.initialization_id != initialization.pk
+            or certification.source_digest != initialization.source.digest
+            or certification.status != 'CERTIFIED'
+            or revision.initialization_id != initialization.pk
+            or revision.status != 'ACCEPTED'):
+        raise ValueError('Certified daily initialization handle differs')
+    return _install_certified(initialization, certification, revision)
+
+
+def certified_state_handle(initialization, readiness):
+    """Bind a fresh certified readiness snapshot to this private operation."""
+    from mta.runtime.ingestion_admission import CertifiedReadiness
+    from mta.runtime.ingestion_models import InitializationCertification, MasterInputRevision
+    if (not isinstance(readiness, CertifiedReadiness)
+            or readiness.initialization_id != str(initialization.pk)
+            or readiness.source_digest != initialization.source.digest
+            or readiness.configuration_digest != initialization.configuration_digest):
+        raise ValueError('Certified preparation initialization handle differs')
+    certification = InitializationCertification.objects.get(
+        initialization=initialization, source_digest=readiness.source_digest,
+        status='CERTIFIED', receipt_digest=readiness.certification_digest)
+    revision = MasterInputRevision.objects.get(pk=readiness.master_revision_id,
+        initialization=initialization, status='ACCEPTED')
+    cut = readiness.revisions.as_tuple()
+    if (revision.master_epoch > cut[0] or revision.configuration_epoch > cut[1]):
+        raise ValueError('Certified preparation master revision differs')
+    return _install_certified(initialization, certification, revision)
+
+
+def _install_certified(initialization, certification, revision):
+    """Build the one finite family seal shared by attempt and state admission."""
+    rows = list(MdmFamilySource.objects.filter(source=initialization.source).order_by(
+        'master_id').values('master_id', 'receipt', 'digest'))
+    family_receipts = {}
+    for family, master_ids in GROUPS.items():
+        selected = [row for row in rows if row['master_id'] in master_ids]
+        if ([row['master_id'] for row in selected] != list(master_ids)
+                or any(row['digest'] != digest(row['receipt']) for row in selected)
+                or len({digest(row['receipt']) for row in selected}) != 1):
+            raise ValueError('Certified daily family receipt differs: '+family)
+        family_receipts[family] = selected[0]['receipt']
+    from mta.runtime.mdm_force_models import MdmForceOwner
+    root_state_digest = MdmForceOwner.objects.values_list('root_state_digest', flat=True).get(
+        source=initialization.source)
+    certified = dict(opening_manifest=certification.populations.get('opening_manifest'),
+        integration=certification.populations.get('integration'), families=family_receipts,
+        root_state_digest=root_state_digest)
+    if certified['opening_manifest'] != initialization.input_manifest_digest:
+        raise ValueError('Certified daily opening manifest differs')
+    metadata = (str(initialization.pk), initialization.source.digest,
+        initialization.configuration_digest, certification.receipt_digest,
+        str(revision.pk), revision.master_epoch, revision.configuration_epoch, certified)
+    return certify_opening(initialization, metadata)
+
+
+def _certified_metadata(initialization, handle):
+    metadata = require_certified_opening(initialization, handle)
+    if (len(metadata) != 8 or metadata[:3] != (str(initialization.pk),
+            initialization.source.digest, initialization.configuration_digest)):
+        raise ValueError('Certified daily initialization identity differs')
+    return metadata
+
+
+def _private_certified(source):
+    initialization = ProductionInitialization.objects.select_related('source').get(source=source)
+    return initialization, current_certified_opening(initialization)
+
+
+def frame_for_daily(initialization, predecessor):
+    """Use the root frame once; certified successors require configuration only."""
+    handle = current_certified_opening(initialization)
+    if handle is None or predecessor is None:
+        return _opening_input(initialization)
+    return {'profile': certified_profile(initialization, handle), 'opening': {
+        'identity': initialization.opening_identity,
+        'opening_date': initialization.opening_date.isoformat()}}
+
+
+def certified_profile(initialization, handle):
+    """Read only immutable configuration for a certified successor."""
+    _certified_metadata(initialization, handle)
+    from mta.runtime.input_storage import read_input
+    from mta.runtime import opening_storage
+    profile = read_input(initialization, components=('profile',),
+                         image_reader=opening_storage.load_image)['profile']
+    if digest(profile) != initialization.configuration_digest:
+        raise ValueError('Certified daily profile identity differs')
+    return profile
+
+
+def require_certified_binding(source, initialization, handle):
+    """Check the finite immutable integration receipt admitted for this operation."""
+    certified = _certified_metadata(initialization, handle)[7]
+    if initialization.source_id != source.pk or digest(source.receipt) != source.digest:
+        raise ValueError('Certified native source identity differs')
+    seal = MdmSourceIntegration.objects.get(source=source)
+    families = {'1': digest(source.receipt['families']['1'])}
+    families.update({str(master_id): value for master_id, value in
+        MdmFamilySource.objects.filter(source=source).values_list('master_id', 'digest')})
+    receipt = seal.receipt
+    if (digest(receipt) != seal.digest or receipt.get('source_digest') != source.digest
+            or certified.get('integration') != seal.digest
+            or certified.get('opening_manifest') != initialization.input_manifest_digest
+            or receipt.get('initialization_id') != str(initialization.pk)
+            or receipt.get('initialization_content_digest') != initialization.input_digest
+            or receipt.get('families') != families
+            or set(families) != {str(i) for i in range(1, 14)}
+            or receipt.get('required_families') != list(range(1, 14))
+            or receipt.get('configuration') != _configuration()):
+        raise ValueError('Certified native MDM integration seal differs')
+    return seal
+
+
 def prepare_opening(source):
     """Precompute immutable family facts without opening a write transaction."""
+    initialization, handle = _private_certified(source)
+    if handle is not None:
+        require_certified_binding(source, initialization, handle)
+        return initialization
     initialization, frame = _verified_initialization(source)
     _, bags = _expected(initialization, frame=frame)
     for family in GROUPS:
@@ -263,10 +400,29 @@ def _actual(source, family):
 def require_owner(source, owner, family):
     if family not in GROUPS or owner.source_id != source.pk:
         raise ValueError('Native MDM owner/source differs')
+    initialization, handle = _private_certified(source)
+    if handle is not None:
+        return _verify_certified_owner(source, owner, family, initialization, handle)
     initialization = ProductionInitialization.objects.get(source=source)
     frame, bags = _expected(initialization)
     unchanged_opening = not MdmDailyInputCapture.objects.filter(source=source).exists()
     return _verify_owner(source, owner, family, initialization, frame, bags, unchanged_opening)
+
+
+def _verify_certified_owner(source, owner, family, initialization, handle):
+    metadata = _certified_metadata(initialization, handle)[7]
+    expected = metadata['families'].get(family)
+    if (family not in GROUPS or owner.source_id != source.pk or not isinstance(expected, dict)
+            or owner.provenance != expected or owner.receipt_digest != digest(expected)
+            or hasattr(owner, 'root_state_digest')
+            and owner.root_state_digest != metadata['root_state_digest']):
+        raise ValueError('Certified native MDM '+family+' owner differs')
+    rows = list(MdmFamilySource.objects.filter(source=source,
+        master_id__in=GROUPS[family]).order_by('master_id'))
+    if ([row.master_id for row in rows] != list(GROUPS[family])
+            or any(row.receipt != expected or row.digest != digest(expected) for row in rows)):
+        raise ValueError('Certified native MDM '+family+' family receipt differs')
+    return owner
 
 
 def _verify_owner(source, owner, family, initialization, frame, bags, unchanged_opening):
@@ -364,6 +520,10 @@ def _read_execution_identity(seal):
 
 @once_per_request
 def require_binding(source, *, read_only=False):
+    if not read_only:
+        initialization, handle = _private_certified(source)
+        if handle is not None:
+            return require_certified_binding(source, initialization, handle)
     if read_only:
         from mta.runtime.ingestion_admission import certified_source
         if certified_source(source.digest) is not None:

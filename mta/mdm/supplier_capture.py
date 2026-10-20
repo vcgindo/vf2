@@ -187,6 +187,8 @@ def finalize(run, snapshot, output):
             if same_revision and frozen['Approved']:
                 row.delete()
     for name, model in MODELS.items():
+        if storage(current['raw'][name])==storage(final[name]):
+            continue
         model.objects.filter(source=source).delete()
         model.objects.bulk_create([model(source=source, ordinal=i, **row)
             for i, row in enumerate(final[name], 1)])

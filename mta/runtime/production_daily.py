@@ -82,12 +82,26 @@ def decode(raw, expected_sha256):
     def nonfinite(value):
         raise ValueError('Nonfinite daily number: '+value)
     from mta.application.streamed_input import JsonInputFile
-    if isinstance(raw, JsonInputFile):
+    from mta.application.streamed_input import StreamedInput
+    from mta.runtime.daily_preparation import PreparedDaily
+    if isinstance(raw, PreparedDaily):
+        return raw.checked(expected_sha256)
+    if isinstance(raw, StreamedInput):
+        value = raw._checked(expected_sha256)
+    elif isinstance(raw, JsonInputFile):
         value = raw.decode(expected_sha256, object_pairs_hook=object_pairs, parse_constant=nonfinite)
     else:
         if not isinstance(raw, bytes) or hashlib.sha256(raw).hexdigest() != expected_sha256:
             raise ValueError('Daily operator input bytes differ')
         value = json.loads(raw, object_pairs_hook=object_pairs, parse_constant=nonfinite)
+    value = decode_value(value)
+    if isinstance(raw, StreamedInput):
+        raw._value = None  # Successful validation transfers exclusive ownership.
+    return value
+
+
+def decode_value(value):
+    """The authoritative native validator over an exclusively owned parse."""
     envelope = {'schema', 'day', 'consumer_opening'}
     if isinstance(value, dict) and value.get('schema') == SOURCE_SCHEMA:
         envelope |= {'intake_schema', 'producer_sources'}
@@ -150,6 +164,10 @@ def decode(raw, expected_sha256):
 
 def working_day(value, profile):
     """Inactive input files are facts, never reconstructed calculated answers."""
+    from mta.runtime.daily_preparation import PreparedDaily
+    validated = isinstance(value, PreparedDaily)
+    if validated:
+        value = value.checked(value.sha256)
     from mta.application.daily_finalization import ACTIVE_POLICY, POLICY
     policy = profile.get('complete_daily', {}).get('policy')
     day = deepcopy(value['day'])
@@ -167,7 +185,7 @@ def working_day(value, profile):
     day['exclusions'] = []
     if value['schema'] == SOURCE_SCHEMA:
         from mta.application.production_source_inputs import validate
-        sources = validate(value['producer_sources'], day['business_date'])
+        sources = value['producer_sources'] if validated else validate(value['producer_sources'], day['business_date'])
         day['shipment_input'] = deepcopy(sources['shipments'])
         day['transporter_input'] = deepcopy(sources['transporters'])
         day['production_report_policy'] = deepcopy(sources['report_policy'])
@@ -211,6 +229,17 @@ def initialize_consumers(owner, value, input_sha256):
         raise ValueError('Native remark owner provenance differs')
 
 
+def _inspection_frame(owner, predecessor_id, retry_capture_id):
+    """Install fresh private readiness before selecting the bounded daily frame."""
+    from mta.mdm.production_families import certified_state_handle, frame_for_daily
+    if retry_capture_id is None:
+        from mta.runtime.ingestion_admission import preparation_source
+        admitted = preparation_source(owner.source.digest)
+        if admitted is not None:
+            certified_state_handle(owner, admitted)
+    return frame_for_daily(owner, predecessor_id)
+
+
 @opening_operation
 def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             pick_output_root, execution_revision=None, retry_capture_id=None,
@@ -218,7 +247,6 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     """Read persisted identities only; return every known input/capability issue."""
     from django.core.exceptions import ObjectDoesNotExist
     from mta.runtime.models import ProductionInitialization, CalculationRun
-    from mta.mdm.initialization import read_initialized_input
     from mta.mdm.production_families import require_initialization, require_binding
     from mta.runtime.production_preflight import daily
     from mta.runtime.input_reader import read_input
@@ -228,7 +256,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
         issues.append(dict(path=path,owner=owner_name,code='CONTEXT_INVALID',message=str(error)))
     try:
         owner=ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
-        frame=read_initialized_input(owner)
+        frame=_inspection_frame(owner, predecessor_id, retry_capture_id)
         try:
             require_initialization(owner.source)
         except (ValueError,ObjectDoesNotExist) as error:
@@ -316,7 +344,8 @@ def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root):
     """Reconstruct the same pre-capture request used by locked execute_day."""
     from mta.runtime.temporal import request_input,command_states,resolved_pick_root
     value=decode(raw,sha256)
-    day=working_day(value,frame['profile'])
+    from mta.runtime.daily_preparation import PreparedDaily
+    day=working_day(raw if isinstance(raw,PreparedDaily) else value,frame['profile'])
     initial=frame['opening'] if parent is None else None
     prior=deepcopy(initial['state'] if parent is None else parent_context['closing_state'])
     if parent is None:
@@ -396,24 +425,68 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
         problem('/retry_capture_id/request','frozen MDM capture',error)
 
 
+def _daily_initialization(owner, parent, retry_capture_id, handle):
+    """Select the exact opening read boundary after admission has completed."""
+    from mta.mdm.initialization import read_initialized_input
+    from mta.mdm.production_families import (bootstrap_native_families, require_binding,
+        require_certified_binding, frame_for_daily)
+    from mta.runtime.opening_scope import current_certified_opening
+    active = handle if handle is not None else current_certified_opening(owner)
+    if active is not None:
+        require_certified_binding(owner.source, owner, active)
+        return frame_for_daily(owner, parent)
+    if parent is None and retry_capture_id is None:
+        bootstrap_native_families(owner)
+    else:
+        require_binding(owner.source)
+    return read_initialized_input(owner)
+
+
 @opening_operation
 def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
             retry_capture_id=None, report_disposition=None, feed_attempt=None):
     started = perf_counter()
     from mta.runtime.models import ProductionInitialization, CalculationRun
-    from mta.mdm.initialization import read_initialized_input
-    from mta.mdm.production_families import bootstrap_native_families, require_binding, require_initialization
+    from mta.mdm.production_families import require_initialization, certified_handle
     from mta.runtime.temporal import execute_day
     from mta.runtime.production_preflight import require
-    report,owner,parent,frame=inspect_execution(raw,expected_sha256,initialization_id=initialization_id,
-        source_digest=source_digest,configuration_digest=configuration_digest,pick_output_root=pick_output_root,
-        predecessor_id=predecessor_id,predecessor_output_digest=predecessor_output_digest,
-        execution_revision=execution_revision,retry_capture_id=retry_capture_id,report_disposition=report_disposition)
-    require(report,'day')
+    from mta.runtime.daily_preparation import prepare
+    try:
+        raw = prepare(raw, expected_sha256)
+    except (ValueError, TypeError, KeyError, OverflowError):
+        # Preserve aggregated preflight diagnostics and the no-writer barrier
+        # for invalid native envelopes.
+        pass
+    prepared_arguments = None
+    prepared_attempt = None
+    prepared_admission = None
+    if getattr(raw, 'admission', None) is not None:
+        if feed_attempt is None or retry_capture_id is not None or report_disposition is not None:
+            raise ValueError('Accepted preparation requires its original unexecuted CSV attempt')
+        from mta.runtime.daily_feed_models import DailyFeedAttempt
+        from mta.runtime.accepted_daily import check
+        prepared_arguments = dict(initialization_id=initialization_id, source_digest=source_digest,
+            configuration_digest=configuration_digest, execution_revision=execution_revision,
+            pick_output_root=pick_output_root, predecessor_id=predecessor_id,
+            predecessor_output_digest=predecessor_output_digest)
+        prepared_attempt = DailyFeedAttempt.objects.select_related('initialization__source',
+            'certification','master_revision').get(pk=feed_attempt)
+        prepared_admission = check(prepared_attempt, prepared_arguments)
+        if prepared_admission != raw.admission:
+            raise ValueError('Accepted preparation differs from its durable receipt')
+    else:
+        report,owner,parent,frame=inspect_execution(raw,expected_sha256,initialization_id=initialization_id,
+            source_digest=source_digest,configuration_digest=configuration_digest,pick_output_root=pick_output_root,
+            predecessor_id=predecessor_id,predecessor_output_digest=predecessor_output_digest,
+            execution_revision=execution_revision,retry_capture_id=retry_capture_id,report_disposition=report_disposition)
+        require(report,'day')
     value = decode(raw, expected_sha256)
     owner = ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
-    require_initialization(owner.source)
+    handle = (certified_handle(owner, prepared_attempt, prepared_admission)
+              if prepared_attempt is not None else None)
+    if handle is None:
+        require_initialization(owner.source)
     if owner.source.digest != sha(source_digest, 'native source') or owner.configuration_digest != sha(configuration_digest, 'native configuration'):
         raise ValueError('Native daily source/configuration identity differs')
     parent = None
@@ -425,22 +498,20 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
             raise ValueError('Successor must use its persisted consumer ownership')
     elif predecessor_output_digest is not None or value['consumer_opening'] is None:
         raise ValueError('Initial native day requires explicit consumer opening and no predecessor digest')
-    if parent is None and retry_capture_id is None:
-        bootstrap_native_families(owner)
-    else:
-        require_binding(owner.source)
-    frame = read_initialized_input(owner)
-    day = working_day(value, frame['profile'])
+    frame = _daily_initialization(owner, parent, retry_capture_id, handle)
+    day = working_day(raw, frame['profile'])
     if day['raw_non_nms'] and not frame['profile']['import_non_nms']:
         raise ValueError('Non-NMS feed requires its initialized active configuration')
     from mta.mdm.location_transition import admit
     admit(owner.source, day['business_date'], parent)
     logger.warning('daily_phase initialization=%s phase=native_preflight_and_bootstrap seconds=%.6f',
                    owner.pk, perf_counter()-started)
+    from mta.runtime.ingestion_admission import preparation_source
+    prepared_state = preparation_source(owner.source.digest) if retry_capture_id is None else None
     return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,
         mdm_retry=retry_capture_id, pick_output_root=pick_output_root,
         production_initialization=owner, daily_input_sha256=expected_sha256,
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
-        feed_attempt=feed_attempt)
+        feed_attempt=feed_attempt, prepared_arguments=prepared_arguments, prepared_state=prepared_state)

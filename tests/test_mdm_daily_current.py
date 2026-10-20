@@ -19,6 +19,188 @@ from mta.mdm.daily_source import SCHEMA
 from django.db import connection, transaction, DatabaseError
 
 
+class _ProjectionField:
+    def __init__(self, name):
+        self.name = name
+
+
+class _ProjectionQuery:
+    def __init__(self, manager, filters=None, ordering=()):
+        self.manager = manager
+        self.filters = filters or {}
+        self.ordering = ordering
+
+    def _rows(self):
+        def matches(row):
+            for name, value in self.filters.items():
+                if name.endswith('__in'):
+                    if getattr(row, name[:-4]) not in value:
+                        return False
+                elif getattr(row, name) != value:
+                    return False
+            return True
+        rows = [row for row in self.manager.rows if matches(row)]
+        for name in reversed(self.ordering):
+            rows.sort(key=lambda row: getattr(row, name))
+        return rows
+
+    def order_by(self, *names):
+        return _ProjectionQuery(self.manager, self.filters, names)
+
+    def only(self, *_names):
+        return self
+
+    def iterator(self, *, chunk_size):
+        self.manager.iterator_sizes.append(chunk_size)
+        return iter(self._rows())
+
+    def filter(self, **filters):
+        return _ProjectionQuery(self.manager, {**self.filters, **filters}, self.ordering)
+
+    def count(self):
+        return len(self._rows())
+
+    def exists(self):
+        return bool(self._rows())
+
+    def values(self, *names):
+        return [{name: getattr(row, name) for name in names} for row in self._rows()]
+
+    def delete(self):
+        selected = self._rows()
+        self.manager.delete_batches.append([row.pk for row in selected])
+        selected = {row.pk for row in selected}
+        self.manager.rows[:] = [row for row in self.manager.rows if row.pk not in selected]
+
+
+class _ProjectionManager:
+    def __init__(self):
+        self.rows = []
+        self.next_pk = 1
+        self.bulk_updates = []
+        self.bulk_creates = []
+        self.delete_batches = []
+        self.iterator_sizes = []
+
+    def filter(self, **filters):
+        return _ProjectionQuery(self, filters)
+
+    def bulk_update(self, rows, fields, *, batch_size):
+        self.bulk_updates.append(([row.pk for row in rows], tuple(fields), batch_size))
+
+    def bulk_create(self, rows, *, batch_size):
+        for row in rows:
+            row.pk = self.next_pk
+            self.next_pk += 1
+            self.rows.append(row)
+        self.bulk_creates.append(([row.ordinal for row in rows], batch_size))
+
+
+class _ProjectionModel:
+    _meta = SimpleNamespace(fields=[_ProjectionField(name) for name in
+        ('id', 'source', 'owner', 'ordinal', 'Value', 'Note')])
+    objects = _ProjectionManager()
+
+    def __init__(self, **values):
+        self.pk = values.pop('pk', None)
+        for name, value in values.items():
+            setattr(self, name, value)
+
+
+class CurrentProjectionWriterTests(unittest.TestCase):
+    def setUp(self):
+        _ProjectionModel.objects = _ProjectionManager()
+        self.source = object()
+
+    def seed(self, rows):
+        for ordinal, values in rows:
+            row = _ProjectionModel(pk=_ProjectionModel.objects.next_pk,
+                source=self.source, owner='Importer', ordinal=ordinal, **values)
+            _ProjectionModel.objects.next_pk += 1
+            _ProjectionModel.objects.rows.append(row)
+        return [row.pk for row in _ProjectionModel.objects.rows]
+
+    def values(self):
+        return [(row.pk, row.ordinal, row.Value, row.Note)
+                for row in sorted(_ProjectionModel.objects.rows, key=lambda row: row.ordinal)]
+
+    def write(self, rows):
+        return daily_current._write_partition(self.source, _ProjectionModel,
+            {'owner': 'Importer'}, rows, '/test/current')
+
+    def test_equal_duplicate_occurrences_keep_primary_keys_without_dml(self):
+        pks = self.seed([(1, {'Value': 'same', 'Note': None}),
+                         (2, {'Value': 'same', 'Note': None})])
+        result = self.write([{'Value': 'same', 'Note': None},
+                             {'Value': 'same', 'Note': None}])
+        self.assertEqual(result, {'updated': 0, 'inserted': 0, 'deleted': 0})
+        self.assertEqual([row[0] for row in self.values()], pks)
+        self.assertEqual(_ProjectionModel.objects.bulk_updates, [])
+        self.assertEqual(_ProjectionModel.objects.bulk_creates, [])
+        self.assertEqual(_ProjectionModel.objects.delete_batches, [])
+        self.assertEqual(_ProjectionModel.objects.iterator_sizes, [500])
+
+    def test_only_changed_fields_update_and_new_tail_appends(self):
+        pks = self.seed([(1, {'Value': 'same', 'Note': None}),
+                         (2, {'Value': 'old', 'Note': 'kept'})])
+        result = self.write([{'Value': 'same', 'Note': None},
+                             {'Value': 'new', 'Note': 'kept'},
+                             {'Value': 'new', 'Note': None}])
+        self.assertEqual(result, {'updated': 1, 'inserted': 1, 'deleted': 0})
+        self.assertEqual(_ProjectionModel.objects.bulk_updates, [([pks[1]], ('Value',), 500)])
+        self.assertEqual(_ProjectionModel.objects.bulk_creates, [([3], 500)])
+        self.assertEqual(self.values(), [(pks[0], 1, 'same', None),
+            (pks[1], 2, 'new', 'kept'), (pks[1] + 1, 3, 'new', None)])
+
+    def test_shrink_deletes_only_excess_tail_in_bounded_batches(self):
+        self.seed([(ordinal, {'Value': str(ordinal), 'Note': None})
+                   for ordinal in range(1, 1003)])
+        result = self.write([])
+        self.assertEqual(result, {'updated': 0, 'inserted': 0, 'deleted': 1002})
+        self.assertEqual([len(batch) for batch in _ProjectionModel.objects.delete_batches],
+                         [500, 500, 2])
+        self.assertEqual(self.values(), [])
+
+    def test_growth_inserts_and_verifies_in_bounded_batches(self):
+        expected = [{'Value': str(ordinal), 'Note': None}
+                    for ordinal in range(1, 1003)]
+        result = self.write(expected)
+        self.assertEqual(result, {'updated': 0, 'inserted': 1002, 'deleted': 0})
+        self.assertEqual([len(ordinals) for ordinals, _size
+                          in _ProjectionModel.objects.bulk_creates], [500, 500, 2])
+        self.assertEqual(len(self.values()), 1002)
+
+    def test_full_changed_projection_updates_in_bounded_batches(self):
+        pks = self.seed([(ordinal, {'Value': 'old', 'Note': None})
+                         for ordinal in range(1, 1003)])
+        expected = [{'Value': 'new', 'Note': None} for _ordinal in range(1, 1003)]
+        result = self.write(expected)
+        self.assertEqual(result, {'updated': 1002, 'inserted': 0, 'deleted': 0})
+        self.assertEqual([len(updated_pks) for updated_pks, _fields, _size
+                          in _ProjectionModel.objects.bulk_updates], [500, 500, 2])
+        self.assertEqual([row[0] for row in self.values()], pks)
+
+    def test_ordinal_gap_rejects_before_any_write(self):
+        before = self.seed([(1, {'Value': 'one', 'Note': None}),
+                            (3, {'Value': 'three', 'Note': None})])
+        with self.assertRaisesRegex(ValueError, 'ordinal gap'):
+            self.write([{'Value': 'changed', 'Note': None}])
+        self.assertEqual([row[0] for row in self.values()], before)
+        self.assertEqual(_ProjectionModel.objects.bulk_updates, [])
+        self.assertEqual(_ProjectionModel.objects.bulk_creates, [])
+        self.assertEqual(_ProjectionModel.objects.delete_batches, [])
+
+    def test_late_ordinal_gap_relies_on_caller_transaction_to_rollback_flushed_batch(self):
+        self.seed([(ordinal, {'Value': 'old', 'Note': None})
+                   for ordinal in range(1, 501)] +
+                  [(502, {'Value': 'old', 'Note': None})])
+        expected = [{'Value': 'new', 'Note': None} for _ordinal in range(1, 503)]
+        with self.assertRaisesRegex(ValueError, 'ordinal gap'):
+            self.write(expected)
+        self.assertEqual([len(pks) for pks, _fields, _size
+                          in _ProjectionModel.objects.bulk_updates], [500])
+
+
 class CurrentOwnerTests(unittest.TestCase):
     def carrier(self, pk, parent=None, active=True):
         return SimpleNamespace(run_id=pk, nms_active=active,
@@ -34,7 +216,7 @@ class CurrentOwnerTests(unittest.TestCase):
                 patch('mta.runtime.services.read_outputs',
                     side_effect=lambda run: {'ClosingState': [{'own_run': run.pk}]}), \
                 patch.object(daily_current, 'verify_current') as live, \
-                patch.object(daily_current, 'identity', side_effect=lambda closing: closing):
+                patch.object(daily_current, 'identity', side_effect=lambda closing, **_kwargs: closing):
             result = daily_current.verify_published(selected.run, source)
         return result, live.call_args
 
@@ -155,6 +337,7 @@ class CurrentOwnerPostgresTests(unittest.TestCase):
 
     def test_all_tables_are_guarded_and_wrong_state_update_truncate_denied(self):
         from mta.runtime.mdm_models import MdmSkuUse
+        from django.db.migrations.recorder import MigrationRecorder
         tables = {model._meta.db_table for _, model, _, _, _ in daily_current.closing_owners(self.closing)}
         with connection.cursor() as cursor:
             cursor.execute("SELECT C.relname,T.tgname FROM pg_trigger T JOIN pg_class C ON C.oid=T.tgrelid "
@@ -169,7 +352,13 @@ class CurrentOwnerPostgresTests(unittest.TestCase):
         self.guc('fresh.mdm_current_bootstrap', '')
         self.guc('fresh.mdm_current_run', str(self.run.pk)); self.deny(insert)
         self.consume()
-        self.deny(lambda: MdmSkuUse.objects.filter(source=self.source).update(SKUCode='CHANGED'))
+        if MigrationRecorder.Migration.objects.filter(app='fresh_mta',name='0153_incremental_current_guards').exists():
+            self.deny(lambda: MdmSkuUse.objects.filter(source=self.source).update(ordinal=99))
+            self.guc('fresh.mdm_current_run','foreign')
+            self.deny(lambda: MdmSkuUse.objects.filter(source=self.source).update(SKUCode='CHANGED'))
+            self.guc('fresh.mdm_current_run',str(self.run.pk))
+        else:
+            self.deny(lambda: MdmSkuUse.objects.filter(source=self.source).update(SKUCode='CHANGED'))
         with connection.cursor() as cursor:
             self.deny(lambda: cursor.execute('TRUNCATE mta.fresh_mta_mdmskuuse'))
         insert()  # Exact consumed/run capability permits occurrence insertion.

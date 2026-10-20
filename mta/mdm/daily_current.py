@@ -6,6 +6,105 @@ from mta.mdm.master_owners import owner_batches, business_fields
 from mta.serialization import digest, storage
 
 
+_WRITE_BATCH = 500
+
+
+def _chunks(values, size=_WRITE_BATCH):
+    for start in range(0, len(values), size):
+        yield values[start:start + size]
+
+
+def _verify_written(base, names, expected, ordinals, retained_pks, path):
+    actual = list(base.filter(ordinal__in=ordinals).order_by('ordinal')
+                  .values('pk', 'ordinal', *names))
+    if [row['ordinal'] for row in actual] != list(ordinals):
+        raise ValueError('MDM current written occurrence differs: ' + path)
+    for row in actual:
+        ordinal = row.pop('ordinal')
+        pk = row.pop('pk')
+        if (ordinal in retained_pks and pk != retained_pks[ordinal]) or \
+                storage(row) != storage(expected[ordinal - 1]):
+            raise ValueError('MDM current written values differ: ' + path)
+
+
+def _flush_updates(model, base, names, expected, updates, retained_pks, path):
+    for changed, rows in updates.items():
+        model.objects.bulk_update(rows, list(changed), batch_size=_WRITE_BATCH)
+    ordinals = sorted(retained_pks)
+    _verify_written(base, names, expected, ordinals, retained_pks, path)
+    updates.clear()
+    retained_pks.clear()
+
+
+def _flush_deletes(model, base, pks, path):
+    model.objects.filter(pk__in=pks).delete()
+    if base.filter(pk__in=pks).exists():
+        raise ValueError('MDM current deleted occurrence remains: ' + path)
+    pks.clear()
+
+
+def _write_partition(source, model, partition, expected, path):
+    """Replace one ordered projection logically while retaining equal occurrences.
+
+    Ordinal is the occurrence identity at this projection boundary.  Existing
+    occurrences keep both ordinal and primary key; only differing business
+    fields are updated.  The complete pre-write scan proves every untouched
+    occurrence, and the bounded post-write read proves every written occurrence
+    plus the final population count.
+    """
+    fields = business_fields(model)
+    names = [field.name for field in fields]
+    if any(not isinstance(row, dict) or set(row) != set(names) for row in expected):
+        raise ValueError('MDM current projected fields differ: ' + path)
+    base = model.objects.filter(source=source, **partition)
+    updates = {}
+    update_pks = {}
+    pending_updates = 0
+    tail_pks = []
+    existing_count = 0
+    updated = 0
+    deleted = 0
+    for row in base.order_by('ordinal').only('pk', 'ordinal', *names).iterator(
+            chunk_size=_WRITE_BATCH):
+        existing_count += 1
+        if row.ordinal != existing_count:
+            raise ValueError('MDM current ordinal gap: ' + path)
+        if row.ordinal > len(expected):
+            tail_pks.append(row.pk)
+            deleted += 1
+            if len(tail_pks) == _WRITE_BATCH:
+                _flush_deletes(model, base, tail_pks, path)
+            continue
+        target = expected[row.ordinal - 1]
+        changed = tuple(name for name in names
+                        if storage(getattr(row, name)) != storage(target[name]))
+        if changed:
+            for name in changed:
+                setattr(row, name, target[name])
+            updates.setdefault(changed, []).append(row)
+            update_pks[row.ordinal] = row.pk
+            pending_updates += 1
+            updated += 1
+            if pending_updates == _WRITE_BATCH:
+                _flush_updates(model, base, names, expected, updates, update_pks, path)
+                pending_updates = 0
+
+    if pending_updates:
+        _flush_updates(model, base, names, expected, updates, update_pks, path)
+    if tail_pks:
+        _flush_deletes(model, base, tail_pks, path)
+    inserted = max(0, len(expected) - existing_count)
+    for ordinals in _chunks(range(existing_count + 1, len(expected) + 1)):
+        model.objects.bulk_create([
+            model(source=source, ordinal=ordinal, **partition, **expected[ordinal - 1])
+            for ordinal in ordinals], batch_size=_WRITE_BATCH)
+        _verify_written(base, names, expected, ordinals, {}, path)
+
+    if base.count() != len(expected):
+        raise ValueError('MDM current written row count differs: ' + path)
+    return {'updated': updated, 'inserted': inserted, 'deleted': deleted}
+
+
 def closing_owners(closing, *, version=None):
     """Reuse the exact installation projection, including its BPR copy source."""
     batches = owner_batches(closing)
@@ -78,11 +177,8 @@ def publish(run, capture, closing):
         if native:
             receipt = MdmClosingProjectionReceipt.objects.create(run=run,
                 capture_digest=capture_identity(capture), **code_identity)
-        for _family, model, partition, rows, _path in batches:
-            model.objects.filter(source=source, **partition).delete()
-            model.objects.bulk_create([model(source=source, ordinal=i, **partition, **row)
-                for i, row in enumerate(rows, 1)], batch_size=500)
-        verify_current(source, closing, version=version)
+        for _family, model, partition, rows, path in batches:
+            _write_partition(source, model, partition, rows, path)
         if receipt is not None:
             proof = additional_owners(closing)[1]
             receipt.metadata = dict(version=VERSION, partitions=identity(closing, version=version),

@@ -44,7 +44,8 @@ def _inputs(run):
     native_publication.require_mode()
     identity = native_publication.identity(run)
     value = read_input(run)
-    if (digest(value) != run.input_digest
+    from mta.runtime.input_storage import logical_digest
+    if (logical_digest(run,value) != run.input_digest
             or digest(run.input_payload) != run.input_manifest_digest
             or value.get('initialization_binding') != identity['initialization']):
         raise ArchiveDenied('native_input_archive_identity_drift')
@@ -53,11 +54,13 @@ def _inputs(run):
 
 def _pins(run, captured):
     binding = captured['initialization_binding']
-    return dict(schema=SCHEMA, restriction=RESTRICTION, run_id=str(run.pk),
+    prepared=run.input_payload.get('content_kind')=='native-prepared-input-v1'
+    versioned=(dict(input_digest_kind='native-prepared-input-v1',captured_input_digest=digest(captured)) if prepared else {})
+    return dict(schema='fresh-native-input-download-v2' if prepared else SCHEMA, restriction=RESTRICTION, run_id=str(run.pk),
         business_date=run.business_date.isoformat(),
         initialization_id=binding['id'], source_digest=binding['source_digest'],
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
-        output_digest=run.output_digest)
+        output_digest=run.output_digest,**versioned)
 
 
 def _limits():
@@ -120,7 +123,7 @@ def prepare(run, opening_file, daily_file):
     hashes={
         'NativeOpeningInput.json':captured['initialization_binding']['input_sha256'],
         'NativeDailyInput.json':captured['daily_input_sha256'],
-        'NativeCapturedInput.json':run.input_digest,
+        'NativeCapturedInput.json':digest(captured),
         'NativeInputSchema.json':run.input_manifest_digest,
     }
     metadata={};total=0
@@ -197,7 +200,7 @@ def open_archive(run):
                 or set(manifest['files'])!=MEMBERS-{'manifest.json'}):raise ArchiveDenied('native_input_archive_manifest_drift')
             hashes={'NativeOpeningInput.json':captured['initialization_binding']['input_sha256'],
                 'NativeDailyInput.json':captured['daily_input_sha256'],
-                'NativeCapturedInput.json':run.input_digest,'NativeInputSchema.json':run.input_manifest_digest}
+                'NativeCapturedInput.json':digest(captured),'NativeInputSchema.json':run.input_manifest_digest}
             for name,expected_hash in hashes.items():
                 checksum=hashlib.sha256();size=0
                 with archive.open(name) as member:

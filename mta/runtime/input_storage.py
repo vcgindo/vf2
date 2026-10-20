@@ -137,18 +137,29 @@ def choose_table(fields,path,rows=None):
 
 
 def save_input(run,raw, *, image_writer=None, table_selector=None, version=None,
-               schema=None, aliases=None, identity_resolver=None):
+               schema=None, aliases=None, identity_resolver=None,
+               batch_references=None, batch_resolver=None,
+               owner_references=None, owner_resolver=None, master_resolver=None,
+               content_identity=None):
     if version == 3 or schema == V3:
         if version not in (None, 3) or schema not in (None, V3):
             raise ValueError('Typed input schema/version conflict')
-        if identity_resolver is not None and image_writer is None:
+        if (identity_resolver is not None or batch_resolver is not None
+                or owner_resolver is not None or master_resolver is not None) and image_writer is None:
             raise ValueError('Trusted typed-input identity helper requires a test image writer')
         from mta.runtime import input_v3
         return input_v3.save_input(run, raw, image_writer=image_writer or save_image,
             table_selector=table_selector or choose_table, aliases=aliases,
             identity_resolver=identity_resolver,
+            batch_references=batch_references, batch_resolver=batch_resolver,
+            owner_references=owner_references, owner_resolver=owner_resolver,
+            master_resolver=master_resolver, content_identity=content_identity,
             explicit_table_selector=table_selector is not None)
-    if version not in (None, 2) or schema not in (None, SCHEMA) or aliases is not None or identity_resolver is not None:
+    if (version not in (None, 2) or schema not in (None, SCHEMA) or aliases is not None
+            or identity_resolver is not None or batch_references is not None
+            or batch_resolver is not None or owner_references is not None
+            or owner_resolver is not None or master_resolver is not None
+            or content_identity is not None):
         raise ValueError('Typed input v3 options require explicit version 3')
     writer = image_writer or save_image
     selector = table_selector or choose_table
@@ -232,15 +243,19 @@ def save_input(run,raw, *, image_writer=None, table_selector=None, version=None,
 
 
 def read_input(run, *, components=None, image_reader=None, materialized_roots=(),
-               identity_resolver=None):
+               identity_resolver=None, batch_resolver=None, owner_resolver=None,
+               master_resolver=None):
     if run.input_payload.get('schema') == V3:
-        if identity_resolver is not None and image_reader is None:
+        if (identity_resolver is not None or batch_resolver is not None
+                or owner_resolver is not None or master_resolver is not None) and image_reader is None:
             raise ValueError('Trusted typed-input identity helper requires a test image reader')
         from mta.runtime import input_v3
         return input_v3.read_input(run, components=components,
             image_reader=image_reader or load_image, materialized_roots=materialized_roots,
-            identity_resolver=identity_resolver)
-    if identity_resolver is not None:
+            identity_resolver=identity_resolver, batch_resolver=batch_resolver,
+            owner_resolver=owner_resolver, master_resolver=master_resolver)
+    if (identity_resolver is not None or batch_resolver is not None
+            or owner_resolver is not None or master_resolver is not None):
         raise ValueError('Typed input identity resolver requires version 3')
     reader = image_reader or load_image
     value=run.input_payload
@@ -286,3 +301,33 @@ def read_input(run, *, components=None, image_reader=None, materialized_roots=()
     if components is not None:
         tree={'object':[[k,v] for k,v in tree['object'] if k in components]}
     return unpack(tree)
+
+
+def audit_references(run, *, identity_resolver=None, batch_resolver=None,
+                     owner_resolver=None, master_resolver=None):
+    """Return fully validated v3 BATCH references for receipt integration."""
+    if run.input_payload.get('schema') != V3:
+        return {}
+    from mta.runtime import input_v3
+    return input_v3.audit_references(run, identity_resolver=identity_resolver,
+        batch_resolver=batch_resolver, owner_resolver=owner_resolver,
+        master_resolver=master_resolver)
+
+
+def content_root(raw, content_identity, *, owner_references={}, batch_references={}):
+    from mta.runtime.input_v3 import content_root as prepared_root
+    return prepared_root(raw, content_identity, owner_references=owner_references,
+                         batch_references=batch_references)
+
+
+def logical_digest(owner,value):
+    """Preserve old raw roots; prepared v3 explicitly hashes owned references."""
+    manifest=getattr(owner,'input_payload',{})
+    if manifest.get('schema')==V3 and 'content_kind' in manifest:
+        from mta.runtime.input_v3 import CONTENT_KIND
+        if manifest['content_kind']!=CONTENT_KIND:
+            raise ValueError('Unknown typed input content kind')
+        return content_root(value,manifest['content_identity'],
+            owner_references=manifest.get('owner_references',{}),
+            batch_references=manifest.get('batch_references',{}))
+    return digest(value)

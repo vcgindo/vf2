@@ -4,9 +4,9 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 
 This module is deliberately restricted to input storage.  It does not change
 calculation, SQL selection, action policy, frontend, MTO, authentication, or
-daily ownership.  References are explicit one-hop aliases between exactly
-equal collections owned by the same immutable initialization or successful
-run; cross-owner daily staging belongs to M3 and is rejected here.
+daily ownership. Aliases are explicit one-hop references between exactly equal
+collections owned by the same initialization or run. Daily facts may instead
+use the finite M3 BATCH reference contract bound to the run's sealed CSV attempt.
 """
 from collections.abc import Sequence
 from copy import deepcopy
@@ -15,12 +15,43 @@ from uuid import UUID
 from django.db import connection
 
 from mta.row_sequences import RecordRows
-from mta.serialization import canonical_parts, digest, storage
+from mta.serialization import canonical_parts, digest, rows_digest, storage
 
 
 V3 = 'fresh-daily-input-manifest-v3'
 IDENTITY_FIELDS = frozenset(('database_name', 'database_oid', 'source_digest',
                              'owner_kind', 'owner_id'))
+BATCH_REFERENCE_FIELDS = frozenset(('attempt_id', 'filename', 'manifest_digest',
+                                    'population_digest', 'count'))
+OWNER_REFERENCE_FIELDS = frozenset(('kind', 'owner_id', 'path',
+                                    'manifest_digest', 'content_digest'))
+MASTER_REFERENCE_FIELDS = frozenset(('contract', 'run_id', 'output_digest',
+    'initialization_id', 'source_digest', 'master_revision_id'))
+MASTER_CONTRACT = 'native-nms-master-compatibility-v1'
+MASTER_PATH = 'input/day/raw_master'
+MASTER_IMAGE = 'closing/consumer_context/NMSAllItems'
+CONTENT_KIND = 'native-prepared-input-v1'
+CONTENT_IDENTITY_FIELDS = frozenset(('database_name', 'database_oid', 'source_digest',
+                                     'initialization_id'))
+BATCH_PATHS = {
+    'input/day/raw_daily': 'DailyDataRaw.csv',
+    'input/day/raw_non_nms': 'MasterDataRawNonNMS.csv',
+    'input/day/raw_no_norm': 'NoNormMasterRaw.csv',
+    'input/day/accepted_feed': 'AcceptedNorms.csv',
+    'input/day/order_raw': 'OrderData.csv',
+    'input/day/order_feed': 'OrderFeed.csv',
+    'input/day/distributor_transactions': 'DistributorTransactions.csv',
+    'input/day/vendor_transactions': 'VendorTransactions.csv',
+    'input/day/shipment_input/rows': 'InTransitRaw.csv',
+    'input/day/transporter_input/rows': 'Transporters.csv',
+    'input/day/requirement_stock': 'AdditionalDataStockForReqCalc.csv',
+}
+OWNER_PATHS = {
+    'input/profile': 'INITIALIZATION', 'input/opening': 'INITIALIZATION',
+    **{f'input/mdm_input/rows/{family}/{part}': 'RUN'
+       for family in ('sku', 'location', 'skuloc')
+       for part in ('attributes', 'descriptions')},
+}
 
 
 def _database_identity():
@@ -45,7 +76,9 @@ def _live_identity(owner, *, reading):
         source_digest = current.source.digest
     elif model_name == 'calculationrun':
         current = type(owner).objects.get(pk=owner.pk)
-        if current.status != 'SUCCEEDED':
+        if (reading and (current.status not in ('RUNNING', 'SUCCEEDED', 'FAILED')
+                         or not current.input_manifest_digest)
+                or not reading and current.status != 'RUNNING'):
             raise ValueError('Typed input run owner is mutable')
         owner_kind = 'run'
         try:
@@ -120,6 +153,81 @@ def _typed_equal(left, right):
     return type(left) is type(right) and left == right
 
 
+def _master_reference(value):
+    if (not isinstance(value, dict) or set(value) != MASTER_REFERENCE_FIELDS
+            or value.get('contract') != MASTER_CONTRACT):
+        raise ValueError('Typed input derived master reference identity differs')
+    result = dict(value)
+    for name in ('run_id', 'initialization_id', 'master_revision_id'):
+        try:
+            result[name] = str(UUID(str(value[name])))
+        except (TypeError, ValueError, AttributeError) as error:
+            raise ValueError('Typed input derived master UUID differs') from error
+        if result[name] != str(value[name]).lower():
+            raise ValueError('Typed input derived master UUID differs')
+    for name in ('output_digest', 'source_digest'):
+        if (not isinstance(value[name], str) or len(value[name]) != 64
+                or any(c not in '0123456789abcdef' for c in value[name])):
+            raise ValueError('Typed input derived master digest differs')
+    return result
+
+
+def _content_identity(value):
+    if (not isinstance(value, dict) or set(value) != CONTENT_IDENTITY_FIELDS
+            or not isinstance(value['database_name'], str) or not value['database_name']
+            or type(value['database_oid']) is not int or value['database_oid'] <= 0
+            or not isinstance(value['source_digest'], str) or len(value['source_digest']) != 64
+            or any(c not in '0123456789abcdef' for c in value['source_digest'])):
+        raise ValueError('Typed prepared input content identity differs')
+    try:
+        initialization_id = str(UUID(str(value['initialization_id'])))
+    except (TypeError, ValueError, AttributeError) as error:
+        raise ValueError('Typed prepared input initialization UUID differs') from error
+    if initialization_id != str(value['initialization_id']).lower():
+        raise ValueError('Typed prepared input initialization UUID differs')
+    return {**value, 'initialization_id': initialization_id}
+
+
+def content_root(raw, content_identity, *, owner_references={}, batch_references={}):
+    """Return the bounded prepared-input root without retaining its raw graph."""
+    identity = _content_identity(content_identity)
+    if not isinstance(owner_references, dict) or not isinstance(batch_references, dict):
+        raise ValueError('Typed prepared input references require mappings')
+    owners = {_normal_path(path): _owner_reference(value, _normal_path(path))
+              for path, value in owner_references.items()}
+    batches = {_normal_path(path): _batch_reference(value, _normal_path(path))
+               for path, value in batch_references.items()}
+    if set(owners) & set(batches):
+        raise ValueError('Typed prepared input path has multiple references')
+
+    from mta.application.persistent_master import NmsMasterRows
+    seen_owners, seen_batches = set(), set()
+    def summarize(value, path):
+        if path in owners:
+            seen_owners.add(path)
+            return {'owner_reference': owners[path]}
+        if path in batches:
+            seen_batches.add(path)
+            return {'batch_reference': batches[path]}
+        if isinstance(value, NmsMasterRows):
+            if path != MASTER_PATH:
+                raise ValueError('Typed input derived master path differs')
+            return {'derived_master': _master_reference(value.reference)}
+        if isinstance(value, dict):
+            return {'object': [[key, summarize(item, path+'/'+key)]
+                               for key, item in value.items()]}
+        if _collection(value):
+            if not value:
+                return {'empty': True}
+            return {'rows': len(value), 'digest': rows_digest(value)}
+        return {'scalar': storage(value)}
+
+    tree = summarize(raw, 'input')
+    if seen_owners != set(owners) or seen_batches != set(batches):
+        raise ValueError('Typed prepared input reference target is dangling')
+    return digest(dict(schema=V3, content_kind=CONTENT_KIND, identity=identity, tree=tree))
+
+
 def _aliases(raw, aliases):
     if aliases is None:
         return {}
@@ -142,12 +250,400 @@ def _aliases(raw, aliases):
     return result
 
 
+def _batch_reference(value, path):
+    if path not in BATCH_PATHS or not isinstance(value, dict) or set(value) != BATCH_REFERENCE_FIELDS:
+        raise ValueError('Typed input batch reference identity differs')
+    try:
+        attempt_id = str(UUID(str(value['attempt_id'])))
+    except (TypeError, ValueError, AttributeError) as error:
+        raise ValueError('Typed input batch attempt UUID differs') from error
+    if (attempt_id != str(value['attempt_id']).lower()
+            or value['filename'] != BATCH_PATHS[path]
+            or any(not isinstance(value[name], str) or len(value[name]) != 64
+                   or any(c not in '0123456789abcdef' for c in value[name])
+                   for name in ('manifest_digest', 'population_digest'))
+            or type(value['count']) is not int or value['count'] < 0):
+        raise ValueError('Typed input batch reference identity differs')
+    return {**value, 'attempt_id': attempt_id}
+
+
+def _batch_attempt(owner, attempt_id, resolver):
+    if resolver is not None:
+        attempt = resolver(owner, attempt_id)
+        if (str(getattr(attempt, 'attempt_id', '')).lower() != attempt_id
+                or str(getattr(attempt, 'run_id', '')).lower() != str(owner.pk).lower()):
+            raise ValueError('Typed input run batch owner differs')
+        return attempt
+    current = type(owner).objects.select_related(
+        'csv_attempt__initialization__source').get(pk=owner.pk)
+    try:
+        attempt = current.csv_attempt
+    except (AttributeError, ObjectDoesNotExist) as error:
+        raise ValueError('Typed input run has no bound daily batch') from error
+    if str(attempt.attempt_id) != attempt_id or attempt.run_id != current.pk:
+        raise ValueError('Typed input run batch owner differs')
+    return attempt
+
+
+def _resolve_batch(owner, path, reference, owner_identity, resolver, *,
+                   allow_owned_failed=False):
+    reference = _batch_reference(reference, path)
+    if owner_identity['owner_kind'] != 'run':
+        raise ValueError('Typed input batch references require a run owner')
+    attempt = _batch_attempt(owner, reference['attempt_id'], resolver)
+    manifest = getattr(attempt, 'accepted_facts', None)
+    if not isinstance(manifest, dict) or digest(manifest) != reference['manifest_digest']:
+        raise ValueError('Typed input batch manifest identity differs')
+    from mta.runtime import batch_storage
+    batch_identity = batch_storage._live_identity(attempt, reading=True, manifest=manifest,
+        allow_owned_failed=allow_owned_failed)
+    if (batch_identity['database_name'] != owner_identity['database_name']
+            or batch_identity['database_oid'] != owner_identity['database_oid']
+            or batch_identity['source_digest'] != owner_identity['source_digest']):
+        raise ValueError('Typed input batch database/source identity differs')
+    try:
+        entry = next(item for item in manifest['feeds'] if item['filename'] == reference['filename'])
+    except (KeyError, TypeError, StopIteration) as error:
+        raise ValueError('Typed input batch population is unavailable') from error
+    if (entry.get('digest') != reference['population_digest']
+            or entry.get('count') != reference['count']):
+        raise ValueError('Typed input batch population identity differs')
+    factory = lambda: batch_storage.iter_population(attempt, reference['filename'], manifest,
+        _allow_owned_failed=allow_owned_failed)
+    return (RecordRows(reference['count'], factory)
+            if reference['count'] > 10000 else list(factory()))
+
+
+def _batch_references(raw, references, owner, owner_identity, resolver):
+    if references is None:
+        return {}
+    if not isinstance(references, dict):
+        raise ValueError('Typed input batch references require an explicit mapping')
+    result = {}
+    for path, value in references.items():
+        path = _normal_path(path)
+        reference = _batch_reference(value, path)
+        target = _at(raw, path)
+        if not _collection(target):
+            raise ValueError('Typed input batch reference requires a collection target')
+        rows = _resolve_batch(owner, path, reference, owner_identity, resolver)
+        if not _typed_equal(target, rows):
+            raise ValueError('Typed input batch population differs: ' + path)
+        result[path] = reference
+    return result
+
+
+def _owner_reference(value, source_path):
+    if (source_path not in OWNER_PATHS or not isinstance(value, dict)
+            or set(value) != OWNER_REFERENCE_FIELDS or value['kind'] != OWNER_PATHS[source_path]
+            or value['path'] != source_path):
+        raise ValueError('Typed input owner reference identity differs')
+    try:
+        owner_id = str(UUID(str(value['owner_id'])))
+    except (TypeError, ValueError, AttributeError) as error:
+        raise ValueError('Typed input referenced owner UUID differs') from error
+    if (owner_id != str(value['owner_id']).lower()
+            or any(not isinstance(value[name], str) or len(value[name]) != 64
+                   or any(c not in '0123456789abcdef' for c in value[name])
+                   for name in ('manifest_digest', 'content_digest'))):
+        raise ValueError('Typed input owner reference identity differs')
+    return {**value, 'owner_id': owner_id}
+
+
+def _node_at(manifest, path):
+    node = manifest['tree']
+    for key in _normal_path(path).split('/')[1:]:
+        if 'object' not in node:
+            raise ValueError('Typed input owner reference target is dangling')
+        matches = [child for name, child in node['object'] if name == key]
+        if len(matches) != 1:
+            raise ValueError('Typed input owner reference target is dangling')
+        node = matches[0]
+    return node
+
+
+def _physical(node):
+    if any(name in node for name in ('reference', 'batch_reference', 'owner_reference')):
+        return False
+    return (all(_physical(child) for _, child in node.get('object', []))
+            and all(_physical(child) for _, child, _ in node.get('children', [])))
+
+
+def _initialization_component_is_physical(manifest, path):
+    """Admit only the frozen M2 same-initialization opening aliases."""
+    aliases = manifest.get('aliases')
+    if not isinstance(aliases, dict):
+        return False
+
+    def inspect(node, source):
+        if any(name in node for name in ('batch_reference', 'owner_reference')):
+            return False
+        if 'reference' in node:
+            target = node.get('reference')
+            if (set(node) != {'reference'} or source not in OPENING_ALIASES
+                    or aliases.get(source) != target or OPENING_ALIASES[source] != target):
+                return False
+            try:
+                target_node = _node_at(manifest, target)
+            except ValueError:
+                return False
+            return _physical(target_node)
+        return (all(inspect(child, source+'/'+name)
+                    for name, child in node.get('object', []))
+                and all(inspect(child, source+'/children/'+'/'.join(field))
+                        for field, child, _ in node.get('children', [])))
+
+    return inspect(_node_at(manifest, path), path)
+
+
+def _owner_target(owner, reference, resolver):
+    if resolver is not None:
+        return resolver(owner, reference)
+    current = type(owner).objects.select_related('predecessor').get(pk=owner.pk)
+    initialization_id = _run_initialization_id(current, None)
+    from mta.runtime.initialization_models import ProductionInitialization
+    initialization = ProductionInitialization.objects.get(pk=initialization_id)
+    if reference['kind'] == 'INITIALIZATION':
+        if reference['owner_id'] != str(initialization.pk):
+            raise ValueError('Typed input initialization reference is foreign')
+        return initialization
+    target = type(owner).objects.get(pk=reference['owner_id'])
+    if target.status != 'SUCCEEDED':
+        raise ValueError('Typed input referenced run is mutable')
+    master = getattr(target, 'production_manifest', {}).get('master_preparation')
+    if (not isinstance(master, dict) or type(master.get('qualified')) is not bool
+            or not isinstance(master.get('master_cut'), list)
+            or len(master['master_cut']) != 2
+            or any(type(value) is not int or value < 0 for value in master['master_cut'])
+            or _run_initialization_id(target, None) != initialization_id):
+        raise ValueError('Typed input referenced run final master identity differs')
+    predecessor = str(current.predecessor_id) if current.predecessor_id else None
+    if reference['owner_id'] != predecessor:
+        from mta.runtime.ingestion_models import MasterInputRevision
+        if not MasterInputRevision.objects.filter(initialization_id=initialization.pk,
+                run_id=target.pk, status='ACCEPTED').exists():
+            raise ValueError('Typed input referenced run is outside accepted lineage')
+    return target
+
+
+def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
+    reference = _owner_reference(reference, source_path)
+    if owner_identity['owner_kind'] != 'run' or reference['owner_id'] == owner_identity['owner_id']:
+        raise ValueError('Typed input owner reference requires a distinct run target')
+    target = _owner_target(owner, reference, resolver)
+    if str(target.pk).lower() != reference['owner_id']:
+        raise ValueError('Typed input referenced owner differs')
+    if reference['kind'] == 'RUN' and getattr(target, 'status', None) != 'SUCCEEDED':
+        raise ValueError('Typed input referenced run is mutable')
+    if resolver is not None and (getattr(target, '_reference_initialization_id', None)
+            != getattr(owner, '_reference_initialization_id', None)
+            or not getattr(target, '_reference_accepted', False)):
+        raise ValueError('Typed input referenced owner is foreign or unaccepted')
+    target_identity = _identity(target, None if resolver is None else
+        lambda value: getattr(value, '_reference_identity'), reading=True)
+    if target_identity['owner_kind'] != reference['kind'].lower():
+        raise ValueError('Typed input referenced owner kind differs')
+    if (target_identity['database_name'] != owner_identity['database_name']
+            or target_identity['database_oid'] != owner_identity['database_oid']
+            or target_identity['source_digest'] != owner_identity['source_digest']):
+        raise ValueError('Typed input referenced database/source differs')
+    manifest = target.input_payload
+    if (not isinstance(manifest, dict) or manifest.get('schema') != V3
+            or digest(manifest) != reference['manifest_digest']
+            or target.input_manifest_digest != reference['manifest_digest']
+            or target.input_digest != reference['content_digest']
+            or manifest.get('content_digest') != reference['content_digest']):
+        raise ValueError('Typed input referenced manifest/content differs')
+    physical = (_initialization_component_is_physical(manifest, reference['path'])
+                if reference['kind'] == 'INITIALIZATION' else
+                _physical(_node_at(manifest, reference['path'])))
+    if not physical:
+        raise ValueError('Typed input owner references must target physical one-hop subtrees')
+    component = reference['path'].removeprefix('input/')
+    reader = (__import__('mta.runtime.opening_storage', fromlist=['load_image']).load_image
+              if reference['kind'] == 'INITIALIZATION' else
+              __import__('mta.runtime.relational_state', fromlist=['load_image']).load_image)
+    value = read_input(target, components=(component,), image_reader=reader,
+        identity_resolver=(None if resolver is None else lambda value: value._reference_identity))
+    return _at(value, reference['path'])
+
+
+def _owner_references(raw, references, owner, owner_identity, resolver):
+    if references is None:
+        return {}
+    if not isinstance(references, dict):
+        raise ValueError('Typed input owner references require an explicit mapping')
+    result = {}
+    for path, value in references.items():
+        path = _normal_path(path)
+        reference = _owner_reference(value, path)
+        target = _at(raw, path)
+        resolved = _resolve_owner(owner, path, reference, owner_identity, resolver)
+        if not _typed_equal(target, resolved):
+            raise ValueError('Typed input referenced population differs: ' + path)
+        result[path] = reference
+    return result
+
+
+def _run_initialization_id(owner, resolver):
+    preparation = getattr(owner, 'production_manifest', {}).get('ingestion_preparation', {})
+    value = preparation.get('initialization_id') if isinstance(preparation, dict) else None
+    try:
+        initialization_id = str(UUID(str(value)))
+    except (TypeError, ValueError, AttributeError) as error:
+        raise ValueError('Typed input run initialization is unavailable') from error
+    if initialization_id != str(value).lower():
+        raise ValueError('Typed input run initialization is unavailable')
+    if resolver is not None:
+        if (str(getattr(owner, '_reference_initialization_id', '')).lower() != initialization_id
+                or str(getattr(owner, '_reference_capture_initialization_id', '')).lower()
+                   != initialization_id
+                or (getattr(owner, '_reference_csv_initialization_id', None) is not None
+                    and str(owner._reference_csv_initialization_id).lower() != initialization_id)
+                or getattr(owner, '_reference_capture_source_digest', None)
+                   != getattr(owner, '_reference_identity', {}).get('source_digest')
+                or getattr(owner, '_reference_certified', False) is not True):
+            raise ValueError('Typed input run initialization seed is uncorroborated')
+        return initialization_id
+    current = type(owner).objects.select_related(
+        'mdm_input_capture__source__production_initialization',
+        'csv_attempt__initialization').get(pk=owner.pk)
+    try:
+        capture_initialization = current.mdm_input_capture.source.production_initialization
+    except (AttributeError, ObjectDoesNotExist) as error:
+        raise ValueError('Typed input run MDM capture initialization is unavailable') from error
+    if str(capture_initialization.pk) != initialization_id:
+        raise ValueError('Typed input run initialization seed differs from MDM capture')
+    csv_initialization_id = getattr(getattr(current, 'csv_attempt', None), 'initialization_id', None)
+    if csv_initialization_id is not None and str(csv_initialization_id) != initialization_id:
+        raise ValueError('Typed input CSV and native initialization differ')
+    from mta.runtime.ingestion_models import InitializationCertification
+    if not InitializationCertification.objects.filter(initialization_id=initialization_id,
+            source_digest=current.mdm_input_capture.source.digest, status='CERTIFIED').exists():
+        raise ValueError('Typed input run initialization is not currently certified')
+    return initialization_id
+
+
+def _validate_content_owner(owner, owner_identity, value, resolver):
+    content_identity = _content_identity(value)
+    if owner_identity['owner_kind'] != 'run':
+        raise ValueError('Prepared content identity requires a run owner')
+    actual = dict(database_name=owner_identity['database_name'],
+        database_oid=owner_identity['database_oid'], source_digest=owner_identity['source_digest'],
+        initialization_id=_run_initialization_id(owner, resolver))
+    if content_identity != actual:
+        raise ValueError('Typed prepared input live identity differs')
+    return content_identity
+
+
+def _derived_parent(owner, reference, resolver):
+    if resolver is not None:
+        return resolver(owner, reference)
+    current = type(owner).objects.select_related('predecessor').get(pk=owner.pk)
+    if str(current.predecessor_id or '') != reference['run_id']:
+        raise ValueError('Typed input derived master requires the direct predecessor')
+    return current.predecessor
+
+
+def _resolve_derived_master(owner, reference, owner_identity, resolver, *, projection=None):
+    reference = _master_reference(reference)
+    if owner_identity['owner_kind'] != 'run':
+        raise ValueError('Typed input derived master requires a run owner')
+    if str(getattr(owner, 'predecessor_id', '') or '').lower() != reference['run_id']:
+        if resolver is not None:
+            raise ValueError('Typed input derived master requires the direct predecessor')
+    preparation = getattr(owner, 'production_manifest', {}).get('ingestion_preparation', {})
+    if (not isinstance(preparation, dict)
+            or preparation.get('qualified_master_reuse') is not True
+            or str(preparation.get('base_revision_id', '')).lower()
+               != reference['master_revision_id']):
+        raise ValueError('Typed input derived master is not qualified by preparation')
+    parent = _derived_parent(owner, reference, resolver)
+    if (str(getattr(parent, 'pk', '')).lower() != reference['run_id']
+            or getattr(parent, 'status', None) != 'SUCCEEDED'
+            or getattr(parent, 'output_digest', None) != reference['output_digest']):
+        raise ValueError('Typed input derived master predecessor identity differs')
+    parent_master = getattr(parent, 'production_manifest', {}).get('master_preparation', {})
+    if (not isinstance(parent_master, dict) or parent_master.get('qualified') is not True
+            or not isinstance(parent_master.get('master_cut'), list)
+            or len(parent_master['master_cut']) != 2
+            or any(type(value) is not int or value < 0 for value in parent_master['master_cut'])):
+        raise ValueError('Typed input derived master predecessor is unqualified')
+    parent_identity = _identity(parent, None if resolver is None else
+        lambda value: value._reference_identity, reading=True)
+    if (parent_identity['source_digest'] != owner_identity['source_digest']
+            or reference['source_digest'] != owner_identity['source_digest']
+            or reference['initialization_id'] != _run_initialization_id(owner, resolver)
+            or _run_initialization_id(parent, resolver) != reference['initialization_id']):
+        raise ValueError('Typed input derived master source/initialization differs')
+    if resolver is not None:
+        if (str(getattr(parent, '_reference_accepted_revision_id', '')).lower()
+                != reference['master_revision_id']
+                or list(getattr(parent, '_reference_accepted_revision_cut', ()))
+                   != parent_master['master_cut']
+                or not getattr(parent, '_reference_accepted', False)):
+            raise ValueError('Typed input derived master revision is unaccepted')
+    else:
+        from mta.runtime.ingestion_models import MasterInputRevision
+        revision = MasterInputRevision.objects.filter(pk=reference['master_revision_id'],
+            initialization_id=reference['initialization_id'], status='ACCEPTED').values_list(
+                'master_epoch', 'configuration_epoch').first()
+        if revision is None or list(revision) != parent_master['master_cut']:
+            raise ValueError('Typed input derived master revision is unaccepted')
+    from mta.runtime.receipt_integrity import verify_root
+    verify_root(parent)
+    try:
+        image = parent.production_manifest['images'][MASTER_IMAGE]
+    except (KeyError, TypeError) as error:
+        raise ValueError('Typed input derived master image is unavailable') from error
+    from mta.runtime.relational_state import load_image
+    rows = load_image(parent, image)
+    from mta.application.persistent_master import NmsMasterRows
+    if resolver is not None:
+        return NmsMasterRows(rows, canonical=False, reference=reference)
+    if projection is None:
+        from mta.runtime.input_storage import read_input as read_owned
+        captured=read_owned(owner,components=('mdm_input','input/day/business_date'))
+        projection=(captured['mdm_input'],captured['day']['business_date'])
+    return NmsMasterRows(rows,canonical=False,reference=reference,
+        snapshot=projection[0],business_date=projection[1])
+
+
 def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
-               identity_resolver=None, explicit_table_selector=False):
+               identity_resolver=None, explicit_table_selector=False,
+               batch_references=None, batch_resolver=None,
+               owner_references=None, owner_resolver=None, master_resolver=None,
+               content_identity=None):
     """Write an opt-in v3 manifest; callers must persist its digest separately."""
     from mta.runtime import input_storage as common
     identity = _identity(owner, identity_resolver, reading=False)
     aliases = _aliases(raw, aliases)
+    batch_references = _batch_references(raw, batch_references, owner, identity, batch_resolver)
+    owner_references = _owner_references(raw, owner_references, owner, identity, owner_resolver)
+    if len(set(aliases) | set(batch_references) | set(owner_references)) != (
+            len(aliases) + len(batch_references) + len(owner_references)):
+        raise ValueError('Typed input path cannot have multiple reference owners')
+    from mta.application.persistent_master import NmsMasterRows
+    try:
+        raw_master = _at(raw, MASTER_PATH)
+    except ValueError:
+        raw_master = None
+    derived_references = {}
+    if isinstance(raw_master, NmsMasterRows):
+        reference = _master_reference(raw_master.reference)
+        resolved = _resolve_derived_master(owner, reference, identity, master_resolver,
+            projection=((raw['mdm_input'],raw['day']['business_date']) if master_resolver is None else None))
+        if not _typed_equal(raw_master, resolved):
+            raise ValueError('Typed input derived master population differs')
+        derived_references[MASTER_PATH] = reference
+    prepared_identity = None
+    if content_identity is not None:
+        prepared_identity = _validate_content_owner(owner, identity, content_identity,
+                                                     identity_resolver)
+        expected = content_root(raw, prepared_identity, owner_references=owner_references,
+                                batch_references=batch_references)
+        if owner.input_digest != expected:
+            raise ValueError('Typed prepared input content root differs')
     images = {}
 
     def image(path, rows, table=None):
@@ -156,6 +652,12 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
         return path
 
     def pack(value, path):
+        if path in derived_references:
+            return {'derived_master': path}
+        if path in owner_references:
+            return {'owner_reference': path}
+        if path in batch_references:
+            return {'batch_reference': path}
         if path in aliases:
             return {'reference': aliases[path]}
         if isinstance(value, dict):
@@ -227,24 +729,48 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
     manifest = dict(schema=V3, tree=tree, images=images,
                     content_digest=owner.input_digest, identity=identity,
                     aliases=aliases,
+                    batch_references=batch_references,
+                    owner_references=owner_references,
                     profile={'delivery': {'site_code': raw['profile']['delivery']['site_code']}})
+    if derived_references:
+        manifest['derived_references'] = derived_references
+    if prepared_identity is not None:
+        manifest['content_kind'] = CONTENT_KIND
+        manifest['content_identity'] = prepared_identity
     if sum(len(part) for part in canonical_parts(manifest)) > 1024*1024:
         raise ValueError('Typed input metadata exceeds bounded manifest size')
     return manifest
 
 
 def read_input(owner, *, components=None, image_reader, materialized_roots=(),
-               identity_resolver=None):
+               identity_resolver=None, batch_resolver=None, owner_resolver=None,
+               master_resolver=None):
     value = owner.input_payload
     if (value.get('schema') != V3 or value.get('content_digest') != owner.input_digest
             or digest(value) != owner.input_manifest_digest):
         raise ValueError('Typed daily input manifest identity drift')
-    if value.get('identity') != _identity(owner, identity_resolver, reading=True):
+    owner_identity = _identity(owner, identity_resolver, reading=True)
+    if value.get('identity') != owner_identity:
         raise ValueError('Typed input live owner identity drift')
+    has_content = 'content_identity' in value or 'content_kind' in value
+    if has_content:
+        if value.get('content_kind') != CONTENT_KIND:
+            raise ValueError('Typed prepared input content kind differs')
+        if _validate_content_owner(owner, owner_identity, value.get('content_identity'),
+                                   identity_resolver) != value.get('content_identity'):
+            raise ValueError('Typed prepared input content identity differs')
     aliases = value.get('aliases')
     if not isinstance(aliases, dict):
         raise ValueError('Typed input alias manifest differs')
-
+    batch_references = value.get('batch_references', {})
+    if not isinstance(batch_references, dict):
+        raise ValueError('Typed input batch reference manifest differs')
+    owner_references = value.get('owner_references', {})
+    if not isinstance(owner_references, dict):
+        raise ValueError('Typed input owner reference manifest differs')
+    derived_references = value.get('derived_references', {})
+    if not isinstance(derived_references, dict):
+        raise ValueError('Typed input derived reference manifest differs')
     def node_at(path):
         node = value['tree']
         for key in _normal_path(path).split('/')[1:]:
@@ -257,7 +783,26 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
         return node
 
     references = {}
+    batch_nodes = {}
+    owner_nodes = {}
+    derived_nodes = {}
     def inspect(node, path):
+        if 'derived_master' in node:
+            if (set(node) != {'derived_master'} or node['derived_master'] != path
+                    or path != MASTER_PATH):
+                raise ValueError('Typed input derived master node differs')
+            derived_nodes[path] = path
+            return
+        if 'owner_reference' in node:
+            if set(node) != {'owner_reference'} or node['owner_reference'] != path:
+                raise ValueError('Typed input owner reference node differs')
+            owner_nodes[path] = path
+            return
+        if 'batch_reference' in node:
+            if set(node) != {'batch_reference'} or node['batch_reference'] != path:
+                raise ValueError('Typed input batch reference node differs')
+            batch_nodes[path] = path
+            return
         if 'reference' in node:
             if set(node) != {'reference'} or aliases.get(path) != node['reference']:
                 raise ValueError('Typed input alias reference differs')
@@ -271,6 +816,23 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
     inspect(value['tree'], 'input')
     if references != aliases or any(target in aliases for target in aliases.values()):
         raise ValueError('Typed input aliases must be explicit one-hop references')
+    if set(batch_nodes) != set(batch_references) or set(batch_references) & set(aliases):
+        raise ValueError('Typed input batch references must be explicit')
+    if (set(owner_nodes) != set(owner_references)
+            or set(owner_references) & (set(aliases) | set(batch_references))):
+        raise ValueError('Typed input owner references must be explicit')
+    if (set(derived_nodes) != set(derived_references)
+            or set(derived_references) & (set(aliases) | set(batch_references)
+                                          | set(owner_references))):
+        raise ValueError('Typed input derived master references must be explicit')
+    for path, reference in batch_references.items():
+        _batch_reference(reference, path)
+    for path, reference in owner_references.items():
+        _owner_reference(reference, path)
+    for path, reference in derived_references.items():
+        if path != MASTER_PATH:
+            raise ValueError('Typed input derived master path differs')
+        _master_reference(reference)
     for source, target in aliases.items():
         _normal_path(source); _normal_path(target)
         target_node = node_at(target)
@@ -286,6 +848,21 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
     def unpack(node, path):
         if path in cache:
             return cache[path]
+        if 'derived_master' in node:
+            resolved = _resolve_derived_master(owner, derived_references[path], owner_identity,
+                                               master_resolver)
+            cache[path] = resolved
+            return resolved
+        if 'owner_reference' in node:
+            resolved = _resolve_owner(owner, path, owner_references[path], owner_identity,
+                                      owner_resolver)
+            cache[path] = resolved
+            return resolved
+        if 'batch_reference' in node:
+            rows = _resolve_batch(owner, path, batch_references[path], owner_identity, batch_resolver,
+                allow_owned_failed=True)
+            cache[path] = rows
+            return rows
         if 'reference' in node:
             target = node['reference']
             if target in resolving:
@@ -357,8 +934,95 @@ def read_input(owner, *, components=None, image_reader, materialized_roots=(),
     from mta.runtime.input_storage import get as common_get
     tree = value['tree']
     if components is not None:
-        tree = {'object': [[key, child] for key, child in tree['object'] if key in components]}
+        requested = [component if component.startswith('input/') else 'input/' + component
+                     for component in components]
+        def prune(node, path):
+            if path in requested:
+                return node
+            children = [[key, selected] for key, child in node.get('object', [])
+                        if (selected := prune(child, path + '/' + key)) is not None]
+            return {'object': children} if children else None
+        tree = prune(tree, 'input') or {'object': []}
     return unpack(tree, 'input')
+
+
+def audit_references(owner, *, identity_resolver=None, batch_resolver=None,
+                     owner_resolver=None, master_resolver=None):
+    """Validate and return bounded external references for receipt integration."""
+    value = owner.input_payload
+    if (value.get('schema') != V3 or value.get('content_digest') != owner.input_digest
+            or digest(value) != owner.input_manifest_digest):
+        raise ValueError('Typed daily input manifest identity drift')
+    owner_identity = _identity(owner, identity_resolver, reading=True)
+    if value.get('identity') != owner_identity:
+        raise ValueError('Typed input live owner identity drift')
+    has_content = 'content_identity' in value or 'content_kind' in value
+    if has_content:
+        if (value.get('content_kind') != CONTENT_KIND
+                or _validate_content_owner(owner, owner_identity,
+                    value.get('content_identity'), identity_resolver)
+                   != value.get('content_identity')):
+            raise ValueError('Typed prepared input content identity differs')
+    references = value.get('batch_references', {})
+    if not isinstance(references, dict):
+        raise ValueError('Typed input batch reference manifest differs')
+    owner_references = value.get('owner_references', {})
+    if not isinstance(owner_references, dict):
+        raise ValueError('Typed input owner reference manifest differs')
+    derived_references = value.get('derived_references', {})
+    if not isinstance(derived_references, dict):
+        raise ValueError('Typed input derived reference manifest differs')
+    aliases = value.get('aliases', {})
+    if not isinstance(aliases, dict):
+        raise ValueError('Typed input alias manifest differs')
+    nodes, owner_nodes, derived_nodes = set(), set(), set()
+    def inspect(node, path):
+        if 'derived_master' in node:
+            if set(node) != {'derived_master'} or node['derived_master'] != path:
+                raise ValueError('Typed input derived master node differs')
+            derived_nodes.add(path)
+            return
+        if 'owner_reference' in node:
+            if set(node) != {'owner_reference'} or node['owner_reference'] != path:
+                raise ValueError('Typed input owner reference node differs')
+            owner_nodes.add(path)
+            return
+        if 'batch_reference' in node:
+            if set(node) != {'batch_reference'} or node['batch_reference'] != path:
+                raise ValueError('Typed input batch reference node differs')
+            nodes.add(path)
+            return
+        for key, child in node.get('object', []):
+            inspect(child, path + '/' + key)
+        for field, child, _ in node.get('children', []):
+            inspect(child, path + '/children/' + '/'.join(field))
+    inspect(value.get('tree', {}), 'input')
+    if nodes != set(references):
+        raise ValueError('Typed input batch references must be explicit')
+    if (owner_nodes != set(owner_references) or owner_nodes & nodes
+            or owner_nodes & set(aliases) or nodes & set(aliases)):
+        raise ValueError('Typed input owner references must be explicit')
+    if (derived_nodes != set(derived_references) or derived_nodes != ({MASTER_PATH}
+            if derived_references else set()) or derived_nodes & (nodes | owner_nodes | set(aliases))):
+        raise ValueError('Typed input derived master references must be explicit')
+    result = {}
+    for path, reference in references.items():
+        rows = _resolve_batch(owner, path, reference, owner_identity, batch_resolver,
+                              allow_owned_failed=True)
+        for _ in rows:
+            pass
+        result[path] = _batch_reference(reference, path)
+    for path, reference in owner_references.items():
+        resolved = _resolve_owner(owner, path, reference, owner_identity, owner_resolver)
+        if _collection(resolved):
+            for _ in resolved: pass
+        result[path] = _owner_reference(reference, path)
+    for path, reference in derived_references.items():
+        resolved = _resolve_derived_master(owner, reference, owner_identity, master_resolver)
+        for _ in resolved:
+            pass
+        result[path] = _master_reference(reference)
+    return result
 
 
 # Finite lossless same-opening aliases. Distinct producer populations remain

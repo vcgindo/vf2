@@ -20,7 +20,8 @@ os.environ.setdefault('VF_SECRET_KEY', 'scalability-focused-only')
 import django
 django.setup()
 
-from mta.runtime.opening_scope import immutable, opening_scope, release_opening
+from mta.runtime.opening_scope import (immutable, opening_scope, release_opening,
+    certify_opening, require_certified_opening, current_certified_opening)
 from mta.application.production_csv import assemble, parse_csv, CsvIntakeError, IssueRows
 from mta.application.streamed_input import JsonInputFile
 from mta.runtime.production_daily import decode
@@ -161,6 +162,196 @@ class ScalabilityBoundaryTests(unittest.TestCase):
         with opening_scope():
             self.assertIsNot(immutable(source, 'frame', build), first)
 
+    def test_certified_opening_handle_is_explicit_operation_local_and_seal_bound(self):
+        initialized = owner()
+        metadata = ('initialization', 'source', 'configuration', 'certification',
+                    'revision', 3, 4)
+        with self.assertRaisesRegex(ValueError, 'active operation'):
+            certify_opening(initialized, metadata)
+        with opening_scope():
+            handle = certify_opening(initialized, metadata)
+            self.assertIs(certify_opening(initialized, metadata), handle)
+            with self.assertRaisesRegex(ValueError, 'metadata differs'):
+                certify_opening(initialized, metadata + ('different',))
+            self.assertEqual(require_certified_opening(initialized, handle), metadata)
+            self.assertIs(current_certified_opening(initialized), handle)
+            release_opening()
+            self.assertEqual(require_certified_opening(initialized, handle), metadata)
+            initialized.input_manifest_digest = 'changed'
+            with self.assertRaisesRegex(ValueError, 'absent or stale'):
+                require_certified_opening(initialized, handle)
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                current_certified_opening(initialized)
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                certify_opening(initialized, metadata)
+            initialized.input_manifest_digest = 'manifest'
+            self.assertEqual(require_certified_opening(initialized, handle), metadata)
+        with opening_scope(), self.assertRaisesRegex(ValueError, 'absent or stale'):
+            require_certified_opening(initialized, handle)
+
+    def test_certified_daily_handle_reads_only_profile_and_finite_binding_receipts(self):
+        from mta.mdm import production_families as production
+        from mta.serialization import digest
+        initialized = owner()
+        initialized.pk = 'df0386c9-35fe-44ce-9447-c86940f35637'
+        initialized.opening_identity = 'opening-identity'
+        initialized.opening_date = date(2026, 10, 1)
+        initialized.configuration_digest = digest({'policy': 'fixed'})
+        source_receipt = {'families': {'1': {'root': 'one'}}}
+        source = SimpleNamespace(pk=3, digest=digest(source_receipt), receipt=source_receipt)
+        initialized.source = source
+        initialized.source_id = source.pk
+        certification = SimpleNamespace(initialization_id=initialized.pk,
+            source_digest=source.digest, status='CERTIFIED', receipt_digest='c' * 64,
+            populations={})
+        revision = SimpleNamespace(pk='36a44cc4-07de-4a45-aef7-52c9d6d462a5',
+            initialization_id=initialized.pk, status='ACCEPTED', master_epoch=3,
+            configuration_epoch=4)
+        attempt = SimpleNamespace(initialization_id=initialized.pk,
+            certification=certification, master_revision=revision)
+        admission = dict(initialization_id=str(initialized.pk), source_digest=source.digest,
+            configuration_digest=initialized.configuration_digest,
+            certification_digest=certification.receipt_digest,
+            master_revision_id=str(revision.pk))
+        owner_receipts = {family: {'family': family, 'sealed': True}
+                          for family in production.GROUPS}
+        family_digests = {'1': digest(source_receipt['families']['1']),
+                          **{str(i): ('2' * 64 if i in (2, 3) else
+                             digest(owner_receipts[next(name for name, ids in production.GROUPS.items()
+                                 if i in ids)])) for i in range(2, 14)}}
+        configuration = {'fixed': 'configuration'}
+        seal_receipt = dict(source_digest=source.digest, initialization_id=str(initialized.pk),
+            initialization_content_digest=initialized.input_digest, families=family_digests,
+            required_families=list(range(1, 14)), configuration=configuration)
+        seal = SimpleNamespace(receipt=seal_receipt, digest=digest(seal_receipt))
+        certification.populations = {'opening_manifest': initialized.input_manifest_digest,
+                                     'integration': seal.digest}
+        families = MagicMock()
+        families.values_list.return_value = [(i, family_digests[str(i)]) for i in range(2, 14)]
+        ordered_families = MagicMock()
+        ordered_families.values.return_value = [dict(master_id=i,
+            receipt=owner_receipts[next(name for name, ids in production.GROUPS.items() if i in ids)],
+            digest=family_digests[str(i)]) for i in range(4, 14)]
+        families.order_by.return_value = ordered_families
+        with opening_scope():
+            with patch.object(production.MdmFamilySource.objects, 'filter', return_value=families), \
+                    patch('mta.runtime.mdm_force_models.MdmForceOwner.objects.values_list') as roots:
+                roots.return_value.get.return_value = 'root-state'
+                handle = production.certified_handle(initialized, attempt, admission)
+                from mta.runtime.ingestion_admission import CertifiedReadiness
+                from mta.runtime.ingestion_context import RevisionCut
+                readiness = CertifiedReadiness(str(initialized.pk), source.digest,
+                    certification.receipt_digest, str(revision.pk),
+                    initialized.configuration_digest, RevisionCut(3, 4, 5, 6, 7))
+                with patch('mta.runtime.ingestion_models.InitializationCertification.objects.get',
+                        return_value=certification), patch(
+                        'mta.runtime.ingestion_models.MasterInputRevision.objects.get',
+                        return_value=revision):
+                    self.assertIs(production.certified_state_handle(initialized, readiness), handle)
+                    stale = CertifiedReadiness(str(initialized.pk), source.digest,
+                        certification.receipt_digest, str(revision.pk),
+                        initialized.configuration_digest, RevisionCut(2, 4, 5, 6, 7))
+                    with self.assertRaisesRegex(ValueError, 'master revision differs'):
+                        production.certified_state_handle(initialized, stale)
+            with patch('mta.runtime.input_storage.read_input',
+                    return_value={'profile': {'policy': 'fixed'}}) as read:
+                self.assertEqual(production.certified_profile(initialized, handle),
+                                 {'policy': 'fixed'})
+                self.assertEqual(read.call_args.kwargs['components'], ('profile',))
+            with patch.object(production, '_configuration', return_value=configuration), \
+                    patch.object(production.MdmSourceIntegration.objects, 'get', return_value=seal), \
+                    patch.object(production.MdmFamilySource.objects, 'filter', return_value=families), \
+                    patch.object(production, '_verified_initialization') as full, \
+                    patch.object(production, '_expected') as expected:
+                self.assertIs(production.require_certified_binding(source, initialized, handle), seal)
+                full.assert_not_called(); expected.assert_not_called()
+            family_rows = MagicMock()
+            family_rows.order_by.return_value = [SimpleNamespace(master_id=13,
+                receipt=owner_receipts['force'], digest=digest(owner_receipts['force']))]
+            force_owner = SimpleNamespace(source_id=source.pk, provenance=owner_receipts['force'],
+                receipt_digest=digest(owner_receipts['force']), root_state_digest='root-state')
+            with patch.object(production, '_private_certified',
+                    return_value=(initialized, handle)), \
+                    patch.object(production, '_verified_initialization') as full, \
+                    patch.object(production, 'require_certified_binding', return_value=seal) as fast, \
+                    patch.object(production.MdmFamilySource.objects, 'filter',
+                                 return_value=family_rows):
+                self.assertIs(production.require_initialization(source), initialized)
+                self.assertIs(production.prepare_opening(source), initialized)
+                self.assertIs(production.require_binding(source), seal)
+                self.assertIs(production.require_owner(source, force_owner, 'force'), force_owner)
+                full.assert_not_called()
+                self.assertGreaterEqual(fast.call_count, 2)
+                force_owner.root_state_digest = 'wrong'
+                with self.assertRaisesRegex(ValueError, 'owner differs'):
+                    production.require_owner(source, force_owner, 'force')
+
+    def test_certified_successor_reads_profile_only_while_root_loads_opening_once(self):
+        from mta.runtime.production_daily import _daily_initialization
+        from mta.mdm import production_families as production
+        initialized = SimpleNamespace(source=object(), opening_identity='opening-identity',
+                                      opening_date=date(2026, 10, 1))
+        handle, parent = object(), object()
+        full_frame = {'profile': {'root': True}, 'opening': {'state': {}}}
+        with patch('mta.mdm.production_families.require_certified_binding') as binding, \
+                patch('mta.runtime.opening_scope.current_certified_opening',
+                      return_value=handle), \
+                patch('mta.mdm.production_families.frame_for_daily',
+                      return_value={'profile': {'successor': True}, 'opening': {
+                          'identity': 'opening-identity', 'opening_date': '2026-10-01'}}) as daily_frame, \
+                patch('mta.mdm.initialization.read_initialized_input',
+                      return_value=full_frame) as full, \
+                patch('mta.mdm.production_families.bootstrap_native_families') as bootstrap, \
+                patch('mta.mdm.production_families.require_binding') as public:
+            self.assertEqual(_daily_initialization(initialized, parent, None, handle),
+                             {'profile': {'successor': True}, 'opening': {
+                                 'identity': 'opening-identity', 'opening_date': '2026-10-01'}})
+            full.assert_not_called(); daily_frame.assert_called_once_with(initialized, parent)
+            self.assertEqual(_daily_initialization(initialized, None, None, handle),
+                             {'profile': {'successor': True}, 'opening': {
+                                 'identity': 'opening-identity', 'opening_date': '2026-10-01'}})
+            daily_frame.assert_called_with(initialized, None)
+            self.assertEqual(binding.call_count, 2)
+            bootstrap.assert_not_called(); public.assert_not_called()
+
+        with patch.object(production, 'current_certified_opening', return_value=handle), \
+                patch.object(production, 'certified_profile',
+                             return_value={'successor': True}) as profile, \
+                patch.object(production, '_opening_input', return_value=full_frame) as opening:
+            self.assertEqual(production.frame_for_daily(initialized, parent),
+                             {'profile': {'successor': True}, 'opening': {
+                                 'identity': 'opening-identity', 'opening_date': '2026-10-01'}})
+            opening.assert_not_called()
+            self.assertIs(production.frame_for_daily(initialized, None), full_frame)
+            opening.assert_called_once_with(initialized)
+
+        with patch('mta.mdm.production_families.bootstrap_native_families') as bootstrap, \
+                patch('mta.mdm.production_families.require_binding') as public, \
+                patch('mta.mdm.initialization.read_initialized_input', return_value=full_frame):
+            _daily_initialization(initialized, None, None, None)
+            bootstrap.assert_called_once_with(initialized); public.assert_not_called()
+            _daily_initialization(initialized, parent, None, None)
+            public.assert_called_once_with(initialized.source)
+
+    def test_inspection_frame_installs_current_certification_only_for_normal_capture(self):
+        from mta.runtime.production_daily import _inspection_frame
+        initialized = SimpleNamespace(source=SimpleNamespace(digest='s' * 64))
+        readiness = object()
+        bounded = {'profile': {}, 'opening': {'identity': 'i', 'opening_date': '2026-10-01'}}
+        with patch('mta.runtime.ingestion_admission.preparation_source',
+                   return_value=readiness) as fresh, patch(
+                   'mta.mdm.production_families.certified_state_handle') as install, patch(
+                   'mta.mdm.production_families.frame_for_daily', return_value=bounded) as frame:
+            self.assertIs(_inspection_frame(initialized, 'predecessor', None), bounded)
+            fresh.assert_called_once_with(initialized.source.digest)
+            install.assert_called_once_with(initialized, readiness)
+            frame.assert_called_once_with(initialized, 'predecessor')
+        with patch('mta.runtime.ingestion_admission.preparation_source') as fresh, patch(
+                   'mta.mdm.production_families.certified_state_handle') as install, patch(
+                   'mta.mdm.production_families.frame_for_daily', return_value=bounded):
+            self.assertIs(_inspection_frame(initialized, 'predecessor', 'retry'), bounded)
+            fresh.assert_not_called(); install.assert_not_called()
+
     def test_opening_scope_never_caches_live_owner_readback(self):
         from mta.mdm import production_families as production
         source = SimpleNamespace(pk=3, receipt={'schema': production.SOURCE_SCHEMA})
@@ -251,7 +442,7 @@ class ScalabilityBoundaryTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             path = Path(directory) / 'native-day.json'
             path.write_bytes(b'{}')
-            attempt = SimpleNamespace(attempt_id='attempt', phase='VALIDATED', run_id=None,
+            attempt = SimpleNamespace(attempt_id='attempt', phase='VALIDATED', accepted_facts={}, run_id=None,
                 status='RUNNING', archive_path=directory, input_sha256=hashlib.sha256(b'{}').hexdigest(),
                 predecessor=None, batch_digest='batch', pk=1, refresh_from_db=MagicMock())
             checks = MagicMock(side_effect=[None, RuntimeError('session lost')])

@@ -3,11 +3,13 @@ from datetime import date, datetime
 from decimal import Decimal
 import hashlib
 import json
-from mta.row_sequences import RecordRows
+from mta.row_sequences import RecordRows, CanonicalWireRows
 
 
 def storage(value):
     if isinstance(value,RecordRows):
+        if isinstance(value,CanonicalWireRows):
+            return value
         return RecordRows(len(value),lambda:(storage(row) for row in value),
             getitem=lambda index:storage(value[index]))
     if isinstance(value, Decimal):

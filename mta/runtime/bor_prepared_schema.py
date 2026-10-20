@@ -90,7 +90,10 @@ def verify_guards(connection):
             'FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace '
             'JOIN pg_proc p ON p.oid=t.tgfoid JOIN pg_namespace pn ON pn.oid=p.pronamespace '
             "WHERE n.nspname='mta' AND NOT t.tgisinternal AND c.relname=ANY(%s)",[sorted({row[1] for row in BINDINGS})])
-        if sorted(c.fetchall())!=sorted((name,*row) for name,row in expected.items()): raise ValueError('BOR prepared trigger drift')
+        actual=c.fetchall()
+        from mta.runtime.ingestion_ownership import business_trigger_rows
+        actual=business_trigger_rows(c,actual)
+        if sorted(actual)!=sorted((name,*row) for name,row in expected.items()): raise ValueError('BOR prepared trigger drift')
         c.execute("SELECT p.proname,p.prosrc,p.prolang=l.oid,p.prosecdef FROM pg_proc p "
             "JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_language l ON l.lanname='plpgsql' "
             "WHERE n.nspname='mta' AND p.proname=ANY(%s) AND p.pronargs=0",[list(bodies)])

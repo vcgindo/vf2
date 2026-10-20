@@ -14,7 +14,22 @@ def read_outputs(run):
         from mta.runtime.receipt_integrity import verify
         from mta.runtime.relational_state import read_daily
         if run.status!='SUCCEEDED':raise ValueError('Only a completed run may be read as an output')
-        verify(run)
+        # A certified native preparation already admitted the immutable source
+        # and its closed predecessor. Re-auditing that predecessor's complete
+        # original opening here would reconstruct it before every successor.
+        # Explicit receipt audits and all ordinary non-preparation readers keep
+        # their exhaustive input verification below.
+        from mta.runtime.opening_scope import current_certified_opening
+        initialized=None
+        if run.production_manifest.get('ingestion_preparation'):
+            from mta.runtime.models import ProductionInitialization
+            initialized=ProductionInitialization.objects.select_related('source').filter(
+                pk=run.production_manifest['ingestion_preparation'].get('initialization_id')).first()
+        if initialized is not None and current_certified_opening(initialized) is not None:
+            from mta.runtime.receipt_integrity import verify_root
+            verify_root(run)
+        else:
+            verify(run)
         return read_daily(run)
     if digest(read_input(run)) != run.input_digest:
         raise ValueError('Immutable input drift')
@@ -48,6 +63,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     # Immutable profile reconstruction happens once before the atomic writer.
     # The full input audit and run/input digest checks remain inside it.
+    producer_preparation=output.pop('_MasterPreparation',None)
     frozen_profile = (read_input(run, components=('profile',))['profile']
                       if run.kind == 'DAILY_CHAIN' else None)
     with transaction.atomic():
@@ -59,7 +75,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
         if run.status != 'RUNNING' or run.checkpoints.exists():
             raise ValueError('Run changed during calculation')
-        typed=run.input_payload.get('schema')=='fresh-daily-input-manifest-v2'
+        from mta.runtime.capture_preparation import require_commit
+        prepared_capture=require_commit(run)
+        typed=run.input_payload.get('schema') in ('fresh-daily-input-manifest-v2','fresh-daily-input-manifest-v3')
         if run.kind == 'DAILY_CHAIN' and (not typed or run.evidence_mode != 'production'):
             raise ValueError('Native daily publication requires typed production input')
         if typed:
@@ -119,6 +137,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if run.kind=='DAILY_CHAIN':
             from mta.runtime.relational_state import save_daily,read_daily,production_projection
             run.production_manifest=save_daily(run,output)
+            if prepared_capture is not None:
+                # Input/audit readers inside this same atomic publication still
+                # require the already sealed native initialization authority.
+                run.production_manifest['ingestion_preparation']=prepared_capture
             if typed:
                 from mta.runtime.receipt_integrity import audit_output
                 run.production_manifest['version']=2
@@ -177,6 +199,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if typed:
             from mta.mdm.native_audit import finalize as finalize_native_audit
             finalize_native_audit(run)
+        if prepared_capture is not None:
+            from mta.runtime.capture_preparation import publication_metadata
+            publication_metadata(run,prepared_capture,producer_preparation)
         run.status = 'SUCCEEDED'
         if typed:
             from mta.runtime.receipt_integrity import OPERATIONAL_ROSTER, output_root, source_receipts
@@ -190,6 +215,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if run.kind!='DAILY_CHAIN':run.production_digest=digest(output)
         run.completed_at = timezone.now()
         run.save(update_fields=['status', 'output_roster', 'output_digest', 'production_digest', 'production_manifest', 'completed_at'])
+        if prepared_capture is not None:
+            from mta.runtime.master_revisions import accept
+            accept(run,prepared_capture['initialization_id'],prepared_capture['base_revision_id'])
     return run
 
 

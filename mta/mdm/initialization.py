@@ -50,7 +50,14 @@ IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation
         'runtime/migrations/0117_production_initialization.py',
         'runtime/migrations/0118_initialization_typed_storage.py', 'runtime/migrations/0119_initialization_guards.py',
         'runtime/management/commands/initialize_production.py',
-        'config/initialization_storage_v1.json', 'config/production_state_schema_v1.json')
+        'config/initialization_storage_v1.json', 'config/production_state_schema_v1.json',
+        'runtime/daily_preparation.py', 'runtime/accepted_daily.py', 'runtime/batch_storage.py',
+        'runtime/daily_feed.py', 'runtime/daily_feed_models.py', 'runtime/production_daily.py',
+        'mdm/daily_current.py', 'config/daily_batch_storage_v1.json',
+        'application/master_compatibility.py','application/master_preparation.py',
+        'application/persistent_master.py','temporal/entry_preparation.py',
+        'runtime/capture_preparation.py','runtime/master_revisions.py',
+        'runtime/run_input_references.py','runtime/ingestion_admission.py')
 
 
 def current_implementation_digest():

@@ -176,7 +176,7 @@ class CertifiedReadiness:
     revisions: RevisionCut
 
 
-def _admit(cursor, initialization_id, release):
+def _admit(cursor, initialization_id, release, *, pending=False):
     body = authority.read(cursor, initialization_id, release['manifest_sha256'])
     if body['target_commit'] != release['source_commit']:
         raise ValueError('Release authority targets another commit')
@@ -190,14 +190,23 @@ def _admit(cursor, initialization_id, release):
             or cert['populations'].get('opening_manifest') != owner['input_manifest_digest']):
         raise ValueError('Certified opening metadata differs')
     state = IngestionRevisionState.objects.values(*EPOCHS).get(initialization_id=initialization_id)
-    revision = MasterInputRevision.objects.filter(initialization_id=initialization_id, status='ACCEPTED',
-        master_epoch=state['master_epoch'], configuration_epoch=state['configuration_epoch']).values(
-            *REVISION_FIELDS, 'receipt_digest').get()
+    revisions = MasterInputRevision.objects.filter(initialization_id=initialization_id, status='ACCEPTED')
+    if pending:
+        revision = revisions.filter(master_epoch__lte=state['master_epoch'],
+            configuration_epoch__lte=state['configuration_epoch']).order_by('-master_epoch','-configuration_epoch').values(
+                *REVISION_FIELDS,'receipt_digest').first()
+        if revision is None:
+            raise ValueError('No accepted base master revision for preparation')
+    else:
+        revision = revisions.filter(master_epoch=state['master_epoch'],
+            configuration_epoch=state['configuration_epoch']).values(*REVISION_FIELDS,'receipt_digest').get()
     if revision['receipt_digest'] != receipt({k: revision[k] for k in REVISION_FIELDS}):
         raise ValueError('Accepted master revision receipt differs')
-    if type(revision['partitions']) is not dict or set(revision['partitions']) != {'opening_master_root'}:
-        raise ValueError('Accepted master revision root contract differs')
-    sha(revision['partitions']['opening_master_root'])
+    if type(revision['partitions']) is dict and set(revision['partitions']) == {'opening_master_root'}:
+        sha(revision['partitions']['opening_master_root'])
+    else:
+        from mta.runtime.master_revisions import validate
+        validate(revision['partitions'],initialization_id)
     # Source/integration identity is bounded: exactly the sealed thirteen-family roster.
     from mta.runtime.mdm_models import MdmSource, MdmFamilySource
     from mta.runtime.mdm_integration_models import MdmSourceIntegration
@@ -227,6 +236,25 @@ def readiness(initialization_id):
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
         return _admit(cursor, initialization_id, release)
+
+
+def preparation_readiness(initialization_id):
+    """A current cut plus its accepted base; this does not admit stale serving."""
+    if connection.in_atomic_block:
+        raise ValueError('Preparation readiness owns its read-only snapshot')
+    release = _process_release(os.environ.get('VF_NATIVE_RELEASE_COMMIT'),os.environ.get('VF_NATIVE_RELEASE_SHA256'))
+    with transaction.atomic(),connection.cursor() as cursor:
+        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
+        return _admit(cursor,initialization_id,release,pending=True)
+
+
+def preparation_source(source_digest):
+    from mta.runtime.ingestion_models import InitializationCertification
+    cert=InitializationCertification.objects.filter(source_digest=source_digest).values('initialization_id').first()
+    if cert is None:
+        certified_source(source_digest)  # Missing activated authority is still an error.
+        return None
+    return preparation_readiness(cert['initialization_id'])
 
 
 def certified_source(source_digest):

@@ -182,7 +182,8 @@ def _verify_pair_exclusions(capture, snapshot):
 
 def verify_consumed(run, raw, artifact):
     """Verify persisted MDM consumption evidence without changing any owner."""
-    _require(isinstance(raw, dict) and digest(raw) == run.input_digest,
+    from mta.runtime.input_storage import logical_digest
+    _require(isinstance(raw, dict) and logical_digest(run,raw) == run.input_digest,
              'Daily raw input identity differs')
     snapshot = raw.get('mdm_input')
     _require(isinstance(snapshot, dict) and snapshot.get('schema') == SCHEMA,

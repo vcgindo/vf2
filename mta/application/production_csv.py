@@ -142,7 +142,7 @@ def batch_contract(value, binding, business_date):
     return roster
 
 
-def assemble(batch, binding, payloads, *, first_day, output_file=None):
+def assemble(batch, binding, payloads, *, first_day, output_file=None, _transfer=False):
     """Only files own external facts; DB queues and successors keep their owners."""
     business_date = batch['business_date']
     date.fromisoformat(business_date)
@@ -182,9 +182,15 @@ def assemble(batch, binding, payloads, *, first_day, output_file=None):
         raise CsvIntakeError(errors)
     if output_file is not None:
         from mta.application.streamed_input import JsonInputFile
+        import hashlib
+        checksum = hashlib.sha256()
         with Path(output_file).open('xb') as stream:
             for part in canonical_parts(value, ensure_ascii=False):
                 stream.write(part)
+                checksum.update(part)
+        if _transfer:
+            from mta.application.streamed_input import StreamedInput
+            return StreamedInput.take(value, checksum.hexdigest()), mappings
         return JsonInputFile(output_file), mappings
     raw = json.dumps(storage(value), ensure_ascii=False, sort_keys=True,
                      separators=(',', ':'), allow_nan=False).encode('utf-8')

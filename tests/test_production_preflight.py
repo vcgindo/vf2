@@ -305,7 +305,7 @@ class ProductionPreflightTests(unittest.TestCase):
         with TemporaryDirectory() as root, \
             patch('mta.runtime.models.ProductionInitialization.objects') as owners, \
             patch('mta.runtime.models.CalculationRun.objects.get',return_value=parent), \
-            patch('mta.mdm.initialization.read_initialized_input',return_value=frame), \
+            patch('mta.runtime.production_daily._inspection_frame',return_value=frame), \
             patch('mta.mdm.production_families.require_initialization'), \
             patch('mta.mdm.production_families.require_binding',side_effect=ValueError('seal drift')), \
             patch('mta.runtime.input_reader.read_input',side_effect=inputs), \

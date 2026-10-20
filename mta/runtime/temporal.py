@@ -190,7 +190,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 report_exceptions=None, mdm_source=None, mdm_retry=None,
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
-                consumer_opening=None, report_disposition=None, feed_attempt=None):
+                consumer_opening=None, report_disposition=None, feed_attempt=None,
+                prepared_arguments=None, prepared_state=None):
     started = perf_counter()
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
@@ -221,6 +222,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     if 'native_upload_audit' in profile and not native:
         raise ValueError('Native upload audit requires production initialization')
     prepared_root = None
+    master_reuse = None
+    master_change = None
     if native:
         from mta.mdm.initialization_contract import sha
         sha(daily_input_sha256, 'native daily input')
@@ -258,10 +261,10 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         # Sealed opening decoding/hashing is not write-transaction work. The
         # locked initialization/source identities and all live owners are still
         # checked inside the capture snapshot below.
-        from mta.mdm.production_families import prepare_opening
+        from mta.mdm.production_families import prepare_opening, frame_for_daily
         from mta.mdm.initialization import read_initialized_input
         prepared_owner = prepare_opening(production_initialization.source)
-        prepared_frame = read_initialized_input(prepared_owner)
+        prepared_frame = frame_for_daily(prepared_owner, predecessor)
         prepared_seal, prepared_root = prepare_native_opening(
             prepared_owner, prepared_frame, profile, opening, predecessor)
         del prepared_frame, prepared_owner
@@ -280,6 +283,18 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             from mta.mdm.production_families import require_initialization
             initialized = ProductionInitialization.objects.select_for_update().select_related('source').get(
                 pk=production_initialization.pk)
+            if prepared_state is not None:
+                from mta.runtime.accepted_daily import epochs
+                if (prepared_state.initialization_id!=str(initialized.pk)
+                        or prepared_state.source_digest!=initialized.source.digest
+                        or tuple(epochs(initialized.pk,lock=True))!=prepared_state.revisions.as_tuple()):
+                    raise ValueError('Native preparation changed before capture')
+            if prepared_arguments is not None:
+                from mta.runtime.daily_feed_models import DailyFeedAttempt
+                from mta.runtime.accepted_daily import check
+                prepared_attempt = DailyFeedAttempt.objects.select_for_update(of=('self',)).select_related(
+                    'initialization__source','certification','master_revision').get(pk=feed_attempt)
+                check(prepared_attempt, prepared_arguments, locked=True)
             if (sealed_identity(initialized), initialized.source.digest) != prepared_seal:
                 raise ValueError('Native initialization changed after immutable opening preparation')
             require_initialization(initialized.source)
@@ -440,13 +455,28 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 from mta.mdm.daily_input import nms_master_raw
                 if capture_snapshot['nms_active'] is not True:
                     raise ValueError('Active finalization requires active NMS intake')
-                base_master=nms_master_raw(prior)
+                if native and prepared_state is not None and parent is not None and origin_capture is None:
+                    from mta.application.persistent_master import select
+                    master_reuse=select(prior,profile,raw['day'],capture_snapshot,
+                        parent.production_manifest.get('master_preparation'),prepared_state.revisions.as_tuple())
+                if master_reuse is None:
+                    base_master=nms_master_raw(prior)
+                else:
+                    from mta.application.persistent_master import NmsMasterRows
+                    reference=dict(contract='native-nms-master-compatibility-v1',run_id=str(parent.pk),
+                        output_digest=parent.output_digest,initialization_id=str(initialized.pk),
+                        source_digest=initialized.source.digest,master_revision_id=prepared_state.master_revision_id)
+                    base_master=NmsMasterRows(prior['consumer_context']['NMSAllItems'],reference=reference,plan=master_reuse.plan)
+            if (native and prepared_state is not None and parent is not None
+                    and origin_capture is None and master_reuse is None):
+                from mta.application.persistent_master import changed
+                master_change=changed(parent,profile,capture_snapshot,prepared_state.master_revision_id)
             if origin_capture is None:
                 capture_snapshot=compose_pair_exclusions(capture_snapshot,base_master)
             # Native SetRunDate precedes NMSImportData. Preserve the sealed
             # legacy adapter's opening-date behavior outside native execution.
-            composed=compose(capture_snapshot,base_master,
-                last_run_date=today.isoformat() if native else opening_date)
+            composed=(base_master if master_reuse is not None else compose(capture_snapshot,base_master,
+                last_run_date=today.isoformat() if native else opening_date))
             if profile.get('complete_daily', {}).get('policy') == ACTIVE_POLICY and not native:
                 from django.conf import settings
                 from mta.mdm.approval_hierarchy import project
@@ -487,7 +517,28 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 publication_opening['production_report_policy'] = raw['day']['production_report_policy']
                 publication_opening['production_report_opening'] = raw['day']['production_report_opening']
                 publication_opening['production_report_schema'] = raw['day']['production_report_schema']
-        source_digest=digest(raw)
+        batch_references, owner_references, content_identity = {}, {}, None
+        staged_attempt = None
+        if feed_attempt is not None:
+            from mta.runtime.daily_feed_models import DailyFeedAttempt
+            staged_attempt=DailyFeedAttempt.objects.select_for_update().get(pk=feed_attempt)
+            if (not native or staged_attempt.initialization_id!=initialized.pk
+                    or staged_attempt.business_date!=today or staged_attempt.input_sha256!=daily_input_sha256
+                    or staged_attempt.status!='RUNNING' or staged_attempt.run_id is not None):
+                raise ValueError('CSV attempt does not own this native day')
+            if staged_attempt.accepted_facts:
+                from mta.runtime.accepted_daily import references
+                batch_references=references(staged_attempt)
+        if prepared_state is not None:
+            from mta.runtime.run_input_references import owners, identity
+            from mta.runtime.input_storage import content_root
+            owner_references=owners(initialized,raw,prepared_state.master_revision_id,
+                unchanged=master_reuse is not None,parent=parent)
+            content_identity=identity(initialized)
+            source_digest=content_root(raw,content_identity,owner_references=owner_references,
+                batch_references=batch_references)
+        else:
+            source_digest=digest(raw)
         disposition_binding = None
         effective_report_exceptions = raw['report_exceptions']
         if report_disposition is not None:
@@ -509,6 +560,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         fields=dict(id=new_id,input_digest=source_digest,input_payload={},execution_revision=execution_revision,
                     evidence_mode='production',
                     kind=KIND,business_date=today,predecessor=parent)
+        if prepared_state is not None:
+            from mta.runtime.capture_preparation import seed
+            fields['production_manifest']={'ingestion_preparation':seed(prepared_state,reused=master_reuse is not None)}
         if disposition_binding is not None:
             fields['production_manifest'] = {'native_report_disposition': disposition_binding}
         if parent is None:
@@ -525,29 +579,26 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                                         pick_output_root=pick_output_root)
         else:
             run=CalculationRun.objects.create(**fields)
+        if staged_attempt is not None:
+            staged_attempt.run = run
+            staged_attempt.save(update_fields=['run', 'updated_at'])
+        if capture_snapshot is not None:
+            from mta.mdm.daily_input import bind_capture
+            daily_capture = bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
         from mta.runtime.input_storage import save_input
         if native:
             from mta.runtime.production_daily import input_table
-            run.input_payload=save_input(run,raw,table_selector=input_table)
+            options = (dict(version=3,batch_references=batch_references,owner_references=owner_references,
+                            content_identity=content_identity) if prepared_state is not None else {})
+            run.input_payload=save_input(run,raw,table_selector=input_table,**options)
         else:
             run.input_payload=save_input(run,raw)
         run.input_manifest_digest=digest(run.input_payload)
         run.save(update_fields=['input_payload','input_manifest_digest'])
-        if feed_attempt is not None:
-            from mta.runtime.daily_feed_models import DailyFeedAttempt
-            attempt = DailyFeedAttempt.objects.select_for_update().get(pk=feed_attempt)
-            if (not native or attempt.initialization_id != production_initialization.pk
-                    or attempt.business_date != today or attempt.input_sha256 != daily_input_sha256
-                    or attempt.status != 'RUNNING' or attempt.run_id is not None):
-                raise ValueError('CSV attempt does not own this native day')
-            attempt.run = run
-            attempt.save(update_fields=['run', 'updated_at'])
         if 'operational_sources' in profile:
             from mta.runtime.operational_source import authorize_new_run
             authorize_new_run(run)
         if capture_snapshot is not None:
-            from mta.mdm.daily_input import bind_capture
-            daily_capture = bind_capture(run,capture_snapshot,request_digest=request_digest,origin=origin_capture)
             from mta.mdm.native_audit import bind as bind_native_audit
             bind_native_audit(run, daily_capture, profile)
         if publication_enabled:
@@ -555,13 +606,18 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             from mta.presentation.ancillary_live import bind_snapshots
             bind_requests(run, raw['request_inputs'])
             bind_snapshots(run, raw['remark_inputs'])
+        if prepared_state is not None:
+            from mta.runtime.capture_preparation import seal
+            seal(run)
     release_opening()
     logger.warning('daily_phase run=%s phase=input_capture seconds=%.6f', run.pk, perf_counter()-started)
     try:
         calculated_at = perf_counter()
         result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
             lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
-                           calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native)
+                           calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native,
+                           **({'master_snapshot':capture_snapshot} if native else {}),
+                           **({'prepared_master':master_reuse or master_change} if master_reuse is not None or master_change is not None else {}))
         logger.warning('daily_phase run=%s phase=calculation seconds=%.6f', run.pk, perf_counter()-calculated_at)
         completed=result.pop('_CompletedBoundaries')
         if completed!=list(BOUNDARIES):

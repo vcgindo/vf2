@@ -132,6 +132,9 @@ def require(report, stage):
 
 def parse(raw, sha256, collector, path):
     collector.check(path+'/sha256', 'input identity', lambda: contract.sha(sha256, path))
+    from mta.runtime.daily_preparation import PreparedDaily
+    if isinstance(raw, PreparedDaily):
+        return raw.checked(sha256)
     from mta.application.streamed_input import JsonInputFile
     if isinstance(raw, JsonInputFile):
         try:
@@ -574,7 +577,23 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
     from mta.runtime.production_daily import (SCHEMA as DAY_SCHEMA, FEED_SCHEMA, SOURCE_SCHEMA, SUPPLIER_TABLES,
         DAY_FIELDS, DAY_TABLES, CONTROL_TABLES, decode, working_day, rows as validate_rows)
     from mta.application.native_daily_contract import STOCK_FEED_SCHEMA,ACTIVE_STOCK_SCHEMA,day_fields,day_tables
-    c = Requirements('day')
+    # One decoder owns the successful path. Invalid inputs retain the original
+    # complete diagnostic aggregation; no partial success is cached or reused.
+    from mta.runtime.daily_preparation import prepare, PreparedDaily
+    try:
+        raw = prepare(raw, sha256)
+    except (ValueError, TypeError, KeyError, OverflowError, DecimalException, ValidationError):
+        pass
+    class DailyRequirements(Requirements):
+        def records(self, value, path, owner, **kwargs):
+            # Only supplied day fields were checked by decode_value. Profile
+            # and persisted predecessor validation remain independent.
+            if isinstance(raw, PreparedDaily) and path.startswith('/day/'):
+                return None
+            return super().records(value, path, owner, **kwargs)
+    if isinstance(raw, PreparedDaily):
+        validate_rows = lambda *args: None
+    c = DailyRequirements('day')
     full_capabilities(c)
     for item in context_issues:
         c.add(**item, stages=('day',))
@@ -612,7 +631,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
         intake=value.get('intake_schema',value.get('schema'))
         fields=day_fields(intake)
         if c.object(day,'/day','production_daily',fields) is not None:
-            if value.get('schema')==SOURCE_SCHEMA:
+            if value.get('schema')==SOURCE_SCHEMA and not isinstance(raw,PreparedDaily):
                 from mta.application.production_source_inputs import validate
                 c.check('/producer_sources','native external facts',
                     lambda:validate(value.get('producer_sources'),day.get('business_date')))
@@ -714,7 +733,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                                 lambda name=name,inclusive=inclusive: horizon_cutoff(day.get('business_date'),batch[name],inclusive=inclusive))
     c.check('/input','production_daily.decode',lambda:decode(raw,sha256))
     if isinstance(frame,dict):
-        c.check('/day','native mode feed ownership',lambda:working_day(decode(raw,sha256),frame['profile']))
+        c.check('/day','native mode feed ownership',lambda:working_day(raw if isinstance(raw,PreparedDaily) else decode(raw,sha256),frame['profile']))
     if pick_output_root is not None:
         from pathlib import Path
         if not Path(pick_output_root).is_dir():

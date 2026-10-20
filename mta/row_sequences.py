@@ -40,6 +40,11 @@ def _read_cache(raw):
         else date.fromisoformat(value) if kind=='date' else value) for key,kind,value in json.loads(raw)}
 
 
+class CanonicalWireRows:
+    """Marker for immutable factories already yielding canonical storage scalars."""
+    __slots__=()
+
+
 class ReadOnlyRow(dict):
     def _sealed(self,*args,**kwargs):
         raise TypeError('Immutable history row; create a transformed generation')

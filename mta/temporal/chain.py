@@ -154,21 +154,23 @@ def initialise_sku_loc_standard_attributes(importer):
                            'ExtendedOCP': None})
     return result
 
-def entry_inputs(prior, opening_date, day, profile, identity):
+def entry_inputs(prior, opening_date, day, profile, identity, *, _include_master=True):
     today=day['business_date']
-    master={'schema':'r1-importer-master-input-v1','business_date':today,'run_timestamp':today+'T00:00:00',
-        'import_non_nms':profile['import_non_nms'],'settings':[
-            {'Parameter':r['Parameter'],'Value':int(r['Value'])} for r in prior['importer_settings']
-            if r['Parameter'] in ('NMSActive','DBMActive','UpdatePWh_RLT_RCP_GCP')],
-        'prior_provenance':{'kind':'SYNTHETIC_PRIOR_IMPORTER','identity':identity,'business_date':opening_date},
-        'prior':deepcopy(prior['importer']), 'raw_master':day['raw_master'],
-        'raw_non_nms':day['raw_non_nms'],'raw_no_norm':day['raw_no_norm']}
-    # SQL BIT values retain booleans in closing state; the established importer
-    # typed input contract represents BIT as0/1. This is a declared type adapter.
-    for rows in master['prior'].values():
-        for row in rows:
-            for k,v in row.items():
-                if type(v) is bool:row[k]=int(v)
+    master=None
+    if _include_master:
+        master={'schema':'r1-importer-master-input-v1','business_date':today,'run_timestamp':today+'T00:00:00',
+            'import_non_nms':profile['import_non_nms'],'settings':[
+                {'Parameter':r['Parameter'],'Value':int(r['Value'])} for r in prior['importer_settings']
+                if r['Parameter'] in ('NMSActive','DBMActive','UpdatePWh_RLT_RCP_GCP')],
+            'prior_provenance':{'kind':'SYNTHETIC_PRIOR_IMPORTER','identity':identity,'business_date':opening_date},
+            'prior':deepcopy(prior['importer']), 'raw_master':day['raw_master'],
+            'raw_non_nms':day['raw_non_nms'],'raw_no_norm':day['raw_no_norm']}
+        # SQL BIT values retain booleans in closing state; the established importer
+        # typed input contract represents BIT as0/1. This is a declared type adapter.
+        for rows in master['prior'].values():
+            for row in rows:
+                for k,v in row.items():
+                    if type(v) is bool:row[k]=int(v)
     daily={'schema':'r1-daily-input-v1','raw_daily_data':day['raw_daily'],**deepcopy(profile['daily']),
         'prior_bpr':{**deepcopy(prior['bpr']),'opening_provenance':{
             'kind':'SYNTHETIC_PRIOR_BPR_DAILY','identity':identity,'business_date':opening_date}}}
@@ -273,46 +275,28 @@ def additional_native(prepared, importer):
         'PSOThreshold':format(Decimal(str(r['pso_threshold_percent'])),'.2f')} for r in prepared.additional_master]
 
 def calculate_day(prior, opening_date, day, profile, identity, execute_calculation,
-                  report_exceptions=None, *, native_daily=False):
+                  report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
     # Native producers retain only their required business outputs/captures.
     result = _calculate_day_native(prior, opening_date, day, profile, identity,
                                    execute_calculation, report_exceptions,
-                                   **({'native_daily':True} if native_daily else {}))
+                                   **({'native_daily':True} if native_daily else {}),
+                                   **({'prepared_master':prepared_master} if prepared_master is not None else {}),
+                                   **({'master_snapshot':master_snapshot} if master_snapshot is not None else {}))
     return result
 
 
 def _calculate_day_native(prior, opening_date, day, profile, identity, execute_calculation,
-                          report_exceptions=None, *, native_daily=False):
+                          report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
     """execute_calculation runs the existing modern R1 producer and returns outputs/id."""
     today=day['business_date'];now=today+'T00:00:00'
+    from mta.serialization import digest
     from mta.application import daily_finalization
-    finalization = daily_finalization.configuration(profile)
-    if finalization is not None:
-        prior = daily_finalization.begin(prior, today, policy=finalization['policy'])
-        day = daily_finalization.fresh_feeds(prior, day, policy=finalization['policy'])
-    completion = prior['complete'] if finalization is not None else None
-    master_input,daily_input=entry_inputs(prior,opening_date,day,profile,identity)
-    master=process_importer_master(master_input)
-    if master['outcome']!='APPLIED':
-        from mta.application.intake_errors import NativeIntakeRejected
-        raise NativeIntakeRejected('Connected master producer did not apply',
-            stage='ValidateAndProcessMaster', rejections=master['tables']['RejectedMaster'])
-    if completion is not None:
-        daily_finalization.mark(completion, 'ValidateAndProcessMaster.sql')
-    supplier=process_supplier_validation(day['supplier_feeds'],master,master_input['settings'],now)
-    supplier_final=supplier[SUPPLIER_STAGES[-1]]['tables']
-    if any(v['outcome']=='SQL_ERROR' for v in supplier.values()):
-        from mta.application.intake_errors import NativeIntakeRejected
-        raise NativeIntakeRejected('Supplier producer failed', stage='SupplierValidation',
-            rejections=supplier_final['RejectedMaster'])
-    daily_master=deepcopy(master)
-    for table in ('SiteDescriptionTbl','RejectedMaster'):daily_master['tables'][table]=supplier_final[table]
-    daily=process_daily_validation(daily_input,daily_master,today,now)
-    if any(v['outcome']=='SQL_ERROR' for v in daily.values()):
-        from mta.application.intake_errors import NativeIntakeRejected
-        raise NativeIntakeRejected('Daily producer failed', stage='DailyValidation',
-            rejections=daily[DAILY_STAGES[-1]]['tables']['RejectedMaster'])
-    daily_final=daily[DAILY_STAGES[-1]]['tables']
+    from mta.temporal.entry_preparation import prepare
+    entry=prepare(prior,opening_date,day,profile,identity,prepared_master=prepared_master)
+    prior,day=entry['prior'],entry['day']
+    finalization,completion=entry['finalization'],entry['completion']
+    master,daily_input=entry['master'],entry['daily_input']
+    supplier_final,daily,daily_final=entry['supplier_final'],entry['daily'],entry['daily_final']
     importer=deepcopy(master['tables'])
     importer['SiteDescriptionTbl']=deepcopy(supplier_final['SiteDescriptionTbl'])
     importer['RejectedMaster']=deepcopy(daily_final['RejectedMaster'])
@@ -584,6 +568,14 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                 configuration_digest=digest(profile),
                 qualification=daily_finalization.qualification(finalization['policy']),
                 flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
+    if native_daily:
+        from mta.application.persistent_master import qualify, CONTRACT
+        result['_MasterPreparation'] = dict(contract=CONTRACT,
+            qualified=(True if entry['reused'] else qualify(master,profile,day,result['ClosingState'][0],snapshot=master_snapshot)),
+            configuration_digest=digest(profile), reused=entry['reused'],
+            full_master_producer_calls=(0 if entry['reused'] else
+                entry['master_work']['producer_calls'] if entry['master_work'] else 1),
+            changed_work=entry['master_work'])
     if operational_input_tables is not None:
         result['_OperationalInputTables'] = operational_input_tables
     if force_alert_capture is not None:

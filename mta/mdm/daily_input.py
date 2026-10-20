@@ -576,6 +576,147 @@ def _unique(rows, keys, label):
     return clean[0] if clean else None
 
 
+def nms_master_row(item):
+    """Project one NMSAllItems occurrence into the canonical raw schema."""
+    from mta.application.r1_importer_master import MASTER_COLUMNS, SKU_LEVELS, LOC_LEVELS
+    columns = (*MASTER_COLUMNS, 'ElephantOrderCapping', 'Weight', 'Volume',
+               *SKU_LEVELS, 'LocationType', 'LogisticsLocation', *LOC_LEVELS)
+    row = dict.fromkeys(RAW_COLUMNS)
+    for name in columns:
+        row[name] = deepcopy(item[name])
+    return row
+
+
+def description_additions(rows, master_rows, master_columns=RAW_COLUMNS):
+    """Canonical standalone SKU/location description statements."""
+    blank = lambda: dict.fromkeys(master_columns)
+    sku_codes, location_codes = set(), set()
+    for row in master_rows:
+        sku_codes.add(sql_key(row.get('SKUCode')))
+        location_codes.add(sql_key(row.get('WhCode')))
+    distinct = _DistinctRows(master_columns)
+    for staged in rows['sku']['descriptions']:
+        if sql_key(staged['SKUCode']) not in sku_codes:
+            distinct.append({**blank(), 'SKUCode': staged['SKUCode'],
+                             'SKUDescription': staged['SKUDescription']})
+    additions = list(distinct.rows)
+    for staged in rows['location']['descriptions']:
+        if sql_key(staged['WHCode']) not in location_codes:
+            additions.append({**blank(), 'WhCode': staged['WHCode'],
+                              'WHDescription': staged['WHDescription']})
+    return additions
+
+
+class CompositionOverlayPlan:
+    """Indexes the canonical attribute/description statements once."""
+
+    def __init__(self, rows, pair_adds=()):
+        sku_overlay = [r for r in rows['sku']['approved']
+                       if r['Approved'] and r['ActionType'] == 1]
+        self.sku_attributes = _UniqueRows(rows['sku']['attributes'], ('SKUCode',))
+        self.sku_descriptions = _UniqueRows(rows['sku']['descriptions'], ('SKUCode',))
+        self.sku_approved = _UniqueRows(sku_overlay, ('SKUCode',))
+        location_overlay = [r for r in rows['location']['approved']
+                            if r['Approved'] and r['ActionType'] == 1]
+        self.location_master = {sql_key(r['WHCode']) for r in
+            (*rows['location']['descriptions'], *rows['location']['approved'])}
+        self.location_attributes = _UniqueRows(rows['location']['attributes'], ('WHCode',))
+        self.location_descriptions = _UniqueRows(rows['location']['descriptions'], ('WHCode',))
+        self.location_approved = _UniqueRows(location_overlay, ('WHCode',))
+        pair_modify = [r for r in rows['skuloc']['modifications'] if r['Approved']]
+        self.pair_attributes = _UniqueRows(rows['skuloc']['attributes'], ('SKUCode', 'LocCode'))
+        self.pair_additions = _UniqueRows(pair_adds, ('SKUCode', 'WhCode'))
+        self.pair_modifications = _UniqueRows(pair_modify, ('SKUCode', 'WhCode'))
+
+    @staticmethod
+    def validate_pair_core(result):
+        core = ('ParentWhCode', 'MinNorm', 'RLT', 'RCP', 'GCP', 'OCP', 'MinOrderCount')
+        pair_core = {}
+        for row in result:
+            current = (sql_key(row.get('SKUCode')), sql_key(row.get('WhCode')))
+            if None in current:
+                continue
+            values = tuple(row.get(name) for name in core)
+            if current in pair_core and pair_core[current] != values:
+                raise ValueError('canonical SKULocMaster DISTINCT join is incomparable')
+            pair_core[current] = values
+
+    def apply(self, row):
+        if row.get('SKUCode') is not None:
+            key = {'SKUCode': row['SKUCode']}
+            attr = _unique(self.sku_attributes, key, 'SKU')
+            desc = _unique(self.sku_descriptions, key, 'SKU')
+            approved = _unique(self.sku_approved, key, 'SKU')
+            for name in SKU_FIELDS:
+                target = 'SKUAtt' + name[1:].zfill(2) if name.startswith('c') else name
+                if approved is not None:
+                    row[target] = approved[name]
+                elif name == 'SKUDescription':
+                    row[target] = desc[name] if desc is not None else None
+                elif attr is not None:
+                    row[target] = attr[name]
+                elif name.startswith('c'):
+                    row[target] = None
+        if (row.get('WhCode') is not None
+                and sql_key(row['WhCode']) in self.location_master):
+            key = {'WHCode': row['WhCode']}
+            attr = _unique(self.location_attributes, key, 'Location')
+            desc = _unique(self.location_descriptions, key, 'Location')
+            approved = _unique(self.location_approved, key, 'Location')
+            for name in LOCATION_FIELDS:
+                target = 'LocAtt' + name[1:].zfill(2) if name.startswith('c') else name
+                if approved is not None:
+                    row[target] = approved[name]
+                elif name == 'WHDescription':
+                    row[target] = desc[name] if desc is not None else None
+                elif attr is not None:
+                    row[target] = attr[name]
+        pair = (sql_key(row.get('SKUCode')), sql_key(row.get('WhCode')))
+        if None not in pair:
+            keys = {'SKUCode': row['SKUCode'], 'LocCode': row['WhCode']}
+            attr = _unique(self.pair_attributes, keys, 'SKU-location')
+            added = _unique(self.pair_additions,
+                            {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']},
+                            'SKU-location')
+            modified = _unique(self.pair_modifications,
+                               {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']},
+                               'SKU-location')
+            if attr is not None:
+                for name in ('PackSize', 'SpikeThreshold', 'PSOThreshold', 'FGRMFlag',
+                             'StockPercentForRationing', 'NormPercentReservation'):
+                    row[name] = attr[name]
+                for i in range(1, 16):
+                    row['SKULocAtt%02d' % i] = attr['c%d' % i]
+            if added is not None:
+                for name in ('PackSize', 'SpikeThreshold', 'PSOThreshold', 'FGRMFlag',
+                             'NormPercentReservation',
+                             *('SKULocAtt%02d' % i for i in range(1, 16))):
+                    row[name] = added[name]
+                row['StockPercentForRationing'] = added['StockPercentForRat']
+            if modified is not None:
+                for name in ('ParentWhCode', 'MinNorm', 'RLT', 'RCP', 'GCP', 'PackSize',
+                             'FGRMFlag', 'NormPercentReservation', 'MinOrderCount', 'OCP',
+                             *('SKULocAtt%02d' % i for i in range(1, 16))):
+                    if modified[name] is not None:
+                        row[name] = modified[name]
+                row['SpikeThreshold'] = modified['SpikeThreshold']
+                row['PSOThreshold'] = modified['PSOThreshold']
+                if modified['StockPercentForRat'] is not None:
+                    row['StockPercentForRationing'] = modified['StockPercentForRat']
+        if row.get('WHDescription') is None:
+            row['WHDescription'] = 'ND'
+        parent = row.get('ParentWhCode')
+        parent_row = None
+        if parent is not None and sql_key(parent) in self.location_master:
+            key = {'WHCode': parent}
+            description = _unique(self.location_descriptions, key, 'Location')
+            approved = _unique(self.location_approved, key, 'Location')
+            parent_row = approved if approved is not None else description
+        row['ParentDescription'] = (parent_row['WHDescription']
+            if parent_row is not None and parent_row.get('WHDescription') is not None else 'ND')
+        return row
+
+
 def nms_master_raw(prior):
     """Canonical NMSImportData initial SELECT, including its explicit NULLs.
 
@@ -583,16 +724,7 @@ def nms_master_raw(prior):
     Descriptions and pair/custom attributes are populated by later statements;
     retaining those columns here would bypass the canonical NULL projection.
     """
-    from mta.application.r1_importer_master import MASTER_COLUMNS, SKU_LEVELS, LOC_LEVELS
-    columns = (*MASTER_COLUMNS, 'ElephantOrderCapping', 'Weight', 'Volume',
-               *SKU_LEVELS, 'LocationType', 'LogisticsLocation', *LOC_LEVELS)
-    result = []
-    for item in prior['consumer_context']['NMSAllItems']:
-        row = dict.fromkeys(RAW_COLUMNS)
-        for name in columns:
-            row[name] = deepcopy(item[name])
-        result.append(row)
-    return result
+    return [nms_master_row(item) for item in prior['consumer_context']['NMSAllItems']]
 
 
 def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS):
@@ -622,22 +754,7 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
         row['StockPercentForRationing'] = staged['StockPercentForRat']
         result.append(row)
 
-    sku_codes = {sql_key(row.get('SKUCode')) for row in result}
-    distinct_additions = _DistinctRows(master_columns)
-    for staged in rows['sku']['descriptions']:
-        if sql_key(staged['SKUCode']) not in sku_codes:
-            row = {**blank(), 'SKUCode': staged['SKUCode'],
-                   'SKUDescription': staged['SKUDescription']}
-            distinct_additions.append(row)  # SELECT DISTINCT
-    result.extend(distinct_additions.rows)
-    location_codes = {sql_key(row.get('WhCode')) for row in result}
-    additions = []
-    for staged in rows['location']['descriptions']:
-        if sql_key(staged['WHCode']) not in location_codes:
-            row = {**blank(), 'WhCode': staged['WHCode'],
-                   'WHDescription': staged['WHDescription']}
-            additions.append(row)  # Native SiteDescription insert has no DISTINCT.
-    result.extend(additions)
+    result.extend(description_additions(rows, result, master_columns))
 
     sku_codes = {sql_key(row.get('SKUCode')) for row in result}
     distinct_additions = _DistinctRows(master_columns)
@@ -664,95 +781,10 @@ def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS)
                      and r['SKUCode'] is not None and r['WhCode'] is not None}
     result = [r for r in result if pair(r) not in removed_pairs]
 
-    sku_overlay = [r for r in rows['sku']['approved'] if r['Approved'] and r['ActionType'] == 1]
-    sku_attributes = _UniqueRows(rows['sku']['attributes'], ('SKUCode',))
-    sku_descriptions = _UniqueRows(rows['sku']['descriptions'], ('SKUCode',))
-    sku_approved = _UniqueRows(sku_overlay, ('SKUCode',))
+    overlays = CompositionOverlayPlan(rows, pair_adds)
+    overlays.validate_pair_core(result)
     for row in result:
-        if row.get('SKUCode') is None: continue
-        key = {'SKUCode': row['SKUCode']}
-        attr = _unique(sku_attributes, key, 'SKU')
-        desc = _unique(sku_descriptions, key, 'SKU')
-        approved = _unique(sku_approved, key, 'SKU')
-        for name in SKU_FIELDS:
-            target = 'SKUAtt' + name[1:].zfill(2) if name.startswith('c') else name
-            if approved is not None: row[target] = approved[name]
-            elif name == 'SKUDescription': row[target] = desc[name] if desc is not None else None
-            elif attr is not None: row[target] = attr[name]
-            elif name.startswith('c'): row[target] = None
-
-    location_overlay = [r for r in rows['location']['approved'] if r['Approved'] and r['ActionType'] == 1]
-    location_master = {sql_key(r['WHCode']) for r in
-                       (*rows['location']['descriptions'], *rows['location']['approved'])}
-    location_attributes = _UniqueRows(rows['location']['attributes'], ('WHCode',))
-    location_descriptions = _UniqueRows(rows['location']['descriptions'], ('WHCode',))
-    location_approved = _UniqueRows(location_overlay, ('WHCode',))
-    for row in result:
-        if row.get('WhCode') is None or sql_key(row['WhCode']) not in location_master: continue
-        key = {'WHCode': row['WhCode']}
-        attr = _unique(location_attributes, key, 'Location')
-        desc = _unique(location_descriptions, key, 'Location')
-        approved = _unique(location_approved, key, 'Location')
-        for name in LOCATION_FIELDS:
-            target = 'LocAtt' + name[1:].zfill(2) if name.startswith('c') else name
-            if approved is not None: row[target] = approved[name]
-            elif name == 'WHDescription': row[target] = desc[name] if desc is not None else None
-            elif attr is not None: row[target] = attr[name]
-
-    pair_modify = [r for r in rows['skuloc']['modifications'] if r['Approved']]
-    pair_attributes = _UniqueRows(rows['skuloc']['attributes'], ('SKUCode', 'LocCode'))
-    pair_additions = _UniqueRows(pair_adds, ('SKUCode', 'WhCode'))
-    pair_modifications = _UniqueRows(pair_modify, ('SKUCode', 'WhCode'))
-    core = ('ParentWhCode', 'MinNorm', 'RLT', 'RCP', 'GCP', 'OCP', 'MinOrderCount')
-    pair_core = {}
-    for row in result:
-        current_pair = pair(row)
-        if None in current_pair: continue
-        values = tuple(row.get(name) for name in core)
-        if current_pair in pair_core and pair_core[current_pair] != values:
-            raise ValueError('canonical SKULocMaster DISTINCT join is incomparable')
-        pair_core[current_pair] = values
-    for row in result:
-        if None in pair(row): continue
-        keys = {'SKUCode': row['SKUCode'], 'LocCode': row['WhCode']}
-        attr = _unique(pair_attributes, keys, 'SKU-location')
-        added = _unique(pair_additions, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
-        modified = _unique(pair_modifications, {'SKUCode': row['SKUCode'], 'WhCode': row['WhCode']}, 'SKU-location')
-        if attr is not None:
-            for name in ('PackSize', 'SpikeThreshold', 'PSOThreshold', 'FGRMFlag',
-                         'StockPercentForRationing', 'NormPercentReservation'):
-                row[name] = attr[name]
-            for i in range(1, 16): row['SKULocAtt%02d' % i] = attr['c%d' % i]
-        if added is not None:
-            for name in ('PackSize', 'SpikeThreshold', 'PSOThreshold', 'FGRMFlag',
-                         'NormPercentReservation', *('SKULocAtt%02d' % i for i in range(1, 16))):
-                row[name] = added[name]
-            row['StockPercentForRationing'] = added['StockPercentForRat']
-        if modified is not None:
-            for name in ('ParentWhCode', 'MinNorm', 'RLT', 'RCP', 'GCP', 'PackSize',
-                         'FGRMFlag', 'NormPercentReservation', 'MinOrderCount', 'OCP',
-                         *('SKULocAtt%02d' % i for i in range(1, 16))):
-                if modified[name] is not None: row[name] = modified[name]
-            row['SpikeThreshold'] = modified['SpikeThreshold']
-            row['PSOThreshold'] = modified['PSOThreshold']
-            if modified['StockPercentForRat'] is not None:
-                row['StockPercentForRationing'] = modified['StockPercentForRat']
-    # The pinned script normalizes location descriptions before rebuilding the
-    # parent description after pair modifications.  Its final LEFT JOIN writes
-    # ND for both NULL and unknown parents.
-    for row in result:
-        if row.get('WHDescription') is None:
-            row['WHDescription'] = 'ND'
-        parent = row.get('ParentWhCode')
-        parent_row = None
-        if parent is not None and sql_key(parent) in location_master:
-            key = {'WHCode': parent}
-            description = _unique(location_descriptions, key, 'Location')
-            approved = _unique(location_approved, key, 'Location')
-            parent_row = approved if approved is not None else description
-        row['ParentDescription'] = (parent_row['WHDescription']
-                                    if parent_row is not None and parent_row.get('WHDescription') is not None
-                                    else 'ND')
+        overlays.apply(row)
     return result
 
 
