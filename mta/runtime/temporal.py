@@ -20,6 +20,7 @@ from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
 from mta.runtime.input_reader import read_input
 from mta.runtime.opening_scope import opening_operation, release_opening, sealed_identity
+from mta.application.stage_observation import operation, stage
 
 KIND='DAILY_CHAIN'
 BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
@@ -191,7 +192,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 pick_output_root=None, pick_config_sha256=None, finalization_config=None,
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
-                prepared_arguments=None, prepared_state=None):
+                prepared_arguments=None, prepared_state=None, _captured_retry=None):
+    if _captured_retry is not None:
+        if any(value is not None for value in (day,profile,predecessor,opening,mdm_source,mdm_retry,
+                feed_attempt,prepared_arguments,prepared_state,production_initialization,
+                report_exceptions,pick_output_root,pick_config_sha256,finalization_config,
+                shipment_sha256,daily_input_sha256,consumer_opening,report_disposition)):
+            raise ValueError('Captured continuation cannot replace its frozen native arguments')
+        from mta.runtime.captured_recovery import resume
+        return resume(execution_revision=execution_revision, **_captured_retry)
     started = perf_counter()
     if not transaction.get_autocommit():raise ValueError('Daily service owns the durable transaction boundary')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
@@ -611,6 +620,17 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             seal(run)
     release_opening()
     logger.warning('daily_phase run=%s phase=input_capture seconds=%.6f', run.pk, perf_counter()-started)
+    return _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
+        complete_pick,pick_output_root,effective_report_exceptions,finalization,native,
+        master_reuse,master_change,capture_snapshot,disposition_binding)
+
+
+def _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
+        complete_pick,pick_output_root,effective_report_exceptions,finalization,native,
+        master_reuse=None,master_change=None,capture_snapshot=None,disposition_binding=None):
+    """The same calculation and sole atomic finish owner for fresh/reused input."""
+    profile=raw['profile'];today=date.fromisoformat(raw['day']['business_date'])
+    source_digest=run.input_digest
     try:
         calculated_at = perf_counter()
         result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
@@ -640,10 +660,12 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             if source_digests is not None:
                 lineage['pick_source_digests'] = source_digests
             from mta.application.complete_daily_batch_files import write_run_pick_files
-            write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
+            with operation(str(run.pk)), stage('Pick_files'):
+                write_run_pick_files(run.pk, result['ClosingState'][0]['complete'], pick_output_root)
         commit_at = perf_counter()
-        finished = finish_run(run,result,expected_digest=source_digest,
-                              publication_opening=publication_opening)
+        with operation(str(run.pk)), stage('atomic_persistence'):
+            finished = finish_run(run,result,expected_digest=source_digest,
+                                  publication_opening=publication_opening)
         logger.warning('daily_phase run=%s phase=commit seconds=%.6f', run.pk, perf_counter()-commit_at)
         return finished
     except Exception as error:

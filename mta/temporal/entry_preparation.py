@@ -35,7 +35,9 @@ def prepare(prior, opening_date, day, profile, identity, *, prepared_master=None
     if any(value['outcome']=='SQL_ERROR' for value in supplier.values()):
         raise NativeIntakeRejected('Supplier producer failed',stage='SupplierValidation',
             rejections=supplier_final['RejectedMaster'])
-    daily_master=deepcopy(master)
+    # Daily validation only reads this master producer. The two supplier-owned
+    # substitutions get their own mapping; do not copy all immutable masters.
+    daily_master={**master, 'tables':dict(master['tables'])}
     for name in ('SiteDescriptionTbl','RejectedMaster'):
         daily_master['tables'][name]=supplier_final[name]
     daily=process_daily_validation(daily_input,daily_master,today,now)

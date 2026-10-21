@@ -110,8 +110,23 @@ def _sync(previous, incoming, key, fields, live_keys, label):
     return [row for row in retained if key(row) in live_keys]
 
 
-def _import_bpr(today, prior, facts):
-    result = deepcopy(prior)
+def _stage_copy(state, changed=(), *, _owned=False):
+    """Copy only tables mutated by an operation-owned BTR stage.
+
+    Other populations are read-only throughout this sequence. Public component
+    calls retain independent deep-copy results; the connected owner opts into
+    sharing and every later in-place writer first copies its changed tables.
+
+    DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+    """
+    if not _owned:
+        return deepcopy(state)
+    return {name: deepcopy(rows) if name in changed else rows
+            for name, rows in state.items()}
+
+
+def _import_bpr(today, prior, facts, *, _owned=False):
+    result = _stage_copy(prior, _owned=_owned)
     incoming = []
     for row in facts["vf_RationedReqReport"]:
         imported = {field: deepcopy(row[field]) for field in BPR_SOURCE_FIELDS}
@@ -226,8 +241,8 @@ def _pivot(bpr, today, value_field):
     }
 
 
-def _generate_trends(today, state, facts):
-    result = deepcopy(state)
+def _generate_trends(today, state, facts, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     result["BufferTrendDates"] = [{f"D{i + 1}": (today - timedelta(days=89 - i)).isoformat() for i in range(90)}]
     norms = _latest_norms(result["BPR"], facts["DBMMaster"])
     locations = _unique_source(result["LocationAttributeData"], lambda r: r["WHCode"], ("WhType",), "BTR location type")
@@ -288,8 +303,8 @@ def _fill_forward(values, tolerance, missing):
     return filled
 
 
-def _update_br_age(state, facts, table, tolerance, update_expedite=False):
-    result = deepcopy(state)
+def _update_br_age(state, facts, table, tolerance, update_expedite=False, *, _owned=False):
+    result = _stage_copy(state, (table,), _owned=_owned)
     by_key = {}
     for row in result[table]:
         if row["D90"] not in ("Black", "Red"):
@@ -309,8 +324,8 @@ def _update_br_age(state, facts, table, tolerance, update_expedite=False):
     return result
 
 
-def _availability(state):
-    result = deepcopy(state)
+def _availability(state, *, _owned=False):
+    result = _stage_copy(state, ('BufferTrendPhysicalInv',), _owned=_owned)
     for row in result["BufferTrendPhysicalInv"]:
         for start in (1, 31, 61):
             values = [row[f"D{i}"] for i in range(start, start + 30)]
@@ -320,8 +335,9 @@ def _availability(state):
     return result
 
 
-def _colour_age(today, state, enabled, tolerance):
-    result = deepcopy(state)
+def _colour_age(today, state, enabled, tolerance, *, _owned=False):
+    result = _stage_copy(state, ('BufferTrendReport', 'BufferTrendReportEcon',
+        'BufferTrendDispatch', 'BufferTrendPhysicalInv') if enabled else (), _owned=_owned)
     if not enabled:
         return result
     start = today - timedelta(days=89)
@@ -377,8 +393,8 @@ def _xml_rows(rows):
     return "".join(fragments)
 
 
-def _snapshot(state):
-    result = deepcopy(state)
+def _snapshot(state, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     indexes = {table: defaultdict(list) for table in (
         "BufferTrendReportEcon", "BufferTrendDispatch", "BufferTrendPhysicalInv",
         "BPPTrendTech", "BPPTrendEcon", "BPPTrendDispatch", "BPPTrendPhysicalInv",
@@ -408,8 +424,8 @@ def _snapshot(state):
     return result
 
 
-def _count_graph(state):
-    result = deepcopy(state)
+def _count_graph(state, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     groups = defaultdict(Counter)
     fields = (("Tech", "TechColor"), ("Eco", "EcoColor"),
               ("Dispatch", "DispatchColor"), ("PhysicalInv", "PhysicalInventoryColor"))
@@ -432,8 +448,8 @@ def _count_graph(state):
     return result
 
 
-def _chronic(state, facts):
-    result = deepcopy(state)
+def _chronic(state, facts, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     masters = defaultdict(list)
     report = defaultdict(list)
     for row in facts["DBMMaster"]:
@@ -459,8 +475,8 @@ def _chronic(state, facts):
     return result
 
 
-def _norm_suggestions(today, state, facts, selected):
-    result = deepcopy(state)
+def _norm_suggestions(today, state, facts, selected, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     suggestions = defaultdict(list)
     for row in facts["Suggestions"]:
         suggestions[_key(row)].append(row)
@@ -524,8 +540,8 @@ def _append_category(row, code):
     row["Category"] = code if row.get("Category") in (None, "") else f"{row['Category']}|{code}"
 
 
-def _categories(today, state, facts, selected):
-    result = deepcopy(state)
+def _categories(today, state, facts, selected, *, _owned=False):
+    result = _stage_copy(state, _owned=_owned)
     attributes = deepcopy(facts["SKULocStandardAttributes"])
     by_key = defaultdict(list)
     for row in attributes:
@@ -574,7 +590,7 @@ def _categories(today, state, facts, selected):
     return result
 
 
-def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None):
+def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None, _owned=False):
     """Yield each selected legacy source boundary and its complete BTR state."""
     today = _day(today)
     _require_rows(prior, PRIOR_TABLES, "prior")
@@ -590,31 +606,31 @@ def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None):
         from mta.domain.btr_rationing_history import collect, POPULATION, STAGE
         if POPULATION not in prior or facts.get('LastBatchRunTbl') != [{'LastRunDate':today.isoformat()+'T00:00:00'}]:
             raise ValueError('BTR capture requires its own history and singleton current date owner')
-        current = {**deepcopy(prior), POPULATION:collect(today,prior[POPULATION],
+        current = {**_stage_copy(prior, _owned=_owned), POPULATION:collect(today,prior[POPULATION],
             facts['vf_RationedReqReport'],facts.get('BPRDailyConsumption'),facts.get('SupplierDispatchReq'),
             settings['RationingHistoryHorizonBTR'])}
         yield STAGE, current
-    current = _import_bpr(today, current, facts)
+    current = _import_bpr(today, current, facts, _owned=_owned)
     yield "1. Import BPR.sql", current
-    current = _generate_trends(today, current, facts)
+    current = _generate_trends(today, current, facts, _owned=_owned)
     yield "2. GenerateBufferTrend.sql", current
-    current = _update_br_age(current, facts, "BufferTrendDispatch", selected["br_tolerance"], True)
+    current = _update_br_age(current, facts, "BufferTrendDispatch", selected["br_tolerance"], True, _owned=_owned)
     yield "UpdateBRAge.sql", current
-    current = _update_br_age(current, facts, "BufferTrendPhysicalInv", selected["br_tolerance"])
+    current = _update_br_age(current, facts, "BufferTrendPhysicalInv", selected["br_tolerance"], _owned=_owned)
     yield "UpdateBRAgePhysicalInv.sql", current
-    current = _availability(current)
+    current = _availability(current, _owned=_owned)
     yield "CalculateAvailabilityPhysicalInv.sql", current
-    current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"])
+    current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"], _owned=_owned)
     yield "GenerateColorAgeingReport.sql", current
-    current = _snapshot(current)
+    current = _snapshot(current, _owned=_owned)
     yield "3. GenerateSnapshotForUI.sql", current
-    current = _count_graph(current)
+    current = _count_graph(current, _owned=_owned)
     yield "BufferTrendCountGraph.sql", current
-    current = _chronic(current, facts)
+    current = _chronic(current, facts, _owned=_owned)
     yield "CollectChronicUnavailabilityData.sql", current
-    current = _norm_suggestions(today, current, facts, selected)
+    current = _norm_suggestions(today, current, facts, selected, _owned=_owned)
     yield "CollectDBMNormSuggestionsData.sql", current
-    current = _categories(today, current, facts, selected)
+    current = _categories(today, current, facts, selected, _owned=_owned)
     yield "UpdateCategoryCol.sql", current
 
 

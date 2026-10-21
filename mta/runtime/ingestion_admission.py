@@ -139,9 +139,19 @@ def validate_activation(cursor, body):
     expected = dict(contract=cert['contract'], database_name=cert['database_name'],
         database_oid=cert['database_oid'], namespace=str(cert['namespace']),
         source_digest=cert['source_digest'], certification_digest=cert['receipt_digest'],
-        schema_digest=cert['schema_digest'], guard_digest=cert['guard_digest'], target_release=cert['release_digest'])
+        schema_digest=cert['schema_digest'], guard_digest=cert['guard_digest'])
     if any(body[k] != v for k, v in expected.items()):
         raise ValueError('Release transition/certification join differs')
+    if body['target_release'] != cert['release_digest']:
+        # A later compatible code release may borrow the same immutable data
+        # certificate. Its original activation must still exist and validate;
+        # only an independently reviewed registrar append admits the new code.
+        certified_origin = authority.read(cursor, body['initialization_id'], cert['release_digest'])
+        if (certified_origin['target_release'] != cert['release_digest']
+                or any(certified_origin[k] != body[k]
+                       for k in authority.FIELDS - {'target_commit', 'target_release'})):
+            raise ValueError('Compatible release changed original certified ownership')
+        validate_activation(cursor, certified_origin)
     if (schema_digest(cursor) != cert['schema_digest']
             or security_digest(cursor, cert['authority_roles']) != cert['guard_digest']):
         raise ValueError('Current schema, grants, roles or guards differ')

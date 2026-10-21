@@ -3,7 +3,11 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from decimal import Decimal
 
-from mta.application.r1_input import prepare_r1_current_day, prepare_owned_order_current_day
+from mta.application.r1_input import (
+    _consume_r1_operation_context,
+    prepare_r1_current_day,
+    prepare_owned_order_current_day,
+)
 from mta.application.r1_calculation import calculate_r1_requirements
 from mta.application.r1_supplier_input import sorted_rows
 from mta.application.r1_importer_master import _sql_key
@@ -42,7 +46,9 @@ class NormalAllocation:
                    Decimal(row['remaining_parent_stock']), row['virtual'])
 
 
-def calculate_current_day(raw, *, defer_pick=False, _owned_order_closing=None, _owned_daily_stock=None, _production_sources=False):
+def calculate_current_day(raw, *, defer_pick=False, _owned_order_closing=None,
+                          _owned_daily_stock=None, _production_sources=False,
+                          _owned_r1_context=None):
     """Consume validated external facts and return every produced checkpoint.
 
 Caller cannot supply bands, calculated stock, ration or current-day answers.
@@ -53,8 +59,13 @@ processed-input coverage. Legacy undefined branches retain their guards.
     if raw.get('schema') == 'r1-gulfoil-file-input-v1':
         from mta.application.r1_gulfoil_input import prepare_gulfoil_standard_input
         raw, adapter = prepare_gulfoil_standard_input(raw)
-    prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
-                prepare_owned_order_current_day(raw, _owned_order_closing))
+    if _owned_r1_context is not None and _owned_order_closing is None:
+        raise ValueError('Owned R1 preparation context requires its connected order owner')
+    if _owned_r1_context is not None:
+        prepared = _consume_r1_operation_context(_owned_r1_context, raw, _owned_order_closing)
+    else:
+        prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
+                    prepare_owned_order_current_day(raw, _owned_order_closing))
     if _owned_daily_stock is not None:
         if _owned_order_closing is None:
             raise ValueError('Native daily stock requires its connected order/day owner')

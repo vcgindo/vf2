@@ -6,7 +6,7 @@ from mta.domain.dbm_report_dates import report_cutoff, row_date
 HEADER=['SKUCode','SKU Name','Loc Code','Loc Name','OldNorm','NewNorm','NormChangeDate','Reason']
 
 
-def norm_change_history(today,state,horizon):
+def norm_change_history(today,state,horizon,*,_owned=False):
     lower=report_cutoff(today,state,horizon,inclusive=False)
     rows=[]
     def same(left,right):
@@ -23,4 +23,4 @@ def norm_change_history(today,state,horizon):
             for site in sites:
                 for reason in reasons:rows.append({'values':[r['SKUCode'],sku,r['WHCode'],site,r['OldNorm'],r['NewNorm'],day.isoformat(),reason]})
     rows.sort(key=lambda r:r['values'][6],reverse=True)
-    return {**deepcopy(state),'ReportHeader':[{'values':HEADER.copy()}],'ReportRows':rows}
+    return {**(dict(state) if _owned else deepcopy(state)),'ReportHeader':[{'values':HEADER.copy()}],'ReportRows':rows}

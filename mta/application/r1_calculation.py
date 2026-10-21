@@ -9,10 +9,15 @@ from dataclasses import asdict, replace
 from datetime import date, timedelta
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 
-from mta.application.track_a import calculate_track_a, json_value
+from mta.application.track_a import (
+    calculate_track_a,
+    json_value,
+    prepare_track_a,
+    track_a_templates,
+)
 from mta.domain.colours import all_colours
-from mta.domain.demand import OrderDemand, ThresholdPolicy, calculate_requirement
-from mta.domain.models import EffectiveNorm, InventoryPosition, RequirementInput
+from mta.domain.demand import calculate_requirement
+from mta.domain.models import InventoryPosition, RequirementInput
 from mta.domain.validation import RuleBlocked
 from mta.domain.virtual_norm import resolve_virtual_norm
 
@@ -26,28 +31,64 @@ def calculate_r1_requirements(prepared, payload):
     foundation = track["foundation"]
     today = date.fromisoformat(foundation["snapshot"]["business_date"])
     key = lambda row: (row["sku_code"], row["location_code"])
-    templates = {key(row): row for row in calculate_track_a(track, allow_negative_stock_for_requirement=True)}
-    nodes = {key(row): row for row in track["nodes"]}
-    masters = {key(row): row for row in foundation["sku_locations"]}
-    positions = {key(row): row for row in foundation["inventory_positions"]}
-    parents = {(r["sku_code"], r["child_location_code"]): (r["sku_code"], r["parent_location_code"])
-               for r in foundation["hierarchy"]}
-    children = {k: [] for k in nodes}
-    for child, parent in parents.items():
-        children.setdefault(parent, []).append(child)
+    try:
+        shared = prepare_track_a(track, allow_negative_stock_for_requirement=True)
+    except Exception as preparation_error:
+        # Shared preparation is intentionally eager, whereas the public Track
+        # A calculation interleaves component preparation and arithmetic. Let
+        # that canonical path choose the earlier failure when both are invalid.
+        try:
+            calculate_track_a(track, allow_negative_stock_for_requirement=True)
+        except Exception:
+            raise
+        raise preparation_error
+    templates = track_a_templates(shared)
+    nodes = shared['nodes']
+    masters = shared['masters']
+    positions = shared['inventory']
+    parents = shared['parents']
+    children = shared['children']
     depths = {key(row): row["wh_level"] for row in prepared.additional_master}
     levels = sorted(set(depths.values()), reverse=True)
+    ordered_keys = tuple(sorted(nodes))
+    level_keys = tuple((level, tuple(k for k in ordered_keys if depths[k] == level))
+                       for level in levels)
     balances = {key(row): row for row in prepared.stock_balances}
     raw_orders = {row["order_id"]: row for row in payload["orders"]}
     orders = {order["order_id"]: order for node in nodes.values() for order in node["orders"]}
     remaining = {oid: Decimal(order["quantity"]) for oid, order in orders.items() if order["is_spike"]}
-    norms = {k: EffectiveNorm(k[0], k[1], today, Decimal(row["effective_norm"]["value"]),
-                             row["effective_norm"]["basis"], tuple(row["effective_norm"]["applied_control_ids"]))
-             for k, row in templates.items()}
-    policies = {k: ThresholdPolicy(**{name: None if value is None else Decimal(value)
-                                     for name, value in node["policy"].items()}) for k, node in nodes.items()}
-    demands = {k: OrderDemand(Decimal(row["requirement"]["pso"]), Decimal(row["requirement"]["due_spike"]),
-                              Decimal(row["requirement"]["future_spike"])) for k, row in templates.items()}
+    norms = shared['norms']
+    policies = shared['policies']
+    demands = shared['demands']
+    bounds = {}
+
+    def preliminary_bound(k):
+        if k not in bounds:
+            demand = demands[k]
+            position = positions[k]
+            parent = parents.get(k)
+            virtual_pack = (Decimal(masters[parent]['pack_size']) if parent in masters else
+                            Decimal(masters[k]['pack_size']) if parent is None else Decimal(1))
+            # Thresholds only select or cap existing additive demand terms;
+            # phase-out can only zero CNR. Two child bounds cover both CNR and
+            # residual aggregation. The physical parent's pack covers the
+            # value actually consumed by the preliminary Blue calculation.
+            bounds[k] = sum((
+                abs(norms[k].value), abs(Decimal(position['stock_quantity'])),
+                abs(Decimal(position['goods_in_transit_quantity'])),
+                abs(Decimal(balances[k]['stock_for_requirement'])),
+                demand.pso, demand.due_spike, demand.future_spike,
+                shared['routed'][k], virtual_pack,
+                *(2 * preliminary_bound(child) for child in children[k]),
+            ), ZERO)
+        return bounds[k]
+
+    # The discarded preliminary Track A pass was also an error boundary. For
+    # ordinary inputs the strict bound proves all of its derived numeric fields
+    # remain below the supported limit. Risky components replay the original
+    # implementation before allocation, preserving its exact failure order.
+    if any(preliminary_bound(k) >= Decimal('1e14') for k in ordered_keys):
+        calculate_track_a(track, allow_negative_stock_for_requirement=True)
     threshold = Decimal(payload["allocation"]["advance_stock_threshold_percent"]) / 100
     daily, stock_allocations, git_allocations = [], [], []
     first, frozen_cnr = {}, {}
@@ -133,8 +174,7 @@ def calculate_r1_requirements(prepared, payload):
             key=lambda r: (r[0], r[1] is not None, r[1] or date.min, retained_key(r[2]) or 0),
         )]
 
-    for level in levels:
-        current = sorted(k for k in nodes if depths[k] == level)
+    for level, current in level_keys:
         current_keys = set(current)
         # Due routes are created at the source depth before advance allocation.
         for route in prepared.routes:
@@ -193,15 +233,16 @@ def calculate_r1_requirements(prepared, payload):
         totals = routed_totals if dest is not None else direct_totals
         totals[k] = totals.get(k, ZERO) + Decimal(route["allocated_quantity"])
     final = {}
-    for level in levels:
-        for k in sorted(k for k in nodes if depths[k] == level):
+    for _, current in level_keys:
+        for k in current:
             # The SQL second update is an inner join. With no daily route it
             # retains the first-pass SpikeOverdueAtParent value.
             routed = routed_totals.get(k, first[k].routed_due_spike)
             final[k] = req(k, final, routed, cnr=frozen_cnr[k], direct=direct_totals.get(k, demands[k].due_spike))
             nodes[k]["routed_due_spike"] = format(routed, "f")
     output = []
-    for k, template in sorted(templates.items()):
+    for k in ordered_keys:
+        template = templates[k]
         result = final[k]
         parent = parents.get(k)
         peers = tuple(norms[c].value for c in children[parent]) if parent else ()
@@ -222,7 +263,7 @@ def calculate_r1_requirements(prepared, payload):
              "stock_configuration": prepared.stock_configuration,
              "additional_master": list(prepared.additional_master),
              "first_pass": [{"sku_code": k[0], "location_code": k[1], "depth": depths[k],
-                             "requirement": json_value(asdict(first[k]))} for k in sorted(first)],
+                             "requirement": json_value(asdict(first[k]))} for k in ordered_keys],
              "order_remainders": [{"order_id": oid, "remaining_quantity": format(qty, "f")} for oid, qty in sorted(remaining.items())]}
     if prepared.master_state is not None:
         trace["master_state"] = prepared.master_state

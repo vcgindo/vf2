@@ -9,6 +9,9 @@ from mta.serialization import digest
 
 def read_input(run, *, components=None):
     value = run.input_payload
+    from mta.runtime.captured_input import SCHEMA as CAPTURED, read as read_captured
+    if value.get('schema') == CAPTURED:
+        return read_captured(run, components=components)
     if value.get('schema') in (input_storage.SCHEMA, input_storage.V3):
         return input_storage.read_input(run, components=components)
     # The separate current-day entry persists its ordinary request inline.

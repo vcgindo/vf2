@@ -206,6 +206,18 @@ def diagnostics(attempt, error):
             writer.writerows({key:_cell(value) for key,value in row.items()} for row in records)
 
 
+def unresolved_attempts(owner):
+    """A retained failure is resolved only by its own published retry owner."""
+    from django.db.models import Exists, OuterRef
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    completed = MdmDailyInputCapture.objects.filter(origin__run_id=OuterRef('run_id'),
+        status='CONSUMED',run__status='SUCCEEDED',run__business_date=OuterRef('business_date'),
+        run__csv_attempt__initialization=owner,run__csv_attempt__status='PUBLISHED')
+    return DailyFeedAttempt.objects.filter(initialization=owner).exclude(
+        status__in=('PUBLISHED','REJECTED')).annotate(_resolved=Exists(completed)).exclude(
+        status='FAILED',_resolved=True)
+
+
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):
     binding, owner = binding_owner(binding_file)
     identity=uuid.uuid4()
@@ -245,7 +257,7 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
             import shutil
             shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
             return result(old)
-        if DailyFeedAttempt.objects.filter(initialization=owner).exclude(status__in=('PUBLISHED', 'REJECTED')).exists():
+        if unresolved_attempts(owner).exists():
             raise ValueError('An unfinished daily attempt requires reconciliation/resume first')
         if CalculationRun.objects.filter(business_date=business_date,
                 mdm_input_capture__source=owner.source, status__in=('RUNNING', 'SUCCEEDED')).exists():
@@ -340,17 +352,29 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                 from mta.application.intake_errors import NativeIntakeRejected
                 diagnostics(attempt, NativeIntakeRejected('Native rejections', stage='completed', rejections=records))
             from mta.presentation.daily_publication import prepare_reporting_generation
+            from mta.application.stage_observation import operation, stage
             prepare_started = perf_counter()
-            receipt, summary = prepare_reporting_generation(str(run.pk), expected_output_digest=run.output_digest)
+            with operation(str(run.pk)), stage('report_layers'):
+                receipt, summary = prepare_reporting_generation(str(run.pk), expected_output_digest=run.output_digest)
             if receipt.status != 'READY' or summary.status != 'READY':
                 raise ValueError('Full report generation is not ready')
             from django.core.management import call_command
-            call_command('prepare_guided_aggregates', run_id=str(run.pk), output_digest=run.output_digest,
-                         stdout=io.StringIO())
+            with operation(str(run.pk)), stage('guided_aggregates'):
+                call_command('prepare_guided_aggregates', run_id=str(run.pk), output_digest=run.output_digest,
+                             stdout=io.StringIO())
             from mta.application.native_input_archive import prepare
-            prepare(run, binding['_opening_path'], root / 'native-day.json')
+            native_path = root / 'native-day.json'
+            from mta.runtime.captured_input import SCHEMA as CAPTURED, origin
+            if run.input_payload.get('schema') == CAPTURED:
+                physical = origin(run)
+                original_attempt = DailyFeedAttempt.objects.get(run=physical)
+                native_path = regular(Path(original_attempt.archive_path)/'native-day.json',
+                                      Path(original_attempt.archive_path))
+            with operation(str(run.pk)), stage('input_archive'):
+                prepare(run, binding['_opening_path'], native_path)
             from mta.presentation.admission import verify
-            verify(run)
+            with operation(str(run.pk)), stage('report_admission'):
+                verify(run)
             from mta.presentation.native_selection import candidate
             from mta.presentation.native_publication import identity
             candidate_value = candidate(run, receipt, summary, identity(run))

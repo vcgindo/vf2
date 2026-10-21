@@ -15,13 +15,13 @@ CONTRIBUTORS=(('SuspendCustomSKUTbl',1,(0,1,2,3)),('SuspendNormsInSleepModeTbl',
     ('SuspendAcceptedNormsConsumptionType',4096,(2,3)),('SuspendSeasonalityTbl',8192,(0,1,2,3)))
 
 
-def gather_suspension_history(today,state):
+def gather_suspension_history(today,state,*,_owned=False):
     today=date.fromisoformat(today) if isinstance(today,str) else today
     if state['LastBatchRunTbl']!=[{'LastRunDate':today.isoformat()+'T00:00:00'}]:
         raise ValueError('History requires singleton midnight run date')
     key=lambda r:(r['SKUCode'],r.get('WhCode',r.get('WHCode')))
     day=lambda v:date.fromisoformat(v) if isinstance(v,str) else v
-    result=deepcopy(state)
+    result=dict(state) if _owned else deepcopy(state)
     previous=(r for r in result['SuspendHistory'] if day(r['ReportDate'])>today-timedelta(days=90) and day(r['ReportDate'])!=today)
     current=[]
     with OrdinalLookup(state['SuspendConsumptionType']) as consumption_index:

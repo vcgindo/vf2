@@ -11,8 +11,9 @@ from mta.application.r1_importer_master import _sql_key
 from collections.abc import Mapping
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+import hashlib
 
 from mta.application.r1_additional_master import calculate_additional_master
 from mta.application.r1_master_state import MASTER_SCHEMA, source_calculation_view, reconcile_master_state
@@ -391,6 +392,86 @@ class PreparedR1CurrentDay:
     calculation_payload: dict | None = None
     order_import_state: dict | None = None
     order_part_identity: dict | None = None
+    _order_dependencies: _R1OrderDependencies | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _R1OrderDependencies:
+    business_date: date
+    master_keys: frozenset[tuple[str, str]]
+    master_by_key: dict
+    resolved_policies: dict
+    route_nodes_by_sku: dict
+
+
+@dataclass(frozen=True, slots=True)
+class _PreparedR1OperationContext:
+    """Opaque, operation-owned reuse of the validated order-free preparation."""
+
+    prepared: PreparedR1CurrentDay
+    _source_identity: int
+    _dependency_fingerprint: bytes
+
+
+def _fingerprint_value(checksum, value):
+    """Type- and order-sensitive fingerprint without retaining a second graph."""
+    kind = type(value)
+    checksum.update(f'{kind.__module__}.{kind.__qualname__}:'.encode())
+    if value is None:
+        return
+    if kind is bool:
+        checksum.update(b'1' if value else b'0')
+    elif kind is int:
+        checksum.update(str(value).encode())
+    elif kind is float:
+        checksum.update(value.hex().encode())
+    elif kind is str:
+        raw = value.encode('utf-8')
+        checksum.update(str(len(raw)).encode() + b':' + raw)
+    elif kind is bytes:
+        checksum.update(str(len(value)).encode() + b':' + value)
+    elif kind is Decimal:
+        checksum.update(str(value).encode())
+    elif kind in (date, datetime):
+        checksum.update(value.isoformat().encode())
+    elif kind is dict:
+        checksum.update(str(len(value)).encode() + b'{')
+        for key, child in value.items():
+            _fingerprint_value(checksum, key)
+            _fingerprint_value(checksum, child)
+        checksum.update(b'}')
+    elif kind in (list, tuple):
+        checksum.update(str(len(value)).encode() + b'[')
+        for child in value:
+            _fingerprint_value(checksum, child)
+        checksum.update(b']')
+    else:
+        raise TypeError(f'Unsupported R1 operation dependency type: {kind.__name__}')
+
+
+def _dependency_fingerprint(payload):
+    checksum = hashlib.sha256()
+    checksum.update(str(len(payload) - ('orders' in payload)).encode() + b'{')
+    for key, value in payload.items():
+        if key != 'orders':
+            _fingerprint_value(checksum, key)
+            _fingerprint_value(checksum, value)
+    checksum.update(b'}')
+    return checksum.digest()
+
+
+def _prepare_r1_operation_context(payload):
+    """Prepare an order-free operation source once for its connected order owner."""
+    if payload.get('orders') != []:
+        raise ValueError('R1 operation context requires its order-free timeline source')
+    prepared = prepare_r1_current_day(payload)
+    if prepared._order_dependencies is None:
+        raise ValueError('R1 operation context requires standard prepared dependencies')
+    return _PreparedR1OperationContext(
+        prepared=prepared,
+        _source_identity=id(payload),
+        _dependency_fingerprint=_dependency_fingerprint(payload),
+    )
 
 
 def calculation_order_rows(closing):
@@ -421,6 +502,114 @@ def prepare_owned_order_current_day(payload, closing):
     identity = {str(r['OrderKey']): dict(order_id=r['CustomerOrderId'],
                 order_key=r['OrderKey'],part_id=r['PartId']) for r in rows}
     return replace(prepared, order_part_identity=identity)
+
+
+def _consume_r1_operation_context(context, payload, closing):
+    """Consume an opaque preparation after the connected order stage completes."""
+    if type(context) is not _PreparedR1OperationContext or context._source_identity != id(payload):
+        raise ValueError('Owned R1 preparation context does not belong to this operation source')
+    if context._dependency_fingerprint != _dependency_fingerprint(payload):
+        raise ValueError('Owned R1 preparation dependency drift')
+    projected = calculation_order_rows(closing)
+    if 'order_input' in payload or payload['orders'] != projected:
+        raise ValueError('Owned order calculation projection drift')
+    rows = closing['SpikeOrderData']
+    keys = [row['OrderKey'] for row in rows]
+    if len(keys) != len(set(keys)):
+        raise ValueError('Duplicate owned order keys')
+    dependencies = context.prepared._order_dependencies
+    orders_by_key, routed_due, routes = _prepare_r1_orders(
+        payload['orders'], dependencies, order_types_reconciled=True)
+    nodes = []
+    for node in context.prepared.track_a['nodes']:
+        key = (node['sku_code'], node['location_code'])
+        nodes.append({**node, 'orders': orders_by_key[key],
+                      'routed_due_spike': format(routed_due[key], 'f')})
+    prepared = replace(
+        context.prepared,
+        track_a={**context.prepared.track_a, 'nodes': nodes},
+        routes=tuple(routes),
+    )
+    ids = [row['CustomerOrderId'] for row in rows]
+    if len(ids) == len(set(ids)):
+        return prepared
+    identity = {str(row['OrderKey']): dict(order_id=row['CustomerOrderId'],
+                order_key=row['OrderKey'], part_id=row['PartId']) for row in rows}
+    return replace(prepared, order_part_identity=identity)
+
+
+def _prepare_r1_orders(orders, dependencies, *, order_types_reconciled):
+    """Calculate only fields whose real source is the current owned order state."""
+    from mta.domain.demand import ThresholdPolicy, classify_spike
+    from mta.domain.r1_current_day import route_established_spike_order, route_new_spike_order
+
+    business_date = dependencies.business_date
+    master_keys = dependencies.master_keys
+    master_by_key = dependencies.master_by_key
+    resolved_policies = dependencies.resolved_policies
+    route_nodes_by_sku = dependencies.route_nodes_by_sku
+    orders_by_key = {key: [] for key in master_keys}
+    routed_due = {key: Decimal('0') for key in master_keys}
+    routes = []
+    seen_orders = set()
+    for order in orders:
+        key = (order['sku_code'], order['location_code'])
+        if key not in master_keys or order['order_id'] in seen_orders:
+            raise ValueError('Raw order lies outside R1 closure or duplicates an order ID')
+        seen_orders.add(order['order_id'])
+        accepted = date.fromisoformat(order['accepted_on'])
+        expected = (date.fromisoformat(order['customer_expected_date'])
+                    if order['customer_expected_date'] is not None else None)
+        if accepted > business_date:
+            raise ValueError('Raw order is accepted after the R1 business date')
+        established = order['established_is_spike']
+        if established is None and accepted != business_date:
+            raise ValueError('Existing raw order must retain its established Spike classification')
+        policy = resolved_policies[key]
+        threshold_policy = ThresholdPolicy(**{
+            name: None if value is None and name.endswith('_override') else Decimal(value)
+            for name, value in policy.items()
+        })
+        is_spike = (established is True if order_types_reconciled and established is not None
+                    else established is True or classify_spike(
+                        Decimal(order['outstanding_quantity']),
+                        Decimal(master_by_key[key]['base_norm']), threshold_policy))
+        routed = None
+        due = expected or business_date
+        if is_spike and established is not True:
+            routed = route_new_spike_order(
+                business_date=business_date, order_id=order['order_id'], sku_code=key[0],
+                source_location_code=key[1], quantity=Decimal(order['outstanding_quantity']),
+                customer_expected_date=expected, nodes=tuple(route_nodes_by_sku[key[0]]),
+            )
+            due = routed.due_date
+        elif is_spike:
+            due = date.fromisoformat(order['established_due_date'])
+            routed = route_established_spike_order(
+                order_id=order['order_id'], sku_code=key[0], source_location_code=key[1],
+                first_servicing_location_code=order['first_servicing_location_code'],
+                due_date=due, nodes=tuple(route_nodes_by_sku[key[0]]),
+            )
+        if routed is not None:
+            for route_row in routed.route:
+                routes.append({
+                    'order_id': routed.order_id, 'sku_code': routed.sku_code,
+                    'source_location_code': routed.source_location_code,
+                    'first_servicing_location_code': routed.first_servicing_location_code,
+                    **route_row,
+                })
+            for route_row in routed.route:
+                if date.fromisoformat(str(route_row['due_date'])) <= business_date:
+                    destination = route_row['child_location_code']
+                    route_key = (key[0], destination) if destination is not None else None
+                    if route_key in routed_due:
+                        routed_due[route_key] += Decimal(order['outstanding_quantity'])
+                    break
+        orders_by_key[key].append({
+            'order_id': order['order_id'], 'quantity': order['outstanding_quantity'],
+            'accepted_on': order['accepted_on'], 'due_date': due.isoformat(), 'is_spike': is_spike,
+        })
+    return orders_by_key, routed_due, routes
 
 
 def prepare_r1_current_day(
@@ -560,11 +749,7 @@ def prepare_r1_current_day(
         payload, reservation_type=reservation_type,
         reservation_for_rationing_only=reservation_for_rationing_only,
     )
-    from mta.domain.demand import ThresholdPolicy, classify_spike
-    from mta.domain.r1_current_day import (
-        RouteNode, calculate_stock_balances, route_established_spike_order,
-        route_new_spike_order,
-    )
+    from mta.domain.r1_current_day import RouteNode, calculate_stock_balances
 
     foundation = payload["foundation"]
     required_foundation = {
@@ -640,79 +825,16 @@ def prepare_r1_current_day(
     for sku, location in master_keys:
         if sku not in route_nodes_by_sku or location not in {node.location_code for node in route_nodes_by_sku[sku]}:
             raise ValueError("R1 routing must cover every master SKU/location")
-    orders_by_key: dict[tuple[str, str], list[dict]] = {key: [] for key in master_keys}
-    routed_due: dict[tuple[str, str], Decimal] = {key: Decimal("0") for key in master_keys}
-    routes: list[dict] = []
-    seen_orders: set[str] = set()
-    for order in payload["orders"]:
-        key = (order["sku_code"], order["location_code"])
-        if key not in master_keys or order["order_id"] in seen_orders:
-            raise ValueError("Raw order lies outside R1 closure or duplicates an order ID")
-        seen_orders.add(order["order_id"])
-        accepted = date.fromisoformat(order["accepted_on"])
-        expected = (date.fromisoformat(order["customer_expected_date"])
-                    if order["customer_expected_date"] is not None else None)
-        if accepted > business_date:
-            raise ValueError("Raw order is accepted after the R1 business date")
-        established = order["established_is_spike"]
-        if established is None and accepted != business_date:
-            raise ValueError("Existing raw order must retain its established Spike classification")
-        policy = resolved_policies[key]
-        threshold_policy = ThresholdPolicy(**{
-            name: None if value is None and name.endswith("_override") else Decimal(value)
-            for name, value in policy.items()
-        })
-        # ImportSpikeOrders preserves existing Spikes, but re-evaluates PSOs
-        # against today's threshold. A promoted PSO enters NewSpikeOrders and
-        # receives a fresh DD/first-service route, just like a new Spike.
-        is_spike = established is True if _order_types_reconciled and established is not None else established is True or classify_spike(
-            Decimal(order["outstanding_quantity"]), Decimal(master_by_key[key]["base_norm"]), threshold_policy
-        )
-        routed = None
-        due = expected or business_date
-        if is_spike and established is not True:
-            routed = route_new_spike_order(
-                business_date=business_date, order_id=order["order_id"], sku_code=key[0],
-                source_location_code=key[1], quantity=Decimal(order["outstanding_quantity"]),
-                customer_expected_date=expected, nodes=tuple(route_nodes_by_sku[key[0]]),
-            )
-            due = routed.due_date
-        elif is_spike:
-            due = date.fromisoformat(order["established_due_date"])
-            routed = route_established_spike_order(
-                order_id=order["order_id"], sku_code=key[0], source_location_code=key[1],
-                first_servicing_location_code=order["first_servicing_location_code"],
-                due_date=due, nodes=tuple(route_nodes_by_sku[key[0]]),
-            )
-        if routed is not None:
-            for route_row in routed.route:
-                routes.append({
-                    "order_id": routed.order_id, "sku_code": routed.sku_code,
-                    "source_location_code": routed.source_location_code,
-                    "first_servicing_location_code": routed.first_servicing_location_code,
-                    **route_row,
-                })
-            # ``CalculateReq.sql`` writes a due route as ``SrcWhCode ->
-            # DestWhCode`` and later assigns that quantity to the destination
-            # node's ``SpikeOverdueAtParent``.  The route representation keeps
-            # the source in ``location_code`` and that destination in
-            # ``child_location_code``.  Do not attach an in-transit
-            # parent-to-child shipment to the parent itself.
-            # CalculateReq consumes remaining order quantity deepest-first.
-            # A due leaf consumes the direct quantity; it cannot be counted
-            # again on every overdue upstream edge. This applies equally to
-            # fresh and established Spikes (there is no IntroDate branch).
-            for route_row in routed.route:
-                if date.fromisoformat(str(route_row["due_date"])) <= business_date:
-                    destination = route_row["child_location_code"]
-                    route_key = (key[0], destination) if destination is not None else None
-                    if route_key in routed_due:
-                        routed_due[route_key] += Decimal(order["outstanding_quantity"])
-                    break
-        orders_by_key[key].append({
-            "order_id": order["order_id"], "quantity": order["outstanding_quantity"],
-            "accepted_on": order["accepted_on"], "due_date": due.isoformat(), "is_spike": is_spike,
-        })
+    order_dependencies = _R1OrderDependencies(
+        business_date=business_date,
+        master_keys=frozenset(master_keys),
+        master_by_key=master_by_key,
+        resolved_policies=resolved_policies,
+        route_nodes_by_sku=route_nodes_by_sku,
+    )
+    orders_by_key, routed_due, routes = _prepare_r1_orders(
+        payload['orders'], order_dependencies,
+        order_types_reconciled=_order_types_reconciled)
     nodes = []
     for key in sorted(master_keys):
         policy_row, balance = policy_by_key[key], balance_by_key[key]
@@ -737,4 +859,5 @@ def prepare_r1_current_day(
             "reserved_stock": format(row.reserved_stock, "f"),
         } for row in balances),
         routes=tuple(routes),
+        _order_dependencies=order_dependencies,
     )

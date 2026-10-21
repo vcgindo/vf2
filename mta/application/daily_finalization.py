@@ -48,9 +48,14 @@ CALCULATION_SCRIPTS = (
 
 
 def mark(complete, *scripts):
+    # One independent flag image for the compound producer, in the same script
+    # order. Preserve the pure domain update's SQL NULL/collation predicate.
+    from mta.domain.complete_daily_completion import _mark
+    flags = deepcopy(complete['ScriptExecutedFlag'])
     for name in scripts:
-        complete['ScriptExecutedFlag'] = mark_script_executed(
-            complete['ScriptExecutedFlag'], name, equal=ascii_equal)
+        _mark(flags, name, ascii_equal)
+    if scripts:
+        complete['ScriptExecutedFlag'] = flags
 
 
 def validate_flag_roster(flags):
@@ -258,21 +263,19 @@ def fresh_feeds(prior, day, *, policy=POLICY):
     """
     if nms_active(prior['importer_settings']) and policy != ACTIVE_POLICY:
         raise ValueError('Active NMS complete finalization intake is not yet qualified')
-    working = deepcopy(day)
+    feeds = ('raw_master', 'raw_non_nms', 'raw_no_norm', 'raw_daily',
+             'accepted_feed', 'order_feed', 'supplier_feeds')
+    working = deepcopy({name: value for name, value in day.items() if name not in feeds})
     for name in ('raw_master', 'raw_non_nms', 'raw_no_norm', 'raw_daily',
                  'accepted_feed', 'order_feed'):
         from mta.application.persistent_master import NmsMasterRows
         if name == 'raw_master' and isinstance(day[name],NmsMasterRows):
             working[name]=day[name]
             continue
-        working[name] = []
-        working[name].extend(deepcopy(day[name]))
+        working[name] = deepcopy(day[name])
     working['supplier_feeds'] = {}
     for name in SUPPLIER_RAW:
-        rows = deepcopy(prior['complete'][name])
-        rows.clear()
-        rows.extend(deepcopy(day['supplier_feeds'][name]))
-        working['supplier_feeds'][name] = rows
+        working['supplier_feeds'][name] = deepcopy(day['supplier_feeds'][name])
     mark(prior['complete'], 'ClearMasterInputTables.sql', 'ClearNonMasterInputTables.sql')
     return working
 
@@ -290,9 +293,9 @@ def nms_snapshot(importer, controls, prior, exclusions):
 
 
 def production_and_retention(*, complete, source, calculated, bpr_master,
-                             importer, plants, report, late, today, config):
+                             importer, plants, report, late, today, config, _owned=False):
     """RunCoreBPR: production suggestions, then ClearHistoryData_BPR."""
-    complete = deepcopy(complete)
+    complete = dict(complete) if _owned else deepcopy(complete)
     supplier, _ = supplier_dispatch(sourcing=source['sourcing'],
         bor=calculated['r1_bor'], bpr_master=bpr_master,
         sku_loc_attributes=importer['SkuLocAttributeData'], equal=ascii_equal)

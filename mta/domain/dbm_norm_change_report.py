@@ -5,7 +5,7 @@ from mta.domain.dbm_report_dates import report_cutoff, row_date
 HEADER=['SKUCode','Location','New Norm','Old Norm','Norm Change Date','Reason']
 
 
-def norm_change_report(today,state,horizon):
+def norm_change_report(today,state,horizon,*,_owned=False):
     lower=report_cutoff(today,state,horizon,inclusive=True);rows=[]
     for r in state['NormChangeLogTbl']:
         day=row_date(r['NormChangeDate'])
@@ -14,4 +14,4 @@ def norm_change_report(today,state,horizon):
         for reason in reasons or [None]:
             rows.append({'values':[r['SKUCode'],r['WHCode'],r['NewNorm'],r['OldNorm'],day.isoformat(),
                 None if reason is None else '"'+reason+'"']})
-    return {**deepcopy(state),'ReportHeader':[{'values':HEADER.copy()}],'ReportRows':rows}
+    return {**(dict(state) if _owned else deepcopy(state)),'ReportHeader':[{'values':HEADER.copy()}],'ReportRows':rows}

@@ -15,7 +15,7 @@ from mta.domain.dbm_auto_acceptance import automatic_acceptance
 from mta.domain.dbm_phase_recommendation import configuration as phase_configuration, phase_stages
 
 
-def selected_stages(today, state, facts, configuration=None, report_exceptions=None, *, conditional_settings=None):
+def selected_stages(today, state, facts, configuration=None, report_exceptions=None, *, conditional_settings=None, _owned=False):
     # Existing retained component receipts use the selected historical profile.
     # Daily production callers must supply the source-pinned batch settings.
     config = configuration
@@ -45,12 +45,12 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
     for name, current in postrule_stages(today, current):
         yield name, current
     for name, calculate in (
-        ('order-summary', update_order_summary),
-        ('norm1-advisory', norm1_advisory),
+        ('order-summary', lambda d,s:update_order_summary(d,s,_owned=_owned)),
+        ('norm1-advisory', lambda d,s:norm1_advisory(d,s,_owned=_owned)),
         ('auto-acceptance', automatic_acceptance),
-        ('norm-change-export', lambda d, s: norm_change_report(d, s, 1 if config is None else config['DBMNormChangeReportHorizon'])),
-        ('suspension-history', gather_suspension_history),
-        ('norm-change-history', lambda d, s: norm_change_history(d, s, 7 if config is None else config['NormChangeLogHorizon'])),
+        ('norm-change-export', lambda d, s: norm_change_report(d, s, 1 if config is None else config['DBMNormChangeReportHorizon'],_owned=_owned)),
+        ('suspension-history', lambda d,s:gather_suspension_history(d,s,_owned=_owned)),
+        ('norm-change-history', lambda d, s: norm_change_history(d, s, 7 if config is None else config['NormChangeLogHorizon'],_owned=_owned)),
     ):
         if name == 'auto-acceptance' and (config is None or config['AutoDBMActive'] != 1):
             continue
@@ -64,7 +64,7 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
                 yield stage, current
     for name,current in selected_norm012_stages(today,current,config,report_exceptions):
         yield name,current
-    current = daily_cleanup(today, current, 370 if config is None else config['DailyConsumptionHorizonDBM'])
+    current = daily_cleanup(today, current, 370 if config is None else config['DailyConsumptionHorizonDBM'],_owned=_owned)
     yield 'daily-cleanup', current
 
 

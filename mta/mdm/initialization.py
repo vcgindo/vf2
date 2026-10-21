@@ -57,7 +57,8 @@ IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation
         'application/master_compatibility.py','application/master_preparation.py',
         'application/persistent_master.py','temporal/entry_preparation.py',
         'runtime/capture_preparation.py','runtime/master_revisions.py',
-        'runtime/run_input_references.py','runtime/ingestion_admission.py','runtime/ingestion_upgrade.py')
+        'runtime/run_input_references.py','runtime/ingestion_admission.py','runtime/ingestion_upgrade.py',
+        'runtime/captured_input.py','runtime/captured_recovery.py')
 
 
 def current_implementation_digest():

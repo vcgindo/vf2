@@ -3,7 +3,7 @@ from copy import deepcopy
 from datetime import date,timedelta
 
 
-def norm1_advisory(today,state):
+def norm1_advisory(today,state,*,_owned=False):
     today=date.fromisoformat(today) if isinstance(today,str) else today
     if state['LastBatchRunTbl']!=[{'LastRunDate':today.isoformat()+'T00:00:00'}]:
         raise ValueError('Norm1 advisory requires singleton midnight business date')
@@ -22,6 +22,7 @@ def norm1_advisory(today,state):
         if not (all(x>0 for x in b) or b[2]>1 or sum(b)>1 and b[2]>0):continue
         rows.append({'SKUCode':sku,'WhCode':wh,'SaleInBucket1':b[0],'SaleInBucket2':b[1],
             'SaleInBucket3':b[2],'SaleInAllBuckets':sum(b),**{c:None for c in ('S1','S2','S3','V1','V2','V3','V4','V5')}})
-    result=deepcopy(state);result['Norm1IncreaseSuggestions']=rows
+    result=dict(state) if _owned else deepcopy(state)
+    result['Norm1IncreaseSuggestions']=rows
     result['IntermediateTables']=[{'table':r['table'],'rows':[]} for r in state['IntermediateTables']]
     return result

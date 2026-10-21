@@ -334,6 +334,16 @@ def _native_pick_identity(row, vehicle):
         LogisticLocation=row['logistics_location'])
 
 
+def _pick_text_key(value):
+    if not isinstance(value, str) or not value.isascii():
+        raise ValueError('UNQUALIFIED_SCALAR_DOMAIN: ASCII SQL text equality')
+    return value.rstrip(' ').upper()
+
+
+def _append_multimap(index, key, row):
+    index.setdefault(key, []).append(row)
+
+
 def _calculate_native_pick_cases(cases, state):
     """Literal staged-loop semantics; source joins have one qualified SKU row.
 
@@ -341,8 +351,6 @@ def _calculate_native_pick_cases(cases, state):
     together, including a flagged partition while another partition keeps the
     canonical global loop alive. Ambiguous UPDATE values are not invented.
     """
-    from mta.domain.complete_daily_scalars import ascii_equal
-    equal = lambda a, b: a is not None and b is not None and ascii_equal(a, b)
     queues = {}
     buckets = ('to_black', 'to_red', 'to_yellow', 'to_green', 'to_blue')
     for case in cases:
@@ -371,16 +379,21 @@ def _calculate_native_pick_cases(cases, state):
         for row in queue:
             for configured in row['_vehicles']:
                 _native_queue([dict(row)], configured, allow_priority_ties=True)
-                rows.append(dict(row, _vehicle=configured))
-    originals = {(*_native_partition(r['from_location'], r['logistics_location']), r['_native_sr_no'], r['_vehicle']['name'].rstrip(' ').upper()): dict(r)
+                expanded = dict(row, _vehicle=configured)
+                expanded.update(_partition_key=_native_partition(row['from_location'], row['logistics_location']),
+                    _vehicle_key=_pick_text_key(configured['name']), _sku_key=_pick_text_key(row['sku']),
+                    _to_key=_pick_text_key(row['to_location']), _from_key=_pick_text_key(row['from_location']))
+                rows.append(expanded)
+    originals = {(*r['_partition_key'], r['_native_sr_no'], r['_vehicle_key']): dict(r)
                  for r in rows}
+    expanded_rows = len(rows)
     truck = 0
     while rows:
         before_state = [(id(r), r['quantity'], r['_no_truck_flag']) for r in rows]
         truck += 1
-        groups, snapshots = {}, []
+        groups, snapshots, snapshots_by_group = {}, [], {}
         for row in rows:
-            groups.setdefault((*_native_partition(row['from_location'], row['logistics_location']), row['_vehicle']['name'].rstrip(' ').upper()), []).append(row)
+            groups.setdefault((*row['_partition_key'], row['_vehicle_key']), []).append(row)
         for group in groups.values():
             cw = cv = None
             ranks = {}
@@ -390,21 +403,28 @@ def _calculate_native_pick_cases(cases, state):
                 cw = _pick_sum([cw] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['weight']) for r in peers])
                 cv = (None if group[0]['_weight_only'] else
                       _pick_sum([cv] + [_pick_product(r['quantity']*r.get('_join_multiplicity',1),r['volume']) for r in peers]))
-                snapshots.extend(dict(r,cw=cw,cv=cv) for r in peers)
+                for row in peers:
+                    snapshot = dict(row, cw=cw, cv=cv)
+                    snapshots.append(snapshot)
+                    group_key = (*snapshot['_partition_key'], snapshot['_vehicle_key'])
+                    _append_multimap(snapshots_by_group, group_key, snapshot)
+        flag_snapshots = {}
+        for snapshot in snapshots:
+            key = (snapshot['_vehicle_key'], snapshot['_sku_key'], snapshot['priority'],
+                   *snapshot['_partition_key'])
+            _append_multimap(flag_snapshots, key, snapshot)
         # Native join omits WHCode/NewSRNo: preserve cross-occurrence flags.
         for row in rows:
-            for snap in snapshots:
-                if (equal(row['_vehicle']['name'], snap['_vehicle']['name']) and equal(row['sku'], snap['sku']) and row['priority']==snap['priority'] and
-                        _native_partition(row['from_location'], row['logistics_location']) ==
-                        _native_partition(snap['from_location'], snap['logistics_location'])):
-                    vehicle = snap['_vehicle']
-                    if (snap['cw'] is not None and snap['cw'] < d(vehicle['weight_capacity']) and
-                            (snap['_weight_only'] or
-                             (snap['cv'] is not None and snap['cv'] < d(vehicle['volume_capacity'])))):
-                        row['_no_truck_flag'] = True
+            key = (row['_vehicle_key'], row['_sku_key'], row['priority'], *row['_partition_key'])
+            for snap in flag_snapshots.get(key, ()):
+                vehicle = snap['_vehicle']
+                if (snap['cw'] is not None and snap['cw'] < d(vehicle['weight_capacity']) and
+                        (snap['_weight_only'] or
+                         (snap['cv'] is not None and snap['cv'] < d(vehicle['volume_capacity'])))):
+                    row['_no_truck_flag'] = True
         start = len(state['LogisticPickList'])
         for key, group in groups.items():
-            current = [s for s in snapshots if (*_native_partition(s['from_location'],s['logistics_location']),s['_vehicle']['name'].rstrip(' ').upper())==key]
+            current = snapshots_by_group.get(key, ())
             crossing = [s['_native_sr_no'] for s in current
                         if _pick_compare(s['cw'],d(s['_vehicle']['weight_capacity']))
                         or _pick_compare(s['cv'],d(s['_vehicle']['volume_capacity']))]
@@ -457,20 +477,26 @@ def _calculate_native_pick_cases(cases, state):
             state['LogisticPickList'].extend(distinct)
         formed = state['LogisticPickList'][start:]
         # Canonical residual UPDATE omits SKU/logistics from B/C join keys.
+        residual_snapshots, residual_formed = {}, {}
+        for snapshot in snapshots:
+            key = (snapshot['_vehicle_key'], snapshot['_to_key'], snapshot['_from_key'],
+                   snapshot['_native_sr_no'])
+            _append_multimap(residual_snapshots, key, snapshot)
+        for picked in formed:
+            key = (_pick_text_key(picked['VehicleName']), _pick_text_key(picked['WHCode']),
+                   _pick_text_key(picked['ParentWHCode']), picked['NewSRNo'])
+            if picked['NewSRNo'] == picked['MinSRNo']:
+                _append_multimap(residual_formed, key, picked)
         changes = []
         for row in rows:
             candidates = []
-            for snap in snapshots:
-                if not (equal(row['_vehicle']['name'],snap['_vehicle']['name']) and equal(row['to_location'],snap['to_location']) and equal(row['from_location'],snap['from_location'])
-                        and row['_native_sr_no']==snap['_native_sr_no']):
-                    continue
-                for picked in formed:
-                    if (equal(row['_vehicle']['name'],picked['VehicleName']) and equal(row['to_location'],picked['WHCode']) and equal(row['from_location'],picked['ParentWHCode'])
-                            and row['_native_sr_no']==picked['NewSRNo']==picked['MinSRNo']):
-                        cap = snap['_vehicle']
-                        candidates.append(row['quantity']-picked['ColorWiseAlloction'] if
-                            _pick_compare(snap['cw'],d(cap['weight_capacity'])) or
-                            _pick_compare(snap['cv'],d(cap['volume_capacity'])) else snap['quantity'])
+            key = (row['_vehicle_key'], row['_to_key'], row['_from_key'], row['_native_sr_no'])
+            for snap in residual_snapshots.get(key, ()):
+                for picked in residual_formed.get(key, ()):
+                    cap = snap['_vehicle']
+                    candidates.append(row['quantity']-picked['ColorWiseAlloction'] if
+                        _pick_compare(snap['cw'],d(cap['weight_capacity'])) or
+                        _pick_compare(snap['cv'],d(cap['volume_capacity'])) else snap['quantity'])
             if candidates and any(value != candidates[0] for value in candidates):
                 raise ValueError('Canonical Pick residual UPDATE has differing candidate values; '
                                  f"target={(row['sku'],row['to_location'],row['from_location'],row['_native_sr_no'])!r}, "
@@ -478,11 +504,16 @@ def _calculate_native_pick_cases(cases, state):
             changes.append(candidates[0] if candidates else row['quantity'])
         for row, quantity in zip(rows, changes):
             row['quantity'] = quantity
+        formed_by_row = {}
+        for picked in state['LogisticPickList']:
+            key = (_pick_text_key(picked['VehicleName']), _pick_text_key(picked['SKUCode']),
+                   _pick_text_key(picked['WHCode']), _pick_text_key(picked['ParentWHCode']),
+                   picked['Priority'])
+            _append_multimap(formed_by_row, key, picked)
         kept = []
         for row in rows:
-            matches = [r for r in state['LogisticPickList'] if equal(row['_vehicle']['name'],r['VehicleName']) and equal(row['sku'],r['SKUCode']) and
-                equal(row['to_location'],r['WHCode']) and equal(row['from_location'],r['ParentWHCode']) and
-                row['priority']==r['Priority']]
+            key = (row['_vehicle_key'], row['_sku_key'], row['_to_key'], row['_from_key'], row['priority'])
+            matches = formed_by_row.get(key, ())
             if any(row['_native_sr_no'] < r['MinSRNo'] or
                    (row['_native_sr_no']==r['MinSRNo'] and row['quantity']==0) for r in matches):
                 continue
@@ -507,6 +538,9 @@ def _calculate_native_pick_cases(cases, state):
             ColorWiseAlloction=int(row['quantity']),NoTruckFlag=row['_no_truck_flag'])
         state['PickListDataForTruckFormation'].append(native)
         picks.append({**_pick_row(row,None,ZERO,remaining=row['quantity'],native=True), 'vehicle':row['_vehicle']['name']})
+    from mta.application.stage_observation import summary
+    summary('Pick', partitions=len(queues), expanded_rows=expanded_rows,
+            iterations=truck, allocations=len(state['LogisticPickList']), residual_rows=len(rows))
     return sorted(picks,key=lambda row:(row['truck'] is None,row['truck'] or 999999,row['priority'],row['case'],row['remaining_quantity']))
 
 

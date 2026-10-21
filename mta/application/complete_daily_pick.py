@@ -5,35 +5,61 @@ Unqualified native update ambiguity is rejected before calculation.
 """
 from decimal import Decimal
 
-from mta.domain.complete_daily_scalars import ascii_equal
 from mta.domain.remaining_capabilities import calculate_pick_cases_state
 
 BANDS = dict(TOR_B='to_black', TOR_R='to_red', TOY='to_yellow', TOG='to_green', TOBlue='to_blue')
 
 
-def _equal(a, b):
-    return a is not None and b is not None and ascii_equal(a, b)
+def _text_key(value):
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.isascii():
+        raise ValueError('UNQUALIFIED_SCALAR_DOMAIN: ASCII SQL text equality')
+    return value.rstrip(' ').upper()
 
 
-def joined_cases(*, pick_rows, sku_attributes, location_attributes, vehicles, location_vehicles):
-    """Canonical eligibility, occurrence joins, and DISTINCT parent/vehicle IDs.
+def _ordered_multimap(rows, field, *, include=None):
+    result = {}
+    for ordinal, row in enumerate(rows):
+        if include is not None and not include(row):
+            continue
+        key = _text_key(row[field])
+        if key is not None:
+            result.setdefault(key, []).append((ordinal, row))
+    return result
 
-    Returned source ordinals identify occurrences; they are not business ranks.
-    The allocation owner retains its existing permissible order within ties.
-    """
-    groups = []
+
+def _input_indexes(*, sku_attributes, location_attributes, vehicles, location_vehicles):
+    sku_all = _ordered_multimap(sku_attributes, 'SKUCode')
+    sku_eligible = _ordered_multimap(sku_attributes, 'SKUCode',
+        include=lambda row: row['Weight'] is not None or row['Volume'] is not None)
+    locations = _ordered_multimap(location_attributes, 'WHCode')
+    parent_mappings = _ordered_multimap(location_vehicles, 'LocationID')
+    vehicles_by_id = {}
+    for vehicle in vehicles:
+        vehicle_id = vehicle['VehicleID']
+        if vehicle_id is not None:
+            vehicles_by_id.setdefault(vehicle_id, []).append(vehicle)
+    return dict(sku_all=sku_all, sku_eligible=sku_eligible, locations=locations,
+                parent_mappings=parent_mappings, vehicles_by_id=vehicles_by_id)
+
+
+def _joined_cases(pick_rows, indexes):
+    groups, groups_by_parent = [], {}
     for pick_ordinal, row in enumerate(pick_rows):
         if row['RationedReq'] is None or Decimal(str(row['RationedReq'])) <= 0:
             continue
         parent = row['ParentWhCode']
-        group = next((g for g in groups if _equal(g['parent'], parent)), None)
+        parent_key = _text_key(parent)
+        group = groups_by_parent.get(parent_key)
         if group is None:
             applicable, ids = [], set()
-            for mapping in location_vehicles:
-                if not _equal(mapping['LocationID'], parent) or mapping['VehicleID'] in ids:
+            for _, mapping in indexes['parent_mappings'].get(parent_key, ()):
+                vehicle_id = mapping['VehicleID']
+                if vehicle_id in ids:
                     continue
-                ids.add(mapping['VehicleID'])
-                applicable.extend(v for v in vehicles if v['VehicleID'] is not None and v['VehicleID']==mapping['VehicleID'])
+                ids.add(vehicle_id)
+                applicable.extend(indexes['vehicles_by_id'].get(vehicle_id, ()))
             if not applicable:
                 continue  # Native inner vehicle join excludes this parent.
             vehicle = applicable[0]
@@ -42,13 +68,12 @@ def joined_cases(*, pick_rows, sku_attributes, location_attributes, vehicles, lo
                 vehicles=[dict(name=v['VehicleName'], weight_capacity=v['Weight'], volume_capacity=v['Volume'])
                           for v in applicable], items=[])
             groups.append(group)
-        attributes = [(i, a) for i, a in enumerate(sku_attributes)
-                      if _equal(a['SKUCode'], row['SKUCode'])
-                      and (a['Weight'] is not None or a['Volume'] is not None)]
+            groups_by_parent[parent_key] = group
+        sku_key = _text_key(row['SKUCode'])
+        location_key = _text_key(row['WhCode'])
+        attributes = indexes['sku_eligible'].get(sku_key, ())
         for sku_ordinal, attr in attributes:
-            for location_ordinal, location in enumerate(location_attributes):
-                if not _equal(location['WHCode'], row['WhCode']):
-                    continue
+            for location_ordinal, location in indexes['locations'].get(location_key, ()):
                 buckets = {modern: row[native] for native, modern in BANDS.items()
                            if row[native] is not None and Decimal(str(row[native])) > 0}
                 # UNPIVOT drops NULL; positive filter drops zero/negative. An
@@ -64,15 +89,28 @@ def joined_cases(*, pick_rows, sku_attributes, location_attributes, vehicles, lo
     return groups
 
 
+def joined_cases(*, pick_rows, sku_attributes, location_attributes, vehicles, location_vehicles):
+    """Canonical eligibility, occurrence joins, and DISTINCT parent/vehicle IDs.
+
+    Returned source ordinals identify occurrences; they are not business ranks.
+    The allocation owner retains its existing permissible order within ties.
+    """
+    sources = dict(sku_attributes=sku_attributes, location_attributes=location_attributes,
+                   vehicles=vehicles, location_vehicles=location_vehicles)
+    return _joined_cases(pick_rows, _input_indexes(**sources))
+
+
 def calculate_native_pick(**sources):
-    cases = joined_cases(**sources)
+    indexes = _input_indexes(**{name: sources[name] for name in
+        ('sku_attributes', 'location_attributes', 'vehicles', 'location_vehicles')})
+    cases = _joined_cases(sources['pick_rows'], indexes)
     # The canonical second SKU join repeats cumulative rows, even for identical
     # duplicate attributes. Do not silently treat that as a single dimension.
     for case in cases:
         for item in case['items']:
             if not item['buckets']:
                 continue  # No staged target exists for this excluded source row.
-            attributes = [r for r in sources['sku_attributes'] if _equal(r['SKUCode'],item['sku'])]
+            attributes = [row for _, row in indexes['sku_all'].get(_text_key(item['sku']), ())]
             values = {(None if r['Weight'] is None else Decimal(str(r['Weight'])),
                        None if r['Volume'] is None else Decimal(str(r['Volume']))) for r in attributes}
             if len(values) != 1:

@@ -5,7 +5,7 @@ from mta.row_sequences import history_rows
 from mta.domain.dbm_report_dates import horizon_cutoff
 
 
-def daily_cleanup(today, state, horizon):
+def daily_cleanup(today, state, horizon, *, _owned=False):
     today = date.fromisoformat(today) if isinstance(today, str) else today
     if isinstance(today, datetime):
         today = today.date()
@@ -14,7 +14,7 @@ def daily_cleanup(today, state, horizon):
     ]:
         raise ValueError('DBM cleanup requires singleton midnight date')
     cutoff = horizon_cutoff(today, horizon, inclusive=False)
-    output = deepcopy(state)
+    output = dict(state) if _owned else deepcopy(state)
     output['DailyConsumption'] = history_rows((
         row for row in output['DailyConsumption']
         # SQL DELETE WHERE ReportDate <= cutoff does not delete NULL dates.
