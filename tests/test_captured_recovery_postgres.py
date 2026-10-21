@@ -104,6 +104,48 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(CalculationRun.objects.count(),1)
                 self.assertEqual(MdmDailyInputCapture.objects.count(),1)
                 self.assertEqual(epochs(owner.pk),expected['capture_cut'])
+                # Model the real first continuation failure after its new
+                # canonical capture, preserving both FAILED generations.
+                with patch.object(temporal,'calculate_day',side_effect=TypeError('immutable entry proof')):
+                    with self.assertRaisesRegex(TypeError,'immutable entry proof'):
+                        resume(Path(attempt.archive_path).with_name('failed-v1'))
+                leaf=CalculationRun.objects.get(execution_revision=revision)
+                leaf_attempt=DailyFeedAttempt.objects.get(run=leaf)
+                self.assertEqual((leaf.status,leaf_attempt.status,leaf_attempt.phase),('FAILED','FAILED','CALCULATE'))
+                self.assertEqual(leaf.input_payload['schema'],captured_input.SCHEMA)
+                leaf_before=(leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                    leaf_attempt.status,digest(leaf_attempt.error))
+                leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
+                    capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+                second=dict(physical_run_id=str(old.pk),physical_manifest_digest=old.input_manifest_digest,
+                    physical_attempt_id=str(attempt.pk),current_revision_cut=epochs(owner.pk))
+                revision='capture-recovery-proof-second'
+                def resume(path,*,spec=None):
+                    return temporal.execute_day(day=None,profile=None,execution_revision=revision,
+                        _captured_retry=dict(origin_run_id=str(leaf.pk),expected=leaf_expected,
+                            archive_path=str(path),second_hop=second if spec is None else spec))
+                foreign=dict(second,physical_run_id='00000000-0000-4000-8000-000000000001')
+                with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                    resume(Path(attempt.archive_path).with_name('foreign'),spec=foreign)
+                stale=dict(second,current_revision_cut=[0,0,0,0,0])
+                with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
+                    resume(Path(attempt.archive_path).with_name('stale'),spec=stale)
+                # An actual second SQL session owns the lock: duplicate-race
+                # denial must occur before new run/capture metadata exists.
+                import psycopg
+                options=connection.settings_dict
+                with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                        user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                    competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',
+                        ['vectorflow-daily-csv:'+str(owner.pk)])
+                    with self.assertRaisesRegex(ValueError,'Another daily worker owns'):
+                        resume(Path(attempt.archive_path).with_name('race'))
+                with patch.object(daily_feed,'atomic_json',side_effect=OSError('second-hop receipt failure')):
+                    with self.assertRaisesRegex(OSError,'second-hop receipt failure'):
+                        resume(Path(attempt.archive_path).with_name('second-receipt-failure'))
+                self.assertEqual(CalculationRun.objects.count(),2)
+                self.assertEqual(MdmDailyInputCapture.objects.count(),2)
+                self.assertEqual(epochs(owner.pk),second['current_revision_cut'])
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):
@@ -135,7 +177,15 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual((old.status,attempt.status),('FAILED','FAILED'))
                 self.assertEqual((old.input_digest,old.input_manifest_digest,digest(old.input_payload),
                     digest(attempt.accepted_facts),digest(attempt.prepared_context)),before)
-                self.assertEqual(MdmDailyInputCapture.objects.get(run=result).origin_id,old.pk)
+                self.assertEqual(result.input_payload['schema'],captured_input.SECOND)
+                self.assertEqual(MdmDailyInputCapture.objects.get(run=result).origin_id,leaf.pk)
+                self.assertEqual(captured_input.origin(result).pk,old.pk)
+                self.assertEqual(read_input(leaf),raw)
+                leaf.refresh_from_db();leaf_attempt.refresh_from_db()
+                self.assertEqual((leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                    leaf_attempt.status,digest(leaf_attempt.error)),leaf_before)
+                with self.assertRaisesRegex(ValueError,'fixed two-hop boundary'):
+                    captured_input._origin(result,second_allowed=False)
                 with self.assertRaisesRegex(ValueError,'already attempted'):
                     resume(Path(attempt.archive_path).with_name('duplicate'))
                 # Changed reference roots must be denied by actual DB-backed

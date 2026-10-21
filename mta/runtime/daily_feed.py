@@ -208,9 +208,15 @@ def diagnostics(attempt, error):
 
 def unresolved_attempts(owner):
     """A retained failure is resolved only by its own published retry owner."""
-    from django.db.models import Exists, OuterRef
+    from django.db.models import Exists, OuterRef, Q
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    completed = MdmDailyInputCapture.objects.filter(origin__run_id=OuterRef('run_id'),
+    from mta.runtime.captured_input import SECOND
+    path=(Q(origin__run_id=OuterRef('run_id')) |
+        Q(origin__origin__run_id=OuterRef('run_id'),origin__run__status='FAILED',
+          origin__run__input_payload__schema='fresh-captured-input-reference-v1',
+          run__input_payload__schema=SECOND))
+    completed = MdmDailyInputCapture.objects.filter(path,
+        run__input_digest=OuterRef('run__input_digest'),
         status='CONSUMED',run__status='SUCCEEDED',run__business_date=OuterRef('business_date'),
         run__csv_attempt__initialization=owner,run__csv_attempt__status='PUBLISHED')
     return DailyFeedAttempt.objects.filter(initialization=owner).exclude(
@@ -364,8 +370,8 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                              stdout=io.StringIO())
             from mta.application.native_input_archive import prepare
             native_path = root / 'native-day.json'
-            from mta.runtime.captured_input import SCHEMA as CAPTURED, origin
-            if run.input_payload.get('schema') == CAPTURED:
+            from mta.runtime.captured_input import SCHEMAS as CAPTURED, origin
+            if run.input_payload.get('schema') in CAPTURED:
                 physical = origin(run)
                 original_attempt = DailyFeedAttempt.objects.get(run=physical)
                 native_path = regular(Path(original_attempt.archive_path)/'native-day.json',

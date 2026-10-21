@@ -20,6 +20,64 @@ def typed(value):
 
 
 class EntryRowOwnershipTests(unittest.TestCase):
+    def test_active_native_entry_with_spooled_external_master_and_daily_feeds(self):
+        from tests.test_h3_daily_integration import frame,captured
+        from tests.production_h3_fixture import supplied_day
+        from mta.mdm.daily_input import compose,nms_master_raw
+        from mta.mdm.supplier_capture import complete_feeds
+        from mta.mdm.integration_source import replace_working_inputs
+        from mta.temporal.chain import calculate_day
+        from mta.planning.engine import calculate_current_day
+        f=frame();prior=f['opening']['state']
+        for row in prior['importer']['SkuLocAttributeData']:
+            row['NonNMS']=bool(row['NonNMS'])
+        def compute(spooled):
+            working=deepcopy(prior)
+            if spooled:
+                for name,rows in working['importer'].items():
+                    working['importer'][name]=RecordRows.from_rows(rows)
+                for section,names in (('bpr',('DailyConsumption',)),
+                        ('dbm',('DailyConsumption','SuspendHistory','OrderDataSummary','SuggestionsLog')),
+                        ('btr',('BPR','RationingHistory'))):
+                    for name in names:
+                        if name in working[section]:
+                            working[section][name]=RecordRows.from_rows(working[section][name])
+            frozen=captured(working,'WithDestLoc')
+            day=supplied_day('2037-04-10')['day']
+            day.update(raw_master=compose(frozen,nms_master_raw(working),last_run_date='2037-04-09'),
+                exclusions=[],supplier_feeds=complete_feeds(frozen,working))
+            replace_working_inputs(frozen,working,day,None)
+            if spooled:
+                for name in ('raw_master','raw_non_nms','raw_daily'):
+                    day[name]=RecordRows.from_rows(day[name])
+            before=typed(working),typed(day)
+            def calculate(source,**owned):
+                return calculate_current_day(source,defer_pick=True,**owned),'active-entry-proof'
+            actual=calculate_day(working,'2037-04-09',day,f['profile'],
+                'active-entry-proof',calculate,native_daily=True)
+            self.assertEqual((typed(working),typed(day)),before)
+            return actual
+        self.assertEqual(typed(compute(True)),typed(compute(False)))
+
+    def test_nonempty_spooled_nms_and_non_nms_raw_use_same_canonical_producer(self):
+        import json
+        from pathlib import Path
+        from mta.application.r1_importer_master import process_importer_master
+        payload=json.loads((Path(__file__).parents[1]/'mta/fixtures/r1_importer_master_base.json').read_text())
+        payload['raw_non_nms']=[payload['raw_master'].pop()]
+        payload['import_non_nms']=True
+        expected=process_importer_master(deepcopy(payload))
+        self.assertEqual(expected['outcome'],'APPLIED')
+        spooled=deepcopy(payload)
+        for name,rows in spooled['prior'].items():
+            spooled['prior'][name]=RecordRows.from_rows(rows)
+        for name in ('raw_master','raw_non_nms'):
+            self.assertTrue(spooled[name])
+            spooled[name]=RecordRows.from_rows(spooled[name])
+        before=typed(spooled)
+        self.assertEqual(typed(process_importer_master(spooled)),typed(expected))
+        self.assertEqual(typed(spooled),before)
+
     def test_bit_adapter_has_lazy_owned_generation_and_exact_non_bit_values(self):
         from datetime import date
         from decimal import Decimal

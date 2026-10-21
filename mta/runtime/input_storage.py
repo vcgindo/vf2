@@ -245,8 +245,8 @@ def save_input(run,raw, *, image_writer=None, table_selector=None, version=None,
 def read_input(run, *, components=None, image_reader=None, materialized_roots=(),
                identity_resolver=None, batch_resolver=None, owner_resolver=None,
                master_resolver=None):
-    from mta.runtime.captured_input import SCHEMA as CAPTURED, read as read_captured
-    if run.input_payload.get('schema') == CAPTURED:
+    from mta.runtime.captured_input import SCHEMAS as CAPTURED, read as read_captured
+    if run.input_payload.get('schema') in CAPTURED:
         if any(v is not None for v in (identity_resolver, batch_resolver, owner_resolver, master_resolver)):
             raise ValueError('Captured inputs require their actual canonical owners')
         return read_captured(run, components=components, image_reader=image_reader,
@@ -312,8 +312,8 @@ def read_input(run, *, components=None, image_reader=None, materialized_roots=()
 def audit_references(run, *, identity_resolver=None, batch_resolver=None,
                      owner_resolver=None, master_resolver=None):
     """Return fully validated v3 BATCH references for receipt integration."""
-    from mta.runtime.captured_input import SCHEMA as CAPTURED, origin
-    if run.input_payload.get('schema') == CAPTURED:
+    from mta.runtime.captured_input import SCHEMAS as CAPTURED, origin
+    if run.input_payload.get('schema') in CAPTURED:
         if any(v is not None for v in (identity_resolver, batch_resolver, owner_resolver, master_resolver)):
             raise ValueError('Captured inputs require their actual canonical owners')
         return audit_references(origin(run))
@@ -334,8 +334,8 @@ def content_root(raw, content_identity, *, owner_references={}, batch_references
 def logical_digest(owner,value):
     """Preserve old raw roots; prepared v3 explicitly hashes owned references."""
     manifest=getattr(owner,'input_payload',{})
-    from mta.runtime.captured_input import SCHEMA as CAPTURED, origin
-    if manifest.get('schema') == CAPTURED:
+    from mta.runtime.captured_input import SCHEMAS as CAPTURED, origin
+    if manifest.get('schema') in CAPTURED:
         return logical_digest(origin(owner), value)
     if manifest.get('schema')==V3 and 'content_kind' in manifest:
         from mta.runtime.input_v3 import CONTENT_KIND

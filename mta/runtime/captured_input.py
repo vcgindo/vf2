@@ -6,13 +6,18 @@ from uuid import UUID
 from mta.serialization import digest
 
 SCHEMA = 'fresh-captured-input-reference-v1'
+SECOND = 'fresh-captured-input-reference-v2'
+SCHEMAS = (SCHEMA,SECOND)
 FIELDS = {'schema', 'identity', 'origin_run_id', 'origin_manifest_digest',
           'content_digest', 'images'}
 
 
 def validate(value):
-    if (type(value) is not dict or set(value) != FIELDS
-            or value['schema'] != SCHEMA or value['images'] != {}):
+    if type(value) is not dict:
+        raise ValueError('Captured input reference shape differs')
+    extra = {'physical_origin_run_id','physical_origin_manifest_digest'} if value.get('schema') == SECOND else set()
+    if (type(value) is not dict or set(value) != FIELDS | extra
+            or value['schema'] not in SCHEMAS or value['images'] != {}):
         raise ValueError('Captured input reference shape differs')
     if str(UUID(value['origin_run_id'])) != value['origin_run_id']:
         raise ValueError('Captured input origin UUID differs')
@@ -20,6 +25,12 @@ def validate(value):
         if (type(value[key]) is not str or len(value[key]) != 64
                 or any(c not in '0123456789abcdef' for c in value[key])):
             raise ValueError('Captured input origin digest differs')
+    if value['schema'] == SECOND:
+        if str(UUID(value['physical_origin_run_id'])) != value['physical_origin_run_id']:
+            raise ValueError('Physical captured origin UUID differs')
+        pin=value['physical_origin_manifest_digest']
+        if type(pin) is not str or len(pin)!=64 or any(c not in '0123456789abcdef' for c in pin):
+            raise ValueError('Physical captured origin manifest differs')
     return value
 
 
@@ -28,11 +39,21 @@ def manifest(run, origin):
     value = dict(schema=SCHEMA, identity=_live_identity(run, reading=False),
         origin_run_id=str(origin.pk), origin_manifest_digest=origin.input_manifest_digest,
         content_digest=origin.input_digest, images={})
+    if origin.input_payload.get('schema') == SCHEMA:
+        physical=_origin(origin,second_allowed=False)
+        value.update(schema=SECOND,physical_origin_run_id=str(physical.pk),
+            physical_origin_manifest_digest=physical.input_manifest_digest)
+    elif origin.input_payload.get('schema') != 'fresh-daily-input-manifest-v3':
+        raise ValueError('Only V3 or exactly one failed V1 hop can supply captured inputs')
     validate(value)
     return value
 
 
 def origin(run):
+    return _origin(run,second_allowed=True)
+
+
+def _origin(run,*,second_allowed):
     """Resolve only the immutable direct origin named by canonical retry capture.
 
     This cannot reference an arbitrary run, cross an initialization, replace a
@@ -42,6 +63,8 @@ def origin(run):
     from mta.runtime.input_v3 import V3, _live_identity
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     value = validate(run.input_payload)
+    if value['schema'] == SECOND and not second_allowed:
+        raise ValueError('Captured reference exceeds the fixed two-hop boundary')
     if (digest(value) != run.input_manifest_digest or value['content_digest'] != run.input_digest
             or value['identity'] != _live_identity(run, reading=True)):
         raise ValueError('Captured input live owner/manifest differs')
@@ -64,7 +87,8 @@ def origin(run):
             or target.successors.exists()
             or old.retries.exclude(pk=current.pk).exists()):
         raise ValueError('Captured input canonical origin differs')
-    if (target.input_payload.get('schema') != V3
+    target_schema=target.input_payload.get('schema')
+    if ((target_schema != V3 if value['schema'] == SCHEMA else target_schema != SCHEMA)
             or target.input_manifest_digest != value['origin_manifest_digest']
             or digest(target.input_payload) != value['origin_manifest_digest']
             or target.input_digest != value['content_digest']
@@ -79,6 +103,14 @@ def origin(run):
         .values('run_id', 'initialization_id'))
     if (len(attempts) != 2 or len({v['initialization_id'] for v in attempts}) != 1):
         raise ValueError('Captured input initialization ownership differs')
+    if value['schema'] == SECOND:
+        # Exactly V2 -> V1 -> V3, never V2 -> V2 or an unbounded chain.
+        physical=_origin(target,second_allowed=False)
+        if (str(physical.pk)!=value['physical_origin_run_id']
+                or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
+                or physical.input_digest!=value['content_digest']):
+            raise ValueError('Fixed physical captured origin differs')
+        return physical
     return CalculationRun.objects.get(pk=target.pk)
 
 

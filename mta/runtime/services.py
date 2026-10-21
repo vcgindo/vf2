@@ -77,8 +77,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             raise ValueError('Run changed during calculation')
         from mta.runtime.capture_preparation import require_commit
         prepared_capture=require_commit(run)
-        from mta.runtime.captured_input import SCHEMA as CAPTURED
-        typed=run.input_payload.get('schema') in ('fresh-daily-input-manifest-v2','fresh-daily-input-manifest-v3',CAPTURED)
+        from mta.runtime.captured_input import SCHEMAS as CAPTURED
+        typed=run.input_payload.get('schema') in ('fresh-daily-input-manifest-v2','fresh-daily-input-manifest-v3',*CAPTURED)
         if run.kind == 'DAILY_CHAIN' and (not typed or run.evidence_mode != 'production'):
             raise ValueError('Native daily publication requires typed production input')
         if typed:

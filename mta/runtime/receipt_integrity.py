@@ -63,8 +63,8 @@ def audit_input(run):
     if (run.input_payload.get('content_digest')!=run.input_digest
             or digest(run.input_payload)!=run.input_manifest_digest):
         raise ValueError('Typed daily input receipt drift')
-    from mta.runtime.captured_input import SCHEMA as CAPTURED, audit
-    if run.input_payload.get('schema') == CAPTURED:
+    from mta.runtime.captured_input import SCHEMAS as CAPTURED, audit
+    if run.input_payload.get('schema') in CAPTURED:
         return audit(run)
     from mta.runtime.relational_state import iter_image
     for metadata in run.input_payload['images'].values():

@@ -56,7 +56,34 @@ def _restore_working(snapshot, prior, day, parent):
     apply_refresh_setting(prior['importer_settings'],snapshot)
 
 
-def resume(*, origin_run_id, execution_revision, expected, archive_path):
+def _second_hop_owner(run,attempt,value):
+    """Explicit finite continuation of one failed V1 leaf, no failed-row edit."""
+    from mta.runtime.captured_input import SCHEMA, origin
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    fields={'physical_run_id','physical_manifest_digest','physical_attempt_id','current_revision_cut'}
+    if (type(value) is not dict or set(value)!=fields
+            or type(value['current_revision_cut']) is not list
+            or len(value['current_revision_cut'])!=5
+            or any(type(v) is not int or v<0 for v in value['current_revision_cut'])
+            or run.input_payload.get('schema')!=SCHEMA or run.status!='FAILED'
+            or attempt.status!='FAILED' or attempt.phase!='CALCULATE' or attempt.accepted_facts):
+        raise ValueError('Second hop requires an exact failed V1 leaf and explicit live cut')
+    physical=origin(run)
+    _uncommitted(physical)
+    original=DailyFeedAttempt.objects.get(run=physical)
+    if (str(physical.pk)!=value['physical_run_id']
+            or physical.input_manifest_digest!=value['physical_manifest_digest']
+            or str(original.pk)!=value['physical_attempt_id']
+            or original.status!='FAILED' or not original.accepted_facts
+            or original.initialization_id!=attempt.initialization_id
+            or original.input_sha256!=attempt.input_sha256
+            or original.batch_digest!=attempt.batch_digest
+            or physical.input_digest!=run.input_digest):
+        raise ValueError('Second hop physical input/attempt ownership differs')
+    return physical
+
+
+def resume(*, origin_run_id, execution_revision, expected, archive_path, second_hop=None):
     """Called only by execute_day's explicit captured-continuation dispatch.
 
     Daily/source locks and the original revision cut are checked before marking
@@ -79,6 +106,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path):
     old = CalculationRun.objects.get(pk=uuid.UUID(str(origin_run_id)))
     attempt = DailyFeedAttempt.objects.select_related('initialization__source').get(run=old)
     owner = attempt.initialization
+    physical=None if second_hop is None else _second_hop_owner(old,attempt,second_hop)
     target = Path(archive_path).resolve()
     if target.exists() or target.parent != Path(attempt.archive_path).resolve().parent:
         raise ValueError('Continuation requires a new sibling operation directory')
@@ -135,9 +163,14 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path):
             attempt = DailyFeedAttempt.objects.select_for_update().select_related('initialization__source').get(pk=attempt.pk)
             frozen = MdmDailyInputCapture.objects.select_for_update().get(run=old)
             _uncommitted(old); _pins(old,attempt,expected)
-            if (epochs(owner.pk,lock=True) != expected['capture_cut']
-                    or attempt.status != 'RUNNING' or attempt.phase != 'VALIDATED'
-                    or not attempt.accepted_facts or frozen.origin_id is not None
+            if second_hop is not None:
+                physical=_second_hop_owner(old,attempt,second_hop)
+            expected_cut=expected['capture_cut'] if physical is None else second_hop['current_revision_cut']
+            original_ok=(attempt.status=='RUNNING' and attempt.phase=='VALIDATED'
+                and bool(attempt.accepted_facts) and frozen.origin_id is None)
+            second_ok=(physical is not None and frozen.origin_id==physical.pk)
+            if (epochs(owner.pk,lock=True) != expected_cut
+                    or not (original_ok if physical is None else second_ok)
                     or frozen.status != 'CAPTURED' or frozen.revision_digest != snapshot.get('revision_digest')
                     or old.execution_revision == execution_revision
                     or list(MdmDailyInputCapture.objects.filter(source_id=owner.source_id,
@@ -149,16 +182,18 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path):
                     or snapshot['configuration']['task_status_log_horizon'] != horizon):
                 raise ValueError('Frozen NMS/task configuration changed')
             check()
-            if old.status != 'RUNNING':
-                raise ValueError('External interruption has already been reconciled')
-            fail_run(old, RuntimeError('Explicit external-deadline interruption reconciled; immutable input retained'))
-            old.refresh_from_db()
+            if physical is None:
+                if old.status != 'RUNNING':
+                    raise ValueError('External interruption has already been reconciled')
+                fail_run(old, RuntimeError('Explicit external-deadline interruption reconciled; immutable input retained'))
+                old.refresh_from_db()
             from mta.mdm.integration_source import verify_predecessor, verify_capture, replace_working_inputs
             verify_predecessor(owner.source,parent,retry_capture=frozen)
             verify_capture(owner.source,snapshot)
-            attempt.status='FAILED'
-            attempt.error=dict(type='ExternalInterruption',message='Original input retained; explicit distinct continuation')
-            attempt.save(update_fields=['status','error','updated_at'])
+            if physical is None:
+                attempt.status='FAILED'
+                attempt.error=dict(type='ExternalInterruption',message='Original input retained; explicit distinct continuation')
+                attempt.save(update_fields=['status','error','updated_at'])
             from mta.runtime.capture_preparation import seed, seal
             from mta.runtime.captured_input import manifest
             from mta.runtime.ingestion_context import RevisionCut
