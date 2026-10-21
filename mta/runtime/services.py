@@ -6,11 +6,12 @@ from mta.planning.engine import calculate_current_day
 from mta.runtime.models import CalculationRun, Checkpoint
 from mta.runtime.input_reader import read_input
 from mta.serialization import storage, digest
+from mta.application.stage_observation import stage
 
 
-def read_outputs(run):
+def read_outputs(run, *, include_reports=True):
     run.refresh_from_db()
-    if run.production_manifest.get('version')==2:
+    if run.production_manifest.get('version') in (2,3):
         from mta.runtime.receipt_integrity import verify
         from mta.runtime.relational_state import read_daily
         if run.status!='SUCCEEDED':raise ValueError('Only a completed run may be read as an output')
@@ -30,7 +31,11 @@ def read_outputs(run):
             verify_root(run)
         else:
             verify(run)
-        return read_daily(run)
+        output=read_daily(run,include_reports=include_reports)
+        if run.production_manifest.get('version')==3 and include_reports:
+            from mta.presentation.operational_reports import include_generation
+            include_generation(run,output)
+        return output
     if digest(read_input(run)) != run.input_digest:
         raise ValueError('Immutable input drift')
     if run.status != 'SUCCEEDED':
@@ -64,8 +69,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
     # Immutable profile reconstruction happens once before the atomic writer.
     # The full input audit and run/input digest checks remain inside it.
     producer_preparation=output.pop('_MasterPreparation',None)
-    frozen_profile = (read_input(run, components=('profile',))['profile']
-                      if run.kind == 'DAILY_CHAIN' else None)
+    with stage('persistence_profile_reconstruction'):
+        frozen_profile = (read_input(run, components=('profile',))['profile']
+                          if run.kind == 'DAILY_CHAIN' else None)
     with transaction.atomic():
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         from mta.mdm.supplier_revisions import lock_transaction
@@ -83,7 +89,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             raise ValueError('Native daily publication requires typed production input')
         if typed:
             from mta.runtime.receipt_integrity import audit_input
-            audit_input(run)
+            with stage('persistence_input_audit'):
+                audit_input(run)
         if run.input_digest != expected_digest or (not typed and digest(read_input(run)) != expected_digest):
             raise ValueError('Input snapshot changed during calculation')
         lineage = output.get('Lineage') or [{}]
@@ -105,7 +112,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             from mta.mdm.daily_input import finalize_consumption
             from mta.runtime.mdm_daily_models import MdmDailyInputCapture
             from mta.application.daily_finalization import mark
-            finalize_consumption(run, output=output)
+            with stage('persistence_input_consumption'):
+                finalize_consumption(run, output=output)
             if not MdmDailyInputCapture.objects.filter(run=run, status='CONSUMED').exists():
                 raise ValueError('Cohort1 task source was not consumed')
             complete = output['ClosingState'][0]['complete']
@@ -125,7 +133,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             captured = MdmDailyInputCapture.objects.select_related('source').get(run=run, status='CONSUMED')
             if configured_policy == ACTIVE_POLICY or captured.source.receipt.get('schema') == SOURCE_SCHEMA:
                 from mta.mdm.daily_current import publish as publish_mdm_current
-                publish_mdm_current(run, captured, output['ClosingState'][0])
+                with stage('persistence_current_masters'):
+                    publish_mdm_current(run, captured, output['ClosingState'][0])
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
             # Verify the same complete boundary after its actual owned writers,
             # inside the transaction so any failure rolls every writer back.
@@ -137,16 +146,18 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         # a time rather than retaining a second whole temporal output graph.
         if run.kind=='DAILY_CHAIN':
             from mta.runtime.relational_state import save_daily,read_daily,production_projection
-            run.production_manifest=save_daily(run,output)
+            with stage('persistence_typed_snapshots'):
+                run.production_manifest=save_daily(run,output)
             if prepared_capture is not None:
                 # Input/audit readers inside this same atomic publication still
                 # require the already sealed native initialization authority.
                 run.production_manifest['ingestion_preparation']=prepared_capture
             if typed:
                 from mta.runtime.receipt_integrity import audit_output
-                run.production_manifest['version']=2
+                run.production_manifest['version']=3 if output.get('_ReportBoundary') else 2
                 run.production_digest=digest(run.production_manifest)
-                audit_output(run)
+                with stage('persistence_full_output_readback'):
+                    audit_output(run)
             else:
                 run.production_digest=digest(production_projection(output))
                 if digest(read_daily(run))!=run.production_digest:
@@ -176,14 +187,20 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
                 raise ValueError('Unexpected force capture without opt-in')
             write_pick_bands(run, output['CalculationOutputs'],
                              provenance={'origin': 'production-calculation'},calculation_digest=calculation_digest)
-            from mta.presentation.excess_storage import write_excess
-            write_excess(run,output)
-            from mta.presentation.fulfillment_storage import write_fulfillment
-            write_fulfillment(run,output,output['CalculationOutputs'],calculation_digest=calculation_digest)
-            from mta.presentation.expedite_storage import write_expedite, selected_bands
-            write_expedite(run,output,bands=selected_bands(output['CalculationOutputs']))
-            from mta.presentation.pick_post_storage import write_pick_post
-            write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
+            if run.production_manifest.get('version')==3:
+                from mta.runtime.report_sources import write_routes
+                run.production_manifest['report_sources']=dict(
+                    contract=output['_ReportBoundary'],routes=write_routes(run,output['CalculationOutputs'],
+                        output['ClosingState'][0]['orders']['SpikeOrderData']))
+            else:
+                from mta.presentation.excess_storage import write_excess
+                write_excess(run,output)
+                from mta.presentation.fulfillment_storage import write_fulfillment
+                write_fulfillment(run,output,output['CalculationOutputs'],calculation_digest=calculation_digest)
+                from mta.presentation.expedite_storage import write_expedite, selected_bands
+                write_expedite(run,output,bands=selected_bands(output['CalculationOutputs']))
+                from mta.presentation.pick_post_storage import write_pick_post
+                write_pick_post(run,output,bands=selected_bands(output['CalculationOutputs']))
             # execute_day captured these inputs before calculation. A serving
             # environment flag must not independently enable an uncaptured write.
             if publication_opening is not None:
@@ -205,10 +222,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             publication_metadata(run,prepared_capture,producer_preparation)
         run.status = 'SUCCEEDED'
         if typed:
-            from mta.runtime.receipt_integrity import OPERATIONAL_ROSTER, output_root, source_receipts
+            from mta.runtime.receipt_integrity import operational_roster, output_root, source_receipts
             run.production_manifest['sources']=storage(source_receipts(run))
             run.production_digest=digest(run.production_manifest)
-            run.output_roster=list(OPERATIONAL_ROSTER)
+            run.output_roster=list(operational_roster(run))
             run.output_digest=output_root(run)
         else:
             run.output_roster = sorted(output)

@@ -67,9 +67,9 @@ def dispatch(value,report_rows,daily_rows,supplier_rows,config=None,today=TODAY,
     # BTR dispatch and history producer execute, with no full business-day claim.
     with ExitStack() as stack:
         for name in ('_import_bpr','_generate_trends','_colour_age','_norm_suggestions','_categories'):
-            stack.enter_context(patch.object(btr,name,side_effect=lambda *a:a[1]))
+            stack.enter_context(patch.object(btr,name,side_effect=lambda *a,**_kwargs:a[1]))
         for name in ('_update_br_age','_availability','_snapshot','_count_graph','_chronic'):
-            stack.enter_context(patch.object(btr,name,side_effect=lambda *a:a[0]))
+            stack.enter_context(patch.object(btr,name,side_effect=lambda *a,**_kwargs:a[0]))
         return list(connected_btr_stages(today,prior,source,config,bpr_daily=daily_rows,
                     supplier_dispatch_req=supplier_rows))
 
@@ -215,7 +215,7 @@ class ConnectedStorageTests(unittest.TestCase):
         with patch.object(typed,'bulk',side_effect=lambda query,values:records.extend(values)):
             meta=typed.save_image(run,path,path,storage(rows))
         cursor=MagicMock();cursor.fetchmany.side_effect=[[tuple(r[2:]) for r in records],[]]
-        with patch.object(typed.connection,'cursor') as context:
+        with patch.object(typed.connection,'chunked_cursor') as context:
             context.return_value.__enter__.return_value=cursor
             own=typed.load_image(run,meta)
         self.assertEqual(own,storage(rows));self.assertEqual(cursor.execute.call_args.args[1],[run.pk,path])
@@ -250,7 +250,13 @@ class ConnectedStorageTests(unittest.TestCase):
         self.assertEqual(frame['opening']['state']['btr']['RationingHistory'],[])
         value['opening']['state']['btr']['RationingHistory']=rows
         raw,sha,args=encoded(value)
-        with self.assertRaisesRegex(ValueError,'seed calculated rationing history'):decode(raw,sha,**args)
+        self.assertEqual(decode(raw,sha,**args)[1]['opening']['state']['btr']['RationingHistory'],rows)
+        # The separately approved historical-carry boundary permits prior rows,
+        # while preserving rejection of future/current-output seeds.
+        value['opening']['state']['btr']['RationingHistory']=[dict(rows[0],ReportDate=(
+            date.fromisoformat(value['opening']['date'])+timedelta(days=1)).isoformat())]
+        raw,sha,args=encoded(value)
+        with self.assertRaisesRegex(ValueError,'dated historical row'):decode(raw,sha,**args)
 
     def test_enabled_native_preflight_requires_explicit_owner_horizon_and_keeps_readiness_false(self):
         from tests.production_daily_fixture import initialized_input

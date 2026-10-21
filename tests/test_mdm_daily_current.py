@@ -204,7 +204,7 @@ class CurrentProjectionWriterTests(unittest.TestCase):
 class CurrentOwnerTests(unittest.TestCase):
     def carrier(self, pk, parent=None, active=True):
         return SimpleNamespace(run_id=pk, nms_active=active,
-            run=SimpleNamespace(pk=pk, kind='DAILY_CHAIN', predecessor_id=parent))
+            run=SimpleNamespace(pk=pk, kind='DAILY_CHAIN', predecessor_id=parent,production_manifest={}))
 
     def verify(self, carriers, selected):
         source = SimpleNamespace(receipt={'schema': SCHEMA})

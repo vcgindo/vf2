@@ -283,8 +283,9 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 initialization_id=binding.get('id') if isinstance(binding,dict) else None,
                 source_digest=captured.source.digest,capture_status=captured.status)
             if parent.status=='SUCCEEDED':
-                previous=read_outputs(parent)
+                previous=read_outputs(parent,include_reports=False)
                 parent_context['closing_state']=previous['ClosingState'][0]
+                parent_context['output_version']=parent.production_manifest.get('version',2)
                 parent_profile=read_input(parent,components=('profile',))['profile']
                 if frame is not None and digest(parent_profile)!=digest(frame['profile']):
                     problem('/predecessor/profile','own persisted predecessor','Persisted predecessor configuration differs')
@@ -380,7 +381,7 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
     captured=read_input(run,components=('initialization_binding','daily_input_sha256'))
     if captured!={'initialization_binding':binding,'daily_input_sha256':sha256}:
         raise ValueError('Repeated native daily input/initialization differs')
-    read_outputs(run)  # Full input/output integrity; file recovery stays in execute_day.
+    read_outputs(run,include_reports=False)  # Full input/output integrity; file recovery stays in execute_day.
     return True
 
 
@@ -405,7 +406,7 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
                 problem('/retry_capture_id/repeated','frozen MDM capture','Repeated retry identity/evidence policy differs')
             try:
                 verify_replay(repeated.run,repeated.run.production_manifest.get('lineage'),report_disposition)
-                read_outputs(repeated.run)  # Verify only; never restore Pick files.
+                read_outputs(repeated.run,include_reports=False)  # Verify only; never restore Pick files.
             except (ValueError,KeyError,TypeError) as error:
                 problem('/retry_capture_id/repeated/output','frozen MDM capture',error)
             return

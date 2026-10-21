@@ -207,7 +207,7 @@ def diagnostics(attempt, error):
 
 
 def unresolved_attempts(owner):
-    """A retained failure is resolved only by its own published retry owner."""
+    """A failed day needs its own retry; v3 report readiness is not day admission."""
     from django.db.models import Exists, OuterRef, Q
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.captured_input import SECOND
@@ -320,7 +320,7 @@ def unresolved_attempts(owner):
         run__csv_attempt__initialization=owner,run__csv_attempt__status='PUBLISHED')
     return DailyFeedAttempt.objects.filter(initialization=owner).exclude(
         status__in=('PUBLISHED','REJECTED')).annotate(_resolved=Exists(completed)).exclude(
-        status='FAILED',_resolved=True)
+        status='FAILED',_resolved=True).exclude(run__status='SUCCEEDED',run__production_manifest__version=3)
 
 
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):

@@ -204,6 +204,18 @@ class ProductionPreflightTests(unittest.TestCase):
                 self.assertFalse(report['stage_eligibility']['day'])
                 self.assertTrue(any(q['path'].startswith('/predecessor/closing_state') for q in report['issues']))
 
+    def test_v3_successor_excludes_only_derived_btr_requirements(self):
+        from mta.domain.btr_finalization import DERIVED_TABLES
+        closing=copy.deepcopy(context()['opening']['state'])
+        for name in DERIVED_TABLES:closing['btr'].pop(name,None)
+        collector=pf.Requirements('day');pf.closing_shape(collector,closing,output_version=3)
+        self.assertEqual(collector.issues,[])
+        collector=pf.Requirements('day');pf.closing_shape(collector,closing)
+        self.assertEqual({q['path'].rsplit('/',1)[1] for q in collector.issues},DERIVED_TABLES)
+        closing['btr'].pop('BPR')
+        collector=pf.Requirements('day');pf.closing_shape(collector,closing,output_version=3)
+        self.assertIn('/predecessor/closing_state/btr/BPR',{q['path'] for q in collector.issues})
+
     def test_successor_expedite_age_projection_has_exact_typed_producer_roster(self):
         closing=copy.deepcopy(context()['opening']['state'])
         age=dict(SKUCode='SUPPLIED-Z9',WhCode='OWN-WH8',BRAge=None,BRAgeRedCount=2,BRAgeBlackCount=0)
@@ -286,7 +298,7 @@ class ProductionPreflightTests(unittest.TestCase):
             inspect_retry(raw,sha,owner,frame,None,None,frozen,'new',relative,lambda *args:problems.append(args))
             self.assertEqual(captures.select_related.return_value.filter.call_args.kwargs['request_digest'],absolute_request)
             self.assertEqual(read.call_count,2)
-            read.assert_called_with(repeated.run)
+            read.assert_called_with(repeated.run,include_reports=False)
             captures.filter.assert_not_called();write.assert_not_called()
         self.assertEqual(problems,[])
 
@@ -297,7 +309,7 @@ class ProductionPreflightTests(unittest.TestCase):
         owner=SimpleNamespace(pk=INIT,source=SimpleNamespace(digest=SOURCE),input_sha256=sha,
             input_digest=OUTPUT,configuration_digest=digest(frame['profile']))
         parent=SimpleNamespace(pk=INIT,business_date=date(2037,4,10),kind='DAILY_CHAIN',status='SUCCEEDED',
-            output_digest=OUTPUT,mdm_input_capture=SimpleNamespace(source=owner.source,status='CONSUMED'))
+            output_digest=OUTPUT,production_manifest={'version':2},mdm_input_capture=SimpleNamespace(source=owner.source,status='CONSUMED'))
         binding=dict(id=INIT,source_digest=SOURCE,input_sha256=sha,content_digest=OUTPUT,
             configuration_digest=owner.configuration_digest)
         def inputs(run,components):
@@ -347,7 +359,7 @@ class ProductionPreflightTests(unittest.TestCase):
                     kw['source'] is owner.source and kw['request_digest']==expected and
                     kw['run__execution_revision']=='completed' else None)
                 self.assertTrue(inspect_completed_request(*args))
-                outputs.assert_called_once_with(run);files.assert_not_called()
+                outputs.assert_called_once_with(run,include_reports=False);files.assert_not_called()
                 self.assertFalse(inspect_completed_request(*args[:6],'different',root))
                 changed=day_input('2037-04-10',root=True);changed['day']['raw_daily'][0]['Stock']+=1
                 other,other_sha=encoded_day(changed)

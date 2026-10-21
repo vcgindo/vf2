@@ -6,10 +6,18 @@ BOUNDARIES=('controls','final-bpr-bluezone','dbm-imported','final-suspensions',
 OPERATIONAL_ROSTER=('BPRReports','BTRFinal','ClosingState','DBMFinal','Lineage','PublicationContext','Reports')
 
 
+OPERATIONAL_ROSTER_V3=('ClosingState','Lineage','PublicationContext','ReportSourceFacts')
+
+
+def operational_roster(run):
+    return OPERATIONAL_ROSTER_V3 if run.production_manifest.get('version')==3 else OPERATIONAL_ROSTER
+
+
 def output_root(run):
-    return digest(dict(schema='fresh-operational-output-v2',input_digest=run.input_digest,
-        input_manifest_digest=run.input_manifest_digest,
-        production_digest=run.production_digest,roster=list(OPERATIONAL_ROSTER),
+    version=run.production_manifest.get('version')
+    return digest(dict(schema='fresh-operational-output-v3' if version==3 else 'fresh-operational-output-v2',
+        input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest,
+        production_digest=run.production_digest,roster=list(operational_roster(run)),
         boundaries=list(BOUNDARIES)))
 
 
@@ -19,7 +27,7 @@ def verify_root(run):
             or digest(run.input_payload)!=run.input_manifest_digest):
         raise ValueError('Typed daily input receipt drift')
     if (digest(run.production_manifest)!=run.production_digest
-            or run.output_roster!=list(OPERATIONAL_ROSTER) or output_root(run)!=run.output_digest):
+            or run.output_roster!=list(operational_roster(run)) or output_root(run)!=run.output_digest):
         raise ValueError('Operational manifest/roster/root drift')
     if run.production_manifest.get('sources')!=source_receipts(run):
         raise ValueError('Required daily source receipt drift')
@@ -35,8 +43,11 @@ def source_receipts(run):
         ExpediteProjection, PickPostProjection, DailySourceReceipt)
     from mta.runtime.offline_rrr_models import OfflineRrrColourSource
     result={}
-    for model in (PickProjection,ExcessProjection,FulfillmentProjection,ExpediteProjection,
-                  PickPostProjection,DailySourceReceipt,OfflineRrrColourSource):
+    models=((PickProjection,DailySourceReceipt,OfflineRrrColourSource)
+            if run.production_manifest.get('version')==3 else
+            (PickProjection,ExcessProjection,FulfillmentProjection,ExpediteProjection,
+             PickPostProjection,DailySourceReceipt,OfflineRrrColourSource))
+    for model in models:
         fields=[f.attname for f in model._meta.fields
                 if f.name not in ('id','run','created_at')]
         result[model.__name__]=list(model.objects.filter(run=run).values(*fields))

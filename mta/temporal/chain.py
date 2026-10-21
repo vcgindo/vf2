@@ -49,7 +49,7 @@ def connected_dbm_stages(today, state, facts, delivery, report_exceptions=None):
     from mta.application.native_output_contracts import validate_dbm_writer,producing_native
     stages=selected_stages(today, state, facts,
         None if delivery is None else delivery['batch'], report_exceptions,
-        _owned=True,
+        _owned=True, _defer_exports=producing_native(),
         conditional_settings=None if delivery is None else
             delivery.get('conditional_dbm', {}).get('importer_vf_settings'))
     for name,current in stages:
@@ -66,7 +66,8 @@ def connected_btr_stages(today, prior, facts, delivery, *, bpr_daily, supplier_d
              'BPRDailyConsumption':bpr_daily,'SupplierDispatchReq':supplier_dispatch_req}
     from mta.application.native_output_contracts import CurrentGenerations,BTR_CURRENT,validate_rows,producing_native
     generations=CurrentGenerations(BTR_CURRENT,'BTR',prior)
-    for name,produced in btr_stages(today,prior,current,settings,importer_vf_settings=owner,_owned=True):
+    for name,produced in btr_stages(today,prior,current,settings,importer_vf_settings=owner,_owned=True,
+            _reporting=not producing_native()):
         if producing_native():generations.validate(produced,'btr/'+name)
         if producing_native() and name=='UpdateBRAge.sql':
             validate_rows(produced['ExpediteDispatches'],'BPR/ExpediteDispatches',
@@ -90,7 +91,13 @@ def retain_dbm_stages(selected,completed_boundaries):
         if boundary:completed_boundaries.append(boundary)
         if name in required_reports:
             selected_tables = (PHASE_POPULATION,) if name in PHASE_STAGES else tables
-            stages.append((name,{n:deepcopy(current[n]) for n in selected_tables if n in current}))
+            captured={n:deepcopy(current[n]) for n in selected_tables if n in current}
+            if current.get('_DeferredExport') and (name in ('norm-change-export','norm-change-history') or name.startswith(('norm0-','norm1-','norm2-')) and name.endswith('-export')):
+                from mta.domain.deferred_dbm_exports import SOURCES
+                marker=current['_DeferredExport']
+                captured['_DeferredExport']=deepcopy(marker)
+                captured['_ReportSourceFacts']={n:deepcopy(current[n]) for n in SOURCES[marker['kind']]}
+            stages.append((name,captured))
     if last is None:raise ValueError('Connected DBM stages required')
     stages.append(last)
     return stages
@@ -106,7 +113,10 @@ def dbm_report_images(stages):
             tables=('ReportHeader','ReportRows','Norm0Norm1Norm2Report','Norm0_1_2ReportDetails','Norm1IncreaseSuggestions')
         else:
             continue
-        reports.append({'stage':name,'tables':{n:deepcopy(value[n]) for n in tables if n in value}})
+        report={'stage':name,'tables':{n:deepcopy(value[n]) for n in tables if n in value}}
+        if value.get('_DeferredExport'):
+            report.update(deferred=deepcopy(value['_DeferredExport']),sources=value['_ReportSourceFacts'])
+        reports.append(report)
     return reports
 
 CAPABILITY='r2_calculation_timeline'
@@ -667,6 +677,7 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                 qualification=daily_finalization.qualification(finalization['policy']),
                 flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
     if native_daily:
+        result['_ReportBoundary']='fresh-operational-report-boundary-v3'
         from mta.application.persistent_master import qualify, CONTRACT
         result['_MasterPreparation'] = dict(contract=CONTRACT,
             qualified=(True if entry['reused'] else qualify(master,profile,day,result['ClosingState'][0],snapshot=master_snapshot)),

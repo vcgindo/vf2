@@ -105,22 +105,33 @@ def _write_partition(source, model, partition, expected, path):
     return {'updated': updated, 'inserted': inserted, 'deleted': deleted}
 
 
-def closing_owners(closing, *, version=None):
-    """Reuse the exact installation projection, including its BPR copy source."""
+def _closing_projection(closing, *, version=None):
+    """Prepare one private generation for writes and its receipt identity."""
     batches = owner_batches(closing)
+    proof = None
     if version is not None:
         from mta.mdm.location_projection import additional_owners, VERSION
         if version != VERSION:
             raise ValueError('Unsupported closing projection version')
-        batches += additional_owners(closing)[0]
-    return batches
+        additional, proof = additional_owners(closing)
+        batches += additional
+    return batches, proof
 
 
-def identity(closing, *, version=None):
+def closing_owners(closing, *, version=None):
+    """Reuse the exact installation projection, including its BPR copy source."""
+    return _closing_projection(closing, version=version)[0]
+
+
+def _partition_identity(batches):
     return [dict(family=family, model=model.__name__, **partition,
                  fields=[f.name for f in business_fields(model)],
                  rows=len(rows), digest=digest(storage(rows)))
-            for family, model, partition, rows, _path in closing_owners(closing, version=version)]
+            for family, model, partition, rows, _path in batches]
+
+
+def identity(closing, *, version=None):
+    return _partition_identity(closing_owners(closing, version=version))
 
 
 def verify_current(source, closing, *, version=None):
@@ -163,14 +174,14 @@ def publish(run, capture, closing):
     receipt = None
     if native:
         from mta.mdm.location_transition import run_identity, admit, capture_identity
-        from mta.mdm.location_projection import VERSION, additional_owners
+        from mta.mdm.location_projection import VERSION
         from mta.runtime.mdm_projection_models import MdmClosingProjectionReceipt
         code_identity = run_identity(run, source)
         if code_identity['version'] != VERSION:
             raise ValueError('New native publication requires the corrected projection')
         admit(source, run.business_date, run.predecessor)
         version = VERSION
-    batches = closing_owners(closing, version=version)
+    batches, proof = _closing_projection(closing, version=version)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_current_run',%s,true)", [str(run.pk)])
     try:
@@ -180,8 +191,7 @@ def publish(run, capture, closing):
         for _family, model, partition, rows, path in batches:
             _write_partition(source, model, partition, rows, path)
         if receipt is not None:
-            proof = additional_owners(closing)[1]
-            receipt.metadata = dict(version=VERSION, partitions=identity(closing, version=version),
+            receipt.metadata = dict(version=VERSION, partitions=_partition_identity(batches),
                 sources=proof['sources'])
             receipt.digest = digest(receipt.metadata)
             receipt.status = 'SEALED'
@@ -227,7 +237,7 @@ def verify_published(run, source):
     if visited != set(by_id):
         raise ValueError('Active current owner chain is disconnected')
     leaf = by_id[leaf_id].run
-    closing = read_outputs(leaf)['ClosingState'][0]
+    closing = (read_outputs(leaf,include_reports=False) if leaf.production_manifest.get('version')==3 else read_outputs(leaf))['ClosingState'][0]
     def projection_version(item):
         if not native:
             return None
@@ -237,5 +247,5 @@ def verify_published(run, source):
     verify_current(source, closing, version=projection_version(leaf))
     # Never return the changing leaf identity as part of an old receipt.
     if leaf.pk != run.pk:
-        closing = read_outputs(run)['ClosingState'][0]
+        closing = (read_outputs(run,include_reports=False) if run.production_manifest.get('version')==3 else read_outputs(run))['ClosingState'][0]
     return identity(closing, version=projection_version(run))

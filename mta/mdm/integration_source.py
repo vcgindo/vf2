@@ -157,7 +157,7 @@ def accepted_closing(source, run, family_ids):
             or snapshot.get('source_digest') != source.digest
             or snapshot.get('revision_digest') != anchor.revision_digest):
         raise ValueError('Family binding accepted input belongs to a different source')
-    closing = read_outputs(run)['ClosingState'][0]
+    closing = read_outputs(run,include_reports=False)['ClosingState'][0]
     provenance = dict(schema=DAILY_OWNER_SCHEMA, source_digest=source.digest,
         artifact_sha256=source.receipt['artifact_sha256'], dll_sha256=source.dll_digest,
         run_id=str(run.pk), output_digest=run.output_digest,

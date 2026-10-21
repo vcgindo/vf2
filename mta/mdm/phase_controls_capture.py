@@ -72,8 +72,8 @@ def finalize(run, snapshot, output):
             or owner.closing_queue_digest != anchor['queue_digest']
             or owner.generation < anchor['generation']):
         raise ValueError('Phase controls closing owner changed during execution')
-    closing = storage(output['ClosingState'][0]['control_aux'])
-    remaining = {name: closing[name] for name in FIELDS}
+    closing = output['ClosingState'][0]['control_aux']
+    remaining = {name: storage(closing[name]) for name in FIELDS}
     for name, model in QUEUES.items():
         if any(set(r) != set(FIELDS[name]) for r in remaining[name]):
             raise ValueError('Phase controls closing fields differ')

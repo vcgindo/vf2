@@ -70,7 +70,7 @@ def identity(run, *, verify_rows=False):
         from mta.mdm.production_families import require_initialization
         from mta.runtime.services import read_outputs
         require_initialization(owner.source)
-        read_outputs(run)
+        read_outputs(run,include_reports=False)
         for path in source.images:
             daily_sources.image_rows(run, path)
     return dict(initialization=binding, run_id=str(run.pk),

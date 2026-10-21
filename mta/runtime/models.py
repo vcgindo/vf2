@@ -1312,3 +1312,5 @@ from mta.runtime.mdm_projection_models import MdmClosingProjectionReceipt
 from mta.runtime.native_audit_models import (NativeUploadAudit, NativeAuditAdd,
     NativeAuditModify, NativeAuditRemove, NativeAuditLocation, NativeAuditSku,
     NativeAuditSob, NativeAuditMoq, NativeAuditForce)
+
+from mta.runtime.report_generation_models import DailyReportGeneration, DailyReportOrderRouteSource

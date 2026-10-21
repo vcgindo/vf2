@@ -81,7 +81,7 @@ def upload_inputs(owner):
     if (source['profile'].get('force_flags', {}).get('nms_active') is not False
             or source['day'].get('new_force_requests') != []):
         raise ValueError('Populated/enabled upload-log producer requires its own supported binding')
-    closing = read_outputs(owner.run)['ClosingState'][0]
+    closing = read_outputs(owner.run,include_reports=False)['ClosingState'][0]
     if closing.get('controls', {}).get('upload_log') != []:
         raise ValueError('Missing or populated current upload-log producer is unsupported')
     config = configuration_value(owner.configuration)

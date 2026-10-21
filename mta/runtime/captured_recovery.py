@@ -195,7 +195,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             prior = deepcopy(initial['state'])
             opening_date = initial['opening_date']
         else:
-            previous = read_outputs(parent)
+            previous = read_outputs(parent,include_reports=False)
             prior = deepcopy(previous['ClosingState'][0]); del previous
             from mta.runtime.temporal import command_states
             prior,_ = command_states(parent,prior,through_date=old.business_date)

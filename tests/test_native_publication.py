@@ -113,7 +113,7 @@ class NativeBindingTests(unittest.TestCase):
                 patch('mta.runtime.services.read_outputs') as outputs:
             native.identity(self.run, verify_rows=True)
         check.assert_called_once_with(self.owner.source)
-        outputs.assert_called_once_with(self.run)
+        outputs.assert_called_once_with(self.run,include_reports=False)
 
     def test_wrong_initialization_and_nonconsecutive_date_deny(self):
         self.input['initialization_binding'] = self.binding | {'id':str(uuid4())}

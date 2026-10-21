@@ -85,7 +85,7 @@ def replay_completed(existing, *, complete_pick=False, pick_output_root=None, re
     """Verify a completed run before restoring derived files; never calculate."""
     from mta.application.native_report_disposition import verify_replay
     verify_replay(existing, existing.production_manifest.get('lineage'), report_disposition)
-    output = read_outputs(existing)
+    output = read_outputs(existing,include_reports=False)
     if complete_pick:
         from mta.application.complete_daily_batch_files import write_run_pick_files
         write_run_pick_files(existing.pk, output['ClosingState'][0]['complete'], pick_output_root)
@@ -149,7 +149,7 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     payload=storage(dict(operation=operation,selected=selected,timestamp=timestamp,actor=actor))
     parent=CalculationRun.objects.select_for_update().get(pk=run.pk)
     if parent.kind!=KIND:raise ValueError('Commands require a daily-chain run')
-    output=read_outputs(parent)
+    output=read_outputs(parent,include_reports=False)
     from mta.domain.elephant_orders import ACTION, apply_due_dates
     closing,_=command_states(parent,output['ClosingState'][0])
     domain = 'orders' if operation == ACTION else 'dbm'
@@ -354,7 +354,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if finalization['policy'] == ACTIVE_POLICY and not native:
                     from mta.presentation.operational_admission import verify
                     verify(parent, selected=False)
-            previous=read_outputs(parent)
+            previous=read_outputs(parent,include_reports=False)
             if finalization is not None:
                 from mta.application.daily_finalization import verify_successor
                 verify_successor(previous, parent_profile, parent.business_date.isoformat())

@@ -66,7 +66,7 @@ def register_configuration(*, source_digest, bindings, settings, tables, alerts)
 
 
 def _identity(run):
-    output = read_outputs(run)
+    output = read_outputs(run,include_reports=False)
     _, actions = command_state(run, output['DBMFinal'][0])
     return dict(output_digest=run.output_digest, action_digest=digest(actions),
                 source_digest=digest(dict(input=run.input_digest, output=run.output_digest,

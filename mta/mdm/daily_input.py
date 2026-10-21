@@ -20,6 +20,7 @@ from mta.runtime.mdm_models import (MdmLocationApproved, MdmLocationAttributes,
 from mta.runtime.mdm_skuloc_models import (MdmSkuLocAddApproved,
     MdmSkuLocHistory, MdmSkuLocModifyApproved, MdmSkuLocPair,
     MdmSkuLocRemoveApproved)
+from mta.application.stage_observation import stage
 from mta.serialization import digest, storage
 from mta.runtime.mdm_supplier_models import (MdmSobHistory, MdmMoqHistory,
                                             MdmSobRequested, MdmMoqRequested)
@@ -873,15 +874,20 @@ def finalize_consumption(run, *, output=None):
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
     from mta.mdm.supplier_capture import finalize as finalize_supplier
-    finalize_supplier(run, snapshot, output)
+    with stage('persistence_consume_supplier'):
+        finalize_supplier(run, snapshot, output)
     from mta.mdm.force_capture import finalize as finalize_force
-    finalize_force(run, snapshot, output)
+    with stage('persistence_consume_force'):
+        finalize_force(run, snapshot, output)
     from mta.mdm.season_capture import finalize as finalize_season
-    finalize_season(run, snapshot, output)
+    with stage('persistence_consume_season'):
+        finalize_season(run, snapshot, output)
     from mta.mdm.stop_pipo_capture import finalize as finalize_stop
-    finalize_stop(run, snapshot, output)
+    with stage('persistence_consume_stop'):
+        finalize_stop(run, snapshot, output)
     from mta.mdm.phase_controls_capture import finalize as finalize_phase
-    finalize_phase(run, snapshot, output)
+    with stage('persistence_consume_phase'):
+        finalize_phase(run, snapshot, output)
     now = database_now()
     run_timestamp = datetime.fromisoformat(snapshot['configuration']['run_timestamp'])
     archive_models = None

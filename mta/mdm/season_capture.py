@@ -85,9 +85,11 @@ def finalize(run, snapshot, output):
             or owner.closing_current_digest != a['current_digest']
             or owner.generation < a['generation']):
         raise ValueError('Seasonality closing owner changed before publication')
-    closing = storage(output['ClosingState'][0])
-    queue = closing['control_aux']['season_requests']
-    current = closing['dbm']['Seasonality']
+    # Only these two owned populations participate in seasonal publication.
+    # Converting the entire closing graph duplicates unrelated daily/history rows.
+    closing = output['ClosingState'][0]
+    queue = storage(closing['control_aux']['season_requests'])
+    current = storage(closing['dbm']['Seasonality'])
     if any(set(r) != set(REQUEST_FIELDS) for r in queue) or any(set(r) != set(SEASON_FIELDS) for r in current):
         raise ValueError('Seasonality terminal field roster differs')
     live = {r.pk: r for r in MdmSeasonQueue.objects.select_for_update().filter(source=owner.source)}

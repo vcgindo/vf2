@@ -49,8 +49,12 @@ def is_revision_guard(function):
         'UPDATE mta.fresh_mta_ingestionrevisionstate SET')
     body = body.replace("WHERE status='CERTIFIED';", "WHERE initialization_id IN "
         "(SELECT initialization_id FROM mta.fresh_mta_initializationcertification WHERE status='CERTIFIED');")
+    revised=import_module('mta.runtime.migrations.0157_report_revision_ownership').current_body()
+    references=import_module('mta.runtime.migrations.0159_report_reference_ownership').current_body()
+    consumers=import_module('mta.runtime.migrations.0160_report_consumer_source_ownership').current_body()
+    trends=import_module('mta.runtime.migrations.0162_derived_trend_ownership').current_body()
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] == body and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
 
 

@@ -208,13 +208,17 @@ def clear_stage(state):
 
 
 def norm012_stages(today, state, norm, horizon, occurrence_order_exclusions=(),
-                   exclude_all_occurrence_order=False):
+                   exclude_all_occurrence_order=False, *, _defer_export=False):
     current = data_stage(today, state, norm, horizon, occurrence_order_exclusions,
                          exclude_all_occurrence_order)
     yield 'data', current
     current = detail_stage(current)
     yield 'detail', current
-    current = export_stage(current)
+    if _defer_export:
+        from mta.domain.deferred_dbm_exports import defer
+        current = defer(today,current,'norm012')
+    else:
+        current = export_stage(current)
     yield 'export', current
     current = clear_stage(current)
     yield 'clear', current

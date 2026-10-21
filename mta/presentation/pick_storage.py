@@ -46,7 +46,7 @@ def read_pick_bands(run):
     receipt = PickProjection.objects.get(run=run)
     if receipt.version != 1:
         raise ValueError('Unsupported Pick projection version')
-    if run.production_manifest.get('version') == 2:
+    if run.production_manifest.get('version') in (2,3):
         from mta.runtime.receipt_integrity import verify_root
         verify_root(run)
     else:

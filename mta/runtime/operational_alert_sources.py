@@ -60,7 +60,7 @@ def read_alert_inputs(owner):
             or type(flags.get('ignore_master_norm')) is not bool
             or (not flags['ignore_master_norm']) is not alert_config['fnc_match_master_norm']):
         raise ValueError('Force-alert setting differs from its calculated owner')
-    output = read_outputs(owner.run)
+    output = read_outputs(owner.run,include_reports=False)
     closing = output['ClosingState'][0]
     complete = closing.get('complete')
     critical = _rows(complete, 'CriticalFiles')

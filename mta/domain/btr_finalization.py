@@ -254,7 +254,7 @@ def _pivot(bpr, today, value_field):
     }
 
 
-def _generate_trends(today, state, facts, *, _owned=False):
+def _generate_trends(today, state, facts, *, _owned=False, _operational=False):
     result = _stage_copy(state, _owned=_owned)
     result["BufferTrendDates"] = [{f"D{i + 1}": (today - timedelta(days=89 - i)).isoformat() for i in range(90)}]
     norms = _latest_norms(result["BPR"], facts["DBMMaster"])
@@ -266,6 +266,8 @@ def _generate_trends(today, state, facts, *, _owned=False):
         ("BufferTrendPhysicalInv", "PhysicalInventoryColor", True),
     )
     for table, field, include_virtual in specs:
+        if _operational and table not in ('BufferTrendDispatch','BufferTrendPhysicalInv'):
+            continue
         rows = []
         for key, values in sorted((key,values) for key,values in _pivot(result["BPR"], today, field).items() if key in norms):
             norm, virtual, parent = norms[key]
@@ -285,6 +287,8 @@ def _generate_trends(today, state, facts, *, _owned=False):
             rows.append(row)
         result[table] = rows
 
+    if _operational:
+        return result
     latest_counts = defaultdict(int)
     latest_days = {}
     for row in result["BPR"]:
@@ -349,7 +353,7 @@ def _availability(state, *, _owned=False):
     return result
 
 
-def _colour_age(today, state, enabled, tolerance, *, _owned=False):
+def _colour_age(today, state, enabled, tolerance, *, _owned=False, _operational=False):
     result = _stage_copy(state, ('BufferTrendReport', 'BufferTrendReportEcon',
         'BufferTrendDispatch', 'BufferTrendPhysicalInv') if enabled else (), _owned=_owned)
     if not enabled:
@@ -385,6 +389,8 @@ def _colour_age(today, state, enabled, tolerance, *, _owned=False):
         ("BufferTrendDispatch", 2, False), ("BufferTrendPhysicalInv", 3, False),
     )
     for table, colour_index, initialize_90 in mapping:
+        if _operational and table not in ('BufferTrendDispatch','BufferTrendPhysicalInv'):
+            continue
         for row in result[table]:
             values = normalized[_key(row)]
             today_colour = values[-1][colour_index]
@@ -407,7 +413,7 @@ def _xml_rows(rows):
     return "".join(fragments)
 
 
-def _snapshot(state, *, _owned=False):
+def _snapshot(state, *, _owned=False, _include_xml=True):
     result = _stage_copy(state, _owned=_owned)
     indexes = {table: defaultdict(list) for table in (
         "BufferTrendReportEcon", "BufferTrendDispatch", "BufferTrendPhysicalInv",
@@ -432,7 +438,8 @@ def _snapshot(state, *, _owned=False):
                               ("BPPDispatch", "BPPTrendDispatch"), ("BPPPhysicalInv", "BPPTrendPhysicalInv"),
                               ("ColorsTech", "BufferTrendReport"), ("ColorsEcon", "BufferTrendReportEcon"),
                               ("ColorsDispatch", "BufferTrendDispatch"), ("ColorsPhysicalInv", "BufferTrendPhysicalInv")):
-            row[target] = _xml_rows(indexes[table][key])
+            if _include_xml:
+                row[target] = _xml_rows(indexes[table][key])
         snapshots.append(row)
     result["BTRSnapshotForUI"] = snapshots
     return result
@@ -613,7 +620,46 @@ def _categories(today, state, facts, selected, *, _owned=False):
     return result
 
 
-def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None, _owned=False):
+TREND_TABLES = frozenset(('BufferTrendReport','BufferTrendReportEcon',
+    'BufferTrendDispatch','BufferTrendPhysicalInv','BPPTrendTech','BPPTrendEcon',
+    'BPPTrendDispatch','BPPTrendPhysicalInv'))
+DERIVED_TABLES = TREND_TABLES | frozenset(('BTRSnapshotForUI', 'BufferTrendGraph',
+    'ChronicUnavalabilityData', 'DBMNormSuggestionsData'))
+
+
+def _category_snapshot(state):
+    """Only dispatch/physical scalar ages enter the category business writer."""
+    physical={_key(row):row for row in state['BufferTrendPhysicalInv']}
+    snapshots=[]
+    for row in state['BufferTrendDispatch']:
+        other=physical.get(_key(row))
+        snapshots.append(dict(SKUCode=row['SKUCode'],WhCode=row['WhCode'],
+            TodayColorDispatch=row['D90'],AgeDispatch=row['Age'] or 0,
+            TodayColorPhysicalInv=other['D90'] if other else None,
+            AgePhysicalInv=(other['Age'] or 0) if other else 0))
+    return {**state,'BTRSnapshotForUI':snapshots}
+
+
+def reporting_btr(today, state, facts, settings, *, importer_vf_settings=None):
+    """Rebuild only derived analytics from one committed operational generation.
+
+    Categories, ages, required histories and source facts are already committed;
+    this path neither recalculates them nor consumes daily inputs.
+    """
+    selected = _selected_settings(settings, importer_vf_settings)
+    current = _generate_trends(_day(today),state,facts,_owned=True)
+    current = _update_br_age(current,facts,'BufferTrendDispatch',selected['br_tolerance'],_owned=True)
+    current = _update_br_age(current,facts,'BufferTrendPhysicalInv',selected['br_tolerance'],_owned=True)
+    current = _availability(current,_owned=True)
+    current = _colour_age(_day(today),current,selected['generate_age'],selected['age_tolerance'],_owned=True)
+    current = _snapshot(current, _owned=True)
+    current = _count_graph(current, _owned=True)
+    current = _chronic(current, facts, _owned=True)
+    current = _norm_suggestions(_day(today), current, facts, selected, _owned=True)
+    return {name: current[name] for name in DERIVED_TABLES}
+
+
+def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None, _owned=False, _reporting=True):
     """Yield each selected legacy source boundary and its complete BTR state."""
     today = _day(today)
     _require_rows(prior, PRIOR_TABLES, "prior")
@@ -624,18 +670,18 @@ def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None, _own
     for row in facts["BPR_Table"]:
         _key(row)
 
-    current = prior
+    current = prior if _reporting else {name: rows for name, rows in prior.items() if name not in DERIVED_TABLES}
     if selected['capture_history']:
         from mta.domain.btr_rationing_history import collect, POPULATION, STAGE
         if POPULATION not in prior or facts.get('LastBatchRunTbl') != [{'LastRunDate':today.isoformat()+'T00:00:00'}]:
             raise ValueError('BTR capture requires its own history and singleton current date owner')
-        current = {**_stage_copy(prior, _owned=_owned), POPULATION:collect(today,prior[POPULATION],
+        current = {**_stage_copy(current, _owned=_owned), POPULATION:collect(today,prior[POPULATION],
             facts['vf_RationedReqReport'],facts.get('BPRDailyConsumption'),facts.get('SupplierDispatchReq'),
             settings['RationingHistoryHorizonBTR'])}
         yield STAGE, current
     current = _import_bpr(today, current, facts, _owned=_owned)
     yield "1. Import BPR.sql", current
-    current = _generate_trends(today, current, facts, _owned=_owned)
+    current = _generate_trends(today, current, facts, _owned=_owned, _operational=not _reporting)
     yield "2. GenerateBufferTrend.sql", current
     current = _update_br_age(current, facts, "BufferTrendDispatch", selected["br_tolerance"], True, _owned=_owned)
     yield "UpdateBRAge.sql", current
@@ -643,17 +689,20 @@ def btr_stages(today, prior, facts, settings, *, importer_vf_settings=None, _own
     yield "UpdateBRAgePhysicalInv.sql", current
     current = _availability(current, _owned=_owned)
     yield "CalculateAvailabilityPhysicalInv.sql", current
-    current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"], _owned=_owned)
+    current = _colour_age(today, current, selected["generate_age"], selected["age_tolerance"], _owned=_owned, _operational=not _reporting)
     yield "GenerateColorAgeingReport.sql", current
-    current = _snapshot(current, _owned=_owned)
-    yield "3. GenerateSnapshotForUI.sql", current
-    current = _count_graph(current, _owned=_owned)
-    yield "BufferTrendCountGraph.sql", current
-    current = _chronic(current, facts, _owned=_owned)
-    yield "CollectChronicUnavailabilityData.sql", current
-    current = _norm_suggestions(today, current, facts, selected, _owned=_owned)
-    yield "CollectDBMNormSuggestionsData.sql", current
+    current = _snapshot(current, _owned=_owned) if _reporting else _category_snapshot(current)
+    if _reporting:
+        yield "3. GenerateSnapshotForUI.sql", current
+        current = _count_graph(current, _owned=_owned)
+        yield "BufferTrendCountGraph.sql", current
+        current = _chronic(current, facts, _owned=_owned)
+        yield "CollectChronicUnavailabilityData.sql", current
+        current = _norm_suggestions(today, current, facts, selected, _owned=_owned)
+        yield "CollectDBMNormSuggestionsData.sql", current
     current = _categories(today, current, facts, selected, _owned=_owned)
+    if not _reporting:
+        current = {name: rows for name, rows in current.items() if name not in DERIVED_TABLES}
     yield "UpdateCategoryCol.sql", current
 
 

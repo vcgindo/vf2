@@ -51,6 +51,9 @@ def source_identity(run):
     if native_publication.enabled():
         native_publication.require_mode()
         value['native_publication'] = native_publication.identity(run)
+    if run.production_manifest.get('version')==3:
+        from mta.presentation.operational_reports import generation
+        value['derived_report_generation']=generation(run).digest
     return digest(value)
 
 
@@ -183,6 +186,8 @@ def prepare_reporting_generation(run_id, *, expected_output_digest):
     The old coordinator recipe hashes prepare(), not this supplemental step.
     A failed summary leaves the base receipt/selection unchanged and is not READY.
     """
+    from mta.presentation.operational_reports import prepare as prepare_sources
+    prepare_sources(run_id,expected_output_digest=expected_output_digest)
     publication = prepare(run_id, expected_output_digest=expected_output_digest)
     if publication.status != 'READY':
         raise PublicationUnavailable('planning_summary_requires_ready_report_layers')

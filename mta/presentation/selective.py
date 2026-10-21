@@ -13,6 +13,9 @@ def image_metadata(run, path):
         from mta.presentation.daily_sources import image_metadata as daily_metadata
         return daily_metadata(run, path)
     item = run.production_manifest.get('images', {}).get(path)
+    if item is None and run.production_manifest.get('version')==3:
+        from mta.presentation.operational_reports import image_metadata as derived_metadata
+        item=derived_metadata(run,path)
     tables = CATALOG['tables']
     if path == 'closing/dbm/PhaseOutRecommendation':
         from mta.runtime.dbm_phase_storage import TABLES, BINDINGS

@@ -17,6 +17,7 @@ from itertools import islice
 from django.db import connection
 from mta.serialization import digest, storage, rows_digest, canonical_parts
 from mta.row_sequences import RecordRows
+from mta.application.stage_observation import stage, summary
 
 CATALOG=json.loads((Path(__file__).resolve().parents[2]/'mta/config/production_state_schema_v1.json').read_text())
 if digest(CATALOG)!='84f01ea82866a3898dd134eafac32bca4e35daa193aca9d55da4716074b1e512':
@@ -93,10 +94,13 @@ def wire_value(value,kind):
 
 
 def bulk(sql,records):
+    count=batches=0
     with connection.cursor() as cursor:
         iterator=iter(records)
         while batch:=list(islice(iterator,500)):
             cursor.executemany(sql,batch)
+            count+=len(batch);batches+=1
+    summary('typed_transport',rows=count,batches=batches)
 
 
 def describe_rows(rows, columns, image):
@@ -107,11 +111,11 @@ def describe_rows(rows, columns, image):
         if field.casefold() not in columns:
             raise ValueError('Unmapped operational column '+image+'/'+field)
         native.append(columns[field.casefold()])
-    checksum=hashlib.sha256(b'[');count=0
+    checksum=hashlib.sha256(b'[');count=0;canonical_bytes=2
     for row in rows:
         if set(row)!=set(fields):raise ValueError('Mixed operational row shape: '+image)
-        if count:checksum.update(b',')
-        for part in canonical_parts(row):checksum.update(part)
+        if count:checksum.update(b',');canonical_bytes+=1
+        for part in canonical_parts(row):checksum.update(part);canonical_bytes+=len(part)
         for field in fields:
             if row[field] is not None:kinds[field].add(wire_type(row[field]))
             if len(kinds[field])>1:raise ValueError('Mixed wire types in operational column '+image+'/'+field)
@@ -120,6 +124,7 @@ def describe_rows(rows, columns, image):
     if count!=len(rows):raise ValueError('Operational source population drift')
     metadata=dict(image=image,count=count,digest=checksum.hexdigest(),fields=[
         [field,name,next(iter(kinds[field]),'str')] for field,(name,_) in zip(fields,native)])
+    summary('typed_image_shape',image=image,rows=count,columns=len(fields),canonical_bytes=canonical_bytes)
     return metadata,fields,native
 
 
@@ -139,13 +144,26 @@ def save_image(run,image,binding,rows, *, table=None):
         from mta.domain.elephant_orders import validate as validate_elephants
         validate_elephants(list(rows))
     columns={name.casefold():(name,kind) for name,kind in STORAGE_TABLES[key]}
-    metadata,fields,native=describe_rows(rows,columns,image)
+    with stage('typed_image_describe',image=image,rows=len(rows)):
+        metadata,fields,native=describe_rows(rows,columns,image)
     metadata['table']=key
     if not rows:return metadata
     query='INSERT INTO '+table_sql(key)+' (vf_run_id,vf_image,vf_ordinal,'+','.join(quote(n) for n,_ in native)+') VALUES ('+','.join(['%s']*(len(native)+3))+')'
     records=((run.pk,image,index,*[db_value(row[field],kind) for field,(_,kind) in zip(fields,native)])
              for index,row in enumerate(rows))
-    bulk(query,records)
+    with stage('typed_image_insert',image=image,rows=len(rows)):
+        if connection.vendor=='postgresql' and len(rows)>=500:
+            # Same typed conversion, indexes, FK/statement/row guards and outer
+            # transaction. COPY changes transport only; full readback is retained.
+            columns=['vf_run_id','vf_image','vf_ordinal',*[name for name,_ in native]]
+            copied=0
+            with connection.wrap_database_errors,connection.cursor() as cursor:
+                with cursor.copy('COPY '+table_sql(key)+' ('+','.join(quote(name) for name in columns)+') FROM STDIN') as writer:
+                    for record in records:
+                        writer.write_row(record);copied+=1
+            summary('typed_transport',rows=copied,batches=1,transport='copy')
+        else:
+            bulk(query,records)
     return metadata
 
 
@@ -314,7 +332,12 @@ def save_daily(run,output):
                 # run/image/ordinal ownership. The pinned catalogue is unchanged.
                 binding_stage='norm0-export' if stage['stage'] in ('norm0-60-export','norm0-90-export') else stage['stage']
                 tables[name]=image(path,'reports/'+binding_stage+'/'+name,rows)
-        reports.append(dict(stage=stage['stage'],tables=tables))
+        report=dict(stage=stage['stage'],tables=tables)
+        if 'deferred' in stage:
+            report['deferred']=stage['deferred']
+            report['sources']={name:image('report-facts/'+stage['stage']+'/'+name,'closing/dbm/'+name,rows)
+                for name,rows in stage['sources'].items()}
+        reports.append(report)
     bpr={name:image('reports/bpr/'+name,'reports/bpr/'+name,output['BPRFinal'][0][name])
          for name in ('BPR_Table','vf_RationedReqReport')} if output.get('BPRFinal') else {}
     manifest=dict(version=1,closing=template,images=images,reports=reports,bpr=bpr,
@@ -323,7 +346,7 @@ def save_daily(run,output):
     return manifest
 
 
-def read_daily(run):
+def read_daily(run, *, include_reports=True):
     manifest=run.production_manifest
     def resolve(node):
         if 'image' in node:return load_image(run,manifest['images'][node['image']])
@@ -334,9 +357,15 @@ def read_daily(run):
             return dict(records) if node['scratch_kind']=='dict' else [{'table':n,'rows':v} for n,v in records]
         return {name:resolve(value) for name,value in node['tables'].items()}
     closing={section:resolve(state) for section,state in manifest['closing'].items()}
-    result=dict(ClosingState=[closing],DBMFinal=[closing['dbm']],
-        Reports=[dict(stage=r['stage'],tables={n:resolve(v) for n,v in r['tables'].items()}) for r in manifest['reports']],
-        BPRReports=[{n:resolve(v) for n,v in manifest['bpr'].items()}],
+    reports=[]
+    if include_reports:
+        for row in manifest['reports']:
+            report=dict(stage=row['stage'],tables={n:resolve(v) for n,v in row['tables'].items()})
+            if 'deferred' in row:
+                report.update(deferred=row['deferred'],sources={n:resolve(v) for n,v in row['sources'].items()})
+            reports.append(report)
+    result=dict(ClosingState=[closing],DBMFinal=[closing['dbm']],Reports=reports,
+        BPRReports=[{n:resolve(v) for n,v in manifest['bpr'].items()}] if include_reports else [],
         Lineage=manifest['lineage'],PublicationContext=manifest['publication'])
     if 'btr' in closing:result['BTRFinal']=[closing['btr']]
     return result

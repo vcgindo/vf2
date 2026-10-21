@@ -15,9 +15,10 @@ from mta.domain.dbm_auto_acceptance import automatic_acceptance
 from mta.domain.dbm_phase_recommendation import configuration as phase_configuration, phase_stages
 
 
-def selected_stages(today, state, facts, configuration=None, report_exceptions=None, *, conditional_settings=None, _owned=False):
+def selected_stages(today, state, facts, configuration=None, report_exceptions=None, *, conditional_settings=None, _owned=False, _defer_exports=False):
     # Existing retained component receipts use the selected historical profile.
     # Daily production callers must supply the source-pinned batch settings.
+    from mta.domain.deferred_dbm_exports import defer
     config = configuration
     conditional_active = conditional.enabled(state['DBMSettingsTbl'])
     if conditional_active:
@@ -48,9 +49,9 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
         ('order-summary', lambda d,s:update_order_summary(d,s,_owned=_owned)),
         ('norm1-advisory', lambda d,s:norm1_advisory(d,s,_owned=_owned)),
         ('auto-acceptance', automatic_acceptance),
-        ('norm-change-export', lambda d, s: norm_change_report(d, s, 1 if config is None else config['DBMNormChangeReportHorizon'],_owned=_owned)),
+        ('norm-change-export', lambda d, s: (defer(d,s,'norm-change',horizon=1 if config is None else config['DBMNormChangeReportHorizon']) if _defer_exports else norm_change_report(d, s, 1 if config is None else config['DBMNormChangeReportHorizon'],_owned=_owned))),
         ('suspension-history', lambda d,s:gather_suspension_history(d,s,_owned=_owned)),
-        ('norm-change-history', lambda d, s: norm_change_history(d, s, 7 if config is None else config['NormChangeLogHorizon'],_owned=_owned)),
+        ('norm-change-history', lambda d, s: (defer(d,s,'norm-history',horizon=7 if config is None else config['NormChangeLogHorizon']) if _defer_exports else norm_change_history(d, s, 7 if config is None else config['NormChangeLogHorizon'],_owned=_owned))),
     ):
         if name == 'auto-acceptance' and (config is None or config['AutoDBMActive'] != 1):
             continue
@@ -62,13 +63,13 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
         if name == 'norm1-advisory' and config is not None:
             for stage, current in phase_stages(today, current, config):
                 yield stage, current
-    for name,current in selected_norm012_stages(today,current,config,report_exceptions):
+    for name,current in selected_norm012_stages(today,current,config,report_exceptions,_defer_exports=_defer_exports):
         yield name,current
     current = daily_cleanup(today, current, 370 if config is None else config['DailyConsumptionHorizonDBM'],_owned=_owned)
     yield 'daily-cleanup', current
 
 
-def selected_norm012_stages(today,state,config=None,report_exceptions=None):
+def selected_norm012_stages(today,state,config=None,report_exceptions=None,*,_defer_exports=False):
     """Actual connected norm-report dispatch, separately bounded for proof."""
     current=state
     disposition = (report_exceptions or {}).get('native_report_disposition')
@@ -92,7 +93,8 @@ def selected_norm012_stages(today,state,config=None,report_exceptions=None):
             if disposition is not None and (norm, horizon) == (0, 30):
                 excluded = limited_group
             for name, current in norm012_stages(
-                    today, current, norm, horizon, excluded, exclude_all):
+                    today, current, norm, horizon, excluded, exclude_all,
+                    _defer_export=_defer_exports and disposition is None):
                 if disposition is not None and (norm, horizon, name) == (0, 30, 'export'):
                     disclose_export(current, disposition)
                 yield report_stage(norm,horizon,name), current

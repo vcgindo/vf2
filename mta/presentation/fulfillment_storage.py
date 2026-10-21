@@ -28,7 +28,7 @@ def _read(run,receipt):
 
 def read_fulfillment(run, *, output):
     receipt = FulfillmentProjection.objects.get(run=run)
-    if run.production_manifest.get('version') == 2:
+    if run.production_manifest.get('version') in (2,3):
         from mta.runtime.receipt_integrity import verify_root
         verify_root(run)
     elif receipt.calculation_digest != Checkpoint.objects.get(run=run, name='CalculationOutputs').digest:
@@ -38,11 +38,11 @@ def read_fulfillment(run, *, output):
     return _read(run, receipt)
 
 
-def write_fulfillment(run,output,calculated, *, calculation_digest=None):
+def write_fulfillment(run,output,calculated=None, *, calculation_digest=None, routes=None):
     if transaction.get_autocommit():
         raise ValueError('Fulfilment requires publication transaction')
     source=inputs(output,run.business_date)
-    routes=routes_for_orders(calculated,source['orders'])
+    if routes is None:routes=routes_for_orders(calculated,source['orders'])
     rows=dict(summary=produce_summary(source['rationed'],source['standards']),
               details=produce_details(source['orders'],routes,source['standards'],source['business_date']))
     receipt=FulfillmentProjection.objects.create(run=run,producer_sha256=PRODUCER_SHA,

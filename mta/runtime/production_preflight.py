@@ -599,7 +599,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
         c.add(**item, stages=('day',))
     value = parse(raw,sha256,c,'/input')
     if not isinstance(execution_revision,str) or not 1<=len(execution_revision)<=80:
-        c.add('/execution_revision','execute_day','REVISION_REQUIRED','Explicit bounded revision1–80 characters required')
+        c.add('/execution_revision','execute_day','REVISION_REQUIRED','Explicit bounded revision1â€“80 characters required')
     if retry_capture_id is not None:
         c.check('/retry_capture_id','frozen MDM capture',lambda:uuid.UUID(str(retry_capture_id)))
     for name,identity in (('initialization_id',initialization_id),):
@@ -614,7 +614,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
             c.add('/opening','ProductionInitialization','OPENING_REQUIRED','Verified typed opening context required')
         if predecessor is not None:
             state=predecessor.get('closing_state') if isinstance(predecessor,dict) else None
-            closing_shape(c,state)
+            closing_shape(c,state,output_version=predecessor.get('output_version',2) if isinstance(predecessor,dict) else 2)
         if isinstance(state,dict) and isinstance(frame.get('profile'),dict):
             state_requirements(c,state,frame.get('profile',{}),
                 '/predecessor/closing_state' if predecessor is not None else '/opening/state',initial=predecessor is None)
@@ -770,8 +770,11 @@ def consecutive(previous, current):
 
 def successor(c, parent, initialization_id, source_digest, expected_output_digest):
     fields=('run_id','business_date','kind','status','output_digest','initialization_id','source_digest','capture_status','closing_state')
-    if c.object(parent,'/predecessor','own persisted predecessor',fields) is None:
+    if c.object(parent,'/predecessor','own persisted predecessor',fields,(*fields,'output_version')) is None:
         return
+    if parent.get('output_version',2) not in (2,3):
+        c.add('/predecessor/output_version','own persisted predecessor','OUTPUT_VERSION_INVALID',
+              'Supported persisted operational output version required')
     for name in ('run_id','initialization_id'):
         if name in parent:
             c.check('/predecessor/'+name,'own persisted predecessor',lambda name=name:uuid.UUID(str(parent[name])))
@@ -787,7 +790,7 @@ def successor(c, parent, initialization_id, source_digest, expected_output_diges
 
 def bounded_text(c,value,path,owner,minimum,maximum):
     if not isinstance(value,str) or not minimum<=len(value)<=maximum:
-        c.add(path,owner,'TEXT_REQUIRED','Explicit text length '+str(minimum)+'–'+str(maximum)+' required')
+        c.add(path,owner,'TEXT_REQUIRED','Explicit text length '+str(minimum)+'â€“'+str(maximum)+' required')
 
 
 def iso_date(value):
@@ -800,7 +803,7 @@ def publication_metadata(c,value,path):
         bounded_text(c,value['label'],path+'/label','publication metadata',0,1024)
 
 
-def closing_shape(c,state):
+def closing_shape(c,state,*,output_version=2):
     """Validate persisted successor shapes without initial-only seed restrictions."""
     prefix='/predecessor/closing_state'
     if c.object(state,prefix,'own persisted closing state',contract.STATE_SECTIONS) is None:
@@ -815,6 +818,12 @@ def closing_shape(c,state):
             continue
         required=set(contract.CONTRACT['required_opening_populations'].get(section,()))
         allowed=set(contract.CONTRACT['allowed_opening_populations'].get(section,()))
+        if section=='btr' and output_version==3:
+            # Version is taken from the verified persisted manifest by inspect(),
+            # never from the incoming CSV/JSON. These derived images are reconstructed
+            # after commit and are not predecessor inputs to calculation.
+            from mta.domain.btr_finalization import DERIVED_TABLES
+            required-=DERIVED_TABLES
         if section=='dbm': allowed.add('PhaseOutRecommendation')
         if section=='btr': allowed.add('RationingHistory')
         if section=='importer': required=allowed=set(contract.PRIOR_TABLES)
