@@ -52,6 +52,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
         from mta.runtime.accepted_daily import epochs
         from mta.runtime.captured_recovery import _pins
         self.assertEqual(connection.settings_dict['NAME'],
+            'vf_btr_terminal_admission_20261022' if os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1' else
             'vf_admission_contracts_20261022' if finite else
             'vf_section9_fifth_proof_20261021' if fifth else 'vf_daily_optimization_20261021')
         self.assertEqual(ProductionInitialization.objects.count(),0)
@@ -95,7 +96,12 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                         daily_feed.execute(attempt.attempt_id,root/'binding.json',pick_root=pick)
                 attempt.refresh_from_db();old=attempt.run
                 self.assertEqual(old.status,'RUNNING');self.assertEqual(attempt.status,'RUNNING')
-                raw=read_input(old); before=(old.input_digest,old.input_manifest_digest,digest(old.input_payload),
+                raw=read_input(old)
+                if os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1':
+                    from tests.test_captured_terminal_postgres import prove_terminal
+                    prove_terminal(self,owner,old,raw,release,root,pick)
+                    return
+                before=(old.input_digest,old.input_manifest_digest,digest(old.input_payload),
                     digest(attempt.accepted_facts),digest(attempt.prepared_context))
                 expected=dict(run_id=str(old.pk),initialization_id=str(owner.pk),source_digest=owner.source.digest,
                     input_digest=old.input_digest,input_manifest_digest=old.input_manifest_digest,

@@ -261,10 +261,11 @@ def verify_predecessor(source, run, *, retry_capture=None, finite_prefix_digest=
             captures = MdmDailyInputCapture.objects.filter(source=source)
             finite=False
             if finite_prefix_digest is not None:
-                from mta.runtime.captured_input import finite_prefix
+                from mta.runtime.captured_input import FINITE, finite_prefix, terminal_prefix
                 if retry_capture is None:
                     raise ValueError('Finite predecessor requires its canonical stopped capture')
-                physical,_,prefix=finite_prefix(retry_capture.run)
+                prefix_reader=terminal_prefix if retry_capture.run.input_payload.get("schema")==FINITE else finite_prefix
+                physical,_,prefix=prefix_reader(retry_capture.run)
                 if (prefix!=finite_prefix_digest or retry_capture.source_id!=source.pk
                         or physical.predecessor_id is not None):
                     raise ValueError('Finite predecessor stopped-prefix identity differs')

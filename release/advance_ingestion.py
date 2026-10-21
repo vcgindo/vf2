@@ -58,12 +58,35 @@ def preservation(owner):
         fields=[f.attname for f in query.model._meta.concrete_fields if f.name not in exclude]
         return [{k:str(v) if isinstance(v,UUID) else v for k,v in row.items()}
                 for row in query.order_by(query.model._meta.pk.attname).values(*fields)]
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1 FROM information_schema.columns WHERE table_schema='mta' AND table_name='fresh_mta_dailyfeedattempt' AND column_name='recovery_origin_id'")
+        has_origin=cursor.fetchone() is not None
+    attempts=rows(DailyFeedAttempt.objects.filter(initialization=owner),() if has_origin else ('recovery_origin',))
+    for attempt in attempts:attempt.setdefault('recovery_origin_id',None)
     return dict(opening=retained(owner),certificate=rows(InitializationCertification.objects.filter(initialization=owner)),
         revisions=rows(IngestionRevisionState.objects.filter(initialization=owner)),
         masters=rows(MasterInputRevision.objects.filter(initialization=owner)),
-        runs=rows(runs,('input_payload',)),attempts=rows(DailyFeedAttempt.objects.filter(initialization=owner),('recovery_origin',)),
+        runs=rows(runs,('input_payload',)),attempts=attempts,
         captures=rows(MdmDailyInputCapture.objects.filter(run__in=runs)),
         manifests={str(pk):digest(payload) for pk,payload in runs.order_by('pk').values_list('pk','input_payload')})
+
+
+def authority_history(cursor, initialization_id):
+    """Full existing append-only rows, including prior schema admissions."""
+    import json
+    tables=('fresh_control.ingestion_release_authority',
+            'fresh_control.ingestion_schema_compatibility',
+            'mta.fresh_mta_ingestionreleasecompatibility')
+    result={}
+    for table in tables:
+        cursor.execute('SELECT to_regclass(%s)',[table])
+        if cursor.fetchone()[0] is None:
+            result[table]={};continue
+        cursor.execute('SELECT target_release,to_jsonb(T) FROM '+table+' T WHERE initialization_id=%s',
+                       [initialization_id])
+        result[table]={key:json.loads(row) if isinstance(row,str) else row for key,row in cursor.fetchall()}
+    return result
 
 
 @opening_operation
@@ -112,7 +135,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         owner=ProductionInitialization.objects.select_for_update().select_related('source').get(pk=initialization_id)
         original,capability=registration(cursor)
         cursor.execute('SELECT to_regclass(%s)',[authority.SCHEMA_TABLE])
-        if cursor.fetchone()[0] is not None:
+        has_schema_authority=cursor.fetchone()[0] is not None
+        cursor.execute('SELECT 1 FROM fresh_control.ingestion_release_authority WHERE initialization_id=%s AND target_release=%s',[owner.pk,target['manifest_sha256']])
+        if cursor.fetchone() is not None:
             body=authority.read(cursor,owner.pk,target['manifest_sha256'])
             extension=authority.read_schema_transition(cursor,body)
             if (extension is None or extension['migration_pins']!=spec['migration_pins']
@@ -123,6 +148,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             return dict(status='EXISTING_SCHEMA_TRANSITION_VERIFIED',target_release=target)
         admitted=_admit(cursor,owner.pk,previous,pending=True)
         before=storage(preservation(owner));before_catalogue=catalogue(cursor)
+        old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
         before_schema=schema_digest(cursor);before_guard=security_digest(cursor,_certificate(owner.pk)['authority_roles'])
         cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
@@ -136,7 +162,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             if backwards or migration.app_label!='fresh_mta':raise ValueError('Only forward MTA schema migrations supported')
             path=Path(__file__).resolve().parents[1]/'mta/runtime/migrations'/(migration.name+'.py')
             pins.append([migration.name,hashlib.sha256(path.read_bytes()).hexdigest()])
-        if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins]!=[f'{i:04}' for i in range(154,165)]):
+        allowed_migrations=([['0165']] if has_schema_authority else
+                            [[f'{i:04}' for i in range(154,end)] for end in (165,166)])
+        if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
         old_objects=_application_catalogue(cursor)
@@ -145,10 +173,12 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         # migration. Migration bookkeeping cannot advance a business epoch;
         # no epoch is restored and no business writer guard is disabled.
         from importlib import import_module
-        cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
+        if not has_schema_authority:
+            cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
         executor.migrate(executor.loader.graph.leaf_nodes())
         cursor.execute('RESET ROLE')
-        authority.bootstrap_schema_transition(cursor,[original['owner']['name'],original['consumer']['name']])
+        if not has_schema_authority:
+            authority.bootstrap_schema_transition(cursor,[original['owner']['name'],original['consumer']['name']])
         current=_application_catalogue(cursor)
         old_names={o['name'] for o in old_objects['objects']}
         for obj in current['objects']:
@@ -164,6 +194,13 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         if 'mta.finite_capture_prefix_digest(leaf uuid)' in application_functions(_application_catalogue(cursor)):
             cursor.execute(sql.SQL('GRANT EXECUTE ON FUNCTION mta.finite_capture_prefix_digest(uuid) TO {}').format(
                 sql.Identifier(original['consumer']['name'])))
+        for grant in ('mta.terminal_capture_prefix_digest(uuid)',
+                'mta.terminal_capture_admit(mta.fresh_mta_dailyfeedattempt)'):
+            # Resolve exact argument types independently of search_path's
+            # pretty-printing of composite-type identity arguments.
+            cursor.execute('SELECT to_regprocedure(%s)',[grant])
+            if cursor.fetchone()[0] is not None:
+                cursor.execute(sql.SQL('GRANT EXECUTE ON FUNCTION '+grant+' TO {}').format(sql.Identifier(original['consumer']['name'])))
         delta=catalogue_delta(before_catalogue,catalogue(cursor))
         if storage(delta)!=spec['catalogue_delta']:raise ValueError('Reviewed schema/catalogue/ACL delta differs')
         now=_application_catalogue(cursor)
@@ -194,10 +231,12 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         cursor.execute('RESET ROLE')
         authority.append(cursor,body)
         _admit(cursor,owner.pk,target,pending=True)
+        new_history=authority_history(cursor,owner.pk)
+        for table,rows in old_history.items():
+            if (any(new_history[table].get(key)!=row for key,row in rows.items())
+                    or set(new_history[table])-set(rows)!={target['manifest_sha256']}):
+                raise ValueError('Schema transition changed a prior registrar or compatibility row')
         owner.refresh_from_db();owner.source.refresh_from_db()
-        from mta.runtime.daily_feed_models import DailyFeedAttempt
-        if DailyFeedAttempt.objects.filter(initialization=owner,recovery_origin__isnull=False).exists():
-            raise ValueError('Schema transition rewrote an original recovery origin')
         if storage(preservation(owner))!=before or registration(cursor)!=(original,capability):
             raise ValueError('Schema transition changed an original opening/owner/capture/certificate')
     return dict(status='SCHEMA_TRANSITION_COMMITTED_ORIGINAL_STATE_PRESERVED',target_release=target,

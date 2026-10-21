@@ -92,10 +92,10 @@ def bind(run, daily, profile):
     if daily.origin_id:
         origin = verify(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
                         .get(run_id=daily.origin_id), sealed=False)
-        from mta.runtime.captured_input import FINITE,finite_origin
+        from mta.runtime.captured_input import FINITE,TERMINAL,origin as captured_origin
         finite=False
-        if run.input_payload.get('schema')==FINITE:
-            finite_origin(run)
+        if run.input_payload.get('schema') in (FINITE,TERMINAL):
+            captured_origin(run)
             finite=origin.run.status=='RUNNING' and str(origin.run_id)==run.input_payload['origin_run_id']
         if (origin.run.status != 'FAILED' and not finite or origin.source_id != daily.source_id
                 or origin.predecessor_id != run.predecessor_id

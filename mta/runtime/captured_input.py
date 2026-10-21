@@ -8,7 +8,8 @@ from mta.serialization import digest
 SCHEMA = 'fresh-captured-input-reference-v1'
 SECOND = 'fresh-captured-input-reference-v2'
 FINITE = 'fresh-captured-input-reference-v3'
-SCHEMAS = (SCHEMA,SECOND,FINITE)
+TERMINAL = 'fresh-captured-input-reference-v4'
+SCHEMAS = (SCHEMA,SECOND,FINITE,TERMINAL)
 FIELDS = {'schema', 'identity', 'origin_run_id', 'origin_manifest_digest',
           'content_digest', 'images'}
 
@@ -16,8 +17,8 @@ FIELDS = {'schema', 'identity', 'origin_run_id', 'origin_manifest_digest',
 def validate(value):
     if type(value) is not dict:
         raise ValueError('Captured input reference shape differs')
-    extra = {'physical_origin_run_id','physical_origin_manifest_digest'} if value.get('schema') in (SECOND,FINITE) else set()
-    if value.get('schema') == FINITE:
+    extra = {'physical_origin_run_id','physical_origin_manifest_digest'} if value.get('schema') in (SECOND,FINITE,TERMINAL) else set()
+    if value.get('schema') in (FINITE,TERMINAL):
         extra |= {'prefix_digest','origin_attempt_id','execution_revision','packaged_source'}
     if (type(value) is not dict or set(value) != FIELDS | extra
             or value['schema'] not in SCHEMAS or value['images'] != {}):
@@ -28,20 +29,20 @@ def validate(value):
         if (type(value[key]) is not str or len(value[key]) != 64
                 or any(c not in '0123456789abcdef' for c in value[key])):
             raise ValueError('Captured input origin digest differs')
-    if value['schema'] in (SECOND,FINITE):
+    if value['schema'] in (SECOND,FINITE,TERMINAL):
         if str(UUID(value['physical_origin_run_id'])) != value['physical_origin_run_id']:
             raise ValueError('Physical captured origin UUID differs')
         pin=value['physical_origin_manifest_digest']
         if type(pin) is not str or len(pin)!=64 or any(c not in '0123456789abcdef' for c in pin):
             raise ValueError('Physical captured origin manifest differs')
-    if value['schema'] == FINITE:
+    if value['schema'] in (FINITE,TERMINAL):
         for key in ('prefix_digest','packaged_source'):
             pin=value[key]
             length=40 if key=='packaged_source' else 64
             if type(pin) is not str or len(pin)!=length or any(c not in '0123456789abcdef' for c in pin):
                 raise ValueError('Finite captured prefix/package digest differs')
         if (str(UUID(value['origin_attempt_id'])) != value['origin_attempt_id']
-                or value['execution_revision'] != 'native-finite-'+value['packaged_source']):
+                or value['execution_revision'] != ('native-terminal-' if value['schema']==TERMINAL else 'native-finite-')+value['packaged_source']):
             raise ValueError('Finite captured execution identity differs')
     return value
 
@@ -95,6 +96,8 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fi
 
 
 def origin(run):
+    if run.input_payload.get('schema') == TERMINAL:
+        return terminal_origin(run)
     if run.input_payload.get('schema') == FINITE:
         return finite_origin(run)
     return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True,fifth_allowed=True,sixth_allowed=True)
@@ -198,6 +201,77 @@ def finite_origin(run):
     return physical
 
 
+def terminal_prefix(leaf):
+    """Exactly the stopped finite child and its authenticated seven originals."""
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    physical=finite_origin(leaf)
+    capture=MdmDailyInputCapture.objects.select_related('origin__run').get(run=leaf)
+    attempt=DailyFeedAttempt.objects.get(run=leaf)
+    if (leaf.status!='RUNNING' or capture.status!='CAPTURED'
+            or attempt.status!='RUNNING' or attempt.phase!='CALCULATE'
+            or attempt.accepted_facts or attempt.recovery_origin_id is None):
+        raise ValueError('Terminal continuation requires the stopped finite parent')
+    _,rows,_=finite_prefix(capture.origin.run)
+    return physical,[dict(run=_metadata(leaf),capture=_metadata(capture),attempt=_metadata(attempt)),*rows],_terminal_prefix_digest(leaf)
+
+
+def _terminal_prefix_digest(leaf):
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT mta.terminal_capture_prefix_digest(%s)',[leaf.pk])
+        return cursor.fetchone()[0]
+
+
+def terminal_manifest(run, leaf, *, expected_prefix_digest, packaged_source):
+    from mta.runtime.input_v3 import _live_identity
+    physical,rows,prefix=terminal_prefix(leaf)
+    if prefix!=expected_prefix_digest:
+        raise ValueError('Terminal captured independently inspected prefix differs')
+    return validate(dict(schema=TERMINAL,identity=_live_identity(run,reading=False),
+        origin_run_id=str(leaf.pk),origin_manifest_digest=leaf.input_manifest_digest,
+        origin_attempt_id=rows[0]['attempt']['attempt_id'],prefix_digest=prefix,
+        content_digest=leaf.input_digest,images={},physical_origin_run_id=str(physical.pk),
+        physical_origin_manifest_digest=physical.input_manifest_digest,
+        execution_revision=run.execution_revision,packaged_source=packaged_source))
+
+
+def terminal_origin(run):
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    from mta.runtime.input_v3 import _live_identity
+    value=validate(run.input_payload)
+    if (value['schema']!=TERMINAL or digest(value)!=run.input_manifest_digest
+            or value['content_digest']!=run.input_digest
+            or value['identity']!=_live_identity(run,reading=True)
+            or value['execution_revision']!=run.execution_revision):
+        raise ValueError('Terminal captured live owner/manifest differs')
+    current=MdmDailyInputCapture.objects.select_related('origin__run').get(run=run)
+    old=current.origin
+    if old is None or str(old.run_id)!=value['origin_run_id'] or old.run_id==run.pk:
+        raise ValueError('Terminal captured canonical leaf differs')
+    leaf=old.run
+    physical,rows,prefix=terminal_prefix(leaf)
+    attempts=list(DailyFeedAttempt.objects.filter(run_id__in=(run.pk,leaf.pk))
+        .values('run_id','initialization_id','recovery_origin_id'))
+    if (prefix!=value['prefix_digest'] or rows[0]['attempt']['attempt_id']!=value['origin_attempt_id']
+            or leaf.input_manifest_digest!=value['origin_manifest_digest']
+            or str(physical.pk)!=value['physical_origin_run_id']
+            or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
+            or physical.input_digest!=run.input_digest or leaf.kind!=run.kind or run.kind!='DAILY_CHAIN'
+            or leaf.business_date!=run.business_date or leaf.predecessor_id!=run.predecessor_id
+            or leaf.execution_revision==run.execution_revision
+            or current.source_id!=old.source_id or current.request_digest!=old.request_digest
+            or current.revision_digest!=old.revision_digest
+            or old.retries.exclude(pk=current.pk).exists()
+            or len(attempts)!=2 or len({row['initialization_id'] for row in attempts})!=1
+            or next((row['recovery_origin_id'] for row in attempts if row['run_id']==run.pk),None)!=rows[0]['attempt']['id']
+            or any(value['identity'][key]!=_live_identity(leaf,reading=True)[key]
+                for key in ('database_name','database_oid','source_digest'))):
+        raise ValueError('Terminal captured prefix/physical ownership differs')
+    return physical
+
+
 def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_allowed=False,sixth_allowed=False):
     """Resolve only the immutable direct origin named by canonical retry capture.
 
@@ -214,7 +288,7 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_
     if fourth_allowed and not third_allowed:
         raise ValueError('Fourth-hop read requires its complete third-hop prefix')
     value = validate(run.input_payload)
-    if value['schema'] == FINITE:
+    if value['schema'] in (FINITE,TERMINAL):
         raise ValueError('Finite captured reference cannot supply another continuation')
     if value['schema'] == SECOND and not second_allowed:
         raise ValueError('Captured reference exceeds the fixed two-hop boundary')

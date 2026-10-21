@@ -46,8 +46,6 @@ class DailyFeedAttempt(models.Model):
                 name='csv_one_live_initialized_date'),
             models.UniqueConstraint(fields=('recovery_origin',),condition=Q(recovery_origin__isnull=False),
                 name='csv_one_finite_origin'),
-            models.UniqueConstraint(fields=('initialization','business_date'),condition=Q(recovery_origin__isnull=False),
-                name='csv_one_finite_initialized_date'),
             bounded('accepted_facts', 'csv_accepted_facts_bound'),
             bounded('prepared_context', 'csv_prepared_context_bound'),
         ]

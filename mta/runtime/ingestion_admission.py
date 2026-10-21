@@ -173,19 +173,32 @@ def validate_activation(cursor, body):
     """Validate immutable ownership and the exact effective live catalogue."""
     cert = _activation_metadata(cursor, body)
     from release.native_schema import schema_digest
-    extension = authority.read_schema_transition(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    if extension is not None:
-        parent = authority.read(cursor, body['initialization_id'], extension['previous_release'])
-        parent_cert = _activation_metadata(cursor, parent)
-        if (parent_cert != cert or digest(parent) != extension['previous_authority_digest']
-                or extension['certification_digest'] != cert['receipt_digest']
-                or extension['before_schema_digest'] != cert['schema_digest']
-                or extension['before_guard_digest'] != cert['guard_digest']
-                or any(parent[k] != body[k] for k in authority.FIELDS - {'target_commit','target_release'})
-                or extension['target_commit'] != body['target_commit']):
+    chain=[]; current=body; seen=set()
+    # Exactly the original schema admission plus this terminal forward admission.
+    # Historical catalogues authenticate metadata; only the last is compared live.
+    while True:
+        if current['target_release'] in seen:
+            raise ValueError('Schema transition contains a cycle')
+        seen.add(current['target_release'])
+        extension=authority.read_schema_transition(cursor,current)
+        if extension is None:
+            break
+        if len(chain)==2:
+            raise ValueError('Schema transition exceeds the reviewed two-admission boundary')
+        parent=authority.read(cursor,current['initialization_id'],extension['previous_release'])
+        if (_activation_metadata(cursor,parent)!=cert
+                or digest(parent)!=extension['previous_authority_digest']
+                or extension['certification_digest']!=cert['receipt_digest']
+                or any(parent[k]!=current[k] for k in authority.FIELDS-{'target_commit','target_release'})
+                or extension['target_commit']!=current['target_commit']):
             raise ValueError('Schema transition changed original certified ownership')
-        expected_schema, expected_guard = extension['schema_digest'], extension['guard_digest']
+        chain.append(extension);current=parent
+    for extension in reversed(chain):
+        if (extension['before_schema_digest']!=expected_schema
+                or extension['before_guard_digest']!=expected_guard):
+            raise ValueError('Schema transition predecessor catalogue differs')
+        expected_schema,expected_guard=extension['schema_digest'],extension['guard_digest']
     if (schema_digest(cursor) != expected_schema
             or security_digest(cursor, cert['authority_roles']) != expected_guard):
         raise ValueError('Current schema, grants, roles or guards differ')

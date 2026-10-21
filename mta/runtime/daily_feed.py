@@ -208,16 +208,17 @@ def diagnostics(attempt, error):
 
 def _finite_resolved_ancestors(owner):
     """Only an authenticated operational commit resolves the preserved chain."""
-    from mta.runtime.captured_input import FINITE, finite_origin, finite_prefix
+    from mta.runtime.captured_input import FINITE, TERMINAL, finite_origin, finite_prefix, terminal_origin, terminal_prefix
     resolved=[]
     candidates=CalculationRun.objects.filter(kind='DAILY_CHAIN',status='SUCCEEDED',
-        evidence_mode='production',input_payload__schema=FINITE,production_manifest__version=3,
+        evidence_mode='production',input_payload__schema__in=(FINITE,TERMINAL),production_manifest__version=3,
         csv_attempt__initialization=owner,
         csv_attempt__status__in=('COMMITTED','PREPARED','PUBLISHED'),
         mdm_input_capture__status='CONSUMED')
     for run in candidates.iterator():
-        finite_origin(run)
-        _,rows,_=finite_prefix(run.mdm_input_capture.origin.run)
+        terminal=run.input_payload["schema"]==TERMINAL
+        (terminal_origin if terminal else finite_origin)(run)
+        _,rows,_=(terminal_prefix if terminal else finite_prefix)(run.mdm_input_capture.origin.run)
         resolved.extend(row['run']['id'] for row in rows)
     return resolved
 
