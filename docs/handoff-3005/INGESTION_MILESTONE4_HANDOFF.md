@@ -2,7 +2,8 @@
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
-21 October2026. **M4 incomplete; large operation stopped. Source-only contract corrections are verified; no further runtime execution is released.**
+21 October2026. **M4 incomplete. A final additional April8 operation is explicitly conditionally approved after recovery checks, within the fixed deadline09:05:26.030330UTC.**
+The three failed working attempts remain stopped; the candidate is being packaged after the recovery gate passed.
 The implementation identity below describes the original M4 checkpoint; the later follow-up is recorded at the end.
 Implementation source `be480eb412ace0e7d86b7dedf396910f0818746e`,
 branch `codex/3006-logistics-integration`, following M3 `77d44f1a`.
@@ -198,5 +199,17 @@ Evidence root: `D:/freshvcf-build/evidence/daily-optimization-20261021`.
 Final affected verification:63 tests passed in8.107s, including complete active/inactive results, positive current flags, variable-size configuration, invalid-policy error equivalence and input/previous-snapshot nonmutation. Actual PostgreSQL proof:2 tests passed in130.288s, including atomic late rollback, commit, consumed capture, real UUID boundaries, report preparation, archive open/readback and selection. That SQL snapshot preceded only the final pure-calculation current-flag copy; the final delta has complete nonempty eager/persisted value/error/nonmutation proof and changes no SQL/storage/commit boundary. `chain.sql-proof-snapshot.py` records that qualification. The empty scratch DB was removed after exact ownership and zero clients were checked.
 
 This source correction has NOT been built, activated or run against the large data. It does not establish large-day completion, throughput, UI usability or universal historical-load capacity. The last deployed candidate remains source95931b3f/image7734c3c3. Further execution requires a concrete decision: the additional attempt was consumed, and the two-hop guard still rejects another continuation. No recovery-depth expansion, new image, reset/reload, new date, deadline/resource increase or runtime restart follows from this audit. Browser acceptance also remains pending.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+## Final conditional continuation — 21 October2026
+
+The human explicitly approved one final additional April8 attempt and one new cumulative120-minute proof/build/run window, preserving all failed attempts and inputs and keeping resources/frontend/MTO unchanged. Actual start07:05:26.030330UTC; fixed deadline09:05:26.030330UTC, with no reset for fixture corrections. Exact decision and canonical-LF proposal bindings remain outside Git in `final-third-hop-human-approval.json` (packetd50e52be, patchfdb00f0c). The sole TRACKER records live status.
+
+The finite lifecycle correction keeps the existing V1/V2 reference formats, validates the canonical three-failed prefix and admits one explicit final third-hop operation; a fourth hop remains denied. Existing failed rows, original physical typed inputs, initialization certificate and seals are retained. Normal daily execution and its validation/business policy are unchanged.
+
+Required recovery gate passed:44 focused unit checks; actual PostgreSQL proof2tests173.828s, terminal Exit0/non-OOM/no guard failure. It proved all three failed predecessors, ordinary final calculation and atomic commit/readback/consumption, original-input ownership, canonical sibling/cycle/stale/foreign/numeric/duplicate/competing-lock denials, filesystem and late-commit rollback, fourth-hop denial, archive/report preparation, selection/component acknowledgement and original certificate preservation. Pick ran with zero allocations in this small fixture; this is not a large positive Pick performance result. Two earlier proof-fixture failures correctly encountered existing RUNNING-owner guards; only their scratch fixture contexts were corrected, with original logs retained. No production guard was weakened.
+
+At this checkpoint no new large attempt has started. Next actions are the approved one committed-source MTA-only build/identity inspection, fresh read-only working-state reconciliation, append-only compatible-source transition and the single normal April8 operation. Success still requires complete BPR/R1/RRR/Pick/DBM/BTR, typed output/readback, reports/archive/downloads/selection and actual serving. Browser unavailability leaves connected UI proof pending. Stop at the first genuine failure or fixed deadline; no automatic retry, further depth extension, extra date, master/CSV reload or resource growth.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

@@ -39,21 +39,23 @@ def manifest(run, origin):
     value = dict(schema=SCHEMA, identity=_live_identity(run, reading=False),
         origin_run_id=str(origin.pk), origin_manifest_digest=origin.input_manifest_digest,
         content_digest=origin.input_digest, images={})
-    if origin.input_payload.get('schema') == SCHEMA:
-        physical=_origin(origin,second_allowed=False)
+    if origin.input_payload.get('schema') in SCHEMAS:
+        # Existing V2 manifest, one explicitly admitted final third hop only.
+        # A three-hop origin is denied here, so no fourth can be created.
+        physical=_origin(origin,second_allowed=True,third_allowed=False)
         value.update(schema=SECOND,physical_origin_run_id=str(physical.pk),
             physical_origin_manifest_digest=physical.input_manifest_digest)
     elif origin.input_payload.get('schema') != 'fresh-daily-input-manifest-v3':
-        raise ValueError('Only V3 or exactly one failed V1 hop can supply captured inputs')
+        raise ValueError('Only V3 or the bounded failed captured prefix can supply inputs')
     validate(value)
     return value
 
 
 def origin(run):
-    return _origin(run,second_allowed=True)
+    return _origin(run,second_allowed=True,third_allowed=True)
 
 
-def _origin(run,*,second_allowed):
+def _origin(run,*,second_allowed,third_allowed=False):
     """Resolve only the immutable direct origin named by canonical retry capture.
 
     This cannot reference an arbitrary run, cross an initialization, replace a
@@ -88,7 +90,10 @@ def _origin(run,*,second_allowed):
             or old.retries.exclude(pk=current.pk).exists()):
         raise ValueError('Captured input canonical origin differs')
     target_schema=target.input_payload.get('schema')
-    if ((target_schema != V3 if value['schema'] == SCHEMA else target_schema != SCHEMA)
+    if value['schema']==SECOND and target_schema==SECOND and not third_allowed:
+        raise ValueError('Captured reference exceeds the fixed third-hop boundary')
+    allowed=((V3,) if value['schema']==SCHEMA else (SCHEMA,SECOND) if third_allowed else (SCHEMA,))
+    if (target_schema not in allowed
             or target.input_manifest_digest != value['origin_manifest_digest']
             or digest(target.input_payload) != value['origin_manifest_digest']
             or target.input_digest != value['content_digest']
@@ -104,8 +109,9 @@ def _origin(run,*,second_allowed):
     if (len(attempts) != 2 or len({v['initialization_id'] for v in attempts}) != 1):
         raise ValueError('Captured input initialization ownership differs')
     if value['schema'] == SECOND:
-        # Exactly V2 -> V1 -> V3, never V2 -> V2 or an unbounded chain.
-        physical=_origin(target,second_allowed=False)
+        # At most V2 -> V2 -> V1 -> physical V3; no schema per attempt,
+        # no arbitrary recursion and no fourth-hop continuation.
+        physical=_origin(target,second_allowed=(target_schema==SECOND),third_allowed=False)
         if (str(physical.pk)!=value['physical_origin_run_id']
                 or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
                 or physical.input_digest!=value['content_digest']):

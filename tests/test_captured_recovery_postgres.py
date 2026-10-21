@@ -152,6 +152,73 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(CalculationRun.objects.count(),2)
                 self.assertEqual(MdmDailyInputCapture.objects.count(),2)
                 self.assertEqual(epochs(owner.pk),second['current_revision_cut'])
+                # Match the actual three-FAILED prefix. This intentional test
+                # failure occurs before business math; no accepted day replay.
+                with patch.object(temporal,'calculate_day',side_effect=TypeError('stock opening ownership proof')):
+                    with self.assertRaisesRegex(TypeError,'stock opening ownership proof'):
+                        resume(Path(attempt.archive_path).with_name('failed-v2'))
+                first_leaf=leaf
+                leaf=CalculationRun.objects.get(execution_revision=revision)
+                leaf_attempt=DailyFeedAttempt.objects.get(run=leaf)
+                self.assertEqual((leaf.status,leaf_attempt.status,leaf_attempt.phase),('FAILED','FAILED','CALCULATE'))
+                self.assertEqual(leaf.input_payload['schema'],captured_input.SECOND)
+                leaf_before=(leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                    leaf_attempt.status,digest(leaf_attempt.error))
+                failed_before={str(v.pk):(v.status,v.input_digest,v.input_manifest_digest,digest(v.input_payload))
+                    for v in CalculationRun.objects.order_by('created_at')}
+                self.assertEqual(len(failed_before),3)
+                leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
+                    capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+                second=dict(second,current_revision_cut=epochs(owner.pk))
+                revision='capture-recovery-proof-final-third'
+                def resume(path,*,spec=None,enabled=True):
+                    return temporal.execute_day(day=None,profile=None,execution_revision=revision,
+                        _captured_retry=dict(origin_run_id=str(leaf.pk),expected=leaf_expected,
+                            archive_path=str(path),second_hop=second if spec is None else spec,
+                            final_third_hop=enabled))
+                with self.assertRaisesRegex(ValueError,'exact failed V1 leaf'):
+                    resume(Path(attempt.archive_path).with_name('not-released'),enabled=False)
+                for invalid in (str(attempt.pk),'00000000-0000-4000-8000-000000000001'):
+                    with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                        resume(Path(attempt.archive_path).with_name('third-foreign'),
+                            spec=dict(second,physical_attempt_id=invalid))
+                with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
+                    resume(Path(attempt.archive_path).with_name('third-stale'),
+                        spec=dict(second,current_revision_cut=[0,0,0,0,0]))
+                with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                        user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                    competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',
+                        ['vectorflow-daily-csv:'+str(owner.pk)])
+                    with self.assertRaisesRegex(ValueError,'Another daily worker owns'):
+                        resume(Path(attempt.archive_path).with_name('third-race'))
+                # Adversarial sibling metadata only in this scratch transaction;
+                # actual canonical resolution must reject it, then roll back.
+                cut=epochs(owner.pk)
+                with transaction.atomic():
+                    sibling=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date=old.business_date,
+                        execution_revision='adversarial-sibling',input_digest=old.input_digest,
+                        input_payload={},status='RUNNING')
+                    captured=MdmDailyInputCapture.objects.get(run=old)
+                    values={f.attname:getattr(captured,f.attname) for f in captured._meta.concrete_fields
+                        if f.name not in ('run','captured_at')}
+                    values.update(run_id=sibling.pk,origin_id=old.pk)
+                    MdmDailyInputCapture.objects.create(**values)
+                    with self.assertRaisesRegex(ValueError,'canonical origin differs'):
+                        captured_input.origin(first_leaf)
+                    transaction.set_rollback(True)
+                self.assertEqual(epochs(owner.pk),cut)
+                original=leaf.input_payload
+                leaf.input_payload=dict(original,origin_run_id=str(leaf.pk))
+                leaf.input_manifest_digest=digest(leaf.input_payload)
+                with self.assertRaisesRegex(ValueError,'canonical origin differs'):
+                    captured_input.origin(leaf)
+                leaf.refresh_from_db()
+                with patch.object(daily_feed,'atomic_json',side_effect=OSError('third-hop receipt failure')):
+                    with self.assertRaisesRegex(OSError,'third-hop receipt failure'):
+                        resume(Path(attempt.archive_path).with_name('third-receipt-failure'))
+                self.assertEqual(CalculationRun.objects.count(),3)
+                self.assertEqual(MdmDailyInputCapture.objects.count(),3)
+                self.assertEqual(epochs(owner.pk),second['current_revision_cut'])
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):
@@ -190,8 +257,32 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 leaf.refresh_from_db();leaf_attempt.refresh_from_db()
                 self.assertEqual((leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
                     leaf_attempt.status,digest(leaf_attempt.error)),leaf_before)
+                for failed in CalculationRun.objects.filter(pk__in=failed_before):
+                    self.assertEqual((failed.status,failed.input_digest,failed.input_manifest_digest,
+                        digest(failed.input_payload)),failed_before[str(failed.pk)])
                 with self.assertRaisesRegex(ValueError,'fixed two-hop boundary'):
                     captured_input._origin(result,second_allowed=False)
+                with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):
+                    captured_input._origin(result,second_allowed=True,third_allowed=False)
+                cut=epochs(owner.pk)
+                with transaction.atomic():
+                    candidate=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date=old.business_date,
+                        execution_revision='adversarial-fourth',input_digest=old.input_digest,
+                        input_payload={},status='RUNNING')
+                    captured=MdmDailyInputCapture.objects.get(run=result)
+                    values={f.attname:getattr(captured,f.attname) for f in captured._meta.concrete_fields
+                        if f.name not in ('run','captured_at')}
+                    values.update(run_id=candidate.pk,origin_id=result.pk,status='CAPTURED',consumed_at=None)
+                    MdmDailyInputCapture.objects.create(**values)
+                    with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):
+                        captured_input.manifest(candidate,result)
+                    transaction.set_rollback(True)
+                self.assertEqual(epochs(owner.pk),cut)
+                self.assertEqual(CalculationRun.objects.count(),4)
+                self.assertEqual(MdmDailyInputCapture.objects.count(),4)
+                self.assertFalse(CalculationRun.objects.filter(pk=candidate.pk).exists())
+                result.refresh_from_db()
+                self.assertEqual(result.status,'SUCCEEDED')
                 with self.assertRaisesRegex(ValueError,'already attempted'):
                     resume(Path(attempt.archive_path).with_name('duplicate'))
                 # Changed reference roots must be denied by actual DB-backed

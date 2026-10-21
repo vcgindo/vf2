@@ -213,7 +213,12 @@ def unresolved_attempts(owner):
     from mta.runtime.captured_input import SECOND
     path=(Q(origin__run_id=OuterRef('run_id')) |
         Q(origin__origin__run_id=OuterRef('run_id'),origin__run__status='FAILED',
-          origin__run__input_payload__schema='fresh-captured-input-reference-v1',
+          origin__run__input_payload__schema__in=('fresh-captured-input-reference-v1',SECOND),
+          run__input_payload__schema=SECOND) |
+        Q(origin__origin__origin__run_id=OuterRef('run_id'),
+          origin__run__status='FAILED',origin__origin__run__status='FAILED',
+          origin__run__input_payload__schema=SECOND,
+          origin__origin__run__input_payload__schema='fresh-captured-input-reference-v1',
           run__input_payload__schema=SECOND))
     completed = MdmDailyInputCapture.objects.filter(path,
         run__input_digest=OuterRef('run__input_digest'),
