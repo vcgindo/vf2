@@ -4,6 +4,7 @@ from mta.runtime.operational_source_models import OperationalForceSource, Operat
 from mta.runtime.relational_state import save_image, load_image
 from mta.runtime.input_reader import read_input
 from mta.serialization import digest, storage
+from mta.row_sequences import is_record_rows
 from mta.application.timeline_controls import FORCE_CAPTURE_POLICY
 
 BINDINGS = dict(ForceNormChange='Importer/ForceNormChange', DBMMaster='DBM/DBMMaster',
@@ -14,7 +15,7 @@ def _validate(populations):
     if not isinstance(populations, dict) or set(populations) != set(BINDINGS):
         raise ValueError('All three pre-clear force sources required')
     for name, rows in populations.items():
-        if not isinstance(rows, list):
+        if not is_record_rows(rows):
             raise ValueError('Explicit force source populations required')
         required = ({'skucode', 'whcode', 'newnorm', 'approved', 'requestedby'}
                     if name == 'ForceNormChange' else {'skucode', 'whcode', 'norm'})

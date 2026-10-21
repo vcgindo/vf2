@@ -52,3 +52,38 @@ attempt after a failed final run. Preserve the existing8GiB worker/12GiB Docker,
 2GiB host headroom/20GiB disk reserves, observation limits and single180-minute
 all-work window recorded before the final build. Frontend/MTO/auth, serving
 instances, ports, existing resources and business rules remain unchanged.
+
+## Actual final attempt and bounded correction — 22 October 2026
+
+Candidate f03c69a7 was built as image1f52a467. The one-time loaded schema
+transition committed in9.572s before execute_day; it is not daily migration
+work. Terminal run7be1eecd-d047-4a3f-836f-bf99e7e6374b completed calculation
+in1214.700s, including operational BTR182.235s, under the unchanged8GiB guard
+(high-water8086675456bytes). These timings do not establish legacy parity.
+
+The day FAILED before operational commit: operational_force_source._validate
+required list while load_image returns RecordRows above10000rows. DBMMaster
+and MasterDataRaw crossed that boundary. The host observer separately raced
+worker exit; its failed receipt is preserved rather than reported as success.
+Independent read-only post-stop checks confirm all386 typed output tables have
+zero rows for this run, no checkpoints/commands/publications, no live worker,
+owned job or transaction, unchanged original8 metadata/32 archive files,
+opening/certificate/namespace/capability, global roles and six protected service
+identities. Capture/failure metadata remain; fact/operational/action epochs
+advanced, so whole epoch equality is explicitly not claimed. The schema upgrade
+remains committed. Reports and exact next-opening proof were not reached.
+
+The bounded source correction uses existing is_record_rows (list or RecordRows)
+instead of list-only validation. All field, ownership, authorization, policy,
+full digest, NULL, duplicate and ordering checks remain. Ten focused tests PASS,
+including real load_image at10000/10001rows with a real file spool and lazy
+read-only mode, changed-content/order/multiplicity rejection and existing BTR
+operational/report separation. These tests stub SQL transport; no corrected
+large run or new PostgreSQL campaign is claimed. Adjacent operational input
+and report-route source readers do not contain this list-only rejection.
+
+Evidence is in the takeover-final-20261022 child of the root above:
+final-launch.log, schema-transition-result.json, final-poststop-preservation.json,
+force-readback-focused-tests.log and force-readback-correction.json.
+The authorized maximum-one terminal attempt is consumed. No further admission
+version, schema transition, image build or large retry is implemented or run.
