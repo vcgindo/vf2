@@ -4,16 +4,14 @@ Canonical table-shaped rows are used at this boundary to keep state columns
 explicit. This module performs no I/O and does not select a rule from a fixture.
 Source/ownership contract: docs/block3/R2_INGESTION_CONTRACT.md.
 
-DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
-presentation and behavior. No frontend redesign, substitute screens, refactoring
-or MTO changes. Any future exception requires explicit human authorization.
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from __future__ import annotations
 
 from copy import deepcopy
 from datetime import date, timedelta
 from itertools import chain, groupby
-from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.domain.ordinal_lookup import OrdinalLookup, OrderedIndex
 from mta.domain.sql_identity_keys import row_join_key, value_join_key
 from mta.row_sequences import history_rows
 
@@ -67,9 +65,17 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
 
 
 def import_exclusions(exclusions, masters):
-    return [dict(SKUCode=row['SKUCode'], WHCode=row['WhCode'],
-                 IsRedEnabled=False, IsGreenEnabled=False)
-            for row in exclusions for master in masters if _key(row) == _key(master)]
+    result = []
+    if not masters:
+        return result
+    with OrderedIndex(masters) as master_index:
+        for row in exclusions:
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            for master in master_index.candidates(raw_key):
+                if _key(row) == _key(master):
+                    result.append(dict(SKUCode=row['SKUCode'], WHCode=row['WhCode'],
+                        IsRedEnabled=False, IsGreenEnabled=False))
+    return result
 
 
 def import_orders(today, previous, raw):

@@ -5,9 +5,7 @@ The contract is pinned in
 Rows remain SQL-style bags.  Deterministic aggregate multiplicity is preserved;
 undefined latest-row or update-source choices are rejected.
 
-DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
-presentation and behavior. No frontend redesign, substitute screens, refactoring
-or MTO changes. Any future exception requires explicit human authorization.
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from __future__ import annotations
 
@@ -19,6 +17,7 @@ from itertools import chain
 from xml.sax.saxutils import quoteattr
 from mta.row_sequences import history_rows, is_record_rows
 from mta.domain.sql_identity_keys import group_key, join_key, row_join_key, value_join_key
+from mta.domain.ordinal_lookup import OrderedIndex
 
 
 DAYS = tuple(f"D{i}" for i in range(1, 91))
@@ -530,11 +529,12 @@ def _norm_suggestions(today, state, facts, selected, *, _owned=False):
         key, value = _key(row), _day(row["NormChangeDate"])
         last_norm_change[key] = max(value, last_norm_change.get(key, value))
     current_types = {(key, row["Type"]) for key, values in suggestions.items() for row in values}
+    type_counts = Counter((key, row["Type"]) for key, values in suggestions.items() for row in values)
     logs = defaultdict(list)
     for row in facts["SuggestionsLog"]:
         key = _key(row)
         if (key, row["Type"]) in current_types and (key not in last_norm_change or _day(row["SuggestionDate"]) > last_norm_change[key]):
-            multiplier = sum(item["Type"] == row["Type"] for item in suggestions[key])
+            multiplier = type_counts[key, row["Type"]]
             logs[key].extend([row] * multiplier)
     starts = {}
     for key, values in logs.items():
@@ -578,19 +578,20 @@ def _categories(today, state, facts, selected, *, _owned=False):
     master = _unique_source(facts["MasterData"], _key, ("RLT",), "Importer MasterData RLT")
     snapshots = {_key(row): row for row in result["BTRSnapshotForUI"]}
     physical = {_key(row): row for row in result["BufferTrendPhysicalInv"]}
-    for key, snapshot in snapshots.items():
-        if key not in master:
-            continue
-        rlt = master[key][0]
-        if snapshot["TodayColorDispatch"] == "Black" and Decimal(snapshot["AgeDispatch"]) > Decimal("1.5") * Decimal(rlt):
-            for row in by_key[key]: _append_category(row, "1")
-        if snapshot["TodayColorPhysicalInv"] == "Black" and snapshot["AgePhysicalInv"] > rlt:
-            for row in by_key[key]: _append_category(row, "2")
-        if snapshot["TodayColorPhysicalInv"] == "White" and snapshot["AgePhysicalInv"] >= 2 * rlt:
-            consumption = [row["Consumption"] for row in facts["DailyConsumption"]
-                           if _key(row) == key and _day(row["ReportDate"]) > today - timedelta(days=2 * rlt)]
-            if consumption and all(value is not None for value in consumption) and sum(consumption) == 0:
-                for row in by_key[key]: _append_category(row, "5")
+    with OrderedIndex(facts["DailyConsumption"], key=lambda row: tuple(_key(row))) as consumption_index:
+        for key, snapshot in snapshots.items():
+            if key not in master:
+                continue
+            rlt = master[key][0]
+            if snapshot["TodayColorDispatch"] == "Black" and Decimal(snapshot["AgeDispatch"]) > Decimal("1.5") * Decimal(rlt):
+                for row in by_key[key]: _append_category(row, "1")
+            if snapshot["TodayColorPhysicalInv"] == "Black" and snapshot["AgePhysicalInv"] > rlt:
+                for row in by_key[key]: _append_category(row, "2")
+            if snapshot["TodayColorPhysicalInv"] == "White" and snapshot["AgePhysicalInv"] >= 2 * rlt:
+                consumption = [row["Consumption"] for row in consumption_index.candidates(tuple(key))
+                               if _key(row) == key and _day(row["ReportDate"]) > today - timedelta(days=2 * rlt)]
+                if consumption and all(value is not None for value in consumption) and sum(consumption) == 0:
+                    for row in by_key[key]: _append_category(row, "5")
     for key, trend in physical.items():
         if key in master and trend["BRAge"] is not None and trend["BRAge"] > master[key][0]:
             for row in by_key[key]: _append_category(row, "3")

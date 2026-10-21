@@ -1,9 +1,14 @@
-"""Computed phase recommendations; no phase workflow or Norm change is applied."""
+"""Computed phase recommendations; no phase workflow or Norm change is applied.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+"""
+from contextlib import ExitStack
 from copy import deepcopy
 from datetime import date
 from itertools import product
 from mta.domain.dbm_report_dates import report_cutoff
 from mta.domain.complete_daily_scalars import ascii_equal
+from mta.domain.ordinal_lookup import OrderedIndex
 
 HORIZONS = (30, 60, 90)
 TOLERANCES = tuple(f'PhaseOutRecommendationTolerance{h}Days' for h in HORIZONS)
@@ -74,52 +79,64 @@ def phase_recommendation(today, state, horizon, tolerance):
     today = row_date(today)
     excluded = {identity(row['SKUCode']) for name in ('PhaseInTbl', 'PhaseOutTbl') for row in state[name]}
     groups = {}
-    for master in state['DBMMaster']:
-        key = pair(master)
-        if key is None or master['Norm'] is None or master['Norm'] <= 0 or key[0] in excluded:
-            continue
-        currents = [row['Stock'] for row in state['DailyConsumption'] if pair(row)==key
-                    and row_date(row['ReportDate']) == today] or [None]
-        for fact in state['DailyConsumption']:
-            day = row_date(fact['ReportDate'])
-            if pair(fact)!=key or day is None or day <= cutoff:
+    first = True
+    with OrderedIndex(state['DailyConsumption']) as daily_index:
+        for master in state['DBMMaster']:
+            key = pair(master)
+            if key is None or master['Norm'] is None or master['Norm'] <= 0 or key[0] in excluded:
                 continue
-            for stock in currents:
-                group_key = (*key, master['Norm'], stock)
-                spelling = (master['SKUCode'], master['WhCode'])
-                if group_key not in groups:
-                    groups[group_key] = dict(spelling=spelling, sales=[], stock_days=0)
-                group = groups[group_key]
-                if group['spelling'] != spelling:
-                    raise ValueError('SOURCE_ORDER_AMBIGUITY: grouped phase identifier spelling')
-                if fact['Consumption'] is not None:
-                    group['sales'].append(integer(fact['Consumption'], 'Consumption'))
-                group['stock_days'] += int(fact['Stock'] is not None and fact['Stock'] > 0)
+            candidates = state['DailyConsumption'] if first else daily_index.candidates((master['SKUCode'], master['WhCode']))
+            currents = [row['Stock'] for row in candidates if pair(row)==key
+                        and row_date(row['ReportDate']) == today] or [None]
+            candidates = state['DailyConsumption'] if first else daily_index.candidates((master['SKUCode'], master['WhCode']))
+            for fact in candidates:
+                day = row_date(fact['ReportDate'])
+                if pair(fact)!=key or day is None or day <= cutoff:
+                    continue
+                for stock in currents:
+                    group_key = (*key, master['Norm'], stock)
+                    spelling = (master['SKUCode'], master['WhCode'])
+                    if group_key not in groups:
+                        groups[group_key] = dict(spelling=spelling, sales=[], stock_days=0)
+                    group = groups[group_key]
+                    if group['spelling'] != spelling:
+                        raise ValueError('SOURCE_ORDER_AMBIGUITY: grouped phase identifier spelling')
+                    if fact['Consumption'] is not None:
+                        group['sales'].append(integer(fact['Consumption'], 'Consumption'))
+                    group['stock_days'] += int(fact['Stock'] is not None and fact['Stock'] > 0)
+            # The first eligible master's original passes validate all keys and
+            # dates in their original order, including unrelated observations.
+            first = False
     rows = []
-    for (sku, wh, norm, current_stock), group in groups.items():
-        sales = group['sales']
-        # SUM(int) excludes NULL and returns NULL for an all-NULL group. Retain
-        # overflow denial without choosing an unordered cancellation policy.
-        for subtotal in (sum(v for v in sales if v>0), sum(v for v in sales if v<0)):
-            integer(subtotal, 'consumption subtotal')
-        total = integer(sum(sales), 'TotalSale') if sales else None
-        count = integer(group['stock_days'], 'StockDays')
-        if total is None or total >= 1 or count < threshold:
-            continue
-        matches = (
-            [r for r in state['SKUDescriptionTbl'] if identity(r['SKUCode']) == sku],
-            [r for r in state['SiteDescriptionTbl'] if identity(r['WHCode']) == wh],
-            [r for r in state['SkuAttributeData'] if identity(r['SKUCode']) == sku],
-            [r for r in state['LocationAttributeData'] if identity(r['WHCode']) == wh],
-            [r for r in state['SkuLocAttributeData'] if pair(r, 'LocCode') == (sku, wh)])
-        for description, site, sku_attributes, loc_attributes, pair_attributes in product(*matches):
-            row = dict(SKUCode=group['spelling'][0], SKUName=text(description['SKUDescription']),
-                WhCode=group['spelling'][1], WHName=text(site['WHDescription']), StockDays=count,
-                TotalSale=total, CurrentNorm=norm, CurrentStock=current_stock)
-            for prefix, attributes in (('SKUAtt', sku_attributes), ('LocAtt', loc_attributes), ('SKULocAtt', pair_attributes)):
-                row.update({f'{prefix}{index:02}':text(attributes[f'c{index}']) for index in range(1,16)})
-            validate_target(row)
-            rows.append(row)
+    with ExitStack() as stack:
+        indexes = {name:stack.enter_context(OrderedIndex(state[name], key=key)) for name,key in (
+            ('SKUDescriptionTbl',lambda r:(r['SKUCode'],)), ('SiteDescriptionTbl',lambda r:(r['WHCode'],)),
+            ('SkuAttributeData',lambda r:(r['SKUCode'],)), ('LocationAttributeData',lambda r:(r['WHCode'],)),
+            ('SkuLocAttributeData',lambda r:(r['SKUCode'],r['LocCode'])))}
+        for (sku, wh, norm, current_stock), group in groups.items():
+            sales = group['sales']
+            # SUM(int) excludes NULL and returns NULL for an all-NULL group. Retain
+            # overflow denial without choosing an unordered cancellation policy.
+            for subtotal in (sum(v for v in sales if v>0), sum(v for v in sales if v<0)):
+                integer(subtotal, 'consumption subtotal')
+            total = integer(sum(sales), 'TotalSale') if sales else None
+            count = integer(group['stock_days'], 'StockDays')
+            if total is None or total >= 1 or count < threshold:
+                continue
+            matches = (
+                [r for r in indexes['SKUDescriptionTbl'].candidates((sku,)) if identity(r['SKUCode']) == sku],
+                [r for r in indexes['SiteDescriptionTbl'].candidates((wh,)) if identity(r['WHCode']) == wh],
+                [r for r in indexes['SkuAttributeData'].candidates((sku,)) if identity(r['SKUCode']) == sku],
+                [r for r in indexes['LocationAttributeData'].candidates((wh,)) if identity(r['WHCode']) == wh],
+                [r for r in indexes['SkuLocAttributeData'].candidates((sku,wh)) if pair(r, 'LocCode') == (sku, wh)])
+            for description, site, sku_attributes, loc_attributes, pair_attributes in product(*matches):
+                row = dict(SKUCode=group['spelling'][0], SKUName=text(description['SKUDescription']),
+                    WhCode=group['spelling'][1], WHName=text(site['WHDescription']), StockDays=count,
+                    TotalSale=total, CurrentNorm=norm, CurrentStock=current_stock)
+                for prefix, attributes in (('SKUAtt', sku_attributes), ('LocAtt', loc_attributes), ('SKULocAtt', pair_attributes)):
+                    row.update({f'{prefix}{index:02}':text(attributes[f'c{index}']) for index in range(1,16)})
+                validate_target(row)
+                rows.append(row)
     result = deepcopy(state)
     result['PhaseOutRecommendation'] = rows
     return result

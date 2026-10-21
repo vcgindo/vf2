@@ -1,11 +1,9 @@
 """Ordered DBM suspension state; selected SQL semantics without rule dispatch.
 
-DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
-presentation and behavior. No frontend redesign, substitute screens, refactoring
-or MTO changes. Any future exception requires explicit human authorization.
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from copy import deepcopy
-from mta.domain.ordinal_lookup import OrdinalLookup, indexed_state, matching
+from mta.domain.ordinal_lookup import OrdinalLookup, OrderedIndex, indexed_state, matching
 from mta.domain.sql_identity_keys import row_join_key
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
@@ -584,32 +582,36 @@ def apply_forced_norm_stock(today, state):
     # SUM groups the suspension-to-facts join by SKU/location. Multiple opening
     # memberships contribute independently, including differing start dates.
     receipts = {}
-    for row in suspended:
-        key = _key(row)
-        matching = [r['Receipts'] for r in state['DailyConsumption']
-                    if _key(r) == key and day(row['WaitStartDate']) <= day(r['ReportDate']) <= today]
-        if matching:
-            receipts.setdefault(key, [])
-            receipts[key].extend(v for v in matching if v is not None)
-    totals = {k: sum(v) if v else None for k, v in receipts.items()}
-    for row in suspended:
-        key = _key(row)
-        wait = day(row['WaitTillDate'])
-        row['WaitForReceipts'] = wait is not None and wait <= today
-        stocks = [r['Stock'] for r in state['DailyConsumption']
-                  if _key(r) == key and day(r['ReportDate']) == today]
-        master = masters.get(key)
-        if key not in totals or not stocks or master is None:
-            continue
-        outcomes = set()
-        for stock in stocks:
-            if row['WaitForReceipts']:
-                outcomes.add(totals[key] is not None and totals[key] >= row['ReqReceipts'])
-            else:
-                outcomes.add(wait is None and stock is not None and stock <= master['Norm'])
-        if len(outcomes) != 1:
-            raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting forced-stock daily rows')
-        row['IsRedEnabled'] = outcomes.pop()
+    with OrderedIndex(state['DailyConsumption']) as daily_index:
+        for row in suspended:
+            key = _key(row)
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            matching = [r['Receipts'] for r in daily_index.candidates(raw_key)
+                        if _key(r) == key
+                        and day(row['WaitStartDate']) <= day(r['ReportDate']) <= today]
+            if matching:
+                receipts.setdefault(key, [])
+                receipts[key].extend(v for v in matching if v is not None)
+        totals = {k: sum(v) if v else None for k, v in receipts.items()}
+        for row in suspended:
+            key = _key(row)
+            wait = day(row['WaitTillDate'])
+            row['WaitForReceipts'] = wait is not None and wait <= today
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            stocks = [r['Stock'] for r in daily_index.candidates(raw_key)
+                      if _key(r) == key and day(r['ReportDate']) == today]
+            master = masters.get(key)
+            if key not in totals or not stocks or master is None:
+                continue
+            outcomes = set()
+            for stock in stocks:
+                if row['WaitForReceipts']:
+                    outcomes.add(totals[key] is not None and totals[key] >= row['ReqReceipts'])
+                else:
+                    outcomes.add(wait is None and stock is not None and stock <= master['Norm'])
+            if len(outcomes) != 1:
+                raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting forced-stock daily rows')
+            row['IsRedEnabled'] = outcomes.pop()
     red_reset = {_key(r) for r in suspended if r['IsRedEnabled']}
     for row in result['SuspendStockType']:
         if _key(row) in red_reset:
@@ -721,32 +723,41 @@ def suspend_introductions(today, state):
     def threshold(percentage, norm):
         return int((Decimal(percentage) * Decimal(norm) / 100).to_integral_value(rounding=ROUND_CEILING))
 
-    for row in suspended:
-        matching = [master for master in masters if _key(master) == _key(row)]
-        if len(matching) > 1:
-            raise ValueError('SOURCE_ORDER_AMBIGUITY: duplicate introduction master')
-        if not matching:
-            continue
-        master = matching[0]
-        if _key(row) in new_keys:
-            stocks = {observation['Stock'] for observation in daily
-                      if _key(observation) == _key(row) and day(observation['ReportDate']) == today}
-            outcomes = {(0 if stock is None else stock) >= threshold(ratio, master['Norm'])
-                        for stock in stocks}
-            if len(outcomes) > 1:
-                raise ValueError('SOURCE_ORDER_AMBIGUITY: introduction stock outcomes differ')
-            if outcomes:
-                row['IsRedEnabled'] = outcomes.pop()
-        intro = day(master['SKUIntroDate'])
-        receipts = [observation['Receipts'] for observation in daily
-                    if _key(observation) == _key(row) and intro is not None
-                    and intro <= day(observation['ReportDate']) <= today
-                    and observation['Receipts'] is not None]
-        # SQL groups the joined suspension rows; preserve multiplicity rather
-        # than silently deduplicating retained opening memberships.
-        multiplicity = sum(_key(other) == _key(row) for other in suspended)
-        if receipts and sum(receipts) * multiplicity >= threshold(row['ReplenishmentRatio'], master['Norm']):
-            row['IsRedEnabled'] = True
+    with (OrderedIndex(masters) as master_index,
+          OrderedIndex(daily) as daily_index,
+          OrderedIndex(suspended) as suspension_index):
+        for row in suspended:
+            raw_key = (row['SKUCode'], row.get('WhCode', row.get('WHCode'))) if 'SKUCode' in row else None
+            matching = [master for master in master_index.candidates(raw_key)
+                        if _key(master) == _key(row)]
+            if len(matching) > 1:
+                raise ValueError('SOURCE_ORDER_AMBIGUITY: duplicate introduction master')
+            if not matching:
+                continue
+            master = matching[0]
+            if _key(row) in new_keys:
+                stocks = {observation['Stock'] for observation in daily_index.candidates(raw_key)
+                          if _key(observation) == _key(row)
+                          and day(observation['ReportDate']) == today}
+                outcomes = {(0 if stock is None else stock) >= threshold(ratio, master['Norm'])
+                            for stock in stocks}
+                if len(outcomes) > 1:
+                    raise ValueError('SOURCE_ORDER_AMBIGUITY: introduction stock outcomes differ')
+                if outcomes:
+                    row['IsRedEnabled'] = outcomes.pop()
+            intro = day(master['SKUIntroDate'])
+            receipts = [observation['Receipts'] for observation in daily_index.candidates(raw_key)
+                        if _key(observation) == _key(row) and intro is not None
+                        and intro <= day(observation['ReportDate']) <= today
+                        and observation['Receipts'] is not None]
+            # SQL groups the joined suspension rows; preserve multiplicity rather
+            # than silently deduplicating retained opening memberships.
+            multiplicity = sum(
+                _key(other) == _key(row)
+                for other in suspension_index.candidates(raw_key))
+            if receipts and sum(receipts) * multiplicity >= threshold(
+                    row['ReplenishmentRatio'], master['Norm']):
+                row['IsRedEnabled'] = True
     result['SuspendNewSKUTbl'] = suspended
     return result
 
@@ -823,51 +834,54 @@ def suspend_accepted_norm_stock(today, state):
         row['WaitForReceipts'] = wait_till is not None and wait_till <= today
 
     current_receipts = {}
-    for row in suspended:
-        key = _key(row)
-        start = day(row['WaitStartDate'])
-        matches = [fact for fact in state['DailyConsumption']
-                   if _key(fact) == key and start <= day(fact['ReportDate']) <= today]
-        if matches:
-            current_receipts[key] = current_receipts.get(key, 0) + sum(
-                fact['Receipts'] for fact in matches)
+    with OrderedIndex(state['DailyConsumption']) as daily_index:
+        for row in suspended:
+            key = _key(row)
+            start = day(row['WaitStartDate'])
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            matches = [fact for fact in daily_index.candidates(raw_key)
+                       if _key(fact) == key and start <= day(fact['ReportDate']) <= today]
+            if matches:
+                current_receipts[key] = current_receipts.get(key, 0) + sum(
+                    fact['Receipts'] for fact in matches)
 
-    for row in suspended:
-        key = _key(row)
-        stock = current_stock.get(key)
-        master = masters_by_key.get(key)
-        receipts = current_receipts.get(key)
-        if stock is None or master is None or receipts is None:
-            continue
-        stock_value, blue_zone, norm = stock
-        if stock_value is not None and stock_value > int(
-                (Decimal(norm) / Decimal(3)).to_integral_value(rounding=ROUND_CEILING)):
-            row['HasStockComeOutOfRed'] = True
+        for row in suspended:
+            key = _key(row)
+            stock = current_stock.get(key)
+            master = masters_by_key.get(key)
+            receipts = current_receipts.get(key)
+            if stock is None or master is None or receipts is None:
+                continue
+            stock_value, blue_zone, norm = stock
+            if stock_value is not None and stock_value > int(
+                    (Decimal(norm) / Decimal(3)).to_integral_value(rounding=ROUND_CEILING)):
+                row['HasStockComeOutOfRed'] = True
 
-        wait_till = day(row['WaitTillDate'])
-        if wait_till is not None and wait_till <= today and row['HasStockComeOutOfRed']:
-            delta = row['DeltaNorm']
-            row['IsRedEnabled'] = delta is not None and receipts >= delta
-        elif wait_till is None and stock_value is not None and stock_value <= norm + blue_zone:
-            row['IsRedEnabled'] = True
-        else:
-            row['IsRedEnabled'] = False
+            wait_till = day(row['WaitTillDate'])
+            if wait_till is not None and wait_till <= today and row['HasStockComeOutOfRed']:
+                delta = row['DeltaNorm']
+                row['IsRedEnabled'] = delta is not None and receipts >= delta
+            elif wait_till is None and stock_value is not None and stock_value <= norm + blue_zone:
+                row['IsRedEnabled'] = True
+            else:
+                row['IsRedEnabled'] = False
 
-    horizon_receipts = {}
-    for row in suspended:
-        key = _key(row)
-        master = masters_by_key.get(key)
-        if master is None:
-            continue
-        wait_start = day(row['WaitStartDate'])
-        horizon_start = today - timedelta(days=master['RLT']) + timedelta(days=1)
-        if horizon_start < wait_start:
-            horizon_start = wait_start
-        matches = [fact for fact in state['DailyConsumption']
-                   if _key(fact) == key and day(fact['ReportDate']) >= horizon_start]
-        if matches:
-            horizon_receipts[key] = horizon_receipts.get(key, 0) + sum(
-                fact['Receipts'] for fact in matches)
+        horizon_receipts = {}
+        for row in suspended:
+            key = _key(row)
+            master = masters_by_key.get(key)
+            if master is None:
+                continue
+            wait_start = day(row['WaitStartDate'])
+            horizon_start = today - timedelta(days=master['RLT']) + timedelta(days=1)
+            if horizon_start < wait_start:
+                horizon_start = wait_start
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            matches = [fact for fact in daily_index.candidates(raw_key)
+                       if _key(fact) == key and day(fact['ReportDate']) >= horizon_start]
+            if matches:
+                horizon_receipts[key] = horizon_receipts.get(key, 0) + sum(
+                    fact['Receipts'] for fact in matches)
 
     for row in suspended:
         key = _key(row)
@@ -957,51 +971,54 @@ def apply_accepted_norm_stock(today, state):
         row['WaitForReceipts'] = wait_till is not None and wait_till <= today
 
     current_receipts = {}
-    for row in suspended:
-        key = _key(row)
-        start = day(row['WaitStartDate'])
-        matches = [fact for fact in state['DailyConsumption']
-                   if _key(fact) == key and start <= day(fact['ReportDate']) <= today]
-        if matches:
-            current_receipts[key] = current_receipts.get(key, 0) + sum(
-                fact['Receipts'] for fact in matches)
+    with OrderedIndex(state['DailyConsumption']) as daily_index:
+        for row in suspended:
+            key = _key(row)
+            start = day(row['WaitStartDate'])
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            matches = [fact for fact in daily_index.candidates(raw_key)
+                       if _key(fact) == key and start <= day(fact['ReportDate']) <= today]
+            if matches:
+                current_receipts[key] = current_receipts.get(key, 0) + sum(
+                    fact['Receipts'] for fact in matches)
 
-    for row in suspended:
-        key = _key(row)
-        stock = current_stock.get(key)
-        master = masters_by_key.get(key)
-        receipts = current_receipts.get(key)
-        if stock is None or master is None or receipts is None:
-            continue
-        stock_value, blue_zone, norm = stock
-        red_threshold = int((Decimal(norm) / Decimal(3)).to_integral_value(rounding=ROUND_CEILING))
-        if stock_value is not None and stock_value > red_threshold:
-            row['HasStockComeOutOfRed'] = True
+        for row in suspended:
+            key = _key(row)
+            stock = current_stock.get(key)
+            master = masters_by_key.get(key)
+            receipts = current_receipts.get(key)
+            if stock is None or master is None or receipts is None:
+                continue
+            stock_value, blue_zone, norm = stock
+            red_threshold = int((Decimal(norm) / Decimal(3)).to_integral_value(rounding=ROUND_CEILING))
+            if stock_value is not None and stock_value > red_threshold:
+                row['HasStockComeOutOfRed'] = True
 
-        wait_till = day(row['WaitTillDate'])
-        if wait_till is not None and wait_till <= today and row['HasStockComeOutOfRed']:
-            delta = row['DeltaNorm']
-            row['IsRedEnabled'] = delta is not None and receipts >= delta
-        elif wait_till is None and stock_value is not None and stock_value <= norm + blue_zone:
-            row['IsRedEnabled'] = True
-        else:
-            row['IsRedEnabled'] = False
+            wait_till = day(row['WaitTillDate'])
+            if wait_till is not None and wait_till <= today and row['HasStockComeOutOfRed']:
+                delta = row['DeltaNorm']
+                row['IsRedEnabled'] = delta is not None and receipts >= delta
+            elif wait_till is None and stock_value is not None and stock_value <= norm + blue_zone:
+                row['IsRedEnabled'] = True
+            else:
+                row['IsRedEnabled'] = False
 
-    horizon_receipts = {}
-    for row in suspended:
-        key = _key(row)
-        master = masters_by_key.get(key)
-        if master is None:
-            continue
-        wait_start = day(row['WaitStartDate'])
-        horizon_start = today - timedelta(days=master['RLT']) + timedelta(days=1)
-        if horizon_start < wait_start:
-            horizon_start = wait_start
-        matches = [fact for fact in state['DailyConsumption']
-                   if _key(fact) == key and day(fact['ReportDate']) >= horizon_start]
-        if matches:
-            horizon_receipts[key] = horizon_receipts.get(key, 0) + sum(
-                fact['Receipts'] for fact in matches)
+        horizon_receipts = {}
+        for row in suspended:
+            key = _key(row)
+            master = masters_by_key.get(key)
+            if master is None:
+                continue
+            wait_start = day(row['WaitStartDate'])
+            horizon_start = today - timedelta(days=master['RLT']) + timedelta(days=1)
+            if horizon_start < wait_start:
+                horizon_start = wait_start
+            raw_key = row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+            matches = [fact for fact in daily_index.candidates(raw_key)
+                       if _key(fact) == key and day(fact['ReportDate']) >= horizon_start]
+            if matches:
+                horizon_receipts[key] = horizon_receipts.get(key, 0) + sum(
+                    fact['Receipts'] for fact in matches)
 
     for row in suspended:
         key = _key(row)

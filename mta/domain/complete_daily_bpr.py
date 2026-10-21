@@ -8,10 +8,15 @@ Native collation and FLOAT conversions must be supplied explicitly: these are
 semantic inputs, not permission to approximate SQL formatting or repair data.
 Intermediate working scratch rows are cleared before returning final populations.
 Stage consumers exhaust the statements before reading final business populations.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from copy import deepcopy
 from datetime import date, datetime
 import math
+from mta.domain.complete_daily_scalars import ascii_equal
+from mta.domain.ordinal_lookup import OrderedIndex
+from mta.domain.sql_identity_keys import join_key
 
 
 def _match(left, right, fields, equal):
@@ -20,9 +25,11 @@ def _match(left, right, fields, equal):
                and equal(left[a], right[b]) for a, b in fields)
 
 
-def _update(targets, sources, fields, value, field, equal, label):
+def _update(targets, sources, fields, value, field, equal, label, source_index=None):
     for target in targets:
-        outcomes = [value(source) for source in sources
+        candidates = sources if source_index is None else source_index.candidates(
+            tuple(target.get(left) for left, _ in fields))
+        outcomes = [value(source) for source in candidates
                     if _match(target, source, fields, equal)]
         if not outcomes:
             continue
@@ -178,31 +185,40 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
     yield 'truncate-intermediate-before', state
     state['ProdOrderSuggestions'] = []
     yield 'truncate-suggestions', state
-    for req in supplier_dispatch_req:
-        for plant in plants:
-            if not _match(req, plant, (('SupplierCode', 'PlantCode'),), equal):
-                continue
-            for report in rationed_req_report:
-                if not _match(req, report, (('SKUCode', 'SKUCode'), ('WHCode', 'WhCode')), equal):
+    with OrderedIndex(plants, key=lambda r: (r['PlantCode'],), enabled=equal is ascii_equal) as plant_index, OrderedIndex(
+            rationed_req_report, key=lambda r: (r['SKUCode'], r['WhCode']),
+            enabled=equal is ascii_equal) as report_index:
+        for req in supplier_dispatch_req:
+            for plant in plant_index.candidates_for(req, 'SupplierCode'):
+                if not _match(req, plant, (('SupplierCode', 'PlantCode'),), equal):
                     continue
-                row = {'SKUCode': _text(req['SKUCode'], 'TempProductionOrderReq.SKUCode', 50),
-                       'WHCode': _text(req['WHCode'], 'TempProductionOrderReq.WHCode', 50),
-                       'PlantCode': _text(plant['PlantCode'], 'TempProductionOrderReq.PlantCode', 50)}
-                for target, source in (('Norm', 'Norm'), ('Stock', 'Stock'), ('GIT', 'GIT'),
-                                       ('Red', 'ReqTopOfRed'), ('Yellow', 'ReqTopOfYellow'),
-                                       ('Green', 'ReqTopOfGreen')):
-                    owner = req if target in ('Red', 'Yellow', 'Green') else report
-                    row[target] = _int(owner[source], 'TempProductionOrderReq.' + target,
-                                       nullable=target == 'Stock')
-                scratch['TempProductionOrderReq'].append(row)
+                for report in report_index.candidates_for(req, 'SKUCode', 'WHCode'):
+                    if not _match(req, report, (('SKUCode', 'SKUCode'), ('WHCode', 'WhCode')), equal):
+                        continue
+                    row = {'SKUCode': _text(req['SKUCode'], 'TempProductionOrderReq.SKUCode', 50),
+                           'WHCode': _text(req['WHCode'], 'TempProductionOrderReq.WHCode', 50),
+                           'PlantCode': _text(plant['PlantCode'], 'TempProductionOrderReq.PlantCode', 50)}
+                    for target, source in (('Norm', 'Norm'), ('Stock', 'Stock'), ('GIT', 'GIT'),
+                                           ('Red', 'ReqTopOfRed'), ('Yellow', 'ReqTopOfYellow'),
+                                           ('Green', 'ReqTopOfGreen')):
+                        owner = req if target in ('Red', 'Yellow', 'Green') else report
+                        row[target] = _int(owner[source], 'TempProductionOrderReq.' + target,
+                                           nullable=target == 'Stock')
+                    scratch['TempProductionOrderReq'].append(row)
     yield 'insert-production-req', state
     consolidated = scratch['TempConsolidatedProdOrderReq']
+    grouped = {}
     for row in scratch['TempProductionOrderReq']:
-        hits = [r for r in consolidated if _match(row, r,
+        identity = None
+        if equal is ascii_equal and grouped is not None:
+            try:identity = join_key(row['SKUCode'], row['PlantCode'])
+            except (TypeError, ValueError):grouped = None
+        hits = grouped.get(identity, []) if identity is not None else [r for r in consolidated if _match(row, r,
                 (('SKUCode', 'SKUCode'), ('PlantCode', 'PlantCode')), equal)]
         if not hits:
             consolidated.append({k: row[k] for k in ('SKUCode', 'PlantCode', 'Red', 'Yellow', 'Green')}
                                 | {'TotalReq': 0, 'RemPlantEcoStk': 0, 'EcoColor': 'Green'})
+            if identity is not None:grouped[identity] = [consolidated[-1]]
         else:
             if any(hits[0][k] != row[k] for k in ('SKUCode', 'PlantCode')):
                 raise ValueError('SOURCE_ORDER_AMBIGUITY: grouped production key representative')
@@ -210,21 +226,24 @@ def production_suggestion_stages(*, supplier_dispatch_req, plants,
                 hits[0][color] = _int(hits[0][color] + row[color], 'SUM(' + color + ')')
     consolidated.sort(key=lambda r: sort_key(r['SKUCode']))
     yield 'consolidate-production-req', state
-    for daily in daily_consumption:
-        if today is None or daily['ReportDate'] is None or _date(daily['ReportDate']) != today:
-            continue
-        for plant in plants:
-            if _match(daily, plant, (('WHCode', 'PlantCode'),), equal):
-                scratch['PlantStock'].append({
-                    'SKUCode': _text(daily['SKUCode'], 'PlantStock.SKUCode', 50),
-                    'WHCode': _text(daily['WHCode'], 'PlantStock.WHCode', 50),
-                    'Stock': _int(0 if daily['Stock'] is None else daily['Stock'], 'PlantStock.Stock'),
-                    'GIT': _int(daily['GIT'], 'PlantStock.GIT')})
+    with OrderedIndex(plants, key=lambda r: (r['PlantCode'],), enabled=equal is ascii_equal) as plant_index:
+        for daily in daily_consumption:
+            if today is None or daily['ReportDate'] is None or _date(daily['ReportDate']) != today:
+                continue
+            for plant in plant_index.candidates_for(daily, 'WHCode'):
+                if _match(daily, plant, (('WHCode', 'PlantCode'),), equal):
+                    scratch['PlantStock'].append({
+                        'SKUCode': _text(daily['SKUCode'], 'PlantStock.SKUCode', 50),
+                        'WHCode': _text(daily['WHCode'], 'PlantStock.WHCode', 50),
+                        'Stock': _int(0 if daily['Stock'] is None else daily['Stock'], 'PlantStock.Stock'),
+                        'GIT': _int(daily['GIT'], 'PlantStock.GIT')})
     yield 'insert-plant-stock', state
-    _update(consolidated, scratch['PlantStock'],
-            (('SKUCode', 'SKUCode'), ('PlantCode', 'WHCode')),
-            lambda r: _int(r['Stock'] + r['GIT'], 'PlantStock.Stock+GIT'),
-            'RemPlantEcoStk', equal, 'production plant stock')
+    with OrderedIndex(scratch['PlantStock'], key=lambda r: (r['SKUCode'], r['WHCode']),
+                      enabled=equal is ascii_equal) as stock_index:
+        _update(consolidated, scratch['PlantStock'],
+                (('SKUCode', 'SKUCode'), ('PlantCode', 'WHCode')),
+                lambda r: _int(r['Stock'] + r['GIT'], 'PlantStock.Stock+GIT'),
+                'RemPlantEcoStk', equal, 'production plant stock', stock_index)
     yield 'update-plant-eco-stock', state
     for color in ('Red', 'Yellow', 'Green'):
         for row in consolidated:

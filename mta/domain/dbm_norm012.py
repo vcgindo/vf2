@@ -1,14 +1,14 @@
 """Selected Norm0/1/2 report stages; unordered source outcomes are not invented.
 
-DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
-presentation and behavior. No frontend redesign, substitute screens, refactoring
-or MTO changes. Any future exception requires explicit human authorization.
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from collections import defaultdict
+from contextlib import ExitStack
 from copy import deepcopy
 from datetime import date, timedelta
 from itertools import product
 from mta.domain.sql_identity_keys import join_key, row_join_key, value_join_key
+from mta.domain.ordinal_lookup import OrderedIndex
 
 BUSINESS_TABLES = ('DBMMaster', 'DailyConsumption', 'LastBatchRunTbl',
                    'SKUDescriptionTbl', 'SiteDescriptionTbl', 'SkuAttributeData',
@@ -71,16 +71,20 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
     out = deepcopy(state)
     image = defaultdict(list)
     image_spelling = {}
-    for master in state['DBMMaster']:
-        if master['Norm'] == norm:
-            for description in state['SKUDescriptionTbl']:
+    with OrderedIndex(state['SKUDescriptionTbl'], key=lambda r:(r['SKUCode'],)) as description_index:
+        for master in state['DBMMaster']:
+            if master['Norm'] == norm:
+                if not state['SKUDescriptionTbl']:continue
+                # This validation preceded the description equality in the source.
                 key = row_join_key(master)
-                if value_join_key(master['SKUCode']) == value_join_key(description['SKUCode']):
-                    spelling=master['SKUCode'],master['WhCode']
-                    if key in image_spelling and image_spelling[key]!=spelling:
-                        raise AmbiguousReport('Conflicting Norm0/1/2 grouped key spelling')
-                    image_spelling[key]=spelling
-                    image[key].append(description['SKUDescription'])
+                for description in description_index.candidates((master['SKUCode'],)):
+                    key = row_join_key(master)
+                    if value_join_key(master['SKUCode']) == value_join_key(description['SKUCode']):
+                        spelling=master['SKUCode'],master['WhCode']
+                        if key in image_spelling and image_spelling[key]!=spelling:
+                            raise AmbiguousReport('Conflicting Norm0/1/2 grouped key spelling')
+                        image_spelling[key]=spelling
+                        image[key].append(description['SKUDescription'])
     observations = defaultdict(list)
     for row in state['DailyConsumption']:
         key = row_join_key(row)
@@ -125,30 +129,38 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
 def detail_stage(state):
     out = deepcopy(state)
     result = []
-    for row in state['Norm0Norm1Norm2Report']:
-        sku, loc = row['SKUCode'], row['WHCode']
-        key=join_key(sku,loc)
-        matches = [
-            [v for v in state['SkuAttributeData'] if value_join_key(v['SKUCode']) == value_join_key(sku)] or [None],
-            [v for v in state['SkuLocAttributeData'] if join_key(v['SKUCode'], v['LocCode']) == key] or [None],
-            [v for v in state['LocationAttributeData'] if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
-            [v for v in state['SiteDescriptionTbl'] if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
-            [v for v in state['DBMMaster'] if row_join_key(v) == key] or [None],
-        ]
-        for sa, sla, la, site, master in product(*matches):
-            parent = master['ParentWhCode'] if master else None
-            norms = {v['Norm'] for v in state['DBMMaster']
-                     if parent is not None and join_key(v['SKUCode'],v['WhCode'])==join_key(sku,parent)}
-            if len(norms) > 1:
-                raise AmbiguousReport('Conflicting parent Norm UPDATE')
-            detail = {'SKUCode': sku, 'SKUName': row['SKUName'], 'WhCode': loc,
-                      'WhName': site['WHDescription'] if site else None,
-                      'ParentWhCode': parent, 'ParentNorm': next(iter(norms), None),
-                      'NumOfDaysSold': row['Count'], 'TotalSale': row['TotalSale'],
-                      'Occurances': row['Occurances'][:255] if row['Occurances'] is not None else None}
-            for prefix, attrs in (('SKUAttr', sa), ('SKULocAttr', sla), ('LocAttr', la)):
-                detail.update({prefix + str(i): attrs['c' + str(i)] if attrs else None for i in range(1, 16)})
-            result.append(detail)
+    if not state['Norm0Norm1Norm2Report']:
+        out['Norm0_1_2ReportDetails'] = result
+        return out
+    with ExitStack() as stack:
+        indexes = {name:stack.enter_context(OrderedIndex(state[name],key=key)) for name,key in (
+            ('SkuAttributeData',lambda r:(r['SKUCode'],)), ('SkuLocAttributeData',lambda r:(r['SKUCode'],r['LocCode'])),
+            ('LocationAttributeData',lambda r:(r['WHCode'],)), ('SiteDescriptionTbl',lambda r:(r['WHCode'],)),
+            ('DBMMaster',lambda r:(r['SKUCode'],r['WhCode'])))}
+        for row in state['Norm0Norm1Norm2Report']:
+            sku, loc = row['SKUCode'], row['WHCode']
+            key=join_key(sku,loc)
+            matches = [
+                [v for v in indexes['SkuAttributeData'].candidates((sku,)) if value_join_key(v['SKUCode']) == value_join_key(sku)] or [None],
+                [v for v in indexes['SkuLocAttributeData'].candidates((sku,loc)) if join_key(v['SKUCode'], v['LocCode']) == key] or [None],
+                [v for v in indexes['LocationAttributeData'].candidates((loc,)) if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
+                [v for v in indexes['SiteDescriptionTbl'].candidates((loc,)) if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
+                [v for v in indexes['DBMMaster'].candidates((sku,loc)) if row_join_key(v) == key] or [None],
+            ]
+            for sa, sla, la, site, master in product(*matches):
+                parent = master['ParentWhCode'] if master else None
+                norms = {v['Norm'] for v in (indexes['DBMMaster'].candidates((sku,parent)) if parent is not None else ())
+                         if parent is not None and join_key(v['SKUCode'],v['WhCode'])==join_key(sku,parent)}
+                if len(norms) > 1:
+                    raise AmbiguousReport('Conflicting parent Norm UPDATE')
+                detail = {'SKUCode': sku, 'SKUName': row['SKUName'], 'WhCode': loc,
+                          'WhName': site['WHDescription'] if site else None,
+                          'ParentWhCode': parent, 'ParentNorm': next(iter(norms), None),
+                          'NumOfDaysSold': row['Count'], 'TotalSale': row['TotalSale'],
+                          'Occurances': row['Occurances'][:255] if row['Occurances'] is not None else None}
+                for prefix, attrs in (('SKUAttr', sa), ('SKULocAttr', sla), ('LocAttr', la)):
+                    detail.update({prefix + str(i): attrs['c' + str(i)] if attrs else None for i in range(1, 16)})
+                result.append(detail)
     out['Norm0_1_2ReportDetails'] = result
     return out
 

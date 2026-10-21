@@ -4,11 +4,15 @@ No database/trace reads and no requirement/ration recalculation. ReqCalculation
 and BOR expose only the fields consumed by the complete-day producers: they are
 explicitly NOT complete native table images. Full-row qualification remains a
 controller obligation, including native join occurrence order.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from copy import deepcopy
 from decimal import Decimal
 
 from mta.presentation.rrr import pick_rows, CATALOG
+from mta.domain.complete_daily_scalars import ascii_equal
+from mta.domain.ordinal_lookup import OrderedIndex
 
 SOURCES = {
     'supplier': ('Scripts/BPR/Ration_Scripts/GenSupplierWiseReq.sql',
@@ -95,17 +99,29 @@ def supplier_dispatch(*, sourcing, bor, bpr_master, sku_loc_attributes, equal):
     are materialized here. Output sequence follows supplied BOR occurrences.
     """
     source_ordinals = _occurrences(sourcing, bor, 'r1_bor_')
-    topmost = [(i, row) for i, row in enumerate(bpr_master) if not any(
-        _join(row, parent, (('SKUCode', 'SKUCode'), ('ParentWhCode', 'WHCode')), equal)
-        for parent in bpr_master)]
+    # Candidate bags retain source ordinals; the native residual still owns
+    # SQL NULL/comparison semantics and short-circuit/error behaviour.
+    with OrderedIndex(bpr_master, key=lambda r: (r['SKUCode'], r['WHCode']),
+                      enabled=equal is ascii_equal) as parents:
+        topmost = [(i, row) for i, row in enumerate(bpr_master) if not any(
+            _join(row, parent, (('SKUCode', 'SKUCode'), ('ParentWhCode', 'WHCode')), equal)
+            for parent in parents.candidates_for(row, 'SKUCode', 'ParentWhCode'))]
     rows, lineage = [], []
+    with OrderedIndex(topmost, key=lambda item: (item[1]['SKUCode'], item[1]['WHCode']),
+                      enabled=equal is ascii_equal) as masters, OrderedIndex(
+            sku_loc_attributes, key=lambda r: (r['SKUCode'], r['LocCode']),
+            enabled=equal is ascii_equal) as attribute_index:
+        return _supplier_rows(bor, source_ordinals, masters, attribute_index, equal, rows, lineage)
+
+
+def _supplier_rows(bor, source_ordinals, masters, attribute_index, equal, rows, lineage):
     for calculated_ordinal, (item, source_ordinal) in enumerate(zip(bor, source_ordinals)):
         base = {native: deepcopy(item[modern]) if native in ('SKUCode', 'WHCode', 'SupplierCode')
                 else _int(item[modern]) for native, modern in SUPPLIER_MAP.items()}
-        for master_ordinal, master in topmost:
+        for master_ordinal, master in masters.candidates((base['SKUCode'], base['WHCode'])):
             if not _join(base, master, (('SKUCode', 'SKUCode'), ('WHCode', 'WHCode')), equal):
                 continue
-            attributes = [(i, row) for i, row in enumerate(sku_loc_attributes) if _join(
+            attributes = [(i, row) for i, row in attribute_index.candidate_items((base['SKUCode'], base['WHCode'])) if _join(
                 base, row, (('SKUCode', 'SKUCode'), ('WHCode', 'LocCode')), equal)] or [(None, None)]
             for attribute_ordinal, attr in attributes:
                 row = dict(base)
