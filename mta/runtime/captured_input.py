@@ -34,22 +34,34 @@ def validate(value):
     return value
 
 
-def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fifth_hop=False):
+def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fifth_hop=False,
+             final_interrupted_sixth_hop=False):
     from mta.runtime.input_v3 import _live_identity
-    if (type(final_interrupted_fourth_hop) is not bool or type(final_failed_fifth_hop) is not bool
-            or (final_interrupted_fourth_hop and final_failed_fifth_hop)):
+    flags=(final_interrupted_fourth_hop,final_failed_fifth_hop,final_interrupted_sixth_hop)
+    if any(type(flag) is not bool for flag in flags) or sum(flags)>1:
         raise ValueError('Explicit mutually exclusive terminal continuation flag required')
+    if final_interrupted_sixth_hop and origin.status != 'FAILED':
+        raise ValueError('Final interrupted continuation requires a reconciled FAILED fifth wrapper')
     if final_failed_fifth_hop and origin.status != 'FAILED':
         raise ValueError('Final failed continuation requires a FAILED fourth wrapper')
     value = dict(schema=SCHEMA, identity=_live_identity(run, reading=False),
         origin_run_id=str(origin.pk), origin_manifest_digest=origin.input_manifest_digest,
         content_digest=origin.input_digest, images={})
     if origin.input_payload.get('schema') in SCHEMAS:
-        # Default writer remains three; the interrupted branch remains four.
-        # Only the separate FAILED-leaf decision can create a terminal fifth.
+        # Default writer3, interrupted4 and FAILED-fourth writer5 stay fixed.
+        # Only the explicit human-interrupted fifth can create terminal6.
         physical=_origin(origin,second_allowed=True,
-            third_allowed=final_interrupted_fourth_hop or final_failed_fifth_hop,
-            fourth_allowed=final_failed_fifth_hop)
+            third_allowed=any(flags),
+            fourth_allowed=final_failed_fifth_hop or final_interrupted_sixth_hop,
+            fifth_allowed=final_interrupted_sixth_hop)
+        if final_interrupted_sixth_hop:
+            try:
+                _origin(origin,second_allowed=True,third_allowed=True,fourth_allowed=True)
+            except ValueError as error:
+                if str(error) != 'Captured reference exceeds the fixed third-hop boundary':
+                    raise
+            else:
+                raise ValueError('Final interrupted continuation requires exactly five wrappers')
         if final_failed_fifth_hop:
             try:
                 _origin(origin,second_allowed=True,third_allowed=True)
@@ -60,6 +72,8 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fi
                 raise ValueError('Final failed continuation requires exactly four wrappers')
         value.update(schema=SECOND,physical_origin_run_id=str(physical.pk),
             physical_origin_manifest_digest=physical.input_manifest_digest)
+    elif final_interrupted_sixth_hop:
+        raise ValueError('Final interrupted continuation requires exactly five wrappers')
     elif final_failed_fifth_hop:
         raise ValueError('Final failed continuation requires exactly four wrappers')
     elif origin.input_payload.get('schema') != 'fresh-daily-input-manifest-v3':
@@ -69,10 +83,10 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fi
 
 
 def origin(run):
-    return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True,fifth_allowed=True)
+    return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True,fifth_allowed=True,sixth_allowed=True)
 
 
-def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_allowed=False):
+def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_allowed=False,sixth_allowed=False):
     """Resolve only the immutable direct origin named by canonical retry capture.
 
     This cannot reference an arbitrary run, cross an initialization, replace a
@@ -81,6 +95,8 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_
     from mta.runtime.models import CalculationRun
     from mta.runtime.input_v3 import V3, _live_identity
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    if sixth_allowed and not (third_allowed and fourth_allowed and fifth_allowed):
+        raise ValueError('Sixth-hop read requires its complete fifth-hop prefix')
     if fifth_allowed and not (third_allowed and fourth_allowed):
         raise ValueError('Fifth-hop read requires its complete fourth-hop prefix')
     if fourth_allowed and not third_allowed:
@@ -130,10 +146,11 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_
     if (len(attempts) != 2 or len({v['initialization_id'] for v in attempts}) != 1):
         raise ValueError('Captured input initialization ownership differs')
     if value['schema'] == SECOND:
-        # Fixed terminal limit: V2 -> V2 -> V2 -> V2 -> V1 -> physical V3.
-        # Spend each explicit allowance once; no depth argument or sixth hop.
+        # Fixed terminal6: V2 -> V2 -> V2 -> V2 -> V2 -> V1 -> physical V3.
+        # Spend allowances once; no depth argument or seventh wrapper.
         physical=_origin(target,second_allowed=(target_schema==SECOND),
-            third_allowed=fourth_allowed,fourth_allowed=fifth_allowed,fifth_allowed=False)
+            third_allowed=fourth_allowed,fourth_allowed=fifth_allowed,
+            fifth_allowed=sixth_allowed,sixth_allowed=False)
         if (str(physical.pk)!=value['physical_origin_run_id']
                 or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
                 or physical.input_digest!=value['content_digest']):

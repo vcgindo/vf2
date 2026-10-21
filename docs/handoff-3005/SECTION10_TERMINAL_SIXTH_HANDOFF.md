@@ -1,0 +1,19 @@
+# Guarded terminal continuation of the human-interrupted captured day
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+The exact three-file correction approved in decision `4c6e537a69629ad12f63ecf4071c93ad11ad0742fa66d9c59b1b78be2c843389` is applied without changing its reviewed bytes. Calculation, ingestion, report, frontend, MTO and auth business code are unchanged by this correction. All thirteen accepted c749 scan modules remain byte-identical.
+
+The explicit interrupted-fifth branch requires its exact RUNNING/CALCULATE/CAPTURED owner, independent physical/input/initialization pins, current cut and zero downstream results. Existing source/job/row ownership canonically marks only that stopped owner FAILED and atomically creates distinct sixth-wrapper run/attempt/capture metadata. Default writers three/four/five are unchanged. The reader admits six wrappers; a seventh is denied. The new execution revision binds the packaged commit, with truthful release/owner provenance in the operation receipt and persisted Lineage. Original input rows, manifests, certificates and the earlier five failed owners are preserved.
+
+## Focused acceptance
+
+Nine tests pass, including the complete actual PostgreSQL fixture (237.020 seconds; observer313.452 seconds). Coverage includes exact depth/flags, malformed/foreign/stale ownership, competing job/source/row locks, typed/export/projection/source receipt guards, filesystem and real late SQL commit rollback, diagnostic-directory denial, actual database-backed seventh denial, native positive control/allocation/Pick/DBM/BTR, full typed input/output audits and readback, all four Pick file bytes, native reports/guided aggregates/InputData archive, admission/selection/acknowledgement and exact failed-prefix resolution. Unrelated failed dates/attempts remain unresolved. Compatible release append preserves the original certificate. Django check and migration-drift check pass. No unraisable iterator/cursor exception was accepted.
+
+The existing offline-RRR SQL owner guard rejects an inadmissible offline receipt before insertion; no offline ownership setting or business policy was bypassed to manufacture one. Earlier harness failures are retained outside Docker; their stopped owned scratch databases/workers are archived, verified and removed. No working database/role/service change occurred during these proofs.
+
+Evidence: `D:/freshvcf-build/evidence/daily-contract-audit-20261021/section10-admission-proposal/lifecycle-readiness.json`, `terminal-sixth6-postgres.log`, `terminal-sixth6-postgres-measurement.json`, `unapplied-patch-bindings.json`, `human-release.json` and `actual-window.json`. Accepted Section10 producer/scaling evidence applies only to the unchanged thirteen modules; the new lifecycle path is independently proved here.
+
+## Execution boundary
+
+This source proof does not claim a completed large-data day or UI acceptance. The separately approved next actions are ONE MTA-only image build with complete packaged-byte/native/report/import/non-root verification, fresh full working reconciliation, supported compatible append and at most ONE same-input April8 run. Loaded masters/opening and accepted CSV inputs are reused; no reload, history import, new facts/date, serving replacement, resource growth or retry is allowed. The cumulative window is14:16:02.706449–16:46:02.706449UTC on21October2026, with at least100minutes required at large admission. A genuine production/input/identity/resource/deadline failure stops the owned operation. Backend preparation/selection cannot be reported as an authenticated UI/public deployment proof.

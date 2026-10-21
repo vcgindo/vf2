@@ -13,7 +13,7 @@ from unittest.mock import patch
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','release.mta_settings')
 import django
 django.setup()
-from django.db import connection, transaction, DataError
+from django.db import connection, transaction, DataError, ProgrammingError
 
 
 class CapturedArgumentTests(unittest.TestCase):
@@ -35,7 +35,8 @@ class CapturedArgumentTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('VF_CAPTURED_RECOVERY_PROOF')=='1','Explicit disposable PostgreSQL proof required')
 class CapturedRecoveryPostgresTests(unittest.TestCase):
     def test_exact_capture_reuse_rollback_and_normal_writer(self):
-        fifth=os.environ.get('VF_CAPTURED_FIFTH_PROOF')=='1'
+        sixth=os.environ.get('VF_CAPTURED_SIXTH_PROOF')=='1'
+        fifth=os.environ.get('VF_CAPTURED_FIFTH_PROOF')=='1' or sixth
         fourth=os.environ.get('VF_CAPTURED_FOURTH_PROOF')=='1' or fifth
         from release import initialize_csv as driver, register_mta
         from tools.create_daily_csv_example import create
@@ -396,11 +397,158 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                         self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(5,5))
                         self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
                     print('TERMINAL_FIFTH_GUARDS_PASS exact5FAILED foreign/pins/numericUUID/stale/duplicate/locks/fs+SQLmetadata rollback')
+                if sixth:
+                    # Reproduce the stopped fifth owner through the actual
+                    # prior writer, never by rewriting successful status.
+                    with patch.object(temporal,'_finish_captured_day',side_effect=SystemExit('human stopped fifth')):
+                        with self.assertRaises(SystemExit):
+                            resume(Path(attempt.archive_path).with_name('human-stopped-fifth'))
+                    leaf=CalculationRun.objects.get(execution_revision=revision)
+                    leaf_attempt=DailyFeedAttempt.objects.get(run=leaf)
+                    self.assertEqual((leaf.status,leaf_attempt.status,leaf_attempt.phase),('RUNNING','RUNNING','CALCULATE'))
+                    self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
+                    leaf_before=(leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                        leaf_attempt.status,digest(leaf_attempt.error))
+                    leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
+                        capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+                    second=dict(second,current_revision_cut=epochs(owner.pk))
+                    revision='native-interrupted-sixth-'+release['source_commit']
+                    def resume(path,*,spec=None,pins=None,enabled=True):
+                        return temporal.execute_day(day=None,profile=None,execution_revision=revision,
+                            _captured_retry=dict(origin_run_id=str(leaf.pk),expected=leaf_expected if pins is None else pins,
+                                archive_path=str(path),second_hop=second if spec is None else spec,
+                                final_interrupted_sixth_hop=enabled))
+                    def unchanged_sixth():
+                        leaf.refresh_from_db();leaf_attempt.refresh_from_db()
+                        self.assertEqual((leaf.status,leaf_attempt.status),('RUNNING','RUNNING'))
+                        self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(6,6))
+                        self.assertEqual(epochs(owner.pk),second['current_revision_cut'])
+                        self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
+                        self.assertEqual(read_input(leaf),raw)
+                    with self.assertRaises(ValueError):resume(Path(attempt.archive_path).with_name('sixth-unflagged'),enabled=False)
+                    allowed_revision=revision
+                    try:
+                        revision='unbound-source-revision'
+                        with self.assertRaisesRegex(ValueError,'must bind its packaged source'):
+                            resume(Path(attempt.archive_path).with_name('sixth-unbound-revision'))
+                    finally:revision=allowed_revision
+                    for field in leaf_expected:
+                        with self.assertRaisesRegex(ValueError,'checkpoint pins differ'):
+                            resume(Path(attempt.archive_path).with_name('sixth-bad-'+field),
+                                pins=dict(leaf_expected,**{field:[] if field=='capture_cut' else 'foreign'}))
+                    for field in ('physical_run_id','physical_manifest_digest','physical_attempt_id'):
+                        with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                            resume(Path(attempt.archive_path).with_name('sixth-foreign-'+field),spec=dict(second,**{field:'foreign'}))
+                    with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
+                        resume(Path(attempt.archive_path).with_name('sixth-stale'),spec=dict(second,current_revision_cut=[0,0,0,0,0]))
+                    for key,error,message in (('vectorflow-daily-csv:'+str(owner.pk),ValueError,'Another daily worker owns'),
+                            (_key(owner.source_id),OperationalError,'lock timeout')):
+                        with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                                user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                            competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',[key])
+                            with self.assertRaisesRegex(error,message):resume(Path(attempt.archive_path).with_name('sixth-race-'+str(len(key))))
+                    # Actual row lock contention in a distinct SQL session.
+                    with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                            user=options['USER'],password=options['PASSWORD'],options=options['OPTIONS']['options']) as competing:
+                        competing.execute('SELECT id FROM mta.fresh_mta_calculationrun WHERE id=%s FOR UPDATE',[leaf.pk])
+                        with self.assertRaisesRegex(OperationalError,'lock timeout'):
+                            resume(Path(attempt.archive_path).with_name('sixth-row-race'))
+                    for target,error in (('mta.runtime.daily_feed.atomic_json',OSError('sixth receipt failure')),
+                            ('mta.runtime.capture_preparation.seal',psycopg.DataError('sixth metadata failure'))):
+                        with patch(target,side_effect=error),self.assertRaises(type(error)):
+                            resume(Path(attempt.archive_path).with_name('sixth-rollback-'+type(error).__name__))
+                        unchanged_sixth()
+                    # Inject real scratch rows only after metadata ownership
+                    # starts. Rejection rolls back both injected data and its
+                    # revision trigger, leaving every original cut unchanged.
+                    from mta.runtime.models import PickProjection,ExcessProjection,FulfillmentProjection,ExpediteProjection,PickPostProjection
+                    from mta.runtime.publication_models import DailySourceReceipt
+                    from mta.runtime.offline_rrr_models import OfflineRrrColourSource
+                    from django.db import models
+                    guard_cases=['typed','export',PickProjection,ExcessProjection,FulfillmentProjection,
+                        ExpediteProjection,PickPostProjection,DailySourceReceipt,OfflineRrrColourSource]
+                    for guard_case in guard_cases:
+                        injected=[]
+                        def inject_guard_row(execute,sql,params,many,context):
+                            if not injected and sql.startswith('SELECT 1 FROM mta_state.'):
+                                injected.append(True)
+                                if guard_case=='typed':
+                                    with connection.cursor() as c:c.execute('INSERT INTO mta_state.bpr_bprmaster (vf_run_id,vf_image,vf_ordinal) VALUES (%s,%s,0)',[leaf.pk,'guard-only'])
+                                elif guard_case=='export':
+                                    with connection.cursor() as c:c.execute('INSERT INTO mta_state.report_export_cell (vf_run_id,vf_image,row_ordinal,column_ordinal,value_type) VALUES (%s,%s,0,0,%s)',[leaf.pk,'guard-only','null'])
+                                else:
+                                    fields={}
+                                    for f in guard_case._meta.concrete_fields:
+                                        if f.name=='run' or f.auto_created or getattr(f,'auto_now_add',False) or f.has_default():continue
+                                        if isinstance(f,models.CharField):fields[f.name]='0'*min(64,f.max_length or 64)
+                                        elif isinstance(f,models.IntegerField):fields[f.name]=0
+                                        elif isinstance(f,models.JSONField):fields[f.name]={}
+                                        else:raise AssertionError('Unspecified scratch receipt field '+f.name)
+                                    if 'input_digest' in fields:fields['input_digest']=leaf.input_digest
+                                    guard_case.objects.create(run=leaf,**fields)
+                            return execute(sql,params,many,context)
+                        # Offline RRR cannot belong to this ordinary native
+                        # fixture: its existing SQL owner guard rejects the
+                        # row itself, before the continuation may see it.
+                        offline=guard_case is OfflineRrrColourSource
+                        message=('Explicit owned offline RRR transaction required' if offline else
+                            'typed result rows' if isinstance(guard_case,str) else 'output source receipts')
+                        with connection.execute_wrapper(inject_guard_row),self.assertRaisesRegex(ProgrammingError if offline else ValueError,message):
+                            resume(Path(attempt.archive_path).with_name('sixth-injected-'+(guard_case if isinstance(guard_case,str) else guard_case.__name__)))
+                        self.assertEqual(injected,[True]);unchanged_sixth()
+                    # Execute a real failing SQL statement at outer COMMIT,
+                    # after the receipt exists. The directory is diagnostic.
+                    real_commit=connection.commit
+                    diagnostic=Path(attempt.archive_path).with_name('sixth-late-sql-commit-failure')
+                    def fail_commit():
+                        if (diagnostic/'captured-origin.json').exists():
+                            with connection.cursor() as cursor:cursor.execute('SELECT 1/0')
+                        return real_commit()
+                    with patch.object(connection,'commit',side_effect=fail_commit),self.assertRaises(DataError):
+                        resume(diagnostic)
+                    self.assertTrue((diagnostic/'captured-origin.json').exists())
+                    unchanged_sixth()
+                    with self.assertRaisesRegex(ValueError,'new sibling operation directory'):resume(diagnostic)
+                    print('TERMINAL_SIXTH_GUARDS_PASS exact6owners locks stale foreign packaged-revision filesystem+actualSQLcommit rollback')
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):
                     from copy import deepcopy
                     cut=epochs(owner.pk)
+                    if sixth:
+                        # Database-backed seventh resolution, with a valid
+                        # uncommitted sixth prefix and no result rows. Every
+                        # adversarial row is removed by this SQL rollback.
+                        import uuid
+                        from mta.runtime.input_v3 import _live_identity
+                        with transaction.atomic():
+                            from mta.runtime.services import fail_run
+                            fail_run(run,RuntimeError('Adversarial seventh boundary; entire transaction rolls back'))
+                            a6=DailyFeedAttempt.objects.get(run=run)
+                            a6.status='FAILED';a6.save(update_fields=['status'])
+                            seventh=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date=run.business_date,
+                                execution_revision='adversarial-seventh-reader',input_digest=run.input_digest,input_payload={},status='RUNNING')
+                            cap=MdmDailyInputCapture.objects.get(run=run)
+                            copied={f.attname:getattr(cap,f.attname) for f in cap._meta.concrete_fields if f.name not in ('run','captured_at')}
+                            copied.update(run_id=seventh.pk,origin_id=run.pk)
+                            MdmDailyInputCapture.objects.create(**copied)
+                            a6=DailyFeedAttempt.objects.get(run=run)
+                            a7={f.attname:getattr(a6,f.attname) for f in a6._meta.concrete_fields if f.name not in ('id','attempt_id','created_at','updated_at')}
+                            a7.update(run_id=seventh.pk,status='RUNNING',request_key=str(uuid.uuid4()),archive_path=str(Path(a6.archive_path).with_name('adversarial-seventh-reader')))
+                            seventh_attempt=DailyFeedAttempt.objects.create(**a7)
+                            seventh.input_payload=dict(schema=captured_input.SECOND,identity=_live_identity(seventh,reading=False),
+                                origin_run_id=str(run.pk),origin_manifest_digest=run.input_manifest_digest,
+                                content_digest=run.input_digest,images={},physical_origin_run_id=str(old.pk),
+                                physical_origin_manifest_digest=old.input_manifest_digest)
+                            seventh.input_manifest_digest=digest(seventh.input_payload)
+                            seventh.save(update_fields=['input_payload','input_manifest_digest'])
+                            for status in ('RUNNING','FAILED'):
+                                seventh.status=status;seventh.save(update_fields=['status'])
+                                seventh_attempt.status=status;seventh_attempt.save(update_fields=['status'])
+                                with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):captured_input.origin(seventh)
+                            transaction.set_rollback(True)
+                        run.refresh_from_db();self.assertEqual(run.status,'RUNNING')
+                        self.assertEqual(epochs(owner.pk),cut)
                     expected_error='division by zero' if fifth else 'test late commit failure'
                     with self.assertRaisesRegex(DataError if fifth else ValueError,expected_error), transaction.atomic():
                         commit(run,deepcopy(output),**options)
@@ -435,7 +583,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(captured_input.origin(result).pk,old.pk)
                 self.assertEqual(read_input(leaf),raw)
                 leaf.refresh_from_db();leaf_attempt.refresh_from_db()
-                if fourth and not fifth:
+                if (fourth and not fifth) or sixth:
                     self.assertEqual((leaf.status,leaf_attempt.status),('FAILED','FAILED'))
                     self.assertEqual(leaf_attempt.error['type'],'HumanInterruption')
                     self.assertEqual((leaf.input_manifest_digest,digest(leaf.input_payload)),leaf_before[1:3])
@@ -467,13 +615,13 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                             captured_input.manifest(candidate,result,final_interrupted_fourth_hop=True)
                     transaction.set_rollback(True)
                 self.assertEqual(epochs(owner.pk),cut)
-                expected_count=6 if fifth else 5 if fourth else 4
+                expected_count=7 if sixth else 6 if fifth else 5 if fourth else 4
                 self.assertEqual(CalculationRun.objects.count(),expected_count)
                 self.assertEqual(MdmDailyInputCapture.objects.count(),expected_count)
                 self.assertFalse(CalculationRun.objects.filter(pk=candidate.pk).exists())
                 result.refresh_from_db()
                 self.assertEqual(result.status,'SUCCEEDED')
-                rejection='already attempted' if fifth else 'exact failed V1 leaf' if fourth else 'already attempted'
+                rejection='exact failed V1 leaf' if sixth else 'already attempted' if fifth else 'exact failed V1 leaf' if fourth else 'already attempted'
                 with self.assertRaisesRegex(ValueError,rejection):
                     resume(Path(attempt.archive_path).with_name('duplicate'))
                 self.assertEqual(epochs(owner.pk),cut)
@@ -497,8 +645,21 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(report['status'],'PREPARED')
                 if fifth:
                     verify_positive(self,result)
+                    from mta.runtime.services import read_outputs
+                    from mta.application.complete_daily_batch_files import reports_from_pick_state,sqlcmd_bytes,PICK_NAMES
+                    values=read_outputs(result)
+                    for kind,report_value in reports_from_pick_state(values['ClosingState'][0]['complete']).items():
+                        self.assertEqual((pick/str(result.pk)/'download'/PICK_NAMES[kind]).read_bytes(),sqlcmd_bytes(report_value['resultsets']))
+                    if sixth:
+                        continuation=json.loads((Path(new.archive_path)/'captured-origin.json').read_bytes())
+                        self.assertEqual(continuation['native_release'],release)
+                        self.assertEqual(continuation['execution_revision'],revision)
+                        self.assertEqual(continuation['origin_execution_revision'],leaf.execution_revision)
+                        self.assertEqual(values['Lineage'][0]['captured_continuation'],continuation)
+                        self.assertNotEqual(result.pk,leaf.pk)
+                        self.assertNotEqual(new.attempt_id,leaf_attempt.attempt_id)
                     self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
-                    self.assertEqual(daily_feed.unresolved_attempts(owner).count(),6)
+                    self.assertEqual(daily_feed.unresolved_attempts(owner).count(),7 if sixth else 6)
                     # The successful fifth cannot be used to make a sixth; the
                     # independent boundary fixture also proves an all-FAILED
                     # sixth reference is unreadable by the fixed reader limit.
@@ -521,7 +682,18 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                          proof_kind='component-contract-no-http-no-browser'))
                 self.assertFalse(daily_feed.unresolved_attempts(owner).exists())
                 if fifth:self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
-                print(('TERMINAL_FIFTH_POSTGRES_PASS ' if fifth else 'INTERRUPTED_FOURTH_POSTGRES_PASS ' if fourth else 'CAPTURED_RECOVERY_POSTGRES_PASS ')+'exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
+                if sixth:
+                    # Publishing resolves only this exact failed ancestry.
+                    with transaction.atomic():
+                        for day_value in (__import__('datetime').date(2026,10,17),__import__('datetime').date(2026,10,18)):
+                            a0=DailyFeedAttempt.objects.create(initialization=owner,business_date=day_value,
+                                batch_id='unrelated-failure-'+str(day_value),batch_digest='0'*64,binding_digest='0'*64,
+                                request_key='unrelated-failure-'+str(day_value),input_sha256='0'*64,
+                                status='FAILED',phase='VALIDATE',archive_path=str(root/('unrelated-'+str(day_value))))
+                            self.assertTrue(daily_feed.unresolved_attempts(owner).filter(pk=a0.pk).exists())
+                        transaction.set_rollback(True)
+                    self.assertFalse(daily_feed.unresolved_attempts(owner).exists())
+                print(('TERMINAL_SIXTH_POSTGRES_PASS ' if sixth else 'TERMINAL_FIFTH_POSTGRES_PASS ' if fifth else 'INTERRUPTED_FOURTH_POSTGRES_PASS ' if fourth else 'CAPTURED_RECOVERY_POSTGRES_PASS ')+'exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
             from release.advance_ingestion import transition
             from release.upgrade_ingestion import retained
             from mta.runtime import ingestion_admission as admission
