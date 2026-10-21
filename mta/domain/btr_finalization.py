@@ -228,7 +228,7 @@ def _latest_norms(bpr, dbm):
     return result
 
 
-def _pivot(bpr, today, value_field):
+def _pivot_cells(bpr, today, value_field):
     start = today - timedelta(days=89)
     cells = {}
     spellings = defaultdict(set)
@@ -246,12 +246,14 @@ def _pivot(bpr, today, value_field):
     ambiguous = [key for key, values in spellings.items() if len(values) > 1]
     if ambiguous:
         raise ValueError(f"SOURCE_ORDER_AMBIGUITY: BTR pivot identity spelling {ambiguous[0]}")
-    keys = {key for key, _ in cells}
-    return {
-        key: {f"D{offset + 1}": cells.get((key, start + timedelta(days=offset)))
-              for offset in range(90)}
-        for key in keys
-    }
+    return cells, {key for key, _ in cells}, start
+
+
+def _pivot(bpr, today, value_field):
+    cells, keys, start = _pivot_cells(bpr, today, value_field)
+    dates = tuple(start + timedelta(days=offset) for offset in range(90))
+    return {key: dict(zip(DAYS, (cells.get((key, day)) for day in dates)))
+            for key in keys}
 
 
 def _generate_trends(today, state, facts, *, _owned=False, _operational=False):
@@ -269,14 +271,18 @@ def _generate_trends(today, state, facts, *, _owned=False, _operational=False):
         if _operational and table not in ('BufferTrendDispatch','BufferTrendPhysicalInv'):
             continue
         rows = []
-        for key, values in sorted((key,values) for key,values in _pivot(result["BPR"], today, field).items() if key in norms):
+        # Retain sparse observed cells, not a second complete 90-column matrix.
+        # All output rows still contain the same ordered D1..D90 fields.
+        cells, keys, start = _pivot_cells(result["BPR"], today, field)
+        dates = tuple(start + timedelta(days=offset) for offset in range(90))
+        for key in sorted(key for key in keys if key in norms):
             norm, virtual, parent = norms[key]
             row = {"SKUCode": key[0], "WhCode": key[1], "ParentWhCode": parent,
                    "WhType": locations.get(value_join_key(key[1]), (None,))[0],
                    "ParentWhType": locations.get(value_join_key(parent), (None,))[0], "Norm": norm}
             if include_virtual:
                 row["VirtualNorm"] = virtual
-            row.update(values)
+            row.update(zip(DAYS, (cells.get((key, day)) for day in dates)))
             row.update({"Age": 0, **{colour + "Count": 0 for colour in COLOURS}})
             if table in ("BufferTrendDispatch", "BufferTrendPhysicalInv"):
                 row.update({"BRAge": None, "BRAgeRedCount": None, "BRAgeBlackCount": None})
@@ -286,6 +292,7 @@ def _generate_trends(today, state, facts, *, _owned=False, _operational=False):
                             "Availability_61_90": Decimal("0.00")})
             rows.append(row)
         result[table] = rows
+        del cells, keys
 
     if _operational:
         return result
@@ -370,7 +377,9 @@ def _colour_age(today, state, enabled, tolerance, *, _owned=False, _operational=
             if previous is not None and previous[0] != values:
                 raise ValueError(f"SOURCE_ORDER_AMBIGUITY: conflicting BPR colours {key} {report_day}")
             history[key][report_day] = (values, 1 if previous is None else previous[1] + 1)
-    normalized = {}
+    # Only one pair's 90-day scratch grid is live at a time. Retain the small
+    # scalar summaries consumed below, including missing-day and duplicate rules.
+    summaries = {}
     for key, dated in history.items():
         rows = []
         for i in range(90):
@@ -382,7 +391,15 @@ def _colour_age(today, state, enabled, tolerance, *, _owned=False, _operational=
             eco = _fill_forward([row[1] for row in rows], tolerance, "0")
             for index in range(90):
                 rows[index][0], rows[index][1] = tech[index], eco[index]
-        normalized[key] = rows
+        summary = []
+        for colour_index in range(4):
+            today_colour = rows[-1][colour_index]
+            differences = [i for i, value in enumerate(rows) if value[colour_index] != today_colour]
+            age = 89 - max(differences) if differences else None
+            counts = tuple(sum(value[4] for value in rows[60:] if value[colour_index] == colour)
+                           for colour in COLOURS)
+            summary.append((age, counts))
+        summaries[key] = summary
 
     mapping = (
         ("BufferTrendReport", 0, True), ("BufferTrendReportEcon", 1, True),
@@ -392,16 +409,13 @@ def _colour_age(today, state, enabled, tolerance, *, _owned=False, _operational=
         if _operational and table not in ('BufferTrendDispatch','BufferTrendPhysicalInv'):
             continue
         for row in result[table]:
-            values = normalized[_key(row)]
-            today_colour = values[-1][colour_index]
-            differences = [i for i, value in enumerate(values) if value[colour_index] != today_colour]
+            age, counts = summaries[_key(row)][colour_index]
             if initialize_90:
                 row["Age"] = 90
-            if differences:
-                row["Age"] = 89 - max(differences)
-            recent = values[60:]
-            for colour in COLOURS:
-                row[colour + "Count"] = sum(value[4] for value in recent if value[colour_index] == colour)
+            if age is not None:
+                row["Age"] = age
+            for colour, count in zip(COLOURS, counts):
+                row[colour + "Count"] = count
     return result
 
 

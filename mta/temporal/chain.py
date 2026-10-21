@@ -596,30 +596,37 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         selected = connected_dbm_stages(today, dbm, facts, delivery, report_exceptions)
         dbm_stages = retain_dbm_stages(selected,completed_boundaries)
     final_dbm={n:deepcopy(dbm_stages[-1][1][n]) for n in prior['dbm']}
+    if delivery is not None:
+        reports = dbm_report_images(dbm_stages)
+    # Each required report now owns its retained image. Neither the DBM input
+    # nor its terminal working generation is a consumer of the later BTR work.
+    del selected, dbm_stages, dbm, facts
     control_final=carry_dbm_controls(control_final, final_dbm)
     if delivery is not None:
         control_final['importer_settings'].append({'Parameter': 'StockReservationType',
             'Value': str(profile['calculation']['stock_configuration']['reservation_type'])})
-    closing={'importer':{n:deepcopy(importer[n]) for n in PRIOR_TABLES},'importer_settings':control_final['importer_settings'],
-        'bpr':{'BPRMaster':bpr_master,'Plants':deepcopy(prior['bpr']['Plants']),'NoNormMaster':deepcopy(prior['bpr']['NoNormMaster']),
-               'DailyConsumption':deepcopy(late['BPRDailyConsumption'])},
-        'supplier':{'SOBData':supplier_state['refreshed_sob'],'MOQData':supplier_state['refreshed_moq']},
-        'orders':{n:deepcopy(order_state[n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
-    if complete is not None:
-        closing['complete'] = complete
-    if pick_state is not None:
-        closing.setdefault('complete', {}).update({name: pick_state[name] for name in
-                              ('LogisticPickList', 'PickListDataForTruckFormation')})
-    result = {'ClosingState':[closing],
+    def assemble_closing():
+        # These independent closing copies are required at commit, but need not
+        # overlap the BTR scratch generations. Keep the existing alias contract
+        # for complete/controls; commit still owns their final flag writers.
+        closing={'importer':{n:deepcopy(importer[n]) for n in PRIOR_TABLES},'importer_settings':control_final['importer_settings'],
+            'bpr':{'BPRMaster':bpr_master,'Plants':deepcopy(prior['bpr']['Plants']),'NoNormMaster':deepcopy(prior['bpr']['NoNormMaster']),
+                   'DailyConsumption':deepcopy(late['BPRDailyConsumption'])},
+            'supplier':{'SOBData':supplier_state['refreshed_sob'],'MOQData':supplier_state['refreshed_moq']},
+            'orders':{n:deepcopy(order_state[n]) for n in prior['orders']},'controls':control_final,'dbm':final_dbm}
+        if complete is not None:
+            closing['complete'] = complete
+        if pick_state is not None:
+            closing.setdefault('complete', {}).update({name: pick_state[name] for name in
+                                  ('LogisticPickList', 'PickListDataForTruckFormation')})
+        return closing
+    result = {'ClosingState':None,
         'CalculationOutputs':[{'capability':n,'rows':v} for n,v in calculated.items()]}
     if pick_state is not None:
         from mta.serialization import digest
         result['_PickSourceDigests'] = {name: digest(rows) for name, rows in pick_sources.items()}
     if delivery is not None:
         from mta.domain.btr_finalization import btr_stages
-        for attr in closing['importer']['SkuLocAttributeData']:
-            if attr['NonNMS'] is not None:
-                attr['NonNMS'] = bool(attr['NonNMS'])
         # BTR treats incoming facts as read-only and copies its mutated tables.
         btr_facts = {**prior['consumer_context'], **importer,
                      **final_dbm, 'vf_RationedReqReport': report,
@@ -645,6 +652,7 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                     bpr_daily=late['BPRDailyConsumption'],
                     supplier_dispatch_req=None if complete is None else complete['SupplierDispatchReq']):
                 pass
+        del btr_facts, master_by_key, pick_keys
         if complete is not None and str(delivery['btr_settings']['CaptureDispatchExecutionEfficiency'])=='1':
             from mta.domain.btr_rationing_history import STAGE
             daily_finalization.mark(complete, STAGE)
@@ -652,6 +660,10 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         # ExtendedOCP and Category share the Importer standard-attribute table.
         # Its final writer is BTR UpdateCategoryCol, after the DBM snapshot.
         final_dbm['SKULocStandardAttributes'] = deepcopy(trend_state['SKULocStandardAttributes'])
+        closing=assemble_closing()
+        for attr in closing['importer']['SkuLocAttributeData']:
+            if attr['NonNMS'] is not None:
+                attr['NonNMS'] = bool(attr['NonNMS'])
         closing['dbm'] = deepcopy(final_dbm)
         closing.update(control_aux=control_aux, btr=deepcopy(trend_state),
                        consumer_context=deepcopy(prior['consumer_context']),
@@ -660,7 +672,6 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             closing['consumer_context']['NMSAllItems'] = nms['NMSAllItems']
         # Reports that overwrite the same legacy staging tables stay separate
         # consumer-visible families in the enclosing immutable run.
-        reports = dbm_report_images(dbm_stages)
         reports.append({'stage': 'controls', 'tables': diagnostics})
         result.update(BPRFinal=[late], DBMFinal=[final_dbm], Reports=reports,
             BTRFinal=[trend_state],
@@ -676,6 +687,10 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
                 configuration_digest=profile_digest,
                 qualification=daily_finalization.qualification(finalization['policy']),
                 flag_digest=digest(closing['complete']['ScriptExecutedFlag']))
+    else:
+        closing=assemble_closing()
+    result['ClosingState']=[closing]
+    del assemble_closing
     if native_daily:
         result['_ReportBoundary']='fresh-operational-report-boundary-v3'
         from mta.application.persistent_master import qualify, CONTRACT
