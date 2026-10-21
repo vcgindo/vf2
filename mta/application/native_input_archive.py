@@ -54,7 +54,12 @@ def _inputs(run):
 
 def _pins(run, captured):
     binding = captured['initialization_binding']
-    prepared=run.input_payload.get('content_kind')=='native-prepared-input-v1'
+    from mta.runtime.captured_input import SCHEMAS, origin
+    # A continuation owns its wrapper manifest, while its logical root retains
+    # the physical input owner's digest kind. Resolve the existing bounded,
+    # fully validated chain; never relabel a prepared root as a raw JSON hash.
+    physical=origin(run) if run.input_payload.get('schema') in SCHEMAS else run
+    prepared=physical.input_payload.get('content_kind')=='native-prepared-input-v1'
     versioned=(dict(input_digest_kind='native-prepared-input-v1',captured_input_digest=digest(captured)) if prepared else {})
     return dict(schema='fresh-native-input-download-v2' if prepared else SCHEMA, restriction=RESTRICTION, run_id=str(run.pk),
         business_date=run.business_date.isoformat(),

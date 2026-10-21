@@ -19,8 +19,58 @@ def typed(value):
     return [type(value).__name__,repr(value)]
 
 
+def persisted_input(raw,*,large_configuration=False):
+    """Use the real typed writer/reader, exercising every flat-row branch.
+
+    Paths are the complete >10,000-row flat populations in the retained native
+    capture and referenced initialization manifests, including BATCH inputs.
+    Small fixture rows exercise those same branches without duplicating facts.
+    Bounded metadata (for example ScriptExecutedFlag) remains a mutable list.
+    """
+    from types import SimpleNamespace
+    from mta.runtime import input_storage
+    from mta.serialization import digest
+    from tests.test_input_storage_v3 import MemoryImages, run_identity, table
+    owner=SimpleNamespace(pk='2cbe5b35-68cc-4aad-a06e-dbb968311f1c',
+        input_digest=digest(raw),kind='DAILY_CHAIN')
+    images=MemoryImages()
+    owner.input_payload=input_storage.save_input(owner,raw,version=3,
+        image_writer=images.write,table_selector=table,identity_resolver=run_identity)
+    owner.input_manifest_digest=digest(owner.input_payload)
+    result=input_storage.read_input(owner,image_reader=images.read,identity_resolver=run_identity)
+    paths=set('''profile/calculation/logistics/items profile/calculation/policies
+        profile/calculation/stock_openings opening/state/bpr/BPRMaster
+        opening/state/btr/SKULocStandardAttributes opening/state/consumer_context/NMSAllItems
+        opening/state/controls/dbm_master opening/state/controls/importer_master
+        opening/state/controls/suspend_order_type opening/state/dbm/DBMMaster
+        opening/state/dbm/SKULocStandardAttributes opening/state/dbm/SkuLocAttributeData
+        opening/state/dbm/SuspendConsumptionType opening/state/dbm/SuspendOrderType
+        opening/state/dbm/SuspendStockType opening/state/importer/MasterData
+        opening/state/importer/SkuLocAttributeData opening/state/orders/SpikeOrderData
+        day/raw_master day/raw_daily day/order_feed mdm_input/rows/skuloc/attributes'''.split())
+    if large_configuration:
+        paths.update('''profile/calculation/skus profile/calculation/locations
+            profile/calculation/replenishment_exclusions profile/calculation/logistics/vehicles
+            profile/calculation/logistics/location_vehicles'''.split())
+    def immutable(value,path=''):
+        if isinstance(value,dict):return {k:immutable(v,path+'/'+k if path else k) for k,v in value.items()}
+        if not isinstance(value,list):return value
+        if path in paths:
+            assert all(isinstance(row,dict) and not list(input_storage.leaves(
+                input_storage.shape(row),'list')) for row in value)
+            return RecordRows(len(value),lambda:(deepcopy(row) for row in value))
+        return [immutable(row,path+'/'+str(i)) for i,row in enumerate(value)]
+    return immutable(result)
+
+
 class EntryRowOwnershipTests(unittest.TestCase):
     def test_active_native_entry_with_spooled_external_master_and_daily_feeds(self):
+        self.check_active_native_entry()
+
+    def test_nonempty_current_suspensions_keep_full_persisted_shape_contract(self):
+        self.check_active_native_entry(with_flags=True)
+
+    def check_active_native_entry(self,*,with_flags=False):
         from tests.test_h3_daily_integration import frame,captured
         from tests.production_h3_fixture import supplied_day
         from mta.mdm.daily_input import compose,nms_master_raw
@@ -29,35 +79,60 @@ class EntryRowOwnershipTests(unittest.TestCase):
         from mta.temporal.chain import calculate_day
         from mta.planning.engine import calculate_current_day
         f=frame();prior=f['opening']['state']
+        if with_flags:
+            # Nonempty current state is necessary to exercise mutation; an
+            # empty immutable collection only proves the collection protocol.
+            for name in ('SuspendStockType','SuspendConsumptionType','SuspendOrderType'):
+                prior['dbm'][name]=[dict(SKUCode=m['SKUCode'],WhCode=m['WhCode'],
+                    RedEnabled=True,GreenEnabled=True,RedResumeDate=m['SKUIntroDate'],
+                    GreenResumeDate=m['SKUIntroDate'],
+                    **({'SuggestionStartDate':None} if name=='SuspendOrderType' else {}))
+                    for m in prior['dbm']['DBMMaster']]
         for row in prior['importer']['SkuLocAttributeData']:
             row['NonNMS']=bool(row['NonNMS'])
-        def compute(spooled):
+        def compute(spooled,*,bad_policy=False,large_configuration=False):
             working=deepcopy(prior)
-            if spooled:
-                for name,rows in working['importer'].items():
-                    working['importer'][name]=RecordRows.from_rows(rows)
-                for section,names in (('bpr',('DailyConsumption',)),
-                        ('dbm',('DailyConsumption','SuspendHistory','OrderDataSummary','SuggestionsLog')),
-                        ('btr',('BPR','RationingHistory'))):
-                    for name in names:
-                        if name in working[section]:
-                            working[section][name]=RecordRows.from_rows(working[section][name])
             frozen=captured(working,'WithDestLoc')
             day=supplied_day('2037-04-10')['day']
             day.update(raw_master=compose(frozen,nms_master_raw(working),last_run_date='2037-04-09'),
                 exclusions=[],supplier_feeds=complete_feeds(frozen,working))
             replace_working_inputs(frozen,working,day,None)
+            profile=deepcopy(f['profile'])
+            if bad_policy:
+                profile['calculation']['policies'][0]['policy']['pso_high']='not-a-number'
+            raw=dict(opening=dict(state=deepcopy(prior)),day=day,profile=profile,mdm_input=frozen)
             if spooled:
-                for name in ('raw_master','raw_non_nms','raw_daily'):
-                    day[name]=RecordRows.from_rows(day[name])
-            before=typed(working),typed(day)
+                raw=persisted_input(raw,large_configuration=large_configuration)
+                self.assertIsInstance(raw['profile']['calculation']['stock_openings'],RecordRows)
+                self.assertIsInstance(raw['profile']['calculation']['policies'],RecordRows)
+                self.assertIsInstance(raw['mdm_input']['rows']['skuloc']['attributes'],RecordRows)
+            before=typed(raw)
+            working=deepcopy(raw['opening']['state']);day=deepcopy(raw['day']);profile=raw['profile']
+            from mta.runtime.captured_recovery import _restore_working
+            _restore_working(raw['mdm_input'],working,day,None)
+            calculation_before=typed(working),typed(day),typed(profile)
             def calculate(source,**owned):
                 return calculate_current_day(source,defer_pick=True,**owned),'active-entry-proof'
-            actual=calculate_day(working,'2037-04-09',day,f['profile'],
-                'active-entry-proof',calculate,native_daily=True)
-            self.assertEqual((typed(working),typed(day)),before)
+            try:
+                actual=calculate_day(working,'2037-04-09',day,profile,
+                    'active-entry-proof',calculate,native_daily=True)
+            finally:
+                self.assertEqual((typed(working),typed(day),typed(profile)),calculation_before)
+                self.assertEqual(typed(raw),before)
             return actual
-        self.assertEqual(typed(compute(True)),typed(compute(False)))
+        from mta.serialization import digest
+        expected=compute(False);before=typed(expected)
+        actual=compute(True)
+        self.assertEqual(typed(actual),before)
+        self.assertEqual(digest(actual),digest(expected))
+        self.assertEqual(typed(expected),before)
+        self.assertEqual(typed(compute(True,large_configuration=True)),before)
+        from decimal import InvalidOperation
+        with self.assertRaises(InvalidOperation) as eager:
+            compute(False,bad_policy=True)
+        with self.assertRaises(type(eager.exception)) as persisted:
+            compute(True,bad_policy=True)
+        self.assertEqual(str(persisted.exception),str(eager.exception))
 
     def test_nonempty_spooled_nms_and_non_nms_raw_use_same_canonical_producer(self):
         import json
@@ -123,22 +198,14 @@ class EntryRowOwnershipTests(unittest.TestCase):
             return calculate_current_day(source,defer_pick=True,**owned),'owned-entry-proof'
         expected=calculate_day(deepcopy(prior),'2037-04-09',deepcopy(day),
             frame['profile'],'owned-entry-proof',calculate,native_daily=True)
-        persisted=deepcopy(prior)
-        for name,rows in persisted['importer'].items():
-            persisted['importer'][name]=RecordRows.from_rows(rows)
-        for section,names in (('bpr',('DailyConsumption',)),
-                ('dbm',('DailyConsumption','SuspendHistory','OrderDataSummary','SuggestionsLog')),
-                ('btr',('BPR','RationingHistory'))):
-            for name in names:
-                if name in persisted[section]:
-                    persisted[section][name]=RecordRows.from_rows(persisted[section][name])
-        frozen_day=deepcopy(day)
-        frozen_day['raw_daily']=RecordRows.from_rows(frozen_day['raw_daily'])
-        before=typed(persisted),typed(frozen_day)
-        actual=calculate_day(persisted,'2037-04-09',frozen_day,frame['profile'],
+        raw=persisted_input(dict(opening=dict(state=prior),day=day,profile=frame['profile']))
+        before=typed(raw)
+        actual=calculate_day(raw['opening']['state'],'2037-04-09',raw['day'],raw['profile'],
             'owned-entry-proof',calculate,native_daily=True)
         self.assertEqual(typed(actual),typed(expected))
-        self.assertEqual((typed(persisted),typed(frozen_day)),before)
+        from mta.serialization import digest
+        self.assertEqual(digest(actual),digest(expected))
+        self.assertEqual(typed(raw),before)
 
     def test_importer_rejection_is_identical_for_spooled_rows(self):
         from tests.test_h3_inactive_mode import inactive_frame,inactive_day

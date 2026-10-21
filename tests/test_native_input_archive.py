@@ -97,6 +97,26 @@ class NativeArchiveTests(unittest.TestCase):
         self.captured['rows'].append({'value':'tampered'})
         with self.assertRaisesRegex(module.ArchiveDenied,'identity_drift'):module.open_archive(self.run)
 
+    def test_both_captured_wrappers_retain_physical_prepared_digest_kind(self):
+        from mta.runtime.input_v3 import content_root,V3,CONTENT_KIND
+        from mta.runtime.captured_input import SCHEMAS
+        identity=dict(database_name='proof',database_oid=123,source_digest='a'*64,
+            initialization_id='00000000-0000-0000-0000-000000000001')
+        physical=SimpleNamespace(input_payload=dict(schema=V3,content_kind=CONTENT_KIND,
+            content_identity=identity,owner_references={},batch_references={}))
+        self.run.input_digest=content_root(self.captured,identity)
+        for schema in SCHEMAS:
+            with self.subTest(schema=schema),patch('mta.runtime.captured_input.origin',return_value=physical):
+                self.run.input_payload=dict(schema=schema)
+                self.run.input_manifest_digest=digest(self.run.input_payload)
+                result=self.prepare()
+                self.assertEqual(result['manifest']['schema'],'fresh-native-input-download-v2')
+                self.assertEqual(result['manifest']['input_digest'],self.run.input_digest)
+                self.assertEqual(result['manifest']['captured_input_digest'],digest(self.captured))
+                stream,_=module.open_archive(self.run)
+                with stream:self.assertEqual(module._sha(stream.read()),result['sha256'])
+                Path(result['path']).unlink()
+
     def test_original_hash_drift_denies_before_file_creation(self):
         self.daily.write_bytes(b'changed')
         with self.assertRaisesRegex(module.ArchiveDenied,'original_hash'):self.prepare()

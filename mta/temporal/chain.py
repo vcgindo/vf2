@@ -218,7 +218,9 @@ def producer_owned_logistics(logistics, importer):
         skus.setdefault(_sql_key(row['SKUCode']), []).append(row)
     for row in importer['LocationAttributeData']:
         locations.setdefault(_sql_key(row['WHCode']), []).append(row)
-    result = {name:([] if name == 'items' else deepcopy(value))
+    from mta.row_sequences import RecordRows
+    result = {name:([] if name == 'items' else
+                    [deepcopy(row) for row in value] if isinstance(value,RecordRows) else deepcopy(value))
               for name, value in logistics.items()}
     for item in logistics['items']:
         for sku in skus.get(_sql_key(item['sku_code']), []):
@@ -232,15 +234,27 @@ def producer_owned_logistics(logistics, importer):
 
 def _calculation_source_values(today, opening_date, profile, importer, dbm_master, processed, sourcing, supplier_prior,
                                identity, phase_out=None):
-    config={name:(producer_owned_logistics(value,importer) if name=='logistics' else deepcopy(value))
-            for name,value in profile['calculation'].items()}
+    from mta.row_sequences import RecordRows
+    config={}
+    for name,value in profile['calculation'].items():
+        if name=='logistics':
+            config[name]=producer_owned_logistics(value,importer)
+        elif name in ('skus','locations','replenishment_exclusions') and isinstance(value,RecordRows):
+            # These current configuration arrays enter the existing list-based
+            # R1/JSON contract. They are not opening/history populations.
+            config[name]=[deepcopy(row) for row in value]
+        else:
+            config[name]=deepcopy(value)
     attrs={(r['SKUCode'],r['LocCode']):r for r in importer['SkuLocAttributeData']}
     skus={r['SKUCode']:r for r in importer['SkuAttributeData']}
     project=lambda rows:[{f:r[s] for f,s in MASTER_SOURCE_MAP.items()} for r in rows]
     masters=project(importer['MasterData'])
     active={(r['sku_code'],r['location_code']) for r in masters}
     for name in ('stock_openings','policies'):
-        config[name]=[r for r in config[name]
+        rows=config[name]
+        # Persisted populations share immutable generations through deepcopy.
+        # Only these filtered current-day transform rows need mutable ownership.
+        config[name]=[deepcopy(r) if isinstance(rows,RecordRows) else r for r in rows
                       if (r['sku_code'],r['location_code']) in active]
     for r in masters:
         a=attrs[r['sku_code'],r['location_code']]
@@ -414,7 +428,15 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         order_input={**deepcopy(prior['orders']),'BPRMaster':bpr_master,'DBMMaster':deepcopy(control_final['dbm_master']),
             'AdditionalMasterData':additional_native(prepared,importer),'LastBatchRunTbl':[{'LastRunDate':opening_date+'T00:00:00'}],
             'PSOData':[],'IntermediateTables':deepcopy(control_final['IntermediateTables'])}
-        for _, order_state in order_stages(today,opening_date,order_input,day['order_feed_status'],day['order_feed']):
+        from mta.row_sequences import RecordRows
+        # The existing order producer owns mutable current orders and feed rows;
+        # keep its list contract without materializing unrelated prior history.
+        if isinstance(order_input['SpikeOrderData'],RecordRows):
+            order_input['SpikeOrderData']=[deepcopy(row) for row in order_input['SpikeOrderData']]
+        order_feed=day['order_feed']
+        if isinstance(order_feed,RecordRows):
+            order_feed=[deepcopy(row) for row in order_feed]
+        for _, order_state in order_stages(today,opening_date,order_input,day['order_feed_status'],order_feed):
             pass
         if completion is not None:
             daily_finalization.mark(completion, 'ImportSpikeOrders.sql', 'CalculateDD.sql')
@@ -519,6 +541,12 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     dbm['LastBatchRunTbl']=[{'LastRunDate':now}]
     facts={n:deepcopy(day[n]) for n in ('order_raw','exclusions','distributor_transactions','vendor_transactions')}
     facts.update(daily_raw=deepcopy(daily_final['DailyDataRaw']),bpr_daily=deepcopy(late['BPRDailyConsumption']))
+    from mta.row_sequences import RecordRows
+    # Suspension stages update these CURRENT flags in place. Their persisted
+    # input generation stays immutable; histories remain shared/streamed.
+    for name in ('SuspendStockType','SuspendConsumptionType','SuspendOrderType'):
+        if isinstance(dbm[name],RecordRows):
+            dbm[name]=[deepcopy(row) for row in dbm[name]]
     with stage('dbm'):
         selected = connected_dbm_stages(today, dbm, facts, delivery, report_exceptions)
         dbm_stages = retain_dbm_stages(selected,completed_boundaries)

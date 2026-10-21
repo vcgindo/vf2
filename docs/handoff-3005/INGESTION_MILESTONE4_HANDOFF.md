@@ -2,7 +2,8 @@
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
-21 October2026. **M4 incomplete; operation stopped and user-directed browser pause applies.**
+21 October2026. **M4 incomplete; large operation stopped. Source-only contract corrections are verified; no further runtime execution is released.**
+The implementation identity below describes the original M4 checkpoint; the later follow-up is recorded at the end.
 Implementation source `be480eb412ace0e7d86b7dedf396910f0818746e`,
 branch `codex/3006-logistics-integration`, following M3 `77d44f1a`.
 The sole live status/decision record is `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
@@ -173,3 +174,29 @@ Saved legacy timing remains qualified context: inherited history and split-phase
 execution prevent an apples-to-apples whole-day speedup claim. This trial measures
 the fresh-start modern workload. Public deployment and capacity guarantees for
 larger workloads are outside this acceptance.
+
+## 21 October native input-contract follow-up — source proof, runtime stopped
+
+The later optimized continuation used the same loaded opening and accepted CSV capture, without master reload, CSV restaging, history or extra dates. Its latest run `9039402d-14d9-4d7d-b5e7-9ecf85753eb0` failed during control processing after entry preparation passed. It is not a completed-day benchmark: all three retained attempts are FAILED, their captures remain CAPTURED, and no output checkpoints or UI publication exist. The original initialization seals remain unchanged; the original frontend/auth/MTO/Redis/PG IDs remain unchanged, and MTA is in maintenance.
+
+The source-only consolidated correction addresses collection ownership and identity contracts, not calculation formulas. Immutable persisted inputs stay immutable; only explicit current working populations receive mutable rows. The existing typed atomic finish, native preparation, selection and archive consumers remain the owners of their respective operations.
+
+| Consumed boundary | Representation and responsibility | Correction / proof |
+|---|---|---|
+| Whole frozen input | 233 collection paths; 22 flat populations actually decode as RecordRows above10,000 rows; nested child owners and bounded settings/flags remain lists | Complete frozen metadata matrix, and exact equality between its22 paths and the test adapter; real packing/reconstruction code with in-memory images, unchanged small fixture values |
+| Master/daily entry | Immutable source rows retain types, NULLs, duplicates and ordinals; canonical producers construct current mutable masters/raw daily rows | Existing lazy BIT conversion and owned raw-day boundary; active/inactive full flow and original-entry reproduction |
+| Calculation configuration | Current stock/policy rows are transformed; SKU/location/exclusion and vehicle arrays enter existing list/JSON contracts | Owned filtered stock/policy rows and explicit current configuration arrays; no materialization of opening/history graphs; full type/value/order/digest equality, including large-configuration shapes |
+| Orders | Current established orders and current-day feed enter the unchanged list-based producer | Own only current SpikeOrderData/order_feed; keep validation, identity counters, routing and order semantics unchanged |
+| Controls and DBM | Control projections create working rows; current stock/consumption/order suspension flags have in-place writers; historical observations stay read-only/new generations | Copy immutable current flags once at DBM entry. Positive pre-existing flags exercise forced/final writers; empty collections alone are not accepted as mutation proof. Order flags already have a fresh prior producer in the actual route; the adapter is a no-op for lists |
+| R1/Pick/BPR/BTR | R1 receives produced current rows; Pick projects attributes and creates owned output; final BPR/DBM/BTR replace current tables and retain historical generations | Complete eager-versus-persisted-shape connected flow reaches each normal producer; original inputs and earlier result snapshots remain unchanged; no new allocation or business policy |
+| Typed commit and public identities | execute_day/finish_run retain atomic ownership; run UUIDs, public attempt UUIDs and internal numeric keys remain distinct | Real SQL rollback/commit/consume, stale/foreign/numeric/race/depth denials, full typed input/output audits and original certificate preservation |
+| Native report/archive | Existing native preparation and selected output remain separate from calculation; archive logical input root differs from expanded capture checksum | Captured wrappers resolve the existing validated physical owner for archive digest-kind metadata; both wrapper versions preserve complete original/archive bytes and hashes |
+
+Evidence root: `D:/freshvcf-build/evidence/daily-optimization-20261021`.
+`native-input-contract-matrix.json` records every collection path, producer, representation, ownership, field roster and proof. `native-input-contract-audit-proof.json` binds changed source/test hashes and the matrix. The original entry, stock-opening, nonempty suspension and archive-kind failures have retained reproductions.
+
+Final affected verification:63 tests passed in8.107s, including complete active/inactive results, positive current flags, variable-size configuration, invalid-policy error equivalence and input/previous-snapshot nonmutation. Actual PostgreSQL proof:2 tests passed in130.288s, including atomic late rollback, commit, consumed capture, real UUID boundaries, report preparation, archive open/readback and selection. That SQL snapshot preceded only the final pure-calculation current-flag copy; the final delta has complete nonempty eager/persisted value/error/nonmutation proof and changes no SQL/storage/commit boundary. `chain.sql-proof-snapshot.py` records that qualification. The empty scratch DB was removed after exact ownership and zero clients were checked.
+
+This source correction has NOT been built, activated or run against the large data. It does not establish large-day completion, throughput, UI usability or universal historical-load capacity. The last deployed candidate remains source95931b3f/image7734c3c3. Further execution requires a concrete decision: the additional attempt was consumed, and the two-hop guard still rejects another continuation. No recovery-depth expansion, new image, reset/reload, new date, deadline/resource increase or runtime restart follows from this audit. Browser acceptance also remains pending.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.

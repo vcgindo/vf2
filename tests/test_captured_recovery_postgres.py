@@ -210,6 +210,15 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                         daily_feed.select(invalid,root/'binding.json',root/'selection.json')
                 report=daily_feed.execute(new.attempt_id,root/'binding.json',pick_root=pick,resume=True)
                 self.assertEqual(report['status'],'PREPARED')
+                from mta.application.native_input_archive import open_archive
+                import zipfile
+                stream,_=open_archive(result)
+                with stream,zipfile.ZipFile(stream) as archive:
+                    exported=json.loads(archive.read('manifest.json'))
+                self.assertEqual(exported['input_digest'],old.input_digest)
+                if old.input_payload.get('content_kind')=='native-prepared-input-v1':
+                    self.assertEqual(exported['schema'],'fresh-native-input-download-v2')
+                    self.assertEqual(exported['captured_input_digest'],digest(read_input(result)))
                 daily_feed.select(new.attempt_id,root/'binding.json',root/'selection.json')
                 selected=json.loads((root/'selection.json').read_bytes())
                 daily_feed.acknowledge(new.attempt_id,root/'binding.json',root/'selection.json',
