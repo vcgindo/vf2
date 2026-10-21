@@ -699,6 +699,72 @@ class InputStorageV3Tests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'owner is mutable'):
                 input_storage.read_input(owner, image_reader=images.read)
 
+    def test_v2_initialization_references_preserve_seals_and_typed_rows(self):
+        initialization_id = 'df0386c9-35fe-44ce-9447-c86940f35637'
+        raw = {'profile': {'delivery': {'site_code': 'PURE'}},
+               'opening': {'rows': [{'value': None}, {'value': 7}, {'value': 7}]}}
+        target = SimpleNamespace(pk=initialization_id, input_digest=digest(raw),
+            _reference_initialization_id=initialization_id, _reference_accepted=True)
+        target._reference_identity = {**identity(target), 'owner_id': initialization_id}
+        images = MemoryImages()
+        target.input_payload = input_storage.save_input(target, raw,
+            image_writer=images.write, table_selector=table)
+        target.input_manifest_digest = digest(target.input_payload)
+        original = deepcopy(target.input_payload)
+        original_images = deepcopy(images.rows)
+        owner = SimpleNamespace(pk=OWNER, input_digest=digest(raw),
+            _reference_initialization_id=initialization_id)
+        refs = {path: dict(kind='INITIALIZATION', owner_id=initialization_id, path=path,
+            manifest_digest=target.input_manifest_digest, content_digest=target.input_digest)
+            for path in ('input/profile', 'input/opening')}
+        own_images = MemoryImages()
+        kwargs = dict(owner_resolver=lambda current, body: target, identity_resolver=run_identity)
+        with patch('mta.runtime.opening_storage.load_image', side_effect=images.read):
+            owner.input_payload = input_storage.save_input(owner, raw, version=3,
+                owner_references=refs, image_writer=own_images.write, table_selector=table, **kwargs)
+            owner.input_manifest_digest = digest(owner.input_payload)
+            self.assertEqual(own_images.writes, [])
+            self.assertEqual(input_storage.read_input(owner, image_reader=own_images.read, **kwargs), raw)
+            self.assertEqual(input_storage.audit_references(owner, **kwargs), refs)
+        self.assertEqual(target.input_payload, original)
+        self.assertEqual(target.input_manifest_digest, digest(original))
+        self.assertEqual(images.rows, original_images)
+
+        path = 'input/opening'
+        def resolve(reference=None):
+            return input_v3._resolve_owner(owner, path, reference or refs[path],
+                run_identity(owner), kwargs['owner_resolver'])
+
+        for field, foreign in (('database_name', 'foreign'), ('database_oid', 38),
+                               ('source_digest', 'b'*64), ('owner_kind', 'run')):
+            with self.subTest(identity=field):
+                target._reference_identity[field] = foreign
+                with self.assertRaises(ValueError): resolve()
+                target._reference_identity = {**identity(target), 'owner_id': initialization_id}
+        target._reference_initialization_id = 'foreign'
+        with self.assertRaisesRegex(ValueError, 'foreign or unaccepted'): resolve()
+        target._reference_initialization_id = initialization_id
+        for field in ('manifest_digest', 'content_digest'):
+            with self.subTest(root=field), self.assertRaises(ValueError):
+                resolve({**refs[path], field: 'b'*64})
+        for node_kind in ('reference', 'owner_reference', 'batch_reference', 'derived_master'):
+            with self.subTest(chain=node_kind):
+                target.input_payload = deepcopy(original)
+                node = input_v3._node_at(target.input_payload, path)
+                node.clear(); node[node_kind] = path
+                target.input_manifest_digest = digest(target.input_payload)
+                with self.assertRaisesRegex(ValueError, 'physical one-hop'):
+                    resolve({**refs[path], 'manifest_digest': target.input_manifest_digest})
+        target.input_payload = original
+        target.input_manifest_digest = digest(original)
+        target.status = 'SUCCEEDED'
+        target._reference_identity['owner_kind'] = 'run'
+        run_path = 'input/mdm_input/rows/sku/attributes'
+        with self.assertRaisesRegex(ValueError, 'manifest/content'):
+            input_v3._resolve_owner(owner, run_path,
+                {**refs[path], 'kind': 'RUN', 'path': run_path},
+                run_identity(owner), kwargs['owner_resolver'])
+
     def test_old_v2_manifest_still_reads_and_input_reader_dispatches_v3(self):
         raw = {'profile': {'delivery': {'site_code': 'PURE'}},
                'rows': [{'value': None}, {'value': 7}, {'value': 7}]}

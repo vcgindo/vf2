@@ -23,6 +23,12 @@ def source_manifest_digest():
 def integration_identity(source, initialization, seal):
     """A fresh seal must identify the actual current native source exactly."""
     from mta.mdm.production_families import adapter_digest
+    from mta.mdm.initialization import implementation_digest
+    if source.implementation_digest != implementation_digest():
+        from mta.runtime.ingestion_upgrade import execution_for
+        origin=execution_for(source,seal)
+        if origin is not None:
+            return origin
     identity = dict(adapter_digest=adapter_digest(), closing_projection_version=VERSION,
                     source_manifest_digest=source_manifest_digest())
     if identity != {key: seal.receipt.get(key) for key in identity}:

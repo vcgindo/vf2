@@ -75,7 +75,7 @@ def _opening_input(initialization):
 @once_per_request
 def _verified_initialization(source, *, input_sha256=None, input_schema=None):
     """Verify the immutable H2 seal after optional family rows have been added."""
-    from mta.mdm.initialization import implementation_digest, opening_digests
+    from mta.mdm.initialization import verified_origin_implementation, opening_digests
     from mta.mdm.initialization_contract import SCHEMA
     from mta.mdm.owned_namespace import verify_binding
     initialization = ProductionInitialization.objects.select_related('source').get(source=source)
@@ -83,7 +83,7 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
     if (input_schema is not None and input_schema != SCHEMA
             or input_sha256 is not None and input_sha256 != initialization.input_sha256
             or p.get('schema') != SOURCE_SCHEMA or source.dll_digest != ''
-            or source.implementation_digest != implementation_digest()
+            or source.implementation_digest != verified_origin_implementation(source)
             or initialization.implementation_digest != source.implementation_digest
             or digest(p) != source.digest or p.get('initialization_id') != str(initialization.pk)
             or p.get('input_sha256') != initialization.input_sha256

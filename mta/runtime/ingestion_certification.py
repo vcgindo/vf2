@@ -53,7 +53,9 @@ def certify_locked(initialization_id, release, cursor):
     cursor.execute('LOCK TABLE mta.fresh_mta_productioninitialization IN SHARE ROW EXCLUSIVE MODE')
     original, capability = registration(cursor)
     if capability['release_identity'] != release:
-        raise ValueError('Current certification cannot relabel an older capability')
+        from mta.runtime.ingestion_upgrade import audited_capability
+        if not audited_capability(capability):
+            raise ValueError('Current certification cannot relabel an older capability')
     roles = [original[k]['name'] for k in ('owner', 'issuer', 'consumer')]
     from mta.runtime.ingestion_ownership import tables
     from psycopg import sql
@@ -72,7 +74,9 @@ def certify_locked(initialization_id, release, cursor):
     # initializer's prepared-family cache. Subsequent audit readers share only
     # this independently reconstructed opening within this transaction.
     from mta.runtime.opening_scope import release_opening
-    release_opening()
+    from mta.runtime.ingestion_upgrade import audited_capability
+    if not audited_capability(capability):
+        release_opening()
     checked, frame = families._verified_initialization(owner.source)
     if checked.pk != owner.pk:
         raise ValueError('Initialization audit owner differs')

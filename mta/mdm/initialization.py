@@ -57,7 +57,7 @@ IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation
         'application/master_compatibility.py','application/master_preparation.py',
         'application/persistent_master.py','temporal/entry_preparation.py',
         'runtime/capture_preparation.py','runtime/master_revisions.py',
-        'runtime/run_input_references.py','runtime/ingestion_admission.py')
+        'runtime/run_input_references.py','runtime/ingestion_admission.py','runtime/ingestion_upgrade.py')
 
 
 def current_implementation_digest():
@@ -82,6 +82,14 @@ def families_for(batches):
             path=path, count=len(rows), digest=digest(storage(rows)),
             fields=[field.name for field in business_fields(model)]))
     return families
+
+
+def verified_origin_implementation(source):
+    current=implementation_digest()
+    if source.implementation_digest==current:
+        return current
+    from mta.runtime.ingestion_upgrade import implementation_for
+    return implementation_for(source)
 
 
 def verify_current_masters(source, batches):
@@ -118,7 +126,7 @@ def verify(owner, *, expected_frame=None, current_masters=False):
     source = owner.source
     p = source.receipt
     if (p.get('schema') != SOURCE_SCHEMA or source.dll_digest != ''
-            or source.implementation_digest != implementation_digest()
+            or source.implementation_digest != verified_origin_implementation(source)
             or owner.implementation_digest != source.implementation_digest
             or digest(p) != source.digest or p.get('initialization_id') != str(owner.pk)
             or p.get('input_sha256') != owner.input_sha256

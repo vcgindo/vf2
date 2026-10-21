@@ -291,6 +291,11 @@ def verify_binding(receipt):
     if not isinstance(receipt, dict) or not isinstance(receipt.get('owned_namespace'), dict):
         _reject('receipt binding is absent')
     expected = receipt['owned_namespace']
+    from release.native_identity import require_current
+    if expected.get('release_identity') != require_current():
+        from mta.runtime.ingestion_upgrade import binding_for
+        if binding_for(receipt):
+            return receipt
     with connection.cursor() as cursor:
         database = _database_identity(cursor)
         registration = _registered_identity(cursor)

@@ -363,7 +363,7 @@ def _node_at(manifest, path):
 
 
 def _physical(node):
-    if any(name in node for name in ('reference', 'batch_reference', 'owner_reference')):
+    if any(name in node for name in ('reference', 'batch_reference', 'owner_reference', 'derived_master')):
         return False
     return (all(_physical(child) for _, child in node.get('object', []))
             and all(_physical(child) for _, child, _ in node.get('children', [])))
@@ -448,14 +448,17 @@ def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
             or target_identity['source_digest'] != owner_identity['source_digest']):
         raise ValueError('Typed input referenced database/source differs')
     manifest = target.input_payload
-    if (not isinstance(manifest, dict) or manifest.get('schema') != V3
+    from mta.runtime import input_storage
+    legacy_initialization = (reference['kind'] == 'INITIALIZATION'
+        and isinstance(manifest, dict) and manifest.get('schema') == input_storage.SCHEMA)
+    if (not isinstance(manifest, dict) or not (manifest.get('schema') == V3 or legacy_initialization)
             or digest(manifest) != reference['manifest_digest']
             or target.input_manifest_digest != reference['manifest_digest']
             or target.input_digest != reference['content_digest']
             or manifest.get('content_digest') != reference['content_digest']):
         raise ValueError('Typed input referenced manifest/content differs')
     physical = (_initialization_component_is_physical(manifest, reference['path'])
-                if reference['kind'] == 'INITIALIZATION' else
+                if reference['kind'] == 'INITIALIZATION' and not legacy_initialization else
                 _physical(_node_at(manifest, reference['path'])))
     if not physical:
         raise ValueError('Typed input owner references must target physical one-hop subtrees')
@@ -463,8 +466,11 @@ def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
     reader = (__import__('mta.runtime.opening_storage', fromlist=['load_image']).load_image
               if reference['kind'] == 'INITIALIZATION' else
               __import__('mta.runtime.relational_state', fromlist=['load_image']).load_image)
-    value = read_input(target, components=(component,), image_reader=reader,
-        identity_resolver=(None if resolver is None else lambda value: value._reference_identity))
+    # Original v2 openings remain sealed as v2. Identity is checked against the
+    # live owner above; v2 has no embedded v3 identity or reference contract.
+    value = input_storage.read_input(target, components=(component,), image_reader=reader,
+        identity_resolver=(None if resolver is None or legacy_initialization
+                          else lambda value: value._reference_identity))
     return _at(value, reference['path'])
 
 
