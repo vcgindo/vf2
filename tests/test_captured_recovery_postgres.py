@@ -118,7 +118,9 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
                     capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
                 second=dict(physical_run_id=str(old.pk),physical_manifest_digest=old.input_manifest_digest,
-                    physical_attempt_id=str(attempt.pk),current_revision_cut=epochs(owner.pk))
+                    physical_attempt_id=str(attempt.attempt_id),current_revision_cut=epochs(owner.pk))
+                self.assertIsInstance(attempt.pk,int)
+                self.assertNotEqual(str(attempt.pk),str(attempt.attempt_id))
                 revision='capture-recovery-proof-second'
                 def resume(path,*,spec=None):
                     return temporal.execute_day(day=None,profile=None,execution_revision=revision,
@@ -127,6 +129,10 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 foreign=dict(second,physical_run_id='00000000-0000-4000-8000-000000000001')
                 with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
                     resume(Path(attempt.archive_path).with_name('foreign'),spec=foreign)
+                for invalid in (str(attempt.pk),'00000000-0000-4000-8000-000000000001'):
+                    with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                        resume(Path(attempt.archive_path).with_name('wrong-attempt'),
+                            spec=dict(second,physical_attempt_id=invalid))
                 stale=dict(second,current_revision_cut=[0,0,0,0,0])
                 with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
                     resume(Path(attempt.archive_path).with_name('stale'),spec=stale)
@@ -196,6 +202,12 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'original typed manifest differs'):
                     captured_input.origin(result)
                 result.refresh_from_db()
+                from django.core.exceptions import ValidationError
+                for invalid in (new.pk,str(new.pk)):
+                    with self.assertRaises((ValueError,ValidationError)):
+                        daily_feed.execute(invalid,root/'binding.json',pick_root=pick,resume=True)
+                    with self.assertRaises((ValueError,ValidationError)):
+                        daily_feed.select(invalid,root/'binding.json',root/'selection.json')
                 report=daily_feed.execute(new.attempt_id,root/'binding.json',pick_root=pick,resume=True)
                 self.assertEqual(report['status'],'PREPARED')
                 daily_feed.select(new.attempt_id,root/'binding.json',root/'selection.json')

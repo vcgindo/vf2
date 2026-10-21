@@ -73,7 +73,7 @@ def _second_hop_owner(run,attempt,value):
     original=DailyFeedAttempt.objects.get(run=physical)
     if (str(physical.pk)!=value['physical_run_id']
             or physical.input_manifest_digest!=value['physical_manifest_digest']
-            or str(original.pk)!=value['physical_attempt_id']
+            or str(original.attempt_id)!=value['physical_attempt_id']
             or original.status!='FAILED' or not original.accepted_facts
             or original.initialization_id!=attempt.initialization_id
             or original.input_sha256!=attempt.input_sha256
