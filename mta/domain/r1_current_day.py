@@ -17,8 +17,9 @@ post-calculation stock, bands, or rationed buckets.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
+from types import MappingProxyType
 from decimal import Decimal, ROUND_CEILING
 
 from mta.domain.validation import RuleBlocked
@@ -183,6 +184,28 @@ class RoutedSpikeOrder:
     route: tuple[dict[str, str | None], ...]
 
 
+@dataclass(frozen=True)
+class _RouteLookup:
+    """One immutable SKU-node generation; its map is derived only here."""
+    nodes: tuple[RouteNode, ...]
+    _index: dict | None = field(default=None, init=False, repr=False, compare=False)
+
+    def index(self, nodes):
+        if self.nodes is not nodes:
+            raise ValueError('Route lookup does not belong to these nodes')
+        if self._index is None:
+            object.__setattr__(self, '_index', MappingProxyType({node.location_code: node for node in nodes}))
+        return self._index
+
+
+def _route_index(nodes, lookup):
+    if lookup is None:
+        return {node.location_code: node for node in nodes}
+    if type(lookup) is not _RouteLookup:
+        raise ValueError('Owned route lookup required')
+    return lookup.index(nodes)
+
+
 def route_new_spike_order(
     *,
     business_date: date,
@@ -192,6 +215,7 @@ def route_new_spike_order(
     quantity: Decimal,
     customer_expected_date: date | None,
     nodes: tuple[RouteNode, ...],
+    _route_lookup=None,
 ) -> RoutedSpikeOrder:
     """Port the first-service/DueDate and route construction for one new Spike.
 
@@ -208,7 +232,7 @@ def route_new_spike_order(
     quantity = _integer(quantity, "order quantity")
     if quantity <= ZERO:
         raise ValueError("order quantity must be positive")
-    node_by_location = {node.location_code: node for node in nodes}
+    node_by_location = _route_index(nodes, _route_lookup)
     if len(node_by_location) != len(nodes) or source_location_code not in node_by_location:
         raise ValueError("Route nodes must be unique and include the source location")
     chain: list[RouteNode] = []
@@ -272,6 +296,7 @@ def route_established_spike_order(
     first_servicing_location_code: str,
     due_date: date,
     nodes: tuple[RouteNode, ...],
+    _route_lookup=None,
 ) -> RoutedSpikeOrder:
     """Port ``CalculateRoute.sql`` for an already-classified Spike order.
 
@@ -284,7 +309,7 @@ def route_established_spike_order(
         raise ValueError("Established Spike due date is required")
     if not all((order_id, sku_code, source_location_code, first_servicing_location_code)):
         raise ValueError("Established Spike identity and first service are required")
-    node_by_location = {node.location_code: node for node in nodes}
+    node_by_location = _route_index(nodes, _route_lookup)
     if len(node_by_location) != len(nodes) or source_location_code not in node_by_location:
         raise ValueError("Established Spike route lies outside the declared hierarchy closure")
     current, date_at_current = source_location_code, due_date

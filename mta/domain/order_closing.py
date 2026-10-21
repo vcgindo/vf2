@@ -87,11 +87,14 @@ def order_stages(today, opening_date, state, feed_status, feed):
     accepted = {}
     existing = {key(r['CustomerOrderId'], r['SKUCode']) for r in s['SpikeOrderData']}
     max_level = max((r['WhLevel'] for r in attributes.values()), default=-1)
+    new_by_level = {}
+    for row in s['NewSpikeOrders']:
+        a = attributes.get(key(row['SKUCode'], row['WhCode']))
+        if a is not None:
+            new_by_level.setdefault(a['WhLevel'], []).append(row)
     for level in range(max_level, -1, -1):
-        for row in s['NewSpikeOrders']:
-            a = attributes.get(key(row['SKUCode'], row['WhCode']))
-            if a is not None and a['WhLevel'] == level:
-                pending.append({**row, '_feed_ordinal':feed_ordinals[key(row['CustomerOrderId'],row['SKUCode'],row['WhCode'])],
+        for row in new_by_level.get(level, ()):
+            pending.append({**row, '_feed_ordinal':feed_ordinals[key(row['CustomerOrderId'],row['SKUCode'],row['WhCode'])],
                                 'CurrentWhCode': row['WhCode'], 'Norm': 0, 'RLT': 0,
                                 'FirstServicingWhCode': None, 'DueDate': None})
         for row in pending:

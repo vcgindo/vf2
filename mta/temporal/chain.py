@@ -417,11 +417,12 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             row['Tags'] = tag['Tags']
         daily_finalization.mark(completion, 'NMSCreateSnapshot.sql', 'UpdateInTransitDataTags.sql')
     with stage('r1_orders_requirements_rationing'):
-        source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
-        if 'requirement_stock' in day:
-            from mta.application.requirement_stock import apply as apply_requirement_stock
-            apply_requirement_stock(source,day['requirement_stock'],today)
-        r1_context=_prepare_r1_operation_context(source)
+        with stage('r1_source_context_preparation'):
+            source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
+            if 'requirement_stock' in day:
+                from mta.application.requirement_stock import apply as apply_requirement_stock
+                apply_requirement_stock(source,day['requirement_stock'],today)
+            r1_context=_prepare_r1_operation_context(source)
         prepared=r1_context.prepared
         bpr_master=[{'SKUCode':r['sku_code'],'WHCode':r['location_code'],'Norm':r['norm'],
                      'ParentWhCode':r['parent_location_code'],'SKUIntroDate':r['sku_intro_date']} for r in prepared.master_state['bpr_master']]
@@ -436,8 +437,9 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         order_feed=day['order_feed']
         if isinstance(order_feed,RecordRows):
             order_feed=[deepcopy(row) for row in order_feed]
-        for _, order_state in order_stages(today,opening_date,order_input,day['order_feed_status'],order_feed):
-            pass
+        with stage('r1_order_reconciliation'):
+            for _, order_state in order_stages(today,opening_date,order_input,day['order_feed_status'],order_feed):
+                pass
         if completion is not None:
             daily_finalization.mark(completion, 'ImportSpikeOrders.sql', 'CalculateDD.sql')
         source['orders'].extend(calculation_order_rows(order_state))
@@ -453,14 +455,16 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     if completion is not None:
         daily_finalization.mark(completion, *daily_finalization.CALCULATION_SCRIPTS)
     from mta.application.r1_rationed_report import rationed_report
-    report=rationed_report(source,calculated,
-        [{'sku_code':r['SKUCode'],'description':r['SKUDescription']} for r in importer['SKUDescriptionTbl']],
-        [{'location_code':r['WHCode'],'description':r['WHDescription']} for r in importer['SiteDescriptionTbl']])
+    with stage('r1_rationed_report'):
+        report=rationed_report(source,calculated,
+            [{'sku_code':r['SKUCode'],'description':r['SKUDescription']} for r in importer['SKUDescriptionTbl']],
+            [{'location_code':r['WHCode'],'description':r['WHDescription']} for r in importer['SiteDescriptionTbl']])
     if 'production_report_policy' in day:
         from mta.application.production_order_sources import produce as produce_order_sources
-        calculated['r1_allocated_orders'] = produce_order_sources(today=today, calculated=calculated,
-            orders=order_state['SpikeOrderData'], dbm_master=control_final['dbm_master'],
-            attributes=importer['SkuLocAttributeData'], daily_consumption=native_stock['_owned_daily_stock']['daily_consumption'])
+        with stage('r1_native_order_source'):
+            calculated['r1_allocated_orders'] = produce_order_sources(today=today, calculated=calculated,
+                orders=order_state['SpikeOrderData'], dbm_master=control_final['dbm_master'],
+                attributes=importer['SkuLocAttributeData'], daily_consumption=native_stock['_owned_daily_stock']['daily_consumption'])
     if completion is not None:
         daily_finalization.mark(completion, 'GenerateRationReqReport.sql')
     pick_state = None

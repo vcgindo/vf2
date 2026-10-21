@@ -541,7 +541,7 @@ def _consume_r1_operation_context(context, payload, closing):
 def _prepare_r1_orders(orders, dependencies, *, order_types_reconciled):
     """Calculate only fields whose real source is the current owned order state."""
     from mta.domain.demand import ThresholdPolicy, classify_spike
-    from mta.domain.r1_current_day import route_established_spike_order, route_new_spike_order
+    from mta.domain.r1_current_day import _RouteLookup, route_established_spike_order, route_new_spike_order
 
     business_date = dependencies.business_date
     master_keys = dependencies.master_keys
@@ -552,6 +552,7 @@ def _prepare_r1_orders(orders, dependencies, *, order_types_reconciled):
     routed_due = {key: Decimal('0') for key in master_keys}
     routes = []
     seen_orders = set()
+    route_indexes, route_nodes = {}, {}
     for order in orders:
         key = (order['sku_code'], order['location_code'])
         if key not in master_keys or order['order_id'] in seen_orders:
@@ -576,11 +577,14 @@ def _prepare_r1_orders(orders, dependencies, *, order_types_reconciled):
                         Decimal(master_by_key[key]['base_norm']), threshold_policy))
         routed = None
         due = expected or business_date
+        if is_spike and key[0] not in route_nodes:
+            route_nodes[key[0]] = tuple(route_nodes_by_sku[key[0]])
+            route_indexes[key[0]] = _RouteLookup(route_nodes[key[0]])
         if is_spike and established is not True:
             routed = route_new_spike_order(
                 business_date=business_date, order_id=order['order_id'], sku_code=key[0],
                 source_location_code=key[1], quantity=Decimal(order['outstanding_quantity']),
-                customer_expected_date=expected, nodes=tuple(route_nodes_by_sku[key[0]]),
+                customer_expected_date=expected, nodes=route_nodes[key[0]], _route_lookup=route_indexes[key[0]],
             )
             due = routed.due_date
         elif is_spike:
@@ -588,7 +592,7 @@ def _prepare_r1_orders(orders, dependencies, *, order_types_reconciled):
             routed = route_established_spike_order(
                 order_id=order['order_id'], sku_code=key[0], source_location_code=key[1],
                 first_servicing_location_code=order['first_servicing_location_code'],
-                due_date=due, nodes=tuple(route_nodes_by_sku[key[0]]),
+                due_date=due, nodes=route_nodes[key[0]], _route_lookup=route_indexes[key[0]],
             )
         if routed is not None:
             for route_row in routed.route:
@@ -822,8 +826,10 @@ def prepare_r1_current_day(
             parent_location_code=parents.get(key) if physical else row["parent_location_code"],
             rlt_to_parent_days=master_by_key[key]["replenishment_lead_time_days"] if physical and key in parents else row["rlt_to_parent_days"],
         ))
+    route_locations_by_sku = {sku: {node.location_code for node in nodes}
+                              for sku, nodes in route_nodes_by_sku.items()}
     for sku, location in master_keys:
-        if sku not in route_nodes_by_sku or location not in {node.location_code for node in route_nodes_by_sku[sku]}:
+        if sku not in route_locations_by_sku or location not in route_locations_by_sku[sku]:
             raise ValueError("R1 routing must cover every master SKU/location")
     order_dependencies = _R1OrderDependencies(
         business_date=business_date,

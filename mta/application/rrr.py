@@ -18,6 +18,7 @@ def calculate_rrr_groups(
     R1 supplies the persisted output of ``StockCalculation.sql`` so source
     reservation semantics, rather than raw inventory, govern parent rationing.
     """
+    exclusions = None if replenishment_exclusions is None else frozenset(replenishment_exclusions)
     by_key = {(row["sku_code"], row["location_code"]): row for row in rows}
     masters = {(row["sku_code"], row["location_code"]): row for row in payload["foundation"]["sku_locations"]}
     inventory = {(row["sku_code"], row["location_code"]): row for row in payload["foundation"]["inventory_positions"]}
@@ -41,7 +42,7 @@ def calculate_rrr_groups(
             # R1 mirrors GetReqData then ExcludeReplenishment. None retains
             # the historical shared Track A participant population.
             if replenishment_exclusions is not None and (
-                key[1] in replenishment_exclusions or Decimal(row["virtual_norm"]["value"]) == 0
+                key[1] in exclusions or Decimal(row["virtual_norm"]["value"]) == 0
             ):
                 continue
             participants.append(RationChild(sku, key[1], parent, Decimal(row["virtual_norm"]["value"]),
@@ -49,7 +50,7 @@ def calculate_rrr_groups(
                 master["replenishment_lead_time_days"], node.get("rationing_priority", 999999), False))
         parent_row = by_key.get((sku, parent))
         if (parent_row and parent_row["direct_virtual_node"]
-                and (replenishment_exclusions is None or parent + "_SYNTH" not in replenishment_exclusions)):
+                and (replenishment_exclusions is None or parent + "_SYNTH" not in exclusions)):
             direct = parent_row["direct_virtual_node"]
             participants.append(RationChild(sku, parent + "_SYNTH", parent,
                 Decimal(direct["virtual_norm"]["value"]), Decimal(0), Decimal(0), 0, 999999, True))
@@ -81,7 +82,7 @@ def calculate_rrr_groups(
             }
             output.append({
                 "sku_code": allocation.sku_code, "parent_location_code": allocation.parent_location_code,
-                "location_code": allocation.location_code, "virtual": next(c.virtual for c in participants if c.location_code == allocation.location_code),
+                "location_code": allocation.location_code, "virtual": child.virtual,
                 "requirement": str(allocation.requirement),
                 # No parent row means source StepwiseChildReq/RationPacksize
                 # never set these child fields; their initialized values stay 0.

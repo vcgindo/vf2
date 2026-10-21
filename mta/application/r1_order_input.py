@@ -4,6 +4,7 @@ Canonical ImportSpikeOrders.sql owns amendment/closure, not the downstream
 allocation engine. This producer stops before CalculateDD for newly classified
 spikes. No customer-format transformation or replacement Elephant handler.
 """
+from mta.application.stage_observation import summary
 from copy import deepcopy
 from datetime import date
 from decimal import Decimal, ROUND_CEILING
@@ -127,26 +128,46 @@ def reconcile_order_feed(source, master_rows, business_date, *, accepted_orders=
         if elephants is not None: result['elephant_orders'] = elephants
         return result
     new_spikes = []
+    retained_by_key = {}
+    for ordinal, row in enumerate(retained):
+        retained_by_key.setdefault(_key(row), []).append((ordinal, row))
+    removed = set()
+    elephant_by_key = {}
+    if elephants is not None:
+        for ordinal, row in enumerate(elephants):
+            elephant_by_key.setdefault(identity(row), []).append((ordinal, row))
+    removed_elephants = set()
+    matched_rows = 0
     for incoming in feed:
         key = _key(incoming, 'OrderID')
         master = masters[key[1:]]
         threshold = (Decimal(str(master['Norm'])) * Decimal(str(master['SpikeThreshold'])) / 100
                      ).to_integral_value(rounding=ROUND_CEILING)
-        spike = any(_key(r) == key and r['IsSpike'] == 1 for r in retained) or incoming['Qty'] > threshold
+        bucket = retained_by_key.get(key, [])
+        matched_rows += len(bucket) + len(elephant_by_key.get(key, ()))
+        spike = any(r['IsSpike'] == 1 for _, r in bucket) or incoming['Qty'] > threshold
         if elephants is not None:
             changed = []
-            for row in elephants:
-                if identity(row) == key:
-                    row = refreshed(row, master)
-                    row['Qty'] = incoming['Qty']
-                    if row['Qty'] <= (0 if master['ElephantOrderCapping'] is None else master['ElephantOrderCapping']):
-                        continue
-                changed.append(row)
-            elephants = changed
+            for ordinal, row in elephant_by_key.get(key, ()):
+                row = refreshed(row, master)
+                row['Qty'] = incoming['Qty']
+                if row['Qty'] <= (0 if master['ElephantOrderCapping'] is None else master['ElephantOrderCapping']):
+                    removed_elephants.add(ordinal)
+                    continue
+                elephants[ordinal] = row
+                changed.append((ordinal, row))
+            elephant_by_key[key] = changed
         # Canonical removes promoted PSOs before matching existing orders.
         if spike:
-            retained = [r for r in retained if not (_key(r) == key and r['IsSpike'] == 0)]
-        matches = [r for r in retained if _key(r) == key]
+            kept = []
+            for ordinal, row in bucket:
+                if row['IsSpike'] == 0:
+                    removed.add(ordinal)
+                else:
+                    kept.append((ordinal, row))
+            bucket = kept
+            retained_by_key[key] = bucket
+        matches = [row for _, row in bucket]
         for row in matches:
             row['Qty'] = incoming['Qty']  # no amendment to OriginalQty/CED/DD
         if matches:
@@ -157,11 +178,12 @@ def reconcile_order_feed(source, master_rows, business_date, *, accepted_orders=
         if incoming['Qty'] > (0 if cap is None else cap):
             if elephants is None:
                 raise ValueError('R1-05 Elephant source path requires its connected owner')
-            if not any(identity(r) == key for r in elephants):
+            if not elephant_by_key.get(key):
                 elephants.append(refreshed(dict(CustomerOrderID=incoming['OrderID'],
                     SKUCode=incoming['SKUCode'], WhCode=incoming['WhCode'], Qty=incoming['Qty'],
                     IntroDate=business_date, CustomerExpectedDate=incoming['CustomerExpDate'], DueDate=None), master))
-        if elephants is not None and any(identity(r) == key for r in elephants):
+                elephant_by_key.setdefault(key, []).append((len(elephants)-1, elephants[-1]))
+        if elephants is not None and elephant_by_key.get(key):
             continue
         if spike:
             new_spikes.append(dict(CustomerOrderId=incoming['OrderID'], SKUCode=incoming['SKUCode'],
@@ -173,6 +195,13 @@ def reconcile_order_feed(source, master_rows, business_date, *, accepted_orders=
                                  SKUCode=incoming['SKUCode'], WhCode=incoming['WhCode'],
                                  CustomerExpectedDate=incoming['CustomerExpDate'], FirstServicingWhCode=None,
                                  DueDate=None, IntroDate=business_date))
+            retained_by_key.setdefault(key, []).append((len(retained)-1, retained[-1]))
+    summary('r1_order_feed_indexes', index_builds=1 + (elephants is not None),
+            indexed_rows=len(orders) + (len(elephants) if elephants is not None else 0),
+            lookup_probes=len(feed), matched_rows=matched_rows)
+    retained = [row for ordinal, row in enumerate(retained) if ordinal not in removed]
+    if elephants is not None:
+        elephants = [row for ordinal, row in enumerate(elephants) if ordinal not in removed_elephants]
     generated = [r for r in retained if r['OrderKey'] is None]
     if generated and 'identity_last_value' in source:
         # Filtering/classification above preserves supplied ordinals. Ordinary

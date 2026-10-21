@@ -3,6 +3,7 @@
 Only ORM reads were replaced with explicit produced-row arguments. See
 baseline/calculation-reuse.json. No copied persistence/audit framework.
 """
+from mta.application.stage_observation import summary
 from datetime import date
 from decimal import Decimal, ROUND_CEILING
 from mta.application.r1_input import resolve_r1_vehicle_mappings
@@ -36,9 +37,10 @@ def _pso_inputs(prepared, requirement_rows: list[dict], normal_rows) -> tuple[Ps
                     for row in prepared.stock_balances}
     parent_stock.update({(row.sku_id, row.parent_location_id): row.remaining_parent_stock for row in rrr_rows})
     source = []
+    exclusions = frozenset(prepared.replenishment_exclusions)
     # Physical PSO population is BPRMaster, not the normal-ration result.
     for key in sorted(masters):
-        if key[1] in prepared.replenishment_exclusions:
+        if key[1] in exclusions:
             continue
         result = result_by_key[key]
         requirement = result["requirement"]
@@ -171,16 +173,19 @@ def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict]
     allocated_by_order: dict[str, Decimal] = {}
     stock_allocated_at_source: dict[tuple[str, str], Decimal] = {}
     blue_allocations = []
+    # Exact Python identities, membership only; BPP occurrences remain ordered
+    # in the authoritative rows below. No SKU key is added to the old predicate.
+    white_destinations = None
     for allocation in advance_allocations:
         source = (allocation["sku_code"], allocation["source_location_code"])
         if allocation["allocation_type"] == "advance-stock":
             stock_allocated_at_source[source] = stock_allocated_at_source.get(source, Decimal("0")) + Decimal(allocation["allocated_quantity"])
         # ReqInColorBand always includes routed advances; a direct (NULL
         # destination) advance is Blue only when its upstream BPP is White.
-        if allocation["destination_location_code"] is not None or any(
-            row["order_id"] == allocation["order_id"] and row["destination_location_code"] == source[1]
-            and row["colour"] == "white" for row in bpp_rows
-        ):
+        if allocation["destination_location_code"] is None and white_destinations is None:
+            white_destinations = {(row["order_id"], row["destination_location_code"])
+                                  for row in bpp_rows if row["colour"] == "white"}
+        if allocation["destination_location_code"] is not None or (allocation["order_id"], source[1]) in white_destinations:
             blue_allocations.append(allocation)
             key = allocation["order_id"]
             allocated_by_order[key] = allocated_by_order.get(key, Decimal("0")) + Decimal(allocation["allocated_quantity"])
@@ -200,16 +205,26 @@ def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict]
         (policy["sku_code"], policy["location_code"]) for policy in payload["policies"]
         if any(control["type"] == "phase_out" for control in policy.get("controls", []))
     }
+    # Same-generation validated foundation. setdefault preserves the original
+    # next(...) first occurrence on duplicate grains; row references are read only.
+    inventory = {}
+    for position in prepared.track_a["foundation"]["inventory_positions"]:
+        inventory.setdefault((position["sku_code"], position["location_code"]), position)
+    def position_for(row):
+        position = inventory.get((row["sku_code"], row["location_code"]))
+        if position is None:
+            # Preserve next(...)'s missing-row failure at its original argument.
+            raise StopIteration
+        return position
+
     for row in requirement_rows:
         requirement = row["requirement"]
         inputs.append(RequirementBandInput(
             sku_code=row["sku_code"], location_code=row["location_code"],
             parent_location_code=parent_by_key.get((row["sku_code"], row["location_code"])),
             norm=Decimal(row["effective_norm"]["value"]),
-            stock=Decimal(next(position["stock_quantity"] for position in prepared.track_a["foundation"]["inventory_positions"]
-                               if (position["sku_code"], position["location_code"]) == (row["sku_code"], row["location_code"]))),
-            goods_in_transit=Decimal(next(position["goods_in_transit_quantity"] for position in prepared.track_a["foundation"]["inventory_positions"]
-                                          if (position["sku_code"], position["location_code"]) == (row["sku_code"], row["location_code"]))),
+            stock=Decimal(position_for(row)["stock_quantity"]),
+            goods_in_transit=Decimal(position_for(row)["goods_in_transit_quantity"]),
             pso=Decimal(requirement["pso"]), pso_threshold_percent=Decimal(requirement["pso_threshold"]),
             due_direct_spike=max(Decimal(requirement["due_spike"]) - stock_allocated_at_source.get((row["sku_code"], row["location_code"]), Decimal("0")), Decimal("0")),
             due_routed_spike=Decimal(requirement["routed_due_spike"]),
@@ -220,6 +235,12 @@ def _requirement_band_rows(prepared, payload: dict, requirement_rows: list[dict]
     physical_keys = {(row["sku_code"], row["location_code"]) for row in requirement_rows}
     references = frozenset((sku, parent) for (sku, _), parent in parent_by_key.items()
                            if (sku, parent) not in physical_keys)
+    summary('r1_band_indexes', index_builds=1 + (white_destinations is not None),
+            indexed_rows=len(prepared.track_a['foundation']['inventory_positions']) +
+                (len(bpp_rows) if white_destinations is not None else 0),
+            lookup_probes=2*len(requirement_rows) + sum(
+                row['destination_location_code'] is None for row in advance_allocations),
+            matched_rows=2*len(inputs))
     return calculate_requirement_bands(tuple(inputs), reference_parent_keys=references, source_rows=source_rows)
 
 

@@ -173,7 +173,7 @@ class ElephantActionTests(unittest.TestCase):
         with patch.object(typed,'bulk',side_effect=lambda query,values:records.extend(values)):
             meta=typed.save_image(run,'action/1/ElephantOrders','closing/orders/ElephantOrders',rows)
         cursor=MagicMock();cursor.fetchmany.side_effect=[[tuple(r[2:]) for r in records],[]]
-        with patch.object(typed.connection,'cursor') as context:
+        with patch.object(typed.connection,'chunked_cursor') as context:
             context.return_value.__enter__.return_value=cursor
             self.assertEqual(typed.load_image(run,meta),storage(rows))
         self.assertEqual(ELEPHANT_CONTRACT,'persisted-elephant-ordinal-before-feed-ordinary-spike-v1')

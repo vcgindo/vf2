@@ -66,6 +66,13 @@ def rationed_report(source, outputs, sku_descriptions, location_descriptions):
                 raise ValueError('Ambiguous direct allocation')
             direct[parent] = _int(row['final_quantity']) + _int(pso.get(key, {}).get('total_allocation', 0))
     sequence = {name: i for i, name in enumerate(('Black', 'Red', 'Yellow', 'Green', 'Blue', 'White', 'Grey'), 1)}
+    child_norms = {key: tuple(values) for key, values in children.items()}
+    averages = {}
+    def average(key):
+        if key not in averages:
+            averages[key] = int(average_positive_norm(child_norms.get(key, ())))
+        return averages[key]
+
     result = []
     for key, record in requirements.items():
         master = masters[key]
@@ -112,8 +119,8 @@ def rationed_report(source, outputs, sku_descriptions, location_descriptions):
             'SnPNettedOff': _int(req['netted_additional']), 'ResidualSnP': _int(req['residual_additional']),
             'EcoStockForNormReq': _int(req['stock_for_requirement']) + git - _int(req['netted_additional']),
             'NormReq': _int(req['normal_gap']), 'BlueReq': blue,
-            'AvgSiblingsNorm': int(average_positive_norm(tuple(children[parent]))),
-            'AvgChildrenNorm': int(average_positive_norm(tuple(children[key]))),
+            'AvgSiblingsNorm': average(parent),
+            'AvgChildrenNorm': average(key),
             'ParentStockForNormRationing': stocks.get(parent, 0),
             'ParentStockForSnPRationing': after_normal.get(parent, stocks.get(parent, 0)) if key in pso else 0,
             'ParentStockForRationing': stocks.get(parent, 0),

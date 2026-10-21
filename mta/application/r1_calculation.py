@@ -19,7 +19,7 @@ from mta.domain.colours import all_colours
 from mta.domain.demand import calculate_requirement
 from mta.domain.models import InventoryPosition, RequirementInput
 from mta.domain.validation import RuleBlocked
-from mta.domain.virtual_norm import resolve_virtual_norm
+from mta.domain.virtual_norm import _PeerNormGroup, resolve_virtual_norm
 
 ZERO = Decimal(0)
 
@@ -51,8 +51,11 @@ def calculate_r1_requirements(prepared, payload):
     depths = {key(row): row["wh_level"] for row in prepared.additional_master}
     levels = sorted(set(depths.values()), reverse=True)
     ordered_keys = tuple(sorted(nodes))
-    level_keys = tuple((level, tuple(k for k in ordered_keys if depths[k] == level))
-                       for level in levels)
+    keys_by_level = {}
+    for k in ordered_keys:
+        keys_by_level.setdefault(depths[k], []).append(k)
+    level_keys = tuple((level, tuple(keys_by_level[level])) for level in levels)
+    phase_out = frozenset(prepared.phase_out_membership)
     balances = {key(row): row for row in prepared.stock_balances}
     raw_orders = {row["order_id"]: row for row in payload["orders"]}
     orders = {order["order_id"]: order for node in nodes.values() for order in node["orders"]}
@@ -93,11 +96,14 @@ def calculate_r1_requirements(prepared, payload):
     daily, stock_allocations, git_allocations = [], [], []
     first, frozen_cnr = {}, {}
     stock_at_source = {k: ZERO for k in nodes}
-    routes_by_source, routes_by_destination = {}, {}
+    routes_by_source, routes_by_destination, routes_by_level = {}, {}, {}
     for route in prepared.routes:
         routes_by_source.setdefault(key(route), []).append(route)
         destination = (route["sku_code"], route["child_location_code"])
         routes_by_destination.setdefault(destination, []).append(route)
+        source_level = depths.get(key(route))
+        if source_level is not None:
+            routes_by_level.setdefault(source_level, []).append(route)
 
     def req(k, previous, routed, *, cnr=None, direct=None):
         child_rows = [previous[c] for c in children[k]]
@@ -110,7 +116,7 @@ def calculate_r1_requirements(prepared, payload):
             residual_children=sum((r.residual_additional for r in child_rows), ZERO),
             routed_due_spike=routed, stock_for_requirement=Decimal(balances[k]["stock_for_requirement"]),
             allow_negative_stock_for_requirement=True,
-            phase_out=(k in prepared.phase_out_membership
+            phase_out=(k in phase_out
                        or any(c["type"] == "phase_out" for c in nodes[k]["controls"])),
         )
 
@@ -175,11 +181,9 @@ def calculate_r1_requirements(prepared, payload):
         )]
 
     for level, current in level_keys:
-        current_keys = set(current)
         # Due routes are created at the source depth before advance allocation.
-        for route in prepared.routes:
-            src = (route["sku_code"], route["location_code"])
-            if src in current_keys and date.fromisoformat(route["due_date"]) <= today:
+        for route in routes_by_level.get(level, ()):
+            if date.fromisoformat(route["due_date"]) <= today:
                 append_route(route, remaining.get(route["order_id"], ZERO), "stock")
         for k in current:
             need = sum((first[c].requirement for c in children[k]), ZERO) + demands[k].due_spike + demands[k].pso
@@ -240,21 +244,26 @@ def calculate_r1_requirements(prepared, payload):
             routed = routed_totals.get(k, first[k].routed_due_spike)
             final[k] = req(k, final, routed, cnr=frozen_cnr[k], direct=direct_totals.get(k, demands[k].due_spike))
             nodes[k]["routed_due_spike"] = format(routed, "f")
+    # Immutable same-generation groups; averages are computed at first actual
+    # use inside the original virtual-norm validation/rounding boundary.
+    peer_norms = {k: tuple(norms[c].value for c in members) for k, members in children.items()}
+    peer_groups = {k: _PeerNormGroup(values) for k, values in peer_norms.items()}
+
     output = []
     for k in ordered_keys:
         template = templates[k]
         result = final[k]
         parent = parents.get(k)
-        peers = tuple(norms[c].value for c in children[parent]) if parent else ()
+        peers = peer_norms[parent] if parent else ()
         pack = Decimal(masters[parent]["pack_size"]) if parent in masters else Decimal(1 if parent else masters[k]["pack_size"])
         # ConsolidateReq's uncapped top-node update tests for a physical
         # parent row, not whether a supplier/plant reference is present.
-        virtual = resolve_virtual_norm(norms[k].value, result.additional_demand, kind="CHILD" if parent in masters else "TOP", peer_norms=peers, parent_pack_size=pack)
+        virtual = resolve_virtual_norm(norms[k].value, result.additional_demand, kind="CHILD" if parent in masters else "TOP", peer_norms=peers, parent_pack_size=pack, _peer_group=peer_groups[parent] if parent else None)
         position = positions[k]
         colours = all_colours(norms[k].value, Decimal(position["stock_quantity"]), Decimal(position["goods_in_transit_quantity"]), virtual)
         direct = None
         if children[k] and result.pso + result.due_spike > 0:
-            vn = resolve_virtual_norm(ZERO, result.pso + result.due_spike, kind="DIRECT", peer_norms=tuple(norms[c].value for c in children[k]))
+            vn = resolve_virtual_norm(ZERO, result.pso + result.due_spike, kind="DIRECT", peer_norms=peer_norms[k], _peer_group=peer_groups[k])
             direct = {"business_date": today.isoformat(), "parent_location_code": k[1], "virtual_norm": asdict(vn),
                       "dispatch": asdict(all_colours(ZERO, ZERO, ZERO, vn)["dispatch"])}
         output.append(json_value({**template, "requirement": asdict(result), "virtual_norm": asdict(virtual),

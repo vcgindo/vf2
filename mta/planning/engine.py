@@ -8,6 +8,7 @@ from mta.application.r1_input import (
     prepare_r1_current_day,
     prepare_owned_order_current_day,
 )
+from mta.application.stage_observation import stage
 from mta.application.r1_calculation import calculate_r1_requirements
 from mta.application.r1_supplier_input import sorted_rows
 from mta.application.r1_importer_master import _sql_key
@@ -61,11 +62,12 @@ processed-input coverage. Legacy undefined branches retain their guards.
         raw, adapter = prepare_gulfoil_standard_input(raw)
     if _owned_r1_context is not None and _owned_order_closing is None:
         raise ValueError('Owned R1 preparation context requires its connected order owner')
-    if _owned_r1_context is not None:
-        prepared = _consume_r1_operation_context(_owned_r1_context, raw, _owned_order_closing)
-    else:
-        prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
-                    prepare_owned_order_current_day(raw, _owned_order_closing))
+    with stage('r1_dependency_order_routing'):
+        if _owned_r1_context is not None:
+            prepared = _consume_r1_operation_context(_owned_r1_context, raw, _owned_order_closing)
+        else:
+            prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
+                        prepare_owned_order_current_day(raw, _owned_order_closing))
     if _owned_daily_stock is not None:
         if _owned_order_closing is None:
             raise ValueError('Native daily stock requires its connected order/day owner')
@@ -84,22 +86,25 @@ processed-input coverage. Legacy undefined branches retain their guards.
             validation['tables']['SkuLocAttributeData'], profile='GulfOil')
         prepared = replace(prepared, importer_validation=validation)
     payload = prepared.calculation_payload or raw
-    track, requirements, stock_advances, git_advances, trace = calculate_r1_requirements(prepared, payload)
-    normal = calculate_rrr_groups(
-        track, requirements,
-        parent_stock_for_rationing={(r['sku_code'], r['location_code']): Decimal(r['stock_for_rationing'])
-                                   for r in prepared.stock_balances},
-        replenishment_exclusions=prepared.replenishment_exclusions,
-        allow_negative_stock_for_requirement=True,
-    )
-    normal_values = [NormalAllocation.from_row(row) for row in normal]
-    pso = allocate_spike_pso(_pso_inputs(prepared, requirements, normal_values))
-    bpp = _bpp_order_rows(prepared, payload)
-    source_bands = {} if _production_sources else None
-    bands = _requirement_band_rows(prepared, payload, requirements, bpp, stock_advances + git_advances,
-                                  source_rows=source_bands)
-    bifurcation = _bifurcation_rows(prepared, requirements, normal_values, pso)
-    bor, bor_oa = _source_bor_rows(prepared, payload, requirements, bands)
+    with stage('r1_two_pass_requirements'):
+        track, requirements, stock_advances, git_advances, trace = calculate_r1_requirements(prepared, payload)
+    with stage('r1_rrr_pso'):
+        normal = calculate_rrr_groups(
+            track, requirements,
+            parent_stock_for_rationing={(r['sku_code'], r['location_code']): Decimal(r['stock_for_rationing'])
+                                       for r in prepared.stock_balances},
+            replenishment_exclusions=prepared.replenishment_exclusions,
+            allow_negative_stock_for_requirement=True,
+        )
+        normal_values = [NormalAllocation.from_row(row) for row in normal]
+        pso = allocate_spike_pso(_pso_inputs(prepared, requirements, normal_values))
+    with stage('r1_band_bor_projections'):
+        bpp = _bpp_order_rows(prepared, payload)
+        source_bands = {} if _production_sources else None
+        bands = _requirement_band_rows(prepared, payload, requirements, bpp, stock_advances + git_advances,
+                                      source_rows=source_bands)
+        bifurcation = _bifurcation_rows(prepared, requirements, normal_values, pso)
+        bor, bor_oa = _source_bor_rows(prepared, payload, requirements, bands)
 
     def consumer_orders(rows):
         if prepared.order_part_identity is None:

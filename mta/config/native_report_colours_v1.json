@@ -1,7 +1,7 @@
 {
   "schema": "native-report-colours-v1",
   "source": "mta/application/r1_rationed_report.py",
-  "source_sha256": "372c7025d77a6e8994a66c3911251e710b42b81cbcbcaeb95821a7062fad2dd6",
+  "source_sha256": "8bf0c789efd56850d67885d8300e86006c4ec2504c9314542ecead813370a85e",
   "rows": [
     {
       "Color": "Black",

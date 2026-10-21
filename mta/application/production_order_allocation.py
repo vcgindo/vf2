@@ -11,6 +11,7 @@ from datetime import date
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, ROUND_DOWN
 
 from mta.application.r1_importer_master import _sql_key
+from mta.application.stage_observation import summary
 
 
 OUTPUT_FIELDS = (
@@ -304,16 +305,54 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     grains = [_k(row["SKUCode"], row["WHCode"]) for row in eco]
     if len(grains) != len(set(grains)):
         raise ValueError("DailyConsumption has duplicate current-day EcoStock grain")
+    # Validated immutable stock population: ordered multimap, SQL NULLs never
+    # join. Keep all duplicate candidates for the existing _winner denial.
+    stock_by_grain = {}
+    join_work = dict(index_builds=1, indexed_rows=len(stock_calculation),
+                     lookup_probes=len(eco), matched_rows=0)
+    for match in stock_calculation:
+        grain = _k(match["SKUCode"], match["WHCode"])
+        if grain is not None:
+            stock_by_grain.setdefault(grain, []).append(match)
     for row in eco:
-        values = [match["StockForRationing"] for match in _matches(
-            stock_calculation, ("SKUCode", "WHCode"), (row["SKUCode"], row["WHCode"]))]
+        values = [match["StockForRationing"] for match in
+                  stock_by_grain.get(_k(row["SKUCode"], row["WHCode"]), ())]
+        join_work['matched_rows'] += len(values)
         winner = _winner(values, "Vf_StockCalculation StockForRationing")
         if winner is not None:
             row["StockForRationing"] = winner
 
+    del stock_by_grain
+
+    # OrderKey uniqueness was checked above. The owned copies and join-key
+    # fields below never change; EcoStock quantities do change in place.
+    orders_by_key = {row["OrderKey"]: row for row in orders}
+    join_indexes = {}
+
+    def lookup(rows, fields, values):
+        # Only the fixed owned eco/master/attribute/band/colour populations
+        # enter here. Membership/key generations are immutable throughout this
+        # call; ordered buckets retain original references and SQL join bags.
+        join_work['lookup_probes'] += 1
+        wanted = _k(*values)
+        if wanted is None:
+            return ()
+        owner = (id(rows), fields)
+        if owner not in join_indexes:
+            index = {}
+            for row in rows:
+                grain = _k(*(row[field] for field in fields))
+                if grain is not None:
+                    index.setdefault(grain, []).append(row)
+            join_indexes[owner] = index
+            join_work['index_builds'] += 1
+            join_work['indexed_rows'] += len(rows)
+        matches = join_indexes[owner].get(wanted, ())
+        join_work['matched_rows'] += len(matches)
+        return matches
+
     def order_for(key):
-        matches = [row for row in orders if row["OrderKey"] == key]
-        return matches[0] if matches else None
+        return orders_by_key.get(key)
 
     # Advance/GIT net-off is grouped after the route-to-order join.
     net = {}
@@ -341,7 +380,7 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     for order in orders:
         if order["DueDate"] is None or _as_date(order["DueDate"], "SpikeOrderData.DueDate") > today:
             continue
-        for stock in _matches(eco, ("SKUCode", "WHCode"), (order["SKUCode"], order["WhCode"])):
+        for stock in lookup(eco, ("SKUCode", "WHCode"), (order["SKUCode"], order["WhCode"])):
             if _positive(stock["EcoStock"]):
                 node_orders.append(dict(order, DestWhCode=order["WhCode"], SrcWhCode=order["WhCode"],
                                         AvailableStock=stock["EcoStock"], RemainingQty=order["Qty"]))
@@ -354,9 +393,12 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
         if allocated > 0:
             output.append(_output(row, allocated, bpp=Decimal("100.00"), colour="Black"))
     # Source defect: this update deducts AllocatedOrders.Qty, not allocated quantity.
+    self_totals = {}
+    for row in output:
+        grain = _k(row["SKUCode"], row["SrcWhCode"])
+        self_totals[grain] = self_totals.get(grain, 0) + row["Qty"]
     for stock in eco:
-        total = sum(row["Qty"] for row in output if _k(row["SKUCode"], row["SrcWhCode"]) ==
-                    _k(stock["SKUCode"], stock["WHCode"]))
+        total = self_totals.get(_k(stock["SKUCode"], stock["WHCode"]), 0)
         if total:
             stock["StockForRationing"] = max(stock["StockForRationing"] - total, 0) if stock["StockForRationing"] is not None else 0
             stock["EcoStock"] = max(stock["EcoStock"] - total, 0) if stock["EcoStock"] is not None else 0
@@ -368,16 +410,20 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     due_routes = [row for row in due_routes if row["OrderKey"] not in adv_by_order or
                   order_for(row["OrderKey"])["Qty"] - adv_by_order[row["OrderKey"]] > 0]
 
+    node_orders_by_key = {}
+    for node in node_orders:
+        node_orders_by_key.setdefault(node["OrderKey"], []).append(node)
     eligible = []
     for route in due_routes:
         order = order_for(route["OrderKey"])
         if order is None:
             continue
-        nodes = [row for row in node_orders if row["OrderKey"] == route["OrderKey"] and
+        nodes = [row for row in node_orders_by_key.get(route["OrderKey"], ()) if
                  _same(route["SrcWhCode"], row["WhCode"]) and row["RemainingQty"] > 0]
         for node in nodes:
             eligible.append(dict(node, DestWhCode=node["WhCode"], SrcWhCode=route["SrcWhCode"],
                                  Qty=node["RemainingQty"]))
+    del node_orders_by_key, self_totals
     existing = {row["OrderKey"] for row in eligible}
     seen_fresh = set()
     for route in due_routes:
@@ -400,9 +446,9 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     for band in bands:
         if not band["ResidualChildrenSnP"] or band["ResidualChildrenSnP"] <= 0:
             continue
-        for colour in _matches(colours, ("SKUCode", "SrcWhCode"), (band["SKUCode"], band["WhCode"])):
+        for colour in lookup(colours, ("SKUCode", "SrcWhCode"), (band["SKUCode"], band["WhCode"])):
             order = order_for(colour["OrderKey"])
-            for master in _matches(masters, ("SKUCode", "WHCode"), (band["SKUCode"], band["WhCode"])):
+            for master in lookup(masters, ("SKUCode", "WHCode"), (band["SKUCode"], band["WhCode"])):
                 due = _as_date(colour["DueDate"], "OrderRequirementColor.DueDate")
                 shifted = due.fromordinal(due.toordinal() - master["RLT"])
                 if order is not None and _same(order["SKUCode"], band["SKUCode"]) and shifted <= today:
@@ -410,6 +456,7 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
                         SrcWhCode=band["ParentWhCode"], OrderKey=order["OrderKey"], DueDate=shifted,
                         CustomerOrderId=order["CustomerOrderId"], IsSpike=order["IsSpike"], Qty=order["Qty"],
                         CustomerExpectedDate=None))
+    join_indexes.pop((id(colours), ("SKUCode", "SrcWhCode")), None)
     residual = [row for row in residual if row["OrderKey"] not in fully_self]
     pre_residual_keys = {_k(*(row[f] for f in ("SKUCode", "SrcWhCode", "DestWhCode", "OrderKey")))
                          for row in eligible}
@@ -419,11 +466,11 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     for row in eligible:
         if row["OrderKey"] in adv_by_order:
             row["Qty"] = order_for(row["OrderKey"])["Qty"] - adv_by_order[row["OrderKey"]]
-    eligible = [row for row in eligible if _matches(eco, ("SKUCode", "WHCode"),
+    eligible = [row for row in eligible if lookup(eco, ("SKUCode", "WHCode"),
                                                     (row["SKUCode"], row["DestWhCode"]))]
 
     def eco_one(sku, wh, owner):
-        matches = _matches(eco, ("SKUCode", "WHCode"), (sku, wh))
+        matches = lookup(eco, ("SKUCode", "WHCode"), (sku, wh))
         if len(matches) > 1:
             raise ValueError(owner + " has undefined EcoStock join multiplicity")
         return matches[0] if matches else None
@@ -443,18 +490,22 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
             row["RowNoForHierarchy"] = number
     overdue = [row for row in overdue if not any(
         colour["OrderColor"] == "White" and not _same(colour["DestWhCode"], colour["SrcWhCode"])
-        for colour in _matches(colours, ("OrderKey", "DestWhCode"),
+        for colour in lookup(colours, ("OrderKey", "DestWhCode"),
                                (row["OrderKey"], row["DestWhCode"])))]
+    join_indexes.pop((id(colours), ("OrderKey", "DestWhCode")), None)
+    routes_by_order = {}
+    for route in routes:
+        routes_by_order.setdefault(route["OrderKey"], []).append(route)
     for row in overdue:
         updates = [(route["DestWhCode"] or route["SrcWhCode"], route["SrcWhCode"])
-                   for route in routes if route["OrderKey"] == row["OrderKey"] and
+                   for route in routes_by_order.get(row["OrderKey"], ()) if
                    _same(route["SrcWhCode"], row["DestWhCode"])]
         winner = _winner(updates, "SpikeOrdersOverDueAtParent route promotion")
         if winner is not None:
             row["DestWhCode"], row["SrcWhCode"] = winner
 
     def pack_variants(sku, source, destination):
-        matches = _matches(attributes, ("SKUCode", "LocCode"), (sku, source))
+        matches = lookup(attributes, ("SKUCode", "LocCode"), (sku, source))
         # The source LEFT JOIN emits one work row per matching attribute row;
         # ISNULL supplies one only for a missing row or NULL PackSize.
         if not matches:
@@ -479,7 +530,16 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
             if key in totals:
                 stock["ExcessAllocation"] = max(totals[key][0] - totals[key][1], 0)
 
+    norm_req = {}
+    for band in bands:
+        value = None if any(band[f] is None for f in ("Norm", "RelCNR", "RelPSO")) else band["Norm"] + band["RelCNR"] + band["RelPSO"]
+        key = _k(band["SKUCode"], band["WhCode"])
+        if value is not None: norm_req[key] = norm_req.get(key, 0) + value
     max_level = max((row["RowNoForHierarchy"] for row in overdue), default=0)
+    overdue_by_level = {}
+    for row in overdue:
+        overdue_by_level.setdefault(row["RowNoForHierarchy"], []).append(row)
+    live_overdue = {id(row) for row in overdue}
     level = 1
     while max_level > 0:
         # Stock pass.
@@ -487,17 +547,12 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
         for row in eligible:
             if _as_date(row["DueDate"], "eligible DueDate") <= today:
                 key = _k(row["SKUCode"], row["SrcWhCode"]); black[key] = black.get(key, 0) + row["Qty"]
-        norm_req = {}
-        for band in bands:
-            value = None if any(band[f] is None for f in ("Norm", "RelCNR", "RelPSO")) else band["Norm"] + band["RelCNR"] + band["RelPSO"]
-            key = _k(band["SKUCode"], band["WhCode"])
-            if value is not None: norm_req[key] = norm_req.get(key, 0) + value
         inter = []
-        for source in [r for r in overdue if r["RowNoForHierarchy"] == level and _positive(r["AvailableStock"])]:
-            cs = _matches(colours, ("SKUCode", "DestWhCode", "SrcWhCode", "OrderKey"),
+        for source in [r for r in overdue_by_level.get(level, ()) if id(r) in live_overdue and _positive(r["AvailableStock"])]:
+            cs = lookup(colours, ("SKUCode", "DestWhCode", "SrcWhCode", "OrderKey"),
                           (source["SKUCode"], source["DestWhCode"], source["SrcWhCode"], source["OrderKey"]))
-            ds = _matches(masters, ("SKUCode", "WHCode"), (source["SKUCode"], source["DestWhCode"]))
-            bs = _matches(bands, ("SKUCode", "WhCode"), (source["SKUCode"], source["DestWhCode"]))
+            ds = lookup(masters, ("SKUCode", "WHCode"), (source["SKUCode"], source["DestWhCode"]))
+            bs = lookup(bands, ("SKUCode", "WhCode"), (source["SKUCode"], source["DestWhCode"]))
             stock = eco_one(source["SKUCode"], source["DestWhCode"], "InterNode stock pass")
             for colour in cs:
                 for master in ds:
@@ -554,10 +609,13 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
             stock=eco_one(row["SKUCode"],row["SrcWhCode"],"stock refresh")
             if stock: row["AvailableStock"],row["ExcessQty"]=stock["StockForRationing"],stock["ExcessAllocation"]
 
+        # Reconcile membership after this stock statement's deletes. Buckets
+        # retain current quantities through their original mutable references.
+        live_overdue = {id(row) for row in overdue}
         # GIT pass; it is intentionally not inserted into AllocatedOrders.
         git_rows=[]
-        for source in [r for r in overdue if r["RowNoForHierarchy"]==level and _positive(r["GIT"])]:
-            for master in _matches(masters,("SKUCode","WHCode"),(source["SKUCode"],source["DestWhCode"])):
+        for source in [r for r in overdue_by_level.get(level, ()) if id(r) in live_overdue and _positive(r["GIT"])]:
+            for master in lookup(masters,("SKUCode","WHCode"),(source["SKUCode"],source["DestWhCode"])):
                 stock=eco_one(source["SKUCode"],source["DestWhCode"],"InterNode GIT pass")
                 for pack in pack_variants(source["SKUCode"],source["SrcWhCode"],source["DestWhCode"]):
                     git_rows.append(dict(source,AvailableStock=source["GIT"],RemainingQty=source["Qty"],
@@ -582,8 +640,11 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
         for row in overdue:
             stock=eco_one(row["SKUCode"],row["SrcWhCode"],"GIT refresh")
             if stock:row["GIT"],row["ExcessQty"]=stock["GIT"],stock["ExcessAllocation"]
+        live_overdue = {id(row) for row in overdue}
         level += 1; max_level -= level - 1
 
+    join_indexes.pop((id(bands), ("SKUCode", "WhCode")), None)
+    del overdue_by_level, live_overdue, norm_req
     eligible=[row for row in eligible if row["Qty"]>0]
     for row in eligible:
         stock=eco_one(row["SKUCode"],row["SrcWhCode"],"parent stock refresh")
@@ -591,67 +652,102 @@ def allocated_orders(*, business_date, daily_consumption, stock_calculation, spi
     hierarchy=[]
     for row in eligible:
         if not row["ParentStockForRationing"] or row["ParentStockForRationing"]<=0:continue
-        for master in _matches(masters,("SKUCode","WHCode"),(row["SKUCode"],row["DestWhCode"])):
+        for master in lookup(masters,("SKUCode","WHCode"),(row["SKUCode"],row["DestWhCode"])):
             for pack in pack_variants(row["SKUCode"],row["SrcWhCode"],row["DestWhCode"]):
                 hierarchy.append(dict(row,Norm=master["Norm"],RLT=master["RLT"],ParentPackSize=pack))
+    join_indexes.pop((id(masters), ("SKUCode", "WHCode")), None)
+    join_indexes.pop((id(attributes), ("SKUCode", "LocCode")), None)
     by_order={}
     for row in hierarchy:by_order.setdefault(row["OrderKey"],[]).append(row)
     for members in by_order.values():
         members.sort(key=lambda r:(_sql_sort_date(r["DueDate"]),r["OrderKey"]),reverse=True)
         for number,row in enumerate(members,1):row["RowNoForHierarchy"]=number
+    hierarchy_by_level = {}
+    for row in hierarchy:
+        hierarchy_by_level.setdefault(row["RowNoForHierarchy"], []).append(row)
+    live_hierarchy = {id(row) for row in hierarchy}
     max_level=max((r["RowNoForHierarchy"] for r in hierarchy),default=0);level=1
     while max_level>0:
         rows=[dict(r,AvailableStock=r["ParentStockForRationing"],RemainingQty=r["Qty"],
                    ExcessQty=(eco_one(r["SKUCode"],r["DestWhCode"],"final excess") or {}).get("ExcessAllocation"))
-              for r in hierarchy if r["RowNoForHierarchy"]==level]
+              for r in hierarchy_by_level.get(level, ()) if id(r) in live_hierarchy]
         _rank(rows,("SKUCode","SrcWhCode"),lambda r:(_sql_sort_date(r["DueDate"]),
             _sql_sort_date(r["CustomerExpectedDate"]),r["OrderKey"],-r["RLT"],-r["Norm"]),"RowNo")
         _available(rows);_pack_allocate(rows)
         for row in rows:
             if row.get("OrderWiseAllocatedQty",0)>0:
                 output.append(_output(row,row["OrderWiseAllocatedQty"],pack_quantity=row["PackSizeWiseAllocatedQty"]))
+        remaining_by_order = {}
+        for source in rows:
+            if source.get("CumulativeRemainingQty", 1) <= source.get("TotalAllocation", 0):
+                remaining_by_order.setdefault(source["OrderKey"], []).append(source["RemainingQty"])
         for target in hierarchy:
-            values = [target["Qty"] - source["RemainingQty"] for source in rows
-                      if source["OrderKey"] == target["OrderKey"] and
-                      source.get("CumulativeRemainingQty", 1) <= source.get("TotalAllocation", 0)]
+            values = [target["Qty"] - remaining for remaining in
+                      remaining_by_order.get(target["OrderKey"], ())]
             winner = _winner(values, "WhlevelwiseSortedOrders remaining quantity")
             if winner is not None:
                 target["Qty"] = winner
         hierarchy=[r for r in hierarchy if r["Qty"] != 0]
+        live_hierarchy = {id(row) for row in hierarchy}
         level+=1;max_level-=level-1
 
+    # The final colour updates do not consume stock or attribute populations.
+    join_indexes.pop((id(eco), ("SKUCode", "WHCode")), None)
+    del hierarchy_by_level, live_hierarchy
     # Advance allocation UPDATE/INSERT and final source colour/date updates.
-    for route in [r for r in route_daily if r["Type"]=="adv-stock"]:
+    advances = [r for r in route_daily if r["Type"] == "adv-stock"]
+    advance_counts = {}
+    for route in advances:
+        grain = (route["OrderKey"], _k(route["DestWhCode"] or route["SrcWhCode"], route["SrcWhCode"]))
+        advance_counts[grain] = advance_counts.get(grain, 0) + 1
+    output_by_route = {}
+    def output_grain(row):
+        return row["OrderKey"], _k(row["SKUCode"], row["DestWhCode"], row["SrcWhCode"])
+    for row in output:
+        output_by_route.setdefault(output_grain(row), []).append(row)
+    for route in advances:
         order=order_for(route["OrderKey"])
         if order is None:continue
         dest=route["DestWhCode"] or route["SrcWhCode"]
-        matches=[r for r in output if r["OrderKey"]==route["OrderKey"] and
-                 _k(r["SKUCode"],r["DestWhCode"],r["SrcWhCode"])==_k(order["SKUCode"],dest,route["SrcWhCode"])]
+        grain = (route["OrderKey"], _k(order["SKUCode"], dest, route["SrcWhCode"]))
+        matches=output_by_route.get(grain, ())
         if matches:
-            if sum(1 for r in route_daily if r["Type"]=="adv-stock" and r["OrderKey"]==route["OrderKey"] and
-                   _k(r["DestWhCode"] or r["SrcWhCode"],r["SrcWhCode"])==_k(dest,route["SrcWhCode"]))>1:
+            if advance_counts[route["OrderKey"], _k(dest, route["SrcWhCode"])] > 1:
                 raise ValueError("Advance allocation has undefined repeated UPDATE winners")
             for row in matches:
                 row["OrderWiseAllocatedQty"]+=route["Qty"];row["Qty"]+=route["Qty"];row["PackSizeWiseAllocatedQty"]+=route["Qty"]
         else:
-            output.append(dict(SKUCode=order["SKUCode"],DestWhCode=dest,SrcWhCode=route["SrcWhCode"],
+            row = dict(SKUCode=order["SKUCode"],DestWhCode=dest,SrcWhCode=route["SrcWhCode"],
                 OrderKey=order["OrderKey"],DueDate=order["DueDate"],CustomerOrderId=order["CustomerOrderId"],
                 IsSpike=int(order["IsSpike"]),Qty=order["Qty"],OrderWiseAllocatedQty=route["Qty"],BPP=None,
-                OrderColor=None,DueDateAtDest=None,PackSizeWiseAllocatedQty=route["Qty"]))
+                OrderColor=None,DueDateAtDest=None,PackSizeWiseAllocatedQty=route["Qty"])
+            output.append(row)
+            output_by_route.setdefault(grain, []).append(row)
+    del advances, advance_counts, output_by_route
+    daily_by_order = {}
+    for route in route_daily:
+        daily_by_order.setdefault(route["OrderKey"], []).append(route)
     residual_keys={_k(r["OrderKey"],r["SKUCode"],r["DestWhCode"],r["SrcWhCode"]) for r in residual}
     for row in output:
-        due_values=[r["DueDate"] for r in routes if r["OrderKey"]==row["OrderKey"] and _same(row["DestWhCode"],r["SrcWhCode"])]
+        due_values=[r["DueDate"] for r in routes_by_order.get(row["OrderKey"], ()) if _same(row["DestWhCode"],r["SrcWhCode"])]
         due=_winner(due_values,"AllocatedOrders DueDateAtDest")
         if due is not None:row["DueDateAtDest"]=due
-        matches=_matches(colours,("OrderKey","SKUCode","DestWhCode","SrcWhCode"),
-                         (row["OrderKey"],row["SKUCode"],row["DestWhCode"],row["SrcWhCode"]))
+        matches=lookup(colours,("SKUCode","DestWhCode","SrcWhCode","OrderKey"),
+                         (row["SKUCode"],row["DestWhCode"],row["SrcWhCode"],row["OrderKey"]))
         update=_winner([(r["BPP"],r["OrderColor"]) for r in matches],"AllocatedOrders colour/BPP")
         if update is not None:row["BPP"],row["OrderColor"]=update
         if row["BPP"] is None and _k(row["OrderKey"],row["SKUCode"],row["DestWhCode"],row["SrcWhCode"]) in residual_keys:
             row["BPP"],row["OrderColor"]=Decimal("100.00"),"Black"
         if any(r["OrderKey"]==row["OrderKey"] and r["Type"] in ("adv-stock","GIT") and
                _k(r["SrcWhCode"],r["DestWhCode"] or r["SrcWhCode"])==_k(row["SrcWhCode"],row["DestWhCode"])
-               and _matches(colours,("OrderKey","SrcWhCode","DestWhCode"),
+               and lookup(colours,("OrderKey","SrcWhCode","DestWhCode"),
                             (r["OrderKey"],r["SrcWhCode"],r["DestWhCode"] or r["SrcWhCode"]))
-               for r in route_daily):row["OrderColor"]="White"
+               for r in daily_by_order.get(row["OrderKey"], ())):row["OrderColor"]="White"
+    summary('r1_native_order_indexes', **join_work, output_rows=len(output))
+    # Release disposable lookup/group graphs before copying canonical output
+    # rows. No derived index crosses the production handoff boundary.
+    join_indexes.clear()
+    del daily_by_order, residual_keys, routes_by_order, orders_by_key, by_order
+    del eco, orders, routes, colours, bands, masters, attributes
+    del eligible, overdue, node_orders, hierarchy
     return [_canonical_output(row, ordinal) for ordinal, row in enumerate(output)]
