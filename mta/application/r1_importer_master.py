@@ -10,6 +10,7 @@ from copy import deepcopy
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 import json
+from mta.row_sequences import is_record_rows
 
 
 SCHEMA = "r1-importer-master-input-v1"
@@ -186,8 +187,8 @@ def validate_master_input(payload):
     tables = {}
     for table, rows in {**payload["prior"], "MasterDataRaw": payload["raw_master"],
                         "MasterDataRawNonNMS": payload["raw_non_nms"], "NoNormMasterRaw": payload["raw_no_norm"]}.items():
-        if not isinstance(rows, list):
-            raise ValueError(f"Importer table must be a list: {table}")
+        if not is_record_rows(rows):
+            raise ValueError(f"Importer table must be a list or immutable record rows: {table}")
         tables[table] = [_typed_row(r, TABLE_COLUMNS[table]) for r in rows]
     # A prior SQL table is a prior persisted state, not another nullable raw feed.
     nonnull = {

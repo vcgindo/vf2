@@ -169,10 +169,21 @@ def entry_inputs(prior, opening_date, day, profile, identity, *, _include_master
             'raw_non_nms':day['raw_non_nms'],'raw_no_norm':day['raw_no_norm']}
         # SQL BIT values retain booleans in closing state; the established importer
         # typed input contract represents BIT as0/1. This is a declared type adapter.
-        for rows in master['prior'].values():
-            for row in rows:
-                for k,v in row.items():
-                    if type(v) is bool:row[k]=int(v)
+        from mta.row_sequences import RecordRows
+        def bit_row(row):
+            return {key:int(value) if type(value) is bool else deepcopy(value)
+                    for key,value in row.items()}
+        for name,rows in master['prior'].items():
+            if isinstance(rows,RecordRows):
+                # deepcopy deliberately shares immutable generations. Adapt
+                # values in a new lazy generation, never in the sealed source.
+                master['prior'][name]=RecordRows(len(rows),
+                    lambda rows=rows:(bit_row(row) for row in rows),
+                    getitem=lambda ordinal,rows=rows:bit_row(rows[ordinal]))
+            else:
+                for row in rows:
+                    for k,v in row.items():
+                        if type(v) is bool:row[k]=int(v)
     daily={'schema':'r1-daily-input-v1','raw_daily_data':day['raw_daily'],**deepcopy(profile['daily']),
         'prior_bpr':{**deepcopy(prior['bpr']),'opening_provenance':{
             'kind':'SYNTHETIC_PRIOR_BPR_DAILY','identity':identity,'business_date':opening_date}}}

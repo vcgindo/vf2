@@ -167,7 +167,10 @@ def process_daily_validation(entry, master_validation, business_date, now):
     prior = entry["prior_bpr"]
     master = master_validation["tables"]
     tables = {k: [] for k in CHECKPOINT_TABLES}
-    tables["DailyDataRaw"] = entry["raw_daily_data"]
+    # Current-day rows are the canonical producer's mutable working table.
+    # Historical populations keep their immutable, bounded representation.
+    tables["DailyDataRaw"] = ([dict(row) for row in entry["raw_daily_data"]]
+        if isinstance(entry["raw_daily_data"],RecordRows) else entry["raw_daily_data"])
     tables["RejectedMaster"] = deepcopy(master["RejectedMaster"])
     stages = {}
 
