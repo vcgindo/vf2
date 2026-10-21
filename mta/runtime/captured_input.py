@@ -34,21 +34,34 @@ def validate(value):
     return value
 
 
-def manifest(run, origin, *, final_interrupted_fourth_hop=False):
+def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fifth_hop=False):
     from mta.runtime.input_v3 import _live_identity
-    if type(final_interrupted_fourth_hop) is not bool:
-        raise ValueError('Explicit final interrupted fourth-hop flag required')
+    if (type(final_interrupted_fourth_hop) is not bool or type(final_failed_fifth_hop) is not bool
+            or (final_interrupted_fourth_hop and final_failed_fifth_hop)):
+        raise ValueError('Explicit mutually exclusive terminal continuation flag required')
+    if final_failed_fifth_hop and origin.status != 'FAILED':
+        raise ValueError('Final failed continuation requires a FAILED fourth wrapper')
     value = dict(schema=SCHEMA, identity=_live_identity(run, reading=False),
         origin_run_id=str(origin.pk), origin_manifest_digest=origin.input_manifest_digest,
         content_digest=origin.input_digest, images={})
     if origin.input_payload.get('schema') in SCHEMAS:
-        # Default writer retains its existing maximum of three wrappers.
-        # The explicit interrupted continuation may consume an intact third
-        # wrapper, never a fourth origin; no fifth wrapper can be produced.
+        # Default writer remains three; the interrupted branch remains four.
+        # Only the separate FAILED-leaf decision can create a terminal fifth.
         physical=_origin(origin,second_allowed=True,
-            third_allowed=final_interrupted_fourth_hop,fourth_allowed=False)
+            third_allowed=final_interrupted_fourth_hop or final_failed_fifth_hop,
+            fourth_allowed=final_failed_fifth_hop)
+        if final_failed_fifth_hop:
+            try:
+                _origin(origin,second_allowed=True,third_allowed=True)
+            except ValueError as error:
+                if str(error) != 'Captured reference exceeds the fixed third-hop boundary':
+                    raise
+            else:
+                raise ValueError('Final failed continuation requires exactly four wrappers')
         value.update(schema=SECOND,physical_origin_run_id=str(physical.pk),
             physical_origin_manifest_digest=physical.input_manifest_digest)
+    elif final_failed_fifth_hop:
+        raise ValueError('Final failed continuation requires exactly four wrappers')
     elif origin.input_payload.get('schema') != 'fresh-daily-input-manifest-v3':
         raise ValueError('Only V3 or the bounded failed captured prefix can supply inputs')
     validate(value)
@@ -56,10 +69,10 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False):
 
 
 def origin(run):
-    return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True)
+    return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True,fifth_allowed=True)
 
 
-def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False):
+def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_allowed=False):
     """Resolve only the immutable direct origin named by canonical retry capture.
 
     This cannot reference an arbitrary run, cross an initialization, replace a
@@ -68,6 +81,8 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False):
     from mta.runtime.models import CalculationRun
     from mta.runtime.input_v3 import V3, _live_identity
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    if fifth_allowed and not (third_allowed and fourth_allowed):
+        raise ValueError('Fifth-hop read requires its complete fourth-hop prefix')
     if fourth_allowed and not third_allowed:
         raise ValueError('Fourth-hop read requires its complete third-hop prefix')
     value = validate(run.input_payload)
@@ -115,11 +130,10 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False):
     if (len(attempts) != 2 or len({v['initialization_id'] for v in attempts}) != 1):
         raise ValueError('Captured input initialization ownership differs')
     if value['schema'] == SECOND:
-        # At most V2 -> V2 -> V2 -> V1 -> physical V3. Each call spends
-        # its one explicit fourth allowance; the next call cannot extend it.
-        # No new wire schema or arbitrary depth/loop is introduced.
+        # Fixed terminal limit: V2 -> V2 -> V2 -> V2 -> V1 -> physical V3.
+        # Spend each explicit allowance once; no depth argument or sixth hop.
         physical=_origin(target,second_allowed=(target_schema==SECOND),
-            third_allowed=fourth_allowed,fourth_allowed=False)
+            third_allowed=fourth_allowed,fourth_allowed=fifth_allowed,fifth_allowed=False)
         if (str(physical.pk)!=value['physical_origin_run_id']
                 or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
                 or physical.input_digest!=value['content_digest']):

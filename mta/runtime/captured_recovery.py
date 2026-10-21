@@ -56,25 +56,36 @@ def _restore_working(snapshot, prior, day, parent):
     apply_refresh_setting(prior['importer_settings'],snapshot)
 
 
-def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupted_fourth_hop=False):
+def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupted_fourth_hop=False,
+                      final_failed_fifth_hop=False):
     """Explicit finite continuation of one failed V1 leaf, no failed-row edit."""
     from mta.runtime.captured_input import SCHEMA, SECOND, _origin
     from mta.runtime.daily_feed_models import DailyFeedAttempt
     fields={'physical_run_id','physical_manifest_digest','physical_attempt_id','current_revision_cut'}
     interrupted = final_interrupted_fourth_hop
-    if (type(final_third_hop) is not bool or type(interrupted) is not bool
-            or (final_third_hop and interrupted) or type(value) is not dict or set(value)!=fields
+    fifth = final_failed_fifth_hop
+    flags=(final_third_hop,interrupted,fifth)
+    if (any(type(flag) is not bool for flag in flags) or sum(flags)>1
+            or type(value) is not dict or set(value)!=fields
             or type(value['current_revision_cut']) is not list
             or len(value['current_revision_cut'])!=5
             or any(type(v) is not int or v<0 for v in value['current_revision_cut'])
-            or run.input_payload.get('schema')!=(SECOND if final_third_hop or interrupted else SCHEMA)
+            or run.input_payload.get('schema')!=(SECOND if any(flags) else SCHEMA)
             or run.status!=('RUNNING' if interrupted else 'FAILED')
             or attempt.status!=('RUNNING' if interrupted else 'FAILED')
             or attempt.phase!='CALCULATE' or attempt.accepted_facts):
         raise ValueError('Second hop requires an exact failed V1 leaf and explicit live cut')
     # Preserve the old two-hop origin for a third continuation. The explicit
     # human-interrupted branch must own exactly the existing third-hop leaf.
-    physical=_origin(run,second_allowed=True,third_allowed=interrupted,fourth_allowed=False)
+    physical=_origin(run,second_allowed=True,third_allowed=interrupted or fifth,fourth_allowed=fifth)
+    if fifth:
+        try:
+            _origin(run,second_allowed=True,third_allowed=True)
+        except ValueError as error:
+            if str(error) != 'Captured reference exceeds the fixed third-hop boundary':
+                raise
+        else:
+            raise ValueError('Final failed continuation requires exactly four wrappers')
     if interrupted:
         from mta.runtime.captured_input import _origin as resolve_origin
         try:
@@ -99,7 +110,7 @@ def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupte
 
 
 def resume(*, origin_run_id, execution_revision, expected, archive_path, second_hop=None, final_third_hop=False,
-           final_interrupted_fourth_hop=False):
+           final_interrupted_fourth_hop=False, final_failed_fifth_hop=False):
     """Called only by execute_day's explicit captured-continuation dispatch.
 
     Daily/source locks and the original revision cut are checked before marking
@@ -119,15 +130,16 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
     if (not transaction.get_autocommit() or not isinstance(execution_revision,str)
             or not 1 <= len(execution_revision) <= 80):
         raise ValueError('Captured continuation owns its transaction and explicit revision')
-    if (type(final_third_hop) is not bool or type(final_interrupted_fourth_hop) is not bool
-            or (final_third_hop and final_interrupted_fourth_hop)
-            or ((final_third_hop or final_interrupted_fourth_hop) and second_hop is None)):
+    flags=(final_third_hop,final_interrupted_fourth_hop,final_failed_fifth_hop)
+    if (any(type(flag) is not bool for flag in flags) or sum(flags)>1
+            or (any(flags) and second_hop is None)):
         raise ValueError('Final continuation requires explicit physical pins and current cut')
     old = CalculationRun.objects.get(pk=uuid.UUID(str(origin_run_id)))
     attempt = DailyFeedAttempt.objects.select_related('initialization__source').get(run=old)
     owner = attempt.initialization
     physical=None if second_hop is None else _second_hop_owner(old,attempt,second_hop,final_third_hop=final_third_hop,
-        final_interrupted_fourth_hop=final_interrupted_fourth_hop)
+        final_interrupted_fourth_hop=final_interrupted_fourth_hop,
+        final_failed_fifth_hop=final_failed_fifth_hop)
     target = Path(archive_path).resolve()
     if target.exists() or target.parent != Path(attempt.archive_path).resolve().parent:
         raise ValueError('Continuation requires a new sibling operation directory')
@@ -186,13 +198,14 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             _uncommitted(old); _pins(old,attempt,expected)
             if second_hop is not None:
                 physical=_second_hop_owner(old,attempt,second_hop,final_third_hop=final_third_hop,
-                    final_interrupted_fourth_hop=final_interrupted_fourth_hop)
+                    final_interrupted_fourth_hop=final_interrupted_fourth_hop,
+                    final_failed_fifth_hop=final_failed_fifth_hop)
             expected_cut=expected['capture_cut'] if physical is None else second_hop['current_revision_cut']
             original_ok=(attempt.status=='RUNNING' and attempt.phase=='VALIDATED'
                 and bool(attempt.accepted_facts) and frozen.origin_id is None)
             second_ok=(physical is not None and frozen.origin_id==(
                 uuid.UUID(old.input_payload['origin_run_id'])
-                if final_third_hop or final_interrupted_fourth_hop else physical.pk))
+                if any(flags) else physical.pk))
             if (epochs(owner.pk,lock=True) != expected_cut
                     or not (original_ok if physical is None else second_ok)
                     or frozen.status != 'CAPTURED' or frozen.revision_digest != snapshot.get('revision_digest')
@@ -244,7 +257,8 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 certification=attempt.certification,master_revision=attempt.master_revision)
             from mta.mdm.daily_input import bind_capture
             daily = bind_capture(run,snapshot,request_digest=frozen.request_digest,origin=frozen)
-            run.input_payload=manifest(run,old,final_interrupted_fourth_hop=final_interrupted_fourth_hop)
+            run.input_payload=manifest(run,old,final_interrupted_fourth_hop=final_interrupted_fourth_hop,
+                final_failed_fifth_hop=final_failed_fifth_hop)
             run.input_manifest_digest=digest(run.input_payload)
             run.save(update_fields=['input_payload','input_manifest_digest'])
             # All existing side-effect owners bind the same frozen input through

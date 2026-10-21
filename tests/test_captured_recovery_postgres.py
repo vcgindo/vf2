@@ -13,7 +13,7 @@ from unittest.mock import patch
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','release.mta_settings')
 import django
 django.setup()
-from django.db import connection, transaction
+from django.db import connection, transaction, DataError
 
 
 class CapturedArgumentTests(unittest.TestCase):
@@ -35,7 +35,8 @@ class CapturedArgumentTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('VF_CAPTURED_RECOVERY_PROOF')=='1','Explicit disposable PostgreSQL proof required')
 class CapturedRecoveryPostgresTests(unittest.TestCase):
     def test_exact_capture_reuse_rollback_and_normal_writer(self):
-        fourth=os.environ.get('VF_CAPTURED_FOURTH_PROOF')=='1'
+        fifth=os.environ.get('VF_CAPTURED_FIFTH_PROOF')=='1'
+        fourth=os.environ.get('VF_CAPTURED_FOURTH_PROOF')=='1' or fifth
         from release import initialize_csv as driver, register_mta
         from tools.create_daily_csv_example import create
         from mta.mdm import initialization as init
@@ -48,7 +49,8 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
         from mta.serialization import digest
         from mta.runtime.accepted_daily import epochs
         from mta.runtime.captured_recovery import _pins
-        self.assertEqual(connection.settings_dict['NAME'],'vf_daily_optimization_20261021')
+        self.assertEqual(connection.settings_dict['NAME'],
+            'vf_section9_fifth_proof_20261021' if fifth else 'vf_daily_optimization_20261021')
         self.assertEqual(ProductionInitialization.objects.count(),0)
         release=dict(schema='vectorflow-native-release-source-v1',source_commit='4'*40,
             manifest_sha256='5'*64,implementation_sha256=init.current_implementation_digest(),
@@ -61,8 +63,11 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 patch.dict(os.environ,MTA_DB_NAME=connection.settings_dict['NAME'],
                     MTA_INSTALLER_PASSWORD_FILE='/run/secrets/mta_installer_password',
                     VF_NATIVE_RELEASE_COMMIT=release['source_commit'],VF_NATIVE_RELEASE_SHA256=release['manifest_sha256']):
-            root=create(Path(__file__).resolve().parents[1]/'examples/starter-data/vectorflow-starter-inputs-v1.zip',
-                Path(td)/'csv',csv_onboarding=True)
+            archive=Path(__file__).resolve().parents[1]/'examples/starter-data/vectorflow-starter-inputs-v1.zip'
+            if fifth:
+                from tests.section9_native_fixture import source_archive,enqueue_control,verify_positive
+                archive=source_archive(archive,Path(td)/'positive-native.zip')
+            root=create(archive,Path(td)/'csv',csv_onboarding=True)
             opening=root/'opening/opening-manifest.json'
             document=json.loads(opening.read_bytes()); pin=hashlib.sha256(opening.read_bytes()).hexdigest()
             receipt=root/'onboarding.json'
@@ -71,6 +76,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                     for name in ('binding-template.json','permissions.json')}))
             driver.run(root,pin,document['configuration_digest'],document['recipe_digest'],receipt)
             owner=ProductionInitialization.objects.select_related('source').get()
+            if fifth:enqueue_control(owner)
             binding=json.loads((root/'binding-template.json').read_bytes())
             binding.update(initialization_id=str(owner.pk),source_digest=owner.source.digest)
             (root/'binding.json').write_text(json.dumps(binding))
@@ -299,14 +305,108 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                     self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(4,4))
                     self.assertEqual(epochs(owner.pk),cut)
                     print('INTERRUPTED_FOURTH_METADATA_ROLLBACK_PASS oldRUNNING epochs counts unchanged')
+                if fifth:
+                    # Exactly the current production checkpoint: five genuinely
+                    # FAILED captures, latest an empty fourth reference. No
+                    # successful state is rewritten to manufacture eligibility.
+                    with patch.object(temporal,'calculate_day',side_effect=ValueError('fourth native assignment proof')):
+                        with self.assertRaisesRegex(ValueError,'fourth native assignment proof'):
+                            resume(Path(attempt.archive_path).with_name('failed-fourth'))
+                    leaf=CalculationRun.objects.get(execution_revision=revision)
+                    leaf_attempt=DailyFeedAttempt.objects.get(run=leaf)
+                    self.assertEqual((leaf.status,leaf_attempt.status,leaf_attempt.phase),('FAILED','FAILED','CALCULATE'))
+                    leaf_before=(leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                        leaf_attempt.status,digest(leaf_attempt.error))
+                    leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
+                        capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+                    second=dict(second,current_revision_cut=epochs(owner.pk))
+                    revision='capture-recovery-proof-terminal-fifth'
+                    def resume(path,*,spec=None,pins=None,enabled=True):
+                        return temporal.execute_day(day=None,profile=None,execution_revision=revision,
+                            _captured_retry=dict(origin_run_id=str(leaf.pk),expected=leaf_expected if pins is None else pins,
+                                archive_path=str(path),second_hop=second if spec is None else spec,
+                                final_failed_fifth_hop=enabled))
+                    def failed_record(pk):
+                        item=DailyFeedAttempt.objects.get(run_id=pk)
+                        files={name:(hashlib.sha256((Path(item.archive_path)/name).read_bytes()).hexdigest()
+                            if (Path(item.archive_path)/name).exists() else None)
+                            for name in ('result.json','captured-origin.json','phases.jsonl')}
+                        return json.dumps(dict(run=CalculationRun.objects.filter(pk=pk).values().get(),
+                            attempt=DailyFeedAttempt.objects.filter(pk=item.pk).values().get(),
+                            capture=MdmDailyInputCapture.objects.filter(run_id=pk).values().get(),files=files),
+                            sort_keys=True,default=str)
+                    failed_exact={str(v.pk):failed_record(v.pk) for v in CalculationRun.objects.order_by('created_at')}
+                    self.assertEqual(len(failed_exact),5)
+                    self.assertEqual(daily_feed.unresolved_attempts(owner).count(),5)
+                    from copy import deepcopy
+                    for mutation in ('database','source','cycle','digest'):
+                        bad=deepcopy(leaf.input_payload)
+                        if mutation=='database':bad['identity']['database_oid']+=1
+                        if mutation=='source':bad['identity']['source_digest']='0'*64
+                        if mutation=='cycle':bad['origin_run_id']=str(leaf.pk)
+                        if mutation=='digest':bad['origin_manifest_digest']='0'*64
+                        leaf.input_payload=bad;leaf.input_manifest_digest=digest(bad)
+                        with self.assertRaises(ValueError):captured_input.origin(leaf)
+                        leaf.refresh_from_db()
+                    cut=epochs(owner.pk)
+                    with transaction.atomic():
+                        sibling=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date=old.business_date,
+                            execution_revision='adversarial-fifth-sibling',input_digest=old.input_digest,
+                            input_payload={},status='RUNNING')
+                        captured=MdmDailyInputCapture.objects.get(run=old)
+                        values={f.attname:getattr(captured,f.attname) for f in captured._meta.concrete_fields
+                            if f.name not in ('run','captured_at')}
+                        values.update(run_id=sibling.pk,origin_id=old.pk)
+                        MdmDailyInputCapture.objects.create(**values)
+                        with self.assertRaisesRegex(ValueError,'canonical origin differs'):captured_input.origin(leaf)
+                        transaction.set_rollback(True)
+                    self.assertEqual(epochs(owner.pk),cut)
+                    with self.assertRaises(ValueError):resume(Path(attempt.archive_path).with_name('fifth-not-released'),enabled=False)
+                    for field in ('run_id','initialization_id','source_digest','input_digest','input_manifest_digest','daily_input_sha256','capture_cut'):
+                        wrong=[] if field=='capture_cut' else 'foreign'
+                        with self.assertRaisesRegex(ValueError,'checkpoint pins differ'):
+                            resume(Path(attempt.archive_path).with_name('fifth-bad-pin-'+field),pins=dict(leaf_expected,**{field:wrong}))
+                    for field in ('physical_run_id','physical_manifest_digest','physical_attempt_id'):
+                        with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                            resume(Path(attempt.archive_path).with_name('fifth-foreign-'+field),spec=dict(second,**{field:'foreign'}))
+                    with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                        resume(Path(attempt.archive_path).with_name('fifth-numeric-attempt'),spec=dict(second,physical_attempt_id=str(attempt.pk)))
+                    with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
+                        resume(Path(attempt.archive_path).with_name('fifth-stale'),spec=dict(second,current_revision_cut=[0,0,0,0,0]))
+                    allowed_revision=revision
+                    try:
+                        revision=old.execution_revision
+                        with self.assertRaisesRegex(ValueError,'already attempted'):
+                            resume(Path(attempt.archive_path).with_name('fifth-duplicate-revision'))
+                    finally:revision=allowed_revision
+                    with self.assertRaisesRegex(ValueError,'new sibling operation directory'):
+                        resume(Path(attempt.archive_path))
+                    for key,error,message in (('vectorflow-daily-csv:'+str(owner.pk),ValueError,'Another daily worker owns'),
+                            (_key(owner.source_id),OperationalError,'lock timeout')):
+                        with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                                user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                            competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',[key])
+                            with self.assertRaisesRegex(error,message):resume(Path(attempt.archive_path).with_name('fifth-race-'+str(len(key))))
+                    cut=epochs(owner.pk)
+                    for target,error in (('mta.runtime.daily_feed.atomic_json',OSError('fifth receipt failure')),
+                            ('mta.runtime.capture_preparation.seal',psycopg.DataError('fifth metadata failure'))):
+                        with patch(target,side_effect=error),self.assertRaises(type(error)):
+                            resume(Path(attempt.archive_path).with_name('fifth-rollback-'+type(error).__name__))
+                        self.assertEqual(epochs(owner.pk),cut)
+                        self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(5,5))
+                        self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
+                    print('TERMINAL_FIFTH_GUARDS_PASS exact5FAILED foreign/pins/numericUUID/stale/duplicate/locks/fs+SQLmetadata rollback')
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):
                     from copy import deepcopy
                     cut=epochs(owner.pk)
-                    with self.assertRaisesRegex(ValueError,'test late commit failure'), transaction.atomic():
+                    expected_error='division by zero' if fifth else 'test late commit failure'
+                    with self.assertRaisesRegex(DataError if fifth else ValueError,expected_error), transaction.atomic():
                         commit(run,deepcopy(output),**options)
-                        raise ValueError('test late commit failure')
+                        if fifth:
+                            with connection.cursor() as cursor:cursor.execute('SELECT 1/0')
+                        else:raise ValueError('test late commit failure')
                     run.refresh_from_db()
                     self.assertEqual(run.status,'RUNNING')
                     self.assertEqual(MdmDailyInputCapture.objects.get(run=run).status,'CAPTURED')
@@ -335,7 +435,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(captured_input.origin(result).pk,old.pk)
                 self.assertEqual(read_input(leaf),raw)
                 leaf.refresh_from_db();leaf_attempt.refresh_from_db()
-                if fourth:
+                if fourth and not fifth:
                     self.assertEqual((leaf.status,leaf_attempt.status),('FAILED','FAILED'))
                     self.assertEqual(leaf_attempt.error['type'],'HumanInterruption')
                     self.assertEqual((leaf.input_manifest_digest,digest(leaf.input_payload)),leaf_before[1:3])
@@ -367,17 +467,18 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                             captured_input.manifest(candidate,result,final_interrupted_fourth_hop=True)
                     transaction.set_rollback(True)
                 self.assertEqual(epochs(owner.pk),cut)
-                self.assertEqual(CalculationRun.objects.count(),5 if fourth else 4)
-                self.assertEqual(MdmDailyInputCapture.objects.count(),5 if fourth else 4)
+                expected_count=6 if fifth else 5 if fourth else 4
+                self.assertEqual(CalculationRun.objects.count(),expected_count)
+                self.assertEqual(MdmDailyInputCapture.objects.count(),expected_count)
                 self.assertFalse(CalculationRun.objects.filter(pk=candidate.pk).exists())
                 result.refresh_from_db()
                 self.assertEqual(result.status,'SUCCEEDED')
-                rejection='exact failed V1 leaf' if fourth else 'already attempted'
+                rejection='already attempted' if fifth else 'exact failed V1 leaf' if fourth else 'already attempted'
                 with self.assertRaisesRegex(ValueError,rejection):
                     resume(Path(attempt.archive_path).with_name('duplicate'))
                 self.assertEqual(epochs(owner.pk),cut)
                 self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),
-                    (5,5) if fourth else (4,4))
+                    (expected_count,expected_count))
                 # Changed reference roots must be denied by actual DB-backed
                 # resolution, even if a caller recomputes the wrapper checksum.
                 original=result.input_payload
@@ -394,6 +495,15 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                         daily_feed.select(invalid,root/'binding.json',root/'selection.json')
                 report=daily_feed.execute(new.attempt_id,root/'binding.json',pick_root=pick,resume=True)
                 self.assertEqual(report['status'],'PREPARED')
+                if fifth:
+                    verify_positive(self,result)
+                    self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
+                    self.assertEqual(daily_feed.unresolved_attempts(owner).count(),6)
+                    # The successful fifth cannot be used to make a sixth; the
+                    # independent boundary fixture also proves an all-FAILED
+                    # sixth reference is unreadable by the fixed reader limit.
+                    with self.assertRaises(ValueError):
+                        captured_input.manifest(candidate,result,final_failed_fifth_hop=True)
                 from mta.application.native_input_archive import open_archive
                 import zipfile
                 stream,_=open_archive(result)
@@ -410,7 +520,8 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                          selection_digest=selected['selection_digest'],ready=True,
                          proof_kind='component-contract-no-http-no-browser'))
                 self.assertFalse(daily_feed.unresolved_attempts(owner).exists())
-                print(('INTERRUPTED_FOURTH_POSTGRES_PASS ' if fourth else 'CAPTURED_RECOVERY_POSTGRES_PASS ')+'exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
+                if fifth:self.assertEqual({pk:failed_record(pk) for pk in failed_exact},failed_exact)
+                print(('TERMINAL_FIFTH_POSTGRES_PASS ' if fifth else 'INTERRUPTED_FOURTH_POSTGRES_PASS ' if fourth else 'CAPTURED_RECOVERY_POSTGRES_PASS ')+'exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
             from release.advance_ingestion import transition
             from release.upgrade_ingestion import retained
             from mta.runtime import ingestion_admission as admission

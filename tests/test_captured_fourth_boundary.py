@@ -63,11 +63,11 @@ class Graph:
 
 
 class FourthBoundaryTests(unittest.TestCase):
-    def test_fourth_reader_preserves_all_ancestry_and_fifth_is_denied(self):
-        for depth in (1,2,3,4,5):
+    def test_terminal_reader_preserves_all_ancestry_and_sixth_is_denied(self):
+        for depth in (1,2,3,4,5,6):
             g=Graph(depth)
             with g.patches():
-                if depth<=4:self.assertIs(ci.origin(g.runs[-1]),g.runs[0])
+                if depth<=5:self.assertIs(ci.origin(g.runs[-1]),g.runs[0])
                 else:
                     with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):ci.origin(g.runs[-1])
 
@@ -136,6 +136,40 @@ class FourthBoundaryTests(unittest.TestCase):
             candidate=SimpleNamespace(identity={})
             with patch('mta.runtime.input_v3._live_identity',return_value={}), self.assertRaisesRegex(ValueError,'flag required'):
                 ci.manifest(candidate,g.runs[-1],final_interrupted_fourth_hop=flag)
+
+    def test_only_failed_fourth_origin_can_supply_explicit_terminal_fifth(self):
+        from mta.runtime.captured_recovery import _second_hop_owner
+        from mta.runtime.publication_models import DailyUiPublication
+        for depth in (1,2,3,4,5,6):
+            g=Graph(depth);leaf=g.runs[-1];leaf.status='FAILED';physical=g.runs[0]
+            candidate=SimpleNamespace(pk=UUID(int=99),identity=dict(leaf.identity,owner_id=str(UUID(int=99))))
+            attempt=SimpleNamespace(status='FAILED',phase='CALCULATE',accepted_facts={},
+                initialization_id=g.init,input_sha256='e'*64,batch_digest='f'*64)
+            original=SimpleNamespace(attempt_id=UUID(int=500),status='FAILED',accepted_facts={'owned':True},
+                initialization_id=g.init,input_sha256='e'*64,batch_digest='f'*64)
+            spec=dict(physical_run_id=str(physical.pk),physical_manifest_digest=physical.input_manifest_digest,
+                physical_attempt_id=str(original.attempt_id),current_revision_cut=[0,0,1,1,0])
+            with self.subTest(depth=depth),g.patches(),patch.object(DailyFeedAttempt.objects,'get',return_value=original), \
+                    patch.object(DailyUiPublication.objects,'filter') as pubs:
+                pubs.return_value.exists.return_value=False
+                if depth!=4:
+                    with self.assertRaises(ValueError):ci.manifest(candidate,leaf,final_failed_fifth_hop=True)
+                    with self.assertRaises(ValueError):_second_hop_owner(leaf,attempt,spec,final_failed_fifth_hop=True)
+                    continue
+                self.assertEqual(ci.manifest(candidate,leaf,final_failed_fifth_hop=True)['physical_origin_run_id'],str(physical.pk))
+                self.assertIs(_second_hop_owner(leaf,attempt,spec,final_failed_fifth_hop=True),physical)
+                for obj,field,value in ((leaf,'status','RUNNING'),(attempt,'status','RUNNING'),
+                        (attempt,'phase','VALIDATED'),(attempt,'accepted_facts',{'foreign':True})):
+                    before=getattr(obj,field);setattr(obj,field,value)
+                    with self.assertRaises(ValueError):_second_hop_owner(leaf,attempt,spec,final_failed_fifth_hop=True)
+                    setattr(obj,field,before)
+                for flag in ('yes',1,None):
+                    with self.assertRaises(ValueError):ci.manifest(candidate,leaf,final_failed_fifth_hop=flag)
+                with self.assertRaises(ValueError):ci.manifest(candidate,leaf,final_failed_fifth_hop=True,final_interrupted_fourth_hop=True)
+                with self.assertRaises(ValueError):_second_hop_owner(leaf,attempt,spec,final_failed_fifth_hop=True,final_third_hop=True)
+                for field in ('physical_run_id','physical_manifest_digest','physical_attempt_id'):
+                    with self.assertRaises(ValueError):_second_hop_owner(leaf,attempt,dict(spec,**{field:'foreign'}),final_failed_fifth_hop=True)
+                with self.assertRaises(ValueError):ci._origin(leaf,second_allowed=True,third_allowed=True,fifth_allowed=True)
 
 
 if __name__=='__main__':unittest.main()
