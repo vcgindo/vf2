@@ -35,6 +35,7 @@ class CapturedArgumentTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('VF_CAPTURED_RECOVERY_PROOF')=='1','Explicit disposable PostgreSQL proof required')
 class CapturedRecoveryPostgresTests(unittest.TestCase):
     def test_exact_capture_reuse_rollback_and_normal_writer(self):
+        fourth=os.environ.get('VF_CAPTURED_FOURTH_PROOF')=='1'
         from release import initialize_csv as driver, register_mta
         from tools.create_daily_csv_example import create
         from mta.mdm import initialization as init
@@ -219,6 +220,85 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(CalculationRun.objects.count(),3)
                 self.assertEqual(MdmDailyInputCapture.objects.count(),3)
                 self.assertEqual(epochs(owner.pk),second['current_revision_cut'])
+                if fourth:
+                    # Simulate a real external interruption after canonical
+                    # snapshot commit; BaseException must not fake FAILED or
+                    # relabel a successful run. No calculation returns here.
+                    with patch.object(temporal,'calculate_day',side_effect=KeyboardInterrupt('human stop proof')):
+                        with self.assertRaises(KeyboardInterrupt):
+                            resume(Path(attempt.archive_path).with_name('human-stopped-third'))
+                    leaf=CalculationRun.objects.get(execution_revision=revision)
+                    leaf_attempt=DailyFeedAttempt.objects.get(run=leaf)
+                    self.assertEqual((leaf.status,leaf_attempt.status,leaf_attempt.phase),('RUNNING','RUNNING','CALCULATE'))
+                    self.assertFalse(leaf.checkpoints.exists())
+                    self.assertEqual(MdmDailyInputCapture.objects.get(run=leaf).status,'CAPTURED')
+                    leaf_before=(leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                        leaf_attempt.status,digest(leaf_attempt.error))
+                    leaf_expected=dict(expected,run_id=str(leaf.pk),input_manifest_digest=leaf.input_manifest_digest,
+                        capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+                    second=dict(second,current_revision_cut=epochs(owner.pk))
+                    revision='capture-recovery-proof-final-interrupted-fourth'
+                    def resume(path,*,spec=None,enabled=True):
+                        return temporal.execute_day(day=None,profile=None,execution_revision=revision,
+                            _captured_retry=dict(origin_run_id=str(leaf.pk),expected=leaf_expected,
+                                archive_path=str(path),second_hop=second if spec is None else spec,
+                                final_interrupted_fourth_hop=enabled))
+                    with self.assertRaisesRegex(ValueError,'exact failed V1 leaf'):
+                        resume(Path(attempt.archive_path).with_name('fourth-not-released'),enabled=False)
+                    with self.assertRaisesRegex(ValueError,'physical input/attempt ownership differs'):
+                        resume(Path(attempt.archive_path).with_name('fourth-foreign'),
+                            spec=dict(second,physical_attempt_id=str(attempt.pk)))
+                    with self.assertRaisesRegex(ValueError,'revisions or unique frozen leaf changed'):
+                        resume(Path(attempt.archive_path).with_name('fourth-stale'),
+                            spec=dict(second,current_revision_cut=[0,0,0,0,0]))
+                    with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                            user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                        competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',
+                            ['vectorflow-daily-csv:'+str(owner.pk)])
+                        with self.assertRaisesRegex(ValueError,'Another daily worker owns'):
+                            resume(Path(attempt.archive_path).with_name('fourth-race'))
+                    cut=epochs(owner.pk)
+                    # Exercise duplicate revision on an eligible RUNNING owner,
+                    # before recovery consumes that owner. Replaying it after
+                    # success is separately denied by the earlier owner guard.
+                    allowed_revision=revision
+                    try:
+                        revision=old.execution_revision
+                        with self.assertRaisesRegex(ValueError,'already attempted'):
+                            resume(Path(attempt.archive_path).with_name('fourth-duplicate-revision'))
+                    finally:
+                        revision=allowed_revision
+                    from django.db import OperationalError
+                    from mta.mdm.supplier_revisions import _key
+                    with connection.cursor() as cursor:
+                        cursor.execute('SHOW lock_timeout')
+                        self.assertEqual(cursor.fetchone()[0],'5s')
+                    with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
+                            user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
+                        competing.execute('SELECT pg_advisory_lock(hashtextextended(%s,0))',[_key(owner.source_id)])
+                        with self.assertRaisesRegex(OperationalError,'lock timeout'):
+                            resume(Path(attempt.archive_path).with_name('fourth-source-race'))
+                    self.assertEqual(epochs(owner.pk),cut)
+                    self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(4,4))
+                    print('INTERRUPTED_FOURTH_DUPLICATE_AND_SOURCE_LOCK_PASS')
+                    with patch.object(daily_feed,'atomic_json',side_effect=OSError('fourth-hop receipt failure')):
+                        with self.assertRaisesRegex(OSError,'fourth-hop receipt failure'):
+                            resume(Path(attempt.archive_path).with_name('fourth-receipt-failure'))
+                    leaf.refresh_from_db();leaf_attempt.refresh_from_db()
+                    self.assertEqual((leaf.status,leaf_attempt.status),('RUNNING','RUNNING'))
+                    self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(4,4))
+                    self.assertEqual(epochs(owner.pk),cut)
+                    # A late metadata SQL failure must also undo the canonical
+                    # human-stop disposition, new owner and its epoch writes.
+                    import psycopg
+                    with patch('mta.runtime.capture_preparation.seal',side_effect=psycopg.DataError('fourth metadata failure')):
+                        with self.assertRaisesRegex(psycopg.DataError,'fourth metadata failure'):
+                            resume(Path(attempt.archive_path).with_name('fourth-metadata-failure'))
+                    leaf.refresh_from_db();leaf_attempt.refresh_from_db()
+                    self.assertEqual((leaf.status,leaf_attempt.status),('RUNNING','RUNNING'))
+                    self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(4,4))
+                    self.assertEqual(epochs(owner.pk),cut)
+                    print('INTERRUPTED_FOURTH_METADATA_ROLLBACK_PASS oldRUNNING epochs counts unchanged')
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):
@@ -255,8 +335,14 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                 self.assertEqual(captured_input.origin(result).pk,old.pk)
                 self.assertEqual(read_input(leaf),raw)
                 leaf.refresh_from_db();leaf_attempt.refresh_from_db()
-                self.assertEqual((leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
-                    leaf_attempt.status,digest(leaf_attempt.error)),leaf_before)
+                if fourth:
+                    self.assertEqual((leaf.status,leaf_attempt.status),('FAILED','FAILED'))
+                    self.assertEqual(leaf_attempt.error['type'],'HumanInterruption')
+                    self.assertEqual((leaf.input_manifest_digest,digest(leaf.input_payload)),leaf_before[1:3])
+                    self.assertFalse(leaf.checkpoints.exists())
+                else:
+                    self.assertEqual((leaf.status,leaf.input_manifest_digest,digest(leaf.input_payload),
+                        leaf_attempt.status,digest(leaf_attempt.error)),leaf_before)
                 for failed in CalculationRun.objects.filter(pk__in=failed_before):
                     self.assertEqual((failed.status,failed.input_digest,failed.input_manifest_digest,
                         digest(failed.input_payload)),failed_before[str(failed.pk)])
@@ -276,15 +362,22 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                     MdmDailyInputCapture.objects.create(**values)
                     with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):
                         captured_input.manifest(candidate,result)
+                    if fourth:
+                        with self.assertRaisesRegex(ValueError,'fixed third-hop boundary'):
+                            captured_input.manifest(candidate,result,final_interrupted_fourth_hop=True)
                     transaction.set_rollback(True)
                 self.assertEqual(epochs(owner.pk),cut)
-                self.assertEqual(CalculationRun.objects.count(),4)
-                self.assertEqual(MdmDailyInputCapture.objects.count(),4)
+                self.assertEqual(CalculationRun.objects.count(),5 if fourth else 4)
+                self.assertEqual(MdmDailyInputCapture.objects.count(),5 if fourth else 4)
                 self.assertFalse(CalculationRun.objects.filter(pk=candidate.pk).exists())
                 result.refresh_from_db()
                 self.assertEqual(result.status,'SUCCEEDED')
-                with self.assertRaisesRegex(ValueError,'already attempted'):
+                rejection='exact failed V1 leaf' if fourth else 'already attempted'
+                with self.assertRaisesRegex(ValueError,rejection):
                     resume(Path(attempt.archive_path).with_name('duplicate'))
+                self.assertEqual(epochs(owner.pk),cut)
+                self.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),
+                    (5,5) if fourth else (4,4))
                 # Changed reference roots must be denied by actual DB-backed
                 # resolution, even if a caller recomputes the wrapper checksum.
                 original=result.input_payload
@@ -317,7 +410,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                          selection_digest=selected['selection_digest'],ready=True,
                          proof_kind='component-contract-no-http-no-browser'))
                 self.assertFalse(daily_feed.unresolved_attempts(owner).exists())
-                print('CAPTURED_RECOVERY_POSTGRES_PASS exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
+                print(('INTERRUPTED_FOURTH_POSTGRES_PASS ' if fourth else 'CAPTURED_RECOVERY_POSTGRES_PASS ')+'exact-inputs no-rewrite distinct-owners filesystem+late-commit-rollback reports+archive duplicate-denial')
             from release.advance_ingestion import transition
             from release.upgrade_ingestion import retained
             from mta.runtime import ingestion_admission as admission
