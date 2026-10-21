@@ -644,7 +644,7 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
             _reject('application function authority differs')
     if not APPLICATION_FUNCTIONS <= functions.keys():
         _reject('application helper function is absent')
-    expected.update(('function',name,None,'EXECUTE') for name in APPLICATION_FUNCTIONS)
+    expected.update(('function',name,None,'EXECUTE') for name in application_functions(catalogue))
     actual = set()
     for acl in catalogue['grants']:
         scope,name,priv,grantee = (acl[k] for k in ('scope','name','privilege','grantee'))
@@ -858,6 +858,24 @@ def _check_application_write_guards(cursor, registration):
 
 # Existing invoker helpers called by the fixed workflow/guard SQL. No PUBLIC
 # EXECUTE or security-definer capability is admitted by the writable profile.
+def application_functions(catalogue):
+    """Old frozen profile plus one exactly qualified read-only metadata helper.
+
+    The additive helper is absent on old schemas. It never changes the frozen
+    baseline profile digest or grants write/definer authority.
+    """
+    name='mta.finite_capture_prefix_digest(leaf uuid)'
+    helper=next((f for f in catalogue['functions'] if f['name']==name),None)
+    if helper is None:return APPLICATION_FUNCTIONS
+    from importlib import import_module
+    sql=import_module('mta.runtime.migrations.0163_finite_capture_admission').SQL
+    body=sql.split('AS $$',1)[1].split('$$;',1)[0]
+    if (helper['body']!=body or helper['security_definer'] or helper['returns']!='text'
+            or helper['configuration']!=['search_path=pg_catalog, mta','TimeZone=UTC','DateStyle=ISO, YMD']):
+        _reject('Finite metadata helper implementation differs')
+    return APPLICATION_FUNCTIONS | {name}
+
+
 APPLICATION_FUNCTIONS = frozenset((
     'mta.active_mdm_current_source(owner bigint)',
     'mta.daily_prepared_owner(owner uuid)',

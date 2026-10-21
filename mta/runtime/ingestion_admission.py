@@ -115,8 +115,13 @@ def _certificate(initialization_id):
     return value
 
 
-def validate_activation(cursor, body):
-    """Validate all bounded joins before the registrar append activates anything."""
+def _activation_metadata(cursor, body):
+    """Authenticate immutable certificate/registrar joins, not a live catalogue.
+
+    Historical activations describe their original catalogue. A separately
+    authenticated schema transition may replace the *live* catalogue comparison,
+    never the original certificate or its chain of custody.
+    """
     authority.validate(body)
     cert = _certificate(body['initialization_id'])
     from release.native_schema import schema_digest
@@ -151,10 +156,7 @@ def validate_activation(cursor, body):
                 or any(certified_origin[k] != body[k]
                        for k in authority.FIELDS - {'target_commit', 'target_release'})):
             raise ValueError('Compatible release changed original certified ownership')
-        validate_activation(cursor, certified_origin)
-    if (schema_digest(cursor) != cert['schema_digest']
-            or security_digest(cursor, cert['authority_roles']) != cert['guard_digest']):
-        raise ValueError('Current schema, grants, roles or guards differ')
+        _activation_metadata(cursor, certified_origin)
     from mta.runtime.ingestion_models import IngestionReleaseCompatibility
     audit = IngestionReleaseCompatibility.objects.get(initialization_id=body['initialization_id'],
         target_release=body['target_release'])
@@ -164,6 +166,29 @@ def validate_activation(cursor, body):
         schema_digest=body['schema_digest'], certification_digest=body['certification_digest'])
     if any(getattr(audit, k) != v for k, v in values.items()) or audit.receipt_digest != digest(values):
         raise ValueError('Release compatibility audit differs')
+    return cert
+
+
+def validate_activation(cursor, body):
+    """Validate immutable ownership and the exact effective live catalogue."""
+    cert = _activation_metadata(cursor, body)
+    from release.native_schema import schema_digest
+    extension = authority.read_schema_transition(cursor, body)
+    expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
+    if extension is not None:
+        parent = authority.read(cursor, body['initialization_id'], extension['previous_release'])
+        parent_cert = _activation_metadata(cursor, parent)
+        if (parent_cert != cert or digest(parent) != extension['previous_authority_digest']
+                or extension['certification_digest'] != cert['receipt_digest']
+                or extension['before_schema_digest'] != cert['schema_digest']
+                or extension['before_guard_digest'] != cert['guard_digest']
+                or any(parent[k] != body[k] for k in authority.FIELDS - {'target_commit','target_release'})
+                or extension['target_commit'] != body['target_commit']):
+            raise ValueError('Schema transition changed original certified ownership')
+        expected_schema, expected_guard = extension['schema_digest'], extension['guard_digest']
+    if (schema_digest(cursor) != expected_schema
+            or security_digest(cursor, cert['authority_roles']) != expected_guard):
+        raise ValueError('Current schema, grants, roles or guards differ')
     return cert
 
 

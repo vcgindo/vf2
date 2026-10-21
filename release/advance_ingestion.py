@@ -5,6 +5,205 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 from mta.runtime.opening_scope import opening_operation
 
 
+def catalogue(cursor):
+    """Portable, complete changed-object description for an independent review.
+
+    Object OIDs are checked separately for preservation; names and role names
+    make the reviewed delta usable in a small proof and the loaded database.
+    """
+    from mta.mdm.owned_namespace import _application_catalogue
+    cursor.execute('SELECT oid::bigint,rolname FROM pg_roles')
+    roles=dict(cursor.fetchall());roles[0]='PUBLIC'
+    cursor.execute('SELECT oid::bigint,lanname FROM pg_language')
+    languages=dict(cursor.fetchall())
+    raw=_application_catalogue(cursor);result={}
+    for category,rows in raw.items():
+        for item in rows:
+            row={k:v for k,v in item.items() if k!='oid'}
+            for field in ('owner','grantor','grantee'):
+                if field in row:row[field]=roles[row[field]]
+            if 'language' in row:row['language']=languages[row['language']]
+            if row.get('scope')=='database':row['name']='<current_database>'
+            key=category+':'+row['name']
+            if category=='grants':key+=':'+str(row['column'])+':'+row['grantor']+':'+row['grantee']+':'+row['privilege']
+            if key in result:raise ValueError('Ambiguous portable catalogue entry')
+            result[key]=row
+    queries={
+        'column':"SELECT n.nspname||'.'||c.relname||'.'||a.attname,a.attnum,format_type(a.atttypid,a.atttypmod),a.attnotnull,a.attidentity,a.attgenerated,pg_get_expr(d.adbin,d.adrelid) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum WHERE n.nspname IN ('mta','mta_state','mta_opening','fresh_control') AND a.attnum>0 AND NOT a.attisdropped ORDER BY 1",
+        'constraint':"SELECT n.nspname||'.'||c.relname||'.'||t.conname,t.contype,t.convalidated,pg_get_constraintdef(t.oid) FROM pg_constraint t JOIN pg_class c ON c.oid=t.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('mta','mta_state','mta_opening','fresh_control') ORDER BY 1",
+        'index':"SELECT schemaname||'.'||indexname,indexdef FROM pg_indexes WHERE schemaname IN ('mta','mta_state','mta_opening','fresh_control') ORDER BY 1",
+        'trigger':"SELECT n.nspname||'.'||c.relname||'.'||t.tgname,t.tgenabled,pg_get_triggerdef(t.oid) FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE NOT t.tgisinternal AND n.nspname IN ('mta','mta_state','mta_opening','fresh_control') ORDER BY 1"}
+    for kind,query in queries.items():
+        cursor.execute(query)
+        for name,*values in cursor.fetchall():result[kind+':'+name]=values
+    return result
+
+
+def catalogue_delta(before,after):
+    return {key:dict(before=before.get(key),after=after.get(key))
+            for key in sorted(before.keys()|after.keys()) if before.get(key)!=after.get(key)}
+
+
+def preservation(owner):
+    """Bounded owner/capture metadata only; never reload the opening payload."""
+    from release.upgrade_ingestion import retained
+    from mta.runtime.models import CalculationRun
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.ingestion_models import IngestionRevisionState,MasterInputRevision,InitializationCertification
+    from mta.serialization import digest
+    from uuid import UUID
+    runs=CalculationRun.objects.filter(csv_attempt__initialization=owner)
+    def rows(query,exclude=()):
+        fields=[f.attname for f in query.model._meta.concrete_fields if f.name not in exclude]
+        return [{k:str(v) if isinstance(v,UUID) else v for k,v in row.items()}
+                for row in query.order_by(query.model._meta.pk.attname).values(*fields)]
+    return dict(opening=retained(owner),certificate=rows(InitializationCertification.objects.filter(initialization=owner)),
+        revisions=rows(IngestionRevisionState.objects.filter(initialization=owner)),
+        masters=rows(MasterInputRevision.objects.filter(initialization=owner)),
+        runs=rows(runs,('input_payload',)),attempts=rows(DailyFeedAttempt.objects.filter(initialization=owner),('recovery_origin',)),
+        captures=rows(MdmDailyInputCapture.objects.filter(run__in=runs)),
+        manifests={str(pk):digest(payload) for pk,payload in runs.order_by('pk').values_list('pk','input_payload')})
+
+
+@opening_operation
+def schema_transition(initialization_id, *, specification, expected_sha256):
+    """Explicit atomic used-opening upgrade, never implicit startup recovery.
+
+    The external reviewed specification pins exact release identities, migration
+    bytes and the complete portable catalogue/ACL delta. All DDL and registrar
+    appends roll back together. This operation changes no old owner or seal.
+    """
+    import hashlib,json
+    from pathlib import Path
+    from django.db import connection,transaction
+    from django.db.migrations.executor import MigrationExecutor
+    from psycopg import sql
+    from release.native_identity import require_current
+    from release.native_schema import schema_digest
+    from mta.serialization import digest,storage
+    from mta.runtime import ingestion_authority as authority
+    from mta.runtime.ingestion_admission import _admit,registration,security_digest,_certificate
+    from mta.runtime.models import ProductionInitialization
+    from mta.runtime.ingestion_models import IngestionReleaseCompatibility
+    raw=Path(specification).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=expected_sha256:
+        raise ValueError('Independent schema transition specification SHA256 differs')
+    spec=json.loads(raw)
+    fields={'contract','initialization_id','previous_release','target_release','migration_pins','catalogue_delta'}
+    if (type(spec) is not dict or set(spec)!=fields or spec['contract']!=authority.SCHEMA_CONTRACT
+            or spec['initialization_id']!=str(initialization_id) or spec['target_release']!=require_current()):
+        raise ValueError('Exact reviewed schema transition specification required')
+    target=spec['target_release'];previous=spec['previous_release']
+    if target['manifest_sha256']==previous['manifest_sha256']:
+        raise ValueError('Distinct reviewed previous/target releases required')
+    from mta.runtime.daily_feed import job_lock
+    from mta.mdm.supplier_revisions import source_lock
+    prepared_owner=ProductionInitialization.objects.get(pk=initialization_id)
+    if not transaction.get_autocommit():raise ValueError('Schema transition owns its outer transaction')
+    # Session locks precede the repeatable-read snapshot. A cooperating daily or
+    # master writer cannot connect after the client check and evade preservation.
+    with job_lock(prepared_owner),source_lock(prepared_owner.source_id),transaction.atomic(),connection.cursor() as cursor:
+        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        authority._provisioner(cursor)
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('fresh.production.initialization',0))")
+        cursor.execute("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid() AND backend_type='client backend' LIMIT 1")
+        if cursor.fetchone() is not None:raise ValueError('Schema transition requires exclusive maintenance ownership')
+        owner=ProductionInitialization.objects.select_for_update().select_related('source').get(pk=initialization_id)
+        original,capability=registration(cursor)
+        cursor.execute('SELECT to_regclass(%s)',[authority.SCHEMA_TABLE])
+        if cursor.fetchone()[0] is not None:
+            body=authority.read(cursor,owner.pk,target['manifest_sha256'])
+            extension=authority.read_schema_transition(cursor,body)
+            if (extension is None or extension['migration_pins']!=spec['migration_pins']
+                    or extension['catalogue_delta_digest']!=digest(spec['catalogue_delta'])
+                    or extension['previous_release']!=previous['manifest_sha256']):
+                raise ValueError('Existing schema transition differs; no replacement')
+            _admit(cursor,owner.pk,target,pending=True)
+            return dict(status='EXISTING_SCHEMA_TRANSITION_VERIFIED',target_release=target)
+        admitted=_admit(cursor,owner.pk,previous,pending=True)
+        before=storage(preservation(owner));before_catalogue=catalogue(cursor)
+        old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
+        before_schema=schema_digest(cursor);before_guard=security_digest(cursor,_certificate(owner.pk)['authority_roles'])
+        cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
+        roles=cursor.fetchall()
+        cursor.execute('SELECT roleid,member,grantor,admin_option FROM pg_auth_members ORDER BY roleid,member,grantor')
+        memberships=cursor.fetchall()
+        executor=MigrationExecutor(connection)
+        plan=executor.migration_plan(executor.loader.graph.leaf_nodes())
+        pins=[]
+        for migration,backwards in plan:
+            if backwards or migration.app_label!='fresh_mta':raise ValueError('Only forward MTA schema migrations supported')
+            path=Path(__file__).resolve().parents[1]/'mta/runtime/migrations'/(migration.name+'.py')
+            pins.append([migration.name,hashlib.sha256(path.read_bytes()).hexdigest()])
+        if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins]!=[f'{i:04}' for i in range(154,165)]):
+            raise ValueError('Exact reviewed report migration prefix and bytes required')
+        from mta.mdm.owned_namespace import _application_catalogue
+        old_objects=_application_catalogue(cursor)
+        cursor.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(original['owner']['name'])))
+        # Install the same final pinned append guard BEFORE Django records any
+        # migration. Migration bookkeeping cannot advance a business epoch;
+        # no epoch is restored and no business writer guard is disabled.
+        from importlib import import_module
+        cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
+        executor.migrate(executor.loader.graph.leaf_nodes())
+        cursor.execute('RESET ROLE')
+        authority.bootstrap_schema_transition(cursor,[original['owner']['name'],original['consumer']['name']])
+        current=_application_catalogue(cursor)
+        old_names={o['name'] for o in old_objects['objects']}
+        for obj in current['objects']:
+            if obj['name'] not in old_names and obj['kind']!='S':
+                schema,name=obj['name'].split('.',1)
+                cursor.execute(sql.SQL('GRANT SELECT ON {}.{} TO {}').format(sql.Identifier(schema),sql.Identifier(name),sql.Identifier(original['consumer']['name'])))
+        old_functions={f['name'] for f in old_objects['functions']}
+        for function in current['functions']:
+            if function['name'] not in old_functions:
+                cursor.execute('SELECT %s::oid::regprocedure::text',[function['oid']])
+                cursor.execute('REVOKE EXECUTE ON FUNCTION '+cursor.fetchone()[0]+' FROM PUBLIC')
+        from mta.mdm.owned_namespace import application_functions
+        if 'mta.finite_capture_prefix_digest(leaf uuid)' in application_functions(_application_catalogue(cursor)):
+            cursor.execute(sql.SQL('GRANT EXECUTE ON FUNCTION mta.finite_capture_prefix_digest(uuid) TO {}').format(
+                sql.Identifier(original['consumer']['name'])))
+        delta=catalogue_delta(before_catalogue,catalogue(cursor))
+        if storage(delta)!=spec['catalogue_delta']:raise ValueError('Reviewed schema/catalogue/ACL delta differs')
+        now=_application_catalogue(cursor)
+        objects={o['name']:o for o in now['objects']}
+        if any(objects.get(o['name'])!=o for o in old_objects['objects']):
+            raise ValueError('Original object identity or owner changed')
+        old_acl={(r['scope'],r['name']) for r in old_objects['grants']}
+        if [r for r in now['grants'] if (r['scope'],r['name']) in old_acl]!=old_objects['grants']:
+            raise ValueError('Original ACL changed')
+        cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
+        if cursor.fetchall()!=roles:raise ValueError('Schema transition changed roles')
+        cursor.execute('SELECT roleid,member,grantor,admin_option FROM pg_auth_members ORDER BY roleid,member,grantor')
+        if cursor.fetchall()!=memberships:raise ValueError('Schema transition changed memberships')
+        from mta.runtime.ingestion_admission import _certificate
+        cert=_certificate(owner.pk)
+        extension=dict(contract=authority.SCHEMA_CONTRACT,initialization_id=str(owner.pk),
+            target_commit=target['source_commit'],target_release=target['manifest_sha256'],
+            previous_release=previous['manifest_sha256'],previous_authority_digest=digest(old),
+            certification_digest=cert['receipt_digest'],before_schema_digest=before_schema,before_guard_digest=before_guard,
+            schema_digest=schema_digest(cursor),guard_digest=security_digest(cursor,cert['authority_roles']),
+            migration_pins=pins,catalogue_delta_digest=digest(delta),preservation_digest=digest(before))
+        authority.append_schema_transition(cursor,extension)
+        body=dict(old,target_commit=target['source_commit'],target_release=target['manifest_sha256'])
+        audit={key:body[key] for key in ('original_release','target_release','original_commit','target_commit',
+            'contract','original_registration_digest','schema_digest','certification_digest')}
+        cursor.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(original['owner']['name'])))
+        IngestionReleaseCompatibility.objects.create(initialization=owner,**audit,receipt_digest=digest(audit))
+        cursor.execute('RESET ROLE')
+        authority.append(cursor,body)
+        _admit(cursor,owner.pk,target,pending=True)
+        owner.refresh_from_db();owner.source.refresh_from_db()
+        from mta.runtime.daily_feed_models import DailyFeedAttempt
+        if DailyFeedAttempt.objects.filter(initialization=owner,recovery_origin__isnull=False).exists():
+            raise ValueError('Schema transition rewrote an original recovery origin')
+        if storage(preservation(owner))!=before or registration(cursor)!=(original,capability):
+            raise ValueError('Schema transition changed an original opening/owner/capture/certificate')
+    return dict(status='SCHEMA_TRANSITION_COMMITTED_ORIGINAL_STATE_PRESERVED',target_release=target,
+                schema_transition_digest=digest(extension),catalogue_delta_digest=digest(delta))
+
+
 @opening_operation
 def transition(initialization_id, *, previous_release, target_release):
     from django.db import connection, transaction

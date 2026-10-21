@@ -32,8 +32,10 @@ ROLES = [OWNER, INSTALLER, RUNTIME]
 
 @unittest.skipUnless(os.environ.get('VF_INGESTION_POSTGRES_PROOF') == '1', 'Explicit empty PostgreSQL proof required')
 class IngestionPostgresTests(unittest.TestCase):
+    proof_database = 'vf_ingestion_m1_20261020'
+
     def setUp(self):
-        if connection.settings_dict['NAME'] != 'vf_ingestion_m1_20261020':
+        if connection.settings_dict['NAME'] != self.proof_database:
             raise RuntimeError('Proof must never target a working application database')
         self.atomic = transaction.atomic()
         self.atomic.__enter__()

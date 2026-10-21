@@ -206,6 +206,22 @@ def diagnostics(attempt, error):
             writer.writerows({key:_cell(value) for key,value in row.items()} for row in records)
 
 
+def _finite_resolved_ancestors(owner):
+    """Only an authenticated operational commit resolves the preserved chain."""
+    from mta.runtime.captured_input import FINITE, finite_origin, finite_prefix
+    resolved=[]
+    candidates=CalculationRun.objects.filter(kind='DAILY_CHAIN',status='SUCCEEDED',
+        evidence_mode='production',input_payload__schema=FINITE,production_manifest__version=3,
+        csv_attempt__initialization=owner,
+        csv_attempt__status__in=('COMMITTED','PREPARED','PUBLISHED'),
+        mdm_input_capture__status='CONSUMED')
+    for run in candidates.iterator():
+        finite_origin(run)
+        _,rows,_=finite_prefix(run.mdm_input_capture.origin.run)
+        resolved.extend(row['run']['id'] for row in rows)
+    return resolved
+
+
 def unresolved_attempts(owner):
     """A failed day needs its own retry; v3 report readiness is not day admission."""
     from django.db.models import Exists, OuterRef, Q
@@ -320,7 +336,8 @@ def unresolved_attempts(owner):
         run__csv_attempt__initialization=owner,run__csv_attempt__status='PUBLISHED')
     return DailyFeedAttempt.objects.filter(initialization=owner).exclude(
         status__in=('PUBLISHED','REJECTED')).annotate(_resolved=Exists(completed)).exclude(
-        status='FAILED',_resolved=True).exclude(run__status='SUCCEEDED',run__production_manifest__version=3)
+        status='FAILED',_resolved=True).exclude(run__status='SUCCEEDED',run__production_manifest__version=3
+        ).exclude(run_id__in=_finite_resolved_ancestors(owner))
 
 
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):

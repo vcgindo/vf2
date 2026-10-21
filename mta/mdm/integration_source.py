@@ -250,7 +250,7 @@ def require_current_run(source, run, seal, *, read_only=False):
         verify_capture(source, snapshot)
 
 
-def verify_predecessor(source, run, *, retry_capture=None):
+def verify_predecessor(source, run, *, retry_capture=None, finite_prefix_digest=None):
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     seal = installed_binding(source)
     if seal is not None:
@@ -259,8 +259,18 @@ def verify_predecessor(source, run, *, retry_capture=None):
             if MdmDailyInputCapture.objects.filter(source=source, status='CONSUMED').exists():
                 raise ValueError('Native MDM opening is no longer the current predecessor')
             captures = MdmDailyInputCapture.objects.filter(source=source)
+            finite=False
+            if finite_prefix_digest is not None:
+                from mta.runtime.captured_input import finite_prefix
+                if retry_capture is None:
+                    raise ValueError('Finite predecessor requires its canonical stopped capture')
+                physical,_,prefix=finite_prefix(retry_capture.run)
+                if (prefix!=finite_prefix_digest or retry_capture.source_id!=source.pk
+                        or physical.predecessor_id is not None):
+                    raise ValueError('Finite predecessor stopped-prefix identity differs')
+                finite=True
             if captures.exists() and (retry_capture is None or not captures.filter(
-                    pk=retry_capture.pk, status='CAPTURED', run__status='FAILED',
+                    pk=retry_capture.pk, status='CAPTURED', run__status='RUNNING' if finite else 'FAILED',
                     run__predecessor__isnull=True).exists()):
                 raise ValueError('Native root requires its explicit failed capture retry')
             for module in ('force', 'season', 'stop_pipo', 'phase_controls'):

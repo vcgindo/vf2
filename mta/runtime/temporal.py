@@ -194,6 +194,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
                 prepared_arguments=None, prepared_state=None, _captured_retry=None):
     if _captured_retry is not None:
+        # The finite-reference kind uses this same production owner. Its
+        # independently pinned stopped prefix is authenticated by resume;
+        # frozen business arguments cannot be supplied alongside it.
         if any(value is not None for value in (day,profile,predecessor,opening,mdm_source,mdm_retry,
                 feed_attempt,prepared_arguments,prepared_state,production_initialization,
                 report_exceptions,pick_output_root,pick_config_sha256,finalization_config,

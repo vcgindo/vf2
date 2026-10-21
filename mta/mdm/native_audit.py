@@ -92,7 +92,12 @@ def bind(run, daily, profile):
     if daily.origin_id:
         origin = verify(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
                         .get(run_id=daily.origin_id), sealed=False)
-        if (origin.run.status != 'FAILED' or origin.source_id != daily.source_id
+        from mta.runtime.captured_input import FINITE,finite_origin
+        finite=False
+        if run.input_payload.get('schema')==FINITE:
+            finite_origin(run)
+            finite=origin.run.status=='RUNNING' and str(origin.run_id)==run.input_payload['origin_run_id']
+        if (origin.run.status != 'FAILED' and not finite or origin.source_id != daily.source_id
                 or origin.predecessor_id != run.predecessor_id
                 or origin.business_date != run.business_date or _policy(origin) != policy):
             raise ValueError('Native audit retry is not the frozen failed request')

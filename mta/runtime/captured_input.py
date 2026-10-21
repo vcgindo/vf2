@@ -7,7 +7,8 @@ from mta.serialization import digest
 
 SCHEMA = 'fresh-captured-input-reference-v1'
 SECOND = 'fresh-captured-input-reference-v2'
-SCHEMAS = (SCHEMA,SECOND)
+FINITE = 'fresh-captured-input-reference-v3'
+SCHEMAS = (SCHEMA,SECOND,FINITE)
 FIELDS = {'schema', 'identity', 'origin_run_id', 'origin_manifest_digest',
           'content_digest', 'images'}
 
@@ -15,7 +16,9 @@ FIELDS = {'schema', 'identity', 'origin_run_id', 'origin_manifest_digest',
 def validate(value):
     if type(value) is not dict:
         raise ValueError('Captured input reference shape differs')
-    extra = {'physical_origin_run_id','physical_origin_manifest_digest'} if value.get('schema') == SECOND else set()
+    extra = {'physical_origin_run_id','physical_origin_manifest_digest'} if value.get('schema') in (SECOND,FINITE) else set()
+    if value.get('schema') == FINITE:
+        extra |= {'prefix_digest','origin_attempt_id','execution_revision','packaged_source'}
     if (type(value) is not dict or set(value) != FIELDS | extra
             or value['schema'] not in SCHEMAS or value['images'] != {}):
         raise ValueError('Captured input reference shape differs')
@@ -25,12 +28,21 @@ def validate(value):
         if (type(value[key]) is not str or len(value[key]) != 64
                 or any(c not in '0123456789abcdef' for c in value[key])):
             raise ValueError('Captured input origin digest differs')
-    if value['schema'] == SECOND:
+    if value['schema'] in (SECOND,FINITE):
         if str(UUID(value['physical_origin_run_id'])) != value['physical_origin_run_id']:
             raise ValueError('Physical captured origin UUID differs')
         pin=value['physical_origin_manifest_digest']
         if type(pin) is not str or len(pin)!=64 or any(c not in '0123456789abcdef' for c in pin):
             raise ValueError('Physical captured origin manifest differs')
+    if value['schema'] == FINITE:
+        for key in ('prefix_digest','packaged_source'):
+            pin=value[key]
+            length=40 if key=='packaged_source' else 64
+            if type(pin) is not str or len(pin)!=length or any(c not in '0123456789abcdef' for c in pin):
+                raise ValueError('Finite captured prefix/package digest differs')
+        if (str(UUID(value['origin_attempt_id'])) != value['origin_attempt_id']
+                or value['execution_revision'] != 'native-finite-'+value['packaged_source']):
+            raise ValueError('Finite captured execution identity differs')
     return value
 
 
@@ -83,7 +95,107 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fi
 
 
 def origin(run):
+    if run.input_payload.get('schema') == FINITE:
+        return finite_origin(run)
     return _origin(run,second_allowed=True,third_allowed=True,fourth_allowed=True,fifth_allowed=True,sixth_allowed=True)
+
+
+def _metadata(instance):
+    """Complete bounded metadata, including original timestamps and error bodies."""
+    return {field.attname:(str(value) if isinstance(value,UUID) else value)
+            for field in instance._meta.concrete_fields
+            for value in (getattr(instance,field.attname),)}
+
+
+def _finite_prefix_digest(leaf):
+    """Database-native complete metadata digest, fixed UTC/ISO in SQL owner."""
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT mta.finite_capture_prefix_digest(%s)',[leaf.pk])
+        return cursor.fetchone()[0]
+
+
+def finite_prefix(leaf):
+    """Authenticate exactly six old wrappers with the unchanged bounded reader."""
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    physical=_origin(leaf,second_allowed=True,third_allowed=True,fourth_allowed=True,
+                     fifth_allowed=True,sixth_allowed=True)
+    rows=[]; current=leaf; seen=set()
+    for index in range(7):
+        if current.pk in seen:
+            raise ValueError('Finite captured prefix contains a cycle')
+        seen.add(current.pk)
+        capture=MdmDailyInputCapture.objects.select_related('origin__run').get(run=current)
+        attempt=DailyFeedAttempt.objects.get(run=current)
+        if (current.status != ('RUNNING' if index==0 else 'FAILED')
+                or capture.status!='CAPTURED'
+                or (index==0 and (attempt.status!='RUNNING' or attempt.phase!='CALCULATE'
+                                  or attempt.accepted_facts))
+                or (index>0 and attempt.status!='FAILED')
+                or current.input_payload.get('schema') !=
+                    (SECOND if index<5 else SCHEMA if index==5 else 'fresh-daily-input-manifest-v3')):
+            raise ValueError('Finite captured prefix requires exact stopped six-wrapper ownership')
+        rows.append(dict(run=_metadata(current),capture=_metadata(capture),attempt=_metadata(attempt)))
+        if index==6:
+            if capture.origin_id is not None or current.pk!=physical.pk:
+                raise ValueError('Finite physical captured origin differs')
+        else:
+            if capture.origin is None:
+                raise ValueError('Finite captured prefix requires exactly six wrappers')
+            current=capture.origin.run
+    return physical,rows,_finite_prefix_digest(leaf)
+
+
+def finite_manifest(run, leaf, *, expected_prefix_digest, packaged_source):
+    from mta.runtime.input_v3 import _live_identity
+    physical,rows,prefix=finite_prefix(leaf)
+    if prefix!=expected_prefix_digest:
+        raise ValueError('Finite captured independently inspected prefix differs')
+    value=dict(schema=FINITE,identity=_live_identity(run,reading=False),
+        origin_run_id=str(leaf.pk),origin_manifest_digest=leaf.input_manifest_digest,
+        origin_attempt_id=rows[0]['attempt']['attempt_id'],prefix_digest=prefix,
+        content_digest=leaf.input_digest,images={},physical_origin_run_id=str(physical.pk),
+        physical_origin_manifest_digest=physical.input_manifest_digest,
+        execution_revision=run.execution_revision,packaged_source=packaged_source)
+    return validate(value)
+
+
+def finite_origin(run):
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.daily_feed_models import DailyFeedAttempt
+    from mta.runtime.input_v3 import _live_identity
+    value=validate(run.input_payload)
+    if (value['schema']!=FINITE or digest(value)!=run.input_manifest_digest
+            or value['content_digest']!=run.input_digest
+            or value['identity']!=_live_identity(run,reading=True)
+            or value['execution_revision']!=run.execution_revision):
+        raise ValueError('Finite captured live owner/manifest differs')
+    current=MdmDailyInputCapture.objects.select_related('origin__run').get(run=run)
+    old=current.origin
+    if old is None or str(old.run_id)!=value['origin_run_id'] or old.run_id==run.pk:
+        raise ValueError('Finite captured canonical leaf differs')
+    leaf=old.run
+    physical,rows,prefix=finite_prefix(leaf)
+    attempts=list(DailyFeedAttempt.objects.filter(run_id__in=(run.pk,leaf.pk))
+                  .values('run_id','initialization_id','recovery_origin_id'))
+    if (prefix!=value['prefix_digest'] or rows[0]['attempt']['attempt_id']!=value['origin_attempt_id']
+            or leaf.input_manifest_digest!=value['origin_manifest_digest']
+            or str(physical.pk)!=value['physical_origin_run_id']
+            or physical.input_manifest_digest!=value['physical_origin_manifest_digest']
+            or physical.input_digest!=run.input_digest or leaf.kind!=run.kind or run.kind!='DAILY_CHAIN'
+            or leaf.business_date!=run.business_date or leaf.predecessor_id!=run.predecessor_id
+            or leaf.execution_revision==run.execution_revision
+            or current.source_id!=old.source_id or current.request_digest!=old.request_digest
+            or current.revision_digest!=old.revision_digest
+            or old.retries.exclude(pk=current.pk).exists()
+            or len(attempts)!=2 or len({row['initialization_id'] for row in attempts})!=1
+            or next((row['recovery_origin_id'] for row in attempts if row['run_id']==run.pk),None)
+                != rows[0]['attempt']['id']
+            or any(value['identity'][key]!=_live_identity(leaf,reading=True)[key]
+                   for key in ('database_name','database_oid','source_digest'))):
+        raise ValueError('Finite captured prefix/physical ownership differs')
+    return physical
 
 
 def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_allowed=False,sixth_allowed=False):
@@ -102,6 +214,8 @@ def _origin(run,*,second_allowed,third_allowed=False,fourth_allowed=False,fifth_
     if fourth_allowed and not third_allowed:
         raise ValueError('Fourth-hop read requires its complete third-hop prefix')
     value = validate(run.input_payload)
+    if value['schema'] == FINITE:
+        raise ValueError('Finite captured reference cannot supply another continuation')
     if value['schema'] == SECOND and not second_allowed:
         raise ValueError('Captured reference exceeds the fixed two-hop boundary')
     if (digest(value) != run.input_manifest_digest or value['content_digest'] != run.input_digest

@@ -102,7 +102,7 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         cursor.execute('SELECT %s::oid::regprocedure::text',[function['oid']])
         identity=cursor.fetchone()[0]
         cursor.execute('REVOKE ALL ON FUNCTION '+identity+' FROM PUBLIC,'+consumer)
-        if function['name'] in owned.APPLICATION_FUNCTIONS:
+        if function['name'] in owned.application_functions(catalogue):
             cursor.execute('GRANT EXECUTE ON FUNCTION '+identity+' TO '+consumer)
     catalogue=owned._application_catalogue(cursor)
     digests=owned._check_application_grants(catalogue,registration,logistics=production,production=production)

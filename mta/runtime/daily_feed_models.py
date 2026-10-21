@@ -8,6 +8,8 @@ from mta.runtime.ingestion_models import bounded
 class DailyFeedAttempt(models.Model):
     attempt_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     initialization = models.ForeignKey('fresh_mta.ProductionInitialization', on_delete=models.PROTECT)
+    recovery_origin = models.ForeignKey('self',null=True,blank=True,on_delete=models.PROTECT,
+        related_name='finite_recoveries')
     business_date = models.DateField()
     batch_id = models.CharField(max_length=120)
     request_key = models.CharField(max_length=64, unique=True)
@@ -40,8 +42,12 @@ class DailyFeedAttempt(models.Model):
                 'RUNNING', 'REJECTED', 'COMMITTED', 'PREPARED', 'PUBLISHED', 'FAILED')),
                 name='csv_attempt_status'),
             models.UniqueConstraint(fields=('initialization', 'business_date'),
-                condition=Q(status__in=('RUNNING', 'COMMITTED', 'PREPARED', 'PUBLISHED')),
+                condition=Q(status__in=('RUNNING', 'COMMITTED', 'PREPARED', 'PUBLISHED'),recovery_origin__isnull=True),
                 name='csv_one_live_initialized_date'),
+            models.UniqueConstraint(fields=('recovery_origin',),condition=Q(recovery_origin__isnull=False),
+                name='csv_one_finite_origin'),
+            models.UniqueConstraint(fields=('initialization','business_date'),condition=Q(recovery_origin__isnull=False),
+                name='csv_one_finite_initialized_date'),
             bounded('accepted_facts', 'csv_accepted_facts_bound'),
             bounded('prepared_context', 'csv_prepared_context_bound'),
         ]

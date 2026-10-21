@@ -35,7 +35,8 @@ class CapturedArgumentTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get('VF_CAPTURED_RECOVERY_PROOF')=='1','Explicit disposable PostgreSQL proof required')
 class CapturedRecoveryPostgresTests(unittest.TestCase):
     def test_exact_capture_reuse_rollback_and_normal_writer(self):
-        sixth=os.environ.get('VF_CAPTURED_SIXTH_PROOF')=='1'
+        finite=os.environ.get('VF_CAPTURED_FINITE_PROOF')=='1'
+        sixth=os.environ.get('VF_CAPTURED_SIXTH_PROOF')=='1' or finite
         fifth=os.environ.get('VF_CAPTURED_FIFTH_PROOF')=='1' or sixth
         fourth=os.environ.get('VF_CAPTURED_FOURTH_PROOF')=='1' or fifth
         from release import initialize_csv as driver, register_mta
@@ -51,6 +52,7 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
         from mta.runtime.accepted_daily import epochs
         from mta.runtime.captured_recovery import _pins
         self.assertEqual(connection.settings_dict['NAME'],
+            'vf_admission_contracts_20261022' if finite else
             'vf_section9_fifth_proof_20261021' if fifth else 'vf_daily_optimization_20261021')
         self.assertEqual(ProductionInitialization.objects.count(),0)
         release=dict(schema='vectorflow-native-release-source-v1',source_commit='4'*40,
@@ -510,6 +512,14 @@ class CapturedRecoveryPostgresTests(unittest.TestCase):
                     unchanged_sixth()
                     with self.assertRaisesRegex(ValueError,'new sibling operation directory'):resume(diagnostic)
                     print('TERMINAL_SIXTH_GUARDS_PASS exact6owners locks stale foreign packaged-revision filesystem+actualSQLcommit rollback')
+                if finite:
+                    with patch.object(temporal,'calculate_day',side_effect=KeyboardInterrupt('stopped OOM sixth fixture')):
+                        with self.assertRaises(KeyboardInterrupt):
+                            resume(Path(attempt.archive_path).with_name('stopped-sixth'))
+                    leaf=CalculationRun.objects.get(execution_revision=revision)
+                    from tests.test_captured_finite_postgres import prove_finite
+                    prove_finite(self,owner,leaf,raw,release,root,pick,failed_record)
+                    return
                 commit=temporal.finish_run
                 rolled=[]
                 def commit_with_rollback(run,output,**options):

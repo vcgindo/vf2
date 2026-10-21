@@ -87,6 +87,8 @@ def tables(cursor):
 
 def require_guard_coverage(cursor):
     expected = {(s, t): owner for s, t, owner in tables(cursor) if owner != 'authority'}
+    if migration_history_guard(cursor):
+        expected.pop(('mta','django_migrations'))
     cursor.execute("SELECT n.nspname,c.relname,t.tgname,t.tgenabled,"
         "pn.nspname,p.proname,encode(t.tgargs,'escape'),t.tgtype,t.tgnargs,t.tgqual::text,"
         "t.tgattr::text,t.tgoldtable,t.tgnewtable "
@@ -109,6 +111,24 @@ def require_guard_coverage(cursor):
             raise ValueError('Missing or incorrectly classified ingestion writer: ' + '.'.join(table))
     if set(actual) != set(expected):
         raise ValueError('Unexpected ingestion revision participant')
+
+
+def migration_history_guard(cursor):
+    """Qualify only the exact additive metadata guard; old watches stay strict."""
+    cursor.execute("SELECT t.tgname,t.tgenabled,t.tgtype,t.tgnargs,t.tgqual::text,"
+        "n.nspname,p.proname,p.prosrc,p.prosecdef,p.proconfig,p.proowner=c.relowner "
+        "FROM pg_trigger t JOIN pg_proc p ON p.oid=t.tgfoid JOIN pg_namespace n ON n.oid=p.pronamespace "
+        "JOIN pg_class c ON c.oid=t.tgrelid WHERE t.tgrelid=to_regclass('mta.django_migrations') "
+        "AND t.tgname IN ('migration_history_append','migration_history_immutable') ORDER BY t.tgname")
+    rows=cursor.fetchall()
+    if not rows:return False
+    from importlib import import_module
+    body=import_module('mta.runtime.migrations.0164_migration_history_ownership').BODY
+    expected=[('migration_history_append','O',7,0,None),('migration_history_immutable','O',58,0,None)]
+    if (len(rows)!=2 or [r[:5] for r in rows]!=expected
+            or any(r[5:]!=('mta','guard_migration_history',body,False,['search_path=pg_catalog, mta'],True) for r in rows)):
+        raise ValueError('Migration history authority guard differs')
+    return True
 
 
 def business_trigger_rows(cursor, rows):

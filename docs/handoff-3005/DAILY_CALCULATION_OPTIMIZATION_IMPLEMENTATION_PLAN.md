@@ -485,3 +485,28 @@ No coding deadline or numeric token budget is inferred. The ended150-minute oper
 After bounded correction proofs pass, prepare ONE reviewable large-validation packet: tested candidate/package identity requirements; actual seven-header/reference state and supported canonical admission method; precise preservation/rollback guards; unchanged resources and predeclared memory/disk/observation stops; a proposed finite cumulative all-work window for real human decision; full operational commit/readback followed by report preparation and terminal verification. The fixed six-wrapper reader currently denies a seventh continuation. Do not implement a recovery extension, status rewrite, private bypass, new namespace or same-owner replay inside this correction scope. Show any necessary admission-contract change concretely for separate release before a build/run. No automatic large retry, second build, clock reset or serving activation.
 
 Official PostgreSQL bulk-loading/COPY/monitoring and Psycopg COPY/pipeline references remain linked in controller-persistence-research.json. COPY is a candidate, not a measured solution. Expected benefits are less avoidable memory/data movement, a shorter operational critical path and report rebuilds without day replay. Exact improvements and larger-database capacity remain unproved.
+
+
+### Future admission design addendum — PROPOSED ONLY after accepted Section11 handoff
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+This proposal does not amend the accepted Section11 A-E implementation release. No recovery extension, working-database mutation, image build or run is released. The expired Section9/10 clocks remain spent.
+
+Actual source63db37c3 shows two distinct missing contracts: advance_ingestion.py permits only unchanged schema and validate_activation recursively compares original certificate schema/guards to live catalogue; captured_input.py has a fixed six-wrapper resolver and captured_recovery.py currently rewrites an interrupted leaf FAILED before creating its child. Those existing semantics cannot safely serve the required preserved-OOM-leaf continuation by changing launch flags.
+
+The concrete proposal is D:/freshvcf-build/evidence/daily-contract-audit-20261021/section11/future-large-admission-design-proposal-v2.json, SHA256 53fb339b92094bd27622cf753a58aa5a9c84f43e52ebee1b5254a8162c8b2359. It defines exact code boundaries, registrar-owned append-only schema compatibility, transaction order/rollback/ACL limits, a new finite captured-reference version preserving all old statuses and physical input provenance, exact ancestor resolution, and meaningful small PostgreSQL positive/negative proofs. Existing v1/v2 readers and same-schema transitions stay strict. No master reload, CSV reparse, new namespace, facts, formulas, frontend/MTO/auth change or private bypass is proposed.
+
+First decision is ONLY whether to implement and prove these canonical contracts in SMALL owned fixtures. After proof, the exact source/catalogue delta and runnable loaded-target/build/one-April8 packet return for separate release. Current proposed180min/resource stop values are NOT approved or demonstrated capacity. Sole status remains TRACKER.md.
+
+
+### Superseding human release — admission contract implementation and small proof
+
+Actual answer to call_449851a902934ebfbcefa332ef569aaa/item0: Approve implementation and small proofs. The exact future design packet53fb339b is released for its eight implementation boundaries and seven SMALL PostgreSQL proof groups, in the same source/agent/goal. This supersedes the proposal-only restriction for implementation/proof only. No loaded database operation, image build, large run, service/resource change or execution clock is released. Tested source and exact catalogue/ACL delta return with the future launch packet for separate review. Sole status remains TRACKER.md. Receipt: section11/human-admission-contract-implementation-release.json.
+
+
+## Canonical admission implementation supplement — separately released21October2026
+
+The later direct-human approval “Approve implementation and small proofs” releases designv2 SHA53fb339b92094bd27622cf753a58aa5a9c84f43e52ebee1b5254a8162c8b2359 plus controller-approved necessary metadata-only0163/0164 supplements. This supersedes only Section11's prohibition on implementing those contracts; it does not release a build, loaded migration or large execution. Final additive range is0154–0164. The separately named schema transition authenticates exact portable catalogue/ACL/migration pins and preserves original seals/epochs/old roles/objects. The single finite captured reference preserves all seven original records and reuses typed inputs under ordinary execute_day. No extra continuation or status rewrite follows. Actual SMALL exits and final source/launch decision remain in sole TRACKER.md; detailed implementation/proof boundaries are in ADMISSION_CONTRACT_IMPLEMENTATION_HANDOFF.md. No second queue.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
