@@ -2,7 +2,8 @@
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
-21 October2026. Implementation source `be480eb412ace0e7d86b7dedf396910f0818746e`,
+21 October2026. **M4 incomplete; operation stopped and user-directed browser pause applies.**
+Implementation source `be480eb412ace0e7d86b7dedf396910f0818746e`,
 branch `codex/3006-logistics-integration`, following M3 `77d44f1a`.
 The sole live status/decision record is `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
 This handoff records evidence; it is not a second execution queue.
@@ -66,23 +67,86 @@ metadata endpoints retained their gateway-identity denial. The source-side
 onboarding receipt was reconciled to READY without loading data or changing its
 original initialization provenance.
 
-The soleApril8 CSV operation is active. Attempt
+The soleApril8 CSV operation stopped at its existing120-minute deadline. Attempt
 `819ffecb-ffc1-4284-94fc-d4b81a8d515a` sealed its accepted input batch as
 `VALIDATED`:97,097 daily rows,7,661 non-NMS master rows,333 order rows,
 12,671 order-feed rows and216 stock overrides. The remaining frozen feed and
 optional consumer groups are empty. Native preflight/bootstrap passed in
-266.895075seconds. The same operation is preparing its first-day input capture;
-no committed calculation or report completion is claimed yet.
+266.895075seconds. Input capture then committed in2151.978705seconds
+(35minutes52seconds), and calculation began for
+`383104fe-3cf8-4666-bbe1-5156e767d0d7`. Its input root is
+`652680b13c8260b5dcdd753338f1adcd96a14583ce4be6ff72e612a16fa2f116`.
+Calculation did not return before the bound. There is no committed calculation
+result, output checkpoint, report generation or UI publication.
+
+The committed v3 capture contains28 physical populations/204,906 rows,
+11 immutable references to the accepted fact batch and two direct references to
+the original v2 initialization's opening/profile. Those two references retain
+the original manifest `87cab144` and content `9be120d9`; no opening was copied or
+resealed. Physical populations include97,464 prepared raw-master rows and97,097
+MDM SKU/location attribute rows. Raw daily97097, prepared master97464 and eventual
+calculation populations are distinct counts, not interchangeable throughput units.
+
+This first-day/root case has no computed predecessor and includes the frozen
+non-NMS feed. Its capture explicitly records `qualified_master_reuse=false` and
+uses the complete canonical producer. Do not claim that this trial proves the
+qualified unchanged-master/successor speedup; M3's focused root/successor proof
+covers that separate boundary. The substantial physical capture cost remains an
+actual performance finding, not an optimized-away cost or CSV parsing time.
+During calculation the database connection was observed idle outside a
+transaction. The command observer terminated the worker after its deadline;
+Docker recorded SIGTERM, then SIGKILL and exit137. No Docker OOM event was
+observed. This is a controlled interruption, not an observed calculation
+exception or a completed-day timing. The exact internal calculation bottleneck
+is unproved because the existing log reports the calculation phase at return.
+
+| Boundary | Actual result / time |
+|---|---|
+| Original-image full opening/family audit | PASS503.111s; separate maintenance proof |
+| Forward upgrade / certification | PASS361.785s native,372.819s observed command |
+| Certified master readiness | PASS1.4988s,68queries,zero opening-image reads |
+| CSV stage and transition to execution | About619.6s between the two worker starts; includes transition, not a pure parser timing |
+| Native preflight/bootstrap | PASS266.895075s |
+| Prepared input capture | Committed2151.978705s |
+| Calculation | No return after at least4154.399854s (69m14s), measured to the stop request |
+| Whole daily operator | Interrupted7216.485379s (120m16s), exit1 / deadline guard |
+| Output commit, reports, selection, downloads and UI | Not reached / unproved |
+
+The Docker host exposes16 CPUs and16,594,960,384 bytes of memory. Both workers
+had CPU/memory limits0; no benchmark resource ceilings or host increase were
+introduced. Sampled container peaks were1.198GiB for staging,7.349GiB for native
+execution and1.328GiB for PostgreSQL. Calculation typically used approximately
+one core. Other working frontend/auth/MTO/Redis services remained present in the
+samples; these are observed timings, not an isolated hardware capacity guarantee.
+
+Post-stop reconciliation proves the same original initialization and all five
+original seal/hash fields against the pre-upgrade audit,175 migrations,one run,
+zero output checkpoints,zero UI publications and a CAPTURED,unconsumed MDM input.
+No database clients/transactions or daily workers remain. The database run and
+feed-attempt headers still say RUNNING/VALIDATED; these are interrupted records,
+not evidence of a live process. They were not rewritten or retried. MTA remains
+stopped in maintenance; the original five other services remain healthy with
+the same container identities. No new database, master load, image or date was
+created after the stop.
 
 Compact actual command logs/resources are under
 `D:/freshvcf-build/evidence/ingestion-m4-20261021`. The repository operation is
 `I:/VectorFLOW-benchmark-20261020/current-operations/20261021T024435654-e49dd6e50d314744bd6bce77e487f06b`.
-After a Codex restart, reconcile that operation and its database attempt before
-doing anything else. Do not invoke another April8 calculation or initialize again.
+The compact final evidence is `terminal-proof.json`, `daily-measurement.json`,
+`capture-proof.json`, `native-worker-checkpoint.log`, resource samples and the
+operation's `commands.log`. The terminal proof preserves the successful
+post-stop Docker event receipt; Docker's bounded event cache later evicted it.
+After a Codex restart, reconcile this stopped operation before any execution.
+No automatic calculation replay, master reload or deadline extension is released.
+Publication-only `-Resume` requires a SUCCEEDED run and is inapplicable here.
 
-Browser control currently reports disabled. The user says restoring it requires
-an app restart and directs a pause at that boundary. Complete the current backend
-operation safely, then pause before browser acceptance; M4 remains incomplete.
+Browser control was checked again after the stop and still reports disabled.
+The user says restoring it requires an app restart and directs a pause at that
+boundary. Execution is paused at this preserved checkpoint. Browser availability
+is an additional outstanding condition; restarting Codex will not resolve the
+uncompleted calculation. M4 remains incomplete. The single physical rollback set
+and original rollback image remain necessary until acceptance; no extra failure
+stack or worker was retained.
 
 The original blank-install receipt identifies this clean benchmark installation's
 administrator as `benchmark-admin@vectorconsulting.invalid`. That account remains
