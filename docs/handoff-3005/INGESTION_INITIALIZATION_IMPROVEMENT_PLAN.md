@@ -239,13 +239,13 @@ Saved legacy measurements remain qualified context: inherited history, approved 
 
 ## 8. Approval scope and delivery
 
-**This specification alone grants no execution authority.** The human subsequently released milestone 1 only: ownership/certification/revision/compatibility foundation and its focused proof. The image build, working-opening upgrade and single April8 acceptance run remain later milestones. Any later release is recorded in the sole tracker; do not infer it from the overall plan or this document.
+**This specification alone grants no execution authority.** The human subsequently released milestones 1–4 separately. Milestones 1–3 are implemented and proved; milestone 4 is released for the same-opening upgrade, final MTA image and sole April8 acceptance run. Actual progress and decisions remain in the sole tracker; this release statement does not claim acceptance or authorize another run.
 
 The approval does not authorize changed business semantics, deleting/recreating the loaded opening, modifying 3005/legacy/unrelated projects, changing frontend/MTO/auth, adding production resource ceilings, increasing compute/storage, publishing an origin or deploying/cutting over production. These remain genuine exception decisions if encountered. Keep secrets/raw input outside Git.
 
 Deliver one source commit series on the same branch, the updated simple operator/runbook documentation, concise measured findings and the final handoff. Only final approved owned image(s) and the one working installation remain; temporary test databases/rollback copies and obsolete owned images/containers are removed after successful acceptance. No empty source commit or accumulation of failed reference stacks.
 
-The large-trial goal stays paused until the human approves execution of this plan. Approval must not be inferred from creating or opening this document.
+The current milestone4 release permits the existing trial to reach its backend checkpoint. The human directs a pause before browser acceptance if browser control remains unavailable; restoring it requires restarting Codex. No calculation replay follows from restarting the app. Reconcile the persisted operation and continue only the unfinished acceptance work.
 
 ## 9. Revalidation sources
 

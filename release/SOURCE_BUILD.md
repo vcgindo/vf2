@@ -314,8 +314,14 @@ No frontend, MTO or auth build is part of this change.
 The low-level JSON/CSV `initialize_production` command keeps its existing base
 initialization contract and explicit inspection options. Normal CSV onboarding
 uses the complete certified path rather than repeatedly invoking those options.
-Milestone2 verifies source-level behavior on disposable PostgreSQL; the final
-packaged image and supported upgrade of an already-bound older installation
-remain the later handoff milestone.
+Milestones2–3 verified source-level initialization and daily ownership on
+disposable PostgreSQL. Milestone4 built the final MTA candidate and upgraded the
+known `687adcf` opening without reloading masters or changing its original seals.
+Its actual connected acceptance is recorded in
+[the milestone4 handoff](../docs/handoff-3005/INGESTION_MILESTONE4_HANDOFF.md).
+That restricted maintenance transition is not a generic upgrade command and is
+not needed for the fresh installation described here. Ordinary operators keep
+the same `csv-init` and `csv-day` commands; never repeat initialization to recover
+a failed daily operation.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
