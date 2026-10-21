@@ -47,6 +47,13 @@ Key receipts: r1-scan-exact-comparison.json; r1-index-build-probe-match-counts.j
 
 First SQL proof correctly failed on the stale report-source pin; its log/accounting and6,212,583-byte scratch dump are retained. The scratch database was recreated only after exact ownership and zero clients, then removed after successful proof. No application database, account or service was reset. An old Elephant codec test mocked cursor rather than the reader's chunked_cursor; only that mock target was repaired.
 
-Source export and one MTA-only package follow this verified checkpoint. The package must verify the complete native declaration and the report pin against its actual bytes, including line endings. It will remain unactivated.
+Code commit7de537cfb81f3066205e285de9102562e3b52228 is pushed and remote-matched. One MTA image was built and verified from that exact committed export:
+
+- Image:sha256:5542e7d7217e24cc4fbd57576742f3ee1a3c7d1862a35ce53183849e43ca9d13;282,141,872bytes;user10001:10001.
+- Native manifest:899ba06f3bbb6dc600d5cb7d39cb2383d91592da752d437a5c81f82d74757e90.
+- Source export:922584085191548a0c3fc61b51f91d99b48de066a62f8e893041643a0fe80cd3; build-side descriptor bound by verified image label.
+- Actual report producer:8bf0c789efd56850d67885d8300e86006c4ec2504c9314542ecead813370a85e;source pin and seven rows match actual image bytes.
+
+Offline verification ran without network, database, serving, application mounts or a writable root. Full native file identity and affected imports pass. The image is unactivated. r1-scan-final-handoff.json binds final source/test/evidence hashes; r1-next-large-operation-proposal.json records the exact future boundary without a launch command. A later documentation-only commit records these package results; it does not change the image's code commit.
 
 The large97,097-pair April8 day still needs separately authorized execution. Its last interrupted wrapper already uses the currently fixed recovery-depth boundary. This correction does not extend that boundary, rewrite its status or reset a clock. A concrete future execution owner/recovery decision must preserve all existing attempts and reuse the accepted opening/facts without an inferred replay. Browser/connected acceptance remains unproved for the large day.
