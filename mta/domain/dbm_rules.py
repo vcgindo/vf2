@@ -1,6 +1,12 @@
-"""Ordered selected DBM recommendation rules."""
+"""Ordered selected DBM recommendation rules.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from copy import deepcopy
 from mta.domain.ordinal_lookup import indexed_state, matching
+from mta.domain.sql_identity_keys import row_join_key
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 
@@ -21,7 +27,7 @@ def spike_recommendation(today, state):
         if len(values) != 1:
             raise ValueError('BASELINE_UNVERIFIED: Rule6 needs one selected setting ' + parameter)
         settings[parameter] = int(values[0])
-    key = lambda row: (row['SKUCode'],row['WhCode'])
+    key = row_join_key
     as_day = lambda value: date.fromisoformat(value) if isinstance(value,str) else value
     result = deepcopy(state)
     suggestions = [r for r in result['Suggestions'] if r['Type'] < 6]
@@ -68,7 +74,7 @@ def too_much_in_green(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal business date at midnight')
-    key = lambda row: (row['SKUCode'], row['WhCode'])
+    key = row_join_key
     result = deepcopy(state)
     suggestions = [r for r in result['Suggestions'] if r['Type'] < 5]
     excluded = {key(r) for r in suggestions} | {key(r) for r in state['SuspendStockType'] if r['GreenEnabled'] == 0}
@@ -129,7 +135,7 @@ def too_much_in_red(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal business date at midnight')
-    key = lambda row: (row['SKUCode'], row['WhCode'])
+    key = row_join_key
     result = deepcopy(state)
     suggestions = [r for r in result['Suggestions'] if r['Type'] < 4]
     excluded = {key(r) for r in suggestions} | {key(r) for r in state['SuspendStockType'] if r['RedEnabled'] == 0}
@@ -178,7 +184,7 @@ def stockout_type_b(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal business date at midnight')
-    key = lambda row: (row['SKUCode'], row['WhCode'])
+    key = row_join_key
     result = deepcopy(state)
     suggestions = [r for r in result['Suggestions'] if r['Type'] < 3]
     excluded = {key(r) for r in suggestions} | {key(r) for r in state['SuspendStockType'] if r['RedEnabled'] == 0}
@@ -223,7 +229,7 @@ def virtual_stockout(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal business date at midnight')
-    key = lambda row: (row['SKUCode'], row['WhCode'])
+    key = row_join_key
     result = deepcopy(state)
     suggestions = [r for r in result['Suggestions'] if r['Type'] < 2]
     excluded = {key(r) for r in suggestions} | {key(r) for r in state['SuspendStockType'] if r['RedEnabled'] == 0}
@@ -275,7 +281,7 @@ def stockout_type_a(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal business date at midnight')
-    key = lambda row: (row['SKUCode'], row['WhCode'])
+    key = row_join_key
     disabled = {key(r) for r in state['SuspendStockType'] if r['RedEnabled'] == 0}
     masters = [r for r in state['DBMMaster'] if key(r) not in disabled]
     result = deepcopy(state)

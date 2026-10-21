@@ -1,12 +1,18 @@
-"""Ordered DBM suspension state; selected SQL semantics without rule dispatch."""
+"""Ordered DBM suspension state; selected SQL semantics without rule dispatch.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from copy import deepcopy
 from mta.domain.ordinal_lookup import OrdinalLookup, indexed_state, matching
+from mta.domain.sql_identity_keys import row_join_key
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
 
 
 def _key(row):
-    return row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+    return row_join_key(row)
 
 
 def _flags(row, red=False, green=False):

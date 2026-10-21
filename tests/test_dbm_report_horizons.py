@@ -87,7 +87,7 @@ class ReportHorizonTests(unittest.TestCase):
             stack.enter_context(patch.object(chain,'connected_stages',return_value=[('ingestion',state)]))
             stack.enter_context(patch.object(chain,'postrule_stages',side_effect=lambda today,current:[]))
             stack.enter_context(patch.object(chain,'selected_norm012_stages',return_value=[]))
-            for name in names:stack.enter_context(patch.object(chain,name,side_effect=lambda *args:args[1]))
+            for name in names:stack.enter_context(patch.object(chain,name,side_effect=lambda *args,**kwargs:args[1]))
             stages=dict(chain.selected_stages('2037-04-10',state,{},config))
         self.assertEqual(stages['norm-change-export']['ReportRows'],norm_change_report('2037-04-10',state,30)['ReportRows'])
         self.assertEqual(stages['norm-change-history']['ReportRows'],norm_change_history('2037-04-10',state,30)['ReportRows'])

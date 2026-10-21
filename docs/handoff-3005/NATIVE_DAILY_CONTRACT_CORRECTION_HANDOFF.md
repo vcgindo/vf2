@@ -1,0 +1,41 @@
+# Section9 native daily contract corrections — tested source handoff
+
+21 October 2026. All seven approved corrections and their bounded source/contract proof exit are complete. The 97,097-pair April8 benchmark remains stopped; another large attempt and any production build/activation require separate authority.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+Source: `C:/Users/thapa/.codex/worktrees/handoff-3005/freshvcf`, branch `codex/3006-logistics-integration`, candidate atop70a253. The sole current authority remains `F:/freshvcf/docs/handoff-3005/TRACKER.md`. Existing plan Section9 governs this correction, without a new queue or goal.
+
+| Finding | Delivered boundary |
+|---|---|
+| A1 | Positive RelPSO uses canonical CEILING before bands/roll-up/export. Strict native integers remain. Norm10/PSO4/33% gives1, black band5; actual generated bands now feed a complete positive native parent allocation witness. |
+| A2 | RemainingPSOThresholdQty is assigned decimal(13,3), HALF_UP and range checked at the owning INSERT-equivalent boundary before sequential Green→Yellow→Red→Black CNR netting. No global rounding or policy cap. |
+| A3 | Closed list/RecordRows Pick adapter restores only declared decimal fields on copied rows. Missing populations, malformed rosters and nonfinite values fail. Exact four-file bytes, ownership, scope and drift guards remain. |
+| A4 | ASCII CI/trailing ordinary-space identities are consistent through indexes, probes and residual DBM/BTR joins. JOIN NULL does not match, GROUP NULL groups; spelling, bags, source ordinals and ambiguity denials remain. Indexed raw source spelling still detects mutation. BTR excludes JOIN-ineligible NULL keys before sorting. |
+| A5 | Existing native catalogue drives field checks at actual writers. DBM uses explicit written-table rosters, avoiding rescans caused only by deepcopy. BTR validates new current generations including Dispatch, dates and all four BPP trends. New history rows are checked at their append owner, without validating retained history again. Native enforcement is scoped to calculate_day(native_daily=True), with exception-safe reset; explicit validation remains strict. |
+| A6 | Shared controls use declared rosters including empty tables. Only WHCode←WhCode aliasing is allowed; conflicting aliases and missing fields fail. Legal NULLs and immutable source values are preserved. |
+| A7 | Auxiliary BOR percentages use local HALF_UP:1/32×100 gives3.13. The separate native operational_bor materializer is unchanged. |
+
+Native field coverage uses `mta/config/production_state_schema_v1.json` (digest84f01ea8…), complete native allocation13fields, both complete Pick tables21/16fields, and explicit partial intermediate/control/expedite rosters. The existing exact5-field BTR expedite projection is validated against its selected native fields; absent unrelated columns are not fabricated. Selected DBM writer mapping is in `native_output_contracts.DBM_WRITERS`; BTR current generations in `BTR_CURRENT`. Historical append coverage: accepted/forced Norm logs, DBM daily observations/orders/order summaries/discards/suggestion logs/spike/suspension history, and incoming BTR BPR observations. No schema, operational row type, stored history or source catalogue is rewritten.
+
+## Verification
+
+- 160 affected tests PASS4.661s. Final8-test arithmetic suite PASS0.058s includes the added positive fractional-PSO allocation;7 of these arithmetic tests overlap the affected suite. Complete unaffected component-stage equality and source nonmutation are retained. The earlier157-test/5-error log remains evidence; placement and stale mocks were corrected without dropping NULL/partial cases or weakening native rejection.
+- Actual PostgreSQL Pick9,999/10,000/10,001 rows for each table independently, plus both10,001, PASS7cases. Actual worker file-spool and fresh read-only-process representations, exact4formatter/download bytes, scope/tamper/missing-file denials and source immutability passed. Permission resolution was isolated; this is not another browser/auth campaign.
+- Actual normal native CSV day PASS149.400s; observer243.387s, worker3b227cee Exit0/PID0/nonOOM/guardnull. Actual entry/control processing and both R1 passes reached1positive native allocation and38Pick allocations. Nonempty force-control/Norm log/suspension history, DBM/BTR, complete typed atomic commit/readback, report layers/guided aggregates,4files, original/captured input archive, admission and selected publication passed.
+- The native allocation's full13fields/ordinal were independently checked: original order350, available stock295 with100% rationing/0% reservation, pack1, persisted allocation295; the source's existing future-self White/-1.00 and Oct23 destination date are retained. The existing typed source writer separately compares every produced cell against its persisted reconstruction before preparation.
+- An actual late SQL rollback leaves the run RUNNING, capture CAPTURED, no checkpoints and unchanged epochs before the valid commit. A separately staged small successor with injected int32-overflow output fails early, leaves no committed outputs/consumed capture and preserves the accepted prefix. This negative successor is a small test, not another benchmark date.
+- Unchanged real SQL ownership/job/source locks, public UUID/internal-PK denials, duplicate/consumed input and fifth-continuation denials, filesystem/metadata rollback and compatible-source/original-certificate proof are reused only after exact matches of all5 relevant source files. New changed-native output paths have the actual proof above.
+- At256/512/1024 rows, changed key/index/native validation work is exactly n; temporary indexes are released. CPU0.547/0.813/1.766s; peak process39.6/41.8/47.3MB. An aggregate4,294,967,294 is rejected at its native field even though each child is a legal int32. These component observations are not a whole-day performance estimate.
+
+Small successful-flow phase observations: calculation1.110s, Pick files0.026s, atomic persistence13.885s including deliberate rollback exercise, report layers34.321s, guided aggregates3.496s, input archive1.595s and report admission18.002s; peak process176,590,848bytes. Do not compare this fault-injected contract-test duration with a production benchmark.
+
+Independent review findings (native-only validation placement and NULL pivot sorting) were corrected and re-reviewed as resolved. All bound runtime/business source bytes stayed frozen during the final SQL proof. Retained native SQL/schema/scalar evidence qualifies the existing domain; no fresh SQL Server service/campaign or generic Unicode equality claim was introduced.
+
+## Preservation and release limit
+
+Original loaded initialization plus all5FAILED benchmark headers/input manifests/failures remain exact against the prior terminal receipt. Original certification3cb8d3fc… and5CAPTURED inputs remain. Six protected service IDs/images/start times/running states are unchanged; original MTA remains stopped. Only the verified owned small proof DB and4stopped Section9 test workers were removed after external evidence/dumps and zero-client checks. No image, protected volume or shared service was deleted/restarted.
+
+The candidate is source-tested inside the previous5cbe dependency image with a separate read-only source mount. A new production image was not built or activated. No new serving/API/UI/public deployment claim, recovery depth/status rewrite, large attempt, input reload/restage/reseal, timeout/resource increase or additional business-policy change follows from this exit.
+
+Evidence: `D:/freshvcf-build/evidence/daily-contract-audit-20261021/section9-final-handoff.json`, SHA256 `5da28d983babad55560c412dcd54c77380bd016c6fdc4da8799840dddb749fe2`. It binds current source files, actual logs/measurements, complete allocation rows, source-identical reused lifecycle proof and preservation/cleanup receipts. Failed harness attempts are explicit in that record; their logs are not presented as full-suite PASS.

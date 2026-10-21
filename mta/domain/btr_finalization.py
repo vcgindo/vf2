@@ -4,6 +4,10 @@ The contract is pinned in
 ``.local-stage7/block3-one-pass/delivery-v1/btr-source-contract.json``.
 Rows remain SQL-style bags.  Deterministic aggregate multiplicity is preserved;
 undefined latest-row or update-source choices are rejected.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
 """
 from __future__ import annotations
 
@@ -14,6 +18,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from itertools import chain
 from xml.sax.saxutils import quoteattr
 from mta.row_sequences import history_rows, is_record_rows
+from mta.domain.sql_identity_keys import group_key, join_key, row_join_key, value_join_key
 
 
 DAYS = tuple(f"D{i}" for i in range(1, 91))
@@ -55,10 +60,9 @@ def _day(value):
 
 
 def _key(row):
-    location = row["WhCode"] if "WhCode" in row else row.get("WHCode")
-    if location is None:
+    if "WhCode" not in row and "WHCode" not in row:
         raise KeyError("WhCode")
-    return row["SKUCode"], location
+    return row_join_key(row)
 
 
 def _require_rows(container, names, label):
@@ -132,6 +136,8 @@ def _import_bpr(today, prior, facts, *, _owned=False):
         imported = {field: deepcopy(row[field]) for field in BPR_SOURCE_FIELDS}
         imported["WHCode"] = imported.pop("WhCode")
         incoming.append(imported | {"ReportDate": today.isoformat()})
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows(incoming,"BTR/BPR",stage="btr/import-bpr")
     cutoff = today - timedelta(days=90)
     retained = (
         deepcopy(row) for row in prior["BPR"]
@@ -145,10 +151,10 @@ def _import_bpr(today, prior, facts, *, _owned=False):
     live_locations, live_skus, live_sku_locs = set(), set(), set()
     latest_days, latest_parents = {}, {}
     for row in result["BPR"]:
-        key = row["SKUCode"], row["WHCode"]
+        key = join_key(row["SKUCode"], row["WHCode"])
         report_day = _day(row["ReportDate"])
-        live_locations.update((row["WHCode"], row["ParentWhCode"]))
-        live_skus.add(row["SKUCode"])
+        live_locations.update((value_join_key(row["WHCode"]), value_join_key(row["ParentWhCode"])))
+        live_skus.add(value_join_key(row["SKUCode"]))
         live_sku_locs.add(key)
         if key not in latest_days or report_day > latest_days[key]:
             latest_days[key] = report_day
@@ -156,24 +162,24 @@ def _import_bpr(today, prior, facts, *, _owned=False):
         elif report_day == latest_days[key] and len(latest_parents[key]) < 2:
             latest_parents[key].add(row["ParentWhCode"])
     result["LocationAttributeData"] = _sync(
-        prior["LocationAttributeData"], facts["LocationAttributeData"], lambda r: r["WHCode"],
+        prior["LocationAttributeData"], facts["LocationAttributeData"], lambda r: value_join_key(r["WHCode"]),
         location_fields, live_locations, "BPRDatabase.LocationAttributeData")
     result["SiteDescriptionTbl"] = _sync(
-        prior["SiteDescriptionTbl"], facts["SiteDescriptionTbl"], lambda r: r["WHCode"],
+        prior["SiteDescriptionTbl"], facts["SiteDescriptionTbl"], lambda r: value_join_key(r["WHCode"]),
         ("WHCode", "WHDescription"), live_locations, "BPRDatabase.SiteDescriptionTbl")
     result["SkuAttributeData"] = _sync(
-        prior["SkuAttributeData"], facts["SkuAttributeData"], lambda r: r["SKUCode"],
+        prior["SkuAttributeData"], facts["SkuAttributeData"], lambda r: value_join_key(r["SKUCode"]),
         sku_fields, live_skus, "BPRDatabase.SkuAttributeData")
     result["SKUDescriptionTbl"] = _sync(
-        prior["SKUDescriptionTbl"], facts["SKUDescriptionTbl"], lambda r: r["SKUCode"],
+        prior["SKUDescriptionTbl"], facts["SKUDescriptionTbl"], lambda r: value_join_key(r["SKUCode"]),
         ("SKUCode", "SKUDescription"), live_skus, "BPRDatabase.SKUDescriptionTbl")
     result["SkuLocAttributeData"] = _sync(
         prior["SkuLocAttributeData"], facts["SkuLocAttributeData"],
-        lambda r: (r["SKUCode"], r["LocCode"]), sku_loc_fields, live_sku_locs,
+        lambda r: join_key(r["SKUCode"], r["LocCode"]), sku_loc_fields, live_sku_locs,
         "BPRDatabase.SkuLocAttributeData")
 
-    cwh = {row["pwhCode"] for row in facts["CWH_List"]}
-    distributors = {row["WhCode"] for row in facts["DistributorList"]}
+    cwh = {value_join_key(row["pwhCode"]) for row in facts["CWH_List"]}
+    distributors = {value_join_key(row["WhCode"]) for row in facts["DistributorList"]}
     latest = {}
     for key, parents in latest_parents.items():
         if len(parents) != 1:
@@ -183,10 +189,10 @@ def _import_bpr(today, prior, facts, *, _owned=False):
     for key, value in dbm.items():
         if key in latest:
             latest[key] = value[0]
-    child_locations = {location for _, location in latest}
-    parent_locations = set(latest.values())
+    child_locations = {value_join_key(location) for _, location in latest}
+    parent_locations = {value_join_key(location) for location in latest.values()}
     for row in result["LocationAttributeData"]:
-        location = row["WHCode"]
+        location = value_join_key(row["WHCode"])
         row["WhType"] = "dist" if location in distributors else "cwh" if location in cwh else "non-cwh"
         row["IsChild"] = location in child_locations
         row["IsParent"] = location in parent_locations
@@ -204,6 +210,8 @@ def _latest_norms(bpr, dbm):
     values = {}
     for row in bpr:
         key, report_day = _key(row), _day(row["ReportDate"])
+        if None in key:
+            continue
         value = row["Norm"], row["VirtualNorm"], row["ParentWhCode"]
         if key not in latest_days or report_day > latest_days[key]:
             latest_days[key], values[key] = report_day, {value}
@@ -224,15 +232,21 @@ def _latest_norms(bpr, dbm):
 def _pivot(bpr, today, value_field):
     start = today - timedelta(days=89)
     cells = {}
+    spellings = defaultdict(set)
     for row in bpr:
         report_day = _day(row["ReportDate"])
         if start <= report_day <= today:
-            cell = _key(row), report_day
+            key = group_key(row["SKUCode"], row.get("WhCode", row.get("WHCode")))
+            spellings[key].add((row["SKUCode"], row.get("WhCode", row.get("WHCode"))))
+            cell = key, report_day
             value = row[value_field]
             if cell not in cells or cells[cell] is None:
                 cells[cell] = value
             elif value is not None:
                 cells[cell] = max(cells[cell], value)
+    ambiguous = [key for key, values in spellings.items() if len(values) > 1]
+    if ambiguous:
+        raise ValueError(f"SOURCE_ORDER_AMBIGUITY: BTR pivot identity spelling {ambiguous[0]}")
     keys = {key for key, _ in cells}
     return {
         key: {f"D{offset + 1}": cells.get((key, start + timedelta(days=offset)))
@@ -245,7 +259,7 @@ def _generate_trends(today, state, facts, *, _owned=False):
     result = _stage_copy(state, _owned=_owned)
     result["BufferTrendDates"] = [{f"D{i + 1}": (today - timedelta(days=89 - i)).isoformat() for i in range(90)}]
     norms = _latest_norms(result["BPR"], facts["DBMMaster"])
-    locations = _unique_source(result["LocationAttributeData"], lambda r: r["WHCode"], ("WhType",), "BTR location type")
+    locations = _unique_source(result["LocationAttributeData"], lambda r: value_join_key(r["WHCode"]), ("WhType",), "BTR location type")
     specs = (
         ("BufferTrendReport", "TechColor", False),
         ("BufferTrendReportEcon", "EcoColor", False),
@@ -254,11 +268,11 @@ def _generate_trends(today, state, facts, *, _owned=False):
     )
     for table, field, include_virtual in specs:
         rows = []
-        for key, values in sorted(_pivot(result["BPR"], today, field).items()):
+        for key, values in sorted((key,values) for key,values in _pivot(result["BPR"], today, field).items() if key in norms):
             norm, virtual, parent = norms[key]
             row = {"SKUCode": key[0], "WhCode": key[1], "ParentWhCode": parent,
-                   "WhType": locations.get(key[1], (None,))[0],
-                   "ParentWhType": locations.get(parent, (None,))[0], "Norm": norm}
+                   "WhType": locations.get(value_join_key(key[1]), (None,))[0],
+                   "ParentWhType": locations.get(value_join_key(parent), (None,))[0], "Norm": norm}
             if include_virtual:
                 row["VirtualNorm"] = virtual
             row.update(values)
@@ -288,7 +302,8 @@ def _generate_trends(today, state, facts, *, _owned=False):
         pivot = _pivot(result["BPR"], today, field)
         result[table] = [
             {"SKUCode": key[0], "WhCode": key[1], **deepcopy(values)}
-            for key, values in sorted(pivot.items()) for _ in range(latest_counts[key])
+            for key, values in sorted((key,values) for key,values in pivot.items() if key in latest_counts)
+            for _ in range(latest_counts[key])
         ]
     return result
 
@@ -427,18 +442,25 @@ def _snapshot(state, *, _owned=False):
 def _count_graph(state, *, _owned=False):
     result = _stage_copy(state, _owned=_owned)
     groups = defaultdict(Counter)
+    spellings = {}
     fields = (("Tech", "TechColor"), ("Eco", "EcoColor"),
               ("Dispatch", "DispatchColor"), ("PhysicalInv", "PhysicalInventoryColor"))
     colours = ("Black", "Red", "Yellow", "Green", "White")
     for row in result["BPR"]:
-        counts = groups[(_day(row["ReportDate"]), row["ParentWhCode"], row["WHCode"])]
+        identity = (_day(row["ReportDate"]), group_key(row["ParentWhCode"], row["WHCode"]))
+        spelling = row["ParentWhCode"], row["WHCode"]
+        if identity in spellings and spellings[identity] != spelling:
+            raise ValueError(f"SOURCE_ORDER_AMBIGUITY: BTR graph identity spelling {spelling}")
+        spellings[identity] = spelling
+        counts = groups[identity]
         for prefix, field in fields:
             value = row[field]
             if value in colours:
                 counts[prefix, value] += 1
     output = []
-    ordering = lambda item: (item[0][0], str(item[0][1]), str(item[0][2]))
-    for (report_day, parent, location), counts in sorted(groups.items(), key=ordering):
+    ordering = lambda item: (item[0][0], str(item[0][1][0]), str(item[0][1][1]))
+    for (report_day, location_key), counts in sorted(groups.items(), key=ordering):
+        parent, location = location_key
         row = {"ReportDate": report_day.isoformat(), "SrcWhCode": parent, "DestWhCode": location}
         for prefix, _ in fields:
             for colour in colours:

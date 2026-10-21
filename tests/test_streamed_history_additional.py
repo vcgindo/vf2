@@ -161,7 +161,7 @@ class AdditionalStreamedHistoryTests(unittest.TestCase):
                            row['WHCode'].rstrip().upper())
         with OrdinalLookup(rows, key=key) as lookup:
             self.assertEqual([row['value'] for row in lookup.matching(rows, ('A', 'L'))], [1, 2])
-            self.assertEqual([row['value'] for row in lookup.matching(rows, (None, 'L'))], [3])
+            self.assertEqual([row['value'] for row in lookup.matching(rows, (None, 'L'))], [])
             self.assertIs(rows.ordinal_source(), rows.ordinal_source())
         self.assertEqual(calls, ['scan'])
 

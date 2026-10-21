@@ -1,8 +1,14 @@
-"""Canonical final-family history and contributor reason arithmetic."""
+"""Canonical final-family history and contributor reason arithmetic.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from copy import deepcopy
 from datetime import date,timedelta
 from itertools import chain
 from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.domain.sql_identity_keys import row_join_key
 from mta.row_sequences import history_rows
 
 REASONS=('RedReasonStockType','GreenReasonStockType','RedReasonConsumptionType','GreenReasonConsumptionType')
@@ -19,7 +25,7 @@ def gather_suspension_history(today,state,*,_owned=False):
     today=date.fromisoformat(today) if isinstance(today,str) else today
     if state['LastBatchRunTbl']!=[{'LastRunDate':today.isoformat()+'T00:00:00'}]:
         raise ValueError('History requires singleton midnight run date')
-    key=lambda r:(r['SKUCode'],r.get('WhCode',r.get('WHCode')))
+    key=row_join_key
     day=lambda v:date.fromisoformat(v) if isinstance(v,str) else v
     result=dict(state) if _owned else deepcopy(state)
     previous=(r for r in result['SuspendHistory'] if day(r['ReportDate'])>today-timedelta(days=90) and day(r['ReportDate'])!=today)
@@ -40,5 +46,7 @@ def gather_suspension_history(today,state,*,_owned=False):
                 if len(outcomes)>1:raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting suspension history contributor '+table)
                 if outcomes:
                     for i,amount in zip(indices,outcomes.pop()):row[REASONS[i]]+=amount
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows(current,'DBM/SuspendHistory',stage='dbm/suspension-history')
     result['SuspendHistory']=history_rows(chain(previous,current),like=state['SuspendHistory'])
     return result

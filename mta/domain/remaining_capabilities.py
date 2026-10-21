@@ -121,7 +121,7 @@ def calculate_bor_oa(case: dict) -> list[dict]:
             denominator = d(bands[band_name])
             if denominator == 0:
                 return "0.00"
-            return format((d(bands[req_name]) * 100 / denominator).quantize(Decimal("0.01")), "f")
+            return format((d(bands[req_name]) * 100 / denominator).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP), "f")
         rows.append({
             "case": item["case"], "sku": item["sku"], "location": item["location"], "supplier": item["supplier"],
             "norm": text(norm), "virtual_norm": text(d(item["virtual_norm"])), "stock": text(d(item["stock"])),

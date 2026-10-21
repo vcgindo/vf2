@@ -1,7 +1,12 @@
-"""Configured change history projection, date-descending groups."""
+"""Configured change history projection, date-descending groups.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from copy import deepcopy
-from mta.application.r1_importer_master import _sql_key
 from mta.domain.dbm_report_dates import report_cutoff, row_date
+from mta.domain.sql_identity_keys import value_join_key
 
 HEADER=['SKUCode','SKU Name','Loc Code','Loc Name','OldNorm','NewNorm','NormChangeDate','Reason']
 
@@ -10,7 +15,7 @@ def norm_change_history(today,state,horizon,*,_owned=False):
     lower=report_cutoff(today,state,horizon,inclusive=False)
     rows=[]
     def same(left,right):
-        return left is not None and right is not None and _sql_key(left)==_sql_key(right)
+        return left is not None and right is not None and value_join_key(left)==value_join_key(right)
     def description(value):
         return None if value is None else value.replace(',',' ')
     for r in state['NormChangeLogTbl']:

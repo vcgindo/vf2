@@ -240,10 +240,10 @@ def _canonical_output(row, ordinal):
     result = dict(row)
     for field in ("SKUCode", "DestWhCode", "SrcWhCode", "CustomerOrderId"):
         value = result[field]
-        if not isinstance(value, str) or len(value) > 50:
+        if not isinstance(value, str) or len(value.encode('utf-16-le')) // 2 > 50:
             raise ValueError(f"AllocatedOrders[{ordinal}].{field} is not nvarchar(50) NOT NULL")
     colour = result["OrderColor"]
-    if colour is not None and (not isinstance(colour, str) or len(colour) > 10):
+    if colour is not None and (not isinstance(colour, str) or len(colour.encode('utf-16-le')) // 2 > 10):
         raise ValueError(f"AllocatedOrders[{ordinal}].OrderColor is not nullable nvarchar(10)")
     for field in ("OrderKey", "IsSpike", "Qty", "OrderWiseAllocatedQty",
                   "PackSizeWiseAllocatedQty"):

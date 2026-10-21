@@ -2,6 +2,10 @@
 
 External day facts are separate from state. The R1 calculation input below is
 an internal projection of actual current producers, never an external answer.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
 """
 
 from copy import deepcopy
@@ -42,11 +46,15 @@ from mta.runtime.dbm_phase_storage import STAGES as PHASE_STAGES, POPULATION as 
 
 def connected_dbm_stages(today, state, facts, delivery, report_exceptions=None):
     """Daily dispatch consumes the explicitly typed Importer settings owner."""
-    return selected_stages(today, state, facts,
+    from mta.application.native_output_contracts import validate_dbm_writer,producing_native
+    stages=selected_stages(today, state, facts,
         None if delivery is None else delivery['batch'], report_exceptions,
         _owned=True,
         conditional_settings=None if delivery is None else
             delivery.get('conditional_dbm', {}).get('importer_vf_settings'))
+    for name,current in stages:
+        if producing_native():validate_dbm_writer(current,name)
+        yield name,current
 
 
 def connected_btr_stages(today, prior, facts, delivery, *, bpr_daily, supplier_dispatch_req):
@@ -56,7 +64,16 @@ def connected_btr_stages(today, prior, facts, delivery, *, bpr_daily, supplier_d
     owner=delivery.get('btr_history',{}).get('importer_vf_settings')
     current={**facts,'LastBatchRunTbl':[{'LastRunDate':today+'T00:00:00'}],
              'BPRDailyConsumption':bpr_daily,'SupplierDispatchReq':supplier_dispatch_req}
-    return btr_stages(today,prior,current,settings,importer_vf_settings=owner,_owned=True)
+    from mta.application.native_output_contracts import CurrentGenerations,BTR_CURRENT,validate_rows,producing_native
+    generations=CurrentGenerations(BTR_CURRENT,'BTR',prior)
+    for name,produced in btr_stages(today,prior,current,settings,importer_vf_settings=owner,_owned=True):
+        if producing_native():generations.validate(produced,'btr/'+name)
+        if producing_native() and name=='UpdateBRAge.sql':
+            validate_rows(produced['ExpediteDispatches'],'BPR/ExpediteDispatches',
+                fields=('SKUCode','WhCode','BRAge','BRAgeRedCount','BRAgeBlackCount'),stage='btr/'+name)
+        if producing_native() and name=='UpdateCategoryCol.sql':
+            validate_rows(produced['SKULocStandardAttributes'],'Importer/SKULocStandardAttributes',stage='btr/'+name)
+        yield name,produced
 
 
 def retain_dbm_stages(selected,completed_boundaries):
@@ -132,7 +149,19 @@ def control_rows(rows):
 
 def native_rows(rows,fields):
     """Exact native case projection; no value defaults or business calculation."""
-    return [{f:r[f] if f in r else r['WhCode'] for f in fields} for r in rows]
+    if not isinstance(fields,(tuple,list)) or not fields or len(set(fields))!=len(fields):
+        raise ValueError('Explicit unique native control field roster required')
+    result=[]
+    for ordinal,row in enumerate(rows):
+        if 'WHCode' in row and 'WhCode' in row and row['WHCode'] != row['WhCode']:
+            raise ValueError('Conflicting native WHCode/WhCode aliases at occurrence '+str(ordinal))
+        projected={}
+        for field in fields:
+            if field in row:projected[field]=row[field]
+            elif field=='WHCode' and 'WhCode' in row:projected[field]=row['WhCode']
+            else:raise ValueError('Missing native control field '+field+' at occurrence '+str(ordinal))
+        result.append(projected)
+    return result
 
 def delivery_control_types(state):
     """Represent SQL BIT control fields with the selected driver's bool type."""
@@ -314,7 +343,8 @@ def additional_native(prepared, importer):
 def calculate_day(prior, opening_date, day, profile, identity, execute_calculation,
                   report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
     # Native producers retain only their required business outputs/captures.
-    with operation(identity), stage('daily_calculation'):
+    from mta.application.native_output_contracts import native_assignments
+    with operation(identity), stage('daily_calculation'), native_assignments(native_daily):
         result = _calculate_day_native(prior, opening_date, day, profile, identity,
                                        execute_calculation, report_exceptions,
                                        **({'native_daily':True} if native_daily else {}),
@@ -538,10 +568,11 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     for row in dbm['SkuLocAttributeData']:
         if row['NonNMS'] is not None: row['NonNMS']=bool(row['NonNMS'])
     for n,src in SHARED_CONTROLS.items():
-        if dbm[src]:fields=tuple(dbm[src][0])
-        else:fields=EMPTY_NATIVE_FIELDS.get(src)
-        dbm[src]=native_rows(control_final[n],fields) if fields else deepcopy(control_final[n])
-    dbm['NormChangeLogTbl']=native_rows(control_final['log'],('SKUCode','WHCode','OldNorm','NewNorm','NormChangeDate','NormChangeReason'))
+        from mta.application.native_output_contracts import control_fields,validate_rows
+        fields=EMPTY_NATIVE_FIELDS.get(src) or control_fields(src)
+        dbm[src]=native_rows(control_final[n],fields)
+        if src not in ('NormChangeLogTbl','SuggestionsLog'):
+            validate_rows(dbm[src],'DBM/'+src,fields=fields,stage='controls/'+src)
     dbm['LastBatchRunTbl']=[{'LastRunDate':now}]
     facts={n:deepcopy(day[n]) for n in ('order_raw','exclusions','distributor_transactions','vendor_transactions')}
     facts.update(daily_raw=deepcopy(daily_final['DailyDataRaw']),bpr_daily=deepcopy(late['BPRDailyConsumption']))

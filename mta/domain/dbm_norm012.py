@@ -1,8 +1,14 @@
-"""Selected Norm0/1/2 report stages; unordered source outcomes are not invented."""
+"""Selected Norm0/1/2 report stages; unordered source outcomes are not invented.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from collections import defaultdict
 from copy import deepcopy
 from datetime import date, timedelta
 from itertools import product
+from mta.domain.sql_identity_keys import join_key, row_join_key, value_join_key
 
 BUSINESS_TABLES = ('DBMMaster', 'DailyConsumption', 'LastBatchRunTbl',
                    'SKUDescriptionTbl', 'SiteDescriptionTbl', 'SkuAttributeData',
@@ -64,23 +70,27 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
         raise ValueError('Selected report requires singleton midnight run date')
     out = deepcopy(state)
     image = defaultdict(list)
+    image_spelling = {}
     for master in state['DBMMaster']:
         if master['Norm'] == norm:
             for description in state['SKUDescriptionTbl']:
-                if chronological and (master['SKUCode'] is None or description['SKUCode'] is None):
-                    continue
-                if master['SKUCode'] == description['SKUCode']:
-                    image[master['SKUCode'], master['WhCode']].append(description['SKUDescription'])
+                key = row_join_key(master)
+                if value_join_key(master['SKUCode']) == value_join_key(description['SKUCode']):
+                    spelling=master['SKUCode'],master['WhCode']
+                    if key in image_spelling and image_spelling[key]!=spelling:
+                        raise AmbiguousReport('Conflicting Norm0/1/2 grouped key spelling')
+                    image_spelling[key]=spelling
+                    image[key].append(description['SKUDescription'])
     observations = defaultdict(list)
     for row in state['DailyConsumption']:
-        key = row['SKUCode'], row['WhCode']
-        if chronological and any(value is None for value in key):
+        key = row_join_key(row)
+        if any(value is None for value in key):
             continue  # SQL equality joins do not match NULL keys.
         if row['ReportDate'] is None:
             continue  # SQL WHERE denies NULL dates; no invented date.
         if _day(row['ReportDate']) > today - timedelta(days=horizon):
             observations[key].extend([row] * len(image[key]))
-    excluded = {tuple(key) for key in occurrence_order_exclusions}
+    excluded = {join_key(*key) for key in occurrence_order_exclusions if None not in key}
     result = []
     for key, rows in observations.items():
         if not rows:
@@ -101,8 +111,9 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
         # group still fails the native NOT NULL TotalSale target; never seed 0.
         total=report_total(rows)
         report_int(len(positive),'Count')
+        sku,loc=image_spelling[key]
         for description in image[key]:
-            result.append({'SKUCode': key[0], 'WHCode': key[1], 'Count': len(positive),
+            result.append({'SKUCode': sku, 'WHCode': loc, 'Count': len(positive),
                            'Occurances': None if ambiguous else ', '.join(fragments),
                            'TotalSale': total,
                            'SKUName': description if description is not None else '-'})
@@ -116,17 +127,18 @@ def detail_stage(state):
     result = []
     for row in state['Norm0Norm1Norm2Report']:
         sku, loc = row['SKUCode'], row['WHCode']
+        key=join_key(sku,loc)
         matches = [
-            [v for v in state['SkuAttributeData'] if v['SKUCode'] == sku] or [None],
-            [v for v in state['SkuLocAttributeData'] if (v['SKUCode'], v['LocCode']) == (sku, loc)] or [None],
-            [v for v in state['LocationAttributeData'] if v['WHCode'] == loc] or [None],
-            [v for v in state['SiteDescriptionTbl'] if v['WHCode'] == loc] or [None],
-            [v for v in state['DBMMaster'] if (v['SKUCode'], v['WhCode']) == (sku, loc)] or [None],
+            [v for v in state['SkuAttributeData'] if value_join_key(v['SKUCode']) == value_join_key(sku)] or [None],
+            [v for v in state['SkuLocAttributeData'] if join_key(v['SKUCode'], v['LocCode']) == key] or [None],
+            [v for v in state['LocationAttributeData'] if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
+            [v for v in state['SiteDescriptionTbl'] if value_join_key(v['WHCode']) == value_join_key(loc)] or [None],
+            [v for v in state['DBMMaster'] if row_join_key(v) == key] or [None],
         ]
         for sa, sla, la, site, master in product(*matches):
             parent = master['ParentWhCode'] if master else None
             norms = {v['Norm'] for v in state['DBMMaster']
-                     if v['SKUCode'] == sku and parent is not None and v['WhCode'] == parent}
+                     if parent is not None and join_key(v['SKUCode'],v['WhCode'])==join_key(sku,parent)}
             if len(norms) > 1:
                 raise AmbiguousReport('Conflicting parent Norm UPDATE')
             detail = {'SKUCode': sku, 'SKUName': row['SKUName'], 'WhCode': loc,

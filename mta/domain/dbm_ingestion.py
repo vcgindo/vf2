@@ -3,6 +3,10 @@
 Canonical table-shaped rows are used at this boundary to keep state columns
 explicit. This module performs no I/O and does not select a rule from a fixture.
 Source/ownership contract: docs/block3/R2_INGESTION_CONTRACT.md.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
 """
 from __future__ import annotations
 
@@ -10,6 +14,7 @@ from copy import deepcopy
 from datetime import date, timedelta
 from itertools import chain, groupby
 from mta.domain.ordinal_lookup import OrdinalLookup
+from mta.domain.sql_identity_keys import row_join_key, value_join_key
 from mta.row_sequences import history_rows
 
 
@@ -22,7 +27,7 @@ def _day(value):
 
 
 def _key(row):
-    return row['SKUCode'], row.get('WhCode', row.get('WHCode'))
+    return row_join_key(row)
 
 
 def import_daily_observations(today, previous, raw, masters, bpr_daily,
@@ -30,7 +35,7 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
     """Replace current-date observations; preserve other history and SQL bags."""
     today = _day(today)
     excluded = {
-        row['WhCode']
+        value_join_key(row['WhCode'])
         for row in (*distributor_transactions, *vendor_transactions)
         if _day(row['ReportDate']) == today and row['TransactedItemCount'] == 0
     }
@@ -48,7 +53,7 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
     current = []
     for row in raw:
         key = _key(row)
-        if _day(row['ReportDate']) != today or row['WhCode'] in excluded:
+        if _day(row['ReportDate']) != today or value_join_key(row['WhCode']) in excluded:
             continue
         for _ in range(master_counts.get(key, 0)):
             current.append({
@@ -56,6 +61,8 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
                 **{field: row[field] for field in ('Stock', 'Consumption', 'GIT', 'Receipts')},
                 'BlueZone': blues.get(key, 0), 'ReportDate': row['ReportDate'],
             })
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows(current,'DBM/DailyConsumption',stage='dbm/ingestion-daily')
     return history_rows(chain(retained, current), like=previous)
 
 
@@ -67,11 +74,14 @@ def import_exclusions(exclusions, masters):
 
 def import_orders(today, previous, raw):
     today = _day(today)
-    return [deepcopy(row) for row in previous if _day(row['ImportDate']) != today] + [
+    current=[
         {field: row[field] for field in
          ('OrderID', 'SKUCode', 'WhCode', 'OrderQuantity', 'OrderDate', 'ImportDate')}
         for row in raw if _day(row['ImportDate']) == today
     ]
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows(current,'DBM/OrderData',stage='dbm/ingestion-orders')
+    return [deepcopy(row) for row in previous if _day(row['ImportDate']) != today] + current
 
 
 def calculate_extended_ocp(today, attributes, masters, daily):

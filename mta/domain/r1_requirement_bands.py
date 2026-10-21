@@ -12,7 +12,7 @@ does not pretend that an absent allocation is zero in a scenario that needs it.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_CEILING
+from decimal import Decimal, ROUND_CEILING, ROUND_HALF_UP, localcontext
 
 
 ZERO = Decimal("0")
@@ -21,6 +21,8 @@ ZERO = Decimal("0")
 def _integer(value: Decimal, label: str) -> Decimal:
     if not isinstance(value, Decimal) or not value.is_finite() or value < ZERO or value != value.to_integral_value():
         raise ValueError(f"{label} must be a non-negative integer Decimal")
+    if value > 2147483647:
+        raise ValueError(f"{label} exceeds native SQL int")
     return value
 
 
@@ -30,6 +32,21 @@ def _ceil(value: Decimal) -> Decimal:
 
 def _text(value: Decimal) -> str:
     return format(value, "f")
+
+
+def _stored_threshold(value: Decimal) -> Decimal:
+    """Intermediate.RequirementInColorBand INSERT: decimal(13,3).
+
+    DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+    """
+    if not value.is_finite() or abs(value) >= Decimal('10000000000'):
+        raise ValueError('RemainingPSOThresholdQty exceeds native decimal(13,3)')
+    with localcontext() as context:
+        context.prec = 50
+        stored = value.quantize(Decimal('.001'), rounding=ROUND_HALF_UP)
+    if not stored.is_finite() or abs(stored) >= Decimal('10000000000'):
+        raise ValueError('RemainingPSOThresholdQty exceeds native decimal(13,3)')
+    return stored
 
 
 @dataclass(frozen=True, slots=True)
@@ -112,9 +129,14 @@ def calculate_requirement_bands(
         norm_red = third if inventory > ZERO else ZERO
         norm_yellow = _ceil(row.norm * 2 / 3) - norm_red - norm_black
         norm_green = row.norm - norm_yellow - norm_red - norm_black
-        threshold_qty = row.norm * row.pso_threshold_percent / 100
-        remaining_pso_threshold = max(threshold_qty - row.pso, ZERO)
-        rel_pso = max(row.pso - threshold_qty, ZERO)
+        with localcontext() as context:
+            context.prec = 50
+            threshold_qty = row.norm * row.pso_threshold_percent / 100
+            remaining_pso_threshold = _stored_threshold(max(threshold_qty - row.pso, ZERO))
+            # CalculateReq.sql assigns CEILING before the intermediate INSERT
+            # and before every band, child roll-up and native allocation reader.
+            rel_pso = _integer(_ceil(row.pso - threshold_qty), 'RelPSO') if row.pso > threshold_qty else ZERO
+        stored_remaining_pso_threshold=remaining_pso_threshold
         cnr_green = sum((Decimal(child["norm_req_green"]) for child in child_rows), ZERO)
         cnr_yellow = sum((Decimal(child["norm_req_yellow"]) for child in child_rows), ZERO)
         cnr_red = sum((Decimal(child["norm_req_red"]) for child in child_rows), ZERO)
@@ -179,6 +201,27 @@ def calculate_requirement_bands(
             "rel_cnr_green": _text(rel_cnr_green), "rel_cnr_yellow": _text(rel_cnr_yellow),
             "rel_cnr_red": _text(rel_cnr_red), "rel_cnr_black": _text(rel_cnr_black),
         }
+        # Explicit partial image at the current intermediate writer. Check
+        # aggregates as well as their individual source cells, before either
+        # parent roll-up or BOR/native allocation can consume this generation.
+        from mta.application.native_output_contracts import validate_row
+        native_projection=dict(SKUCode=row.sku_code,WhCode=row.location_code,
+            ParentWhCode=row.parent_location_code,Norm=row.norm,Stock=row.stock,GIT=row.goods_in_transit,
+            RelPSO=rel_pso,RelCNR=rel_cnr_green+rel_cnr_yellow+rel_cnr_red+rel_cnr_black,
+            NormGreen=norm_green,NormYellow=norm_yellow,NormRed=norm_red,NormBlack=norm_black,
+            RemainingPSOThresholdQty=stored_remaining_pso_threshold,
+            CNRGreen=cnr_green,CNRYellow=cnr_yellow,CNRRed=cnr_red,CNRBlack=cnr_black,
+            NormBucketGreenBand=norm_bands['green'],NormBucketYellowBand=norm_bands['yellow'],
+            NormBucketRedBand=norm_bands['red'],NormBucketBlackBand=norm_bands['black'],
+            RemainingStock=remaining,ResidualChildrenSnp=residual_child_orders,
+            **{'Order'+colour.title()+'Band':value for colour,value in order_bands.items()},
+            **{'NormReq'+colour.title():requirements['norm_'+colour] for colour in norm_bands},
+            **{'OrderReq'+colour.title():requirements['order_'+colour] for colour in order_bands})
+        if source_rows is not None:
+            # The standalone primitive also represents external reference
+            # roots. Only this explicit native writer emits table rows.
+            validate_row(native_projection,'Intermediate/RequirementInColorBand',fields=tuple(native_projection),
+                stage='r1/requirement-bands',ordinal=len(resolved))
         resolved[key] = output
         if source_rows is not None:
             source_rows[key] = dict(SKUCode=row.sku_code, WhCode=row.location_code,

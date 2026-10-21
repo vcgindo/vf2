@@ -13,7 +13,8 @@ class OrdinalLookupTests(unittest.TestCase):
         with OrdinalLookup(rows) as lookup:
             folder = Path(lookup.directory.name)
             for key in [('01','a'), (None,'a'), ('1','a'), ('None','a'), (None,None), ('X','a')]:
-                self.assertEqual(list(lookup.matching(rows, key)), [r for r in rows if pair(r)==key])
+                expected = [] if None in key else [r for r in rows if pair(r)==key]
+                self.assertEqual(list(lookup.matching(rows, key)), expected)
             with self.assertRaises(TypeError):list(lookup.matching(rows, (1,'a')))
             with self.assertRaises(ValueError):list(lookup.matching(list(rows), ('01','a')))
             rows[0], rows[1] = rows[1], rows[0]
@@ -35,7 +36,7 @@ class OrdinalLookupTests(unittest.TestCase):
             with OrdinalLookup(rows) as lookup:
                 self.assertEqual(lookup.db.execute('PRAGMA cache_size').fetchone()[0], -2048)
                 self.assertEqual([c[1] for c in lookup.db.execute('PRAGMA table_info(candidate)')],
-                                 ['sku','loc','ordinal'])
+                                 ['sku','loc','raw_sku','raw_loc','ordinal'])
                 self.assertEqual(sum(1 for _ in lookup.matching(rows, ('7','W'))), 100)
                 self.assertEqual(lookup.candidate_rows, 100)
                 _, peak = tracemalloc.get_traced_memory()

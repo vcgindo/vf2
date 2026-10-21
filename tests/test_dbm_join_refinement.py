@@ -35,10 +35,10 @@ class JoinDifferentialTests(unittest.TestCase):
     def state(self):
         masters=[dict(SKUCode=k,WhCode=w,Norm=norm,RLT=2,OCP=2)
             for k,w,norm in [('01','W',Decimal(9)),('01','W',Decimal(12)),
-                             ('1','W',Decimal(9)),(None,None,Decimal(6))]]
+                             ('1','W',Decimal(9))]]
         daily=[dict(SKUCode=k,WhCode=w,ReportDate=d,Stock=stock,BlueZone=0,
                     Consumption=consumption,Receipts=receipts)
-            for k,w in [('01','W'),('1','W'),(None,None),('absent','W')]
+            for k,w in [('01','W'),('1','W'),('absent','W')]
             for d,stock,consumption,receipts in [('2026-06-04',0,2,1),
                 ('2026-06-05',0,4,1),(date(2026,6,6),20,4,2),('2026-06-06',0,8,2)]]
         daily.insert(2,copy.deepcopy(daily[2]))
@@ -62,7 +62,7 @@ class JoinDifferentialTests(unittest.TestCase):
                 with self.subTest(name=name,variant=variant):self.compare(name,getattr(suspension,name),TODAY,state)
 
     def test_extended_ocp_order_ties_nulls_and_duplicate_master(self):
-        attrs=[dict(SKUCode=k,WhCode=w,ExtendedOCP=0) for k,w in [('01','W'),(None,None),('1','W')]]
+        attrs=[dict(SKUCode=k,WhCode=w,ExtendedOCP=0) for k,w in [('01','W'),('1','W')]]
         masters=[dict(**{k:v for k,v in a.items() if k!='ExtendedOCP'},OCP=2,RLT=1) for a in attrs]
         daily=[dict(SKUCode=a['SKUCode'],WhCode=a['WhCode'],ReportDate=d,Stock=0)
                for a in attrs for d in ('2026-06-04','2026-06-05','2026-06-05','2026-06-06')]

@@ -113,11 +113,12 @@ def reports_from_pick_state(state):
     """
     from mta.runtime.complete_daily_state import TABLES
     from mta.application.complete_daily_pick_files import project_reports
+    from mta.row_sequences import is_record_rows
     restored = {}
     for name in ('LogisticPickList', 'PickListDataForTruckFormation'):
         fields = TABLES['complete/BPR/' + name]
         rows = state[name]
-        if not isinstance(rows, list):
+        if not is_record_rows(rows):
             raise ValueError('Explicit native Pick row population required')
         restored[name] = []
         for row in rows:
@@ -130,6 +131,8 @@ def reports_from_pick_state(state):
                     if not isinstance(value, (str, Decimal)):
                         raise ValueError('Exact persisted decimal wire value required')
                     copy[field] = Decimal(value)
+                    if not copy[field].is_finite():
+                        raise ValueError('Exact finite persisted decimal wire value required: ' + name + '.' + field)
             restored[name].append(copy)
     return project_reports(logistic_pick_list=restored['LogisticPickList'],
         pick_list_data_for_truck_formation=restored['PickListDataForTruckFormation'])

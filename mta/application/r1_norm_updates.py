@@ -3,6 +3,10 @@
 Canonical UpdateAcceptedNorms, UpdateForceChangedNorms, UpdateNormChanges.
 This stage consumes independently produced control tables, not replacement
 current-day Norms. Full NormChangesRun collectors remain a separate obligation.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
 """
 from collections import Counter
 from copy import deepcopy
@@ -88,6 +92,9 @@ def apply_norm_updates(state, day):
                     if suggestion['Type'] == reason['Id']:
                         changes.append(dict({f: row[f] for f in ('SKUCode','WhCode','OldNorm','NewNorm')},
                                             NormChangeDate=day, NormChangeReason=reason['Id']))
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows([{('WHCode' if name=='WhCode' else name):value for name,value in row.items()}
+                   for row in changes], 'DBM/NormChangeLogTbl', stage='controls/accepted-log')
     changed = {key(r) for r in changes}
     out['log'] = [r for r in out['log'] if not (key(r) in changed and r['NormChangeDate'] == day
                   and r['NormChangeReason'] is not None and r['NormChangeReason'] < 100)] + changes
@@ -105,9 +112,12 @@ def apply_norm_updates(state, day):
               and not (r['OldNorm'] is not None and r['NewNorm'] is not None and r['OldNorm'] == r['NewNorm'])]
     counts = Counter(key(r) for r in forced)
     forced = [r for r in forced if counts[key(r)] == 1]
+    forced_changes = [dict(r, NormChangeDate=day, NormChangeReason=101) for r in forced]
+    validate_produced_rows([{('WHCode' if name=='WhCode' else name):value for name,value in row.items()}
+                   for row in forced_changes], 'DBM/NormChangeLogTbl', stage='controls/forced-log')
     changed = {key(r) for r in forced}
     out['log'] = [r for r in out['log'] if not (key(r) in changed and r['NormChangeDate'] == day
-                  and r['NormChangeReason'] == 101)] + [dict(r, NormChangeDate=day, NormChangeReason=101) for r in forced]
+                  and r['NormChangeReason'] == 101)] + forced_changes
     for row in out['upload_log']:
         if key(row) in masters:
             row['OldNorm'] = masters[key(row)]['Norm']

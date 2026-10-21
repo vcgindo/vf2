@@ -2,6 +2,10 @@
 
 The source owner retains the rows. This file contains only typed keys and source
 ordinals. Queries stream in original order, so duplicate joins are unchanged.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
 """
 from contextlib import ExitStack
 from contextvars import ContextVar
@@ -11,6 +15,7 @@ import os
 import sqlite3
 import tempfile
 from mta.row_sequences import RecordRows
+from mta.domain.sql_identity_keys import join_key
 
 _indexes = ContextVar('dbm_ordinal_indexes', default=None)
 
@@ -29,10 +34,11 @@ class OrdinalLookup:
     batch_size = 256
     cache_kib = 2048
 
-    def __init__(self, rows, key=pair):
+    def __init__(self, rows, key=pair, key_contract=join_key):
         self.owner = rows
         self.rows = rows.ordinal_source() if isinstance(rows,RecordRows) else rows
         self.key = key
+        self.key_contract = key_contract
         self.count = len(rows)
         self.candidate_rows = 0
         base = Path(os.environ.get('VF_WORK_ROOT',
@@ -45,10 +51,15 @@ class OrdinalLookup:
             self.db.execute('PRAGMA temp_store=FILE')
             self.db.execute('PRAGMA journal_mode=OFF')
             self.db.execute('PRAGMA synchronous=OFF')
-            self.db.execute('CREATE TABLE candidate(sku BLOB NOT NULL, loc BLOB NOT NULL, ordinal INTEGER NOT NULL)')
-            self.db.executemany('INSERT INTO candidate VALUES(?,?,?)',
-                ((encode(key[0]), encode(key[1]), ordinal)
-                 for ordinal, row in enumerate(self.rows) for key in (self.key(row),)))
+            self.db.execute('CREATE TABLE candidate(sku BLOB NOT NULL, loc BLOB NOT NULL, '
+                            'raw_sku BLOB NOT NULL, raw_loc BLOB NOT NULL, ordinal INTEGER NOT NULL)')
+            self.db.executemany('INSERT INTO candidate VALUES(?,?,?,?,?)',
+                ((encode(contract.normalized[0]), encode(contract.normalized[1]),
+                  encode(raw_key[0]), encode(raw_key[1]), ordinal)
+                 for ordinal, row in enumerate(self.rows)
+                 for raw_key in (tuple(self.key(row)),)
+                 for contract in (self.key_contract(*raw_key),)
+                 if None not in contract))
             self.db.execute('CREATE INDEX candidate_pair ON candidate(sku,loc,ordinal)')
             self.db.commit()
         except BaseException:
@@ -66,13 +77,21 @@ class OrdinalLookup:
     def matching(self, rows, key):
         if rows is not self.owner or len(rows) != self.count:
             raise ValueError('Ordinal lookup owner changed')
-        cursor = self.db.execute('SELECT ordinal FROM candidate WHERE sku=? AND loc=? ORDER BY ordinal',
-                                 (encode(key[0]), encode(key[1])))
+        contract = self.key_contract(*key)
+        if None in contract:
+            return
+        cursor = self.db.execute('SELECT ordinal,raw_sku,raw_loc FROM candidate '
+                                 'WHERE sku=? AND loc=? ORDER BY ordinal',
+                                 (encode(contract.normalized[0]), encode(contract.normalized[1])))
         try:
             while batch := cursor.fetchmany(self.batch_size):
-                for (ordinal,) in batch:
+                for ordinal, raw_sku, raw_loc in batch:
                     row = self.rows[ordinal]
-                    if self.key(row) != key:raise ValueError('Ordinal lookup source reordered or mutated')
+                    raw_key = tuple(self.key(row))
+                    if (encode(raw_key[0]), encode(raw_key[1])) != (raw_sku, raw_loc):
+                        raise ValueError('Ordinal lookup source reordered or mutated')
+                    if self.key_contract(*raw_key) != contract:
+                        raise ValueError('Ordinal lookup source reordered or mutated')
                     self.candidate_rows += 1
                     yield row
         finally:

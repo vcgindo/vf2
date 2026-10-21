@@ -1,8 +1,14 @@
-"""Canonical discard and suggestion/spike history producers."""
+"""Canonical discard and suggestion/spike history producers.
+
+DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend
+presentation and behavior. No frontend redesign, substitute screens, refactoring
+or MTO changes. Any future exception requires explicit human authorization.
+"""
 from copy import deepcopy
 from datetime import date,datetime
 from itertools import chain
 from mta.row_sequences import history_rows
+from mta.domain.sql_identity_keys import row_join_key
 
 
 def _day(today,state):
@@ -13,7 +19,7 @@ def _day(today,state):
     return value
 
 
-def _key(row):return row['SKUCode'],row['WhCode']
+def _key(row):return row_join_key(row)
 
 
 def _different(suggestions,masters):
@@ -27,6 +33,8 @@ def discard_suggestions(today,state):
         and r['Type']!=12 and r['NewNorm']<m['MinNorm'] and r['NewNorm']<m['Norm']}
     discarded=({'SKUCode':r['SKUCode'],'WhCode':r['WhCode'],'SuggestionType':r['Type'],'SuggestionDate':today,'DiscardCode':4}
         for r in suggestions if _key(r) in keys)
+    from mta.application.native_output_contracts import validated_new_rows
+    discarded=validated_new_rows(discarded,'DBM/DiscardedSuggestions',stage='postrules/discarded')
     result['DiscardedSuggestions']=history_rows(chain(
         (r for r in result['DiscardedSuggestions'] if str(r['SuggestionDate'])!=today),discarded),
         like=state['DiscardedSuggestions'])
@@ -37,14 +45,17 @@ def discard_suggestions(today,state):
 def generate_reports(today,state):
     today=_day(today,state);result=deepcopy(state)
     result['Suggestions']=_different(result['Suggestions'],state['DBMMaster'])
-    current=({'SKUCode':m['SKUCode'],'WhCode':m['WhCode'],'Type':r['Type'],'OldNorm':m['Norm'],
+    current=[{'SKUCode':m['SKUCode'],'WhCode':m['WhCode'],'Type':r['Type'],'OldNorm':m['Norm'],
          'NewNorm':r['NewNorm'],'SuggestionDate':today}
-        for m in state['DBMMaster'] for r in result['Suggestions'] if _key(m)==_key(r))
+        for m in state['DBMMaster'] for r in result['Suggestions'] if _key(m)==_key(r)]
+    from mta.application.native_output_contracts import validate_produced_rows
+    validate_produced_rows(current,'DBM/SuggestionsLog',stage='postrules/suggestions-log')
     result['SuggestionsLog']=history_rows(chain(
         (r for r in result['SuggestionsLog'] if str(r['SuggestionDate'])!=today),current),
         like=state['SuggestionsLog'])
-    spikes=({'SKUCode':r['SKUCode'],'WhCode':r['WhCode'],'SuspendFromDate':r['WaitStartDate'],'SuspendTillDate':r['WaitTillDate']}
-        for r in state['SuspendSpikeTbl'] if str(r['WaitStartDate'])==today)
+    spikes=[{'SKUCode':r['SKUCode'],'WhCode':r['WhCode'],'SuspendFromDate':r['WaitStartDate'],'SuspendTillDate':r['WaitTillDate']}
+        for r in state['SuspendSpikeTbl'] if str(r['WaitStartDate'])==today]
+    validate_produced_rows(spikes,'DBM/SpikeReport',stage='postrules/spike-report')
     result['SpikeReport']=history_rows(chain(
         (r for r in result['SpikeReport'] if str(r['SuspendFromDate'])!=today),spikes),
         like=state['SpikeReport'])

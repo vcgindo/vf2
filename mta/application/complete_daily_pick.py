@@ -117,4 +117,8 @@ def calculate_native_pick(**sources):
                 raise ValueError('Native SKU UPDATE has differing dimension candidates (including unfiltered NULL rows); '
                                  f"SKU={item['sku']!r}, candidates={sorted(map(repr, values))}; "
                                  'rank qualification does not cover it')
-    return calculate_pick_cases_state(cases, allow_priority_ties=True)
+    state=calculate_pick_cases_state(cases, allow_priority_ties=True)
+    from mta.application.native_output_contracts import validate_rows
+    for name in ('LogisticPickList','PickListDataForTruckFormation'):
+        validate_rows(state[name],'complete/BPR/'+name,stage='pick/'+name)
+    return state

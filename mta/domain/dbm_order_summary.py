@@ -14,5 +14,7 @@ def update_order_summary(today,state,*,_owned=False):
     current=({**{k:r[k] for k in
         ('SKUCode','WhCode','NodeOrderCount','CummOrderCount','NodeConsumption')},'ImportDate':today.isoformat()}
         for r in state['OrderRuleSummary'])
+    from mta.application.native_output_contracts import validated_new_rows
+    current=validated_new_rows(current,'DBM/OrderDataSummary',stage='dbm/order-summary')
     result['OrderDataSummary']=history_rows(chain(retained,current),like=state['OrderDataSummary'])
     return result

@@ -302,7 +302,7 @@ class ConnectedConditionalTests(unittest.TestCase):
             with patch.object(typed,'bulk',side_effect=lambda query, rows:records.extend(rows)):
                 meta=typed.save_image(SimpleNamespace(pk='2b2f8d37-0a14-4624-985b-88c8d2662f6a'),path,None,storage(final[name]),table='DBM/'+name)
             cursor=MagicMock();cursor.fetchmany.side_effect=[[tuple(r[2:]) for r in records],[]]
-            with patch.object(typed.connection,'cursor') as context:
+            with patch.object(typed.connection,'chunked_cursor') as context:
                 context.return_value.__enter__.return_value=cursor
                 reconstructed[name]=typed.load_image(SimpleNamespace(pk='2b2f8d37-0a14-4624-985b-88c8d2662f6a'),meta)
             self.assertEqual(reconstructed[name],storage(final[name]))
