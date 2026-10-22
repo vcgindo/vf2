@@ -120,6 +120,10 @@ SCHEMA_FIELDS = frozenset(('contract','initialization_id','target_release','targ
     'previous_release','previous_authority_digest','certification_digest',
     'before_schema_digest','before_guard_digest','schema_digest','guard_digest',
     'migration_pins','catalogue_delta_digest','preservation_digest'))
+CODE_SCHEMA_CONTRACT='fresh-code-schema-inheritance-v1'
+CODE_SCHEMA_FIELDS=frozenset(('contract','initialization_id','target_release','target_commit',
+    'anchor_release','anchor_authority_digest','anchor_schema_receipt_digest',
+    'certification_digest','schema_digest','guard_digest','migration_pins','catalogue_delta_digest'))
 
 
 def _schema_contract(cursor):
@@ -215,8 +219,58 @@ def read_schema_transition(cursor, activation):
     row=cursor.fetchone()
     if row is None:return None
     body=json.loads(row[0]) if isinstance(row[0],str) else row[0]
-    validate_schema_transition(body)
+    if body.get('contract')==CODE_SCHEMA_CONTRACT:
+        validate_code_schema(body)
+    else:
+        validate_schema_transition(body)
     if (digest(body)!=row[1] or body['initialization_id']!=activation['initialization_id']
             or body['target_release']!=activation['target_release']):
         raise ValueError('Schema transition row identity differs')
+    return body
+
+
+def validate_code_schema(body):
+    import re
+    if type(body) is not dict or set(body)!=CODE_SCHEMA_FIELDS or body['contract']!=CODE_SCHEMA_CONTRACT:
+        raise ValueError('Exact code-only schema inheritance required')
+    if str(UUID(body['initialization_id']))!=body['initialization_id']:
+        raise ValueError('Canonical code-only initialization required')
+    if type(body['target_commit']) is not str or not re.fullmatch('[0-9a-f]{40}',body['target_commit']):
+        raise ValueError('Exact code-only source commit required')
+    for key in CODE_SCHEMA_FIELDS-{'contract','initialization_id','target_commit','migration_pins'}:
+        sha(body[key])
+    if (body['target_release']==body['anchor_release'] or body['migration_pins']!=[]
+            or body['catalogue_delta_digest']!=digest({})):
+        raise ValueError('Code-only inheritance cannot change schema or reference itself')
+    return body
+
+
+def inherit_code_schema(cursor,activation,predecessor):
+    """Provisioner-only direct link to authenticated effective schema, no DDL."""
+    _provisioner(cursor);validate(activation)
+    from mta.runtime.ingestion_admission import effective_schema
+    cert,anchor,schema,guard,anchor_receipt=effective_schema(cursor,predecessor)
+    if any(activation[k]!=predecessor[k] for k in FIELDS-{'target_commit','target_release'}):
+        raise ValueError('Code-only promotion changed original ownership')
+    # effective_schema authenticates the chain; the predecessor must also
+    # still match the actual live catalogue/security, never caller digests.
+    from mta.runtime.ingestion_admission import validate_activation
+    validate_activation(cursor,predecessor)
+    cursor.execute('SELECT to_regclass(%s)',[SCHEMA_TABLE])
+    if cursor.fetchone()[0] is None:
+        # Original installations without extensions need no extra catalogue
+        # receipt and retain their existing certificate-only admission path.
+        return None
+    _schema_contract(cursor)
+    body=validate_code_schema(dict(contract=CODE_SCHEMA_CONTRACT,
+        initialization_id=activation['initialization_id'],target_release=activation['target_release'],
+        target_commit=activation['target_commit'],anchor_release=anchor['target_release'],
+        anchor_authority_digest=digest(anchor),anchor_schema_receipt_digest=anchor_receipt,
+        certification_digest=cert['receipt_digest'],schema_digest=schema,guard_digest=guard,
+        migration_pins=[],catalogue_delta_digest=digest({})))
+    cursor.execute('SET LOCAL ROLE fresh_namespace_registrar')
+    cursor.execute('INSERT INTO fresh_control.ingestion_schema_compatibility '
+        '(initialization_id,target_release,body,receipt_digest) VALUES(%s,%s,%s::jsonb,%s)',
+        [body['initialization_id'],body['target_release'],json.dumps(body),digest(body)])
+    cursor.execute('RESET ROLE')
     return body

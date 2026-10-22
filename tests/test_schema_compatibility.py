@@ -49,7 +49,7 @@ class SchemaCompatibilityTests(unittest.TestCase):
         for index,body in enumerate(bodies):
             body.update(target_release=str(index)*64,target_commit=str(index)*40)
         cert=dict(schema_digest='s',guard_digest='g',receipt_digest='r')
-        extensions=[dict(previous_release=bodies[i+1]['target_release'],
+        extensions=[dict(contract=authority.SCHEMA_CONTRACT,previous_release=bodies[i+1]['target_release'],
             previous_authority_digest=digest(bodies[i+1]),certification_digest='r',
             target_commit=bodies[i]['target_commit']) for i in range(5)]
         with patch.object(admission,'_activation_metadata',return_value=cert), \

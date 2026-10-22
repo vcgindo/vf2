@@ -282,6 +282,7 @@ def transition(initialization_id, *, previous_release, target_release):
             current = _admit(cursor, owner.pk, release, pending=True)
             return dict(status='EXISTING_COMPATIBLE_RELEASE_VERIFIED', certification_digest=current.certification_digest)
         from psycopg import sql
+        authority.inherit_code_schema(cursor,body,old)
         cursor.execute(sql.SQL('SET LOCAL ROLE {}').format(sql.Identifier(original['owner']['name'])))
         IngestionReleaseCompatibility.objects.create(initialization=owner, **audit, receipt_digest=digest(audit))
         cursor.execute('RESET ROLE')

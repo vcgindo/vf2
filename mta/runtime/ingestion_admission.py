@@ -169,23 +169,41 @@ def _activation_metadata(cursor, body):
     return cert
 
 
-def validate_activation(cursor, body):
-    """Validate immutable ownership and the exact effective live catalogue."""
+def effective_schema(cursor, body):
+    """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
-    from release.native_schema import schema_digest
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set()
+    chain=[]; current=body; seen=set(); real_count=0; anchor=None
+    link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
     while True:
         if current['target_release'] in seen:
             raise ValueError('Schema transition contains a cycle')
         seen.add(current['target_release'])
-        extension=authority.read_schema_transition(cursor,current)
+        extension=link
         if extension is None:
             break
-        if len(chain)==4:
+        if extension['contract']==authority.CODE_SCHEMA_CONTRACT:
+            parent=authority.read(cursor,current['initialization_id'],extension['anchor_release'])
+            if (_activation_metadata(cursor,parent)!=cert or digest(parent)!=extension['anchor_authority_digest']
+                    or extension['target_commit']!=current['target_commit']
+                    or extension['certification_digest']!=cert['receipt_digest']
+                    or any(parent[k]!=current[k] for k in authority.FIELDS-{'target_commit','target_release'})):
+                raise ValueError('Code-only schema anchor ownership differs')
+            parent_link=authority.read_schema_transition(cursor,parent)
+            if parent_link and parent_link['contract']==authority.CODE_SCHEMA_CONTRACT:
+                raise ValueError('Code-only schema anchor cannot be another code-only release')
+            if (extension['anchor_schema_receipt_digest']!=(digest(parent_link) if parent_link else cert['receipt_digest'])
+                    or (parent_link is None and parent['target_release']!=cert['release_digest'])):
+                raise ValueError('Code-only schema anchor receipt differs')
+            chain.append(extension);current=parent;link=parent_link
+            continue
+        if real_count==4:
             raise ValueError('Schema transition exceeds the reviewed four-admission boundary')
+        real_count+=1
+        if anchor is None:
+            anchor=current;anchor_receipt=digest(extension)
         parent=authority.read(cursor,current['initialization_id'],extension['previous_release'])
         if (_activation_metadata(cursor,parent)!=cert
                 or digest(parent)!=extension['previous_authority_digest']
@@ -194,11 +212,26 @@ def validate_activation(cursor, body):
                 or extension['target_commit']!=current['target_commit']):
             raise ValueError('Schema transition changed original certified ownership')
         chain.append(extension);current=parent
+        link=authority.read_schema_transition(cursor,current)
     for extension in reversed(chain):
+        if extension['contract']==authority.CODE_SCHEMA_CONTRACT:
+            if extension['schema_digest']!=expected_schema or extension['guard_digest']!=expected_guard:
+                raise ValueError('Code-only inherited catalogue differs from its schema anchor')
+            continue
         if (extension['before_schema_digest']!=expected_schema
                 or extension['before_guard_digest']!=expected_guard):
             raise ValueError('Schema transition predecessor catalogue differs')
         expected_schema,expected_guard=extension['schema_digest'],extension['guard_digest']
+    if anchor is None:
+        anchor=authority.read(cursor,body['initialization_id'],cert['release_digest'])
+        anchor_receipt=cert['receipt_digest']
+    return cert,anchor,expected_schema,expected_guard,anchor_receipt
+
+
+def validate_activation(cursor, body):
+    """Validate immutable ownership and the exact effective live catalogue."""
+    cert,anchor,expected_schema,expected_guard,_=effective_schema(cursor,body)
+    from release.native_schema import schema_digest
     if (schema_digest(cursor) != expected_schema
             or security_digest(cursor, cert['authority_roles']) != expected_guard):
         raise ValueError('Current schema, grants, roles or guards differ')
