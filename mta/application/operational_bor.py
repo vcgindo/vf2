@@ -5,6 +5,7 @@ runtime state and they do not claim an order where the source INSERT/SELECT has
 none.  Python list order is retained as the source-bag order for later native
 qualification.
 """
+from mta.row_sequences import is_record_rows
 from copy import deepcopy
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
@@ -127,7 +128,7 @@ class LegacyBorAmbiguity(ValueError):
 
 
 def _require_rows(name, rows, fields):
-    if not isinstance(rows, list):
+    if not is_record_rows(rows):
         raise ValueError(f"{name} must be an explicit row list")
     expected = set(fields)
     for row in rows:
@@ -271,31 +272,42 @@ def collect_bor_order_allocation(*, bpr_master, sob_data, moq_data, requirements
     if not callable(equal):
         raise ValueError("Explicit SQL equality adapter required")
 
+    from mta.application.row_bag_lookup import AsciiBagLookup
+    masters = AsciiBagLookup(bpr_master, ('SKUCode', 'WHCode'), equal)
+    moqs_by_supplier = AsciiBagLookup(moq_data, ('SKUCode', 'WHCode', 'SupplierCode'), equal)
+    reqs_by_pair = AsciiBagLookup(requirements, ('SKUCode', 'WhCode'), equal)
+    reqs_by_parent = AsciiBagLookup(requirements, ('SKUCode', 'WhCode', 'ParentWhCode'), equal)
+    reports_by_pair = AsciiBagLookup(rationed_report, ('SKUCode', 'WhCode'), equal)
     topmost = [row for row in bpr_master if not any(_join(
         row, parent, (("SKUCode", "SKUCode"), ("ParentWhCode", "WHCode")), equal)
-        for parent in bpr_master)]
+        for parent in masters.candidates(row, ("SKUCode", "ParentWhCode")))]
     temp = [dict(SKUCode=r["SKUCode"], WhCode=r["WHCode"], SupplierCode=r["SupplierCode"],
                  SOB=r["SOB"], MOQ=0) for r in sob_data]
+    temp_pairs = AsciiBagLookup(temp, ('SKUCode', 'WhCode'), equal)
+    temp_suppliers = AsciiBagLookup(temp, ('SKUCode', 'WhCode', 'SupplierCode'), equal)
+    def append_temp(row):
+        temp.append(row)
+        temp_pairs.add(row); temp_suppliers.add(row)
     for row in moq_data:
         if not any(_join(row, prior, (("SKUCode", "SKUCode"), ("WHCode", "WhCode"),
-                                      ("SupplierCode", "SupplierCode")), equal) for prior in temp):
-            temp.append(dict(SKUCode=row["SKUCode"], WhCode=row["WHCode"],
+                                      ("SupplierCode", "SupplierCode")), equal) for prior in temp_suppliers.candidates(row, ("SKUCode", "WHCode", "SupplierCode"))):
+            append_temp(dict(SKUCode=row["SKUCode"], WhCode=row["WHCode"],
                              SupplierCode=row["SupplierCode"], SOB=100, MOQ=0))
     for row in topmost:
         if not any(_join(row, prior, (("SKUCode", "SKUCode"), ("WHCode", "WhCode")), equal)
-                   for prior in temp):
-            temp.append(dict(SKUCode=row["SKUCode"], WhCode=row["WHCode"],
+                   for prior in temp_pairs.candidates(row, ("SKUCode", "WHCode"))):
+            append_temp(dict(SKUCode=row["SKUCode"], WhCode=row["WHCode"],
                              SupplierCode=row["ParentWhCode"], SOB=100, MOQ=0))
 
     req_fields = ("OrderReqBlack", "OrderReqRed", "OrderReqYellow", "OrderReqGreen",
                   "OrderReqBlue", "NormReqBlack", "NormReqRed", "NormReqYellow", "NormReqGreen")
     for row in temp:
-        moqs = [m["MOQ"] for m in moq_data if _join(row, m, (("SKUCode", "SKUCode"),
+        moqs = [m["MOQ"] for m in moqs_by_supplier.candidates(row, ("SKUCode", "WhCode", "SupplierCode")) if _join(row, m, (("SKUCode", "SKUCode"),
             ("WhCode", "WHCode"), ("SupplierCode", "SupplierCode")), equal)]
         selected = _one_update(moqs, "Legacy MOQ UPDATE has different matching winners")
         if selected is not None:
             row["MOQ"] = _int(selected)
-        matches = [r for r in requirements if _join(row, r, (("SKUCode", "SKUCode"),
+        matches = [r for r in reqs_by_pair.candidates(row, ("SKUCode", "WhCode")) if _join(row, r, (("SKUCode", "SKUCode"),
                                                               ("WhCode", "WhCode")), equal)]
         updates = []
         for req in matches:
@@ -322,7 +334,7 @@ def collect_bor_order_allocation(*, bpr_master, sob_data, moq_data, requirements
         else:
             row.update(OriginalReq=selected[0], DispatchReq=selected[1], DispatchColor=selected[2])
 
-        reports = [report for report in rationed_report if _join(row, report,
+        reports = [report for report in reports_by_pair.candidates(row, ("SKUCode", "WhCode")) if _join(row, report,
             (("SKUCode", "SKUCode"), ("WhCode", "WhCode")), equal)]
         norm_zero = any(report["Norm"] is not None and _int(report["Norm"]) == 0 for report in reports)
         if (row["DispatchReq"] is not None and row["DispatchReq"] > 0
@@ -335,9 +347,9 @@ def collect_bor_order_allocation(*, bpr_master, sob_data, moq_data, requirements
 
     output = []
     for source in temp:
-        reports = [row for row in rationed_report if _join(source, row,
+        reports = [row for row in reports_by_pair.candidates(source, ("SKUCode", "WhCode")) if _join(source, row,
             (("SKUCode", "SKUCode"), ("WhCode", "WhCode")), equal)]
-        reqs = [row for row in requirements if _join(source, row,
+        reqs = [row for row in reqs_by_pair.candidates(source, ("SKUCode", "WhCode")) if _join(source, row,
             (("SKUCode", "SKUCode"), ("WhCode", "WhCode")), equal)]
         for report in reports:
             for req in reqs:
@@ -371,7 +383,7 @@ def collect_bor_order_allocation(*, bpr_master, sob_data, moq_data, requirements
                 ))
 
     for row in output:
-        matching = [source for source in temp if _join(row, source, (("SKUCode", "SKUCode"),
+        matching = [source for source in temp_suppliers.candidates(row, ("SKUCode", "WhCode", "SupplierCode")) if _join(row, source, (("SKUCode", "SKUCode"),
             ("WhCode", "WhCode"), ("SupplierCode", "SupplierCode")), equal)]
         deltas = [source["DispatchReq"] - row["Requirement"] for source in matching
                   if source["DispatchReq"] is not None and row["Requirement"] is not None
@@ -381,7 +393,7 @@ def collect_bor_order_allocation(*, bpr_master, sob_data, moq_data, requirements
             row["Dispatch_ToBlue"] = _int(row["Dispatch_ToBlue"] + delta)
 
         percentages = []
-        for req in requirements:
+        for req in reqs_by_parent.candidates(row, ("SKUCode", "WhCode", "SupplierCode")):
             if not _join(row, req, (("SKUCode", "SKUCode"), ("WhCode", "WhCode"),
                                     ("SupplierCode", "ParentWhCode")), equal):
                 continue

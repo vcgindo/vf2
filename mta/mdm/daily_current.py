@@ -107,13 +107,30 @@ def _write_partition(source, model, partition, expected, path):
 
 def _closing_projection(closing, *, version=None):
     """Prepare one private generation for writes and its receipt identity."""
-    batches = owner_batches(closing)
+    # Persisted verification may reload immutable RecordRows. Keep the shared
+    # installation/master producer APIs unchanged: adapt only their selected
+    # post-DBM projection inputs, never materialize the full closing histories.
+    from mta.row_sequences import RecordRows
+    projected = dict(closing)
+    selected = {
+        'importer': ('SkuAttributeData', 'SKUDescriptionTbl', 'LocationAttributeData',
+                     'SiteDescriptionTbl', 'SkuLocAttributeData', 'MasterData'),
+        'dbm': ('SkuAttributeData', 'SKUDescriptionTbl', 'LocationAttributeData', 'SiteDescriptionTbl'),
+        'btr': ('SkuAttributeData', 'SKUDescriptionTbl', 'LocationAttributeData', 'SiteDescriptionTbl'),
+        'consumer_context': ('NMSAllItems',),
+    }
+    for section, names in selected.items():
+        state = closing.get(section, {})
+        spooled = {name: list(state[name]) for name in names if isinstance(state.get(name), RecordRows)}
+        if spooled:
+            projected[section] = dict(state, **spooled)
+    batches = owner_batches(projected)
     proof = None
     if version is not None:
         from mta.mdm.location_projection import additional_owners, VERSION
         if version != VERSION:
             raise ValueError('Unsupported closing projection version')
-        additional, proof = additional_owners(closing)
+        additional, proof = additional_owners(projected)
         batches += additional
     return batches, proof
 

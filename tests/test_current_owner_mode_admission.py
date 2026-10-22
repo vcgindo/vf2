@@ -16,7 +16,7 @@ from mta.runtime.mdm_daily_models import MdmDailyInputCapture
 
 class CurrentOwnerModeAdmissionTests(unittest.TestCase):
     def verify_mode(self,schema,active,policy,allowed):
-        run=SimpleNamespace(pk='owned-run',kind='DAILY_CHAIN',predecessor_id=None)
+        run=SimpleNamespace(pk='owned-run',kind='DAILY_CHAIN',predecessor_id=None,production_manifest={})
         source=SimpleNamespace(receipt={'schema':schema})
         capture=SimpleNamespace(run=run,run_id=run.pk,nms_active=active)
         query=Mock();query.select_related.return_value=[capture]
@@ -24,11 +24,12 @@ class CurrentOwnerModeAdmissionTests(unittest.TestCase):
                 patch('mta.runtime.input_reader.read_input',return_value={
                     'profile':{'complete_daily':{'policy':policy}}}), \
                 patch('mta.runtime.services.read_outputs',return_value={'ClosingState':[{'owned':'closing'}]}) as read, \
+                patch('mta.mdm.location_transition.verified_receipt',return_value=None), \
                 patch.object(daily_current,'verify_current') as verify, \
                 patch.object(daily_current,'identity',return_value=['full-owner-identity']):
             if allowed:
                 self.assertEqual(daily_current.verify_published(run,source),['full-owner-identity'])
-                verify.assert_called_once_with(source,{'owned':'closing'})
+                verify.assert_called_once_with(source,{'owned':'closing'},version=None)
             else:
                 with self.assertRaisesRegex(ValueError,'unavailable|mode differs'):
                     daily_current.verify_published(run,source)

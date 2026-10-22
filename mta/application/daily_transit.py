@@ -11,6 +11,7 @@ or the retained seven-field shipment ledger into the wider native raw schema.
 SQL output order is unspecified; input and join occurrence multiplicity remains.
 """
 from __future__ import annotations
+from mta.row_sequences import is_record_rows
 
 from collections import defaultdict
 from copy import deepcopy
@@ -44,7 +45,7 @@ TRANSPORTER_FIELDS = (
 
 
 def _require_rows(rows, required, label):
-    if not isinstance(rows, list):
+    if not is_record_rows(rows):
         raise ValueError(label + " must be a list")
     for row in rows:
         if not isinstance(row, dict) or any(name not in row for name in required):

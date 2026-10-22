@@ -1,4 +1,5 @@
 """Transactional source adapters; application admission remains a separate owner."""
+from mta.row_sequences import is_record_rows
 import inspect
 from copy import deepcopy
 
@@ -11,7 +12,7 @@ from mta.serialization import digest
 
 
 def _project(owner, name, fields):
-    if not isinstance(owner, dict) or not isinstance(owner.get(name), list):
+    if not isinstance(owner, dict) or not is_record_rows(owner.get(name)):
         raise ValueError('Native report producer population missing: '+name)
     if any(not isinstance(row, dict) or not set(fields) <= set(row) for row in owner[name]):
         raise ValueError('Native report producer fields missing: '+name)
@@ -40,9 +41,11 @@ def current(output, opening):
         bpr_master=closing['bpr']['BPRMaster'],
         advance_stock_allocations=_population(calculated,'r1_advance_stock_allocation'),
         allocated_orders=allocated)
+    from mta.application.row_bag_lookup import AsciiBagLookup
+    advances=AsciiBagLookup(bands['advance_stock_allocations'], ('sku_code','source_location_code'), ascii_equal)
     requirements=[]
     for row in bands['requirement_bands']:
-        amounts=[item['allocated_quantity'] for item in bands['advance_stock_allocations']
+        amounts=[item['allocated_quantity'] for item in advances.candidates(row, ('SKUCode','WhCode'))
             if ascii_equal(item['sku_code'],row['SKUCode']) and ascii_equal(item['source_location_code'],row['WhCode'])]
         requirements.append(dict(SKUCode=row['SKUCode'],WhCode=row['WhCode'],
                                  AdvAllocDone=operational_bor._int(sum(amounts))))
@@ -107,9 +110,11 @@ def write(run, output, opening):
 
 
 def recipe_digest():
-    from mta.application import production_order_allocation, production_order_sources
+    from mta.application import production_order_allocation, production_order_sources, row_bag_lookup
+    from mta.presentation import daily_rrr_colour
     return digest(dict(adapter=inspect.getsource(current),writer=inspect.getsource(write),
         rrr=inspect.getsource(production_rrr),bor=inspect.getsource(operational_bor),
+        source_lookups=inspect.getsource(row_bag_lookup),norm_rrr=inspect.getsource(daily_rrr_colour),
         allocation=inspect.getsource(production_order_allocation),
         order_sources=inspect.getsource(production_order_sources),
         output_policy=inspect.getsource(production_output_policy),

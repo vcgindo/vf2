@@ -73,8 +73,13 @@ def write_sources(run, output, *, opening=None):
         directory_source = prior.get('transporter_input')
         if directory_source is not None:
             from mta.application.production_source_inputs import validate, SCHEMA
-            validate(dict(schema=prior.get('production_report_schema', SCHEMA), shipments=prior['shipment_input'],
-                          transporters=directory_source, report_policy=prior['production_report_policy'],
+            # The frozen-input validator retains its upstream list contract.
+            # Adapt only these post-DBM owned rows; never copy the closing graph.
+            from mta.row_sequences import RecordRows
+            def source_rows(value):
+                return dict(value, rows=list(value['rows'])) if isinstance(value['rows'], RecordRows) else value
+            validate(dict(schema=prior.get('production_report_schema', SCHEMA), shipments=source_rows(prior['shipment_input']),
+                          transporters=source_rows(directory_source), report_policy=prior['production_report_policy'],
                           report_opening=prior['production_report_opening']), run.business_date.isoformat())
             directory = directory_source['rows']
         else:

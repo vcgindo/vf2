@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 @unittest.skipUnless(os.environ.get('VF_SECTION11_POSTGRES_PROOF')=='1','Owned small Section9 PostgreSQL proof required')
 class Section11NativeDayPostgresTests(unittest.TestCase):
+    proof_database='vf_section9_contracts_20261021'
     def test_positive_native_day_atomic_readback_reports_selection_and_early_rejection(self):
         from django.db import connection,transaction,DatabaseError
         from release import initialize_csv as driver,register_mta
@@ -25,7 +26,7 @@ class Section11NativeDayPostgresTests(unittest.TestCase):
         from mta.serialization import digest
         from tools.create_daily_csv_example import create
         from tests.section9_native_fixture import source_archive,enqueue_control,verify_positive
-        self.assertEqual(connection.settings_dict['NAME'],'vf_section9_contracts_20261021')
+        self.assertEqual(connection.settings_dict['NAME'],self.proof_database)
         self.assertFalse(ProductionInitialization.objects.exists())
         release=dict(schema='vectorflow-native-release-source-v1',source_commit='4'*40,
             manifest_sha256='5'*64,implementation_sha256=init.current_implementation_digest(),

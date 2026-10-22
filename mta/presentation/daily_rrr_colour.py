@@ -128,8 +128,15 @@ def _sql_divide(left, right):
     return int(Decimal(left) / Decimal(right))  # SQL int division truncates toward zero.
 
 
+def _indexed(rows):
+    result = {}
+    for row in rows:
+        result.setdefault(row['_key'], []).append(row)
+    return result
+
+
 def _join(rows, key):
-    return [row for row in rows if row["_key"] == key] if key is not None else []
+    return rows.get(key, ()) if key is not None else ()
 
 
 def validate_smoke_source(context, band_rows, order_capabilities):
@@ -256,6 +263,9 @@ def norm_rrr_colour_rows(*, rationed_report, requirement_bands, bpr_master,
     # GenerateBifurcationOfRationedReq.sql lines 17-33. Each matching master
     # occurrence inserts a Pick occurrence; direct virtual rows are excluded by
     # the later WhCode != ParentWhCode predicate and cannot affect this output.
+    master_counts = {}
+    for key in masters:
+        master_counts[key] = master_counts.get(key, 0) + 1
     picks = []
     for source in rationed_report:
         row = dict(source)
@@ -266,22 +276,25 @@ def norm_rrr_colour_rows(*, rationed_report, requirement_bands, bpr_master,
         if not _sql_true(_lt(0, row["Req"])):
             continue
         parent_key = _key(row["SKUCode"], row["ParentWhCode"])
-        for master_key in masters:
-            if parent_key is not None and parent_key == master_key:
+        for _ in range(master_counts.get(parent_key, 0) if parent_key is not None else 0):
+            if parent_key is not None:
                 row_copy = dict(row)
                 row_copy["_key"] = _key(row["SKUCode"], row["WhCode"], row["ParentWhCode"])
                 picks.append(row_copy)
 
     tor_rows = [dict(row, TOR=_tor(row)) for row in picks]
+    tor_rows = _indexed(tor_rows)
     toy_rows = []
     for row in picks:
         for prior in _join(tor_rows, row["_key"]):
             toy_rows.append(dict(row, TOR=prior["TOR"], TOY=_toy(row, prior["TOR"])))
+    toy_rows = _indexed(toy_rows)
     tog_rows = []
     for row in picks:
         for prior in _join(toy_rows, row["_key"]):
             tog_rows.append(dict(row, TOR=prior["TOR"], TOY=prior["TOY"],
                                  TOG=_tog(row, prior["TOR"], prior["TOY"])))
+    tog_rows = _indexed(tog_rows)
     blue_rows = []
     for row in picks:
         for prior in _join(tog_rows, row["_key"]):
@@ -305,6 +318,7 @@ def norm_rrr_colour_rows(*, rationed_report, requirement_bands, bpr_master,
         advances[key] = advances.get(key, 0) + quantity
         _int(advances[key], "AdvAllocDone", nullable=False)
 
+    bands = _indexed(bands)
     output = []
     for pick in blue_rows:
         if _key(pick["WhCode"]) == _key(pick["ParentWhCode"]):

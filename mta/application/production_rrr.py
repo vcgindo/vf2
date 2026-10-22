@@ -62,6 +62,12 @@ def produce(*, rationed_report, requirement_bands, bpr_master,
         for row in rows:
             norm._complete(row, fields, name)
 
+    masters_by_key = {}
+    for master in bpr_master:
+        masters_by_key.setdefault(norm._key(master['SKUCode'], master['WHCode']), []).append(master)
+    reports_by_key = {}
+    for report in rationed_report:
+        reports_by_key.setdefault(norm._key(report['SKUCode'], report['WhCode']), []).append(report)
     groups = OrderedDict()
     for source in allocated_orders:
         key = norm._key(source['SKUCode'], source['DestWhCode'], source['SrcWhCode'])
@@ -82,11 +88,11 @@ def produce(*, rationed_report, requirement_bands, bpr_master,
         parent = norm._key(band['sku_code'], band['parent_location_code'])
         if parent is None:
             continue
-        for master in bpr_master:
+        for master in masters_by_key.get(parent, ()):
             if norm._key(master['SKUCode'], master['WHCode']) != parent:
                 continue
             key = norm._key(band['sku_code'], band['location_code'])
-            for report in rationed_report:
+            for report in reports_by_key.get(key, ()) if key is not None else ():
                 if key is not None and norm._key(report['SKUCode'], report['WhCode']) == key:
                     orders.append(_order(band['sku_code'], band['location_code'],
                         band['parent_location_code'], quantities, report))
@@ -126,7 +132,7 @@ def produce(*, rationed_report, requirement_bands, bpr_master,
                 remaining = norm._sub(row['Stock'], row['RationedQty'])
                 row['LeftoverParentStock'] = remaining if remaining is not None and remaining > 0 else 0
         updates = []
-        for report in rationed_report:
+        for report in reports_by_key.get(norm._key(row['SKUCode'], row['WhCode']), ()):
             if norm._key(report['SKUCode'], report['WhCode']) != norm._key(row['SKUCode'], row['WhCode']):
                 continue
             pack = report['PackSize'] if norm._key(row['WhCode']) == norm._key(row['ParentWhCode']) else report['ParentPackSize']

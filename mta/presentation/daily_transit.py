@@ -3,6 +3,7 @@
 This boundary cannot turn the seven-field ledger or aggregate GIT into shipment
 metadata. It does not qualify the nonempty report consumers by publishing rows.
 """
+from mta.row_sequences import is_record_rows
 from datetime import date, datetime
 import inspect
 import json
@@ -29,7 +30,7 @@ def recipe_digest():
 
 
 def _decoded(rows, fields):
-    if not isinstance(rows, list) or any(set(row) != set(fields) for row in rows):
+    if not is_record_rows(rows) or any(set(row) != set(fields) for row in rows):
         raise ValueError('Complete shipment row shape required')
     return [{key: (date.fromisoformat(value) if key in DATES and value is not None
                    else value) for key, value in row.items()} for row in rows]
