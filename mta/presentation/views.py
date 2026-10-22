@@ -585,6 +585,10 @@ def planning_graph(request, payload):
         if not _no_active_filters(payload):
             raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
         kind = str(payload.get('type', '')).casefold()
+        if native_enabled():
+            from mta.presentation.planning_expedite_chart_sql import queries
+            tables=queries(selected_run(),payload,kind)
+            return envelope(data=expedite_chart_response(tables,kind,receiving_own_label=True),message='')
         from mta.presentation.expedite_read import expedite_context
         context = expedite_context()
         try:

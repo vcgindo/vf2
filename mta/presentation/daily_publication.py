@@ -13,6 +13,7 @@ from mta.runtime.models import CalculationRun, DailyUiPublication, DailyUiPublic
 from mta.serialization import digest
 from mta.presentation.context import PublicationUnavailable
 from mta.presentation.request_scope import once_per_request
+from mta.application.stage_observation import stage,summary
 
 CONFIG_NAMES = ('VF_MTA_PERMISSIONS_SHA256', 'VF_MTA_HIERARCHY_SHA256',
     'VF_MTA_ACTIONS_ENABLED', 'VF_MTA_ACTION_TIME_ZONE', 'VF_BPR_PREPARED',
@@ -111,11 +112,15 @@ def prepare(run_id, *, expected_output_digest):
                         with connection.cursor() as cursor:
                             cursor.execute("SELECT set_config('fresh.daily_publication_build', %s, true)", [str(run.pk)])
                         if name in layers and layers[name].get('status') == 'READY':
-                            verify_layer(run, name, layers[name]['receipt'])
+                            with stage('ui_layer_verify',layer=name,reused=True):
+                                verify_layer(run, name, layers[name]['receipt'])
                             result = layers[name]
                         else:
-                            result = dict(status='READY', receipt=bounded(prepare_layer(run, name)))
-                            verify_layer(run, name, result['receipt'])
+                            with stage('ui_layer_prepare',layer=name):
+                                result = dict(status='READY', receipt=bounded(prepare_layer(run, name)))
+                            with stage('ui_layer_verify',layer=name,reused=False):
+                                verify_layer(run, name, result['receipt'])
+                            summary('ui_layer_rows',layer=name,rows=result['receipt'].get('row_count',0))
                         layers[name] = result
                         # Commit the reusable identity with its sealed rows.
                         # A killed worker must not leave an undiscoverable layer.
@@ -187,10 +192,12 @@ def prepare_reporting_generation(run_id, *, expected_output_digest):
     A failed summary leaves the base receipt/selection unchanged and is not READY.
     """
     from mta.presentation.operational_reports import prepare as prepare_sources
-    prepare_sources(run_id,expected_output_digest=expected_output_digest)
+    with stage('derived_report_publication'):
+        prepare_sources(run_id,expected_output_digest=expected_output_digest)
     publication = prepare(run_id, expected_output_digest=expected_output_digest)
     if publication.status != 'READY':
         raise PublicationUnavailable('planning_summary_requires_ready_report_layers')
     from mta.presentation.planning_summary_daily import prepare as prepare_summary
-    summary = prepare_summary(publication.run)
-    return publication, summary
+    with stage('planning_summary'):
+        summary_receipt = prepare_summary(publication.run)
+    return publication, summary_receipt

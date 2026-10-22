@@ -3,6 +3,8 @@ import os
 import math
 import unittest
 from copy import deepcopy
+from types import SimpleNamespace
+from unittest.mock import patch,sentinel
 
 os.environ.setdefault('VF_SECRET_KEY', 'unit-only')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -15,6 +17,24 @@ from mta.presentation.btr_snapshot_fields import TEXT_FIELDS, DISPLAY_FIELDS, DA
 
 
 class SnapshotSummaryTests(unittest.TestCase):
+    def test_retained_fixture_admission_is_checked_before_shared_build(self):
+        from mta.presentation import btr_snapshot as snapshot
+        from mta.presentation.context import PublicationUnavailable
+        run=SimpleNamespace(kind='LEGACY_UI_FIXTURE')
+        with patch('mta.presentation.admission.binding',return_value=(run,'admitted')) as binding, \
+                patch('mta.presentation.admission.verify') as verify, \
+                patch.object(snapshot.transaction,'get_autocommit',return_value=True), \
+                patch.object(snapshot.hierarchy,'selected_manifest',return_value=None), \
+                patch.object(snapshot.btr_reporting,'selected_generation',return_value=sentinel.reference), \
+                patch.object(snapshot,'_build',return_value=sentinel.snapshot) as build:
+            self.assertIs(snapshot.build_selected(),sentinel.snapshot)
+            binding.assert_called_once();verify.assert_called_once_with(run)
+            build.assert_called_once_with(run,sentinel.reference,admission='admitted')
+            build.reset_mock();run.kind='DAILY_CHAIN'
+            with self.assertRaisesRegex(PublicationUnavailable,'native_retained_fixture'):
+                snapshot.build_selected()
+            build.assert_not_called()
+
     def test_prepared_cells_and_range_summary_match_accepted_mapper(self):
         values = ['', '0', '100', '-99999999.00', '99.999', '1e22', '1e-8',
                   'Infinity', '-Infinity', 'NaN', 'green', '12 tail', '00017']

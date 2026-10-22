@@ -10,6 +10,7 @@ import logging
 import math
 
 from django.db import connection, transaction
+from django.conf import settings
 from django.utils import timezone
 
 from mta.presentation import btr, btr_display, btr_reporting, hierarchy
@@ -136,9 +137,27 @@ def build_selected():
     if run.kind != 'LEGACY_UI_FIXTURE' or hierarchy.selected_manifest(run):
         raise PublicationUnavailable('btr_snapshot_requires_native_retained_fixture')
     reference = btr_reporting.selected_generation(run)
+    return _build(run,reference,admission=admission)
+
+
+def build_run(run,reference):
+    """Prepare one unselected committed native source, without serving admission."""
+    if (run.kind!='DAILY_CHAIN' or run.status!='SUCCEEDED' or
+            run.production_manifest.get('version')!=3 or not run.production_digest or
+            str(run.pk)==str(settings.VF_MTA_PUBLISHED_RUN)):
+        raise PublicationUnavailable('btr_snapshot_requires_unselected_committed_daily_run')
+    return _build(run,reference,allow_outer=True)
+
+
+def _build(run,reference,*,admission=None,allow_outer=False):
+    outer=not transaction.get_autocommit()
+    if outer and not allow_outer:
+        raise ValueError('BTR builder requires its own transaction boundary')
     if reference is not None and reference.version == 2:
         reference = reference_generation(run, reference)
-    if reference is None or not reference.eligible:
+    if (reference is None or reference.run_id!=run.pk or reference.version!=1 or
+            reference.status!='READY' or not reference.eligible or
+            reference.source_digest!=digest(btr_reporting.source_identity(run))):
         raise PublicationUnavailable('btr_snapshot_requires_qualified_reference')
     btr_reporting.verify_generation(reference)
     lineage = btr_reporting.source_identity(run, 2)
@@ -157,7 +176,8 @@ def build_selected():
             business_date=run.business_date, source_digest=source, lineage=lineage)
         with transaction.atomic():
             with connection.cursor() as cursor:
-                cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+                if not outer:
+                    cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
                 cursor.execute("SET LOCAL statement_timeout='60s'")
                 cursor.execute("SET LOCAL work_mem='32MB'")
             counts = {}
@@ -176,16 +196,21 @@ def build_selected():
                     raise PublicationUnavailable('btr_snapshot_population_mismatch')
                 counts[branch] = count
             generation.row_count, generation.rows_digest = rows_identity(generation)
-            if binding()[1] != admission or btr_reporting.source_identity(run, 2) != lineage:
+            if admission is not None:
+                from mta.presentation.admission import binding
+                if binding()[1]!=admission:
+                    raise PublicationUnavailable('btr_snapshot_source_changed')
+            if btr_reporting.source_identity(run, 2) != lineage:
                 raise PublicationUnavailable('btr_snapshot_source_changed')
             generation.qualification = dict(reference_generation=str(reference.pk), populations=counts,
                 labels=image_rows(run, btr_reporting.SOURCES['dates']), mapper='retained-js-v1')
             generation.eligible, generation.status, generation.completed_at = True, 'READY', timezone.now()
             generation.save()
-        with connection.cursor() as cursor:
-            # Complete visibility for the narrow permission covering indexes.
-            # Serial maintenance fits the existing PostgreSQL shared-memory cap.
-            cursor.execute('VACUUM (ANALYZE, PARALLEL 0) ' + TABLE)
+        if not outer:
+            with connection.cursor() as cursor:
+                # The fixture wrapper retains its targeted maintenance. Native
+                # daily layers own an outer transaction and cannot VACUUM.
+                cursor.execute('VACUUM (ANALYZE, PARALLEL 0) ' + TABLE)
         return generation
     except BaseException as exc:
         if generation:

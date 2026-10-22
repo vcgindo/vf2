@@ -48,26 +48,19 @@ class DBMReadTest(unittest.TestCase):
         self.assertEqual(context.output['ClosingState'][0]['importer']['SkuAttributeData'],
                          ['closing/importer/SkuAttributeData'])
 
-    def test_fixture_history_resolves_each_source_metadata_once_per_request(self):
+    def test_native_pair_history_uses_selective_reader_without_full_scan(self):
         run = self.run_value()
-        run.kind = 'LEGACY_UI_FIXTURE'
-        paths = {'closing/dbm/' + name for name in HISTORY_TABLES} | {
-            'closing/importer/' + name for name in SCOPE_TABLES}
-        metadata = {path: {'image': path} for path in paths}
+        run.kind = 'DAILY_CHAIN'
+        state={name:[] for name in HISTORY_TABLES}
+        importer={name:[] for name in SCOPE_TABLES}
         with patch('mta.presentation.dbm_read.selected_run', return_value=run), \
-             patch('mta.presentation.fixture.image_metadata_batch', return_value=metadata) as resolve, \
-             patch('mta.presentation.dbm_read.image_rows', side_effect=lambda r,p,metadata=None: [metadata]) as read, \
-             patch('mta.presentation.fixture.history_scope_rows', side_effect=lambda r,p,code,metadata: [metadata]) as scope_read, \
-             patch('mta.presentation.fixture.pair_rows', side_effect=lambda r,p,*pair,**kw: [kw['metadata']]) as pair_read:
+             patch('mta.presentation.dbm_read._history_pair',return_value=(state,importer)) as selected, \
+             patch('mta.presentation.dbm_read.image_rows',side_effect=AssertionError('No full history transfer')), \
+             patch('mta.presentation.dbm_read.hierarchy.selected_manifest',return_value=None):
             context = dbm_context(history=True, pair=('sku','location'))
-        resolve.assert_called_once()
-        self.assertEqual(set(resolve.call_args.args[1]), paths)
-        self.assertEqual(len(read.call_args_list), 2)
-        self.assertEqual([c.args[2] for c in scope_read.call_args_list], ['sku','location'])
-        self.assertEqual(len(pair_read.call_args_list), 7)
-        self.assertTrue(all(call.kwargs['metadata'] is metadata[call.args[1]]
-                            for call in [*read.call_args_list,*pair_read.call_args_list,*scope_read.call_args_list]))
-        self.assertEqual(set(context.dbm), set(HISTORY_TABLES))
+        selected.assert_called_once_with(run,('sku','location'))
+        self.assertIs(context.dbm,state)
+        self.assertIs(context.output['ClosingState'][0]['importer'],importer)
 
     def test_committed_actions_keep_full_dbm_digest_validation(self):
         opening = {n: [] for n in GRID_TABLES}
@@ -94,6 +87,8 @@ class DBMReadTest(unittest.TestCase):
              patch('mta.runtime.relational_state.load_image', return_value=[]), \
              patch('mta.presentation.context.read_outputs', side_effect=AssertionError('whole run')):
             self.assertEqual(dbm_context().dbm, closing)
+            with patch('mta.presentation.dbm_read._history_pair',side_effect=AssertionError('No selective command overlay')):
+                self.assertEqual(dbm_context(history=True,pair=('337','AG515802')).dbm,closing)
             event.before_digest = 'tampered'
             with self.assertRaisesRegex(ValueError, 'Command input/ordering drift'):
                 dbm_context()

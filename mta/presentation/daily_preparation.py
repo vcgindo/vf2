@@ -252,21 +252,30 @@ def _dbm_result(run):
                 row_count=sum(item['count'] for item in metadata.values()))
 
 
-def _btr_result(run, *, verify_only):
+def _btr_result(run, *, verify_only, generation_id=None):
     from mta.presentation.btr_reporting import build_run, source_identity, verify_generation
     from mta.serialization import digest as value_digest
     if verify_only:
         from mta.runtime.models import BtrReportingGeneration
-        identity = value_digest(source_identity(run))
         generation = BtrReportingGeneration.objects.get(
-            run=run, version=1, source_digest=identity, status='READY')
+            pk=generation_id,run=run,status='READY')
+        if (generation.version not in (1,2) or generation.source_digest!=
+                value_digest(source_identity(run,generation.version)) or
+                (generation.version==1 and generation.eligible)):
+            raise PublicationUnavailable('btr_daily_display_generation_mismatch')
         verify_generation(generation)
     else:
         generation = build_run(run)
-    return dict(source_digest=generation.source_digest,
+        if generation.eligible:
+            from mta.presentation.btr_snapshot import build_run as build_display
+            generation=build_display(run,generation)
+    result=dict(source_digest=generation.source_digest,
                 recipe_digest=value_digest(dict(version=generation.version)),
                 rows_digest=generation.rows_digest, row_count=generation.row_count,
                 generation=str(generation.pk))
+    if generation.version==1:
+        result['display_fallback']='normalized_source_ambiguity'
+    return result
 
 
 def _require_ancillary(run, layer):
@@ -338,7 +347,7 @@ def verify_layer(run, name, receipt):
     if name == 'dbm_sources':
         current = _dbm_result(run)
     elif name == 'btr':
-        current = _btr_result(run, verify_only=True)
+        current = _btr_result(run, verify_only=True,generation_id=receipt.get('generation'))
     elif name in ('bor', 'boroa'):
         native_publication.require_mode()
         from mta.presentation.daily_bor_prepared import prepare

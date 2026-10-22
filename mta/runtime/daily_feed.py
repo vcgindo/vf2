@@ -500,8 +500,9 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                 verify(run)
             from mta.presentation.native_selection import candidate
             from mta.presentation.native_publication import identity
-            candidate_value = candidate(run, receipt, summary, identity(run))
-            atomic_json(root / 'candidate-selection.json', candidate_value)
+            with operation(str(run.pk)),stage('candidate_binding'):
+                candidate_value = candidate(run, receipt, summary, identity(run))
+                atomic_json(root / 'candidate-selection.json', candidate_value)
             logger.warning('daily_phase run=%s phase=report_preparation_and_admission seconds=%.6f',
                            run.pk, perf_counter()-prepare_started)
             attempt.candidate_selection_digest = candidate_value['selection_digest']

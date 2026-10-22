@@ -11,6 +11,7 @@ from django.db import connection,transaction
 from django.utils import timezone
 from mta.runtime.models import CalculationRun,DailyReportGeneration
 from mta.serialization import digest,storage
+from mta.application.stage_observation import stage,summary
 from mta.runtime.relational_state import save_image,save_export,load_image,load_export,iter_image,iter_export,read_daily
 
 SCHEMA='fresh-derived-report-generation-v1'
@@ -69,10 +70,12 @@ def include_generation(run,output):
 
 def verify_rows(run,metadata):
     for item in metadata['images'].values():
-        for _ in iter_image(run,item):pass
+        with stage('report_image_verify',image=item['image'],rows=item['count']):
+            for _ in iter_image(run,item):pass
     for nodes in metadata['exports'].values():
         for item in nodes.values():
-            for _ in iter_export(run,item):pass
+            with stage('report_export_verify',image=item['image'],rows=item['count']):
+                for _ in iter_export(run,item):pass
     if consumer_metadata(run)!=metadata['consumers']:
         raise ValueError('Derived consumer receipt drift')
 
@@ -148,7 +151,9 @@ def prepare(run_id,*,expected_output_digest):
             verify_root(run)
             with connection.cursor() as cursor:
                 cursor.execute("SELECT set_config('fresh.report_generation',%s,true)",[str(run.pk)])
-            row.metadata=_build(run)
+            with stage('derived_report_build'):
+                row.metadata=_build(run)
+            summary('derived_report_consumers',families=len(row.metadata['consumers']))
             row.digest=digest(row.metadata);row.status='READY';row.sealed_at=timezone.now()
             row.save(update_fields=['metadata','digest','status','sealed_at'])
         return generation(run)

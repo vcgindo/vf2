@@ -4,7 +4,7 @@ from mta.presentation.planning_expedite_charts import admit
 from mta.presentation.bpr_sql import _projected_attributes
 from mta.presentation.context import scope,PublicationUnavailable
 from mta.presentation.rrr_sql import key,equal
-from mta.presentation.planning_expedite_transit_preparation import PICK_TABLE
+from mta.presentation.planning_expedite_transit_preparation import production_pick_query
 
 
 def fetch(query,params):
@@ -70,15 +70,20 @@ def queries(run,payload,kind):
         tables[family]=rows
     bands=('Black','Red','Yellow','Green','White','Blue')
     tables['pre_post']=[]
+    pick,pick_params=production_pick_query(run)
+    # Native Pick membership ordinals are the same occurrence identity used
+    # by the sealed Post-Pick projection. Never read the fixture staging table.
+    pick_cte=('Q AS (SELECT K.*,Z."PostPipelineInventoryColor" FROM ('+pick+') K '
+        'JOIN mta.fresh_mta_pickpostrow Z ON Z.run_id=%s AND Z.ordinal=K.vf_source_ordinal)')
     for state,field in [('Pre','DispatchColor'),('Post','PostPipelineInventoryColor')]:
         if kind=='parent':
-            joins=(' FROM mta.fresh_mta_planningexpediteprepostmember H JOIN '+PICK_TABLE+' S ON S.vf_source_ordinal=H.scope_ordinal '
-                'JOIN '+PICK_TABLE+' T ON T.vf_source_ordinal=H.fact_ordinal JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."WhCode" WHERE H.run_id=%s')
-            weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,run.pk]
+            joins=(' FROM mta.fresh_mta_planningexpediteprepostmember H JOIN Q S ON S.vf_source_ordinal=H.scope_ordinal '
+                'JOIN Q T ON T.vf_source_ordinal=H.fact_ordinal JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."WhCode" WHERE H.run_id=%s')
+            weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,*pick_params,run.pk,run.pk]
         else:
-            joins=(' FROM '+PICK_TABLE+' T JOIN P ON P.code=T."SKUCode" JOIN L ON L.code=T."WhCode" WHERE NOT '+equal('T."WhCode"','T."ParentWhCode"'))
-            weight='P.weight*L.weight';params=list(permission_params)
+            joins=(' FROM Q T JOIN P ON P.code=T."SKUCode" JOIN L ON L.code=T."WhCode" WHERE NOT '+equal('T."WhCode"','T."ParentWhCode"'))
+            weight='P.weight*L.weight';params=[*permission_params,*pick_params,run.pk]
         columns=','.join('COALESCE(sum(CASE WHEN '+key('T."'+field+'"')+"='"+band.lower()+"' THEN "+weight+' ELSE 0 END),0)::integer AS "'+band+'Count"' for band in bands)
-        row=fetch('WITH '+','.join(permission_ctes)+' SELECT '+columns+joins,params)[0]
+        row=fetch('WITH '+','.join([*permission_ctes,pick_cte])+' SELECT '+columns+joins,params)[0]
         tables['pre_post'].append(dict(state=state,**row,TotalCount=0))
     return tables

@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 import re
 from itertools import islice
+from time import perf_counter
 
 from django.db import connection
 from mta.serialization import digest, storage, rows_digest, canonical_parts
@@ -200,12 +201,63 @@ def load_image(run,item):
     return list(iter_image(run,item))
 
 
+EXPORT_COPY_RECORDS=500
+EXPORT_COPY_BYTES=1024*1024
+EXPORT_ROW_COLUMNS=('vf_run_id','vf_image','row_ordinal','column_count')
+EXPORT_CELL_COLUMNS=('vf_run_id','vf_image','row_ordinal','column_ordinal',
+    'value_type','text_value','integer_value','real_value','boolean_value')
+
+
+def _export_record_bytes(record):
+    # Conservative text-COPY bound (including escaping/separators), not a
+    # claim of measured wire bytes. An oversized scalar travels alone rather
+    # than imposing a new business limit on accepted export values.
+    return sum(2*len(value.encode('utf-8'))+8 if isinstance(value,str)
+               else 80 for value in record)
+
+
+def _save_export_records(table,columns,records):
+    if connection.vendor!='postgresql':
+        return bulk('INSERT INTO mta_state.'+table+' ('+','.join(columns)+') VALUES ('+
+                    ','.join(['%s']*len(columns))+')',records)
+    count=statements=max_records=max_bytes=0
+    formatting_seconds=write_seconds=0.0
+    batch=[];batch_bytes=0
+    sql='COPY mta_state.'+table+' ('+','.join(columns)+') FROM STDIN'
+    with connection.wrap_database_errors,connection.cursor() as cursor:
+        def write():
+            nonlocal count,statements,max_records,max_bytes,write_seconds
+            start=perf_counter()
+            with cursor.copy(sql) as writer:
+                for record in batch:writer.write_row(record)
+            write_seconds+=perf_counter()-start
+            count+=len(batch);statements+=1
+            max_records=max(max_records,len(batch));max_bytes=max(max_bytes,batch_bytes)
+            if statements==1 or statements%32==0:
+                summary('report_export_progress',table=table,records=count,statements=statements)
+        iterator=iter(records)
+        while True:
+            start=perf_counter()
+            record=next(iterator,None)
+            size=0 if record is None else _export_record_bytes(record)
+            formatting_seconds+=perf_counter()-start
+            if record is None:break
+            if batch and (len(batch)>=EXPORT_COPY_RECORDS or batch_bytes+size>EXPORT_COPY_BYTES):
+                write();batch=[];batch_bytes=0
+            batch.append(record);batch_bytes+=size
+        if batch:write()
+    summary('report_export_transport',table=table,records=count,statements=statements,
+            max_chunk_records=max_records,max_chunk_estimated_bytes=max_bytes,
+            formatting_seconds=formatting_seconds,write_seconds=write_seconds)
+
+
 def save_export(run,image,rows):
     def lengths():
         for ordinal,row in enumerate(rows):
             if set(row)!={'values'}:raise ValueError('Unexpected report export row shape')
             yield (run.pk,image,ordinal,len(row['values']))
-    bulk('INSERT INTO mta_state.report_export_row VALUES (%s,%s,%s,%s)',lengths())
+    with stage('report_export_lengths',image=image,rows=len(rows)):
+        _save_export_records('report_export_row',EXPORT_ROW_COLUMNS,lengths())
     def cells():
         for ordinal,row in enumerate(rows):
             for column,value in enumerate(row['values']):
@@ -213,8 +265,10 @@ def save_export(run,image,rows):
                 values=[None,None,None,None]
                 if kind!='null':values[('str','int','float','bool').index(kind)]=wire_value(value,kind)
                 yield (run.pk,image,ordinal,column,kind,*values)
-    bulk('INSERT INTO mta_state.report_export_cell VALUES ('+','.join(['%s']*9)+')',cells())
-    return dict(version=2,image=image,count=len(rows),digest=rows_digest(rows))
+    with stage('report_export_cells',image=image,rows=len(rows)):
+        _save_export_records('report_export_cell',EXPORT_CELL_COLUMNS,cells())
+    with stage('report_export_digest',image=image,rows=len(rows)):
+        return dict(version=2,image=image,count=len(rows),digest=rows_digest(rows))
 
 
 def iter_export(run,item):
@@ -289,10 +343,12 @@ def load_export(run,item):
     if item['count'] > 10000:
         # Export rows contain nested variable-width cells and cannot use the
         # flat RecordRows spool. Reiterate the fully checked typed relation.
-        for _ in iter_export(run,item):
-            pass
+        with stage('report_export_readback',image=item['image'],rows=item['count']):
+            for _ in iter_export(run,item):
+                pass
         return RecordRows(item['count'], lambda: iter_export(run,item))
-    return list(iter_export(run,item))
+    with stage('report_export_readback',image=item['image'],rows=item['count']):
+        return list(iter_export(run,item))
 
 
 def save_daily(run,output):
