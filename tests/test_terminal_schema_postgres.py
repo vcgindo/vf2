@@ -44,22 +44,27 @@ class TerminalSchemaPostgresTests(SchemaTransitionPostgresTests):
             MdmDailyInputCapture.objects.create(run=child,**dict(values,origin_id=parent.run_id))
         self.prove_second_admission()
 
-    def prove_second_admission(self):
+    def prove_second_admission(self, migration="0165", previous=None, target=None):
         before=storage(preservation(self.owner));epochs=self.epochs()
         with connection.cursor() as c:
             old_history=authority_history(c,self.owner.pk);before_catalogue=catalogue(c)
-        target=dict(source_commit='a'*40,manifest_sha256='b'*64)
+        target=target or dict(source_commit='a'*40,manifest_sha256='b'*64)
+        previous=previous or dict(source_commit='8'*40,manifest_sha256='9'*64)
         with transaction.atomic(),connection.cursor() as c:
             c.execute('SET LOCAL ROLE '+OWNER)
-            executor=MigrationExecutor(connection);plan=executor.migration_plan(executor.loader.graph.leaf_nodes())
+            executor=MigrationExecutor(connection)
+            targets=[v for v in executor.loader.graph.leaf_nodes() if v[0]!='fresh_mta']+[
+                ('fresh_mta','0165_terminal_capture_admission' if migration=='0165' else '0166_failed_terminal_retry')]
+            plan=executor.migration_plan(targets)
             pins=[[m.name,hashlib.sha256((Path(__file__).resolve().parents[1]/'mta/runtime/migrations'/(m.name+'.py')).read_bytes()).hexdigest()] for m,b in plan]
-            self.assertEqual([n[:4] for n,h in pins],['0165'])
-            executor.migrate(executor.loader.graph.leaf_nodes());c.execute('RESET ROLE')
+            self.assertEqual([n[:4] for n,h in pins],[migration])
+            executor.migrate(targets);c.execute('RESET ROLE')
             c.execute('GRANT EXECUTE ON FUNCTION mta.terminal_capture_prefix_digest(uuid),mta.terminal_capture_admit(mta.fresh_mta_dailyfeedattempt) TO '+RUNTIME)
+            if migration=='0166':c.execute('GRANT EXECUTE ON FUNCTION mta.retry_capture_prefix_digest(uuid),mta.retry_capture_admit(mta.fresh_mta_dailyfeedattempt) TO '+RUNTIME)
             delta=storage(catalogue_delta(before_catalogue,catalogue(c)))
             transaction.set_rollback(True)
         spec=dict(contract=authority.SCHEMA_CONTRACT,initialization_id=str(self.owner.pk),
-            previous_release=dict(source_commit='8'*40,manifest_sha256='9'*64),target_release=target,
+            previous_release=previous,target_release=target,
             migration_pins=pins,catalogue_delta=delta)
         with tempfile.TemporaryDirectory() as td,patch('release.native_identity.require_current',return_value=target):
             path=Path(td)/'terminal.json';path.write_text(json.dumps(spec));pin=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -79,5 +84,34 @@ class TerminalSchemaPostgresTests(SchemaTransitionPostgresTests):
                     for key,row in rows.items():self.assertEqual(history[table][key],row)
             self.assertEqual(storage(preservation(self.owner)),before);self.assertEqual(self.epochs(),epochs)
             output=__import__('os').environ.get('VF_TERMINAL_SCHEMA_PROOF_OUTPUT')
-            if output:Path(output).write_text(json.dumps(dict(specification=spec,result=result,preserved_eight=True),indent=2))
-        print('TERMINAL_SCHEMA_REAL_SQL_PASS second registrar chain exact8 fullmetadata originalreceipt epochs roles DDL+lateappend rollback')
+            if output:Path(output).write_text(json.dumps(dict(specification=spec,result=result,
+                preserved_records=len(before['runs'])),indent=2))
+        print('TERMINAL_SCHEMA_REAL_SQL_PASS migration'+migration+' exact'+str(len(before['runs']))+
+            ' fullmetadata prior registrar originalreceipt epochs roles DDL+lateappend rollback')
+
+
+    def test_third_admission_preserves_nine_and_all_prior_registrar_rows(self):
+        leaves=MigrationGraph.leaf_nodes
+        def stopped_v4_leaves(graph,app=None):
+            return [v for v in leaves(graph,app) if v[0]!='fresh_mta']+([('fresh_mta','0165_terminal_capture_admission')] if app in (None,'fresh_mta') else [])
+        with patch.object(MigrationGraph,'leaf_nodes',stopped_v4_leaves):
+            self.test_second_admission_preserves_used_metadata_and_prior_registrar()
+        from mta.runtime.models import CalculationRun
+        from mta.runtime.daily_feed_models import DailyFeedAttempt
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        with transaction.atomic(),connection.cursor() as c:
+            c.execute('SET LOCAL session_replication_role=replica')
+            parent=DailyFeedAttempt.objects.order_by('-created_at').first()
+            child=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date='2026-04-08',
+                execution_revision='metadata-failed-terminal',input_digest='6'*64,
+                input_payload={'fixture':'METADATA_ONLY','schema':'fresh-captured-input-reference-v4'},status='FAILED')
+            values={f.attname:getattr(parent,f.attname) for f in parent._meta.concrete_fields
+                if f.name not in ('id','attempt_id','created_at','updated_at')}
+            values.update(run_id=child.pk,recovery_origin_id=parent.pk,request_key=digest('metadata9'),archive_path='/metadata/9',status='FAILED')
+            DailyFeedAttempt.objects.create(**values)
+            cap=MdmDailyInputCapture.objects.get(run=parent.run)
+            values={f.attname:getattr(cap,f.attname) for f in cap._meta.concrete_fields if f.name not in ('run','captured_at')}
+            MdmDailyInputCapture.objects.create(run=child,**dict(values,origin_id=parent.run_id))
+        self.prove_second_admission('0166',previous=dict(source_commit='a'*40,manifest_sha256='b'*64),
+            target=dict(source_commit='c'*40,manifest_sha256='d'*64))
+        print('RETRY_SCHEMA_REAL_SQL_PASS third admission all9 preserved lateDDL+append rollback idempotence')

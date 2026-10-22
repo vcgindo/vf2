@@ -167,3 +167,25 @@ This is not an assertion of a successfully observed corrected large run.
 
 This document records the contract/decision; actual proof status belongs only
 in `TRACKER.md` and the terminal evidence, not in an unchecked completion label.
+
+## Subsequent approved execution preparation
+
+The user subsequently approved only the described preparation, explicitly
+excluding further scope. The narrowly permitted pre-execution exception is
+capture/admission plumbing for one child of the failed v4 attempt. Migration
+0166 adds the nine-record prefix/admission functions and dispatch while keeping
+the existing v3/v4 admission and lifecycle branches. No operational state table,
+business column, calculation, DBM/BTR rule, input or action policy is changed.
+The original nine records remain immutable; another retry is not admitted.
+
+The exit-observation correction is integrated in the external prepared launcher.
+The launcher consumes an already built, pinned image rather than rebuilding.
+Both host and container entrypoints explicitly deny execution while the packet
+records the large run as paused. The one-time schema transition is prepared
+separately; it is not part of `execute_day` or an ordinary daily migration.
+
+Focused evidence for this preparation is under the existing audit evidence
+root's `retry-preparation` directory. It reuses the successful persistence
+campaign and adds only the changed schema/admission/capture checks, observer
+integration checks and actual-image read-only compatibility checks. Preparation
+does not itself claim a corrected large-day result or authorize serving changes.

@@ -32,9 +32,9 @@ def _pins(run, attempt, expected):
         raise ValueError('Interrupted capture independent checkpoint pins differ')
 
 
-def _finite_owner(run, attempt, value, *, terminal=False):
+def _finite_owner(run, attempt, value, *, terminal=False, retry=False):
     """The inspected stopped terminal6, preserving all seven original records."""
-    from mta.runtime.captured_input import finite_prefix, terminal_prefix
+    from mta.runtime.captured_input import finite_prefix, terminal_prefix, retry_prefix
     from mta.runtime.daily_feed_models import DailyFeedAttempt
     fields={'prefix_digest','physical_run_id','physical_manifest_digest','physical_attempt_id',
             'current_revision_cut'}
@@ -43,7 +43,7 @@ def _finite_owner(run, attempt, value, *, terminal=False):
             or len(value['current_revision_cut'])!=5
             or any(type(v) is not int or v<0 for v in value['current_revision_cut'])):
         raise ValueError('Finite continuation requires independently inspected prefix and current cut')
-    physical,rows,prefix=(terminal_prefix if terminal else finite_prefix)(run)
+    physical,rows,prefix=(retry_prefix if retry else terminal_prefix if terminal else finite_prefix)(run)
     original=DailyFeedAttempt.objects.get(run=physical)
     if (prefix!=value['prefix_digest'] or str(physical.pk)!=value['physical_run_id']
             or physical.input_manifest_digest!=value['physical_manifest_digest']
@@ -164,7 +164,7 @@ def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupte
 
 def resume(*, origin_run_id, execution_revision, expected, archive_path, second_hop=None, final_third_hop=False,
            final_interrupted_fourth_hop=False, final_failed_fifth_hop=False, final_interrupted_sixth_hop=False,
-           finite_continuation=None, terminal_continuation=None):
+           finite_continuation=None, terminal_continuation=None, terminal_retry=None):
     """Called only by execute_day's explicit captured-continuation dispatch.
 
     Daily/source locks and the original revision cut are checked before marking
@@ -189,6 +189,11 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             or (any(flags) and second_hop is None)
             or (finite_continuation is not None and (second_hop is not None or any(flags)))):
         raise ValueError('Final continuation requires explicit physical pins and current cut')
+    retry=terminal_retry is not None
+    if retry:
+        if terminal_continuation is not None:
+            raise ValueError('Terminal retry cannot combine recovery modes')
+        terminal_continuation=terminal_retry
     terminal=terminal_continuation is not None
     if terminal:
         if finite_continuation is not None or second_hop is not None or any(flags):
@@ -202,12 +207,12 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
         final_failed_fifth_hop=final_failed_fifth_hop,
         final_interrupted_sixth_hop=final_interrupted_sixth_hop)
     if finite_continuation is not None:
-        physical=_finite_owner(old,attempt,finite_continuation,terminal=terminal)
+        physical=_finite_owner(old,attempt,finite_continuation,terminal=terminal,retry=retry)
     release=None
     if final_interrupted_sixth_hop or finite_continuation is not None:
         from release.native_identity import require_current
         release=require_current()
-        revision_prefix=('native-terminal-' if terminal else 'native-finite-') if finite_continuation is not None else 'native-interrupted-sixth-'
+        revision_prefix=('native-terminal-retry-' if retry else 'native-terminal-' if terminal else 'native-finite-') if finite_continuation is not None else 'native-interrupted-sixth-'
         if execution_revision != revision_prefix+release['source_commit']:
             raise ValueError('Terminal interrupted execution revision must bind its packaged source')
     target = Path(archive_path).resolve()
@@ -268,7 +273,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             _uncommitted(old); _pins(old,attempt,expected)
             if finite_continuation is not None:
                 _empty_terminal_outputs(old)
-                physical=_finite_owner(old,attempt,finite_continuation,terminal=terminal)
+                physical=_finite_owner(old,attempt,finite_continuation,terminal=terminal,retry=retry)
             if final_interrupted_sixth_hop:
                 # This branch admits no partly persisted result or public view.
                 # Quoted names come solely from the installed typed catalogue.
@@ -358,7 +363,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 from mta.runtime.captured_input import finite_manifest, terminal_manifest
                 run.input_payload=(terminal_manifest if terminal else finite_manifest)(run,old,
                     expected_prefix_digest=finite_continuation['prefix_digest'],
-                    packaged_source=release['source_commit'])
+                    packaged_source=release['source_commit'],**({'retry':True} if retry else {}))
             else:
                 run.input_payload=manifest(run,old,final_interrupted_fourth_hop=final_interrupted_fourth_hop,
                     final_failed_fifth_hop=final_failed_fifth_hop,
@@ -390,7 +395,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 origin_attempt_id=str(attempt.attempt_id),attempt_id=str(new_attempt.attempt_id),
                 input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest)
             if final_interrupted_sixth_hop or finite_continuation is not None:
-                continuation.update(kind=('stopped-finite-terminal-v1' if terminal else 'stopped-terminal-sixth-finite-v1' if finite_continuation is not None
+                continuation.update(kind=('failed-terminal-retry-v1' if retry else 'stopped-finite-terminal-v1' if terminal else 'stopped-terminal-sixth-finite-v1' if finite_continuation is not None
                     else 'human-interrupted-fifth-to-terminal-sixth-v1'),
                     origin_execution_revision=old.execution_revision,
                     execution_revision=execution_revision,native_release=release)
