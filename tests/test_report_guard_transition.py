@@ -12,6 +12,20 @@ from mta.serialization import digest
 
 
 class ReportGuardTransitionTests(unittest.TestCase):
+    def test_exact_frozen_guard_recognition_retains_all_metadata_denials(self):
+        from mta.runtime.ingestion_ownership import is_revision_guard
+        migration=import_module('mta.runtime.migrations.'+guard.MIGRATION_NAME)
+        candidate=dict(name='mta.ingestion_watch()',security_definer=True,
+            configuration=['search_path=pg_catalog, mta'],returns='trigger')
+        for body in (migration.OLD_INGESTION,migration.NEW_INGESTION):
+            self.assertTrue(is_revision_guard(dict(candidate,body=body)))
+        candidate['body']=migration.NEW_INGESTION
+        for field,value in (('body',candidate['body']+'\n'),('name','mta.other()'),
+                ('security_definer',False),('configuration',['search_path=public, mta']),
+                ('configuration',None),('returns','text')):
+            with self.subTest(field=field,value=value if field!='body' else 'mutated'):
+                self.assertFalse(is_revision_guard({**candidate,field:value}))
+
     def fixture(self):
         f=CodeSchemaCompositionTests();f.setUp()
         fourth=f.links[f.latest['target_release']]

@@ -53,8 +53,9 @@ def is_revision_guard(function):
     references=import_module('mta.runtime.migrations.0159_report_reference_ownership').current_body()
     consumers=import_module('mta.runtime.migrations.0160_report_consumer_source_ownership').current_body()
     trends=import_module('mta.runtime.migrations.0162_derived_trend_ownership').current_body()
+    owner_sets=import_module('mta.runtime.migrations.0168_report_guard_owner_sets').NEW_INGESTION
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] in (body,revised,references,consumers,trends) and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends,owner_sets) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
 
 
