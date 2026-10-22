@@ -173,7 +173,7 @@ def effective_schema(cursor, body):
     """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set(); real_count=0; anchor=None
+    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; anchor=None
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -199,9 +199,15 @@ def effective_schema(cursor, body):
                 raise ValueError('Code-only schema anchor receipt differs')
             chain.append(extension);current=parent;link=parent_link
             continue
-        if real_count==4:
-            raise ValueError('Schema transition exceeds the reviewed four-admission boundary')
-        real_count+=1
+        from mta.runtime.report_guard_transition import MIGRATION_NAME,approved_receipt
+        if any(pin[0]==MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+            if guard_transition or not approved_receipt(extension):
+                raise ValueError('Exact released report guard schema transition required')
+            guard_transition=True
+        else:
+            if real_count==4:
+                raise ValueError('Schema transition exceeds the reviewed four-admission boundary')
+            real_count+=1
         if anchor is None:
             anchor=current;anchor_receipt=digest(extension)
         parent=authority.read(cursor,current['initialization_id'],extension['previous_release'])
@@ -213,6 +219,8 @@ def effective_schema(cursor, body):
             raise ValueError('Schema transition changed original certified ownership')
         chain.append(extension);current=parent
         link=authority.read_schema_transition(cursor,current)
+    if guard_transition and real_count!=4:
+        raise ValueError('Report guard transition requires the original four schema admissions')
     for extension in reversed(chain):
         if extension['contract']==authority.CODE_SCHEMA_CONTRACT:
             if extension['schema_digest']!=expected_schema or extension['guard_digest']!=expected_guard:

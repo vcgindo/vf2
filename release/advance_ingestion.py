@@ -118,6 +118,10 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             or spec['initialization_id']!=str(initialization_id) or spec['target_release']!=require_current()):
         raise ValueError('Exact reviewed schema transition specification required')
     target=spec['target_release'];previous=spec['previous_release']
+    from mta.runtime import report_guard_transition as report_guard
+    guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
+    if guard_migration:
+        report_guard.require_specification(spec)
     if target['manifest_sha256']==previous['manifest_sha256']:
         raise ValueError('Distinct reviewed previous/target releases required')
     from mta.runtime.daily_feed import job_lock
@@ -151,6 +155,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
         before_schema=schema_digest(cursor);before_guard=security_digest(cursor,_certificate(owner.pk)['authority_roles'])
+        if guard_migration and (not has_schema_authority or before_schema!=report_guard.BEFORE_SCHEMA
+                or before_guard!=report_guard.BEFORE_GUARD):
+            raise ValueError('Report guard migration requires its exact admitted predecessor catalogue')
         cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
         roles=cursor.fetchall()
         cursor.execute('SELECT roleid,member,grantor,admin_option FROM pg_auth_members ORDER BY roleid,member,grantor')
@@ -164,6 +171,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             pins.append([migration.name,hashlib.sha256(path.read_bytes()).hexdigest()])
         allowed_migrations=([['0165'],['0166'],['0167']] if has_schema_authority else
                             [[f'{i:04}' for i in range(154,end)] for end in (165,166,167)])
+        if guard_migration:
+            allowed_migrations=[['0168']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
