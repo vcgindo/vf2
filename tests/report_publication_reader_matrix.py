@@ -35,7 +35,7 @@ def qualify(run,publication,root,payload):
     from mta.presentation.selective import image_rows
     row=next(iter(image_rows(run,masters['image'])))
     pair=dict(SKUCode=row['SKUCode'],WhCode=row['WhCode'])
-    add('research-pair-parent',views.research_insights,'history_prepared_sql','read_research',{'Data':[pair]})
+    add('research-pair-parent',views.research_insights,'history_prepared_sql','read_research',{'data':[pair]})
     add('historical-availability',views.historical_availability,'history_prepared_sql','read_historical_availability')
     for kind in ('loc','sku','pie','ageing'):
         add('guided-dbm-'+kind,views._insight_data,'guided_dbm','read_guided_dbm',kind=kind)
