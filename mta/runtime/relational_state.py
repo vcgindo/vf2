@@ -273,47 +273,54 @@ def save_export(run,image,rows):
 
 def iter_export(run,item):
     checksum=hashlib.sha256(b'[');count=0
-    with connection.chunked_cursor() as cursor:
-        if item.get('version')==2:
-            cursor.execute('SELECT r.row_ordinal,r.column_count,c.column_ordinal,c.value_type,'
-                'c.text_value,c.integer_value,c.real_value,c.boolean_value '
-                'FROM mta_state.report_export_row r LEFT JOIN mta_state.report_export_cell c '
-                'ON c.vf_run_id=r.vf_run_id AND c.vf_image=r.vf_image AND c.row_ordinal=r.row_ordinal '
-                'WHERE r.vf_run_id=%s AND r.vf_image=%s ORDER BY r.row_ordinal,c.column_ordinal',
-                [run.pk,item['image']])
+    if item.get('version')==2:
+        # One statement snapshot exposes every header and cell, including orphans.
+        # Explicit tags distinguish empty headers from cells whose value is NULL.
+        with connection.chunked_cursor() as cursor:
+            cursor.execute('SELECT row_ordinal,0::integer AS record_kind,column_count,'
+                'NULL::bigint AS column_ordinal,NULL::text AS value_type,'
+                'NULL::text AS text_value,NULL::bigint AS integer_value,'
+                'NULL::double precision AS real_value,NULL::boolean AS boolean_value '
+                'FROM mta_state.report_export_row WHERE vf_run_id=%s AND vf_image=%s '
+                'UNION ALL SELECT row_ordinal,1::integer,NULL::integer,column_ordinal,'
+                'value_type,text_value,integer_value,real_value,boolean_value '
+                'FROM mta_state.report_export_cell WHERE vf_run_id=%s AND vf_image=%s '
+                'ORDER BY row_ordinal,record_kind,column_ordinal',
+                [run.pk,item['image'],run.pk,item['image']])
             def records():
                 while batch:=cursor.fetchmany(500):yield from batch
             iterator=iter(records());pending=next(iterator,None)
             for ordinal in range(item['count']):
-                if pending is None or pending[0]!=ordinal:raise ValueError('Report row population drift')
-                size=pending[1];values=[]
+                if pending is None or pending[:2]!=(ordinal,0):
+                    if pending is not None and pending[1]==1 and (pending[0]<0 or pending[0]>=item['count']):
+                        raise ValueError('Orphan report cells')
+                    raise ValueError('Report row population drift')
+                size=pending[2];values=[]
                 if size<0:raise ValueError('Report row length drift')
+                pending=next(iterator,None)
                 for column in range(size):
-                    if pending is None or pending[:3]!=(ordinal,size,column):raise ValueError('Report cell population drift')
-                    kind,*typed=pending[3:]
+                    if pending is None or pending[:2]!=(ordinal,1) or pending[3]!=column:
+                        raise ValueError('Report cell population drift')
+                    kind,*typed=pending[4:]
+                    if kind not in ('null','str','int','float','bool'):
+                        raise ValueError('Report cell typed columns conflict')
                     selected=None if kind=='null' else ('str','int','float','bool').index(kind)
-                    if any(v is not None for i,v in enumerate(typed) if i!=selected):
+                    if (any(v is not None for i,v in enumerate(typed) if i!=selected)
+                            or (selected is not None and typed[selected] is None)):
                         raise ValueError('Report cell typed columns conflict')
                     values.append(None if selected is None else typed[selected])
                     pending=next(iterator,None)
-                if not size:
-                    if any(v is not None for v in pending[2:]):raise ValueError('Empty report row has cells')
-                    pending=next(iterator,None)
+                if pending is not None and pending[:2]==(ordinal,1):
+                    if not size:raise ValueError('Empty report row has cells')
+                    raise ValueError('Extra report cells')
                 row={'values':values}
                 if count:checksum.update(b',')
                 for part in canonical_parts(row):checksum.update(part)
                 count+=1
                 yield row
-            if pending is not None:raise ValueError('Extra report rows')
-    # A named server cursor owns one statement. Use a separate cursor for the
-    # orphan check after the streamed export result has been exhausted.
-    if item.get('version')==2:
-        with connection.cursor() as cursor:
-            cursor.execute('SELECT count(*) FROM mta_state.report_export_cell c WHERE c.vf_run_id=%s '
-                'AND c.vf_image=%s AND NOT EXISTS (SELECT 1 FROM mta_state.report_export_row r '
-                'WHERE r.vf_run_id=c.vf_run_id AND r.vf_image=c.vf_image AND r.row_ordinal=c.row_ordinal)',
-                [run.pk,item['image']])
-            if cursor.fetchone()[0]:raise ValueError('Orphan report cells')
+            if pending is not None:
+                if pending[1]==1:raise ValueError('Orphan report cells')
+                raise ValueError('Extra report rows')
     else:
         with connection.chunked_cursor() as cursor:
             # Accepted version-one receipts retain their original row-length manifest.
