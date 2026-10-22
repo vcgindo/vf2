@@ -53,14 +53,17 @@ class TerminalSchemaPostgresTests(SchemaTransitionPostgresTests):
         with transaction.atomic(),connection.cursor() as c:
             c.execute('SET LOCAL ROLE '+OWNER)
             executor=MigrationExecutor(connection)
+            names={'0165':'0165_terminal_capture_admission','0166':'0166_failed_terminal_retry',
+                   '0167':'0167_final_attempt_admission'}
             targets=[v for v in executor.loader.graph.leaf_nodes() if v[0]!='fresh_mta']+[
-                ('fresh_mta','0165_terminal_capture_admission' if migration=='0165' else '0166_failed_terminal_retry')]
+                ('fresh_mta',names[migration])]
             plan=executor.migration_plan(targets)
             pins=[[m.name,hashlib.sha256((Path(__file__).resolve().parents[1]/'mta/runtime/migrations'/(m.name+'.py')).read_bytes()).hexdigest()] for m,b in plan]
             self.assertEqual([n[:4] for n,h in pins],[migration])
             executor.migrate(targets);c.execute('RESET ROLE')
             c.execute('GRANT EXECUTE ON FUNCTION mta.terminal_capture_prefix_digest(uuid),mta.terminal_capture_admit(mta.fresh_mta_dailyfeedattempt) TO '+RUNTIME)
             if migration=='0166':c.execute('GRANT EXECUTE ON FUNCTION mta.retry_capture_prefix_digest(uuid),mta.retry_capture_admit(mta.fresh_mta_dailyfeedattempt) TO '+RUNTIME)
+            if migration=='0167':c.execute('GRANT EXECUTE ON FUNCTION mta.final_capture_prefix_digest(uuid),mta.final_capture_admit(mta.fresh_mta_dailyfeedattempt) TO '+RUNTIME)
             delta=storage(catalogue_delta(before_catalogue,catalogue(c)))
             transaction.set_rollback(True)
         spec=dict(contract=authority.SCHEMA_CONTRACT,initialization_id=str(self.owner.pk),
@@ -115,3 +118,41 @@ class TerminalSchemaPostgresTests(SchemaTransitionPostgresTests):
         self.prove_second_admission('0166',previous=dict(source_commit='a'*40,manifest_sha256='b'*64),
             target=dict(source_commit='c'*40,manifest_sha256='d'*64))
         print('RETRY_SCHEMA_REAL_SQL_PASS third admission all9 preserved lateDDL+append rollback idempotence')
+
+
+    def test_fourth_admission_preserves_ten_and_all_prior_registrar_rows(self):
+        leaves=MigrationGraph.leaf_nodes
+        def stopped_v5_leaves(graph,app=None):
+            return [v for v in leaves(graph,app) if v[0]!='fresh_mta']+([('fresh_mta','0166_failed_terminal_retry')] if app in (None,'fresh_mta') else [])
+        with patch.object(MigrationGraph,'leaf_nodes',stopped_v5_leaves):
+            self.test_third_admission_preserves_nine_and_all_prior_registrar_rows()
+        from mta.runtime.models import CalculationRun
+        from mta.runtime.daily_feed_models import DailyFeedAttempt
+        from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+        with transaction.atomic(),connection.cursor() as c:
+            c.execute('SET LOCAL session_replication_role=replica')
+            parent=DailyFeedAttempt.objects.order_by('-created_at').first()
+            child=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date='2026-04-08',
+                execution_revision='metadata-failed-v5',input_digest='6'*64,
+                input_payload={'fixture':'METADATA_ONLY','schema':'fresh-captured-input-reference-v5'},status='FAILED')
+            values={f.attname:getattr(parent,f.attname) for f in parent._meta.concrete_fields
+                if f.name not in ('id','attempt_id','created_at','updated_at')}
+            values.update(run_id=child.pk,recovery_origin_id=parent.pk,request_key=digest('metadata10'),
+                archive_path='/metadata/10',status='FAILED')
+            DailyFeedAttempt.objects.create(**values)
+            cap=MdmDailyInputCapture.objects.get(run=parent.run)
+            values={f.attname:getattr(cap,f.attname) for f in cap._meta.concrete_fields if f.name not in ('run','captured_at')}
+            MdmDailyInputCapture.objects.create(run=child,**dict(values,origin_id=parent.run_id))
+            # Pre-0167 read-only authority remains the installed v5 parent's
+            # nine-record digest; the new ten-record function does not exist yet.
+            c.execute('SELECT mta.retry_capture_prefix_digest(%s)',[parent.run_id])
+            prior_prefix=c.fetchone()[0]
+        self.prove_second_admission('0167',previous=dict(source_commit='c'*40,manifest_sha256='d'*64),
+            target=dict(source_commit='e'*40,manifest_sha256='f'*64))
+        with transaction.atomic(),connection.cursor() as c:
+            c.execute('SET TRANSACTION READ ONLY')
+            c.execute('SELECT mta.retry_capture_prefix_digest(%s)',[parent.run_id])
+            self.assertEqual(c.fetchone()[0],prior_prefix)
+            c.execute('SELECT mta.final_capture_prefix_digest(%s)',[child.pk])
+            self.assertRegex(c.fetchone()[0],r'^[0-9a-f]{64}$')
+        print('FINAL_SCHEMA_REAL_SQL_PASS fourth admission all10 preserved pre167-v5-prefix lateDDL+append rollback idempotence')

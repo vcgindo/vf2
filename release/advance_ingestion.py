@@ -162,8 +162,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             if backwards or migration.app_label!='fresh_mta':raise ValueError('Only forward MTA schema migrations supported')
             path=Path(__file__).resolve().parents[1]/'mta/runtime/migrations'/(migration.name+'.py')
             pins.append([migration.name,hashlib.sha256(path.read_bytes()).hexdigest()])
-        allowed_migrations=([['0165'],['0166']] if has_schema_authority else
-                            [[f'{i:04}' for i in range(154,end)] for end in (165,166)])
+        allowed_migrations=([['0165'],['0166'],['0167']] if has_schema_authority else
+                            [[f'{i:04}' for i in range(154,end)] for end in (165,166,167)])
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -190,14 +190,16 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             if function['name'] not in old_functions:
                 cursor.execute('SELECT %s::oid::regprocedure::text',[function['oid']])
                 cursor.execute('REVOKE EXECUTE ON FUNCTION '+cursor.fetchone()[0]+' FROM PUBLIC')
-        from mta.mdm.owned_namespace import application_functions
-        if 'mta.finite_capture_prefix_digest(leaf uuid)' in application_functions(_application_catalogue(cursor)):
-            cursor.execute(sql.SQL('GRANT EXECUTE ON FUNCTION mta.finite_capture_prefix_digest(uuid) TO {}').format(
-                sql.Identifier(original['consumer']['name'])))
-        for grant in ('mta.terminal_capture_prefix_digest(uuid)',
-                'mta.terminal_capture_admit(mta.fresh_mta_dailyfeedattempt)',
-                'mta.retry_capture_prefix_digest(uuid)',
-                'mta.retry_capture_admit(mta.fresh_mta_dailyfeedattempt)'):
+        grant_sets={
+            '0163':('mta.finite_capture_prefix_digest(uuid)',),
+            '0165':('mta.terminal_capture_prefix_digest(uuid)',
+                    'mta.terminal_capture_admit(mta.fresh_mta_dailyfeedattempt)'),
+            '0166':('mta.retry_capture_prefix_digest(uuid)',
+                    'mta.retry_capture_admit(mta.fresh_mta_dailyfeedattempt)'),
+            '0167':('mta.final_capture_prefix_digest(uuid)',
+                    'mta.final_capture_admit(mta.fresh_mta_dailyfeedattempt)'),
+        }
+        for grant in (grant for name,_ in pins for grant in grant_sets.get(name[:4],())):
             # Resolve exact argument types independently of search_path's
             # pretty-printing of composite-type identity arguments.
             cursor.execute('SELECT to_regprocedure(%s)',[grant])

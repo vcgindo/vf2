@@ -208,17 +208,17 @@ def diagnostics(attempt, error):
 
 def _finite_resolved_ancestors(owner):
     """Only an authenticated operational commit resolves the preserved chain."""
-    from mta.runtime.captured_input import FINITE, TERMINAL, RETRY, finite_origin, finite_prefix, terminal_origin, terminal_prefix, retry_prefix
+    from mta.runtime.captured_input import FINITE, TERMINAL, RETRY, FINAL, finite_origin, finite_prefix, terminal_origin, terminal_prefix, retry_prefix, final_prefix
     resolved=[]
     candidates=CalculationRun.objects.filter(kind='DAILY_CHAIN',status='SUCCEEDED',
-        evidence_mode='production',input_payload__schema__in=(FINITE,TERMINAL,RETRY),production_manifest__version=3,
+        evidence_mode='production',input_payload__schema__in=(FINITE,TERMINAL,RETRY,FINAL),production_manifest__version=3,
         csv_attempt__initialization=owner,
         csv_attempt__status__in=('COMMITTED','PREPARED','PUBLISHED'),
         mdm_input_capture__status='CONSUMED')
     for run in candidates.iterator():
-        terminal=run.input_payload["schema"] in (TERMINAL,RETRY)
+        terminal=run.input_payload["schema"] in (TERMINAL,RETRY,FINAL)
         (terminal_origin if terminal else finite_origin)(run)
-        _,rows,_=(retry_prefix if run.input_payload["schema"]==RETRY else terminal_prefix if terminal else finite_prefix)(run.mdm_input_capture.origin.run)
+        _,rows,_=(final_prefix if run.input_payload["schema"]==FINAL else retry_prefix if run.input_payload["schema"]==RETRY else terminal_prefix if terminal else finite_prefix)(run.mdm_input_capture.origin.run)
         resolved.extend(row['run']['id'] for row in rows)
     return resolved
 

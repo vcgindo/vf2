@@ -111,6 +111,21 @@ class CurrentProjectionWriterTests(unittest.TestCase):
     def setUp(self):
         _ProjectionModel.objects = _ProjectionManager()
         self.source = object()
+        # This in-memory model verifies orchestration; it has no SQL metadata.
+        # Actual PostgreSQL transport is exercised by the owned database proof.
+        vendor = patch.object(daily_current.connection, 'vendor', 'in-memory-fixture')
+        vendor.start()
+        self.addCleanup(vendor.stop)
+
+    def test_scalar_comparison_matches_canonical_storage(self):
+        from datetime import datetime, timezone
+        from mta.serialization import storage
+        values = (None, True, False, 0, -1, 1.25, '', 'NULL',
+                  Decimal('1.230'), date(2026, 4, 8),
+                  datetime(2026, 4, 8, tzinfo=timezone.utc))
+        for value in values:
+            with self.subTest(value=value):
+                self.assertEqual(daily_current._scalar_storage(value), storage(value))
 
     def seed(self, rows):
         for ordinal, values in rows:

@@ -1,5 +1,7 @@
 from copy import deepcopy
+from decimal import Decimal
 import unittest
+from unittest.mock import patch
 
 from mta.application.production_bor_contract import (
     COLOUR_FIELDS, INPUT_FIELDS, OUTPUT_FIELDS, POLICY, produce,
@@ -55,7 +57,7 @@ class ProductionBorContractTests(unittest.TestCase):
         self.assertEqual((rows, colours), before)
 
     def test_every_nonblack_colour_retains_red_and_zeroes_black(self):
-        for name in ("Red", "Yellow", "Green", "Blue", "White"):
+        for name in ("Red", "Yellow", "Green", "Blue", "White", "Grey"):
             with self.subTest(name=name):
                 result = produce(
                     supplier_dispatch_rows=[supplier()],
@@ -110,6 +112,96 @@ class ProductionBorContractTests(unittest.TestCase):
         )[0]
         self.assertEqual((result["ReqTopOfBlack"], result["ReqTopOfRed"]), (7, 0))
         self.assertIs(type(result["OriginalReq"]), int)
+
+    def test_all_seven_real_producer_bands_have_independent_complete_outputs(self):
+        from mta.domain.colours import colour as calculate_colour
+        cases = ((100, 0, 0, 'BLACK'), (100, 20, 0, 'RED'),
+                 (100, 50, 0, 'YELLOW'), (100, 80, 0, 'GREEN'),
+                 (100, 110, 20, 'BLUE'), (100, 130, 20, 'WHITE'),
+                 (0, 0, 0, 'GREY'))
+        for norm, stock, blue, band in cases:
+            with self.subTest(band=band):
+                actual = calculate_colour(Decimal(norm), Decimal(stock), Decimal(blue))
+                self.assertEqual(actual.band, band)
+                source, colours = [supplier()], [colour(actual.band)]
+                before = deepcopy((source, colours))
+                expected = dict(source[0], ReqTopOfBlack=7 if band == 'BLACK' else 0,
+                    ReqTopOfRed=0 if band == 'BLACK' else 7, CumulativeTOBlack=7 if band == 'BLACK' else 0)
+                expected = {name: expected[name] for name in OUTPUT_FIELDS}
+                self.assertEqual(produce(supplier_dispatch_rows=source,
+                    dispatch_colours=colours, policy=POLICY), [expected])
+                self.assertEqual((source, colours), before)
+
+    def test_extra_grey_node_and_empty_supplier_population_are_valid(self):
+        colours = [colour('gReY ', SKUCode='EXTRA', WHCode='CHILD'), colour()]
+        self.assertEqual(produce(supplier_dispatch_rows=[], dispatch_colours=colours, policy=POLICY), [])
+        self.assertEqual(produce(supplier_dispatch_rows=[supplier(), supplier(SupplierCode='OTHER')],
+            dispatch_colours=colours, policy=POLICY)[1]['SupplierCode'], 'OTHER')
+
+    def test_full_validation_precedes_duplicate_detection_and_context_is_actionable(self):
+        with self.assertRaisesRegex(ValueError, "Canonical.*colour ordinal=3.*Purple"):
+            produce(supplier_dispatch_rows=[supplier()],
+                dispatch_colours=[colour(), colour(), colour('Purple')], policy=POLICY)
+        with self.assertRaisesRegex(ValueError, "text.*colour ordinal=1.*None"):
+            produce(supplier_dispatch_rows=[], dispatch_colours=[colour(None)], policy=POLICY)
+        with self.assertRaisesRegex(ValueError, "Ambiguous.*colour ordinal=2"):
+            produce(supplier_dispatch_rows=[], dispatch_colours=[colour(),
+                colour('Grey', SKUCode='sku-1 ', WHCode='top ')], policy=POLICY)
+        with self.assertRaisesRegex(ValueError, "Missing.*supplier ordinal=1.*SKU-1"):
+            produce(supplier_dispatch_rows=[supplier()], dispatch_colours=[], policy=POLICY)
+
+    def test_unqualified_keys_keep_original_comparison_denial_and_overflow_fails(self):
+        with self.assertRaisesRegex(ValueError, 'UNQUALIFIED_SCALAR_DOMAIN'):
+            produce(supplier_dispatch_rows=[supplier()],
+                dispatch_colours=[colour(SKUCode='é')], policy=POLICY)
+        for changes in ({'ReqTopOfRed': 2147483648},
+                        {'ReqTopOfRed': 2147483647, 'ReqTopOfYellow': 1}):
+            with self.subTest(changes=changes), self.assertRaisesRegex(ValueError, 'overflows'):
+                produce(supplier_dispatch_rows=[supplier(**changes)], dispatch_colours=[colour()], policy=POLICY)
+
+    def test_lookup_candidate_work_grows_linearly_and_handles_full_workload_shape(self):
+        from mta.application import production_bor_contract as module
+        original = module._same_pair
+        for count in (256, 512, 1024, 97097):
+            colours = [colour('GREY' if i % 7 == 0 else 'Black', SKUCode=f'SKU-{i}') for i in range(count)]
+            sources = [supplier(SKUCode=f'SKU-{i}') for i in range(count if count < 97097 else 1)]
+            with self.subTest(count=count), patch.object(module, '_same_pair', wraps=original) as same:
+                result = produce(supplier_dispatch_rows=sources, dispatch_colours=colours, policy=POLICY)
+                self.assertEqual(same.call_count, len(sources))
+                self.assertEqual(len(result), len(sources))
+                self.assertEqual(result[0]['ReqTopOfBlack'], 0)
+
+    def test_real_expanded_report_projection_accepts_producer_grey(self):
+        import os
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
+        os.environ.setdefault('VF_SECRET_KEY', 'unit-only')
+        import django
+        django.setup()
+        from mta.presentation.production_reports import current
+        from mta.application import production_output_policy as policy
+        from mta.domain.colours import colour as calculate_colour
+        capabilities = [dict(capability=name, rows=[]) for name in (
+            'r1_requirement_band', 'r1_advance_stock_allocation', 'r1_allocated_orders')]
+        cases = ((100,0,0,'BLACK'),(100,20,0,'RED'),(100,50,0,'YELLOW'),
+                 (100,80,0,'GREEN'),(100,110,20,'BLUE'),(100,130,20,'WHITE'),(0,0,0,'GREY'))
+        rows = []
+        for index,(norm,stock,blue,band) in enumerate(cases):
+            produced = calculate_colour(Decimal(norm),Decimal(stock),Decimal(blue)).band
+            self.assertEqual(produced,band)
+            rows.append(dict(sku_code=f'SKU-{index}',location_code='TOP',colours={'dispatch':{'band':produced}}))
+        capabilities.append(dict(capability='r1_requirement', rows=rows))
+        output = dict(CalculationOutputs=capabilities,
+            ClosingState=[dict(bpr={'BPRMaster': []}, complete={'SupplierDispatchReq': [supplier(SKUCode=f'SKU-{i}') for i in range(7)]})],
+            BPRFinal=[dict(vf_RationedReqReport=[], BPR_Table=[])])
+        opening = dict(supplier=dict(SOBData=[], MOQData=[]),
+            production_report_schema=policy.SOURCE_SCHEMA,
+            production_report_policy={'output_contract': policy.contract()})
+        before = deepcopy((output, opening))
+        result = current(output, opening)
+        self.assertEqual(tuple(result['SupplierDispatchReq'][0]), OUTPUT_FIELDS)
+        self.assertEqual([(row['ReqTopOfBlack'],row['ReqTopOfRed']) for row in result['SupplierDispatchReq']],
+                         [(7,0)]+[(0,7)]*6)
+        self.assertEqual((output, opening), before)
 
 
 if __name__ == "__main__":

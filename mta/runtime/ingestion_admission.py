@@ -175,7 +175,7 @@ def validate_activation(cursor, body):
     from release.native_schema import schema_digest
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
     chain=[]; current=body; seen=set()
-    # Original admission, stopped-terminal admission, then one failed-terminal retry.
+    # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
     while True:
         if current['target_release'] in seen:
@@ -184,8 +184,8 @@ def validate_activation(cursor, body):
         extension=authority.read_schema_transition(cursor,current)
         if extension is None:
             break
-        if len(chain)==3:
-            raise ValueError('Schema transition exceeds the reviewed three-admission boundary')
+        if len(chain)==4:
+            raise ValueError('Schema transition exceeds the reviewed four-admission boundary')
         parent=authority.read(cursor,current['initialization_id'],extension['previous_release'])
         if (_activation_metadata(cursor,parent)!=cert
                 or digest(parent)!=extension['previous_authority_digest']

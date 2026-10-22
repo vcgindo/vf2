@@ -18,8 +18,9 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
     from mta.runtime.receipt_integrity import audit_input,audit_output,verify
     from mta.runtime.services import read_outputs
     import psycopg
-    retry=os.environ.get('VF_CAPTURED_RETRY_PROOF')=='1'
-    terminal=os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1'
+    final=os.environ.get('VF_CAPTURED_FINAL_PROOF')=='1'
+    retry=os.environ.get('VF_CAPTURED_RETRY_PROOF')=='1' or final
+    terminal=os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1' or retry
     if terminal:
         physical,rows,prefix=ci.finite_prefix(leaf)
         old_attempt=DailyFeedAttempt.objects.get(run=leaf)
@@ -55,8 +56,28 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
                         archive_path=str(Path(old_attempt.archive_path).with_name('failed-terminal')),
                         terminal_continuation=spec))
         leaf=CalculationRun.objects.get(execution_revision='native-terminal-'+release['source_commit'])
-    count=9 if retry else 8 if terminal else 7
-    physical,rows,prefix=(ci.retry_prefix if retry else ci.terminal_prefix if terminal else ci.finite_prefix)(leaf)
+    if final:
+        physical,rows,prefix=ci.retry_prefix(leaf)
+        old_attempt=DailyFeedAttempt.objects.get(run=leaf)
+        old_physical=DailyFeedAttempt.objects.get(run=physical)
+        pins=dict(run_id=str(leaf.pk),initialization_id=str(owner.pk),source_digest=owner.source.digest,
+            input_digest=leaf.input_digest,input_manifest_digest=leaf.input_manifest_digest,
+            daily_input_sha256=old_attempt.input_sha256,capture_cut=leaf.production_manifest['ingestion_preparation']['capture_cut'])
+        spec=dict(prefix_digest=prefix,physical_run_id=str(physical.pk),
+            physical_manifest_digest=physical.input_manifest_digest,physical_attempt_id=str(old_physical.attempt_id),
+            current_revision_cut=epochs(owner.pk))
+        # Produce the exact FAILED v5 through the supported v5 owner. The v6
+        # proof below is the only child of this preserved failure.
+        with patch.object(temporal,'calculate_day',side_effect=ValueError('failed v5 fixture')):
+            with test.assertRaisesRegex(ValueError,'failed v5 fixture'):
+                temporal.execute_day(day=None,profile=None,
+                    execution_revision='native-terminal-retry-'+release['source_commit'],
+                    _captured_retry=dict(origin_run_id=str(leaf.pk),expected=pins,
+                        archive_path=str(Path(old_attempt.archive_path).with_name('failed-v5')),
+                        terminal_retry=spec))
+        leaf=CalculationRun.objects.get(execution_revision='native-terminal-retry-'+release['source_commit'])
+    count=10 if final else 9 if retry else 8 if terminal else 7
+    physical,rows,prefix=(ci.final_prefix if final else ci.retry_prefix if retry else ci.terminal_prefix if terminal else ci.finite_prefix)(leaf)
     a=DailyFeedAttempt.objects.get(run=leaf)
     original=DailyFeedAttempt.objects.get(run=physical)
     before={row['run']['id']:record(row['run']['id']) for row in rows}
@@ -73,12 +94,12 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
     spec=dict(prefix_digest=prefix,physical_run_id=str(physical.pk),
         physical_manifest_digest=physical.input_manifest_digest,physical_attempt_id=str(original.attempt_id),
         current_revision_cut=epochs(owner.pk))
-    revision=('native-terminal-retry-' if retry else 'native-terminal-' if terminal else 'native-finite-')+release['source_commit']
+    revision=('native-final-attempt-' if final else 'native-terminal-retry-' if retry else 'native-terminal-' if terminal else 'native-finite-')+release['source_commit']
     def resume(name,*,pins=spec,execution=revision):
         return temporal.execute_day(day=None,profile=None,execution_revision=execution,
             _captured_retry=dict(origin_run_id=str(leaf.pk),expected=expected,
                 archive_path=str(Path(a.archive_path).with_name(name)),
-                **({'terminal_retry':pins} if retry else {'terminal_continuation':pins} if terminal else {'finite_continuation':pins})))
+                **({'one_additional_attempt':pins} if final else {'terminal_retry':pins} if retry else {'terminal_continuation':pins} if terminal else {'finite_continuation':pins})))
     def unchanged():
         test.assertEqual({key:record(key) for key in before},before)
         test.assertEqual((CalculationRun.objects.count(),MdmDailyInputCapture.objects.count()),(count,count))
@@ -88,7 +109,7 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
         with test.assertRaises(ValueError):resume('bad-'+key,pins=dict(spec,**{key:'foreign'}))
         unchanged()
     with test.assertRaises(ValueError):resume('bad-cut',pins=dict(spec,current_revision_cut=[0]*5))
-    with test.assertRaises(ValueError):resume('bad-release',execution=('native-terminal-retry-' if retry else 'native-terminal-' if terminal else 'native-finite-')+'9'*40)
+    with test.assertRaises(ValueError):resume('bad-release',execution=('native-final-attempt-' if final else 'native-terminal-retry-' if retry else 'native-terminal-' if terminal else 'native-finite-')+'9'*40)
     options=connection.settings_dict
     with psycopg.connect(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
             user=options['USER'],password=options['PASSWORD'],autocommit=True) as competing:
@@ -113,7 +134,7 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
             patch('mta.runtime.accepted_daily.read',side_effect=AssertionError('No CSV reparse')):
         result=resume('finite-continued')
     test.assertEqual(result.status,'SUCCEEDED')
-    test.assertEqual(result.input_payload['schema'],ci.RETRY if retry else ci.TERMINAL if terminal else ci.FINITE)
+    test.assertEqual(result.input_payload['schema'],ci.FINAL if final else ci.RETRY if retry else ci.TERMINAL if terminal else ci.FINITE)
     test.assertEqual(read_input(result),raw)
     test.assertEqual(ci.origin(result).pk,physical.pk)
     test.assertEqual({key:record(key) for key in before},before)
@@ -156,7 +177,7 @@ def prove_finite(test,owner,leaf,raw,release,root,pick,record):
             transaction.set_rollback(True)
     test.assertEqual({key:record(key) for key in before},before)
     read_outputs(result)
-    print(('RETRY_NATIVE_POSTGRES_PASS exact9 originals' if retry else 'TERMINAL_NATIVE_POSTGRES_PASS exact8 originals' if terminal else 'FINITE_NATIVE_POSTGRES_PASS exact7 originals')+' preserved physical input/readback/archives rollback guards reportrebuild successor unresolved')
+    print(('FINAL_NATIVE_POSTGRES_PASS exact10 originals' if final else 'RETRY_NATIVE_POSTGRES_PASS exact9 originals' if retry else 'TERMINAL_NATIVE_POSTGRES_PASS exact8 originals' if terminal else 'FINITE_NATIVE_POSTGRES_PASS exact7 originals')+' preserved physical input/readback/archives rollback guards reportrebuild successor unresolved')
 
 
 @unittest.skipUnless(os.environ.get('VF_CAPTURED_FINITE_PROOF')=='1','Explicit disposable PostgreSQL finite proof required')

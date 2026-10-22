@@ -6,6 +6,7 @@ import os
 import unittest
 from copy import deepcopy
 from uuid import uuid4
+from unittest.mock import patch
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','vectorflow.settings')
 os.environ.setdefault('VF_SECRET_KEY','schema-contract-unit-only')
 import django
@@ -40,3 +41,19 @@ class SchemaCompatibilityTests(unittest.TestCase):
             'new':{'before':None,'after':{'value':0}},
             'removed':{'before':False,'after':None}})
         self.assertEqual((before,after),saved)
+
+    def test_fifth_schema_admission_remains_denied(self):
+        from mta.runtime import ingestion_admission as admission
+        from mta.serialization import digest
+        bodies=[dict.fromkeys(authority.FIELDS,'fixed') for _ in range(6)]
+        for index,body in enumerate(bodies):
+            body.update(target_release=str(index)*64,target_commit=str(index)*40)
+        cert=dict(schema_digest='s',guard_digest='g',receipt_digest='r')
+        extensions=[dict(previous_release=bodies[i+1]['target_release'],
+            previous_authority_digest=digest(bodies[i+1]),certification_digest='r',
+            target_commit=bodies[i]['target_commit']) for i in range(5)]
+        with patch.object(admission,'_activation_metadata',return_value=cert), \
+                patch.object(authority,'read_schema_transition',side_effect=extensions), \
+                patch.object(authority,'read',side_effect=bodies[1:]), \
+                self.assertRaisesRegex(ValueError,'four-admission boundary'):
+            admission.validate_activation(None,bodies[0])

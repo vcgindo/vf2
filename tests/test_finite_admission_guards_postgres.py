@@ -74,7 +74,9 @@ class FiniteAdmissionGuardsPostgresTests(IngestionPostgresTests):
             packaged_source=self.release['source_commit'])
         child.input_manifest_digest=digest(child.input_payload)
         child.save(update_fields=['input_payload','input_manifest_digest'])
-        terminal=os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1'
+        final=os.environ.get('VF_CAPTURED_FINAL_PROOF')=='1'
+        retry=os.environ.get('VF_CAPTURED_RETRY_PROOF')=='1' or final
+        terminal=os.environ.get('VF_CAPTURED_TERMINAL_PROOF')=='1' or retry
         if terminal:
             first={field.attname:getattr(parent,field.attname) for field in parent._meta.concrete_fields
                 if field.name not in ('id','attempt_id','created_at','updated_at')}
@@ -95,7 +97,6 @@ class FiniteAdmissionGuardsPostgresTests(IngestionPostgresTests):
                 packaged_source=self.release['source_commit'])
             child.input_manifest_digest=digest(child.input_payload)
             child.save(update_fields=['input_payload','input_manifest_digest'])
-        retry=os.environ.get('VF_CAPTURED_RETRY_PROOF')=='1'
         if retry:
             values={field.attname:getattr(parent,field.attname) for field in parent._meta.concrete_fields
                     if field.name not in ('id','attempt_id','created_at','updated_at')}
@@ -118,7 +119,29 @@ class FiniteAdmissionGuardsPostgresTests(IngestionPostgresTests):
                 packaged_source=self.release['source_commit'],retry=True)
             child.input_manifest_digest=digest(child.input_payload)
             child.save(update_fields=['input_payload','input_manifest_digest'])
-        prefix_reader=ci.retry_prefix if retry else ci.terminal_prefix if terminal else ci.finite_prefix
+        if final:
+            values={field.attname:getattr(parent,field.attname) for field in parent._meta.concrete_fields
+                    if field.name not in ('id','attempt_id','created_at','updated_at')}
+            values.update(run_id=child.pk,recovery_origin_id=parent.pk,request_key=digest('failed-v5'),
+                archive_path='/metadata/failed-v5',status='RUNNING',phase='CALCULATE',accepted_facts={},prepared_context={},error={})
+            parent=DailyFeedAttempt.objects.create(**values)
+            child.status='FAILED';child.save(update_fields=['status'])
+            parent.status='FAILED';parent.save(update_fields=['status'])
+            leaf=child
+            with connection.cursor() as cursor:cursor.execute('SET LOCAL session_replication_role=replica')
+            child=CalculationRun.objects.create(kind='DAILY_CHAIN',business_date=leaf.business_date,
+                execution_revision='native-final-attempt-'+self.release['source_commit'],evidence_mode='production',
+                input_digest=leaf.input_digest,input_payload={},status='RUNNING')
+            cap=MdmDailyInputCapture.objects.create(run=child,source=self.source,origin=cap,
+                request_digest='a'*64,revision_digest='b'*64,sku_revision_digest='c'*64,
+                location_revision_digest='d'*64,skuloc_revision_digest='e'*64,sql_digest='f'*64,nms_active=False)
+            with connection.cursor() as cursor:cursor.execute('SET LOCAL session_replication_role=origin')
+            physical,rows,prefix=ci.final_prefix(leaf)
+            child.input_payload=ci.terminal_manifest(child,leaf,expected_prefix_digest=prefix,
+                packaged_source=self.release['source_commit'],additional=True)
+            child.input_manifest_digest=digest(child.input_payload)
+            child.save(update_fields=['input_payload','input_manifest_digest'])
+        prefix_reader=ci.final_prefix if final else ci.retry_prefix if retry else ci.terminal_prefix if terminal else ci.finite_prefix
         self.atomic.__exit__(None,None,None);self.atomic=None
         original_rows=digest(rows)
         def values(**changes):
@@ -171,13 +194,13 @@ class FiniteAdmissionGuardsPostgresTests(IngestionPostgresTests):
         params=dict(host=options['HOST'],port=options['PORT'],dbname=options['NAME'],
                     user=options['USER'],password=options['PASSWORD'])
         with connection.cursor() as cursor:
-            cursor.execute('GRANT EXECUTE ON FUNCTION mta.'+('retry' if retry else 'terminal' if terminal else 'finite')+'_capture_prefix_digest(uuid) TO '+RUNTIME)
+            cursor.execute('GRANT EXECUTE ON FUNCTION mta.'+('final' if final else 'retry' if retry else 'terminal' if terminal else 'finite')+'_capture_prefix_digest(uuid) TO '+RUNTIME)
         for zone,style in (('Asia/Kolkata','SQL, DMY'),('America/New_York','German, DMY')):
             with psycopg.connect(**params) as runtime:
                 runtime.execute('SET TRANSACTION READ ONLY')
                 runtime.execute('SET LOCAL ROLE '+RUNTIME)
                 runtime.execute("SELECT set_config('TimeZone',%s,true),set_config('DateStyle',%s,true)",[zone,style])
-                actual=runtime.execute('SELECT mta.'+('retry' if retry else 'terminal' if terminal else 'finite')+'_capture_prefix_digest(%s)',[leaf.pk]).fetchone()[0]
+                actual=runtime.execute('SELECT mta.'+('final' if final else 'retry' if retry else 'terminal' if terminal else 'finite')+'_capture_prefix_digest(%s)',[leaf.pk]).fetchone()[0]
                 self.assertEqual(actual,prefix)
         # Two genuine INSERTs enter the new guard. The second waits on the
         # parent's row lock, then loses to the committed first child's identity.
@@ -250,4 +273,4 @@ class FiniteAdmissionGuardsPostgresTests(IngestionPostgresTests):
             cursor.execute('SET LOCAL session_replication_role=origin')
             reject(run_id=sibling.pk)
             transaction.set_rollback(True)
-        print(('TERMINAL_DIRECT_SQL_GUARDS_PASS' if terminal else 'FINITE_DIRECT_SQL_GUARDS_PASS')+' metadata-only exact-prefix UTC runtime-read ordinaryduplicate foreigncycle sibling childparent immutable lifecycle competingINSERT')
+        print(('FINAL_DIRECT_SQL_GUARDS_PASS' if final else 'TERMINAL_DIRECT_SQL_GUARDS_PASS' if terminal else 'FINITE_DIRECT_SQL_GUARDS_PASS')+' metadata-only exact-prefix UTC runtime-read ordinaryduplicate foreigncycle sibling childparent immutable lifecycle competingINSERT')

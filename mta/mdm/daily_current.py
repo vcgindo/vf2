@@ -9,6 +9,13 @@ from mta.serialization import digest, storage
 _WRITE_BATCH = 500
 
 
+def _scalar_storage(value):
+    # Current business fields are typed scalars. Avoid the graph/RecordRows
+    # dispatch for primitives while retaining the canonical conversion for
+    # Decimal, dates and any unqualified value.
+    return value if value is None or type(value) in (str, int, float, bool) else storage(value)
+
+
 def _chunks(values, size=_WRITE_BATCH):
     for start in range(0, len(values), size):
         yield values[start:start + size]
@@ -29,7 +36,31 @@ def _verify_written(base, names, expected, ordinals, retained_pks, path):
 
 def _flush_updates(model, base, names, expected, updates, retained_pks, path):
     for changed, rows in updates.items():
-        model.objects.bulk_update(rows, list(changed), batch_size=_WRITE_BATCH)
+        if connection.vendor != 'postgresql':
+            model.objects.bulk_update(rows, list(changed), batch_size=_WRITE_BATCH)
+            continue
+        # Keep exactly the original changed-field groups and statement batches:
+        # statement/row guards and revision epochs retain their invocation grain.
+        # Only replace Django's per-cell CASE expression construction with a
+        # bounded typed VALUES transport. No persistent staging or checkpoint.
+        fields = [model._meta.get_field(name) for name in changed]
+        pk = model._meta.pk
+        quote = connection.ops.quote_name
+        columns = [quote(field.column) for field in (pk, *fields)]
+        slot = '(' + ','.join('%s::' + field.db_type(connection) for field in (pk, *fields)) + ')'
+        for batch in _chunks(rows):
+            params = []
+            for row in batch:
+                params.append(pk.get_db_prep_save(row.pk, connection))
+                params.extend(field.get_db_prep_save(getattr(row, field.attname), connection) for field in fields)
+            params.extend(pk.get_db_prep_save(row.pk, connection) for row in batch)
+            sql = ('UPDATE ' + quote(model._meta.db_table) + ' AS target SET ' +
+                   ','.join(quote(field.column) + '=incoming.' + quote(field.column) for field in fields) +
+                   ' FROM (VALUES ' + ','.join(slot for _ in batch) + ') AS incoming (' + ','.join(columns) + ')' +
+                   ' WHERE target.' + quote(pk.column) + '=incoming.' + quote(pk.column) +
+                   ' AND target.' + quote(pk.column) + ' IN (' + ','.join('%s' for _ in batch) + ')')
+            with connection.cursor() as cursor:
+                cursor.execute(sql, params)
     ordinals = sorted(retained_pks)
     _verify_written(base, names, expected, ordinals, retained_pks, path)
     updates.clear()
@@ -77,7 +108,7 @@ def _write_partition(source, model, partition, expected, path):
             continue
         target = expected[row.ordinal - 1]
         changed = tuple(name for name in names
-                        if storage(getattr(row, name)) != storage(target[name]))
+                        if _scalar_storage(getattr(row, name)) != _scalar_storage(target[name]))
         if changed:
             for name in changed:
                 setattr(row, name, target[name])

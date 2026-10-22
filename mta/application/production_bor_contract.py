@@ -10,6 +10,7 @@ from copy import deepcopy
 from decimal import Decimal
 
 from mta.domain.complete_daily_scalars import ascii_equal
+from mta.application.row_bag_lookup import AsciiBagLookup
 
 
 POLICY = "fresh-production-normal-bor-black-v1"
@@ -27,7 +28,7 @@ QUANTITY_FIELDS = (
     "ReqTopOfGreen", "ReqTopOfBlue", "CumulativeTOR", "CumulativeTOY",
     "CumulativeTOG", "CumulativeTOB",
 )
-COLOURS = ("Black", "Red", "Yellow", "Green", "Blue", "White")
+COLOURS = ("Black", "Red", "Yellow", "Green", "Blue", "White", "Grey")
 
 
 def _int(value, field):
@@ -88,17 +89,30 @@ def produce(*, supplier_dispatch_rows, dispatch_colours, policy):
 
     for row in supplier_dispatch_rows:
         _validate_supplier(row)
-    for row in dispatch_colours:
-        _validate_colour(row)
-    for index, row in enumerate(dispatch_colours):
-        if any(_same_pair(row, prior) for prior in dispatch_colours[:index]):
-            raise ValueError("Ambiguous same-run DispatchColor for SKU/location")
+    for index, row in enumerate(dispatch_colours, 1):
+        try:
+            _validate_colour(row)
+        except ValueError as error:
+            context = {name: repr(row.get(name))[:120] for name in COLOUR_FIELDS} if isinstance(row, dict) else {}
+            raise ValueError(f"{error}; colour ordinal={index}, context={context}") from error
+    # Validate the complete population first, retaining error precedence.  The
+    # ordered lookup only narrows candidates; the original SQL predicate still
+    # owns equality and its denials for unqualified keys.
+    seen = []
+    colours = AsciiBagLookup(seen, ("SKUCode", "WHCode"), ascii_equal)
+    for index, row in enumerate(dispatch_colours, 1):
+        if any(_same_pair(row, prior) for prior in colours.candidates(row, ("SKUCode", "WHCode"))):
+            raise ValueError(f"Ambiguous same-run DispatchColor for SKU/location; colour ordinal={index}, "
+                             f"SKUCode={row['SKUCode']!r}, WHCode={row['WHCode']!r}")
+        seen.append(row)
+        colours.add(row)
 
     result = []
-    for source in supplier_dispatch_rows:
-        matches = [row for row in dispatch_colours if _same_pair(source, row)]
+    for index, source in enumerate(supplier_dispatch_rows, 1):
+        matches = [row for row in colours.candidates(source, ("SKUCode", "WHCode")) if _same_pair(source, row)]
         if len(matches) != 1:
-            raise ValueError("Missing or ambiguous same-run DispatchColor for SupplierDispatchReq")
+            raise ValueError("Missing or ambiguous same-run DispatchColor for SupplierDispatchReq; "
+                             f"supplier ordinal={index}, SKUCode={source['SKUCode']!r}, WHCode={source['WHCode']!r}")
         black = ascii_equal(matches[0]["DispatchColor"], "Black")
         values = {field: deepcopy(source[field]) for field in INPUT_FIELDS}
         for field in QUANTITY_FIELDS:
