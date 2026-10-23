@@ -1,8 +1,9 @@
 # **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """Pre-fork startup admission; retain identity only, never publication rows.
 
-The native publication is immutable. A changed identity fails closed until a
-new MTA master startup verifies it. HTTP requests never perform that verification.
+Qualified protected native publications admit through bounded metadata checks;
+other modes retain the full audit. A changed identity fails closed until a new
+MTA master startup admits it. Full offline verification remains available.
 Existing readers still own their row checks and complete command integrity.
 """
 import hashlib
@@ -41,17 +42,18 @@ CONFIG_SETTINGS = (
 )
 
 
-def binding():
-    run, identity = native_binding()
+def binding(run=None):
+    run, identity = native_binding(run)
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
         from mta.presentation.btr_reporting import admission_identity
         identity = digest(dict(native=identity, btr=admission_identity(run)))
     return run, identity
 
 
-def native_binding():
+def native_binding(run=None):
     """Bounded metadata/file identity; no operational rows or input snapshot."""
-    run = selected_run()
+    if run is None:
+        run = selected_run()
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     files = list((Path(__file__).resolve().parents[1] / 'config').glob('*.json'))
     files += [Path(configuration[name]) for name in ('VF_MTA_PERMISSIONS_FILE', 'VF_MTA_HIERARCHY_FILE', 'VF_MTA_TERMINAL_FILE') if configuration[name]]
@@ -132,17 +134,24 @@ def admit():
     from mta.presentation.identity_reuse import clear
     clear()
     _admitted = None
-    run, before = binding()
-    verify(run)
-    if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
-        from mta.presentation.btr_reporting import selected_generation, verify_generation
-        verify_generation(selected_generation(run))
-    _, after = binding()
-    if before != after:
-        raise PublicationUnavailable('publication_changed_during_admission')
+    from mta.presentation.accepted_publication import startup
+    accepted = startup(binding)
+    bounded = accepted is not None
+    if bounded:
+        run, after = accepted
+    else:
+        run, before = binding()
+        verify(run)
+        if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
+            from mta.presentation.btr_reporting import selected_generation, verify_generation
+            verify_generation(selected_generation(run))
+        _, after = binding()
+        if before != after:
+            raise PublicationUnavailable('publication_changed_during_admission')
     _admitted = after
     result = dict(run_id=str(run.pk), business_date=str(run.business_date),
-                  output_digest=run.output_digest, admission_digest=after)
+                  output_digest=run.output_digest, admission_digest=after,
+                  validation='accepted_metadata' if bounded else 'full_audit')
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
         result['btr_reporting_generation'] = settings.VF_BTR_REPORTING_GENERATION
     return result

@@ -80,6 +80,14 @@ def require_selected(run):
     from mta.presentation.daily_publication import require_ready
     from mta.presentation.planning_summary_admission import require_ready as summary_ready
     expected = candidate(run, require_ready(run), summary_ready(run), identity(run))
+    require_candidate(expected)
+
+
+def require_candidate(expected):
+    """Compare the complete checked bundle; caller still owns its validation."""
+    from django.conf import settings
+    from mta.presentation.context import PublicationUnavailable
+    validate(expected)
     try:
         actual = read(settings.VF_MTA_SELECTION_FILE)
     except (OSError, ValueError) as exc:

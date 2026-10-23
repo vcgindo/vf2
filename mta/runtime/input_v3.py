@@ -64,6 +64,10 @@ def _database_identity():
     return row
 
 
+from mta.presentation.request_scope import once_per_metadata_operation
+
+
+@once_per_metadata_operation
 def _live_identity(owner, *, reading):
     """Resolve production identity from the database, never caller metadata."""
     meta = getattr(owner, '_meta', None)

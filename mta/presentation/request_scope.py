@@ -8,6 +8,17 @@ from contextvars import ContextVar
 from functools import wraps
 
 _current = ContextVar('presentation_read_request', default=None)
+_metadata = ContextVar('presentation_metadata_operation', default=None)
+
+
+@contextmanager
+def metadata_operation():
+    """Fresh read-only startup pass; never enables HTTP/cross-request reuse."""
+    token = _metadata.set({})
+    try:
+        yield
+    finally:
+        _metadata.reset(token)
 
 
 def in_read_request():
@@ -77,6 +88,8 @@ def once_per_request(function):
     def read(*args, **kwargs):
         cache = _current.get()
         if cache is None:
+            cache = _metadata.get()
+        if cache is None:
             return function(*args, **kwargs)
         key = (function, tuple(_argument(value) for value in args),
                tuple(sorted((name, _argument(value)) for name, value in kwargs.items())))
@@ -87,4 +100,15 @@ def once_per_request(function):
                 cache[key] = value
             return value
         return cache[key]
+    return read
+
+
+def once_per_metadata_operation(function):
+    """Only startup's guarded immutable reads, never HTTP or writer reuse."""
+    cached = once_per_request(function)
+    @wraps(function)
+    def read(*args, **kwargs):
+        if _metadata.get() is None or kwargs.get('reading') is False:
+            return function(*args, **kwargs)
+        return cached(*args, **kwargs)
     return read

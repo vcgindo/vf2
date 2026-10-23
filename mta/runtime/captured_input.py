@@ -4,7 +4,7 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 """
 from uuid import UUID
 from mta.serialization import digest
-from mta.presentation.request_scope import once_per_request
+from mta.presentation.request_scope import once_per_request, once_per_metadata_operation
 
 SCHEMA = 'fresh-captured-input-reference-v1'
 SECOND = 'fresh-captured-input-reference-v2'
@@ -122,6 +122,7 @@ def _finite_prefix_digest(leaf):
         return cursor.fetchone()[0]
 
 
+@once_per_metadata_operation
 def finite_prefix(leaf):
     """Authenticate exactly six old wrappers with the unchanged bounded reader."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -205,6 +206,7 @@ def finite_origin(run):
     return physical
 
 
+@once_per_metadata_operation
 def terminal_prefix(leaf):
     """Exactly the stopped finite child and its authenticated seven originals."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -242,6 +244,7 @@ def terminal_manifest(run, leaf, *, expected_prefix_digest, packaged_source, ret
         execution_revision=run.execution_revision,packaged_source=packaged_source))
 
 
+@once_per_metadata_operation
 def terminal_origin(run):
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.daily_feed_models import DailyFeedAttempt
@@ -278,6 +281,7 @@ def terminal_origin(run):
     return physical
 
 
+@once_per_metadata_operation
 def retry_prefix(leaf):
     """Exactly the FAILED v4 and its unchanged authenticated eight originals."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -300,6 +304,7 @@ def retry_prefix(leaf):
     return physical,[dict(run=_metadata(leaf),capture=_metadata(capture),attempt=_metadata(attempt)),*rows],prefix
 
 
+@once_per_metadata_operation
 def final_prefix(leaf):
     """Exactly the FAILED v5 and its unchanged authenticated nine originals."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture

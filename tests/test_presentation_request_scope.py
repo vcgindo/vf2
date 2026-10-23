@@ -3,6 +3,44 @@ from mta.presentation.request_scope import once_per_request, read_request
 
 
 class RequestScopeTests(unittest.TestCase):
+    def test_startup_metadata_passes_are_fresh_and_never_http_reads(self):
+        from mta.presentation.request_scope import metadata_operation, in_read_request
+        current = ['first']
+        calls = []
+        @once_per_request
+        def check():
+            calls.append(current[0])
+            return current[0]
+        with metadata_operation():
+            self.assertFalse(in_read_request())
+            self.assertEqual(check(), check())
+        current[0] = 'second'
+        with metadata_operation():
+            self.assertEqual(check(), 'second')
+        check(); check()
+        self.assertEqual(calls, ['first', 'second', 'second', 'second'])
+
+    def test_startup_only_ancestry_cache_preserves_flags_errors_and_writer_behavior(self):
+        from mta.presentation.request_scope import metadata_operation, once_per_metadata_operation
+        calls = []
+        @once_per_metadata_operation
+        def check(*, reading=True, branch=False):
+            calls.append((reading, branch))
+            if branch:
+                raise ValueError('branch changed')
+            return len(calls)
+        with read_request('/api/mta/GetBPRData'):
+            check(); check()
+        with metadata_operation():
+            self.assertEqual(check(), check())
+            check(reading=False); check(reading=False)
+            for _ in range(2):
+                with self.assertRaisesRegex(ValueError, 'branch changed'):
+                    check(branch=True)
+        with metadata_operation():
+            self.assertEqual(check(), 8)
+        self.assertEqual(len(calls), 8)
+
     def test_export_reads_revalidate_changed_dependencies_on_next_request(self):
         from mta.presentation.request_scope import in_read_request
         paths = ['GetExportDataAsync'] + ['DownloadReports/' + name for name in (

@@ -43,13 +43,8 @@ class Publication:
         return self.run.business_date
 
 
-@once_per_request
-def selected_run():
-    """Resolve immutable accepted identity without replaying its entire state.
-
-    Full verification remains in read_outputs/publication and publication/startup
-    acceptance. Routine selective readers verify the images they actually use.
-    """
+def configured_run():
+    """Resolve the configured accepted header; this does not admit selection."""
     from mta.presentation import native_publication
     from mta.presentation.native_mode import require_configuration
     require_configuration()
@@ -67,6 +62,12 @@ def selected_run():
     run = CalculationRun.objects.filter(pk=identifier, kind='DAILY_CHAIN', status='SUCCEEDED').first()
     if run is None or not run.production_manifest or run.output_digest != expected:
         raise PublicationUnavailable('publication_identity_or_status_mismatch')
+    return run
+
+
+@once_per_request
+def selected_run():
+    run = configured_run()
     from mta.presentation.native_selection import require_selected
     require_selected(run)
     return run
