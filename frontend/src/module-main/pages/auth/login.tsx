@@ -11,16 +11,15 @@ import WelcomeBoard from "./welcome-board";
 import { completeLocalLogin, hashPassword } from '../../../helpers/utils'
 import VFLoader from "../../../components/VectorFLOW/commons/VFLoader";
 import { loadCaptchaEnginge, LoadCanvasTemplateNoReload, validateCaptcha } from 'react-simple-captcha';
-import { useGetAllEnvironmentConfiguration } from "../../../VectorFlow/Services/MTA/MDM";
-import { useDispatch } from "react-redux";
-import { UPDATE_ENV_CONFIG } from "../../../redux/actions/MTA";
 import { fixtureCaptchaExempt } from './fixture-captcha-policy';
 
 function LoginContainer() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
    
     loadCaptchaEnginge(6);
 
@@ -28,7 +27,10 @@ function LoginContainer() {
       loadCaptchaEnginge(6);
     }, 120000);
   
-    return () => clearInterval(interval);
+    return () => {
+      mounted.current = false;
+      clearInterval(interval);
+    };
   },[])
 
   const form = useForm<LoginRequest>({
@@ -50,28 +52,13 @@ function LoginContainer() {
   const recaptchaRef: any = useRef();
   const [captchaInput, setCaptchaInput] = useState("");
   const checkingCaptcha = useRef(false);
-  const dispatch = useDispatch();
-  const {mutateAsync : getAllEnvConfiguration} = useGetAllEnvironmentConfiguration();
-  const getAllEnvironmentConfiguration = async () => {
-    try {
-      const response = await getAllEnvConfiguration();
-      const configMap = response?.data?.data.reduce((map:any, item:any) => {
-        map[item.ConfigKey] = item.ConfigValue;
-        return map;
-      }, {});
-      dispatch(UPDATE_ENV_CONFIG(configMap))
-    }
-    catch (err) {
-      console.error("Unexpected error in get Environment configuration:", err);
-    }
-  };
-
   const onSave = async () => {
     if (checkingCaptcha.current || isLoading) return;
     const formData = { ...getValues() };
     checkingCaptcha.current = true;
     try {
     const exempt = await fixtureCaptchaExempt(formData.email);
+    if (!mounted.current) return;
     if (!exempt && (!captchaInput || !validateCaptcha(captchaInput))) {
       notifyError("Invalid Captcha. Please try again.");
       setCaptchaInput("");
@@ -79,9 +66,11 @@ function LoginContainer() {
     }
   
     formData.password = await hashPassword(formData.password);
+    if (!mounted.current) return;
   
     await mutateLogin(formData, {
       onSuccess: (data: any) => {
+        if (!mounted.current) return;
         if (data?.status !== 200) {
           if (data.response.msg === 'User is inactive please contact admin') {
             notifyError("User is inactive please contact admin");
@@ -94,7 +83,6 @@ function LoginContainer() {
           loadCaptchaEnginge(6);
         } else {
           completeLocalLogin(navigate);
-          getAllEnvironmentConfiguration();
           notifySuccess(data.data?.data?.msg);
           if(data.data?.data?.wrng != null){
            notifyWarningWithoutAutoClose(data.data.data.wrng)
@@ -102,6 +90,7 @@ function LoginContainer() {
         }
       },
       onError(error: any) {
+        if (!mounted.current) return;
         if (error?.code === "ERR_NETWORK") {
           notifyError(t("loginPage.notify.networkError"));
         } else {

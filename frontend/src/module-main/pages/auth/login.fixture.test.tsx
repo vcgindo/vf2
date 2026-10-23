@@ -4,8 +4,9 @@ import { MemoryRouter } from 'react-router-dom';
 import LoginContainer from './login';
 import { fixtureCaptchaExempt } from './fixture-captcha-policy';
 import { useLoginAccount } from '../../../module-main/services';
-import { hashPassword } from '../../../helpers/utils';
+import { completeLocalLogin, hashPassword } from '../../../helpers/utils';
 import { validateCaptcha } from 'react-simple-captcha';
+import { MDMService } from '../../../VectorFlow/Services/MTA/MDM/api';
 
 jest.mock('./fixture-captcha-policy', () => ({ fixtureCaptchaExempt: jest.fn() }));
 jest.mock('../../../module-main/services', () => ({ useLoginAccount: jest.fn() }));
@@ -16,6 +17,7 @@ jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) =>
 jest.mock('react-redux', () => ({ useDispatch: () => jest.fn() }));
 jest.mock('../../../redux/actions/MTA', () => ({ UPDATE_ENV_CONFIG: jest.fn() }));
 jest.mock('../../../VectorFlow/Services/MTA/MDM', () => ({ useGetAllEnvironmentConfiguration: () => ({ mutateAsync: jest.fn() }) }));
+jest.mock('../../../VectorFlow/Services/MTA/MDM/api', () => ({ MDMService: { getAllEnvironmentConfiguration: jest.fn() } }));
 jest.mock('../../../components', () => ({ Errors: () => null }));
 jest.mock('../../../components/VectorFLOW/commons/VFLoader', () => () => null);
 jest.mock('./welcome-board', () => () => null);
@@ -64,4 +66,38 @@ it('retains the CAPTCHA gate for a negative policy response', async () => {
   await waitFor(() => expect(fixtureCaptchaExempt).toHaveBeenCalled());
   expect(login).not.toHaveBeenCalled();
   expect(hashPassword).not.toHaveBeenCalled();
+});
+
+it('completes login without starting ancillary environment configuration', async () => {
+  (fixtureCaptchaExempt as jest.Mock).mockResolvedValue(true);
+  const login = jest.fn(async (_data, callbacks) => {
+    callbacks.onSuccess({ status: 200, data: { data: { msg: 'Signed in' } } });
+  });
+  (useLoginAccount as jest.Mock).mockReturnValue({ mutateAsync: login, isLoading: false });
+  fireEvent.submit(form());
+  await waitFor(() => expect(completeLocalLogin).toHaveBeenCalledTimes(1));
+  expect(MDMService.getAllEnvironmentConfiguration).not.toHaveBeenCalled();
+});
+
+it('ignores a login response after the form unmounts', async () => {
+  (fixtureCaptchaExempt as jest.Mock).mockResolvedValue(true);
+  let callbacks: any;
+  let finish!: () => void;
+  const login = jest.fn((_data, value) => {
+    callbacks = value;
+    return new Promise<void>(resolve => { finish = resolve; });
+  });
+  (useLoginAccount as jest.Mock).mockReturnValue({ mutateAsync: login, isLoading: false });
+  const view = render(<MemoryRouter><LoginContainer /></MemoryRouter>);
+  fireEvent.change(screen.getByPlaceholderText('loginPage.placeholder.email'), { target: { value: 'stage2.broad@vectorflow.local' } });
+  fireEvent.change(screen.getByPlaceholderText('loginPage.placeholder.password'), { target: { value: 'original-password' } });
+  fireEvent.submit(view.container.querySelector('form')!);
+  await waitFor(() => expect(login).toHaveBeenCalledTimes(1));
+  view.unmount();
+  await act(async () => {
+    callbacks.onSuccess({ status: 200, data: { data: { msg: 'Signed in' } } });
+    finish();
+  });
+  expect(completeLocalLogin).not.toHaveBeenCalled();
+  expect(MDMService.getAllEnvironmentConfiguration).not.toHaveBeenCalled();
 });

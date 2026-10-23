@@ -5,6 +5,9 @@ import { useLocation, useNavigate } from 'react-router'
 import { useUserData } from '../../../context';
 import { listMenuParent } from "../NavbarMenu/listMenu";
 import { markStartup } from '../../../performance/screenProbe';
+import { useDispatch } from 'react-redux';
+import { MDMService } from '../../../VectorFlow/Services/MTA/MDM/api';
+import { UPDATE_ENV_CONFIG } from '../../../redux/actions/MTA';
 
 interface AuthenticationTemplateProps {
   isAnonymous: boolean
@@ -70,12 +73,16 @@ const AuthenticatedTemplate = (
 
   const {user, setUser}  = useUserData();
   const { children, loadingComponent: Loading } = props;
-  const [loading,setLoading] = useState(false);
+  const [profileVerified, setProfileVerified] = useState(false);
+  const profileReady = profileVerified && Boolean(user);
+  const configurationRequested = useRef(false);
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
   const location = useLocation()
    
     useEffect(() => {
+      let active = true;
       const verifyUserSession = async () => {
         try {
           // A protected-route verification is a new redirect transition. Any
@@ -83,6 +90,7 @@ const AuthenticatedTemplate = (
           clearRedirecting();
           markStartup('profile-call');
           const response = await MainService.getProfile();
+          if (!active) return;
           markStartup('profile-return');
           const profile = response?.data?.data;
 
@@ -91,6 +99,7 @@ const AuthenticatedTemplate = (
           }
 
           setUser(profile);
+          setProfileVerified(true);
           markStartup('profile-set-user');
 
           const selectedMenu = getSelectedMenuItem(
@@ -101,15 +110,36 @@ const AuthenticatedTemplate = (
             props.setMenuItem(selectedMenu);
           }
         } catch (err) {
+          if (!active) return;
           console.warn(err, 'User session verification failed, redirecting to login.');
           loginRedirect(navigate);
-        } finally {
-          setLoading(false);
         }
       };
 
       verifyUserSession();
+      return () => { active = false; };
     }, []);
+
+    useEffect(() => {
+      if (!profileReady || configurationRequested.current) return;
+      configurationRequested.current = true;
+      let active = true;
+      const getAllEnvironmentConfiguration = async () => {
+        try {
+          const response = await MDMService.getAllEnvironmentConfiguration();
+          if (!active) return;
+          const configMap = response?.data?.data.reduce((map: any, item: any) => {
+            map[item.ConfigKey] = item.ConfigValue;
+            return map;
+          }, {});
+          dispatch(UPDATE_ENV_CONFIG(configMap));
+        } catch (err) {
+          if (active) console.error("Unexpected error in get Environment configuration:", err);
+        }
+      };
+      getAllEnvironmentConfiguration();
+      return () => { active = false; };
+    }, [profileReady, dispatch]);
 
 
 

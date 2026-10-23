@@ -6,12 +6,22 @@ permission result is retained; each new process/operation admits independently.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import wraps
+import hashlib
+import json
 
 from django.db import connection
 
 from mta.serialization import digest
 
 _current = ContextVar('native_report_verification', default=None)
+
+
+def _catalogue_digest(value):
+    # This finite catalogue contains only JSON builtins (including tuple rows).
+    # Preserve the general serializer's exact bytes while using the C encoder.
+    # Do not apply this allocation strategy to state graphs or streamed rows.
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=True,
+        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
 
 
 def guard_stamp():
@@ -58,7 +68,7 @@ def guard_stamp():
         roles = cursor.fetchall()
         cursor.execute('SELECT roleid::bigint,member::bigint,grantor::bigint,admin_option,xmin::text '
             'FROM pg_auth_members ORDER BY roleid,member,grantor')
-        return digest((identity, generations, roles, cursor.fetchall()))
+        return _catalogue_digest((identity, generations, roles, cursor.fetchall()))
 
 
 @contextmanager
