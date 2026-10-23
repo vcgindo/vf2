@@ -21,6 +21,7 @@ class LocalCatalogueTests(TestCase):
             'VF_MTA_LOCAL_PERMISSIONS': '1', 'VF_MTA_FIXTURE_FILE': '',
             'VF_MTA_FIXTURE_SHA256': '', 'VF_MTA_PUBLISHED_RUN': 'accepted',
             'VF_MTA_PUBLISHED_DIGEST': 'output',
+            'VF_MTA_SELECTION_FILE': '', 'VF_MTA_SELECTION_SHA256': '',
         })
         self.environment.start()
         self.addCleanup(self.environment.stop)
@@ -56,6 +57,76 @@ class LocalCatalogueTests(TestCase):
             dict(id=i, location_heirarchy_1='Mixed ', location_heirarchy_2=None,
                  location_heirarchy_3='é') for i in (7, 4)])
         self.assertEqual(result[0]['product_permission_ids'], result[0]['product_permission'])
+
+    def native(self):
+        os.environ['VF_MTA_HIERARCHY_FILE'] = os.environ['VF_MTA_HIERARCHY_SHA256'] = ''
+        binding = dict(schema='fresh-production-selection-v1', business_date='2026-04-08',
+                       **{key: '49efa557-a31f-4ea8-9089-b510f2856d30' for key in
+                          ('run_id', 'initialization_id', 'btr_generation', 'summary_generation')},
+                       **{key: 'a' * 64 for key in
+                          ('output_digest', 'publication_seal', 'configuration_digest', 'summary_digest')})
+        binding['selection_digest'] = hashlib.sha256(json.dumps(
+            binding, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        os.environ['VF_MTA_PUBLISHED_RUN'] = binding['run_id']
+        os.environ['VF_MTA_PUBLISHED_DIGEST'] = binding['output_digest']
+        self.install('VF_MTA_SELECTION', binding)
+        return binding
+
+    def test_native_projection_login_profile_and_live_revocation(self):
+        expected = payload()
+        self.native()
+        self.assertEqual(payload(), expected)
+        self.test_login_and_profile_assembly_do_not_call_mta()
+        self.test_live_grant_addition_and_revocation()
+
+    def test_native_selection_failures(self):
+        binding = self.native()
+        for key, value in [('run_id', 'bad'), ('schema', 'wrong'), ('selection_digest', 'b' * 64),
+                           ('business_date', '2026-4-8'), ('output_digest', 'b' * 64)]:
+            with self.subTest(key=key):
+                self.install('VF_MTA_SELECTION', {**binding, key: value})
+                with self.assertRaises(CatalogueUnavailable):
+                    payload()
+        self.install('VF_MTA_SELECTION', binding)
+        for key in ('VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST'):
+            old = os.environ[key]
+            os.environ[key] = 'wrong'
+            with self.assertRaises(CatalogueUnavailable):
+                payload()
+            os.environ[key] = old
+        for key in ('VF_MTA_FIXTURE_FILE', 'VF_MTA_FIXTURE_SHA256',
+                    'VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256'):
+            os.environ[key] = 'mixed'
+            with self.assertRaises(CatalogueUnavailable):
+                payload()
+            os.environ[key] = ''
+
+    def test_native_missing_checksum_tamper_and_atomic_replacement(self):
+        self.native()
+        path = Path(os.environ['VF_MTA_SELECTION_FILE'])
+        original = path.read_bytes()
+        replacement = path.with_suffix('.replacement')
+        replacement.write_bytes(original + b' ')
+        os.replace(replacement, path)
+        with self.assertRaises(CatalogueUnavailable):
+            payload()
+        path.write_bytes(original)
+        os.environ['VF_MTA_SELECTION_SHA256'] = ''
+        with self.assertRaises(CatalogueUnavailable):
+            payload()
+        os.environ['VF_MTA_SELECTION_SHA256'] = hashlib.sha256(original).hexdigest()
+        path.unlink()
+        with self.assertRaises(CatalogueUnavailable):
+            payload()
+
+    def test_native_duplicate_keys_rejected_even_with_matching_file_checksum(self):
+        self.native()
+        path = Path(os.environ['VF_MTA_SELECTION_FILE'])
+        raw = path.read_bytes().replace(b'{', b'{"schema":"fresh-production-selection-v1",', 1)
+        path.write_bytes(raw)
+        os.environ['VF_MTA_SELECTION_SHA256'] = hashlib.sha256(raw).hexdigest()
+        with self.assertRaises(CatalogueUnavailable):
+            payload()
 
     def test_live_grant_addition_and_revocation(self):
         catalogue = ALL_PERMISSIONS.get_combined_permissions()
@@ -142,6 +213,7 @@ class LocalCatalogueTests(TestCase):
         with patch('common.api_gateway_utils.service_map', {
                 'mta': dict(active=True, application_id=2, base_url='http://mta'),
                 'mto': dict(active=False)}), patch('common.api_gateway_utils.requests.request') as request:
+            request.return_value.status_code = 200
             request.return_value.json.return_value = payload()
             self.assertEqual(len(ALL_PERMISSIONS.get_combined_permissions()), 1)
             request.assert_called_once_with(method='GET', url='http://mta/api/mta/GetAllPermmision')

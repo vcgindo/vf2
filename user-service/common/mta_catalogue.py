@@ -7,7 +7,9 @@ on each use; identity DB queries still own user grants and revocation.
 import hashlib
 import json
 import os
+from datetime import date
 from pathlib import Path
+from uuid import UUID
 
 from rest_framework.exceptions import APIException
 
@@ -24,7 +26,7 @@ def enabled():
     return value == '1'
 
 
-def _read(prefix):
+def _read(prefix, *, unique_keys=False):
     path, expected = (os.environ.get(prefix + suffix, '') for suffix in ('_FILE', '_SHA256'))
     if not path or not expected:
         raise CatalogueUnavailable('catalogue_binding_not_configured')
@@ -32,7 +34,14 @@ def _read(prefix):
         raw = Path(path).read_bytes()
         if hashlib.sha256(raw).hexdigest() != expected:
             raise CatalogueUnavailable('catalogue_binding_checksum_mismatch')
-        return json.loads(raw)
+        def unique(pairs):
+            result = {}
+            for key, value in pairs:
+                if key in result:
+                    raise ValueError('Duplicate selection field')
+                result[key] = value
+            return result
+        return json.loads(raw, object_pairs_hook=unique if unique_keys else None)
     except (OSError, ValueError) as exc:
         raise CatalogueUnavailable('catalogue_binding_unreadable') from exc
 
@@ -47,10 +56,42 @@ def payload():
         if bool(fixture_file) != bool(fixture_sha):
             raise CatalogueUnavailable('incomplete_fixture_catalogue_selection')
         fixture = bool(fixture_file or fixture_sha)
+        native_file, native_sha = (os.environ.get('VF_MTA_SELECTION' + suffix, '')
+                                  for suffix in ('_FILE', '_SHA256'))
+        if bool(native_file) != bool(native_sha):
+            raise CatalogueUnavailable('incomplete_native_catalogue_selection')
+        native = bool(native_file)
         version = 'legacy-ui-fixture-permissions-v1' if fixture else 'block1-permissions-v1'
         if catalogue['version'] != version:
             raise CatalogueUnavailable('catalogue_selection_version_mismatch')
-        if fixture:
+        if native:
+            if fixture or any(os.environ.get('VF_MTA_HIERARCHY' + suffix)
+                              for suffix in ('_FILE', '_SHA256')):
+                raise CatalogueUnavailable('mixed_native_catalogue_selection')
+            binding = _read('VF_MTA_SELECTION', unique_keys=True)
+            fields = {'schema', 'run_id', 'output_digest', 'business_date',
+                      'initialization_id', 'publication_seal', 'configuration_digest',
+                      'btr_generation', 'summary_generation', 'summary_digest', 'selection_digest'}
+            if (not isinstance(binding, dict) or set(binding) != fields
+                    or any(not isinstance(binding[key], str) for key in fields)
+                    or binding['schema'] != 'fresh-production-selection-v1'):
+                raise CatalogueUnavailable('invalid_native_catalogue_selection')
+            for key in ('run_id', 'initialization_id', 'btr_generation', 'summary_generation'):
+                UUID(binding[key])
+            if date.fromisoformat(binding['business_date']).isoformat() != binding['business_date']:
+                raise ValueError('Invalid selection date')
+            for key in ('output_digest', 'publication_seal', 'configuration_digest',
+                        'summary_digest', 'selection_digest'):
+                if len(binding[key]) != 64 or any(c not in '0123456789abcdef' for c in binding[key]):
+                    raise ValueError('Invalid selection digest')
+            canonical = json.dumps({k: v for k, v in binding.items() if k != 'selection_digest'},
+                                   sort_keys=True, separators=(',', ':'), ensure_ascii=True,
+                                   allow_nan=False).encode()
+            if (hashlib.sha256(canonical).hexdigest() != binding['selection_digest']
+                    or binding['run_id'] != os.environ.get('VF_MTA_PUBLISHED_RUN')
+                    or binding['output_digest'] != os.environ.get('VF_MTA_PUBLISHED_DIGEST')):
+                raise CatalogueUnavailable('native_publication_catalogue_binding_mismatch')
+        elif fixture:
             binding = _read('VF_MTA_FIXTURE')
             if (binding['version'] != 'legacy-ui-fixture-v1'
                     or binding['permissions_sha256'] != checksum
