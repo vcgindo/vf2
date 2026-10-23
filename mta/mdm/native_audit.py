@@ -165,8 +165,18 @@ def finalize(run):
 
 def receipt(run):
     from mta.runtime.input_reader import read_input
+    captures = NativeUploadAudit.objects.select_related('run','initialization','predecessor__run').filter(run=run)
+    capture = captures.first()
+    if capture is None:
+        from mta.runtime.captured_input import SCHEMAS, origin
+        from mta.runtime.input_v3 import component_absent
+        physical = origin(run) if run.input_payload.get('schema') in SCHEMAS else run
+        if component_absent(physical, 'input/profile/native_upload_audit'):
+            capture = captures.first()
+            if capture is None:
+                return None
     policy = validate_policy(read_input(run, components=('profile',)).get('profile', {}))
-    capture = NativeUploadAudit.objects.select_related('run','initialization','predecessor__run').filter(run=run).first()
+    capture = captures.first()
     if policy is None and capture is None:
         return None
     if capture is None:

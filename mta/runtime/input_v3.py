@@ -426,7 +426,7 @@ def _owner_target(owner, reference, resolver):
     return target
 
 
-def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
+def _owner_manifest(owner, source_path, reference, owner_identity, resolver):
     reference = _owner_reference(reference, source_path)
     if owner_identity['owner_kind'] != 'run' or reference['owner_id'] == owner_identity['owner_id']:
         raise ValueError('Typed input owner reference requires a distinct run target')
@@ -462,6 +462,14 @@ def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
                 _physical(_node_at(manifest, reference['path'])))
     if not physical:
         raise ValueError('Typed input owner references must target physical one-hop subtrees')
+    return target, manifest, legacy_initialization
+
+
+def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
+    from mta.runtime import input_storage
+    reference = _owner_reference(reference, source_path)
+    target, manifest, legacy_initialization = _owner_manifest(
+        owner, source_path, reference, owner_identity, resolver)
     component = reference['path'].removeprefix('input/')
     reader = (__import__('mta.runtime.opening_storage', fromlist=['load_image']).load_image
               if reference['kind'] == 'INITIALIZATION' else
@@ -472,6 +480,46 @@ def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
         identity_resolver=(None if resolver is None or legacy_initialization
                           else lambda value: value._reference_identity))
     return _at(value, reference['path'])
+
+
+def component_absent(owner, path):
+    """Prove optional-member absence using authenticated physical metadata only.
+
+    A present or unsupported representation always falls back to a value read.
+    Reference ownership checks are identical to the ordinary component reader.
+    """
+    from mta.runtime import input_storage
+    path = _normal_path(path)
+    input_storage.read_input(owner, components=())
+    manifest = owner.input_payload
+    if manifest.get('schema') not in (V3, input_storage.SCHEMA):
+        return False
+    node = manifest['tree']
+    current = 'input'
+    for part in path.split('/')[1:]:
+        if 'owner_reference' in node:
+            if manifest.get('schema') != V3:
+                return False
+            target, target_manifest, _ = _owner_manifest(owner, current,
+                manifest['owner_references'][current], _identity(owner, None, reading=True), None)
+            input_storage.read_input(target, components=())
+            node = _node_at(target_manifest, current)
+            owner, manifest = target, target_manifest
+        if set(node) != {'object'}:
+            return False
+        if (not isinstance(node['object'], list) or any(
+                not isinstance(child, list) or len(child) != 2
+                or not isinstance(child[0], str) or not isinstance(child[1], dict)
+                for child in node['object'])):
+            raise ValueError('Typed input optional component object differs')
+        matches = [child for name, child in node['object'] if name == part]
+        if not matches:
+            return True
+        if len(matches) != 1:
+            raise ValueError('Typed input optional component is ambiguous')
+        node = matches[0]
+        current += '/' + part
+    return False
 
 
 def _owner_references(raw, references, owner, owner_identity, resolver):
