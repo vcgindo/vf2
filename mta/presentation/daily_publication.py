@@ -191,13 +191,15 @@ def prepare_reporting_generation(run_id, *, expected_output_digest):
     The old coordinator recipe hashes prepare(), not this supplemental step.
     A failed summary leaves the base receipt/selection unchanged and is not READY.
     """
-    from mta.presentation.operational_reports import prepare as prepare_sources
-    with stage('derived_report_publication'):
-        prepare_sources(run_id,expected_output_digest=expected_output_digest)
-    publication = prepare(run_id, expected_output_digest=expected_output_digest)
-    if publication.status != 'READY':
-        raise PublicationUnavailable('planning_summary_requires_ready_report_layers')
-    from mta.presentation.planning_summary_daily import prepare as prepare_summary
-    with stage('planning_summary'):
-        summary_receipt = prepare_summary(publication.run)
-    return publication, summary_receipt
+    from mta.presentation.report_verification import verification_scope
+    with verification_scope(CalculationRun.objects.get(pk=run_id)):
+        from mta.presentation.operational_reports import prepare as prepare_sources
+        with stage('derived_report_publication'):
+            prepare_sources(run_id,expected_output_digest=expected_output_digest)
+        publication = prepare(run_id, expected_output_digest=expected_output_digest)
+        if publication.status != 'READY':
+            raise PublicationUnavailable('planning_summary_requires_ready_report_layers')
+        from mta.presentation.planning_summary_daily import prepare as prepare_summary
+        with stage('planning_summary'):
+            summary_receipt = prepare_summary(publication.run)
+        return publication, summary_receipt

@@ -54,7 +54,10 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     if daily and family == 'excess':
         from mta.presentation import native_excess_history
         history_identity = native_excess_history.identity(run)
-        native_excess_history.require_cutoff(history_identity, cutoff)
+        # Canonical horizon is a lookback filter over owned observations, not
+        # a guarantee of a populated day for every date (processor641-649).
+        # Keep the requested cutoff; pre-root history remains unknown. The
+        # lineage receipt still binds every available day and its exact source.
         source = native_excess_history.source_digest(source, history_identity)
         expected_schema = native_excess_schema_digest()
     receipt = GuidedHistoryPreparedProjection.objects.filter(run=run, family=family).first()

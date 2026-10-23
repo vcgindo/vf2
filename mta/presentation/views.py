@@ -746,7 +746,17 @@ def historical_availability(request, payload):
 @endpoint('POST')
 def insight_data(request, payload, *, kind):
     from mta.presentation.report_cache import cached_response
-    return cached_response(request, payload, kind, lambda: _insight_data(request, payload, kind=kind))
+    response = cached_response(request, payload, kind, lambda: _insight_data(request, payload, kind=kind))
+    from mta.presentation.native_publication import enabled
+    if enabled() and kind.startswith('excess-') and response.status_code == 200:
+        from mta.presentation.native_excess_history import identity as history_identity
+        history = history_identity(selected_run())
+        # The response stays the inherited observed-date array. Explicitly
+        # distinguish unknown pre-root dates from a declared empty population.
+        response['X-VectorFLOW-History-Policy'] = 'lookback-over-owned-observations'
+        response['X-VectorFLOW-History-Known-From'] = history['root_date']
+        response['X-VectorFLOW-History-Before-Root'] = 'unknown'
+    return response
 
 
 @endpoint('POST')

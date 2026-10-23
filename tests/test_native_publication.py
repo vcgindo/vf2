@@ -93,7 +93,8 @@ class NativeBindingTests(unittest.TestCase):
         self.binding = dict(id=str(self.owner.pk),source_digest='source',input_sha256='input',
             content_digest='content',configuration_digest=self.owner.configuration_digest)
         self.run = NS(pk=uuid4(),kind='DAILY_CHAIN',status='SUCCEEDED',input_digest='input',
-            output_digest='output',production_digest='production',predecessor_id=None,business_date=date(2037,4,10))
+            output_digest='output',production_digest='production',predecessor_id=None,business_date=date(2037,4,10),
+            input_payload={})
         self.capture = NS(status='CONSUMED',source=NS(receipt={'schema':'fresh-production-mdm-source-v1'}))
         self.input = dict(initialization_binding=self.binding,profile=self.profile,lineage={})
         patches = [patch('mta.runtime.input_reader.read_input',return_value=self.input),
@@ -107,13 +108,13 @@ class NativeBindingTests(unittest.TestCase):
     def test_native_binding_independent_of_parity(self):
         self.assertEqual(native.identity(self.run)['initialization'], self.binding)
 
-    def test_full_readback_uses_daily_family_initialization_verifier(self):
+    def test_full_readback_uses_exhaustive_native_stream_verifier(self):
         self.mocks[3].return_value.images = {}
-        with patch('mta.mdm.production_families.require_initialization') as check, \
+        with patch('mta.presentation.report_verification.audit_native_rows') as check, \
                 patch('mta.runtime.services.read_outputs') as outputs:
             native.identity(self.run, verify_rows=True)
-        check.assert_called_once_with(self.owner.source)
-        outputs.assert_called_once_with(self.run,include_reports=False)
+        check.assert_called_once_with(self.run,self.mocks[3].return_value)
+        outputs.assert_not_called()
 
     def test_wrong_initialization_and_nonconsecutive_date_deny(self):
         self.input['initialization_binding'] = self.binding | {'id':str(uuid4())}

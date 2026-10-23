@@ -49,9 +49,12 @@ def identity(run, *, verify_rows=False):
     binding = dict(id=str(owner.pk), source_digest=owner.source.digest,
         input_sha256=owner.input_sha256, content_digest=owner.input_digest,
         configuration_digest=owner.configuration_digest)
-    inputs = read_input(run, components=('initialization_binding', 'profile', 'lineage'))
-    if (inputs.get('initialization_binding') != binding
-            or digest(inputs.get('profile')) != owner.configuration_digest):
+    from mta.presentation.report_verification import profile_reference
+    referenced = profile_reference(run, owner)
+    components = ('initialization_binding', 'lineage') if referenced else ('initialization_binding', 'profile', 'lineage')
+    inputs = read_input(run, components=components)
+    if (inputs.get('initialization_binding') != binding or not referenced
+            and digest(inputs.get('profile')) != owner.configuration_digest):
         raise PublicationUnavailable('native_initialization_binding_changed')
     lineage = inputs.get('lineage', {})
     if run.predecessor_id:
@@ -67,12 +70,8 @@ def identity(run, *, verify_rows=False):
         raise PublicationUnavailable('native_report_opening_date_changed')
     source = daily_sources.receipt(run)
     if verify_rows:
-        from mta.mdm.production_families import require_initialization
-        from mta.runtime.services import read_outputs
-        require_initialization(owner.source)
-        read_outputs(run,include_reports=False)
-        for path in source.images:
-            daily_sources.image_rows(run, path)
+        from mta.presentation.report_verification import audit_native_rows
+        audit_native_rows(run, source)
     return dict(initialization=binding, run_id=str(run.pk),
         business_date=run.business_date.isoformat(), output_digest=run.output_digest,
         input_digest=run.input_digest, production_digest=run.production_digest,

@@ -21,6 +21,7 @@ from mta.runtime.models import (
     ExpediteProjection, PickPostProjection,
 )
 from mta.serialization import digest
+from mta.presentation.report_verification import report_operation
 
 logger = logging.getLogger(__name__)
 _admitted = None
@@ -68,6 +69,7 @@ def native_binding():
     return (run, digest(value))
 
 
+@report_operation
 def verify(run):
     """Reuse native readback and the existing consumer validators once."""
     if getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False):
@@ -82,6 +84,7 @@ def verify(run):
     verify_native(run)
 
 
+@report_operation
 def verify_native(run):
     """Existing native readback/projection checks, also before access activation."""
     from mta.runtime.services import read_outputs
@@ -95,7 +98,12 @@ def verify_native(run):
     from mta.presentation.expedite_storage import read_expedite
     from mta.presentation.pick_post_storage import read_pick_post
 
-    output = read_outputs(run)
+    from mta.presentation.native_publication import enabled
+    if enabled() and run.production_manifest.get('version') in (2, 3):
+        from mta.presentation.report_verification import consumer_outputs
+        output = consumer_outputs(run)
+    else:
+        output = read_outputs(run)
     dbm, _ = command_state(run, output['DBMFinal'][0])
     catalogue = permission_catalogue()
     manifest = hierarchy.selected_manifest(run)
