@@ -4,20 +4,26 @@ Use http://localhost:8080 and the existing fixture login
 `benchmark-admin@vectorconsulting.invalid`. Its verified password remains in
 the local fixture secret; credentials and CAPTCHA behavior were not changed.
 
-The existing stack serves localhost:8080. The bounded recovery updates only
-its MTA reader, frontend lifecycle handling and authentication catalogue delivery.
-MTO, PostgreSQL and Redis services are retained. No calculation or report
-preparation is needed.
+The existing stack serves localhost:8080. The retained recovery baseline includes
+frontend lifecycle handling and authentication catalogue delivery. The current
+G1 work changes MTA admission, readers and HTTP serving. MTO, frontend,
+authentication, PostgreSQL and Redis services are retained. No calculation or
+report preparation is needed.
 
 ## Exact serving artifact
 
-- Product commit: `94280b0be4e2d52f51581465acf2ae6815fa4b89`.
+- MTA product commit: `26000b332c501908cfbffaaaad88152220877d04`.
 - Branch: `codex/bounded-ui-recovery`; subsequent test/document commits do not
-  change the MTA/frontend bytes; auth has its separate pin below.
-- Image: `sha256:c9abc28b7e8dba12fca9a982fbd96e28c4bbfc2ecddfb47ed1e1c4318a912408`.
-- Container: `vectorflow-mta-ui-final-20261023`, ID
-  `5155ae87e717ab94e18cb60980c168896cd59b66647bb798ead89223adf404ea`.
+  change these image bytes; frontend/auth have their separate pins below.
+- MTA image: `sha256:11dde652242dc70bcf5021493b6063ffb50d14afa5316b920fb2089f7e993bcd`.
+- MTA native manifest: `2d6d81c7e3868690bf3b9715b1574d601a444ea938ac65ef22ef7a8bef6b6e5f`.
+- Container: `vectorflow-mta-lifecycle-g1-26000b33-w2`, ID
+  `0fdf567a8b55dc8acb0f95bb8f8172f5f8742573a60d4f16c63537e661551e01`.
 - Internal network/alias: existing `vectorflow_application`, `mta`.
+- HTTP serving uses the existing `release.service` entrypoint with
+  `MTA_WORKERS=2`. This setting survives container restart. Memory remains
+  8 GiB, with the existing CPU/pid limits, read-only mounts, no host port and
+  `restart=no`. This setting controls HTTP requests, not calculation scheduling.
 - Frontend product commit: `94280b0be4e2d52f51581465acf2ae6815fa4b89`.
 - Frontend image: `sha256:11e5e56ce5602432344fa6f00fa4c95572583d46e35027b10714329a2da1adbd`.
 - Frontend container: `vectorflow-frontend-ui-final-healthy-20261023`, ID
@@ -39,7 +45,8 @@ log/data volumes, security and health settings, with no host port. It reads the
 same permission file and shared selection volume read-only. Both file checksums
 are verified on every use; changed selection requires coordinated pins. Live
 grants, administrator scope checks, mandatory profile and CAPTCHA remain intact.
-No effective permission result is cached; strict MTA admission is unchanged.
+No effective permission result is cached; MTA continues to enforce publication
+ownership and exact selection identity.
 
 Independent preflight matched the complete MTA catalogue payload (7,862 bytes,
 SHA256 `9fa909ab9f2c7a57264f3a2787cfd899c5e2f3c2a61e432d124ea4fdbab583cd`);
@@ -58,15 +65,27 @@ Do not rerun selection, preparation, execution or acknowledgement for this
 already published attempt. The normal read-only checker is:
 
 ```powershell
-docker exec vectorflow-mta-ui-final-20261023 python -B -m release.daily_serving_check --run-id 49efa557-a31f-4ea8-9089-b510f2856d30 --output-digest ee1f58bb9e2161b6bca5ebf5bdbb0993ae75a060e5e9312d2181b750782949ad
+docker exec vectorflow-mta-lifecycle-g1-26000b33-w2 python -B -m release.daily_serving_check --run-id 49efa557-a31f-4ea8-9089-b510f2856d30 --output-digest ee1f58bb9e2161b6bca5ebf5bdbb0993ae75a060e5e9312d2181b750782949ad
 ```
 
 ## Why these changes
 
-The running-server checker now compares independent bindings, selection and
-actual readiness without repeating the offline exclusive admission. Full cold
-startup admission remains intact; the final MTA startup took about 14 minutes
-44 seconds. The auth-only login correction needs no MTA restart or full audit.
+The running-server checker compares independent bindings, selection and actual
+readiness. Qualified accepted-state guards and their full native upgrade audit
+permit bounded startup checks of authority, ownership, source, recipes, sealed
+report readiness and complete selection. Full row audits remain publication,
+upgrade and explicit offline operations. Separate startup passes discard their
+metadata reuse and check live ownership/session identity before admission.
+Actual G1 container start-to-listening was about nine seconds; its same-image
+restart retained the admitted run, output and selection. Browser acceptance is
+recorded separately in the sole tracker.
+
+Prepared BPR exports stream the final joined bag through a bounded cursor.
+Two HTTP workers let Planning execute while a CSV response is transferring.
+The fixed-resource private HTTP trial returned Planning in 0.42 seconds warm
+during an 11.1 MB transfer; the first request on a fresh worker took about two
+seconds. These are backend trials, not browser click-to-usable measurements or
+an arbitrary concurrent-download capacity guarantee.
 
 Successful native publication identity metadata is reused only across an
 unchanged PostgreSQL snapshot, physical connection, process and session.
@@ -138,7 +157,8 @@ Auth's installed package versions exactly match its retained predecessor.
 Accepted producer/run/capture/publication/report state remains exact, as do all
 11 archive metadata sets after the final auth replacement and browser login.
 MTA, frontend, MTO and PostgreSQL retain their exact container/image/start pins.
-Full cold startup remains slow and is outside this bounded login correction.
+The earlier login timings above describe the retained recovery baseline;
+current G1 startup and browser proof are tracked independently.
 
 ## Preservation and rollback
 
@@ -151,13 +171,18 @@ and reconciled before deployment. The accepted business state and prepared
 publications remain unchanged. Only the intended publication acknowledgement
 fields/files changed; ten previous archives remain byte-identical.
 
-The previous backend `vectorflow-mta-ui-latency-20261023`
-(`01b6ad69ed4925c63b031900ec49999a910eb4f2117f5a74a9690aadf2bc9cec`,
-image `sha256:faf14c49fea086d7ac6aa31f95516673db0f1728db18e509b1352d3a8d5e7e83`)
-is stopped and retained. A coordinated rollback would stop only the new MTA
-and start that exact previous backend, allowing its full audit to finish.
-Never run both with the `mta` alias. No database restore, volume deletion,
-Docker restart or recalculation is part of this rollback.
+The immediate compatible backend is stopped and retained:
+`vectorflow-mta-lifecycle-g1-26000b33`, ID
+`bd55fb60c6718956d2217e1c450a739722fa96098cc243beb58fabb0bfbe5f7b`,
+with the same `11dde652…` image and persistent `MTA_WORKERS=1` configuration.
+A coordinated rollback stops only the current MTA before starting that exact
+compatible predecessor; one-worker export contention would return. Never run
+both with the `mta` alias. No database restore, volume deletion, shared Docker
+restart or recalculation belongs in this rollback.
+
+The historical `vectorflow-mta-ui-final-20261023` (`5155ae87…`, image `c9abc28b…`)
+and earlier reader images are schema-incompatible after the accepted-state
+ownership upgrade. Do not restart them against this database.
 
 The original frontend `0d282cc8ded58ee5ab938d95255bddd1e258c6b6f90efce14f7625858839e3fc`
 is also stopped and retained. To roll back the UI, stop only the new frontend
