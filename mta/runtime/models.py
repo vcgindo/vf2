@@ -466,6 +466,9 @@ class RunCommand(models.Model):
     before_digest = models.CharField(max_length=64)
     after_digest = models.CharField(max_length=64)
     state_manifest = models.JSONField(default=dict)
+    # Existing legacy events may have no typed manifest. They remain sealed;
+    # only record_command explicitly opens a new append owner in its transaction.
+    state_sealed = models.BooleanField(default=True, db_default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

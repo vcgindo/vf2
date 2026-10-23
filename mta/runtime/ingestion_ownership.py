@@ -87,6 +87,8 @@ def tables(cursor):
 
 
 def require_guard_coverage(cursor):
+    from mta.runtime.accepted_state_ownership import verify_guards
+    verify_guards(cursor, required=False)
     expected = {(s, t): owner for s, t, owner in tables(cursor) if owner != 'authority'}
     if migration_history_guard(cursor):
         expected.pop(('mta','django_migrations'))
@@ -138,6 +140,8 @@ def business_trigger_rows(cursor, rows):
     Existing report guards still require their exact roster and SQL bodies.
     An extra/disabled/rebound watch is an error, never ignored by its prefix.
     """
+    from mta.runtime.accepted_state_ownership import business_trigger_rows as accepted_rows
+    rows = accepted_rows(cursor, rows)
     if not any(row[0].startswith('ingestion_watch_') for row in rows):
         return rows
     require_guard_coverage(cursor)

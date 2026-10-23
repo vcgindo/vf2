@@ -169,7 +169,7 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
     result=storage(apply_due_dates(state,selected) if domain == 'orders' else
                    apply_command(state,operation,[tuple(k) for k in selected],timestamp))
     event=RunCommand.objects.create(run=parent,idempotency_key=idempotency_key,payload=payload,
-        digest=digest(payload),before_digest=digest(state),after_digest=digest(result))
+        digest=digest(payload),before_digest=digest(state),after_digest=digest(result),state_sealed=False)
     from mta.runtime.relational_state import save_image
     changed={name for name in state if state[name]!=result[name]}
     allowed = {'ElephantOrders'} if domain == 'orders' else {'NormAcceptanceTbl','NormsInSleepModeTbl','Suggestions'}
@@ -182,6 +182,9 @@ def record_command(run, *, operation, selected, timestamp, actor, idempotency_ke
         name = 'ElephantOrders' if domain == 'orders' else 'NormAcceptanceTbl'
         event.state_manifest={name:save_image(parent,'action/'+str(event.pk)+'/'+name,
             'closing/'+domain+'/'+name,result[name])}
+    event.state_sealed=True
+    # The final BEFORE trigger seals the row after the existing consumer guard
+    # has checked its manifest-only update. Callers cannot set the seal directly.
     event.save(update_fields=['state_manifest'])
     return event
 
