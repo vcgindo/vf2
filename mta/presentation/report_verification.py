@@ -25,6 +25,10 @@ def _catalogue_digest(value):
 
 
 def guard_stamp():
+    return _guard_stamp('read committed')
+
+
+def _guard_stamp(isolation):
     """Live DDL/ACL/trigger generations, including change-and-restore of guards.
 
     The runtime cannot disable sealed-row guards or assume the owner. Fresh
@@ -39,8 +43,8 @@ def guard_stamp():
             "current_setting('search_path'),current_setting('row_security'),"
             "current_setting('TimeZone'),current_setting('DateStyle'),current_setting('client_encoding')")
         identity = cursor.fetchone()
-        if identity[4:6] != ('read committed', 'origin'):
-            raise ValueError('Report verification requires live guarded READ COMMITTED reads')
+        if identity[4:6] != (isolation, 'origin'):
+            raise ValueError('Report verification requires live guarded ' + isolation.upper() + ' reads')
         generations = []
         for table, namespace, join in (
                 ('pg_namespace', 'c', ''),
@@ -87,9 +91,7 @@ def verification_scope(run):
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.ingestion_admission import readiness
-    from mta.runtime.ingestion_models import InitializationCertification, MasterInputRevision, IngestionRevisionState
-    from mta.runtime.opening_scope import opening_scope, sealed_identity
-    from mta.mdm.production_families import certified_state_handle
+    from mta.runtime.opening_scope import opening_scope
     from mta.mdm.supplier_revisions import source_lock
     from mta.runtime.daily_feed import job_lock
     capture = MdmDailyInputCapture.objects.get(run=run)
@@ -97,38 +99,90 @@ def verification_scope(run):
     with job_lock(owner) as check_session, source_lock(owner.source_id), opening_scope():
         stamp = guard_stamp()
         admitted = readiness(owner.pk)
-        certified_state_handle(owner, admitted)
-        seal = sealed_identity(owner)
-        certificate_fields = ('id', 'status', 'source_digest', 'content_digest',
-            'configuration_digest', 'schema_digest', 'guard_digest', 'release_digest',
-            'receipt_digest', 'authority_roles')
-        certificate = InitializationCertification.objects.values_list(*certificate_fields).get(
-            initialization=owner, status='CERTIFIED', receipt_digest=admitted.certification_digest)
-        revision_fields = ('id', 'status', 'master_epoch', 'configuration_epoch', 'receipt_digest')
-        revision = MasterInputRevision.objects.values_list(*revision_fields).get(
-            pk=admitted.master_revision_id, initialization=owner, status='ACCEPTED')
-
-        def check(node):
-            check_session()  # Existing workflow check rejects reconnect/lost lock.
-            owner.refresh_from_db()
-            owner.source.refresh_from_db()
-            if (sealed_identity(owner) != seal or guard_stamp() != stamp
-                    or MdmDailyInputCapture.objects.get(run=node).source_id != owner.source_id
-                    or InitializationCertification.objects.values_list(*certificate_fields).filter(
-                        pk=certificate[0]).first() != certificate
-                    or MasterInputRevision.objects.values_list(*revision_fields).filter(
-                        pk=revision[0]).first() != revision
-                    or IngestionRevisionState.objects.values_list('master_epoch',
-                        'configuration_epoch').get(initialization=owner) != admitted.revisions.as_tuple()[:2]):
-                raise ValueError('Report verification authority or initialization changed')
-
-        check(run)
-        token = _current.set(dict(check=check, audits={}))
-        try:
+        with _verified_owner(run, owner, admitted, check_session, stamp, guard_stamp):
             yield
-            check(run)
-        finally:
-            _current.reset(token)
+
+
+@contextmanager
+def _verified_owner(run, owner, admitted, check_session, stamp, stamp_reader):
+    """Shared checks for ordinary reads and the exclusive maintenance owner."""
+    from mta.runtime.ingestion_models import InitializationCertification, MasterInputRevision, IngestionRevisionState
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.opening_scope import sealed_identity
+    from mta.mdm.production_families import certified_state_handle
+    certified_state_handle(owner, admitted)
+    seal = sealed_identity(owner)
+    certificate_fields = ('id', 'status', 'source_digest', 'content_digest',
+        'configuration_digest', 'schema_digest', 'guard_digest', 'release_digest',
+        'receipt_digest', 'authority_roles')
+    certificate = InitializationCertification.objects.values_list(*certificate_fields).get(
+        initialization=owner, status='CERTIFIED', receipt_digest=admitted.certification_digest)
+    revision_fields = ('id', 'status', 'master_epoch', 'configuration_epoch', 'receipt_digest')
+    revision = MasterInputRevision.objects.values_list(*revision_fields).get(
+        pk=admitted.master_revision_id, initialization=owner, status='ACCEPTED')
+
+    def check(node):
+        check_session()
+        owner.refresh_from_db()
+        owner.source.refresh_from_db()
+        if (sealed_identity(owner) != seal or stamp_reader() != stamp
+                or MdmDailyInputCapture.objects.get(run=node).source_id != owner.source_id
+                or InitializationCertification.objects.values_list(*certificate_fields).filter(
+                    pk=certificate[0]).first() != certificate
+                or MasterInputRevision.objects.values_list(*revision_fields).filter(
+                    pk=revision[0]).first() != revision
+                or IngestionRevisionState.objects.values_list('master_epoch',
+                    'configuration_epoch').get(initialization=owner) != admitted.revisions.as_tuple()[:2]):
+            raise ValueError('Report verification authority or initialization changed')
+
+    check(run)
+    token = _current.set(dict(check=check, audits={}))
+    try:
+        yield
+        check(run)
+    finally:
+        _current.reset(token)
+
+
+@contextmanager
+def _schema_transition_scope(run, owner, release, check_session):
+    """Private audit within the existing provisioner-owned schema transaction.
+
+    Public readiness and ordinary verification retain their autocommit boundary.
+    This path neither accepts a caller's admission result nor issues authority.
+    """
+    if not connection.in_atomic_block or _current.get() is not None:
+        raise ValueError('Schema qualification requires its exclusive outer transaction')
+    from release.native_identity import require_current
+    from mta.runtime import ingestion_authority as authority
+    from mta.runtime.ingestion_admission import _admit
+    from mta.runtime.opening_scope import opening_scope
+    from mta.mdm.supplier_revisions import _key
+    if release != require_current():
+        raise ValueError('Schema qualification target release differs')
+    with connection.cursor() as cursor:
+        authority._provisioner(cursor)
+        cursor.execute('SELECT pg_backend_pid()')
+        pid = cursor.fetchone()[0]
+        admitted = _admit(cursor, owner.pk, release, pending=True)
+
+    def maintenance_session():
+        check_session()
+        with connection.cursor() as cursor:
+            authority._provisioner(cursor)
+            cursor.execute("SELECT pg_backend_pid()=%s AND NOT EXISTS(SELECT 1 FROM "
+                "unnest(%s::text[]) K(value) WHERE NOT EXISTS(SELECT 1 FROM pg_locks "
+                "WHERE pid=pg_backend_pid() AND locktype='advisory' AND granted AND objsubid=1 "
+                "AND classid=((hashtextextended(K.value,0)>>32)&4294967295)::oid "
+                "AND objid=(hashtextextended(K.value,0)&4294967295)::oid))",
+                [pid, ['vectorflow-daily-csv:' + str(owner.pk), _key(owner.source_id)]])
+            if cursor.fetchone() != (True,):
+                raise ValueError('Schema qualification session/ownership locks differ')
+    maintenance_session()
+    stamp_reader = lambda: _guard_stamp('repeatable read')
+    stamp = stamp_reader()
+    with opening_scope(), _verified_owner(run, owner, admitted, maintenance_session, stamp, stamp_reader):
+        yield
 
 
 def report_operation(function):

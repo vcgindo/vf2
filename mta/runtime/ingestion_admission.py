@@ -174,7 +174,7 @@ def effective_schema(cursor, body):
     """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; anchor=None
+    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; anchor=None
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -201,7 +201,12 @@ def effective_schema(cursor, body):
             chain.append(extension);current=parent;link=parent_link
             continue
         from mta.runtime.report_guard_transition import MIGRATION_NAME,approved_receipt
-        if any(pin[0]==MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+        from mta.runtime import accepted_state_transition as ownership
+        if any(pin[0] in {name for name,_ in ownership.PINS} for pin in extension.get('migration_pins',[])):
+            if ownership_transition or guard_transition or not ownership.approved_receipt(extension):
+                raise ValueError('Exact accepted-state schema transition required after report guards')
+            ownership_transition=True
+        elif any(pin[0]==MIGRATION_NAME for pin in extension.get('migration_pins',[])):
             if guard_transition or not approved_receipt(extension):
                 raise ValueError('Exact released report guard schema transition required')
             guard_transition=True
@@ -222,6 +227,8 @@ def effective_schema(cursor, body):
         link=authority.read_schema_transition(cursor,current)
     if guard_transition and real_count!=4:
         raise ValueError('Report guard transition requires the original four schema admissions')
+    if ownership_transition and not guard_transition:
+        raise ValueError('Accepted-state transition requires the released report guard ancestry')
     for extension in reversed(chain):
         if extension['contract']==authority.CODE_SCHEMA_CONTRACT:
             if extension['schema_digest']!=expected_schema or extension['guard_digest']!=expected_guard:
@@ -232,7 +239,13 @@ def effective_schema(cursor, body):
             raise ValueError('Schema transition predecessor catalogue differs')
         expected_schema,expected_guard=extension['schema_digest'],extension['guard_digest']
     if anchor is None:
-        anchor=authority.read(cursor,body['initialization_id'],cert['release_digest'])
+        # append() validates the original certified activation before inserting
+        # its first row. That already-authenticated body is its own schema
+        # anchor; requiring the not-yet-inserted row makes bootstrap circular.
+        # Later releases still require the persisted certified origin, and
+        # _admit() always reads its requested activation from authority first.
+        anchor=(body if body['target_release']==cert['release_digest'] else
+                authority.read(cursor,body['initialization_id'],cert['release_digest']))
         anchor_receipt=cert['receipt_digest']
     return cert,anchor,expected_schema,expected_guard,anchor_receipt
 

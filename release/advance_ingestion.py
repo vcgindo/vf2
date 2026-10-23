@@ -89,6 +89,38 @@ def authority_history(cursor, initialization_id):
     return result
 
 
+def _qualify_owned_publications(owner, target, check_session):
+    """Read-only full qualification before committing the ownership upgrade."""
+    from django.db.models import Q
+    from mta.runtime.models import CalculationRun, DailyUiPublication, BtrReportingGeneration
+    from mta.presentation.admission import verify
+    from mta.presentation.report_verification import _schema_transition_scope
+    from mta.presentation.btr_reporting import source_identity, verify_generation
+    from mta.presentation.native_publication import require_mode
+    from mta.serialization import digest
+    # verify() retains its ordinary configurable/non-native behavior. This
+    # transition may qualify only the complete native publication path; missing
+    # flags must fail rather than silently skip daily layers or native rows.
+    require_mode()
+    runs = CalculationRun.objects.filter(Q(mdm_input_capture__source_id=owner.source_id)
+        | Q(csv_attempt__initialization=owner)).values('pk')
+    publications = DailyUiPublication.objects.select_related('run').filter(
+        status='READY', run_id__in=runs).order_by('run__business_date', 'run_id')
+    qualified = []
+    for publication in publications:
+        run = publication.run
+        with _schema_transition_scope(run, owner, target, check_session):
+            verify(run)
+            identifier = publication.layers.get('btr', {}).get('receipt', {}).get('generation')
+            generation = BtrReportingGeneration.objects.get(pk=identifier, run=run, status='READY')
+            if generation.source_digest != digest(source_identity(run, generation.version)):
+                raise ValueError('Qualified BTR generation source differs')
+            verify_generation(generation)
+        qualified.append(dict(run_id=str(run.pk), output_digest=run.output_digest,
+                              publication_seal=publication.seal_digest))
+    return qualified
+
+
 @opening_operation
 def schema_transition(initialization_id, *, specification, expected_sha256):
     """Explicit atomic used-opening upgrade, never implicit startup recovery.
@@ -119,9 +151,13 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         raise ValueError('Exact reviewed schema transition specification required')
     target=spec['target_release'];previous=spec['previous_release']
     from mta.runtime import report_guard_transition as report_guard
+    from mta.runtime import accepted_state_transition as ownership
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
+    ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     if guard_migration:
         report_guard.require_specification(spec)
+    if ownership_migration:
+        ownership.require_specification(spec)
     if target['manifest_sha256']==previous['manifest_sha256']:
         raise ValueError('Distinct reviewed previous/target releases required')
     from mta.runtime.daily_feed import job_lock
@@ -130,7 +166,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     if not transaction.get_autocommit():raise ValueError('Schema transition owns its outer transaction')
     # Session locks precede the repeatable-read snapshot. A cooperating daily or
     # master writer cannot connect after the client check and evade preservation.
-    with job_lock(prepared_owner),source_lock(prepared_owner.source_id),transaction.atomic(),connection.cursor() as cursor:
+    qualified = None
+    with job_lock(prepared_owner) as check_session,source_lock(prepared_owner.source_id),transaction.atomic(),connection.cursor() as cursor:
         cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
         authority._provisioner(cursor)
         cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('fresh.production.initialization',0))")
@@ -158,6 +195,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         if guard_migration and (not has_schema_authority or before_schema!=report_guard.BEFORE_SCHEMA
                 or before_guard!=report_guard.BEFORE_GUARD):
             raise ValueError('Report guard migration requires its exact admitted predecessor catalogue')
+        if ownership_migration and (not has_schema_authority or before_schema!=ownership.BEFORE_SCHEMA
+                or before_guard!=ownership.BEFORE_GUARD):
+            raise ValueError('Accepted-state migration requires its exact admitted predecessor catalogue')
         cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
         roles=cursor.fetchall()
         cursor.execute('SELECT roleid,member,grantor,admin_option FROM pg_auth_members ORDER BY roleid,member,grantor')
@@ -173,6 +213,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
                             [[f'{i:04}' for i in range(154,end)] for end in (165,166,167)])
         if guard_migration:
             allowed_migrations=[['0168']]
+        if ownership_migration:
+            allowed_migrations=[['0169','0170']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -244,6 +286,15 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         cursor.execute('RESET ROLE')
         authority.append(cursor,body)
         _admit(cursor,owner.pk,target,pending=True)
+        if ownership_migration:
+            # These uncommitted authority rows cannot authorize a serving reader.
+            # Any audit error rolls back DDL and authority appends together.
+            qualified = _qualify_owned_publications(owner, target, check_session)
+            _admit(cursor,owner.pk,target,pending=True)
+            cursor.execute("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() "
+                "AND pid<>pg_backend_pid() AND backend_type='client backend' LIMIT 1")
+            if cursor.fetchone() is not None:
+                raise ValueError('Schema qualification lost exclusive maintenance ownership')
         new_history=authority_history(cursor,owner.pk)
         for table,rows in old_history.items():
             if (any(new_history[table].get(key)!=row for key,row in rows.items())
@@ -252,8 +303,11 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         owner.refresh_from_db();owner.source.refresh_from_db()
         if storage(preservation(owner))!=before or registration(cursor)!=(original,capability):
             raise ValueError('Schema transition changed an original opening/owner/capture/certificate')
-    return dict(status='SCHEMA_TRANSITION_COMMITTED_ORIGINAL_STATE_PRESERVED',target_release=target,
+    result = dict(status='SCHEMA_TRANSITION_COMMITTED_ORIGINAL_STATE_PRESERVED',target_release=target,
                 schema_transition_digest=digest(extension),catalogue_delta_digest=digest(delta))
+    if qualified is not None:
+        result['qualified_read_ready_runs'] = qualified
+    return result
 
 
 @opening_operation

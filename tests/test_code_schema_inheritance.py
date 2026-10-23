@@ -66,6 +66,23 @@ class CodeSchemaContractTests(unittest.TestCase):
                     admission.validate_activation(None,body)
                 link[field]=original
 
+    def test_first_certified_append_uses_validated_body_but_readiness_requires_persisted_authority(self):
+        body=dict(target_release='a'*64,initialization_id=str(uuid4()))
+        cert=dict(schema_digest='b'*64,guard_digest='c'*64,receipt_digest='d'*64,
+                  release_digest=body['target_release'])
+        with patch.object(admission,'_activation_metadata',return_value=cert) as metadata, \
+             patch.object(authority,'read_schema_transition',return_value=None), \
+             patch.object(authority,'read',side_effect=ValueError('Certified release transition is absent')) as read:
+            self.assertEqual(admission.effective_schema(None,body),
+                             (cert,body,cert['schema_digest'],cert['guard_digest'],cert['receipt_digest']))
+            metadata.assert_called_once_with(None,body)
+            read.assert_not_called()
+            with self.assertRaisesRegex(ValueError,'transition is absent'):
+                admission._admit(None,body['initialization_id'],
+                                 {'manifest_sha256':body['target_release'],'source_commit':'e'*40})
+            with self.assertRaisesRegex(ValueError,'transition is absent'):
+                admission.effective_schema(None,{**body,'target_release':'f'*64})
+
 
 class CodeSchemaCompositionTests(unittest.TestCase):
     def setUp(self):

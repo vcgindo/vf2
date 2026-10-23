@@ -8,6 +8,9 @@ import unittest
 from datetime import date
 from importlib import import_module
 from uuid import uuid4
+from contextlib import contextmanager, ExitStack
+from types import SimpleNamespace
+from unittest.mock import patch, Mock
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
 os.environ.setdefault('VF_SECRET_KEY', 'unit-only')
@@ -74,6 +77,94 @@ class AcceptedStateOwnershipTests(unittest.TestCase):
         migration = import_module('mta.runtime.migrations.0169_accepted_state_ownership')
         self.assertEqual(set(migration.TYPED_TABLES),
             {table_name(key) for key in STORAGE_TABLES} | {'report_export_row', 'report_export_cell'})
+
+    def test_portable_transition_delta_matches_every_actual_changed_catalogue_entry(self):
+        from release.advance_ingestion import catalogue, catalogue_delta
+        from mta.runtime.accepted_state_transition import catalogue_delta as expected_delta
+        from mta.runtime.accepted_state_ownership import verify_guards
+        from mta.serialization import storage
+        frozen=import_module('mta.runtime.migrations.0169_accepted_state_ownership')
+        with transaction.atomic(), connection.cursor() as cursor:
+            cursor.execute('SELECT current_user'); owner=cursor.fetchone()[0]
+            after=catalogue(cursor)
+            # Reverse only the declared new objects within this rollback. This
+            # builds the before catalogue without rewriting migration history or
+            # retaining any DDL/data changes in this uniquely owned proof DB.
+            cursor.execute(frozen.REVERSE)
+            cursor.execute('ALTER TABLE mta.fresh_mta_runcommand DROP COLUMN state_sealed')
+            before=catalogue(cursor)
+            self.assertEqual(storage(catalogue_delta(before,after)), expected_delta(owner=owner))
+            transaction.set_rollback(True)
+        with connection.cursor() as cursor:
+            self.assertTrue(verify_guards(cursor))
+
+    def test_maintenance_scope_requires_both_real_session_locks_and_cleans_up(self):
+        """Real PG lock/stamp boundary; stubbed admission is NOT certification."""
+        from mta.presentation import report_verification as verification
+        from mta.runtime.opening_scope import _current as opening_current
+        from mta.runtime.daily_feed import job_lock
+        from mta.mdm.supplier_revisions import source_lock, _key
+        owner=SimpleNamespace(pk=uuid4(),source_id=uuid4())
+        release={'isolated':'LOCK_MECHANICS_ONLY'}
+        admission=object()
+        visits=[]
+
+        @contextmanager
+        def audit(run,actual_owner,admitted,check,stamp,stamp_reader):
+            self.assertIs(actual_owner,owner)
+            self.assertIs(admitted,admission)
+            self.assertIsNotNone(opening_current.get())
+            check()
+            token=verification._current.set({'isolated_test':True})
+            try:
+                visits.append('entered')
+                yield
+                check()
+                if stamp_reader()!=stamp:
+                    raise ValueError('Isolated test catalogue stamp changed')
+            finally:
+                verification._current.reset(token)
+
+        with ExitStack() as stack:
+            stack.enter_context(patch('release.native_identity.require_current',return_value=release))
+            provisioner=stack.enter_context(patch('mta.runtime.ingestion_authority._provisioner'))
+            admit=stack.enter_context(patch('mta.runtime.ingestion_admission._admit',return_value=admission))
+            stack.enter_context(patch.object(verification,'_verified_owner',side_effect=audit))
+            for mode in ('missing-daily','missing-source','complete','lost-source','catalogue-drift','audit-error'):
+                with self.subTest(mode=mode), ExitStack() as locks:
+                    if mode!='missing-daily':
+                        check_session=locks.enter_context(job_lock(owner))
+                    else:
+                        check_session=Mock()
+                    if mode!='missing-source':
+                        locks.enter_context(source_lock(owner.source_id))
+                    with transaction.atomic():
+                        self.sql('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+                        if mode.startswith('missing-'):
+                            with self.assertRaisesRegex(ValueError,'session/ownership locks'), \
+                                 verification._schema_transition_scope(None,owner,release,check_session):
+                                self.fail('missing session lock admitted')
+                        elif mode=='complete':
+                            with verification._schema_transition_scope(None,owner,release,check_session):
+                                self.assertIsNotNone(verification._current.get())
+                        else:
+                            expected={'lost-source':'session/ownership locks',
+                                      'catalogue-drift':'catalogue stamp changed',
+                                      'audit-error':'audit interrupted'}[mode]
+                            with self.assertRaisesRegex(ValueError,expected), \
+                                 verification._schema_transition_scope(None,owner,release,check_session):
+                                if mode=='lost-source':
+                                    self.sql('SELECT pg_advisory_unlock(hashtextextended(%s,0))',[_key(owner.source_id)])
+                                elif mode=='catalogue-drift':
+                                    self.sql('CREATE TABLE mta.g1_maintenance_stamp_probe (id integer)')
+                                else:
+                                    raise ValueError('audit interrupted')
+                        transaction.set_rollback(True)
+                    self.assertIsNone(verification._current.get())
+                    self.assertIsNone(opening_current.get())
+            self.assertEqual(visits,['entered']*4)
+            self.assertTrue(provisioner.called)
+            self.assertTrue(all(call.kwargs=={'pending':True} for call in admit.call_args_list))
 
     def test_installed_guard_recognition_rejects_disable_body_and_execute_grant_drift(self):
         from mta.runtime.accepted_state_ownership import verify_guards
