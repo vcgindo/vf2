@@ -16,6 +16,8 @@ import { RESET_STATE } from "../../../redux/actions/MDM";
 import { RESET_MTO_STATE } from "../../../redux/actions/MTO";
 import { useRef, useLayoutEffect, useState } from "react";
 import useDownloadHandler from "../../../helpers/useDownloadHandler";
+import { withLoading } from "../../../helpers/withLoading";
+import { notifyError } from "../../../helpers/notify";
  
 const ITEM_HEIGHT = 48; // Adjust to match your TooltipContent height
 const MIN_VISIBLE_ITEMS = 5;
@@ -97,16 +99,23 @@ const MenuToolTip = ({
     downloadName?: any
   ) => {
     if (reportUrls.includes(url)) {
-      setTempUrls([...tempUrls].concat(url));
-      setIsLoading(true);
-      if (isMTO) {
-        await handleDownloadMTOVF(url, downloadName);
-      } else {
-        await handleDownloadVF(url, downloadName);
+      setTempUrls((urls: string[]) => [...urls, url]);
+      try {
+        await withLoading(setIsLoading, async () => {
+          if (isMTO) {
+            await handleDownloadMTOVF(url, downloadName);
+          } else {
+            await handleDownloadVF(url, downloadName);
+          }
+        });
+      } catch (error) {
+        notifyError("Error while downloading");
+      } finally {
+        setTempUrls((urls: string[]) => {
+          const index = urls.indexOf(url);
+          return index < 0 ? urls : [...urls.slice(0, index), ...urls.slice(index + 1)];
+        });
       }
-      setIsLoading(false);
-      const tempArr = tempUrls.filter((tempUrl: string) => tempUrl !== url);
-      setTempUrls([...tempArr]);
     } else {
       navigateWithPrompt(() => {
         navigate(url, { replace: true });
@@ -207,4 +216,4 @@ const MenuToolTip = ({
 };
  
 export default MenuToolTip;
- 
+

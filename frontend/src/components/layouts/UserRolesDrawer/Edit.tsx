@@ -1,4 +1,5 @@
 import React,{ useState, useEffect, useMemo, useCallback } from "react";
+import { createRequestDeadline } from '../../../helpers/requestDeadline';
 
 import Select from "react-select";
 
@@ -144,11 +145,13 @@ const EditRole = (props: { data: any; cb: () => void }) => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    const deadline = createRequestDeadline();
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_HOST}api/user/edit-role/`,
         {
           method: "PUT",
+          signal: deadline.signal,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
         }
@@ -159,6 +162,8 @@ const EditRole = (props: { data: any; cb: () => void }) => {
     } catch (error) {
       console.error(error);
       notifyError("Server Went Unresponsive");
+    } finally {
+      deadline.finish();
     }
   };
 

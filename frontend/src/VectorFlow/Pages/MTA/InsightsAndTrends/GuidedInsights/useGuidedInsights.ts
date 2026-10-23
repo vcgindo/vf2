@@ -1,5 +1,5 @@
  import { useState,useRef } from "react";
- import {  notifyLoader, notifySuccess } from "../../../../../helpers/notify";
+ import {  notifyError, notifyLoader, notifySuccess } from "../../../../../helpers/notify";
  import { toast } from "react-toastify";
 import useBPRFilter from "../../../../../hooks/useBPRFilter";
 import { useUserData } from "../../../../../context";
@@ -46,23 +46,28 @@ const GUIDEDINSIGHT_ROWS_PER_PAGE = EnvConfig['GUIDEDINSIGHT_ROWS_PER_PAGE'];
         setCurrentTab('');
     }
     const fetchAndUpdateGridData=async(filter?:any)=>{
-        const body:any={
-            "id": 0,
-            "name": "",
-            "fields": [],
-            "paginationParameter": {
-                "pageNumber": 1,
-                "recordsPerPage": GUIDEDINSIGHT_ROWS_PER_PAGE || 100
-            },
-            filters:filter || currentFilter
-        }
-         const toastId = notifyLoader('Loading Grid Data');
-         const result = await getChronicUnavailabilityGrid(body)
-         setCurrentGridData(result?.data?.data != null? result?.data?.data:[]);
-         setChronicRowData(result?.data?.data != null? result?.data?.data:[]);
-         toast.dismiss(toastId);
-         notifySuccess("Grid Details Fetched Successfully");
-                    
+      const body: any = {
+        id: 0,
+        name: '',
+        fields: [],
+        paginationParameter: {
+          pageNumber: 1,
+          recordsPerPage: GUIDEDINSIGHT_ROWS_PER_PAGE || 100,
+        },
+        filters: filter || currentFilter,
+      };
+      const toastId = notifyLoader('Loading Grid Data');
+      try {
+        const result = await getChronicUnavailabilityGrid(body);
+        if (result?.status >= 400) throw new Error('Unable to load report data');
+        setCurrentGridData(result?.data?.data != null ? result?.data?.data : []);
+        setChronicRowData(result?.data?.data != null ? result?.data?.data : []);
+        notifySuccess('Grid Details Fetched Successfully');
+      } catch (error: any) {
+        notifyError(error);
+      } finally {
+        toast.dismiss(toastId);
+      }
     }
 
     const onViewChange = (view:string) => {

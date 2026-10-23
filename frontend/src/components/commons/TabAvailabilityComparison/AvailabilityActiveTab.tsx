@@ -1,3 +1,4 @@
+import { notifyError } from '../../../helpers/notify';
 /* eslint-disable no-unsafe-optional-chaining */
 import { useEffect, useState } from 'react'
 import { AvailabilityComparisonService } from '../../../module-store-transfer/services/AvailabilityComparison/api'
@@ -64,6 +65,7 @@ const AvailabilityActiveTab = ({ ...props }: TabProps) => {
         handleViewData(resp.data.data)
       })
       .catch((error) => {
+        notifyError('Unable to load availability data');
         console.log(error)
       })
       .finally(() => {
@@ -95,12 +97,13 @@ const AvailabilityActiveTab = ({ ...props }: TabProps) => {
       data
     })
 
-    await handleExport([[data.before, data.after]])
-
-    setSelectedItem({
-      idx: null,
-      data: null
-    })
+    try {
+      await handleExport([[data.before, data.after]])
+    } catch (error) {
+      notifyError('Unable to export availability data');
+    } finally {
+      setSelectedItem({ idx: null, data: null })
+    }
   }
 
   return (

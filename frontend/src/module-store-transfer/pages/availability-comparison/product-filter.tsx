@@ -1,3 +1,4 @@
+import { notifyError } from '../../../helpers/notify';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { ProductFilter } from '../../../components'
 import { AvailabilityComparisonService } from '../../../module-store-transfer/services/AvailabilityComparison/api'
@@ -35,12 +36,17 @@ export default forwardRef((props, ref) => {
   useEffect(() => {
     async function initProductFilter () {
       setProductFilterLoading(true)
-      const { data } =
-        await AvailabilityComparisonService.getListProductFilter()
-      const productFilter = data?.data
-      handleProductData(productFilter)
-
-      setProductFilterLoading(false)
+      try {
+        const response = await AvailabilityComparisonService.getListProductFilter()
+        if (response?.status >= 400) throw new Error('Unable to load product filters');
+        const { data } = response
+        const productFilter = data?.data
+        handleProductData(productFilter)
+      } catch (error) {
+        notifyError('Unable to load product filters');
+      } finally {
+        setProductFilterLoading(false);
+      }
     }
     initProductFilter()
   }, [])

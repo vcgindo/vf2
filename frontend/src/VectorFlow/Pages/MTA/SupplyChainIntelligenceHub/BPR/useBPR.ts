@@ -354,22 +354,29 @@ const useBPR =()=>{
       };
 
     const getBPRRowData = async(filter:any,pageNo:number , pageSize?:number)=>{
-        notifyLoader("Loading Grid Data")
-        const rowData =await  getBPRData({
-            id: 1,
-            name: "",
-            fields: [],
-            filters:filter,
-            paginationParameter:{
-                pageNumber:pageNo,
-                recordsPerPage:pageSize || userPageSize || parseInt(BPR_ROWS_PER_PAGE || '50') 
-            }
-        })
-        toast.dismiss()
-        notifySuccess("Data Loaded Successfully")
-        if(rowData.data.data && Array.isArray(rowData.data.data))setBPRRowData(mapBPRRowData(rowData.data.data))
-        else setBPRRowData([])
+        const toastId = notifyLoader("Loading Grid Data");
+        try {
+            const rowData =await  getBPRData({
+                id: 1,
+                name: "",
+                fields: [],
+                filters:filter,
+                paginationParameter:{
+                    pageNumber:pageNo,
+                    recordsPerPage:pageSize || userPageSize || parseInt(BPR_ROWS_PER_PAGE || '50')
+                }
+            })
+            if (rowData?.status >= 400) throw new Error("Unable to load report data");
+            notifySuccess("Data Loaded Successfully")
+            if(rowData.data.data && Array.isArray(rowData.data.data))setBPRRowData(mapBPRRowData(rowData.data.data))
+            else setBPRRowData([])
         
+        } catch (error: any) {
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
+        }
+
     }
 
 

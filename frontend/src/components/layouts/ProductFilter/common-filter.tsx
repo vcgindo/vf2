@@ -1,3 +1,4 @@
+import { notifyError } from '../../../helpers/notify';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import ProductFilter from './index'
 import { MainService } from '../../../module-main/services/api'
@@ -41,25 +42,31 @@ export default forwardRef(({ ...props }: ProductProps, ref) => {
   useEffect(() => {
     async function initProductFilter () {
       setProductFilterLoading(true)
-      const { data } = await MainService.getProductFilter(props.endpoint)
-      const productFilter = data?.data
-      const {
-        listBrand,
-        listSubBrand,
-        listCategory,
-        listStyle,
-        listFit,
-        listLaunchPeriod
-      } = handleDataProductFilter(productFilter)
+      try {
+        const response = await MainService.getProductFilter(props.endpoint)
+        if (response?.status >= 400) throw new Error('Unable to load product filters');
+        const { data } = response
+        const productFilter = data?.data
+        const {
+          listBrand,
+          listSubBrand,
+          listCategory,
+          listStyle,
+          listFit,
+          listLaunchPeriod
+        } = handleDataProductFilter(productFilter)
 
-      setListBrand(listBrand)
-      setListSubBrand(listSubBrand)
-      setListCategory(listCategory)
-      setListStyle(listStyle)
-      setListFit(listFit)
-      setListLaunchPeriod(listLaunchPeriod)
-
-      setProductFilterLoading(false)
+        setListBrand(listBrand)
+        setListSubBrand(listSubBrand)
+        setListCategory(listCategory)
+        setListStyle(listStyle)
+        setListFit(listFit)
+        setListLaunchPeriod(listLaunchPeriod)
+      } catch (error) {
+        notifyError('Unable to load product filters');
+      } finally {
+        setProductFilterLoading(false);
+      }
     }
     initProductFilter()
   }, [])

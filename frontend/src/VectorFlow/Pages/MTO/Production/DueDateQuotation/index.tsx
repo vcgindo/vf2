@@ -391,11 +391,12 @@ const DueDateQuotation = () => {
         setLineCCR(lineCCRData.data.data);
       }
 
-      setLoading(false)
     }
     catch (err) {
       console.error(err);
       notifyError("Something Went Wrong!");
+    } finally {
+      setLoading(false);
     }
   }
 

@@ -254,49 +254,62 @@ const useDBM =()=>{
     }
 
      const handleGoButton =  async(pageNo:any)=>{
-        notifyLoader("Submitting Norms")
-        const selectedRows = gridRef.current?.api.getSelectedRows();
-        if (!selectedRows || selectedRows?.length === 0) { 
-            notifyError("No Rows Selected.");
-            return;
-        }
-        const extractedData:any = selectedRows?.map (items => ({
-            SKUCode:items.SKUCode,
-            WHCode:items.LocCode
-        }));
+        const toastId = notifyLoader("Submitting Norms");
+        try {
+            const selectedRows = gridRef.current?.api.getSelectedRows();
+            if (!selectedRows || selectedRows?.length === 0) {
+                notifyError("No Rows Selected.");
+                return;
+            }
+            const extractedData:any = selectedRows?.map (items => ({
+                SKUCode:items.SKUCode,
+                WHCode:items.LocCode
+            }));
 
-            await getDBMApplySelectedNorm({
-                data:extractedData,
-                filters:[],
-                paginationParameter:{
-                    pageNumber:1,
-                    recordsPerPage:recordsPerPage
-                }
-            })
-        toast.dismiss()
-        notifySuccess("Submitted Successfully")
-        refetchAfter()
+                const response = await getDBMApplySelectedNorm({
+                    data:extractedData,
+                    filters:[],
+                    paginationParameter:{
+                        pageNumber:1,
+                        recordsPerPage:recordsPerPage
+                    }
+                })
+            if (response?.status >= 400) throw new Error("Unable to submit norms");
+            notifySuccess("Submitted Successfully")
+            refetchAfter()
+        } catch (error: any) {
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
+        }
+
    }
 
    const handleGoButtonForSleep =  async(pageNo:any)=>{
-        notifyLoader("Submitting Norms")
-        const selectedRows = gridRef.current?.api.getSelectedRows();
-        if (!selectedRows || selectedRows?.length === 0) { 
-            notifyError("No Rows Selected.");
-            return;
+        const toastId = notifyLoader("Submitting Norms");
+        try {
+            const selectedRows = gridRef.current?.api.getSelectedRows();
+            if (!selectedRows || selectedRows?.length === 0) {
+                notifyError("No Rows Selected.");
+                return;
+            }
+            const extractedDataForSleep:any = selectedRows?.map (items => ({
+                SKUCode:items.SKUCode,
+                WHCode:items.LocCode
+            }));
+
+                const response = await getDBMUpdateSleepTbl({
+                    data:extractedDataForSleep,
+                });
+            if (response?.status >= 400) throw new Error("Unable to submit norms");
+            notifySuccess("Submitted Successfully");
+            refetchAfter();
+        } catch (error: any) {
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
         }
-        const extractedDataForSleep:any = selectedRows?.map (items => ({
-            SKUCode:items.SKUCode,
-            WHCode:items.LocCode
-        }));
 
-            await getDBMUpdateSleepTbl({
-                data:extractedDataForSleep,
-            });
-
-        toast.dismiss();
-        notifySuccess("Submitted Successfully");
-        refetchAfter();
    }
 
     useEffect(()=>{       
@@ -346,18 +359,25 @@ const useDBM =()=>{
     }
 
     const getDBMRowData= async(filter:any,pageNo:any, pageSize?:number)=>{
-        notifyLoader("Loading Grid Data")
-        const rowData =await getDBMData({
-            filters:filter,
-            paginationParameter:{
-                pageNumber:pageNo,
-                recordsPerPage:pageSize || userPageSize || recordsPerPage
-            }
-        })
-        toast.dismiss()
-        notifySuccess("Data Loaded Successfully")
-        // console.log(rowData.data.data)
-        setDBMRowData(rowData?.data?.data || [])
+        const toastId = notifyLoader("Loading Grid Data");
+        try {
+            const rowData =await getDBMData({
+                filters:filter,
+                paginationParameter:{
+                    pageNumber:pageNo,
+                    recordsPerPage:pageSize || userPageSize || recordsPerPage
+                }
+            })
+            if (rowData?.status >= 400) throw new Error("Unable to load report data");
+            notifySuccess("Data Loaded Successfully")
+            // console.log(rowData.data.data)
+            setDBMRowData(rowData?.data?.data || [])
+        } catch (error: any) {
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
+        }
+
     }
 
     const handleApplyFilter = async(filter:any)=>{

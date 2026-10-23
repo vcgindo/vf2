@@ -869,46 +869,74 @@ const useViewModify = (pageType:string) => {
     }
 
     const handleApplyFilter =async (showAll?:boolean) => {
-     if(showAll) setIsShowAll(showAll)
-     else setIsShowAll(false)
-      if(downloadData) setDownloadData(false)
+      if (showAll) setIsShowAll(showAll);
+      else setIsShowAll(false);
+      if (downloadData) setDownloadData(false);
       const currMasterFilters = activeMaster.filters;
-      if(!areMasterFiltersValid(currMasterFilters) && !showAll){
-        return notifyError('Filter cannot be empty')
+      if (!areMasterFiltersValid(currMasterFilters) && !showAll) {
+        return notifyError('Filter cannot be empty');
       }
 
       const payloadFilters = mapStateFiltersToPayload(currMasterFilters);
-      const payloadFields:any = getCurrentVisbileColumns();
+      const payloadFields: any = getCurrentVisbileColumns();
 
       setIsTableDataLoading(true);
+      try {
+        let result;
+        if (showAll) {
+          result = await queryAllData({
+            filters: payloadFilters,
+            fields: payloadFields,
+            pagination: false,
+            count: true,
+            rowsPerPage,
+          });
+        } else {
+          result = await queryFilteredData({
+            filters: payloadFilters,
+            fields: payloadFields,
+            pagination: false,
+            count: true,
+            rowsPerPage,
+          });
+        }
+        // if(!result.data.recordCount || result.data.recordCount==0 || result.data.recordCount=='')dispatch(SET_RECORD_COUNT(0))
+        // else{
+        //   dispatch(SET_RECORD_COUNT(result.data.recordCount))
+        // }
+        const count = result?.data?.recordCount;
+        const numericCount = typeof count === 'number' ? count
+          : typeof count === 'string' && /^\d+$/.test(count) ? Number(count) : NaN;
+        if (!Number.isFinite(numericCount) || !Number.isInteger(numericCount) || numericCount < 0
+          || (result?.status && result.status >= 400)) {
+          throw new Error('Unable to load master record count');
+        }
+        if (numericCount === 0) {
+          setTempRecordCount(0);
+          dispatch(UPDATE_ROW_DATA([]));
+          dispatch(SET_RECORD_COUNT(0));
+          dispatch(UPDATE_PROGRESS_STATE('default'));
+          dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+          dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+          toggleEditOnline(false);
+        } else {
+          setTempRecordCount(numericCount);
+        }
+        // if(result.data.recordCount<=rowsPerPage){
+        //   dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true))
+        // }
+        // else{
+        //   dispatch(UPDATE_DATA_AVAILABILITY_STATUS(false))
+        // }
 
-      let result;
-      if(showAll){
-        result = await queryAllData({filters:payloadFilters,fields:payloadFields,pagination:false,count:true,rowsPerPage});
+        toggleWarningModal(true);
+        setCurrentPage(1);
+        if (activeMaster.id == 10) setSeasonalityActiveQuickFilter([]);
+      } catch (error) {
+        notifyError('Something Went Wrong');
+      } finally {
+        setIsTableDataLoading(false);
       }
-      else{
-        result = await queryFilteredData({filters:payloadFilters,fields:payloadFields,pagination:false,count:true,rowsPerPage});
-      }
-
-      setIsTableDataLoading(false);
-      // if(!result.data.recordCount || result.data.recordCount==0 || result.data.recordCount=='')dispatch(SET_RECORD_COUNT(0))
-      // else{
-      //   dispatch(SET_RECORD_COUNT(result.data.recordCount))
-      // }
-      if(!result.data.recordCount || result.data.recordCount==0 || result.data.recordCount=='')setTempRecordCount(0)
-      else{
-        setTempRecordCount(result.data.recordCount)
-      }
-      // if(result.data.recordCount<=rowsPerPage){
-      //   dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true))
-      // }
-      // else{
-      //   dispatch(UPDATE_DATA_AVAILABILITY_STATUS(false))
-      // }
-
-      toggleWarningModal(true);    
-      setCurrentPage(1);
-      if(activeMaster.id == 10) setSeasonalityActiveQuickFilter([])
     }
 
     const onWarningModalClose = ()=>{
@@ -919,113 +947,145 @@ const useViewModify = (pageType:string) => {
     }
 
     const onWarningModalSuccess = async (refetch?:boolean)=>{
-     
-      refetch = refetch?refetch:false
+      refetch = refetch ? refetch : false;
 
       const currMasterFilters = activeMaster.filters;
 
       const payloadFilters = mapStateFiltersToPayload(currMasterFilters);
-      let payloadFields:any = getCurrentVisbileColumns();
-      payloadFields = payloadFields.filter((field:any)=>!['checkbox','graph','color'].includes(field.key))
-      
+      let payloadFields: any = getCurrentVisbileColumns();
+      payloadFields = payloadFields.filter(
+        (field: any) => !['checkbox', 'graph', 'color'].includes(field.key)
+      );
+
       setIsTableDataLoading(true);
-      let result:any;
+      try {
+        let result: any;
 
-      if((!areMasterFiltersValid(currMasterFilters) && activeMaster.filters.length === 1) || isShowAll){
-        if(activeMaster.id==10 || activeMaster.id==6){
-          result = await notifyPromise(queryAllData({filters:payloadFilters,fields:payloadFields,pagination:false}),{
-            success:"Data Fetched Successfully",
-            error:"Something Went Wrong",
-            pending:"Loading Data"
-          });
-          dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+        if (
+          (!areMasterFiltersValid(currMasterFilters) && activeMaster.filters.length === 1) ||
+          isShowAll
+        ) {
+          if (activeMaster.id == 10 || activeMaster.id == 6) {
+            result = await notifyPromise(
+              queryAllData({ filters: payloadFilters, fields: payloadFields, pagination: false }),
+              {
+                success: 'Data Fetched Successfully',
+                error: 'Something Went Wrong',
+                pending: 'Loading Data',
+              }
+            );
+            dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+          } else {
+            result = await notifyPromise(
+              queryAllData({
+                filters: payloadFilters,
+                fields: payloadFields,
+                pagination: true,
+                currentPage: 1,
+                rowsPerPage,
+              }),
+              {
+                success: 'Data Fetched Successfully',
+                error: 'Something Went Wrong',
+                pending: 'Loading Data',
+              }
+            );
+          }
+          dispatch(RESET_FILTERS());
+        } else {
+          if (activeMaster.id == 10 || activeMaster.id == 6) {
+            result = await notifyPromise(
+              queryFilteredData({ filters: payloadFilters, fields: payloadFields, pagination: false }),
+              {
+                success: 'Data Fetched Successfully',
+                error: 'Something Went Wrong',
+                pending: 'Loading Data',
+              }
+            );
+            dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+          } else {
+            result = await notifyPromise(
+              queryFilteredData({
+                filters: payloadFilters,
+                fields: payloadFields,
+                pagination: true,
+                currentPage: 1,
+                rowsPerPage,
+              }),
+              {
+                success: 'Data Fetched Successfully',
+                error: 'Something Went Wrong',
+                pending: 'Loading Data',
+              }
+            );
+          }
         }
-        else{
-          result = await notifyPromise(queryAllData({filters:payloadFilters,fields:payloadFields,pagination:true,currentPage:1,rowsPerPage}),{
-            success:"Data Fetched Successfully",
-            error:"Something Went Wrong",
-            pending:"Loading Data"
-          }); 
-      }
-      dispatch(RESET_FILTERS())
-    }
-      else{
-        if(activeMaster.id==10 || activeMaster.id==6){
-          result = await notifyPromise(queryFilteredData({filters:payloadFilters,fields:payloadFields,pagination:false}),{
-            success:"Data Fetched Successfully",
-            error:"Something Went Wrong",
-            pending:"Loading Data"
-          }); 
+
+        if (tempRecordCount <= rowsPerPage) {
           dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+        } else {
+          dispatch(UPDATE_DATA_AVAILABILITY_STATUS(false));
         }
-        else{
-          result = await notifyPromise(queryFilteredData({filters:payloadFilters,fields:payloadFields,pagination:true,currentPage:1,rowsPerPage}),{
-            success:"Data Fetched Successfully",
-            error:"Something Went Wrong",
-            pending:"Loading Data"
-          }); 
-      }
-     
-      }
-      
 
-      if(tempRecordCount<=rowsPerPage){
-        dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true))
-      }
-      else{
-        dispatch(UPDATE_DATA_AVAILABILITY_STATUS(false))
-      }
-      
-      if(tempRecordCount <= rowsPerPage){
-        toggleEditOnline(true);
-      }
-      else{
-        toggleEditOnline(false);
-      }
-
-      
-        setIsTableDataLoading(false);
-        if(tempRecordCount == 0){
-          toggleWarningModal(false);
+        if (tempRecordCount <= rowsPerPage) {
+          toggleEditOnline(true);
+        } else {
+          toggleEditOnline(false);
+        }
+        if (!Array.isArray(result?.data?.data) || (result.status && result.status >= 400)) {
+          throw new Error('Unable to load master data');
+        }
+        if (tempRecordCount == 0 || result.data.data.length === 0) {
+          setTempRecordCount(0);
+          dispatch(UPDATE_ROW_DATA([]));
+          dispatch(SET_RECORD_COUNT(0));
+          dispatch(UPDATE_PROGRESS_STATE('default'));
+          dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+          dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+          toggleEditOnline(false);
+          toggleWarningModal(true);
           return;
         }
-        
-        const tempRowData = result?.data?.data?.map((row:any)=>{
-          const newRow = {...row};
-          
-          Object.keys(newRow).map((key)=>{
-            const currentColDef = activeMaster.colDefs.find((c)=>c.colId===key)
-            const cellDataType = currentColDef?.cellDataType
-            if(cellDataType==='number' && newRow[key]!== null){
-              if(isNaN(parseFloat(newRow[key]))){
-                newRow[key]='';
-              }else{
-                newRow[key] = parseFloat(newRow[key])
+
+        const tempRowData = result?.data?.data?.map((row: any) => {
+          const newRow = { ...row };
+
+          Object.keys(newRow).map((key) => {
+            const currentColDef = activeMaster.colDefs.find((c) => c.colId === key);
+            const cellDataType = currentColDef?.cellDataType;
+            if (cellDataType === 'number' && newRow[key] !== null) {
+              if (isNaN(parseFloat(newRow[key]))) {
+                newRow[key] = '';
+              } else {
+                newRow[key] = parseFloat(newRow[key]);
               }
             }
-          })
+          });
 
-          return newRow
-        })
+          return newRow;
+        });
 
         dispatch(UPDATE_ROW_DATA(tempRowData));
-        if(refetch)return
+        if (refetch) return;
         toggleWarningModal(false);
-        if(pageType==='remove'){
-           dispatch(UPDATE_PROGRESS_STATE('deleteView'));
-        }
-        else{
-          if(activeMaster.id==10){
+        if (pageType === 'remove') {
+          dispatch(UPDATE_PROGRESS_STATE('deleteView'));
+        } else {
+          if (activeMaster.id == 10) {
             dispatch(UPDATE_PROGRESS_STATE('seasonality'));
-            return  dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+            return dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
           }
-          if(activeMaster.id==6){
-             dispatch(UPDATE_PROGRESS_STATE('phaseInPhaseOut')); 
-          }
-          else  dispatch(UPDATE_PROGRESS_STATE('view')); 
+          if (activeMaster.id == 6) {
+            dispatch(UPDATE_PROGRESS_STATE('phaseInPhaseOut'));
+          } else dispatch(UPDATE_PROGRESS_STATE('view'));
         }
-        dispatch(SET_RECORD_COUNT(tempRecordCount))
+        dispatch(SET_RECORD_COUNT(tempRecordCount));
         dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+      } catch (error) {
+        notifyError('Something Went Wrong');
+      } finally {
+        setIsTableDataLoading(false);
+      }
     }
 
     const onEditOnline = (progress:any) => {
@@ -1257,29 +1317,42 @@ const useViewModify = (pageType:string) => {
       }
 
       const handleChangePage = async (pageNo:any) => {
-
         setCurrentPage(pageNo);
-        setIsTableDataLoading(true)
-        if(activeMaster.rowData.length > rowsPerPage){
-            ref.current?.api.paginationGoToPage(pageNo-1);
-            setIsTableDataLoading(false);
+        setIsTableDataLoading(true);
+        try {
+          if (activeMaster.rowData.length > rowsPerPage) {
+            ref.current?.api.paginationGoToPage(pageNo - 1);
             return;
-        }
-        
-        const payloadFilters = mapStateFiltersToPayload(activeMaster.filters);
-        const payloadFields:any = getCurrentVisbileColumns();
-        let result;
-        if(!areMasterFiltersValid(activeMaster.filters) && activeMaster.filters.length === 1){
-          result = await queryAllData({filters:payloadFilters,fields:payloadFields,pagination:true,currentPage:pageNo,rowsPerPage});
-        }
-        else{
-          result = await queryFilteredData({filters:payloadFilters,fields:payloadFields,pagination:true,currentPage:pageNo,rowsPerPage});
-        }
-        
-        dispatch(UPDATE_ROW_DATA(result.data.data));
-        dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
-        setIsTableDataLoading(false);
+          }
 
+          const payloadFilters = mapStateFiltersToPayload(activeMaster.filters);
+          const payloadFields: any = getCurrentVisbileColumns();
+          let result;
+          if (!areMasterFiltersValid(activeMaster.filters) && activeMaster.filters.length === 1) {
+            result = await queryAllData({
+              filters: payloadFilters,
+              fields: payloadFields,
+              pagination: true,
+              currentPage: pageNo,
+              rowsPerPage,
+            });
+          } else {
+            result = await queryFilteredData({
+              filters: payloadFilters,
+              fields: payloadFields,
+              pagination: true,
+              currentPage: pageNo,
+              rowsPerPage,
+            });
+          }
+
+          dispatch(UPDATE_ROW_DATA(result.data.data));
+          dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+        } catch (error) {
+          notifyError('Something Went Wrong');
+        } finally {
+          setIsTableDataLoading(false);
+        }
       }
 
       const postMasterDataChunks = async (rowData:any,isOverWrite?:boolean,actionStatus="") => {
@@ -1683,30 +1756,34 @@ const useViewModify = (pageType:string) => {
       } 
 
       const onDiscardDraftCallback = async () =>{
-        if(draftId.length!==0){
+        if (draftId.length !== 0) {
           const toastId = notifyLoader(`Deleting Draft`);
-          const result = await deleteDraft(draftID);
-          if(result.status===200){
-            toast.dismiss(toastId)
-            notifySuccess("Deleted Draft")
-          }else{
-            toast.dismiss(toastId)
-            notifyError("Something Went Wrong")
+          try {
+            const result = await deleteDraft(draftID);
+            if (result.status === 200) {
+              notifySuccess('Deleted Draft');
+            } else {
+              notifyError('Something Went Wrong');
+            }
+            // dispatch()
+            dispatch(UPDATE_PROGRESS_STATE('default'));
+            dispatch(UPDATE_ROW_DATA([]));
+            dispatch(UPDATE_COLDEFS([]));
+            dispatch(REMOVE_ALL_FILTERS());
+            dispatch(ADD_FILTER());
+            dispatch(SET_DRAFT_ID(''));
+            setDownloadData(false);
+            setTempDownloadData(false);
+            dispatch(FILL_MASTERS([]));
+            setFilterButtonStatus([]);
+            dispatch(TOGGLE_SELECT_MASTER_SCREEN(true));
+            navigate('/mta/master-data-management/saved-drafts');
+            return;
+          } catch (error: any) {
+            notifyError(error);
+          } finally {
+            toast.dismiss(toastId);
           }
-          // dispatch()
-          dispatch(UPDATE_PROGRESS_STATE('default'));
-          dispatch(UPDATE_ROW_DATA([]));
-          dispatch(UPDATE_COLDEFS([]));
-          dispatch(REMOVE_ALL_FILTERS());
-          dispatch(ADD_FILTER())
-          dispatch(SET_DRAFT_ID(''))
-          setDownloadData(false);
-          setTempDownloadData(false);
-          dispatch(FILL_MASTERS([]));
-          setFilterButtonStatus([]);
-          dispatch(TOGGLE_SELECT_MASTER_SCREEN(true));
-          navigate('/mta/master-data-management/saved-drafts')
-          return
         }
       }
 

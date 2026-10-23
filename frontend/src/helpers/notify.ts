@@ -23,9 +23,20 @@ export const ATTR_TOAST = {
   theme?: Theme
 }
 
-export const notifyError = (msg: string) =>{
+export const errorMessage = (error: unknown): string => {
+  if (typeof error === 'string' && error.trim()) return error;
+  if (error && typeof error === 'object') {
+    const value = error as { message?: unknown, response?: { data?: { message?: unknown, detail?: unknown } } };
+    for (const candidate of [value.response?.data?.message, value.response?.data?.detail, value.message]) {
+      if (typeof candidate === 'string' && candidate.trim()) return candidate;
+    }
+  }
+  return 'The request could not be completed. Check its status and try again.';
+};
+
+export const notifyError = (msg: unknown) =>{
   toast.dismiss()
-  return toast.error(msg, ATTR_TOAST)
+  return toast.error(errorMessage(msg), ATTR_TOAST)
 }
 
 
@@ -38,7 +49,7 @@ export const ATTR_TOAST_WITHOUT_AUTOCLOSE: ToastOptions = {
 
 export const notifyErrorWithoutAutoClose = (msg: any) =>{
   toast.dismiss()
-  return toast.error(msg, ATTR_TOAST_WITHOUT_AUTOCLOSE)
+  return toast.error(errorMessage(msg), ATTR_TOAST_WITHOUT_AUTOCLOSE)
 }
 
 export const notifySuccess = (msg: string) =>{

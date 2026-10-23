@@ -111,6 +111,9 @@ const ManualUpload = () => {
         notifyError(response?.response?.msg);
         setShowPopup(false);
         setIsloading(true);
+      } else {
+        notifyError(t("manualUpload.updateError"));
+        setShowPopup(false);
       }
 
       setFile(null);
@@ -121,6 +124,8 @@ const ManualUpload = () => {
         setShowPopup(false);
         // Run after 3000 milliseconds
       }, 3000);
+    } finally {
+      setIsloading(true);
     }
   };
 

@@ -1,3 +1,4 @@
+import { notifyError } from '../../../helpers/notify';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LocationFilter } from '../../../components'
@@ -23,6 +24,7 @@ export default forwardRef((props, ref) => {
         handleLocationData(res.data.data)
       })
       .catch((err) => {
+        notifyError('Unable to load location filters');
         console.log(err)
       })
       .finally(() => {

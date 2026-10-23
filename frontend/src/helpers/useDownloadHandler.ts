@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE_KEY } from "./constants";
+import { createRequestDeadline, DOWNLOAD_TIMEOUT_MS } from './requestDeadline';
 import axios from "axios";
 import { notifyError } from "./notify";
 import { decryptStorageData } from "../VectorFlow/Pages/MTO/Common/encryption";
@@ -15,6 +16,7 @@ interface Token {
 const useDownloadHandler = () => {
 
   const handleDownloadMTOVF = async (reportName: string, downloadName: string) => {
+    const deadline = createRequestDeadline(DOWNLOAD_TIMEOUT_MS);
     try{
      
       const encryptedUserId = localStorage.getItem('User-ID');
@@ -31,6 +33,7 @@ const useDownloadHandler = () => {
         if (decryptedUserName) headers['User-Name'] = decryptedUserName;
       
         const response = await fetch(`${process.env.REACT_APP_VF_API_HOST_MTO}/DownloadReportData/?report_name=${reportName}`, {
+          signal: deadline.signal,
           headers,
           credentials: 'include',
         });
@@ -63,6 +66,8 @@ const useDownloadHandler = () => {
     }
     catch(err){
       notifyError('Error while downloading');
+    } finally {
+      deadline.finish();
     }
   }
   

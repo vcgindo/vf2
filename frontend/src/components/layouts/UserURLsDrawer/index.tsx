@@ -1,5 +1,6 @@
 
 import Drawer from "../../../components/commons/Drawer"
+import { createRequestDeadline } from '../../../helpers/requestDeadline';
 import { Content, DrawerHeader, DrawerHeaderText} from "./styles"
 import { useUserData } from "../../../context"
 import { useState } from "react"
@@ -36,15 +37,20 @@ const UserURLsDrawer = (props:UserURLsDrawerProps)=>{
     }
 
     const handleDelete = async()=>{
+        const deadline = createRequestDeadline();
         try{
-            await fetch(`${process.env.REACT_APP_API_HOST}api/user/delete-function/${currURL.id}/`,{
+            const response = await fetch(`${process.env.REACT_APP_API_HOST}api/user/delete-function/${currURL.id}/`,{
+                signal: deadline.signal,
                 method:'DELETE'
             })
+            if (!response.ok) throw new Error('Failed to delete URL');
             notifySuccess("Deleted URL Successfully")
             setCurrTab(0)
         }catch(error){
             console.error(error)
             notifyError("Server Went Unresponsive")
+        }finally{
+            deadline.finish();
         }
     }
 

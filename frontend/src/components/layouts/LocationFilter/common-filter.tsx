@@ -1,3 +1,4 @@
+import { notifyError } from '../../../helpers/notify';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import LocationFilter from './index'
 import { ISTService } from '../../../services/ist/api'
@@ -62,59 +63,65 @@ export default forwardRef(({ ...props }: ProductProps, ref) => {
   useEffect(() => {
     async function initLocationFilter () {
       setLocationFilterLoading(true)
+      try {
 
-      const {data: lcFilterListData} = await ISTService.getLocationFilterList(props.endpoint.lcFilterList)
+        const response = await ISTService.getLocationFilterList(props.endpoint.lcFilterList)
+        if (response?.status >= 400) throw new Error('Unable to load location filters');
+        const {data: lcFilterListData} = response
 
-      setListMapIstLocGrp(
-        lcFilterListData?.ist_loc_grp.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapDonorLocationRegion(
-        lcFilterListData?.donor_location?.donor_wh_region.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapdonorLocationName(
-        lcFilterListData?.donor_location?.donor_wh_name.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapDonorLocationSubType(
-        lcFilterListData?.donor_location?.donor_wh_subtype.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapTransferPref(
-        lcFilterListData?.transfer_preferences.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapDonorReceiverLocationRegion(
-        lcFilterListData?.receiver_location?.receiver_wh_region.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapDonorReceiverLocationName(
-        lcFilterListData?.receiver_location?.receiver_wh_name.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-      setListMapDonorReceiverLocationSubType(
-        lcFilterListData?.receiver_location?.receiver_wh_subtype.map((item: any) => ({
-          label: item,
-          value: item
-        }))
-      )
-
-      setLocationFilterLoading(false)
+        setListMapIstLocGrp(
+          lcFilterListData?.ist_loc_grp.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapDonorLocationRegion(
+          lcFilterListData?.donor_location?.donor_wh_region.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapdonorLocationName(
+          lcFilterListData?.donor_location?.donor_wh_name.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapDonorLocationSubType(
+          lcFilterListData?.donor_location?.donor_wh_subtype.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapTransferPref(
+          lcFilterListData?.transfer_preferences.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapDonorReceiverLocationRegion(
+          lcFilterListData?.receiver_location?.receiver_wh_region.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapDonorReceiverLocationName(
+          lcFilterListData?.receiver_location?.receiver_wh_name.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+        setListMapDonorReceiverLocationSubType(
+          lcFilterListData?.receiver_location?.receiver_wh_subtype.map((item: any) => ({
+            label: item,
+            value: item
+          }))
+        )
+      } catch (error) {
+        notifyError('Unable to load location filters');
+      } finally {
+        setLocationFilterLoading(false);
+      }
     }
     initLocationFilter()
   }, [])

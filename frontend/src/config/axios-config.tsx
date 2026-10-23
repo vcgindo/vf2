@@ -3,6 +3,7 @@ import qs from 'qs'
 import { cleanObject, loginRedirect } from '../helpers/utils'
 import { MainService } from '../module-main/services/api'
 import { installScreenProbe } from '../performance/screenProbe'
+import { REQUEST_TIMEOUT_MS, DOWNLOAD_TIMEOUT_MS } from '../helpers/requestDeadline'
 
 export const setupAxios = () => {
   installScreenProbe(axios)
@@ -10,14 +11,18 @@ export const setupAxios = () => {
   let isRedirectingForbidden = false
   const requestQueue: any = []
 
-  const processQueue = (token: any) => {
-    requestQueue.forEach((cb: any) => cb.resolve(token))
+  const processQueue = (token: any, error?: any) => {
+    requestQueue.forEach((cb: any) => error ? cb.reject(error) : cb.resolve(token))
     requestQueue.length = 0
   }
 
   axios.defaults.baseURL = process.env.REACT_APP_API_HOST;
   axios.defaults.withCredentials = true;
+  axios.defaults.timeout = REQUEST_TIMEOUT_MS;
   axios.interceptors.request.use(async function (config: any) {
+    if (config.responseType === 'blob' && config.timeout === REQUEST_TIMEOUT_MS) {
+      config.timeout = DOWNLOAD_TIMEOUT_MS;
+    }
     if (config.url && (!config.headers || !config.headers['Authorization'])) {
       const token = await MainService.acquireToken();
 
@@ -61,60 +66,52 @@ export const setupAxios = () => {
       return errorResp
     }
 
-    if (errorResp.status === 401 && !originalRequest._retry) {
-      if(errorResp.code === "ERR_BAD_REQUEST" && errorResp.response.detail === "Authentication credentials were not provided." ) {
+    // A refresh failure cannot queue behind the refresh that owns this request.
+    if (errorResp.status === 401 && originalRequest?.url?.includes(MainService.getrefreshTokenUrl())) {
+      loginRedirect();
+      return Promise.reject(errorResp);
+    }
+
+    if (errorResp.status === 401 && !originalRequest._retry && !originalRequest._skipAuthRefresh) {
+      originalRequest.headers = originalRequest.headers || {};
+      if(errorResp.code === "ERR_BAD_REQUEST" && errorResp.response?.detail === "Authentication credentials were not provided." ) {
         loginRedirect()
         return errorResp;
       }
       
-      if (
-        errorResp.response.code === 'token_not_valid' &&
-        originalRequest.url.indexOf(MainService.getrefreshTokenUrl()) > -1
-      ) {        
-        loginRedirect()
-        return
-      }
       if (isRefreshingToken) {
+        originalRequest._retry = true;
         return await new Promise((resolve, reject) => {
           requestQueue.push({ resolve, reject })
         })
           .then(async (token: any) => {
-            originalRequest.headers = {
-              ...originalRequest.headers,
-              Authorization: `Bearer ${token?.access}`
-            }
+            if (token?.access) originalRequest.headers.Authorization = `Bearer ${token.access}`;
+            else delete originalRequest.headers.Authorization;
             return await axios(originalRequest)
-          })
-          .catch(async (err) => {
-            return err
           })
       }
 
       originalRequest._retry = true
       isRefreshingToken = true
 
+      let token;
       try {
-        const token = await MainService.refreshToken()
-        if (!token) {
-          if (originalRequest.url.indexOf(MainService.getLogoutUrl()) > -1) {
-            loginRedirect()
-          }
-        } else {
-          originalRequest.headers = {
-            ...originalRequest.headers,
-            Authorization: `Bearer ${token?.access}`
-          }
-        }
-
-        const result = await axios(originalRequest)
-        processQueue(token)
-        return result
+        token = await MainService.refreshToken()
       } catch (error) {
-        processQueue(null)
-        return error
+        processQueue(null, error)
+        return await Promise.reject(error)
       } finally {
         isRefreshingToken = false
       }
+      // The queue belongs only to this refresh, never to its request replay.
+      // A later refresh must not be cleared/rejected when this replay settles.
+      processQueue(token)
+      if (token?.access) originalRequest.headers.Authorization = `Bearer ${token.access}`;
+      else {
+        delete originalRequest.headers.Authorization;
+        if (originalRequest.url.indexOf(MainService.getLogoutUrl()) > -1) loginRedirect();
+      }
+      return await axios(originalRequest)
 
     }
 
@@ -150,7 +147,7 @@ const getAxiosError = (error: any) => {
   if (error.code === AxiosError.ERR_NETWORK) {
     message = ERROR_NETWORK
   } else if (
-    error.code === AxiosError.ETIMEDOUT ||
+    error.code === AxiosError.ETIMEDOUT || error.code === AxiosError.ECONNABORTED ||
     error.response?.status === 504
   ) {
     message = ERROR_TIMEOUT
@@ -194,6 +191,6 @@ const ERROR_GENERAL = 'Something went wrong and the request was not completed!'
 const ERROR_NETWORK =
   'Network error, please check your network connectivity and try again.'
 const ERROR_TIMEOUT =
-  'Looks like the server is taking too long to respond. The system is still processing your request in the background. Please check the result later or try again.'
+  'The request timed out. Check its result or status before trying again.'
 const ERROR_CLIENT =
   'Client error found. Unable to create the HTTP request. Please refresh and try again.'

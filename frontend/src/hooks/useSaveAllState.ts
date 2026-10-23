@@ -151,7 +151,7 @@ const useSaveAllState = (isPlanning?:boolean) => {
   };
 
   const onResetAllState = async (name: string) => {
-    notifyLoader("Reseting Data");
+    const toastId = notifyLoader("Reseting Data");
     try {
       
       const api = ref.current?.api;
@@ -198,6 +198,8 @@ const useSaveAllState = (isPlanning?:boolean) => {
       notifySuccess("State has been reset");
     } catch (err: any) {
       notifyError(err);
+    } finally {
+      toast.dismiss(toastId);
     }
   };
 

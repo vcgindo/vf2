@@ -337,7 +337,6 @@ const setColumnDef = async () => {
 
   // AFTER (The fix)
 const onCheckBoxToggle = (e: any) => {
-  setIsGridLoading(true);
   const isChecked = e.target.checked;
   setIsCheckboxChecked(isChecked);
   
@@ -885,7 +884,7 @@ const handleModalConfirm = async (orderId?: any, actionText?: any) => {
       setGridDataCount(gridData?.data?.data?.count);
       setIsGridLoading(false);
     } catch (e) {
-      notifyError("No Records found for the selected filter!");
+      notifyError("Failed to fetch Grid data!");
       setGridDataCount(0);
       setGridData([]);
       setIsGridLoading(false);

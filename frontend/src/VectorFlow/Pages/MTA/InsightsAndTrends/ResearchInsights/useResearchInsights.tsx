@@ -277,11 +277,18 @@ const useResearchInsights = () => {
         })
 
     const getRowData = async (filter: any, pageNo: number, pageSize?: number) => {
-        notifyLoader("Loading Grid Data")
-        const rowData = await readRowData(filter, pageNo, pageSize)
-        toast.dismiss()
-        notifySuccess("Data Loaded Successfully")
-        setResearchInsightsRowData(rowData.data.data)
+        const toastId = notifyLoader("Loading Grid Data");
+        try {
+            const rowData = await readRowData(filter, pageNo, pageSize)
+            if (rowData?.status >= 400) throw new Error("Unable to load report data");
+            notifySuccess("Data Loaded Successfully")
+            setResearchInsightsRowData(rowData.data.data)
+        } catch (error: any) {
+            notifyError(error);
+        } finally {
+            toast.dismiss(toastId);
+        }
+
     }
 
     const getCountAndRowData = async (filter: any) => {

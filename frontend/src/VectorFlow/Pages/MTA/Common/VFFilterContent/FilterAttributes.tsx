@@ -1,3 +1,4 @@
+import { notifyError } from '../../../../../helpers/notify';
 import React, { useEffect, useState, useRef } from "react";
 import {
   FilterGroup,
@@ -99,6 +100,7 @@ export const AttributesFilters: React.FC<FilterSectionProps> = ({
 
         setAttributeOptions(formatted);
       } catch (err) {
+        notifyError("Unable to load filter attributes");
         console.error(
           `Error loading UIConfig attributes for ${reportName}`,
           err

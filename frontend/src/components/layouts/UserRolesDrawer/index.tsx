@@ -1,4 +1,5 @@
 import Drawer from "../../commons/Drawer"
+import { createRequestDeadline } from '../../../helpers/requestDeadline';
 import { Content,DrawerHeader} from "../UserURLsDrawer/styles"
 import { useUserData } from "../../../context"
 import { useState } from "react"
@@ -47,15 +48,20 @@ const UserRolesDrawer = (props:UserRolesDrawerProps)=>{
     }
 
     const handleDelete = async()=>{
+        const deadline = createRequestDeadline();
         try{
-            await fetch(`${process.env.REACT_APP_API_HOST}api/user/delete-role/${currRole.id}/`,{
+            const response = await fetch(`${process.env.REACT_APP_API_HOST}api/user/delete-role/${currRole.id}/`,{
+                signal: deadline.signal,
                 method:'DELETE'
             })
+            if (!response.ok) throw new Error('Failed to delete role');
             notifySuccess("Deleted Role Successfully")
             setCurrTab(0)
         }catch(error){
             console.error(error)
             notifyError("Server Went Unresponsive")
+        }finally{
+            deadline.finish();
         }
     }
 

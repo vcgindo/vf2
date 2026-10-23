@@ -1,5 +1,6 @@
 
 import { ColumnHeaderConfig } from '../VectorFlow/types/ColumnHeaderConfig';
+import { createRequestDeadline, DOWNLOAD_TIMEOUT_MS } from './requestDeadline';
 import { type NavigateFunction } from 'react-router'
 import { LOCAL_STORAGE_KEY, ROUTES } from './constants'
 import { notifyError} from './notify'
@@ -489,10 +490,13 @@ export const mapRRRFieldsToColDefs = (fields: RRRField[]): ColDef[] => {
 }
 
 export const handleDownload = async (nameApi: string, nameFile: string) => {
+  const deadline = createRequestDeadline(DOWNLOAD_TIMEOUT_MS);
   try {
     const response = await fetch(`${process.env.REACT_APP_API_HOST}${nameApi}`, {
+      signal: deadline.signal,
       credentials: 'include',
     })
+    if (!response.ok) throw new Error('Error while downloading');
     // Convert response to blob object
     const blob = await response.blob()
     // Create download URL for blob object
@@ -515,12 +519,16 @@ export const handleDownload = async (nameApi: string, nameFile: string) => {
     URL.revokeObjectURL(url);
     return true;
   } catch (error: any) {
-    notifyError(error);
+    notifyError(error?.message || 'Error while downloading');
+    return false;
+  } finally {
+    deadline.finish();
   }
 
 }
 
 export const handleDownloadMTOVF = async (reportName: string, downloadName: string) => {
+  const deadline = createRequestDeadline(DOWNLOAD_TIMEOUT_MS);
   try{
         const encryptedUserId = localStorage.getItem('User-ID');
         const encryptedUserName = localStorage.getItem('User-Name');
@@ -535,6 +543,7 @@ export const handleDownloadMTOVF = async (reportName: string, downloadName: stri
     if (decryptedUserName) headers['User-Name'] = decryptedUserName;
     
     const response = await fetch(`${process.env.REACT_APP_VF_API_HOST_MTO}/DownloadReportData/?report_name=${reportName}`, {
+      signal: deadline.signal,
       headers,
       credentials: 'include',
     });
@@ -562,14 +571,17 @@ export const handleDownloadMTOVF = async (reportName: string, downloadName: stri
   }
   catch(err){
     notifyError('Error while downloading');
+  } finally {
+    deadline.finish();
   }
 }
 
 
 export const handleDownloadVF = async (reportName: string, downloadName:string) => {
-
+  const deadline = createRequestDeadline(DOWNLOAD_TIMEOUT_MS);
   try {
     const response = await fetch(`${process.env.REACT_APP_API_HOST}api/mta/DownloadReports/${encodeURIComponent(reportName)}`, {
+      signal: deadline.signal,
       credentials: 'include',
     })
     if (!response.ok) {
@@ -598,6 +610,8 @@ export const handleDownloadVF = async (reportName: string, downloadName:string) 
   } catch (error: any) {
     notifyError('Error while downloading');
     return false;
+  } finally {
+    deadline.finish();
   }
 
 }
@@ -4021,10 +4035,11 @@ export const convertUiConfigToOptions = (data:any) => {
 
 
 export const handleDownloadVFReports = async (payload:{name:string,filters:any}) => {
-
+  const deadline = createRequestDeadline(DOWNLOAD_TIMEOUT_MS);
   try {
     const {name} = payload
     const response = await fetch(`${process.env.REACT_APP_API_HOST}/download-excel`, {
+      signal: deadline.signal,
       headers: {
         'Content-Type': 'application/json'
       },
@@ -4059,6 +4074,8 @@ export const handleDownloadVFReports = async (payload:{name:string,filters:any})
   } catch (error:any) {
     notifyError('Error while downloading');
     return false;
+  } finally {
+    deadline.finish();
   }
  
 }

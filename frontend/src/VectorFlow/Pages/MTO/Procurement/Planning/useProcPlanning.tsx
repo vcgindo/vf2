@@ -541,29 +541,20 @@ const useProcPlanning = ( appliedFilters: any) => {
 
         })
         setIsOverlayLoading(true);
-        UpdateProcurementSimulationData(inputJson)
-            .then(response => {
-                // Handle the response and perform subsequent actions
-                setIsOverlayLoading(false);
-                if (response.status === 200) {
-                    notifySuccess("Simulation updated successfully!")
-                    navigate("/mto/planning/simulative-fullkit", { state: { ShortageDatas, date: selectedDate } });
-
-                }
-                else {
-                    notifyError("Failed to update Simulation!")
-
-                }
-
-
-            })
-            .catch(error => {
-                // Handle any errors that occur during the API call
-                console.error("API call failed:", error);
-
-                //         // Add your error handling code here
-            });
-
+        try {
+            const response = await UpdateProcurementSimulationData(inputJson);
+            if (response.status === 200) {
+                notifySuccess("Simulation updated successfully!");
+                navigate("/mto/planning/simulative-fullkit", { state: { ShortageDatas, date: selectedDate } });
+            } else {
+                notifyError("Failed to update Simulation!");
+            }
+        } catch (error) {
+            console.error("API call failed:", error);
+            notifyError("Failed to update Simulation!");
+        } finally {
+            setIsOverlayLoading(false);
+        }
 
     }, [navigate, ShortageDatas, selectedDate]);
 

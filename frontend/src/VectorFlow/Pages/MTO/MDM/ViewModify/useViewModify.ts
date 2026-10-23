@@ -1838,8 +1838,8 @@ const useViewModify = (pageType: string) => {
 
     setIsTableDataLoading(true);
 
-    let result;
     try {
+      let result;
       if (showAll) {
         result = await queryAllData({
           filters: payloadFilters,
@@ -1857,24 +1857,34 @@ const useViewModify = (pageType: string) => {
           rowsPerPage,
         });
       }
+
+      if (activeMaster.isMTO) {
+        const data = result?.data?.data;
+        const count = Array.isArray(data) ? data.length : data?.count;
+        const numericCount = typeof count === "number" ? count
+          : typeof count === "string" && /^\d+$/.test(count) ? Number(count) : NaN;
+        if (!Number.isFinite(numericCount) || !Number.isInteger(numericCount) || numericCount < 0
+          || (result?.status && result.status >= 400)) {
+          throw new Error("Unable to load master record count");
+        }
+        setTempRecordCount(numericCount);
+        if (numericCount === 0) {
+          dispatch(UPDATE_ROW_DATA([]));
+          dispatch(SET_RECORD_COUNT(0));
+          dispatch(UPDATE_PROGRESS_STATE("default"));
+          dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+          dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+          toggleEditOnline(false);
+        }
+      }
+
+      toggleWarningModal(true);
     } catch (err) {
       console.error(err);
+      notifyError("Something Went Wrong");
+    } finally {
+      setIsTableDataLoading(false);
     }
-
-    setIsTableDataLoading(false);
-    if (activeMaster.isMTO) {
-      if (
-        !result?.data?.data?.count ||
-        result?.data?.data?.count == 0 ||
-        result?.data?.data?.count == ""
-      ) {
-        setTempRecordCount(result?.data?.data?.length);
-      } else {
-        setTempRecordCount(result?.data?.data?.count);
-      }
-    } 
-  
-    toggleWarningModal(true);
   };
 
   const onWarningModalClose = () => {
@@ -1922,8 +1932,18 @@ const useViewModify = (pageType: string) => {
       dispatch(UPDATE_DATA_AVAILABILITY_STATUS(hasFewRecords));
       toggleEditOnline(hasFewRecords);
   
-      if (tempRecordCount === 0) {
-        toggleWarningModal(false);
+      if (!Array.isArray(result?.data?.data) || (result.status && result.status >= 400)) {
+        throw new Error("Unable to load master data");
+      }
+      if (tempRecordCount === 0 || result.data.data.length === 0) {
+        setTempRecordCount(0);
+        dispatch(UPDATE_ROW_DATA([]));
+        dispatch(SET_RECORD_COUNT(0));
+        dispatch(UPDATE_PROGRESS_STATE('default'));
+        dispatch(UPDATE_DATA_AVAILABILITY_STATUS(true));
+        dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+        toggleEditOnline(false);
+        toggleWarningModal(true);
         return;
       }
   
@@ -1948,6 +1968,7 @@ const useViewModify = (pageType: string) => {
       }
     } catch (err) {
       console.error("Error in onWarningModalSuccess:", err);
+      notifyError("Something Went Wrong");
     } finally {
       setIsTableDataLoading(false);
     }
@@ -2361,39 +2382,40 @@ const useViewModify = (pageType: string) => {
   const handleChangePage = async (pageNo: any) => {
     setCurrentPage(pageNo);
     setIsTableDataLoading(true);
-    if (activeMaster.rowData.length > rowsPerPage) {
-      ref.current?.api.paginationGoToPage(pageNo - 1);
+    try {
+      if (activeMaster.rowData.length > rowsPerPage) {
+        ref.current?.api.paginationGoToPage(pageNo - 1);
+        return;
+      }
+
+      const payloadFilters = mapStateFiltersToPayload(activeMaster.filters);
+      const payloadFields: any = getCurrentVisbileColumns();
+      let result;
+      if (!areMasterFiltersValid(activeMaster.filters) && activeMaster.filters.length === 1) {
+        result = await queryAllData({
+          filters: payloadFilters,
+          fields: payloadFields,
+          pagination: true,
+          currentPage: pageNo,
+          rowsPerPage,
+        });
+      } else {
+        result = await queryFilteredData({
+          filters: payloadFilters,
+          fields: payloadFields,
+          pagination: true,
+          currentPage: pageNo,
+          rowsPerPage,
+        });
+      }
+
+      dispatch(UPDATE_ROW_DATA(result?.data.data));
+      dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
+    } catch (error) {
+      notifyError("Something Went Wrong");
+    } finally {
       setIsTableDataLoading(false);
-      return;
     }
-
-    const payloadFilters = mapStateFiltersToPayload(activeMaster.filters);
-    const payloadFields: any = getCurrentVisbileColumns();
-    let result;
-    if (
-      !areMasterFiltersValid(activeMaster.filters) &&
-      activeMaster.filters.length === 1
-    ) {
-      result = await queryAllData({
-        filters: payloadFilters,
-        fields: payloadFields,
-        pagination: true,
-        currentPage: pageNo,
-        rowsPerPage,
-      });
-    } else {
-      result = await queryFilteredData({
-        filters: payloadFilters,
-        fields: payloadFields,
-        pagination: true,
-        currentPage: pageNo,
-        rowsPerPage,
-      });
-    }
-
-    dispatch(UPDATE_ROW_DATA(result?.data.data));
-    dispatch(SYNC_ACTIVE_MASTER_TO_MASTER());
-    setIsTableDataLoading(false);
   };
 
   const postMasterDataChunks = async (

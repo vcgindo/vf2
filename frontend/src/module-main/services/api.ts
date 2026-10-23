@@ -59,7 +59,7 @@ export namespace MainService {
   // get a new access_token by refresh_token
   export const refreshToken = async () => {
     try {
-      const response = await axios.post<Token>(getrefreshTokenUrl())
+      const response = await axios.post<Token>(getrefreshTokenUrl(), {}, { _skipAuthRefresh: true } as any)
       const token: any = response?.data
       localStorage.setItem(
         LOCAL_STORAGE_KEY.TOKEN_PAYLOAD,
