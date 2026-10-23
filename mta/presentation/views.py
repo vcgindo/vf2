@@ -522,6 +522,25 @@ def export_data(request, payload):
         headers = btr_headers(state, dates)
     elif payload['reportName'] == 'BPR':
         from mta.presentation.bpr_export import selected_headers as bpr_headers
+        from mta.presentation.native_publication import enabled as native_enabled
+        if native_enabled():
+            if not settings.VF_BPR_PREPARED:
+                raise PublicationUnavailable('native_BPR_prepared_reader_required')
+            from mta.presentation.bpr_prepared import read_bpr
+            state = ui_state.get_layout(identity(request)['id'], 'BPR')
+            headers = bpr_headers(state)
+            rows = read_bpr(run, payload, export=True)
+            class ExportChunks:
+                def __iter__(self):
+                    return csv_chunks(rows, headers)
+
+                def close(self):
+                    close = getattr(rows, 'close', None)
+                    if close:
+                        close()
+            response = StreamingHttpResponse(ExportChunks(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment'
+            return response
         model, selected = bpr_selected(payload, mode='export')
         rows = model.export(selected)
         state = ui_state.get_layout(identity(request)['id'], 'BPR')

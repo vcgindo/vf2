@@ -1,5 +1,6 @@
 """Prepared BPR differential against the independent native Python join bag."""
 import os
+import json
 import unittest
 from datetime import datetime
 from decimal import Decimal
@@ -91,7 +92,8 @@ class BprPreparedTests(unittest.TestCase):
         pair = [row('Importer/SkuLocAttributeData', SKUCode='SKU', LocCode='loc ', c1=value)
                 for value in ('pair-x', 'pair-y')]
         trend = [row('BTR/BufferTrendPhysicalInv', SKUCode='sku', WhCode='LOC',
-                     Availability_01_30=Decimal(str(i))) for i in (1, 2)]
+                     Availability_01_30=Decimal(str(i)), BlackCount=i-1,
+                     RedCount=None if i == 1 else 3) for i in (1, 2)]
         images = {
             SOURCES['A']: ('BPR/BPR_Table', base),
             SOURCES['V']: ('BPR/vf_RationedReqReport', ration),
@@ -185,9 +187,9 @@ class BprPreparedTests(unittest.TestCase):
                     expected_page = model.page(candidates, *paging)
                     expected_analytics = model.analytics(candidates)
                     actual = {}
-                    for mode in ('grid', 'count', 'analytics'):
+                    for mode in ('grid', 'count', 'analytics', 'export'):
                         query, values = prepared._build(run, payload, importer, ancillary, paging,
-                            count=mode == 'count', analytics=mode == 'analytics')
+                            count=mode == 'count', analytics=mode == 'analytics', export=mode == 'export')
                         with prepared.connection.cursor() as cursor:
                             cursor.execute(query, values)
                             if mode == 'count':
@@ -198,6 +200,21 @@ class BprPreparedTests(unittest.TestCase):
                     self.assertEqual(actual['grid'], expected_page)
                     self.assertEqual(actual['count'], expected_count)
                     self.assertEqual(actual['analytics'], expected_analytics)
+                    export_predicate = BprPredicate(payload, location, export=True)
+                    expected_export = model.export(export_predicate.select([
+                        candidate for candidate in model.joined(final=True)
+                        for _ in range(permission_multiplicity(products, candidate['SKUCode']) *
+                                       permission_multiplicity(locations, candidate['WHCode']))]))
+                    self.assertEqual(actual['export'], expected_export)
+                    from mta.presentation.bpr_export import selected_headers
+                    from mta.presentation.rrr_export import csv_chunks
+                    for layout in (None, json.dumps({'columns': [
+                            {'colId': 'SKUCode'}, {'colId': 'Remark'},
+                            {'colId': 'TechPen'}, {'colId': 'Availability_01_30'},
+                            {'colId': 'SKUCode'}, {'colId': 'Stock', 'hide': True}]})):
+                        headers = selected_headers(layout)
+                        self.assertEqual(b''.join(csv_chunks(actual['export'], headers)),
+                                         b''.join(csv_chunks(expected_export, headers)))
                     if name == 'first':
                         self.assertGreater(actual['count'], 0)
                         self.assertIn(None, {record['tags'] for record in actual['grid']})
@@ -213,6 +230,28 @@ class BprPreparedTests(unittest.TestCase):
                         self.assertEqual(actual['count'], 0)
                     if name == 'beyond':
                         self.assertEqual(actual['grid'], [])
+
+            # Trend predicates belong to the final export bag, not the grid
+            # candidate/page bag. Compare every resulting row, not only counts.
+            for attribute, operator, wanted in [('Red', 'greaterthan', '2'),
+                    ('red', 'greaterthan', '2'), ('RED', 'greaterthan', '2'),
+                    ('black/red', 'greaterthan', '2'), ('black/red', 'hasnovalue', ''),
+                    ('Red', 'smallerthan', '4')]:
+                payload = {'filters': {'colorFilter': {'filters': [dict(
+                    attributeName=attribute, operator=operator, value=wanted, type='colorcount')]}}}
+                if operator == 'smallerthan':
+                    payload['filters']['colorFilter']['filters'].append(dict(
+                        attributeName='Black', operator='greaterthan', value='1', type='colorcount'))
+                predicate = BprPredicate(payload, location, export=True)
+                expected = model.export(predicate.select([candidate for candidate in model.joined(final=True)
+                    for _ in range(permission_multiplicity(products, candidate['SKUCode']) *
+                                   permission_multiplicity(locations, candidate['WHCode']))]))
+                query, values = prepared._build(run, payload, importer, ancillary, export=True)
+                with prepared.connection.cursor() as cursor:
+                    cursor.execute(query, values)
+                    names = [entry[0] for entry in cursor.description]
+                    actual = [dict(zip(names, record)) for record in cursor.fetchall()]
+                self.assertEqual(actual, expected)
 
 
 if __name__ == '__main__':

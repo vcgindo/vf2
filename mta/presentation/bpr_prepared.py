@@ -18,7 +18,9 @@ def column(owner, name):
 
 class PreparedFilters(BprSqlFilters):
     def column(self, owner, name):
-        _, kind = super().column(owner, name)
+        source, kind = super().column(owner, name)
+        if owner == 'T':
+            return source, kind
         fields = {field.casefold(): field for field in FIELDS[owner]}
         if name.casefold() not in fields:
             raise PublicationUnavailable('BPR_prepared_filter_field_missing')
@@ -63,7 +65,7 @@ def _prepared_query(run):
 
 
 def _build(run, payload, importer, ancillary, paging=None, *, count=False, analytics=False,
-           live_remarks=False, daily_transit=False):
+           live_remarks=False, daily_transit=False, export=False):
     ctes, params = [], []
     def add(alias, query, values):
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
@@ -79,7 +81,7 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
             for _ in range(codes.multiplicities[code])], ('code',))
         add(alias, query, values)
 
-    filters = PreparedFilters(payload)
+    filters = PreparedFilters(payload, export=export)
     where = filters.compile()
     parent = ''
     if filters.children:
@@ -112,12 +114,14 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
             '=D.loc_key AND M."RemarkDate"=D.latest', [])
     remarks_join = (' LEFT JOIN latest_remarks RM ON R.sku_key=' + key('RM."SKUCode"') +
                     ' AND R.location_key=' + key('RM."WhCode"'))
-    params.extend(filters.children)
-    params.extend(filters.params)
     if count:
+        params.extend(filters.children)
+        params.extend(filters.params)
         return ('WITH ' + ','.join(ctes) + ' SELECT count(*) FROM prepared R' +
                 remarks_join + auth + parent + ' WHERE R.s_ordinal IS NOT NULL AND (' + where + ')'), params
     if analytics:
+        params.extend(filters.children)
+        params.extend(filters.params)
         fields = []
         for prefix, field in (('OnHand', 'PhysicalInventoryColor'), ('Pipeline', 'DispatchColor')):
             for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey'):
@@ -134,6 +138,24 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
             pen('PhysicalInventoryPen') + ' DESC NULLS LAST,' + column('A', 'EcoColorSequence') +
             ' NULLS FIRST,' + pen('DispatchPen') + ' DESC NULLS LAST,' +
             'R.location_key DESC NULLS LAST,R.sku_key NULLS FIRST,' + ordinals)
+    if export:
+        query, values = image_query(run, 'closing/btr/BufferTrendPhysicalInv')
+        add('T', query, values)
+        params.extend(filters.children)
+        params.extend(filters.params)
+        select = ','.join(value + ' AS ' + quote(name) for name, value in projection())
+        if daily_transit:
+            select += ',' + column('A', 'EcoColor') + ' AS _base_eco'
+        joins = (' FROM prepared R' + auth + parent + remarks_join +
+                 ' LEFT JOIN T ON R.sku_key=' + key('T."SKUCode"') +
+                 ' AND R.location_key=' + key('T."WhCode"'))
+        # Export filters the final join bag once. Grid key selection/rejoining
+        # would multiply occurrences and apply filters at the wrong boundary.
+        return ('WITH ' + ','.join(ctes) + ' SELECT ' + select + joins +
+                ' WHERE ' + where + ' ORDER BY ' + ordering(True) +
+                ',RM.ordinal,T.vf_ordinal'), params
+    params.extend(filters.children)
+    params.extend(filters.params)
     page, size = paging
     selected = ('SELECT R.sku_key,R.location_key FROM prepared R' + auth + parent +
                 ' WHERE ' + where + ' ORDER BY ' + ordering(False) + ' LIMIT %s OFFSET %s')
@@ -159,12 +181,84 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
             ordering(True) + ',RM.ordinal,T.vf_ordinal,copy_ordinal'), params
 
 
-def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
+def _with_transit(rows, ancillary):
+    from mta.presentation.rrr import index, sql_key
+    transit = index(ancillary['InTransitData'], 'SKUCode', 'WhCode')
+    for row in rows:
+        base_colour = row.pop('_base_eco')
+        items = []
+        for source in transit.get(sql_key(row['SKUCode'], row['WHCode']), []):
+            item = {target: source[field] for target, field in (('lc', 'OrderNo'),
+                ('cd', 'CreationDate'), ('slt', 'SLT'), ('tlt', 'TLT'), ('ag', 'Ageing'),
+                ('eta', 'ETA'), ('cl', 'CurrentLocationCode'), ('qty', 'InTransitQty'),
+                ('remarks', 'Remark'))}
+            item['exeecocolor'] = base_colour
+            items.append(item)
+        row['intransit'] = items or None
+        yield row
+
+
+def _export_rows(run, query, params, ancillary, daily):
+    from mta.presentation.report_verification import verification_scope
+    with verification_scope(run), transaction.atomic(), connection.cursor() as control:
+        control.execute("SELECT current_setting('jit')")
+        previous_jit = control.fetchone()[0]
+        control.execute('SET LOCAL jit=off')
+        with connection.chunked_cursor() as cursor:
+            cursor.execute(query, params)
+            names = [field[0] for field in cursor.description]
+            def dictionaries():
+                while records := cursor.fetchmany(500):
+                    for record in records:
+                        yield dict(zip(names, record))
+            rows = dictionaries()
+            yield from _with_transit(rows, ancillary) if daily else rows
+        control.execute("SELECT set_config('jit',%s,true)", [previous_jit])
+
+
+def _primed_export(rows):
+    # Execute and fetch before HTTP headers, retaining the cursor/verification
+    # lifetime through iteration. Explicit close propagates a cancelled download.
+    sentinel = object()
+    first = next(rows, sentinel)
+    if first is sentinel:
+        return iter(())
+    class Remaining:
+        def __init__(self):
+            self.first = first
+            self.closed = False
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self.closed:
+                raise StopIteration
+            if self.first is not sentinel:
+                value, self.first = self.first, sentinel
+                return value
+            try:
+                return next(rows)
+            except BaseException:
+                self.close()
+                raise
+
+        def close(self):
+            if not self.closed:
+                self.closed = True
+                self.first = sentinel
+                rows.close()
+    return Remaining()
+
+
+def _read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily:
         raise ValueError('BPR prepared reader requires an admitted source run')
-    if not count and (not analytics) and (not isinstance(paging, tuple) or len(paging) != 2 or any((type(value) is not int or value < 1 for value in paging))):
+    if export and (count or analytics):
+        raise ValueError('BPR_export_mode_conflict')
+    if not export and not count and (not analytics) and (not isinstance(paging, tuple) or len(paging) != 2 or any((type(value) is not int or value < 1 for value in paging))):
         raise ValueError('positive_BPR_pagination_required')
     if daily:
         from mta.presentation.selective import image_rows
@@ -173,7 +267,7 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
         manifest = hierarchy.selected_manifest(run)
     else:
         importer, manifest = _projected_attributes(run)
-    BprPredicate(payload, importer['LocationAttributeData'])
+    BprPredicate(payload, importer['LocationAttributeData'], export=export)
     if manifest:
         raise PublicationUnavailable('BPR_prepared_hierarchy_supplement_not_bound')
     if daily:
@@ -198,11 +292,13 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
     if not daily and ancillary['InTransitData']:
         raise PublicationUnavailable('nonempty_BPR_transit_wire_not_yet_validated')
     from mta.presentation.ancillary_live import serving_live
-    query, params = _build(run, payload, importer, ancillary, paging, count=count, analytics=analytics, live_remarks=serving_live(run), daily_transit=daily)
+    query, params = _build(run, payload, importer, ancillary, paging, count=count, analytics=analytics, live_remarks=serving_live(run), daily_transit=daily, export=export)
     if query is None:
         if analytics:
             return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline') for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey')}]
         return 0 if count else []
+    if export:
+        return _export_rows(run, query, params, ancillary, daily)
     with transaction.atomic(), connection.cursor() as cursor:
         cursor.execute("SELECT current_setting('jit')")
         previous_jit = cursor.fetchone()[0]
@@ -215,14 +311,25 @@ def read_bpr(run, payload, *, paging=None, count=False, analytics=False):
             result = [dict(zip(names, row)) for row in cursor.fetchall()]
         cursor.execute("SELECT set_config('jit',%s,true)", [previous_jit])
         if daily and (not count) and (not analytics):
-            from mta.presentation.rrr import index, sql_key
-            transit = index(ancillary['InTransitData'], 'SKUCode', 'WhCode')
-            for row in result:
-                base_colour = row.pop('_base_eco')
-                rows = []
-                for source in transit.get(sql_key(row['SKUCode'], row['WHCode']), []):
-                    item = {target: source[field] for target, field in (('lc', 'OrderNo'), ('cd', 'CreationDate'), ('slt', 'SLT'), ('tlt', 'TLT'), ('ag', 'Ageing'), ('eta', 'ETA'), ('cl', 'CurrentLocationCode'), ('qty', 'InTransitQty'), ('remarks', 'Remark'))}
-                    item['exeecocolor'] = base_colour
-                    rows.append(item)
-                row['intransit'] = rows or None
+            result = list(_with_transit(result, ancillary))
         return result
+
+
+def read_bpr(run, payload, *, paging=None, count=False, analytics=False, export=False):
+    if not export:
+        return _read_bpr(run, payload, paging=paging, count=count, analytics=analytics)
+    if count or analytics:
+        raise ValueError('BPR_export_mode_conflict')
+    def verified_rows():
+        from mta.presentation.report_verification import verification_scope
+        # Own admission from eager metadata/receipt validation through the last
+        # cursor batch; a scope around only HTTP construction expires too early.
+        with verification_scope(run):
+            rows = _read_bpr(run, payload, paging=paging, export=True)
+            try:
+                yield from rows
+            finally:
+                close = getattr(rows, 'close', None)
+                if close:
+                    close()
+    return _primed_export(verified_rows())

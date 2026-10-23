@@ -27,7 +27,12 @@ class BprSqlFilters(Filters):
         'B': 'Importer/SkuLocAttributeData',
         'C': 'Importer/SkuAttributeData',
         'D': 'Importer/LocationAttributeData',
+        'T': 'BTR/BufferTrendPhysicalInv',
     }
+
+    def __init__(self, payload, *, export=False):
+        super().__init__(payload)
+        self.export = export
 
     def column(self, owner, name):
         fields = {field.casefold(): (field, kind)
@@ -81,6 +86,14 @@ class BprSqlFilters(Filters):
                 if prefix in name.lower():
                     return owner, name.lower().replace(prefix, 'c')
         self.grouped(custom, custom_field)
+        if self.export:
+            for item in self.items('colorFilter'):
+                if item.get('type') == 'colorcount':
+                    names = (['BlackCount', 'RedCount'] if item['attributeName'] == 'black/red'
+                             else [item['attributeName'] + 'Count'])
+                    clauses = [self.compare('T', name, item.get('operator'), item['value'])
+                               for name in names]
+                    self.where.append('(' + ' OR '.join(clauses) + ')')
         return ' AND '.join(self.where) or 'TRUE'
 
 
