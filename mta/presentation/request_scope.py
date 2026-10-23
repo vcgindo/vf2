@@ -23,7 +23,7 @@ READ_ROUTES = frozenset((
     'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
     'GetPlanningDataGridCount', 'GetPlanningDataCustom',
     'GetResearchInsightData', 'GetHistroricalAvailabilityBPRData',
-    'GetMasterUIConfiguration', 'GetCount', 'GetMasterData',
+    'GetMasterUIConfiguration', 'GetCount', 'GetMasterData', 'GetSeasonalityDetails',
     'GetBTRData', 'GetBTRDataCount', 'DBMData', 'DBMDataCount',
     'RRRData', 'RRRDataCount', 'GetRRROrderAllocationReportData',
     'GetRRRAllocationReportDataCount', 'BORUIConfig', 'BORData', 'BORDataCount',
@@ -54,7 +54,7 @@ def read_request(path):
 def _argument(value):
     if hasattr(value, '_meta') and hasattr(value, 'pk'):
         return (type(value), value.pk, *(getattr(value, field, None) for field in
-                ('kind', 'status', 'input_digest', 'output_digest', 'production_digest',
+                ('kind', 'status', 'input_digest', 'input_manifest_digest', 'output_digest', 'production_digest',
                  'digest', 'implementation_digest', 'receipt_digest')))
     return value
 

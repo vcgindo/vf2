@@ -4,6 +4,7 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 """
 from uuid import UUID
 from mta.serialization import digest
+from mta.presentation.request_scope import once_per_request
 
 SCHEMA = 'fresh-captured-input-reference-v1'
 SECOND = 'fresh-captured-input-reference-v2'
@@ -97,6 +98,7 @@ def manifest(run, origin, *, final_interrupted_fourth_hop=False, final_failed_fi
     return value
 
 
+@once_per_request
 def origin(run):
     if run.input_payload.get('schema') in (TERMINAL,RETRY,FINAL):
         return terminal_origin(run)

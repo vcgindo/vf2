@@ -32,6 +32,16 @@ def endpoint(method):
             # lock so validation and rows stay in one source generation.
             source_id = MdmSource.objects.filter(digest=settings.VF_MDM_SOURCE_DIGEST
                 ).values_list('pk', flat=True).first()
+            from mta.presentation.request_scope import in_read_request
+            from mta.presentation.installation_metadata import publication_configured
+            if in_read_request() and publication_configured():
+                from mta.presentation.context import selected_run
+                from mta.presentation.report_verification import verification_scope
+                # Reuse the existing finite certified owner proof. Enter it
+                # first to retain the day-job -> source lock order used by
+                # report readers and the native day boundary.
+                with verification_scope(selected_run()), source_lock(source_id):
+                    return function(request, payload, *args, **kwargs)
             with source_lock(source_id):
                 return function(request, payload, *args, **kwargs)
         return wrapped

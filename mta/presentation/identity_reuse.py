@@ -1,8 +1,10 @@
 """Reuse successful native identity metadata only while the database is unchanged.
 
 PostgreSQL snapshots invalidate conservatively on unrelated writes as well as
-publication changes. No time-based freshness allowance, permission, workflow or
-report rows are cached. Offline/full verification always uses the original path.
+publication changes. No time-based freshness allowance, per-user permissions,
+workflow or report rows are cached. Certified catalogue/grant/role admission is
+reused only for an identical database/session. Offline/full verification always
+uses the original path.
 """
 from copy import deepcopy
 from functools import wraps
@@ -39,7 +41,9 @@ def stamp():
             "session_user,current_user,pg_backend_pid(),pg_postmaster_start_time(),"
             "current_setting('transaction_isolation'),current_setting('search_path'),"
             "current_setting('row_security'),current_setting('session_replication_role'),"
-            "current_setting('TimeZone'),current_setting('DateStyle'),current_setting('client_encoding')")
+            "current_setting('TimeZone'),current_setting('DateStyle'),current_setting('client_encoding'),"
+            "current_setting('quote_all_identifiers'),current_setting('standard_conforming_strings'),"
+            "current_setting('extra_float_digits')")
         value = cursor.fetchone()
     if value[7] != 'read committed' or value[10] != 'origin':
         return None
@@ -87,6 +91,43 @@ def native_identity(function):
     def read(run, *, verify_rows=False):
         try:
             return checked(run, verify_rows=verify_rows)
+        except Exception:
+            clear()
+            raise
+    return read
+
+
+def certified_readiness(function):
+    """Reuse finite certified metadata only across an unchanged database.
+
+    Each miss retains the original owned read-only transaction. Preparation,
+    writes, offline callers and callers already in a transaction cannot reuse it.
+    """
+    @wraps(function)
+    def read(initialization_id):
+        from mta.presentation.request_scope import in_read_request
+        from mta.presentation import admission
+        try:
+            if not in_read_request() or admission._admitted is None:
+                return function(initialization_id)
+            before = stamp()
+            if before is None:
+                clear()
+                return function(initialization_id)
+            key = (function, str(initialization_id),
+                   os.environ.get('VF_NATIVE_RELEASE_COMMIT'),
+                   os.environ.get('VF_NATIVE_RELEASE_SHA256'), before)
+            if key in _entries:
+                return deepcopy(_entries[key])
+            value = function(initialization_id)
+            if stamp() == before:
+                for old in list(_entries):
+                    if old[-1] != before:
+                        del _entries[old]
+                if len(_entries) >= 8:
+                    _entries.clear()
+                _entries[key] = deepcopy(value)
+            return value
         except Exception:
             clear()
             raise

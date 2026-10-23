@@ -13,6 +13,7 @@ from mta.runtime.ingestion_context import CONTRACT, BASELINE_RELEASE, FAMILIES, 
 from mta.runtime import ingestion_authority as authority
 from mta.runtime.ingestion_ownership import require_guard_coverage
 from mta.presentation.request_scope import once_per_request
+from mta.presentation.identity_reuse import certified_readiness
 
 BASELINE_MANIFEST = '2b7346f3382d78e3ea2d8c352f9854b6f59b5e13cf53d27aa9fa68216f478818'
 EPOCHS = ('master_epoch', 'configuration_epoch', 'fact_epoch', 'operational_epoch', 'action_epoch')
@@ -313,9 +314,12 @@ def _admit(cursor, initialization_id, release, *, pending=False):
 
 
 @once_per_request
+@certified_readiness
 def readiness(initialization_id):
-    """Fresh catalogue/generations each call; immutable source is admitted once/process.
+    """Validate certified metadata in its own consistent read-only snapshot.
 
+    Successful serving reads reuse metadata only while the database/session is
+    unchanged. Offline admission and writes always perform this complete check.
     No public arbitrary release override, TTL, data-hash skip, opening scan or
     accepted-day inference. Caller must not hold an unrelated writer transaction.
     """

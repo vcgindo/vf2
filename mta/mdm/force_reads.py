@@ -45,6 +45,23 @@ def _scope_count(source, row, payload):
     return products * locations
 
 
+def scope_counts(source, rows, payload):
+    """Same importer occurrence join as _scope_count, read once per population."""
+    product_triples = triples('products', payload.get('product_permissions'))
+    location_triples = triples('locations', payload.get('location_permissions'))
+    products, locations = defaultdict(int), defaultdict(int)
+    for item in MdmSkuAttributes.objects.filter(source=source, owner='Importer'):
+        if item.SKUCode is not None:
+            products[sql_key(item.SKUCode)] += product_triples[tuple(
+                hierarchy_key(getattr(item, 'SL' + str(i))) for i in range(1, 4))]
+    for item in MdmLocationAttributes.objects.filter(source=source, owner='Importer'):
+        if item.WHCode is not None:
+            locations[sql_key(item.WHCode)] += location_triples[tuple(
+                hierarchy_key(getattr(item, 'LL' + str(i))) for i in range(1, 4))]
+    return [products[sql_key(row.SKUCode)] * locations[sql_key(row.WhCode)]
+            if row.SKUCode is not None and row.WhCode is not None else 0 for row in rows]
+
+
 def details(source, payload, actor, *, download=False):
     task_id = value(payload, 'taskId')
     task = header(source, task_id)

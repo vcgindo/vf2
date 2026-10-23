@@ -54,6 +54,7 @@ class NativeIdentityReuseTests(TestCase):
             self.request()
         self.assertFalse(reuse._entries)
 
+
     def test_real_uuid_run_and_predecessor_fields_are_supported(self):
         self.run.pk = uuid4()
         self.run.predecessor_id = uuid4()
@@ -91,4 +92,58 @@ class NativeIdentityReuseTests(TestCase):
             with self.assertRaisesRegex(ValueError, 'bad startup'):
                 admission.admit()
         self.assertIsNone(admission._admitted)
+        self.assertFalse(reuse._entries)
+
+
+class CertifiedReadinessReuseTests(TestCase):
+    def setUp(self):
+        reuse.clear()
+        self.addCleanup(reuse.clear)
+        self.addCleanup(setattr, admission, '_admitted', admission._admitted)
+        admission._admitted = 'admitted'
+        self.snapshot = self.enterContext(patch.object(reuse, 'stamp', return_value=('snapshot',)))
+        self.audit = Mock(return_value={'cut': {'master': 3}})
+        self.readiness = reuse.certified_readiness(self.audit)
+
+    def ready(self, route='GetMasterUIConfiguration', owner='owner'):
+        with read_request('/api/mta/' + route):
+            return self.readiness(owner)
+
+    def test_reuse_keys_and_defensive_copy(self):
+        self.ready()['cut']['master'] = 99
+        self.assertEqual(self.ready()['cut']['master'], 3)
+        self.assertEqual(self.audit.call_count, 1)
+        self.ready(owner='another')
+        with patch.dict(os.environ, VF_NATIVE_RELEASE_COMMIT='changed'):
+            self.ready()
+        self.assertEqual(self.audit.call_count, 3)
+
+    def test_snapshot_change_and_error_reject_and_clear(self):
+        self.ready()
+        self.snapshot.return_value = ('changed',)
+        self.audit.side_effect = ValueError('changed certificate')
+        with self.assertRaisesRegex(ValueError, 'changed certificate'):
+            self.ready()
+        self.assertFalse(reuse._entries)
+
+    def test_offline_write_unadmitted_atomic_bypass(self):
+        self.ready()
+        self.readiness('owner')
+        self.ready('ModifyMasterData')
+        self.snapshot.return_value = None
+        self.ready()
+        admission._admitted = None
+        self.ready()
+        self.assertEqual(self.audit.call_count, 5)
+
+    def test_mutation_during_validation_not_retained(self):
+        self.snapshot.side_effect = [('before',), ('after',)]
+        self.ready()
+        self.assertFalse(reuse._entries)
+
+    def test_offline_failure_clears_entries(self):
+        self.ready()
+        self.audit.side_effect = ValueError('offline failure')
+        with self.assertRaisesRegex(ValueError, 'offline failure'):
+            self.readiness('owner')
         self.assertFalse(reuse._entries)

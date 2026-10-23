@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 from mta.application.r1_seasonality import SEASON_FIELDS
 from mta.mdm.drafts import omit_nulls
-from mta.mdm.force_reads import _scope_count
+from mta.mdm.force_reads import scope_counts
 from mta.mdm.force_tasks import scopes
 from mta.mdm.task_reads import TaskDenied, sql_key
 from mta.presentation.context import PublicationUnavailable, selected_run
@@ -18,9 +18,15 @@ from mta.runtime.mdm_season_models import MdmSeasonCurrent
 NUMERIC = {'tn', 'dnp', 'ulc', 'bd', 'r', 'nn', 'onm', 'tp', 'sts'}
 
 
-def consumer_rows(source, run, path):
+def consumer_rows(source, run, path, *, single_pass=False):
     if getattr(source, 'digest', None) == TARGET_SOURCE:
         return fixture_rows(source, run, path)
+    if single_pass and path == 'closing/dbm/DBMMaster':
+        from mta.presentation.selective import image_metadata
+        from mta.runtime.relational_state import iter_image
+        # This consumer exhausts the iterator before returning a result, so its
+        # complete value/type/order checksum still runs, without a second scan.
+        return iter_image(run, image_metadata(run, path))
     return image_rows(run, path)
 
 def publication(source):
@@ -72,18 +78,35 @@ def _filter(row, item):
 
 
 def projected(source, run, seasons, *, payload=None, descriptions=None):
-    master = consumer_rows(source, run, 'closing/dbm/DBMMaster')
+    if not seasons:
+        return []
+    counts = [1] * len(seasons) if payload is None else scope_counts(
+        source, [SimpleNamespace(**s) for s in seasons], payload)
+    weighted = list(zip(seasons, counts))
+    weighted = [(s, count) for s, count in weighted if count]
+    if not weighted:
+        return []
+    # Consume the checked image once. RecordRows can reopen a server cursor on
+    # every iteration; nesting that iterator under each season repeats the
+    # entire master read and checksum. Preserve source occurrence order in each
+    # bucket, including duplicate joins and SQL NULL/trailing-space semantics.
+    keys = {(sql_key(s['SKUCode']), sql_key(s['WhCode'])) for s, _ in weighted
+            if s['SKUCode'] is not None and s['WhCode'] is not None}
+    masters = {}
+    for row in consumer_rows(source, run, 'closing/dbm/DBMMaster', single_pass=True):
+        key = (sql_key(row['SKUCode']), sql_key(row['WhCode']))
+        if row['SKUCode'] is not None and row['WhCode'] is not None and key in keys:
+            masters.setdefault(key, []).append(dict(RLT=row['RLT'], Norm=row['Norm']))
     if descriptions is None:
         skus = consumer_rows(source, run, 'closing/dbm/SKUDescriptionTbl')
         locations = consumer_rows(source, run, 'closing/dbm/SiteDescriptionTbl')
     else:
         skus, locations = descriptions
     result = []
-    for s in seasons:
-        multiplicity = 1 if payload is None else _scope_count(source, SimpleNamespace(**s), payload)
-        for m in master:
-            if not same(s, m):
-                continue
+    for s, multiplicity in weighted:
+        matches = [] if s['SKUCode'] is None or s['WhCode'] is None else masters.get(
+            (sql_key(s['SKUCode']), sql_key(s['WhCode'])), [])
+        for m in matches:
             descriptions = [r for r in skus if sql_key(r['SKUCode']) == sql_key(s['SKUCode'])] or [None]
             sites = [r for r in locations if sql_key(r['WHCode']) == sql_key(s['WhCode'])] or [None]
             for sku in descriptions:
