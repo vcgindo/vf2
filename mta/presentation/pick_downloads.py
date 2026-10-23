@@ -47,11 +47,11 @@ def _fully_scoped(run, payload, state, report_name):
                     for required in required_locations))
 
 
-def _expected_bytes(state, report_name):
-    from mta.application.complete_daily_batch_files import reports_from_pick_state, sqlcmd_bytes
+def _expected_chunks(state, report_name):
+    from mta.application.complete_daily_batch_files import reports_from_pick_state, sqlcmd_chunks
     kind = next(kind for kind, filename in PICK_NAMES.items()
                 if filename == REPORTS[report_name])
-    return sqlcmd_bytes(reports_from_pick_state(state)[kind]['resultsets'])
+    return sqlcmd_chunks(reports_from_pick_state(state)[kind]['resultsets'])
 
 
 def _owned_file(run, filename):
@@ -93,8 +93,17 @@ def open_report(run, payload, report_name):
         raise PickDownloadDenied('selected_run_pick_scope_denied')
     path = _owned_file(run, filename)
     stream = path.open('rb')
-    if stream.read() != _expected_bytes(state, report_name):
+    try:
+        # Validate all bytes before handing the file to the response, without
+        # retaining both complete file payloads. Both Pick populations still
+        # participate in the canonical report/capacity-warning projection.
+        for chunk in _expected_chunks(state, report_name):
+            if stream.read(len(chunk)) != chunk:
+                raise PickDownloadDenied('selected_run_pick_file_drift')
+        if stream.read(1):
+            raise PickDownloadDenied('selected_run_pick_file_drift')
+        stream.seek(0)
+    except BaseException:
         stream.close()
-        raise PickDownloadDenied('selected_run_pick_file_drift')
-    stream.seek(0)
+        raise
     return stream, filename

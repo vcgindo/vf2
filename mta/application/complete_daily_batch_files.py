@@ -52,13 +52,12 @@ def _cell(value, kind):
     raise UnqualifiedBatchValue('Unqualified sqlcmd field type: ' + kind)
 
 
-def sqlcmd_bytes(resultsets):
+def _sqlcmd_lines(resultsets):
     """Exact header/data resultsets with explicit native CRLF and CP1252.
 
     Callers supply the header SELECT as a resultset. No headings, quoting,
     trimming, ordering or value substitution is performed here.
     """
-    lines = []
     for resultset in resultsets:
         types = resultset['types']
         if len(resultset['fields']) != len(types):
@@ -66,9 +65,22 @@ def sqlcmd_bytes(resultsets):
         for row in resultset['rows']:
             if len(row) != len(types):
                 raise UnqualifiedBatchValue('Resultset row width differs')
-            lines.append(','.join(_cell(value, kind) for value, kind in zip(row, types, strict=True)) + '\r\n')
+            yield ','.join(_cell(value, kind) for value, kind in zip(row, types, strict=True)) + '\r\n'
+
+
+def sqlcmd_chunks(resultsets):
+    """Exact CP1252 lines for bounded complete-file validation before delivery."""
     try:
-        return ''.join(lines).encode('cp1252')
+        for line in _sqlcmd_lines(resultsets):
+            yield line.encode('cp1252')
+    except UnicodeEncodeError as error:
+        raise UnqualifiedBatchValue('Native Windows best-fit/replacement encoding requires separate qualification') from error
+
+
+def sqlcmd_bytes(resultsets):
+    # Keep the writer's original validate-all-cells, then encode ordering.
+    try:
+        return ''.join(_sqlcmd_lines(resultsets)).encode('cp1252')
     except UnicodeEncodeError as error:
         raise UnqualifiedBatchValue('Native Windows best-fit/replacement encoding requires separate qualification') from error
 

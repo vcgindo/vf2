@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from mta.application.complete_daily_batch_files import (
-    sqlcmd_bytes, write_pick_reports, reports_from_pick_state, PICK_NAMES, UnqualifiedBatchValue)
+    sqlcmd_bytes, sqlcmd_chunks, write_pick_reports, reports_from_pick_state, PICK_NAMES, UnqualifiedBatchValue)
 from mta.application.complete_daily_pick_files import project_reports
 
 
@@ -20,6 +20,8 @@ class BatchFileTests(unittest.TestCase):
         expected, actual = reports_from_pick_state(state), reports_from_pick_state(persisted)
         for name in PICK_NAMES:
             self.assertEqual(sqlcmd_bytes(actual[name]['resultsets']), sqlcmd_bytes(expected[name]['resultsets']))
+            self.assertEqual(b''.join(sqlcmd_chunks(actual[name]['resultsets'])),
+                             sqlcmd_bytes(expected[name]['resultsets']))
         self.assertEqual(persisted, before)
         del persisted['LogisticPickList'][0]['NewSRNo']
         with self.assertRaisesRegex(ValueError, 'column roster'):
@@ -35,6 +37,21 @@ class BatchFileTests(unittest.TestCase):
                        ['  lead   ', 12, Decimal('0.000'), 'line\r\nnext', 'tail']])]
         self.assertEqual(sqlcmd_bytes(sets),
             b'Text,Null,Decimal,Comma,Unicode\r\n edge ,NULL,-1.250,a,b"c,\xe9\r\n  lead   ,12,.000,line\r\nnext,tail\r\n')
+        self.assertEqual(b''.join(sqlcmd_chunks(sets)), sqlcmd_bytes(sets))
+
+    def test_chunk_encoding_consumes_rows_lazily_and_rejects_late_bad_encoding(self):
+        consumed = []
+        def rows():
+            for value in ('é', 'next', '中'):
+                consumed.append(value)
+                yield [value]
+        chunks = sqlcmd_chunks([dict(fields=['text'], types=['nvarchar(50)'], rows=rows())])
+        self.assertEqual(consumed, [])
+        self.assertEqual(next(chunks), b'\xe9\r\n')
+        self.assertEqual(consumed, ['é'])
+        self.assertEqual(next(chunks), b'next\r\n')
+        with self.assertRaisesRegex(UnqualifiedBatchValue, 'encoding'):
+            next(chunks)
 
     def test_decimal_zero_fraction_and_null_empty_text_remain_distinct(self):
         sets = [dict(fields=['']*6, types=['decimal(13,3)']*3 + ['nvarchar(50)']*3,

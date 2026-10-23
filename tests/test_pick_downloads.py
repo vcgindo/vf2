@@ -79,8 +79,8 @@ class PickDownloadTests(unittest.TestCase):
                         {'A'}, {'TO', 'FROM', 'LOG'})), \
                     patch.object(pick_downloads, 'read_input',
                                  return_value={'pick_output_root': str(root)}), \
-                    patch.object(pick_downloads, '_expected_bytes',
-                                 return_value=b'own-selected-run-bytes\r\n'):
+                    patch.object(pick_downloads, '_expected_chunks',
+                                 return_value=[b'own-selected-run-', b'bytes\r\n']):
                 stream, name = pick_downloads.open_report(
                     self.run, self.payload, 'LogisticPickListReport')
                 with stream:
@@ -147,10 +147,56 @@ class PickDownloadTests(unittest.TestCase):
                         {'A'}, {'TO', 'FROM', 'LOG'})), \
                     patch.object(pick_downloads, 'read_input',
                                  return_value={'pick_output_root': str(root)}), \
-                    patch.object(pick_downloads, '_expected_bytes', return_value=b'expected'):
+                    patch.object(pick_downloads, '_expected_chunks', return_value=[b'expected']):
                 with self.assertRaisesRegex(pick_downloads.PickDownloadDenied, 'file_drift'):
                     pick_downloads.open_report(self.run, self.payload,
                                                'LogisticPickListReport')
+
+    def test_full_validation_closes_file_on_drift_or_projection_failure(self):
+        cases = (([b'expected'], b'expected-trailing', 'file_drift'),
+                 ([b'expected'], b'expect', 'file_drift'),
+                 ([b'expected'], b'tampered', 'file_drift'))
+        for chunks, actual, message in cases:
+            stream = BytesIO(actual)
+            with self.subTest(actual=actual), \
+                    patch.object(pick_downloads, '_complete_state', return_value={}), \
+                    patch.object(pick_downloads, '_fully_scoped', return_value=True), \
+                    patch.object(pick_downloads, '_owned_file') as path, \
+                    patch.object(pick_downloads, '_expected_chunks', return_value=chunks):
+                path.return_value.open.return_value = stream
+                with self.assertRaisesRegex(pick_downloads.PickDownloadDenied, message):
+                    pick_downloads.open_report(self.run, self.payload, 'LogisticPickListReport')
+                self.assertTrue(stream.closed)
+        def interrupted():
+            yield b'valid'
+            raise ValueError('projection failed')
+        stream = BytesIO(b'valid')
+        with patch.object(pick_downloads, '_complete_state', return_value={}), \
+                patch.object(pick_downloads, '_fully_scoped', return_value=True), \
+                patch.object(pick_downloads, '_owned_file') as path, \
+                patch.object(pick_downloads, '_expected_chunks', return_value=interrupted()):
+            path.return_value.open.return_value = stream
+            with self.assertRaisesRegex(ValueError, 'projection failed'):
+                pick_downloads.open_report(self.run, self.payload, 'LogisticPickListReport')
+            self.assertTrue(stream.closed)
+
+    def test_file_validation_never_reads_the_whole_payload_at_once(self):
+        class BoundedStream(BytesIO):
+            def read(self, size=-1):
+                if not 0 <= size <= 64:
+                    raise AssertionError('unbounded file read')
+                return super().read(size)
+        stream = BoundedStream(b'row\r\n' * 10000)
+        with patch.object(pick_downloads, '_complete_state', return_value={}), \
+                patch.object(pick_downloads, '_fully_scoped', return_value=True), \
+                patch.object(pick_downloads, '_owned_file') as path, \
+                patch.object(pick_downloads, '_expected_chunks',
+                             return_value=(b'row\r\n' for _ in range(10000))):
+            path.return_value.open.return_value = stream
+            result, _ = pick_downloads.open_report(self.run, self.payload, 'LogisticPickListReport')
+            self.assertIs(result, stream)
+            self.assertEqual(result.tell(), 0)
+            result.close()
 
     def test_http_requires_gateway_entitlement_and_selected_accepted_run(self):
         client = Client()

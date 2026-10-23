@@ -19,7 +19,7 @@ READ_ROUTES = frozenset((
     'readyz',
     'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration',
     'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
-    'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData',
+    'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData', 'GetExportDataAsync',
     'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
     'GetPlanningDataGridCount', 'GetPlanningDataCustom',
     'GetResearchInsightData', 'GetHistroricalAvailabilityBPRData',
@@ -38,10 +38,23 @@ READ_ROUTES = frozenset((
     'ExcessInventoryValue',
 ))
 
+# Match the dynamic URL's parent as well as its finite report name. A bare
+# basename must not accidentally opt an unrelated endpoint into read reuse.
+PICK_READ_ROUTES = frozenset((
+    'LogisticPickListReport', 'LogisticRemainingQtySummary',
+    'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt',
+))
+
+
+def _read_route(path):
+    parent, _, name = path.rstrip('/').rpartition('/')
+    return (name in READ_ROUTES or
+            (parent.rsplit('/', 1)[-1] == 'DownloadReports' and name in PICK_READ_ROUTES))
+
 
 @contextmanager
 def read_request(path):
-    if path.rstrip('/').rsplit('/', 1)[-1] not in READ_ROUTES or _current.get() is not None:
+    if not _read_route(path) or _current.get() is not None:
         yield
         return
     token = _current.set({})
