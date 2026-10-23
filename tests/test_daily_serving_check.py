@@ -8,12 +8,37 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from release.daily_serving_check import configure_image
 
 
 class ServingCheckBootstrapTests(unittest.TestCase):
+    def test_running_service_check_never_repeats_exclusive_admission(self):
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
+        os.environ.setdefault('VF_SECRET_KEY', 'serving-unit-only')
+        import django
+        django.setup()
+        from django.test import override_settings
+        from release.daily_serving_check import check
+        run = SimpleNamespace(pk='run', output_digest='output')
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self): return b'{"ready":true,"admission_digest":"identity"}'
+        with override_settings(VF_MTA_SELECTION_FILE='/selected.json'), \
+                patch('release.daily_serving_check.configure_image'), \
+                patch('mta.presentation.admission.admit', side_effect=AssertionError('exclusive audit')), \
+                patch('mta.presentation.admission.binding', return_value=(run, 'identity')) as binding, \
+                patch('mta.presentation.native_selection.read', return_value={'selection_digest':'selected'}), \
+                patch('urllib.request.urlopen', return_value=Response()):
+            self.assertTrue(check('run', 'output')['ready'])
+            self.assertEqual(binding.call_count, 2)
+            binding.side_effect = [(run, 'identity'), (run, 'changed')]
+            with self.assertRaisesRegex(ValueError, 'changed during'):
+                check('run', 'output')
+
     def test_admission_only_checks_selected_identity_before_service_recovery(self):
         os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
         os.environ.setdefault('VF_SECRET_KEY', 'serving-unit-only')

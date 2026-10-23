@@ -129,6 +129,8 @@ def verify_native(run):
 def admit():
     """Startup only. A failed attempt never leaves an older admission active."""
     global _admitted
+    from mta.presentation.identity_reuse import clear
+    clear()
     _admitted = None
     run, before = binding()
     verify(run)
@@ -161,6 +163,8 @@ def require_admission():
         # Do not permanently poison just one of the pre-admitted workers.
         raise
     except Exception:
+        from mta.presentation.identity_reuse import clear
+        clear()
         _admitted = None
         raise
     return _admitted

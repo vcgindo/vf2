@@ -37,7 +37,14 @@ def wire_rows(name, rows):
 def _production_policy(run):
     from mta.application.production_output_policy import SOURCE_SCHEMA, contract, require
     from mta.runtime.input_reader import read_input
-    day = read_input(run, components=('day',)).get('day')
+    from mta.runtime.captured_input import SCHEMAS, origin
+    from mta.runtime.input_v3 import V3
+    physical = origin(run) if run.input_payload.get('schema') in SCHEMAS else run
+    # V3 supports authenticated nested component reads. Fetch only this policy,
+    # rather than unpacking the day's unrelated facts on every BOR request.
+    components = (('input/day/production_report_schema', 'input/day/production_report_policy')
+                  if physical.input_payload.get('schema') == V3 else ('day',))
+    day = read_input(physical, components=components).get('day')
     if (not isinstance(day, dict) or day.get('production_report_schema') != SOURCE_SCHEMA
             or not isinstance(day.get('production_report_policy'), dict)):
         raise PublicationUnavailable('native_bor_output_contract_required')

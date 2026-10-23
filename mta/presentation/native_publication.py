@@ -8,6 +8,7 @@ from django.conf import settings
 from mta.presentation.context import PublicationUnavailable
 from mta.serialization import digest
 from mta.presentation.request_scope import once_per_request
+from mta.presentation.identity_reuse import native_identity
 
 
 def enabled():
@@ -28,6 +29,7 @@ def require_mode():
 
 
 @once_per_request
+@native_identity
 def identity(run, *, verify_rows=False):
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     from mta.runtime.input_reader import read_input

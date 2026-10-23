@@ -9,9 +9,14 @@ from functools import wraps
 
 _current = ContextVar('presentation_read_request', default=None)
 
+
+def in_read_request():
+    return _current.get() is not None
+
 # Explicit read-only routes, including POST-based report and MDM queries.
 # Action, MDM, layout and remark writes never enter this scope.
 READ_ROUTES = frozenset((
+    'readyz',
     'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration',
     'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
     'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData',
@@ -19,6 +24,18 @@ READ_ROUTES = frozenset((
     'GetPlanningDataGridCount', 'GetPlanningDataCustom',
     'GetResearchInsightData', 'GetHistroricalAvailabilityBPRData',
     'GetMasterUIConfiguration', 'GetCount', 'GetMasterData',
+    'GetBTRData', 'GetBTRDataCount', 'DBMData', 'DBMDataCount',
+    'RRRData', 'RRRDataCount', 'GetRRROrderAllocationReportData',
+    'GetRRRAllocationReportDataCount', 'BORUIConfig', 'BORData', 'BORDataCount',
+    'BORAnalytics', 'GetBOROrderAllocationReportData',
+    'GetBOROrderAllocationReportDataCount', 'getSupplierWiseAllocationReportData',
+    'getSupplierWiseAllocationReportDataCount',
+    'DailyDataGraph', 'GetBufferTrendGraphData',
+    'DBMNormSuggestionLoc', 'DBMNormSuggestionSKUs', 'DBMNormSuggestionPie',
+    'DBMNormSuggestionAgeing', 'ChronicUnavailabilityLoc',
+    'ChronicUnavailabilitySku', 'ChronicUnavailabilityGridViewData',
+    'AvailabilityTrend', 'AvailabilityAgeing', 'ExcessInventorySku',
+    'ExcessInventoryValue',
 ))
 
 

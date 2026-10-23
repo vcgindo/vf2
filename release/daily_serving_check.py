@@ -24,9 +24,17 @@ def check(run_id, output_digest, *, admission_only=False):
     import django
     django.setup()
     from django.conf import settings
-    from mta.presentation.admission import admit
+    from mta.presentation.admission import admit, binding
     from mta.presentation.native_selection import read
-    expected = admit()
+    # Service recovery still qualifies the complete candidate offline. Once the
+    # server is running its own pre-fork admission has already done that work.
+    # Repeating it here holds the MDM source lock while users access the server.
+    if admission_only:
+        expected = admit()
+    else:
+        run, identity = binding()
+        expected = dict(run_id=str(run.pk), output_digest=run.output_digest,
+                        admission_digest=identity)
     if expected['run_id'] != run_id or expected['output_digest'] != output_digest:
         raise ValueError('MTA container is configured for another run/output')
     selected = read(settings.VF_MTA_SELECTION_FILE)
@@ -37,6 +45,9 @@ def check(run_id, output_digest, *, admission_only=False):
         actual = json.load(response)
     if actual.get('ready') is not True or actual.get('admission_digest') != expected['admission_digest']:
         raise ValueError('Serving process has not admitted the selected generation')
+    _, after = binding()
+    if after != expected['admission_digest'] or read(settings.VF_MTA_SELECTION_FILE) != selected:
+        raise ValueError('Selected generation changed during serving verification')
     return dict(ready=True, run_id=run_id, output_digest=output_digest,
         selection_digest=selected['selection_digest'], admission_digest=expected['admission_digest'])
 
