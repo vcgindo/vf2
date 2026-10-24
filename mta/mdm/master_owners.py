@@ -89,3 +89,18 @@ def importer_batches(importer, nms, *, strict=False, include_sku=True):
     return result
 
 
+def phase_copy_batches(owner, state):
+    """The four actual master copies made by BPR/DBM's own import stage."""
+    if owner not in ('BPR','DBM'):
+        raise ValueError('Unsupported calculation copy owner')
+    result=[]
+    for family, table, model in (
+        (1,'SkuAttributeData',models.MdmSkuAttributes),
+        (1,'SKUDescriptionTbl',models.MdmSkuDescription),
+        (2,'LocationAttributeData',models.MdmLocationAttributes),
+        (2,'SiteDescriptionTbl',models.MdmLocationDescription)):
+        result.append((family,model,dict(owner=owner),typed(model,state[table]),
+                       '/phase/'+owner+'/'+table))
+    return result
+
+
