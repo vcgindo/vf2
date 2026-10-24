@@ -155,6 +155,21 @@ class ScopedActionTests(unittest.TestCase):
         self.assertEqual(after['NormAcceptanceTbl'],state['NormAcceptanceTbl'])
         self.assertEqual(len(after['NormsInSleepModeTbl']),len(state['NormsInSleepModeTbl'])+2)
 
+    def test_apply_before_dbm_is_consumed_into_stock_suspension_without_norm_change(self):
+        """Canonical03.1 clears acceptance after creating its suspension, before BTR."""
+        from mta.runtime.scoped_actions import restore
+        self.pause_bpr()
+        self.action('APPLY')
+        receipt=self.resume_dbm()
+        phase,_=restore(self.run,receipt)
+        chosen=lambda rows:[row for row in rows if [row['SKUCode'],row.get('WhCode',row.get('WHCode'))]==self.selected[0]]
+        self.assertEqual(chosen(phase.final_dbm['DBMMaster'])[0]['Norm'],12)
+        self.assertEqual(chosen(phase.final_dbm['NormAcceptanceTbl']),[])
+        self.assertEqual(chosen(phase.final_dbm['SuspendAcceptedNormsStockType']),[
+            dict(SKUCode=self.selected[0][0],WhCode=self.selected[0][1],DeltaNorm=12,
+                 WaitStartDate='2037-04-10',WaitTillDate='2037-04-13',WaitForReceipts=False,
+                 HasStockComeOutOfRed=True,IsRedEnabled=False,IsGreenEnabled=False)])
+
     def test_stale_revision_and_active_worker_deny_actions(self):
         self.pause_bpr()
         event=self.action('APPLY')
