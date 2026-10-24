@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 
 SCOPES = tuple((value, value) for value in ('UptoBPR', 'UptoDBM', 'PostBPR', 'PostDBM'))
-PHASES = tuple((value, value) for value in ('PRE_BPR', 'BPR', 'DBM'))
+PHASES = tuple((value, value) for value in ('PRE_BPR', 'BPR', 'DBM', 'DAY_FINAL'))
 
 
 class RunScopeAttempt(models.Model):
@@ -16,7 +16,7 @@ class RunScopeAttempt(models.Model):
     recovery_of = models.OneToOneField('self', null=True, on_delete=models.PROTECT,
                                       related_name='recovery')
     scope = models.CharField(max_length=8, choices=SCOPES)
-    expected_phase = models.CharField(max_length=8)
+    expected_phase = models.CharField(max_length=9)
     expected_receipt_digest = models.CharField(max_length=64, blank=True)
     input_digest = models.CharField(max_length=64)
     input_manifest_digest = models.CharField(max_length=64)
@@ -52,7 +52,7 @@ class RunPhaseAcceptance(models.Model):
     attempt = models.ForeignKey(RunScopeAttempt, on_delete=models.PROTECT,
                                 related_name='phase_acceptances')
     source = models.ForeignKey('fresh_mta.MdmSource', on_delete=models.PROTECT)
-    phase = models.CharField(max_length=8, choices=PHASES)
+    phase = models.CharField(max_length=9, choices=PHASES)
     snapshot = models.OneToOneField('fresh_mta.DailyPhaseSnapshot', null=True,
                                     on_delete=models.PROTECT)
     input_digest = models.CharField(max_length=64)

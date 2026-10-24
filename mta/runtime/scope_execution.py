@@ -225,3 +225,30 @@ def receipt_digest(receipt):
         capture_digest=receipt.capture_digest, snapshot_id=receipt.snapshot_id, metadata=receipt.metadata)
     if receipt.revision_before is not None:identity['revision_before']=receipt.revision_before
     return digest(identity)
+
+
+def _seal_day_final(receipt):
+    """Seal only the actual completed typed root, within its pending unit."""
+    from mta.runtime.receipt_integrity import verify_root
+    from mta.runtime import scope_revisions as revisions
+    run=CalculationRun.objects.get(pk=receipt.run_id)
+    if (not connection.in_atomic_block or receipt.phase!='DAY_FINAL'
+            or receipt.state_sealed or receipt.snapshot_id is not None):
+        raise ValueError('DAY_FINAL requires its unsealed root acceptance')
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT mta.pending_day_final(%s)',[run.pk])
+        if not cursor.fetchone()[0]:raise ValueError('DAY_FINAL worker no longer owns its unit')
+    verify_root(run)
+    phase,parent_digest=head(run.pk)
+    if phase!='DBM':raise ValueError('DAY_FINAL requires its accepted DBM prefix')
+    receipt.metadata=dict(schema='fresh-day-final-acceptance-v1',
+        parent_acceptance_digest=parent_digest,output_digest=run.output_digest,
+        production_digest=run.production_digest,input_manifest_digest=run.input_manifest_digest,
+        compatibility_digest=receipt.attempt.compatibility_digest)
+    after=revisions.next_cut(revisions.owned_position(run))
+    if after is not None:receipt.metadata['revision_after']=after
+    receipt.digest=receipt_digest(receipt)
+    receipt.state_sealed=True;receipt.accepted_at=timezone.now()
+    receipt.save(update_fields=['metadata','digest','state_sealed','accepted_at'])
+    revisions.verify_write(run,after)
+    return receipt
