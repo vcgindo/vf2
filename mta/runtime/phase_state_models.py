@@ -7,6 +7,8 @@ class DailyPhaseSnapshot(models.Model):
                             related_name='phase_snapshots')
     phase = models.CharField(max_length=8, choices=(('PRE_BPR', 'PRE_BPR'), ('BPR', 'BPR'), ('DBM', 'DBM')))
     parent = models.ForeignKey('self', null=True, on_delete=models.PROTECT)
+    acceptance = models.OneToOneField('fresh_mta.RunPhaseAcceptance', null=True,
+                                      on_delete=models.PROTECT, related_name='owned_snapshot')
     input_digest = models.CharField(max_length=64)
     recipe_digest = models.CharField(max_length=64)
     state_digest = models.CharField(max_length=64)

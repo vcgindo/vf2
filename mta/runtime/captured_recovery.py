@@ -17,6 +17,7 @@ def _uncommitted(run):
     if (run.kind != 'DAILY_CHAIN' or run.evidence_mode != 'production'
             or run.status not in ('RUNNING','FAILED') or run.output_digest
             or run.output_roster or run.production_digest or run.checkpoints.exists()
+            or run.phase_snapshots.exists() or run.scope_attempts.exists()
             or run.commands.exists() or run.successors.exists()
             or DailyUiPublication.objects.filter(run=run).exists()):
         raise ValueError('Interrupted capture has committed or foreign downstream state')

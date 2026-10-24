@@ -256,16 +256,16 @@ def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export
     return phase, sources
 
 
-def save(run, phase, sources, *, parent=None):
+def save(run, phase, sources, *, parent=None, acceptance=None):
     """Seal typed storage atomically. Does not expose/accept a scope command."""
     from mta.runtime.models import CalculationRun, DailyPhaseSnapshot
     if transaction.get_autocommit():
         raise ValueError('Phase snapshot requires its owning transaction')
     with transaction.atomic():
-        return _save(run, phase, sources, parent=parent)
+        return _save(run, phase, sources, parent=parent, acceptance=acceptance)
 
 
-def _save(run, phase, sources, *, parent):
+def _save(run, phase, sources, *, parent, acceptance):
     from mta.runtime.models import CalculationRun, DailyPhaseSnapshot
     owner = CalculationRun.objects.select_for_update().get(pk=run.pk)
     if (owner.status != 'RUNNING' or owner.kind != 'DAILY_CHAIN'
@@ -300,6 +300,7 @@ def _save(run, phase, sources, *, parent):
         if parent.phase == 'BPR' and consumer_identity(manifest) != consumer_identity(parent.manifest):
             raise ValueError('Continuation calculation consumers changed after BPR')
     return DailyPhaseSnapshot.objects.create(run=owner, phase=manifest['phase'], parent=parent,
+        acceptance=acceptance,
         input_digest=owner.input_digest, recipe_digest=recipe_digest(),
         state_digest=digest(manifest), manifest=manifest)
 

@@ -79,7 +79,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if source_id is not None:
             lock_transaction(source_id)
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
-        if run.status != 'RUNNING' or run.checkpoints.exists():
+        if run.status != 'RUNNING' or run.checkpoints.exists() or run.scope_attempts.exists():
             raise ValueError('Run changed during calculation')
         from mta.runtime.capture_preparation import require_commit
         prepared_capture=require_commit(run)

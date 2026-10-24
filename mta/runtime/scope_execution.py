@@ -1,0 +1,193 @@
+"""Short-lived, explicitly fenced claims; never infer ownership from elapsed time.
+
+These primitives do not start calculations, accept effects, prepare files or
+acknowledge a scope. The native scope entry must first qualify its captured
+configuration and implementation, then pass that exact compatibility identity.
+"""
+from contextlib import contextmanager
+import uuid
+
+from django.db import DatabaseError, connection, transaction
+from django.utils import timezone
+from mta.serialization import digest
+from mta.runtime.ingestion_context import sha
+from mta.runtime.models import CalculationRun, RunScopeAttempt, RunPhaseAcceptance
+
+
+def head(run_id):
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT phase,digest FROM mta.scope_head(%s)', [run_id])
+        phase, checksum = cursor.fetchone()
+    return phase, checksum
+
+
+def _source_lock(run_id):
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.mdm.supplier_revisions import lock_transaction
+    source_id = MdmDailyInputCapture.objects.filter(run_id=run_id).values_list('source_id', flat=True).first()
+    if source_id is None:raise ValueError('Scoped execution requires its captured MDM source')
+    lock_transaction(source_id)
+    return source_id
+
+
+def _frozen(run):
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    if (run.kind != 'DAILY_CHAIN' or run.status != 'RUNNING' or run.output_digest
+            or run.input_payload.get('content_digest') != run.input_digest
+            or digest(run.input_payload) != run.input_manifest_digest):
+        raise ValueError('Scoped logical input identity differs')
+    capture = MdmDailyInputCapture.objects.get(run=run, status='CAPTURED')
+    snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
+    if (not snapshot or snapshot['revision_digest'] != capture.revision_digest
+            or snapshot['source_id'] != capture.source_id):
+        raise ValueError('Scoped capture identity differs')
+    return capture
+
+
+@contextmanager
+def _setting(name, value):
+    if name not in ('fresh.scope_worker', 'fresh.scope_phase', 'fresh.scope_fence'):
+        raise ValueError('Unknown scoped transaction setting')
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting(%s,true)", [name])
+        previous = cursor.fetchone()[0] or ''
+        cursor.execute("SELECT set_config(%s,%s,true)", [name, str(value)])
+    try:yield
+    except DatabaseError:
+        # Raw cursor failures do not always mark Django's enclosing atomic
+        # block. Its rollback also restores these transaction-local settings.
+        transaction.set_rollback(True)
+        raise
+    finally:
+        if not connection.needs_rollback:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT set_config(%s,%s,true)", [name, previous])
+
+
+def claim(run_id, *, scope, command_key, worker_reference, compatibility_digest,
+          expected_phase, expected_receipt_digest, recovery_of=None):
+    if not transaction.get_autocommit():
+        raise ValueError('A scope claim owns its short transaction')
+    with transaction.atomic():
+        return _claim(run_id, scope=scope, command_key=command_key,
+            worker_reference=worker_reference, compatibility_digest=compatibility_digest,
+            expected_phase=expected_phase, expected_receipt_digest=expected_receipt_digest,
+            recovery_of=recovery_of)
+
+
+def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest,
+           expected_phase, expected_receipt_digest, recovery_of=None):
+    """Transactional primitive, also used by isolated metadata guard fixtures."""
+    if not connection.in_atomic_block:raise ValueError('Claim requires its transaction')
+    sha(compatibility_digest)
+    _source_lock(run_id)
+    run = CalculationRun.objects.select_for_update().get(pk=run_id)
+    _frozen(run)
+    if head(run.pk) != (expected_phase, expected_receipt_digest):
+        raise ValueError('Expected accepted phase changed')
+    if RunScopeAttempt.objects.filter(run=run, status='ACTIVE').exists():
+        raise ValueError('Scoped day already has an active worker; explicit fencing is required')
+    previous = None
+    if recovery_of is not None:
+        previous = RunScopeAttempt.objects.select_for_update().get(pk=recovery_of, run=run)
+        if previous.status != 'FAILED' or hasattr(previous, 'recovery'):
+            raise ValueError('Recovery requires the failed latest attempt')
+        if (previous.scope, previous.command_key, previous.compatibility_digest) != (
+                scope, command_key, compatibility_digest):
+            raise ValueError('Recovery cannot change its command or compatibility identity')
+    elif RunScopeAttempt.objects.filter(run=run, command_key=command_key).exists():
+        raise ValueError('Existing command requires its recorded result or explicit recovery')
+    return RunScopeAttempt.objects.create(run=run, scope=scope, command_key=command_key,
+        worker_reference=worker_reference, compatibility_digest=compatibility_digest,
+        expected_phase=expected_phase, expected_receipt_digest=expected_receipt_digest,
+        input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
+        attempt_no=previous.attempt_no+1 if previous else 1, recovery_of=previous)
+
+
+def require_claim(attempt_id, worker_token, *, compatibility_digest):
+    """Fence every commit using the current row, never an in-memory lease."""
+    if not connection.in_atomic_block:raise ValueError('Worker check requires its transaction')
+    sha(compatibility_digest)
+    identity = RunScopeAttempt.objects.only('run_id').get(pk=attempt_id)
+    _source_lock(identity.run_id)
+    run = CalculationRun.objects.select_for_update().get(pk=identity.run_id)
+    attempt = RunScopeAttempt.objects.select_for_update().get(pk=attempt_id)
+    if (attempt.status != 'ACTIVE' or str(attempt.worker_token) != str(worker_token)
+            or attempt.compatibility_digest != compatibility_digest
+            or attempt.input_digest != run.input_digest
+            or attempt.input_manifest_digest != run.input_manifest_digest):
+        raise ValueError('Stale or incompatible scoped worker')
+    _frozen(run)
+    return attempt, run
+
+
+def fail(attempt_id, worker_token, *, compatibility_digest, error):
+    if not transaction.get_autocommit():raise ValueError('Failure record owns its short transaction')
+    with transaction.atomic():
+        attempt, _ = require_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
+        with _setting('fresh.scope_worker', worker_token):
+            attempt.status = 'FAILED'
+            attempt.failure = dict(type=type(error).__name__, message=str(error)[:4000])
+            attempt.finished_at = timezone.now()
+            attempt.save(update_fields=['status', 'failure', 'finished_at'])
+    return attempt
+
+
+def fence(attempt_id, *, expected_worker_token, reason):
+    """Explicit operator recovery. This asserts no worker-death timeout policy."""
+    if not transaction.get_autocommit():raise ValueError('Fencing owns its short transaction')
+    if not isinstance(reason, str) or not reason.strip():raise ValueError('Explicit fencing reason required')
+    with transaction.atomic():
+        identity = RunScopeAttempt.objects.only('run_id').get(pk=attempt_id)
+        _source_lock(identity.run_id)
+        CalculationRun.objects.select_for_update().get(pk=identity.run_id)
+        attempt = RunScopeAttempt.objects.select_for_update().get(pk=attempt_id)
+        if attempt.status != 'ACTIVE' or str(attempt.worker_token) != str(expected_worker_token):
+            raise ValueError('Worker changed before explicit fencing')
+        with _setting('fresh.scope_fence', attempt.pk):
+            attempt.status = 'FAILED'
+            attempt.failure = dict(type='FENCED', message=reason[:4000])
+            attempt.finished_at = timezone.now()
+            attempt.save(update_fields=['status', 'failure', 'finished_at'])
+    return attempt
+
+
+def release(attempt_id, worker_token, *, compatibility_digest):
+    """Release the calculation claim; file/read readiness remains independent."""
+    if not transaction.get_autocommit():raise ValueError('Worker release owns its short transaction')
+    with transaction.atomic():
+        attempt, _ = require_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
+        with _setting('fresh.scope_worker', worker_token):
+            attempt.status = 'RELEASED'
+            attempt.finished_at = timezone.now()
+            attempt.save(update_fields=['status', 'finished_at'])
+    return attempt
+
+
+def _begin_phase(attempt, run, phase):
+    """Open the transaction-local unit; its deferred constraint requires sealing."""
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    capture = MdmDailyInputCapture.objects.get(run=run, status='CAPTURED')
+    identity = uuid.uuid4()
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.scope_phase',%s,true)", [str(identity)])
+    return RunPhaseAcceptance.objects.create(id=identity, run=run, attempt=attempt,
+        source_id=capture.source_id, phase=phase, input_digest=run.input_digest,
+        capture_digest=capture.revision_digest)
+
+
+def _seal_phase(receipt, snapshot, *, effect_digest, partitions):
+    """The actual phase owner supplies proved effects/typed partition identities."""
+    sha(effect_digest)
+    receipt.snapshot = snapshot
+    receipt.metadata = dict(schema='fresh-phase-acceptance-v1', snapshot_digest=snapshot.state_digest,
+        compatibility_digest=receipt.attempt.compatibility_digest,
+        effect_digest=effect_digest, partitions=partitions)
+    receipt.digest = digest(dict(run_id=str(receipt.run_id), attempt_id=str(receipt.attempt_id),
+        source_id=receipt.source_id, phase=receipt.phase, input_digest=receipt.input_digest,
+        capture_digest=receipt.capture_digest, snapshot_id=snapshot.pk, metadata=receipt.metadata))
+    receipt.state_sealed = True
+    receipt.accepted_at = timezone.now()
+    receipt.save(update_fields=['snapshot', 'metadata', 'digest', 'state_sealed', 'accepted_at'])
+    return receipt
