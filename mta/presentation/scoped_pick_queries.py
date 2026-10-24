@@ -41,16 +41,16 @@ def recipe_digest():
 
 @dataclass(frozen=True)
 class PickQueries:
-    prepared: object
+    sources: object
     bands: tuple
     band_columns: tuple
     rationed: tuple
 
     def provenance(self):
         return dict(schema='fresh-bpr-pick-query-sources-v1',recipe_digest=recipe_digest(),
-            run_id=str(self.prepared.run_id),source_digest=self.prepared.sources.source_digest,
-            action_revision=self.prepared.sources.action_revision,
-            images={path:self.prepared.sources.provenance(path) for path in
+            run_id=str(self.sources.run.pk),source_digest=self.sources.source_digest,
+            action_revision=self.sources.action_revision,
+            images={path:self.sources.provenance(path) for path in
                 (PATH,*(path for _alias,path in rrr_preparation.SOURCES))})
 
     def raw_membership_query(self):
@@ -63,7 +63,7 @@ class PickQueries:
     def rrr_membership_query(self):
         ctes=[];params=[]
         for alias,path in rrr_preparation.SOURCES:
-            query,values=self.prepared.image_query(path)
+            query,values=self.sources.query(path)
             ctes.append(alias+' AS NOT MATERIALIZED ('+query+')');params.extend(values)
         query,values=self.band_columns;ctes.append('K AS ('+query+')');params.extend(values)
         # Same original display grain; it must never replace raw Pick identity.
@@ -85,30 +85,45 @@ class PickQueries:
 
     def pick_query(self,raw_membership=None):
         """Use a separately sealed raw membership when supplied by preparation."""
-        r,rp=self.rationed;h,hp=raw_membership or self.raw_membership_query();k,kp=self.bands
-        return ('WITH R AS ('+r+'),H AS ('+h+'),K AS ('+k+') '
-            'SELECT H.ordinal AS vf_source_ordinal,'+','.join(rrr_preparation.a_selections())+
-            ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal JOIN K ON K.ordinal=H.band_ordinal'),[*rp,*hp,*kp]
+        return pick_query(self.rationed,raw_membership or self.raw_membership_query(),self.bands)
+
+
+def pick_query(rationed,raw_membership,bands):
+    r,rp=rationed;h,hp=raw_membership;k,kp=bands
+    return ('WITH R AS ('+r+'),H AS ('+h+'),K AS ('+k+') '
+        'SELECT H.ordinal AS vf_source_ordinal,'+','.join(rrr_preparation.a_selections())+
+        ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal JOIN K ON K.ordinal=H.band_ordinal'),[*rp,*hp,*kp]
+
 
 
 def bind(run,*,read_binding):
     if read_binding is None:raise PublicationUnavailable('scoped_pick_binding_required')
     admitted_sources(run,read_binding=read_binding)
-    source=read_binding.sources
+    return bind_sources(read_binding.sources)
+
+
+def bind_sources(source):
+    from mta.presentation.scoped_sources import BprSources
+    if not isinstance(source,BprSources):raise PublicationUnavailable('scoped_pick_source_owner_differs')
+    bands,columns=band_queries(source)
+    validate_band_rows(source.run,source.rows(PATH))
+    rationed=source.query(RATIONED)
+    _validate_positions(rationed,columns)
+    return PickQueries(source,bands,columns,rationed)
+
+
+def band_queries(source):
     metadata=source.metadata(PATH)
     if metadata['table']!='phase/PickBand':raise PublicationUnavailable('scoped_pick_band_owner_differs')
-    rows=source.rows(PATH);validate_band_rows(run,rows)
-    # Physical phase storage retains original wire strings. Convert only the
-    # already-produced quantities, exactly as the existing typed Full writer.
+    # Metadata-only on sealed reads; full rows and positions are checked once
+    # by preparation. Fresh source binding and immutable guards own admission.
     query,values=source.query(PATH)
     selected=['vf_ordinal AS ordinal',*map(quote,pick_storage.IDENTITY_FIELDS),
         *(quote(f)+'::bigint AS '+quote(f) for f in pick_storage.BAND_FIELDS)]
     bands=('SELECT '+','.join(selected)+' FROM ('+query+') accepted_bands',values)
     columns=('SELECT '+','.join(quote(f)+' AS column'+str(i) for i,f in enumerate(
         ('ordinal',*pick_storage.FIELDS),1))+' FROM ('+bands[0]+') typed_bands',values)
-    rationed=read_binding.image_query(RATIONED)
-    _validate_positions(rationed,columns)
-    return PickQueries(read_binding,bands,columns,rationed)
+    return bands,columns
 
 
 def _validate_positions(rationed,columns):

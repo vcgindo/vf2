@@ -62,15 +62,16 @@ def is_revision_guard(function):
     scope_consumers=import_module('mta.runtime.migrations.0204_scoped_bpr_consumer_ownership').NEW
     scope_transit=import_module('mta.runtime.migrations.0207_scope_transit_guards').NEW
     scope_git=import_module('mta.runtime.migrations.0210_scope_git_guards').NEW
+    scope_pick_view=import_module('mta.runtime.migrations.0212_scope_pick_guards').NEW
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports,scope_sources,scope_planning,scope_consumers,scope_transit,scope_git) and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports,scope_sources,scope_planning,scope_consumers,scope_transit,scope_git,scope_pick_view) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
 
 
 def scoped_derived_body(cursor,*,minimum):
     """Exact applied scoped-watch version, separate from producer recipes."""
     from importlib import import_module
-    versions=('0210_scope_git_guards','0207_scope_transit_guards','0204_scoped_bpr_consumer_ownership','0202_scope_planning_guards','0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
+    versions=('0212_scope_pick_guards','0210_scope_git_guards','0207_scope_transit_guards','0204_scoped_bpr_consumer_ownership','0202_scope_planning_guards','0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
     if minimum not in versions:raise ValueError('Unknown scoped derived guard minimum')
     cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
     installed={name for name, in cursor.fetchall()}
