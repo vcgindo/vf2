@@ -9,6 +9,7 @@ or MTO changes. Any future exception requires explicit human authorization.
 """
 
 from copy import deepcopy
+from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
 from mta.application.stage_observation import operation, stage
 
 from decimal import Decimal
@@ -365,9 +366,19 @@ def calculate_day(prior, opening_date, day, profile, identity, execute_calculati
 
 def _calculate_day_native(prior, opening_date, day, profile, identity, execute_calculation,
                           report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
-    """execute_calculation runs the existing modern R1 producer and returns outputs/id."""
+    """Run the same four ordered producers and return the unchanged full result."""
+    phase = prepare_day(prior, opening_date, day, profile, identity, execute_calculation,
+                        report_exceptions, native_daily=native_daily,
+                        prepared_master=prepared_master, master_snapshot=master_snapshot)
+    phase = produce_bpr(phase)
+    phase = produce_dbm(phase)
+    return produce_btr(phase)
+
+
+def prepare_day(prior, opening_date, day, profile, identity, execute_calculation,
+                          report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
+    """PRE_BPR: prepare owned inputs and finish controls before any R1 calculation."""
     today=day['business_date'];now=today+'T00:00:00'
-    from mta.serialization import digest
     from mta.application import daily_finalization
     from mta.temporal.entry_preparation import prepare
     with stage('entry_preparation'):
@@ -456,6 +467,69 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         for row, tag in zip(standard_attributes, tagged, strict=True):
             row['Tags'] = tag['Tags']
         daily_finalization.mark(completion, 'NMSCreateSnapshot.sql', 'UpdateInTransitDataTags.sql')
+    context = DayContext(
+        prior=prior,
+        day=day,
+        opening_date=opening_date,
+        profile=profile,
+        identity=identity,
+        execute_calculation=execute_calculation,
+        report_exceptions=report_exceptions,
+        native_daily=native_daily,
+        master_snapshot=master_snapshot,
+        today=today,
+        now=now,
+        finalization=finalization,
+        completion=completion,
+        master=master,
+        master_reused=entry['reused'], master_work=entry['master_work'])
+    return PreparedDay(
+        context=context,
+        importer=importer,
+        control_final=control_final,
+        control_aux=control_aux,
+        diagnostics=diagnostics,
+        force_alert_capture=force_alert_capture,
+        completed_boundaries=completed_boundaries,
+        nms=nms,
+        delivery=delivery,
+        daily_input=daily_input,
+        supplier_final=supplier_final,
+        daily=daily,
+        daily_final=daily_final,
+        old_sourcing=old_sourcing,
+        new_sourcing=new_sourcing,
+        standard_attributes=standard_attributes,
+        supplier_sob=supplier_state['refreshed_sob'],
+        supplier_moq=supplier_state['refreshed_moq'])
+
+
+def produce_bpr(phase: PreparedDay) -> BprDay:
+    """Run R1/BPR and its complete tail, stopping before DBM input construction."""
+    from mta.application import daily_finalization
+    context = phase.context
+    prior = context.prior
+    day = context.day
+    opening_date = context.opening_date
+    profile = context.profile
+    identity = context.identity
+    execute_calculation = context.execute_calculation
+    native_daily = context.native_daily
+    today = context.today
+    now = context.now
+    finalization = context.finalization
+    completion = context.completion
+    importer = phase.importer
+    control_final = phase.control_final
+    completed_boundaries = phase.completed_boundaries
+    daily_input = phase.daily_input
+    supplier_final = phase.supplier_final
+    daily = phase.daily
+    daily_final = phase.daily_final
+    old_sourcing = phase.old_sourcing
+    new_sourcing = phase.new_sourcing
+    standard_attributes = phase.standard_attributes
+    pick_sources = None
     with stage('r1_orders_requirements_rationing'):
         with stage('r1_source_context_preparation'):
             source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
@@ -565,6 +639,50 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
             raise ValueError('Explicit operational source capture policies required')
         operational_input_tables = capture_input_tables(
             controls=control_final, daily=daily_final, supplier=supplier_final)
+    return BprDay(
+        context=context,
+        importer=phase.importer,
+        control_final=phase.control_final,
+        control_aux=phase.control_aux,
+        diagnostics=phase.diagnostics,
+        force_alert_capture=phase.force_alert_capture,
+        completed_boundaries=phase.completed_boundaries,
+        nms=phase.nms,
+        delivery=phase.delivery,
+        supplier_sob=phase.supplier_sob,
+        supplier_moq=phase.supplier_moq,
+        daily_final=daily_final,
+        standard_attributes=standard_attributes,
+        bpr_master=bpr_master,
+        order_state=order_state,
+        calculated=calculated,
+        report=report,
+        late=late,
+        complete=complete,
+        operational_input_tables=operational_input_tables,
+        pick_state=pick_state,
+        pick_sources=pick_sources,
+    )
+
+
+def produce_dbm(phase: BprDay) -> DbmDay:
+    """Run the unchanged DBM chain and carry its controls, before BTR."""
+    context = phase.context
+    prior = context.prior
+    day = context.day
+    profile = context.profile
+    report_exceptions = context.report_exceptions
+    today = context.today
+    now = context.now
+    finalization = context.finalization
+    importer = phase.importer
+    control_final = phase.control_final
+    completed_boundaries = phase.completed_boundaries
+    delivery = phase.delivery
+    daily_final = phase.daily_final
+    standard_attributes = phase.standard_attributes
+    late = phase.late
+    reports = None
     dbm=deepcopy(prior['dbm'])
     # ImportMasterDataComponents.bat runs the deployed Importer initializer on
     # every day before DBM/BTR. Its TRUNCATE plus distinct two-key INSERT
@@ -605,6 +723,69 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
     if delivery is not None:
         control_final['importer_settings'].append({'Parameter': 'StockReservationType',
             'Value': str(profile['calculation']['stock_configuration']['reservation_type'])})
+    return DbmDay(
+        context=context,
+        importer=phase.importer,
+        control_final=control_final,
+        control_aux=phase.control_aux,
+        diagnostics=phase.diagnostics,
+        force_alert_capture=phase.force_alert_capture,
+        completed_boundaries=phase.completed_boundaries,
+        nms=phase.nms,
+        delivery=phase.delivery,
+        supplier_sob=phase.supplier_sob,
+        supplier_moq=phase.supplier_moq,
+        bpr_master=phase.bpr_master,
+        order_state=phase.order_state,
+        calculated=phase.calculated,
+        report=phase.report,
+        late=phase.late,
+        complete=phase.complete,
+        operational_input_tables=phase.operational_input_tables,
+        pick_state=phase.pick_state,
+        pick_sources=phase.pick_sources,
+        final_dbm=final_dbm,
+        reports=reports,
+    )
+
+
+def produce_btr(phase: DbmDay):
+    """Run BTR and the original full result/closing assembly; no persistence."""
+    from mta.serialization import digest
+    from mta.application import daily_finalization
+    context = phase.context
+    prior = context.prior
+    day = context.day
+    profile = context.profile
+    native_daily = context.native_daily
+    master_snapshot = context.master_snapshot
+    today = context.today
+    finalization = context.finalization
+    master = context.master
+    importer = phase.importer
+    control_final = phase.control_final
+    control_aux = phase.control_aux
+    diagnostics = phase.diagnostics
+    force_alert_capture = phase.force_alert_capture
+    completed_boundaries = phase.completed_boundaries
+    nms = phase.nms
+    delivery = phase.delivery
+    bpr_master = phase.bpr_master
+    order_state = phase.order_state
+    calculated = phase.calculated
+    report = phase.report
+    late = phase.late
+    complete = phase.complete
+    operational_input_tables = phase.operational_input_tables
+    pick_state = phase.pick_state
+    pick_sources = phase.pick_sources
+    final_dbm = phase.final_dbm
+    reports = phase.reports
+    # Continuation replaces only this mapping's standards entry. Keep the
+    # callable DBM phase's pre-BTR mapping/list intact without another deep copy.
+    final_dbm = dict(final_dbm)
+    supplier_state = {'refreshed_sob': phase.supplier_sob,
+                      'refreshed_moq': phase.supplier_moq}
     def assemble_closing():
         # These independent closing copies are required at commit, but need not
         # overlap the BTR scratch generations. Keep the existing alias contract
@@ -695,12 +876,12 @@ def _calculate_day_native(prior, opening_date, day, profile, identity, execute_c
         result['_ReportBoundary']='fresh-operational-report-boundary-v3'
         from mta.application.persistent_master import qualify, CONTRACT
         result['_MasterPreparation'] = dict(contract=CONTRACT,
-            qualified=(True if entry['reused'] else qualify(master,profile,day,result['ClosingState'][0],snapshot=master_snapshot)),
+            qualified=(True if context.master_reused else qualify(master,profile,day,result['ClosingState'][0],snapshot=master_snapshot)),
             configuration_digest=(profile_digest if delivery is not None and finalization is not None
-                                  else digest(profile)), reused=entry['reused'],
-            full_master_producer_calls=(0 if entry['reused'] else
-                entry['master_work']['producer_calls'] if entry['master_work'] else 1),
-            changed_work=entry['master_work'])
+                                  else digest(profile)), reused=context.master_reused,
+            full_master_producer_calls=(0 if context.master_reused else
+                context.master_work['producer_calls'] if context.master_work else 1),
+            changed_work=context.master_work)
     if operational_input_tables is not None:
         result['_OperationalInputTables'] = operational_input_tables
     if force_alert_capture is not None:
