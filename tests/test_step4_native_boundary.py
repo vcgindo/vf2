@@ -133,7 +133,8 @@ class Step4NativeBoundaryTests(unittest.TestCase):
 
     def test_final_command_inventory_preserves_all_released_native_owners(self):
         from release.export import SUPPORTED_MTA_COMMANDS,included
-        self.assertEqual(len(SUPPORTED_MTA_COMMANDS),24)
+        self.assertEqual(len(SUPPORTED_MTA_COMMANDS),28)
+        self.assertTrue({'run_production_upto_bpr','fence_production_scope'}<=SUPPORTED_MTA_COMMANDS)
         for name in SUPPORTED_MTA_COMMANDS:
             self.assertTrue(included('mta/runtime/management/commands/'+name+'.py'))
         for name in ('run_current_day','publish_pick_projection','activate_offline_readers','install_offline_input_source',
@@ -231,7 +232,7 @@ class Step4NativeBoundaryTests(unittest.TestCase):
         from importlib import import_module
         from mta.presentation.daily_preparation import command_binding
         commands=('prepare_daily_ui','activate_daily_ui','check_daily_selection','prepare_guided_aggregates',
-                  'initialize_production','run_production_day')
+                  'initialize_production','run_production_day','run_production_upto_bpr','fence_production_scope')
         for name in commands:
             command=import_module('mta.runtime.management.commands.'+name).Command(stdout=io.StringIO())
             with self.subTest(command=name),override_settings(VF_MTA_FIXTURE_FILE='retired.json'):
