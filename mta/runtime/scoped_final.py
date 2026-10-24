@@ -82,6 +82,30 @@ def consume_accepted(run):
     _consume_capture(capture,timezone.now())
 
 
+def frozen_prior(run,raw):
+    """Reconstruct native dependencies from their own retained opening only."""
+    initial=raw['opening']
+    if raw.get('initialization_binding') is None:
+        return deepcopy(initial['state'])
+    parent=run.predecessor
+    if parent is None:
+        prior=deepcopy(initial['state'])
+    else:
+        from mta.runtime.services import read_outputs
+        from mta.runtime.temporal import command_states
+        if initial is not None or raw['lineage'].get('run_id')!=str(parent.pk):
+            raise ValueError('Scoped native predecessor opening differs')
+        prior=deepcopy(read_outputs(parent,include_reports=False)['ClosingState'][0])
+        prior,commands=command_states(parent,prior,through_date=run.business_date)
+        if (raw['lineage'].get('output_digest')!=parent.output_digest
+                or raw['lineage'].get('commands')!=commands):
+            raise ValueError('Scoped native predecessor action revision differs')
+    # This is the existing frozen overlay, never a live queue/source read.
+    from mta.runtime.captured_recovery import _restore_working
+    _restore_working(raw['mdm_input'],prior,raw['day'],parent)
+    return prior
+
+
 def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_snapshot=None):
     """BTR may retry; accepted PRE/BPR/DBM calculations/effects never replay."""
     from mta.runtime.input_reader import read_input
@@ -93,11 +117,16 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         _attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
         prefix,_capture=accepted_prefix(run)
         dbm=prefix[-1]
-    raw=read_input(run,components=('opening','day','profile','lineage'))
+    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
     profile=raw['profile']
     if type(profile.get('daily_publication')) is not bool:
         raise ValueError('Scoped final publication mode must be captured explicitly')
-    phase,sources=phase_state.read(dbm.snapshot,prior=raw['opening']['state'],day=raw['day'],
+    if raw.get('initialization_binding') is not None:
+        frozen=raw['mdm_input']
+        if master_snapshot is not None and digest(master_snapshot)!=digest(frozen):
+            raise ValueError('Scoped native frozen master snapshot differs')
+        master_snapshot=frozen
+    phase,sources=phase_state.read(dbm.snapshot,prior=frozen_prior(run,raw),day=raw['day'],
         profile=profile,master_snapshot=master_snapshot)
     with native_assignments(True):
         result=produce_btr_from_snapshot(phase,sources,pick_source_digests=phase.pick_source_digests)
