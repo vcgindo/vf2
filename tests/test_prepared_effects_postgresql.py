@@ -90,7 +90,8 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
                    exclusions=[],supplier_feeds=complete_feeds(snapshot,prior))
         replace_working_inputs(snapshot,prior,day,None)
         identity=uuid.uuid4()
-        raw=dict(profile=opening['profile'],opening=dict(identity='component-prepared',
+        opening['profile']['daily_publication']=True
+        raw=dict(profile=opening['profile'],lineage=dict(schema='supplied-component-lineage-v1'),opening=dict(identity='component-prepared',
             opening_date='2037-04-09',state=prior),day=day,mdm_input=snapshot)
         self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date='2037-04-10',
             execution_revision='prepared-effects-'+identity.hex,input_digest=digest(raw),input_payload={})

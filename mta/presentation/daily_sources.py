@@ -24,13 +24,16 @@ def recipe_digest():
                        transit=transit_recipe(), reports=report_recipe()))
 
 
-def write_sources(run, output, *, opening=None):
+def write_sources(run, output, *, opening=None, _sources=None):
     if transaction.get_autocommit():
         raise ValueError('Daily sources require the calculation publication transaction')
     images = {}
     # Supplier inputs are captured before refresh. They are NOT the opening
     # BORWithOrderAllocation output, nor a replacement for that missing producer.
     prior = opening or {}
+    if _sources is not None and (('production_report_policy' in prior)
+                                 != (_sources.production_reports is not None)):
+        raise ValueError('Scoped production report source opt-in differs')
     for name in ('SOBData', 'MOQData'):
         rows = prior.get('supplier', {}).get(name)
         if rows is not None:
@@ -60,8 +63,9 @@ def write_sources(run, output, *, opening=None):
     from mta.presentation.ancillary_live import publication_metadata
     images.update(publication_metadata(run))
     if 'production_report_policy' in prior:
-        from mta.presentation.production_reports import write as write_reports
-        images.update(write_reports(run, output, prior))
+        from mta.presentation.production_reports import write as write_reports, _write_report_rows
+        images.update(write_reports(run, output, prior) if _sources is None
+                      else _write_report_rows(run,_sources.production_reports,prior))
     if prior.get('shipment_input') is not None:
         from mta.presentation.daily_transit import publish as publish_transit
         def current(path):

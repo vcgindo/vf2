@@ -64,10 +64,16 @@ def read_outputs(run, *, include_reports=True):
     return outputs
 
 
-def finish_run(run, output, *, expected_digest, publication_opening=None):
+def finish_run(run, output, *, expected_digest, publication_opening=None, _scoped_unit=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     # Immutable profile reconstruction happens once before the atomic writer.
     # The full input audit and run/input digest checks remain inside it.
+    from mta.temporal.day_phases import ScopedDayOutput
+    scoped=output if type(output) is ScopedDayOutput else None
+    if (scoped is None)!=(_scoped_unit is None):
+        raise ValueError('Scoped output requires its qualified final unit')
+    sources=None if scoped is None else scoped.calculation_sources
+    if scoped is not None:output=scoped.output
     producer_preparation=output.pop('_MasterPreparation',None)
     with stage('persistence_profile_reconstruction'):
         frozen_profile = (read_input(run, components=('profile',))['profile']
@@ -79,10 +85,17 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         if source_id is not None:
             lock_transaction(source_id)
         run = CalculationRun.objects.select_for_update().get(pk=run.pk)
-        if run.status != 'RUNNING' or run.checkpoints.exists() or run.scope_attempts.exists():
+        if (run.status != 'RUNNING' or run.checkpoints.exists()
+                or scoped is None and run.scope_attempts.exists()):
             raise ValueError('Run changed during calculation')
         from mta.runtime.capture_preparation import require_commit
-        prepared_capture=require_commit(run)
+        if scoped is None:
+            prepared_capture=require_commit(run)
+        else:
+            from mta.runtime.scoped_final import require_final_sources
+            prepared_capture=require_final_sources(run,_scoped_unit,sources)
+            if output.get('_ReportBoundary')!='fresh-operational-report-boundary-v3':
+                raise ValueError('Scoped final requires the native finite report boundary')
         from mta.runtime.captured_input import SCHEMAS as CAPTURED
         typed=run.input_payload.get('schema') in ('fresh-daily-input-manifest-v2','fresh-daily-input-manifest-v3',*CAPTURED)
         if run.kind == 'DAILY_CHAIN' and (not typed or run.evidence_mode != 'production'):
@@ -100,6 +113,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             raise ValueError('Native report disposition admission metadata differs')
         verify_commit(admitted_disposition, lineage, run)
         cohort = lineage[0].get('cohort1')
+        if scoped is not None and cohort is None:
+            raise ValueError('Scoped final requires complete finalization')
         if run.kind=='DAILY_CHAIN':
             from mta.application.daily_finalization import configuration,verify_finalization_identity
             if configuration(frozen_profile) is not None or cohort is not None:
@@ -113,7 +128,11 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             from mta.runtime.mdm_daily_models import MdmDailyInputCapture
             from mta.application.daily_finalization import mark
             with stage('persistence_input_consumption'):
-                finalize_consumption(run, output=output)
+                if scoped is None:
+                    finalize_consumption(run, output=output)
+                else:
+                    from mta.runtime.scoped_final import consume_accepted
+                    consume_accepted(run)
             if not MdmDailyInputCapture.objects.filter(run=run, status='CONSUMED').exists():
                 raise ValueError('Cohort1 task source was not consumed')
             complete = output['ClosingState'][0]['complete']
@@ -134,7 +153,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             if configured_policy == ACTIVE_POLICY or captured.source.receipt.get('schema') == SOURCE_SCHEMA:
                 from mta.mdm.daily_current import publish as publish_mdm_current
                 with stage('persistence_current_masters'):
-                    publish_mdm_current(run, captured, output['ClosingState'][0])
+                    if scoped is None:
+                        publish_mdm_current(run, captured, output['ClosingState'][0])
+                    else:
+                        publish_mdm_current(run,captured,output['ClosingState'][0],_accepted_prefix=True)
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
             # Verify the same complete boundary after its actual owned writers,
             # inside the transaction so any failure rolls every writer back.
@@ -165,14 +187,21 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             # F3 consumer-only projection: copy produced bands without changing
             # calculations, existing manifests, checkpoints or output digests.
             from mta.presentation.pick_storage import write_pick_bands
-            calculation_digest=digest(output['CalculationOutputs'])
+            calculation_digest=(digest(output['CalculationOutputs']) if scoped is None
+                                else sources.calculation_digest)
             capture_policy = frozen_profile.get('operational_sources')
             if capture_policy is not None:
                 from mta.application.operational_capture import CAPTURE_POLICY
                 from mta.runtime.operational_source import write_source
                 if capture_policy != CAPTURE_POLICY:
                     raise ValueError('Unsupported operational source capture policy')
-                write_source(run, output['CalculationOutputs'], calculation_digest=calculation_digest)
+                if scoped is None:
+                    write_source(run, output['CalculationOutputs'], calculation_digest=calculation_digest)
+                else:
+                    from mta.runtime.operational_source import _write_source_rows
+                    _write_source_rows(run,sources.operational,calculation_digest=calculation_digest)
+            elif scoped is not None and sources.operational is not None:
+                raise ValueError('Unexpected scoped operational facts without opt-in')
             input_capture = frozen_profile.get('operational_input_sources')
             if input_capture is not None:
                 from mta.runtime.operational_input_source import write_input_source
@@ -185,13 +214,22 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
                 write_force_source(run, output.pop('_OperationalForceSources', None))
             elif '_OperationalForceSources' in output:
                 raise ValueError('Unexpected force capture without opt-in')
-            write_pick_bands(run, output['CalculationOutputs'],
-                             provenance={'origin': 'production-calculation'},calculation_digest=calculation_digest)
+            if scoped is None:
+                write_pick_bands(run, output['CalculationOutputs'],
+                                 provenance={'origin': 'production-calculation'},calculation_digest=calculation_digest)
+            else:
+                from mta.presentation.pick_storage import _write_pick_rows
+                _write_pick_rows(run,sources.pick_bands,provenance={'origin':'production-calculation'},
+                                 calculation_digest=calculation_digest)
             if run.production_manifest.get('version')==3:
                 from mta.runtime.report_sources import write_routes
-                run.production_manifest['report_sources']=dict(
-                    contract=output['_ReportBoundary'],routes=write_routes(run,output['CalculationOutputs'],
-                        output['ClosingState'][0]['orders']['SpikeOrderData']))
+                if scoped is None:
+                    routes=write_routes(run,output['CalculationOutputs'],
+                        output['ClosingState'][0]['orders']['SpikeOrderData'])
+                else:
+                    from mta.runtime.report_sources import _write_route_rows
+                    routes=_write_route_rows(run,sources.routes)
+                run.production_manifest['report_sources']=dict(contract=output['_ReportBoundary'],routes=routes)
             else:
                 from mta.presentation.excess_storage import write_excess
                 write_excess(run,output)
@@ -205,7 +243,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
             # environment flag must not independently enable an uncaptured write.
             if publication_opening is not None:
                 from mta.presentation.daily_sources import write_sources
-                write_sources(run, output, opening=publication_opening)
+                if scoped is None:
+                    write_sources(run, output, opening=publication_opening)
+                else:
+                    write_sources(run,output,opening=publication_opening,_sources=sources)
         if run.kind != 'DAILY_CHAIN':
             for name, rows in output.items():
                 Checkpoint.objects.create(run=run, name=name,
@@ -213,7 +254,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None):
         # Consuming captured MDM rows is part of the same committed boundary.
         # A readback/storage failure leaves both queues and run unconsumed.
         from mta.mdm.daily_input import finalize_consumption
-        finalize_consumption(run, output=output)
+        if scoped is None:
+            finalize_consumption(run, output=output)
         if typed:
             from mta.mdm.native_audit import finalize as finalize_native_audit
             finalize_native_audit(run)

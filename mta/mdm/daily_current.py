@@ -193,7 +193,7 @@ def verify_current(source, closing, *, version=None):
             raise ValueError('MDM current full typed readback differs: ' + path)
 
 
-def publish(run, capture, closing):
+def publish(run, capture, closing, *, _accepted_prefix=False):
     from mta.mdm.daily_source import APPROVAL_DAY_ARTIFACT_SHA, SCHEMA
     from mta.application.daily_finalization import ACTIVE_POLICY, POLICY, finish
     from mta.runtime.input_reader import read_input
@@ -230,6 +230,22 @@ def publish(run, capture, closing):
         admit(source, run.business_date, run.predecessor)
         version = VERSION
     batches, proof = _closing_projection(closing, version=version)
+    if _accepted_prefix:
+        from mta.runtime.scoped_final import require_pending_final
+        require_pending_final(run)
+        # Accepted Importer/BPR/DBM copies are compared in full, never repaired
+        # or silently overwritten at finalization. Only BTR remains to publish.
+        retained=[batch for batch in batches if batch[2].get('owner')!='BTR']
+        from mta.mdm.master_owners import phase_copy_batches
+        retained.extend(phase_copy_batches('BPR',closing['importer']))
+        retained.extend(phase_copy_batches('DBM',closing['dbm']))
+        for _family,model,partition,expected,path in retained:
+            fields=[f.name for f in business_fields(model)]
+            rows=list(model.objects.filter(source=source,**partition).order_by('ordinal')
+                      .values('ordinal',*fields))
+            ordinals=[row.pop('ordinal') for row in rows]
+            if ordinals!=list(range(1,len(expected)+1)) or storage(rows)!=storage(expected):
+                raise ValueError('Accepted scoped current partition differs: '+path)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_current_run',%s,true)", [str(run.pk)])
     try:
@@ -237,6 +253,8 @@ def publish(run, capture, closing):
             receipt = MdmClosingProjectionReceipt.objects.create(run=run,
                 capture_digest=capture_identity(capture), **code_identity)
         for _family, model, partition, rows, path in batches:
+            if _accepted_prefix and partition.get('owner')!='BTR':
+                continue
             _write_partition(source, model, partition, rows, path)
         if receipt is not None:
             receipt.metadata = dict(version=VERSION, partitions=_partition_identity(batches),
