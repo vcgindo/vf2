@@ -56,8 +56,9 @@ def is_revision_guard(function):
     owner_sets=import_module('mta.runtime.migrations.0168_report_guard_owner_sets').NEW_INGESTION
     scope_files=import_module('mta.runtime.migrations.0195_scope_pick_revision_ownership').NEW
     scope_capture=import_module('mta.runtime.migrations.0196_scope_pick_capture_key').NEW
+    scope_reports=import_module('mta.runtime.migrations.0198_scope_report_guards').NEW
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture) and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
 
 
