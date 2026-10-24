@@ -216,6 +216,7 @@ class ScopedActionTests(unittest.TestCase):
 
     def test_apply_after_dbm_keeps_norm_and_pending_acceptance_through_final(self):
         from mta.runtime.services import read_outputs
+        from mta.application.r1_norm_updates import apply_norm_updates
         self.pause_bpr(scope='UptoDBM')
         event=self.action('APPLY')
         immediate=self.state(self.bpr,event.pk)
@@ -226,6 +227,34 @@ class ScopedActionTests(unittest.TestCase):
         self.assertEqual(terminal['dbm']['DBMMaster'],immediate['DBMMaster'])
         self.assertEqual(terminal['dbm']['NormAcceptanceTbl'],immediate['NormAcceptanceTbl'])
         self.assertTrue(terminal['dbm']['NormAcceptanceTbl'])
+        # Exercise the actual accepted-norm consumer on persisted controls.
+        # This is a consumer seam proof, not a complete next-day execution.
+        updated=apply_norm_updates(terminal['controls'],'2037-04-11')
+        chosen=lambda rows:[row for row in rows if [row['SKUCode'],row.get('WhCode',row.get('WHCode'))]==self.selected[0]]
+        self.assertEqual(chosen(updated['accepted_checkpoint']['master'])[0]['Norm'],16)
+        self.assertEqual(chosen(updated['acceptance'])[0]['NewNorm'],16)
+
+    def test_post_dbm_sleep_after_apply_invalidates_acceptance_at_norm_consumer(self):
+        """Canonical UpdateAcceptedNorms deletes acceptance without Suggestions."""
+        from mta.runtime.services import read_outputs
+        from mta.runtime.temporal import command_states
+        from mta.application.r1_norm_updates import apply_norm_updates
+        self.pause_bpr(scope='UptoDBM')
+        applied=self.action('APPLY')
+        self.action('SLEEP',expected_revision=applied.pk,key='sleep-after-apply')
+        result=self.finish_post_dbm()
+        terminal=read_outputs(result,include_reports=False)['ClosingState'][0]
+        chosen=lambda rows:[row for row in rows if [row['SKUCode'],row.get('WhCode',row.get('WHCode'))]==self.selected[0]]
+        self.assertEqual(chosen(terminal['dbm']['DBMMaster'])[0]['Norm'],12)
+        self.assertEqual(chosen(terminal['dbm']['NormAcceptanceTbl'])[0]['NewNorm'],16)
+        self.assertEqual(chosen(terminal['dbm']['Suggestions']),[])
+        self.assertEqual(chosen(terminal['dbm']['NormsInSleepModeTbl']),[
+            dict(SKUCode=self.selected[0][0],WhCode=self.selected[0][1],StartDate='2037-04-10')])
+        next_opening,events=command_states(result,terminal)
+        self.assertEqual((next_opening,events),(terminal,[]))
+        updated=apply_norm_updates(next_opening['controls'],'2037-04-11')
+        self.assertEqual(chosen(updated['acceptance']),[])
+        self.assertEqual(chosen(updated['accepted_checkpoint']['master'])[0]['Norm'],12)
 
     def raw_header(self,key,**changes):
         from mta.runtime.models import RunCommand
