@@ -168,8 +168,9 @@ def save_image(run,image,binding,rows, *, table=None):
     return metadata
 
 
-def iter_image(run,item):
-    if item['table'] not in STORAGE_TABLES:raise ValueError('Unknown operational table')
+def iter_image(run,item, *, table_registry=None):
+    if item['table'] not in (STORAGE_TABLES if table_registry is None else table_registry):
+        raise ValueError('Unknown operational table')
     fields=item['fields']
     checksum=hashlib.sha256(b'[');count=0
     with connection.chunked_cursor() as cursor:
@@ -189,16 +190,17 @@ def iter_image(run,item):
         raise ValueError('Operational state value/type/multiplicity drift: '+item['image'])
 
 
-def load_image(run,item):
+def load_image(run,item, *, table_registry=None):
+    def records():return iter_image(run,item,table_registry=table_registry)
     if item['count'] > 10000:
         if os.environ.get('VF_WORK_ROOT'):
-            return RecordRows.from_rows(iter_image(run,item))
+            return RecordRows.from_rows(records())
         # Serving roots are read-only. Certify the complete immutable typed
         # image before returning, then rescan without an application spool.
         # Installer/daily workers use the existing writable disk cache above.
-        for _ in iter_image(run,item):pass
-        return RecordRows(item['count'],lambda:iter_image(run,item))
-    return list(iter_image(run,item))
+        for _ in records():pass
+        return RecordRows(item['count'],records)
+    return list(records())
 
 
 EXPORT_COPY_RECORDS=500

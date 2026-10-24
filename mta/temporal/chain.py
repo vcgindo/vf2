@@ -725,6 +725,7 @@ def produce_dbm(phase: BprDay) -> DbmDay:
             'Value': str(profile['calculation']['stock_configuration']['reservation_type'])})
     return DbmDay(
         context=context,
+        pick_source_digests=phase.pick_source_digests,
         importer=phase.importer,
         control_final=control_final,
         control_aux=phase.control_aux,
@@ -751,6 +752,23 @@ def produce_dbm(phase: BprDay) -> DbmDay:
 
 def produce_btr(phase: DbmDay):
     """Run BTR and the original full result/closing assembly; no persistence."""
+    if phase.calculated is None:
+        raise ValueError('Full BTR assembly requires the live calculation graph')
+    return _produce_btr(phase)
+
+
+def produce_btr_from_snapshot(phase: DbmDay, sources, *, pick_source_digests):
+    """Continue the typed phase without inventing discarded diagnostics."""
+    from mta.application.stage_calculation_sources import CalculationSources
+    from mta.temporal.day_phases import ScopedDayOutput
+    if (not phase.context.native_daily or phase.calculated is not None
+            or not isinstance(sources, CalculationSources)):
+        raise ValueError('Typed native continuation and its calculation sources required')
+    result = _produce_btr(phase, sources=sources, pick_source_digests=pick_source_digests)
+    return ScopedDayOutput(result, sources)
+
+
+def _produce_btr(phase: DbmDay, *, sources=None, pick_source_digests=None):
     from mta.serialization import digest
     from mta.application import daily_finalization
     context = phase.context
@@ -801,11 +819,13 @@ def produce_btr(phase: DbmDay):
             closing.setdefault('complete', {}).update({name: pick_state[name] for name in
                                   ('LogisticPickList', 'PickListDataForTruckFormation')})
         return closing
-    result = {'ClosingState':None,
-        'CalculationOutputs':[{'capability':n,'rows':v} for n,v in calculated.items()]}
+    result = {'ClosingState':None}
+    if sources is None:
+        result['CalculationOutputs'] = [{'capability':n,'rows':v} for n,v in calculated.items()]
     if pick_state is not None:
         from mta.serialization import digest
-        result['_PickSourceDigests'] = {name: digest(rows) for name, rows in pick_sources.items()}
+        result['_PickSourceDigests'] = ({name: digest(rows) for name, rows in pick_sources.items()}
+            if sources is None else pick_source_digests)
     if delivery is not None:
         from mta.domain.btr_finalization import btr_stages
         # BTR treats incoming facts as read-only and copies its mutated tables.
@@ -818,7 +838,7 @@ def produce_btr(phase: DbmDay):
         # expedite population. Reuse the accepted R1 Pick membership producer;
         # an opening/current-day prepared expedite result is never the input.
         pick_keys = {(r['sku_code'], r['location_code'], r['parent_location_code'])
-                     for r in calculated['r1_ration_bifurcation']}
+                     for r in (calculated['r1_ration_bifurcation'] if sources is None else sources.pick_bands)}
         master_by_key = {}
         for m in importer['MasterData']:
             master_by_key.setdefault((m['SKUCode'], m['WhCode']), []).append(m)

@@ -4,7 +4,7 @@ These values are calculation state only: they do not assert persistence,
 publication readiness, consumption, or run completion. Mutable producer tables
 retain their existing owners; a handoff retains only later consumers' inputs.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 
 
@@ -41,6 +41,7 @@ class DayPhase:
     delivery: Any
     supplier_sob: Any
     supplier_moq: Any
+    pick_source_digests: Any = field(default=None, kw_only=True)
 
 
 @dataclass(slots=True)
@@ -82,3 +83,14 @@ class DbmDay(DayPhase):
     pick_sources: Any
     final_dbm: Any
     reports: Any
+
+
+@dataclass(frozen=True, slots=True)
+class ScopedDayOutput:
+    """Terminal producer state plus original finite calculation consumers.
+
+    This is deliberately distinct from the Full result passed to finish_run.
+    It cannot claim reconstruction of discarded CalculationOutputs diagnostics.
+    """
+    output: Any
+    calculation_sources: Any

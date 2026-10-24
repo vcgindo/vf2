@@ -1317,3 +1317,4 @@ from mta.runtime.native_audit_models import (NativeUploadAudit, NativeAuditAdd,
     NativeAuditSob, NativeAuditMoq, NativeAuditForce)
 
 from mta.runtime.report_generation_models import DailyReportGeneration, DailyReportOrderRouteSource
+from mta.runtime.phase_state_models import DailyPhaseSnapshot
