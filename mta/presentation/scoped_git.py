@@ -19,7 +19,7 @@ ORDER=('rationed_ordinal','standard_ordinal','transporter_ordinal','sku_descript
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
-        models=inspect.getsource(models),producer=planning_git_preparation.production_recipe_digest(),
+        models=inspect.getsource(models),producer=planning_git_preparation.scoped_recipe_digest(),
         dimensions=planning_git_preparation.DIMENSIONS,
         fields=[models.ScopeGitOccurrence._meta.get_field(f).deconstruct() for f in FIELDS]))
 
@@ -201,7 +201,7 @@ def prepare(report_generation_id,*,expected_report_digest,expected_source_digest
         transit_generation_digest=expected_transit_digest)
     with _owner(row.pk):
         row.save(force_insert=True)
-        query,params=planning_git_preparation.production_git_occurrences(prepared.sources.run,read_binding=prepared)
+        query,params=planning_git_preparation.scoped_git_occurrences(prepared.sources.run,read_binding=prepared)
         selected=[f for f in FIELDS if f!='ordinal']
         with connection.cursor() as cursor:
             cursor.execute('INSERT INTO mta.fresh_mta_scopegitoccurrence (generation_id,ordinal,'+

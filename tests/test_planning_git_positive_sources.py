@@ -16,6 +16,18 @@ from mta.presentation.context import PublicationUnavailable
 
 
 class PositiveGitLocationSourcesTests(unittest.TestCase):
+    def test_full_recipe_retains_protected_serving_identity(self):
+        # Read-only serving witness, run49efa557, before the scoped adapter:
+        # g2/git-compatibility-protected-receipt-before.json. A recipe mismatch
+        # must fail; production admission still calculates this strict digest.
+        self.assertEqual(preparation.production_recipe_digest(),
+            '558f12c3ee170daa517d695026e18da7fd8d035a169b659dec3615d67f82fd97')
+
+    def test_explicit_scoped_builder_denies_missing_binding_before_full_sources(self):
+        with patch.object(preparation,'admitted_sources',side_effect=AssertionError('Full fallback')), \
+                self.assertRaisesRegex(PublicationUnavailable,'scoped_binding_required'):
+            preparation.scoped_git_occurrences(SimpleNamespace(),read_binding=None)
+
     @staticmethod
     def scopes():
         class Codes(set):pass

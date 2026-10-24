@@ -46,9 +46,9 @@ class ScopedGitTests(unittest.TestCase):
             PermissionCodes({'OWN-WH8':3,'OWN-PARENT':3}))
 
     def occurrences(self,bound=None):
-        from mta.presentation.planning_git_preparation import production_git_occurrences
+        from mta.presentation.planning_git_preparation import scoped_git_occurrences
         from django.db import connection
-        query,params=production_git_occurrences(self.run,read_binding=bound or self.bound)
+        query,params=scoped_git_occurrences(self.run,read_binding=bound or self.bound)
         with connection.cursor() as cursor:
             cursor.execute(query,params);names=[c[0] for c in cursor.description]
             return [dict(zip(names,r)) for r in cursor.fetchall()]
@@ -66,7 +66,7 @@ class ScopedGitTests(unittest.TestCase):
         self.assertTrue(all(r['grid_eligible'] for r in rows))
         self.assertTrue(all(r['parent_description'] is not None for r in rows))
         relations=dict(git_master=self.bound.query('git_master'))
-        query,params=producer.production_git_occurrences(self.run,read_binding=self.bound)
+        query,params=producer.scoped_git_occurrences(self.run,read_binding=self.bound)
         with patch.object(producer,'admitted_sources',return_value=relations), \
                 patch.object(producer,'image_query',side_effect=lambda run,path:self.bound.image_query(path)):
             default,default_params=producer.production_git_occurrences(self.run)
