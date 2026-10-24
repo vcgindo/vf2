@@ -66,3 +66,15 @@ class RunPhaseAcceptance(models.Model):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['run', 'phase'],
                                                name='fresh_business_phase_identity')]
+
+
+class ScopePickFiles(models.Model):
+    """Derived four-file receipt; accepts no business work or whole-scope readiness."""
+    phase = models.OneToOneField(RunPhaseAcceptance, primary_key=True,
+        on_delete=models.PROTECT, related_name='pick_files')
+    source_digest = models.CharField(max_length=64)
+    recipe_digest = models.CharField(max_length=64)
+    directory = models.UUIDField(default=uuid.uuid4)
+    files = models.JSONField()  # finite names, byte lengths and checksums only
+    digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)

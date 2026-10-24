@@ -29,7 +29,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         from django.db import transaction
         transaction.set_rollback(True);self.atomic.__exit__(None,None,None)
 
-    def owner(self,*,claim=True,operational=False,report_mode=None,predecessor=None):
+    def owner(self,*,claim=True,operational=False,report_mode=None,predecessor=None,pick_root=None):
         from django.db import connection
         from mta.serialization import digest,storage
         from mta.mdm.daily_source import SCHEMA,APPROVAL_DAY_ARTIFACT_SHA
@@ -111,6 +111,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         opening['profile']['daily_publication']=True
         raw=dict(profile=opening['profile'],lineage=dict(schema='supplied-component-lineage-v1'),opening=dict(identity='component-prepared',
             opening_date=opening_date,state=prior),day=day,mdm_input=snapshot)
+        if pick_root is not None:raw['pick_output_root']=str(pick_root)
         self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date=today,predecessor=predecessor,
             execution_revision='prepared-effects-'+identity.hex,input_digest=digest(raw),input_payload={})
         self.run.input_payload=save_input(self.run,raw,table_selector=input_table)

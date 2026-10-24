@@ -8,7 +8,7 @@ from importlib import import_module
 
 NAMES = frozenset(('accepted_rows_insert', 'accepted_rows_update', 'accepted_rows_delete',
     'accepted_no_truncate', 'terminal_run_immutable', 'zz_accepted_command_seal',
-    'accepted_command_complete'))
+    'accepted_command_complete', 'scope_pick_files_no_truncate'))
 
 
 def verify_guards(cursor, *, required=True):
@@ -65,9 +65,15 @@ def verify_guards(cursor, *, required=True):
         'terminal_run_immutable': (27, 0, None, None, False, 'guard_terminal_run'),
         'zz_accepted_command_seal': (31, 0, None, None, False, 'guard_command_seal'),
         'accepted_command_complete': (5, 0, None, None, True, 'require_command_complete'),
+        'scope_pick_files_no_truncate': (34, 0, None, None, False, 'deny_accepted_truncate'),
     }
     expected = []
-    for schema, table, name in sorted(frozen.TRIGGERS):
+    participants=list(frozen.TRIGGERS)
+    cursor.execute("SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' "
+                   "AND name='0194_scope_pick_file_truncate'")
+    if cursor.fetchone() is not None:
+        participants.append(('mta','fresh_mta_scopepickfiles','scope_pick_files_no_truncate'))
+    for schema, table, name in sorted(participants):
         kind, nargs, old, new, deferred, function = specs[name]
         argument = ('vf_run_id' if schema == 'mta_state' else 'run_id') + '\\000' if nargs else ''
         expected.append((schema, table, name, 'O', kind, nargs, argument, None, '', old, new,
