@@ -13,10 +13,11 @@ def fetch(query,params):
         return [dict(zip(names,row)) for row in c.fetchall()]
 
 
-def queries(run,payload,kind):
+def queries(run,payload,kind,*,read_binding=None):
     if kind not in ('parent','child'):raise ValueError('Unsupported Expedite chart direction')
-    admit(run)
-    importer,manifest=_projected_attributes(run)
+    if read_binding is None:admit(run)
+    else:admit(run,read_binding=read_binding)
+    importer,manifest=(_projected_attributes(run) if read_binding is None else (read_binding.attributes(),None))
     if manifest:raise PublicationUnavailable('planning_expedite_chart_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
     permission_ctes=[];permission_params=[]
@@ -28,18 +29,24 @@ def queries(run,payload,kind):
         else:permission_ctes.append(alias+'(code,weight) AS (SELECT NULL::text,0::bigint WHERE FALSE)')
     tables={}
     for family in (('critical','receiving','nil_stock','chronic') if kind=='parent' else ('critical','receiving')):
+        member_source='mta.fresh_mta_planningexpeditechartmember';fact_source='mta.fresh_mta_expediterow'
+        family_ctes=[];family_params=[]
+        if read_binding is not None:
+            query,values=read_binding.query('chart');family_ctes.append('chart_members AS ('+query+')');family_params.extend(values)
+            query,values=read_binding.fact_query('ExpediteDispatches');family_ctes.append('facts AS ('+query+')');family_params.extend(values)
+            member_source='chart_members';fact_source='facts'
         loc='ParentWhCode' if kind=='child' and family=='critical' else 'WhCode'
         selected=('SELECT H.*,P.weight*L.weight AS weight,A."BRAgeRedCount" AS red,A."BRAgeBlackCount" AS black,'
             'A."PipelineInventoryPen" AS pen,S."WhCode" AS wh,S."ParentWhCode" AS parent,'
             +key('S."WhCode"')+' AS whkey,'+key('S."ParentWhCode"')+' AS parentkey,'
             'CASE WHEN S."RationedQty">0 AND '+key('S."PipelineInventoryColor"')+" IN ('black','red') THEN 1 ELSE 0 END AS critical "
-            'FROM mta.fresh_mta_planningexpeditechartmember H '
-            'JOIN mta.fresh_mta_expediterow S ON S.run_id=H.run_id AND S.ordinal=H.scope_ordinal '
-            'JOIN mta.fresh_mta_expediterow A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal '
+            'FROM '+member_source+' H '
+            'JOIN '+fact_source+' S ON S.run_id=H.run_id AND S.ordinal=H.scope_ordinal '
+            'JOIN '+fact_source+' A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal '
             'JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."'+loc+'" '
             'WHERE H.run_id=%s AND H.direction=%s AND H.family=%s')
-        params=[*permission_params,run.pk,kind,family]
-        ctes=[*permission_ctes,'selected AS ('+selected+')']
+        params=[*permission_params,*family_params,run.pk,kind,family]
+        ctes=[*permission_ctes,*family_ctes,'selected AS ('+selected+')']
         display='code,replace(description,\'\'\'\',\'\') AS "Details",logisticslocation AS "LogisticsLocation",ll1,ll2,ll3,ll4,ll5'
         if family=='receiving':
             ctes.append('windowed AS (SELECT *,sum(critical*weight) OVER (PARTITION BY whkey,parentkey)::integer AS paircount,'
@@ -70,20 +77,30 @@ def queries(run,payload,kind):
         tables[family]=rows
     bands=('Black','Red','Yellow','Green','White','Blue')
     tables['pre_post']=[]
-    pick,pick_params=production_pick_query(run)
+    pick,pick_params=(production_pick_query(run) if read_binding is None else read_binding.pick_query())
     # Native Pick membership ordinals are the same occurrence identity used
     # by the sealed Post-Pick projection. Never read the fixture staging table.
     pick_cte=('Q AS (SELECT K.*,Z."PostPipelineInventoryColor" FROM ('+pick+') K '
         'JOIN mta.fresh_mta_pickpostrow Z ON Z.run_id=%s AND Z.ordinal=K.vf_source_ordinal)')
+    pick_values=[*pick_params,run.pk]
+    prepost_source='mta.fresh_mta_planningexpediteprepostmember';member_ctes=[];member_params=[]
+    if read_binding is not None:
+        post,post_params=read_binding.fact_query('PickPost')
+        pick_cte=('Q AS (SELECT K.*,Z."PostPipelineInventoryColor" FROM ('+pick+') K '
+            'JOIN ('+post+') Z ON Z.run_id=%s AND Z.ordinal=K.vf_source_ordinal)')
+        pick_values=[*pick_params,*post_params,run.pk]
+        if kind=='parent':
+            query,values=read_binding.query('prepost');member_ctes=['prepost_members AS ('+query+')'];member_params=values
+            prepost_source='prepost_members'
     for state,field in [('Pre','DispatchColor'),('Post','PostPipelineInventoryColor')]:
         if kind=='parent':
-            joins=(' FROM mta.fresh_mta_planningexpediteprepostmember H JOIN Q S ON S.vf_source_ordinal=H.scope_ordinal '
+            joins=(' FROM '+prepost_source+' H JOIN Q S ON S.vf_source_ordinal=H.scope_ordinal '
                 'JOIN Q T ON T.vf_source_ordinal=H.fact_ordinal JOIN P ON P.code=S."SKUCode" JOIN L ON L.code=S."WhCode" WHERE H.run_id=%s')
-            weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,*pick_params,run.pk,run.pk]
+            weight='P.weight*L.weight*H.multiplicity';params=[*permission_params,*member_params,*pick_values,run.pk]
         else:
             joins=(' FROM Q T JOIN P ON P.code=T."SKUCode" JOIN L ON L.code=T."WhCode" WHERE NOT '+equal('T."WhCode"','T."ParentWhCode"'))
-            weight='P.weight*L.weight';params=[*permission_params,*pick_params,run.pk]
+            weight='P.weight*L.weight';params=[*permission_params,*pick_values]
         columns=','.join('COALESCE(sum(CASE WHEN '+key('T."'+field+'"')+"='"+band.lower()+"' THEN "+weight+' ELSE 0 END),0)::integer AS "'+band+'Count"' for band in bands)
-        row=fetch('WITH '+','.join([*permission_ctes,pick_cte])+' SELECT '+columns+joins,params)[0]
+        row=fetch('WITH '+','.join([*permission_ctes,*member_ctes,pick_cte])+' SELECT '+columns+joins,params)[0]
         tables['pre_post'].append(dict(state=state,**row,TotalCount=0))
     return tables

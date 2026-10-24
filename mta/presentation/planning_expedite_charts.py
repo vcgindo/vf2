@@ -8,7 +8,10 @@ from mta.runtime.models import PlanningExpediteChartProjection
 from mta.runtime.planning_expedite_chart_schema import verify_guards
 
 
-def admit(run):
+def admit(run,*,read_binding=None):
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        return require_binding(run,read_binding)
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if daily:

@@ -2,6 +2,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from contextlib import ExitStack
 from unittest.mock import patch
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -14,11 +15,17 @@ from mta.presentation.context import PublicationUnavailable
 
 class PlanningExpediteGridsTests(unittest.TestCase):
     def setUp(self):
-        self.run = SimpleNamespace(pk='fixture', kind='LEGACY_UI_FIXTURE', business_date='2026-04-07')
+        self.run = SimpleNamespace(pk='daily', kind='DAILY_CHAIN', business_date='2037-04-10')
         self.receipt = SimpleNamespace(source_digest='source', recipe_digest='recipe')
+        self.stack=ExitStack();self.addCleanup(self.stack.close)
+        def source(run):
+            if run.pk!=self.run.pk or run.business_date!=self.run.business_date:
+                raise PublicationUnavailable('daily_source_identity_differs')
+            return 'source'
+        self.stack.enter_context(patch('mta.presentation.daily_preparation.source_digest',side_effect=source))
 
     def test_admitted_relations_are_run_bounded_without_reconstructing_sources(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with patch('mta.presentation.daily_preparation.production_branch',side_effect=lambda run:run.kind=='DAILY_CHAIN'), \
                 patch.object(subject.PlanningExpediteGridProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards') as guards:
@@ -27,12 +34,12 @@ class PlanningExpediteGridsTests(unittest.TestCase):
             self.assertEqual(set(relations), {'row'})
             for sql, params in relations.values():
                 self.assertIn('WHERE run_id=%s', sql)
-                self.assertEqual(params, ['fixture'])
+                self.assertEqual(params, ['daily'])
                 self.assertNotIn('JOIN', sql)
             guards.assert_called_once()
 
     def test_missing_or_changed_receipt_is_unavailable(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with patch('mta.presentation.daily_preparation.production_branch',side_effect=lambda run:run.kind=='DAILY_CHAIN'), \
                 patch.object(subject.PlanningExpediteGridProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards') as guards:
@@ -44,7 +51,7 @@ class PlanningExpediteGridsTests(unittest.TestCase):
             guards.assert_not_called()
 
     def test_changed_guard_is_unavailable(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with patch('mta.presentation.daily_preparation.production_branch',side_effect=lambda run:run.kind=='DAILY_CHAIN'), \
                 patch.object(subject.PlanningExpediteGridProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards', side_effect=ValueError('drift')):
@@ -53,11 +60,11 @@ class PlanningExpediteGridsTests(unittest.TestCase):
                 subject.admitted_expedite_grids(self.run)
 
     def test_other_run_kind_or_day_is_rejected_before_receipt_read(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with patch('mta.presentation.daily_preparation.production_branch',side_effect=lambda run:run.kind=='DAILY_CHAIN'), \
                 patch.object(subject.PlanningExpediteGridProjection.objects, 'filter') as receipts:
             for pk, kind, day in [('other', 'LEGACY_UI_FIXTURE', '2026-04-07'),
                                   ('fixture', 'DAILY_CHAIN', '2026-04-07'),
                                   ('fixture', 'LEGACY_UI_FIXTURE', '2026-06-17')]:
-                with self.assertRaisesRegex(PublicationUnavailable, 'wrong_fixture'):
+                with self.assertRaisesRegex(PublicationUnavailable, 'removed_historical_mode|daily_source_identity_differs'):
                     subject.admitted_expedite_grids(SimpleNamespace(pk=pk, kind=kind, business_date=day))
             receipts.assert_not_called()

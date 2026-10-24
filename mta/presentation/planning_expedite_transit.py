@@ -26,7 +26,7 @@ def admit(run):
         raise PublicationUnavailable('planning_expedite_transit_guards_changed') from exc
 
 
-def transit_query(run, branch, eligible_sql, eligible_params):
+def transit_query(run, branch, eligible_sql, eligible_params,*,read_binding=None):
     """Private caller supplies an ordinal relation for the FULL filtered parent CTE.
 
     It must precede pagination. Scope multiplicity collapses in the canonical
@@ -34,8 +34,20 @@ def transit_query(run, branch, eligible_sql, eligible_params):
     """
     if branch not in ('dispatch','availability'):
         raise ValueError('Unknown parent Expedite transit branch')
-    admit(run)
     join = 'LEFT JOIN' if branch == 'dispatch' else 'JOIN'
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        bound=require_binding(run,read_binding)
+        matches,mp=bound.parent.query('match');base,bp=bound.parent.query('base')
+        query=('WITH eligible AS ('+eligible_sql+'), matches AS ('
+            'SELECT M.base_ordinal,M.parent_stock FROM ('+matches+') M '
+            'JOIN eligible E ON E.ordinal=M.grid_ordinal WHERE M.branch=%s), '
+            'grouped AS (SELECT DISTINCT ON (B.sku_key,B.location_key,B.rlt,B.remark_key,M.parent_stock) '
+            'B.sku_code AS skucode,B.location_code AS whcode,M.parent_stock AS slt,B.rlt AS eta,'
+            "COALESCE(B.remark,' ') AS remarks FROM ("+base+') B '+join+' matches M ON M.base_ordinal=B.ordinal '
+            'WHERE B.run_id=%s ORDER BY B.sku_key,B.location_key,B.rlt,B.remark_key,M.parent_stock,B.ordinal) SELECT * FROM grouped')
+        return query,[*eligible_params,*mp,branch,*bp,run.pk]
+    admit(run)
     query = ('WITH eligible AS ('+eligible_sql+'), matches AS ('
         'SELECT M.base_ordinal,M.parent_stock FROM mta.fresh_mta_planningexpeditetransitmatch M '
         'JOIN eligible E ON E.ordinal=M.grid_ordinal WHERE M.run_id=%s AND M.branch=%s), '
@@ -47,8 +59,8 @@ def transit_query(run, branch, eligible_sql, eligible_params):
     return query,[*eligible_params,run.pk,branch,run.pk]
 
 
-def transit_rows(run, branch, eligible_sql, eligible_params):
-    query, params = transit_query(run,branch,eligible_sql,eligible_params)
+def transit_rows(run, branch, eligible_sql, eligible_params,*,read_binding=None):
+    query, params = transit_query(run,branch,eligible_sql,eligible_params,read_binding=read_binding)
     with connection.cursor() as c:
         c.execute(query,params)
         names = [column[0] for column in c.description]

@@ -9,13 +9,16 @@ from mta.runtime.planning_expedite_grid_schema import verify_guards
 from mta.runtime.relational_state import quote
 
 
-def admitted_expedite_grids(run, *, validated_fixture=None):
+def admitted_expedite_grids(run, *, validated_fixture=None,read_binding=None):
     """Resolve one request's source binding using the established sealed-read rule.
 
     Full checksum traversal belongs to preparation/readback verification. Serving
     reads verify immutable guards and the recipe/source receipt, as the existing
     BPR prepared reader does. Permission/filter decisions remain with consumers.
     """
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        return {'row':require_binding(run,read_binding).query('grid')}
     from mta.presentation.daily_preparation import production_branch
     if production_branch(run):
         from mta.presentation.daily_preparation import source_digest

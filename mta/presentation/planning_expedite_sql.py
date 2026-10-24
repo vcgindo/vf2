@@ -30,9 +30,13 @@ DISPLAY.update({p+str(i):'H.'+p+str(i) for p in ('sl','ll') for i in (1,2,3)})
 FIELDS = [*ALIASES,*DISPLAY]
 
 
-def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scope=None):
+def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scope=None,read_binding=None):
     """One complete scope/filter relation shared by paging and nested transit."""
-    importer, manifest = _projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        require_binding(run,read_binding)
+    importer, manifest = ((_projected_attributes(run) if read_binding is None else (read_binding.attributes(),None))
+        if resolved_scope is None else resolved_scope[:2])
     if manifest:
         raise PublicationUnavailable('planning_expedite_native_hierarchy_required')
     if child:
@@ -47,9 +51,14 @@ def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scop
     filters = ExpediteFilters(filtered,'expedite-parent',ExpediteRow)
     where = filters.compile()
     products, locations = scope(payload,attributes=importer) if resolved_scope is None else resolved_scope[2:]
-    relation, params = admitted_expedite_grids(run)['row']; params = list(params)
-    standard, values = image_query(run,'closing/dbm/SKULocStandardAttributes')
+    relation, params = admitted_expedite_grids(run,read_binding=read_binding)['row']; params = list(params)
+    standard, values = (image_query(run,'closing/dbm/SKULocStandardAttributes') if read_binding is None
+        else read_binding.image_query('closing/dbm/SKULocStandardAttributes'))
     ctes = ['H AS ('+relation+')','S AS NOT MATERIALIZED ('+standard+')'];params.extend(values)
+    fact='mta.fresh_mta_expediterow'
+    if read_binding is not None:
+        query,values=read_binding.fact_query('ExpediteDispatches');ctes.append('facts AS ('+query+')');params.extend(values)
+        fact='facts'
     for alias,codes in (('P',products),('L',locations)):
         members = sorted(codes)
         if members:
@@ -57,12 +66,13 @@ def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scop
             params.extend(v for code in members for v in (code,codes.multiplicities[code]))
         else:
             ctes.append(alias+'(code,weight) AS (SELECT NULL::text,0::bigint WHERE FALSE)')
-    joins = (' FROM H JOIN mta.fresh_mta_expediterow A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal '
+    joins = (' FROM H JOIN '+fact+' A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal '
              'JOIN P ON P.code=A."SKUCode" JOIN L ON L.code=A.'+quote('ParentWhCode' if child and count_direction!='parent' else 'WhCode')+' '
              'LEFT JOIN S ON S.vf_ordinal=H.standard_ordinal')
     for alias,table,ordinal in [('B','SkuLocAttributeData','pair_ordinal'),('C','SkuAttributeData','sku_ordinal'),('D','LocationAttributeData','location_ordinal')]:
         if alias not in filters.owners and not (child and alias=='D' and filters.children): continue
-        query, values = image_query(run,'closing/importer/'+table)
+        query, values = (image_query(run,'closing/importer/'+table) if read_binding is None
+            else read_binding.image_query('closing/importer/'+table))
         ctes.append(alias+' AS NOT MATERIALIZED ('+query+')');params.extend(values)
         if alias in filters.owners:
             joins += ' LEFT JOIN '+alias+' ON '+alias+'.vf_ordinal=H.'+ordinal
@@ -95,14 +105,14 @@ def selected_parent(run,payload,*,child=False,count_direction=None,resolved_scop
     return 'WITH '+','.join(ctes)+' '+selected,params
 
 
-def counts(run,payload,*,resolved_scope=None):
+def counts(run,payload,*,resolved_scope=None,read_binding=None):
     direction=str(payload.get('type','')).casefold()
     if direction not in ('parent','child'):
         raise ValueError('Unsupported Expedite direction')
     availability=(payload.get('filters') or {}).get('availabilityFilter') or {}
     if any(item.get('attributeName','').lower()=='norm' for item in availability.get('filters',[])):
         raise PublicationUnavailable('expedite_count_norm_filter_contract_unverified')
-    selected,params=selected_parent(run,payload,child=True,count_direction=direction,resolved_scope=resolved_scope)
+    selected,params=selected_parent(run,payload,child=True,count_direction=direction,resolved_scope=resolved_scope,read_binding=read_binding)
     result=dict(expediteDispatches=0,createAvailabilityAtParent=0)
     with connection.cursor() as c:
         c.execute('WITH selected AS ('+selected+') SELECT branch,sum(weight)::integer FROM selected GROUP BY branch',params)
@@ -111,11 +121,11 @@ def counts(run,payload,*,resolved_scope=None):
     return result
 
 
-def parent_grid(run,payload):
+def parent_grid(run,payload,*,read_binding=None):
     from mta.presentation.expedite_read import PARENT_COLUMNS
     from mta.presentation.excess_read import pagination
     paging = pagination(payload)
-    selected, params = selected_parent(run,payload)
+    selected, params = selected_parent(run,payload,read_binding=read_binding)
     from mta.presentation.logistics_live import enabled as logistics_enabled
     target_fields=['parentWhCode'] if logistics_enabled() else []
     with transaction.atomic(), connection.cursor() as c:
@@ -155,27 +165,32 @@ def parent_grid(run,payload):
             values['parentWhCode']=row['parentWhCode']
         result[target].append(values)
     for branch,target in [('dispatch','expediteDispatchestransit'),('availability','createAvailabilityAtParenttransit')]:
-        result[target] = transit_rows(run,branch,'WITH selected AS ('+selected+') SELECT ordinal FROM selected WHERE branch=%s',[*params,branch])
+        result[target] = transit_rows(run,branch,'WITH selected AS ('+selected+') SELECT ordinal FROM selected WHERE branch=%s',[*params,branch],read_binding=read_binding)
     return dict(data=result,uiConfig=[dict(header=h,colCode=c,colPosition=p) for h,c,p in PARENT_COLUMNS])
 
 
-def child_grid(run, payload):
+def child_grid(run, payload,*,read_binding=None):
     from datetime import datetime, time, timedelta
     from mta.presentation.expedite_read import PARENT_COLUMNS
     from mta.presentation.excess_read import pagination
     from mta.presentation.planning_expedite_requests import empty_requests
     from mta.presentation.daily_preparation import production_branch
-    daily = production_branch(run)
-    transit = __import__('mta.presentation.daily_preparation', fromlist=['ancillary_row']).ancillary_row(run, 'InTransitData') if daily else removed_mode('historical_fixture')
-    if daily:
-        from mta.presentation.logistics_live import serving_transit_rows
-        transit = serving_transit_rows(run, transit)
-    requests = empty_requests(run)
+    if read_binding is None:
+        daily = production_branch(run)
+        transit = __import__('mta.presentation.daily_preparation', fromlist=['ancillary_row']).ancillary_row(run, 'InTransitData') if daily else removed_mode('historical_fixture')
+        if daily:
+            from mta.presentation.logistics_live import serving_transit_rows
+            transit = serving_transit_rows(run, transit)
+        requests = empty_requests(run)
+    else:
+        from mta.presentation.scoped_expedite import require_binding
+        requests,transit=require_binding(run,read_binding).child_sources
+        daily=True
     if not daily and (requests or transit):
         raise PublicationUnavailable('child_expedite_requires_approved_empty_request_and_transit_inputs')
     from mta.presentation.expedite_child_sources import projections
     nested = projections(requests, transit)
-    selected, params = selected_parent(run, payload, child=True)
+    selected, params = selected_parent(run, payload, child=True,read_binding=read_binding)
     fields = [*FIELDS, 'sap', 'ec', 'rlt', 'sl4', 'sl5', 'll4', 'll5', 'pk']
     from mta.presentation.logistics_live import enabled as logistics_enabled
     target_fields = ['parentWhCode'] if logistics_enabled() else []

@@ -20,10 +20,17 @@ PARENT_COLUMNS = (
 )
 
 
-def parent_grid(payload):
+def parent_grid(payload,*,read_binding=None):
     from mta.presentation.context import scope
     from mta.presentation.excess_read import pagination
     from mta.presentation.expedite_parent import parent_filter, parent_rows
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        run=read_binding.sources.run;require_binding(run,read_binding)
+        if pagination(payload) is None:
+            raise PublicationUnavailable('LEG-EXPEDITE-PARENT-UNPAGED-SQL156: legacy empty-success; NOT_PARITY')
+        from mta.presentation.planning_expedite_sql import parent_grid as prepared_parent_grid
+        return prepared_parent_grid(run,payload,read_binding=read_binding)
     run = selected_run()
     from mta.presentation.logistics_live import enabled as logistics_enabled
     from mta.presentation.daily_preparation import production_branch
@@ -40,7 +47,12 @@ def parent_grid(payload):
     return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=p) for h, c, p in PARENT_COLUMNS])
 
 
-def custom_grid(payload):
+def custom_grid(payload,*,read_binding=None):
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        run=read_binding.sources.run;require_binding(run,read_binding)
+        from mta.presentation.planning_expedite_custom_sql import custom_grid as prepared_custom_grid
+        return prepared_custom_grid(run,payload,read_binding=read_binding)
     run = selected_run()
     from decimal import Decimal
     from mta.presentation.context import scope
@@ -59,7 +71,7 @@ def custom_grid(payload):
     return dict(data=data, uiConfig=[dict(header=h, colCode=c, colPosition=p) for h, c, p in CUSTOM_COLUMNS])
 
 
-def child_grid(payload):
+def child_grid(payload,*,read_binding=None):
     from django.conf import settings
     from mta.presentation.context import scope
     from mta.presentation.excess_read import pagination
@@ -71,6 +83,11 @@ def child_grid(payload):
     availability = (payload.get('filters') or {}).get('availabilityFilter') or {}
     if any((item.get('attributeName', '').lower() == 'norm' for item in availability.get('filters', []))):
         raise PublicationUnavailable('child_expedite_norm_filter_contract_unverified')
+    if read_binding is not None:
+        from mta.presentation.scoped_expedite import require_binding
+        run=read_binding.sources.run;require_binding(run,read_binding)
+        from mta.presentation.planning_expedite_sql import child_grid as prepared_child_grid
+        return prepared_child_grid(run,payload,read_binding=read_binding)
     run = selected_run()
     from mta.presentation.daily_preparation import production_branch
     if production_branch(run):
