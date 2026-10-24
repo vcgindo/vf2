@@ -50,6 +50,7 @@ def _accept_calculation(attempt_id, worker_token, phase, sources, *, parent,
     if (kind is None or type(sources) is not CalculationSources
             or not phase.context.native_daily or phase.context.identity!=str(run.pk)
             or phase.context.today!=run.business_date.isoformat()
+            or phase.context.action_revision!=(attempt.action_revision if kind=='DBM' else 0)
             or digest(phase.context.profile)!=digest(profile)
             or phase.context.finalization!=configuration(profile)):
         raise ValueError('Calculation acceptance requires its exact native producer')

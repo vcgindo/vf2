@@ -97,7 +97,7 @@ def command_state(run, state, *, through_date=None, domain='dbm'):
     state=deepcopy(state)
     receipts=[]
     last_date=run.business_date
-    for event in run.commands.order_by('id'):
+    for event in run.commands.filter(phase_acceptance__isnull=True).order_by('id'):
         if digest(event.payload)!=event.digest:
             raise ValueError('Command input/ordering drift')
         command=event.payload

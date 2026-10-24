@@ -100,12 +100,14 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
     elif RunScopeAttempt.objects.filter(run=run, command_key=command_key).exists():
         raise ValueError('Existing command requires its recorded result or explicit recovery')
     from mta.runtime import scope_revisions as revisions
+    from mta.runtime.scoped_actions import revision
     before=revisions.require_current(run)
     attempt=RunScopeAttempt.objects.create(run=run, scope=scope, command_key=command_key,
         worker_reference=worker_reference, compatibility_digest=compatibility_digest,
         expected_phase=expected_phase, expected_receipt_digest=expected_receipt_digest,
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
         attempt_no=previous.attempt_no+1 if previous else 1, recovery_of=previous,
+        action_revision=revision(run),
         revision_before=before,revision_after=revisions.next_cut(before))
     revisions.verify_write(run,attempt.revision_after)
     return attempt
@@ -116,6 +118,9 @@ def require_claim(attempt_id, worker_token, *, compatibility_digest):
     attempt,run=_locked_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
     from mta.runtime.scope_revisions import require_current
     require_current(run)
+    from mta.runtime.scoped_actions import revision
+    if attempt.action_revision!=revision(run):
+        raise ValueError('Scoped worker action revision changed')
     return attempt,run
 
 
@@ -208,6 +213,8 @@ def _seal_phase(receipt, snapshot, *, effect_digest, partitions, effects=None):
         effect_digest=effect_digest, partitions=partitions)
     if effects is not None:
         receipt.metadata['effects'] = effects
+    if receipt.attempt.action_revision:
+        receipt.metadata['action_revision']=receipt.attempt.action_revision
     from mta.runtime import scope_revisions as revisions
     after=revisions.next_cut(revisions.owned_position(receipt.run))
     if after is not None:receipt.metadata['revision_after']=after
@@ -245,6 +252,8 @@ def _seal_day_final(receipt):
         parent_acceptance_digest=parent_digest,output_digest=run.output_digest,
         production_digest=run.production_digest,input_manifest_digest=run.input_manifest_digest,
         compatibility_digest=receipt.attempt.compatibility_digest)
+    if receipt.attempt.action_revision:
+        receipt.metadata['action_revision']=receipt.attempt.action_revision
     after=revisions.next_cut(revisions.owned_position(run))
     if after is not None:receipt.metadata['revision_after']=after
     receipt.digest=receipt_digest(receipt)

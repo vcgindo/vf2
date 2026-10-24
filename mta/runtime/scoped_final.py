@@ -128,12 +128,20 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         master_snapshot=frozen
     phase,sources=phase_state.read(dbm.snapshot,prior=frozen_prior(run,raw),day=raw['day'],
         profile=profile,master_snapshot=master_snapshot)
+    from mta.runtime.scoped_actions import final_phase
+    phase=final_phase(run,dbm,phase,expected_revision=_attempt.action_revision)
     with native_assignments(True):
         result=produce_btr_from_snapshot(phase,sources,pick_source_digests=phase.pick_source_digests)
     output=result.output
     if output.pop('_CompletedBoundaries')!=list(BOUNDARIES):
         raise ValueError('Incomplete scoped daily boundary roster')
     lineage=deepcopy(raw['lineage'])
+    if _attempt.action_revision:
+        from mta.runtime.models import RunCommand
+        lineage['scope_actions']=[dict(id=event.pk,digest=event.digest,
+            phase_acceptance_id=str(event.phase_acceptance_id),after=event.after_digest)
+            for event in RunCommand.objects.filter(run=run,phase_acceptance__isnull=False,
+                state_sealed=True).order_by('id')]
     lineage['cohort1']=output.pop('_Cohort1')
     source_digests=output.pop('_PickSourceDigests',None)
     if source_digests is not None:lineage['pick_source_digests']=source_digests

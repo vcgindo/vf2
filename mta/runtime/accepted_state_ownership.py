@@ -41,9 +41,20 @@ def verify_guards(cursor, *, required=True):
     column = cursor.fetchall()
     if not actual and not functions and not column and not required:
         return False
+    expected_bodies=dict(frozen.FUNCTIONS)
+    cursor.execute("SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' "
+                   "AND name='0191_scoped_action_ownership'")
+    if cursor.fetchone() is not None:
+        expected_bodies['guard_command_seal']=import_module(
+            'mta.runtime.migrations.0191_scoped_action_ownership').COMMAND_BODY
+    cursor.execute("SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' "
+                   "AND name='0192_scoped_action_consumer_seal'")
+    if cursor.fetchone() is not None:
+        expected_bodies['guard_command_seal']=import_module(
+            'mta.runtime.migrations.0192_scoped_action_consumer_seal').COMMAND_BODY
     expected_functions = [('mta', name, 0, body, False, ['search_path=pg_catalog, mta'],
         True, True, 'plpgsql', 'v', False, False, 'u', 'f', False, True)
-        for name, body in sorted(frozen.FUNCTIONS.items())]
+        for name, body in sorted(expected_bodies.items())]
     if functions != expected_functions:
         raise ValueError('Accepted state function/seal contract differs')
     specs = {

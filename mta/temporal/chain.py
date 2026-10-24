@@ -9,6 +9,7 @@ or MTO changes. Any future exception requires explicit human authorization.
 """
 
 from copy import deepcopy
+from dataclasses import replace
 from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
 from mta.application.stage_observation import operation, stage
 
@@ -667,7 +668,17 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
     )
 
 
-def produce_dbm(phase: BprDay) -> DbmDay:
+def dbm_action_state(phase: BprDay):
+    """The four exact pre-DBM command inputs, after already accepted controls."""
+    from mta.application.native_output_contracts import control_fields
+    result={'NormsInSleepModeTbl':deepcopy(phase.context.prior['dbm']['NormsInSleepModeTbl'])}
+    for name,table in (('dbm_master','DBMMaster'),('suggestions','Suggestions'),
+                       ('acceptance','NormAcceptanceTbl')):
+        result[table]=native_rows(phase.control_final[name],EMPTY_NATIVE_FIELDS.get(table) or control_fields(table))
+    return result
+
+
+def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> DbmDay:
     """Run the unchanged DBM chain and carry its controls, before BTR."""
     context = phase.context
     prior = context.prior
@@ -703,6 +714,16 @@ def produce_dbm(phase: BprDay) -> DbmDay:
         dbm[src]=native_rows(control_final[n],fields)
         if src not in ('NormChangeLogTbl','SuggestionsLog'):
             validate_rows(dbm[src],'DBM/'+src,fields=fields,stage='controls/'+src)
+    if _action_state is not None:
+        from mta.serialization import storage
+        if (type(_action_revision) is not int or _action_revision<=0
+                or set(_action_state)!=set(dbm_action_state(phase))
+                or storage(_action_state['DBMMaster'])!=storage(dbm['DBMMaster'])):
+            raise ValueError('Scoped DBM action revision/master differs')
+        for name in ('NormAcceptanceTbl','NormsInSleepModeTbl','Suggestions'):
+            dbm[name]=deepcopy(_action_state[name])
+    elif _action_revision!=0:
+        raise ValueError('Scoped DBM action revision requires its exact state')
     dbm['LastBatchRunTbl']=[{'LastRunDate':now}]
     facts={n:deepcopy(day[n]) for n in ('order_raw','exclusions','distributor_transactions','vendor_transactions')}
     facts.update(daily_raw=deepcopy(daily_final['DailyDataRaw']),bpr_daily=deepcopy(late['BPRDailyConsumption']))
@@ -726,7 +747,7 @@ def produce_dbm(phase: BprDay) -> DbmDay:
         control_final['importer_settings'].append({'Parameter': 'StockReservationType',
             'Value': str(profile['calculation']['stock_configuration']['reservation_type'])})
     return DbmDay(
-        context=context,
+        context=context if not _action_revision else replace(context,action_revision=_action_revision),
         pick_source_digests=phase.pick_source_digests,
         importer=phase.importer,
         control_final=control_final,

@@ -26,6 +26,7 @@ class DayContext:
     master: Any
     master_reused: bool
     master_work: Any
+    action_revision: int = 0
 
 
 @dataclass(slots=True)

@@ -197,6 +197,8 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         pick_source_digests=(phase.pick_source_digests if getattr(phase, 'pick_sources', None) is None else
             {key: digest(values) for key, values in phase.pick_sources.items()}),
         calculation_digest=None if sources is None else sources.calculation_digest)
+    if context.action_revision:
+        metadata['action_revision']=context.action_revision
     result = dict(schema=SCHEMA, phase=name, references=_references(context),
                   metadata=metadata, state=state, consumers=consumers, images=images)
     if sum(len(part) for part in canonical_parts(result)) > 1024*1024:
@@ -239,7 +241,8 @@ def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export
         master_snapshot=master_snapshot, today=today, now=today+'T00:00:00',
         finalization=configuration(profile), completion=None,
         master=dict(outcome=metadata['master_outcome'], tables={'MasterDataRaw': state.pop('master_raw')}),
-        master_reused=metadata['master_reused'], master_work=metadata['master_work'])
+        master_reused=metadata['master_reused'], master_work=metadata['master_work'],
+        action_revision=metadata.get('action_revision',0))
     common = dict(context=context, delivery=profile.get('delivery'),
         completed_boundaries=list(metadata['completed_boundaries']),
         pick_source_digests=metadata['pick_source_digests'])

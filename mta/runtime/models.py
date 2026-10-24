@@ -469,6 +469,11 @@ class RunCommand(models.Model):
     # Existing legacy events may have no typed manifest. They remain sealed;
     # only record_command explicitly opens a new append owner in its transaction.
     state_sealed = models.BooleanField(default=True, db_default=False)
+    phase_acceptance = models.ForeignKey('fresh_mta.RunPhaseAcceptance', null=True,
+        blank=True, on_delete=models.PROTECT, related_name='actions')
+    scope_parent_revision = models.PositiveBigIntegerField(default=0, db_default=0)
+    scope_revision_before = models.JSONField(null=True)
+    scope_revision_after = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
