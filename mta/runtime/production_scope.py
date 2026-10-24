@@ -161,6 +161,12 @@ def _produce(attempt,value):
     if phase not in ('START','PRE_BPR'):raise ValueError('UptoBPR cannot advance a later phase')
     raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
     prior=frozen_prior(run,raw)
+    opening={'supplier':prior['supplier']}
+    for name in ('shipment_input','transporter_input','production_report_policy',
+                 'production_report_opening','production_report_schema'):
+        if name in raw['day']:opening[name]=raw['day'][name]
+    if 'production_report_policy' in opening and not raw['profile']['daily_publication']:
+        raise ValueError('Configured scoped reports require publication')
     def calculate(source,**owned):
         return calculate_current_day(source,defer_pick=True,**owned),str(run.pk)
     master=raw['mdm_input'] if raw.get('initialization_binding') is not None else None
@@ -176,7 +182,7 @@ def _produce(attempt,value):
         prepared,_=phase_state.read(parent.snapshot,prior=prior,day=raw['day'],profile=raw['profile'],
             master_snapshot=master,execute_calculation=calculate)
     with native_assignments(True):bpr=produce_bpr(prepared)
-    sources=capture_bpr(bpr,{'supplier':prior['supplier']})
+    sources=capture_bpr(bpr,opening)
     with transaction.atomic():
         return _accept_calculation(attempt.pk,attempt.worker_token,bpr,sources,parent=parent,
             compatibility_digest=compatibility)

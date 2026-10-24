@@ -17,13 +17,13 @@ class ProductionScopePostgresTests(unittest.TestCase):
     for _name in ('setUp','rollback','owner'):
         locals()[_name]=getattr(fixtures.PreparedEffectsPostgresTests,_name)
 
-    def setup_scope(self):
+    def setup_scope(self,**kwargs):
         from mta.runtime import production_scope as scope,scope_execution as workers
         from mta.runtime.scope_execution import _setting
         root=self.enterContext(TemporaryDirectory())
         self.value=dict(schema=scope.SCHEMA,scope='UptoBPR',command_key='native-entry-component',
             compatibility_digest='a'*64)
-        self.owner(claim=False,pick_root=root,scope_request=self.value)
+        self.owner(claim=False,pick_root=root,scope_request=self.value,**kwargs)
         stack=self.enterContext(ExitStack())
         stack.enter_context(patch.object(workers,'claim',side_effect=workers._claim))
         def release(attempt_id,token,*,compatibility_digest):
@@ -116,3 +116,32 @@ class ProductionScopePostgresTests(unittest.TestCase):
         with patch('mta.temporal.chain.prepare_day',side_effect=AssertionError('replayed PRE')):
             self.assertTrue(self.advance(recovery_of=failed.pk)['calculation_accepted'])
         self.assert_paused()
+
+    def configured_reports(self,mode):
+        from mta.serialization import storage
+        from mta.runtime.scoped_actions import restore
+        from mta.presentation.production_reports import current
+        self.setup_scope(report_mode=mode)
+        with patch('mta.presentation.production_reports.current',wraps=current) as producer:
+            report=self.advance()
+        self.assertEqual(producer.call_count,1)
+        _output,opening=producer.call_args.args
+        self.assertIn('production_report_policy',opening)
+        self.assertEqual(opening['production_report_opening'],
+            dict(BOR_OrderAllocationHistory=[],RRR_OrderAllocationHistory=[]))
+        receipt=self.run.phase_acceptances.get(phase='BPR')
+        _phase,sources=restore(self.run,receipt)
+        # The persisted reader exposes canonical decimal/date wire values.
+        # Compare every cell/order/NULL through the existing lossless codec.
+        self.assertEqual(sources.production_reports,storage(current(_output,opening)))
+        expected={'BORWithOrderAllocation','RRR_OrderAllocation','AllocatedOrders','BOROARequirement'}
+        if mode=='expanded':expected.add('SupplierDispatchReq')
+        self.assertEqual(set(sources.production_reports),expected)
+        self.assertFalse(report['scope_ready'])
+        self.assert_paused()
+
+    def test_basic_configured_report_sources_survive_the_bpr_cut(self):
+        self.configured_reports('basic')
+
+    def test_expanded_configured_report_sources_survive_the_bpr_cut(self):
+        self.configured_reports('expanded')
