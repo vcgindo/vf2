@@ -47,7 +47,8 @@ def _frozen(run):
 
 @contextmanager
 def _setting(name, value):
-    if name not in ('fresh.scope_worker', 'fresh.scope_phase', 'fresh.scope_fence'):
+    if name not in ('fresh.scope_worker', 'fresh.scope_phase', 'fresh.scope_fence',
+                    'fresh.mdm_consuming_run', 'fresh.mdm_current_run'):
         raise ValueError('Unknown scoped transaction setting')
     with connection.cursor() as cursor:
         cursor.execute("SELECT current_setting(%s,true)", [name])
@@ -177,17 +178,23 @@ def _begin_phase(attempt, run, phase):
         capture_digest=capture.revision_digest)
 
 
-def _seal_phase(receipt, snapshot, *, effect_digest, partitions):
+def _seal_phase(receipt, snapshot, *, effect_digest, partitions, effects=None):
     """The actual phase owner supplies proved effects/typed partition identities."""
     sha(effect_digest)
     receipt.snapshot = snapshot
     receipt.metadata = dict(schema='fresh-phase-acceptance-v1', snapshot_digest=snapshot.state_digest,
         compatibility_digest=receipt.attempt.compatibility_digest,
         effect_digest=effect_digest, partitions=partitions)
-    receipt.digest = digest(dict(run_id=str(receipt.run_id), attempt_id=str(receipt.attempt_id),
-        source_id=receipt.source_id, phase=receipt.phase, input_digest=receipt.input_digest,
-        capture_digest=receipt.capture_digest, snapshot_id=snapshot.pk, metadata=receipt.metadata))
+    if effects is not None:
+        receipt.metadata['effects'] = effects
+    receipt.digest = receipt_digest(receipt)
     receipt.state_sealed = True
     receipt.accepted_at = timezone.now()
     receipt.save(update_fields=['snapshot', 'metadata', 'digest', 'state_sealed', 'accepted_at'])
     return receipt
+
+
+def receipt_digest(receipt):
+    return digest(dict(run_id=str(receipt.run_id), attempt_id=str(receipt.attempt_id),
+        source_id=receipt.source_id, phase=receipt.phase, input_digest=receipt.input_digest,
+        capture_digest=receipt.capture_digest, snapshot_id=receipt.snapshot_id, metadata=receipt.metadata))

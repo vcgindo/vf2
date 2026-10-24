@@ -53,19 +53,31 @@ def owner_batches(opening, *, strict=False):
                              ('SKUDescriptionTbl',models.MdmSkuDescription)):
             result.append((1,model,dict(owner=owner),typed(model,opening[source][table], strict=strict),
                 '/opening/state/'+source+'/'+table))
+    result.extend(importer_batches(opening['importer'], opening['consumer_context']['NMSAllItems'],
+                                   strict=strict, include_sku=False))
+    return result
+
+
+def importer_batches(importer, nms, *, strict=False, include_sku=True):
+    """Importer-owned partitions only; BPR copies belong to its later import."""
+    result=[]
+    if include_sku:
+        for table,model in (('SkuAttributeData',models.MdmSkuAttributes),
+                             ('SKUDescriptionTbl',models.MdmSkuDescription)):
+            result.append((1,model,dict(owner='Importer'),typed(model,importer[table], strict=strict),
+                           '/opening/state/importer/'+table))
     for table,model in (('LocationAttributeData',models.MdmLocationAttributes),
                         ('SiteDescriptionTbl',models.MdmLocationDescription),
                         ('SkuLocAttributeData',pairs.MdmSkuLocPair),
                         ('MasterData',pairs.MdmSkuLocMasterPair)):
         family=2 if model in (models.MdmLocationAttributes,models.MdmLocationDescription) else 3
-        result.append((family,model,dict(owner='Importer'),typed(model,opening['importer'][table], strict=strict),
+        result.append((family,model,dict(owner='Importer'),typed(model,importer[table], strict=strict),
                        '/opening/state/importer/'+table))
-    nms=opening['consumer_context']['NMSAllItems']
     result.append((3,pairs.MdmSkuLocCurrent,dict(owner='Importer'),typed(pairs.MdmSkuLocCurrent,nms, strict=strict),
                    '/opening/state/consumer_context/NMSAllItems'))
     # Membership projections retain every source occurrence.
     # Preserve source occurrences. Their use is membership-only in the API.
-    pair=opening['importer']['SkuLocAttributeData']
+    pair=importer['SkuLocAttributeData']
     for family,model,kwargs,rows,path in (
         (1,models.MdmSkuUse,{},[dict(SKUCode=r['SKUCode']) for r in pair],
          '/opening/state/importer/SkuLocAttributeData:SKUCode'),

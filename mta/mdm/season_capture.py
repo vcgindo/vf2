@@ -24,8 +24,10 @@ def capture(source):
     from mta.mdm.season_source import require_installed
     require_installed(source)
     prior = owner.last_run
+    accepted = None
     if prior is not None and prior.status != 'SUCCEEDED':
-        raise ValueError('Seasonality owner requires a successful predecessor')
+        from mta.runtime.prepared_effects import prepared_family_owner
+        accepted = prepared_family_owner(source,owner,'season')
     result = storage(dict(source_digest=owner.receipt_digest,
         anchor=dict(run_id=str(prior.pk) if prior else None,
             output_digest=prior.output_digest if prior else '', root_state_digest=owner.root_state_digest,
@@ -35,6 +37,7 @@ def capture(source):
         current=list(MdmSeasonCurrent.objects.filter(source=source).order_by('ordinal')
             .values('id', 'revision', 'ordinal', *SEASON_FIELDS)),
         task_revisions=task_revisions(source)))
+    if accepted is not None:result['anchor']['phase_acceptance_digest'] = accepted.digest
     result['digest'] = digest(result)
     return result
 

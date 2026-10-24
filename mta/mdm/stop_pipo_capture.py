@@ -21,12 +21,15 @@ def capture(source):
     if owner.last_run is None and not native:
         raise ValueError('StopPIPO requires a successful own predecessor')
     if owner.last_run is not None and owner.last_run.status != 'SUCCEEDED':
-        raise ValueError('StopPIPO requires a successful own predecessor')
+        from mta.runtime.prepared_effects import prepared_family_owner
+        accepted = prepared_family_owner(source,owner,'stop_pipo')
+    else:accepted = None
     anchor = dict(run_id=str(owner.last_run_id) if owner.last_run_id else None,
             output_digest=owner.last_run.output_digest if owner.last_run_id else '',
             queue_digest=owner.closing_queue_digest, generation=owner.generation)
     if native:
         anchor['root_state_digest'] = owner.root_state_digest
+    if accepted is not None:anchor['phase_acceptance_digest'] = accepted.digest
     result = storage(dict(source_digest=owner.receipt_digest, anchor=anchor,
         rows=list(MdmStopPipoQueue.objects.filter(source=source).order_by('id')
             .values('id', 'revision', *FIELDS)), task_revisions=task_revisions(source)))
