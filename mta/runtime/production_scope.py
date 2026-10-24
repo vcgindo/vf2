@@ -92,7 +92,7 @@ def repeated(raw,expected_sha256,value,arguments):
 
 
 def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
-            inspect_only=False,repair_files=False,runtime_reports=None,**arguments):
+            inspect_only=False,repair_files=False,runtime_reports=None,prepare_reads=False,**arguments):
     from mta.runtime import production_daily
     from mta.runtime.production_preflight import require
     if not transaction.get_autocommit():raise ValueError('Native scope owns its transaction boundaries')
@@ -107,6 +107,8 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
     if type(worker_reference) is not str or not 1<=len(worker_reference)<=200:
         raise ValueError('Explicit bounded worker reference required')
     if type(repair_files) is not bool:raise ValueError('Explicit file repair boolean required')
+    if type(prepare_reads) is not bool or prepare_reads and runtime_reports is None:
+        raise ValueError('Read preparation requires explicit RuntimeReports configuration and boolean')
     run=repeated(raw,expected_sha256,value,arguments)
     if run is not None:
         if inspect_only:
@@ -118,7 +120,7 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
                         worker_token=str(latest.worker_token) if latest.status=='ACTIVE' else None)),
                 scope_ready=False,serving_selected=False,application_acceptance=False)
         return advance(run,value,worker_reference=worker_reference,recovery_of=recovery_of,
-            repair_files=repair_files)
+            repair_files=repair_files,prepare_reads=prepare_reads)
     if recovery_of is not None:raise ValueError('Scope recovery requires its existing frozen day')
     if inspect_only:
         report,*_=production_daily.inspect_execution(raw,expected_sha256,
@@ -127,7 +129,7 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
         return report
     run=production_daily.execute(raw,expected_sha256,scope_request=value,**arguments)
     return advance(run,value,worker_reference=worker_reference,recovery_of=recovery_of,
-        repair_files=repair_files)
+        repair_files=repair_files,prepare_reads=prepare_reads)
 
 
 def fence(attempt_id,*,expected_worker_token,reason):
@@ -200,11 +202,20 @@ def _produce(attempt,value):
             compatibility_digest=compatibility)
 
 
-def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False):
+def _read_reference(receipt):
+    from mta.presentation.scoped_view import prepare
+    from mta.runtime.scoped_actions import revision
+    return prepare(receipt.pk,expected_digest=receipt.digest,action_revision=revision(receipt.run)).read_identity
+
+
+def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,prepare_reads=False):
     from mta.runtime import scope_execution as workers
     from mta.runtime.models import RunScopeAttempt,CalculationRun
     from mta.runtime import scoped_pick_files
     compatibility=value['compatibility_digest']
+    if type(prepare_reads) is not bool or prepare_reads and 'runtime_reports' not in value:
+        raise ValueError('Read preparation requires explicit RuntimeReports configuration and boolean')
+    read_reference=None
     run=CalculationRun.objects.get(pk=run.pk)
     # Lock/source revision checks are repeated by claim and every acceptance.
     captured_run(run,value)
@@ -216,6 +227,7 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False):
         receipt=run.phase_acceptances.get(phase='BPR',state_sealed=True)
         receipt=_phase(run,'BPR',receipt.digest)
         files=scoped_pick_files.prepare(receipt.pk,expected_digest=receipt.digest,repair=repair_files)
+        if prepare_reads:read_reference=_read_reference(receipt)
     else:
         phase,checksum=workers.head(run.pk)
         if phase not in ('START','PRE_BPR','BPR'):raise ValueError('UptoBPR requires its own accepted prefix')
@@ -227,6 +239,7 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False):
             # File preparation belongs under the worker. A failure preserves
             # the accepted BPR and records this attempt for explicit recovery.
             files=scoped_pick_files.prepare(receipt.pk,expected_digest=receipt.digest,repair=repair_files)
+            if prepare_reads:read_reference=_read_reference(receipt)
             workers.release(attempt.pk,attempt.worker_token,compatibility_digest=compatibility)
         except Exception as error:
             try:workers.fail(attempt.pk,attempt.worker_token,compatibility_digest=compatibility,error=error)
@@ -242,4 +255,7 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False):
     if 'runtime_reports' in value:
         from mta.runtime.scope_runtime_reports import status
         result['runtime_reports']=status(value['runtime_reports'])
+    if read_reference is not None:
+        result['phase_read_reference']=read_reference
+        result['pending'].remove('phase_read_binding')
     return result

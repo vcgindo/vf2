@@ -1340,3 +1340,5 @@ from mta.runtime.scope_expedite_models import (ScopeExpediteGeneration,ScopeExpe
     ScopeExpediteChartMember,ScopeExpeditePrepostMember)
 from mta.runtime.scope_expedite_parent_models import (ScopeExpediteParentGeneration,
     ScopeExpediteParentBase,ScopeExpediteParentMatch)
+
+from mta.runtime.scope_read_models import ScopeReadReference

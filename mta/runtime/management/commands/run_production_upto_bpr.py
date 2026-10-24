@@ -24,6 +24,7 @@ class Command(BaseCommand):
         parser.add_argument('--repair-files',action='store_true')
         parser.add_argument('--runtime-reports-file',type=Path)
         parser.add_argument('--runtime-reports-sha256')
+        parser.add_argument('--prepare-reads',action='store_true')
 
     def handle(self,*args,**options):
         from mta.presentation.native_mode import require_configuration
@@ -42,7 +43,7 @@ class Command(BaseCommand):
                 predecessor_output_digest=options['predecessor_output_digest'],
                 command_key=options['command_key'],worker_reference=options['worker_reference'],
                 recovery_of=options['recovery_of'],repair_files=options['repair_files'],
-                inspect_only=options['inspect'],runtime_reports=runtime_reports)
+                inspect_only=options['inspect'],runtime_reports=runtime_reports,prepare_reads=options.get('prepare_reads',False))
             self.stdout.write(json.dumps(report,sort_keys=True))
         except PreflightError as error:
             self.stdout.write(json.dumps(error.report,sort_keys=True))

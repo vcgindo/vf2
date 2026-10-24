@@ -86,11 +86,13 @@ class ScopeRuntimeReportsTests(unittest.TestCase):
                 with self.assertRaisesRegex(CommandError,'supplied together'):
                     command.handle(**dict(options,runtime_reports_file=pair[0],runtime_reports_sha256=pair[1]))
             execute.assert_not_called()
-            command.handle(**dict(options,runtime_reports_file=path,runtime_reports_sha256=hashlib.sha256(raw).hexdigest()))
+            command.handle(**dict(options,runtime_reports_file=path,runtime_reports_sha256=hashlib.sha256(raw).hexdigest(),prepare_reads=True))
             self.assertEqual(execute.call_args.kwargs['runtime_reports'],module.decode(raw,hashlib.sha256(raw).hexdigest()))
+            self.assertTrue(execute.call_args.kwargs['prepare_reads'])
             command.handle(**options)
             self.assertIsNone(execute.call_args.kwargs['runtime_reports'])
-            for name in ('--runtime-reports-file','--runtime-reports-sha256'):
+            self.assertFalse(execute.call_args.kwargs['prepare_reads'])
+            for name in ('--runtime-reports-file','--runtime-reports-sha256','--prepare-reads'):
                 self.assertNotIn(name,Full().create_parser('manage.py','run_production_day')._option_string_actions)
                 self.assertIn(name,command.create_parser('manage.py','run_production_upto_bpr')._option_string_actions)
 
@@ -115,6 +117,17 @@ class ScopeRuntimeReportsTests(unittest.TestCase):
             cursor.fetchone.return_value=('VFTEST_Fresh_LifecycleG2_20261024',)
             module.require_test_database()
             cursor.execute.assert_called_with('SELECT current_database()')
+
+    def test_read_preparation_requires_explicit_configuration_before_capture(self):
+        from mta.runtime import production_scope as scope
+        with patch('release.native_identity.require_current',return_value={'source_commit':'a'*40}), \
+                patch('mta.runtime.phase_state.recipe_digest',return_value='b'*64), \
+                patch.object(scope.transaction,'get_autocommit',return_value=True),patch.object(scope,'authorize'), \
+                patch.object(scope,'repeated') as repeated,patch('mta.runtime.production_daily.execute') as capture:
+            for flag in (True,1,None):
+                with self.assertRaisesRegex(ValueError,'Read preparation requires'):
+                    scope.execute(b'day','a'*64,command_key='command',worker_reference='worker',prepare_reads=flag)
+            repeated.assert_not_called();capture.assert_not_called()
 
     def test_v3_metadata_codec_retains_complete_configuration_without_row_payloads(self):
         # Pure storage contract only. The real native V3 pipeline's separate

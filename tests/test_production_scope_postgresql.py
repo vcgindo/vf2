@@ -67,6 +67,22 @@ class ProductionScopePostgresTests(unittest.TestCase):
         self.assertEqual(self.run.scope_attempts.count(),1)
         self.assertEqual(self.run.scope_attempts.get().status,'RELEASED')
 
+    def test_read_preparation_failure_preserves_accepted_bpr_files_and_failed_attempt(self):
+        from tests.test_scope_runtime_reports import reference
+        from mta.presentation.context import PublicationUnavailable
+        from mta.runtime.models import ScopeReadReference,ScopePickFiles
+        self.setup_scope(runtime_reports=reference())
+        # This existing entry fixture deliberately has no request capture.
+        # Required read inputs remain unavailable, never a successful empty bag.
+        with self.assertRaisesRegex(PublicationUnavailable,'bpr_phase_request_owner_differs'):
+            self.advance(prepare_reads=True)
+        self.assert_paused()
+        self.assertTrue(ScopePickFiles.objects.filter(phase__run=self.run).exists())
+        self.assertFalse(ScopeReadReference.objects.exists())
+        attempt=self.run.scope_attempts.get();self.assertEqual(attempt.status,'FAILED')
+        self.assertEqual(attempt.failure['type'],'PublicationUnavailable')
+        with self.assertRaisesRegex(ValueError,'explicit recovery'):self.advance(prepare_reads=True)
+
     def test_failed_pick_recovery_preserves_bpr_and_requires_explicit_attempt(self):
         self.setup_scope()
         with patch('mta.runtime.scoped_pick_files._copy_file',side_effect=OSError('injected copy failure')):
