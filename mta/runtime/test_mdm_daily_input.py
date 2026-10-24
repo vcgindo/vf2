@@ -24,6 +24,41 @@ from mta.serialization import digest
 
 
 class DailyInputConsumptionTests(TestCase):
+    def test_effect_steps_keep_capture_pending_and_roll_back_before_final_status(self):
+        from mta.mdm.daily_input import _lock_consumption, _apply_consumption_effects
+        approved = MdmSkuApproved.objects.create(source=self.source, SKUCode='APPROVED',
+            SKUDescription='Approved', ActionType=2, Approved=True, Reverted=False)
+        task = MdmTask.objects.create(source=self.source, TaskID='TASK', TaskStatus='1',
+                                     MasterId='1', Actiontype=2)
+        sub = MdmSubTask.objects.create(source=self.source, TaskID='TASK',
+                                       ApproverId='2', TaskStatus='2')
+        MdmSkuHistory.objects.create(source=self.source, TaskId='TASK', SKUCode='APPROVED',
+                                     SKUDescription='Approved', Status='3')
+        snapshot = self._bind()
+        with patch('mta.runtime.input_reader.read_input', return_value={'mdm_input': snapshot}):
+            with self.assertRaisesRegex(RuntimeError, 'failure after effects'), transaction.atomic():
+                work = _lock_consumption(self.run)
+                _apply_consumption_effects(self.run, work)
+                work.capture.refresh_from_db()
+                self.assertEqual(work.capture.status, 'CAPTURED')
+                self.assertIsNone(work.capture.consumed_at)
+                self.assertFalse(MdmSkuApproved.objects.filter(pk=approved.pk).exists())
+                self.assertEqual(MdmDailySkuArchive.objects.filter(source=self.source).count(), 1)
+                sub.refresh_from_db()
+                self.assertEqual(sub.TaskStatus, '4')
+                raise RuntimeError('failure after effects')
+            capture = MdmDailyInputCapture.objects.get(run=self.run)
+            self.assertEqual(capture.status, 'CAPTURED')
+            self.assertIsNone(capture.consumed_at)
+            self.assertTrue(MdmSkuApproved.objects.filter(pk=approved.pk).exists())
+            self.assertFalse(MdmDailySkuArchive.objects.filter(source=self.source).exists())
+            sub.refresh_from_db(); task.refresh_from_db()
+            self.assertEqual((sub.TaskStatus, task.TaskStatus), ('2', '1'))
+            with transaction.atomic():finalize_consumption(self.run)
+            capture.refresh_from_db(); sub.refresh_from_db()
+            self.assertEqual(capture.status, 'CONSUMED')
+            self.assertEqual(sub.TaskStatus, '4')
+
     def test_canonical_phase_completion_leaves_stop_and_target_tasks_pending(self):
         from mta.runtime.mdm_stop_pipo_models import MdmStopPipoHistory
         from mta.runtime.mdm_phase_controls_models import (

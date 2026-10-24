@@ -5,6 +5,7 @@ NMSImportData.sql.  Queue mutation is deliberately deferred to the atomic
 successful publication boundary.
 """
 from copy import deepcopy
+from dataclasses import dataclass
 from datetime import datetime, time, timedelta
 
 from django.db import connection, transaction
@@ -843,8 +844,18 @@ def _lock_pair_exclusion_opening(snapshot, capture):
     return owner, typed
 
 
-def finalize_consumption(run, *, output=None):
-    """Idempotently consume exactly the frozen rows inside finish_run's atomic block."""
+@dataclass(slots=True)
+class _ConsumptionWork:
+    """Transaction-local locks and exact captured effects, never persisted state."""
+    capture: object
+    snapshot: dict
+    deferred_tasks: set
+    exclusion_owner: object
+    final_exclusions: object
+
+
+def _lock_consumption(run):
+    """Reconcile the original capture and all effect anchors without mutation."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.mdm.supplier_revisions import lock_transaction, superseded_tasks
     source_id = MdmDailyInputCapture.objects.filter(run=run).values_list('source_id', flat=True).first()
@@ -871,6 +882,17 @@ def finalize_consumption(run, *, output=None):
     from mta.mdm.phase_controls_revisions import superseded_tasks as superseded_phase_tasks
     deferred_supplier_tasks |= superseded_phase_tasks(snapshot)
     exclusion_owner, final_exclusions = _lock_pair_exclusion_opening(snapshot, capture)
+    return _ConsumptionWork(capture, snapshot, deferred_supplier_tasks,
+                            exclusion_owner, final_exclusions)
+
+
+def _apply_consumption_effects(run, work, *, output=None):
+    """Original ordered effects; this alone never consumes the whole capture."""
+    if not connection.in_atomic_block or work.capture.run_id != run.pk:
+        raise ValueError('Consumption effects require their locked daily transaction')
+    capture, snapshot = work.capture, work.snapshot
+    deferred_supplier_tasks = work.deferred_tasks
+    exclusion_owner, final_exclusions = work.exclusion_owner, work.final_exclusions
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)", [str(run.pk)])
     from mta.mdm.supplier_capture import finalize as finalize_supplier
@@ -1010,5 +1032,23 @@ def finalize_consumption(run, *, output=None):
     exclusion_owner.digest = _pair_exclusion_digest(final_exclusions)
     exclusion_owner.row_count = len(final_exclusions)
     exclusion_owner.save(update_fields=['digest', 'row_count'])
+    return now
+
+
+def _consume_capture(capture, now):
+    if not connection.in_atomic_block:
+        raise ValueError('Capture completion requires its owning transaction')
     capture.status = 'CONSUMED'; capture.consumed_at = now
     capture.save(update_fields=['status', 'consumed_at'])
+
+
+def finalize_consumption(run, *, output=None):
+    """Idempotently consume frozen rows in the existing Full atomic boundary.
+
+    The private steps preserve the same locks, effect order and final status
+    write. They do not authorize an early phase commit or bypass its acceptance.
+    """
+    work = _lock_consumption(run)
+    if work is None:return
+    now = _apply_consumption_effects(run, work, output=output)
+    _consume_capture(work.capture, now)
