@@ -30,8 +30,21 @@ def unique_update(rows,fields,label):
 
 
 def produce(pick,masters,standards,rationed,ages):
+    return _produce(pick,masters,standards,rationed,ages)
+
+
+def produce_before_btr(pick,masters,standards,rationed):
+    """Current Planning INSERT/UPDATE output before UpdateBRAge runs.
+
+    The canonical INSERT omits all three nullable age columns. Older BTR ages
+    do not belong to this freshly truncated/rebuilt population.
+    """
+    return _produce(pick,masters,standards,rationed,None,before_btr=True)
+
+
+def _produce(pick,masters,standards,rationed,ages,*,before_btr=False):
     master=index(masters,'SKUCode','WhCode'); standard=index(standards,'SKUCode','WhCode')
-    parents=index(rationed,'SKUCode','WhCode'); age=index(ages,'SKUCode','WhCode')
+    parents=index(rationed,'SKUCode','WhCode'); age=None if before_btr else index(ages,'SKUCode','WhCode')
     result=[]
     for source in pick:
         if sql_key(source['DispatchColor']) not in {sql_key(v) for v in ('Black','Red','Yellow')}:
@@ -55,12 +68,13 @@ def produce(pick,masters,standards,rationed,ages):
                 parent=unique_update(parents.get(sql_key(source['SKUCode'],source['ParentWhCode']),[]),
                                      ('Stock','DispatchColor'),'parent')
                 if parent: row.update(StockAtParent=parent['Stock'],ParentPipelineInventoryColor=parent['DispatchColor'])
-                if key not in age: raise ValueError('Produced Expedite lacks its accepted BTR ageing state')
-                row.update(unique_update(age[key],AGE_FIELDS,'age'))
+                if age is not None:
+                    if key not in age: raise ValueError('Produced Expedite lacks its accepted BTR ageing state')
+                    row.update(unique_update(age[key],AGE_FIELDS,'age'))
                 result.append(row)
     child_parents={sql_key(r['SKUCode'],r['ParentWhCode']) for r in result}
     for row in result:
         row['IsParent']=sql_key(row['SKUCode'],row['WhCode']) in child_parents
-    if set(age)!={sql_key(r['SKUCode'],r['WhCode']) for r in result}:
+    if age is not None and set(age)!={sql_key(r['SKUCode'],r['WhCode']) for r in result}:
         raise ValueError('Expedite membership differs from accepted BTR ageing population')
     return result
