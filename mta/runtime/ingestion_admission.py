@@ -116,6 +116,21 @@ def _certificate(initialization_id):
     return value
 
 
+def _origin_transition(body,cert):
+    """Fresh certified origins may advance only from that same original release.
+
+    The surrounding validator still authenticates registration/certificate joins,
+    the original activated row, audit receipt and live catalogue. An older
+    installation certified under a different producer keeps its pinned bridge.
+    """
+    if body['original_commit']!=body['target_commit']:
+        if ((body['original_commit'],body['original_release'])!=(BASELINE_RELEASE,BASELINE_MANIFEST)
+                and body['original_release']!=cert['release_digest']):
+            raise ValueError('Unreviewed original release transition')
+    elif body['original_release']!=body['target_release']:
+        raise ValueError('Same-commit manifest substitution prohibited')
+
+
 def _activation_metadata(cursor, body):
     """Authenticate immutable certificate/registrar joins, not a live catalogue.
 
@@ -137,11 +152,7 @@ def _activation_metadata(cursor, body):
             or body['original_registration_digest'] != digest(original)
             or body['original_capability_digest'] != capability['receipt_digest']):
         raise ValueError('Original namespace/capability identity differs')
-    if body['original_commit'] != body['target_commit']:
-        if (body['original_commit'], body['original_release']) != (BASELINE_RELEASE, BASELINE_MANIFEST):
-            raise ValueError('Unreviewed original release transition')
-    elif body['original_release'] != body['target_release']:
-        raise ValueError('Same-commit manifest substitution prohibited')
+    _origin_transition(body,cert)
     expected = dict(contract=cert['contract'], database_name=cert['database_name'],
         database_oid=cert['database_oid'], namespace=str(cert['namespace']),
         source_digest=cert['source_digest'], certification_digest=cert['receipt_digest'],

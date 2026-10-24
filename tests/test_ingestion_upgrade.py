@@ -65,6 +65,17 @@ class UpgradeOriginTests(unittest.TestCase):
 
 
 class CertifiedFreshOriginTests(unittest.TestCase):
+    def test_fresh_certified_origin_transition_keeps_pinned_old_bridge_and_manifest_denial(self):
+        from mta.runtime.ingestion_admission import _origin_transition,BASELINE_RELEASE,BASELINE_MANIFEST
+        body=dict(original_commit='1'*40,target_commit='2'*40,original_release='a'*64,target_release='b'*64)
+        _origin_transition(body,dict(release_digest='a'*64))
+        with self.assertRaisesRegex(ValueError,'Unreviewed'):
+            _origin_transition(body,dict(release_digest='c'*64))
+        with self.assertRaisesRegex(ValueError,'Same-commit'):
+            _origin_transition(dict(body,target_commit='1'*40),dict(release_digest='a'*64))
+        _origin_transition(dict(body,original_commit=BASELINE_RELEASE,original_release=BASELINE_MANIFEST),
+                           dict(release_digest='c'*64))
+
     def fixture(self):
         from uuid import UUID
         owner=SimpleNamespace(pk=UUID('179dbb4c-77d9-40bf-8c84-d5f05858dd07'))
