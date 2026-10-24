@@ -15,13 +15,13 @@ NMS_ALIASES=dict(sc='SKUCode',sd='SKUDescription',pwc='ParentWhCode',wc='WhCode'
                  **{p.lower()+str(i):p+str(i) for p in ('SL','LL') for i in range(1,6)})
 
 
-def custom_grid(run,payload,paging,*,family):
+def custom_grid(run,payload,paging,*,family,read_binding=None):
     config=[dict(header=h,colCode=c,colPosition=p) for h,c,p in CUSTOM_COLUMNS]
     if family=='fulfillment' and paging is not None:
         page,size=paging
         if page*size<max(1,(page-1)*size+1):return dict(data=[],uiConfig=config)
-    relation,values=admitted_custom(run)[family]
-    importer,manifest=_projected_attributes(run)
+    relation,values=admitted_custom(run,read_binding=read_binding)[family]
+    importer,manifest=(_projected_attributes(run) if read_binding is None else (read_binding.attributes(),None))
     if manifest:raise PublicationUnavailable('planning_custom_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
     if not products or not locations:return dict(data=[],uiConfig=config)
@@ -31,17 +31,21 @@ def custom_grid(run,payload,paging,*,family):
         members=sorted(codes)
         ctes.append(alias+'(code,weight) AS (VALUES '+','.join(['(%s::text,%s::bigint)']*len(members))+')')
         params.extend(v for code in members for v in (code,codes.multiplicities[code]))
-    ctes.append('eligible AS (SELECT H.*,P.weight*L.weight AS weight FROM H JOIN mta.'+quote(model._meta.db_table)
+    fact_relation='mta.'+quote(model._meta.db_table)
+    if read_binding is not None:
+        query,fact_params=read_binding.fact_query('ExcessInventoryDetails' if family=='excess' else 'OrderFulfillmentSummary')
+        ctes.append('F AS ('+query+')');params.extend(fact_params);fact_relation='F'
+    ctes.append('eligible AS (SELECT H.*,P.weight*L.weight AS weight FROM H JOIN '+fact_relation
                 +' B ON B.run_id=H.run_id AND B.ordinal=H.fact_ordinal JOIN P ON B."SKUCode"=P.code JOIN L ON B."WhCode"=L.code)')
     base='WITH '+','.join(ctes)
     if family=='fulfillment' and paging is not None:
         with connection.cursor() as c:
             c.execute(base+' SELECT COALESCE(sum(weight),0) FROM eligible',params)
             if (paging[0]-1)*paging[1]+1>c.fetchone()[0]:return dict(data=[],uiConfig=config)
-    nms,nms_params=image_query(run,'closing/consumer_context/NMSAllItems')
+    nms,nms_params=(image_query(run,'closing/consumer_context/NMSAllItems') if read_binding is None else read_binding.image_query('closing/consumer_context/NMSAllItems'))
     ctes.append('A AS NOT MATERIALIZED ('+nms+')');params.extend(nms_params)
     if family=='excess':
-        standard,standard_params=image_query(run,'closing/dbm/SKULocStandardAttributes')
+        standard,standard_params=(image_query(run,'closing/dbm/SKULocStandardAttributes') if read_binding is None else read_binding.image_query('closing/dbm/SKULocStandardAttributes'))
         ctes.append('S AS NOT MATERIALIZED ('+standard+')');params.extend(standard_params)
     columns={alias:'A.'+quote(field) for alias,field in NMS_ALIASES.items()}
     columns.update(pn='X.parent_description',n='B."Norm"',sk='B."Stock"')
@@ -49,7 +53,7 @@ def custom_grid(run,payload,paging,*,family):
         columns.update(Price='S."Price"',pt='B."PhysicalInventoryColor"',tpp='B."PhysicalInventoryPen"',
                        ep='B."PipelineInventoryColor"',epp='B."PipelineInventoryPen"')
     else:columns.update(Price='B."Price"',rq='B."RationedQty"')
-    joins=(' FROM chosen X JOIN mta.'+quote(model._meta.db_table)+' B ON B.run_id=X.run_id AND B.ordinal=X.fact_ordinal '
+    joins=(' FROM chosen X JOIN '+fact_relation+' B ON B.run_id=X.run_id AND B.ordinal=X.fact_ordinal '
            'LEFT JOIN A ON A.vf_ordinal=X.nms_ordinal')
     if family=='excess':joins+=' JOIN S ON S.vf_ordinal=X.standard_ordinal'
     if family=='fulfillment':

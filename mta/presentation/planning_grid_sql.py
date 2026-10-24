@@ -63,9 +63,13 @@ class GridFilters(Filters):
         return ' AND '.join(self.where) or 'TRUE'
 
 
-def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None):
-    relation, relation_params = admitted_grids(run)[family]
-    importer, manifest = _projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
+def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None, read_binding=None):
+    relation, relation_params = admitted_grids(run,read_binding=read_binding)[family]
+    if read_binding is None:
+        importer, manifest = _projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
+    else:
+        importer,manifest=read_binding.attributes(),None
+        resolved_scope=None
     if manifest:
         raise PublicationUnavailable('planning_grid_native_hierarchy_required')
     if family == 'excess':
@@ -90,13 +94,19 @@ def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None)
         members = sorted(codes)
         ctes.append(alias + '(code,weight) AS (VALUES ' + ','.join(['(%s::text,%s::bigint)'] * len(members)) + ')')
         params.extend(v for code in members for v in (code, codes.multiplicities[code]))
-    joins = (' FROM H JOIN mta.' + quote(model._meta.db_table) + ' A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal'
+    fact_relation='mta.'+quote(model._meta.db_table)
+    if read_binding is not None:
+        query,values=read_binding.fact_query('ExcessInventoryDetails' if family=='excess' else 'OrderFulfillmentSummary')
+        ctes.append('F AS ('+query+')');params.extend(values)
+        fact_relation='F'
+    joins = (' FROM H JOIN ' + fact_relation + ' A ON A.run_id=H.run_id AND A.ordinal=H.fact_ordinal'
              ' JOIN P ON A."SKUCode"=P.code JOIN L ON A."WhCode"=L.code')
     for alias, table, ordinal in (('B', 'SkuLocAttributeData', 'pair_ordinal'),
             ('C', 'SkuAttributeData', 'sku_ordinal'), ('D', 'LocationAttributeData', 'location_ordinal')):
         if alias not in filters.owners and not (alias == 'D' and filters.children):
             continue
-        query, values = image_query(run, 'closing/importer/' + table)
+        query, values = (image_query(run,'closing/importer/'+table) if read_binding is None
+                         else read_binding.image_query('closing/importer/'+table))
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
         if alias in filters.owners:
@@ -150,22 +160,27 @@ def read_grid(run, payload, *, family, paging, count=False, resolved_scope=None)
         return [dict(rn=row['rn'], **{alias: row.get(field) for alias, field in EXCESS_ALIASES.items()}) for row in rows]
     from mta.presentation.fulfillment_grid import fulfillment_grid_rows
     from mta.presentation.fulfillment_views import detail_aliases
-    details = selected_details(run, rows)
+    details = selected_details(run, rows, read_binding=read_binding)
     projected = fulfillment_grid_rows(rows, detail_aliases(details))
     for result, row in zip(projected, rows):
         result['rn'] = row['rn']
     return projected
 
 
-def selected_details(run, rows):
+def selected_details(run, rows, *, read_binding=None):
     if not rows:
         return []
     pairs = sorted({(row['SKUCode'], row['WhCode']) for row in rows})
     fields = [f.name for f in FulfillmentDetailRow._meta.local_fields if f.name not in ('id', 'run', 'ordinal')]
+    fact_relation='mta.'+quote(FulfillmentDetailRow._meta.db_table);fact_params=[]
+    if read_binding is not None:
+        from mta.presentation.scoped_planning import require_binding
+        query,fact_params=require_binding(run,read_binding).fact_query('OrderFulfillmentDetails')
+        fact_relation='('+query+')'
     sql = ('WITH pairs(sku,location) AS (VALUES ' + ','.join(['(%s::text,%s::text)'] * len(pairs)) + ') SELECT '
-           + ','.join('A.' + quote(name) for name in fields) + ' FROM mta.' + quote(FulfillmentDetailRow._meta.db_table)
+           + ','.join('A.' + quote(name) for name in fields) + ' FROM ' + fact_relation
            + ' A WHERE A.run_id=%s AND EXISTS (SELECT 1 FROM pairs P WHERE ' + equal('A."SKUCode"', 'P.sku')
            + ' AND ' + equal('A."WhCode"', 'P.location') + ') ORDER BY A.ordinal')
     with connection.cursor() as cursor:
-        cursor.execute(sql, [*[value for pair in pairs for value in pair], run.pk])
+        cursor.execute(sql, [*[value for pair in pairs for value in pair],*fact_params,run.pk])
         return storage([dict(zip(fields, row)) for row in cursor.fetchall()])

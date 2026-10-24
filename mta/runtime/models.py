@@ -1328,3 +1328,7 @@ from mta.runtime.scope_report_models import (ScopeReportGeneration,ScopeExcessRo
     ScopeFulfillmentSummaryRow,ScopeFulfillmentDetailRow,ScopeExpediteRow,ScopePickPostRow)
 from mta.runtime.scope_prepared_models import (ScopeSourceProjection,ScopeBprCandidateRow,
     ScopePlanningBprRow,ScopePlanningGitRow)
+
+from mta.runtime.scope_planning_models import (ScopePlanningProjection,ScopePlanningExcessGrid,
+    ScopePlanningFulfillmentGrid,ScopePlanningExcessCustom,ScopePlanningFulfillmentCustom,
+    ScopePlanningChartMember,ScopePlanningChartDisplay)

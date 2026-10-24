@@ -109,7 +109,7 @@ class BprSources:
             physical_image=item['image'],table=item['table'],rows_digest=item['digest'],row_count=item['count'])
 
 
-def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False):
+def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False,include_nms=False):
     """Bind real accepted sources; this alone grants no native/UI admission."""
     from mta.runtime.scoped_pick_files import _accepted
     from mta.runtime.scoped_actions import revision
@@ -148,5 +148,14 @@ def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False)
         input_manifest_digest=run.input_manifest_digest,phase_id=str(phase.pk),phase_digest=phase.digest,
         snapshot_digest=phase.snapshot.state_digest,capture_digest=phase.capture_digest,
         source_id=phase.source_id,action_revision=action_revision,images=images,display_date=display_date.isoformat())
+    common_digest=digest(identity)
+    # Custom Planning alone consumes this accepted image. Keep its discovery
+    # outside the independent five-fact/three-source identity and opt in only
+    # when preparing/binding those consumers. Their receipt pins provenance.
+    if type(include_nms) is not bool:raise PublicationUnavailable('bpr_nms_read_contract_differs')
+    if include_nms:
+        name=_image(phase.snapshot.manifest,('state','nms','NMSAllItems'))
+        if name is not None:
+            images['closing/consumer_context/NMSAllItems']=deepcopy(_checked(phase.snapshot.manifest['images'].get(name)))
     return BprSources(run,phase.pk,phase.digest,phase.snapshot.state_digest,action_revision,
-        display_date,digest(identity),images,inherited)
+        display_date,common_digest,images,inherited)

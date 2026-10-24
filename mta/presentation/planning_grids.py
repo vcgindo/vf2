@@ -9,13 +9,17 @@ from mta.runtime.planning_grid_schema import verify_guards
 from mta.runtime.relational_state import quote
 
 
-def admitted_grids(run, *, validated_fixture=None):
+def admitted_grids(run, *, validated_fixture=None, read_binding=None):
     """Resolve one request's source binding using the established sealed-read rule.
 
     Full checksum traversal belongs to preparation/readback verification. Serving
     reads verify immutable guards and the recipe/source receipt, as the existing
     BPR prepared reader does. Permission/filter decisions remain with consumers.
     """
+    if read_binding is not None:
+        from mta.presentation.scoped_planning import require_binding
+        bound=require_binding(run,read_binding)
+        return {name:bound.query(name+'_grid') for name in ('excess','fulfillment')}
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if daily:

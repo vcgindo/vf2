@@ -8,9 +8,9 @@ from mta.presentation.planning_chart_preparation import FAMILIES
 from mta.runtime.relational_state import quote
 
 
-def chart_queries(run,payload,category):
-    relations=admitted_charts(run)
-    importer,manifest=_projected_attributes(run)
+def chart_queries(run,payload,category,*,read_binding=None):
+    relations=admitted_charts(run,read_binding=read_binding)
+    importer,manifest=(_projected_attributes(run) if read_binding is None else (read_binding.attributes(),None))
     if manifest:raise PublicationUnavailable('planning_chart_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
     if category=='excess':
@@ -38,8 +38,12 @@ def chart_queries(run,payload,category):
         summed=amount or (family=='fulfillment_detail' and direction=='sku')
         expression=('A."Amount"' if amount else 'A."PendingQty"') if summed else (
             'CASE WHEN A."OrderNo" IS NULL THEN 0 ELSE 1 END' if family=='fulfillment_detail' else '1')
-        ctes.append('eligible AS (SELECT M.*,('+expression+')*P.weight*L.weight AS value FROM M JOIN mta.'
-                    +quote(fact._meta.db_table)+' A ON A.run_id=M.run_id AND A.ordinal=M.fact_ordinal '
+        fact_relation='mta.'+quote(fact._meta.db_table)
+        if read_binding is not None:
+            from mta.presentation.scoped_planning_queries import FACTS
+            query,values=read_binding.fact_query(FACTS[family])
+            ctes.append('F AS ('+query+')');params.extend(values);fact_relation='F'
+        ctes.append('eligible AS (SELECT M.*,('+expression+')*P.weight*L.weight AS value FROM M JOIN '+fact_relation+' A ON A.run_id=M.run_id AND A.ordinal=M.fact_ordinal '
                     'JOIN P ON A."SKUCode"=P.code JOIN L ON A."WhCode"=L.code)')
         # Select the first eligible source occurrence only after live scope.
         # Prepared display membership does not predetermine raw scoped labels.
@@ -66,8 +70,8 @@ def chart_queries(run,payload,category):
     return result
 
 
-def graph(run,payload,category):
-    queries=chart_queries(run,payload,category)
+def graph(run,payload,category,*,read_binding=None):
+    queries=chart_queries(run,payload,category,read_binding=read_binding)
     if category=='fulfillment':
         from mta.presentation.fulfillment_charts import chart_response
         return chart_response(queries)

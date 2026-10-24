@@ -196,7 +196,7 @@ class PreparedBinding:
     def fact_query(self,name):return self.reports.query(name)
 
 
-def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False):
+def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False,include_nms=False):
     from django.core.exceptions import ObjectDoesNotExist
     reports=facts.bind(generation_id,expected_digest=expected_report_digest,action_revision=action_revision)
     try:projection=models.ScopeSourceProjection.objects.get(generation=reports.generation)
@@ -210,7 +210,7 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
         raise PublicationUnavailable('bpr_source_projection_identity_differs')
     sources=scoped_sources.bind(reports.generation.phase_id,
         expected_digest=reports.generation.metadata['phase_digest'],action_revision=action_revision,
-        include_inherited_btr=include_inherited_btr)
+        include_inherited_btr=include_inherited_btr,include_nms=include_nms)
     return PreparedBinding(projection,reports,sources)
 
 
