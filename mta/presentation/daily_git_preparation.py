@@ -15,7 +15,7 @@ DESCRIPTION_PATH = 'closing/importer/SiteDescriptionTbl'
 PATHS = (TRANSPORTER_PATH, TRANSIT_PATH, NMS_PATH, LOCATION_PATH, DESCRIPTION_PATH)
 
 
-def location_configuration(run):
+def location_configuration(run,*,read_binding=None):
     """Port ExpediteProcessor.GetUIConfigAttribute('LocAttr').
 
     The retained AdminBPR population currently has no visible LocAttr columns.
@@ -29,7 +29,11 @@ def location_configuration(run):
     bindings = []
     config = []
     seen = set()
-    metadata = image_metadata(run, LOCATION_PATH)
+    if read_binding is None:
+        metadata = image_metadata(run, LOCATION_PATH)
+    else:
+        admitted_sources(run,read_binding=read_binding)
+        metadata = read_binding.sources.metadata(LOCATION_PATH)
     available = {field[0].casefold() for field in metadata.get('fields', ())}
     for row in rows:
         match = re.fullmatch(r'LocAttr([1-9]|1[0-5])', str(row.get('Col_Code', '')),
@@ -48,22 +52,28 @@ def location_configuration(run):
     return bindings, config
 
 
-def sources(run, *, chart):
+def sources(run, *, chart,read_binding=None):
     """Return trusted SQL relations after all existing seals have been checked."""
-    relations = dict(admitted_sources(run))
+    relations = dict(admitted_sources(run) if read_binding is None else
+        admitted_sources(run,read_binding=read_binding))
     paths = ((TRANSPORTER_PATH, TRANSIT_PATH, LOCATION_PATH, DESCRIPTION_PATH)
              if chart else (TRANSPORTER_PATH, TRANSIT_PATH, NMS_PATH, DESCRIPTION_PATH))
     for path in paths:
-        image_metadata(run, path)
-        relations[path] = image_query(run, path)
-    bindings, config = location_configuration(run) if chart else ([], [])
+        if read_binding is None:
+            image_metadata(run, path)
+            relations[path] = image_query(run, path)
+        else:
+            relations[path] = read_binding.image_query(path)
+    bindings, config = (location_configuration(run) if read_binding is None else
+        location_configuration(run,read_binding=read_binding)) if chart else ([], [])
     return relations, bindings, config
 
 
-def validate_ready(run):
+def validate_ready(run,*,read_binding=None):
     """Coordinator hook replacing the obsolete nonempty-transit rejection."""
-    chart_relations, bindings, config = sources(run, chart=True)
-    custom_relations, _, _ = sources(run, chart=False)
+    options={} if read_binding is None else dict(read_binding=read_binding)
+    chart_relations, bindings, config = sources(run, chart=True,**options)
+    custom_relations, _, _ = sources(run, chart=False,**options)
     return dict(recipe_digest=recipe_digest(),
                 relations=tuple(sorted(set(chart_relations) | set(custom_relations))),
                 dynamic_bindings=tuple(bindings), ui_config=tuple(

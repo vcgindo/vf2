@@ -21,8 +21,9 @@ def _permissions(products, locations):
     return ctes, params
 
 
-def _relations(run):
-    relations, bindings, dynamic_config = sources(run, chart=True)
+def _relations(run,*,read_binding=None):
+    options={} if read_binding is None else dict(read_binding=read_binding)
+    relations, bindings, dynamic_config = sources(run, chart=True,**options)
     ctes, params = [], []
     for alias, name in (('A', TRANSPORTER_PATH), ('B', TRANSIT_PATH),
                         ('G', 'git_master'), ('D', DESCRIPTION_PATH),
@@ -87,9 +88,10 @@ def _delay_query(ctes, location, *, partition):
             ' GROUP BY ' + ','.join(groups))
 
 
-def graph(run, products, locations):
+def graph(run, products, locations,*,read_binding=None):
     """Return the deployed four-table GIT chart wire for one resolved scope."""
-    relation_ctes, relation_params, bindings, dynamic_config = _relations(run)
+    relation_ctes, relation_params, bindings, dynamic_config = (
+        _relations(run) if read_binding is None else _relations(run,read_binding=read_binding))
     permission_ctes, permission_params = _permissions(products, locations)
     config = [*dynamic_config, *[dict(item) for item in BASE_CONFIG]]
     if permission_ctes is None:

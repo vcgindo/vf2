@@ -2,6 +2,7 @@
 import os
 import unittest
 from types import SimpleNamespace
+from contextlib import contextmanager,ExitStack
 from unittest.mock import patch
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vectorflow.settings')
@@ -24,11 +25,19 @@ class PlanningGitTests(unittest.TestCase):
         self.assertEqual(combined_grid('child',[],[])['locationWise']['data'],[])
 
     def setUp(self):
-        self.run = SimpleNamespace(pk='fixture', kind='LEGACY_UI_FIXTURE', business_date='2026-04-07')
+        self.run = SimpleNamespace(pk='daily-run', kind='DAILY_CHAIN', business_date='2026-04-07')
         self.receipt = SimpleNamespace(source_digest='source', recipe_digest='recipe')
 
+    @contextmanager
+    def admitted_daily(self):
+        with ExitStack() as stack:
+            stack.enter_context(patch('mta.presentation.daily_preparation.production_branch',return_value=True))
+            stack.enter_context(patch('mta.presentation.daily_preparation.source_digest',return_value='source'))
+            stack.enter_context(patch.object(subject,'production_recipe_digest',return_value='recipe'))
+            yield
+
     def test_admitted_relations_are_run_bounded_without_reconstructing_sources(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with self.admitted_daily(), \
                 patch.object(subject.PlanningGitProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards') as guards:
@@ -37,12 +46,12 @@ class PlanningGitTests(unittest.TestCase):
             self.assertEqual(set(relations), {'row'})
             for sql, params in relations.values():
                 self.assertIn('WHERE run_id=%s', sql)
-                self.assertEqual(params, ['fixture'])
+                self.assertEqual(params, ['daily-run'])
                 self.assertNotIn('JOIN', sql)
             guards.assert_called_once()
 
     def test_missing_or_changed_receipt_is_unavailable(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with self.admitted_daily(), \
                 patch.object(subject.PlanningGitProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards') as guards:
@@ -54,7 +63,7 @@ class PlanningGitTests(unittest.TestCase):
             guards.assert_not_called()
 
     def test_changed_guard_is_unavailable(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
+        with self.admitted_daily(), \
                 patch.object(subject.PlanningGitProjection.objects, 'filter') as receipts, \
                 patch.object(subject, 'recipe_digest', return_value='recipe'), \
                 patch.object(subject, 'verify_guards', side_effect=ValueError('drift')):
@@ -62,12 +71,11 @@ class PlanningGitTests(unittest.TestCase):
             with self.assertRaisesRegex(PublicationUnavailable, 'immutable_guards_changed'):
                 subject.admitted_git(self.run)
 
-    def test_other_run_kind_or_day_is_rejected_before_receipt_read(self):
-        with patch.object(subject.fixture, 'binding', return_value=(self.run, 'source')), \
-                patch.object(subject.PlanningGitProjection.objects, 'filter') as receipts:
-            for pk, kind, day in [('other', 'LEGACY_UI_FIXTURE', '2026-04-07'),
-                                  ('fixture', 'DAILY_CHAIN', '2026-04-07'),
-                                  ('fixture', 'LEGACY_UI_FIXTURE', '2026-06-17')]:
-                with self.assertRaisesRegex(PublicationUnavailable, 'wrong_fixture'):
-                    subject.admitted_git(SimpleNamespace(pk=pk, kind=kind, business_date=day))
+    def test_unadmitted_run_is_rejected_before_receipt_read(self):
+        with patch('mta.presentation.daily_preparation.production_branch',return_value=False), \
+                patch.object(subject.PlanningGitProjection.objects,'filter') as receipts:
+            with self.assertRaisesRegex(PublicationUnavailable,'removed_historical_mode'):
+                subject.admitted_git(self.run)
+            with self.assertRaisesRegex(PublicationUnavailable,'wrong_fixture'):
+                subject.admitted_git(self.run,validated_fixture=(self.run,'source'))
             receipts.assert_not_called()

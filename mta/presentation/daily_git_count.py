@@ -37,10 +37,15 @@ class CountFilters(GridFilters):
         return alias+'.'+quote(actual),kind
 
 
-def count(run, payload, products, locations):
+def count(run, payload, products, locations,*,read_binding=None):
     # Reuse the qualified Commons predicate semantics, but resolve every column
     # against this query's actual grain and aliases. Missing native fields fail.
     filters=CountFilters(payload); where=filters.compile()
+    if read_binding is not None:
+        from mta.presentation.planning_sources import admitted_sources
+        admitted_sources(run,read_binding=read_binding)
+        if read_binding.transit is None:
+            raise PublicationUnavailable('bpr_transit_read_source_unavailable')
     if not products or not locations:
         return 0
     paths = dict(a=TRANSPORTER_PATH, slsa='closing/dbm/SKULocStandardAttributes',
@@ -48,7 +53,7 @@ def count(run, payload, products, locations):
                  la='closing/importer/LocationAttributeData', sla='closing/importer/SkuLocAttributeData')
     ctes=[]; params=[]
     for alias, path in paths.items():
-        sql, values = image_query(run, path)
+        sql, values = image_query(run, path) if read_binding is None else read_binding.image_query(path)
         ctes.append(alias+' AS ('+sql+')'); params.extend(values)
     for alias, codes in (('P', products), ('L', locations)):
         ctes.append(alias+'(code) AS (VALUES '+','.join('(%s::text)' for _ in codes)+')')

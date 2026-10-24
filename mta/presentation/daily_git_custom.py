@@ -29,9 +29,10 @@ FIELDS = (
 )
 
 
-def custom(run, products, locations, paging):
+def custom(run, products, locations, paging,*,read_binding=None):
     config = [dict(header=h, colCode=c, colPosition=p) for h, c, p in CUSTOM_COLUMNS]
-    relations, _, _ = sources(run, chart=False)
+    options={} if read_binding is None else dict(read_binding=read_binding)
+    relations, _, _ = sources(run, chart=False,**options)
     if not products or not locations:
         return dict(data=[], uiConfig=config)
     ctes, params = [], []
