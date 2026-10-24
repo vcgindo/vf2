@@ -57,9 +57,21 @@ def is_revision_guard(function):
     scope_files=import_module('mta.runtime.migrations.0195_scope_pick_revision_ownership').NEW
     scope_capture=import_module('mta.runtime.migrations.0196_scope_pick_capture_key').NEW
     scope_reports=import_module('mta.runtime.migrations.0198_scope_report_guards').NEW
+    scope_sources=import_module('mta.runtime.migrations.0200_scope_source_guards').NEW
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports) and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports,scope_sources) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
+
+
+def scoped_derived_body(cursor,*,minimum):
+    """Exact applied scoped-watch version, separate from producer recipes."""
+    from importlib import import_module
+    versions=('0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
+    if minimum not in versions:raise ValueError('Unknown scoped derived guard minimum')
+    cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
+    installed={name for name, in cursor.fetchall()}
+    if minimum not in installed:raise ValueError('Required scoped derived guard migration missing')
+    return import_module('mta.runtime.migrations.'+next(name for name in versions if name in installed)).NEW
 
 
 def domain(schema, table):

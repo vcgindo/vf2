@@ -69,10 +69,14 @@ def production_recipe_digest(layer):
     }
     from mta.presentation import native_excess_history
     history_contract = inspect.getsource(native_excess_history) if layer == 'guided_history' else None
-    return digest({'version': 1, 'layer': layer, 'history_contract': history_contract, 'schema_digest': schemas[layer],
+    identity = {'version': 1, 'layer': layer, 'history_contract': history_contract, 'schema_digest': schemas[layer],
                    'builder': inspect.getsource(__import__(__name__, fromlist=['prepare'])),
                    'queries': [inspect.getsource(function)
-                               for function in recipes[layer]]})
+                               for function in recipes[layer]]}
+    if layer == 'bpr':
+        from mta.presentation import bpr_candidate_sql
+        identity['candidate_contract'] = inspect.getsource(bpr_candidate_sql)
+    return digest(identity)
 
 
 def _fail(message):
@@ -132,7 +136,7 @@ def _stream_receipt(run, model, fields, *, order='ordinal', batch_size=1000,
 
 
 def _bpr_insert_query(run):
-    ctes, params = [], []
+    bindings = {}
     for owner, path in BPR_SOURCES.items():
         item = image_metadata(run, path)
         native = dict(CATALOG['tables'][item['table']])
@@ -142,29 +146,13 @@ def _bpr_insert_query(run):
             if published.get(name) != kind:
                 _fail('BPR_prepared_source_field_type_changed:' + owner + '.' + name)
         sql, values = image_query(run, path)
-        ctes.append(owner + ' AS NOT MATERIALIZED (' + sql + ')')
-        params.extend(values)
-    source_order = ','.join(owner + '.vf_ordinal' for owner in BPR_SOURCES)
-    selected = ['%s', 'row_number() OVER (ORDER BY ' + source_order + ')-1',
-                key('A."SKUCode"'), key('A."WhCode"')]
-    selected += [owner + '.vf_ordinal' for owner in BPR_SOURCES]
-    selected += [owner + '.' + quote(name)
-                 for owner, fields in BPR_FIELDS.items() for name in fields]
-    joins = ' FROM A'
-    for owner, sku, location in (('V', 'SKUCode', 'WhCode'),
-                                 ('S', 'SKUCode', 'WhCode'),
-                                 ('C', 'SKUCode', None), ('D', None, 'WHCode'),
-                                 ('B', 'SKUCode', 'LocCode')):
-        conditions = []
-        if sku:
-            conditions.append(equal('A."SKUCode"', owner + '.' + quote(sku)))
-        if location:
-            conditions.append(equal('A."WhCode"', owner + '.' + quote(location)))
-        joins += ' LEFT JOIN ' + owner + ' ON ' + ' AND '.join(conditions)
+        bindings[owner] = sql, values
+    from mta.presentation.bpr_candidate_sql import components
+    ctes, selected, joins, params = components(bindings)
     columns = ','.join(quote(name) for name in ('run_id',) + BPR_ROW_FIELDS)
     return ('WITH ' + ','.join(ctes) + ' INSERT INTO ' +
             quote(BprPreparedRow._meta.db_table) + ' (' + columns + ') SELECT ' +
-            ','.join(selected) + joins), params + [run.pk]
+            ','.join(['%s', *selected]) + joins), params + [run.pk]
 
 
 def _dbm_insert_query(run):

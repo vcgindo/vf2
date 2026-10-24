@@ -59,19 +59,27 @@ def projection():
     return result
 
 
-def _prepared_query(run):
+def _prepared_query(run, read_binding=None):
+    if read_binding is not None:
+        from mta.presentation.scoped_prepared import PreparedBinding
+        if not isinstance(read_binding,PreparedBinding) or read_binding.run_id!=run.pk:
+            raise PublicationUnavailable('BPR_prepared_phase_owner_differs')
+        return read_binding.query('bpr_candidates')
     return ('SELECT * FROM ' + quote(BprPreparedRow._meta.db_table) +
             ' WHERE run_id=%s'), [run.pk]
 
 
 def _build(run, payload, importer, ancillary, paging=None, *, count=False, analytics=False,
-           live_remarks=False, daily_transit=False, export=False):
+           live_remarks=False, daily_transit=False, export=False, read_binding=None):
     ctes, params = [], []
     def add(alias, query, values):
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
 
-    query, values = _prepared_query(run)
+    query, values = _prepared_query(run,read_binding)
+    if read_binding is not None and live_remarks:
+        raise PublicationUnavailable('BPR_phase_live_remarks_source_unavailable')
+    source_query=(lambda path:image_query(run,path)) if read_binding is None else read_binding.image_query
     add('prepared', query, values)
     products, locations = scope(payload, attributes=importer)
     if not products or not locations:
@@ -85,7 +93,7 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
     where = filters.compile()
     parent = ''
     if filters.children:
-        query, values = image_query(run, 'closing/importer/LocationAttributeData')
+        query, values = source_query('closing/importer/LocationAttributeData')
         add('D', query, values)
         parent = (' JOIN D parent ON ' + equal(column('A', 'ParentWhCode'), 'parent."WHCode"') +
                   ' AND (' + ' OR '.join(equal('parent."LocationType"', '%s')
@@ -139,7 +147,7 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
             ' NULLS FIRST,' + pen('DispatchPen') + ' DESC NULLS LAST,' +
             'R.location_key DESC NULLS LAST,R.sku_key NULLS FIRST,' + ordinals)
     if export:
-        query, values = image_query(run, 'closing/btr/BufferTrendPhysicalInv')
+        query, values = source_query('closing/btr/BufferTrendPhysicalInv')
         add('T', query, values)
         params.extend(filters.children)
         params.extend(filters.params)
@@ -163,7 +171,7 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
     params.extend((size, (page - 1) * size))
     ctes.append('selected_counts AS (SELECT sku_key,location_key,count(*)::bigint AS copies'
                 ' FROM selected GROUP BY 1,2)')
-    query, values = image_query(run, 'closing/btr/BufferTrendPhysicalInv')
+    query, values = source_query('closing/btr/BufferTrendPhysicalInv')
     add('T', query, values)
     select = ','.join(value + ' AS ' + quote(name) for name, value in projection())
     if daily_transit:

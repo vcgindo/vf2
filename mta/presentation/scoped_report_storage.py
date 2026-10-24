@@ -69,11 +69,12 @@ def verify_guards():
         if cursor.fetchall()!=[(name,body,False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
                 for name,body in sorted(bodies.items())]:
             raise PublicationUnavailable('bpr_report_generation_guard_body_differs')
-        from mta.runtime.ingestion_ownership import require_guard_coverage
+        from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
         require_guard_coverage(cursor)
+        expected_body=scoped_derived_body(cursor,minimum='0198_scope_report_guards')
         cursor.execute("SELECT prosrc,prosecdef,proconfig FROM pg_proc "
             "WHERE oid='mta.ingestion_watch()'::regprocedure")
-        if cursor.fetchall()!=[(frozen.NEW,True,['search_path=pg_catalog, mta'])]:
+        if cursor.fetchall()!=[(expected_body,True,['search_path=pg_catalog, mta'])]:
             raise PublicationUnavailable('bpr_report_generation_revision_owner_differs')
 
 

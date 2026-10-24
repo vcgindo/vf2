@@ -1326,3 +1326,5 @@ from mta.runtime.phase_state_models import DailyPhaseSnapshot
 from mta.runtime.scope_models import RunScopeAttempt, RunPhaseAcceptance, ScopePickFiles
 from mta.runtime.scope_report_models import (ScopeReportGeneration,ScopeExcessRow,
     ScopeFulfillmentSummaryRow,ScopeFulfillmentDetailRow,ScopeExpediteRow,ScopePickPostRow)
+from mta.runtime.scope_prepared_models import (ScopeSourceProjection,ScopeBprCandidateRow,
+    ScopePlanningBprRow,ScopePlanningGitRow)

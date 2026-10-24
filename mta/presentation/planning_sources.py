@@ -9,13 +9,18 @@ from mta.runtime.planning_source_schema import verify_guards
 from mta.runtime.relational_state import quote
 
 
-def admitted_sources(run, *, validated_fixture=None):
+def admitted_sources(run, *, validated_fixture=None, read_binding=None):
     """Resolve one request's source binding using the established sealed-read rule.
 
     Full checksum traversal belongs to preparation/readback verification. Serving
     reads verify immutable guards and the recipe/source receipt, as the existing
     BPR prepared reader does. Permission/filter decisions remain with consumers.
     """
+    if read_binding is not None:
+        from mta.presentation.scoped_prepared import PreparedBinding
+        if not isinstance(read_binding,PreparedBinding) or read_binding.run_id!=run.pk:
+            raise PublicationUnavailable('planning_sources_phase_owner_differs')
+        return {name:read_binding.query(name) for name in ('bpr_master','git_master')}
     from mta.presentation.daily_preparation import production_branch
     if production_branch(run):
         from mta.presentation.daily_preparation import source_digest

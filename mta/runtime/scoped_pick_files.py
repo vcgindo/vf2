@@ -29,10 +29,8 @@ def verify_guards():
                   deny_accepted_truncate=accepted.TRUNCATE_BODY,
                   ingestion_watch=import_module('mta.runtime.migrations.0196_scope_pick_capture_key').NEW)
     with connection.cursor() as cursor:
-        cursor.execute("SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' "
-                       "AND name='0198_scope_report_guards'")
-        if cursor.fetchone() is not None:
-            expected['ingestion_watch']=import_module('mta.runtime.migrations.0198_scope_report_guards').NEW
+        from mta.runtime.ingestion_ownership import scoped_derived_body
+        expected['ingestion_watch']=scoped_derived_body(cursor,minimum='0196_scope_pick_capture_key')
         cursor.execute("SELECT T.tgname,T.tgenabled,T.tgtype,N.nspname,P.proname,T.tgnargs,T.tgqual::text,"
             "T.tgdeferrable,T.tginitdeferred FROM pg_trigger T JOIN pg_proc P ON P.oid=T.tgfoid "
             "JOIN pg_namespace N ON N.oid=P.pronamespace "
