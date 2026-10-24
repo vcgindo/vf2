@@ -1336,3 +1336,5 @@ from mta.runtime.scope_transit_models import (ScopeTransitGeneration,ScopeTransi
     ScopeTransporterRow,ScopeTransitDiagnostic)
 from mta.runtime.scope_git_models import ScopeGitGeneration,ScopeGitOccurrence
 from mta.runtime.scope_pick_models import ScopePickGeneration,ScopePickReference,ScopeRrrReference
+from mta.runtime.scope_expedite_models import (ScopeExpediteGeneration,ScopeExpediteGrid,ScopeExpediteCustom,
+    ScopeExpediteChartMember,ScopeExpeditePrepostMember)
