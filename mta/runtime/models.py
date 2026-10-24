@@ -1334,3 +1334,4 @@ from mta.runtime.scope_planning_models import (ScopePlanningProjection,ScopePlan
     ScopePlanningChartMember,ScopePlanningChartDisplay)
 from mta.runtime.scope_transit_models import (ScopeTransitGeneration,ScopeTransitRow,
     ScopeTransporterRow,ScopeTransitDiagnostic)
+from mta.runtime.scope_git_models import ScopeGitGeneration,ScopeGitOccurrence

@@ -38,17 +38,21 @@ def location_transit(rows):
             for match,value in result.items()}
 
 
-def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
+def grid(run,payload,*,count=False,overview=False,resolved_scope=None,read_binding=None):
     from mta.presentation.git_read import validate_filters,NORMAL_COLUMNS
     from mta.presentation.excess_read import pagination
     kind=str(payload.get('type','')).lower()
     if kind not in ('parent','child'):raise PublicationUnavailable('selected_git_type_not_supported')
     paging=pagination(payload)
-    occurrence,params=admitted_git(run)['row'];params=list(params)
-    master,values=admitted_sources(run)['git_master']
+    occurrence,params=(admitted_git(run) if read_binding is None else
+        admitted_git(run,read_binding=read_binding))['row'];params=list(params)
+    master,values=(admitted_sources(run) if read_binding is None else
+        admitted_sources(run,read_binding=read_binding.prepared))['git_master']
     from mta.presentation.daily_preparation import production_branch
-    daily=production_branch(run)
-    if daily:
+    daily=production_branch(run) if read_binding is None else True
+    if read_binding is not None:
+        transit=read_binding.prepared.transit.rows('InTransitData')
+    elif daily:
         from mta.presentation.daily_transit import PATH as TRANSIT_PATH
         transit=image_rows(run,TRANSIT_PATH)
         from mta.presentation.logistics_live import serving_transit_rows
@@ -56,7 +60,11 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     else:
         transit=removed_mode('historical_fixture')['InTransitData']
         if transit:raise PublicationUnavailable('planning_transporter_nonempty_source_not_prepared')
-    importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
+    if read_binding is None:
+        importer,manifest=_projected_attributes(run) if resolved_scope is None else resolved_scope[:2]
+    else:
+        importer,manifest=read_binding.attributes(),None
+        resolved_scope=None
     if manifest:raise PublicationUnavailable('planning_git_native_hierarchy_required')
     validate_filters(payload,SimpleNamespace(attributes=importer),child_count=count and kind=='child')
     filters=GridFilters(payload,'git',PlanningGitMasterRow)
@@ -77,7 +85,8 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
     ageing=None
     if daily and not count:
         from mta.presentation.daily_transit import PATH as TRANSIT_PATH
-        query,values=image_query(run,TRANSIT_PATH);ctes.append('T AS ('+query+')');params.extend(values)
+        query,values=image_query(run,TRANSIT_PATH) if read_binding is None else read_binding.image_query(TRANSIT_PATH)
+        ctes.append('T AS ('+query+')');params.extend(values)
         ageing=('(SELECT max(t."Ageing"-t."SLT") FROM T t WHERE '+
                 equal('t."SKUCode"','A."SKUCode"')+' AND '+equal('t."WhCode"','A."WhCode"')+')')
     for alias,codes in (('P',products),('L',locations)):
@@ -90,7 +99,9 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
            'JOIN P ON A."SKUCode"=P.code JOIN L ON A.'+quote('WhCode' if kind=='parent' else 'ParentWhCode')+'=L.code')
     for alias,table,ordinal in [('B','SkuLocAttributeData','pair_ordinal'),('C','SkuAttributeData','sku_ordinal'),('D','LocationAttributeData','location_ordinal')]:
         if alias not in owners and not(alias=='D' and filters.children):continue
-        query,values=image_query(run,'closing/importer/'+table);ctes.append(alias+' AS NOT MATERIALIZED ('+query+')');params.extend(values)
+        path='closing/importer/'+table
+        query,values=image_query(run,path) if read_binding is None else read_binding.image_query(path)
+        ctes.append(alias+' AS NOT MATERIALIZED ('+query+')');params.extend(values)
         if alias in owners:joins+=' LEFT JOIN '+alias+' ON '+alias+'.vf_ordinal=H.'+ordinal
     if filters.children:
         joins+=' JOIN D parent ON '+equal('A."ParentWhCode"','parent."WHCode"')+' AND ('+' OR '.join(equal('parent."LocationType"','%s') for _ in filters.children)+')'
@@ -103,7 +114,8 @@ def grid(run,payload,*,count=False,overview=False,resolved_scope=None):
         transporter_total=0
         if daily and transit and kind=='child':
             from mta.presentation.daily_git_count import count as transporter_count
-            transporter_total=transporter_count(run,payload,products,locations)
+            transporter_total=transporter_count(run,payload,products,locations) if read_binding is None else \
+                transporter_count(run,payload,products,locations,read_binding=read_binding.prepared)
         return [dict(locationwise=total,**({'transporterwise':transporter_total} if kind=='child' else {}))]
     aliases=dict(st='Status',sc='SKUCode',wc='WhCode',t='Tags',pwc='ParentWhCode',n='Norm',vn='VirtualNorm',stk='Stock',g='Git',pip='PhysicalInventoryPen',pic='PhysicalInventoryColor',plp='PipelineInventoryPen',plc='PipelineInventoryColor',rq='Req',pr='Price')
     columns={alias:'A.'+quote(field) for alias,field in aliases.items()}
