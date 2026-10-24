@@ -12,13 +12,13 @@ report preparation is needed.
 
 ## Exact serving artifact
 
-- MTA product commit: `26000b332c501908cfbffaaaad88152220877d04`.
+- MTA product commit: `67aebd2828c9707008efeb1a5cd94e9afcf09e9f`.
 - Branch: `codex/bounded-ui-recovery`; subsequent test/document commits do not
   change these image bytes; frontend/auth have their separate pins below.
-- MTA image: `sha256:11dde652242dc70bcf5021493b6063ffb50d14afa5316b920fb2089f7e993bcd`.
-- MTA native manifest: `2d6d81c7e3868690bf3b9715b1574d601a444ea938ac65ef22ef7a8bef6b6e5f`.
-- Container: `vectorflow-mta-lifecycle-g1-26000b33-w2`, ID
-  `0fdf567a8b55dc8acb0f95bb8f8172f5f8742573a60d4f16c63537e661551e01`.
+- MTA image: `sha256:c12bbb567a4d0e56ff496ae695be5da2420e72140af7bb3fbc66d29fe1fe71e0`.
+- MTA native manifest: `bd3998e642ff80e0f9bf040766af3d92f10103da2c4d92d06a10e5abdc9a8e3f`.
+- Container: `vectorflow-mta-lifecycle-g1-67aebd28`, ID
+  `f5fceeb1648eec510fd80d422984155f3675d8842e62f6ad41231e1dae4cd61d`.
 - Internal network/alias: existing `vectorflow_application`, `mta`.
 - HTTP serving uses the existing `release.service` entrypoint with
   `MTA_WORKERS=2`. This setting survives container restart. Memory remains
@@ -65,7 +65,7 @@ Do not rerun selection, preparation, execution or acknowledgement for this
 already published attempt. The normal read-only checker is:
 
 ```powershell
-docker exec vectorflow-mta-lifecycle-g1-26000b33-w2 python -B -m release.daily_serving_check --run-id 49efa557-a31f-4ea8-9089-b510f2856d30 --output-digest ee1f58bb9e2161b6bca5ebf5bdbb0993ae75a060e5e9312d2181b750782949ad
+docker exec vectorflow-mta-lifecycle-g1-67aebd28 python -B -m release.daily_serving_check --run-id 49efa557-a31f-4ea8-9089-b510f2856d30 --output-digest ee1f58bb9e2161b6bca5ebf5bdbb0993ae75a060e5e9312d2181b750782949ad
 ```
 
 ## Why these changes
@@ -81,6 +81,10 @@ restart retained the admitted run, output and selection. Browser acceptance is
 recorded separately in the sole tracker.
 
 Prepared BPR exports stream the final joined bag through a bounded cursor.
+Native BPR CSV bytes are batched into at most 64 KiB transport chunks. The
+full default export remains exactly 11,102,429 bytes with SHA256
+`82e779879f0c619489b90dc10673b7184e042eabd4794e58a680bb7d47152dce`;
+170 chunks replace 97,098 per-row handoffs through the existing auth gateway.
 Two HTTP workers let Planning execute while a CSV response is transferring.
 The fixed-resource private HTTP trial returned Planning in 0.42 seconds warm
 during an 11.1 MB transfer; the first request on a fresh worker took about two
@@ -160,6 +164,17 @@ MTA, frontend, MTO and PostgreSQL retain their exact container/image/start pins.
 The earlier login timings above describe the retained recovery baseline;
 current G1 startup and browser proof are tracked independently.
 
+On the qualified G1 image, the real authenticated browser BPR export retry
+finished with its success toast and cleared indicator in 12.092 seconds,
+versus roughly 80 seconds before transport batching. Planning appeared with
+all four accepted counts in 1.992 seconds after that retry. During an export,
+it took 3.117 seconds on the measured cold request; this is not a universal
+two-second guarantee. Browser reload cancelled an active export after about
+3 MB, and Planning recovered with the same counts. A denied Invalid Data Report
+download reached the existing 403 screen; authorized Planning remained usable
+after navigation. Cancellation/error cleanup also has native transaction and
+advisory-lock proofs. No new frontend or MTO code was changed for G1.
+
 ## Preservation and rollback
 
 Evidence is under
@@ -172,11 +187,11 @@ publications remain unchanged. Only the intended publication acknowledgement
 fields/files changed; ten previous archives remain byte-identical.
 
 The immediate compatible backend is stopped and retained:
-`vectorflow-mta-lifecycle-g1-26000b33`, ID
-`bd55fb60c6718956d2217e1c450a739722fa96098cc243beb58fabb0bfbe5f7b`,
-with the same `11dde652…` image and persistent `MTA_WORKERS=1` configuration.
+`vectorflow-mta-lifecycle-g1-26000b33-w2`, ID
+`0fdf567a8b55dc8acb0f95bb8f8172f5f8742573a60d4f16c63537e661551e01`,
+with image `11dde652…` and persistent `MTA_WORKERS=2` configuration.
 A coordinated rollback stops only the current MTA before starting that exact
-compatible predecessor; one-worker export contention would return. Never run
+compatible predecessor; per-row CSV transport overhead would return. Never run
 both with the `mta` alias. No database restore, volume deletion, shared Docker
 restart or recalculation belongs in this rollback.
 
