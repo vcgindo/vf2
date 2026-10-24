@@ -562,7 +562,8 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
             native_stock['_production_sources'] = True
         if native_daily:
             native_stock['_owned_daily_stock'] = dict(daily_consumption=generated_bpr_daily_state(
-                {'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily),
+                {'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily)
+                if phase.daily_consumption is None else phase.daily_consumption,
                 attributes=importer['SkuLocAttributeData'])
         calculated,calculation_id=execute_calculation(source, _owned_order_closing=order_state,
             _owned_r1_context=r1_context, **native_stock)
@@ -604,7 +605,8 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
         if completion is not None:
             daily_finalization.mark(completion, 'GenerateLogisticPickList.sql')
     with stage('remaining_bpr'):
-        early_daily=generated_bpr_daily_state({'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily)
+        early_daily=(generated_bpr_daily_state({'raw_master_entry':{'business_date':today},'raw_daily_entry':daily_input},daily)
+                     if phase.daily_consumption is None else phase.daily_consumption)
         constructor={'BPRMaster':bpr_master,'BPRDailyConsumption':early_daily,
             'RequirementBlue':[{'SKUCode':r['sku_code'],'WhCode':r['location_code'],'BlueReq':int(Decimal(r['virtual_norm']['blue_requirement']))} for r in calculated['r1_requirement']],
             **{n:deepcopy(importer[n]) for n in ('SKUDescriptionTbl','SiteDescriptionTbl','SkuLocAttributeData')},

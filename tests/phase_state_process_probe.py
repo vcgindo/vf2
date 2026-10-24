@@ -30,18 +30,37 @@ def comparable(output, sources):
 probe = PhaseStatePostgresTests()
 action = sys.argv[1]
 with native_assignments(True):
-    if action == 'start':
+    if action in ('start', 'start_prepared'):
         from copy import deepcopy
         with transaction.atomic():
-            run, bpr, sources = probe.owner()
+            run, phase, sources = probe.owner(prepared=action == 'start_prepared')
+            if action == 'start_prepared':
+                from mta.application.stage_calculation_sources import capture_bpr
+                bpr = chain.produce_bpr(deepcopy(phase))
+                opening = sources
+                sources = capture_bpr(bpr, opening)
+            else:bpr = phase
             reference = comparable(chain.produce_btr(chain.produce_dbm(deepcopy(bpr))), sources)
-            snapshot = phase_state.save(run, bpr, sources)
-        result = dict(run_id=str(run.pk), phase='BPR', reference=reference)
+            snapshot = phase_state.save(run, phase, None if action == 'start_prepared' else sources)
+        result = dict(run_id=str(run.pk), phase=snapshot.phase, reference=reference)
     else:
         run = CalculationRun.objects.get(pk=sys.argv[2])
-        snapshot = DailyPhaseSnapshot.objects.get(run=run, phase='BPR' if action == 'dbm' else 'DBM')
-        phase, sources = phase_state.read(snapshot, **probe.references(run))
-        if action == 'dbm':
+        snapshot = DailyPhaseSnapshot.objects.get(run=run,
+            phase={'bpr': 'PRE_BPR', 'dbm': 'BPR', 'btr': 'DBM'}[action])
+        from tests.test_daily_calculation_phases import calculation
+        phase, sources = phase_state.read(snapshot, **probe.references(run), execute_calculation=calculation)
+        if action == 'bpr':
+            from mta.application.stage_calculation_sources import capture_bpr
+            from mta.application import production_output_policy
+            bpr = chain.produce_bpr(phase)
+            refs = probe.references(run)
+            opening = dict(supplier=refs['prior']['supplier'],
+                production_report_schema=production_output_policy.SOURCE_SCHEMA,
+                production_report_policy=refs['day']['production_report_policy'])
+            sources = capture_bpr(bpr, opening)
+            with transaction.atomic():snapshot = phase_state.save(run, bpr, sources, parent=snapshot)
+            result = dict(run_id=str(run.pk), phase='BPR', state_digest=snapshot.state_digest)
+        elif action == 'dbm':
             dbm = chain.produce_dbm(phase)
             with transaction.atomic():snapshot = phase_state.save(run, dbm, sources, parent=snapshot)
             result = dict(run_id=str(run.pk), phase='DBM', state_digest=snapshot.state_digest)

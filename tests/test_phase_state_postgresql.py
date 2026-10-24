@@ -26,25 +26,26 @@ class PhaseStatePostgresTests(unittest.TestCase):
         transaction.set_rollback(True)
         self.atomic.__exit__(None, None, None)
 
-    def owner(self):
+    def owner(self, *, prepared=False):
         from uuid import uuid4
         from mta.runtime.models import CalculationRun
         from mta.runtime.input_storage import save_input
         from mta.runtime.production_daily import input_table
         from mta.application.native_output_contracts import native_assignments
         from mta.serialization import digest
-        from tests.test_phase_state import native_bpr
+        from tests.test_phase_state import native_bpr, native_prepared
         identity = uuid4()
-        with native_assignments(True):bpr, sources, refs = native_bpr(str(identity))
+        with native_assignments(True):
+            phase, sources, refs = (native_prepared if prepared else native_bpr)(str(identity))
         raw = dict(profile=refs['profile'], day=refs['day'],
             opening=dict(identity='phase-supplied-fixture', opening_date='2037-04-09', state=refs['prior']))
         run = CalculationRun.objects.create(id=identity, input_digest=digest(raw),
-            execution_revision='native-phase-storage-proof', business_date='2037-04-10',
+            execution_revision='native-phase-storage-proof-'+identity.hex[:12], business_date='2037-04-10',
             kind='DAILY_CHAIN', input_payload={})
         run.input_payload = save_input(run, raw, table_selector=input_table)
         run.input_manifest_digest = digest(run.input_payload)
         run.save(update_fields=['input_payload', 'input_manifest_digest'])
-        return run, bpr, sources
+        return run, phase, sources
 
     def references(self, run):
         from mta.runtime.input_reader import read_input
@@ -78,6 +79,47 @@ class PhaseStatePostgresTests(unittest.TestCase):
         run.refresh_from_db()
         self.assertEqual(run.status, 'RUNNING')
         self.assertFalse(run.output_digest)
+        self.assertFalse(run.checkpoints.exists())
+
+    def test_prepared_native_rows_continue_through_bpr_without_repeating_intake(self):
+        from django.db import connection, DatabaseError, transaction
+        from mta.runtime import phase_state
+        from mta.application.native_output_contracts import native_assignments
+        from mta.application.stage_calculation_sources import capture_bpr
+        from mta.temporal import chain
+        from mta.serialization import storage
+        from tests.test_daily_calculation_phases import calculation
+        run, prepared, opening = self.owner(prepared=True)
+        with native_assignments(True):
+            expected_bpr = chain.produce_bpr(deepcopy(prepared))
+            expected_sources = capture_bpr(expected_bpr, opening)
+            expected = chain.produce_btr(chain.produce_dbm(expected_bpr))
+            before_bpr = phase_state.save(run, prepared, None)
+            restored, absent = phase_state.read(before_bpr, **self.references(run),
+                                                execute_calculation=calculation)
+            self.assertIsNone(absent)
+            with patch('mta.temporal.entry_preparation.prepare', side_effect=AssertionError('intake replay')):
+                bpr = chain.produce_bpr(restored)
+            sources = capture_bpr(bpr, opening)
+            first = phase_state.save(run, bpr, sources, parent=before_bpr)
+            restored, sources = phase_state.read(first, **self.references(run))
+            dbm = chain.produce_dbm(restored)
+            second = phase_state.save(run, dbm, sources, parent=first)
+            restored, sources = phase_state.read(second, **self.references(run))
+            result = chain.produce_btr_from_snapshot(restored, sources,
+                pick_source_digests=second.manifest['metadata']['pick_source_digests'])
+        from mta.runtime.relational_state import production_projection
+        self.assertEqual(storage(production_projection(result.output)), storage(production_projection(expected)))
+        self.assertEqual(storage(sources.__dict__), storage(expected_sources.__dict__))
+        self.assertEqual(first.parent_id, before_bpr.pk)
+        self.assertEqual(first.manifest['images']['phase/BPR/importer/MasterData'],
+                         before_bpr.manifest['images']['phase/PRE_BPR/importer/MasterData'])
+        with self.assertRaises(DatabaseError), transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute('UPDATE mta_state.phase_sourcing SET moq=999 '
+                    "WHERE vf_run_id=%s AND vf_image='phase/PRE_BPR/old_sourcing'", [run.pk])
+        run.refresh_from_db()
+        self.assertEqual(run.status, 'RUNNING')
         self.assertFalse(run.checkpoints.exists())
 
     def test_actual_snapshot_and_rows_are_immutable_while_day_is_running(self):
@@ -131,7 +173,8 @@ class PhaseStatePostgresTests(unittest.TestCase):
         run, _, _ = self.owner()
         for table in phase_state.TABLES:
             fields = phase_state.TABLES[table]
-            row = {name: 17 if kind == 'bigint' else 'Text  ' for name, kind in fields}
+            row = {name: 17 if kind == 'bigint' else '17.125' if kind == 'numeric' else 'Text  '
+                   for name, kind in fields}
             values = [row, deepcopy(row), {name: None for name, _ in fields}]
             metadata = phase_state._write_rows(run, 'phase/BPR/test/'+table.rsplit('/', 1)[-1],
                                              table, values)

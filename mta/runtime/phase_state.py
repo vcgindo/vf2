@@ -1,4 +1,4 @@
-"""Typed live-out snapshots for the native BPR and pre-BTR DBM producers.
+"""Typed live-out snapshots before BPR, after BPR and before BTR.
 
 A sealed snapshot is calculation storage, not phase business acceptance, file
 readiness, selection or a successful predecessor. The scoped transaction owner
@@ -13,11 +13,12 @@ from mta.runtime.phase_state_schema import TABLES
 
 SCHEMA = 'fresh-native-phase-state-v1'
 REGISTRY = {**typed.STORAGE_TABLES, **TABLES}
-# These are the unchanged captured opening/fact dependencies actually read after
-# BPR. Preparation's consumed control requests and reset flags are not reread.
+# These are the unchanged captured opening/fact dependencies read by remaining
+# calculation. Preparation's consumed requests and reset flags are not reread.
 PRIOR_REFS = ('dbm', 'btr', 'bpr', 'orders', 'consumer_context', 'publication_context')
 DAY_REFS = ('business_date', 'raw_non_nms', 'raw_no_norm', 'order_raw', 'exclusions',
-            'distributor_transactions', 'vendor_transactions')
+            'distributor_transactions', 'vendor_transactions', 'order_feed', 'order_feed_status')
+OPTIONAL_DAY_REFS = ('requirement_stock', 'production_report_policy')
 
 
 def recipe_digest():
@@ -30,6 +31,8 @@ def recipe_digest():
 def _references(context):
     return dict(prior={name: digest(context.prior[name]) for name in PRIOR_REFS},
         day={name: digest(context.day[name]) for name in DAY_REFS},
+        optional_day={name: (digest(context.day[name]) if name in context.day else None)
+                      for name in OPTIONAL_DAY_REFS},
         profile=digest(context.profile), master_snapshot=digest(context.master_snapshot))
 
 
@@ -63,10 +66,14 @@ def _write_rows(run, path, table, rows):
 
 def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
     """Build only shape/reference metadata; every operational cell is typed."""
-    from mta.temporal.day_phases import BprDay, DbmDay
-    if type(phase) not in (BprDay, DbmDay) or not phase.context.native_daily:
-        raise ValueError('Native BPR/pre-BTR DBM phase required')
-    name = 'BPR' if type(phase) is BprDay else 'DBM'
+    from mta.temporal.day_phases import PreparedDay, BprDay, DbmDay
+    from mta.application.stage_calculation_sources import CalculationSources
+    if type(phase) not in (PreparedDay, BprDay, DbmDay) or not phase.context.native_daily:
+        raise ValueError('Native prepared/BPR/pre-BTR DBM phase required')
+    name = {PreparedDay: 'PRE_BPR', BprDay: 'BPR', DbmDay: 'DBM'}[type(phase)]
+    if (name == 'PRE_BPR' and sources is not None or
+            name != 'PRE_BPR' and not isinstance(sources, CalculationSources)):
+        raise ValueError('Calculation sources must match their producing phase')
     images = {}
     parent_images = (parent_manifest or {}).get('images', {})
 
@@ -76,7 +83,8 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         columns = {n.casefold(): (n, kind) for n, kind in REGISTRY[table]}
         meta, _, _ = typed.describe_rows(values, columns, path)
         meta['table'] = table
-        inherited = parent_images.get(path.replace('/DBM/', '/BPR/', 1))
+        inherited = (parent_images.get(path.replace('phase/'+name+'/',
+            'phase/'+parent_manifest['phase']+'/', 1)) if parent_manifest else None)
         if inherited is not None and all(meta[k] == inherited[k]
                 for k in ('table', 'count', 'digest', 'fields')):
             images[path] = inherited
@@ -111,29 +119,43 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
             for key, values in phase.nms.items()}),
         supplier_sob=rows('supplier/sob', phase.supplier_sob, table='BPR/SOBData'),
         supplier_moq=rows('supplier/moq', phase.supplier_moq, table='BPR/MOQData'),
-        bpr_master=rows('bpr_master', phase.bpr_master, binding='closing/bpr/BPRMaster'),
-        order_state=tables({key: phase.order_state[key] for key in phase.context.prior['orders']},
-                           'orders', 'closing/orders'),
-        report=rows('report', phase.report, binding='reports/bpr/vf_RationedReqReport'),
-        late={key: rows('late/'+key, values, table={
-            'BPR_Table': 'BPR/BPR_Table', 'BPRDailyConsumption': 'BPR/DailyConsumption',
-            'BPRLastBatchRunTbl': 'DBM/LastBatchRunTbl',
-            'vf_RationedReqReport': 'BPR/vf_RationedReqReport'}[key])
-            for key, values in phase.late.items()},
         complete=tables(phase.complete, 'complete', 'closing/complete'),
-        pick_state=(None if phase.pick_state is None else tables(
-            {key: phase.pick_state[key] for key in ('LogisticPickList', 'PickListDataForTruckFormation')},
-            'pick', 'closing/complete')),
         master_raw=rows('master_raw', phase.context.master['tables']['MasterDataRaw'],
                         table='Importer/MasterDataRaw'))
+    if name == 'PRE_BPR':
+        from mta.application.r1_daily_entry import generated_bpr_daily_state
+        consumption = (generated_bpr_daily_state(dict(
+            raw_master_entry={'business_date': phase.context.today},
+            raw_daily_entry=phase.daily_input), phase.daily)
+            if phase.daily_consumption is None else phase.daily_consumption)
+        state.update(daily_consumption=rows('daily_consumption', consumption, table='BPR/DailyConsumption'),
+            old_sourcing=rows('old_sourcing', phase.old_sourcing, table='phase/Sourcing'),
+            new_sourcing=rows('new_sourcing', phase.new_sourcing, table='phase/Sourcing'),
+            supplier_final={key: rows('supplier_raw/'+key, phase.supplier_final[key], table=table)
+                for key, table in (('SOBDataRaw', 'Intermediate/TempSOBDataRaw'),
+                    ('MOQDataRaw1', 'Intermediate/TempMOQDataRaw1'),
+                    ('MOQDataRaw2', 'Intermediate/TempMOQDataRaw2'))})
+    else:
+        state.update(bpr_master=rows('bpr_master', phase.bpr_master, binding='closing/bpr/BPRMaster'),
+            order_state=tables({key: phase.order_state[key] for key in phase.context.prior['orders']},
+                               'orders', 'closing/orders'),
+            report=rows('report', phase.report, binding='reports/bpr/vf_RationedReqReport'),
+            late={key: rows('late/'+key, values, table={
+                'BPR_Table': 'BPR/BPR_Table', 'BPRDailyConsumption': 'BPR/DailyConsumption',
+                'BPRLastBatchRunTbl': 'DBM/LastBatchRunTbl',
+                'vf_RationedReqReport': 'BPR/vf_RationedReqReport'}[key])
+                for key, values in phase.late.items()},
+            pick_state=(None if phase.pick_state is None else tables(
+                {key: phase.pick_state[key] for key in ('LogisticPickList', 'PickListDataForTruckFormation')},
+                'pick', 'closing/complete')))
     from mta.runtime.operational_input_source import STORAGE_BINDINGS
     from mta.runtime.operational_force_source import BINDINGS
     for key, values, bindings in (
-        ('operational_input_tables', phase.operational_input_tables, STORAGE_BINDINGS),
+        ('operational_input_tables', getattr(phase, 'operational_input_tables', None), STORAGE_BINDINGS),
         ('force_alert_capture', phase.force_alert_capture, BINDINGS)):
         state[key] = None if values is None else {
             n: rows(key+'/'+n, bag, table=bindings[n]) for n, bag in values.items()}
-    consumers = dict(
+    consumers = None if name == 'PRE_BPR' else dict(
         pick_bands=rows('sources/pick', sources.pick_bands, table='phase/PickBand'),
         routes=rows('sources/routes', sources.routes, table='Intermediate/InterNodeOrders'),
         operational=(None if sources.operational is None else {
@@ -144,9 +166,10 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         production_reports=(None if sources.production_reports is None else {
             key: rows('sources/production/'+key, values, table='production/'+key)
             for key, values in sources.production_reports.items()}))
-    if name == 'BPR':
-        state['daily_final'] = {'DailyDataRaw': rows('daily_raw', phase.daily_final['DailyDataRaw'],
-                                                   table='Intermediate/TempDailyDataRaw')}
+    if name in ('PRE_BPR', 'BPR'):
+        state['daily_final'] = {key: rows('daily/'+key, phase.daily_final[key],
+                table='Intermediate/TempDailyDataRaw') for key in
+                (('DailyDataRaw', 'DailyDataProcessed') if name == 'PRE_BPR' else ('DailyDataRaw',))}
         state['standard_attributes'] = (None if phase.standard_attributes is None else
             rows('standards', phase.standard_attributes, table='Importer/SKULocStandardAttributes'))
     else:
@@ -171,9 +194,9 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         completed_boundaries=list(phase.completed_boundaries),
         report_exceptions=context.report_exceptions, master_outcome=context.master['outcome'],
         master_reused=context.master_reused, master_work=context.master_work,
-        pick_source_digests=(phase.pick_source_digests if phase.pick_sources is None else
+        pick_source_digests=(phase.pick_source_digests if getattr(phase, 'pick_sources', None) is None else
             {key: digest(values) for key, values in phase.pick_sources.items()}),
-        calculation_digest=sources.calculation_digest)
+        calculation_digest=None if sources is None else sources.calculation_digest)
     result = dict(schema=SCHEMA, phase=name, references=_references(context),
                   metadata=metadata, state=state, consumers=consumers, images=images)
     if sum(len(part) for part in canonical_parts(result)) > 1024*1024:
@@ -181,13 +204,14 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
     return result
 
 
-def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export_reader):
+def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export_reader,
+           execute_calculation=None):
     """Rehydrate only live-out state, using the same frozen dependency owners."""
     from mta.application.stage_calculation_sources import CalculationSources
     from mta.application.daily_finalization import configuration
-    from mta.temporal.day_phases import DayContext, BprDay, DbmDay
+    from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
     from types import SimpleNamespace
-    if manifest.get('schema') != SCHEMA or manifest.get('phase') not in ('BPR', 'DBM'):
+    if manifest.get('schema') != SCHEMA or manifest.get('phase') not in ('PRE_BPR', 'BPR', 'DBM'):
         raise ValueError('Continuation schema/phase differs')
     refs = SimpleNamespace(prior=prior, day=day, profile=profile, master_snapshot=master_snapshot)
     if _references(refs) != manifest['references']:
@@ -206,19 +230,29 @@ def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export
 
     state = unpack(manifest['state'])
     metadata = manifest['metadata']
-    sources = CalculationSources(metadata['calculation_digest'], **unpack(manifest['consumers']))
+    sources = (None if manifest['consumers'] is None else
+               CalculationSources(metadata['calculation_digest'], **unpack(manifest['consumers'])))
     today = day['business_date']
     context = DayContext(prior=prior, day=day, opening_date=metadata['opening_date'],
-        profile=profile, identity=metadata['identity'], execute_calculation=None,
+        profile=profile, identity=metadata['identity'], execute_calculation=execute_calculation,
         report_exceptions=metadata['report_exceptions'], native_daily=True,
         master_snapshot=master_snapshot, today=today, now=today+'T00:00:00',
         finalization=configuration(profile), completion=None,
         master=dict(outcome=metadata['master_outcome'], tables={'MasterDataRaw': state.pop('master_raw')}),
         master_reused=metadata['master_reused'], master_work=metadata['master_work'])
-    phase_type = BprDay if manifest['phase'] == 'BPR' else DbmDay
-    phase = phase_type(context=context, delivery=profile.get('delivery'),
-        completed_boundaries=list(metadata['completed_boundaries']), calculated=None,
-        pick_sources=None, pick_source_digests=metadata['pick_source_digests'], **state)
+    common = dict(context=context, delivery=profile.get('delivery'),
+        completed_boundaries=list(metadata['completed_boundaries']),
+        pick_source_digests=metadata['pick_source_digests'])
+    if manifest['phase'] == 'PRE_BPR':
+        if not callable(execute_calculation):
+            raise ValueError('Prepared continuation requires the existing calculation callable')
+        context.completion = state.pop('complete')
+        context.prior = dict(prior, complete=context.completion)
+        state.pop('operational_input_tables')
+        phase = PreparedDay(**common, daily_input=None, daily=None, **state)
+    else:
+        phase_type = BprDay if manifest['phase'] == 'BPR' else DbmDay
+        phase = phase_type(**common, calculated=None, pick_sources=None, **state)
     return phase, sources
 
 
@@ -239,15 +273,22 @@ def _save(run, phase, sources, *, parent):
         raise ValueError('Phase snapshot requires its uncompleted daily owner')
     if parent is not None:
         parent = DailyPhaseSnapshot.objects.get(pk=parent.pk)
-    if parent is not None and (parent.run_id != owner.pk or parent.phase != 'BPR'
+    if parent is not None and (parent.run_id != owner.pk or parent.phase not in ('PRE_BPR', 'BPR')
             or parent.state_digest != digest(parent.manifest)
-            or parent.recipe_digest != recipe_digest()
-            or parent.manifest['metadata']['calculation_digest'] != sources.calculation_digest):
+            or parent.recipe_digest != recipe_digest()):
         raise ValueError('Continuation parent snapshot differs')
-    from mta.temporal.day_phases import DbmDay
+    from mta.temporal.day_phases import PreparedDay, BprDay, DbmDay
+    if type(phase) is PreparedDay:
+        valid_parent = parent is None
+    elif type(phase) is BprDay:
+        valid_parent = parent is None or parent.phase == 'PRE_BPR'
+    elif type(phase) is DbmDay:
+        valid_parent = parent is not None and parent.phase == 'BPR'
+    else:
+        valid_parent = False
     if (phase.context.identity != str(owner.pk)
             or phase.context.today != owner.business_date.isoformat()
-            or (type(phase) is DbmDay) != (parent is not None)):
+            or not valid_parent):
         raise ValueError('Phase snapshot run/date/parent differs')
     manifest = encode(phase, sources,
         row_writer=lambda path, table, values: _write_rows(owner, path, table, values),
@@ -256,7 +297,7 @@ def _save(run, phase, sources, *, parent):
     if parent is not None:
         if manifest['references'] != parent.manifest['references']:
             raise ValueError('Continuation parent dependency revision differs')
-        if consumer_identity(manifest) != consumer_identity(parent.manifest):
+        if parent.phase == 'BPR' and consumer_identity(manifest) != consumer_identity(parent.manifest):
             raise ValueError('Continuation calculation consumers changed after BPR')
     return DailyPhaseSnapshot.objects.create(run=owner, phase=manifest['phase'], parent=parent,
         input_digest=owner.input_digest, recipe_digest=recipe_digest(),

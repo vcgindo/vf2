@@ -6,4 +6,7 @@ TABLES = {
          'to_black', 'to_red', 'to_yellow', 'to_green', 'to_blue')],
     'phase/AdvanceStock': [('sku_code', 'nvarchar'), ('source_location_code', 'nvarchar'),
                            ('allocated_quantity', 'bigint')],
+    'phase/Sourcing': [('sku_code', 'nvarchar'), ('location_code', 'nvarchar'),
+                       ('supplier', 'nvarchar'), ('sob', 'nvarchar'),
+                       ('moq', 'numeric'), ('pack_size', 'numeric')],
 }

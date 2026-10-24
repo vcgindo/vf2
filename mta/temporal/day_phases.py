@@ -53,6 +53,11 @@ class PreparedDay(DayPhase):
     old_sourcing: Any
     new_sourcing: Any
     standard_attributes: Any
+    daily_consumption: Any = field(default=None, kw_only=True)
+
+    @property
+    def complete(self):
+        return self.context.completion
 
 
 @dataclass(slots=True)

@@ -15,7 +15,7 @@ from mta.temporal import chain
 from tests.test_daily_calculation_phases import inputs, calculation
 
 
-def native_bpr(identity='phase-state-test'):
+def native_prepared(identity='phase-state-test'):
     prior, day, profile = inputs()
     profile.update(operational_sources=CAPTURE_POLICY,
         operational_input_sources=INPUT_CAPTURE_POLICY,
@@ -27,8 +27,14 @@ def native_bpr(identity='phase-state-test'):
         production_report_policy=policy,
         production_report_schema=production_output_policy.SOURCE_SCHEMA)
     refs = deepcopy(dict(prior=prior, day=day, profile=profile, master_snapshot=None))
-    phase = chain.produce_bpr(chain.prepare_day(prior, '2037-04-09', day, profile,
-        identity, calculation, native_daily=True))
+    phase = chain.prepare_day(prior, '2037-04-09', day, profile,
+                              identity, calculation, native_daily=True)
+    return phase, opening, refs
+
+
+def native_bpr(identity='phase-state-test'):
+    prepared, opening, refs = native_prepared(identity)
+    phase = chain.produce_bpr(prepared)
     return phase, capture_bpr(phase, opening), refs
 
 
@@ -54,6 +60,36 @@ class MemoryImages:
 
 
 class PhaseStateTests(TestCase):
+    def test_prepared_snapshot_restarts_before_bpr_without_intake_or_controls(self):
+        from unittest.mock import patch
+        with native_assignments(True):
+            prepared, opening, refs = native_prepared()
+            expected_bpr = chain.produce_bpr(deepcopy(prepared))
+            expected_sources = capture_bpr(expected_bpr, opening)
+            expected = chain.produce_btr(chain.produce_dbm(expected_bpr))
+            memory = MemoryImages()
+            manifest = phase_state.encode(prepared, None, row_writer=memory.rows,
+                                          export_writer=memory.export)
+            with self.assertRaisesRegex(ValueError, 'calculation callable'):
+                phase_state.decode(manifest, **deepcopy(refs), row_reader=memory.read,
+                                   export_reader=memory.read)
+            restored, sources = phase_state.decode(manifest, **deepcopy(refs),
+                row_reader=memory.read, export_reader=memory.read, execute_calculation=calculation)
+            self.assertIsNone(sources)
+            self.assertIsNone(restored.daily)
+            self.assertIsNone(restored.daily_input)
+            self.assertIs(restored.context.completion, restored.context.prior['complete'])
+            with patch('mta.temporal.entry_preparation.prepare', side_effect=AssertionError('intake replay')), \
+                    patch('mta.application.timeline_controls.timeline_control_stages', side_effect=AssertionError('control replay')), \
+                    patch.object(chain, 'generated_bpr_daily_state', side_effect=AssertionError('daily graph replay')):
+                bpr = chain.produce_bpr(restored)
+            actual_sources = capture_bpr(bpr, opening)
+            actual = chain.produce_btr(chain.produce_dbm(bpr))
+        self.assertEqual(storage(actual), storage(expected))
+        self.assertEqual(storage(actual_sources.__dict__), storage(expected_sources.__dict__))
+        self.assertNotIn('CalculationOutputs', str(manifest))
+        self.assertIsNone(manifest['consumers'])
+
     def test_bpr_and_pre_btr_dbm_roundtrip_keep_complete_terminal_projection(self):
         with native_assignments(True):
             bpr, sources, refs = native_bpr()
@@ -96,7 +132,7 @@ class PhaseStateTests(TestCase):
         manifest = phase_state.encode(bpr, sources, row_writer=memory.rows,
                                      export_writer=memory.export)
         for family, key in (('prior', 'dbm'), ('prior', 'bpr'), ('day', 'order_raw'),
-                            ('day', 'exclusions')):
+                            ('day', 'exclusions'), ('day', 'order_feed'), ('day', 'order_feed_status')):
             changed = deepcopy(refs)
             changed[family][key] = dict(unrelated='revision')
             with self.subTest(family=family, key=key), self.assertRaisesRegex(
