@@ -90,8 +90,12 @@ class ScopedCommonFinalTests(unittest.TestCase):
         self.run.refresh_from_db();self.capture.refresh_from_db()
         self.prepare_dbm(terminal_scope)
         from mta.mdm.daily_current import _write_partition
+        from mta.mdm.native_audit import finalize as finalize_audit
         def remaining_only(source,model,partition,rows,path):
             self.assertEqual(partition.get('owner'),'BTR')
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT current_setting('fresh.mdm_consuming_run',true)")
+                self.assertEqual(cursor.fetchone()[0],'')
             for owner in ('Importer','BPR','DBM'):
                 with self.assertRaises(DatabaseError),transaction.atomic():
                     with connection.cursor() as cursor:
@@ -99,9 +103,15 @@ class ScopedCommonFinalTests(unittest.TestCase):
                             'SET "SKUDescription"="SKUDescription" WHERE source_id=%s AND owner=%s',
                             [source.pk,owner])
             return _write_partition(source,model,partition,rows,path)
+        def owned_audit(run):
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT current_setting('fresh.mdm_consuming_run',true)")
+                self.assertEqual(cursor.fetchone()[0],str(run.pk))
+            return finalize_audit(run)
         with patch('mta.temporal.chain.produce_bpr',side_effect=AssertionError('BPR replay')), \
                 patch('mta.temporal.entry_preparation.prepare',side_effect=AssertionError('PRE replay')), \
                 patch('mta.mdm.daily_current._write_partition',side_effect=remaining_only), \
+                patch('mta.mdm.native_audit.finalize',side_effect=owned_audit), \
                 patch('mta.mdm.daily_input._apply_consumption_effects',side_effect=AssertionError('effects replay')):
             result=self.finish()
         self.assertEqual(storage(read_outputs(result,include_reports=False)),expected)

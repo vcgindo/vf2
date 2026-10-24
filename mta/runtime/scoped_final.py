@@ -74,8 +74,12 @@ def consume_accepted(run):
     _prefix,capture=accepted_prefix(run)
     if capture.status!='CAPTURED':raise ValueError('Scoped final capture is already consumed')
     from mta.mdm.daily_input import _consume_capture
-    with _setting('fresh.mdm_consuming_run',run.pk):
-        _consume_capture(capture,timezone.now())
+    # Ordinary Full retains this marker through its remaining publication and
+    # audit receipts. Scoped Full has the same owner; only current-copy writes
+    # temporarily leave the PRE effect context in daily_current.publish.
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('fresh.mdm_consuming_run',%s,true)",[str(run.pk)])
+    _consume_capture(capture,timezone.now())
 
 
 def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_snapshot=None):
@@ -113,7 +117,8 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
             if name in raw['day']:publication[name]=raw['day'][name]
     elif sources.production_reports is not None:
         raise ValueError('Configured scoped reports require publication')
-    with transaction.atomic(),_setting('fresh.scope_worker',worker_token):
+    with transaction.atomic(),_setting('fresh.scope_worker',worker_token), \
+            _setting('fresh.mdm_consuming_run',''):
         attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
         if head(run.pk)!=('DBM',dbm.digest):raise ValueError('Scoped DBM head changed during BTR')
         receipt=_begin_phase(attempt,run,'DAY_FINAL')

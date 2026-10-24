@@ -1,5 +1,6 @@
 """Typed current master publication within the existing atomic day boundary."""
 from copy import deepcopy
+from contextlib import nullcontext
 from django.db import connection
 
 from mta.mdm.master_owners import owner_batches, business_fields
@@ -252,10 +253,19 @@ def publish(run, capture, closing, *, _accepted_prefix=False):
         if native:
             receipt = MdmClosingProjectionReceipt.objects.create(run=run,
                 capture_digest=capture_identity(capture), **code_identity)
-        for _family, model, partition, rows, path in batches:
-            if _accepted_prefix and partition.get('owner')!='BTR':
-                continue
-            _write_partition(source, model, partition, rows, path)
+        if _accepted_prefix:
+            from mta.runtime.scope_execution import _setting
+            current_context=_setting('fresh.mdm_consuming_run','')
+        else:
+            current_context=nullcontext()
+        # Full's consumed-day marker owns native receipt/audit writes. Scoped
+        # current rows instead use the precise pending DAY_FINAL/BTR guard,
+        # outside the marker reserved for PRE queue/task effects.
+        with current_context:
+            for _family, model, partition, rows, path in batches:
+                if _accepted_prefix and partition.get('owner')!='BTR':
+                    continue
+                _write_partition(source, model, partition, rows, path)
         if receipt is not None:
             receipt.metadata = dict(version=VERSION, partitions=_partition_identity(batches),
                 sources=proof['sources'])

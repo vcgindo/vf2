@@ -1,4 +1,4 @@
-"""One reviewed baseline-to-ingestion transition; immutable origins stay intact.
+"""Explicitly admitted source origins; immutable producer seals stay intact.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
@@ -73,8 +73,50 @@ def _origin(source):
     owner=ProductionInitialization.objects.get(source=source)
     with connection.cursor() as cursor:
         _admit(cursor,owner.pk,release,pending=True)
-        original,capability=registration(cursor);baseline(capability)
+        original,capability=registration(cursor)
+        if capability['release_identity']!=BASELINE_IDENTITY:
+            return _certified_origin(cursor,source,owner,release,original,capability)
+        baseline(capability)
     return dict(source_digest=source.digest,capability=capability,original=original)
+
+
+def _certified_origin(cursor,source,owner,release,original,capability):
+    """An explicitly activated current-schema advance of a genuine fresh origin.
+
+    No producer is inferred from a matching hash or a caller's metadata. The
+    original immutable registration/certificate/integration and live target
+    authority must all join. Historical baseline auditing stays pinned above.
+    """
+    from mta.runtime.ingestion_admission import _certificate
+    from mta.runtime.ingestion_authority import read
+    cert=_certificate(owner.pk)
+    authority=read(cursor,owner.pk,release['manifest_sha256'])
+    origin=capability['release_identity']
+    if (digest(source.receipt)!=source.digest or cert['source_digest']!=source.digest
+            or str(cert['initialization_id'])!=str(owner.pk)
+            or authority['initialization_id']!=str(owner.pk)
+            or str(cert['namespace'])!=original['registration_id']
+            or authority['namespace']!=original['registration_id']
+            or cert['database_name']!=original['database_name']
+            or cert['database_oid']!=original['database_oid']
+            or authority['database_name']!=original['database_name']
+            or authority['database_oid']!=original['database_oid']
+            or authority['source_digest']!=source.digest
+            or authority['target_commit']!=release['source_commit']
+            or authority['target_release']!=release['manifest_sha256']
+            or cert['release_digest']!=origin['manifest_sha256']
+            or source.implementation_digest!=capability['implementation_sha256']
+            or original['adapter_sha256']!=capability['implementation_sha256']
+            or origin['implementation_sha256']!=capability['implementation_sha256']
+            or authority['original_commit']!=origin['source_commit']
+            or authority['original_release']!=origin['manifest_sha256']
+            or authority['original_registration_digest']!=digest(original)
+            or authority['original_capability_digest']!=capability['receipt_digest']
+            or authority['certification_digest']!=cert['receipt_digest']
+            or source.receipt.get('owned_namespace')!={**capability,'artifact_sha256':original['artifact_sha256']}):
+        raise ValueError('Certified fresh origin differs from its original activated authority')
+    return dict(source_digest=source.digest,capability=capability,original=original,
+                integration_digest=cert['populations']['integration'])
 
 
 def implementation_for(source):
@@ -100,8 +142,20 @@ def binding_for(receipt):
 
 
 def execution_for(source,seal):
-    if _origin(source) is None:
+    origin=_origin(source)
+    if origin is None:
         return None
+    if 'integration_digest' in origin:
+        from mta.runtime.ingestion_context import sha
+        from mta.mdm.location_projection import VERSION
+        if (seal.source_id!=source.pk or digest(seal.receipt)!=seal.digest
+                or seal.digest!=origin['integration_digest']):
+            raise ValueError('Certified original integration producer differs')
+        values={key:seal.receipt.get(key) for key in ('adapter_digest','source_manifest_digest','closing_projection_version')}
+        sha(values['adapter_digest']);sha(values['source_manifest_digest'])
+        if values['closing_projection_version']!=VERSION:
+            raise ValueError('Certified origin requires its corrected closing projection')
+        return values
     if digest(seal.receipt)!=seal.digest or any(seal.receipt.get(k)!=v for k,v in BASELINE_EXECUTION.items()):
         raise ValueError('Original integration producer differs')
     return dict(BASELINE_EXECUTION)

@@ -62,3 +62,62 @@ class UpgradeOriginTests(unittest.TestCase):
              patch('mta.mdm.initialization.implementation_digest',return_value='a'*64) as strict:
             self.assertEqual(upgrade.implementation_for(source),'a'*64)
             strict.assert_called_once()
+
+
+class CertifiedFreshOriginTests(unittest.TestCase):
+    def fixture(self):
+        from uuid import UUID
+        owner=SimpleNamespace(pk=UUID('179dbb4c-77d9-40bf-8c84-d5f05858dd07'))
+        namespace=UUID('7b225ea3-d47a-447e-be5c-1a34df9e2a4a')
+        original=dict(registration_id=str(namespace),database_name='owned',database_oid=42,
+                      adapter_sha256='a'*64,artifact_sha256='b'*64)
+        old=dict(source_commit='1'*40,manifest_sha256='c'*64,implementation_sha256='a'*64)
+        capability=dict(release_identity=old,implementation_sha256='a'*64,receipt_digest='d'*64)
+        source=SimpleNamespace(pk=9,implementation_digest='a'*64,
+            receipt=dict(owned_namespace={**capability,'artifact_sha256':'b'*64}))
+        source.digest=digest(source.receipt)
+        release=dict(source_commit='2'*40,manifest_sha256='e'*64)
+        cert=dict(initialization_id=owner.pk,namespace=namespace,database_name='owned',database_oid=42,
+            source_digest=source.digest,release_digest='c'*64,receipt_digest='f'*64,
+            populations=dict(integration='3'*64))
+        authority=dict(initialization_id=str(owner.pk),namespace=str(namespace),database_name='owned',database_oid=42,source_digest=source.digest,
+            original_commit='1'*40,original_release='c'*64,target_commit='2'*40,target_release='e'*64,
+            original_registration_digest=digest(original),original_capability_digest='d'*64,certification_digest='f'*64)
+        return source,owner,release,original,capability,cert,authority
+
+    def resolve(self,values):
+        source,owner,release,original,capability,cert,authority=values
+        with patch('mta.runtime.ingestion_admission._certificate',return_value=cert), \
+                patch('mta.runtime.ingestion_authority.read',return_value=authority):
+            return upgrade._certified_origin(None,source,owner,release,original,capability)
+
+    def test_exact_original_source_and_live_target_authority_required(self):
+        values=self.fixture()
+        self.assertEqual(self.resolve(values)['integration_digest'],'3'*64)
+        for key in values[-1]:
+            changed=deepcopy(values);changed[-1][key]='foreign'
+            with self.subTest(key=key),self.assertRaises(ValueError):self.resolve(changed)
+        for key in ('initialization_id','namespace','database_name','database_oid','source_digest','release_digest','receipt_digest'):
+            changed=deepcopy(values);changed[-2][key]='foreign'
+            with self.subTest(certificate=key),self.assertRaises(ValueError):self.resolve(changed)
+        for index,key in ((0,'implementation_digest'),(3,'adapter_sha256'),(4,'implementation_sha256')):
+            changed=deepcopy(values)
+            if index==0:setattr(changed[0],key,'0'*64)
+            else:changed[index][key]='0'*64
+            with self.assertRaises(ValueError):self.resolve(changed)
+
+    def test_original_integration_must_match_certificate_source_and_corrected_version(self):
+        from mta.mdm.location_projection import VERSION
+        source=SimpleNamespace(pk=9)
+        seal=SimpleNamespace(source_id=9,receipt=dict(adapter_digest='a'*64,source_manifest_digest='b'*64,
+                                                     closing_projection_version=VERSION))
+        seal.digest=digest(seal.receipt)
+        origin=dict(integration_digest=seal.digest)
+        with patch.object(upgrade,'_origin',return_value=origin):
+            self.assertEqual(upgrade.execution_for(source,seal),seal.receipt)
+            seal.source_id=10
+            with self.assertRaises(ValueError):upgrade.execution_for(source,seal)
+            seal.source_id=9;seal.receipt['adapter_digest']='c'*64
+            with self.assertRaises(ValueError):upgrade.execution_for(source,seal)
+            seal.digest=digest(seal.receipt)
+            with self.assertRaises(ValueError):upgrade.execution_for(source,seal)
