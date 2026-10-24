@@ -30,7 +30,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         transaction.set_rollback(True);self.atomic.__exit__(None,None,None)
 
     def owner(self,*,claim=True,operational=False,report_mode=None,predecessor=None,pick_root=None,
-              scope_request=None):
+              scope_request=None,predecessor_input=False):
         from django.db import connection
         from mta.serialization import digest,storage
         from mta.mdm.daily_source import SCHEMA,APPROVAL_DAY_ARTIFACT_SHA
@@ -112,6 +112,13 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         opening['profile']['daily_publication']=True
         raw=dict(profile=opening['profile'],lineage=dict(schema='supplied-component-lineage-v1'),opening=dict(identity='component-prepared',
             opening_date=opening_date,state=prior),day=day,mdm_input=snapshot)
+        if predecessor_input:
+            if predecessor is None:raise ValueError('Explicit component predecessor required')
+            # Match the persisted-input representation of execute_day, without
+            # claiming native registration or changing this supplied fixture.
+            if predecessor.commands.exists():raise ValueError('This fixture requires its explicit empty action list')
+            raw['opening']=None
+            raw['lineage']=dict(run_id=str(predecessor.pk),output_digest=predecessor.output_digest,commands=[])
         if pick_root is not None:raw['pick_output_root']=str(pick_root)
         if scope_request is not None:raw['scope_request']=deepcopy(scope_request)
         self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date=today,predecessor=predecessor,

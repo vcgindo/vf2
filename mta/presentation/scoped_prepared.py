@@ -166,6 +166,17 @@ class PreparedBinding:
     @property
     def run_id(self):return self.reports.generation.run_id
 
+    @property
+    def read_identity(self):
+        # The three prepared bags and five current facts do not consume BTR.
+        # Pin the extra dependency in the dependent read contract, so preparing
+        # a predecessor's reports cannot invalidate those independent bags.
+        from mta.presentation import scoped_inherited_btr
+        return dict(schema='fresh-bpr-prepared-read-v1',generation_id=str(self.reports.generation.pk),
+            report_digest=self.reports.generation.digest,projection_digest=self.projection.digest,
+            source_digest=self.sources.source_digest,inherited_recipe=scoped_inherited_btr.recipe_digest(),
+            inherited_btr=None if self.sources.inherited_btr is None else self.sources.inherited_btr.provenance())
+
     def query(self,name):
         if name not in TABLES:raise PublicationUnavailable('bpr_prepared_source_unavailable:'+name)
         model,fields,_ordinals,_dense=TABLES[name]
@@ -185,7 +196,7 @@ class PreparedBinding:
     def fact_query(self,name):return self.reports.query(name)
 
 
-def bind(generation_id,*,expected_digest,expected_report_digest,action_revision):
+def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False):
     from django.core.exceptions import ObjectDoesNotExist
     reports=facts.bind(generation_id,expected_digest=expected_report_digest,action_revision=action_revision)
     try:projection=models.ScopeSourceProjection.objects.get(generation=reports.generation)
@@ -198,7 +209,8 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision)
             or projection.metadata!=_identity(reports.generation,projection.recipe_digest,projection.metadata['images'])):
         raise PublicationUnavailable('bpr_source_projection_identity_differs')
     sources=scoped_sources.bind(reports.generation.phase_id,
-        expected_digest=reports.generation.metadata['phase_digest'],action_revision=action_revision)
+        expected_digest=reports.generation.metadata['phase_digest'],action_revision=action_revision,
+        include_inherited_btr=include_inherited_btr)
     return PreparedBinding(projection,reports,sources)
 
 

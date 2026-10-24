@@ -161,7 +161,10 @@ class ScopedPreparedTests(unittest.TestCase):
         from mta.presentation import bpr_prepared,planning_sources
         from mta.presentation.permissions import PermissionCodes
         from mta.presentation.context import PublicationUnavailable
-        self.parent();row=self.prepare();bound=self.binding(row)
+        from tests.test_h3_daily_integration import frame
+        opening=frame();del opening['opening']['state']['btr']['BufferTrendPhysicalInv']
+        with patch('tests.test_h3_daily_integration.frame',return_value=opening):self.parent()
+        row=self.prepare();bound=self.binding(row)
         importer={name:bound.sources.rows('closing/importer/'+name) for name in ('SkuAttributeData','LocationAttributeData','SkuLocAttributeData')}
         products=PermissionCodes({source['SKUCode']:2 for source in importer['SkuAttributeData']})
         locations=PermissionCodes({source['WHCode']:3 for source in importer['LocationAttributeData']})

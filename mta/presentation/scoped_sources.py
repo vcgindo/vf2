@@ -70,18 +70,25 @@ class BprSources:
     display_date: object
     source_digest: str
     _images: dict
+    inherited_btr: object = None
 
     def metadata(self,path):
+        from mta.presentation.scoped_inherited_btr import PATH
+        if path==PATH and self.inherited_btr is not None:return self.inherited_btr.metadata()
         item=self._images.get(path)
         if item is None:raise PublicationUnavailable('bpr_phase_source_unavailable:'+path)
         return deepcopy(_checked(item))
 
     def rows(self,path):
+        from mta.presentation.scoped_inherited_btr import PATH
+        if path==PATH and self.inherited_btr is not None:return self.inherited_btr.rows()
         item=self.metadata(path)
         try:return load_image(self.run,item,table_registry=phase_state.REGISTRY)
         except ValueError as error:raise PublicationUnavailable('bpr_phase_source_rows_differ:'+path) from error
 
     def query(self,path):
+        from mta.presentation.scoped_inherited_btr import PATH
+        if path==PATH and self.inherited_btr is not None:return self.inherited_btr.query()
         item=self.metadata(path)
         fields=item['fields']
         # An explicitly empty typed population owns its declared relation, even
@@ -93,6 +100,8 @@ class BprSources:
             ' WHERE vf_run_id=%s AND vf_image=%s',[self.run.pk,item['image']])
 
     def provenance(self,path):
+        from mta.presentation.scoped_inherited_btr import PATH
+        if path==PATH and self.inherited_btr is not None:return self.inherited_btr.provenance()
         item=self.metadata(path)
         return dict(owner='accepted_BPR',run_id=str(self.run.pk),acceptance_id=str(self.acceptance_id),
             acceptance_digest=self.acceptance_digest,snapshot_digest=self.snapshot_digest,
@@ -100,7 +109,7 @@ class BprSources:
             physical_image=item['image'],table=item['table'],rows_digest=item['digest'],row_count=item['count'])
 
 
-def bind(phase_id,*,expected_digest,action_revision):
+def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False):
     """Bind real accepted sources; this alone grants no native/UI admission."""
     from mta.runtime.scoped_pick_files import _accepted
     from mta.runtime.scoped_actions import revision
@@ -130,9 +139,14 @@ def bind(phase_id,*,expected_digest,action_revision):
     try:display_date=datetime.fromisoformat(rows[0]['LastRunDate']).date()
     except ValueError as error:raise PublicationUnavailable('bpr_phase_date_marker_differs') from error
     if display_date!=run.business_date:raise PublicationUnavailable('bpr_phase_date_marker_differs')
+    if type(include_inherited_btr) is not bool:raise PublicationUnavailable('bpr_inherited_btr_read_contract_differs')
+    inherited=None
+    if include_inherited_btr:
+        from mta.presentation import scoped_inherited_btr
+        inherited=scoped_inherited_btr.bind(phase)
     identity=dict(schema=SCHEMA,run_id=str(run.pk),input_digest=run.input_digest,
         input_manifest_digest=run.input_manifest_digest,phase_id=str(phase.pk),phase_digest=phase.digest,
         snapshot_digest=phase.snapshot.state_digest,capture_digest=phase.capture_digest,
         source_id=phase.source_id,action_revision=action_revision,images=images,display_date=display_date.isoformat())
     return BprSources(run,phase.pk,phase.digest,phase.snapshot.state_digest,action_revision,
-        display_date,digest(identity),images)
+        display_date,digest(identity),images,inherited)
