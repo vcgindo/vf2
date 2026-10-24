@@ -162,6 +162,7 @@ class PreparedBinding:
     projection: object
     reports: object
     sources: object
+    remarks: object = None
 
     @property
     def run_id(self):return self.reports.generation.run_id
@@ -172,10 +173,11 @@ class PreparedBinding:
         # Pin the extra dependency in the dependent read contract, so preparing
         # a predecessor's reports cannot invalidate those independent bags.
         from mta.presentation import scoped_inherited_btr
-        return dict(schema='fresh-bpr-prepared-read-v1',generation_id=str(self.reports.generation.pk),
+        return dict(schema='fresh-bpr-prepared-read-v2',generation_id=str(self.reports.generation.pk),
             report_digest=self.reports.generation.digest,projection_digest=self.projection.digest,
             source_digest=self.sources.source_digest,inherited_recipe=scoped_inherited_btr.recipe_digest(),
-            inherited_btr=None if self.sources.inherited_btr is None else self.sources.inherited_btr.provenance())
+            inherited_btr=None if self.sources.inherited_btr is None else self.sources.inherited_btr.provenance(),
+            remarks=None if self.remarks is None else self.remarks.provenance())
 
     def query(self,name):
         if name not in TABLES:raise PublicationUnavailable('bpr_prepared_source_unavailable:'+name)
@@ -196,7 +198,8 @@ class PreparedBinding:
     def fact_query(self,name):return self.reports.query(name)
 
 
-def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False,include_nms=False):
+def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False,include_nms=False,
+         include_remarks=False):
     from django.core.exceptions import ObjectDoesNotExist
     reports=facts.bind(generation_id,expected_digest=expected_report_digest,action_revision=action_revision)
     try:projection=models.ScopeSourceProjection.objects.get(generation=reports.generation)
@@ -211,7 +214,12 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
     sources=scoped_sources.bind(reports.generation.phase_id,
         expected_digest=reports.generation.metadata['phase_digest'],action_revision=action_revision,
         include_inherited_btr=include_inherited_btr,include_nms=include_nms)
-    return PreparedBinding(projection,reports,sources)
+    if type(include_remarks) is not bool:raise PublicationUnavailable('bpr_remark_read_contract_differs')
+    remarks=None
+    if include_remarks:
+        from mta.presentation import scoped_remarks
+        remarks=scoped_remarks.bind(sources,configuration_digest=reports.generation.configuration_digest)
+    return PreparedBinding(projection,reports,sources,remarks)
 
 
 @transaction.atomic

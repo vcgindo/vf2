@@ -77,7 +77,7 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
         params.extend(values)
 
     query, values = _prepared_query(run,read_binding)
-    if read_binding is not None and live_remarks:
+    if read_binding is not None and live_remarks and read_binding.remarks is None:
         raise PublicationUnavailable('BPR_phase_live_remarks_source_unavailable')
     source_query=(lambda path:image_query(run,path)) if read_binding is None else read_binding.image_query
     add('prepared', query, values)
@@ -102,9 +102,12 @@ def _build(run, payload, importer, ancillary, paging=None, *, count=False, analy
 
     if not analytics:
         if live_remarks:
-            from mta.presentation import ancillary_live
-            source, values = ancillary_live.image_query(
-                run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
+            if read_binding is None:
+                from mta.presentation import ancillary_live
+                source, values = ancillary_live.image_query(
+                    run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
+            else:
+                source, values = read_binding.remarks.query()
             query = ('SELECT vf_ordinal AS ordinal,"SKUCode","WhCode","RemarkDate","Remark"'
                      ' FROM (' + source + ') daily_bpr_remarks')
         else:

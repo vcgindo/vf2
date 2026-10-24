@@ -30,7 +30,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         transaction.set_rollback(True);self.atomic.__exit__(None,None,None)
 
     def owner(self,*,claim=True,operational=False,report_mode=None,predecessor=None,pick_root=None,
-              scope_request=None,predecessor_input=False):
+              scope_request=None,predecessor_input=False,remark_inputs=None):
         from django.db import connection
         from mta.serialization import digest,storage
         from mta.mdm.daily_source import SCHEMA,APPROVAL_DAY_ARTIFACT_SHA
@@ -121,12 +121,16 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
             raw['lineage']=dict(run_id=str(predecessor.pk),output_digest=predecessor.output_digest,commands=[])
         if pick_root is not None:raw['pick_output_root']=str(pick_root)
         if scope_request is not None:raw['scope_request']=deepcopy(scope_request)
+        if remark_inputs is not None:raw['remark_inputs']=deepcopy(remark_inputs)
         self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date=today,predecessor=predecessor,
             execution_revision='prepared-effects-'+identity.hex,input_digest=digest(raw),input_payload={})
         self.run.input_payload=save_input(self.run,raw,table_selector=input_table)
         self.run.input_manifest_digest=digest(self.run.input_payload)
         self.run.save(update_fields=['input_payload','input_manifest_digest'])
         self.capture=bind_capture(self.run,snapshot,request_digest='d'*64)
+        if remark_inputs is not None:
+            from mta.presentation.ancillary_live import bind_snapshots
+            bind_snapshots(self.run,raw['remark_inputs'])
         if operational:
             from mta.runtime.operational_source import authorize_new_run
             authorize_new_run(self.run)
