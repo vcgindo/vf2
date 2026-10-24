@@ -163,6 +163,7 @@ class PreparedBinding:
     reports: object
     sources: object
     remarks: object = None
+    transit: object = None
 
     @property
     def run_id(self):return self.reports.generation.run_id
@@ -173,11 +174,12 @@ class PreparedBinding:
         # Pin the extra dependency in the dependent read contract, so preparing
         # a predecessor's reports cannot invalidate those independent bags.
         from mta.presentation import scoped_inherited_btr
-        return dict(schema='fresh-bpr-prepared-read-v2',generation_id=str(self.reports.generation.pk),
+        return dict(schema='fresh-bpr-prepared-read-v3',generation_id=str(self.reports.generation.pk),
             report_digest=self.reports.generation.digest,projection_digest=self.projection.digest,
             source_digest=self.sources.source_digest,inherited_recipe=scoped_inherited_btr.recipe_digest(),
             inherited_btr=None if self.sources.inherited_btr is None else self.sources.inherited_btr.provenance(),
-            remarks=None if self.remarks is None else self.remarks.provenance())
+            remarks=None if self.remarks is None else self.remarks.provenance(),
+            transit=None if self.transit is None else self.transit.provenance())
 
     def query(self,name):
         if name not in TABLES:raise PublicationUnavailable('bpr_prepared_source_unavailable:'+name)
@@ -193,13 +195,16 @@ class PreparedBinding:
             raise PublicationUnavailable('bpr_prepared_source_rows_differ:'+name)
         return storage(list(_records(self.reports.generation,name)))
 
-    def image_query(self,path):return self.sources.query(path)
+    def image_query(self,path):
+        from mta.presentation.scoped_transit_storage import PATHS
+        if path in PATHS and self.transit is not None:return self.transit.image_query(path)
+        return self.sources.query(path)
 
     def fact_query(self,name):return self.reports.query(name)
 
 
 def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False,include_nms=False,
-         include_remarks=False):
+         include_remarks=False,transit_generation_id=None,expected_transit_digest=None):
     from django.core.exceptions import ObjectDoesNotExist
     reports=facts.bind(generation_id,expected_digest=expected_report_digest,action_revision=action_revision)
     try:projection=models.ScopeSourceProjection.objects.get(generation=reports.generation)
@@ -219,7 +224,18 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
     if include_remarks:
         from mta.presentation import scoped_remarks
         remarks=scoped_remarks.bind(sources,configuration_digest=reports.generation.configuration_digest)
-    return PreparedBinding(projection,reports,sources,remarks)
+    transit=None
+    if (transit_generation_id is None)!=(expected_transit_digest is None):
+        raise PublicationUnavailable('bpr_transit_read_identity_incomplete')
+    if transit_generation_id is not None:
+        from mta.presentation import scoped_transit_storage
+        transit=scoped_transit_storage.bind(transit_generation_id,expected_digest=expected_transit_digest,
+            action_revision=action_revision)
+        if (transit.generation.run_id!=sources.run.pk or transit.generation.phase_id!=sources.acceptance_id
+                or transit.generation.source_digest!=sources.source_digest
+                or transit.generation.configuration_digest!=reports.generation.configuration_digest):
+            raise PublicationUnavailable('bpr_transit_read_owner_differs')
+    return PreparedBinding(projection,reports,sources,remarks,transit)
 
 
 @transaction.atomic

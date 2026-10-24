@@ -1332,3 +1332,5 @@ from mta.runtime.scope_prepared_models import (ScopeSourceProjection,ScopeBprCan
 from mta.runtime.scope_planning_models import (ScopePlanningProjection,ScopePlanningExcessGrid,
     ScopePlanningFulfillmentGrid,ScopePlanningExcessCustom,ScopePlanningFulfillmentCustom,
     ScopePlanningChartMember,ScopePlanningChartDisplay)
+from mta.runtime.scope_transit_models import (ScopeTransitGeneration,ScopeTransitRow,
+    ScopeTransporterRow,ScopeTransitDiagnostic)

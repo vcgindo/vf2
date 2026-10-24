@@ -17,7 +17,7 @@ def lock_history_owners():
 
 
 def verify_guards():
-    from mta.runtime.ingestion_ownership import require_guard_coverage
+    from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
     migration=import_module('mta.runtime.migrations.0204_scoped_bpr_consumer_ownership')
     recovery=import_module('mta.runtime.migrations.0205_scoped_bpr_consumer_recovery')
     expected={
@@ -29,6 +29,7 @@ def verify_guards():
     }
     with connection.cursor() as cursor:
         require_guard_coverage(cursor)
+        expected['ingestion_watch']=(scoped_derived_body(cursor,minimum='0204_scoped_bpr_consumer_ownership'),True)
         cursor.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.proowner=C.relowner,"
             "pg_get_function_identity_arguments(P.oid),pg_get_function_result(P.oid) "
             "FROM pg_proc P JOIN pg_namespace N ON N.oid=P.pronamespace "
