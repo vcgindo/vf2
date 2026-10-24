@@ -62,11 +62,10 @@ def _accept_prepared(attempt_id, worker_token, prepared, *, compatibility_digest
     from mta.application.daily_finalization import mark, configuration
     if not connection.in_atomic_block:raise ValueError('Prepared effects require their transaction')
     attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
-    # Certified capture cuts include every guarded write. Claim/phase headers
-    # and early effects advance those epochs themselves. The native scope
-    # entry must qualify a phase-owned revision cut before admitting this path;
-    # never discard the Full capture-cut check or silently adopt live epochs.
-    if run.production_manifest.get('ingestion_preparation') is not None:
+    # require_claim verified the original capture and its latest owned cut.
+    # An older unbound claim cannot acquire native eligibility by relabelling.
+    if (run.production_manifest.get('ingestion_preparation') is not None
+            and (attempt.revision_before is None or attempt.revision_after is None)):
         raise ValueError('Certified scoped capture requires its qualified phase revision cut')
     profile=read_input(run,components=('profile',))['profile']
     if (type(prepared) is not PreparedDay or not prepared.context.native_daily

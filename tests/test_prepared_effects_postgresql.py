@@ -29,7 +29,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         from django.db import transaction
         transaction.set_rollback(True);self.atomic.__exit__(None,None,None)
 
-    def owner(self):
+    def owner(self,*,claim=True):
         from django.db import connection
         from mta.serialization import digest,storage
         from mta.mdm.daily_source import SCHEMA,APPROVAL_DAY_ARTIFACT_SHA
@@ -100,9 +100,10 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         self.capture=bind_capture(self.run,snapshot,request_digest='d'*64)
         with native_assignments(True):
             self.prepared=prepare_day(prior,'2037-04-09',day,opening['profile'],str(identity),calculation,native_daily=True)
-        self.attempt=_claim(self.run.pk,scope='UptoBPR',command_key='prepared-effects',
-            worker_reference='rolled-back-component-proof',compatibility_digest='a'*64,
-            expected_phase='START',expected_receipt_digest='')
+        if claim:
+            self.attempt=_claim(self.run.pk,scope='UptoBPR',command_key='prepared-effects',
+                worker_reference='rolled-back-component-proof',compatibility_digest='a'*64,
+                expected_phase='START',expected_receipt_digest='')
         self.nonimporter={model.__name__+str(partition):storage(list(model.objects.filter(
             source=self.source,**partition).order_by('ordinal').values()))
             for _family,model,partition,_rows,_path in owner_batches(prior)
@@ -251,3 +252,49 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
                                                '2037-04-10',policy=ACTIVE_POLICY)
         self.assertEqual(storage(full['CalculationOutputs']),storage(split['CalculationOutputs']))
         self.assertEqual(storage(production_projection(full)),storage(production_projection(split)))
+
+    def counter_claim(self):
+        from tests.test_scope_revisions_postgresql import bind_metadata_counter_owner
+        from mta.runtime.scope_execution import _claim
+        self.owner(claim=False)
+        self.counter_carrier=bind_metadata_counter_owner(self.run,self.source)
+        self.attempt=_claim(self.run.pk,scope='UptoBPR',command_key='prepared-effects',
+            worker_reference='actual-effects-METADATA-COUNTER-CARRIER',compatibility_digest='a'*64,
+            expected_phase='START',expected_receipt_digest='')
+
+    def test_counter_carrier_tracks_actual_effects_in_all_domains_and_preserves_retry(self):
+        """Real effect/counter coupling; the carrier is not native admission."""
+        from mta.runtime.scope_revisions import require_current
+        from mta.runtime.scope_execution import _setting,_close_attempt,_claim
+        from mta.runtime.prepared_effects import prepared_family_owner
+        from mta.runtime.mdm_daily_models import MdmDailySkuArchive
+        self.counter_claim();before=self.attempt.revision_after
+        receipt=self.accept();after=receipt.metadata['revision_after']
+        self.assertTrue(all(a>b for a,b in zip(after,before)))
+        self.assertEqual(require_current(self.run),after)
+        self.assertEqual(receipt.revision_before,before)
+        with _setting('fresh.scope_worker',self.attempt.worker_token):
+            _close_attempt(self.attempt,self.run,'FAILED',{'type':'EXPLICIT_EFFECT_WORKER_FAILURE'})
+        retry=_claim(self.run.pk,scope='UptoBPR',command_key='prepared-effects',
+            worker_reference='after-accepted-effects',compatibility_digest='a'*64,
+            expected_phase='PRE_BPR',expected_receipt_digest=receipt.digest,recovery_of=self.attempt.pk)
+        self.assertEqual(require_current(self.run),retry.revision_after)
+        self.force.refresh_from_db()
+        self.assertEqual(prepared_family_owner(self.source,self.force,'force').pk,receipt.pk)
+        self.assertEqual(MdmDailySkuArchive.objects.filter(source=self.source).count(),1)
+        self.run.refresh_from_db();self.capture.refresh_from_db()
+        self.assertEqual(self.run.production_manifest['ingestion_preparation'],self.counter_carrier[-1])
+        self.assertEqual((self.run.status,self.capture.status),('RUNNING','CAPTURED'))
+
+    def test_actual_effect_failure_rolls_counters_back_with_rows_before_retry(self):
+        from mta.runtime.scope_revisions import require_current
+        from mta.runtime.mdm_daily_models import MdmDailySkuArchive
+        self.counter_claim();before=self.attempt.revision_after
+        with patch('mta.runtime.prepared_effects.phase_state.save',side_effect=ValueError('counter-coupled late failure')), \
+                self.assertRaisesRegex(ValueError,'counter-coupled late failure'):
+            self.accept()
+        self.assertEqual(require_current(self.run),before)
+        self.assertFalse(MdmDailySkuArchive.objects.filter(source=self.source).exists())
+        receipt=self.accept()
+        self.assertEqual(require_current(self.run),receipt.metadata['revision_after'])
+        self.assertEqual(MdmDailySkuArchive.objects.filter(source=self.source).count(),1)

@@ -27,6 +27,9 @@ class RunScopeAttempt(models.Model):
     status = models.CharField(max_length=8, default='ACTIVE',
         choices=(('ACTIVE', 'ACTIVE'), ('FAILED', 'FAILED'), ('RELEASED', 'RELEASED')))
     failure = models.JSONField(default=dict)
+    revision_before = models.JSONField(null=True)
+    revision_after = models.JSONField(null=True)
+    revision_closed = models.JSONField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True)
 
@@ -54,6 +57,7 @@ class RunPhaseAcceptance(models.Model):
                                     on_delete=models.PROTECT)
     input_digest = models.CharField(max_length=64)
     capture_digest = models.CharField(max_length=64)
+    revision_before = models.JSONField(null=True)
     metadata = models.JSONField(default=dict)
     digest = models.CharField(max_length=64, blank=True)
     state_sealed = models.BooleanField(default=False)

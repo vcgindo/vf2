@@ -99,15 +99,28 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
             raise ValueError('Recovery cannot change its command or compatibility identity')
     elif RunScopeAttempt.objects.filter(run=run, command_key=command_key).exists():
         raise ValueError('Existing command requires its recorded result or explicit recovery')
-    return RunScopeAttempt.objects.create(run=run, scope=scope, command_key=command_key,
+    from mta.runtime import scope_revisions as revisions
+    before=revisions.require_current(run)
+    attempt=RunScopeAttempt.objects.create(run=run, scope=scope, command_key=command_key,
         worker_reference=worker_reference, compatibility_digest=compatibility_digest,
         expected_phase=expected_phase, expected_receipt_digest=expected_receipt_digest,
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
-        attempt_no=previous.attempt_no+1 if previous else 1, recovery_of=previous)
+        attempt_no=previous.attempt_no+1 if previous else 1, recovery_of=previous,
+        revision_before=before,revision_after=revisions.next_cut(before))
+    revisions.verify_write(run,attempt.revision_after)
+    return attempt
 
 
 def require_claim(attempt_id, worker_token, *, compatibility_digest):
     """Fence every commit using the current row, never an in-memory lease."""
+    attempt,run=_locked_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
+    from mta.runtime.scope_revisions import require_current
+    require_current(run)
+    return attempt,run
+
+
+def _locked_claim(attempt_id, worker_token, *, compatibility_digest):
+    """Identity check also permits recording a failed worker's revision conflict."""
     if not connection.in_atomic_block:raise ValueError('Worker check requires its transaction')
     sha(compatibility_digest)
     identity = RunScopeAttempt.objects.only('run_id').get(pk=attempt_id)
@@ -126,12 +139,9 @@ def require_claim(attempt_id, worker_token, *, compatibility_digest):
 def fail(attempt_id, worker_token, *, compatibility_digest, error):
     if not transaction.get_autocommit():raise ValueError('Failure record owns its short transaction')
     with transaction.atomic():
-        attempt, _ = require_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
+        attempt, run = _locked_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
         with _setting('fresh.scope_worker', worker_token):
-            attempt.status = 'FAILED'
-            attempt.failure = dict(type=type(error).__name__, message=str(error)[:4000])
-            attempt.finished_at = timezone.now()
-            attempt.save(update_fields=['status', 'failure', 'finished_at'])
+            _close_attempt(attempt,run,'FAILED',dict(type=type(error).__name__,message=str(error)[:4000]))
     return attempt
 
 
@@ -142,15 +152,12 @@ def fence(attempt_id, *, expected_worker_token, reason):
     with transaction.atomic():
         identity = RunScopeAttempt.objects.only('run_id').get(pk=attempt_id)
         _source_lock(identity.run_id)
-        CalculationRun.objects.select_for_update().get(pk=identity.run_id)
+        run=CalculationRun.objects.select_for_update().get(pk=identity.run_id)
         attempt = RunScopeAttempt.objects.select_for_update().get(pk=attempt_id)
         if attempt.status != 'ACTIVE' or str(attempt.worker_token) != str(expected_worker_token):
             raise ValueError('Worker changed before explicit fencing')
         with _setting('fresh.scope_fence', attempt.pk):
-            attempt.status = 'FAILED'
-            attempt.failure = dict(type='FENCED', message=reason[:4000])
-            attempt.finished_at = timezone.now()
-            attempt.save(update_fields=['status', 'failure', 'finished_at'])
+            _close_attempt(attempt,run,'FAILED',dict(type='FENCED',message=reason[:4000]))
     return attempt
 
 
@@ -158,24 +165,38 @@ def release(attempt_id, worker_token, *, compatibility_digest):
     """Release the calculation claim; file/read readiness remains independent."""
     if not transaction.get_autocommit():raise ValueError('Worker release owns its short transaction')
     with transaction.atomic():
-        attempt, _ = require_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
+        attempt, run = require_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
         with _setting('fresh.scope_worker', worker_token):
-            attempt.status = 'RELEASED'
-            attempt.finished_at = timezone.now()
-            attempt.save(update_fields=['status', 'finished_at'])
+            _close_attempt(attempt,run,'RELEASED',{})
     return attempt
+
+
+def _close_attempt(attempt,run,status,failure):
+    from mta.runtime import scope_revisions as revisions
+    after,observed,diagnostics=revisions.closing(run)
+    if diagnostics:
+        if status!='FAILED':raise ValueError('Revision conflict cannot release a worker')
+        failure={**failure,**diagnostics}
+    attempt.status=status;attempt.failure=failure;attempt.finished_at=timezone.now()
+    attempt.revision_closed=after
+    attempt.save(update_fields=['status','failure','finished_at','revision_closed'])
+    observed_after=(observed if diagnostics.get('certification_status')=='INVALIDATED'
+                    else revisions.next_cut(observed))
+    revisions.verify_write(run,observed_after,retained=status=='FAILED')
 
 
 def _begin_phase(attempt, run, phase):
     """Open the transaction-local unit; its deferred constraint requires sealing."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    from mta.runtime.scope_revisions import require_current
+    before=require_current(run)
     capture = MdmDailyInputCapture.objects.get(run=run, status='CAPTURED')
     identity = uuid.uuid4()
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.scope_phase',%s,true)", [str(identity)])
     return RunPhaseAcceptance.objects.create(id=identity, run=run, attempt=attempt,
         source_id=capture.source_id, phase=phase, input_digest=run.input_digest,
-        capture_digest=capture.revision_digest)
+        capture_digest=capture.revision_digest,revision_before=before)
 
 
 def _seal_phase(receipt, snapshot, *, effect_digest, partitions, effects=None):
@@ -187,14 +208,20 @@ def _seal_phase(receipt, snapshot, *, effect_digest, partitions, effects=None):
         effect_digest=effect_digest, partitions=partitions)
     if effects is not None:
         receipt.metadata['effects'] = effects
+    from mta.runtime import scope_revisions as revisions
+    after=revisions.next_cut(revisions.owned_position(receipt.run))
+    if after is not None:receipt.metadata['revision_after']=after
     receipt.digest = receipt_digest(receipt)
     receipt.state_sealed = True
     receipt.accepted_at = timezone.now()
     receipt.save(update_fields=['snapshot', 'metadata', 'digest', 'state_sealed', 'accepted_at'])
+    revisions.verify_write(receipt.run,after)
     return receipt
 
 
 def receipt_digest(receipt):
-    return digest(dict(run_id=str(receipt.run_id), attempt_id=str(receipt.attempt_id),
+    identity=dict(run_id=str(receipt.run_id), attempt_id=str(receipt.attempt_id),
         source_id=receipt.source_id, phase=receipt.phase, input_digest=receipt.input_digest,
-        capture_digest=receipt.capture_digest, snapshot_id=receipt.snapshot_id, metadata=receipt.metadata))
+        capture_digest=receipt.capture_digest, snapshot_id=receipt.snapshot_id, metadata=receipt.metadata)
+    if receipt.revision_before is not None:identity['revision_before']=receipt.revision_before
+    return digest(identity)
