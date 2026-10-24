@@ -15,7 +15,7 @@ if os.environ.get('VF_PHASE_POSTGRES_PROOF') == '1':
     django.setup()
 
 
-def bind_metadata_counter_owner(run,source):
+def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None):
     """Isolated metadata carrier only; never native registration/certification."""
     from django.db import connection
     from mta.runtime.models import ProductionInitialization
@@ -48,7 +48,7 @@ def bind_metadata_counter_owner(run,source):
         initialization_id=str(initial.pk),source_digest=source.digest,
         certification_digest=cert.receipt_digest,base_revision_id=str(base.pk),
         configuration_digest='c'*64,qualified_master_reuse=False)}
-    seal(run)
+    seal(run,consumer_snapshot=consumer_snapshot)
     return initial,state,cert,base,deepcopy(run.production_manifest['ingestion_preparation'])
 
 

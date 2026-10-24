@@ -89,3 +89,13 @@ class IngestionRevisionState(models.Model):
     fact_epoch = models.PositiveBigIntegerField(default=0)
     operational_epoch = models.PositiveBigIntegerField(default=0)
     action_epoch = models.PositiveBigIntegerField(default=0)
+    bpr_remark_operational_epoch = models.PositiveBigIntegerField(default=0)
+    bpr_remark_action_epoch = models.PositiveBigIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=models.Q(bpr_remark_operational_epoch__lte=models.F('operational_epoch')),
+                name='bpr_consumer_operational_bounded'),
+            models.CheckConstraint(condition=models.Q(bpr_remark_action_epoch__lte=models.F('action_epoch')),
+                name='bpr_consumer_action_bounded'),
+        ]

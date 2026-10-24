@@ -17,11 +17,14 @@ def seed(state, *, reused):
         qualified_master_reuse=bool(reused))
 
 
-def seal(run):
+def seal(run,*,consumer_snapshot=None):
     body=run.production_manifest.get('ingestion_preparation')
     if body is None:
         return
     cut=epochs(body['initialization_id'],lock=True)
+    if consumer_snapshot is not None:
+        from mta.runtime.scope_consumers import capture
+        body['bpr_consumer_cut']=capture(run,consumer_snapshot,body['initialization_id'])
     cut[3]+=1  # Exactly this single guarded calculation-header UPDATE.
     body.update(run_id=str(run.pk),predecessor_id=str(run.predecessor_id) if run.predecessor_id else None,
                 capture_cut=cut)

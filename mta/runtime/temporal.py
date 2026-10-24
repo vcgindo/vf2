@@ -299,6 +299,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             # task headers and subtasks then share one PostgreSQL snapshot.
             with connection.cursor() as cursor:
                 cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
+        if native and scope_request is not None:
+            from mta.runtime.scope_consumers import lock_history_owners
+            lock_history_owners()
         initialization_binding = None
         if native:
             from mta.runtime.models import ProductionInitialization
@@ -641,7 +644,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             bind_snapshots(run, raw['remark_inputs'])
         if prepared_state is not None:
             from mta.runtime.capture_preparation import seal
-            seal(run)
+            consumer_snapshot=(raw.get('remark_inputs',{}).get('BPRReport_RemarkDetails')
+                if scope_request is not None else None)
+            seal(run,consumer_snapshot=consumer_snapshot)
     release_opening()
     logger.warning('daily_phase run=%s phase=input_capture seconds=%.6f', run.pk, perf_counter()-started)
     if scope_request is not None:

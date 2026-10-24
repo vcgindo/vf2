@@ -12,7 +12,7 @@ class ScopedPickFileTests(unittest.TestCase):
     for _name in ('setUp','rollback','owner','accept'):
         locals()[_name]=getattr(prepared_tests.PreparedEffectsPostgresTests,_name)
 
-    def bpr(self, *, captured_root=True, counter=False):
+    def bpr(self, *, captured_root=True, counter=False,consumer_snapshot=None):
         from mta.temporal.chain import produce_bpr
         from mta.application.native_output_contracts import native_assignments
         from mta.application.stage_calculation_sources import capture_bpr
@@ -23,7 +23,7 @@ class ScopedPickFileTests(unittest.TestCase):
         if counter:
             from tests.test_scope_revisions_postgresql import bind_metadata_counter_owner
             from mta.runtime.scope_execution import _claim
-            bind_metadata_counter_owner(self.run,self.source)
+            bind_metadata_counter_owner(self.run,self.source,consumer_snapshot=consumer_snapshot)
             self.attempt=_claim(self.run.pk,scope='UptoBPR',command_key='owned-pick-counter',
                 worker_reference='metadata-carrier-not-native',compatibility_digest='a'*64,
                 expected_phase='START',expected_receipt_digest='')

@@ -15,6 +15,9 @@ def identity(run,*,retained=False):
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     body=run.production_manifest.get('ingestion_preparation')
     if body is None:return None
+    if 'bpr_consumer_cut' in body:
+        from mta.runtime.scope_consumers import verify_guards
+        verify_guards()
     if (not connection.in_atomic_block or body.get('contract') != CONTRACT
             or body.get('run_id') != str(run.pk)
             or body.get('predecessor_id') != (str(run.predecessor_id) if run.predecessor_id else None)

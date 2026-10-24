@@ -15,7 +15,7 @@ class ScopedRemarkTests(unittest.TestCase):
     def owner(self,**options):
         return fixtures.ScopedPickFileTests.owner(self,remark_inputs=self.snapshot,**options)
 
-    def parents(self,*,rows=(),missing=False,counter=False):
+    def parents(self,*,rows=(),missing=False,counter=False,consumer_cut=False):
         from mta.presentation import ancillary_live as live,scoped_report_storage as facts,scoped_prepared as prepared
         from mta.serialization import digest
         self.snapshot=None
@@ -25,7 +25,7 @@ class ScopedRemarkTests(unittest.TestCase):
             for row in rows:
                 live.append(live.BPR,[{k:v for k,v in row.items() if k!='RemarkDate'}],actor_id='component',timestamp=row['RemarkDate'])
             self.snapshot=live.snapshot_all(business_date='2037-04-10',bpr_remark_horizon=13)
-        self.bpr(counter=counter)
+        self.bpr(counter=counter,consumer_snapshot=self.snapshot[live.BPR] if consumer_cut else None)
         self.report=facts.prepare(self.receipt.pk,expected_digest=self.receipt.digest,action_revision=0)
         self.projection=prepared.prepare(self.report.pk,expected_report_digest=self.report.digest,action_revision=0)
 
