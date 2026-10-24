@@ -66,6 +66,20 @@ def current(output, opening):
 
 
 def write(run, output, opening):
+    return _write_sources(run,opening,lambda:current(output,opening))
+
+
+def _write_report_rows(run, values, opening):
+    """Original BPR-produced populations; histories still use this run's parent."""
+    expected={'BORWithOrderAllocation','RRR_OrderAllocation','AllocatedOrders','BOROARequirement'}
+    if opening.get('production_report_schema')==production_output_policy.SOURCE_SCHEMA:
+        expected.add('SupplierDispatchReq')
+    if not isinstance(values,dict) or set(values)!=expected:
+        raise ValueError('Captured production report population roster differs')
+    return _write_sources(run,opening,lambda:dict(values))
+
+
+def _write_sources(run,opening,produce):
     if transaction.get_autocommit() or run.kind!='DAILY_CHAIN' or run.status!='RUNNING':
         raise ValueError('Native report sources require the running day transaction')
     policy=opening['production_report_policy']
@@ -82,7 +96,7 @@ def write(run, output, opening):
             raise ValueError('Native report predecessor is not a completed prior day')
         history={name:typed.read(parent,name) for name in
                  ('BOR_OrderAllocationHistory','RRR_OrderAllocationHistory')}
-    values=current(output,opening)
+    values=produce()
     expanded = opening.get('production_report_schema') == production_output_policy.SOURCE_SCHEMA
     if expanded:
         values['BOR_OrderAllocationHistory']=production_output_policy.bor_oa_history(
@@ -113,6 +127,7 @@ def recipe_digest():
     from mta.application import production_order_allocation, production_order_sources, row_bag_lookup
     from mta.presentation import daily_rrr_colour
     return digest(dict(adapter=inspect.getsource(current),writer=inspect.getsource(write),
+        finite_writer=inspect.getsource(_write_report_rows),source_writer=inspect.getsource(_write_sources),
         rrr=inspect.getsource(production_rrr),bor=inspect.getsource(operational_bor),
         source_lookups=inspect.getsource(row_bag_lookup),norm_rrr=inspect.getsource(daily_rrr_colour),
         allocation=inspect.getsource(production_order_allocation),

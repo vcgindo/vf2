@@ -73,8 +73,18 @@ def write_pick_bands(run, calculated, *, provenance, calculation_digest=None):
     if len(json.dumps(provenance)) > 8192:
         raise ValueError('Pick provenance must remain bounded metadata')
     rows = selected_bands(calculated)
+    return _write_pick_rows(run,rows,provenance=provenance,
+                            calculation_digest=calculation_digest or digest(calculated))
+
+
+def _write_pick_rows(run, rows, *, provenance, calculation_digest):
+    """Shared typed writer; scoped callers bind rows to their accepted image."""
+    if transaction.get_autocommit():
+        raise ValueError('Pick projection requires the publication transaction')
+    if len(json.dumps(provenance)) > 8192:
+        raise ValueError('Pick provenance must remain bounded metadata')
     records = native_rows(run, rows)
-    receipt = PickProjection.objects.create(run=run, calculation_digest=calculation_digest or digest(calculated),
+    receipt = PickProjection.objects.create(run=run, calculation_digest=calculation_digest,
         rows_digest=digest(rows), row_count=len(rows), provenance=provenance)
     PickBand.objects.bulk_create(records, batch_size=500)
     if _read_rows(run, receipt) != rows:

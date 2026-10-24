@@ -29,6 +29,13 @@ def write_routes(run,calculated,orders):
         raise ValueError('Report route facts require atomic operational publication')
     from mta.presentation.fulfillment import routes_for_orders
     rows=routes_for_orders(calculated,orders)
+    return _write_route_rows(run,rows)
+
+
+def _write_route_rows(run,rows):
+    """Shared finite writer; no calculation or alternate route derivation."""
+    if transaction.get_autocommit() or run.status!='RUNNING':
+        raise ValueError('Report route facts require atomic operational publication')
     metadata=dict(schema=SCHEMA,row_count=len(rows),rows_digest=digest(rows))
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.report_route_source',%s,true)",[str(run.pk)])

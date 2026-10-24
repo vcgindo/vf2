@@ -41,6 +41,13 @@ def _rows(source):
 
 
 def write_source(run, calculated, *, calculation_digest):
+    _require_writer(run)
+    if calculation_digest != digest(calculated):
+        raise ValueError('Operational live calculation identity differs')
+    return _store_rows(run,capture_rows(calculated),calculation_digest=calculation_digest)
+
+
+def _require_writer(run):
     from mta.runtime.input_reader import read_input
     if transaction.get_autocommit() or run.status != 'RUNNING':
         raise ValueError('Live operational capture requires the production transaction')
@@ -50,9 +57,17 @@ def write_source(run, calculated, *, calculation_digest):
         raise ValueError('Immutable operational source authorization differs')
     if OperationalCalculationSource.objects.filter(run=run).exists():
         raise ValueError('Operational producer already captured')
-    if calculation_digest != digest(calculated):
-        raise ValueError('Operational live calculation identity differs')
-    rows = capture_rows(calculated)
+
+
+def _write_source_rows(run, rows, *, calculation_digest):
+    """Finite rows captured at BPR; caller must prove their accepted snapshot."""
+    from mta.runtime.ingestion_context import sha
+    _require_writer(run)
+    sha(calculation_digest)
+    return _store_rows(run,rows,calculation_digest=calculation_digest)
+
+
+def _store_rows(run,rows,*,calculation_digest):
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.operational_capture_run', %s, true)", [str(run.pk)])
     source = OperationalCalculationSource.objects.create(run=run, policy=CAPTURE_POLICY,
