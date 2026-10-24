@@ -29,7 +29,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         from django.db import transaction
         transaction.set_rollback(True);self.atomic.__exit__(None,None,None)
 
-    def owner(self,*,claim=True):
+    def owner(self,*,claim=True,operational=False,report_mode=None,predecessor=None):
         from django.db import connection
         from mta.serialization import digest,storage
         from mta.mdm.daily_source import SCHEMA,APPROVAL_DAY_ARTIFACT_SHA
@@ -53,8 +53,17 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         from tests.test_h3_daily_integration import frame
         from tests.production_h3_fixture import supplied_day,CHILD
         from tests.test_daily_calculation_phases import calculation
-        from datetime import date
+        from datetime import date,timedelta
         opening=frame();prior=deepcopy(opening['opening']['state'])
+        opening_date='2037-04-09';today='2037-04-10'
+        if predecessor is not None:
+            from mta.runtime.services import read_outputs
+            prior=read_outputs(predecessor,include_reports=False)['ClosingState'][0]
+            opening_date=predecessor.business_date.isoformat()
+            today=(predecessor.business_date+timedelta(days=1)).isoformat()
+        if operational:
+            from mta.application.operational_capture import CAPTURE_POLICY
+            opening['profile']['operational_sources']=CAPTURE_POLICY
         self.source=MdmSource.objects.create(digest=uuid.uuid4().hex*2,
             database_name='owned-prepared-effect-COMPONENT',dll_digest=DLL,
             receipt=dict(schema=SCHEMA,artifact_sha256=APPROVAL_DAY_ARTIFACT_SHA,
@@ -84,23 +93,35 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         install_pair_exclusions(self.source,[],provenance={'fixture':'explicit empty exclusions'})
         snapshot=select_capture(self.source,nms_active=True,task_status_log_horizon=7)
         snapshot=compose_pair_exclusions(snapshot,[])
-        snapshot=capture_prune_candidates(snapshot,self.source,date(2037,4,10))
-        day=supplied_day('2037-04-10')['day']
-        day.update(raw_master=compose(snapshot,nms_master_raw(prior),last_run_date='2037-04-09'),
+        snapshot=capture_prune_candidates(snapshot,self.source,date.fromisoformat(today))
+        day=supplied_day(today)['day']
+        day.update(raw_master=compose(snapshot,nms_master_raw(prior),last_run_date=opening_date),
                    exclusions=[],supplier_feeds=complete_feeds(snapshot,prior))
+        if report_mode is not None:
+            if report_mode not in ('basic','expanded'):raise ValueError('Unknown component report mode')
+            day['production_report_policy']=dict(bor_history_horizon=90,rrr_history_horizon=90)
+            day['production_report_opening']=(None if predecessor is not None else
+                dict(BOR_OrderAllocationHistory=[],RRR_OrderAllocationHistory=[]))
+            if report_mode=='expanded':
+                from mta.application import production_output_policy
+                day['production_report_schema']=production_output_policy.SOURCE_SCHEMA
+                day['production_report_policy']['output_contract']=production_output_policy.contract()
         replace_working_inputs(snapshot,prior,day,None)
         identity=uuid.uuid4()
         opening['profile']['daily_publication']=True
         raw=dict(profile=opening['profile'],lineage=dict(schema='supplied-component-lineage-v1'),opening=dict(identity='component-prepared',
-            opening_date='2037-04-09',state=prior),day=day,mdm_input=snapshot)
-        self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date='2037-04-10',
+            opening_date=opening_date,state=prior),day=day,mdm_input=snapshot)
+        self.run=CalculationRun.objects.create(id=identity,kind='DAILY_CHAIN',business_date=today,predecessor=predecessor,
             execution_revision='prepared-effects-'+identity.hex,input_digest=digest(raw),input_payload={})
         self.run.input_payload=save_input(self.run,raw,table_selector=input_table)
         self.run.input_manifest_digest=digest(self.run.input_payload)
         self.run.save(update_fields=['input_payload','input_manifest_digest'])
         self.capture=bind_capture(self.run,snapshot,request_digest='d'*64)
+        if operational:
+            from mta.runtime.operational_source import authorize_new_run
+            authorize_new_run(self.run)
         with native_assignments(True):
-            self.prepared=prepare_day(prior,'2037-04-09',day,opening['profile'],str(identity),calculation,native_daily=True)
+            self.prepared=prepare_day(prior,opening_date,day,opening['profile'],str(identity),calculation,native_daily=True)
         if claim:
             self.attempt=_claim(self.run.pk,scope='UptoBPR',command_key='prepared-effects',
                 worker_reference='rolled-back-component-proof',compatibility_digest='a'*64,

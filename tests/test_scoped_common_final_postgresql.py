@@ -23,7 +23,7 @@ class ScopedCommonFinalTests(unittest.TestCase):
             expected_phase='START',expected_receipt_digest='')
         pre=self.accept()
         with native_assignments(True):bpr=produce_bpr(self.prepared)
-        sources=capture_bpr(bpr,bpr.context.prior)
+        sources=capture_bpr(bpr,self.publication_opening())
         receipt=_accept_calculation(self.attempt.pk,self.attempt.worker_token,bpr,sources,
             parent=pre,compatibility_digest='a'*64)
         if terminal_scope=='PostBPR':
@@ -49,6 +49,14 @@ class ScopedCommonFinalTests(unittest.TestCase):
         from mta.runtime.scoped_final import _finish_accepted_day
         return _finish_accepted_day(self.attempt.pk,self.attempt.worker_token,compatibility_digest='a'*64)
 
+    def publication_opening(self):
+        context=self.prepared.context
+        result=dict(supplier=context.prior['supplier'])
+        for name in ('shipment_input','transporter_input','production_report_policy',
+                     'production_report_opening','production_report_schema'):
+            if name in context.day:result[name]=context.day[name]
+        return result
+
     def ordinary_full(self):
         from mta.temporal.chain import produce_bpr,produce_dbm,produce_btr
         from mta.application.native_output_contracts import native_assignments
@@ -63,16 +71,16 @@ class ScopedCommonFinalTests(unittest.TestCase):
         if sources is not None:lineage['pick_source_digests']=sources
         output['Lineage']=[lineage]
         return finish_run(self.run,output,expected_digest=self.run.input_digest,
-            publication_opening=dict(supplier=self.prepared.context.prior['supplier']))
+            publication_opening=self.publication_opening())
 
-    def compare_full_scope(self,terminal_scope):
+    def compare_full_scope(self,terminal_scope,*,operational=False,report_mode=None,predecessor=None):
         from django.db import transaction,connection,DatabaseError
         from mta.runtime.services import read_outputs
         from mta.serialization import storage
         from mta.runtime.mdm_daily_models import MdmDailySkuArchive
         from mta.runtime.scope_execution import head
         from mta.mdm.daily_current import verify_current
-        self.owner(claim=False)
+        self.owner(claim=False,operational=operational,report_mode=report_mode,predecessor=predecessor)
         with transaction.atomic():
             full=self.ordinary_full()
             expected=storage(read_outputs(full,include_reports=False))
@@ -107,12 +115,45 @@ class ScopedCommonFinalTests(unittest.TestCase):
         with connection.cursor() as cursor:
             cursor.execute('SET CONSTRAINTS phase_acceptance_complete IMMEDIATE')
             cursor.execute('SET CONSTRAINTS phase_acceptance_complete DEFERRED')
+        return result
 
     def test_post_bpr_matches_actual_full_without_phase_or_current_copy_replay(self):
         self.compare_full_scope('PostBPR')
 
     def test_post_dbm_matches_actual_full_without_phase_or_current_copy_replay(self):
         self.compare_full_scope('PostDBM')
+
+    def test_operational_and_basic_reports_match_full_with_own_successor_history(self):
+        parent=self.compare_full_scope('PostBPR',operational=True,report_mode='basic')
+        result=self.compare_full_scope('PostDBM',operational=True,report_mode='basic',predecessor=parent)
+        self.assert_own_histories(parent,result)
+
+    def test_operational_and_expanded_reports_match_full_with_own_successor_history(self):
+        parent=self.compare_full_scope('PostDBM',operational=True,report_mode='expanded')
+        result=self.compare_full_scope('PostBPR',operational=True,report_mode='expanded',predecessor=parent)
+        self.assert_own_histories(parent,result)
+
+    def assert_own_histories(self,parent,result):
+        from mta.runtime.production_report_storage import read
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.operational_source import read_source
+        profile=read_input(result,components=('day',))['day']
+        policy=profile['production_report_policy']
+        self.assertEqual(result.predecessor_id,parent.pk)
+        self.assertIsNone(profile['production_report_opening'])
+        self.assertTrue(read_source(result)['requirement_bands'])
+        self.assertTrue(read(result,'AllocatedOrders'))
+        # Consecutive dates within both horizons: independently expect exact
+        # retained predecessor occurrences, followed by today's actual rows.
+        self.assertEqual((result.business_date-parent.business_date).days,1)
+        for current,history,horizon in (
+                ('BORWithOrderAllocation','BOR_OrderAllocationHistory','bor_history_horizon'),
+                ('RRR_OrderAllocation','RRR_OrderAllocationHistory','rrr_history_horizon')):
+            previous=read(parent,history);present=read(result,current)
+            self.assertTrue(previous);self.assertTrue(present)
+            self.assertGreater(policy[horizon],1)
+            expected=previous+[dict(row,ReportDate=result.business_date.isoformat()) for row in present]
+            self.assertEqual(read(result,history),expected)
 
     def test_common_writer_late_failure_retains_prefix_and_capture_for_retry(self):
         from mta.runtime.models import RunPhaseAcceptance,PickProjection
