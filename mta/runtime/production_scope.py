@@ -7,19 +7,24 @@ from django.db import connection, transaction
 from mta.serialization import digest
 
 SCHEMA='fresh-native-scope-request-v1'
+CONFIGURED_SCHEMA='fresh-native-scope-request-v2'
 
 
-def request(command_key):
+def request(command_key,*,runtime_reports=None):
     from release.native_identity import require_current
     from mta.runtime.phase_state import recipe_digest
     if type(command_key) is not str or not 1<=len(command_key)<=120:
         raise ValueError('Explicit bounded scope command key required')
-    return dict(schema=SCHEMA,scope='UptoBPR',command_key=command_key,
+    value=dict(schema=SCHEMA,scope='UptoBPR',command_key=command_key,
         compatibility_digest=digest(dict(release=require_current(),phase_recipe=recipe_digest())))
+    if runtime_reports is not None:
+        from mta.runtime.scope_runtime_reports import validate
+        value.update(schema=CONFIGURED_SCHEMA,runtime_reports=validate(runtime_reports))
+    return value
 
 
 def validate_request(value):
-    if type(value) is not dict or value!=request(value.get('command_key')):
+    if type(value) is not dict or value!=request(value.get('command_key'),runtime_reports=value.get('runtime_reports')):
         raise ValueError('Native scoped request or implementation identity differs')
     return value
 
@@ -43,6 +48,10 @@ def captured_run(run,value):
     if (run.kind!='DAILY_CHAIN' or run.evidence_mode!='production'
             or read_input(run,components=('scope_request',)).get('scope_request')!=value):
         raise ValueError('Captured native scope identity differs')
+    if 'runtime_reports' in value:
+        from mta.runtime.scope_runtime_reports import require_test_database,validate
+        validate(value['runtime_reports'])
+        require_test_database()
     if run.status=='RUNNING':
         _frozen(run)
     elif run.status=='SUCCEEDED':
@@ -83,12 +92,15 @@ def repeated(raw,expected_sha256,value,arguments):
 
 
 def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
-            inspect_only=False,repair_files=False,**arguments):
+            inspect_only=False,repair_files=False,runtime_reports=None,**arguments):
     from mta.runtime import production_daily
     from mta.runtime.production_preflight import require
     if not transaction.get_autocommit():raise ValueError('Native scope owns its transaction boundaries')
-    value=request(command_key)
+    value=request(command_key,runtime_reports=runtime_reports)
     authorize()
+    if runtime_reports is not None:
+        from mta.runtime.scope_runtime_reports import require_test_database
+        require_test_database()
     if (arguments.get('retry_capture_id') is not None or arguments.get('report_disposition') is not None
             or arguments.get('feed_attempt') is not None):
         raise ValueError('UptoBPR recovery uses the existing scoped attempt')
@@ -220,10 +232,14 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False):
             try:workers.fail(attempt.pk,attempt.worker_token,compatibility_digest=compatibility,error=error)
             except Exception as closing_error:raise error from closing_error
             raise
-    return dict(scope='UptoBPR',run_id=str(run.pk),status=run.status,
+    result=dict(scope='UptoBPR',run_id=str(run.pk),status=run.status,
         business_date=run.business_date.isoformat(),command_key=value['command_key'],
         phase_acceptance_id=str(receipt.pk),phase_acceptance_digest=receipt.digest,
         snapshot_digest=receipt.snapshot.state_digest,pick_files_digest=files.digest,
         calculation_accepted=True,pick_files_ready=True,scope_ready=False,
         serving_selected=False,application_acceptance=False,
         pending=['phase_read_binding','configured_artifact_readiness','end_to_end_acceptance'])
+    if 'runtime_reports' in value:
+        from mta.runtime.scope_runtime_reports import status
+        result['runtime_reports']=status(value['runtime_reports'])
+    return result

@@ -17,12 +17,14 @@ class ProductionScopePostgresTests(unittest.TestCase):
     for _name in ('setUp','rollback','owner'):
         locals()[_name]=getattr(fixtures.PreparedEffectsPostgresTests,_name)
 
-    def setup_scope(self,**kwargs):
+    def setup_scope(self,*,runtime_reports=None,**kwargs):
         from mta.runtime import production_scope as scope,scope_execution as workers
         from mta.runtime.scope_execution import _setting
         root=self.enterContext(TemporaryDirectory())
         self.value=dict(schema=scope.SCHEMA,scope='UptoBPR',command_key='native-entry-component',
             compatibility_digest='a'*64)
+        if runtime_reports is not None:
+            self.value.update(schema=scope.CONFIGURED_SCHEMA,runtime_reports=runtime_reports)
         self.owner(claim=False,pick_root=root,scope_request=self.value,**kwargs)
         stack=self.enterContext(ExitStack())
         stack.enter_context(patch.object(workers,'claim',side_effect=workers._claim))
@@ -145,3 +147,27 @@ class ProductionScopePostgresTests(unittest.TestCase):
 
     def test_expanded_configured_report_sources_survive_the_bpr_cut(self):
         self.configured_reports('expanded')
+
+    def test_explicit_empty_runtime_reports_survive_typed_capture_and_exact_scope_retry(self):
+        from copy import deepcopy
+        from mta.runtime import production_scope as scope,scope_runtime_reports as reports
+        from mta.runtime.input_reader import read_input
+        from tests.test_scope_runtime_reports import reference
+        configured=reference();self.setup_scope(runtime_reports=configured)
+        report=self.advance();self.assert_paused()
+        self.assertEqual(report['runtime_reports'],reports.status(configured))
+        self.assertFalse(report['scope_ready']);self.assertIn('configured_artifact_readiness',report['pending'])
+        self.run.refresh_from_db()
+        self.assertEqual(self.run.input_payload['schema'],'fresh-daily-input-manifest-v2')
+        self.assertEqual(read_input(self.run,components=('scope_request',))['scope_request'],self.value)
+        identities=list(self.run.phase_acceptances.values_list('id','digest'))
+        with patch('mta.temporal.chain.prepare_day',side_effect=AssertionError('replayed PRE')), \
+                patch('mta.temporal.chain.produce_bpr',side_effect=AssertionError('replayed BPR')):
+            self.assertEqual(self.advance(),report)
+            changed=deepcopy(self.value);changed['runtime_reports']=reference()
+            changed['runtime_reports']['sha256']='f'*64
+            with self.assertRaisesRegex(ValueError,'Captured native scope identity differs'):
+                scope.advance(self.run,changed,worker_reference='must-not-recapture')
+        self.assertEqual(list(self.run.phase_acceptances.values_list('id','digest')),identities)
+        self.assertEqual(self.run.scope_attempts.count(),1)
+        self.assertEqual(self.run.scope_attempts.get().status,'RELEASED')

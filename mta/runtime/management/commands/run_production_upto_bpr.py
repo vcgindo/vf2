@@ -22,12 +22,19 @@ class Command(BaseCommand):
         parser.add_argument('--worker-reference',required=True)
         parser.add_argument('--recovery-of')
         parser.add_argument('--repair-files',action='store_true')
+        parser.add_argument('--runtime-reports-file',type=Path)
+        parser.add_argument('--runtime-reports-sha256')
 
     def handle(self,*args,**options):
         from mta.presentation.native_mode import require_configuration
         from mta.runtime.production_scope import execute
         require_configuration()
         try:
+            from mta.runtime.scope_runtime_reports import load
+            path,pin=options.get('runtime_reports_file'),options.get('runtime_reports_sha256')
+            if (path is None)!=(pin is None):
+                raise ValueError('RuntimeReports file and SHA256 must be supplied together')
+            runtime_reports=None if path is None else load(path,pin)
             report=execute(options['input'].read_bytes(),options['sha256'],
                 initialization_id=options['initialization'],source_digest=options['source_digest'],
                 configuration_digest=options['configuration_digest'],execution_revision=options['revision'],
@@ -35,7 +42,7 @@ class Command(BaseCommand):
                 predecessor_output_digest=options['predecessor_output_digest'],
                 command_key=options['command_key'],worker_reference=options['worker_reference'],
                 recovery_of=options['recovery_of'],repair_files=options['repair_files'],
-                inspect_only=options['inspect'])
+                inspect_only=options['inspect'],runtime_reports=runtime_reports)
             self.stdout.write(json.dumps(report,sort_keys=True))
         except PreflightError as error:
             self.stdout.write(json.dumps(error.report,sort_keys=True))
