@@ -16,20 +16,24 @@ from mta.runtime.models import ExpediteRow
 
 class TransitAdmissionTests(unittest.TestCase):
     def setUp(self):
-        self.run = SimpleNamespace(pk='fixture',kind='LEGACY_UI_FIXTURE',business_date='2026-04-07')
+        self.run = SimpleNamespace(pk='daily',kind='DAILY_CHAIN',business_date='2037-04-10')
         self.receipt = SimpleNamespace(source_digest='source',recipe_digest='recipe',pick_digest='pick')
         self.stack = ExitStack(); self.addCleanup(self.stack.close)
-        self.stack.enter_context(patch.object(subject.fixture,'binding',return_value=(self.run,'source')))
-        self.stack.enter_context(patch.object(subject,'recipe_digest',return_value='recipe'))
-        self.stack.enter_context(patch.object(subject,'pick_source',return_value='pick'))
+        self.stack.enter_context(patch('mta.presentation.daily_preparation.production_branch',side_effect=lambda run:run.kind=='DAILY_CHAIN'))
+        self.source=self.stack.enter_context(patch('mta.presentation.daily_preparation.source_digest',return_value='source'))
+        self.stack.enter_context(patch.object(subject,'production_recipe_digest',return_value='recipe'))
+        self.stack.enter_context(patch.object(subject,'pick_binding',return_value='pick'))
         self.guards = self.stack.enter_context(patch.object(subject,'verify_guards'))
         self.receipts = self.stack.enter_context(patch.object(subject.PlanningExpediteTransitProjection.objects,'filter'))
         self.receipts.return_value.first.return_value = self.receipt
 
     def test_wrong_binding_rejected_before_receipt(self):
-        for pk,kind,day in [('other','LEGACY_UI_FIXTURE','2026-04-07'),('fixture','DAILY_CHAIN','2026-04-07'),('fixture','LEGACY_UI_FIXTURE','2026-06-17')]:
-            with self.assertRaisesRegex(PublicationUnavailable,'wrong_fixture'):
+        for pk,kind,day in [('other','LEGACY_UI_FIXTURE','2026-04-07'),('daily','OTHER','2037-04-10'),('daily','LEGACY_UI_FIXTURE','2026-06-17')]:
+            with self.assertRaisesRegex(PublicationUnavailable,'removed_historical_mode'):
                 subject.admit(SimpleNamespace(pk=pk,kind=kind,business_date=day))
+        self.source.assert_not_called()
+        self.source.side_effect=PublicationUnavailable('daily_source_identity_differs')
+        with self.assertRaisesRegex(PublicationUnavailable,'daily_source_identity_differs'):subject.admit(self.run)
         self.receipts.assert_not_called()
 
     def test_receipt_and_pick_identity_are_required(self):
@@ -69,11 +73,23 @@ class TransitAdmissionTests(unittest.TestCase):
         filters = ExpediteFilters({},'expedite-parent',ExpediteRow)
         self.assertEqual(filters.column('A','Tags'),('S."Tags"','text'))
 
-    def test_fixture_route_uses_prepared_reader_without_full_context(self):
+    def test_paged_daily_route_uses_prepared_reader_without_full_context(self):
         from mta.presentation import expedite_read
         with patch.object(expedite_read,'selected_run',return_value=self.run), \
+                patch('mta.presentation.logistics_live.enabled',return_value=True), \
                 patch.object(expedite_read,'expedite_context') as context, \
                 patch('mta.presentation.planning_expedite_sql.parent_grid',return_value={'data':'prepared'}) as reader:
-            self.assertEqual(expedite_read.parent_grid({'filters':{}}),{'data':'prepared'})
-            reader.assert_called_once_with(self.run,{'filters':{}})
+            payload=dict(filters={},paginationParameter=dict(pageNumber=1,recordsPerPage=25))
+            self.assertEqual(expedite_read.parent_grid(payload),{'data':'prepared'})
+            reader.assert_called_once_with(self.run,payload)
             context.assert_not_called()
+
+    def test_unpaged_public_route_keeps_explicit_legacy_denial(self):
+        from mta.presentation import expedite_read
+        with patch.object(expedite_read,'selected_run',return_value=self.run), \
+                patch('mta.presentation.logistics_live.enabled',return_value=True), \
+                patch.object(expedite_read,'expedite_context',return_value=SimpleNamespace()), \
+                patch('mta.presentation.planning_expedite_sql.parent_grid') as reader:
+            with self.assertRaisesRegex(PublicationUnavailable,'LEG-EXPEDITE-PARENT-UNPAGED-SQL156'):
+                expedite_read.parent_grid(dict(filters={}))
+            reader.assert_not_called()
