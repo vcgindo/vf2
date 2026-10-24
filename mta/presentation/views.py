@@ -532,7 +532,8 @@ def export_data(request, payload):
             rows = read_bpr(run, payload, export=True)
             class ExportChunks:
                 def __iter__(self):
-                    return csv_chunks(rows, headers)
+                    from mta.presentation.bpr_export import transport_chunks
+                    return transport_chunks(rows, headers)
 
                 def close(self):
                     close = getattr(rows, 'close', None)

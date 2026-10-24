@@ -10,3 +10,27 @@ FIELDS = tuple('tags SKUCode SKUName WHCode WHName ParentWhCode ParentName Stock
 
 def selected_headers(state):
     return common_headers(state, FIELDS, configuration=BPR_UI_CONFIG)
+
+
+def transport_chunks(rows, headers, *, chunk_size=65536):
+    """Keep CSV bytes exact while bounding gateway/socket handoffs and memory."""
+    from mta.presentation.rrr_export import csv_chunks
+    if type(chunk_size) is not int or chunk_size < 1:
+        raise ValueError('positive_BPR_transport_chunk_size_required')
+    pending = bytearray()
+    try:
+        for row in csv_chunks(rows, headers):
+            offset = 0
+            while offset < len(row):
+                take = min(chunk_size - len(pending), len(row) - offset)
+                pending.extend(row[offset:offset + take])
+                offset += take
+                if len(pending) == chunk_size:
+                    yield bytes(pending)
+                    pending.clear()
+        if pending:
+            yield bytes(pending)
+    finally:
+        close = getattr(rows, 'close', None)
+        if close:
+            close()

@@ -19,7 +19,7 @@ from django.test import Client, override_settings
 
 from mta.presentation import bpr_prepared as prepared
 from mta.presentation.bpr import ReadModel
-from mta.presentation.bpr_export import selected_headers
+from mta.presentation.bpr_export import selected_headers, transport_chunks
 from mta.presentation.bpr_filters import BprPredicate
 from mta.presentation.context import PermissionCodes
 from mta.presentation.rrr_export import csv_chunks
@@ -234,6 +234,46 @@ class PreparedExportTests(unittest.TestCase):
                     self.assertEqual(b''.join(response.streaming_content),
                                      b''.join(csv_chunks(expected, selected_headers(layout))))
                 response.close()
+            self.assertEqual(closed, [True])
+
+
+class TransportChunkTests(unittest.TestCase):
+    def test_bounded_chunks_preserve_exact_csv_across_wide_unicode_rows(self):
+        rows = [{'a': ' leading, quoted "value"\r\n', 'b': None},
+                {'a': 'wide é漢字' * 20000, 'b': True},
+                {'a': '', 'b': -1.25}]
+        headers = [('First', 'a'), ('Second', 'b')]
+        expected = b''.join(csv_chunks(rows, headers))
+        chunks = list(transport_chunks(iter(rows), headers))
+        self.assertEqual(b''.join(chunks), expected)
+        self.assertTrue(all(len(chunk) == 65536 for chunk in chunks[:-1]))
+        self.assertTrue(0 < len(chunks[-1]) <= 65536)
+
+    def test_full_scale_handoff_count_is_bounded_by_bytes_not_row_count(self):
+        headers = [('A', 'a')]
+        chunks = list(transport_chunks(({'a': str(i)} for i in range(97097)), headers))
+        self.assertLess(len(chunks), 20)
+        self.assertEqual(b''.join(chunks), b''.join(csv_chunks(
+            ({'a': str(i)} for i in range(97097)), headers)))
+
+    def test_cancel_and_source_error_close_owned_rows(self):
+        for fail in (False, True):
+            closed = []
+            def source():
+                try:
+                    yield {'a': 'x' * 100000}
+                    if fail:
+                        raise RuntimeError('source failed')
+                    yield {'a': 'tail'}
+                finally:
+                    closed.append(True)
+            chunks = transport_chunks(source(), [('A', 'a')])
+            self.assertEqual(len(next(chunks)), 65536)
+            if fail:
+                with self.assertRaisesRegex(RuntimeError, 'source failed'):
+                    list(chunks)
+            else:
+                chunks.close()
             self.assertEqual(closed, [True])
 
 
