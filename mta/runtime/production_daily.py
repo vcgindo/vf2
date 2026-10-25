@@ -232,11 +232,10 @@ def initialize_consumers(owner, value, input_sha256):
 def _inspection_frame(owner, predecessor_id, retry_capture_id):
     """Install fresh private readiness before selecting the bounded daily frame."""
     from mta.mdm.production_families import certified_state_handle, frame_for_daily
-    if retry_capture_id is None:
-        from mta.runtime.ingestion_admission import preparation_source
-        admitted = preparation_source(owner.source.digest)
-        if admitted is not None:
-            certified_state_handle(owner, admitted)
+    from mta.runtime.ingestion_admission import preparation_source
+    admitted = preparation_source(owner.source.digest)
+    if admitted is not None:
+        certified_state_handle(owner, admitted)
     return frame_for_daily(owner, predecessor_id)
 
 
