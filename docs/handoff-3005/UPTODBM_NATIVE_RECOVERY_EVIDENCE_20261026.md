@@ -950,3 +950,84 @@ Consolidated evidence:
 SHA256 `22773764cbcb2e09f83543cad41cc7f724c55284fc0c38d8adb3ce76ddb620d5`,
 pins68 candidate, driver, proof, failed-attempt and preservation files. The sole
 tracker retains the full lifecycle goal and all outstanding acceptance gates.
+
+
+## Schema-only admission reuse qualified (26 October 2026)
+
+Implementation `00fa31b94d90127b04252b181109536b21a4102b` adds bounded reuse of
+only the computed schema digest. Native v15 image `558e644e02b4`, manifest
+`066ac203`, preserves runtime implementation `12580cb1`, migrations `85346404`,
+schema `0fab95b7` and security/guard digest `ad6b00d7`. The original certificate
+and all authority-history rows are retained; the compatible code-only transition
+adds v15 only to the owned three-day namespace 508161. No serving release.
+
+The earlier finite schema-JSON encoder trial preserved the complete 5,514,786
+canonical bytes but did not yield a reliable speedup, so no encoder change was
+adopted. Query attribution instead found constraint/index/trigger deparsing to
+be the dominant schema cost. Reuse retains all original schema queries on a
+miss and keeps security, effective schema and mutable certified readiness fresh.
+It is eligible only for an already admitted serving read/preflight, an existing
+physical default PostgreSQL connection and AUTOCOMMIT ticket acquisition. Its
+catalogue/settings/migrations/roles key is bound to the process/session, and live
+WAL must remain unchanged through the owned repeatable-read/read-only check.
+Only stock internal type-output dispatch is eligible, including PostgreSQL's
+exact txid_snapshot_out -> pg_snapshot_out compatibility alias. Other type
+outputs, concurrent writes, changed dependencies, offline/startup and writer
+contexts take the original full path. Fifty-five focused tests passed before
+packaging; the production source was unchanged during the following proofs.
+
+Packaged paired admission trials commit an unrelated session-local test write
+and a diagnostic WAL message before each request. Full verification measured
+1.239/1.391/1.330/1.463 seconds (median 1.361); five real schema hits measured
+0.752/0.809/0.780/0.847/0.753 (median 0.780). The initial cache fill cost 1.515
+seconds. Query counts rise from 167 to 172 on a hit because the cheaper stamp
+replaces expensive deparsing, not because fewer round trips are claimed.
+A write during the ticket lifetime forced full verification. A separate real
+cached-hit test injected a write between its two validity checks: [true,false]
+caused the original digest to run. Work_mem changes force a new key/full digest;
+the ticket contains the exact real migration roster without changing it. A
+newly owned shell type makes the ticket ineligible, and its removal restores
+eligibility. All schema hashes remain exact.
+
+Native preflight tests deny committed guard disable, guard-body replacement,
+role and ACL changes, permissions/selection/manifest/CSV bytes and conflicting
+configuration before the downstream handler. Guard disable-and-restore still
+invalidates whole-readiness reuse. Atomic readiness remains rejected. Every
+changed authority/file is restored; no production defaults or credentials are
+changed. The actual batch roster has no ZIP, so no ZIP-byte denial is claimed.
+
+Actual AdmittedApplication/Django WSGI measurements: startup 3.403s/600SQL;
+cold preflight 2.025s/179SQL; unchanged warm 0.282s/60SQL; reconnect 1.965s/179SQL.
+Rollback Apply took 2.466s/1030SQL and Sleep 3.826s/1152SQL. Subsequent count/grid
+requests took 1.493s/563SQL and 1.023s/468SQL. These are separately measured WSGI
+components, not an additive browser timeline, durable action latency or matched
+whole-action improvement claim. Actions deliberately roll back, so subsequent
+reads observe retained revision103. The approximately two-second click-to-usable
+criterion and required scale remain OPEN; this component does not close them.
+
+Fresh v15 and compatible v12 processes independently read all 26 complete report
+populations (`7af98467`), canonical four-table DBM state (`a6ee3448`), the exact
+reference `69285677`, five commands/revision103 and business fingerprint
+`9c08786327578828616657be46ea18c1dfb83bb65c628cb6b9c00e901704eea5`. Earlier copied
+runs, database identities and global roles remain unchanged. Diagnostic objects
+are absent. Original calculations, receipts, frontend design and MTO are intact.
+
+Retained failed drivers: the first schema test's public diagnostic table correctly
+changed the certified security catalogue and was denied; it was removed in
+finally. The corrected test uses a session-local table plus diagnostic WAL only.
+The first final readback passed business/report checks but used to_regclass on
+public, which the runtime correctly cannot access. Its correction uses read-only
+system-catalogue queries; grants were not widened. Failed logs remain retained.
+
+Protected source HBA `6183a9be`, owners `d42a7b5e`, zero replication slots/workers
+and unchanged 8080 readiness/body were verified. Retained files/private storage
+measured 3,440,350,392 bytes before final readback/evidence assembly, below 4GiB.
+The exact private PG `dfdfcebb` was finally stopped at
+2026-10-25T23:50:25.449780324Z, with zero other clients, no worker and all mounts
+retained. No shared service, accepted day, frontend or MTO was changed.
+
+Consolidated evidence: `three-day-positive-test/schema-reuse-result.json`, SHA256
+`88da70568b267e9b1a568f123cb17cb10b69646db5843834e4a08c39afb7243e`, pins 68
+candidate/driver/proof files. It qualifies this bounded schema optimization only.
+The sole tracker retains the remaining action/refresh/browser/scale/lifecycle
+requirements and all later release boundaries.
