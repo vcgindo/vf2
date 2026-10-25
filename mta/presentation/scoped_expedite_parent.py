@@ -58,6 +58,11 @@ def verify_guards():
                    'require_scope_expedite_parent_complete','deny_scope_expedite_parent_truncate')
         bodies={name:frozen.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1]
             .split('AS $guard$',1)[1].split('$guard$;',1)[0] for name in functions}
+        from mta.runtime.scoped_action_ownership import migration as action_migration
+        current=action_migration(cursor)
+        if hasattr(current,'PARENT_GENERATION'):
+            bodies['guard_scope_expedite_parent_generation']=current.PARENT_GENERATION
+            bodies['guard_scope_expedite_parent_rows']=current.PARENT_ROWS
         cursor.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,"
             "P.prorettype='trigger'::regtype,P.proowner=C.relowner,"
             "NOT EXISTS(SELECT 1 FROM aclexplode(COALESCE(P.proacl,acldefault('f',P.proowner))) A "

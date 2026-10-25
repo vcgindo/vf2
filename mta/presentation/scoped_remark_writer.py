@@ -78,7 +78,9 @@ def _refresh_after_append(view,*,before,highwater):
     configuration=deepcopy(view.reference.metadata['runtime_reports'])
     request_digest=view.reference.metadata['scope_request_digest']
     original=scoped_view._metadata(view.bpr,view.planning,view.git,view.expedite,
-        view.reference.pick_files,configuration,request_digest)
+        view.reference.pick_files,configuration,request_digest,
+        action_command=view.reference.action_command,previous_reference=view.reference.previous_reference,
+        transition_kind=None if view.reference.metadata['transition'] is None else view.reference.metadata['transition']['kind'])
     if original!=view.reference.metadata or digest(original)!=view.reference.digest:
         raise PublicationUnavailable('phase_remark_previous_graph_differs')
     with validation_reads():
@@ -91,7 +93,8 @@ def _refresh_after_append(view,*,before,highwater):
         expected_core_digest=view.expedite.core.generation.digest,action_revision=view.bpr.sources.action_revision)
     expedition=scoped_expedite.require_binding(view.run,replace(view.expedite,parent=parent))
     row,checksum=scoped_view._save_reference(replace(view.bpr,remarks=remarks),view.planning,view.git,expedition,
-        view.reference.pick_files,configuration,request_digest)
+        view.reference.pick_files,configuration,request_digest,action_command=view.reference.action_command,
+        previous_reference=view.reference,transition_kind='REMARK')
     # A composed DBM selection keeps its accepted DBM identity while the BPR
     # remark reference advances. The final independent selection verifies both.
     return dict(view.read_identity,id=str(row.pk),digest=checksum)

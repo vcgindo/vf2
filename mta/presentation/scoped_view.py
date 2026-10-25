@@ -19,18 +19,20 @@ from mta.runtime.models import CalculationRun,ScopeReadReference,RunPhaseAccepta
 from mta.serialization import digest
 from mta.presentation.request_scope import validated_read
 
-SCHEMA='fresh-bpr-read-reference-v1'
+SCHEMA='fresh-bpr-read-reference-v2'
 
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
         handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
+        read_cut=inspect.getsource(import_module('mta.presentation.scoped_read_cut')),
+        read_graph=inspect.getsource(import_module('mta.presentation.scoped_read_graph')),
         expedite_reader=scoped_expedite.recipe_digest()))
 
 
 def verify_guards():
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
-    current=import_module('mta.runtime.migrations.0225_scope_read_configuration_alias')
+    current=import_module('mta.runtime.migrations.0228_scope_read_action_ownership')
     with connection.cursor() as cursor:
         from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
         require_guard_coverage(cursor)
@@ -100,9 +102,15 @@ class ViewBinding:
     def pick(self):return self.expedite.core.pick
     @property
     def read_identity(self):return dict(id=str(self.reference.pk),digest=self.reference.digest)
+    @property
+    def action_revision(self):
+        from mta.presentation.scoped_read_cut import revision
+        return revision(self.reference)
 
 
-def _metadata(bpr,planning,git,expedite,files,configuration,request_digest):
+def _metadata(bpr,planning,git,expedite,files,configuration,request_digest,*,
+              action_command=None,previous_reference=None,transition_kind=None):
+    from mta.presentation.scoped_read_cut import transition
     source=bpr.sources
     if (source.run.pk!=planning.run_id or source.run.pk!=git.run_id or source.run.pk!=expedite.run_id
             or bpr.reports.generation.pk!=planning.prepared.reports.generation.pk
@@ -115,12 +123,14 @@ def _metadata(bpr,planning,git,expedite,files,configuration,request_digest):
         raise PublicationUnavailable('bpr_read_reference_dependencies_differ')
     return dict(schema=SCHEMA,run_id=str(source.run.pk),phase_id=str(source.acceptance_id),
         phase_digest=source.acceptance_digest,snapshot_digest=source.snapshot_digest,input_digest=source.run.input_digest,
-        input_manifest_digest=source.run.input_manifest_digest,action_revision=source.action_revision,
+        input_manifest_digest=source.run.input_manifest_digest,
+        action_revision=source.action_revision if action_command is None else action_command.pk,
         source_digest=source.source_digest,configuration_digest=bpr.reports.generation.configuration_digest,
         recipe_digest=recipe_digest(),scope_request_digest=request_digest,runtime_reports=configuration,
         bpr=bpr.read_identity,planning=planning.read_identity,git=git.read_identity,
         pick=expedite.core.pick.provenance(),expedite=expedite.read_identity,
-        pick_files=dict(digest=files.digest,directory=str(files.directory),files=files.files))
+        pick_files=dict(digest=files.digest,directory=str(files.directory),files=files.files),
+        transition=transition(action_command,previous_reference,transition_kind))
 
 
 def _files(phase,row):
@@ -134,21 +144,16 @@ def _files(phase,row):
 @validated_read
 def _bind(row,expected_digest,*,retained_parent=False):
     verify_guards()
-    report=row.report_generation;revision=report.action_revision
+    report=row.report_generation
     if row.digest!=expected_digest or row.digest!=digest(row.metadata) or row.recipe_digest!=recipe_digest():
         raise PublicationUnavailable('bpr_read_reference_identity_differs')
-    expedition=scoped_expedite._load(row.metadata['expedite'],retained_parent=retained_parent)
-    bpr=scoped_prepared.bind(report.pk,expected_digest=row.metadata['bpr']['projection_digest'],
-        expected_report_digest=report.digest,action_revision=revision,include_inherited_btr=True,include_nms=True,
-        include_remarks=True,transit_generation_id=expedition.transit.generation.pk,
-        expected_transit_digest=expedition.transit.generation.digest)
-    if retained_parent:bpr=replace(bpr,remarks=expedition.parent.remarks)
-    planning=scoped_planning.bind(report.pk,expected_digest=row.metadata['planning']['planning_digest'],
-        expected_source_digest=bpr.projection.digest,expected_report_digest=report.digest,action_revision=revision)
-    git=scoped_git.bind(row.git_generation_id,expected_digest=row.metadata['git']['digest'],action_revision=revision)
+    from mta.presentation import scoped_read_graph
+    bpr,planning,git,expedition=scoped_read_graph.bind(row,retained_parent=retained_parent)
     configuration,request_digest=_configuration(bpr.sources.run)
     files=_files(report.phase,row)
-    actual=_metadata(bpr,planning,git,expedition,files,configuration,request_digest)
+    actual=_metadata(bpr,planning,git,expedition,files,configuration,request_digest,
+        action_command=row.action_command,previous_reference=row.previous_reference,
+        transition_kind=None if row.metadata['transition'] is None else row.metadata['transition']['kind'])
     if (actual!=row.metadata or row.runtime_reports_digest!=configuration['configuration_digest']
             or row.expedite_parent_generation_id!=expedition.parent.generation.pk):
         raise PublicationUnavailable('bpr_read_reference_dependencies_differ')
@@ -157,7 +162,9 @@ def _bind(row,expected_digest,*,retained_parent=False):
 
 def bind(reference_id,*,expected_digest):
     try:
-        row=ScopeReadReference.objects.select_related('report_generation__phase__snapshot','pick_files').get(pk=reference_id)
+        row=ScopeReadReference.objects.select_related('report_generation__phase__snapshot',
+            'report_generation__phase__run','git_generation','expedite_parent_generation','pick_files',
+            'action_command__phase_acceptance__snapshot','previous_reference__report_generation').get(pk=reference_id)
         return _bind(row,expected_digest)
     except (ObjectDoesNotExist,KeyError,TypeError,ValueError,ValidationError) as error:
         raise PublicationUnavailable('bpr_read_reference_unavailable') from error
@@ -177,16 +184,33 @@ def _owner(reference_id):
             with connection.cursor() as cursor:cursor.execute("SELECT set_config('fresh.scope_read_reference',%s,true)",[previous])
 
 
-def _save_reference(bpr,planning,git,expedition,files,configuration,request_digest):
+def _save_reference(bpr,planning,git,expedition,files,configuration,request_digest,*,
+                    action_command=None,previous_reference=None,transition_kind=None):
     if not connection.in_atomic_block:raise ValueError('Read reference registration requires its transaction')
-    metadata=_metadata(bpr,planning,git,expedition,files,configuration,request_digest);checksum=digest(metadata)
+    metadata=_metadata(bpr,planning,git,expedition,files,configuration,request_digest,
+        action_command=action_command,previous_reference=previous_reference,transition_kind=transition_kind)
+    checksum=digest(metadata)
     row=ScopeReadReference.objects.filter(digest=checksum).first()
     if row is None:
-        row=ScopeReadReference(report_generation=bpr.reports.generation,git_generation=git.generation,
+        row=ScopeReadReference(action_command=action_command,previous_reference=previous_reference,
+            report_generation=bpr.reports.generation,git_generation=git.generation,
             expedite_parent_generation=expedition.parent.generation,pick_files=files,recipe_digest=recipe_digest(),
             runtime_reports_digest=configuration['configuration_digest'],metadata=metadata,digest=checksum)
         with _owner(row.pk):row.save(force_insert=True)
     return row,checksum
+
+
+def advance_action(view,event):
+    """Publish only the immutable reference for this newly sealed DBM action."""
+    from mta.presentation.scoped_dbm_view import DbmViewBinding
+    if (not connection.in_atomic_block or not isinstance(view,DbmViewBinding)
+            or event.run_id!=view.run_id or event.phase_acceptance_id!=view.dbm_phase.pk
+            or not event.state_sealed or event.scope_parent_revision!=view.action_revision):
+        raise PublicationUnavailable('phase_action_reference_owner_differs')
+    row,checksum=_save_reference(view.bpr,view.planning,view.git,view.expedite,view.reference.pick_files,
+        view.reference.metadata['runtime_reports'],view.reference.metadata['scope_request_digest'],
+        action_command=event,previous_reference=view.reference,transition_kind='ACTION')
+    return ViewBinding(row,view.bpr,view.planning,view.git,view.expedite)
 
 
 def _save(bpr,planning,git,expedition,files,configuration,request_digest):
@@ -233,10 +257,24 @@ def prepare(phase_id,*,expected_digest,action_revision):
 @transaction.atomic
 def refresh_parent(reference_id,*,expected_digest):
     row=ScopeReadReference.objects.select_related('report_generation__phase__snapshot','pick_files').get(pk=reference_id)
+    from mta.runtime.scope_execution import _source_lock
+    from mta.runtime import scoped_remark_ownership
+    _source_lock(row.report_generation.run_id)
     CalculationRun.objects.select_for_update().get(pk=row.report_generation.run_id)
     RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
     previous=_bind(row,expected_digest,retained_parent=True)
-    fresh=scoped_expedite.bind(scoped_expedite.refresh_parent(row.metadata['expedite']))
-    configuration,request_digest=_configuration(previous.run)
-    return _save(replace(previous.bpr,remarks=fresh.parent.remarks),previous.planning,previous.git,fresh,
-        row.pick_files,configuration,request_digest)
+    from mta.presentation import scoped_remarks
+    remarks=scoped_remarks.bind(previous.bpr.sources,configuration_digest=row.report_generation.configuration_digest)
+    if remarks.highwater==previous.bpr.remarks.highwater:return previous
+    # SQL permits retained-prefix recovery only to the registered table owner.
+    # A runtime caller still needs its complete fresh canonical remark append.
+    with scoped_remark_ownership.publication(row.pk,'owned-refresh'):
+        parent=scoped_expedite_parent._prepare(previous.expedite.core,remarks,
+            expected_core_digest=previous.expedite.core.generation.digest,
+            action_revision=row.report_generation.action_revision)
+        fresh=scoped_expedite.require_binding(previous.run,replace(previous.expedite,parent=parent))
+        configuration,request_digest=_configuration(previous.run)
+        result,checksum=_save_reference(replace(previous.bpr,remarks=remarks),previous.planning,previous.git,fresh,
+            row.pick_files,configuration,request_digest,action_command=row.action_command,
+            previous_reference=row,transition_kind='REMARK')
+    return _bind(result,checksum)

@@ -122,7 +122,8 @@ def _input_manifest_digest(run):
 
 
 @once_per_request
-def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False,include_nms=False):
+def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False,include_nms=False,
+         read_reference=None):
     """Bind real accepted sources; this alone grants no native/UI admission."""
     from mta.runtime.scoped_actions import revision
     from mta.runtime.calculation_effects import SCHEMA as EFFECTS
@@ -135,8 +136,13 @@ def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False,
             or _input_manifest_digest(run)!=run.input_manifest_digest
             or run.input_payload.get('content_digest')!=run.input_digest):
         raise PublicationUnavailable('bpr_phase_read_owner_differs')
-    if type(action_revision) is not int or action_revision<0 or action_revision!=revision(run):
-        raise PublicationUnavailable('bpr_phase_action_revision_changed')
+    current_revision=revision(run)
+    if read_reference is None:
+        if type(action_revision) is not int or action_revision<0 or action_revision!=current_revision:
+            raise PublicationUnavailable('bpr_phase_action_revision_changed')
+    else:
+        from mta.presentation.scoped_read_cut import require
+        require(read_reference,phase,build_revision=action_revision,current_revision=current_revision)
     images={}
     for path,node in SOURCES.items():
         name=_image(phase.snapshot.manifest,node)

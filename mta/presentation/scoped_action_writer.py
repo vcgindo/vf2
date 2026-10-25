@@ -60,13 +60,15 @@ def _submit_locked(payload,actor,operation,selected,anchor):
         event = scoped_actions.record(context.run.pk,
             phase_id=action_phase.pk if action_phase else view.bpr.sources.acceptance_id,
             phase_digest=action_phase.digest if action_phase else view.bpr.sources.acceptance_digest,
-            expected_revision=view.bpr.sources.action_revision, operation=operation,
+            expected_revision=view.action_revision, operation=operation,
             selected=[list(pair) for pair in selected], timestamp=actions.timestamp(),
             actor=str(actor), idempotency_key='http-'+str(uuid4()))
-        fresh = scoped_view.prepare(view.bpr.sources.acceptance_id,
-            expected_digest=view.bpr.sources.acceptance_digest, action_revision=event.pk)
         if isinstance(view,scoped_dbm_view.DbmViewBinding):
+            fresh = scoped_view.advance_action(view,event)
             fresh = scoped_dbm_view.compose(fresh,view.dbm_phase.pk,expected_digest=view.dbm_phase.digest)
+        else:
+            fresh = scoped_view.prepare(view.bpr.sources.acceptance_id,
+                expected_digest=view.bpr.sources.acceptance_digest, action_revision=event.pk)
         # A stale/missing/ambiguous view aborts the command and every dependent
         # generation. The old accepted reference remains available on rollback.
         current = scoped_selection.selected()

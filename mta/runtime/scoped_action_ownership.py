@@ -5,20 +5,24 @@ from importlib import import_module
 from django.db import connection, transaction, DatabaseError
 
 
-MIGRATION = '0226_scoped_dbm_action_dependencies'
+MIGRATION = '0228_scope_read_action_ownership'
 
 
 def migration(cursor=None, *, catalogue=None):
     """Exact old/new guard roster for atomic admission across this upgrade."""
     name = MIGRATION
     if cursor is not None:
-        cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' AND name=%s)",[MIGRATION])
-        if not cursor.fetchone()[0]: name = '0221_scoped_action_cache_writer'
+        versions=(MIGRATION,'0226_scoped_dbm_action_dependencies','0221_scoped_action_cache_writer')
+        cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
+        installed={row[0] for row in cursor.fetchall()}
+        name=next((version for version in versions if version in installed),'0221_scoped_action_cache_writer')
     elif catalogue is not None:
         functions={f['name']:f for f in catalogue['functions']}
-        previous=import_module('mta.runtime.migrations.0221_scoped_action_cache_writer')
-        if functions.get('mta.scope_cache_command(reference uuid, actor text)',{}).get('body')==previous.LEASE:
-            name='0221_scoped_action_cache_writer'
+        observed=functions.get('mta.scope_cache_command(reference uuid, actor text)',{}).get('body')
+        for version in (MIGRATION,'0226_scoped_dbm_action_dependencies','0221_scoped_action_cache_writer'):
+            if observed==import_module('mta.runtime.migrations.'+version).LEASE:
+                name=version
+                break
     return import_module('mta.runtime.migrations.' + name)
 
 
@@ -50,15 +54,24 @@ def verify_guards(cursor=None):
             guard_scoped_action_cache=(frozen.CACHE, 'trigger'),
             guard_phase_rows=(frozen.PHASE_ROWS_BODY, 'trigger'),
             scope_cache_command=(frozen.LEASE, 'fresh_mta_runcommand'))
-        c.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,pg_get_function_result(P.oid),"
-            "P.proowner=C.relowner,(P.proname='scope_cache_command' OR NOT EXISTS(SELECT 1 FROM "
+        for declaration,(result,_language,body) in getattr(frozen,'FUNCTIONS',{}).items():
+            bodies[declaration.split('(',1)[0]]=(body,result)
+        arguments={'scope_cache_command':'reference uuid, actor text'}
+        arguments.update({declaration.split('(',1)[0]:declaration.split('(',1)[1][:-1]
+            for declaration in getattr(frozen,'FUNCTIONS',{})})
+        c.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.provolatile,"
+            "pg_get_function_identity_arguments(P.oid),pg_get_function_result(P.oid),"
+            "P.proowner=C.relowner,(P.proname IN ('scope_cache_command','scope_read_action_revision',"
+            "'scope_remark_parent_owner') OR NOT EXISTS(SELECT 1 FROM "
             "aclexplode(COALESCE(P.proacl,acldefault('f',P.proowner))) A WHERE A.grantee<>P.proowner)) "
             "FROM pg_proc P JOIN pg_namespace N ON N.oid=P.pronamespace JOIN pg_language L ON L.oid=P.prolang "
             "CROSS JOIN pg_class C WHERE N.nspname='mta' AND C.oid='mta.fresh_mta_runcommand'::regclass "
             "AND P.proname=ANY(%s) ORDER BY 1", [list(bodies)])
         # The application profile separately validates the helper's exact ACL.
         rows = c.fetchall()
-        if [r[:-1] for r in rows] != [(n,b,False,['search_path=pg_catalog, mta'],'plpgsql',result,True)
+        if [r[:-1] for r in rows] != [(n,b,False,['search_path=pg_catalog, mta'],
+                'sql' if n=='scope_read_action_revision' else 'plpgsql',
+                's' if n=='scope_read_action_revision' else 'v',arguments.get(n,''),result,True)
                 for n,(b,result) in sorted(bodies.items())] or any(not r[-1] for r in rows):
             raise ValueError('Scoped action ownership function differs')
         c.execute("SELECT format_type(atttypid,atttypmod),attnotnull,pg_get_expr(D.adbin,D.adrelid) "
@@ -135,6 +148,11 @@ def application_guard_body(original, *, frozen=None):
         assert body.count(old) == 1
         body = body.replace(old,frozen.dependency('H.phase_id',
             command+'.phase_acceptance_id',command+'.run_id'))
+    if hasattr(frozen,'READ_REVISION'):
+        for command in ('NEW','command'):
+            old='H.action_revision='+command+'.scope_parent_revision'
+            assert body.count(old)==1
+            body=body.replace(old,'mta.scope_read_action_revision(F.id)='+command+'.scope_parent_revision')
     return body
 
 
@@ -213,6 +231,8 @@ def application_functions(catalogue):
     definitions['mta.scope_bpr_consumer_cut(target uuid, observed jsonb)']=import_module(
         'mta.runtime.migrations.0205_scoped_bpr_consumer_recovery').NEW
     definitions['mta.scope_cache_command(reference uuid, actor text)']=migration(catalogue=catalogue).LEASE
+    for declaration,(_result,_language,body) in getattr(migration(catalogue=catalogue),'FUNCTIONS',{}).items():
+        definitions['mta.'+declaration]=body
     functions={f['name']:f for f in catalogue['functions']}
     for name,body in definitions.items():
         f=functions.get(name)

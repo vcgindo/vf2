@@ -151,6 +151,7 @@ def _selected():
                 raise PublicationUnavailable('pre_btr_selection_changed')
             return view
         rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
+            action_command__isnull=True,
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
             recipe_digest=scoped_view.recipe_digest(), metadata__bpr__remarks__live_highwater=cut[1])[:2])
         if len(rows) != 1: raise PublicationUnavailable('phase_current_reference_missing_or_ambiguous')

@@ -46,7 +46,8 @@ def upgrade_application_guard(cursor):
     _provisioner(cursor)
     old=application_guard_body(APPLICATION_WRITE_GUARD_BODY,
         frozen=import_module('mta.runtime.migrations.0221_scoped_action_cache_writer'))
-    new=application_guard_body(APPLICATION_WRITE_GUARD_BODY)
+    new=application_guard_body(APPLICATION_WRITE_GUARD_BODY,
+        frozen=import_module('mta.runtime.migrations.0226_scoped_dbm_action_dependencies'))
     cursor.execute("SELECT P.prosrc,P.proconfig,P.prosecdef,pg_get_userbyid(P.proowner),"
         "L.lanname,pg_get_function_result(P.oid),P.proacl::text FROM pg_proc P "
         "JOIN pg_language L ON L.oid=P.prolang WHERE P.oid='fresh_control.guard_application_write()'::regprocedure")

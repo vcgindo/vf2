@@ -24,9 +24,11 @@ def daily(view, payload):
     sku, location = payload.get('SKUCode'), payload.get('WHCode')
     if not isinstance(sku, str) or not isinstance(location, str):
         raise ValueError('SKUCode_and_WHCode_required')
-    context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
-        expected_digest=view.bpr.sources.acceptance_digest,
-        action_revision=view.bpr.sources.action_revision)
+    context = getattr(view,'dbm_context',None)
+    if context is None:
+        context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
+            expected_digest=view.bpr.sources.acceptance_digest,
+            action_revision=view.bpr.sources.action_revision)
     products, locations = scope(payload, attributes=context.dbm)
     if sku not in products or location not in locations:
         return []

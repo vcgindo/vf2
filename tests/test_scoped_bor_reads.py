@@ -53,7 +53,8 @@ class ScopedBorReadsTests(unittest.TestCase):
                 patch('mta.presentation.scoped_sources._accepted_phase',return_value=NS()):
             result=scoped_bor.require_binding(view.run,selected)
             self.assertIs(result.run,view.run)
-            bind.assert_called_once_with('phase',expected_digest='phase-digest',action_revision=3)
+            bind.assert_called_once_with('phase',expected_digest='phase-digest',action_revision=3,
+                read_reference=selected.reference)
             with self.assertRaises(PublicationUnavailable):scoped_bor.require_binding(NS(pk='other'),selected)
             with self.assertRaises(PublicationUnavailable):scoped_bor.require_binding(view.run,view)
             bind.side_effect=PublicationUnavailable('revision changed')

@@ -39,7 +39,7 @@ def compose(view, phase_id, *, expected_digest):
         if cursor.fetchone()[0] is not True:
             raise PublicationUnavailable('pre_btr_released_scope_required')
     context = scoped_dbm_stop.bind(phase.pk,expected_digest=phase.digest,
-        action_revision=view.bpr.sources.action_revision)
+        action_revision=view.action_revision)
     return DbmViewBinding(view.reference,view.bpr,view.planning,view.git,view.expedite,phase,context)
 
 
@@ -52,6 +52,14 @@ def prepare(phase_id, *, expected_digest, action_revision):
     CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     if phase.phase!='DBM':
         raise PublicationUnavailable('pre_btr_dbm_acceptance_required')
+    from mta.runtime.models import RemarkOwner
+    highwater=RemarkOwner.objects.get(pk='BPRReport_RemarkDetails').next_ordinal
+    existing=_references(phase,(action_revision,highwater))
+    if len(existing)>1:
+        raise PublicationUnavailable('pre_btr_current_reference_missing_or_ambiguous')
+    if existing:
+        return compose(scoped_view.bind(existing[0].pk,expected_digest=existing[0].digest),
+            phase.pk,expected_digest=phase.digest)
     parent = phase.snapshot.parent.acceptance
     view = scoped_view.prepare(parent.pk,expected_digest=parent.digest,action_revision=action_revision)
     return compose(view,phase.pk,expected_digest=phase.digest)
@@ -74,15 +82,22 @@ def candidate(view):
 
 
 def selected(anchor, cut):
-    from mta.runtime.models import ScopeReadReference
     phase = _accepted(anchor['phase_id'],anchor['phase_digest'])
     if phase.phase!='DBM' or str(phase.run_id)!=anchor['run_id']:
         raise PublicationUnavailable('pre_btr_selected_phase_differs')
-    rows = list(ScopeReadReference.objects.filter(report_generation__run_id=phase.run_id,
-        report_generation__phase_id=phase.snapshot.parent.acceptance_id,
-        report_generation__action_revision=cut[0],recipe_digest=scoped_view.recipe_digest(),
-        metadata__bpr__remarks__live_highwater=cut[1])[:2])
+    rows = _references(phase,cut)
     if len(rows)!=1:
         raise PublicationUnavailable('pre_btr_current_reference_missing_or_ambiguous')
     return compose(scoped_view.bind(rows[0].pk,expected_digest=rows[0].digest),
         phase.pk,expected_digest=phase.digest)
+
+
+def _references(phase,cut):
+    from django.db.models import Q
+    from mta.runtime.models import ScopeReadReference
+    return list(ScopeReadReference.objects.filter(
+        Q(action_command_id=cut[0])|Q(action_command__isnull=True,report_generation__action_revision=cut[0]),
+        report_generation__run_id=phase.run_id,
+        report_generation__phase_id=phase.snapshot.parent.acceptance_id,
+        recipe_digest=scoped_view.recipe_digest(),
+        metadata__bpr__remarks__live_highwater=cut[1])[:2])

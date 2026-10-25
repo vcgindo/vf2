@@ -39,7 +39,8 @@ def require_binding(run, view):
     declaration = policy(view)
     sources = view.bpr.sources
     current = scoped_sources.bind(sources.acceptance_id,
-        expected_digest=sources.acceptance_digest, action_revision=sources.action_revision)
+        expected_digest=sources.acceptance_digest, action_revision=sources.action_revision,
+        read_reference=view.reference)
     if (current.run.pk != run.pk or current.source_digest != sources.source_digest
             or current.snapshot_digest != sources.snapshot_digest):
         raise PublicationUnavailable('bpr_bor_view_owner_differs')
