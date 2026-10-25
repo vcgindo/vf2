@@ -306,3 +306,116 @@ other clients, and every database retained. Consolidated
 `action-subset-result.json` SHA256
 `9c71f3ebfb9b47aa59492ec98df2fe880574bf1cb21c9f01af95d0bdbc972e33`
 pins the native proof, candidate, transition, preservation and driver files.
+
+### Transaction-local report preparation handoff
+
+Commit `fbb8abcc` passes admitted dependency bindings between preparation stages.
+Previously each stage rebound the source graph, and final assembly rebound it
+again. Seven producer modules now expose private transaction-local entries;
+public ID-based entry points retain their locking, admission and model-row
+returns. Every stage retains its SQL guards, occurrence ordering, complete row
+readback/checksum, sealing and receipt checks. Planning/Expedite use their NMS
+capabilities, GIT receives transit, and final BPR receives inherited BTR, fresh
+locked remarks and transit. The completed graph still goes through independent
+`_save()`/`_bind()` and final current-selection verification. No cross-write read
+cache or schema change was introduced.
+
+The alternative of reusing old BPR generations would require a distinct current
+action-reference contract and retained-base admission. Simply relaxing revision
+checks is invalid. A smaller diagnostic of input-identity reuse within one pure
+validation pass reduced calls 125 to 51, but only changed Apply from 17.962 to
+16.788 seconds; that in-memory prototype was not installed as product code.
+
+Focused tests: 44 passed, two PostgreSQL-only cases skipped locally. The initial
+combined invocation lacked the repository tests import path; the corrected
+invocation passed. Independent review found no concrete defect. The shared
+handoff validator is explicitly included in the changed derived recipe digests.
+Native v7 image `331a8bfd`, manifest `4617b6c2`, changes nine presentation files.
+Calculation/phase recipes, SQL, migrations, initialization implementation,
+frontend and MTO are unchanged.
+
+Code-only release admission preserved the original certificate and schema.
+Repreparing only namespace 508161 appended new derived owners, retaining every
+old row. All 26 complete report populations match the prior native build exactly
+(digest `7af98467756a6553ad2abde615dd4f2b9256d8eb5ccb075962e34ea28e337916`).
+Repeated preparation creates no further changes. The three committed commands
+and action revision four remain unchanged. The new read reference is `60b66fe1`;
+its previous references remain retained. The new affected-table/header
+fingerprint is `7ddcf595384b818eb141c1d749b7c5c27fe329a34ebd1b994876414bc2c5318e`.
+
+Native runtime actions passed canonical state, all 26 report populations,
+idempotency, stale-revision and missing-identity denial, no-op and late-failure
+rollback. Every trial action was rolled back. Complete Apply measured 12.038
+seconds/3,009 SQL calls, Sleep 12.072 seconds/3,013 calls, and no-op 11.743
+seconds/3,009 calls under the unchanged private resource limits. Prior v6 Apply
+measured 17.962–19.303 seconds/4,396 calls. This is substantial measured work
+reduction, but response time remains unacceptable; browser and scale acceptance
+remain open. No serving 8080 change occurred.
+
+The subsequent cProfile run preserved fingerprint `7ddcf595` and the three
+commands. Its 26.908-second action includes profiling overhead and must not be
+substituted for the 12-second unprofiled measurement. It records 76 typed input
+reads, 42 recursive accepted-phase checks, 26 complete ingestion guard checks,
+109 scoped-action ownership checks and 731 digest calls. Nested cumulative times
+include report preparation 14.466 seconds, the two selected-view traversals
+10.285 seconds, canonical command recording 1.107 seconds and digesting 11.147
+seconds. These nested figures are not additive. Startup/grid SQL counts remain
+720/581; the profile also checked the remaining current grid recommendation.
+
+Final preservation checks passed for earlier trials, copied database, roles,
+database identities, source HBA/owners, replication slots, workers and 8080
+readiness. Retained private/evidence footprint is 2,992,567,466 bytes, below 4 GiB.
+Private PG stopped at `2026-10-25T20:30:34.319658323Z`, preserving all databases
+and mounts. `handoff-result.json` SHA256
+`ffcf083d0f629bb229b138268cf275ddd7f74d4e161eb5818da9357dd4ddf65d`
+pins candidate, proofs, profile, drivers and preservation records.
+
+### Architecture review requested after the 12-second result
+
+Recommendation: separate immutable calculation/report generations from current
+DBM action and remark revisions. The handoff correction is valid and retained,
+but it does not remove the structural dependency that regenerates BPR material
+for every Apply/Sleep, including a no-op. Treating every action as a new report
+preparation event makes work grow with the report population instead of the
+selected action. It also holds source/run/remark locks for the whole rebuild.
+The measured repetition is primarily ownership/metadata traversal and
+materialization; this evidence does not identify a missing business-query index
+or establish a need for more memory, more containers or Pick/DBM parallelism.
+
+The target transaction should validate the current selected run and revisions,
+append and verify the canonical typed action, then atomically publish a small
+read reference binding the unchanged accepted BPR/report generation to the new
+DBM action revision and the appropriate remark revision. Read requests observe
+one complete reference. Existing report rows/receipts retain their original
+identities; current DBM recommendations always use the current action chain.
+An unchanged/no-op action can still receive its required auditable command
+receipt without reproducing report populations.
+
+This requires an explicit ownership/schema contract. The present SQL guards
+bind all generations to the current action revision, so simply relaxing a
+revision comparison, rewriting old receipts or serving an old complete view
+would be wrong. A new reference must prove exact run/phase ancestry, sealed
+base generation, command parent/current revision, source/configuration identity,
+actor/transaction authority and remark highwater. Subsequent actions, remark
+writes, recovery, current selection and final consumption must understand that
+reference. A remark change refreshes its affected projection/reference, not
+unrelated BPR data; this boundary must be implemented rather than ignored.
+
+Implementation order within active UptoDBM: establish that dependency contract
+and its negative/stale/concurrent tests; implement atomic action/reference
+publication and readers together; then deduplicate repeated authority/input
+validation within consistent read boundaries. Retain live invalidation, schema
+and permission checks; a validation result must not outlive its proven owner or
+revision. Do not add general cross-write caches or move incomplete publication
+behind an asynchronous response. Full source/receipt audits remain available,
+while an ordinary action should validate its exact current dependencies once.
+
+Acceptance must cover exact reports/NULLs/duplicates, Apply/Sleep/no-op,
+permissions, remarks, successive commands, stale revisions, rollback at each
+publication boundary, restart/recovery and concurrent reads/downloads. Measure
+SQL work versus selected-row count and report population, then real Chrome
+click-to-usable latency on matched data/resources. Use the requested roughly
+two-second interaction expectation as the acceptance target to test, not an
+architectural guarantee inferred from backend timings. Current evidence is a
+small owned backend trial; 8080 browser, native Full/split, remaining recovery
+windows, scale and later lifecycle gates remain open.
