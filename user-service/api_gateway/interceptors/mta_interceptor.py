@@ -94,7 +94,8 @@ class MTA_INTERCEPTOR:
         if mdm_submit:
             data.pop('all_users', None)
         if forwardUsers or mdm_submit:
-            data['all_users'] = getAllUserDetails(request=request,application_id=application_id)
+            data['all_users'] = getAllUserDetails(request=request, application_id=application_id,
+                typed_empty_permissions=True)
         
         bounded_read = bounded_mta_read(request)
         stream = streams_mta_read(request) or bool(int(data.get("stream", 0)))

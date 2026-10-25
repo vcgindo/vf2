@@ -9,17 +9,23 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def getAllUserDetails(request, application_id):
+def getAllUserDetails(request, application_id, *, typed_empty_permissions=False):
     from common.api_gateway_utils import ALL_PERMISSIONS
     data = []
     all_permissions = ALL_PERMISSIONS.get_combined_permissions(permission_type="both")
+    def permission_frame(rows, fields):
+        # MTA's typed empty permission relations retain their queried schema.
+        # Other callers keep the existing behavior and eligibility algorithm.
+        return pd.DataFrame(rows, columns=fields) if typed_empty_permissions else pd.DataFrame(rows)
     # Get current user's product permissions
-    current_user_permissions_product_df = pd.DataFrame(
-        User_Application_Product_Permission.objects.filter(user_id=request.user.id).values('application_id', 'productfilter_id')
+    current_user_permissions_product_df = permission_frame(
+        User_Application_Product_Permission.objects.filter(user_id=request.user.id).values('application_id', 'productfilter_id'),
+        ['application_id', 'productfilter_id']
     )
     # Get all users' product permissions
-    all_user_permissions_product_df = pd.DataFrame(
-        User_Application_Product_Permission.objects.all().values('user_id', 'application_id', 'productfilter_id')
+    all_user_permissions_product_df = permission_frame(
+        User_Application_Product_Permission.objects.all().values('user_id', 'application_id', 'productfilter_id'),
+        ['user_id', 'application_id', 'productfilter_id']
     )
     # Get unique user ids
     all_user_ids = all_user_permissions_product_df['user_id'].unique()
@@ -39,11 +45,13 @@ def getAllUserDetails(request, application_id):
             user_ids_product.append(id)
 
     # Repeat the process for location permissions
-    current_user_permissions_location_df = pd.DataFrame(
-        User_Application_Location_Permission.objects.filter(user_id=request.user.id).values('application_id', 'locationfilter_id')
+    current_user_permissions_location_df = permission_frame(
+        User_Application_Location_Permission.objects.filter(user_id=request.user.id).values('application_id', 'locationfilter_id'),
+        ['application_id', 'locationfilter_id']
     )
-    all_user_permissions_location_df = pd.DataFrame(
-        User_Application_Location_Permission.objects.all().values('user_id', 'application_id', 'locationfilter_id')
+    all_user_permissions_location_df = permission_frame(
+        User_Application_Location_Permission.objects.all().values('user_id', 'application_id', 'locationfilter_id'),
+        ['user_id', 'application_id', 'locationfilter_id']
     ) 
     all_user_ids = all_user_permissions_location_df['user_id'].unique()
 
