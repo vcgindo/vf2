@@ -28,7 +28,8 @@ def binding(expected_run=None):
     run = phase.run
     capture = MdmDailyInputCapture.objects.select_related('source').get(run=run)
     source_digest = getattr(settings, 'VF_MDM_SOURCE_DIGEST', '')
-    if (phase.phase != 'BPR' or not phase.state_sealed or str(run.pk) != anchor['run_id']
+    expected_phase = 'DBM' if anchor['schema']==scoped_selection.DBM_SCHEMA else 'BPR'
+    if (phase.phase != expected_phase or not phase.state_sealed or str(run.pk) != anchor['run_id']
             or expected_run is not None and expected_run.pk != run.pk
             or run.kind != 'DAILY_CHAIN' or run.evidence_mode != 'production'
             or run.status not in ('RUNNING', 'SUCCEEDED')
@@ -53,11 +54,12 @@ def binding(expected_run=None):
         VF_MTA_PHASE_SELECTION=settings.VF_MTA_PHASE_SELECTION, VF_MDM_SOURCE_DIGEST=source_digest)
     configuration['VF_MTA_SCOPED_BOR_OUTPUT_POLICY'] = getattr(settings, 'VF_MTA_SCOPED_BOR_OUTPUT_POLICY', None)
     from mta.presentation import scoped_batch_downloads
+    file_phase = phase.snapshot.parent.acceptance if expected_phase=='DBM' else phase
     batch = scoped_batch_downloads.configured()
     if batch is not None:
-        configuration['batch_files'] = scoped_batch_downloads.verify(phase.pk,
-            expected_digest=phase.digest, expected_run_id=run.pk,
-            expected_snapshot_digest=phase.snapshot.state_digest,
+        configuration['batch_files'] = scoped_batch_downloads.verify(file_phase.pk,
+            expected_digest=file_phase.digest, expected_run_id=run.pk,
+            expected_snapshot_digest=file_phase.snapshot.state_digest,
             manifest_file=batch[0], manifest_sha256=batch[1])
         configuration['batch_manifest'] = batch
     from mta.presentation import scoped_artifacts
@@ -65,7 +67,7 @@ def binding(expected_run=None):
     if artifacts:
         from types import SimpleNamespace
         view = SimpleNamespace(bpr=SimpleNamespace(sources=SimpleNamespace(
-            acceptance_id=phase.pk, acceptance_digest=phase.digest)))
+            acceptance_id=file_phase.pk, acceptance_digest=file_phase.digest)))
         artifact = scoped_artifacts.selected(view)
         configuration.update(scope_delivery=artifacts, artifact_file_identity=artifact['file_identity'])
     paths = list((Path(__file__).resolve().parents[1] / 'config').glob('*.json'))
@@ -73,7 +75,8 @@ def binding(expected_run=None):
     files = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
     # Read-reference/action/remark revisions are admitted afresh by their actual
     # endpoints. They do not change this selected logical BPR's identity.
-    return run, digest(dict(schema='fresh-selected-bpr-admission-v1', anchor=anchor,
+    return run, digest(dict(schema=('fresh-selected-dbm-admission-v1' if expected_phase=='DBM'
+                                   else 'fresh-selected-bpr-admission-v1'), anchor=anchor,
                             source_id=source.pk, configuration=configuration, files=files))
 
 

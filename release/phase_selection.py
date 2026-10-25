@@ -7,14 +7,15 @@ import re
 from uuid import UUID
 
 SCHEMA = 'fresh-test-bpr-selection-v1'
+DBM_SCHEMA = 'fresh-test-dbm-selection-v1'
 FIELDS = frozenset(('schema', 'run_id', 'phase_id', 'phase_digest', 'snapshot_digest',
     'input_digest', 'input_manifest_digest', 'capture_digest', 'configuration_digest',
     'native_digest', 'permissions_sha256', 'recipe_digest', 'business_date', 'selection_digest'))
 
 
 def validate(value):
-    if type(value) is not dict or set(value) != FIELDS or value['schema'] != SCHEMA:
-        raise ValueError('Complete explicit test BPR selection required')
+    if type(value) is not dict or set(value) != FIELDS or value['schema'] not in (SCHEMA,DBM_SCHEMA):
+        raise ValueError('Complete explicit test phase selection required')
     if any(type(v) is not str for v in value.values()):
         raise ValueError('Phase selection fields must be strings')
     for field in ('run_id', 'phase_id'):

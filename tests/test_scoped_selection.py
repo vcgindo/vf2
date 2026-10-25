@@ -18,6 +18,15 @@ def anchor():
 
 
 class ScopedSelectionTests(unittest.TestCase):
+    def test_dbm_anchor_has_separate_schema_and_checksum_without_changing_bpr_shape(self):
+        value=anchor()
+        dbm=dict(value,schema=module.DBM_SCHEMA)
+        with self.assertRaises(ValueError):module.validate(dbm)
+        dbm['selection_digest']=digest({k:v for k,v in dbm.items() if k!='selection_digest'})
+        self.assertEqual(module.validate(dbm),dbm)
+        self.assertEqual(module.validate(value),value)
+        self.assertEqual(set(dbm),set(value))
+
     def test_exact_codec_atomic_readback_duplicate_and_bound_denials(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'selection.json'

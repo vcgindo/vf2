@@ -170,6 +170,7 @@ class ProductionUptoDbmTests(unittest.TestCase):
             return_value=(SimpleNamespace(digest='files'), dict(receipt_sha256='archive')))
         claim = mock('mta.runtime.scope_execution.claim', return_value=attempt)
         dbm = mock('mta.runtime.scoped_actions.calculate_dbm', return_value=receipt)
+        mock('mta.runtime.scoped_actions.revision', return_value=0)
         release = mock('mta.runtime.scope_execution.release')
         fail = mock('mta.runtime.scope_execution.fail')
         final = mock('mta.runtime.scoped_final._finish_accepted_day', side_effect=AssertionError('BTR/final forbidden'))
@@ -201,6 +202,24 @@ class ProductionUptoDbmTests(unittest.TestCase):
         calls.files.assert_called_once()
         calls.release.assert_called_once()
         calls.final.assert_not_called()
+
+    def test_read_preparation_after_release_can_retry_without_recalculation(self):
+        entry, run, value, calls = self.harness(head='DBM',status='RELEASED')
+        calls.mock('mta.runtime.scoped_actions.revision',return_value=9)
+        prepare = calls.mock('mta.presentation.scoped_dbm_view.prepare',side_effect=OSError('read preparation failed'))
+        with self.assertRaisesRegex(OSError,'read preparation failed'):
+            entry.advance(run,value,worker_reference='reader',prepare_reads=True)
+        calls.fail.assert_not_called()
+        prepare.side_effect = None
+        prepare.return_value = SimpleNamespace(read_identity={'id':'reference','dbm_phase_id':'dbm'})
+        result = entry.advance(run,value,worker_reference='reader',prepare_reads=True)
+        prepare.assert_called_with('dbm',expected_digest='a'*64,action_revision=9)
+        self.assertEqual(result['pending'],['end_to_end_acceptance'])
+        self.assertEqual(result['read_reference'],prepare.return_value.read_identity)
+        self.assertEqual(result['action_revision'],9)
+        self.assertEqual(result['accepted_action_revision'],0)
+        self.assertFalse(result['scope_ready'])
+        calls.claim.assert_not_called(); calls.dbm.assert_not_called()
 
     def test_file_failure_records_attempt_and_never_starts_dbm(self):
         entry, run, value, calls = self.harness(head='BPR')

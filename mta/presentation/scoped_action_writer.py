@@ -1,11 +1,11 @@
-"""Canonical paused-BPR action and its current read reference commit together."""
+"""Canonical paused-phase action and its BPR read dependencies commit together."""
 from collections import Counter
 from uuid import uuid4
 
 from django.conf import settings
 from django.db import transaction
 
-from mta.presentation import actions, scoped_selection, scoped_dbm, scoped_view
+from mta.presentation import actions, scoped_selection, scoped_dbm, scoped_view, scoped_dbm_view
 from mta.presentation.context import PublicationUnavailable, scope
 from mta.runtime import scoped_actions, scoped_action_ownership
 from mta.runtime.models import CalculationRun, OperationalAcceptance, RemarkOwner
@@ -37,7 +37,7 @@ def _submit_locked(payload,actor,operation,selected,anchor):
         view = scoped_selection.selected()
         if str(view.run_id)!=anchor['run_id']:
             raise PublicationUnavailable('phase_action_selection_changed')
-        context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
+        context = view.dbm_context if isinstance(view,scoped_dbm_view.DbmViewBinding) else scoped_dbm.bind(view.bpr.sources.acceptance_id,
             expected_digest=view.bpr.sources.acceptance_digest, action_revision=view.bpr.sources.action_revision)
         if OperationalAcceptance.objects.filter(run_id=context.run.pk).exists():
             raise actions.ActionDenied('operational_acceptance_sealed')
@@ -55,14 +55,18 @@ def _submit_locked(payload,actor,operation,selected,anchor):
     else:
         affected = 2*len(suggestions)
     scoped_action_ownership.verify_guards()
+    action_phase = view.dbm_phase if isinstance(view,scoped_dbm_view.DbmViewBinding) else None
     with scoped_action_ownership.publication(view.reference.pk, actor):
         event = scoped_actions.record(context.run.pk,
-            phase_id=view.bpr.sources.acceptance_id, phase_digest=view.bpr.sources.acceptance_digest,
+            phase_id=action_phase.pk if action_phase else view.bpr.sources.acceptance_id,
+            phase_digest=action_phase.digest if action_phase else view.bpr.sources.acceptance_digest,
             expected_revision=view.bpr.sources.action_revision, operation=operation,
             selected=[list(pair) for pair in selected], timestamp=actions.timestamp(),
             actor=str(actor), idempotency_key='http-'+str(uuid4()))
         fresh = scoped_view.prepare(view.bpr.sources.acceptance_id,
             expected_digest=view.bpr.sources.acceptance_digest, action_revision=event.pk)
+        if isinstance(view,scoped_dbm_view.DbmViewBinding):
+            fresh = scoped_dbm_view.compose(fresh,view.dbm_phase.pk,expected_digest=view.dbm_phase.digest)
         # A stale/missing/ambiguous view aborts the command and every dependent
         # generation. The old accepted reference remains available on rollback.
         current = scoped_selection.selected()

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from mta.serialization import digest
 from mta.presentation.request_scope import validated_read
-from release.phase_selection import SCHEMA, FIELDS, validate, read
+from release.phase_selection import SCHEMA, DBM_SCHEMA, FIELDS, validate, read
 
 
 def write(path, value):
@@ -41,7 +41,7 @@ def recipe_digest():
         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views,
         scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
         bor_preparation, boroa_preparation, native_report_colours, daily_rrr_read,
-        scoped_batch_files, scoped_batch_downloads)
+        scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)
     return digest({m.__name__: inspect.getsource(m) for m in
         (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
@@ -51,7 +51,7 @@ def recipe_digest():
          scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
          bor_preparation, boroa_preparation, native_report_colours,
          production_bor_contract, production_output_policy, daily_rrr_read,
-         scoped_batch_files, scoped_batch_downloads)})
+         scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)})
 
 
 def native_identity(view):
@@ -105,6 +105,9 @@ def native_identity(view):
 
 
 def candidate(view):
+    from mta.presentation import scoped_dbm_view
+    if isinstance(view,scoped_dbm_view.DbmViewBinding):
+        return scoped_dbm_view.candidate(view)
     from django.conf import settings
     from mta.presentation.context import permission_catalogue
     permission_catalogue()
@@ -141,6 +144,12 @@ def _selected():
         if anchor != getattr(settings, 'VF_MTA_PHASE_SELECTION', None):
             raise PublicationUnavailable('phase_selection_changed_restart_required')
         cut = _cut(anchor['run_id'])
+        if anchor['schema']==DBM_SCHEMA:
+            from mta.presentation import scoped_dbm_view
+            view = scoped_dbm_view.selected(anchor,cut)
+            if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
+                raise PublicationUnavailable('pre_btr_selection_changed')
+            return view
         rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
             recipe_digest=scoped_view.recipe_digest(), metadata__bpr__remarks__live_highwater=cut[1])[:2])

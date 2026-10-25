@@ -140,10 +140,12 @@ def _bpr_files(run, bpr, value, *, repair):
     return files, artifact
 
 
-def advance(run, value, *, worker_reference, recovery_of=None, repair_files=False):
+def advance(run, value, *, worker_reference, recovery_of=None, repair_files=False, prepare_reads=False):
     from mta.runtime import production_scope as fresh, scope_execution as workers
     from mta.runtime.models import CalculationRun, RunScopeAttempt
-    from mta.runtime.scoped_actions import calculate_dbm
+    from mta.runtime.scoped_actions import calculate_dbm, revision
+    if type(prepare_reads) is not bool:
+        raise ValueError('Explicit UptoDBM read preparation flag required')
     run = CalculationRun.objects.get(pk=run.pk)
     fresh.captured_run(run, value)
     _configuration(run, value)
@@ -189,24 +191,32 @@ def advance(run, value, *, worker_reference, recovery_of=None, repair_files=Fals
             try: workers.fail(attempt.pk, attempt.worker_token, compatibility_digest=compatibility, error=error)
             except Exception as closing_error: raise error from closing_error
             raise
+    read_reference = None
+    current_revision = revision(run)
+    if prepare_reads:
+        from mta.presentation.scoped_dbm_view import prepare
+        read_reference = prepare(receipt.pk,expected_digest=receipt.digest,
+            action_revision=current_revision).read_identity
     return dict(scope='UptoDBM', run_id=str(run.pk), status=run.status,
         business_date=run.business_date.isoformat(), phase_acceptance_id=str(receipt.pk),
         phase_acceptance_digest=receipt.digest, snapshot_digest=receipt.snapshot.state_digest,
-        action_revision=receipt.attempt.action_revision, pick_files_digest=files.digest,
+        action_revision=current_revision, accepted_action_revision=receipt.attempt.action_revision,
+        pick_files_digest=files.digest,
         input_archive_receipt=artifact['receipt_sha256'], calculation_accepted=True,
         scope_ready=False, serving_selected=False, application_acceptance=False,
-        pending=['pre_btr_read_binding','end_to_end_acceptance'])
+        read_reference=read_reference,
+        pending=(['pre_btr_read_binding'] if read_reference is None else [])+['end_to_end_acceptance'])
 
 
 def execute(raw, expected_sha256, *, command_key, worker_reference, runtime_reports,
-            dispositions, recovery_of=None, inspect_only=False, repair_files=False, **arguments):
+            dispositions, recovery_of=None, inspect_only=False, repair_files=False, prepare_reads=False, **arguments):
     from mta.runtime import production_scope as fresh, production_daily
     from mta.runtime.production_preflight import require
     from mta.runtime.scope_runtime_reports import require_test_database
     if not transaction.get_autocommit():
         raise ValueError('Native UptoDBM owns its phase transactions')
     if (type(worker_reference) is not str or not 1 <= len(worker_reference) <= 200
-            or type(repair_files) is not bool or type(inspect_only) is not bool):
+            or type(repair_files) is not bool or type(inspect_only) is not bool or type(prepare_reads) is not bool):
         raise ValueError('Explicit UptoDBM worker and flags required')
     if any(arguments.get(name) is not None for name in ('retry_capture_id','report_disposition','feed_attempt')):
         raise ValueError('UptoDBM recovery retains its original scoped capture')
@@ -228,4 +238,4 @@ def execute(raw, expected_sha256, *, command_key, worker_reference, runtime_repo
         return dict(scope='UptoDBM', run_id=str(run.pk), accepted_head=list(head(run.pk)),
             mutation=False, scope_ready=False, serving_selected=False)
     return advance(run, value, worker_reference=worker_reference,
-        recovery_of=recovery_of, repair_files=repair_files)
+        recovery_of=recovery_of, repair_files=repair_files, prepare_reads=prepare_reads)

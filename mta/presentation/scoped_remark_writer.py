@@ -92,7 +92,9 @@ def _refresh_after_append(view,*,before,highwater):
     expedition=scoped_expedite.require_binding(view.run,replace(view.expedite,parent=parent))
     row,checksum=scoped_view._save_reference(replace(view.bpr,remarks=remarks),view.planning,view.git,expedition,
         view.reference.pick_files,configuration,request_digest)
-    return dict(id=str(row.pk),digest=checksum)
+    # A composed DBM selection keeps its accepted DBM identity while the BPR
+    # remark reference advances. The final independent selection verifies both.
+    return dict(view.read_identity,id=str(row.pk),digest=checksum)
 
 
 def history(view, payload):

@@ -195,7 +195,7 @@ def dispatch(function, request, payload, arguments):
         from mta.presentation.scoped_dbm import bind
         paging = views._pagination(payload)
         if paging is None: raise ValueError('invalid_pagination')
-        context = bind(view.bpr.sources.acceptance_id,
+        context = getattr(view,'dbm_context',None) or bind(view.bpr.sources.acceptance_id,
             expected_digest=view.bpr.sources.acceptance_digest,
             action_revision=view.bpr.sources.action_revision)
         rows = views.dbm_filtered(context, payload)

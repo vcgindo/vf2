@@ -5,7 +5,7 @@ from importlib import import_module
 from django.db import connection, transaction, DatabaseError
 
 
-MIGRATION = '0221_scoped_action_cache_writer'
+MIGRATION = '0226_scoped_dbm_action_dependencies'
 
 
 def migration():
@@ -117,7 +117,13 @@ def application_guard_body(original):
   END IF;
 """
     assert body.count(anchor) == 1
-    return body.replace(anchor, anchor + scope)
+    body = body.replace(anchor, anchor + scope)
+    for command in ('NEW','command'):
+        old = 'H.phase_id='+command+'.phase_acceptance_id'
+        assert body.count(old) == 1
+        body = body.replace(old,migration().dependency('H.phase_id',
+            command+'.phase_acceptance_id',command+'.run_id'))
+    return body
 
 
 def grants():

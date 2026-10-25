@@ -29,7 +29,7 @@ def recipe_digest():
 
 def verify_guards():
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
-    current=import_module('mta.runtime.migrations.0219_scope_read_test_database_casefold')
+    current=import_module('mta.runtime.migrations.0225_scope_read_configuration_alias')
     with connection.cursor() as cursor:
         from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
         require_guard_coverage(cursor)
@@ -63,9 +63,19 @@ def _configuration(run):
     from mta.runtime.input_reader import read_input
     from mta.runtime.production_scope import CONFIGURED_SCHEMA
     request=read_input(run,components=('scope_request',)).get('scope_request')
-    if (type(request) is not dict or set(request)!={'schema','scope','command_key','compatibility_digest','runtime_reports'}
-            or request['schema']!=CONFIGURED_SCHEMA or request['scope']!='UptoBPR'
-            or type(request['command_key']) is not str or not 1<=len(request['command_key'])<=120):
+    fields={'schema','scope','command_key','compatibility_digest','runtime_reports'}
+    if type(request) is not dict:
+        raise PublicationUnavailable('bpr_read_reference_configuration_required')
+    if request.get('scope')=='UptoDBM':
+        from mta.runtime.production_upto_dbm import SCHEMA as DBM_SCHEMA,disposition
+        if set(request)!=fields|{'dispositions'} or request['schema']!=DBM_SCHEMA:
+            raise PublicationUnavailable('bpr_read_reference_configuration_required')
+        try:disposition(request['dispositions'])
+        except ValueError as error:
+            raise PublicationUnavailable('bpr_read_reference_configuration_required') from error
+    elif set(request)!=fields or request.get('schema')!=CONFIGURED_SCHEMA or request.get('scope')!='UptoBPR':
+        raise PublicationUnavailable('bpr_read_reference_configuration_required')
+    if type(request['command_key']) is not str or not 1<=len(request['command_key'])<=120:
         raise PublicationUnavailable('bpr_read_reference_configuration_required')
     from mta.runtime.ingestion_context import sha
     sha(request['compatibility_digest'])
