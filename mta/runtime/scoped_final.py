@@ -17,12 +17,14 @@ def require_pending_final(run,*,receipt_id=None):
             raise ValueError('Scoped final requires its exact pending owner')
 
 
-def accepted_prefix(run):
+def accepted_prefix(run, *, lock_capture=True):
     from mta.runtime.models import RunPhaseAcceptance
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.prepared_effects import SCHEMA as PREPARED
     from mta.runtime.calculation_effects import SCHEMA as CALCULATION
-    capture=MdmDailyInputCapture.objects.select_for_update().get(run=run)
+    captures=MdmDailyInputCapture.objects
+    if lock_capture:captures=captures.select_for_update()
+    capture=captures.get(run=run)
     result=[];parent_image=None;parent_digest=None;recipe=phase_state.recipe_digest()
     for phase in ('PRE_BPR','BPR','DBM'):
         receipt=RunPhaseAcceptance.objects.select_related('snapshot','attempt').get(run=run,phase=phase)

@@ -40,6 +40,67 @@ def state_after(run,receipt,phase,*,expected_revision):
                         expected_revision=expected_revision)
 
 
+def _dbm_action_base(run,receipt):
+    """Read the four immutable action inputs under record's source/run locks.
+
+    The accepted prefix and fresh input identity certify their frozen owner.
+    Calculation continuation still restores and validates the complete phase.
+    """
+    from mta.runtime import phase_state,relational_state as typed
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.scoped_final import accepted_prefix
+    from mta.runtime.ingestion_context import sha
+    if not connection.in_atomic_block:
+        raise ValueError('Scoped DBM action read requires its owning transaction')
+    read_input(run,components=())
+    prefix,_capture=accepted_prefix(run,lock_capture=False)
+    accepted=prefix[-1]
+    if accepted.pk!=receipt.pk or accepted.digest!=receipt.digest:
+        raise ValueError('Scoped DBM action accepted owner differs')
+    manifest=accepted.snapshot.manifest
+    refs=prefix[0].snapshot.manifest['references']
+    if any(p.snapshot.manifest.get('schema')!=phase_state.SCHEMA
+           or p.snapshot.manifest.get('phase')!=p.phase
+           or p.snapshot.manifest.get('references')!=refs for p in prefix):
+        raise ValueError('Scoped DBM action snapshot dependencies differ')
+    initial=manifest['metadata'].get('action_revision',0)
+    if type(initial) is not int or initial<0:
+        raise ValueError('Scoped DBM action base revision differs')
+    state={}
+    for name in TABLES:
+        logical='phase/DBM/dbm/'+name
+        if manifest['state']['final_dbm'].get(name)!={'image':logical}:
+            raise ValueError('Scoped DBM action table binding differs')
+        item=manifest['images'].get(logical)
+        if (type(item) is not dict or item.get('image')!=logical
+                or item.get('table')!='DBM/'+name or type(item.get('count')) is not int
+                or item['count']<0 or type(item.get('fields')) is not list
+                or item['count'] and not item['fields']):
+            raise ValueError('Scoped DBM action image descriptor differs')
+        sha(item.get('digest'))
+        columns=dict(phase_state.REGISTRY[item['table']]);seen=set()
+        for field in item['fields']:
+            if (not isinstance(field,(list,tuple)) or len(field)!=3
+                    or field[0]!=field[1] or field[0] not in columns or field[0] in seen
+                    or field[2] not in ('str','int','float','bool')):
+                raise ValueError('Scoped DBM action image fields differ')
+            seen.add(field[0])
+        state[name]=typed.load_image(run,deepcopy(item),table_registry=phase_state.REGISTRY)
+    return storage(state),initial
+
+
+def _action_reader(run,receipt):
+    # require_current has verified the native accepted-state guards for this
+    # certified cut. Older/component owners retain the complete restore.
+    if (receipt.phase=='DBM'
+            and 'bpr_consumer_cut' in run.production_manifest.get('ingestion_preparation',{})):
+        base,initial=_dbm_action_base(run,receipt)
+        return lambda expected: _state_after(run,receipt,deepcopy(base),initial,
+                                             expected_revision=expected)
+    phase,_sources=restore(run,receipt)
+    return lambda expected: state_after(run,receipt,phase,expected_revision=expected)
+
+
 def _state_after(run,receipt,state,initial_revision,*,expected_revision):
     from mta.runtime.models import RunCommand
     from mta.runtime.relational_state import load_image
@@ -102,8 +163,8 @@ def record(run_id,*,phase_id,phase_digest,expected_revision,operation,selected,
     if event_date<(datetime.fromisoformat(last.payload['timestamp']).date() if last else run.business_date):
         raise ValueError('Command date precedes its parent or prior command')
     before=scope_revisions.require_current(run)
-    phase,_sources=restore(run,receipt)
-    state=state_after(run,receipt,phase,expected_revision=expected_revision)
+    current_state=_action_reader(run,receipt)
+    state=current_state(expected_revision)
     result=storage(apply_command(state,operation,[tuple(key) for key in selected],timestamp))
     event=RunCommand.objects.create(run=run,phase_acceptance=receipt,idempotency_key=idempotency_key,
         payload=payload,digest=digest(payload),before_digest=digest(state),after_digest=digest(result),
@@ -117,7 +178,7 @@ def record(run_id,*,phase_id,phase_digest,expected_revision,operation,selected,
     scope_revisions.verify_write(run,event.scope_revision_after)
     event.refresh_from_db()
     # A writer/type conversion failure rolls the command and every image back.
-    state_after(run,receipt,phase,expected_revision=event.pk)
+    current_state(event.pk)
     return event
 
 
