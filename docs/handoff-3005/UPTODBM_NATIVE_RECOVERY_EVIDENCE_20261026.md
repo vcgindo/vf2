@@ -179,3 +179,68 @@ PG container was stopped at `2026-10-25T19:26:52.111559971Z`, with identical
 mounts and all databases retained. Serving 8080, frontend design and MTO API
 were unchanged. See `protected-source-after-three-day.json` and the trial's
 `bounded-test-stop-proof.json` for those boundaries.
+
+
+## Startup guard reuse correction
+
+The subsequent latency investigation used the same three-day database and
+resource limits. One positive action was profiled inside an outer rollback;
+all affected table values and owner headers matched afterward, with the original
+three committed commands retained. The first probe closed the HTTP response too
+early, closing its connection before the post-action assertion; its failure log
+is retained. The corrected probe completed preservation checks. Profiling adds
+substantial overhead: its 39.504-second action measurement is not directly
+comparable with the earlier unprofiled 20–23-second responses.
+
+The profile identified 5,144 SQL calls for one action, 51 source bindings,
+108 typed input reads and 88 recursive accepted-phase checks. Nested cumulative
+times include 23.910 seconds in read-reference preparation, 5.094 seconds in
+full phase restoration and 17.971 seconds in canonical digest computation;
+these times overlap and must not be summed. Action optimization remains open.
+
+Startup separately repeated complete guard coverage 25 times because its
+metadata operation was excluded from the existing request-level reuse path.
+Commit `5b28f552` corrects only this measured boundary. A successful check can
+be reused within one startup metadata operation only when the existing live
+PostgreSQL snapshot/session stamp and exact default database/physical connection
+match. Each lookup reads the stamp; fills require equal before/after stamps.
+Transactions, non-default/closed/reopened connections and failures retain full
+verification. No entries survive the operation. HTTP and writer validation
+lifetimes are unchanged; no source or business-state cache was introduced.
+
+Independent review found no material defect. The focused suite ran 51 tests:
+49 passed and two PostgreSQL-only cases were skipped locally. A separate native
+PostgreSQL proof verified committed DDL invalidation, failure non-reuse, session
+stamp changes, transactional bypass, new-operation revalidation and a commit
+during cache fill. Its temporary owned probe relation was dropped and the
+complete schema digest matched before/after.
+
+The exported native source differs from `a83ed4b8` only in
+`mta/presentation/request_scope.py` and `mta/runtime/ingestion_ownership.py`.
+Calculation/SQL/migration/initialization and selection recipe code is unchanged.
+Native manifest `2ab47aa5b56974d7330bc9ef77789b3dd22b6da872374488813d203eac08ee7f`
+and image `c49988c4d96e93b3491ba593ad455ce0372b22954944c142ddaeab7e1cdf3375`
+were built and verified. Supported code-only admission appended the release only
+in namespace 508161, preserving its original certification, schema/security,
+accepted phases, three commands and every compared affected table value.
+
+| Same retained native test | Before | After |
+| --- | ---: | ---: |
+| First startup | 12.764 s | 6.493 s |
+| Repeated startup | 7.740 s | 5.923 s |
+| Complete guard checks per startup | 25 | 2 |
+| SQL calls per startup | 1,078 | 720 |
+| Three-repeat grid median | 1.737 s | 1.749 s |
+| SQL calls per grid request | 581 | 581 |
+
+The grid repeat followed an initially variable grid timing; all runs retained
+the same complete current result. These finite backend measurements establish
+startup work reduction only. They do not close action latency, browser delivery,
+UI response time or production scale acceptance. Serving 8080 was not deployed.
+
+Evidence is in the same `three-day-positive-test` directory:
+`startup-guard-result.json`, native invalidation/transition proofs, paired timing
+files and source-boundary proof. Protected source fingerprints and 8080 readiness
+were unchanged. Measured private storage/evidence was 2,880,515,121 bytes, below
+4 GiB. The private PG was stopped at `2026-10-25T19:44:53.391828728Z`, retaining
+all databases/mounts; earlier trial and global role preservation checks passed.
