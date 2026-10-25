@@ -712,3 +712,92 @@ selection check, its state owner and required freshness before choosing any
 smaller action path. Current full post-write validation remains mandatory until
 an equivalent replacement is qualified. Real Chrome click-to-usable, required
 scale and previously recorded lifecycle/recovery limits remain open.
+
+## HTTP admission reuse qualification (26 October 2026)
+
+Implementation `d1a3e56a` addresses measured outer HTTP admission cost that the
+earlier inner-action benchmarks omitted. Native baseline admission took
+2.722-3.017 seconds/165 SQL calls before the action handler. The change adds an
+explicit UptoDBM pre-handler context recognized only by certified-readiness
+reuse. It ends before downstream WSGI execution. Existing database/session,
+snapshot, initialization and release identity remain required; cache hits now
+check stamps before and after copying. Binding still reads source, anchor,
+permissions, configuration and configured batch files afresh. Native identity,
+report caches, action algorithms and both independent action selections remain
+unchanged. Other phase modes, offline/startup and atomic callers retain their
+original eligibility. Fifty-seven focused tests pass; independent static review
+found no blocker.
+
+Packaged v12 image `5cd900d912c7`, manifest `d805a71f`, uses the existing v11 phase
+selection without reanchoring or report rebuild. The private code-only release
+preserves the original certificate, schema `0fab95b7`, guards `ad6b00d7`, migration
+and runtime implementation digests. No serving deployment occurred.
+
+Real AdmittedApplication admission measured cold4.251s/167SQL, warm0.829s/60SQL,
+and0.493s/60SQL after a read warmed the same connection. Reconnect required a full
+3.001s/167SQL check. Native committed unrelated writes invalidate reuse; changed
+guard state/body, role attributes and ACLs deny admission. A committed guard
+disable-and-restore also forces full validation. Permission/selection/manifest/
+CSV bytes and conflicting configuration are rejected without a database change,
+before the handler runs. Atomic readiness remains rejected. All temporary
+authority/file changes were restored exactly. This fixture's batch roster has
+no enabled ZIP output, so these checks do not establish ZIP-byte denial.
+
+Native canonical Apply3.592s/966SQL, Sleep4.277s/969SQL and no-op3.450s/966SQL
+retain exact state, replay, stale/unauthenticated denial, all26 report populations
+and complete rollback. Late permission/selection/full-conflict and SQL
+forged-predecessor/stale-command/mixed-report cases pass. No stable improvement
+is claimed for the unchanged inner handler. The WSGI rollback proof additionally
+reads all reports inside its measurement; its6.957/9.097s figures must not be
+presented as uninstrumented action timings.
+
+One actual WSGI repeat Sleep on already-slept PHASE committed command103 with
+parent65, preserving the positive Z9 target. Warm admission0.439s preceded a
+4.142s/1024SQL complete WSGI no-op action. The next action admission performed
+full verification2.314s/167SQL; rewarming reduced it to0.451s/60SQL. Separate
+postcommit count/grid requests took1.863/1.820s. These are isolated WSGI component
+measurements, not a browser critical-path result or two-second acceptance.
+
+The original postcommit harness incorrectly required revision-row immutability.
+The committed command was neither repeated nor reset. A read-only follow-up
+verified the sealed cut change `[41,312,104,2516,4]` to `[41,312,104,2519,4]`, one
+new command, one new reference and one typed NormAcceptance image. Reconstructing
+only those declared deltas in memory and SELECT-only projections reproduces both
+complete prior fingerprints `59a0ff04` and `c4c12b2f`. This proves exact prior-row
+retention rather than excluding the changing table or relying on counts.
+
+Current authority is5commands/revision103/reference69285677, reference digest
+`3db5fa32`, complete fingerprint `9c08786327578828616657be46ea18c1dfb83bb65c628cb6b9c00e901704eea5`
+and preserved-row digest `d28087ea`. Canonical state `a6ee3448` and all26 reports
+`7af98467` remain unchanged. Fresh packaged v12 and compatible v11 workers read
+that exact committed state successfully. This is fresh-process compatible
+readback, not an additional PostgreSQL restart or crash-recovery claim.
+
+Independent review confirmed the exact-delta preservation proof and requested
+an explicit stored-payload comparison with the durable intent. Additional native
+SELECT-only readback verifies SLEEP, actor `owned-preflight-durable-proof`, pair
+`SUPPLIED-PHASE/OWN-WH8`, run, accepted DBM phase/digest, parent65 and payload
+digest. The generated timestamp also satisfies the business-date bound. Only
+the exact private PG was restarted for this final readback; current fingerprint
+remains9c087863 and no action was replayed.
+
+All failed driver attempts remain retained: WSGI rollback enclosure before
+request_started, admin search_path omission, an absent optional ZIP assumption,
+the postcommit counter assertion, and JSON transport mismatches in readback.
+Corrections changed test drivers only; exact equality requirements remained.
+
+Prior trial/global-role/database identity and protected-source checks pass.
+HBA `6183a9be`, owners `d42a7b5e`, zero source slots/workers and8080 readiness/body
+remain unchanged. Retained files/private PG measured3,273,245,178bytes before
+final evidence assembly, below4GiB. Exact private PG `dfdfcebb` stopped at
+2026-10-25T22:38:52.872809115Z after the final intent readback, with no worker/other
+clients and retained storage.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/admission-preflight-result-final.json`,
+SHA256 `c98a2457d3e338726a22267a7a3db16f12fe5d4ab91a65b1f9fdac311d92d356`,
+pins75 candidate, driver, proof and failed-attempt files. This qualifies bounded
+preflight reuse, not overall latency. The remaining measured action work and
+refresh still exceed the target. Action-specific validation must preserve every
+existing final check before replacing complete report-view construction. Browser,
+scale and earlier lifecycle/recovery boundaries remain open in the sole tracker.
