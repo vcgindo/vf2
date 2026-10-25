@@ -58,7 +58,7 @@ def require_test_database():
     with connection.cursor() as cursor:
         cursor.execute('SELECT current_database()')
         name=cursor.fetchone()[0]
-    if not name.startswith('VFTEST_Fresh_'):
+    if not name.lower().startswith('vftest_fresh_'):
         raise ValueError('Empty test RuntimeReports declaration requires an owned VFTEST_Fresh database')
 
 

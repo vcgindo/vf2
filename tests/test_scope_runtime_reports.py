@@ -111,11 +111,14 @@ class ScopeRuntimeReportsTests(unittest.TestCase):
     def test_database_restriction_uses_actual_connection_identity(self):
         with patch('django.db.connection') as db:
             cursor=db.cursor.return_value.__enter__.return_value
-            for name in ('vectorflow_mta','VFTEST_Other','VFTEST_Fresh'):
+            for name in ('vectorflow_mta','VFTEST_Other','VFTEST_Fresh',
+                    'vftest_fresh','vftest_freshness_test','other_vftest_fresh_test'):
                 cursor.fetchone.return_value=(name,)
                 with self.assertRaisesRegex(ValueError,'owned VFTEST_Fresh database'):module.require_test_database()
-            cursor.fetchone.return_value=('VFTEST_Fresh_LifecycleG2_20261024',)
-            module.require_test_database()
+            for name in ('VFTEST_Fresh_LifecycleG2_20261024',
+                    'vftest_fresh_lifecycleg2_nativeapi_20261025'):
+                cursor.fetchone.return_value=(name,)
+                module.require_test_database()
             cursor.execute.assert_called_with('SELECT current_database()')
 
     def test_read_preparation_requires_explicit_configuration_before_capture(self):
