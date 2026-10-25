@@ -51,6 +51,14 @@ def binding(expected_run=None):
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     configuration.update(VF_MTA_PHASE_SELECTION_FILE=settings.VF_MTA_PHASE_SELECTION_FILE,
         VF_MTA_PHASE_SELECTION=settings.VF_MTA_PHASE_SELECTION, VF_MDM_SOURCE_DIGEST=source_digest)
+    from mta.presentation import scoped_artifacts
+    artifacts = scoped_artifacts.configured()
+    if artifacts:
+        from types import SimpleNamespace
+        view = SimpleNamespace(bpr=SimpleNamespace(sources=SimpleNamespace(
+            acceptance_id=phase.pk, acceptance_digest=phase.digest)))
+        artifact = scoped_artifacts.selected(view)
+        configuration.update(scope_delivery=artifacts, artifact_file_identity=artifact['file_identity'])
     paths = list((Path(__file__).resolve().parents[1] / 'config').glob('*.json'))
     paths += [Path(settings.VF_MTA_PERMISSIONS_FILE), Path(settings.VF_MTA_PHASE_SELECTION_FILE)]
     files = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
@@ -65,6 +73,8 @@ def startup():
         run, before = binding()
         view = scoped_selection.selected()
         current, after = binding(run)
+        from mta.presentation import scoped_artifacts
+        scoped_artifacts.selected(view, verify_bytes=True)
     if current.pk != view.run_id or before != after:
         raise PublicationUnavailable('phase_changed_during_admission')
     return current, after, view.read_identity

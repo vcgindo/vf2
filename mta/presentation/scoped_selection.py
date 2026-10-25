@@ -35,12 +35,12 @@ def recipe_digest():
     from mta.presentation import (scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql, views,
         bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
         daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
-        scoped_dbm, dbm, dbm_filters, scoped_action_writer)
+        scoped_dbm, dbm, dbm_filters, scoped_action_writer, scoped_history, scoped_artifacts)
     return digest({m.__name__: inspect.getsource(m) for m in
         (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
          daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
-         scoped_dbm, dbm, dbm_filters, scoped_action_writer)})
+         scoped_dbm, dbm, dbm_filters, scoped_action_writer, scoped_history, scoped_artifacts)})
 
 
 def native_identity(view):

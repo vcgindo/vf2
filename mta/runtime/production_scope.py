@@ -92,12 +92,25 @@ def repeated(raw,expected_sha256,value,arguments):
 
 
 def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
-            inspect_only=False,repair_files=False,runtime_reports=None,prepare_reads=False,**arguments):
+            inspect_only=False,repair_files=False,runtime_reports=None,prepare_reads=False,
+            delivery_transition=None,delivery_transition_sha256=None,
+            delivery_file=None,delivery_sha256=None,**arguments):
     from mta.runtime import production_daily
     from mta.runtime.production_preflight import require
     if not transaction.get_autocommit():raise ValueError('Native scope owns its transaction boundaries')
     value=request(command_key,runtime_reports=runtime_reports)
     authorize()
+    if bool(delivery_transition) != bool(delivery_transition_sha256):
+        raise ValueError('Delivery transition file and SHA256 are required together')
+    if bool(delivery_file) != bool(delivery_sha256):
+        raise ValueError('Delivery declaration file and SHA256 are required together')
+    delivery_only=bool(delivery_transition)
+    if delivery_only:
+        if recovery_of is not None:
+            raise ValueError('Delivery-only resume does not claim failed calculation work')
+        from mta.runtime.scoped_delivery_resume import resolve
+        value=resolve(raw,expected_sha256,value,arguments,
+            specification=delivery_transition,specification_sha256=delivery_transition_sha256)
     if runtime_reports is not None:
         from mta.runtime.scope_runtime_reports import require_test_database
         require_test_database()
@@ -110,6 +123,8 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
     if type(prepare_reads) is not bool or prepare_reads and runtime_reports is None:
         raise ValueError('Read preparation requires explicit RuntimeReports configuration and boolean')
     run=repeated(raw,expected_sha256,value,arguments)
+    if delivery_only and run is None:
+        raise ValueError('Delivery-only resume cannot create a run')
     if run is not None:
         if inspect_only:
             from mta.runtime.scope_execution import head
@@ -120,7 +135,8 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
                         worker_token=str(latest.worker_token) if latest.status=='ACTIVE' else None)),
                 scope_ready=False,serving_selected=False,application_acceptance=False)
         return advance(run,value,worker_reference=worker_reference,recovery_of=recovery_of,
-            repair_files=repair_files,prepare_reads=prepare_reads)
+            repair_files=repair_files,prepare_reads=prepare_reads,delivery_only=delivery_only,
+            delivery_file=delivery_file,delivery_sha256=delivery_sha256)
     if recovery_of is not None:raise ValueError('Scope recovery requires its existing frozen day')
     if inspect_only:
         report,*_=production_daily.inspect_execution(raw,expected_sha256,
@@ -129,7 +145,8 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
         return report
     run=production_daily.execute(raw,expected_sha256,scope_request=value,**arguments)
     return advance(run,value,worker_reference=worker_reference,recovery_of=recovery_of,
-        repair_files=repair_files,prepare_reads=prepare_reads)
+        repair_files=repair_files,prepare_reads=prepare_reads,
+        delivery_file=delivery_file,delivery_sha256=delivery_sha256)
 
 
 def fence(attempt_id,*,expected_worker_token,reason):
@@ -208,7 +225,38 @@ def _read_reference(receipt):
     return prepare(receipt.pk,expected_digest=receipt.digest,action_revision=revision(receipt.run)).read_identity
 
 
-def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,prepare_reads=False):
+def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,prepare_reads=False,delivery_only=False,
+            delivery_file=None,delivery_sha256=None):
+    arguments=dict(worker_reference=worker_reference,recovery_of=recovery_of,
+        repair_files=repair_files,prepare_reads=prepare_reads,delivery_only=delivery_only,
+        delivery_file=delivery_file,delivery_sha256=delivery_sha256)
+    if not delivery_only:
+        return _advance(run,value,**arguments)
+    from mta.runtime import scope_execution as workers
+    from mta.runtime.models import CalculationRun
+    # Same source -> run ordering as claims and actions. Retain these locks
+    # through file/read preparation and readiness; admission's earlier snapshot
+    # alone cannot exclude a later continuation worker.
+    with transaction.atomic():
+        workers._source_lock(run.pk)
+        run=CalculationRun.objects.select_for_update().get(pk=run.pk)
+        workers._frozen(run)
+        latest=run.scope_attempts.order_by('-created_at','-id').first()
+        if (latest is None or latest.status!='RELEASED' or latest.scope!='UptoBPR'
+                or latest.command_key!=value['command_key']
+                or latest.compatibility_digest!=value['compatibility_digest']
+                or latest.input_digest!=run.input_digest
+                or latest.input_manifest_digest!=run.input_manifest_digest
+                or run.scope_attempts.filter(status='ACTIVE').exists()):
+            raise ValueError('Delivery-only preparation requires its latest released UptoBPR')
+        phase=run.phase_acceptances.get(phase='BPR',state_sealed=True)
+        if workers.head(run.pk)!=('BPR',phase.digest):
+            raise ValueError('Delivery-only preparation cannot advance another phase')
+        return _advance(run,value,**arguments)
+
+
+def _advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,prepare_reads=False,delivery_only=False,
+            delivery_file=None,delivery_sha256=None):
     from mta.runtime import scope_execution as workers
     from mta.runtime.models import RunScopeAttempt,CalculationRun
     from mta.runtime import scoped_pick_files
@@ -220,6 +268,8 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,pre
     # Lock/source revision checks are repeated by claim and every acceptance.
     captured_run(run,value)
     previous=RunScopeAttempt.objects.filter(run=run,command_key=value['command_key']).order_by('-attempt_no').first()
+    if delivery_only and (previous is None or previous.status!='RELEASED'):
+        raise ValueError('Delivery-only resume cannot claim or calculate')
     if previous is not None and (previous.scope!='UptoBPR' or previous.compatibility_digest!=compatibility):
         raise ValueError('Existing scope command compatibility differs')
     if previous is not None and previous.status=='RELEASED':
@@ -258,4 +308,16 @@ def advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,pre
     if read_reference is not None:
         result['phase_read_reference']=read_reference
         result['pending'].remove('phase_read_binding')
+    if delivery_file:
+        from mta.presentation import scoped_artifacts
+        artifact=scoped_artifacts.prepare(receipt.pk,expected_digest=receipt.digest,
+            declaration_file=delivery_file,declaration_sha256=delivery_sha256)
+        result['artifacts']=dict(input_archive_ready=True,
+            declaration_sha256=delivery_sha256,receipt_sha256=artifact['receipt_sha256'],
+            members=artifact['members'],site_hook=artifact['declaration']['post_bpr_hook'])
+        if read_reference is not None and 'runtime_reports' in value:
+            # This acknowledges the declared stage's business/file/read owners.
+            # Selection and browser acceptance are deliberately separate facts.
+            result['scope_ready']=True
+            result['pending'].remove('configured_artifact_readiness')
     return result

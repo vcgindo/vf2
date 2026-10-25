@@ -152,12 +152,16 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     target=spec['target_release'];previous=spec['previous_release']
     from mta.runtime import report_guard_transition as report_guard
     from mta.runtime import accepted_state_transition as ownership
+    from mta.runtime import scoped_action_transition as scoped_action
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
+    action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
     if guard_migration:
         report_guard.require_specification(spec)
     if ownership_migration:
         ownership.require_specification(spec)
+    if action_migration:
+        scoped_action.require_specification(spec)
     if target['manifest_sha256']==previous['manifest_sha256']:
         raise ValueError('Distinct reviewed previous/target releases required')
     from mta.runtime.daily_feed import job_lock
@@ -198,6 +202,12 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         if ownership_migration and (not has_schema_authority or before_schema!=ownership.BEFORE_SCHEMA
                 or before_guard!=ownership.BEFORE_GUARD):
             raise ValueError('Accepted-state migration requires its exact admitted predecessor catalogue')
+        if action_migration:
+            from mta.runtime.ingestion_ownership import migration_history_guard
+            if (before_schema!=scoped_action.BEFORE_SCHEMA or before_guard!=scoped_action.BEFORE_GUARD
+                    or not migration_history_guard(cursor)
+                    or spec['catalogue_delta']!=scoped_action.catalogue_delta(bootstrap=not has_schema_authority)):
+                raise ValueError('Recovered-action migration requires its exact admitted221 catalogue/history guard')
         cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
         roles=cursor.fetchall()
         cursor.execute('SELECT roleid,member,grantor,admin_option FROM pg_auth_members ORDER BY roleid,member,grantor')
@@ -215,6 +225,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0168']]
         if ownership_migration:
             allowed_migrations=[['0169','0170']]
+        if action_migration:
+            allowed_migrations=[['0222']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -224,7 +236,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         # migration. Migration bookkeeping cannot advance a business epoch;
         # no epoch is restored and no business writer guard is disabled.
         from importlib import import_module
-        if not has_schema_authority:
+        if not has_schema_authority and not action_migration:
             cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
         executor.migrate(executor.loader.graph.leaf_nodes())
         cursor.execute('RESET ROLE')

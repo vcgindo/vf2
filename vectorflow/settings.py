@@ -31,6 +31,9 @@ VF_MTA_SELECTION_FILE = os.environ.get('VF_MTA_SELECTION_FILE', '')
 VF_MTA_SELECTION = None
 VF_MTA_PHASE_SELECTION_FILE = os.environ.get('VF_MTA_PHASE_SELECTION_FILE', '')
 VF_MTA_PHASE_SELECTION = None
+VF_MTA_SCOPE_DELIVERY_FILE = os.environ.get('VF_MTA_SCOPE_DELIVERY_FILE', '')
+VF_MTA_SCOPE_DELIVERY_SHA256 = os.environ.get('VF_MTA_SCOPE_DELIVERY_SHA256', '')
+VF_MTA_SCOPE_ARTIFACT_SHA256 = os.environ.get('VF_MTA_SCOPE_ARTIFACT_SHA256', '')
 if VF_MTA_PHASE_SELECTION_FILE:
     from django.core.exceptions import ImproperlyConfigured
     from mta.presentation.scoped_selection import read as read_phase_selection

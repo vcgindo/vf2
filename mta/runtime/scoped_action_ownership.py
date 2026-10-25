@@ -25,6 +25,7 @@ def available(cursor):
 def verify_guards(cursor=None):
     frozen = migration()
     with (connection.cursor() if cursor is None else nullcontext(cursor)) as c:
+        verify_actionable(c)
         c.execute("SELECT C.relname,T.tgname,T.tgtype,P.proname,T.tgenabled,T.tgnargs,T.tgqual::text,"
             "T.tgattr::text,T.tgoldtable,T.tgnewtable,T.tgdeferrable,T.tginitdeferred,N.nspname "
             "FROM pg_trigger T JOIN pg_class C ON C.oid=T.tgrelid JOIN pg_proc P ON P.oid=T.tgfoid "
@@ -147,6 +148,22 @@ def application_grants(catalogue):
     return grants()
 
 
+def verify_actionable(cursor):
+    """Only the original or explicitly migrated222 helper may own actions."""
+    cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' AND name=%s)",
+        ['0222_recovered_scope_actions'])
+    upgraded=cursor.fetchone()[0]
+    frozen=import_module('mta.runtime.migrations.0222_recovered_scope_actions')
+    cursor.execute("SELECT P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.provolatile,"
+        "P.prorettype='boolean'::regtype,P.proowner=C.relowner FROM pg_proc P "
+        "JOIN pg_language L ON L.oid=P.prolang CROSS JOIN pg_class C "
+        "WHERE P.oid=to_regprocedure('mta.actionable_scope_phase(uuid,uuid)') "
+        "AND C.oid='mta.fresh_mta_runscopeattempt'::regclass")
+    if cursor.fetchall()!=[(frozen.BODY if upgraded else frozen.OLD,False,
+            ['search_path=pg_catalog, mta'],'sql','s',True,True)]:
+        raise ValueError('Scoped actionable recovery helper differs')
+
+
 def application_functions(catalogue):
     if not application_grants(catalogue):
         return set()
@@ -165,6 +182,13 @@ def application_functions(catalogue):
         ('pending_scope_action','target uuid, image text, physical text','0191_scoped_action_ownership')):
         raw=import_module('mta.runtime.migrations.'+module).SQL
         definitions['mta.'+name+'('+args+')']=raw.split('FUNCTION mta.'+name+'('+args+')',1)[1].split('AS $body$',1)[1].split('$body$;',1)[0]
+    actionable='mta.actionable_scope_phase(target uuid, accepted uuid)'
+    frozen=import_module('mta.runtime.migrations.0222_recovered_scope_actions')
+    functions={f['name']:f for f in catalogue['functions']}
+    # Application catalogue verification has no database cursor. Accept only
+    # these two finite bodies; runtime admission checks the actual migration.
+    if functions.get(actionable,{}).get('body')==frozen.BODY:
+        definitions[actionable]=frozen.BODY
     raw=import_module('mta.runtime.migrations.0188_day_final_ownership').SQL
     definitions['mta.pending_day_final(target uuid)']=raw.split('FUNCTION mta.pending_day_final(target uuid)',1)[1].split('AS $body$',1)[1].split('$body$;',1)[0]
     definitions['mta.scope_bpr_consumer_cut(target uuid, observed jsonb)']=import_module(

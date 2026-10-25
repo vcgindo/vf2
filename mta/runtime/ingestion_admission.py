@@ -185,7 +185,7 @@ def effective_schema(cursor, body):
     """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; anchor=None
+    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; anchor=None
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -213,7 +213,12 @@ def effective_schema(cursor, body):
             continue
         from mta.runtime.report_guard_transition import MIGRATION_NAME,approved_receipt
         from mta.runtime import accepted_state_transition as ownership
-        if any(pin[0] in {name for name,_ in ownership.PINS} for pin in extension.get('migration_pins',[])):
+        from mta.runtime import scoped_action_transition as recovered
+        if any(pin[0]==recovered.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+            if recovered_transition or not recovered.approved_receipt(extension):
+                raise ValueError('Exact recovered-action schema transition required')
+            recovered_transition=True
+        elif any(pin[0] in {name for name,_ in ownership.PINS} for pin in extension.get('migration_pins',[])):
             if ownership_transition or guard_transition or not ownership.approved_receipt(extension):
                 raise ValueError('Exact accepted-state schema transition required after report guards')
             ownership_transition=True

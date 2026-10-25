@@ -44,6 +44,18 @@ def _download(view, request, payload, report_name):
     from mta.presentation.pick_downloads import REPORTS, FORMED_REPORTS
     from mta.presentation.permissions import _sql_equal
     from mta.runtime.scoped_pick_files import open_file
+    if report_name == 'InputData':
+        if identity(request).get('entitlements') != ['mta-input-archive']:
+            return JsonResponse({'error': 'mta_input_archive_forbidden'}, status=403)
+        from mta.presentation import scoped_artifacts
+        values = scoped_artifacts.configured()
+        if values is None:
+            raise PublicationUnavailable('phase_input_archive_not_prepared')
+        try:
+            stream = scoped_artifacts.open_archive(view, *values)
+        except (OSError, ValueError) as error:
+            raise PublicationUnavailable('phase_input_archive_unavailable') from error
+        return FileResponse(stream, as_attachment=True, filename='InputData.zip', content_type='application/zip')
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
     if report_name not in REPORTS: raise PublicationUnavailable('phase_download_not_prepared:' + report_name)
@@ -87,6 +99,12 @@ def dispatch(function, request, payload, arguments):
             return JsonResponse({'error': str(error)}, status=403)
     view = scoped_selection.selected()
     name = function.__name__; count = arguments.get('count', False)
+    if name == 'descriptions':
+        from mta.presentation.scoped_history import descriptions
+        return views.envelope(data=descriptions(view, payload, arguments['kind']))
+    if name == 'history_graph':
+        from mta.presentation.scoped_history import daily
+        return views.envelope(data=daily(view, payload))
     if name == 'bpr_remark_history':
         from mta.presentation.scoped_remark_writer import history
         return views.envelope(data=history(view, payload))

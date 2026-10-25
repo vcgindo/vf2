@@ -25,6 +25,10 @@ class Command(BaseCommand):
         parser.add_argument('--runtime-reports-file',type=Path)
         parser.add_argument('--runtime-reports-sha256')
         parser.add_argument('--prepare-reads',action='store_true')
+        parser.add_argument('--delivery-transition',type=Path)
+        parser.add_argument('--delivery-transition-sha256')
+        parser.add_argument('--delivery-file',type=Path)
+        parser.add_argument('--delivery-sha256')
 
     def handle(self,*args,**options):
         from mta.presentation.native_mode import require_configuration
@@ -43,7 +47,10 @@ class Command(BaseCommand):
                 predecessor_output_digest=options['predecessor_output_digest'],
                 command_key=options['command_key'],worker_reference=options['worker_reference'],
                 recovery_of=options['recovery_of'],repair_files=options['repair_files'],
-                inspect_only=options['inspect'],runtime_reports=runtime_reports,prepare_reads=options.get('prepare_reads',False))
+                inspect_only=options['inspect'],runtime_reports=runtime_reports,prepare_reads=options.get('prepare_reads',False),
+                delivery_transition=options.get('delivery_transition'),
+                delivery_transition_sha256=options.get('delivery_transition_sha256'),
+                delivery_file=options.get('delivery_file'),delivery_sha256=options.get('delivery_sha256'))
             self.stdout.write(json.dumps(report,sort_keys=True))
         except PreflightError as error:
             self.stdout.write(json.dumps(error.report,sort_keys=True))
