@@ -98,7 +98,7 @@ compressed and their raw copies replaced only after full decompressed SHA256
 and length verification. Preserve every attempt, manifest, log and compression
 receipt within the same 4 GiB archive-plus-volume ceiling. The approved temporary
 slot addresses the observed retention race without changing source settings.
-The original WAL-generation budget remains an additional stop check.
+The driver also stops if a scoped writer becomes active during capture.
 PostgreSQL describes temporary backup slots and WAL capture behavior:
 [PostgreSQL 16 pg_basebackup](https://www.postgresql.org/docs/16/app-pgbasebackup.html).
 

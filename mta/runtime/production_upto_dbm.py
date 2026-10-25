@@ -127,7 +127,7 @@ def _bpr_files(run, bpr, value, *, repair):
         run_id=str(run.pk), phase_id=str(bpr.pk), phase_digest=bpr.digest,
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
         site_code=value['dispositions']['site_code'], post_bpr_hook='explicit-test-no-op',
-        input_download=True, importer_database=database,
+        input_download=True, importer_database=archive_label(database),
         physical_files=list(scoped_artifacts.PHYSICAL), input_tables=list(scoped_artifacts.TABLES),
         archive_clock='business-midnight-Asia-Kolkata', authority=value['dispositions']['authority'])
     raw = (json.dumps(declaration, sort_keys=True)+'\n').encode()
@@ -138,6 +138,14 @@ def _bpr_files(run, bpr, value, *, repair):
     artifact = scoped_artifacts.prepare(bpr.pk, expected_digest=bpr.digest,
         declaration_file=path, declaration_sha256=checksum)
     return files, artifact
+
+
+def archive_label(database):
+    """PostgreSQL identity is case-folded; retain the native archive prefix."""
+    import re
+    if type(database) is not str or not re.fullmatch(r'(?i:vftest_fresh_)[A-Za-z0-9_]+',database):
+        raise ValueError('Owned Fresh database required for InputData')
+    return 'VFTEST_Fresh_'+database[len('vftest_fresh_'):]
 
 
 def advance(run, value, *, worker_reference, recovery_of=None, repair_files=False, prepare_reads=False):
@@ -209,21 +217,28 @@ def advance(run, value, *, worker_reference, recovery_of=None, repair_files=Fals
 
 
 def execute(raw, expected_sha256, *, command_key, worker_reference, runtime_reports,
-            dispositions, recovery_of=None, inspect_only=False, repair_files=False, prepare_reads=False, **arguments):
+            dispositions, recovery_of=None, inspect_only=False, repair_files=False, prepare_reads=False,
+            archive_recovery=False, **arguments):
     from mta.runtime import production_scope as fresh, production_daily
     from mta.runtime.production_preflight import require
     from mta.runtime.scope_runtime_reports import require_test_database
     if not transaction.get_autocommit():
         raise ValueError('Native UptoDBM owns its phase transactions')
     if (type(worker_reference) is not str or not 1 <= len(worker_reference) <= 200
-            or type(repair_files) is not bool or type(inspect_only) is not bool or type(prepare_reads) is not bool):
+            or type(repair_files) is not bool or type(inspect_only) is not bool or type(prepare_reads) is not bool
+            or type(archive_recovery) is not bool):
         raise ValueError('Explicit UptoDBM worker and flags required')
     if any(arguments.get(name) is not None for name in ('retry_capture_id','report_disposition','feed_attempt')):
         raise ValueError('UptoDBM recovery retains its original scoped capture')
     value = request(command_key, runtime_reports=runtime_reports, dispositions=dispositions)
     fresh.authorize()
     require_test_database()
+    if archive_recovery:
+        from mta.runtime.scoped_dbm_archive_recovery import resolve,RUN
+        value = resolve(value, recovery_of=recovery_of, initialization_id=arguments.get('initialization_id'))
     run = fresh.repeated(raw, expected_sha256, value, arguments)
+    if archive_recovery and (run is None or str(run.pk)!=RUN):
+        raise ValueError('Archive recovery requires its exact retained day')
     if run is None:
         if recovery_of is not None:
             raise ValueError('UptoDBM recovery requires its existing frozen day')
