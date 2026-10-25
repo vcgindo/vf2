@@ -59,9 +59,13 @@ def production_recipe_digest(layer):
     modules = _modules(layer)
     from mta.application.production_output_policy import contract
     from mta.presentation.native_report_colours import reference
+    from mta.presentation import terminal_bpr_delivery, scoped_bor
+    from mta.application import production_bor_contract, production_output_policy
     return digest(dict(version=1, layer=layer, output_contract=contract(),
         static_colour_reference=reference() if layer == 'boroa' else None,
         source_recipe=modules[3](), prepared_recipe=modules[4](),
+        terminal_projection={module.__name__: inspect.getsource(module) for module in
+            (terminal_bpr_delivery, scoped_bor, production_bor_contract, production_output_policy)},
         query=inspect.getsource(modules[1].query),
         builder=inspect.getsource(__import__(__name__, fromlist=['prepare']))))
 
@@ -79,6 +83,9 @@ def _binding(run):
 
 def _source_rows(run, layer, name, fields):
     path = PATHS[layer][name]
+    from mta.presentation import terminal_bpr_delivery
+    if path.startswith('sources/production/') and terminal_bpr_delivery.applicable(run):
+        return terminal_bpr_delivery.projected_rows(run, name, fields)
     item = image_metadata(run, path)
     published = [entry[0] for entry in item['fields']]
     if item['count'] and (published != list(fields) if path.startswith('sources/production/')

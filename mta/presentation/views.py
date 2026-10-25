@@ -154,7 +154,8 @@ def environment(request, payload):
 
 @endpoint('GET')
 def report_paths(request, payload):
-    return envelope(data=json.loads((CONFIG / 'mta_report_paths.json').read_text()))
+    from mta.presentation.terminal_bpr_delivery import report_paths as terminal_paths
+    return envelope(data=terminal_paths(json.loads((CONFIG / 'mta_report_paths.json').read_text())))
 
 
 @endpoint('GET')
@@ -164,7 +165,10 @@ def download_report(request, payload, *, report_name):
             return JsonResponse({'error': 'mta_input_archive_forbidden'}, status=403)
         from mta.application.native_input_archive import ArchiveDenied, open_archive
         try:
-            stream, filename = open_archive(selected_run())
+            run = selected_run()
+            from mta.presentation import terminal_bpr_delivery
+            reader = terminal_bpr_delivery.open_archive if terminal_bpr_delivery.applicable(run) else open_archive
+            stream, filename = reader(run)
         except ArchiveDenied as error:
             return JsonResponse({'error': str(error)}, status=403)
         from django.http import FileResponse
@@ -174,7 +178,10 @@ def download_report(request, payload, *, report_name):
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
     try:
-        stream, filename = open_report(selected_run(), payload, report_name)
+        run = selected_run()
+        from mta.presentation import terminal_bpr_delivery
+        reader = terminal_bpr_delivery.open_report if terminal_bpr_delivery.applicable(run) else open_report
+        stream, filename = reader(run, payload, report_name)
     except PickDownloadDenied as error:
         return JsonResponse({'error': str(error)}, status=403)
     from django.http import FileResponse

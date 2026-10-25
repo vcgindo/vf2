@@ -45,6 +45,9 @@ def _production_policy(run):
     components = (('input/day/production_report_schema', 'input/day/production_report_policy')
                   if physical.input_payload.get('schema') == V3 else ('day',))
     day = read_input(physical, components=components).get('day')
+    from mta.presentation import terminal_bpr_delivery
+    if terminal_bpr_delivery.applicable(run):
+        return terminal_bpr_delivery.output_policy(run, day)
     if (not isinstance(day, dict) or day.get('production_report_schema') != SOURCE_SCHEMA
             or not isinstance(day.get('production_report_policy'), dict)):
         raise PublicationUnavailable('native_bor_output_contract_required')
