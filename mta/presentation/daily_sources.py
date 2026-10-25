@@ -14,13 +14,18 @@ from mta.serialization import digest, storage
 from mta.presentation.request_scope import once_per_request
 
 COLOR_PATH = 'metadata/bpr/ColorSequence'
+# Exact v5 writer observed on the retained 9bc51168 runtime before this change.
+# Historical receipts remain immutable; this is not recomputed from new code.
+RETAINED_V5_RECIPE = '4e110600f15a7dcf36beb191261961cbdef641c0514b5a1d89ecc4164ec71cab'
 
 
 def recipe_digest():
     from mta.presentation.daily_transit import recipe_digest as transit_recipe
     from mta.presentation.daily_opening_sob import recipe_digest as sob_recipe
     from mta.presentation.production_reports import recipe_digest as report_recipe
-    return digest(dict(version=5, writer=inspect.getsource(write_sources),
+    from mta.runtime.bpr_history_completion import recipe_digest as completion_recipe
+    return digest(dict(version=6, writer=inspect.getsource(write_sources),
+                       bpr_history=completion_recipe(),
                        transit_factor=inspect.getsource(_transit_factor), sob=sob_recipe(),
                        transit=transit_recipe(), reports=report_recipe()))
 
@@ -53,13 +58,15 @@ def _transit_factor(run, current_settings):
     return factors[0]['Value']
 
 
-def write_sources(run, output, *, opening=None, _sources=None):
+def write_sources(run, output, *, opening=None, _sources=None, _bpr_history=None):
     if transaction.get_autocommit():
         raise ValueError('Daily sources require the calculation publication transaction')
     images = {}
     # Supplier inputs are captured before refresh. They are NOT the opening
     # BORWithOrderAllocation output, nor a replacement for that missing producer.
     prior = opening or {}
+    if _bpr_history is not None and (_sources is None or 'production_report_policy' not in prior):
+        raise ValueError('Completed BPR history requires scoped production sources')
     if _sources is not None and (('production_report_policy' in prior)
                                  != (_sources.production_reports is not None)):
         raise ValueError('Scoped production report source opt-in differs')
@@ -93,8 +100,12 @@ def write_sources(run, output, *, opening=None, _sources=None):
     images.update(publication_metadata(run))
     if 'production_report_policy' in prior:
         from mta.presentation.production_reports import write as write_reports, _write_report_rows
-        images.update(write_reports(run, output, prior) if _sources is None
-                      else _write_report_rows(run,_sources.production_reports,prior))
+        if _bpr_history is not None:
+            from mta.runtime.bpr_history_completion import publish
+            images.update(publish(run, _sources.production_reports, prior, _bpr_history))
+        else:
+            images.update(write_reports(run, output, prior) if _sources is None
+                          else _write_report_rows(run,_sources.production_reports,prior))
     if prior.get('shipment_input') is not None:
         from mta.presentation.daily_transit import publish as publish_transit
         def current(path):
@@ -130,9 +141,12 @@ def write_sources(run, output, *, opening=None, _sources=None):
 @once_per_request
 def receipt(run):
     value = DailySourceReceipt.objects.get(run=run)
-    if (value.input_digest != run.input_digest or value.recipe_digest != recipe_digest()
+    if (value.input_digest != run.input_digest or value.recipe_digest not in (recipe_digest(), RETAINED_V5_RECIPE)
             or value.images_digest != digest(value.images)):
         raise ValueError('Daily source publication identity drift')
+    if value.recipe_digest == RETAINED_V5_RECIPE and any(
+            item.get('table', '').startswith('bpr_history/') for item in value.images.values()):
+        raise ValueError('Historical source recipe cannot own late BPR history')
     return value
 
 
@@ -146,6 +160,9 @@ def image_metadata(run, path):
 
 def image_rows(run, path):
     item = image_metadata(run, path)
+    if item.get('table', '').startswith('bpr_history/'):
+        from mta.runtime.bpr_history_completion import read_published
+        return read_published(run, path, item)
     from mta.presentation import daily_opening_sob
     if path == daily_opening_sob.PATH:
         return daily_opening_sob.read(run, item)

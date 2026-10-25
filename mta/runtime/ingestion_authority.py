@@ -193,7 +193,7 @@ def validate_schema_transition(body):
         raise ValueError('Duplicate migration pin')
     for name,pin in pins:
         if type(name) is not str or not (re.fullmatch(r'01[0-9]{2}_[a-z0-9_]+',name)
-                or name=='0222_recovered_scope_actions'):
+                or name in ('0222_recovered_scope_actions', '0223_bpr_history_completion')):
             raise ValueError('Invalid schema transition migration name')
         sha(pin)
     return body

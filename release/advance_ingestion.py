@@ -153,15 +153,19 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import report_guard_transition as report_guard
     from mta.runtime import accepted_state_transition as ownership
     from mta.runtime import scoped_action_transition as scoped_action
+    from mta.runtime import bpr_history_schema_transition as bpr_history
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
+    history_migration=any(pin[0]==bpr_history.MIGRATION_NAME for pin in spec['migration_pins'])
     if guard_migration:
         report_guard.require_specification(spec)
     if ownership_migration:
         ownership.require_specification(spec)
     if action_migration:
         scoped_action.require_specification(spec)
+    if history_migration:
+        bpr_history.require_specification(spec)
     if target['manifest_sha256']==previous['manifest_sha256']:
         raise ValueError('Distinct reviewed previous/target releases required')
     from mta.runtime.daily_feed import job_lock
@@ -196,6 +200,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
         before_schema=schema_digest(cursor);before_guard=security_digest(cursor,_certificate(owner.pk)['authority_roles'])
+        if history_migration and (not has_schema_authority or before_schema!=bpr_history.BEFORE_SCHEMA
+                or before_guard!=bpr_history.BEFORE_GUARD):
+            raise ValueError('BPR history upgrade requires its exact admitted222 catalogue')
         if guard_migration and (not has_schema_authority or before_schema!=report_guard.BEFORE_SCHEMA
                 or before_guard!=report_guard.BEFORE_GUARD):
             raise ValueError('Report guard migration requires its exact admitted predecessor catalogue')
@@ -227,6 +234,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0169','0170']]
         if action_migration:
             allowed_migrations=[['0222']]
+        if history_migration:
+            allowed_migrations=[['0223']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue

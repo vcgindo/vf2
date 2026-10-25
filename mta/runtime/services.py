@@ -246,7 +246,10 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
                 if scoped is None:
                     write_sources(run, output, opening=publication_opening)
                 else:
-                    write_sources(run,output,opening=publication_opening,_sources=sources)
+                    from mta.runtime.bpr_history_completion import terminal_completion
+                    completion = terminal_completion(run)
+                    write_sources(run,output,opening=publication_opening,_sources=sources,
+                                  _bpr_history=completion)
         if run.kind != 'DAILY_CHAIN':
             for name, rows in output.items():
                 Checkpoint.objects.create(run=run, name=name,

@@ -185,7 +185,7 @@ def effective_schema(cursor, body):
     """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; anchor=None
+    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; history_transition=False; anchor=None
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -214,7 +214,12 @@ def effective_schema(cursor, body):
         from mta.runtime.report_guard_transition import MIGRATION_NAME,approved_receipt
         from mta.runtime import accepted_state_transition as ownership
         from mta.runtime import scoped_action_transition as recovered
-        if any(pin[0]==recovered.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+        from mta.runtime import bpr_history_schema_transition as bpr_history
+        if any(pin[0]==bpr_history.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+            if history_transition or not bpr_history.approved_receipt(extension):
+                raise ValueError('Exact retained BPR history schema transition required')
+            history_transition=True
+        elif any(pin[0]==recovered.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
             if recovered_transition or not recovered.approved_receipt(extension):
                 raise ValueError('Exact recovered-action schema transition required')
             recovered_transition=True
