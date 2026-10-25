@@ -579,3 +579,76 @@ drivers and preservation records. Still required: committed-reference restart,
 interruption/retry and compatible recovery; concurrent reads/downloads; remaining
 native negative cases; full remark-parent comparison; roughly2s real-Chrome
 action-to-usable and scale evidence. Later lifecycle boundaries remain as above.
+
+### Discarded binding removal and committed-reference recovery
+
+Implementation `b02676ad` removes only the intermediate DBM compose after
+`advance_action`. That constructed context was discarded after extracting its
+identity; the following independent `selected()` already reconstructs and checks
+the complete current context. Both pre-write and post-write selections remain.
+BPR-only preparation, action algorithms, runtime/phase recipes, SQL, schema,
+frontend and MTO are unchanged. Independent bounded review found no unique
+check or effect lost by this removal. Focused tests:43 passed,2 PostgreSQL tests
+skipped; the initially incorrect local import path was corrected to `.;tests`.
+
+Nativev10 image `c125cdad90b118ca23eab9a0c3d26fb96bd89492cd58f17424a60063a675b7e1`,
+manifest `871f5e6a3fcc17ffdf9ba139a7117c052cdc8e24be6b980bf986419c6392a85c`,
+was admitted only to private namespace508161. Code-only admission preserves
+schema0fab95b7, original certificate and business rows. Consumer selection recipe
+advances honestly; reanchoring retains the same reference and all26 complete
+report populations. Unprofiled Apply4.511s/994SQL, Sleep4.137s/997SQL and
+no-op4.781s/994SQL remain above the interaction target. Relative to nativev9,
+Apply removes51 SQL calls. Earlier paired baselines varied around4–5seconds,
+so a stable elapsed-time percentage improvement is not claimed.
+
+Actual native Apply/Sleep/no-op, replay, canonical complete-state equality,
+all26 report populations, action/remark interleavings and eight publication
+fault sites pass with rollback. Additional late permission, anchor and conflicting
+Full-selection changes are denied after the real write; forged predecessor,
+stale-command and mixed-report owners are rejected by PostgreSQL. Each case
+restores the preceding complete fingerprint602dff94. Commit-driver exceptions
+remain simulated before COMMIT, not proof of ambiguous-commit recovery.
+
+An actual owned worker exited86 after inserting its sealed command/reference
+and before COMMIT. Its Docker die event pins the exact nativev10 image. A fresh
+worker found no partial command/reference and successfully retried positive Apply
+inside a subsequently rolled-back transaction. While that writer held its locks,
+a separate runtime connection read the complete old reference, canonical state
+and all26 reports. This qualifies that native concurrent-read boundary only.
+
+One canonical Sleep no-op for the already-slept PHASE target was then committed,
+with intent and command receipts retained. Old commands and accepted phases are
+preserved; the remaining positive Z9 recommendation survives. Authoritative test
+state is now4 commands/revision65, reference
+`782a010f-0bc8-4223-bf86-0a42ffa638ec`, complete fingerprint
+`59a0ff04a0977c61eb70a1a629e8b77d85a40a6c30a62271902980e76d0b0b9d`.
+Canonical four-table state and all26 report populations are unchanged. A Pick file
+descriptor opened before that commit and completed afterward retains its exact
+505bytes/SHA256; a fresh download reads the same bytes. This is file-adapter
+evidence, not Chrome arrival, large-download or cancellation evidence.
+
+After restarting only the exact privatePGdfdfcebb, new packaged runtime workers
+using both nativev10 and compatible nativev9 read that committed reference,
+revision65, canonical state and all26 populations exactly. Neither reverse
+migration nor receipt deletion was used. Nativev7 remains incompatible with
+the new schema/reference contract and is not a rollback target. Startup measured
+6.417s/v10 and6.531s/v9 on this bounded recovery test, not browser latency.
+
+Prior canonical/stockout/lowstock and copied-run checks, all database identities
+and global roles pass. Protected source HBA6183a9be/ownersd42a7b5e, zero slots/
+workers and8080 readiness/body remain exact. Retained private storage/evidence
+measured3,161,636,641bytes before final evidence assembly, below4GiB. PrivatePG
+stopped at2026-10-25T21:49:43.46007343Z with no other clients/worker, unchanged
+mounts and all databases retained. No8080 deployment occurred.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/action-binding-result.json`,
+SHA256 `faf9d21d5ea7653988affa2303cf81448cf1b78b5a87a45333b7dff7a01d93ed`,
+pins37 candidate/proof/driver files. Positive action/remark sequences remain
+rollback-only; the newly durable action is a no-op. Full independent remark-parent
+comparison, broader recovery windows, native Full/split, required scale and real
+Chrome roughly2s click-to-usable acceptance remain open. The UI also issues count
+and grid requests after action success; endpoint time alone cannot close that
+acceptance. The next performance boundary is repeated validation within each
+existing read traversal, retaining fresh post-write checks. A smaller final
+validator is not yet qualified and must not replace those checks implicitly.
