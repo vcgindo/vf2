@@ -93,8 +93,11 @@ def _accept_prepared(attempt_id, worker_token, prepared, *, compatibility_digest
             capture_digest=work.capture.revision_digest, effects_at=now.isoformat(),
             families=_families(image,work.snapshot),
             pair_exclusion_digest=digest(work.final_exclusions))
-        return _seal_phase(receipt,image,effect_digest=digest(effects),
-                           partitions=partitions,effects=effects)
+        receipt=_seal_phase(receipt,image,effect_digest=digest(effects),
+                            partitions=partitions,effects=effects)
+        from mta.runtime.master_revisions import accept_phase
+        accept_phase(receipt)
+        return receipt
 
 
 def prepared_family_owner(source, owner, family):

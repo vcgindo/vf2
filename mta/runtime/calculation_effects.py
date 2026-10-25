@@ -81,5 +81,9 @@ def _accept_calculation(attempt_id, worker_token, phase, sources, *, parent,
         image=phase_state.save(run,phase,sources,parent=parent.snapshot,acceptance=receipt)
         effects=dict(schema=SCHEMA,phase=kind,parent_acceptance_digest=parent.digest,
                      calculation_digest=sources.calculation_digest)
-        return _seal_phase(receipt,image,effect_digest=digest(effects),
-                           partitions=_partition_identity(batches),effects=effects)
+        receipt=_seal_phase(receipt,image,effect_digest=digest(effects),
+                            partitions=_partition_identity(batches),effects=effects)
+        if kind=='BPR':
+            from mta.runtime.master_revisions import accept_phase
+            accept_phase(receipt)
+        return receipt

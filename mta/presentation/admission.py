@@ -43,6 +43,10 @@ CONFIG_SETTINGS = (
 
 
 def binding(run=None):
+    from mta.presentation import scoped_selection
+    if scoped_selection.enabled():
+        from mta.presentation.scoped_admission import binding as phase_binding
+        return phase_binding(run)
     run, identity = native_binding(run)
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
         from mta.presentation.btr_reporting import admission_identity
@@ -134,6 +138,14 @@ def admit():
     from mta.presentation.identity_reuse import clear
     clear()
     _admitted = None
+    from mta.presentation import scoped_selection
+    if scoped_selection.enabled():
+        from mta.presentation.scoped_admission import startup
+        run, after, reference = startup()
+        _admitted = after
+        return dict(run_id=str(run.pk), business_date=str(run.business_date),
+            output_digest=run.output_digest, admission_digest=after,
+            validation='accepted_phase_metadata', phase='BPR', phase_read_reference=reference)
     from mta.presentation.accepted_publication import startup
     accepted = startup(binding)
     bounded = accepted is not None
@@ -187,10 +199,12 @@ class AdmittedApplication:
         from mta.presentation.native_mode import require_configuration
         require_configuration()
         self.application = application
+        from mta.presentation import scoped_selection
         # The new isolated shell can start before its first synthetic day exists.
         # Only a completely absent identity is allowed; a malformed, rejected or
         # partially configured selection must still abort startup as before.
-        if (getattr(settings, 'VF_MTA_ALLOW_UNSELECTED_STARTUP', False)
+        if (not scoped_selection.enabled()
+                and getattr(settings, 'VF_MTA_ALLOW_UNSELECTED_STARTUP', False)
                 and getattr(settings, 'VF_MTA_DAILY_PUBLICATION', False)
                 and not settings.VF_MTA_PUBLISHED_RUN and not settings.VF_MTA_PUBLISHED_DIGEST
                 and not getattr(settings, 'VF_MTA_FIXTURE_FILE', '')

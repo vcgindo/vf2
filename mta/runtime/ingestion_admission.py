@@ -321,6 +321,10 @@ def _admit(cursor, initialization_id, release, *, pending=False):
     else:
         from mta.runtime.master_revisions import validate
         validate(revision['partitions'],initialization_id)
+        from mta.runtime.master_revisions import PHASE_CONTRACT
+        if (revision['partitions'].get('contract')==PHASE_CONTRACT
+                and revision['partitions']['revision_cut'][:2]!=[revision['master_epoch'],revision['configuration_epoch']]):
+            raise ValueError('Accepted phase master revision counters differ')
     # Source/integration identity is bounded: exactly the sealed thirteen-family roster.
     from mta.runtime.mdm_models import MdmSource, MdmFamilySource
     from mta.runtime.mdm_integration_models import MdmSourceIntegration

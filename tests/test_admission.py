@@ -13,7 +13,7 @@ import django
 django.setup()
 from django.test import RequestFactory, override_settings
 from mta.presentation import admission
-from mta.presentation import btr_reporting, fixture
+from mta.presentation import btr_reporting
 from mta.presentation.context import PublicationUnavailable
 from vectorflow.urls import ready
 
@@ -46,6 +46,11 @@ class AdmissionTest(unittest.TestCase):
             self.assertTrue(check.call_args_list[1].kwargs['verify_rows'])
 
     def setUp(self):
+        # This suite exercises admission behavior after release verification.
+        # Real release identity is proved by the separate native integration.
+        release_identity = patch('release.native_identity.require_current')
+        release_identity.start()
+        self.addCleanup(release_identity.stop)
         self.run = SimpleNamespace(pk='accepted', business_date=date(2026, 6, 17), output_digest='native')
         self.addCleanup(setattr, admission, '_admitted', admission._admitted)
         admission._admitted = None
@@ -168,7 +173,7 @@ class AdmissionTest(unittest.TestCase):
     def test_reporting_identity_follows_native_validation_and_keeps_full_binding(self):
         from mta.serialization import digest
         calls = []
-        def native():
+        def native(run=None):
             calls.append('validated'); return self.run, 'native'
         def reporting(run):
             self.assertEqual(calls, ['validated'])

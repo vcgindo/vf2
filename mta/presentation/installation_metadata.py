@@ -11,9 +11,10 @@ from mta.presentation.request_scope import once_per_request
 
 
 def publication_configured():
-    return getattr(settings, 'VF_MTA_SELECTION', None) is not None or any(getattr(settings, key, '') for key in (
+    return (bool(getattr(settings, 'VF_MTA_PHASE_SELECTION_FILE', ''))
+        or getattr(settings, 'VF_MTA_SELECTION', None) is not None or any(getattr(settings, key, '') for key in (
         'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST', 'VF_MTA_SELECTION_FILE',
-        'VF_MTA_FIXTURE_FILE', 'VF_MTA_FIXTURE_SHA256'))
+        'VF_MTA_FIXTURE_FILE', 'VF_MTA_FIXTURE_SHA256')))
 
 
 def metadata_request(environ):

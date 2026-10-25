@@ -15,7 +15,7 @@ if os.environ.get('VF_PHASE_POSTGRES_PROOF') == '1':
     django.setup()
 
 
-def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None):
+def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None,configuration_digest='c'*64):
     """Isolated metadata carrier only; never native registration/certification."""
     from django.db import connection
     from mta.runtime.models import ProductionInitialization
@@ -28,7 +28,7 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None):
         cursor.execute("SELECT set_config('fresh.production_initialization',%s,true)",[str(initial_id)])
     initial=ProductionInitialization.objects.create(id=initial_id,source=source,
         opening_identity='METADATA_ONLY-'+initial_id.hex,opening_date='2037-04-09',
-        input_sha256=uuid.uuid4().hex*2,recipe_sha256='b'*64,configuration_digest='c'*64,
+        input_sha256=uuid.uuid4().hex*2,recipe_sha256='b'*64,configuration_digest=configuration_digest,
         implementation_digest='d'*64,input_digest='e'*64,input_manifest_digest='f'*64)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.production_initialization','',true)")
@@ -38,7 +38,7 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None):
     cert=InitializationCertification.objects.create(initialization=initial,
         contract='METADATA_ONLY_SCOPE_COUNTERS',database_name=connection.settings_dict['NAME'],
         database_oid=database_oid,namespace=uuid.uuid4(),source_digest=source.digest,
-        content_digest='e'*64,configuration_digest='c'*64,schema_digest='1'*64,
+        content_digest='e'*64,configuration_digest=configuration_digest,schema_digest='1'*64,
         guard_digest='2'*64,release_digest='3'*64,receipt_digest='4'*64,
         populations={'fixture':'NO_BUSINESS_CERTIFICATION'})
     base=MasterInputRevision.objects.create(initialization=initial,master_epoch=0,
@@ -47,7 +47,7 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None):
     run.production_manifest={'ingestion_preparation':dict(contract=CONTRACT,
         initialization_id=str(initial.pk),source_digest=source.digest,
         certification_digest=cert.receipt_digest,base_revision_id=str(base.pk),
-        configuration_digest='c'*64,qualified_master_reuse=False)}
+        configuration_digest=configuration_digest,qualified_master_reuse=False)}
     seal(run,consumer_snapshot=consumer_snapshot)
     return initial,state,cert,base,deepcopy(run.production_manifest['ingestion_preparation'])
 

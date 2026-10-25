@@ -9,12 +9,15 @@ from mta.serialization import digest
 from mta.runtime.ingestion_admission import receipt, REVISION_FIELDS
 
 CONTRACT = 'vectorflow-static-master-partitions-v1'
+PHASE_CONTRACT = 'vectorflow-phase-master-partitions-v1'
 STATIC_TABLES = ('MasterData','SKUDescriptionTbl','SiteDescriptionTbl',
                  'SkuAttributeData','LocationAttributeData','SkuLocAttributeData')
 
 
 def validate(value, initialization_id):
     """Validate bounded roots without reconstructing any population."""
+    if isinstance(value,dict) and value.get('contract') == PHASE_CONTRACT:
+        return _validate_phase(value,initialization_id)
     from mta.runtime.models import CalculationRun
     from mta.runtime.receipt_integrity import verify_root
     if (not isinstance(value,dict) or set(value) != {'contract','run_id','source_digest',
@@ -40,6 +43,85 @@ def validate(value, initialization_id):
     return run
 
 
+def _phase_roots(phase):
+    result={}
+    for name in STATIC_TABLES:
+        path=phase.snapshot.manifest['state']['importer'][name]['image']
+        if path!='phase/'+phase.phase+'/importer/'+name:
+            raise ValueError('Prepared master logical image differs')
+        image=phase.snapshot.manifest['images'][path]
+        if image['table']!='Importer/'+name or not image['image'].startswith(('phase/PRE_BPR/','phase/BPR/')):
+            raise ValueError('Prepared master physical image differs')
+        result[name]=dict(image=image['image'],count=image['count'],digest=image['digest'],
+            fields=[field for field,*_ in image['fields'] if field!='Norm'])
+    return result
+
+
+def _validate_phase(value,initialization_id):
+    from mta.runtime.scoped_pick_files import _accepted
+    from mta.runtime.models import ProductionInitialization
+    if (set(value)!={'contract','run_id','source_digest','input_manifest_digest',
+                     'phase_id','phase_digest','snapshot_digest','revision_cut','roots'}):
+        raise ValueError('Prepared master partition contract differs')
+    phase=_accepted(value['phase_id'],value['phase_digest'])
+    owner=ProductionInitialization.objects.select_related('source').get(pk=initialization_id)
+    if (phase.phase not in ('PRE_BPR','BPR') or phase.source_id!=owner.source_id
+            or str(phase.run_id)!=value['run_id'] or value['source_digest']!=owner.source.digest
+            or value['input_manifest_digest']!=phase.run.input_manifest_digest
+            or value['snapshot_digest']!=phase.snapshot.state_digest
+            or value['revision_cut']!=phase.metadata.get('revision_after')
+            or phase.snapshot.manifest['references']['profile']!=owner.configuration_digest
+            or value['roots']!=_phase_roots(phase)):
+        raise ValueError('Prepared master accepted owner differs')
+    return phase.run
+
+
+def accept_phase(phase):
+    """Publish static-master metadata in the same accepted preparation transaction."""
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.models import ProductionInitialization
+    raw=read_input(phase.run,components=('initialization_binding',))
+    binding=raw.get('initialization_binding')
+    if binding is None:
+        return None
+    owner=ProductionInitialization.objects.select_related('source').get(pk=binding['id'])
+    expected=dict(id=str(owner.pk),source_digest=owner.source.digest,input_sha256=owner.input_sha256,
+                  content_digest=owner.input_digest,configuration_digest=owner.configuration_digest)
+    if binding!=expected:
+        raise ValueError('Prepared master initialization binding differs')
+    return _accept_phase(phase,owner)
+
+
+def _accept_phase(phase,owner):
+    from mta.runtime.ingestion_models import IngestionRevisionState,MasterInputRevision
+    if not connection.in_atomic_block or phase.phase not in ('PRE_BPR','BPR') or not phase.state_sealed:
+        raise ValueError('Prepared master acceptance requires its sealed phase transaction')
+    value=dict(contract=PHASE_CONTRACT,run_id=str(phase.run_id),source_digest=owner.source.digest,
+        input_manifest_digest=phase.run.input_manifest_digest,phase_id=str(phase.pk),
+        phase_digest=phase.digest,snapshot_digest=phase.snapshot.state_digest,
+        revision_cut=phase.metadata.get('revision_after'),roots=_phase_roots(phase))
+    _validate_phase(value,owner.pk)
+    from mta.runtime import scope_revisions
+    captured=scope_revisions.identity(phase.run)
+    cut=scope_revisions.require_current(phase.run)
+    if (captured is None or captured['initialization_id']!=str(owner.pk)
+            or cut is None or cut!=value['revision_cut']):
+        raise ValueError('Prepared master requires its exact owned acceptance cut')
+    state=IngestionRevisionState.objects.select_for_update().get(initialization_id=owner.pk)
+    revisions=MasterInputRevision.objects.filter(initialization_id=owner.pk,status='ACCEPTED')
+    parent=revisions.filter(master_epoch__lte=state.master_epoch,
+        configuration_epoch__lte=state.configuration_epoch).order_by('-master_epoch','-configuration_epoch').first()
+    if (parent is None or [state.master_epoch,state.configuration_epoch]!=cut[:2]):
+        raise ValueError('Prepared master accepted configuration basis differs')
+    if (parent.master_epoch,parent.configuration_epoch)==(state.master_epoch,state.configuration_epoch):
+        return parent
+    body=dict(id=uuid4(),initialization_id=owner.pk,parent_id=parent.pk,run_id=phase.run_id,
+        master_epoch=state.master_epoch,configuration_epoch=state.configuration_epoch,partitions=value)
+    candidate=MasterInputRevision.objects.create(**body,receipt_digest=receipt(body))
+    candidate.status='ACCEPTED';candidate.save(update_fields=['status'])
+    return candidate
+
+
 def accept(run, initialization_id, parent_id):
     """Called after successful typed publication, inside the SAME day commit."""
     if not connection.in_atomic_block or run.status != 'SUCCEEDED':
@@ -48,7 +130,7 @@ def accept(run, initialization_id, parent_id):
     state=IngestionRevisionState.objects.select_for_update().get(initialization_id=initialization_id)
     old=MasterInputRevision.objects.get(pk=parent_id,initialization_id=initialization_id,status='ACCEPTED')
     if (state.master_epoch,state.configuration_epoch)==(old.master_epoch,old.configuration_epoch):
-        if old.run_id is not None:
+        if old.run_id is not None and old.partitions.get('contract')!=PHASE_CONTRACT:
             return old
         # First canonical producer qualification establishes a new immutable
         # input representation. This metadata generation is not business DML.
