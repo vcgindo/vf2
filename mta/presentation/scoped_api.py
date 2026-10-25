@@ -1,6 +1,6 @@
 """Existing HTTP contracts over one explicitly selected immutable BPR view."""
 import json
-from django.db import connection, transaction
+from django.db import connection, transaction, DatabaseError
 from django.http import JsonResponse, StreamingHttpResponse, FileResponse
 from mta.presentation.context import PublicationUnavailable, scope
 
@@ -68,8 +68,21 @@ def dispatch(function, request, payload, arguments):
         if request.GET.get('reportName') in ('BOR_OA', 'BuyerOrderReport', 'InTransitWhereAbouts', 'OpenExpeditingRequests'):
             raise PublicationUnavailable('phase_report_not_prepared')
         return function(request, payload, **arguments)
+    if function.__name__ == 'bpr_remark':
+        from mta.presentation import scoped_remark_writer
+        try:
+            return views.envelope(data=scoped_remark_writer.append(payload, views.identity(request)))
+        except scoped_remark_writer.RemarkDenied as error:
+            return JsonResponse({'error': str(error)}, status=403)
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return views.envelope(status=500)
     view = scoped_selection.selected()
     name = function.__name__; count = arguments.get('count', False)
+    if name == 'bpr_remark_history':
+        from mta.presentation.scoped_remark_writer import history
+        return views.envelope(data=history(view, payload))
     if name == 'last_run_date':
         value = view.run.business_date
         return views.envelope(data=[dict(formatted=value.strftime('%d %b %Y'), rawDate=value.isoformat())])

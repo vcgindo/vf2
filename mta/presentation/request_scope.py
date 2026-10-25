@@ -30,7 +30,7 @@ READ_ROUTES = frozenset((
     'readyz',
     'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration',
     'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
-    'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData', 'GetExportDataAsync',
+    'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData', 'GetExportDataAsync', 'GetRemarkDetails',
     'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
     'GetPlanningDataGridCount', 'GetPlanningDataCustom',
     'GetResearchInsightData', 'GetHistroricalAvailabilityBPRData',

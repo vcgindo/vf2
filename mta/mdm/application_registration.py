@@ -88,14 +88,16 @@ def register_application(cursor, *, expected_database, expected_database_oid,
     if production:
         permissions.update(owned.LOGISTICS_APPLICATION_GRANTS)
         permissions.update(owned.PRODUCTION_UI_GRANTS)
+        from mta.runtime.scoped_remark_ownership import application_grants, available
+        if application_grants(catalogue): available(cursor)
+        permissions.update(application_grants(catalogue))
     for name,grant in permissions.items():
         for permission in grant['table']:
             columns=' ('+','.join(map(_identifier,grant['columns']))+')' if permission=='UPDATE' else ''
             cursor.execute('GRANT '+permission+columns+' ON '+_relation(name)+' TO '+consumer)
         if 'INSERT' in grant['table'] and name.startswith('mta.'):
-            sequences=[o for o in catalogue['objects'] if o['kind']=='S' and o['sequence_for']==name+'.id']
-            if len(sequences)!=1:raise ValueError('Explicit application sequence dependency differs')
-            cursor.execute('GRANT USAGE ON SEQUENCE '+_relation(sequences[0]['name'])+' TO '+consumer)
+            for sequence in owned.application_sequences(catalogue,name,production=production):
+                cursor.execute('GRANT USAGE ON SEQUENCE '+_relation(sequence['name'])+' TO '+consumer)
     for function in catalogue['functions']:
         # Identity arguments come from pg_proc, never user input. Use regprocedure
         # server formatting for quoted names and types.

@@ -29,8 +29,8 @@ def _run():
     return run
 
 
-def append(payload, actor):
-    _run()
+def append(payload, actor, *, read_binding=None, validate_rows=None):
+    if read_binding is None: _run()
     rows = payload.get('data')
     if not isinstance(rows, list) or not rows or not isinstance(rows[0], dict):
         raise ValueError('native BPR batch invalid')
@@ -50,6 +50,7 @@ def append(payload, actor):
               for row in rows]
     if any(len(row[field]) > 50 for row in values for field in ('SKUCode', 'WhCode')):
         return ''
+    if validate_rows is not None: validate_rows(values)
     now = datetime.now(ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE)).replace(
         microsecond=0, tzinfo=timezone.utc)
     try:
@@ -62,12 +63,12 @@ def append(payload, actor):
         return ''
 
 
-def history(payload):
-    run = _run()
+def history(payload, *, read_binding=None):
+    run = _run() if read_binding is None else read_binding.sources.run
     sku = _literal(payload.get('skucode'), nullable=True)
     location = _literal(payload.get('whcode'), nullable=True)
-    sql, params = ancillary_live.image_query(
-        run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
+    sql, params = (ancillary_live.image_query(run, ancillary_live.PATHS[ancillary_live.BPR], include_live=True)
+        if read_binding is None else read_binding.remarks.query())
     from django.db import connection
     with connection.cursor() as cursor:
         cursor.execute('SELECT "Remark","RemarkDate","Username" FROM (' + sql +

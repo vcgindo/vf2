@@ -39,7 +39,9 @@ def verify_guards():
             "AND T.tgname NOT LIKE 'ingestion_watch_%%' ORDER BY 1")
         expected=[('scope_read_no_truncate',34,'deny_scope_read_truncate'),
             ('scope_read_reference_guard',31,'guard_scope_read_reference')]
-        if cursor.fetchall()!=[(*r,'O',0,None,'',False,False,False,None,None,'mta') for r in expected]:
+        from mta.runtime.scoped_remark_ownership import verified_business_rows
+        rows=verified_business_rows(cursor,cursor.fetchall())
+        if rows!=[(*r,'O',0,None,'',False,False,False,None,None,'mta') for r in expected]:
             raise PublicationUnavailable('bpr_read_reference_guards_differ')
         bodies={name:frozen.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1].split('AS $guard$',1)[1].split('$guard$;',1)[0]
             for name in ('deny_scope_read_truncate','guard_scope_read_reference')}

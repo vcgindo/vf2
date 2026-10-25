@@ -620,6 +620,8 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
         permissions_by_table.update(LOGISTICS_APPLICATION_GRANTS)
     if production:
         permissions_by_table.update(PRODUCTION_UI_GRANTS)
+        from mta.runtime.scoped_remark_ownership import application_grants
+        permissions_by_table.update(application_grants(catalogue))
     for name, permissions in permissions_by_table.items():
         if name not in objects or objects[name]['kind'] not in ('r','p'):
             _reject('application write object is absent')
@@ -629,9 +631,7 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
             else:
                 expected.add(('table',name,None,permission))
         if 'INSERT' in permissions['table']:
-            sequences = [o for o in objects.values() if o['kind']=='S' and o['sequence_for']==name+'.id']
-            if len(sequences)!=(1 if name.startswith('mta.') else 0):
-                _reject('application sequence owner is ambiguous')
+            sequences = application_sequences(catalogue,name,production=production)
             expected.update(('sequence',o['name'],None,'USAGE') for o in sequences)
     functions = {f['name']:f for f in catalogue['functions']}
     if len(functions)!=len(catalogue['functions']):
@@ -683,6 +683,15 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
         _reject('application grant profile is incomplete')
     return dict(objects_digest=digest({'relations':catalogue['objects'],'functions':catalogue['functions']}),
                 grants_digest=digest(catalogue['grants']))
+
+
+def application_sequences(catalogue,name,*,production=False):
+    sequences=[o for o in catalogue['objects'] if o['kind']=='S' and o['sequence_for']==name+'.id']
+    from mta.runtime.scoped_remark_ownership import application_grants, UUID_TABLES
+    uuid_cache=production and name in UUID_TABLES and name in application_grants(catalogue)
+    if len(sequences)!=(1 if name.startswith('mta.') and not uuid_cache else 0):
+        _reject('application sequence owner is ambiguous')
+    return sequences
 
 
 def _read_application_capability(cursor, registration):
@@ -765,6 +774,8 @@ def _validate_application(cursor, database, registration, evidence, *,
         # has no historical catalogue to subtract or older adapter to impersonate.
         digests = _check_application_grants(catalogue, registration, logistics=True, production=True)
         _check_logistics_schema(cursor, catalogue, registration)
+        from mta.runtime.scoped_remark_ownership import available
+        available(cursor)
         digests['schema_digest'] = schema_digest(cursor)
         return _validate_application_binding(binding, original, implementation_sha256,
             digests, production=True)

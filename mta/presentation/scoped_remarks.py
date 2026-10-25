@@ -59,6 +59,8 @@ def verify_guards():
                 "JOIN pg_namespace N ON N.oid=P.pronamespace WHERE T.tgrelid=to_regclass(%s) AND NOT T.tgisinternal",
                 ['mta.'+table])
             rows=business_trigger_rows(cursor,cursor.fetchall())
+            from mta.runtime.scoped_remark_ownership import verified_business_rows
+            rows=verified_business_rows(cursor,rows)
             if (sorted(r[:5] for r in rows)!=sorted(expected)
                     or any(r[5:]!=('O',None,'',None,None,'mta',False,False) for r in rows)):_fail()
         cursor.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.proowner=C.relowner,"

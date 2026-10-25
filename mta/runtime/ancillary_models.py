@@ -41,6 +41,9 @@ class _LiveRemark(models.Model):
 
 class BprLiveRemark(_LiveRemark):
     Username = models.CharField(max_length=100, null=True)
+    # Internal append ownership only; the database stamps the full transaction
+    # identity. Empty identifies older rows with no recorded transaction owner.
+    append_transaction = models.CharField(max_length=20, default='', editable=False)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['owner', 'ordinal'], name='bpr_live_remark_ord')]
