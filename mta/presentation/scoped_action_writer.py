@@ -33,8 +33,6 @@ def submit(payload, actor, operation):
 
 
 def _submit_locked(payload,actor,operation,selected,anchor):
-    from mta.presentation import scoped_action_validation
-    ticket = scoped_action_validation.begin() if anchor.get('schema') == scoped_selection.DBM_SCHEMA else None
     with validation_reads():
         view = scoped_selection.selected()
         if str(view.run_id)!=anchor['run_id']:
@@ -46,7 +44,6 @@ def _submit_locked(payload,actor,operation,selected,anchor):
         products, locations = scope(payload, attributes=context.dbm)
         if any(sku not in products or location not in locations for sku,location in selected):
             raise actions.ActionDenied('selected_pair_outside_authenticated_scope')
-    proof = scoped_action_validation.capture(ticket, view)
     # Preserve the existing HTTP response's canonical affected-row arithmetic.
     chosen = set(selected)
     suggestions = [row for row in context.dbm['Suggestions'] if key(row) in chosen]
@@ -78,7 +75,7 @@ def _submit_locked(payload,actor,operation,selected,anchor):
             expected_identity = fresh.read_identity
         # A stale/missing/ambiguous view aborts the command and every dependent
         # generation. The old accepted reference remains available on rollback.
-        current = scoped_selection.selected(action_proof=proof) if proof is not None else scoped_selection.selected()
+        current = scoped_selection.selected()
         if current.read_identity!=expected_identity:
             raise PublicationUnavailable('phase_action_reference_not_current')
     return event, dict(data='' if operation=='APPLY' else None,

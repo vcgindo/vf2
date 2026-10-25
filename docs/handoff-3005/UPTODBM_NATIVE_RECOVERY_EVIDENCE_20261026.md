@@ -865,3 +865,88 @@ pins7 files. All actions rolled back. Protected source identity/HBA/owners,
 zero slots/workers and8080 readiness/body remain exact. The same private PG/caps
 were used and it stopped at2026-10-25T22:48:00.792195935Z with storage retained.
 No application code, release authority, frontend, MTO or serving service changed.
+
+## Component-validation experiment rejected (26 October 2026)
+
+The proposed transaction-local component proof was implemented in `edca58ea`
+and revised in `3705342f`, then rejected on matched native performance. Both
+commits and their native v13/v14 images remain retained as experiment evidence.
+The final product and test sources are restored exactly to `a68832ec` (the
+accepted native implementation remains v12 / `d1a3e56a`). This is an explicit
+reversion, not a latency acceptance or a serving deployment.
+
+The proof retained initial full selection, fresh sources/inherited BTR,
+requests/remarks, DBM replay, configuration/files, permissions/native identity,
+current-cut checks and atomic publication. It reconstructed fresh component
+bindings after complete owner-row equality. An actual runtime-role ticket was
+asserted, so measurements did not silently exercise fallback. Independent
+review found no correctness blocker; 43 focused tests passed before packaging.
+
+| Same-image paired Apply | Full validation | Component reuse | SQL calls |
+| --- | --- | --- | --- |
+| v13, first pair | 2.540 s | 3.382 s | 970 / 977 |
+| v13, reversed pair | 2.551 s | 3.345 s | 970 / 977 |
+| v14, first pair | 2.376 s | 2.333 s | 970 / 949 |
+| v14, reversed pair | 2.305 s | 2.542 s | 970 / 949 |
+
+v14 removed duplicate intermediate catalogue stamps and recipe hashing while
+retaining start/end transaction fencing and all final checks. Even this version
+shows no reliable elapsed improvement. Twenty-one fewer SQL calls do not justify
+the added validation machinery. Do not revive this approach as the latency
+solution without new evidence that changes that cost assessment.
+
+Both candidates passed canonical positive Apply/Sleep/no-op, exact all26 report
+populations, reference lineage and complete rollback. v14 additionally passed
+late permission/anchor/Full-selection denial, SQL forged predecessor/stale
+command/mixed-report rejection, and eight action/remark publication fault sites,
+including injected commit-driver failure before database COMMIT. These are not
+server-crash or ambiguous-commit proofs. All trial actions were rolled back;
+the original5 commands/revision103/reference69285677 and complete fingerprint
+`9c08786327578828616657be46ea18c1dfb83bb65c628cb6b9c00e901704eea5`
+remain unchanged. Native code-only authorities were appended only to the owned
+test initialization; original certificates, schema, guards and rows remain.
+Consumer-only selection anchors v13/v14 retained all report generation owners.
+
+v14 real WSGI rollback requests measured Apply2.644s/1009SQL with warm admission
+and Sleep4.082s/1119SQL with cold admission. Separate count/grid requests measured
+2.142s/558SQL and1.144s/468SQL. No extra report readback ran inside those action
+timings. Because actions rolled back, subsequent reads observe retained revision103;
+these figures do not qualify a durable action-to-screen transition or the two-second
+target. They belong to a rejected candidate, not a delivered performance improvement.
+
+A fresh v12 worker subsequently admitted the exact retained state and read all
+reports and canonical action state successfully. Read-only instrumentation on
+that restored implementation identifies a more substantial target:
+
+| v12 admission | Total | Schema digest | Security digest | SQL calls |
+| --- | --- | --- | --- | --- |
+| Cold1 | 1.439 s | 0.747 s | 0.313 s | 167 |
+| Warm | 0.241 s | not repeated | not repeated | 60 |
+| Cold2 | 1.582 s | 0.790 s | 0.247 s | 167 |
+
+Effective-schema ancestry took only0.031-0.033s. `validate_activation` took
+1.069-1.091s and contains the schema/security timings; nested cumulative timings
+must not be summed. The next investigation should isolate catalogue verification
+from mutable readiness checks, qualifying every catalogue invalidation dependency
+before any reuse across business writes. This evidence does not authorize caching
+current actions, master/configuration epochs, permissions, files or source owners.
+It also does not remove the remaining handler, refresh, browser or scale work.
+
+The first read-only attribution driver completed compatible readback but then
+failed on a missing Python `connection` import. Its log and readback receipt are
+retained. The corrected driver completed; no business action was replayed.
+After product reversion,33 affected tests passed and Git comparison confirms
+no difference in `mta` or `tests` against the pre-experiment checkpoint.
+
+Protected source identity/HBA/owners, zero source slots/workers and8080 readiness
+remain unchanged. Earlier copied runs, private database identities and global
+roles passed preservation checks. Retained files plus private PG measured
+3,384,568,816bytes before final read-only evidence assembly, below4GiB. Exact
+private PG `dfdfcebb` finally stopped at2026-10-25T23:13:29.424144886Z, with no
+worker/other clients and retained storage. No frontend, MTO or serving change.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/component-validation-result.json`,
+SHA256 `22773764cbcb2e09f83543cad41cc7f724c55284fc0c38d8adb3ce76ddb620d5`,
+pins68 candidate, driver, proof, failed-attempt and preservation files. The sole
+tracker retains the full lifecycle goal and all outstanding acceptance gates.
