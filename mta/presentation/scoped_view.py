@@ -28,6 +28,7 @@ def recipe_digest():
 
 def verify_guards():
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
+    current=import_module('mta.runtime.migrations.0219_scope_read_test_database_casefold')
     with connection.cursor() as cursor:
         from mta.runtime.ingestion_ownership import require_guard_coverage,scoped_derived_body
         require_guard_coverage(cursor)
@@ -42,6 +43,7 @@ def verify_guards():
             raise PublicationUnavailable('bpr_read_reference_guards_differ')
         bodies={name:frozen.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1].split('AS $guard$',1)[1].split('$guard$;',1)[0]
             for name in ('deny_scope_read_truncate','guard_scope_read_reference')}
+        bodies['guard_scope_read_reference']=current.BODY
         cursor.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.proowner=C.relowner,"
             "P.prorettype='trigger'::regtype,P.pronargs=0 FROM pg_proc P JOIN pg_namespace N ON N.oid=P.pronamespace "
             "JOIN pg_language L ON L.oid=P.prolang CROSS JOIN pg_class C "
