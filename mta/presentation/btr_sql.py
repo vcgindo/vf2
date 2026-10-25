@@ -73,16 +73,22 @@ class BtrFilters(Filters):
         return ' AND '.join(self.where) or 'TRUE'
 
 
-def read_btr(run, payload, *, paging, count=False, export=False):
+def read_btr(run, payload, *, paging, count=False, export=False, read_binding=None):
     from mta.presentation import btr_reporting
-    generation = btr_reporting.selected_generation(run)
+    if read_binding is not None and read_binding.run.pk != run.pk:
+        raise PublicationUnavailable('btr_phase_binding_run_differs')
+    def source_rows(path):
+        return image_rows(run, path) if read_binding is None else read_binding.rows(path)
+    def source_query(path):
+        return image_query(run, path) if read_binding is None else read_binding.query(path)
+    generation = btr_reporting.selected_generation(run) if read_binding is None else None
     if generation is not None and generation.version == 2:
         from mta.presentation.btr_snapshot import read_snapshot, reference_generation
         if not count and (not export) and (payload.get('displayPrepared') is True):
             return read_snapshot(run, generation, payload, paging)
         generation = reference_generation(run, generation)
     columns = tuple((f'D{i}' for i in range(1, 91))) if export else btr.horizon_columns(run.business_date.isoformat(), payload)
-    attributes = {name: image_rows(run, 'closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
+    attributes = {name: source_rows('closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
         if manifest:
@@ -100,7 +106,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
         logging.getLogger(__name__).info('BTR reader=%s generation=%s count=%s export=%s', 'reporting' if reporting else 'accepted-fallback', generation.pk, count, export)
     result = {'TechCount': '0', 'EcoCount': '0'} if count else {'tech': [], 'eco': []}
     if not count:
-        dates = image_rows(run, 'closing/btr/BufferTrendDates')
+        dates = source_rows('closing/btr/BufferTrendDates')
         result['labels'] = [{c: row[c] for c in columns} for row in dates]
     if not products or not locations:
         return (iter(()), dates) if export else result
@@ -112,7 +118,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
         params.extend(values)
 
     def image(alias, path):
-        query, values = image_query(run, path)
+        query, values = source_query(path)
         add(alias, query, values)
     for alias, table, prefix in (('sa', 'SkuAttributeData', 'SL'), ('la', 'LocationAttributeData', 'LL')):
         if manifest:
@@ -137,8 +143,8 @@ def read_btr(run, payload, *, paging, count=False, export=False):
     if not count:
         image('sd', 'closing/importer/SKUDescriptionTbl')
         image('ld', 'closing/importer/SiteDescriptionTbl')
-        categories = image_rows(run, 'closing/consumer_context/CategoryColDescription')
-        standards = image_rows(run, 'closing/dbm/SKULocStandardAttributes')
+        categories = source_rows('closing/consumer_context/CategoryColDescription')
+        standards = source_rows('closing/dbm/SKULocStandardAttributes')
         aliases = [(value, btr.category_alias_text(value, categories)) for value in dict.fromkeys((row['Category'] for row in standards))]
         add('cd', 'VALUES ' + ','.join(['(%s::text,%s::text)'] * len(aliases)) if aliases else 'SELECT NULL::text,NULL::text WHERE FALSE', [v for pair in aliases for v in pair])
     filters = BtrFilters(payload)
@@ -158,7 +164,7 @@ def read_btr(run, payload, *, paging, count=False, export=False):
             continue
         local_ctes, values = (list(ctes), list(params))
         for alias, table in (('A', 'BPPTrend' + trend), ('btd', 'BufferTrend' + trend)):
-            query, bound = image_query(run, 'closing/btr/' + table)
+            query, bound = source_query('closing/btr/' + table)
             local_ctes.append(alias + ' AS ' + inline + '(' + query + ')')
             values.extend(bound)
         if reporting:

@@ -56,9 +56,9 @@ class RequestScopeTests(unittest.TestCase):
 
     def test_export_reads_revalidate_changed_dependencies_on_next_request(self):
         from mta.presentation.request_scope import in_read_request
-        paths = ['GetExportDataAsync'] + ['DownloadReports/' + name for name in (
+        paths = ['GetExportDataAsync', 'SKUDesc', 'WHDesc'] + ['DownloadReports/' + name for name in (
             'LogisticPickListReport', 'LogisticRemainingQtySummary',
-            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt')]
+            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData')]
         for path in paths:
             with self.subTest(path=path):
                 current = ['accepted']
@@ -80,8 +80,8 @@ class RequestScopeTests(unittest.TestCase):
 
     def test_download_scope_does_not_include_unknown_or_unrelated_routes(self):
         from mta.presentation.request_scope import in_read_request
-        for path in ('DownloadReports/unknown', 'LogisticPickListReport',
-                     'Other/LogisticPickListReport', 'DBMApplySelectedNorms',
+        for path in ('DownloadReports/unknown', 'LogisticPickListReport', 'InputData',
+                     'Other/InputData', 'Other/LogisticPickListReport', 'DBMApplySelectedNorms',
                      'DBMUpdateSleepTbl', 'AddRemark', 'SaveState'):
             with self.subTest(path=path), read_request('/api/mta/' + path):
                 self.assertFalse(in_read_request())

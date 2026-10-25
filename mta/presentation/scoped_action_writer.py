@@ -11,6 +11,7 @@ from mta.runtime import scoped_actions, scoped_action_ownership
 from mta.runtime.models import CalculationRun, OperationalAcceptance, RemarkOwner
 from mta.runtime.scope_execution import _source_lock
 from mta.temporal.actions import key
+from mta.presentation.request_scope import remark_validation, validation_reads
 
 
 @transaction.atomic
@@ -24,16 +25,25 @@ def submit(payload, actor, operation):
     _source_lock(anchor['run_id'])
     CalculationRun.objects.select_for_update().get(pk=anchor['run_id'])
     RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
-    view = scoped_selection.selected()
-    if str(view.run_id)!=anchor['run_id']:
-        raise PublicationUnavailable('phase_action_selection_changed')
-    context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
-        expected_digest=view.bpr.sources.acceptance_digest, action_revision=view.bpr.sources.action_revision)
-    if OperationalAcceptance.objects.filter(run_id=context.run.pk).exists():
-        raise actions.ActionDenied('operational_acceptance_sealed')
-    products, locations = scope(payload, attributes=context.dbm)
-    if any(sku not in products or location not in locations for sku,location in selected):
-        raise actions.ActionDenied('selected_pair_outside_authenticated_scope')
+    # Reuse the existing locked-writer validation lifetime. The marker creates
+    # no cache across writes; each validated_read opens its own SELECT-only
+    # traversal. The final selected() below is a fresh independent traversal.
+    with remark_validation():
+        return _submit_locked(payload,actor,operation,selected,anchor)
+
+
+def _submit_locked(payload,actor,operation,selected,anchor):
+    with validation_reads():
+        view = scoped_selection.selected()
+        if str(view.run_id)!=anchor['run_id']:
+            raise PublicationUnavailable('phase_action_selection_changed')
+        context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
+            expected_digest=view.bpr.sources.acceptance_digest, action_revision=view.bpr.sources.action_revision)
+        if OperationalAcceptance.objects.filter(run_id=context.run.pk).exists():
+            raise actions.ActionDenied('operational_acceptance_sealed')
+        products, locations = scope(payload, attributes=context.dbm)
+        if any(sku not in products or location not in locations for sku,location in selected):
+            raise actions.ActionDenied('selected_pair_outside_authenticated_scope')
     # Preserve the existing HTTP response's canonical affected-row arithmetic.
     chosen = set(selected)
     suggestions = [row for row in context.dbm['Suggestions'] if key(row) in chosen]

@@ -72,6 +72,10 @@ def _download(view, request, payload, report_name):
 
 def dispatch(function, request, payload, arguments):
     from mta.presentation import views, scoped_selection
+    if function.__module__ == 'mta.presentation.mdm_views':
+        # The existing MDM wrapper admits and locks the same certified source.
+        # Keep family configuration, reads and task contracts in that owner.
+        return function(request, payload, **arguments)
     # Configuration, hierarchy catalogue and layouts keep their established
     # authority. Business readers below must never re-enter a Full-run path.
     if function.__name__ in ('all_permissions', 'environment', 'report_paths', 'user_layout'):
@@ -105,6 +109,21 @@ def dispatch(function, request, payload, arguments):
     if name == 'history_graph':
         from mta.presentation.scoped_history import daily
         return views.envelope(data=daily(view, payload))
+    if name == 'btr_data':
+        from mta.presentation.scoped_btr import bind
+        from mta.presentation.btr_sql import read_btr
+        from mta.presentation.btr_display import display_horizon, prepare_display
+        paging = views._pagination(payload)
+        if paging is None: raise ValueError('invalid_pagination')
+        horizon = None if count else display_horizon(payload)
+        data = read_btr(view.run, payload, paging=paging, count=count, read_binding=bind(view))
+        if horizon is not None and data.get('displayPrepared') is not True:
+            data = prepare_display(data, horizon)
+        return views.envelope(data=data)
+    if name == 'buffer_trends':
+        from mta.presentation.scoped_btr import bind
+        from mta.presentation.buffer_trends_sql import read_graph
+        return views.envelope(data=read_graph(view.run, payload, read_binding=bind(view)), message='')
     if name == 'bpr_remark_history':
         from mta.presentation.scoped_remark_writer import history
         return views.envelope(data=history(view, payload))
@@ -154,7 +173,7 @@ def dispatch(function, request, payload, arguments):
     if name == 'export_data':
         from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
         report = payload.get('reportName')
-        if report not in ('BPR', 'RRR'): raise PublicationUnavailable('phase_export_not_prepared')
+        if report not in ('BPR', 'RRR', 'BTR'): raise PublicationUnavailable('phase_export_not_prepared')
         state = views.ui_state.get_layout(views.identity(request)['id'], report)
         if report == 'BPR':
             from mta.presentation.bpr_export import selected_headers as headers, transport_chunks
@@ -163,6 +182,14 @@ def dispatch(function, request, payload, arguments):
                 def __iter__(self): yield from transport_chunks(rows, headers(state))
                 def close(self): rows.close()
             chunks = Chunks()
+        elif report == 'BTR':
+            from mta.presentation.scoped_btr import bind
+            from mta.presentation.btr_sql import read_btr
+            from mta.presentation.btr_export import selected_headers as headers
+            rows, dates = read_btr(view.run, payload, paging=None, export=True, read_binding=bind(view))
+            layout = 'BTRon-hand' if payload.get('name') == 'tech' else 'BTRpipeline'
+            state = views.ui_state.get_layout(views.identity(request)['id'], layout)
+            chunks = csv_chunks(rows, headers(state, dates))
         else:
             from mta.presentation.scoped_rrr import read
             rows = read(view.run, payload, paging=None, read_binding=view.pick)

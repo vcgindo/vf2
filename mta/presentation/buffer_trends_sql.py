@@ -97,7 +97,9 @@ class GraphFilters(Filters):
         return ' AND '.join(self.where) or 'TRUE'
 
 
-def read_graph(run, payload):
+def read_graph(run, payload, *, read_binding=None):
+    if read_binding is not None and read_binding.run.pk != run.pk:
+        raise PublicationUnavailable('buffer_phase_binding_run_differs')
     days = int(payload.get('Days', payload.get('days', 90)))
     if not 1 <= days <= 90:
         raise ValueError('Buffer graph days outside retained columns')
@@ -111,6 +113,8 @@ def read_graph(run, payload):
 
     def rows(name):
         path = 'closing/btr/' + name
+        if read_binding is not None:
+            return read_binding.rows(path)
         return image_rows(run, path, **{} if metadata is None else {'metadata': metadata[path]})
     attributes = {name: rows(name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
@@ -122,7 +126,7 @@ def read_graph(run, payload):
     products, locations = scope(payload, attributes=attributes)
     dates = rows('BufferTrendDates')
     from mta.presentation import history_prepared_sql
-    if history_prepared_sql.admitted(run) is not None:
+    if read_binding is None and history_prepared_sql.admitted(run) is not None:
         return history_prepared_sql.read_graph(run, payload, columns=columns, filters=filters, where=where, attributes=attributes, manifest=manifest, products=products, locations=locations, dates=dates, **{} if metadata is None else {'metadata': metadata})
     if not products or not locations:
         return graph_response([dict(D=c, **{a: None for a, _ in COLOURS}) for c in columns], dates)
@@ -133,7 +137,8 @@ def read_graph(run, payload):
         values.extend(params)
 
     def image(alias, name):
-        query, params = image_query(run, 'closing/btr/' + name)
+        path = 'closing/btr/' + name
+        query, params = image_query(run, path) if read_binding is None else read_binding.query(path)
         add(alias, query, params)
     kind = 'Dispatch' if str(payload.get('bufferTrendType', 'tech')).lower() == 'eco' else 'PhysicalInv'
     image('A', 'BufferTrend' + kind)

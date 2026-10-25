@@ -88,7 +88,7 @@ def in_read_request():
 # Action, MDM, layout and remark writes never enter this scope.
 READ_ROUTES = frozenset((
     'readyz',
-    'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration',
+    'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration', 'SKUDesc', 'WHDesc',
     'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',
     'GetBPRData', 'GetBPRDataCount', 'GetAnalyticsData', 'GetExportDataAsync', 'GetRemarkDetails',
     'GetPlanningDataGrid', 'GetPlanningDataCount', 'GetPlanningDataGraph',
@@ -113,7 +113,7 @@ READ_ROUTES = frozenset((
 # basename must not accidentally opt an unrelated endpoint into read reuse.
 PICK_READ_ROUTES = frozenset((
     'LogisticPickListReport', 'LogisticRemainingQtySummary',
-    'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt',
+    'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData',
 ))
 
 

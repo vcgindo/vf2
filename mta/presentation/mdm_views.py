@@ -35,12 +35,21 @@ def endpoint(method):
             from mta.presentation.request_scope import in_read_request
             from mta.presentation.installation_metadata import publication_configured
             if in_read_request() and publication_configured():
+                from mta.presentation import scoped_selection
                 from mta.presentation.context import selected_run
                 from mta.presentation.report_verification import verification_scope
+                if scoped_selection.enabled():
+                    from mta.presentation.scoped_admission import binding
+                    from mta.presentation.context import PublicationUnavailable
+                    run, _ = binding()
+                    if run.mdm_input_capture.source_id != source_id:
+                        raise PublicationUnavailable('phase_mdm_source_binding_differs')
+                else:
+                    run = selected_run()
                 # Reuse the existing finite certified owner proof. Enter it
                 # first to retain the day-job -> source lock order used by
                 # report readers and the native day boundary.
-                with verification_scope(selected_run()), source_lock(source_id):
+                with verification_scope(run), source_lock(source_id):
                     return function(request, payload, *args, **kwargs)
             with source_lock(source_id):
                 return function(request, payload, *args, **kwargs)
