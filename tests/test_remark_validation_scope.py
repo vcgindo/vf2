@@ -117,9 +117,54 @@ class RemarkValidationTests(unittest.TestCase):
             self.assertEqual(reader(),(2,2))
         self.assertEqual(calls,[1,1])
 
+    def test_existing_immutable_reader_opens_one_nested_traversal_only(self):
+        check,calls=self.reader()
+        @scope.once_per_request
+        def reader():
+            self.database.execute('SELECT 1')
+            return check(1),check(1)
+        with scope.remark_validation():
+            self.assertEqual(reader(),(1,1))
+            self.assertFalse(scope.in_validation_reads())
+            self.database.execute('UPDATE source SET revision=2')
+            self.assertEqual(reader(),(2,2))
+            self.assertFalse(scope.in_validation_reads())
+        self.assertEqual(calls,[1,1])
+
+    def test_declared_immutable_reader_cannot_write_under_writer_marker(self):
+        @scope.once_per_request
+        def invalid_reader():self.database.execute('UPDATE source SET revision=2')
+        with scope.remark_validation():
+            with self.assertRaises(ValueError):invalid_reader()
+            self.assertFalse(scope.in_validation_reads())
+            self.database.execute('UPDATE source SET revision=3')
+        self.assertEqual(self.database.executed,['UPDATE source SET revision=3'])
+
 
 @unittest.skipUnless(os.environ.get('VF_PHASE_POSTGRES_PROOF')=='1','Owned PostgreSQL required')
 class ValidationPostgreSQLTests(unittest.TestCase):
+    def test_existing_reader_rechecks_a_guard_changed_between_traversals(self):
+        from django.db import connection,transaction
+        from mta.runtime import ingestion_ownership as guards
+        self.assertEqual(connection.settings_dict['NAME'],'VFTEST_Fresh_LifecycleG2_20261024')
+        @scope.once_per_request
+        def traversal():
+            with connection.cursor() as cursor:
+                guards.require_guard_coverage(cursor);guards.require_guard_coverage(cursor)
+        with transaction.atomic(),patch.object(guards,'_verify_guard_coverage',wraps=guards._verify_guard_coverage) as verify:
+            with scope.remark_validation():
+                traversal();self.assertEqual(verify.call_count,1)
+                self.assertFalse(scope.in_validation_reads())
+                with transaction.atomic():
+                    with connection.cursor() as cursor:
+                        cursor.execute('ALTER TABLE mta.fresh_mta_bprliveremark DISABLE TRIGGER ingestion_watch_insert')
+                    for _ in range(2):
+                        with self.assertRaisesRegex(ValueError,'disabled'):traversal()
+                    self.assertEqual(verify.call_count,3)
+                    transaction.set_rollback(True)
+                traversal();self.assertEqual(verify.call_count,4)
+            transaction.set_rollback(True)
+
     def test_each_real_phase_rechecks_guards_and_writer_sql_never_uses_a_read_cache(self):
         from django.db import connection,transaction
         from mta.runtime import ingestion_ownership as guards

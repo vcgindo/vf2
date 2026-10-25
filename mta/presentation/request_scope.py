@@ -148,6 +148,13 @@ def _argument(value):
 def once_per_request(function):
     @wraps(function)
     def read(*args, **kwargs):
+        # A producer may call an already declared immutable reader between
+        # writes. Give that traversal the same SELECT-only scope as an
+        # explicitly validated reader, then discard it before returning.
+        if (_remark_validation.get() and _validation.get() is None
+                and _current.get() is None and _metadata.get() is None):
+            with validation_reads():
+                return read(*args, **kwargs)
         cache = _current.get()
         if cache is None:
             cache = _metadata.get()
