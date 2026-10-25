@@ -58,6 +58,19 @@ def _download(view, request, payload, report_name):
         return FileResponse(stream, as_attachment=True, filename='InputData.zip', content_type='application/zip')
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+    if report_name == 'BOR_OrderAllocation':
+        from mta.presentation import scoped_batch_downloads
+        from mta.presentation.scoped_bor import require_binding
+        bound = require_binding(view.run, view)
+        rows, _ = bound._image(('consumers', 'production_reports', 'BORWithOrderAllocation'),
+            'production/BORWithOrderAllocation', ('SKUCode', 'WhCode', 'SupplierCode'))
+        products, locations = scope(payload, attributes=view.planning.attributes())
+        if (not all(any(_sql_equal(row['SKUCode'], code) for code in products) for row in rows)
+                or not all(any(_sql_equal(row[field], code) for code in locations)
+                    for row in rows for field in ('WhCode', 'SupplierCode'))):
+            return JsonResponse({'error': 'selected_run_bor_file_scope_denied'}, status=403)
+        stream = scoped_batch_downloads.open_file(view, 'download/BOR_OrderAllocation.csv')
+        return FileResponse(stream, as_attachment=True, filename='BOR_OrderAllocation.csv', content_type='text/csv')
     if report_name not in REPORTS: raise PublicationUnavailable('phase_download_not_prepared:' + report_name)
     name = 'LogisticPickList' if report_name in FORMED_REPORTS else 'PickListDataForTruckFormation'
     rows = view.bpr.sources.rows('closing/complete/' + name)
@@ -78,11 +91,23 @@ def dispatch(function, request, payload, arguments):
         return function(request, payload, **arguments)
     # Configuration, hierarchy catalogue and layouts keep their established
     # authority. Business readers below must never re-enter a Full-run path.
-    if function.__name__ in ('all_permissions', 'environment', 'report_paths', 'user_layout'):
+    if function.__name__ == 'report_paths':
+        from mta.presentation import scoped_batch_downloads
+        values = json.loads((views.CONFIG / 'mta_report_paths.json').read_text())
+        if scoped_batch_downloads.configured() is not None:
+            scoped_batch_downloads.selected(scoped_selection.selected())
+            values['BOR_OrderAllocation'] = dict(path='', downloadName='BOR_OrderAllocation.csv',
+                reportName='Buyer Order Allocation Report', fileType='text/csv')
+        return views.envelope(data=values)
+    if function.__name__ in ('all_permissions', 'environment', 'user_layout'):
         return function(request, payload, **arguments)
     if function.__name__ == 'ui_config':
-        if request.GET.get('reportName') in ('BOR_OA', 'BuyerOrderReport', 'InTransitWhereAbouts', 'OpenExpeditingRequests'):
-            raise PublicationUnavailable('phase_report_not_prepared')
+        if request.GET.get('reportName') in ('BOR_OA', 'BuyerOrderReport'):
+            return _bor_config(scoped_selection.selected(), request.GET['reportName'])
+        if request.GET.get('reportName') in ('InTransitWhereAbouts', 'OpenExpeditingRequests'):
+            from mta.presentation.scoped_logistics import require_binding
+            view = scoped_selection.selected()
+            require_binding(view.run, view)
         return function(request, payload, **arguments)
     if function.__name__ == 'bpr_remark':
         from mta.presentation import scoped_remark_writer
@@ -102,7 +127,39 @@ def dispatch(function, request, payload, arguments):
         except actions.ActionDenied as error:
             return JsonResponse({'error': str(error)}, status=403)
     view = scoped_selection.selected()
+    if function.__module__ == 'mta.presentation.logistics_views' and function.__name__ == 'read':
+        from mta.presentation import logistics_read as reader
+        operation = arguments['operation']
+        try:
+            if operation == 'count':
+                return views.envelope(record_count=str(reader.transit_grid(view.run, payload,
+                    count=True, read_binding=view)))
+            function = dict(grid=reader.transit_grid, contacts=reader.contacts,
+                transit_history=reader.transit_history, requests=reader.open_requests,
+                expedite_history=reader.expedite_history)[operation]
+            return views.envelope(data=function(view.run, payload, read_binding=view))
+        except reader.TargetDenied as error:
+            return JsonResponse({'error': str(error)}, status=403)
+        except DatabaseError:
+            return views.envelope(status=500)
     name = function.__name__; count = arguments.get('count', False)
+    if name == 'bor_ui_config':
+        return _bor_config(view, 'BuyerOrderReport')
+    if name in ('bor_data', 'boroa_data', 'bor_analytics'):
+        from mta.presentation.bor_sql import read_bor
+        from mta.presentation.boroa_sql import read_boroa
+        from mta.presentation.bor_configuration import configuration, wire_rows
+        try:
+            if name == 'boroa_data':
+                rows = read_boroa(payload, count=count, read_binding=view)
+                return views.envelope(data=[{'count': rows}]) if count else views.envelope(data=rows if rows else '')
+            rows = read_bor(payload, count=count, analytics=name == 'bor_analytics', read_binding=view)
+            if count: return views.envelope(record_count=str(rows))
+            return views.envelope(data=rows if name == 'bor_analytics' else wire_rows(rows, configuration()))
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return views.envelope(status=500)
     if name == 'descriptions':
         from mta.presentation.scoped_history import descriptions
         return views.envelope(data=descriptions(view, payload, arguments['kind']))
@@ -160,6 +217,15 @@ def dispatch(function, request, payload, arguments):
         if paging is None: raise ValueError('invalid_pagination')
         rows = read(view.run, payload, paging=paging, count=count, read_binding=view.pick)
         return views.envelope(record_count=str(rows)) if count else views.envelope(data=[views.selected_rrr_response(row) for row in rows])
+    if name == 'rrr_colour_data':
+        from mta.presentation.daily_rrr_read import read
+        try:
+            rows = read(view.run, payload, count=count, read_binding=view)
+            return views.envelope(data=[{'count': rows}]) if count else views.envelope(data=rows if rows else '')
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return views.envelope(status=500)
     if name in ('bpr_data', 'bpr_analytics'):
         from mta.presentation.bpr_response import response_row
         analytics = name == 'bpr_analytics'
@@ -173,6 +239,22 @@ def dispatch(function, request, payload, arguments):
     if name == 'export_data':
         from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
         report = payload.get('reportName')
+        if report in ('BOR', 'BOROA'):
+            return _bor_export(view, request, payload, report)
+        if report == 'RRROA':
+            from mta.presentation.daily_rrr_read import read, projection
+            from mta.presentation.legacy_ui import RRR_OA_UI_CONFIG
+            try:
+                rows = read(view.run, payload, export=True, read_binding=view)
+            except PublicationUnavailable:
+                raise
+            except (ValueError, KeyError, TypeError, DatabaseError):
+                return views.envelope(status=500)
+            state = views.ui_state.get_layout(views.identity(request)['id'], 'RRRColorBandWise')
+            headers = selected_headers(state, ['RN', *[n for n, _ in projection()]], configuration=RRR_OA_UI_CONFIG)
+            response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment'
+            return response
         if report not in ('BPR', 'RRR', 'BTR'): raise PublicationUnavailable('phase_export_not_prepared')
         state = views.ui_state.get_layout(views.identity(request)['id'], report)
         if report == 'BPR':
@@ -200,6 +282,39 @@ def dispatch(function, request, payload, arguments):
     # Current writers require their own atomic action/remark + reference commit;
     # denying here prevents a successful write leaving the selected view stale.
     raise PublicationUnavailable('phase_endpoint_not_prepared:' + name)
+
+
+def _bor_config(view, name):
+    from mta.presentation import views, scoped_bor, bor_configuration, boroa_configuration
+    bound = scoped_bor.require_binding(view.run, view)
+    if name == 'BOR_OA':
+        return views.envelope(data=boroa_configuration.ui_columns(bound.configuration()))
+    return views.envelope(data=bor_configuration.ui_columns(bor_configuration.configuration()))
+
+
+def _bor_export(view, request, payload, report):
+    from mta.presentation import views, bor_sql, boroa_sql, scoped_bor, bor_configuration
+    from mta.presentation.rrr_export import selected_headers, csv_chunks
+    try:
+        if report == 'BOROA':
+            rows = boroa_sql.read_boroa(payload, export=True, read_binding=view)
+            config = scoped_bor.require_binding(view.run, view).configuration()
+            fields = ['RN', *[name for name, _ in boroa_sql.projection()]]
+            layout = 'BORColorBandwise'
+        else:
+            rows = bor_sql.read_bor(payload, export=True, read_binding=view)
+            config = bor_configuration.configuration()
+            fields = [name for name, _ in bor_sql.projection()]
+            layout = 'BOR'
+    except PublicationUnavailable:
+        raise
+    except (ValueError, KeyError, TypeError, DatabaseError):
+        return views.envelope(status=500)
+    state = views.ui_state.get_layout(views.identity(request)['id'], layout)
+    headers = selected_headers(state, fields, configuration=config['columns'])
+    response = StreamingHttpResponse(csv_chunks(rows, headers), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment'
+    return response
 
 
 def _planning(view, name, payload, *, count=False):

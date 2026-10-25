@@ -50,32 +50,56 @@ def projection():
     return result
 
 
-def read(run, payload, *, count=False, export=False):
-    from django.conf import settings
-    from mta.presentation import native_publication
-    native = native_publication.enabled()
-    if native:
-        native_publication.require_mode()
-        from mta.runtime.production_report_storage import PATHS
-        source_path = PATHS['RRR_OrderAllocation']
-        # Full typed source/checksum admission precedes the bounded SQL reader.
-        image_rows(run, source_path)
-        source_sql, source_params = image_query(run, source_path)
+def read(run, payload, *, count=False, export=False, read_binding=None):
+    bound = None
+    if read_binding is not None:
+        from mta.presentation.scoped_bor import require_binding
+        bound = require_binding(run, read_binding)
+        # production_reports.current captures production_rrr.produce's complete
+        # same-calculation 24-field output. Read that accepted owner unchanged;
+        # no colour-band producer or history/current substitution runs here.
+        _, (source_sql, source_params) = bound._image(
+            ('consumers', 'production_reports', 'RRR_OrderAllocation'),
+            'production/RRR_OrderAllocation', OUTPUT_FIELDS)
+        importer = bound.attributes()
     else:
-        from mta.presentation.native_mode import removed_mode
-        removed_mode('historical_rrr_source')
-    importer = {name: image_rows(run, 'closing/importer/'+name)
-                for name in ('SkuAttributeData', 'LocationAttributeData')}
-    manifest = hierarchy.selected_manifest(run)
-    if manifest or not native:
-        importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
+        from django.conf import settings
+        from mta.presentation import native_publication
+        native = native_publication.enabled()
+        if native:
+            native_publication.require_mode()
+            from mta.runtime.production_report_storage import PATHS
+            source_path = PATHS['RRR_OrderAllocation']
+            # Full typed source/checksum admission precedes the bounded SQL reader.
+            image_rows(run, source_path)
+            source_sql, source_params = image_query(run, source_path)
+        else:
+            from mta.presentation.native_mode import removed_mode
+            removed_mode('historical_rrr_source')
+        importer = {name: image_rows(run, 'closing/importer/'+name)
+                    for name in ('SkuAttributeData', 'LocationAttributeData')}
+        manifest = hierarchy.selected_manifest(run)
+        if manifest or not native:
+            importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     products, locations = scope(payload, attributes=importer)
     ctes = ['A AS (' + source_sql + ')']
     params = list(source_params)
     for alias, table in (('B', 'SkuLocAttributeData'), ('C', 'SkuAttributeData'),
                          ('D', 'LocationAttributeData'), ('S1', 'SKUDescriptionTbl'),
                          ('S2', 'SiteDescriptionTbl'), ('S3', 'SiteDescriptionTbl')):
-        sql, values = image_query(run, 'closing/importer/'+table)
+        if bound is not None:
+            path = 'closing/importer/'+table
+            item = bound.view.bpr.sources.metadata(path)
+            fields = {name for name, _, _ in item['fields']}
+            required = {name for name, _ in CATALOG['tables']['Importer/'+table]}
+            if not fields and item['count'] == 0:
+                from mta.runtime.phase_state import REGISTRY
+                fields = {name for name, _ in REGISTRY[item['table']]}
+            if not required <= fields:
+                raise PublicationUnavailable('scoped_rrr_importer_fields_missing:'+table)
+            sql, values = bound.image_query(path)
+        else:
+            sql, values = image_query(run, 'closing/importer/'+table)
         ctes.append(alias+'native AS ('+sql+')')
         params.extend(values)
         if alias in ('C', 'D'):

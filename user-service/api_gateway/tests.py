@@ -85,6 +85,19 @@ class TestMtaInterceptorIdentity(SimpleTestCase):
         self.assertTrue(forwarded['stream'])
         self.assertEqual(forwarded['timeout'], (5, 60))
 
+    def test_bor_file_uses_the_same_authenticated_download_boundary(self):
+        from api_gateway.mta_stream import PICK_DOWNLOAD_PATHS, streams_mta_read, bounded_mta_read
+        request = self.request('GET', '/api/mta/DownloadReports/BOR_OrderAllocation')
+        self.assertIn(request.path, PICK_DOWNLOAD_PATHS)
+        self.assertTrue(streams_mta_read(request))
+        self.assertTrue(bounded_mta_read(request))
+        request.user.is_admin = False
+        with patch('api_gateway.interceptors.mta_interceptor.Permission.objects.filter') as grants, \
+                patch('api_gateway.interceptors.mta_interceptor.requests.request') as upstream:
+            grants.return_value.exists.return_value = False
+            self.assertEqual(MTA_INTERCEPTOR().forward(request, self.service_map).status_code, 403)
+            upstream.assert_not_called()
+
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.requests.request")

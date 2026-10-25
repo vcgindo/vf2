@@ -51,6 +51,15 @@ def binding(expected_run=None):
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     configuration.update(VF_MTA_PHASE_SELECTION_FILE=settings.VF_MTA_PHASE_SELECTION_FILE,
         VF_MTA_PHASE_SELECTION=settings.VF_MTA_PHASE_SELECTION, VF_MDM_SOURCE_DIGEST=source_digest)
+    configuration['VF_MTA_SCOPED_BOR_OUTPUT_POLICY'] = getattr(settings, 'VF_MTA_SCOPED_BOR_OUTPUT_POLICY', None)
+    from mta.presentation import scoped_batch_downloads
+    batch = scoped_batch_downloads.configured()
+    if batch is not None:
+        configuration['batch_files'] = scoped_batch_downloads.verify(phase.pk,
+            expected_digest=phase.digest, expected_run_id=run.pk,
+            expected_snapshot_digest=phase.snapshot.state_digest,
+            manifest_file=batch[0], manifest_sha256=batch[1])
+        configuration['batch_manifest'] = batch
     from mta.presentation import scoped_artifacts
     artifacts = scoped_artifacts.configured()
     if artifacts:

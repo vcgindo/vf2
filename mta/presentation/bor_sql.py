@@ -145,33 +145,44 @@ def remark_query(run):
         fields+' FROM mta.'+quote(BorLiveRemark._meta.db_table)+' WHERE run_id=%s',[run.pk,run.pk])
 
 
-def read_bor(payload,*,count=False,export=False,analytics=False):
-    run,source=admitted_sources()
-    from mta.presentation import native_publication
-    native = native_publication.enabled()
-    if native:
-        native_publication.require_mode()
-        from mta.presentation.bor_prepared_fields import production_recipe_digest
-    expected_recipe = production_recipe_digest() if native else recipe_digest()
-    receipt=BorPreparedReceipt.objects.filter(run=run).first()
-    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
-        raise PublicationUnavailable('BOR_prepared_receipt_missing_or_changed')
-    try: verify_guards(connection)
-    except ValueError as exc: raise PublicationUnavailable('BOR_prepared_guards_changed') from exc
-    if native:
-        from mta.presentation.selective import image_rows
-        from mta.presentation.hierarchy import selected_manifest
-        importer = {name: image_rows(run, 'closing/importer/' + name)
-                    for name in ('SkuAttributeData', 'LocationAttributeData')}
-        manifest = selected_manifest(run)
+def read_bor(payload,*,count=False,export=False,analytics=False,read_binding=None):
+    bound=None
+    if read_binding is not None:
+        from mta.presentation.scoped_bor import require_binding
+        run=read_binding.run
+        bound=require_binding(run,read_binding)
+        importer=bound.attributes()
     else:
-        importer,manifest=_projected_attributes(run)
-    if manifest: raise PublicationUnavailable('BOR_native_hierarchy_required')
+        run,source=admitted_sources()
+        from mta.presentation import native_publication
+        native = native_publication.enabled()
+        if native:
+            native_publication.require_mode()
+            from mta.presentation.bor_prepared_fields import production_recipe_digest
+        expected_recipe = production_recipe_digest() if native else recipe_digest()
+        receipt=BorPreparedReceipt.objects.filter(run=run).first()
+        if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
+            raise PublicationUnavailable('BOR_prepared_receipt_missing_or_changed')
+        try: verify_guards(connection)
+        except ValueError as exc: raise PublicationUnavailable('BOR_prepared_guards_changed') from exc
+        if native:
+            from mta.presentation.selective import image_rows
+            from mta.presentation.hierarchy import selected_manifest
+            importer = {name: image_rows(run, 'closing/importer/' + name)
+                        for name in ('SkuAttributeData', 'LocationAttributeData')}
+            manifest = selected_manifest(run)
+        else:
+            importer,manifest=_projected_attributes(run)
+        if manifest: raise PublicationUnavailable('BOR_native_hierarchy_required')
     products,locations=scope(payload,attributes=importer)
     ctes=[];params=[]
     for alias,codes in (('P',products),('L',locations)):
         sql,values=_values_cte([{'code':code} for code in sorted(codes) for _ in range(codes.multiplicities[code])],('code',))
         ctes.append(alias+' AS ('+sql+')');params.extend(values)
+    if bound is not None and not analytics:
+        from mta.presentation.bor_preparation import query
+        prepared,values,_=query(run,read_binding=bound)
+        ctes.append('scoped_prepared AS ('+prepared+')');params.extend(values)
     if analytics:
         fields=[]
         for band in ('Red','Yellow','Green','Blue'):
@@ -180,29 +191,35 @@ def read_bor(payload,*,count=False,export=False,analytics=False):
             fields += ['sum('+field+') FILTER (WHERE '+condition+') AS '+quote(band+'_rs'),
                 'count(DISTINCT '+key('A."SKUCode"')+"||'-'||"+key('A."WHCode"')+') FILTER (WHERE '+condition+') AS '+quote(band+'_ns'),
                 'count(DISTINCT '+key('A."SupplierCode"')+') FILTER (WHERE '+condition+') AS '+quote(band+'_sc')]
-        sql=('WITH '+','.join(ctes)+' SELECT '+','.join(fields)+' FROM mta.'+quote(BorSourceRow._meta.db_table)+
-            ' A JOIN P ON '+equal('A."SKUCode"','P.code')+' JOIN L ON '+equal('A."WHCode"','L.code')+' WHERE A.run_id=%s')
-        params.append(run.pk)
+        if bound is not None:
+            source_sql,values=bound.source_query('SupplierDispatchReq')
+            ctes.append('scoped_source AS ('+source_sql+')');params.extend(values)
+        relation='scoped_source' if bound is not None else 'mta.'+quote(BorSourceRow._meta.db_table)
+        sql=('WITH '+','.join(ctes)+' SELECT '+','.join(fields)+' FROM '+relation+
+            ' A JOIN P ON '+equal('A."SKUCode"','P.code')+' JOIN L ON '+equal('A."WHCode"','L.code')+('' if bound is not None else ' WHERE A.run_id=%s'))
+        if bound is None:params.append(run.pk)
     else:
         filters=BorFilters(payload)
         try: where=filters.compile()
         except PublicationUnavailable as exc: raise BorQueryError(str(exc)) from exc
-        rsql,rparams=remark_query(run);ctes.append('remarks AS ('+rsql+')');params+=rparams
+        rsql,rparams=(bound.remarks('BORReport_RemarkDetails') if bound is not None else remark_query(run));ctes.append('remarks AS ('+rsql+')');params+=rparams
         ctes.append('latest AS (SELECT '+key('"SKUCode"')+' sk,'+key('"WhCode"')+' lk,'+key('"SupplierCode"')+
             ' sp,max("RemarkDate") d FROM remarks GROUP BY 1,2,3)')
         ctes.append('RM AS (SELECT M.* FROM remarks M JOIN latest T ON '+key('M."SKUCode"')+'=T.sk AND '+
             key('M."WhCode"')+'=T.lk AND '+key('M."SupplierCode"')+'=T.sp AND M."RemarkDate"=T.d)')
-        joins=(' FROM mta.'+quote(BorPreparedRow._meta.db_table)+' R JOIN P ON R.sku_key='+key('P.code')+
+        relation='scoped_prepared' if bound is not None else 'mta.'+quote(BorPreparedRow._meta.db_table)
+        joins=(' FROM '+relation+' R JOIN P ON R.sku_key='+key('P.code')+
             ' JOIN L ON R.location_key='+key('L.code')+' LEFT JOIN RM ON R.sku_key='+key('RM."SKUCode"')+
             ' AND R.location_key='+key('RM."WhCode"')+' AND R.supplier_key='+key('RM."SupplierCode"'))
         if filters.children:
-            parent,pvals=image_query(run,'closing/importer/LocationAttributeData')
+            parent,pvals=(bound.image_query('closing/importer/LocationAttributeData') if bound is not None else image_query(run,'closing/importer/LocationAttributeData'))
             ctes.append('parent AS ('+parent+')');params+=pvals
             joins+=(' JOIN parent ON '+equal(col('B','ParentWhCode'),'parent."WHCode"')+' AND ('+
                 ' OR '.join(equal('parent."LocationType"','%s') for _ in filters.children)+')')
             params+=filters.children
         sql='WITH '+','.join(ctes)+' SELECT '+('count(*)' if count else ','.join(v+' AS '+quote(n) for n,v in projection()))+joins
-        sql+=' WHERE R.run_id=%s AND ('+where+')';params+=[run.pk,*filters.params]
+        sql+=' WHERE '+('' if bound is not None else 'R.run_id=%s AND ')+'('+where+')'
+        params+=([run.pk] if bound is None else [])+filters.params
         if not count:
             ordering=('WHCode','SKUCode') if export else ('SKUCode','WHCode')
             sql+=(' ORDER BY '+col('B','DispatchColorSequence')+' NULLS FIRST,'+col('B','DispatchPen')+' DESC NULLS LAST,'+

@@ -32,18 +32,26 @@ def enabled():
 def recipe_digest():
     import inspect
     from mta.mdm import season_current
+    from mta.application import production_bor_contract, production_output_policy
     from release import phase_selection
     from mta.presentation import (scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql, views,
         bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
         daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
         scoped_dbm, dbm, dbm_filters, scoped_action_writer, scoped_history, scoped_artifacts,
-        scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views)
+        scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views,
+        scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
+        bor_preparation, boroa_preparation, native_report_colours, daily_rrr_read,
+        scoped_batch_files, scoped_batch_downloads)
     return digest({m.__name__: inspect.getsource(m) for m in
         (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
          daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
          scoped_dbm, dbm, dbm_filters, scoped_action_writer, scoped_history, scoped_artifacts,
-         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views, season_current)})
+         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views, season_current,
+         scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
+         bor_preparation, boroa_preparation, native_report_colours,
+         production_bor_contract, production_output_policy, daily_rrr_read,
+         scoped_batch_files, scoped_batch_downloads)})
 
 
 def native_identity(view):
@@ -84,7 +92,16 @@ def native_identity(view):
             raise PublicationUnavailable('phase_native_predecessor_changed')
     elif owner.opening_date + timedelta(days=1) != run.business_date:
         raise PublicationUnavailable('phase_native_opening_date_changed')
-    return dict(initialization=binding, source_id=capture.source_id, capture_digest=capture.revision_digest)
+    value = dict(initialization=binding, source_id=capture.source_id, capture_digest=capture.revision_digest)
+    from django.conf import settings
+    if getattr(settings, 'VF_MTA_SCOPED_BOR_OUTPUT_POLICY', None) is not None:
+        from mta.presentation.scoped_bor import policy
+        value['bor_output_policy'] = policy(view)
+    from mta.presentation import scoped_batch_downloads
+    batch = scoped_batch_downloads.selected(view)
+    if batch is not None:
+        value['batch_files'] = batch
+    return value
 
 
 def candidate(view):

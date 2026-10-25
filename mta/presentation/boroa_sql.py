@@ -37,33 +37,45 @@ def remark_query(run):
     return ('SELECT '+fields+' FROM mta.'+quote(BorOaInitialRemark._meta.db_table)+' WHERE run_id=%s UNION ALL SELECT '+fields+
         ' FROM mta.'+quote(BorOaLiveRemark._meta.db_table)+' WHERE run_id=%s',[run.pk,run.pk])
 
-def read_boroa(payload,*,count=False,export=False):
+def read_boroa(payload,*,count=False,export=False,read_binding=None):
     from mta.runtime.boroa_prepared_schema import verify_guards
-    run,source=admitted_sources();receipt=BorOaPreparedReceipt.objects.filter(run=run).first()
-    from mta.presentation import native_publication
-    native = native_publication.enabled()
-    if native:
-        native_publication.require_mode()
-        from mta.presentation.boroa_contract import production_prepared_recipe
-    expected_recipe = production_prepared_recipe() if native else prepared_recipe()
-    if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
-        raise PublicationUnavailable('BOROA_prepared_receipt_missing_or_changed')
-    try:verify_guards(connection)
-    except ValueError as exc:raise PublicationUnavailable('BOROA_prepared_guards_changed') from exc
-    if native:
-        from mta.presentation.selective import image_rows
-        from mta.presentation.hierarchy import selected_manifest
-        attrs = {name: image_rows(run, 'closing/importer/' + name)
-                 for name in ('SkuAttributeData', 'LocationAttributeData')}
-        supplement = selected_manifest(run)
+    bound=None
+    if read_binding is not None:
+        from mta.presentation.scoped_bor import require_binding
+        run=read_binding.run
+        bound=require_binding(run,read_binding)
+        attrs=bound.attributes()
     else:
-        attrs,supplement=_projected_attributes(run)
-    if supplement:raise PublicationUnavailable('BOROA_native_hierarchy_required')
+        run,source=admitted_sources();receipt=BorOaPreparedReceipt.objects.filter(run=run).first()
+        from mta.presentation import native_publication
+        native = native_publication.enabled()
+        if native:
+            native_publication.require_mode()
+            from mta.presentation.boroa_contract import production_prepared_recipe
+        expected_recipe = production_prepared_recipe() if native else prepared_recipe()
+        if receipt is None or receipt.source_digest!=source.source_digest or receipt.recipe_digest!=expected_recipe:
+            raise PublicationUnavailable('BOROA_prepared_receipt_missing_or_changed')
+        try:verify_guards(connection)
+        except ValueError as exc:raise PublicationUnavailable('BOROA_prepared_guards_changed') from exc
+        if native:
+            from mta.presentation.selective import image_rows
+            from mta.presentation.hierarchy import selected_manifest
+            attrs = {name: image_rows(run, 'closing/importer/' + name)
+                     for name in ('SkuAttributeData', 'LocationAttributeData')}
+            supplement = selected_manifest(run)
+        else:
+            attrs,supplement=_projected_attributes(run)
+        if supplement:raise PublicationUnavailable('BOROA_native_hierarchy_required')
     products,locations=scope(payload,attributes=attrs);ctes=[];params=[];join_params=[]
     for alias,codes in [('P',products),('L',locations)]:
         sql,values=_values_cte([{'code':code} for code in sorted(codes) for _ in range(codes.multiplicities[code])],('code',))
         ctes.append(alias+' AS ('+sql+')');params.extend(values)
-    ctes.append('prepared AS (SELECT * FROM mta.'+quote(BorOaPreparedRow._meta.db_table)+' WHERE run_id=%s)');params.append(run.pk)
+    if bound is not None:
+        from mta.presentation.boroa_preparation import query
+        prepared,values,_=query(run,read_binding=bound)
+        ctes.append('prepared AS ('+prepared+')');params.extend(values)
+    else:
+        ctes.append('prepared AS (SELECT * FROM mta.'+quote(BorOaPreparedRow._meta.db_table)+' WHERE run_id=%s)');params.append(run.pk)
     if count:
         # Native count omits description and remark joins. Project stable join
         # occurrence IDs before scopes so their multiplicities remain live.
@@ -77,15 +89,15 @@ def read_boroa(payload,*,count=False,export=False):
     try:where=filters.compile()
     except PublicationUnavailable as exc:raise BorOaQueryError(str(exc)) from exc
     if filters.children:
-        parent,values=image_query(run,'closing/importer/LocationAttributeData');ctes.append('parent AS ('+parent+')');params+=values
+        parent,values=(bound.image_query('closing/importer/LocationAttributeData') if bound is not None else image_query(run,'closing/importer/LocationAttributeData'));ctes.append('parent AS ('+parent+')');params+=values
         joins+=' JOIN parent ON '+equal(col('F','ParentWhCode'),'parent."WHCode"')+' AND ('+' OR '.join(equal('parent."LocationType"','%s') for _ in filters.children)+')'
         join_params+=filters.children
     if not count:
-        remarks,values=remark_query(run);ctes.append('remarks AS ('+remarks+')');params+=values
+        remarks,values=(bound.remarks('BORReport_OARemarkDetails') if bound is not None else remark_query(run));ctes.append('remarks AS ('+remarks+')');params+=values
         ctes.append('latest AS (SELECT '+key('"SKUCode"')+' sk,'+key('"WhCode"')+' lk,'+key('"SupplierCode"')+' sp,max("RemarkDate") d FROM remarks GROUP BY 1,2,3)')
         ctes.append('RM AS (SELECT M.* FROM remarks M JOIN latest T ON '+key('M."SKUCode"')+'=T.sk AND '+key('M."WhCode"')+'=T.lk AND '+key('M."SupplierCode"')+'=T.sp AND M."RemarkDate"=T.d)')
         joins+=' LEFT JOIN RM ON R.sku_key='+key('RM."SKUCode"')+' AND R.location_key='+key('RM."WhCode"')+' AND R.supplier_key='+key('RM."SupplierCode"')
-    config=configuration();condition=[v for v in config['environment'] if v['ConfigKey']=='BOROA_DISPATCH_CONDITION' and v['Category']=='ClientSpecific']
+    config=bound.configuration() if bound is not None else configuration();condition=[v for v in config['environment'] if v['ConfigKey']=='BOROA_DISPATCH_CONDITION' and v['Category']=='ClientSpecific']
     if len(condition)!=1:raise PublicationUnavailable('BOROA_dispatch_configuration_missing')
     if int(condition[0]['ConfigValue']):where='('+col('A','DispatchQty')+'>0) AND ('+where+')'
     order=col('E','SequenceNo')+' ASC NULLS FIRST,'+','.join(col('A',n)+' DESC NULLS LAST' for n in (

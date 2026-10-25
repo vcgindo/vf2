@@ -30,7 +30,11 @@ def omit_nulls(row):
     return {k: native_wire(v) for k, v in row.items() if v is not None}
 
 
-def attributes_scope(run, payload):
+def attributes_scope(run, payload, *, read_binding=None):
+    if read_binding is not None:
+        from mta.presentation.scoped_logistics import require_binding
+        importer = require_binding(run, read_binding).expedite.attributes()
+        return importer, *scope(payload, attributes=importer)
     importer, manifest = _projected_attributes(run)
     if manifest:
         raise PublicationUnavailable('logistics_native_hierarchy_required')
@@ -44,16 +48,18 @@ def authorize_targets(rows, products, locations, *, location='WhCode'):
         raise TargetDenied('logistics_target_scope_denied')
 
 
-def authorize_order(run, payload, order):
-    importer, products, locations = attributes_scope(run, payload)
-    rows = [r for r in logistics_live.transit_rows(run)
+def authorize_order(run, payload, order, *, read_binding=None):
+    importer, products, locations = attributes_scope(run, payload, read_binding=read_binding)
+    transit = (logistics_live.transit_rows(run) if read_binding is None else
+               read_binding.bpr.transit.rows('InTransitData'))
+    rows = [r for r in transit
             if sql_key(r.get('OrderNo')) == sql_key(order) and sql_key(order) is not None]
     authorize_targets(rows, products, locations)
     return rows
 
 
-def authorize_pair(run, payload, sku, location):
-    importer, products, locations = attributes_scope(run, payload)
+def authorize_pair(run, payload, sku, location, *, read_binding=None):
+    importer, products, locations = attributes_scope(run, payload, read_binding=read_binding)
     authorize_targets([dict(SKUCode=sku, WhCode=location)], products, locations)
     return importer
 
@@ -96,8 +102,8 @@ def _transit_relation(run):
         'mta.fresh_mta_transitannotation X ON X.generation_id=%s AND X.source_ordinal=S.vf_ordinal'), [*params, run.pk]
 
 
-def _relation(run, payload, *, transit):
-    importer, products, locations = attributes_scope(run, payload)
+def _relation(run, payload, *, transit, read_binding=None):
+    importer, products, locations = attributes_scope(run, payload, read_binding=read_binding)
     filtered = payload if transit else dict(payload, filters=payload)
     # Same deployed Commons filterQuery(sa/la/sla). Preserve invalid column
     # branches rather than invent missing availability facts on these sources.
@@ -106,7 +112,11 @@ def _relation(run, payload, *, transit):
     filters = GridFilters(filtered, 'logistics', DailyTransitRow if transit else DailyOpenRequest)
     where = filters.compile()
     ctes, params = [], []
-    if transit:
+    if read_binding is not None:
+        from mta.presentation.scoped_logistics import request_query
+        sql, values = (read_binding.bpr.transit.image_query(daily_transit.PATH) if transit
+                       else request_query(read_binding))
+    elif transit:
         sql, values = _transit_relation(run)
     else:
         owner, _ = logistics_live.current_requests()
@@ -119,7 +129,11 @@ def _relation(run, payload, *, transit):
                         ('C', 'closing/importer/SkuAttributeData'),
                         ('D', 'closing/importer/LocationAttributeData'),
                         ('E', 'closing/importer/SkuLocAttributeData')):
-        query, values = image_query(run,path) if path is not None else _dispatch_relation(run)
+        if read_binding is not None:
+            query, values = (read_binding.bpr.image_query(path) if path is not None else
+                             read_binding.expedite.fact_query('ExpediteDispatches'))
+        else:
+            query, values = image_query(run,path) if path is not None else _dispatch_relation(run)
         # Existing filter compiler calls the pair alias B; this query owns B as
         # the canonical transporter/dispatch join, so translate only that alias.
         ctes.append(alias+' AS ('+query+')'); params.extend(values)
@@ -132,7 +146,8 @@ def _relation(run, payload, *, transit):
               ' INNER JOIN D ON '+equal('A."WhCode"','D."WHCode"')+
               ' LEFT JOIN E ON '+equal('A."SKUCode"','E."SKUCode"')+' AND '+equal('A."WhCode"','E."LocCode"'))
     if transit:
-        query, values = image_query(run, 'closing/importer/SKUDescriptionTbl')
+        query, values = (image_query(run, 'closing/importer/SKUDescriptionTbl') if read_binding is None
+                         else read_binding.bpr.image_query('closing/importer/SKUDescriptionTbl'))
         ctes.append('N AS ('+query+')'); params.extend(values)
         joins += ' INNER JOIN N ON '+equal('A."SKUCode"','N."SKUCode"')
     for alias, codes in (('P',products), ('L',locations)):
@@ -151,8 +166,8 @@ def _relation(run, payload, *, transit):
     return ctes, params, joins+' WHERE '+where
 
 
-def transit_grid(run, payload, *, count=False):
-    ctes, params, joins = _relation(run, payload, transit=True)
+def transit_grid(run, payload, *, count=False, read_binding=None):
+    ctes, params, joins = _relation(run, payload, transit=True, read_binding=read_binding)
     if count:
         return int(_fetch('WITH '+','.join(ctes)+' SELECT count(*) AS n'+joins,params)[0]['n'])
     columns = dict(RN='row_number() OVER (ORDER BY '+key('A."OrderNo"')+' NULLS FIRST)',
@@ -173,24 +188,32 @@ def transit_grid(run, payload, *, count=False):
     # Correlated SKU details and history are order-wide in the deployed API.
     # The approved scope disposition disallows exposing denied sibling targets.
     for order in {r.get('OrderNo') for r in rows}:
-        authorize_order(run,payload,order)
+        authorize_order(run,payload,order,read_binding=read_binding)
     return [omit_nulls(row) for row in rows]
 
 
-def contacts(run, payload):
+def contacts(run, payload, *, read_binding=None):
     order = payload.get('orderNo')
-    authorize_order(run,payload,order)
-    sql, params = image_query(run,daily_transit.TRANSPORTER_PATH)
+    authorize_order(run,payload,order,read_binding=read_binding)
+    sql, params = (image_query(run,daily_transit.TRANSPORTER_PATH) if read_binding is None else
+                   read_binding.bpr.transit.image_query(daily_transit.TRANSPORTER_PATH))
     rows = _fetch('SELECT "SKUCode","WhCode","TransporterName","TransporterContact" FROM ('+
         sql+') A WHERE '+equal('A."OrderNo"','%s'),[*params,order])
-    _, products, locations = attributes_scope(run,payload)
+    _, products, locations = attributes_scope(run,payload,read_binding=read_binding)
     if rows:
         authorize_targets(rows,products,locations)
     return [omit_nulls({k:r[k] for k in ('TransporterName','TransporterContact')}) for r in rows]
 
 
-def transit_history(run, payload):
-    authorize_order(run,payload,payload.get('orderNo'))
+def transit_history(run, payload, *, read_binding=None):
+    authorize_order(run,payload,payload.get('orderNo'),read_binding=read_binding)
+    if read_binding is not None:
+        from mta.presentation.scoped_logistics import history_query
+        sql, params = history_query(run, read_binding, 'InTransitWhereAboutsRemarks')
+        return [omit_nulls(row) for row in _fetch('SELECT "Remarks","ETA","CurrentLocation",'
+            '"RemarksDate","UserId" AS "UserName" FROM ('+sql+') A WHERE '+
+            equal('A."OrderNo"','%s')+' ORDER BY "RemarksDate" DESC NULLS LAST',
+            [*params,payload.get('orderNo')])]
     owner = logistics_live.history_owner()
     return [omit_nulls(row) for row in _fetch('SELECT "Remarks","ETA","CurrentLocation",'
         '"RemarksDate","UserId" AS "UserName" FROM mta.fresh_mta_transitremarkhistory A '
@@ -198,8 +221,8 @@ def transit_history(run, payload):
         [owner.pk,payload.get('orderNo')])]
 
 
-def open_requests(run, payload):
-    ctes, params, joins = _relation(run,payload,transit=False)
+def open_requests(run, payload, *, read_binding=None):
+    ctes, params, joins = _relation(run,payload,transit=False,read_binding=read_binding)
     columns = dict(sc='A."SKUCode"',wc='A."WhCode"',pwc='A."ParentWhCode"',
         qty='B."RationedQty"',pic='B."PipelineInventoryColor"',br='B."BRAge"',
         plpd='B."PotentialLossPerDay"',eta='A."ETA"',rk='A."Request"')
@@ -210,12 +233,20 @@ def open_requests(run, payload):
                 data=[omit_nulls(row) for row in rows])
 
 
-def expedite_history(run,payload):
+def expedite_history(run,payload, *, read_binding=None):
     sku, location = payload.get('skucode'), payload.get('whcode')
-    authorize_pair(run,payload,sku,location)
-    owner = logistics_live.history_owner()
+    authorize_pair(run,payload,sku,location,read_binding=read_binding)
+    if read_binding is not None:
+        from mta.presentation.scoped_logistics import history_query
+        sql, params = history_query(run, read_binding, 'OpenExpeditRequestRemarksHistory')
+        source, values = '('+sql+')', params
+        condition = ''
+    else:
+        owner = logistics_live.history_owner()
+        source, values = 'mta.fresh_mta_expediteremarkhistory', [owner.pk]
+        condition = 'owner_id=%s AND '
     rows = _fetch('SELECT row_number() OVER (ORDER BY "RemarkDate" DESC NULLS LAST) AS "RN",'
-        '"Remark" AS r,"RemarkDate" AS rd,"UserId","ETA" AS eta FROM '
-        'mta.fresh_mta_expediteremarkhistory A WHERE owner_id=%s AND '+equal('A."SKUCode"','%s')+
-        ' AND '+equal('A."WHCode"','%s'),[owner.pk,sku,location])
+        '"Remark" AS r,"RemarkDate" AS rd,"UserId","ETA" AS eta FROM '+
+        source+' A WHERE '+condition+equal('A."SKUCode"','%s')+
+        ' AND '+equal('A."WHCode"','%s'),[*values,sku,location])
     return [{k: '' if v is None else str(native_wire(v)) for k,v in row.items()} for row in rows]

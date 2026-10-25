@@ -10,16 +10,21 @@ from mta.runtime.models import BorPreparedRow
 from mta.serialization import canonical_parts
 
 
-def query(run):
-    selected,_=admitted_sources(run)
-    if selected.pk!=run.pk: raise ValueError('BOR preparation run differs')
+def query(run, *, read_binding=None):
+    if read_binding is None:
+        selected,_=admitted_sources(run)
+        if selected.pk!=run.pk: raise ValueError('BOR preparation run differs')
     ctes=[];params=[]
     for alias,table in (('A','SupplierDispatchReq'),('I','SOBData'),('J','MOQData')):
+        if read_binding is not None:
+            sql,values=read_binding.source_query(table)
+            ctes.append(alias+' AS ('+sql+')');params.extend(values)
+            continue
         ctes.append(alias+' AS (SELECT *,ordinal AS vf_ordinal FROM mta.'+
             quote(MODELS[table]._meta.db_table)+' WHERE run_id=%s)')
         params.append(run.pk)
     for alias,path in SOURCES.items():
-        sql,values=image_query(run,path)
+        sql,values=(read_binding.image_query(path) if read_binding is not None else image_query(run,path))
         ctes.append(alias+' AS ('+sql+')');params.extend(values)
     ctes.append('H AS (SELECT * FROM G)')
     pair=lambda owner,loc: equal('A."SKUCode"',owner+'."SKUCode"')+' AND '+equal('A."WHCode"',owner+'.'+quote(loc))

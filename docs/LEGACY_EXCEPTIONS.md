@@ -1886,3 +1886,21 @@ neither invents deep-route results nor claims parity for canonical truncated out
 No new legacy campaign, facts, frontend or MTO change is authorized by this note.
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
+
+## Owned UptoBPR TEST transfer of exact BOR projections — 25 October 2026
+
+Direct human approval in Release Controller message
+01a17327-f493-7141-9f3e-eebd7b2976a7 transfers only the two existing production
+BOR amendments to owned TEST run e0735ad3-b98d-45c5-9bad-38bc5b0e5df8,
+BPR phase486ffe8a-ae78-4de9-90e5-0f01eb6ede97. Read-only projections may use
+production_bor_contract.produce for the exact same-calculation DispatchColor
+Black/Red split after unchanged SOB/MOQ, preserving all other bands/totals,
+approved cumulative order and duplicate/ambiguity denials. BOROA may apply
+production_output_policy.bor_oa to SKULocAtt01–15: preserve known/empty/NULL
+values and use NULL only for genuinely unavailable supplier text under the
+versioned nullable-text policy. The explicit TEST opt-in binds run, phase and
+snapshot; these amended fields are not claimed as legacy parity. No captured
+input or accepted calculation is changed. This grants no generic missing-column
+waiver, alternative source alias/default/numeric fill, other amendment transfer,
+frontend component or MTO API change. Status and proof remain in the sole
+F:/freshvcf/docs/handoff-3005/TRACKER.md.

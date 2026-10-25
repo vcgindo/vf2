@@ -8,13 +8,22 @@ from mta.runtime.boroa_models import BorOaSourceRow,BorOaRequirement,BorOaPrepar
 from mta.runtime.relational_state import quote
 from mta.serialization import canonical_parts
 
-def query(run):
-    selected,_=admitted_sources(run)
-    if selected.pk!=run.pk:raise ValueError('BOROA preparation run differs')
+def query(run, *, read_binding=None):
+    if read_binding is None:
+        selected,_=admitted_sources(run)
+        if selected.pk!=run.pk:raise ValueError('BOROA preparation run differs')
     ctes=[];params=[]
     for alias,model in [('A',BorOaSourceRow),('F',BorOaRequirement)]:
+        if read_binding is not None:
+            sql,values=read_binding.source_query('BORWithOrderAllocation' if alias=='A' else 'BOROARequirement')
+            ctes.append(alias+' AS ('+sql+')');params.extend(values)
+            continue
         ctes.append(alias+' AS (SELECT *,ordinal AS vf_ordinal FROM mta.'+quote(model._meta.db_table)+' WHERE run_id=%s)');params.append(run.pk)
     for alias,path in SOURCES.items():
+        if read_binding is not None:
+            sql,values=read_binding.image_query(path)
+            ctes.append(alias+' AS ('+sql+')');params.extend(values)
+            continue
         if alias=='E' and run.kind == 'LEGACY_UI_FIXTURE':
             ctes.append('E AS (SELECT *,vf_source_ordinal AS vf_ordinal FROM "stage_demo_bpr_1"."dbo__ColorSequence")');continue
         if alias == 'E':

@@ -1,5 +1,6 @@
 """Fresh MTA service: explicit PostgreSQL configuration, no legacy runtime."""
 import os
+import json
 
 SECRET_KEY = os.environ.get('VF_SECRET_KEY', '')
 if not SECRET_KEY:
@@ -34,6 +35,9 @@ VF_MTA_PHASE_SELECTION = None
 VF_MTA_SCOPE_DELIVERY_FILE = os.environ.get('VF_MTA_SCOPE_DELIVERY_FILE', '')
 VF_MTA_SCOPE_DELIVERY_SHA256 = os.environ.get('VF_MTA_SCOPE_DELIVERY_SHA256', '')
 VF_MTA_SCOPE_ARTIFACT_SHA256 = os.environ.get('VF_MTA_SCOPE_ARTIFACT_SHA256', '')
+VF_MTA_SCOPED_BOR_OUTPUT_POLICY = json.loads(os.environ.get('VF_MTA_SCOPED_BOR_OUTPUT_POLICY', 'null'))
+VF_MTA_SCOPE_BATCH_MANIFEST_FILE = os.environ.get('VF_MTA_SCOPE_BATCH_MANIFEST_FILE', '')
+VF_MTA_SCOPE_BATCH_MANIFEST_SHA256 = os.environ.get('VF_MTA_SCOPE_BATCH_MANIFEST_SHA256', '')
 if VF_MTA_PHASE_SELECTION_FILE:
     from django.core.exceptions import ImproperlyConfigured
     from mta.presentation.scoped_selection import read as read_phase_selection

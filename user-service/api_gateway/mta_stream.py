@@ -20,6 +20,7 @@ READ_PATHS = frozenset('/api/mta/' + route for route in (
 PICK_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + key for key in (
     'LogisticPickListReport', 'LogisticRemainingQtySummary',
     'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt',
+    'BOR_OrderAllocation',
 ))
 INPUT_ARCHIVE_PATHS = frozenset(('/api/mta/DownloadReports/InputData',))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
