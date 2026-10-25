@@ -1,6 +1,8 @@
 """Exact226->228 transition for the approved three-day UptoDBM test.
 
-The portable catalogue delta was exercised under PostgreSQL rollback before
+The portable catalogue delta includes the existing schema-authority bootstrap:
+this namespace was initialized at226 and has no earlier schema-transition table.
+Both bootstrap and migrations were exercised under PostgreSQL rollback before
 release admission. New helper OIDs are allocated at application time: the
 registrar records their actual security digest, and ordinary admission compares
 that digest to the live catalogue. No old identity, role or ACL is replaced.
@@ -13,8 +15,8 @@ PREVIOUS_COMMIT='fbb8abcc1ec0b3fe5177c028504ff20cc992f798'
 PREVIOUS_RELEASE='4617b6c20db13fabbabe1d5e9f6157782e6e1afaa5bd0e142f0196d07f4e8d22'
 BEFORE_SCHEMA='17212aa7d67ca1207a76f9d9830dccc7b653a08c660d020a06a2fa781cc537cb'
 BEFORE_GUARD='9fd89a6e4c2dae0d118073c3e19118f761953e124bca57921565930156477ae0'
-AFTER_SCHEMA='f04db0790784f0c1eb668da8de2c31ad7b7a1fcf487b436796a818f3751fe978'
-DELTA='5cfa575eb7f1bd220514678a131532cd1c04529f171a419e496b6a9401083a07'
+AFTER_SCHEMA='0fab95b7876642f0d4027bd382c0df96afa08f9200030aef82340ced8fd01451'
+DELTA='ccbcd11ad25a6c3960101df0c443d1cff3592acab4c1b638599b6eee8c751115'
 PINS=(
     ('0227_scope_read_action_reference','f772f40e9cdc3093ec91cd1e8ff93ddb79132076d53b086143e049247506f70b'),
     ('0228_scope_read_action_ownership','7a667cbc866d9e998f34248acd90c565443443145a421cc2ced81fbca5fc0956'))
