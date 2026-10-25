@@ -82,14 +82,14 @@ def begin():
     identity = _identity()
     if identity is None or not _runtime():
         return None
-    return identity, guard_stamp(), _recipes()
+    return identity, guard_stamp()
 
 
 def capture(ticket, view):
     from mta.presentation.scoped_dbm_view import DbmViewBinding
     if ticket is None or not isinstance(view, DbmViewBinding):
         return None
-    if ticket != (_identity(), guard_stamp(), _recipes()):
+    if ticket[0] != _identity():
         _fail()
     return ComponentProof(ticket, view)
 
@@ -108,9 +108,15 @@ class ComponentProof:
             view.bpr.reports.generation, view.bpr.projection, view.planning.projection,
             view.bpr.transit.generation, view.pick.generation, view.expedite.core.generation,
             view.expedite.parent.generation, view.git.generation, view.reference.pick_files))
+        report, projection, planning, transit, pick, core, _parent, git, _files = self._rows
+        # The initial complete selection already checked these exact recipe
+        # values. Rehash their sources once at the end, not at every handoff.
+        self._recipes = (report['recipe_digest'], report['metadata']['reports']['recipe_digest'],
+            projection['recipe_digest'], planning['recipe_digest'], transit['recipe_digest'],
+            pick['recipe_digest'], core['recipe_digest'], git['recipe_digest'])
 
     def selected(self, anchor, cut):
-        if self._used or self._ticket[:2] != (_identity(), guard_stamp()):
+        if self._used or self._ticket[0] != _identity():
             _fail()
         self._used = True  # A failed attempt consumes the proof as well.
         from mta.presentation import scoped_dbm_view, scoped_view
@@ -203,7 +209,10 @@ class ComponentProof:
 
     def finish(self):
         """Called after final native identity, permissions and current-cut checks."""
+        # Start/end catalogue generations fence the entire action. Intermediate
+        # stamps add no proof: the eligible runtime cannot perform same-xid DDL.
         if (not self._used or self._finished
-                or self._ticket != (_identity(), guard_stamp(), _recipes())):
+                or self._ticket != (_identity(), guard_stamp())
+                or self._recipes != _recipes()):
             _fail()
         self._finished = True

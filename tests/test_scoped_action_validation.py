@@ -31,6 +31,7 @@ class ActionValidationTests(unittest.TestCase):
         proof._ticket = validation.begin()
         proof._used = False
         proof._finished = False
+        proof._recipes = ('recipe',)
         return proof
 
     def test_unqualified_or_nontransactional_callers_get_no_ticket(self):
@@ -48,17 +49,16 @@ class ActionValidationTests(unittest.TestCase):
         ticket = validation.begin()
         self.assertIsNone(validation.capture(None, view))
         self.assertIsNone(validation.capture(ticket, object()))
-        for target, changed in ((self.identity, ('new', 'tx')), (self.guard, 'changed'),
-                                (self.recipes, ('changed',))):
+        for target, changed in ((self.identity, ('new', 'tx')),):
             original = target.return_value
             target.return_value = changed
             with self.assertRaises(PublicationUnavailable):
                 validation.capture(ticket, view)
             target.return_value = original
 
-    def test_transaction_or_guard_change_denies_before_owner_queries(self):
+    def test_transaction_change_denies_before_owner_queries(self):
         from mta.presentation import scoped_dbm_view
-        for target, value in ((self.identity, ('session', 'different-tx')), (self.guard, 'changed')):
+        for target, value in ((self.identity, ('session', 'different-tx')),):
             proof = self.proof()
             original = target.return_value
             target.return_value = value
