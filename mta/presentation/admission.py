@@ -241,7 +241,16 @@ class AdmittedApplication:
                     if require_installation() is None:
                         raise PublicationUnavailable('mdm_source_not_selected')
                 else:
-                    require_admission()
+                    from mta.presentation import scoped_selection
+                    from mta.presentation.request_scope import admission_preflight
+                    anchor = getattr(settings, 'VF_MTA_PHASE_SELECTION', None)
+                    scoped_dbm = (scoped_selection.enabled() and isinstance(anchor, dict)
+                                  and anchor.get('schema') == scoped_selection.DBM_SCHEMA)
+                    # Binding still validates the actual pinned selection. End
+                    # this metadata-only lifetime before constructing any part
+                    # of the downstream response or entering a write handler.
+                    with admission_preflight(enabled=scoped_dbm):
+                        require_admission()
             except Exception:
                 connections.close_all()
                 response = JsonResponse({'error': 'publication_not_admitted'}, status=503)

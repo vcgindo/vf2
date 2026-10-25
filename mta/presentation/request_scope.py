@@ -11,6 +11,32 @@ _current = ContextVar('presentation_read_request', default=None)
 _metadata = ContextVar('presentation_metadata_operation', default=None)
 _remark_validation = ContextVar('presentation_remark_validation', default=False)
 _validation = ContextVar('presentation_validation_reads', default=None)
+_admission_preflight = ContextVar('presentation_admission_preflight', default=False)
+
+
+@contextmanager
+def admission_preflight(*, enabled):
+    """Allow certified metadata reuse only before the HTTP handler is entered.
+
+    This creates no request/graph cache and grants no permission to reuse checks
+    inside an action transaction. Offline and startup callers do not enter it.
+    """
+    if not enabled:
+        yield
+        return
+    from django.db import connection
+    if connection.in_atomic_block or not connection.get_autocommit():
+        yield
+        return
+    token = _admission_preflight.set(True)
+    try:
+        yield
+    finally:
+        _admission_preflight.reset(token)
+
+
+def in_admission_preflight():
+    return _admission_preflight.get()
 
 
 @contextmanager
@@ -18,7 +44,8 @@ def remark_validation():
     """Opt in only after the remark writer holds its source/run/journal locks."""
     from django.db import connection
     if (not connection.in_atomic_block or _remark_validation.get()
-            or _current.get() is not None or _metadata.get() is not None):
+            or _current.get() is not None or _metadata.get() is not None
+            or _admission_preflight.get()):
         raise ValueError('Remark validation requires its own locked transaction')
     token = _remark_validation.set(True)
     try:

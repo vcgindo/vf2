@@ -100,15 +100,16 @@ def native_identity(function):
 def certified_readiness(function):
     """Reuse finite certified metadata only across an unchanged database.
 
-    Each miss retains the original owned read-only transaction. Preparation,
-    writes, offline callers and callers already in a transaction cannot reuse it.
+    Each miss retains the original owned read-only transaction. Only read HTTP
+    requests and their explicit pre-handler admission boundary may reuse it;
+    preparation, action handlers and existing transactions retain full checks.
     """
     @wraps(function)
     def read(initialization_id):
-        from mta.presentation.request_scope import in_read_request
+        from mta.presentation.request_scope import in_read_request, in_admission_preflight
         from mta.presentation import admission
         try:
-            if not in_read_request() or admission._admitted is None:
+            if not (in_read_request() or in_admission_preflight()) or admission._admitted is None:
                 return function(initialization_id)
             before = stamp()
             if before is None:
@@ -118,7 +119,11 @@ def certified_readiness(function):
                    os.environ.get('VF_NATIVE_RELEASE_COMMIT'),
                    os.environ.get('VF_NATIVE_RELEASE_SHA256'), before)
             if key in _entries:
-                return deepcopy(_entries[key])
+                value = deepcopy(_entries[key])
+                if stamp() == before:
+                    return value
+                clear()
+                return function(initialization_id)
             value = function(initialization_id)
             if stamp() == before:
                 for old in list(_entries):
