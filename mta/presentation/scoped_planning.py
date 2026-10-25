@@ -35,6 +35,7 @@ def fields(name):
 def recipe_digest():
     from mta.presentation import planning_grid_preparation,planning_custom_preparation,planning_chart_preparation
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         queries=inspect.getsource(queries),models=inspect.getsource(models),
         dimensions=queries.DIMENSIONS,families=list(queries.FAMILIES),
         field_contracts={name:[model._meta.get_field(field).deconstruct() for field in fields(name)]
@@ -206,6 +207,10 @@ def bind(generation_id,*,expected_digest,expected_source_digest,expected_report_
     verify_guards()
     try:projection=models.ScopePlanningProjection.objects.get(generation_id=generation_id)
     except ObjectDoesNotExist as error:raise PublicationUnavailable('bpr_planning_projection_missing') from error
+    return _binding(projection,prepared,expected_digest=expected_digest,expected_report_digest=expected_report_digest)
+
+
+def _binding(projection,prepared,*,expected_digest,expected_report_digest):
     if (not projection.sealed or projection.sealed_at is None or projection.digest!=expected_digest
             or projection.digest!=digest(projection.metadata) or projection.recipe_digest!=recipe_digest()
             or projection.report_generation_digest!=expected_report_digest
@@ -223,6 +228,18 @@ def prepare(generation_id,*,expected_source_digest,expected_report_digest,action
     CalculationRun.objects.select_for_update().get(pk=generation.run_id)
     prepared=scoped_prepared.bind(generation_id,expected_digest=expected_source_digest,
         expected_report_digest=expected_report_digest,action_revision=action_revision,include_nms=True)
+    bound=_prepare(prepared)
+    bind(generation_id,expected_digest=bound.projection.digest,expected_source_digest=expected_source_digest,
+        expected_report_digest=expected_report_digest,action_revision=action_revision)
+    return bound.projection
+
+
+def _prepare(prepared)->PlanningBinding:
+    from mta.presentation.scoped_preparation import require_prepared
+    require_prepared(prepared)
+    generation=prepared.reports.generation;generation_id=generation.pk
+    expected_source_digest=prepared.projection.digest
+    expected_report_digest=generation.digest;action_revision=generation.action_revision
     verify_guards()
     existing=models.ScopePlanningProjection.objects.filter(generation_id=generation_id).first()
     if existing is not None:
@@ -231,7 +248,7 @@ def prepare(generation_id,*,expected_source_digest,expected_report_digest,action
         for name in TABLES:
             if _receipt(generation_id,name)!=bound.projection.metadata['images'][name]:
                 raise PublicationUnavailable('bpr_planning_repeat_differs:'+name)
-        return existing
+        return bound
     projection=models.ScopePlanningProjection(generation=generation,report_generation_digest=generation.digest,
         source_projection_digest=prepared.projection.digest,recipe_digest=recipe_digest())
     with _owner(generation_id):
@@ -246,6 +263,4 @@ def prepare(generation_id,*,expected_source_digest,expected_report_digest,action
         projection.metadata=_identity(prepared,projection.recipe_digest,images)
         projection.digest=digest(projection.metadata);projection.sealed=True;projection.sealed_at=timezone.now()
         projection.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bind(generation_id,expected_digest=projection.digest,expected_source_digest=expected_source_digest,
-        expected_report_digest=expected_report_digest,action_revision=action_revision)
-    return projection
+    return _binding(projection,prepared,expected_digest=projection.digest,expected_report_digest=expected_report_digest)

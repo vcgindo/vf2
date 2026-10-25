@@ -29,6 +29,7 @@ def fields(name):
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         queries=queries.recipe_digest(),models=inspect.getsource(models),groups=GROUPS,orders=ORDERS,grains=GRAINS,
         prepost=inspect.getsource(pick_queries.ExpeditePickQueries.prepost_members),
         pick_owner=inspect.getsource(pick_queries.bind),
@@ -203,7 +204,12 @@ def bind(generation_id,*,expected_digest,action_revision):
         expected_report_digest=row.report_generation_digest,action_revision=action_revision,include_nms=True)
     pick=scoped_pick_storage.bind(row.pick_generation_id,expected_digest=row.pick_generation_digest,action_revision=action_revision)
     pick_queries.bind(prepared.sources.run,read_binding=prepared,pick_binding=pick)
-    verify_guards();reports=prepared.reports.generation
+    verify_guards()
+    return _binding(row,prepared,pick,expected_digest=expected_digest,action_revision=action_revision)
+
+
+def _binding(row,prepared,pick,*,expected_digest,action_revision):
+    reports=prepared.reports.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
             or row.recipe_digest!=recipe_digest() or row.action_revision!=action_revision
             or row.run_id!=prepared.run_id or row.phase_id!=reports.phase_id
@@ -224,13 +230,27 @@ def prepare(report_generation_id,*,expected_report_digest,expected_source_digest
         expected_report_digest=expected_report_digest,action_revision=action_revision,include_nms=True)
     pick=scoped_pick_storage.bind(pick_generation_id,expected_digest=expected_pick_digest,action_revision=action_revision)
     pick_queries.bind(prepared.sources.run,read_binding=prepared,pick_binding=pick)
+    bound=_prepare(prepared,pick)
+    bind(bound.generation.pk,expected_digest=bound.generation.digest,action_revision=action_revision)
+    for name in TABLES:bound.verify_rows(name)
+    return bound.generation
+
+
+def _prepare(prepared,pick)->ExpediteBinding:
+    from mta.presentation.scoped_preparation import require_prepared,require_pick
+    require_prepared(prepared);require_pick(prepared,pick)
+    reports=prepared.reports.generation
+    expected_report_digest=reports.digest;expected_source_digest=prepared.projection.digest
+    pick_generation_id=pick.generation.pk;expected_pick_digest=pick.generation.digest
+    action_revision=reports.action_revision
+    pick_queries.bind(prepared.sources.run,read_binding=prepared,pick_binding=pick)
     verify_guards();recipe=recipe_digest()
     existing=models.ScopeExpediteGeneration.objects.filter(report_generation=reports,pick_generation_id=pick_generation_id,
         recipe_digest=recipe).first()
     if existing is not None:
         bound=bind(existing.pk,expected_digest=existing.digest,action_revision=action_revision)
         for name in TABLES:bound.verify_rows(name)
-        return existing
+        return bound
     row=models.ScopeExpediteGeneration(run_id=reports.run_id,phase_id=reports.phase_id,action_revision=action_revision,
         source_digest=reports.source_digest,configuration_digest=reports.configuration_digest,recipe_digest=recipe,
         report_generation=reports,report_generation_digest=expected_report_digest,source_projection_digest=expected_source_digest,
@@ -243,6 +263,6 @@ def prepare(report_generation_id,*,expected_report_digest,expected_source_digest
         row.metadata=_identity(row,prepared,pick,images);row.digest=digest(row.metadata)
         row.sealed=True;row.sealed_at=timezone.now()
         row.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bound=bind(row.pk,expected_digest=row.digest,action_revision=action_revision)
+    bound=_binding(row,prepared,pick,expected_digest=row.digest,action_revision=action_revision)
     for name in TABLES:bound.verify_rows(name)
-    return row
+    return bound

@@ -32,6 +32,7 @@ PATHS=dict(zip(('sources/bpr/InTransitData','sources/planning/GoodsInTransitTran
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         producers=scoped_transit.recipe_digest(),models=inspect.getsource(models),
         sql_datetime=inspect.getsource(SqlDateTimeField)))
 
@@ -180,6 +181,10 @@ def bind(generation_id,*,expected_digest,action_revision):
     verify_guards()
     sources=scoped_sources.bind(row.phase_id,expected_digest=row.metadata.get('phase_digest'),
                                action_revision=action_revision)
+    return _binding(row,sources,expected_digest=expected_digest,action_revision=action_revision)
+
+
+def _binding(row,sources,*,expected_digest,action_revision):
     configuration=row.phase.snapshot.manifest['references']['profile']
     reports=row.metadata.get('transit',{})
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest
@@ -200,13 +205,23 @@ def prepare(phase_id,*,expected_digest,action_revision):
     CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     verify_guards()
     sources=scoped_sources.bind(phase_id,expected_digest=expected_digest,action_revision=action_revision)
+    bound=_prepare(phase,sources)
+    bind(bound.generation.pk,expected_digest=bound.generation.digest,action_revision=action_revision)
+    return bound.generation
+
+
+def _prepare(phase,sources)->TransitBinding:
+    from mta.presentation.scoped_preparation import require_sources
+    require_sources(phase,sources)
+    verify_guards()
+    phase_id=phase.pk;expected_digest=sources.acceptance_digest;action_revision=sources.action_revision
     recipe=recipe_digest()
     existing=models.ScopeTransitGeneration.objects.filter(phase=phase,action_revision=action_revision,
         source_digest=sources.source_digest,recipe_digest=recipe).first()
     if existing is not None:
         bound=bind(existing.pk,expected_digest=existing.digest,action_revision=action_revision)
         for name in TABLES:bound.verify_rows(name)
-        return existing
+        return bound
     row=models.ScopeTransitGeneration(run=sources.run,phase=phase,action_revision=action_revision,
         source_digest=sources.source_digest,configuration_digest=phase.snapshot.manifest['references']['profile'],
         recipe_digest=recipe)
@@ -229,5 +244,4 @@ def prepare(phase_id,*,expected_digest,action_revision):
         for name in TABLES:bound.verify_rows(name)
         row.digest=digest(row.metadata);row.sealed=True;row.sealed_at=timezone.now()
         row.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bind(row.pk,expected_digest=row.digest,action_revision=action_revision)
-    return row
+    return _binding(row,sources,expected_digest=row.digest,action_revision=action_revision)

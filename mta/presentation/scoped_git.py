@@ -19,6 +19,7 @@ ORDER=('rationed_ordinal','standard_ordinal','transporter_ordinal','sku_descript
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         models=inspect.getsource(models),producer=planning_git_preparation.scoped_recipe_digest(),
         dimensions=planning_git_preparation.DIMENSIONS,
         fields=[models.ScopeGitOccurrence._meta.get_field(f).deconstruct() for f in FIELDS]))
@@ -169,6 +170,10 @@ def bind(generation_id,*,expected_digest,action_revision):
         expected_report_digest=row.report_generation_digest,action_revision=action_revision,
         transit_generation_id=row.transit_generation_id,expected_transit_digest=row.transit_generation_digest)
     verify_guards()
+    return _binding(row,prepared,expected_digest=expected_digest,action_revision=action_revision)
+
+
+def _binding(row,prepared,*,expected_digest,action_revision):
     reports=prepared.reports.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
             or row.recipe_digest!=recipe_digest() or row.action_revision!=action_revision
@@ -188,12 +193,24 @@ def prepare(report_generation_id,*,expected_report_digest,expected_source_digest
     prepared=scoped_prepared.bind(report_generation_id,expected_digest=expected_source_digest,
         expected_report_digest=expected_report_digest,action_revision=action_revision,
         transit_generation_id=transit_generation_id,expected_transit_digest=expected_transit_digest)
+    bound=_prepare(prepared)
+    bind(bound.generation.pk,expected_digest=bound.generation.digest,action_revision=action_revision).verify_rows()
+    return bound.generation
+
+
+def _prepare(prepared)->GitBinding:
+    from mta.presentation.scoped_preparation import require_prepared,require_transit
+    require_prepared(prepared);require_transit(prepared)
+    reports=prepared.reports.generation
+    expected_report_digest=reports.digest;expected_source_digest=prepared.projection.digest
+    transit_generation_id=prepared.transit.generation.pk;expected_transit_digest=prepared.transit.generation.digest
+    action_revision=reports.action_revision
     verify_guards();recipe=recipe_digest()
     existing=models.ScopeGitGeneration.objects.filter(report_generation=reports,
         transit_generation_id=transit_generation_id,recipe_digest=recipe).first()
     if existing is not None:
         bound=bind(existing.pk,expected_digest=existing.digest,action_revision=action_revision)
-        bound.verify_rows();return existing
+        bound.verify_rows();return bound
     row=models.ScopeGitGeneration(run_id=reports.run_id,phase_id=reports.phase_id,
         action_revision=action_revision,source_digest=reports.source_digest,
         configuration_digest=reports.configuration_digest,recipe_digest=recipe,
@@ -213,6 +230,7 @@ def prepare(report_generation_id,*,expected_report_digest,expected_source_digest
         row.metadata=_identity(row,prepared,image);row.digest=digest(row.metadata)
         row.sealed=True;row.sealed_at=timezone.now()
         row.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bind(row.pk,expected_digest=row.digest,action_revision=action_revision).verify_rows()
-    return row
+    bound=_binding(row,prepared,expected_digest=row.digest,action_revision=action_revision)
+    bound.verify_rows()
+    return bound
 

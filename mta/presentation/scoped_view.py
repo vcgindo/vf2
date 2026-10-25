@@ -24,6 +24,7 @@ SCHEMA='fresh-bpr-read-reference-v1'
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         expedite_reader=scoped_expedite.recipe_digest()))
 
 
@@ -195,7 +196,7 @@ def _save(bpr,planning,git,expedition,files,configuration,request_digest):
 
 @transaction.atomic
 def prepare(phase_id,*,expected_digest,action_revision):
-    phase=RunPhaseAcceptance.objects.get(pk=phase_id)
+    phase=RunPhaseAcceptance.objects.select_related('snapshot').get(pk=phase_id)
     run=CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     configuration,request_digest=_configuration(run)
     verify_guards()
@@ -204,26 +205,29 @@ def prepare(phase_id,*,expected_digest,action_revision):
     if sources.inherited_btr is None:raise PublicationUnavailable('bpr_read_reference_inherited_btr_required')
     scoped_requests.bind(sources)
     files=scoped_pick_files.prepare(phase_id,expected_digest=expected_digest)
-    report=scoped_report_storage.prepare(phase_id,expected_digest=expected_digest,action_revision=action_revision)
-    projection=scoped_prepared.prepare(report.pk,expected_report_digest=report.digest,action_revision=action_revision)
-    planning=scoped_planning.prepare(report.pk,expected_source_digest=projection.digest,expected_report_digest=report.digest,action_revision=action_revision)
-    transit=scoped_transit_storage.prepare(phase_id,expected_digest=expected_digest,action_revision=action_revision)
-    pick=scoped_pick_storage.prepare(phase_id,expected_digest=expected_digest,action_revision=action_revision)
-    core=scoped_expedite_storage.prepare(report.pk,expected_report_digest=report.digest,expected_source_digest=projection.digest,
-        pick_generation_id=pick.pk,expected_pick_digest=pick.digest,action_revision=action_revision)
-    git=scoped_git.prepare(report.pk,expected_report_digest=report.digest,expected_source_digest=projection.digest,
-        transit_generation_id=transit.pk,expected_transit_digest=transit.digest,action_revision=action_revision)
+    # Pass admitted immutable dependencies forward instead of traversing the
+    # same graph at every stage. Keep the exact optional capabilities used by
+    # each public binder; they form part of downstream read identities.
+    nms_sources=replace(sources,inherited_btr=None)
+    plain_sources=replace(nms_sources,_images={name:item for name,item in sources._images.items()
+        if name!='closing/consumer_context/NMSAllItems'})
+    reports=scoped_report_storage._prepare(phase,plain_sources)
+    prepared=scoped_prepared._prepare(reports,plain_sources)
+    nms_prepared=replace(prepared,sources=nms_sources)
+    planning=scoped_planning._prepare(nms_prepared)
+    transit=scoped_transit_storage._prepare(phase,plain_sources)
+    pick=scoped_pick_storage._prepare(phase,plain_sources)
+    core=scoped_expedite_storage._prepare(nms_prepared,pick)
+    git=scoped_git._prepare(replace(prepared,transit=transit))
     # Independent preparation is complete before briefly fencing this prefix.
     RemarkOwner.objects.select_for_update().get(pk='BPRReport_RemarkDetails')
-    parent=scoped_expedite_parent.prepare(core.pk,expected_core_digest=core.digest,action_revision=action_revision)
-    parent=scoped_expedite_parent.bind(parent.pk,expected_digest=parent.digest,action_revision=action_revision)
-    expedition=scoped_expedite.ExpediteBinding(parent.core,parent,
-        scoped_transit_storage.bind(transit.pk,expected_digest=transit.digest,action_revision=action_revision),scoped_requests.bind(sources))
-    bpr=scoped_prepared.bind(report.pk,expected_digest=projection.digest,expected_report_digest=report.digest,action_revision=action_revision,
-        include_inherited_btr=True,include_nms=True,include_remarks=True,transit_generation_id=transit.pk,expected_transit_digest=transit.digest)
-    return _save(bpr,scoped_planning.bind(report.pk,expected_digest=planning.digest,expected_source_digest=projection.digest,
-        expected_report_digest=report.digest,action_revision=action_revision),scoped_git.bind(git.pk,expected_digest=git.digest,action_revision=action_revision),
-        expedition,files,configuration,request_digest)
+    from mta.presentation import scoped_remarks
+    remarks=scoped_remarks.bind(nms_sources,configuration_digest=reports.generation.configuration_digest)
+    parent=scoped_expedite_parent._prepare(core,remarks,
+        expected_core_digest=core.generation.digest,action_revision=action_revision)
+    expedition=scoped_expedite.ExpediteBinding(core,parent,transit,scoped_requests.bind(sources))
+    bpr=replace(prepared,sources=sources,remarks=remarks,transit=transit)
+    return _save(bpr,planning,git,expedition,files,configuration,request_digest)
 
 
 @transaction.atomic

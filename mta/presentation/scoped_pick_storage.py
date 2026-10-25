@@ -23,6 +23,7 @@ def fields(name):
 def recipe_digest():
     from mta.runtime.models import BprNumericField
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         source_queries=queries.recipe_digest(),models=inspect.getsource(models),numeric=inspect.getsource(BprNumericField),
         fields={name:[model._meta.get_field(f).deconstruct() for f in fields(name)] for name,model in TABLES.items()}))
 
@@ -168,6 +169,10 @@ def bind(generation_id,*,expected_digest,action_revision):
     except ObjectDoesNotExist as error:raise PublicationUnavailable('bpr_pick_view_generation_missing') from error
     sources=scoped_sources.bind(row.phase_id,expected_digest=row.metadata.get('phase_digest'),action_revision=action_revision)
     verify_guards()
+    return _binding(row,sources,expected_digest=expected_digest,action_revision=action_revision)
+
+
+def _binding(row,sources,*,expected_digest,action_revision):
     pick=row.metadata.get('pick',{})
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
             or row.run_id!=sources.run.pk or row.action_revision!=action_revision
@@ -187,13 +192,24 @@ def prepare(phase_id,*,expected_digest,action_revision):
     CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     verify_guards()
     sources=scoped_sources.bind(phase_id,expected_digest=expected_digest,action_revision=action_revision)
+    bound=_prepare(phase,sources)
+    bind(bound.generation.pk,expected_digest=bound.generation.digest,action_revision=action_revision)
+    for name in TABLES:bound.verify_rows(name)
+    return bound.generation
+
+
+def _prepare(phase,sources)->PickBinding:
+    from mta.presentation.scoped_preparation import require_sources
+    require_sources(phase,sources)
+    verify_guards()
+    phase_id=phase.pk;expected_digest=sources.acceptance_digest;action_revision=sources.action_revision
     recipe=recipe_digest()
     existing=models.ScopePickGeneration.objects.filter(phase=phase,source_digest=sources.source_digest,
         action_revision=action_revision,recipe_digest=recipe).first()
     if existing is not None:
         bound=bind(existing.pk,expected_digest=existing.digest,action_revision=action_revision)
         for name in TABLES:bound.verify_rows(name)
-        return existing
+        return bound
     context=queries.bind_sources(sources)
     row=models.ScopePickGeneration(run=sources.run,phase=phase,action_revision=action_revision,
         source_digest=sources.source_digest,configuration_digest=phase.snapshot.manifest['references']['profile'],recipe_digest=recipe)
@@ -213,6 +229,6 @@ def prepare(phase_id,*,expected_digest,action_revision):
         row.metadata=_identity(row,sources,pick);row.digest=digest(row.metadata)
         row.sealed=True;row.sealed_at=timezone.now()
         row.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bound=bind(row.pk,expected_digest=row.digest,action_revision=action_revision)
+    bound=_binding(row,sources,expected_digest=row.digest,action_revision=action_revision)
     for name in TABLES:bound.verify_rows(name)
-    return row
+    return bound

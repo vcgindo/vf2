@@ -33,6 +33,7 @@ TABLES={
 
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
+        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
         models=inspect.getsource(models),numeric=inspect.getsource(models.BprNumericField),
         bpr_schema=schema_digest(),candidate=inspect.getsource(bpr_candidate_sql),
         planning=inspect.getsource(planning_source_sql)))
@@ -213,12 +214,7 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
     try:projection=models.ScopeSourceProjection.objects.get(generation=reports.generation)
     except ObjectDoesNotExist as error:raise PublicationUnavailable('bpr_source_projection_missing') from error
     verify_guards()
-    if (not projection.sealed or projection.sealed_at is None or projection.digest!=expected_digest
-            or projection.digest!=digest(projection.metadata) or projection.recipe_digest!=recipe_digest()
-            or projection.report_generation_digest!=reports.generation.digest
-            or set(projection.metadata.get('images',{}))!=set(TABLES)
-            or projection.metadata!=_identity(reports.generation,projection.recipe_digest,projection.metadata['images'])):
-        raise PublicationUnavailable('bpr_source_projection_identity_differs')
+    _verify_projection(projection,reports,expected_digest=expected_digest)
     sources=scoped_sources.bind(reports.generation.phase_id,
         expected_digest=reports.generation.metadata['phase_digest'],action_revision=action_revision,
         include_inherited_btr=include_inherited_btr,include_nms=include_nms)
@@ -241,6 +237,15 @@ def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,
     return PreparedBinding(projection,reports,sources,remarks,transit)
 
 
+def _verify_projection(projection,reports,*,expected_digest):
+    if (not projection.sealed or projection.sealed_at is None or projection.digest!=expected_digest
+            or projection.digest!=digest(projection.metadata) or projection.recipe_digest!=recipe_digest()
+            or projection.report_generation_digest!=reports.generation.digest
+            or set(projection.metadata.get('images',{}))!=set(TABLES)
+            or projection.metadata!=_identity(reports.generation,projection.recipe_digest,projection.metadata['images'])):
+        raise PublicationUnavailable('bpr_source_projection_identity_differs')
+
+
 @transaction.atomic
 def prepare(generation_id,*,expected_report_digest,action_revision):
     from mta.runtime.models import CalculationRun,ScopeReportGeneration
@@ -249,6 +254,18 @@ def prepare(generation_id,*,expected_report_digest,action_revision):
     reports=facts.bind(generation_id,expected_digest=expected_report_digest,action_revision=action_revision)
     verify_guards()
     sources=scoped_sources.bind(generation.phase_id,expected_digest=generation.metadata['phase_digest'],action_revision=action_revision)
+    bound=_prepare(reports,sources)
+    bind(generation.pk,expected_digest=bound.projection.digest,
+        expected_report_digest=generation.digest,action_revision=action_revision)
+    return bound.projection
+
+
+def _prepare(reports,sources)->PreparedBinding:
+    from mta.presentation.scoped_preparation import require_reports
+    require_reports(reports,sources)
+    verify_guards()
+    generation=reports.generation
+    expected_report_digest=generation.digest;action_revision=generation.action_revision
     existing=models.ScopeSourceProjection.objects.filter(generation=generation).first()
     if existing is not None:
         bound=bind(generation.pk,expected_digest=existing.digest,
@@ -256,7 +273,7 @@ def prepare(generation_id,*,expected_report_digest,action_revision):
         for name in TABLES:
             if _receipt(generation,name)!=bound.projection.metadata['images'][name]:
                 raise PublicationUnavailable('bpr_source_projection_repeat_differs:'+name)
-        return existing
+        return bound
     projection=models.ScopeSourceProjection(generation=reports.generation,
         report_generation_digest=expected_report_digest,recipe_digest=recipe_digest())
     with _owner(generation.pk):
@@ -272,6 +289,5 @@ def prepare(generation_id,*,expected_report_digest,action_revision):
         projection.metadata=_identity(generation,projection.recipe_digest,images)
         projection.digest=digest(projection.metadata);projection.sealed=True;projection.sealed_at=timezone.now()
         projection.save(update_fields=['metadata','digest','sealed','sealed_at'])
-    bind(generation.pk,expected_digest=projection.digest,
-        expected_report_digest=generation.digest,action_revision=action_revision)
-    return projection
+    _verify_projection(projection,reports,expected_digest=projection.digest)
+    return PreparedBinding(projection,reports,sources)
