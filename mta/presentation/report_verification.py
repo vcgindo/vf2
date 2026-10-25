@@ -272,7 +272,11 @@ def audit_native_rows(run, source):
         special = {daily_opening_sob.PATH, daily_sources.COLOR_PATH, daily_requests.PATH,
                    *daily_transit.MODELS, *ancillary_live.PATHS.values()}
         for path, item in source.images.items():
-            if path not in special:
+            if item.get('table', '').startswith('bpr_history/'):
+                # The supplementary owner validates its own immutable receipt,
+                # private typed registry and complete row digests.
+                daily_sources.image_rows(run, path)
+            elif path not in special:
                 for _ in iter_image(run, item):
                     pass
     immutable_audit(run, ('complete-native-rows', source.images_digest,

@@ -102,7 +102,9 @@ class VerificationBoundaryTests(TestCase):
         profile = {'native': 'configured'}
         source = NS()
         run = NS(production_manifest={'version': 3})
-        receipt = NS(images={}, images_digest='source-images', recipe_digest='source-recipe')
+        receipt = NS(images={'sources/production/BOR_OrderAllocationHistory': {'table': 'bpr_history/BOR_OrderAllocationHistory'},
+                             'sources/ordinary': {'table': 'ordinary'}},
+                     images_digest='source-images', recipe_digest='source-recipe')
         with ExitStack() as stack:
             capture = stack.enter_context(patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects.select_related'))
             capture.return_value.get.return_value = NS(source=source)
@@ -115,7 +117,11 @@ class VerificationBoundaryTests(TestCase):
             outputs = stack.enter_context(patch('mta.runtime.receipt_integrity.audit_output'))
             stack.enter_context(patch('mta.runtime.services.read_outputs', side_effect=AssertionError('discarded graph')))
             stack.enter_context(patch('mta.presentation.operational_reports.generation', side_effect=AssertionError('derived readiness')))
+            private_rows = stack.enter_context(patch('mta.presentation.daily_sources.image_rows', return_value=[]))
+            ordinary_rows = stack.enter_context(patch('mta.runtime.relational_state.iter_image', return_value=iter(())))
             verification.audit_native_rows(run, receipt)
+        private_rows.assert_called_once_with(run, 'sources/production/BOR_OrderAllocationHistory')
+        ordinary_rows.assert_called_once_with(run, {'table': 'ordinary'})
         opening.assert_called_once_with(source)
         root.assert_called_once_with(run)
         inputs.assert_called_once_with(run)
