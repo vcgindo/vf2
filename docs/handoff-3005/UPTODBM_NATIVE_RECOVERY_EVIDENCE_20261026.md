@@ -494,3 +494,88 @@ compatible rollback after committed references. Then real authenticated Chrome
 action-to-usable timing at matched resources/data. No new latency claim is made.
 Existing scale, filesystem-arrival/cancelled-download and native Full/split
 obligations remain open; later PostDBM/final Full require release, G3 is deferred.
+
+### Native live-reference upgrade and rollback workflows
+
+Implementation `9b639788` adds the supported exact226-to228 schema/release
+transition. Its first packaged attempt correctly rejected an incomplete delta:
+the fresh226 namespace had no schema-transition authority table, while the
+supported upgrader creates the existing immutable registrar-owned table.
+The original source-mounted diagnostic had omitted this bootstrap. An additional
+rollback diagnostic independently reproduced the entire native delta: all21
+original entries unchanged plus20 bootstrap entries. Schema, migration history
+and affected rows returned exactly to their original state after rollback.
+The original rejection and both diagnostics are retained; no acceptance check
+was bypassed. Migration0227's native pin uses LF bytes; the original diagnostic
+used CRLF. Its SQL is unchanged. Migration0228 bytes are unchanged.
+
+Correction `a60042fa` pins the complete delta `ccbcd11a…` and schema `0fab95b7…`.
+The34 focused transition/authority/read-cut tests pass. Nativev9 image
+`sha256:80ab54b1a44f0454e11d1293cb2c9dd9c54746170adf0d356e4faf19e9fe92ff`,
+manifest `4509f8475270c983501f7f1cb871d41e2b83ccee704bb3f0c37007ed90130ebb`,
+was built from committed source `a60042fa3b26fc7c5730bbcd1c9a43d37afbca28`.
+The rejectedv8 image was never activated. No frontend/MTO/business-rule changes.
+
+The actual supported upgrade first injected a failure after successful target
+admission. DDL, authority history, migration records and affected rows rolled
+back exactly. The subsequent real upgrade committed only in namespace508161,
+preserving the original certificate `887208f0…`, all old row values/multiplicity
+and prior authority records. One target authority/compatibility entry per table
+was appended. Repeating the supported upgrade returned
+`EXISTING_SCHEMA_TRANSITION_VERIFIED` without changes. The physical guard digest
+is `ad6b00d7…`; new function OIDs are captured rather than assumed portable.
+
+Derived-only preparation produced reference `68024d47` over the unchanged
+accepted phases and revision4. All26 complete report populations equal the
+retained baseline (`7af98467…`). Every old row remains; only derived owners and
+occurrences were appended. Repeating preparation changes nothing. The old
+selection file remains intact; `phase-selection-v8.json` and its corresponding
+runtime environment select the new graph. The filename denotes this reference
+integration generation; the executable image is the corrected nativev9 above.
+Current preserved header/table fingerprint is `602dff9467abd70824029c3f5c836933b1a9e5b4fac5bc1407d7af792347a178`.
+
+Actual packaged runtime-role Apply, Sleep and no-op pass full canonical action
+state, all26 report populations, unchanged immutable report owners, exact
+successor-reference identity, idempotent replay, stale-revision/missing-identity
+denial and final-selection failure rollback. Three interleavings also pass:
+Apply/Sleep/repeat, Sleep/remark/Apply and remark/Apply/remark. They check complete
+action state and independent report rows, remark history/parent visibility,
+current command/remark revisions and immediate deferred-constraint validation.
+The rollback harness initially left constraints immediate between simulated
+requests; its corrected version restores deferred mode after each successful
+constraint check. The failed log remains. Full independent remark-parent query
+parity and durable multi-transaction sequence acceptance are not claimed here.
+
+Eight injected publication failures preserve the exact starting fingerprint:
+after command seal, after action-reference insertion, during remark projection,
+after remark-reference insertion, after final action/remark selection and
+simulated action/remark commit-driver failures. The latter are exceptions before
+database COMMIT, not server-crash or ambiguous-commit proofs. All trial actions
+and remarks rolled back; the original3 commands/revision4 and remaining
+Z9/PARENT suggestion survive. No accepted calculation was replayed.
+
+Unprofiled native handler timings under the same resource caps: Apply5.454s /
+1045SQL, Sleep5.562s /1049SQL, no-op5.977s /1045SQL; priorv7 Apply12.038s /
+3009SQL. This proves further work reduction, not latency acceptance. A separate
+cProfile Apply is9.185s including instrumentation: two selected-view traversals
+7.149s,385 digests4.922s,30 accepted-phase checks3.376s,31 phase-recipe hashes
+2.138s,30 typed-input reads2.072s and canonical recording0.871s. These nested
+times overlap and cannot be added. No report preparation occurs in DBM actions.
+Remaining work is repeated selected-view/input/recipe validation, not evidence
+for new hardware or business-rule changes. Real Chrome and scale remain open.
+
+Prior canonical/stockout/lowstock and copied-run checks, database identities and
+global roles remain unchanged. Protected source HBA/owner hashes, zero slots/
+workers and8080 readiness/body match. Retained files plus privatePG total
+3,105,871,146bytes before final evidence assembly, below4GiB. PrivatePGdfdfcebb
+stopped at2026-10-25T21:18:24.93176121Z with no worker/other clients, unchanged
+mounts and all databases retained. Serving8080 was not changed.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/live-reference-native-result.json`,
+SHA256 `920d43084846852fbc87d916d0877808cc56d2c6df00a3e159236361b9a51f20`.
+It pins native candidates, upgrade/reprepare/action/sequence/fault/profile proofs,
+drivers and preservation records. Still required: committed-reference restart,
+interruption/retry and compatible recovery; concurrent reads/downloads; remaining
+native negative cases; full remark-parent comparison; roughly2s real-Chrome
+action-to-usable and scale evidence. Later lifecycle boundaries remain as above.
