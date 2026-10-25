@@ -7,7 +7,7 @@ django.setup()
 import unittest
 from uuid import uuid4
 from unittest.mock import patch
-from mta.presentation import request_scope, scoped_dbm_stop, scoped_dbm_view
+from mta.presentation import request_scope, scoped_dbm_stop, scoped_dbm_view, scoped_sources
 from test_remark_validation_scope import Database
 
 
@@ -25,6 +25,7 @@ class ScopedPhaseValidationTests(unittest.TestCase):
                 with request_scope.validation_reads():
                     before = scoped_dbm_view._accepted(str(self.phase_id), 'digest')
                     self.assertIs(scoped_dbm_stop._accepted(self.phase_id, 'digest'), before)
+                    self.assertIs(scoped_sources._accepted_phase(self.phase_id, 'digest'), before)
                     self.assertEqual(verify.call_count, 1)
                 self.database.execute('UPDATE command SET revision=2')
                 with request_scope.validation_reads():

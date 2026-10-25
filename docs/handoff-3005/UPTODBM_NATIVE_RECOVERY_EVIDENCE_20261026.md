@@ -652,3 +652,63 @@ and grid requests after action success; endpoint time alone cannot close that
 acceptance. The next performance boundary is repeated validation within each
 existing read traversal, retaining fresh post-write checks. A smaller final
 validator is not yet qualified and must not replace those checks implicitly.
+
+### Shared phase validation within each existing read pass
+
+Implementation `3ff09f30` changes only `scoped_dbm_stop` and `scoped_dbm_view`.
+Their shared adapter normalizes UUID/text phase IDs before the existing
+`scoped_sources._accepted_phase` cache. The original runtime verifier still
+validates the complete recursive ancestry on a cache miss. No cache lifetime
+extends across a write or independent read pass. Current head/revision checks,
+actionable-scope SQL, permissions and the independent final selection remain.
+The changed consumers only read the shared phase objects. Independent bounded
+review found no correctness blocker. Focused39 tests:37 passed/2 existingPG
+skipped;5 adapter tests also passed after strengthening direct-source sharing.
+
+Nativev11 image `870f0373ca566552fd8d58131cf093fc51d09ed56df0a519b8ad618e23f053db`,
+manifest `72f631debfeee74025c2fc7233509b2fa5b4c65973868f743346f8ecac195c0c`,
+has unchanged runtime implementation/migrations/phase source. Code-only admission
+preserved the original certificate, schema0fab95b7, guards and complete affected
+rows. Normal selection reanchoring changes only consumer recipe/selection digests;
+the reference782a010f and all26 report populations remain exact. No derived report
+generation is rebuilt or relabelled. The start precondition correctly kept the
+privatePG stopped while the candidate image was still building; it was started
+only after the build completed and its physical identity/caps were verified.
+
+Packaged runtime Apply/Sleep/no-op, canonical complete-state equality, replay,
+stale/unauthenticated denial, action/remark interleavings, eight fault-site
+rollbacks and late/mixed-owner negative cases pass. Unprofiled native actions:
+Apply3.662s/966SQL, Sleep4.086s/969SQL, no-op4.723s/966SQL. These isolated timings
+do not establish a stable improvement over the previous build.
+
+A matched baseline/reuse/reuse/baseline run used the same packaged build and
+unchanged four-command fixture. Baseline adapters called the unchanged runtime
+verifier directly; reuse used the new adapter. Complete canonical action state,
+all26 reports, unchanged generation owners and exact rollback were checked for
+every sample. Baseline4.001s/3.842s versus reuse4.716s/3.541s overlaps and is noisy;
+there is no supported elapsed-time improvement claim. Deterministic work falls
+from998 to966SQL and22 to10 recursive verifier calls. Both selections execute:
+each reuse pass performs5 recursive checks and reads its correct pre/post action
+revision/reference. An additional injected failure in the actual runtime phase
+verifier after the write proves the preflight cache cannot bypass final validation;
+the entire command/reference is rolled back.
+
+Current state remains4 commands/revision65/reference782a010f/fingerprint59a0ff04,
+with the positiveZ9 recommendation intact. Prior trials/copied runs, database
+identities and global roles pass preservation. Protected HBA6183a9be/ownersd42a7b5e,
+zero slots/workers and8080 readiness/body remain exact. Private/evidence footprint
+measured3,217,416,837bytes before final evidence assembly, below4GiB. PrivatePG
+stopped at2026-10-25T22:05:24.10509086Z with no worker/other clients and retained
+mounts/databases. Serving8080, frontend and MTO are unchanged.
+
+Consolidated evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/phase-validation-result.json`,
+SHA256 `0ff29f44d3f4d0958816eb2630ef0c7ad3a38b87d5b2f3572d9583bf5b17026e`,
+pins28 candidate/proof/driver files. This closes the bounded reuse correctness
+and operation-count proof, not latency acceptance. Further local cache experiments
+are not justified by these timings alone. The remaining architectural boundary
+is action validation versus full report-view construction: specify every current
+selection check, its state owner and required freshness before choosing any
+smaller action path. Current full post-write validation remains mandatory until
+an equivalent replacement is qualified. Real Chrome click-to-usable, required
+scale and previously recorded lifecycle/recovery limits remain open.
