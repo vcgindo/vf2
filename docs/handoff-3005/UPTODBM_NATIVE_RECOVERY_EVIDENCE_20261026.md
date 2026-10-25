@@ -244,3 +244,65 @@ files and source-boundary proof. Protected source fingerprints and 8080 readines
 were unchanged. Measured private storage/evidence was 2,880,515,121 bytes, below
 4 GiB. The private PG was stopped at `2026-10-25T19:44:53.391828728Z`, retaining
 all databases/mounts; earlier trial and global role preservation checks passed.
+
+### Certified DBM action-state reader
+
+Commit `59854f3d` narrows only the native certified UptoDBM action reader.
+Apply/Sleep need DBMMaster, Suggestions, NormAcceptanceTbl and
+NormsInSleepModeTbl; they previously restored the entire calculation phase,
+opening and unrelated consumers. The native certified path now reads those
+four exact typed images. BPR actions, older/component owners and downstream
+calculation restoration retain their existing full reader.
+
+The source/run locks, actionable head, current source cut, canonical command
+calculation, immutable accepted prefix and complete command-chain checks remain
+in place. Fresh input metadata is validated on each action. The prefix reader
+retains capture locking by default; only the already locked action path uses
+read-only capture access, matching the existing runtime grants. Every chain
+verification uses a fresh copy of the immutable base. There is no cross-write
+cache or grant/schema change.
+
+Focused tests: 50 passed, two PostgreSQL-only cases skipped locally. An
+independent review found no concrete defect. The native source manifest
+`6b9140ee3731999b264ba3b9af287e3bcece98ff9b7b6296b739d77d51ed96b3`
+and image `4bd04322ff264127f9b4a544dff89f3e876cabe23e555334a9987a31147e2d7b`
+change only `scoped_actions.py` and `scoped_final.py` relative to the prior
+qualified image. Phase recipes, calculation code, migrations and initialization
+implementation are unchanged. Code-only admission is confined to namespace
+508161; its original certificate, schema/security and affected rows are retained.
+
+Native exact-state comparison, including stored field rosters and the existing
+three-command chain, passed. Under the same PostgreSQL 384 MiB/0.5 CPU and worker
+4 GiB/2 CPU limits, full restoration took 3.037 seconds/763 SQL calls; the four
+table read took 0.071 seconds/15 calls. This is a reader measurement, not a
+whole-action or browser latency claim. All evidence remains in
+`three-day-positive-test/action-subset-*`; no serving 8080 deployment occurred.
+
+The packaged runtime proof subsequently passed positive Apply, positive Sleep,
+Sleep no-op, canonical complete-state equality, idempotent replay, stale-revision
+rejection, missing-identity rejection and a late composed-view failure. Every
+trial action was rolled back. The exact affected-table/header fingerprint
+`593a59703c77ffd639997165cabc6b8705b43a96ba8d7ec69cb5877836406603`,
+three commands, revision four and the remaining Z9/PARENT recommendation survive.
+No downstream phase was executed.
+
+| Complete native handler, same build and resource limits | Time | SQL calls |
+| --- | ---: | ---: |
+| Apply with previous full-restore reader | 19.714 s | 5,144 |
+| Apply with four-table reader | 19.303 s | 4,396 |
+| Sleep with four-table reader | 17.167 s | 4,400 |
+| Sleep no-op with four-table reader | 16.172 s | 4,396 |
+
+The complete request remains too slow. This single paired Apply observation does
+not establish a material latency improvement; the reader removes measured work,
+but the report dependency rebuild remains the active performance problem.
+It is not browser/click-to-usable-screen acceptance.
+
+Earlier trial headers, copied database, global roles/database identities,
+protected-source fingerprints and 8080 readiness passed preservation checks.
+Private storage/evidence measured 2,936,274,580 bytes, below 4 GiB. Private PG
+stopped at `2026-10-25T20:03:13.835858513Z` with unchanged mounts, no worker or
+other clients, and every database retained. Consolidated
+`action-subset-result.json` SHA256
+`9c71f3ebfb9b47aa59492ec98df2fe880574bf1cb21c9f01af95d0bdbc972e33`
+pins the native proof, candidate, transition, preservation and driver files.
