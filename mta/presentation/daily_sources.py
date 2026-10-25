@@ -20,8 +20,37 @@ def recipe_digest():
     from mta.presentation.daily_transit import recipe_digest as transit_recipe
     from mta.presentation.daily_opening_sob import recipe_digest as sob_recipe
     from mta.presentation.production_reports import recipe_digest as report_recipe
-    return digest(dict(version=4, writer=inspect.getsource(write_sources), sob=sob_recipe(),
+    return digest(dict(version=5, writer=inspect.getsource(write_sources),
+                       transit_factor=inspect.getsource(_transit_factor), sob=sob_recipe(),
                        transit=transit_recipe(), reports=report_recipe()))
+
+
+def _transit_factor(run, current_settings):
+    """Use the captured Importer owner, not an optional DBM rule projection."""
+    from mta.runtime.input_reader import read_input
+    from mta.domain.complete_daily_scalars import ascii_equal
+    from mta.domain.dbm_conditional import validate_settings_rows
+    profile = read_input(run, components=('profile',))['profile']
+    delivery = profile.get('delivery', {})
+    settings_rows = delivery.get('btr_history', {}).get('importer_vf_settings')
+    current = [row['Value'] for row in current_settings if row['Parameter'] == 'SuperDelayFactor']
+    if settings_rows is None:
+        if len(current) != 1:
+            raise ValueError('Exactly one current SuperDelayFactor required')
+        return current[0]
+    settings_rows = list(settings_rows)
+    validate_settings_rows(settings_rows)
+    factors = [row for row in settings_rows if ascii_equal(row['Parameter'], 'SuperDelayFactor')]
+    if len(factors) != 1:
+        raise ValueError('Exactly one captured SuperDelayFactor required')
+    other = delivery.get('conditional_dbm', {}).get('importer_vf_settings', [])
+    validate_settings_rows(list(other))
+    conflicts = [row for row in other if ascii_equal(row['Parameter'], 'SuperDelayFactor')]
+    if conflicts and conflicts != factors:
+        raise ValueError('Captured Importer VFSettings factor declarations differ')
+    if current and current != [factors[0]['Value']]:
+        raise ValueError('Current DBM and captured Importer SuperDelayFactor differ')
+    return factors[0]['Value']
 
 
 def write_sources(run, output, *, opening=None, _sources=None):
@@ -71,9 +100,7 @@ def write_sources(run, output, *, opening=None, _sources=None):
         def current(path):
             return load_image(run, run.production_manifest['images'][path])
         settings_rows = current('closing/dbm/VFSettings')
-        factors = [row['Value'] for row in settings_rows if row['Parameter'] == 'SuperDelayFactor']
-        if len(factors) != 1:
-            raise ValueError('Exactly one current SuperDelayFactor required')
+        factor = _transit_factor(run, settings_rows)
         directory_source = prior.get('transporter_input')
         if directory_source is not None:
             from mta.application.production_source_inputs import validate, SCHEMA
@@ -92,7 +119,7 @@ def write_sources(run, output, *, opening=None, _sources=None):
             standards=current('closing/dbm/SKULocStandardAttributes'),
             directory=directory,
             rationed_report=current('reports/bpr/vf_RationedReqReport'),
-            super_delay_factor=factors[0],
+            super_delay_factor=factor,
             run_timestamp=datetime.combine(run.business_date, datetime.min.time())))
     if len(json.dumps(images)) > 65536:
         raise ValueError('Daily source metadata exceeds finite bound')
