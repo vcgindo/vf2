@@ -90,6 +90,19 @@ def dispatch(function, request, payload, arguments):
         rows = view.bpr.sources.rows('closing/importer/LocationAttributeData')
         values = list(dict.fromkeys(row['LocationType'] for row in rows if row['LocationType'] is not None))
         return views.envelope(data=json.dumps([dict(lt=v) for v in values], separators=(',', ':'), ensure_ascii=False))
+    if name == 'dbm_data':
+        from mta.presentation.scoped_dbm import bind
+        paging = views._pagination(payload)
+        if paging is None: raise ValueError('invalid_pagination')
+        context = bind(view.bpr.sources.acceptance_id,
+            expected_digest=view.bpr.sources.acceptance_digest,
+            action_revision=view.bpr.sources.action_revision)
+        rows = views.dbm_filtered(context, payload)
+        if count: return views.envelope(record_count=str(len(rows)))
+        page, size = paging
+        return views.envelope(data=views.scalar_json_rows([
+            {k: v for k, v in row.items() if v is not None}
+            for row in rows[(page - 1) * size:page * size]]))
     if name == 'planning_overview':
         from mta.presentation.scoped_overview import read
         values, business_date = read(view, payload)

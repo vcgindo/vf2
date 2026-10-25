@@ -36,10 +36,15 @@ def state_for(phase):
 
 def state_after(run,receipt,phase,*,expected_revision):
     """Validate exact canonical effects against every retained typed action image."""
+    return _state_after(run,receipt,state_for(phase),phase.context.action_revision,
+                        expected_revision=expected_revision)
+
+
+def _state_after(run,receipt,state,initial_revision,*,expected_revision):
     from mta.runtime.models import RunCommand
     from mta.runtime.relational_state import load_image
     from mta.temporal.actions import apply_command
-    state=state_for(phase);current=phase.context.action_revision
+    current=initial_revision
     for event in RunCommand.objects.filter(run=run,phase_acceptance=receipt).order_by('id'):
         if (not event.state_sealed or digest(event.payload)!=event.digest
                 or event.scope_parent_revision!=current or digest(state)!=event.before_digest
