@@ -1,7 +1,8 @@
 """Finite code-only recovery of the owned25Oct archive-prefix failure.
 
 Authenticate the old frozen request; never rewrite it or widen worker authority.
-All native code except this adapter and its two entry files must be unchanged.
+All native code except the recovery entries and accepted-master metadata
+publication files must be unchanged. Calculation producers and SQL stay pinned.
 """
 import json
 from pathlib import Path
@@ -24,8 +25,9 @@ PREVIOUS=dict(schema='vectorflow-native-release-source-v1',
     implementation_sha256='9a6b0f781076eaceb4ee43b39ade2de08ad80a500636873a96c4fd124bcd48a4')
 ENTRY_FILES=frozenset(('mta/runtime/production_upto_dbm.py',
     'mta/runtime/scoped_dbm_archive_recovery.py',
-    'mta/runtime/management/commands/run_production_upto_dbm.py'))
-PROTECTED='6081a7198d7db5c6e7ac77b912cbbe6bab6dd6b45ef4c87710f08c6c814c6e2d'
+    'mta/runtime/management/commands/run_production_upto_dbm.py',
+    'mta/runtime/calculation_effects.py','mta/runtime/master_revisions.py'))
+PROTECTED='9baec3d11436f7967964ca95b530a63861ad971f2e7ec1edbbc49fabac3c0689'
 
 
 def unchanged_sources(files):

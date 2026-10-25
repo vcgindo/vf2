@@ -50,7 +50,8 @@ def _phase_roots(phase):
         if path!='phase/'+phase.phase+'/importer/'+name:
             raise ValueError('Prepared master logical image differs')
         image=phase.snapshot.manifest['images'][path]
-        if image['table']!='Importer/'+name or not image['image'].startswith(('phase/PRE_BPR/','phase/BPR/')):
+        allowed=('phase/PRE_BPR/','phase/BPR/')+(('phase/DBM/',) if phase.phase=='DBM' else ())
+        if image['table']!='Importer/'+name or not image['image'].startswith(allowed):
             raise ValueError('Prepared master physical image differs')
         result[name]=dict(image=image['image'],count=image['count'],digest=image['digest'],
             fields=[field for field,*_ in image['fields'] if field!='Norm'])
@@ -65,7 +66,7 @@ def _validate_phase(value,initialization_id):
         raise ValueError('Prepared master partition contract differs')
     phase=_accepted(value['phase_id'],value['phase_digest'])
     owner=ProductionInitialization.objects.select_related('source').get(pk=initialization_id)
-    if (phase.phase not in ('PRE_BPR','BPR') or phase.source_id!=owner.source_id
+    if (phase.phase not in ('PRE_BPR','BPR','DBM') or phase.source_id!=owner.source_id
             or str(phase.run_id)!=value['run_id'] or value['source_digest']!=owner.source.digest
             or value['input_manifest_digest']!=phase.run.input_manifest_digest
             or value['snapshot_digest']!=phase.snapshot.state_digest
@@ -76,7 +77,7 @@ def _validate_phase(value,initialization_id):
     return phase.run
 
 
-def accept_phase(phase):
+def accept_phase(phase,*,released_dbm=False):
     """Publish static-master metadata in the same accepted preparation transaction."""
     from mta.runtime.input_reader import read_input
     from mta.runtime.models import ProductionInitialization
@@ -89,12 +90,12 @@ def accept_phase(phase):
                   content_digest=owner.input_digest,configuration_digest=owner.configuration_digest)
     if binding!=expected:
         raise ValueError('Prepared master initialization binding differs')
-    return _accept_phase(phase,owner)
+    return _accept_phase(phase,owner,released_dbm=released_dbm)
 
 
-def _accept_phase(phase,owner):
+def _accept_phase(phase,owner,*,released_dbm=False):
     from mta.runtime.ingestion_models import IngestionRevisionState,MasterInputRevision
-    if not connection.in_atomic_block or phase.phase not in ('PRE_BPR','BPR') or not phase.state_sealed:
+    if not connection.in_atomic_block or phase.phase not in ('PRE_BPR','BPR','DBM') or not phase.state_sealed:
         raise ValueError('Prepared master acceptance requires its sealed phase transaction')
     value=dict(contract=PHASE_CONTRACT,run_id=str(phase.run_id),source_digest=owner.source.digest,
         input_manifest_digest=phase.run.input_manifest_digest,phase_id=str(phase.pk),
@@ -104,8 +105,10 @@ def _accept_phase(phase,owner):
     from mta.runtime import scope_revisions
     captured=scope_revisions.identity(phase.run)
     cut=scope_revisions.require_current(phase.run)
+    if released_dbm:
+        _require_released_dbm(phase)
     if (captured is None or captured['initialization_id']!=str(owner.pk)
-            or cut is None or cut!=value['revision_cut']):
+            or cut is None or (cut[:2]!=value['revision_cut'][:2] if released_dbm else cut!=value['revision_cut'])):
         raise ValueError('Prepared master requires its exact owned acceptance cut')
     state=IngestionRevisionState.objects.select_for_update().get(initialization_id=owner.pk)
     revisions=MasterInputRevision.objects.filter(initialization_id=owner.pk,status='ACCEPTED')
@@ -120,6 +123,45 @@ def _accept_phase(phase,owner):
     candidate=MasterInputRevision.objects.create(**body,receipt_digest=receipt(body))
     candidate.status='ACCEPTED';candidate.save(update_fields=['status'])
     return candidate
+
+
+def _require_released_dbm(phase):
+    """A released head can complete metadata only at its own unchanged cut."""
+    from mta.runtime.scope_execution import head
+    latest=phase.run.scope_attempts.order_by('-created_at','-id').first()
+    if (phase.phase!='DBM' or phase.run.status!='RUNNING' or latest is None
+            or latest.status!='RELEASED' or latest.pk!=phase.attempt_id
+            or latest.scope!='UptoDBM' or head(phase.run_id)!=('DBM',phase.digest)
+            or phase.run.scope_attempts.filter(status='ACTIVE').exists()):
+        raise ValueError('Master metadata completion requires its released current UptoDBM head')
+
+
+def complete_dbm_metadata(phase_id,*,expected_digest):
+    """Operator-only metadata append; retained phases/outputs are never rewritten.
+
+    Normal DBM acceptance publishes this in its phase transaction. This handles
+    an already released stop from the older implementation and is idempotent.
+    """
+    from django.db import transaction
+    from mta.runtime.production_scope import authorize
+    from mta.runtime.scope_execution import _source_lock
+    from mta.runtime.scoped_pick_files import _accepted
+    from mta.runtime.models import CalculationRun,ProductionInitialization
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.ingestion_admission import _admit
+    from release.native_identity import require_current
+    if not transaction.get_autocommit():raise ValueError('Master metadata completion owns its transaction')
+    authorize()
+    phase=_accepted(phase_id,expected_digest)
+    with transaction.atomic(),connection.cursor() as cursor:
+        _source_lock(phase.run_id)
+        CalculationRun.objects.select_for_update().get(pk=phase.run_id)
+        phase=_accepted(phase_id,expected_digest)
+        _require_released_dbm(phase)
+        binding=read_input(phase.run,components=('initialization_binding',))['initialization_binding']
+        owner=ProductionInitialization.objects.select_related('source').get(pk=binding['id'])
+        _admit(cursor,owner.pk,require_current(),pending=True)
+        return accept_phase(phase,released_dbm=True)
 
 
 def accept(run, initialization_id, parent_id):

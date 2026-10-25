@@ -83,7 +83,6 @@ def _accept_calculation(attempt_id, worker_token, phase, sources, *, parent,
                      calculation_digest=sources.calculation_digest)
         receipt=_seal_phase(receipt,image,effect_digest=digest(effects),
                             partitions=_partition_identity(batches),effects=effects)
-        if kind=='BPR':
-            from mta.runtime.master_revisions import accept_phase
-            accept_phase(receipt)
+        from mta.runtime.master_revisions import accept_phase
+        accept_phase(receipt)
         return receipt
