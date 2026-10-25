@@ -58,7 +58,7 @@ class RequestScopeTests(unittest.TestCase):
         from mta.presentation.request_scope import in_read_request
         paths = ['GetExportDataAsync', 'SKUDesc', 'WHDesc'] + ['DownloadReports/' + name for name in (
             'LogisticPickListReport', 'LogisticRemainingQtySummary',
-            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData')]
+            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData', 'BOR_OrderAllocation')]
         for path in paths:
             with self.subTest(path=path):
                 current = ['accepted']
@@ -80,7 +80,8 @@ class RequestScopeTests(unittest.TestCase):
 
     def test_download_scope_does_not_include_unknown_or_unrelated_routes(self):
         from mta.presentation.request_scope import in_read_request
-        for path in ('DownloadReports/unknown', 'LogisticPickListReport', 'InputData',
+        for path in ('DownloadReports/unknown', 'LogisticPickListReport', 'InputData', 'BOR_OrderAllocation',
+                     'Other/BOR_OrderAllocation',
                      'Other/InputData', 'Other/LogisticPickListReport', 'DBMApplySelectedNorms',
                      'DBMUpdateSleepTbl', 'AddRemark', 'SaveState'):
             with self.subTest(path=path), read_request('/api/mta/' + path):

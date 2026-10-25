@@ -117,6 +117,7 @@ READ_ROUTES = frozenset((
 PICK_READ_ROUTES = frozenset((
     'LogisticPickListReport', 'LogisticRemainingQtySummary',
     'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData',
+    'BOR_OrderAllocation',
 ))
 
 
