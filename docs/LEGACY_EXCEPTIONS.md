@@ -1904,3 +1904,34 @@ input or accepted calculation is changed. This grants no generic missing-column
 waiver, alternative source alias/default/numeric fill, other amendment transfer,
 frontend component or MTO API change. Status and proof remain in the sole
 F:/freshvcf/docs/handoff-3005/TRACKER.md.
+
+## Supplied scoped-test BTR direction configuration — 26 October 2026
+
+This is a recorded fixture deviation, not permission to repair legacy behavior
+or change an accepted input. Original operator input SHA256
+93273f267ce8bab4ba3e56f6dcb61d7fc879ea6a75872e85686035b01e24eef1 and the
+approved canonical-ReasonCodes variant SHA256
+4267d90d7726aab14c25c72063ec82ee0d417ae39ba97aa2b7e6a491471df965 both declare
+delivery.btr_settings.NormSuggestion_Upward="3" and
+NormSuggestion_Downward="4". The latter input belongs to the separately
+initialized canonical-roster test (initialization505e84ee-a657-439a-a245-b1e124a99f00).
+The human's ReasonCodes approval changed only that lookup roster and provenance
+identifiers; it did not change these explicit site settings.
+
+Pinned canonical Scripts/DBCreation/Importer_DBCreation.sql, SHA256
+11c004b7d790bf560549bcad8e3342c3bed15972a63d9e0f26458392edea6309,
+lines924/933 inserts upward "1,2,3,4,6,7,8,9,10" and downward "5,11,12"
+only when the corresponding parameter does not exist. Its defaults cannot
+silently override the declared fixture values. btr_finalization's norm-suggestion
+and category consumers use these lists: under the retained fixture, Type5 has
+no direction/category7 membership and Type4 is downward. This observation is
+not evidence of a calculation defect or canonical downstream-category parity.
+
+Preserve both inputs and all accepted phases. Positive DBM lookup/display/action
+qualification under the approved16-row ReasonCodes roster remains distinct from
+canonical BTR direction/category coverage. The latter requires an applicable
+configuration decision and focused upward/downward/absent-code, duplicate/NULL,
+date and action-consumer evidence when that later boundary is released. No new
+trial, replay, PostDBM release or configuration mutation follows from this note.
+The authoritative status and decision record remains
+F:/freshvcf/docs/handoff-3005/TRACKER.md.
