@@ -26,6 +26,8 @@ def clear():
     _entries.clear()
     _connection = None
     _pid = None
+    from mta.presentation import schema_reuse
+    schema_reuse.clear()
 
 
 def stamp():
@@ -111,6 +113,10 @@ def certified_readiness(function):
         try:
             if not (in_read_request() or in_admission_preflight()) or admission._admitted is None:
                 return function(initialization_id)
+            def fresh():
+                from mta.presentation.schema_reuse import verification
+                with verification():
+                    return function(initialization_id)
             before = stamp()
             if before is None:
                 clear()
@@ -123,8 +129,8 @@ def certified_readiness(function):
                 if stamp() == before:
                     return value
                 clear()
-                return function(initialization_id)
-            value = function(initialization_id)
+                return fresh()
+            value = fresh()
             if stamp() == before:
                 for old in list(_entries):
                     if old[-1] != before:

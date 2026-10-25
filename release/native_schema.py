@@ -3,8 +3,10 @@
 **DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.**
 """
 from mta.serialization import digest
+from mta.presentation.schema_reuse import schema_read
 
 
+@schema_read
 def schema_digest(cursor):
     """Detect schema drift beyond object/ACL checks; never mint an authority row."""
     queries = {
