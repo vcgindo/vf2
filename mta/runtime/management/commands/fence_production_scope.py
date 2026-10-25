@@ -1,4 +1,4 @@
-"""Explicitly fence an inspected native UptoBPR worker; no timeout inference."""
+"""Explicitly fence an inspected native fresh-scope worker; no timeout inference."""
 import json
 from django.core.management.base import BaseCommand,CommandError
 

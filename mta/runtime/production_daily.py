@@ -342,6 +342,12 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                     execution_revision,pick_output_root,problem,report_disposition=report_disposition)
         except (ValueError,TypeError,ObjectDoesNotExist) as error:
             problem('/retry_capture_id','frozen MDM capture',error)
+    if scope_request is not None and scope_request['scope']=='UptoDBM' and frame is not None:
+        from mta.runtime.production_upto_dbm import configuration
+        try:
+            configuration(frame['profile'], working_day(decode(raw,expected_sha256),frame['profile']), scope_request)
+        except (ValueError,TypeError,KeyError) as error:
+            problem('/scope_request','UptoDBM configured effects',error)
     report=daily(raw,expected_sha256,frame=frame,predecessor=parent_context,
         initialization_id=initialization_id,source_digest=source_digest,configuration_digest=configuration_digest,
         predecessor_output_digest=predecessor_output_digest,pick_output_root=pick_output_root,

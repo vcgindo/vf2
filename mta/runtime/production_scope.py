@@ -24,6 +24,9 @@ def request(command_key,*,runtime_reports=None):
 
 
 def validate_request(value):
+    if isinstance(value,dict) and value.get('scope')=='UptoDBM':
+        from mta.runtime.production_upto_dbm import validate_request as validate_dbm
+        return validate_dbm(value)
     if type(value) is not dict or value!=request(value.get('command_key'),runtime_reports=value.get('runtime_reports')):
         raise ValueError('Native scoped request or implementation identity differs')
     return value
@@ -159,7 +162,7 @@ def fence(attempt_id,*,expected_worker_token,reason):
     value=read_input(attempt.run,components=('scope_request',)).get('scope_request')
     validate_request(value)
     captured_run(attempt.run,value)
-    if (attempt.scope!='UptoBPR' or attempt.command_key!=value['command_key']
+    if (attempt.scope!=value['scope'] or attempt.command_key!=value['command_key']
             or attempt.compatibility_digest!=value['compatibility_digest']):
         raise ValueError('Fencing requires this native scope command owner')
     return fence_worker(attempt.pk,expected_worker_token=expected_worker_token,reason=reason)
@@ -214,6 +217,9 @@ def _produce(attempt,value):
             master_snapshot=master,execute_calculation=calculate)
     with native_assignments(True):bpr=produce_bpr(prepared)
     sources=capture_bpr(bpr,opening)
+    if value['scope']=='UptoDBM':
+        from mta.runtime.scope_bpr_histories import complete_sources
+        sources=complete_sources(run,sources,opening)
     with transaction.atomic():
         return _accept_calculation(attempt.pk,attempt.worker_token,bpr,sources,parent=parent,
             compatibility_digest=compatibility)
