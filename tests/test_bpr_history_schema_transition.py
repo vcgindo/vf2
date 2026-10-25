@@ -25,6 +25,18 @@ class BprHistoryTransitionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'exact approved'):
             transition.require_specification(spec)
 
+    def test_replacement_is_only_the_exact_watch_with_exact_delta_pin(self):
+        spec = dict(initialization_id=transition.INITIALIZATION, migration_pins=transition.migration_pins(),
+            previous_release=dict(source_commit=transition.PREVIOUS_COMMIT, manifest_sha256=transition.PREVIOUS_RELEASE),
+            catalogue_delta={'functions:mta.ingestion_watch()': {'before': 'old', 'after': 'new'},
+                             'table:new': {'before': None, 'after': 'new'}})
+        from unittest.mock import patch
+        with patch.object(transition, 'DELTA', transition.digest(spec['catalogue_delta'])):
+            transition.require_specification(spec)
+            spec['catalogue_delta']['table:new']['before'] = 'existing'
+            with self.assertRaises(ValueError): transition.require_specification(spec)
+        with self.assertRaises(ValueError): transition.require_specification(spec)
+
     def test_authority_only_adds_exact_223_name(self):
         from mta.runtime.ingestion_authority import validate_schema_transition, SCHEMA_FIELDS, SCHEMA_CONTRACT
         value = {key: 'a'*64 for key in SCHEMA_FIELDS}

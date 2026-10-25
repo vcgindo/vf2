@@ -44,7 +44,13 @@ def verify_guards():
     """Read/write admission rejects disabled or replaced completion guards."""
     from importlib import import_module
     migration = import_module('mta.runtime.migrations.0223_bpr_history_completion')
+    from mta.runtime.ingestion_ownership import require_guard_coverage, scoped_derived_body
     with connection.cursor() as cursor:
+        require_guard_coverage(cursor)
+        expected_watch = scoped_derived_body(cursor, minimum='0223_bpr_history_completion')
+        cursor.execute("SELECT prosrc,prosecdef,proconfig FROM pg_proc WHERE oid='mta.ingestion_watch()'::regprocedure")
+        if cursor.fetchone() != (expected_watch, True, ['search_path=pg_catalog, mta']):
+            raise ValueError('Late BPR history ingestion guard differs')
         for name in ('guard_bpr_history_completion', 'guard_bpr_history_rows', 'require_bpr_history_complete', 'deny_bpr_history_truncate'):
             expected = migration.GUARD_SQL.split('FUNCTION mta.' + name + '()', 1)[1].split('$body$', 2)[1]
             cursor.execute("""SELECT P.prosrc,P.prosecdef,P.proconfig,L.lanname,
