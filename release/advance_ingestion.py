@@ -155,11 +155,13 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import scoped_action_transition as scoped_action
     from mta.runtime import bpr_history_schema_transition as bpr_history
     from mta.runtime import scoped_dbm_transition as scoped_dbm
+    from mta.runtime import scoped_read_transition as scoped_read
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
     history_migration=any(pin[0]==bpr_history.MIGRATION_NAME for pin in spec['migration_pins'])
     dbm_migration=any(pin[0] in {name for name,_ in scoped_dbm.PINS} for pin in spec['migration_pins'])
+    read_migration=any(pin[0] in {name for name,_ in scoped_read.PINS} for pin in spec['migration_pins'])
     if guard_migration:
         report_guard.require_specification(spec)
     if ownership_migration:
@@ -170,6 +172,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         bpr_history.require_specification(spec)
     if dbm_migration:
         scoped_dbm.require_specification(spec)
+    if read_migration:
+        scoped_read.require_specification(spec)
     if target['manifest_sha256']==previous['manifest_sha256']:
         raise ValueError('Distinct reviewed previous/target releases required')
     from mta.runtime.daily_feed import job_lock
@@ -204,6 +208,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
         before_schema=schema_digest(cursor);before_guard=security_digest(cursor,_certificate(owner.pk)['authority_roles'])
+        if read_migration and (before_schema!=scoped_read.BEFORE_SCHEMA or before_guard!=scoped_read.BEFORE_GUARD):
+            raise ValueError('Live-reference upgrade requires its exact admitted226 catalogue')
         if dbm_migration and (not has_schema_authority or before_schema!=scoped_dbm.BEFORE_SCHEMA
                 or before_guard!=scoped_dbm.BEFORE_GUARD):
             raise ValueError('UptoDBM upgrade requires its exact admitted223 catalogue')
@@ -245,6 +251,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0223']]
         if dbm_migration:
             allowed_migrations=[['0224','0225','0226']]
+        if read_migration:
+            allowed_migrations=[['0227','0228']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -260,6 +268,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         cursor.execute('RESET ROLE')
         if dbm_migration:
             scoped_dbm.upgrade_application_guard(cursor)
+        if read_migration:
+            scoped_read.upgrade_application_guard(cursor)
         if not has_schema_authority:
             authority.bootstrap_schema_transition(cursor,[original['owner']['name'],original['consumer']['name']])
         current=_application_catalogue(cursor)
@@ -281,6 +291,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
                     'mta.retry_capture_admit(mta.fresh_mta_dailyfeedattempt)'),
             '0167':('mta.final_capture_prefix_digest(uuid)',
                     'mta.final_capture_admit(mta.fresh_mta_dailyfeedattempt)'),
+            '0228':scoped_read.EXECUTE,
         }
         for grant in (grant for name,_ in pins for grant in grant_sets.get(name[:4],())):
             # Resolve exact argument types independently of search_path's
@@ -290,6 +301,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
                 cursor.execute(sql.SQL('GRANT EXECUTE ON FUNCTION '+grant+' TO {}').format(sql.Identifier(original['consumer']['name'])))
         delta=catalogue_delta(before_catalogue,catalogue(cursor))
         if storage(delta)!=spec['catalogue_delta']:raise ValueError('Reviewed schema/catalogue/ACL delta differs')
+        if read_migration and schema_digest(cursor)!=scoped_read.AFTER_SCHEMA:
+            raise ValueError('Live-reference target schema differs from the qualified catalogue')
         now=_application_catalogue(cursor)
         objects={o['name']:o for o in now['objects']}
         if any(objects.get(o['name'])!=o for o in old_objects['objects']):
