@@ -1,5 +1,5 @@
 """Rollback component proof of the actual scoped append/reference transaction."""
-from contextlib import contextmanager, ExitStack
+from contextlib import contextmanager, ExitStack, nullcontext
 from copy import copy
 from datetime import datetime, timezone
 import json, os, unittest, uuid
@@ -181,3 +181,43 @@ class ScopedRemarkWriterTests(unittest.TestCase):
                     with self.assertRaises(PublicationUnavailable):verify()
                 transaction.set_rollback(True)
         verify_guards()
+
+    def test_matched_validation_reuse_preserves_complete_remark_results_and_reduces_work(self):
+        from time import perf_counter,process_time
+        from django.db import connection,transaction
+        from mta.presentation import scoped_remark_writer as writer,scoped_selection,scoped_api
+        from mta.runtime import ingestion_ownership
+        self.ready();self.enterContext(self.runtime())
+        initial=self.audit_state();rows=[];expected=None
+        baseline_owners={field:getattr(self.view.reference,field) for field in
+            ('report_generation_id','git_generation_id','pick_files_id')}
+        for enabled in (False,True,True,False):
+            queries=[]
+            def measure(execute,sql,params,many,context):
+                queries.append(sql.lstrip().split(None,1)[0])
+                return execute(sql,params,many,context)
+            with transaction.atomic():
+                with ExitStack() as stack:
+                    if not enabled:stack.enter_context(patch.object(writer,'remark_validation',nullcontext))
+                    coverage=stack.enter_context(patch.object(ingestion_ownership,'_verify_guard_coverage',
+                        wraps=ingestion_ownership._verify_guard_coverage))
+                    stack.enter_context(self.clock());stack.enter_context(connection.execute_wrapper(measure))
+                    started=perf_counter();cpu=process_time();result=writer.append(self.batch,self.actor)
+                    seconds=perf_counter()-started;cpu_seconds=process_time()-cpu
+                self.assertEqual(result,'1')
+                fresh=scoped_selection.selected()
+                semantic=dict(base=fresh.expedite.parent.rows('base'),match=fresh.expedite.parent.rows('match'),
+                    remarks=fresh.bpr.remarks.rows(),bpr=scoped_api.bpr_rows(fresh,self.payload,paging=(1,1000)),
+                    owners={field:getattr(fresh.reference,field) for field in baseline_owners},state=self.audit_state())
+                self.assertEqual(semantic['owners'],baseline_owners)
+                if expected is None:expected=semantic
+                else:self.assertEqual(semantic,expected)
+                row=dict(validation_reuse=enabled,seconds=round(seconds,3),cpu_seconds=round(cpu_seconds,3),
+                    sql_calls=len(queries),full_guard_checks=coverage.call_count)
+                rows.append(row);print(json.dumps(row),flush=True)
+                transaction.set_rollback(True)
+            self.assertEqual(self.audit_state(),initial)
+            self.assertEqual(scoped_selection.selected().read_identity,self.view.read_identity)
+        baseline=[r for r in rows if not r['validation_reuse']];bounded=[r for r in rows if r['validation_reuse']]
+        self.assertLess(max(r['sql_calls'] for r in bounded),min(r['sql_calls'] for r in baseline)/2)
+        self.assertLess(max(r['full_guard_checks'] for r in bounded),min(r['full_guard_checks'] for r in baseline)/2)

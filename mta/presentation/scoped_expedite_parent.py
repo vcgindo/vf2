@@ -11,6 +11,7 @@ from mta.presentation.rrr_sql import equal
 from mta.runtime import scope_expedite_parent_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import digest,storage,rows_digest
+from mta.presentation.request_scope import validated_read,validation_reads
 
 SCHEMA='fresh-bpr-expedite-parent-generation-v1'
 TABLES={'base':models.ScopeExpediteParentBase,'match':models.ScopeExpediteParentMatch}
@@ -195,6 +196,7 @@ def _admit(row,bound,remarks,expected_digest,action_revision):
     return ParentBinding(row,bound,remarks)
 
 
+@validated_read
 def bind(generation_id,*,expected_digest,action_revision):
     from django.core.exceptions import ObjectDoesNotExist
     try:row=models.ScopeExpediteParentGeneration.objects.get(pk=generation_id)
@@ -215,8 +217,9 @@ def prepare(core_generation_id,*,expected_core_digest,action_revision):
     from mta.runtime.models import CalculationRun,ScopeExpediteGeneration
     generation=ScopeExpediteGeneration.objects.get(pk=core_generation_id)
     CalculationRun.objects.select_for_update().get(pk=generation.run_id)
-    bound=core.bind(generation.pk,expected_digest=expected_core_digest,action_revision=action_revision)
-    remarks=scoped_remarks.bind(bound.prepared.sources,configuration_digest=generation.configuration_digest)
+    with validation_reads():
+        bound=core.bind(generation.pk,expected_digest=expected_core_digest,action_revision=action_revision)
+        remarks=scoped_remarks.bind(bound.prepared.sources,configuration_digest=generation.configuration_digest)
     verify_guards();recipe=recipe_digest();remark_fields=_remark_fields(remarks)
     existing=models.ScopeExpediteParentGeneration.objects.filter(core_generation=generation,
         remark_digest=remark_fields['remark_digest'],recipe_digest=recipe).first()

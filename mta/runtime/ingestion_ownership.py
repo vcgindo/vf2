@@ -111,10 +111,10 @@ def tables(cursor):
 
 
 def require_guard_coverage(cursor):
-    from mta.presentation.request_scope import in_read_request
+    from mta.presentation.request_scope import in_read_request, in_validation_reads
     database = getattr(cursor, 'db', None)
     physical = getattr(database, 'connection', None)
-    if in_read_request() and physical is not None and not physical.closed:
+    if (in_read_request() or in_validation_reads()) and physical is not None and not physical.closed:
         return _request_guard_coverage(database, physical)
     return _verify_guard_coverage(cursor)
 

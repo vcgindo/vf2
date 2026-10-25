@@ -17,6 +17,7 @@ from mta.presentation import (scoped_prepared,scoped_planning,scoped_git,scoped_
 from mta.runtime import scoped_pick_files,scope_runtime_reports
 from mta.runtime.models import CalculationRun,ScopeReadReference,RunPhaseAcceptance,RemarkOwner
 from mta.serialization import digest
+from mta.presentation.request_scope import validated_read
 
 SCHEMA='fresh-bpr-read-reference-v1'
 
@@ -119,6 +120,7 @@ def _files(phase,row):
     return files
 
 
+@validated_read
 def _bind(row,expected_digest,*,retained_parent=False):
     verify_guards()
     report=row.report_generation;revision=report.action_revision

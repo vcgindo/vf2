@@ -7,6 +7,7 @@ from mta.presentation.permissions import _sql_equal
 from mta.runtime import scoped_remark_ownership
 from mta.runtime.models import CalculationRun, RemarkOwner
 from mta.runtime.scope_execution import _source_lock
+from mta.presentation.request_scope import remark_validation
 
 
 class RemarkDenied(ValueError):
@@ -26,6 +27,11 @@ def append(payload, actor):
     _source_lock(anchor['run_id'])
     CalculationRun.objects.select_for_update().get(pk=anchor['run_id'])
     owner = RemarkOwner.objects.select_for_update().get(pk=ancillary_live.BPR)
+    with remark_validation():
+        return _append_locked(payload, actor, anchor, owner)
+
+
+def _append_locked(payload, actor, anchor, owner):
     view = scoped_selection.selected()
     if str(view.run_id) != anchor['run_id']:
         raise PublicationUnavailable('phase_remark_selection_changed')

@@ -8,6 +8,7 @@ from mta.presentation import scoped_expedite_storage as core_storage,scoped_expe
 from mta.presentation import scoped_requests,scoped_remarks,scoped_transit_storage
 from mta.presentation.context import PublicationUnavailable
 from mta.serialization import digest
+from mta.presentation.request_scope import validated_read
 
 SCHEMA='fresh-bpr-expedite-view-reference-v1'
 
@@ -102,6 +103,7 @@ def require_binding(run,bound):
     return bound
 
 
+@validated_read
 def _load(reference,*,retained_parent=False):
     if not isinstance(reference,dict) or reference.get('schema')!=SCHEMA or reference.get('recipe_digest')!=recipe_digest():
         raise PublicationUnavailable('bpr_expedite_reference_differs')

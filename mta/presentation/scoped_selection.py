@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from uuid import UUID
 from mta.serialization import digest
+from mta.presentation.request_scope import validated_read
 
 SCHEMA = 'fresh-test-bpr-selection-v1'
 FIELDS = frozenset(('schema', 'run_id', 'phase_id', 'phase_digest', 'snapshot_digest',
@@ -135,6 +136,7 @@ def _cut(run_id):
     return revision(CalculationRun(pk=run_id)), RemarkOwner.objects.get(pk=BPR).next_ordinal
 
 
+@validated_read
 def _selected():
     from django.conf import settings
     from mta.presentation.context import PublicationUnavailable

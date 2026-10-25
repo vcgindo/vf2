@@ -9,6 +9,66 @@ from functools import wraps
 
 _current = ContextVar('presentation_read_request', default=None)
 _metadata = ContextVar('presentation_metadata_operation', default=None)
+_remark_validation = ContextVar('presentation_remark_validation', default=False)
+_validation = ContextVar('presentation_validation_reads', default=None)
+
+
+@contextmanager
+def remark_validation():
+    """Opt in only after the remark writer holds its source/run/journal locks."""
+    from django.db import connection
+    if (not connection.in_atomic_block or _remark_validation.get()
+            or _current.get() is not None or _metadata.get() is not None):
+        raise ValueError('Remark validation requires its own locked transaction')
+    token = _remark_validation.set(True)
+    try:
+        yield
+    finally:
+        _remark_validation.reset(token)
+
+
+@contextmanager
+def validation_reads():
+    """One pure metadata traversal; its cache cannot survive a producer call."""
+    if not _remark_validation.get() or _validation.get() is not None:
+        yield
+        return
+    from django.db import connection
+    if not connection.in_atomic_block:
+        raise ValueError('Remark validation transaction ended')
+    def read_only(execute, sql, params, many, context):
+        # These finite metadata readers issue SELECTs, including fixed invoker
+        # read helpers. Producer SQL, DDL, role changes and nested transactions
+        # belong outside this phase and must never inherit a read cache.
+        words = sql.lstrip().split(None, 1) if isinstance(sql, str) else []
+        if not words or words[0].upper() != 'SELECT':
+            raise ValueError('SQL write or control statement inside remark validation')
+        if ';' in sql:
+            import sqlparse
+            statements = sqlparse.parse(sql)
+            if (len(statements) != 1 or statements[0].get_type() != 'SELECT'
+                    or any(token.ttype in sqlparse.tokens.Keyword.DML and token.value.upper() != 'SELECT'
+                        for token in statements[0].flatten())):
+                raise ValueError('Multiple or modifying statements inside remark validation')
+        return execute(sql, params, many, context)
+    token = _validation.set({})
+    try:
+        with connection.execute_wrapper(read_only):
+            yield
+    finally:
+        _validation.reset(token)
+
+
+def validated_read(function):
+    @wraps(function)
+    def read(*args, **kwargs):
+        with validation_reads():
+            return function(*args, **kwargs)
+    return read
+
+
+def in_validation_reads():
+    return _validation.get() is not None
 
 
 @contextmanager
@@ -91,9 +151,15 @@ def once_per_request(function):
         cache = _current.get()
         if cache is None:
             cache = _metadata.get()
+        physical = None
+        if cache is None and _validation.get() is not None:
+            from django.db import connection
+            physical = connection.connection
+            if physical is not None and not physical.closed:
+                cache = _validation.get()
         if cache is None:
             return function(*args, **kwargs)
-        key = (function, tuple(_argument(value) for value in args),
+        key = (function, physical, tuple(_argument(value) for value in args),
                tuple(sorted((name, _argument(value)) for name, value in kwargs.items())))
         if key not in cache:
             # Failed validation is never cached; exceptions propagate normally.
