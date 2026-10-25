@@ -11,6 +11,7 @@ import inspect
 from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.request_scope import once_per_request
 from mta.presentation import scoped_sources,scoped_reports,excess,fulfillment,expedite,pick_post
 from mta.runtime import scope_report_models as models
 from mta.runtime.relational_state import quote
@@ -131,6 +132,7 @@ class ReportBinding:
             ' G ON G.id=R.generation_id WHERE R.generation_id=%s',[self.generation.pk])
 
 
+@once_per_request
 def bind(generation_id,*,expected_digest,action_revision):
     """Fresh exact-generation admission, not whole-application selection."""
     from django.core.exceptions import ObjectDoesNotExist

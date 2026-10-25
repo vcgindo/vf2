@@ -3,6 +3,19 @@ from mta.presentation.request_scope import once_per_request, read_request
 
 
 class RequestScopeTests(unittest.TestCase):
+    def test_typed_scalar_arguments_do_not_alias_boolean_integer_or_float(self):
+        calls = []
+        @once_per_request
+        def check(value):
+            calls.append(type(value))
+            return type(value)
+        with read_request('/api/GetBPRData'):
+            self.assertIs(check(True), bool)
+            self.assertIs(check(1), int)
+            self.assertIs(check(1.0), float)
+            self.assertIs(check(True), bool)
+        self.assertEqual(calls, [bool, int, float])
+
     def test_startup_metadata_passes_are_fresh_and_never_http_reads(self):
         from mta.presentation.request_scope import metadata_operation, in_read_request
         current = ['first']

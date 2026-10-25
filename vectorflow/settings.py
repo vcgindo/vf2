@@ -29,6 +29,18 @@ VF_BTR_REPORTING_GENERATION = os.environ.get('VF_BTR_REPORTING_GENERATION', '')
 VF_MTA_NATIVE_PUBLICATION = os.environ.get('VF_MTA_NATIVE_PUBLICATION', '') == '1'
 VF_MTA_SELECTION_FILE = os.environ.get('VF_MTA_SELECTION_FILE', '')
 VF_MTA_SELECTION = None
+VF_MTA_PHASE_SELECTION_FILE = os.environ.get('VF_MTA_PHASE_SELECTION_FILE', '')
+VF_MTA_PHASE_SELECTION = None
+if VF_MTA_PHASE_SELECTION_FILE:
+    from django.core.exceptions import ImproperlyConfigured
+    from mta.presentation.scoped_selection import read as read_phase_selection
+    if (not VF_MTA_NATIVE_PUBLICATION or not VF_MTA_DAILY_PUBLICATION
+            or VF_MTA_SELECTION_FILE or VF_MTA_PUBLISHED_RUN or VF_MTA_PUBLISHED_DIGEST):
+        raise ImproperlyConfigured('Explicit native phase selection conflicts with Full publication')
+    try:
+        VF_MTA_PHASE_SELECTION = read_phase_selection(VF_MTA_PHASE_SELECTION_FILE)
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        raise ImproperlyConfigured('Phase selection file is invalid or unavailable') from exc
 if VF_MTA_SELECTION_FILE:
     from django.core.exceptions import ImproperlyConfigured
     from mta.presentation.native_selection import read as read_selection

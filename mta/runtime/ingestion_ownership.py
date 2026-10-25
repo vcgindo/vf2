@@ -3,6 +3,7 @@
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from mta.runtime.ingestion_context import DataOwner
+from mta.presentation.request_scope import once_per_request
 
 METADATA = frozenset(('fresh_mta_initializationcertification',
     'fresh_mta_masterinputrevision', 'fresh_mta_ingestionreleasecompatibility',
@@ -110,6 +111,23 @@ def tables(cursor):
 
 
 def require_guard_coverage(cursor):
+    from mta.presentation.request_scope import in_read_request
+    database = getattr(cursor, 'db', None)
+    physical = getattr(database, 'connection', None)
+    if in_read_request() and physical is not None and not physical.closed:
+        return _request_guard_coverage(database, physical)
+    return _verify_guard_coverage(cursor)
+
+
+@once_per_request
+def _request_guard_coverage(database, physical):
+    # The physical connection is part of the key. Reopening an alias or using
+    # another database cannot inherit this request's successful verification.
+    with database.cursor() as cursor:
+        return _verify_guard_coverage(cursor)
+
+
+def _verify_guard_coverage(cursor):
     from mta.runtime.accepted_state_ownership import verify_guards
     verify_guards(cursor, required=False)
     expected = {(s, t): owner for s, t, owner in tables(cursor) if owner != 'authority'}

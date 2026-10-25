@@ -11,6 +11,7 @@ import hashlib,inspect
 from django.db import connection,transaction,DatabaseError
 from django.utils import timezone
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.request_scope import once_per_request
 from mta.presentation import scoped_report_storage as facts,scoped_sources,bpr_candidate_sql,planning_source_sql
 from mta.presentation.bpr_prepared_fields import SOURCES,FIELDS,field_name,schema_digest
 from mta.presentation.rrr_sql import key
@@ -203,6 +204,7 @@ class PreparedBinding:
     def fact_query(self,name):return self.reports.query(name)
 
 
+@once_per_request
 def bind(generation_id,*,expected_digest,expected_report_digest,action_revision,include_inherited_btr=False,include_nms=False,
          include_remarks=False,transit_generation_id=None,expected_transit_digest=None):
     from django.core.exceptions import ObjectDoesNotExist

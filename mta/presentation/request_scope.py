@@ -76,6 +76,8 @@ def read_request(path):
 
 
 def _argument(value):
+    if type(value) in (str, int, bool, float, bytes, type(None)):
+        return (type(value), value)
     if hasattr(value, '_meta') and hasattr(value, 'pk'):
         return (type(value), value.pk, *(getattr(value, field, None) for field in
                 ('kind', 'status', 'input_digest', 'input_manifest_digest', 'output_digest', 'production_digest',

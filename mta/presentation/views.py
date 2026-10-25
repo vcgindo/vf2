@@ -92,6 +92,15 @@ def endpoint(method, *, public=False):
                 payload = json.loads(request.body.decode('utf-8') or '{}')
                 if not isinstance(payload, dict):
                     raise ValueError('JSON body must be an object')
+                from mta.presentation import scoped_selection
+                if scoped_selection.enabled():
+                    from mta.presentation.scoped_api import dispatch as phase_dispatch
+                    arguments = kwargs
+                    if args:
+                        from inspect import signature
+                        bound = signature(function).bind(request, payload, *args, **kwargs)
+                        arguments = {k: v for k, v in bound.arguments.items() if k not in ('request', 'payload')}
+                    return phase_dispatch(function, request, payload, arguments)
                 return function(request, payload, *args, **kwargs)
             except InsightFilterUnavailable:
                 return envelope(status=500)

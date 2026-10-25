@@ -1,0 +1,176 @@
+"""Existing HTTP contracts over one explicitly selected immutable BPR view."""
+import json
+from django.db import connection, transaction
+from django.http import JsonResponse, StreamingHttpResponse, FileResponse
+from mta.presentation.context import PublicationUnavailable, scope
+
+
+def bpr_rows(view, payload, *, paging=None, count=False, analytics=False, export=False):
+    from mta.presentation import bpr_prepared as reader
+    from mta.presentation.bpr_filters import BprPredicate
+    if export and (count or analytics): raise ValueError('BPR_export_mode_conflict')
+    if not export and not count and not analytics and (not isinstance(paging, tuple) or len(paging) != 2
+            or any(type(value) is not int or value < 1 for value in paging)):
+        raise ValueError('positive_BPR_pagination_required')
+    attributes = view.planning.attributes()
+    BprPredicate(payload, attributes['LocationAttributeData'], export=export)
+    ancillary = {'InTransitData': view.bpr.transit.rows('InTransitData')}
+    query, params = reader._build(view.run, payload, attributes, ancillary, paging,
+        count=count, analytics=analytics, export=export, live_remarks=True, daily_transit=True, read_binding=view.bpr)
+    if query is None:
+        if analytics: return [{prefix + color: 0 for prefix in ('OnHand', 'Pipeline')
+            for color in ('Black', 'Red', 'Yellow', 'Green', 'White', 'Blue', 'Grey')}]
+        return 0 if count else []
+    def records():
+        with transaction.atomic(), connection.cursor() as control:
+            control.execute("SELECT current_setting('jit')"); previous = control.fetchone()[0]
+            control.execute('SET LOCAL jit=off')
+            with connection.chunked_cursor() as cursor:
+                cursor.execute(query, params)
+                fields = [item[0] for item in cursor.description]
+                while batch := cursor.fetchmany(500):
+                    yield from (dict(zip(fields, row)) for row in batch)
+            control.execute("SELECT set_config('jit',%s,true)", [previous])
+    if count:
+        with connection.cursor() as cursor:
+            cursor.execute(query, params); return cursor.fetchone()[0]
+    rows = records()
+    if not analytics: rows = reader._with_transit(rows, ancillary)
+    return reader._primed_export(rows) if export else list(rows)
+
+
+def _download(view, request, payload, report_name):
+    from mta.presentation.views import identity
+    from mta.presentation.pick_downloads import REPORTS, FORMED_REPORTS
+    from mta.presentation.permissions import _sql_equal
+    from mta.runtime.scoped_pick_files import open_file
+    if identity(request).get('entitlements') != ['mta-report-urls']:
+        return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+    if report_name not in REPORTS: raise PublicationUnavailable('phase_download_not_prepared:' + report_name)
+    name = 'LogisticPickList' if report_name in FORMED_REPORTS else 'PickListDataForTruckFormation'
+    rows = view.bpr.sources.rows('closing/complete/' + name)
+    products, locations = scope(payload, attributes=view.planning.attributes())
+    if (not all(any(_sql_equal(row.get('SKUCode'), code) for code in products) for row in rows)
+            or not all(any(_sql_equal(row.get(field), code) for code in locations)
+                for row in rows for field in ('WHCode', 'ParentWHCode', 'LogisticLocation'))):
+        return JsonResponse({'error': 'selected_run_pick_scope_denied'}, status=403)
+    stream = open_file(view.bpr.sources.acceptance_id, REPORTS[report_name], expected_digest=view.bpr.sources.acceptance_digest)
+    return FileResponse(stream, as_attachment=True, filename=REPORTS[report_name], content_type='text/csv')
+
+
+def dispatch(function, request, payload, arguments):
+    from mta.presentation import views, scoped_selection
+    # Configuration, hierarchy catalogue and layouts keep their established
+    # authority. Business readers below must never re-enter a Full-run path.
+    if function.__name__ in ('all_permissions', 'environment', 'report_paths', 'user_layout'):
+        return function(request, payload, **arguments)
+    if function.__name__ == 'ui_config':
+        if request.GET.get('reportName') in ('BOR_OA', 'BuyerOrderReport', 'InTransitWhereAbouts', 'OpenExpeditingRequests'):
+            raise PublicationUnavailable('phase_report_not_prepared')
+        return function(request, payload, **arguments)
+    view = scoped_selection.selected()
+    name = function.__name__; count = arguments.get('count', False)
+    if name == 'last_run_date':
+        value = view.run.business_date
+        return views.envelope(data=[dict(formatted=value.strftime('%d %b %Y'), rawDate=value.isoformat())])
+    if name == 'location_types':
+        rows = view.bpr.sources.rows('closing/importer/LocationAttributeData')
+        values = list(dict.fromkeys(row['LocationType'] for row in rows if row['LocationType'] is not None))
+        return views.envelope(data=json.dumps([dict(lt=v) for v in values], separators=(',', ':'), ensure_ascii=False))
+    if name == 'planning_overview':
+        from mta.presentation.scoped_overview import read
+        values, business_date = read(view, payload)
+        return JsonResponse(dict(recordCount=None, data=values, status=200, msg='', errorCount=None,
+            error=None, conflictErrorCount=None, conflictError=None, businessDate=business_date))
+    if name in ('planning_grid', 'planning_custom', 'planning_graph'):
+        return _planning(view, name, payload, count=count)
+    if name == 'rrr_data':
+        from mta.presentation.scoped_rrr import read
+        paging = views._pagination(payload)
+        if paging is None: raise ValueError('invalid_pagination')
+        rows = read(view.run, payload, paging=paging, count=count, read_binding=view.pick)
+        return views.envelope(record_count=str(rows)) if count else views.envelope(data=[views.selected_rrr_response(row) for row in rows])
+    if name in ('bpr_data', 'bpr_analytics'):
+        from mta.presentation.bpr_response import response_row
+        analytics = name == 'bpr_analytics'
+        if analytics and payload.get('name') != 'BPR': raise PublicationUnavailable('selected_analytics_report_not_connected')
+        p = payload.get('paginationParameter') or {}
+        paging = (p.get('pageNumber'), p.get('recordsPerPage'))
+        rows = bpr_rows(view, payload, paging=paging, count=count, analytics=analytics)
+        if count: return views.envelope(record_count=str(rows))
+        return views.envelope(data=rows if analytics else [response_row(row, daily_transit=True) for row in rows])
+    if name == 'download_report': return _download(view, request, payload, arguments['report_name'])
+    if name == 'export_data':
+        from mta.presentation.rrr_export import FIELDS, selected_headers, csv_chunks
+        report = payload.get('reportName')
+        if report not in ('BPR', 'RRR'): raise PublicationUnavailable('phase_export_not_prepared')
+        state = views.ui_state.get_layout(views.identity(request)['id'], report)
+        if report == 'BPR':
+            from mta.presentation.bpr_export import selected_headers as headers, transport_chunks
+            rows = bpr_rows(view, payload, export=True)
+            class Chunks:
+                def __iter__(self): yield from transport_chunks(rows, headers(state))
+                def close(self): rows.close()
+            chunks = Chunks()
+        else:
+            from mta.presentation.scoped_rrr import read
+            rows = read(view.run, payload, paging=None, read_binding=view.pick)
+            chunks = csv_chunks(rows, selected_headers(state, FIELDS))
+        response = StreamingHttpResponse(chunks, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment'
+        return response
+    # Current writers require their own atomic action/remark + reference commit;
+    # denying here prevents a successful write leaving the selected view stale.
+    raise PublicationUnavailable('phase_endpoint_not_prepared:' + name)
+
+
+def _planning(view, name, payload, *, count=False):
+    from mta.presentation import views
+    from mta.presentation.excess_read import pagination
+    category = str(payload.get('category', '')).casefold()
+    if (category in ('git', 'expedite') and (name != 'planning_graph' or category == 'git')
+            and payload.get('category') != category):
+        raise PublicationUnavailable('selected_planning_branch_not_yet_connected')
+    if category == 'expedite':
+        if name == 'planning_grid':
+            from mta.presentation import expedite_read, planning_expedite_sql
+            if count: return views.envelope(data=planning_expedite_sql.counts(view.run, payload, read_binding=view.expedite))
+            kind = payload.get('type')
+            if kind not in ('parent', 'child'): raise ValueError('Unsupported Expedite direction')
+            reader = expedite_read.parent_grid if kind == 'parent' else expedite_read.child_grid
+            return views.envelope(data=reader(payload, read_binding=view.expedite))
+        if name == 'planning_custom':
+            from mta.presentation.expedite_read import custom_grid
+            return views.envelope(data=custom_grid(payload, read_binding=view.expedite))
+        from mta.presentation.planning_expedite_chart_sql import queries
+        kind = str(payload.get('type', '')).casefold()
+        if not views._no_active_filters(payload): raise PublicationUnavailable('selected_planning_filters_not_yet_connected')
+        return views.envelope(data=views.expedite_chart_response(queries(view.run, payload, kind,
+            read_binding=view.expedite), kind, receiving_own_label=True), message='')
+    if category == 'git':
+        if name == 'planning_grid':
+            from mta.presentation.planning_git_sql import grid
+            return views.envelope(data=grid(view.run, payload, count=count, read_binding=view.git))
+        products, locations = scope(payload, attributes=view.git.attributes())
+        if name == 'planning_custom':
+            from mta.presentation.daily_git_custom import custom
+            return views.envelope(data=custom(view.run, products, locations, pagination(payload), read_binding=view.bpr))
+        if str(payload.get('type', '')).casefold() != 'child':
+            raise PublicationUnavailable('selected_git_parent_graph_not_implemented_by_legacy')
+        from mta.presentation.daily_git_read import graph
+        return views.envelope(data=graph(view.run, products, locations, read_binding=view.bpr), message='')
+    if category not in ('excessinventory', 'orderfulfillment'):
+        raise PublicationUnavailable('selected_planning_branch_not_yet_connected')
+    if name == 'planning_custom' and payload.get('category') not in ('excessInventory', 'orderFulfillment'):
+        raise PublicationUnavailable('selected_planning_custom_branch_not_yet_connected')
+    family = 'excess' if category == 'excessinventory' else 'fulfillment'
+    if name == 'planning_grid':
+        from mta.presentation.planning_grid_sql import read_grid
+        rows = read_grid(view.run, payload, family=family, paging=pagination(payload), count=count, read_binding=view.planning)
+        if count: return views.envelope(data=rows)
+        return views.envelope(data=dict(data=rows, uiConfig=views.excess_grid_config() if family == 'excess' else views.fulfillment_grid_config()))
+    if name == 'planning_custom':
+        from mta.presentation.planning_custom_sql import custom_grid
+        return views.envelope(data=custom_grid(view.run, payload, pagination(payload), family=family, read_binding=view.planning))
+    from mta.presentation.planning_chart_sql import graph
+    return views.envelope(data=graph(view.run, payload, family, read_binding=view.planning), message='')

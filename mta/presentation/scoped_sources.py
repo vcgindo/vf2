@@ -10,6 +10,7 @@ from datetime import datetime
 
 from mta.serialization import digest
 from mta.presentation.context import PublicationUnavailable
+from mta.presentation.request_scope import once_per_request
 from mta.runtime import phase_state
 from mta.runtime.relational_state import load_image,quote,table_sql
 
@@ -109,18 +110,29 @@ class BprSources:
             physical_image=item['image'],table=item['table'],rows_digest=item['digest'],row_count=item['count'])
 
 
+@once_per_request
+def _accepted_phase(phase_id, expected_digest):
+    from mta.runtime.scoped_pick_files import _accepted
+    return _accepted(phase_id, expected_digest)
+
+
+@once_per_request
+def _input_manifest_digest(run):
+    return digest(run.input_payload)
+
+
+@once_per_request
 def bind(phase_id,*,expected_digest,action_revision,include_inherited_btr=False,include_nms=False):
     """Bind real accepted sources; this alone grants no native/UI admission."""
-    from mta.runtime.scoped_pick_files import _accepted
     from mta.runtime.scoped_actions import revision
     from mta.runtime.calculation_effects import SCHEMA as EFFECTS
     from django.core.exceptions import ObjectDoesNotExist
-    try:phase=_accepted(phase_id,expected_digest)
+    try:phase=_accepted_phase(phase_id,expected_digest)
     except (ValueError,ObjectDoesNotExist) as error:
         raise PublicationUnavailable('bpr_phase_read_owner_differs') from error
     run=phase.run
     if (phase.phase!='BPR' or phase.metadata.get('effects',{}).get('schema')!=EFFECTS
-            or digest(run.input_payload)!=run.input_manifest_digest
+            or _input_manifest_digest(run)!=run.input_manifest_digest
             or run.input_payload.get('content_digest')!=run.input_digest):
         raise PublicationUnavailable('bpr_phase_read_owner_differs')
     if type(action_revision) is not int or action_revision<0 or action_revision!=revision(run):
