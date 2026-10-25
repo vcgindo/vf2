@@ -117,7 +117,8 @@ def require_guard_coverage(cursor):
     physical = getattr(database, 'connection', None)
     if (in_read_request() or in_validation_reads()) and physical is not None and not physical.closed:
         return _request_guard_coverage(database, physical)
-    return _verify_guard_coverage(cursor)
+    from mta.presentation.request_scope import metadata_guard_check
+    return metadata_guard_check(_verify_guard_coverage, cursor)
 
 
 @once_per_request

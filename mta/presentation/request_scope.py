@@ -81,6 +81,34 @@ def metadata_operation():
         _metadata.reset(token)
 
 
+def metadata_guard_check(verify, cursor):
+    """Reuse one successful catalogue check only under an unchanged live stamp.
+
+    Startup crosses transaction boundaries. Its ordinary metadata dictionary
+    alone cannot certify that a later catalogue/session is still the same.
+    Writer transactions and non-default connections retain full verification.
+    """
+    cache = _metadata.get()
+    database = getattr(cursor, 'db', None)
+    physical = getattr(database, 'connection', None)
+    if cache is None or physical is None or physical.closed:
+        return verify(cursor)
+    from django.db import connection, connections, DEFAULT_DB_ALIAS
+    if database is not connections[DEFAULT_DB_ALIAS]:
+        return verify(cursor)
+    from mta.presentation.identity_reuse import stamp
+    before = stamp()
+    if before is None or connection.connection is not physical:
+        return verify(cursor)
+    key = (metadata_guard_check, verify, database, physical, before)
+    if key in cache:
+        return cache[key]
+    value = verify(cursor)
+    if stamp() == before and connection.connection is physical and len(cache) < 128:
+        cache[key] = value
+    return value
+
+
 def in_read_request():
     return _current.get() is not None
 
