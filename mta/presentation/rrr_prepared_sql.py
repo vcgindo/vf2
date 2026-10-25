@@ -40,12 +40,20 @@ def admitted_relation(run):
     return ('SELECT * FROM mta.' + quote(RrrPreparedMembership._meta.db_table) + ' WHERE run_id=%s', [run.pk])
 
 
-def read_prepared(run, payload, *, paging, count, relation, relation_params):
+def read_prepared(run, payload, *, paging, count, relation, relation_params, read_binding=None):
     """Read the same selected fields and bags from exact admitted ordinals."""
     from mta.presentation.rrr_sql import Filters, equal, key
-    importer = {name: image_rows(run, 'closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
+    if read_binding is not None:
+        from mta.presentation.scoped_pick_storage import PickBinding
+        if not isinstance(read_binding, PickBinding) or read_binding.run_id != run.pk:
+            raise PublicationUnavailable('rrr_phase_owner_differs')
+        if (relation, relation_params) != read_binding.query('rrr'):
+            raise PublicationUnavailable('rrr_phase_membership_differs')
+    rows = (lambda path: image_rows(run, path)) if read_binding is None else read_binding.sources.rows
+    source = (lambda path: image_query(run, path)) if read_binding is None else read_binding.image_query
+    importer = {name: rows('closing/importer/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
-        manifest = hierarchy.selected_manifest(run)
+        manifest = hierarchy.selected_manifest(run) if read_binding is None else None
         if manifest:
             importer = hierarchy.project_attributes(importer, permission_catalogue(), manifest)
     except hierarchy.HierarchyUnavailable as exc:
@@ -58,7 +66,7 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
         return 0 if count else []
     ctes, params = (['H AS (' + relation + ')'], list(relation_params))
     for alias, path in (('R', 'reports/bpr/vf_RationedReqReport'), ('S', 'closing/dbm/SKULocStandardAttributes'), ('B', 'closing/importer/SkuLocAttributeData'), ('C', 'closing/importer/SkuAttributeData'), ('D', 'closing/importer/LocationAttributeData')):
-        query, values = image_query(run, path)
+        query, values = source(path)
         if manifest and alias in ('C', 'D'):
             table, prefix = ('SkuAttributeData', 'SL') if alias == 'C' else ('LocationAttributeData', 'LL')
             rows = importer[table]
@@ -71,7 +79,15 @@ def read_prepared(run, payload, *, paging, count, relation, relation_params):
             values = []
         ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
-    ctes.append('A AS (SELECT H.*,' + ','.join(a_selections()) + ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal' + ' JOIN mta.' + quote(PickBand._meta.db_table) + ' K ON K.run_id=H.run_id AND K.ordinal=H.band_ordinal)')
+    if read_binding is None:
+        band_join = ' JOIN mta.' + quote(PickBand._meta.db_table) + ' K ON K.run_id=H.run_id AND K.ordinal=H.band_ordinal'
+    else:
+        from mta.presentation.scoped_pick_queries import band_queries
+        (bands, values), _columns = band_queries(read_binding.sources)
+        ctes.append('K AS NOT MATERIALIZED (' + bands + ')')
+        params.extend(values)
+        band_join = ' JOIN K ON K.ordinal=H.band_ordinal'
+    ctes.append('A AS (SELECT H.*,' + ','.join(a_selections()) + ' FROM H JOIN R ON R.vf_ordinal=H.rationed_ordinal' + band_join + ')')
     for alias, codes in (('P', products), ('L', locations)):
         members = [code for code in sorted(codes) for _ in range(codes.multiplicities[code])]
         ctes.append(alias + ' AS (VALUES ' + ','.join(['(%s)'] * len(members)) + ')')
