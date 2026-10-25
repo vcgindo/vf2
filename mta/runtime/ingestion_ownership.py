@@ -130,6 +130,8 @@ def _request_guard_coverage(database, physical):
 def _verify_guard_coverage(cursor):
     from mta.runtime.accepted_state_ownership import verify_guards
     verify_guards(cursor, required=False)
+    from mta.runtime import scoped_action_ownership
+    scoped_action_ownership.available(cursor)
     expected = {(s, t): owner for s, t, owner in tables(cursor) if owner != 'authority'}
     if migration_history_guard(cursor):
         expected.pop(('mta','django_migrations'))

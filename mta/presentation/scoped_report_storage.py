@@ -53,7 +53,8 @@ def verify_guards():
             "JOIN pg_namespace N ON N.oid=P.pronamespace "
             "WHERE CN.nspname='mta' AND C.relname=ANY(%s) AND NOT T.tgisinternal "
             "AND T.tgname NOT LIKE 'ingestion_watch_%%' ORDER BY 1,2",[targets])
-        rows=cursor.fetchall()
+        from mta.runtime.scoped_action_ownership import verified_business_rows
+        rows=verified_business_rows(cursor,cursor.fetchall())
         if rows!=[(*row,'O','mta',0,None,'') for row in sorted(expected)]:
             raise PublicationUnavailable('bpr_report_generation_guard_coverage_differs')
         functions=('guard_scope_report_generation','guard_scope_report_rows',

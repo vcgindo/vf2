@@ -1,7 +1,7 @@
 """Writable capability rejects escalation while v1 remains read-only."""
 from copy import deepcopy
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 from mta.mdm import owned_namespace as owned
 from mta.runtime import test_owned_namespace as v1_tests
@@ -10,6 +10,12 @@ from mta.serialization import digest
 
 class ApplicationCapabilityTests(SimpleTestCase):
     def setUp(self):
+        # These are receipt-join units; actual native identity is qualified by
+        # the isolated registration tests, never by a worktree's missing pins.
+        self.release = dict(schema='vectorflow-native-release-source-v1', source_commit='f'*40,
+            manifest_sha256='1'*64, source_files_digest='2'*64, migrations_digest='3'*64,
+            implementation_sha256='b'*64)
+        self.enterContext(patch('release.native_identity.require_current',return_value=self.release))
         base=v1_tests.OwnedNamespaceTests();base.setUp()
         self.db=base.database;self.reg=base.registration;self.proof=base.evidence
         self.original=owned._receipt_identity(self.reg)
@@ -52,11 +58,17 @@ class ApplicationCapabilityTests(SimpleTestCase):
         self.catalogue['grants'].append(dict(scope=scope,name=name,oid=obj['oid'],owner=obj['owner'],
             column=column,grantor=obj['owner'],grantee=grantee,privilege=privilege,grantable=False))
 
-    def test_explicit_profile_accepts_only_new_identity(self):
-        actual=owned._validate_application_binding(self.binding,self.original,'c'*64,self.digests)
-        self.assertEqual(actual['policy'],owned.APPLICATION_POLICY)
-        self.assertEqual(actual['original_registration'],self.original)
-        self.assertEqual(actual['artifact_sha256'],'a'*64)
+    def fresh_binding(self):
+        value=dict(self.binding,policy=owned.PRODUCTION_APPLICATION_POLICY,
+            implementation_sha256=self.original['adapter_sha256'],
+            profile_digest=owned._production_application_profile_digest(),
+            release_identity=self.release,schema_digest='f'*64)
+        value['receipt_digest']=digest({k:v for k,v in value.items() if k!='receipt_digest'})
+        return value
+
+    def test_historical_profile_does_not_replace_current_native_identity(self):
+        with self.assertRaisesRegex(ValueError,'fresh release identity differs'):
+            owned._validate_application_binding(self.binding,self.original,'c'*64,self.digests)
 
     def test_v1_still_rejects_same_write_catalogue(self):
         evidence=deepcopy(self.proof);evidence['acl']['count']=1
@@ -96,15 +108,15 @@ class ApplicationCapabilityTests(SimpleTestCase):
             with self.subTest(name=name),self.assertRaises(ValueError):owned._check_application_grants(catalogue,self.reg)
 
     def test_profile_registration_code_and_oid_drift_deny(self):
-        changes=(lambda b:b.update(policy=owned.POLICY),lambda b:b.update(implementation_sha256='b'*64),
+        changes=(lambda b:b.update(policy=owned.POLICY),lambda b:b.update(implementation_sha256='c'*64),
             lambda b:b['original_registration'].update(database_oid=99),
             lambda b:b.update(profile_digest='d'*64),lambda b:b.update(grants_digest='e'*64),
             lambda b:b.update(untrusted_allowlist=['ALL']))
         for i,change in enumerate(changes):
-            binding=deepcopy(self.binding);change(binding)
+            binding=deepcopy(self.fresh_binding());change(binding)
             binding['receipt_digest']=digest({k:v for k,v in binding.items() if k!='receipt_digest'})
             with self.subTest(change=i),self.assertRaises(ValueError):
-                owned._validate_application_binding(binding,self.original,'c'*64,self.digests)
+                owned._validate_application_binding(binding,self.original,self.original['adapter_sha256'],self.digests,production=True)
         catalogue=deepcopy(self.catalogue);catalogue['objects'][0]['oid']+=10000
         new_digests=owned._check_application_grants(catalogue,self.reg)
         with self.assertRaises(ValueError):owned._validate_application_binding(self.binding,self.original,'c'*64,new_digests)
@@ -145,9 +157,10 @@ class ApplicationCapabilityTests(SimpleTestCase):
             catalogue=deepcopy(self.catalogue);catalogue['functions'][0][key]=value
             changed=owned._check_application_grants(catalogue,self.reg)
             with self.subTest(key=key),self.assertRaises(ValueError):
-                owned._validate_application_binding(self.binding,self.original,'c'*64,changed)
+                owned._validate_application_binding(self.fresh_binding(),self.original,self.original['adapter_sha256'],changed,production=True)
 
     def test_write_guards_require_exact_body_owner_enabled_targets(self):
+        self.enterContext(patch('mta.runtime.scoped_action_ownership.available',return_value=False))
         rows=[(name,kind,'O',14,False,owned.APPLICATION_WRITE_GUARD_BODY)
               for name,kind in sorted(owned.APPLICATION_WRITE_GUARDS.items())]
         cursor=MagicMock();cursor.fetchall.return_value=rows;owned._check_application_write_guards(cursor,self.reg)
@@ -159,10 +172,7 @@ class ApplicationCapabilityTests(SimpleTestCase):
 
 
     def test_fresh_production_binding_requires_same_current_source_and_its_own_policy(self):
-        binding = dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
-            implementation_sha256=self.original['adapter_sha256'],
-            profile_digest=owned._production_application_profile_digest())
-        binding['receipt_digest'] = digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        binding = self.fresh_binding()
         actual = owned._validate_application_binding(binding, self.original,
             self.original['adapter_sha256'], self.digests, production=True)
         self.assertEqual(actual['original_registration'], self.original)
@@ -176,10 +186,7 @@ class ApplicationCapabilityTests(SimpleTestCase):
                 self.digests, production=True)
 
     def test_production_binding_rejects_profile_source_catalogue_and_receipt_drift(self):
-        binding = dict(self.binding, policy=owned.PRODUCTION_APPLICATION_POLICY,
-            implementation_sha256=self.original['adapter_sha256'],
-            profile_digest=owned._production_application_profile_digest())
-        binding['receipt_digest'] = digest({k:v for k,v in binding.items() if k!='receipt_digest'})
+        binding = self.fresh_binding()
         for key,value in [('profile_digest','f'*64),('implementation_sha256','c'*64),
                           ('objects_digest','f'*64),('receipt_digest','f'*64),('unexpected',True)]:
             changed=dict(binding,**{key:value})

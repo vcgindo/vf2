@@ -50,6 +50,8 @@ def verify_guards():
             "AND T.tgname NOT LIKE 'ingestion_watch_%%' ORDER BY 1,2",[targets])
         from mta.runtime.scoped_remark_ownership import verified_business_rows
         rows=verified_business_rows(cursor,cursor.fetchall(),name_index=1)
+        from mta.runtime import scoped_action_ownership
+        rows=scoped_action_ownership.verified_business_rows(cursor,rows)
         if rows!=[(*row,'O','mta',0,None,'') for row in sorted(expected)]:
             raise PublicationUnavailable('bpr_expedite_parent_generation_guard_coverage_differs')
         functions=('guard_scope_expedite_parent_generation','guard_scope_expedite_parent_rows',

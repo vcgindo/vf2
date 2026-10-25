@@ -56,7 +56,8 @@ def verify_guards():
             "JOIN pg_proc P ON P.oid=T.tgfoid JOIN pg_namespace N ON N.oid=P.pronamespace "
             "WHERE CN.nspname='mta' AND C.relname=ANY(%s) AND NOT T.tgisinternal "
             "AND T.tgname NOT LIKE 'ingestion_watch_%%' ORDER BY 1,2",[targets])
-        if cursor.fetchall()!=[(*row,'O','mta',0,None,'') for row in sorted(expected)]:
+        from mta.runtime.scoped_action_ownership import verified_business_rows
+        if verified_business_rows(cursor,cursor.fetchall())!=[(*row,'O','mta',0,None,'') for row in sorted(expected)]:
             raise PublicationUnavailable('bpr_source_projection_guard_coverage_differs')
         bodies={name:frozen.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1]
             .split('AS $guard$',1)[1].split('$guard$;',1)[0] for name in frozen.FUNCTIONS}

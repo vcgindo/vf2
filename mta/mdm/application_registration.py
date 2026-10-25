@@ -54,8 +54,12 @@ def register_application(cursor, *, expected_database, expected_database_oid,
     roles=(registration['owner']['name'],registration['consumer']['name'],registration['acceptor']['name'])
     cursor.execute('GRANT SELECT ON fresh_control.application_capability TO '+','.join(map(_identifier,roles)))
     # No consumer UPDATE/DELETE/DDL on this additive authority row.
+    from mta.runtime import scoped_action_ownership as scoped_actions
+    scoped = scoped_actions.available(cursor)
+    guard_body = scoped_actions.application_guard_body(owned.APPLICATION_WRITE_GUARD_BODY) if scoped else owned.APPLICATION_WRITE_GUARD_BODY
+    write_guards = dict(owned.APPLICATION_WRITE_GUARDS)
     for function,body in (('deny_application_capability_change',owned.CAPABILITY_GUARD_BODY),
-                          ('guard_application_write',owned.APPLICATION_WRITE_GUARD_BODY)):
+                          ('guard_application_write',guard_body)):
         assert '$capability$' not in body
         cursor.execute('CREATE FUNCTION fresh_control.'+function+'() RETURNS trigger LANGUAGE plpgsql AS $capability$'+body+'$capability$')
         cursor.execute('ALTER FUNCTION fresh_control.'+function+'() OWNER TO fresh_namespace_registrar')
@@ -66,7 +70,7 @@ def register_application(cursor, *, expected_database, expected_database_oid,
     cursor.execute('CREATE TRIGGER application_capability_truncate BEFORE TRUNCATE '
                    'ON fresh_control.application_capability FOR EACH STATEMENT EXECUTE FUNCTION '
                    'fresh_control.deny_application_capability_change()')
-    for name,kind in owned.APPLICATION_WRITE_GUARDS.items():
+    for name,kind in write_guards.items():
         event='INSERT' if kind==7 else 'UPDATE'
         cursor.execute('CREATE TRIGGER application_write_boundary BEFORE '+event+' ON '+_relation(name)+
                        ' FOR EACH ROW EXECUTE FUNCTION fresh_control.guard_application_write()')
@@ -91,6 +95,7 @@ def register_application(cursor, *, expected_database, expected_database_oid,
         from mta.runtime.scoped_remark_ownership import application_grants, available
         if application_grants(catalogue): available(cursor)
         permissions.update(application_grants(catalogue))
+        permissions.update(scoped_actions.application_grants(catalogue))
     for name,grant in permissions.items():
         for permission in grant['table']:
             columns=' ('+','.join(map(_identifier,grant['columns']))+')' if permission=='UPDATE' else ''

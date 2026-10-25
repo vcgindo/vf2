@@ -78,6 +78,13 @@ def dispatch(function, request, payload, arguments):
             raise
         except (ValueError, KeyError, TypeError, DatabaseError):
             return views.envelope(status=500)
+    if function.__name__ == 'dbm_action':
+        from mta.presentation import actions, scoped_action_writer
+        try:
+            _, response = scoped_action_writer.submit(payload, views.identity(request)['id'], arguments['operation'])
+            return views.envelope(**response)
+        except actions.ActionDenied as error:
+            return JsonResponse({'error': str(error)}, status=403)
     view = scoped_selection.selected()
     name = function.__name__; count = arguments.get('count', False)
     if name == 'bpr_remark_history':

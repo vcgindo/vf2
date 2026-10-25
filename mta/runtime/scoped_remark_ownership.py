@@ -41,6 +41,9 @@ def application_grants(catalogue):
     names = {f['name']: f for f in catalogue['functions']}
     expected = dict(guard_scoped_remark_cache_writer=migration().GUARD,
         stamp_scoped_remark_transaction=migration().STAMP)
+    if 'mta.stamp_scoped_action_transaction()' in names:
+        from mta.runtime.scoped_action_ownership import migration as action_migration
+        expected['guard_scoped_remark_cache_writer'] = action_migration().REMARK_GUARD
     present = {n for n in expected if 'mta.' + n + '()' in names}
     if not present: return {}
     if present != set(expected): raise ValueError('Incomplete scoped remark ownership capability')
@@ -72,6 +75,9 @@ def verify_guards(cursor=None):
         if c.fetchall() != [(*r, 'O', 0, None, '', False, False, 'mta') for r in sorted(expected)]:
             raise PublicationUnavailable('scoped_remark_writer_trigger_contract_differs')
         bodies = dict(guard_scoped_remark_cache_writer=frozen.GUARD, stamp_scoped_remark_transaction=frozen.STAMP)
+        from mta.runtime import scoped_action_ownership
+        if scoped_action_ownership.available(c):
+            bodies['guard_scoped_remark_cache_writer'] = scoped_action_ownership.migration().REMARK_GUARD
         c.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,P.proowner=C.relowner,"
             "P.prorettype='trigger'::regtype,P.pronargs=0,NOT EXISTS(SELECT 1 FROM "
             "aclexplode(COALESCE(P.proacl,acldefault('f',P.proowner))) A WHERE A.grantee<>P.proowner) "

@@ -474,6 +474,7 @@ class RunCommand(models.Model):
     scope_parent_revision = models.PositiveBigIntegerField(default=0, db_default=0)
     scope_revision_before = models.JSONField(null=True)
     scope_revision_after = models.JSONField(null=True)
+    append_transaction = models.CharField(max_length=20, default='', db_default='', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

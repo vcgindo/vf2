@@ -622,6 +622,8 @@ def _check_application_grants(catalogue, registration, *, logistics=False, produ
         permissions_by_table.update(PRODUCTION_UI_GRANTS)
         from mta.runtime.scoped_remark_ownership import application_grants
         permissions_by_table.update(application_grants(catalogue))
+        from mta.runtime import scoped_action_ownership
+        permissions_by_table.update(scoped_action_ownership.application_grants(catalogue))
     for name, permissions in permissions_by_table.items():
         if name not in objects or objects[name]['kind'] not in ('r','p'):
             _reject('application write object is absent')
@@ -689,6 +691,10 @@ def application_sequences(catalogue,name,*,production=False):
     sequences=[o for o in catalogue['objects'] if o['kind']=='S' and o['sequence_for']==name+'.id']
     from mta.runtime.scoped_remark_ownership import application_grants, UUID_TABLES
     uuid_cache=production and name in UUID_TABLES and name in application_grants(catalogue)
+    if production:
+        from mta.runtime import scoped_action_ownership
+        uuid_cache = uuid_cache or (name in {'mta.'+t for t in scoped_action_ownership.migration().GENERATIONS}
+            and name in scoped_action_ownership.application_grants(catalogue))
     if len(sequences)!=(1 if name.startswith('mta.') and not uuid_cache else 0):
         _reject('application sequence owner is ambiguous')
     return sequences
@@ -855,14 +861,18 @@ APPLICATION_WRITE_GUARDS = {
 
 
 def _check_application_write_guards(cursor, registration):
+    from mta.runtime import scoped_action_ownership
+    scoped = scoped_action_ownership.available(cursor)
+    body = scoped_action_ownership.application_guard_body(APPLICATION_WRITE_GUARD_BODY) if scoped else APPLICATION_WRITE_GUARD_BODY
+    guards = dict(APPLICATION_WRITE_GUARDS)
     cursor.execute("""
         SELECT n.nspname||'.'||c.relname,t.tgtype,t.tgenabled,p.proowner::bigint,p.prosecdef,p.prosrc
         FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
         JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_proc p ON p.oid=t.tgfoid
         WHERE t.tgname='application_write_boundary' ORDER BY 1
     """)
-    expected = [(name,kind,'O',registration['registrar']['oid'],False,APPLICATION_WRITE_GUARD_BODY)
-                for name,kind in sorted(APPLICATION_WRITE_GUARDS.items())]
+    expected = [(name,kind,'O',registration['registrar']['oid'],False,body)
+                for name,kind in sorted(guards.items())]
     if cursor.fetchall()!=expected:
         _reject('application write boundary guards differ')
 
@@ -895,7 +905,8 @@ def application_functions(catalogue):
                 or helper['language']!=14 or helper['configuration']!=['search_path=pg_catalog, mta']):
             _reject('Scoped revision read helper implementation differs')
         result=result | {name}
-    return result
+    from mta.runtime import scoped_action_ownership
+    return result | scoped_action_ownership.application_functions(catalogue)
 
 
 APPLICATION_FUNCTIONS = frozenset((
