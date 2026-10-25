@@ -801,3 +801,67 @@ preflight reuse, not overall latency. The remaining measured action work and
 refresh still exceed the target. Action-specific validation must preserve every
 existing final check before replacing complete report-view construction. Browser,
 scale and earlier lifecycle/recovery boundaries remain open in the sole tracker.
+
+## Action-validation boundary and encoding cost probe (26 October 2026)
+
+The proposed broad retained-graph proof is not qualified by comparing reachable
+ORM objects alone. Source binding also verifies physical captured-input owners,
+feed attempts, initialization/certification, input-prefix absence predicates,
+predecessor command sets, source receipts and optional closing/native-audit
+receipts. Derived inherited BTR additionally checks four consumer receipt sets.
+Request binding SHA-verifies `baseline/planning-april-empty-requests-v1.json`;
+hashing the reader's source code does not check those current external bytes.
+Query-set membership matters, including newly appearing/duplicate authorities.
+Strict equality of a live request-owner revision would also introduce a denial:
+the existing contract permits its revision to grow beyond the captured revision.
+
+Before introducing that larger mechanism, a native in-memory experiment measured
+finite JSON encoding with every existing action/check unchanged. Same-image,
+same-fixture paired results were baseline3.704/3.391s versus finite2.833/2.795s,
+all970SQL calls. A separate action compared every finite encoded digest with the
+original streaming encoding. Canonical positive Apply state, all26 reports,
+current-reference lineage and complete rollback were verified after every run.
+The five-command/revision103 fingerprint remains9c087863. Peak RSS was148,616KiB.
+
+The prototype preserves a streaming fallback for RecordRows, but this action
+sample exercised no such values; it is not a qualification of a replacement
+general serializer. Largest values were396,341 bytes. Significant byte volume
+belongs to runtime.phase_state/input_v3/scoped_pick_files rather than only the
+presentation layer. The global serializer/input code is pinned initialization
+implementation, and this experiment does not authorize changing it. No encoding
+change is adopted: even broad acceleration leaves the inner action above the
+screen target before HTTP admission and refresh.
+
+The smaller proposed implementation boundary is therefore:
+
+- Retain the first complete selection and its existing locked transaction.
+- Reuse only successful sealed report-component validation, with an explicit
+  one-use proof of complete component owner rows, cross-links and unchanged
+  database/session/transaction/guard identity. Do not create ambient caches.
+- Rerun `scoped_sources.bind` with inherited BTR, `scoped_requests.bind` and
+  `scoped_remarks.bind` freshly. Their existing transitive owner, absence,
+  predecessor, receipt/audit, live-owner and external-schema checks stay owned
+  by their existing validators. This avoids implementing a second input/audit
+  dependency engine merely to optimize an action.
+- Require fresh source/provenance equality with the retained graph and fresh
+  current cut/unique successor, reference transition, configuration/files,
+  complete metadata assembly, DBM composition/replay, candidate identity and
+  permissions. End with the unchanged-guard check before commit.
+- Admit proof reuse only for the qualified runtime session; owner/offline and
+  unqualified representations retain complete validation. A guard's catalogue
+  xmin alone cannot prove absence of repeated DDL inside the same transaction.
+
+The architecture recommendation is narrower than the earlier whole-graph reuse
+proposal. It is not yet implemented or performance-qualified. Existing final
+selection remains intact. Native fault wrappers must forward any future explicit
+proof argument and still inject failure after real final admission; they must
+not be replaced by an unrelated failure or bypassed. Required browser/scale and
+post-action cold-admission/refresh costs remain part of acceptance.
+
+Consolidated diagnostic evidence:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/uptodbm-private-20261025/three-day-positive-test/action-metadata-result.json`,
+SHA256 `cf861e565a7b02ee00759196ec5a36976ce6188e7873fa968f179595c776267b`,
+pins7 files. All actions rolled back. Protected source identity/HBA/owners,
+zero slots/workers and8080 readiness/body remain exact. The same private PG/caps
+were used and it stopped at2026-10-25T22:48:00.792195935Z with storage retained.
+No application code, release authority, frontend, MTO or serving service changed.
