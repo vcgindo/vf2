@@ -166,7 +166,8 @@ def _owner(reference_id):
             with connection.cursor() as cursor:cursor.execute("SELECT set_config('fresh.scope_read_reference',%s,true)",[previous])
 
 
-def _save(bpr,planning,git,expedition,files,configuration,request_digest):
+def _save_reference(bpr,planning,git,expedition,files,configuration,request_digest):
+    if not connection.in_atomic_block:raise ValueError('Read reference registration requires its transaction')
     metadata=_metadata(bpr,planning,git,expedition,files,configuration,request_digest);checksum=digest(metadata)
     row=ScopeReadReference.objects.filter(digest=checksum).first()
     if row is None:
@@ -174,6 +175,11 @@ def _save(bpr,planning,git,expedition,files,configuration,request_digest):
             expedite_parent_generation=expedition.parent.generation,pick_files=files,recipe_digest=recipe_digest(),
             runtime_reports_digest=configuration['configuration_digest'],metadata=metadata,digest=checksum)
         with _owner(row.pk):row.save(force_insert=True)
+    return row,checksum
+
+
+def _save(bpr,planning,git,expedition,files,configuration,request_digest):
+    row,checksum=_save_reference(bpr,planning,git,expedition,files,configuration,request_digest)
     return _bind(row,checksum)
 
 

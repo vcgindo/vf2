@@ -220,13 +220,25 @@ def prepare(core_generation_id,*,expected_core_digest,action_revision):
     with validation_reads():
         bound=core.bind(generation.pk,expected_digest=expected_core_digest,action_revision=action_revision)
         remarks=scoped_remarks.bind(bound.prepared.sources,configuration_digest=generation.configuration_digest)
+    return _prepare(bound,remarks,expected_core_digest=expected_core_digest,action_revision=action_revision).generation
+
+
+def _prepare(bound,remarks,*,expected_core_digest,action_revision):
+    # The public ID entry validates these handles itself. The remark command
+    # supplies only its own freshly selected graph while retaining its locks.
+    if (not connection.in_atomic_block or not isinstance(bound,core.ExpediteBinding)
+            or not isinstance(remarks,scoped_remarks.RemarkBinding)
+            or remarks.run.pk!=bound.run_id or bound.generation.digest!=expected_core_digest
+            or bound.generation.action_revision!=action_revision):
+        raise PublicationUnavailable('bpr_expedite_parent_prepared_owner_differs')
+    generation=bound.generation
     verify_guards();recipe=recipe_digest();remark_fields=_remark_fields(remarks)
     existing=models.ScopeExpediteParentGeneration.objects.filter(core_generation=generation,
         remark_digest=remark_fields['remark_digest'],recipe_digest=recipe).first()
     if existing is not None:
         admitted=_admit(existing,bound,remarks,existing.digest,action_revision)
         for name in TABLES:admitted.verify_rows(name)
-        return existing
+        return admitted
     row=models.ScopeExpediteParentGeneration(run_id=generation.run_id,phase_id=generation.phase_id,
         action_revision=action_revision,source_digest=generation.source_digest,configuration_digest=generation.configuration_digest,
         recipe_digest=recipe,core_generation=generation,core_generation_digest=expected_core_digest,**remark_fields)
@@ -240,4 +252,4 @@ def prepare(core_generation_id,*,expected_core_digest,action_revision):
         row.save(update_fields=['metadata','digest','sealed','sealed_at'])
     admitted=_admit(row,bound,remarks,row.digest,action_revision)
     for name in TABLES:admitted.verify_rows(name)
-    return row
+    return admitted

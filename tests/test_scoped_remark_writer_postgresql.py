@@ -221,3 +221,90 @@ class ScopedRemarkWriterTests(unittest.TestCase):
         baseline=[r for r in rows if not r['validation_reuse']];bounded=[r for r in rows if r['validation_reuse']]
         self.assertLess(max(r['sql_calls'] for r in bounded),min(r['sql_calls'] for r in baseline)/2)
         self.assertLess(max(r['full_guard_checks'] for r in bounded),min(r['full_guard_checks'] for r in baseline)/2)
+
+    def test_bound_graph_reuse_matches_id_refresh_and_keeps_first_and_final_full_binding(self):
+        from time import perf_counter,process_time
+        from django.db import connection,transaction
+        from mta.presentation import scoped_remark_writer as writer,scoped_view,scoped_expedite,scoped_selection,scoped_api
+        self.ready();self.enterContext(self.runtime());initial=self.audit_state();rows=[];expected=None
+        def by_id(view,**cut):
+            return scoped_view.refresh_parent(view.reference.pk,expected_digest=view.reference.digest).read_identity
+        for reuse in (False,True,True,False):
+            queries=[]
+            def measure(execute,sql,params,many,context):
+                queries.append(sql.lstrip().split(None,1)[0]);return execute(sql,params,many,context)
+            with transaction.atomic():
+                with ExitStack() as stack:
+                    if not reuse:stack.enter_context(patch.object(writer,'_refresh_after_append',side_effect=by_id))
+                    binds=stack.enter_context(patch.object(scoped_view,'_bind',wraps=scoped_view._bind))
+                    loads=stack.enter_context(patch.object(scoped_expedite,'_load',wraps=scoped_expedite._load))
+                    stack.enter_context(self.clock());stack.enter_context(connection.execute_wrapper(measure))
+                    started=perf_counter();cpu=process_time();self.assertEqual(writer.append(self.batch,self.actor),'1')
+                    seconds=perf_counter()-started;cpu_seconds=process_time()-cpu
+                fresh=scoped_selection.selected()
+                semantic=dict(base=fresh.expedite.parent.rows('base'),match=fresh.expedite.parent.rows('match'),
+                    remarks=fresh.bpr.remarks.rows(),bpr=scoped_api.bpr_rows(fresh,self.payload,paging=(1,1000)),
+                    owners=[getattr(fresh.reference,f) for f in ('report_generation_id','git_generation_id','pick_files_id')],
+                    state=self.audit_state())
+                if expected is None:expected=semantic
+                else:self.assertEqual(semantic,expected)
+                row=dict(graph_reuse=reuse,seconds=round(seconds,3),cpu_seconds=round(cpu_seconds,3),sql_calls=len(queries),
+                    complete_view_binds=binds.call_count,expedite_loads=loads.call_count)
+                self.assertEqual(row['complete_view_binds'],2 if reuse else 4)
+                rows.append(row);print(json.dumps(row),flush=True);transaction.set_rollback(True)
+            self.assertEqual(self.audit_state(),initial)
+            self.assertEqual(scoped_selection.selected().read_identity,self.view.read_identity)
+        baseline=[r for r in rows if not r['graph_reuse']];bounded=[r for r in rows if r['graph_reuse']]
+        self.assertLess(max(r['sql_calls'] for r in bounded),min(r['sql_calls'] for r in baseline))
+        self.assertLess(max(r['expedite_loads'] for r in bounded),min(r['expedite_loads'] for r in baseline))
+
+    def test_transaction_or_role_change_after_append_rolls_back_before_graph_production(self):
+        from mta.presentation import scoped_remark_writer as writer
+        from mta.presentation.context import PublicationUnavailable
+        self.ready();before=self.audit_state()
+        with self.runtime(),self.clock():
+            physical,identity=writer._transaction_identity()
+            class EqualButDifferent:
+                def __eq__(self,other):return True
+            changes=[(object(),identity),(EqualButDifferent(),identity),(physical,('other-full-xid',*identity[1:])),
+                (physical,(identity[0],'other-role',identity[2]))]
+            for changed in changes:
+                with self.subTest(changed=changed),patch.object(writer,'_transaction_identity',side_effect=[(physical,identity),changed]), \
+                        patch.object(writer,'_refresh_after_append',side_effect=AssertionError('Wrong transaction reached producer')):
+                    with self.assertRaisesRegex(PublicationUnavailable,'transaction_changed'):writer.append(self.batch,self.actor)
+                self.assertEqual(self.audit_state(),before)
+
+    def test_final_selection_failure_rolls_back_registered_reference_and_retry_is_complete(self):
+        from mta.presentation import scoped_remark_writer as writer,scoped_selection
+        from mta.presentation.context import PublicationUnavailable
+        self.ready();before=self.audit_state();original=scoped_selection.selected;calls=[]
+        def selecting():
+            calls.append(True)
+            if len(calls)==2:raise PublicationUnavailable('declared final selection failure')
+            return original()
+        with self.runtime(),self.clock():
+            with patch.object(scoped_selection,'selected',side_effect=selecting):
+                with self.assertRaisesRegex(PublicationUnavailable,'final selection failure'):writer.append(self.batch,self.actor)
+            self.assertEqual(len(calls),2);self.assertEqual(self.audit_state(),before)
+            self.assertEqual(original().read_identity,self.view.read_identity)
+            self.assertEqual(writer.append(self.batch,self.actor),'1')
+
+    def test_private_reuse_rejects_changed_graph_or_more_than_remark_highwater(self):
+        from dataclasses import replace
+        from copy import deepcopy
+        from mta.presentation import scoped_remark_writer as writer,scoped_remarks
+        from mta.presentation.context import PublicationUnavailable
+        self.ready();before=self.audit_state();refresh=writer._refresh_after_append;bind=scoped_remarks.bind
+        def changed_graph(view,**cut):
+            row=copy(view.reference);row.metadata=deepcopy(row.metadata);row.metadata['source_digest']='f'*64
+            return refresh(replace(view,reference=row),**cut)
+        def changed_remarks(view,**cut):
+            def wrong(*args,**kwargs):
+                result=bind(*args,**kwargs);locator=result.provenance();locator['input_digest']='f'*64
+                return replace(result,locator=locator)
+            with patch.object(scoped_remarks,'bind',side_effect=wrong):return refresh(view,**cut)
+        with self.runtime(),self.clock():
+            for producer in (changed_graph,changed_remarks):
+                with patch.object(writer,'_refresh_after_append',side_effect=producer):
+                    with self.assertRaises(PublicationUnavailable):writer.append(self.batch,self.actor)
+                self.assertEqual(self.audit_state(),before)
