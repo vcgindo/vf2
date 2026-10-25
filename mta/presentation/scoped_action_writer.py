@@ -65,14 +65,18 @@ def _submit_locked(payload,actor,operation,selected,anchor):
             actor=str(actor), idempotency_key='http-'+str(uuid4()))
         if isinstance(view,scoped_dbm_view.DbmViewBinding):
             fresh = scoped_view.advance_action(view,event)
-            fresh = scoped_dbm_view.compose(fresh,view.dbm_phase.pk,expected_digest=view.dbm_phase.digest)
+            # Only the reference advances. The independent selection below
+            # admits/replays the resulting DBM state and all report dependencies;
+            # constructing that same context here would discard it immediately.
+            expected_identity = dict(view.read_identity, **fresh.read_identity)
         else:
             fresh = scoped_view.prepare(view.bpr.sources.acceptance_id,
                 expected_digest=view.bpr.sources.acceptance_digest, action_revision=event.pk)
+            expected_identity = fresh.read_identity
         # A stale/missing/ambiguous view aborts the command and every dependent
         # generation. The old accepted reference remains available on rollback.
         current = scoped_selection.selected()
-        if current.read_identity!=fresh.read_identity:
+        if current.read_identity!=expected_identity:
             raise PublicationUnavailable('phase_action_reference_not_current')
     return event, dict(data='' if operation=='APPLY' else None,
         message='Saved Succesfully' if affected else None)

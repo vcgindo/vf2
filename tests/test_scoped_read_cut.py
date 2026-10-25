@@ -157,22 +157,24 @@ class ReadCutTests(unittest.TestCase):
         view=DbmViewBinding(reference,NS(sources=source),None,None,None,self.dbm,NS(run=self.run,dbm=state))
         event=self.action(reference,6).action_command
         fresh=NS(read_identity={'id':'next','digest':'next'})
+        current=NS(read_identity=dict(view.read_identity,**fresh.read_identity))
         with ExitStack() as stack:
             stack.enter_context(patch.object(writer,'validation_reads',nullcontext))
-            stack.enter_context(patch.object(writer.scoped_selection,'selected',side_effect=[view,fresh]))
+            selected=stack.enter_context(patch.object(writer.scoped_selection,'selected',side_effect=[view,current]))
             stack.enter_context(patch.object(writer,'scope',return_value=({'SKU'},{'WH'})))
             stack.enter_context(patch.object(writer.OperationalAcceptance.objects,'filter',return_value=NS(exists=lambda:False)))
             stack.enter_context(patch.object(writer.scoped_action_ownership,'verify_guards'))
             stack.enter_context(patch.object(writer.scoped_action_ownership,'publication',return_value=nullcontext()))
             record=stack.enter_context(patch.object(writer.scoped_actions,'record',return_value=event))
             advance=stack.enter_context(patch.object(writer.scoped_view,'advance_action',return_value=fresh))
-            stack.enter_context(patch.object(writer.scoped_dbm_view,'compose',return_value=fresh))
+            stack.enter_context(patch.object(writer.scoped_dbm_view,'compose',side_effect=AssertionError('Discarded intermediate DBM context')))
             stack.enter_context(patch.object(writer.scoped_view,'prepare',side_effect=AssertionError('Action rebuilt reports')))
             actual,_=writer._submit_locked({},'fixture','APPLY',[('SKU','WH')],{'run_id':str(self.run.pk)})
         self.assertIs(actual,event)
         self.assertEqual(record.call_args.kwargs['expected_revision'],5)
         self.assertEqual(record.call_args.kwargs['phase_id'],self.dbm.pk)
         advance.assert_called_once_with(view,event)
+        self.assertEqual(selected.call_count,2)
 
 
 if __name__=='__main__':unittest.main()
