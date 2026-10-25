@@ -100,3 +100,82 @@ PG remained at 384 MiB/0.5 CPU; one worker at most used 4 GiB/2 CPU with no port
 Serving 8080, accepted earlier runs, frontend visual design and MTO API were
 unchanged. No browser, positive action, UI-latency, production configuration,
 large-data deployment or whole-lifecycle acceptance follows from this appendix.
+
+
+## Subsequent approved three-day positive trial
+
+Human decision `call_da428cf59cff45978a7199f4872087ce` approved one new
+namespace, unchanged retained feeds, its own 23 and 24 October Full auxiliary
+predecessors without actions, and 25 October UptoDBM. This subsequent evidence
+closes the positive native-handler/action gap described above only within this
+owned test. It does not release PostDBM implementation or general Full acceptance.
+
+The namespace is `vftest_fresh_uptodbm_three_day_20261026` (OID 508161), initialized
+as `dcfa9a34-18d1-4b00-b1a6-973fade774b2`. Native code remains `a83ed4b8`, image
+`5d000e2a8a551808a98c2a409749ebd399f43b39e6d010b45839bba8c3c1920d`.
+Fresh migrations through 0226, Django check, migration drift and migration plan
+passed. No product implementation changed for this trial.
+
+| Business date | Own run | Result |
+| --- | --- | --- |
+| 23 October | `d1d66b4f-946b-4234-bd19-d30e231528f3` | Full predecessor succeeded; output `6682424b06af02faf2b80119cccf6353d05210343b7bcb40ef9c51a2552f3011` |
+| 24 October | `fd626e5a-01d2-4b55-a231-c4692652027f` | Full predecessor succeeded; output `79b69485442da69ad0343dd3dde2d2cb77bdb8eb5848a285372d08245e65bb27` |
+| 25 October | `a2661554-4450-4ac2-a2fc-c2055e685663` | PRE/BPR/DBM accepted, one RELEASED attempt; remains RUNNING before BTR/final |
+
+Before 25 October execution, exact target master, daily observations, monitoring,
+aggregate and control rows matched the retained canonical 24 October evidence.
+Actual Type 5 recommendations were NEXT/WH8 and PHASE/WH8, both Norm 12 to 8,
+and Z9/PARENT, Norm 36 to 24. All three complete consumer and HTTP grid rows
+were preserved and compared, including order and field values.
+
+Released repeat made zero prepare_day/produce_bpr/produce_dbm calls and left
+owner headers unchanged. Typed readers matched complete accepted DBM tables,
+12 BOR and 16 RRR history rows, inherited BTR from the own Full24 predecessor,
+and all 10 InputData archive members. Seventeen packaged handler checks passed:
+DBM reads/paging/empty filters/permissions, Planning, BPR/RRR/BTR, selected date,
+four Pick downloads, BOR allocation CSV and InputData. These used the actual
+runtime PostgreSQL role and explicit test gateway headers, not a browser session.
+
+Positive actions also passed through the packaged handlers:
+
+- Apply NEXT/WH8 recorded OldNorm 12/NewNorm 8; visible count changed 3 to 2.
+- Sleep PHASE/WH8 recorded the actual action date; count changed 2 to 1.
+- Repeated Sleep was a canonical no-op, retaining the third recommendation.
+- Injected failure after composing the new action view rolled back every
+  affected table and left zero committed commands at that checkpoint.
+- Exact idempotency replay appended nothing; stale revision and unauthorized
+  requests were rejected without changes.
+- Complete typed action state matched the canonical command transition, while
+  accepted master and phase headers stayed unchanged. Three commands remain,
+  with final action revision 4; PostgreSQL sequence allocation during rollback
+  need not be gapless. Downstream consumption was not executed.
+
+Action responses took 20.653, 20.419 and 23.372 seconds in this constrained stack;
+selected runtime startup took 12.684 seconds. These are observed timings,
+**not performance acceptance**. Browser/gateway delivery, click-to-usable-screen
+latency, paired native Full/split equivalence, downstream action consumption,
+other interruption windows and required scale remain open. Later PostDBM,
+final Full closure and G3 remain unreleased.
+
+Three external test-driver issues are retained honestly: an initial PG readiness
+probe failed before database creation; the positive assertion used `WhCode`
+instead of the consumer's `LocCode`; and a read-only wrapper incorrectly nested
+a helper which owns its own transaction. Corrected readback passed without
+repeating any accepted calculation or editing its outputs.
+
+Evidence is under `three-day-positive-test/` beneath the evidence root above.
+`bounded-trial-result.json` pins the input, run, handler, action, preservation and
+driver evidence; SHA256
+`53ab003f381d29a7f79d98335848ce0481f03cfddaa4bbaf94cba58226a99a31`.
+Its functional assertions are supported by `native-action-proof.json`,
+`native-typed-readback-proof.json`, `native-repeat-proof.json`,
+`complete-grid-wire-proof.json` and `private-api-proof.json`.
+
+Earlier trials, copied-run headers, database identities and global roles were
+preserved. Protected source HBA/owner fingerprints and 8080 readiness body were
+unchanged, with zero source replication slots/workers. Aggregate measured
+private storage/evidence was 2,824,555,653 bytes, below 4 GiB. The exact private
+PG container was stopped at `2026-10-25T19:26:52.111559971Z`, with identical
+mounts and all databases retained. Serving 8080, frontend design and MTO API
+were unchanged. See `protected-source-after-three-day.json` and the trial's
+`bounded-test-stop-proof.json` for those boundaries.
