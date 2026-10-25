@@ -1031,3 +1031,32 @@ Consolidated evidence: `three-day-positive-test/schema-reuse-result.json`, SHA25
 candidate/driver/proof files. It qualifies this bounded schema optimization only.
 The sole tracker retains the remaining action/refresh/browser/scale/lifecycle
 requirements and all later release boundaries.
+
+
+### Remaining action cost: recipe-only encoding rejected
+
+After the schema checkpoint, a native v15 rollback-only diagnostic changed
+encoding only for `mta.presentation.*.recipe_digest` calls. Runtime, input and
+calculation encoding stayed original. Matched Apply baseline 1.992/1.883s versus
+prototype 2.148/1.985s, all 970SQL, showed no reliable improvement. The equality
+pass checked every affected hash, canonical action state and all26 report
+populations; all five trial actions rolled back to fingerprint9c087863. Peak
+RSS149068KiB. No production encoder change was made.
+
+One current-build cProfile action confirms the remaining structural cost:
+2 selected traversals3.269s, complete report-graph binding2.136s, 29 typed input
+reads1.230s, inherited BTR binding0.966s, 315 digests1.740s and 10 recursive
+accepted-phase checks0.645s. Total instrumented action3.817s/970SQL. These nested
+times overlap and include profiler overhead; they are not response timings.
+Canonical action/report equality and full rollback passed outside the profiler.
+This points back to repeated full source/input/predecessor validation rather
+than presentation recipe encoding. Any next reduction must preserve those
+checks and their absence/ownership dependencies, independently before and after
+the write; removing unrelated report branches without proving their admission
+contract is not authorized by this diagnostic.
+
+PrivatePG finally stopped2026-10-25T23:54:38.187580659Z, no worker/other clients,
+all storage retained. Consolidated `presentation-recipe-cost-result.json`, SHA256
+`127cc8e5e68e60a90b88b7b5ab1f0d30bf0ab415bcbe8577902199a1a423d95d`, pins12
+native driver/proof files. No additional code/authority/frontend/MTO/8080 change.
+Overall latency and the full lifecycle goal remain open.
