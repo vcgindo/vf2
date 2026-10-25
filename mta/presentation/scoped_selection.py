@@ -31,6 +31,7 @@ def enabled():
 
 def recipe_digest():
     import inspect
+    from mta.mdm import season_current
     from release import phase_selection
     from mta.presentation import (scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql, views,
         bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
@@ -42,7 +43,7 @@ def recipe_digest():
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
          daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
          scoped_dbm, dbm, dbm_filters, scoped_action_writer, scoped_history, scoped_artifacts,
-         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views)})
+         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views, season_current)})
 
 
 def native_identity(view):

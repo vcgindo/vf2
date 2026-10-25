@@ -18,7 +18,35 @@ from mta.runtime.mdm_season_models import MdmSeasonCurrent
 NUMERIC = {'tn', 'dnp', 'ulc', 'bd', 'r', 'nn', 'onm', 'tp', 'sts'}
 
 
+def _phase(source, run=None):
+    from mta.presentation import scoped_selection
+    if not scoped_selection.enabled():
+        return None
+    view = scoped_selection.selected()
+    if (view.run.mdm_input_capture.source_id != source.pk
+            or run is not None and run.pk != view.run_id):
+        raise PublicationUnavailable('seasonality_phase_source_owner_mismatch')
+    return view
+
+
 def consumer_rows(source, run, path, *, single_pass=False):
+    view = _phase(source, run)
+    if view is not None:
+        from mta.presentation import scoped_dbm
+        prefix = 'closing/dbm/'
+        name = path.removeprefix(prefix)
+        if not path.startswith(prefix):
+            raise PublicationUnavailable('seasonality_phase_consumer_unavailable')
+        if name == 'LastBatchRunTbl':
+            return view.bpr.sources.rows('metadata/bpr/LastBatchRunTbl')
+        if name in ('NormChangeLogTbl', 'DailyConsumption'):
+            return scoped_dbm._opening_rows(view.bpr.sources, name)
+        if name not in ('DBMMaster', 'SKUDescriptionTbl', 'SiteDescriptionTbl', 'ReasonCodes'):
+            raise PublicationUnavailable('seasonality_phase_consumer_unavailable')
+        context = scoped_dbm.bind(view.bpr.sources.acceptance_id,
+            expected_digest=view.bpr.sources.acceptance_digest,
+            action_revision=view.bpr.sources.action_revision)
+        return context.dbm[name]
     if getattr(source, 'digest', None) == TARGET_SOURCE:
         return fixture_rows(source, run, path)
     if single_pass and path == 'closing/dbm/DBMMaster':
@@ -34,7 +62,8 @@ def publication(source):
     owner = require_installed(source)
     if owner.last_run_id is None:
         raise PublicationUnavailable('seasonality_has_no_committed_publication')
-    run = selected_run()
+    view = _phase(source)
+    run = view.run if view is not None else selected_run()
     if run.pk != owner.last_run_id:
         raise PublicationUnavailable('seasonality_selected_run_owner_mismatch')
     return run
