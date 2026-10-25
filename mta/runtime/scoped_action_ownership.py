@@ -8,8 +8,18 @@ from django.db import connection, transaction, DatabaseError
 MIGRATION = '0226_scoped_dbm_action_dependencies'
 
 
-def migration():
-    return import_module('mta.runtime.migrations.' + MIGRATION)
+def migration(cursor=None, *, catalogue=None):
+    """Exact old/new guard roster for atomic admission across this upgrade."""
+    name = MIGRATION
+    if cursor is not None:
+        cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations WHERE app='fresh_mta' AND name=%s)",[MIGRATION])
+        if not cursor.fetchone()[0]: name = '0221_scoped_action_cache_writer'
+    elif catalogue is not None:
+        functions={f['name']:f for f in catalogue['functions']}
+        previous=import_module('mta.runtime.migrations.0221_scoped_action_cache_writer')
+        if functions.get('mta.scope_cache_command(reference uuid, actor text)',{}).get('body')==previous.LEASE:
+            name='0221_scoped_action_cache_writer'
+    return import_module('mta.runtime.migrations.' + name)
 
 
 def available(cursor):
@@ -23,8 +33,8 @@ def available(cursor):
 
 
 def verify_guards(cursor=None):
-    frozen = migration()
     with (connection.cursor() if cursor is None else nullcontext(cursor)) as c:
+        frozen = migration(c)
         verify_actionable(c)
         c.execute("SELECT C.relname,T.tgname,T.tgtype,P.proname,T.tgenabled,T.tgnargs,T.tgqual::text,"
             "T.tgattr::text,T.tgoldtable,T.tgnewtable,T.tgdeferrable,T.tginitdeferred,N.nspname "
@@ -64,7 +74,7 @@ def verified_business_rows(cursor, rows, *, name_index=1):
     return rows
 
 
-def application_guard_body(original):
+def application_guard_body(original, *, frozen=None):
     """Extend only scoped command branches; preserve the original Full branch."""
     body = original
     anchor = " ELSIF TG_TABLE_SCHEMA='mta' AND TG_TABLE_NAME='fresh_mta_runcommand' THEN\n"
@@ -118,10 +128,12 @@ def application_guard_body(original):
 """
     assert body.count(anchor) == 1
     body = body.replace(anchor, anchor + scope)
+    frozen = frozen or migration()
+    if not hasattr(frozen,'dependency'): return body
     for command in ('NEW','command'):
         old = 'H.phase_id='+command+'.phase_acceptance_id'
         assert body.count(old) == 1
-        body = body.replace(old,migration().dependency('H.phase_id',
+        body = body.replace(old,frozen.dependency('H.phase_id',
             command+'.phase_acceptance_id',command+'.run_id'))
     return body
 
@@ -145,7 +157,8 @@ def application_grants(catalogue):
              'mta.scope_cache_command(reference uuid, actor text)')
     if not any(n in functions for n in names):
         return {}
-    expected = ((migration().STAMP,'trigger'), (migration().CACHE,'trigger'), (migration().LEASE,'fresh_mta_runcommand'))
+    frozen = migration(catalogue=catalogue)
+    expected = ((frozen.STAMP,'trigger'), (frozen.CACHE,'trigger'), (frozen.LEASE,'fresh_mta_runcommand'))
     for name,(body,result) in zip(names,expected):
         f=functions.get(name)
         if (f is None or f['body']!=body or f['returns']!=result or f['security_definer']
@@ -199,7 +212,7 @@ def application_functions(catalogue):
     definitions['mta.pending_day_final(target uuid)']=raw.split('FUNCTION mta.pending_day_final(target uuid)',1)[1].split('AS $body$',1)[1].split('$body$;',1)[0]
     definitions['mta.scope_bpr_consumer_cut(target uuid, observed jsonb)']=import_module(
         'mta.runtime.migrations.0205_scoped_bpr_consumer_recovery').NEW
-    definitions['mta.scope_cache_command(reference uuid, actor text)']=migration().LEASE
+    definitions['mta.scope_cache_command(reference uuid, actor text)']=migration(catalogue=catalogue).LEASE
     functions={f['name']:f for f in catalogue['functions']}
     for name,body in definitions.items():
         f=functions.get(name)

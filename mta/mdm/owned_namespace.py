@@ -863,7 +863,8 @@ APPLICATION_WRITE_GUARDS = {
 def _check_application_write_guards(cursor, registration):
     from mta.runtime import scoped_action_ownership
     scoped = scoped_action_ownership.available(cursor)
-    body = scoped_action_ownership.application_guard_body(APPLICATION_WRITE_GUARD_BODY) if scoped else APPLICATION_WRITE_GUARD_BODY
+    body = scoped_action_ownership.application_guard_body(APPLICATION_WRITE_GUARD_BODY,
+        frozen=scoped_action_ownership.migration(cursor)) if scoped else APPLICATION_WRITE_GUARD_BODY
     guards = dict(APPLICATION_WRITE_GUARDS)
     cursor.execute("""
         SELECT n.nspname||'.'||c.relname,t.tgtype,t.tgenabled,p.proowner::bigint,p.prosecdef,p.prosrc

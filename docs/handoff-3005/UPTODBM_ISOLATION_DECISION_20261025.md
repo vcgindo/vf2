@@ -66,10 +66,12 @@ connections; fresh connection/headroom checks are required before capture.
    restart), and verify parsed rules. Restore exact original bytes and reload
    immediately after capture, including failure cleanup. No credentials or
    roles change. Do not clobber a concurrent HBA edit: stop and report it.
-3. Use matching pg_basebackup via the local socket: tar output, WAL fetch,
-   spread checkpoint, SHA256 manifest, transfer cap 16 MiB/s, no password prompt,
-   no replication slot or standby configuration. Stream to the new archive.
-   WAL retention must be sufficient; no implicit wal_keep_size change is allowed.
+3. Use matching pg_basebackup via the local socket: tar output, WAL streaming,
+   spread checkpoint, SHA256 manifest, transfer cap 16 MiB/s, no password prompt
+   or standby configuration. The explicitly approved correction permits only
+   its session-owned temporary physical slot, removed on disconnect and verified
+   absent afterward. Stop at 64 MiB retained WAL or ten minutes. No persistent
+   slot, server retention setting or resource increase is allowed.
 4. Extract only into the new owned volume and verify the complete manifest with
    matching pg_verifybackup before starting the clone. Retain archive hash and
    verification output. Never mount the serving PGDATA into the clone.
@@ -88,13 +90,16 @@ Backup portability and native qualification remain proof gates, not claims.
 This capture does not itself prove native Full/split equality, interrupted
 execution recovery, scale performance or production site configuration.
 
-The source reports wal_keep_size=0 and min/max_wal_size=32MB. The capture driver
-does not alter these serving settings: it requires no active scope worker,
-monitors WAL generation, aborts above an 8 MiB concurrent-write budget, and
-requires successful complete backup/manifest verification before any clone can
-start. This is fail-closed capture, not a claim of guaranteed WAL retention.
-PostgreSQL documents that tar-to-stdout supports WAL fetch and that a fetch
-backup fails if needed WAL has been recycled:
+The source reports wal_keep_size=0 and min/max_wal_size=32MB. Fetch and no-slot
+streaming attempts lost required WAL before consumption. Human approval
+`call_7981d015142f417eb4629d341216b279` supersedes only the original no-slot and
+raw-archive retention procedures. Failed/interrupted archives may be losslessly
+compressed and their raw copies replaced only after full decompressed SHA256
+and length verification. Preserve every attempt, manifest, log and compression
+receipt within the same 4 GiB archive-plus-volume ceiling. The approved temporary
+slot addresses the observed retention race without changing source settings.
+The original WAL-generation budget remains an additional stop check.
+PostgreSQL describes temporary backup slots and WAL capture behavior:
 [PostgreSQL 16 pg_basebackup](https://www.postgresql.org/docs/16/app-pgbasebackup.html).
 
 ## Required exception
@@ -102,5 +107,6 @@ backup fails if needed WAL has been recycled:
 The project rule says "One isolated test stack". This proposal temporarily adds
 one private PG resource, its bounded utility/worker and fresh storage, and makes
 one reversible local replication HBA change on the owned source. It therefore
-requires explicit human approval. All business data, source schema, credentials,
+received explicit human approval in `call_e5e54b922fd34a06b178e9e0ac575932`, with
+the bounded correction above approved separately. All business data, source schema, credentials,
 frontend design, MTO API, serving PG and 8080 remain preserved.
