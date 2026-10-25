@@ -15,7 +15,8 @@ from mta.runtime.relational_state import CATALOG, quote
 
 def admitted_relation(run):
     """Return None only when this run has never opted into prepared RRR."""
-    if not settings.VF_RRR_PREPARED:
+    from mta.presentation.terminal_read_mode import prepared
+    if not prepared('VF_RRR_PREPARED', run):
         return None
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)

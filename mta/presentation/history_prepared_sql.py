@@ -23,7 +23,8 @@ def admitted(run):
     daily = production_branch(run)
     if not daily:
         return None
-    if not getattr(settings, 'VF_HISTORY_REPORTS_PREPARED', False):
+    from mta.presentation.terminal_read_mode import prepared
+    if not prepared('VF_HISTORY_REPORTS_PREPARED', run):
         return None
     receipt = HistoryPreparedProjection.objects.filter(run_id=run.pk).first()
     if receipt is None:
@@ -119,7 +120,8 @@ def _dimension_ctes(run, attributes, manifest, *, metadata=None):
 
 
 def read_historical_availability(run, payload):
-    if getattr(settings, 'VF_RESEARCH_AVAILABILITY_PREPARED', False):
+    from mta.presentation.terminal_read_mode import prepared
+    if prepared('VF_RESEARCH_AVAILABILITY_PREPARED', run):
         return read_availability_bands(run, payload)
     attributes, manifest = _attributes(run)
     products, locations = scope(payload, attributes=attributes)

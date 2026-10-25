@@ -349,9 +349,12 @@ def bpr_analytics(request, payload):
         raise PublicationUnavailable('selected_analytics_report_not_connected')
     from django.conf import settings
     from mta.presentation.native_publication import enabled as native_enabled
-    if native_enabled() and settings.VF_BPR_PREPARED:
-        from mta.presentation.bpr_prepared import read_bpr
-        return envelope(data=read_bpr(selected_run(), payload, analytics=True))
+    if native_enabled():
+        from mta.presentation.terminal_read_mode import prepared
+        run = selected_run()
+        if prepared('VF_BPR_PREPARED', run):
+            from mta.presentation.bpr_prepared import read_bpr
+            return envelope(data=read_bpr(run, payload, analytics=True))
     model, rows = bpr_selected(payload, mode='analytics')
     return envelope(data=model.analytics(rows))
 
@@ -459,13 +462,16 @@ def bpr_data(request, payload, *, count=False):
     from mta.presentation.native_publication import enabled as native_enabled
     native = native_enabled()
     if native:
-        if native and (not settings.VF_BPR_PREPARED):
+        from mta.presentation.terminal_read_mode import prepared
+        run = selected_run()
+        prepared_mode = prepared('VF_BPR_PREPARED', run)
+        if not prepared_mode:
             raise PublicationUnavailable('native_BPR_prepared_reader_required')
-        if settings.VF_BPR_PREPARED:
+        if prepared_mode:
             from mta.presentation.bpr_prepared import read_bpr
         else:
             from mta.presentation.bpr_sql import read_bpr
-        rows = read_bpr(selected_run(), payload, count=count, paging=None if count else (paging['pageNumber'], paging['recordsPerPage']))
+        rows = read_bpr(run, payload, count=count, paging=None if count else (paging['pageNumber'], paging['recordsPerPage']))
         if count:
             return envelope(record_count=str(rows))
         return envelope(data=[response_row(row, daily_transit=native) for row in rows])
@@ -540,7 +546,8 @@ def export_data(request, payload):
         from mta.presentation.bpr_export import selected_headers as bpr_headers
         from mta.presentation.native_publication import enabled as native_enabled
         if native_enabled():
-            if not settings.VF_BPR_PREPARED:
+            from mta.presentation.terminal_read_mode import prepared
+            if not prepared('VF_BPR_PREPARED', run):
                 raise PublicationUnavailable('native_BPR_prepared_reader_required')
             from mta.presentation.bpr_prepared import read_bpr
             state = ui_state.get_layout(identity(request)['id'], 'BPR')
