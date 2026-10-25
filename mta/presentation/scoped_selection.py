@@ -41,7 +41,7 @@ def recipe_digest():
         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views,
         scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
         bor_preparation, boroa_preparation, native_report_colours, daily_rrr_read,
-        scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)
+        scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view, scoped_action_validation)
     return digest({m.__name__: inspect.getsource(m) for m in
         (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
@@ -51,7 +51,7 @@ def recipe_digest():
          scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
          bor_preparation, boroa_preparation, native_report_colours,
          production_bor_contract, production_output_policy, daily_rrr_read,
-         scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)})
+         scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view, scoped_action_validation)})
 
 
 def native_identity(view):
@@ -130,7 +130,7 @@ def _cut(run_id):
 
 
 @validated_read
-def _selected():
+def _selected(*, action_proof=None):
     from django.conf import settings
     from mta.presentation.context import PublicationUnavailable
     from mta.runtime.models import ScopeReadReference
@@ -146,10 +146,15 @@ def _selected():
         cut = _cut(anchor['run_id'])
         if anchor['schema']==DBM_SCHEMA:
             from mta.presentation import scoped_dbm_view
-            view = scoped_dbm_view.selected(anchor,cut)
+            view = (scoped_dbm_view.selected(anchor,cut) if action_proof is None
+                    else action_proof.selected(anchor,cut))
             if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
                 raise PublicationUnavailable('pre_btr_selection_changed')
+            if action_proof is not None:
+                action_proof.finish()
             return view
+        if action_proof is not None:
+            raise PublicationUnavailable('phase_action_validation_scope_differs')
         rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
             action_command__isnull=True,
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
@@ -164,7 +169,10 @@ def _selected():
         raise PublicationUnavailable('phase_selection_unavailable') from error
 
 
-def selected():
+def selected(*, action_proof=None):
+    if action_proof is not None:
+        # Never place a cross-write proof in the ordinary per-request cache.
+        return _selected(action_proof=action_proof)
     return _request_selected()
 
 

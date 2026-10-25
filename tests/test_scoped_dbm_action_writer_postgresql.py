@@ -132,8 +132,8 @@ class ScopedDbmActionWriterTests(unittest.TestCase):
         from mta.presentation import scoped_selection
         self.ready(); before = self.audit()
         original = scoped_selection.selected
-        def fail_after_composition():
-            view = original()
+        def fail_after_composition(*args, **kwargs):
+            view = original(*args, **kwargs)
             if view.bpr.sources.action_revision:
                 raise OSError('final DBM composition validation fault')
             return view
