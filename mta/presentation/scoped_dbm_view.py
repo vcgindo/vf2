@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from django.db import connection, transaction
 from mta.presentation.context import PublicationUnavailable
 from mta.presentation import scoped_view, scoped_dbm_stop
-from mta.runtime.scoped_pick_files import _accepted
+from mta.presentation.scoped_dbm_stop import _accepted
 from mta.serialization import digest
 from release.phase_selection import DBM_SCHEMA, validate
 

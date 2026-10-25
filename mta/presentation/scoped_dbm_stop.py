@@ -5,6 +5,7 @@ this primitive neither prepares reports nor admits/selects a serving scope.
 """
 from copy import deepcopy
 from types import SimpleNamespace
+from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -13,8 +14,15 @@ from mta.presentation.request_scope import once_per_request
 from mta.presentation import scoped_sources
 from mta.presentation.scoped_dbm import ATTRIBUTES
 from mta.runtime import phase_state, relational_state as typed, scoped_actions
-from mta.runtime.scoped_pick_files import _accepted
 from mta.serialization import storage
+
+
+def _accepted(phase_id, expected_digest):
+    # Anchor files carry text IDs while ORM callers carry UUIDs. Share the
+    # existing immutable reader only after giving the same owner one key.
+    # Its read lifetime ends before a write; current head/revision checks below
+    # remain independent of this accepted phase and its immutable ancestry.
+    return scoped_sources._accepted_phase(UUID(str(phase_id)), expected_digest)
 
 
 def _fail():
