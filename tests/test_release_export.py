@@ -19,6 +19,7 @@ class ReleaseExportTests(unittest.TestCase):
                      'mta/runtime/migrations/0104_mdm_target_fixture.py',
                      'mta/config/logistics/ui_columns_v1.json', 'vectorflow/settings.py',
                      'mta/mdm/target_fixture.py', 'mta/runtime/input_reader.py',
+                     'mta/runtime/management/commands/run_production_upto_dbm.py',
                      'baseline/complete-daily-state-schema-v3.json',
                      'frontend/src/reportWebVitals.ts', 'frontend/src/i18n/config.js', 'frontend/.eslintrc.json',
                      'frontend/public/assets/logo.svg', 'frontend/tsconfig.paths.json',

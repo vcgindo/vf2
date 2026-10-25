@@ -133,8 +133,8 @@ class Step4NativeBoundaryTests(unittest.TestCase):
 
     def test_final_command_inventory_preserves_all_released_native_owners(self):
         from release.export import SUPPORTED_MTA_COMMANDS,included
-        self.assertEqual(len(SUPPORTED_MTA_COMMANDS),28)
-        self.assertTrue({'run_production_upto_bpr','fence_production_scope'}<=SUPPORTED_MTA_COMMANDS)
+        self.assertEqual(len(SUPPORTED_MTA_COMMANDS),29)
+        self.assertTrue({'run_production_upto_bpr','run_production_upto_dbm','fence_production_scope'}<=SUPPORTED_MTA_COMMANDS)
         for name in SUPPORTED_MTA_COMMANDS:
             self.assertTrue(included('mta/runtime/management/commands/'+name+'.py'))
         for name in ('run_current_day','publish_pick_projection','activate_offline_readers','install_offline_input_source',
