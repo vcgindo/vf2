@@ -1,42 +1,9 @@
 """Explicit phase anchor; current immutable dependencies are admitted per request."""
 import json
 from pathlib import Path
-from uuid import UUID
 from mta.serialization import digest
 from mta.presentation.request_scope import validated_read
-
-SCHEMA = 'fresh-test-bpr-selection-v1'
-FIELDS = frozenset(('schema', 'run_id', 'phase_id', 'phase_digest', 'snapshot_digest',
-    'input_digest', 'input_manifest_digest', 'capture_digest', 'configuration_digest',
-    'native_digest', 'permissions_sha256', 'recipe_digest', 'business_date', 'selection_digest'))
-
-
-def validate(value):
-    from datetime import date
-    if type(value) is not dict or set(value) != FIELDS or value['schema'] != SCHEMA:
-        raise ValueError('Complete explicit test BPR selection required')
-    if any(type(v) is not str for v in value.values()):
-        raise ValueError('Phase selection fields must be strings')
-    for field in ('run_id', 'phase_id'): UUID(value[field])
-    if date.fromisoformat(value['business_date']).isoformat() != value['business_date']:
-        raise ValueError('Phase selection date differs')
-    from mta.runtime.ingestion_context import sha
-    for field in FIELDS - {'schema', 'run_id', 'phase_id', 'business_date'}: sha(value[field])
-    if value['selection_digest'] != digest({k: v for k, v in value.items() if k != 'selection_digest'}):
-        raise ValueError('Phase selection checksum differs')
-    return value
-
-
-def read(path):
-    def unique(pairs):
-        value = {}
-        for key, item in pairs:
-            if key in value: raise ValueError('Duplicate phase selection field')
-            value[key] = item
-        return value
-    with Path(path).open('rb') as stream: raw = stream.read(8193)
-    if len(raw) > 8192: raise ValueError('Phase selection exceeds bound')
-    return validate(json.loads(raw, object_pairs_hook=unique))
+from release.phase_selection import SCHEMA, FIELDS, validate, read
 
 
 def write(path, value):
@@ -64,12 +31,13 @@ def enabled():
 
 def recipe_digest():
     import inspect
+    from release import phase_selection
     from mta.presentation import (scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql, views,
         bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
         daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
         scoped_dbm, dbm, dbm_filters, scoped_action_writer)
     return digest({m.__name__: inspect.getsource(m) for m in
-        (inspect.getmodule(recipe_digest), scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
+        (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
          daily_git_custom, daily_git_read, planning_chart_sql, planning_custom_sql, bpr_remarks, scoped_remark_writer,
          scoped_dbm, dbm, dbm_filters, scoped_action_writer)})

@@ -20,7 +20,7 @@ ROOT_FILES = frozenset(('manage.py', 'requirements.txt'))
 # Finite MTA image dependencies. The complete operator/source archive has its
 # own independently pinned descriptor; build/inspection tools never enter /app.
 MTA_RELEASE_FILES = frozenset('release/' + name for name in (
-    '__init__.py', 'configuration.py', 'metadata_access.py', 'mta_settings.py',
+    '__init__.py', 'configuration.py', 'metadata_access.py', 'mta_settings.py', 'phase_selection.py',
     'native_identity.py', 'native_schema.py', 'provision.py', 'register_mta.py', 'initialize_csv.py', 'csv_onboarding.py', 'upgrade_ingestion.py', 'advance_ingestion.py',
     'service.py', 'daily_serving_check.py', 'owned-namespace.sql', 'requirements-mta.lock',
     'mta-wheels.lock.json', 'images.lock.json', 'mta.Dockerfile'))

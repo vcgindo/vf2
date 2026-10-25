@@ -22,6 +22,7 @@ class LocalCatalogueTests(TestCase):
             'VF_MTA_FIXTURE_SHA256': '', 'VF_MTA_PUBLISHED_RUN': 'accepted',
             'VF_MTA_PUBLISHED_DIGEST': 'output',
             'VF_MTA_SELECTION_FILE': '', 'VF_MTA_SELECTION_SHA256': '',
+            'VF_MTA_PHASE_SELECTION_FILE': '', 'VF_MTA_PHASE_SELECTION_SHA256': '',
         })
         self.environment.start()
         self.addCleanup(self.environment.stop)
@@ -78,6 +79,71 @@ class LocalCatalogueTests(TestCase):
         self.assertEqual(payload(), expected)
         self.test_login_and_profile_assembly_do_not_call_mta()
         self.test_live_grant_addition_and_revocation()
+
+    def phase(self):
+        from release.phase_selection import SCHEMA, FIELDS, validate
+        for name in ('VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256',
+                     'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST',
+                     'VF_MTA_SELECTION_FILE', 'VF_MTA_SELECTION_SHA256'):
+            os.environ[name] = ''
+        value = {name: 'a'*64 for name in FIELDS}
+        value.update(schema=SCHEMA, run_id='49efa557-a31f-4ea8-9089-b510f2856d30',
+            phase_id='ac1612c8-0e49-4155-83c3-f59f41422293', business_date='2037-04-10',
+            permissions_sha256=os.environ['VF_MTA_PERMISSIONS_SHA256'])
+        value['selection_digest'] = hashlib.sha256(json.dumps({k:v for k,v in value.items()
+            if k!='selection_digest'},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        validate(value)
+        self.install('VF_MTA_PHASE_SELECTION',value)
+        return value
+
+    def test_phase_projection_login_profile_and_live_revocation_without_mta_network(self):
+        expected = payload()
+        self.phase()
+        self.assertEqual(payload(), expected)
+        self.test_exact_projection_and_no_mta_network()
+        self.test_login_and_profile_assembly_do_not_call_mta()
+        self.test_live_grant_addition_and_revocation()
+
+    def test_phase_mixed_modes_and_incomplete_binding_are_denied(self):
+        self.phase()
+        for name in ('VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256',
+                     'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST',
+                     'VF_MTA_SELECTION_FILE', 'VF_MTA_SELECTION_SHA256',
+                     'VF_MTA_FIXTURE_FILE', 'VF_MTA_FIXTURE_SHA256'):
+            with patch.dict(os.environ,{name:'mixed'}):
+                with self.subTest(name=name),self.assertRaises(CatalogueUnavailable):payload()
+        for name in ('VF_MTA_PHASE_SELECTION_FILE','VF_MTA_PHASE_SELECTION_SHA256'):
+            with patch.dict(os.environ,{name:''}):
+                with self.subTest(name=name),self.assertRaises(CatalogueUnavailable):payload()
+
+    def test_phase_uses_shared_field_digest_date_and_permission_contract(self):
+        value = self.phase()
+        for key,wrong in (('schema','fresh-production-selection-v1'),('run_id','invalid'),
+                ('business_date','2037-4-10'),('phase_digest','g'*64),('native_digest',False),
+                ('selection_digest','b'*64),('extra','unknown')):
+            with self.subTest(key=key):
+                self.install('VF_MTA_PHASE_SELECTION',dict(value,**{key:wrong}))
+                with self.assertRaises(CatalogueUnavailable):payload()
+        wrong=dict(value,permissions_sha256='f'*64)
+        wrong['selection_digest']=hashlib.sha256(json.dumps({k:v for k,v in wrong.items()
+            if k!='selection_digest'},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        self.install('VF_MTA_PHASE_SELECTION',wrong)
+        with self.assertRaisesRegex(CatalogueUnavailable,'phase_permission_catalogue_binding_mismatch'):payload()
+
+    def test_phase_duplicate_oversize_file_replacement_and_missing_file_fail_closed(self):
+        self.phase()
+        path=Path(os.environ['VF_MTA_PHASE_SELECTION_FILE']);original=path.read_bytes()
+        for raw in (original.replace(b'{',b'{"schema":"duplicate",',1),b' '*8193):
+            path.write_bytes(raw)
+            os.environ['VF_MTA_PHASE_SELECTION_SHA256']=hashlib.sha256(raw).hexdigest()
+            with self.assertRaises(CatalogueUnavailable):payload()
+        path.write_bytes(original)
+        os.environ['VF_MTA_PHASE_SELECTION_SHA256']=hashlib.sha256(original).hexdigest()
+        replacement=path.with_suffix('.replacement');replacement.write_bytes(original+b' ')
+        os.replace(replacement,path)
+        with self.assertRaises(CatalogueUnavailable):payload()
+        path.unlink()
+        with self.assertRaises(CatalogueUnavailable):payload()
 
     def test_native_selection_failures(self):
         binding = self.native()

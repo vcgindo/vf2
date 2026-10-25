@@ -26,12 +26,16 @@ def enabled():
     return value == '1'
 
 
-def _read(prefix, *, unique_keys=False):
+def _read(prefix, *, unique_keys=False, decoder=None):
     path, expected = (os.environ.get(prefix + suffix, '') for suffix in ('_FILE', '_SHA256'))
     if not path or not expected:
         raise CatalogueUnavailable('catalogue_binding_not_configured')
     try:
-        raw = Path(path).read_bytes()
+        if decoder is None:
+            raw = Path(path).read_bytes()
+        else:
+            with Path(path).open('rb') as stream:
+                raw = stream.read(8193)
         if hashlib.sha256(raw).hexdigest() != expected:
             raise CatalogueUnavailable('catalogue_binding_checksum_mismatch')
         def unique(pairs):
@@ -41,7 +45,7 @@ def _read(prefix, *, unique_keys=False):
                     raise ValueError('Duplicate selection field')
                 result[key] = value
             return result
-        return json.loads(raw, object_pairs_hook=unique if unique_keys else None)
+        return decoder(raw) if decoder is not None else json.loads(raw, object_pairs_hook=unique if unique_keys else None)
     except (OSError, ValueError) as exc:
         raise CatalogueUnavailable('catalogue_binding_unreadable') from exc
 
@@ -61,10 +65,24 @@ def payload():
         if bool(native_file) != bool(native_sha):
             raise CatalogueUnavailable('incomplete_native_catalogue_selection')
         native = bool(native_file)
+        phase_file, phase_sha = (os.environ.get('VF_MTA_PHASE_SELECTION' + suffix, '')
+                                for suffix in ('_FILE', '_SHA256'))
+        if bool(phase_file) != bool(phase_sha):
+            raise CatalogueUnavailable('incomplete_phase_catalogue_selection')
+        phase = bool(phase_file)
         version = 'legacy-ui-fixture-permissions-v1' if fixture else 'block1-permissions-v1'
         if catalogue['version'] != version:
             raise CatalogueUnavailable('catalogue_selection_version_mismatch')
-        if native:
+        if phase:
+            if (native or fixture or any(os.environ.get(name) for name in
+                    ('VF_MTA_HIERARCHY_FILE', 'VF_MTA_HIERARCHY_SHA256',
+                     'VF_MTA_PUBLISHED_RUN', 'VF_MTA_PUBLISHED_DIGEST'))):
+                raise CatalogueUnavailable('mixed_phase_catalogue_selection')
+            from release.phase_selection import decode
+            binding = _read('VF_MTA_PHASE_SELECTION', decoder=decode)
+            if binding['permissions_sha256'] != checksum:
+                raise CatalogueUnavailable('phase_permission_catalogue_binding_mismatch')
+        elif native:
             if fixture or any(os.environ.get('VF_MTA_HIERARCHY' + suffix)
                               for suffix in ('_FILE', '_SHA256')):
                 raise CatalogueUnavailable('mixed_native_catalogue_selection')

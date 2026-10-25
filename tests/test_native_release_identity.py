@@ -51,6 +51,18 @@ class NativeReleaseIdentityTests(unittest.TestCase):
         self.assertEqual(set(actual), {'schema', 'source_commit', 'manifest_sha256',
             'source_files_digest', 'migrations_digest', 'implementation_sha256'})
 
+    def test_shared_phase_codec_is_in_native_file_identity_and_tamper_is_denied(self):
+        name='release/phase_selection.py'
+        raw=b'# shared phase codec\n'
+        (self.root/name).write_bytes(raw)
+        files={n:hashlib.sha256(content).hexdigest() for n,content in {**self.contents,name:raw}.items()}
+        value=identity.declaration(self.root,self.commit,files)
+        self.assertIn(name,value['files'])
+        self.pin=self.write(value)
+        self.verify()
+        (self.root/name).write_bytes(b'# changed codec\n')
+        with self.assertRaises(ValueError):self.verify()
+
     def test_no_missing_or_self_inferred_pin(self):
         for pin in ('', None, 'A' * 64, '0' * 64):
             with self.subTest(pin=pin), self.assertRaises(ValueError):
