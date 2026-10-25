@@ -859,21 +859,32 @@ def _check_application_write_guards(cursor, registration):
 # Existing invoker helpers called by the fixed workflow/guard SQL. No PUBLIC
 # EXECUTE or security-definer capability is admitted by the writable profile.
 def application_functions(catalogue):
-    """Old frozen profile plus one exactly qualified read-only metadata helper.
+    """Old frozen profile plus exactly qualified read-only metadata helpers.
 
     The additive helper is absent on old schemas. It never changes the frozen
     baseline profile digest or grants write/definer authority.
     """
     name='mta.finite_capture_prefix_digest(leaf uuid)'
-    helper=next((f for f in catalogue['functions'] if f['name']==name),None)
-    if helper is None:return APPLICATION_FUNCTIONS
     from importlib import import_module
-    sql=import_module('mta.runtime.migrations.0163_finite_capture_admission').SQL
-    body=sql.split('AS $$',1)[1].split('$$;',1)[0]
-    if (helper['body']!=body or helper['security_definer'] or helper['returns']!='text'
-            or helper['configuration']!=['search_path=pg_catalog, mta','TimeZone=UTC','DateStyle=ISO, YMD']):
-        _reject('Finite metadata helper implementation differs')
-    return APPLICATION_FUNCTIONS | {name}
+    result=APPLICATION_FUNCTIONS
+    helper=next((f for f in catalogue['functions'] if f['name']==name),None)
+    if helper is not None:
+        sql=import_module('mta.runtime.migrations.0163_finite_capture_admission').SQL
+        body=sql.split('AS $$',1)[1].split('$$;',1)[0]
+        if (helper['body']!=body or helper['security_definer'] or helper['returns']!='text'
+                or helper['configuration']!=['search_path=pg_catalog, mta','TimeZone=UTC','DateStyle=ISO, YMD']):
+            _reject('Finite metadata helper implementation differs')
+        result=result | {name}
+    name='mta.scope_action_revision(target uuid)'
+    helper=next((f for f in catalogue['functions'] if f['name']==name),None)
+    if helper is not None:
+        sql=import_module('mta.runtime.migrations.0191_scoped_action_ownership').SQL
+        body=sql.split('AS $body$',1)[1].split('$body$;',1)[0]
+        if (helper['body']!=body or helper['security_definer'] or helper['returns']!='bigint'
+                or helper['language']!=14 or helper['configuration']!=['search_path=pg_catalog, mta']):
+            _reject('Scoped revision read helper implementation differs')
+        result=result | {name}
+    return result
 
 
 APPLICATION_FUNCTIONS = frozenset((
