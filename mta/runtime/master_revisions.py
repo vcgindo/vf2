@@ -171,6 +171,9 @@ def accept(run, initialization_id, parent_id):
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
     state=IngestionRevisionState.objects.select_for_update().get(initialization_id=initialization_id)
     old=MasterInputRevision.objects.get(pk=parent_id,initialization_id=initialization_id,status='ACCEPTED')
+    if run.production_manifest.get('master_preparation',{}).get('scoped_execution_provenance') is not None:
+        from mta.runtime.scoped_postdbm_recovery import terminal_master_parent
+        old=terminal_master_parent(run,initialization_id,parent_id,state)
     if (state.master_epoch,state.configuration_epoch)==(old.master_epoch,old.configuration_epoch):
         if old.run_id is not None and old.partitions.get('contract')!=PHASE_CONTRACT:
             return old

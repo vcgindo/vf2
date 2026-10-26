@@ -22,8 +22,9 @@ PREVIOUS=dict(schema='vectorflow-native-release-source-v1',
 ENTRY_FILES=frozenset(('mta/runtime/production_post_dbm.py',
     'mta/runtime/scoped_postdbm_recovery.py',
     'mta/presentation/production_reports.py','mta/presentation/daily_sources.py',
-    'mta/runtime/capture_preparation.py'))
-PROTECTED='2f58e0a08c15eac89ec4f60370ee5db78d8f13b07112185b11a334754de65a99'
+    'mta/runtime/capture_preparation.py','mta/runtime/master_revisions.py',
+    'mta/presentation/terminal_scoped_remarks.py','mta/presentation/selective.py'))
+PROTECTED='0fdcd60c623f15618e0b20182655000ae5f08a50401f93437d5492e6181ef12e'
 SCHEMA='0fab95b7876642f0d4027bd382c0df96afa08f9200030aef82340ced8fd01451'
 GUARD='ad6b00d71e9dc772bea7bb8fb10b335af4eb4c553d8a002ee705c8ce2ac67c8c'
 
@@ -104,8 +105,7 @@ def publication_master(run,capture,producer):
     rewritten, and no ordinary Full publication acquires this exception.
     """
     from mta.runtime.production_post_dbm import AUTHORITY
-    from mta.runtime.scoped_final import require_pending_final,accepted_prefix
-    from mta.runtime.models import RunPhaseAcceptance
+    from mta.runtime.scoped_final import accepted_prefix
     from mta.runtime import scope_revisions
     from mta.runtime.master_revisions import STATIC_TABLES
     from mta.application.persistent_master import CONTRACT
@@ -118,17 +118,7 @@ def publication_master(run,capture,producer):
             or producer.get('reused') is not False or producer.get('qualified') is not True
             or type(producer.get('full_master_producer_calls')) is not int):
         raise ValueError('Scoped terminal master execution provenance differs')
-    require_pending_final(run)
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT current_setting('fresh.scope_phase',true)")
-        receipt_id=cursor.fetchone()[0]
-    final=RunPhaseAcceptance.objects.select_related('attempt').get(pk=receipt_id,run=run,
-        phase='DAY_FINAL',state_sealed=False,snapshot__isnull=True)
-    attempt=final.attempt
-    if (attempt.status!='ACTIVE' or attempt.scope!='PostDBM' or attempt.command_key!=COMMAND
-            or attempt.compatibility_digest!=COMPATIBILITY or attempt.action_revision!=AUTHORITY['action_revision']
-            or attempt.expected_phase!='DBM' or attempt.expected_receipt_digest!=AUTHORITY['dbm_digest']):
-        raise ValueError('Scoped terminal master publication owner differs')
+    _pending_owner(run)
     prefix,_=accepted_prefix(run)
     if (scope_revisions.identity(run)!=capture
             or prefix[0].digest!='64657436bc1b291ce93a62427b8593d95d4b7b88722333a3476f597eeb544452'
@@ -144,6 +134,8 @@ def publication_master(run,capture,producer):
     roots={}
     for name in STATIC_TABLES:
         source=manifest['images'][manifest['state']['importer'][name]['image']]
+        if name=='SkuLocAttributeData':
+            source=terminal_pair_metadata(run,source)
         target=run.production_manifest['images']['closing/importer/'+name]
         if any(source[key]!=target[key] for key in ('count','digest','fields')):
             raise ValueError('Scoped terminal master population differs from accepted DBM: '+name)
@@ -153,3 +145,99 @@ def publication_master(run,capture,producer):
         capture_selected_reuse=True,accepted_master_reused=False,
         accepted_phases=[dict(id=str(p.pk),digest=p.digest) for p in prefix],
         terminal_static_roots=roots))
+
+
+def _pending_owner(run):
+    from mta.runtime.production_post_dbm import AUTHORITY
+    from mta.runtime.scoped_final import require_pending_final
+    from mta.runtime.models import RunPhaseAcceptance
+    if str(run.pk)!=AUTHORITY['run']:
+        raise ValueError('Scoped terminal master publication owner differs')
+    require_pending_final(run)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('fresh.scope_phase',true)")
+        receipt_id=cursor.fetchone()[0]
+    final=RunPhaseAcceptance.objects.select_related('attempt').get(pk=receipt_id,run=run,
+        phase='DAY_FINAL',state_sealed=False,snapshot__isnull=True)
+    attempt=final.attempt
+    if (attempt.status!='ACTIVE' or attempt.scope!='PostDBM' or attempt.command_key!=COMMAND
+            or attempt.compatibility_digest!=COMPATIBILITY or attempt.action_revision!=AUTHORITY['action_revision']
+            or attempt.expected_phase!='DBM' or attempt.expected_receipt_digest!=AUTHORITY['dbm_digest']):
+        raise ValueError('Scoped terminal master publication owner differs')
+    return final
+
+
+def terminal_pair_metadata(run,source):
+    """The existing chain.produce_btr NonNMS wire projection, preserving NULL."""
+    from mta.runtime import relational_state as typed,phase_state
+    rows=typed.load_image(run,source,table_registry=phase_state.REGISTRY)
+    projected=[dict(row,NonNMS=None if row['NonNMS'] is None else bool(row['NonNMS'])) for row in rows]
+    columns={name.casefold():(name,kind) for name,kind in phase_state.REGISTRY[source['table']]}
+    return typed.describe_rows(projected,columns,'closing/importer/SkuLocAttributeData')[0]
+
+
+def _master_parent(run,base_id):
+    from mta.runtime.production_post_dbm import AUTHORITY
+    from mta.runtime.ingestion_models import MasterInputRevision
+    from mta.runtime.master_revisions import _validate_phase,PHASE_CONTRACT
+    from mta.runtime.ingestion_admission import receipt,REVISION_FIELDS
+    if str(base_id)!='69a14402-3b37-45e3-97b1-2ab9fbeeb1d2':
+        raise ValueError('Scoped terminal captured master base differs')
+    parent=MasterInputRevision.objects.get(pk='4bdbb4a9-5045-43cc-81b6-4621de5da240',
+        initialization_id=INITIALIZATION,status='ACCEPTED')
+    if (parent.run_id!=run.pk or [parent.master_epoch,parent.configuration_epoch]!=[41,312]
+            or parent.partitions.get('contract')!=PHASE_CONTRACT
+            or parent.partitions.get('phase_id')!=AUTHORITY['dbm']
+            or parent.partitions.get('phase_digest')!=AUTHORITY['dbm_digest']
+            or parent.receipt_digest!=receipt({k:getattr(parent,k) for k in REVISION_FIELDS})
+            or _validate_phase(parent.partitions,INITIALIZATION).pk!=run.pk):
+        raise ValueError('Scoped terminal accepted master parent differs')
+    ancestor=parent;seen=set()
+    while str(ancestor.pk)!=str(base_id):
+        if ancestor.pk in seen or ancestor.parent_id is None:
+            raise ValueError('Scoped terminal master parent ancestry differs')
+        seen.add(ancestor.pk);ancestor=ancestor.parent
+        if (str(ancestor.initialization_id)!=INITIALIZATION or ancestor.status!='ACCEPTED'
+                or ancestor.receipt_digest!=receipt({k:getattr(ancestor,k) for k in REVISION_FIELDS})):
+            raise ValueError('Scoped terminal master ancestor differs')
+    return parent
+
+
+def promote_master(run,capture,producer,state):
+    """Allocate a terminal representation cut before its producer/root is sealed."""
+    from django.db.models import F
+    from mta.runtime.ingestion_models import IngestionRevisionState
+    _pending_owner(run)
+    parent=_master_parent(run,capture['base_revision_id'])
+    if (not connection.in_atomic_block or str(state.pk)!=INITIALIZATION
+            or [state.master_epoch,state.configuration_epoch]!=[41,312]
+            or 'scoped_execution_provenance' not in producer):
+        raise ValueError('Scoped terminal master promotion cut differs')
+    changed=IngestionRevisionState.objects.filter(pk=state.pk,master_epoch=41,configuration_epoch=312).update(
+        master_epoch=F('master_epoch')+1)
+    if changed!=1:raise ValueError('Scoped terminal master promotion raced')
+    state.refresh_from_db()
+    if [state.master_epoch,state.configuration_epoch]!=[42,312]:
+        raise ValueError('Scoped terminal master promoted cut differs')
+    promotion=dict(parent_id=str(parent.pk),captured_base_id=str(capture['base_revision_id']),
+        before=[41,312],after=[42,312],parent_receipt=parent.receipt_digest)
+    return dict(producer,scoped_execution_provenance=dict(producer['scoped_execution_provenance'],
+        master_promotion=promotion))
+
+
+def terminal_master_parent(run,initialization_id,base_id,state):
+    """Revalidate promotion when the common owner accepts the terminal revision."""
+    from mta.runtime.receipt_integrity import verify_root
+    _pending_owner(run)
+    parent=_master_parent(run,base_id)
+    producer=run.production_manifest['master_preparation']
+    expected=dict(parent_id=str(parent.pk),captured_base_id=str(base_id),before=[41,312],after=[42,312],
+                  parent_receipt=parent.receipt_digest)
+    if (str(initialization_id)!=INITIALIZATION or str(state.pk)!=INITIALIZATION
+            or [state.master_epoch,state.configuration_epoch]!=[42,312]
+            or producer.get('master_cut')!=[42,312]
+            or producer.get('scoped_execution_provenance',{}).get('master_promotion')!=expected
+            or run.production_manifest['ingestion_preparation']['base_revision_id']!=str(base_id)):
+        raise ValueError('Scoped terminal master acceptance promotion differs')
+    verify_root(run)
+    return parent

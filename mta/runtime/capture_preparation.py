@@ -67,8 +67,9 @@ def publication_metadata(run, capture, producer):
         from mta.runtime.production_post_dbm import AUTHORITY
         if str(run.pk)!=AUTHORITY['run']:
             raise ValueError('Native prepared producer result differs')
-        from mta.runtime.scoped_postdbm_recovery import publication_master
+        from mta.runtime.scoped_postdbm_recovery import publication_master,promote_master
         producer=publication_master(run,capture,producer)
+        producer=promote_master(run,capture,producer,state)
     producer=dict(producer,master_cut=[state.master_epoch,state.configuration_epoch])
     run.production_manifest['master_preparation']=producer
     run.production_manifest['ingestion_preparation']=capture

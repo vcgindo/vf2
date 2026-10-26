@@ -226,7 +226,19 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
         stack.enter_context(patch('mta.runtime.models.RunPhaseAcceptance.objects'))\
             .select_related.return_value.get.return_value=SimpleNamespace(attempt=attempt)
         stack.enter_context(patch.object(recovery.connection,'cursor'))
+        stack.enter_context(patch.object(recovery,'terminal_pair_metadata',side_effect=lambda run,source:source))
         return recovery,run,capture,producer,pre,dbm,attempt,pending
+
+    def test_terminal_pair_projection_preserves_null_and_uses_existing_boolean_wire_type(self):
+        from mta.runtime import scoped_postdbm_recovery as recovery
+        from mta.serialization import digest
+        rows=[{'NonNMS':None},{'NonNMS':0},{'NonNMS':1},{'NonNMS':0}]
+        before=deepcopy(rows)
+        with patch('mta.runtime.relational_state.load_image',return_value=rows):
+            result=recovery.terminal_pair_metadata('run',{'table':'Importer/SkuLocAttributeData'})
+        self.assertEqual(rows,before)
+        self.assertEqual(result['digest'],digest([{'NonNMS':None},{'NonNMS':False},{'NonNMS':True},{'NonNMS':False}]))
+        self.assertEqual(result['fields'],[['NonNMS','NonNMS','bool']])
 
     def test_terminal_provenance_retains_capture_and_truthful_execution(self):
         recovery,run,capture,producer,pre,dbm,attempt,pending=self.publication_harness()
@@ -282,3 +294,86 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Native prepared producer result differs'):
                 publication_metadata(run,dict(capture,qualified_master_reuse=True),producer)
             bounded.assert_not_called()
+
+    def test_master_promotion_updates_locked_state_once_before_metadata(self):
+        from mta.runtime import scoped_postdbm_recovery as recovery
+        parent=SimpleNamespace(pk='parent',receipt_digest='a'*64)
+        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=41,configuration_epoch=312)
+        state.refresh_from_db=lambda:setattr(state,'master_epoch',42)
+        capture={'base_revision_id':'base'};producer={'scoped_execution_provenance':{'preserved':True}}
+        with patch.object(recovery,'_pending_owner'),patch.object(recovery,'_master_parent',return_value=parent), \
+                patch.object(recovery.connection,'in_atomic_block',True), \
+                patch('mta.runtime.ingestion_models.IngestionRevisionState.objects') as states:
+            states.filter.return_value.update.return_value=1
+            result=recovery.promote_master('run',capture,producer,state)
+            self.assertEqual(state.master_epoch,42)
+            self.assertEqual(result['scoped_execution_provenance']['master_promotion']['after'],[42,312])
+            self.assertEqual(producer,{'scoped_execution_provenance':{'preserved':True}})
+            with self.assertRaisesRegex(ValueError,'promotion cut differs'):
+                recovery.promote_master('run',capture,producer,state)
+            self.assertEqual(states.filter.return_value.update.call_count,1)
+
+    def test_terminal_master_acceptance_rechecks_promoted_cut_and_parent(self):
+        from mta.runtime import scoped_postdbm_recovery as recovery
+        parent=SimpleNamespace(pk='parent',receipt_digest='a'*64)
+        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=42,configuration_epoch=312)
+        promotion=dict(parent_id='parent',captured_base_id='base',before=[41,312],after=[42,312],parent_receipt='a'*64)
+        run=SimpleNamespace(production_manifest=dict(master_preparation=dict(master_cut=[42,312],
+            scoped_execution_provenance={'master_promotion':promotion}),ingestion_preparation={'base_revision_id':'base'}))
+        with patch.object(recovery,'_pending_owner'),patch.object(recovery,'_master_parent',return_value=parent), \
+                patch('mta.runtime.receipt_integrity.verify_root') as verify:
+            self.assertIs(recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state),parent)
+            verify.assert_called_once_with(run)
+            for changed in ([41,312],[42,313]):
+                state.master_epoch,state.configuration_epoch=changed
+                with self.assertRaisesRegex(ValueError,'acceptance promotion differs'):
+                    recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state)
+            state.master_epoch,state.configuration_epoch=42,312
+            promotion['parent_id']='foreign'
+            with self.assertRaisesRegex(ValueError,'acceptance promotion differs'):
+                recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state)
+
+    def test_terminal_remarks_keep_exact_prefix_when_live_owner_advances(self):
+        from mta.presentation import terminal_scoped_remarks as terminal,scoped_remarks
+        from mta.serialization import digest
+        locator=dict(live_highwater=2,capture_id=9,watermark=0,provenance_digest='a'*64)
+        fresh=scoped_remarks.RemarkBinding('run',9,0,3,None,0,'b'*64,dict(locator,live_highwater=3))
+        rows=[{'Remark':None,'SKUCode':'A'},{'Remark':'same','SKUCode':'A'}]
+        with patch.object(terminal,'ROWS_DIGEST',digest(rows)), \
+                patch.object(scoped_remarks.RemarkBinding,'verify_rows') as verify, \
+                patch.object(scoped_remarks.RemarkBinding,'rows',return_value=rows):
+            bound,actual=terminal.retained_prefix(fresh,locator)
+            self.assertEqual(actual,rows);self.assertEqual(bound.highwater,2);self.assertEqual(fresh.highwater,3)
+            self.assertEqual(bound.provenance(),locator);verify.assert_called_once()
+            with self.assertRaisesRegex(ValueError,'prefix_differs'):
+                terminal.retained_prefix(fresh,dict(locator,provenance_digest='changed'))
+            with self.assertRaisesRegex(ValueError,'prefix_differs'):
+                terminal.retained_prefix(fresh,dict(locator,live_highwater=1))
+            rows[0]['Remark']='altered'
+            with self.assertRaisesRegex(ValueError,'rows_differ'):terminal.retained_prefix(fresh,locator)
+
+    def test_terminal_remark_rows_and_parent_sql_use_same_source_descriptor(self):
+        from mta.presentation import terminal_scoped_remarks as terminal,daily_sources,selective
+        item={'table':terminal.TABLE};rows=[{'Remark':'one'},{'Remark':'two'}]
+        bound=SimpleNamespace(query=lambda:('PREFIX_SQL',['bound-cut']))
+        with patch.object(terminal,'binding',return_value=(bound,rows,item)), \
+                patch.object(daily_sources,'image_metadata',return_value=item), \
+                patch.object(selective,'image_metadata',return_value=item), \
+                patch('mta.presentation.ancillary_live.image_query') as original:
+            self.assertEqual(daily_sources.image_rows('run','path'),rows)
+            self.assertEqual(selective.image_query('run','path'),('PREFIX_SQL',['bound-cut']))
+            original.assert_not_called()
+            with self.assertRaisesRegex(ValueError,'publication_differs'):
+                terminal.read('run',dict(item,digest='changed'))
+
+    def test_terminal_remark_publisher_rejects_moved_cut_and_leaves_other_runs_alone(self):
+        from mta.presentation import terminal_scoped_remarks as terminal
+        from mta.runtime.production_post_dbm import AUTHORITY
+        with patch('mta.runtime.scoped_postdbm_recovery._pending_owner') as pending, \
+                patch('mta.runtime.models.RemarkOwner.objects') as owners, \
+                patch.object(terminal,'binding') as bind:
+            self.assertEqual(terminal.publish(SimpleNamespace(pk='other')),{});pending.assert_not_called()
+            owners.select_for_update.return_value.get.return_value=SimpleNamespace(next_ordinal=3)
+            with self.assertRaisesRegex(ValueError,'publication_cut_changed'):
+                terminal.publish(SimpleNamespace(pk=AUTHORITY['run']))
+            bind.assert_not_called()

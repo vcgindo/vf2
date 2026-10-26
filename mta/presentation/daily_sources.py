@@ -23,11 +23,13 @@ RETAINED_V6_RECIPE = '06126733256006b008a2b11b0b9e7bfefaecef56e68cd395f5d0f7474e
 
 
 def recipe_digest():
+    from mta.presentation import terminal_scoped_remarks
     from mta.presentation.daily_transit import recipe_digest as transit_recipe
     from mta.presentation.daily_opening_sob import recipe_digest as sob_recipe
     from mta.presentation.production_reports import recipe_digest as report_recipe
     from mta.runtime.bpr_history_completion import recipe_digest as completion_recipe
     return digest(dict(version=6, writer=inspect.getsource(write_sources),
+                       scoped_terminal_remarks=inspect.getsource(terminal_scoped_remarks),
                        bpr_history=completion_recipe(),
                        transit_factor=inspect.getsource(_transit_factor), sob=sob_recipe(),
                        transit=transit_recipe(), reports=report_recipe()))
@@ -101,6 +103,8 @@ def write_sources(run, output, *, opening=None, _sources=None, _bpr_history=None
         images[daily_requests.PATH] = daily_requests.metadata(run)
     from mta.presentation.ancillary_live import publication_metadata
     images.update(publication_metadata(run))
+    from mta.presentation.terminal_scoped_remarks import publish as scoped_terminal_remarks
+    images.update(scoped_terminal_remarks(run))
     if 'production_report_policy' in prior:
         from mta.presentation.production_reports import write as write_reports, _write_report_rows
         if _bpr_history is not None:
@@ -163,6 +167,9 @@ def image_metadata(run, path):
 
 def image_rows(run, path):
     item = image_metadata(run, path)
+    from mta.presentation import terminal_scoped_remarks
+    if item.get('table')==terminal_scoped_remarks.TABLE:
+        return terminal_scoped_remarks.read(run,item)
     if item.get('table', '').startswith('bpr_history/'):
         from mta.runtime.bpr_history_completion import read_published
         return read_published(run, path, item)

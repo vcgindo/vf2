@@ -66,6 +66,9 @@ def image_field(run, path, field):
 def image_query(run, path, *, metadata=None):
     """Trusted manifest/schema-bound relation; values are always parameters."""
     item = metadata if metadata is not None else image_metadata(run, path)
+    from mta.presentation import terminal_scoped_remarks
+    if item.get('table')==terminal_scoped_remarks.TABLE:
+        return terminal_scoped_remarks.read(run,item,as_query=True)
     supplement = None
     if supplement is not None:
         return supplement
