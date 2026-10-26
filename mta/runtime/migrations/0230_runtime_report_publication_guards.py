@@ -142,7 +142,7 @@ SQL = ("CREATE FUNCTION mta.runtime_report_publication_source(P mta.fresh_mta_ru
        "CREATE TRIGGER runtime_report_publication_immutable BEFORE INSERT OR UPDATE OR DELETE "
        "ON mta.fresh_mta_runtimereportpublication FOR EACH ROW EXECUTE FUNCTION mta.guard_runtime_report_publication();\n"
        "CREATE TRIGGER runtime_report_publication_no_truncate BEFORE TRUNCATE "
-       "ON mta.fresh_mta_runtimereportpublication FOR EACH STATEMENT EXECUTE FUNCTION mta.deny_accepted_truncate();\n")
+       "ON mta.fresh_mta_runtimereportpublication FOR EACH STATEMENT EXECUTE FUNCTION mta.guard_runtime_report_publication();\n")
 SQL += transition(OLD, NEW)
 SQL += replace_read(READ_REFERENCE_OLD, READ_REFERENCE_BODY)
 REVERSE = """DO $pre$ BEGIN
