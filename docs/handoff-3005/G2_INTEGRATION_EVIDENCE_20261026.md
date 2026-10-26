@@ -281,3 +281,26 @@ field names alone cannot establish BPR ownership. PostBPRProcessing runs before
 PostBPR RuntimeReports and may change those values; exact copy/hook lineage must
 be bound before a generic logical source alias is accepted. No alias, historical
 phase recipe, initialization guard or production report configuration was changed.
+
+
+## Authenticated physical placement sources
+
+runtime_report_phase_sources binds an accepted PRE_BPR/BPR/DBM phase to its
+run, snapshot, captured input/profile/request, business date and producer action
+revision. It reuses the existing accepted-phase authenticator and full typed
+image checksum reader. Exact manifest nodes support dictionary keys and ordered
+report-list indices; negative, boolean, floating and string indices deny.
+Physical ancestor reuse requires the same image suffix and complete metadata in
+an authenticated ancestor. Even an empty source must name its actual table.
+This does not establish logical Importer-to-BPR copy/hook equivalence or enable
+nonempty RuntimeReports.
+
+The first actual read-only proof exposed missing traversal of ordered DBM report
+lists. Its source snapshot and failure receipt remain retained. The corrected
+proof runtime-report-phase-source-proof-02.json (SHA256 f8046d973481799f856b40ae86f7a9f3d520a44090320ca9804018b36bc96184) passes
+45 images / 217 rows across PRE_BPR, BPR and DBM, 12 changed-owner denials and
+three actual empty-source wrong-table denials. The six-model fingerprint remains
+f2f1d4b1852f238832402eff89c0a53bf5d9a424c1fa814a7750f483e43d9753.
+Fifteen affected local source tests pass. No existing codec/recipe/schema,
+accepted phase, serving service, frontend or MTO change. Publication and logical
+copy/hook contracts remain open within the active report integration item.
