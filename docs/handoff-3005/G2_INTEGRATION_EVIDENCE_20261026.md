@@ -304,3 +304,40 @@ f2f1d4b1852f238832402eff89c0a53bf5d9a424c1fa814a7750f483e43d9753.
 Fifteen affected local source tests pass. No existing codec/recipe/schema,
 accepted phase, serving service, frontend or MTO change. Publication and logical
 copy/hook contracts remain open within the active report integration item.
+
+
+## Logical PostBPR copies and explicit hook disposition
+
+runtime_report_bpr_sources now supplies the two qualified PostBPR query source
+rosters (Spike and Total Requirement) from an authenticated BPR cut. Total reads
+the late accepted vf_RationedReqReport image, consistent with the existing scoped
+reader. SupplierDispatchReq retains its complete/BPR physical identity.
+
+The four BPR master-copy identities are recomputed incrementally using the same
+model fields and typed_field conversion as phase_copy_batches, then compared to
+the full accepted partition roster: owner, model, fields, counts and storage
+digests. No mutable current partition is read. Logical BPR attribute references
+retain their Importer physical image and pinned canonical ImportData SQL identity.
+SkuLocAttributeData uses an explicit reconstructed SELECT-star copy witness;
+it does not claim a persisted BPR pair partition that the original producer did
+not write. Its complete field roster, NULLs, duplicate ordinals and order survive.
+
+There is no generic production site-hook executor. A new pure hook configuration
+validator represents only an explicit provenance-backed declared no-op. The
+source adapter requires it in the frozen scope request and matches the captured
+profile/site. Existing TEST no-ops use the original UptoDBM disposition validator
+and TEST database guard; they are not production defaults. Missing/active hooks,
+wrong sites and changed capture identities deny. Existing entry factories still
+do not admit the new production declaration field; generic admission and hook
+applicability remain future integration work. This adapter does not adopt report
+definitions or mark files/placements ready.
+
+Actual read-only runtime-report-bpr-source-proof-01.json (SHA256 342dbda739c643e099c6defafe5ec8926a9506e14afb3aaf6f5d47774d054c16)
+passes Spike 2x12 and Total 8x107 complete typed cells against their previously
+pinned direct-PG query proofs. It rejects all four changed copy identities and
+two changed hook-capture identities. The six-model fingerprint remains f2f1d4b1.
+The original captured TEST no-op is the proof's only hook authority; the retained
+nonempty query fixture is not installed into this run's empty RuntimeReports.
+The 34 affected local tests pass. Independent source-boundary review found no
+actionable defect, explicitly excluding production admission and publication.
+No existing phase codec/recipe, schema, accepted data, frontend or MTO changes.
