@@ -16,7 +16,7 @@ It does not release general Step3, a serving switch or general G2 acceptance.
 
 Evidence root: `D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/runtime-step2-20261026`.
 The adjacent `RUNTIME_REPORT_STEP2_CHECKPOINT_20261027.json` pins the exact evidence files, byte sizes, SHA256 hashes, releases and complete report digests.
-The index contains 74 artifacts; SHA256 `d3f21b499e1e298f443d9f4cb8d66476cb44d17649f1db581fb126d31442f043`.
+The index contains 74 artifacts; SHA256 `74ab11a644d0beb19a9d72b5ae02fe2fa5d4c3cd7d7852e09652846a8c97b171`.
 Paths below are relative to that evidence root.
 
 ## Fixed proof matrix
