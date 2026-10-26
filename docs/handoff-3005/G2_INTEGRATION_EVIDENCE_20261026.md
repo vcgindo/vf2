@@ -52,3 +52,25 @@ snapshots and failed drivers, totals 3,816,420,899 bytes against the approved
 4,294,967,296-byte limit. Read-only accounting is retained in
 `uptodbm-private-20261025/three-day-positive-test/final-g2-history-footprint.json`.
 No evidence was deleted or compressed for this checkpoint.
+
+## Native report configuration component
+
+`mta/application/runtime_report_configuration.py` validates the native 16-field
+RuntimeReports roster and separate four-field DownloadableUIReportSettings,
+preserving NULLs, spelling, string widths, scalar types and supplied rows. It
+separates definition identity from LastGeneratedFileName state. The shared plan
+selects Active rows by native CI/space-padded placement matching and Id order;
+both split stage sequences equal Full without replaying an earlier placement.
+
+Eight focused tests pass. They use the exact retained eight-row configuration
+capture, with its SHA checked, plus explicit local witnesses for otherwise empty
+placements. Tests cover all five scopes, independent UI download settings,
+source/reference tampering, duplicate keys/IDs/names, invalid native types/NULLs,
+UTF-16 widths, missing-versus-explicit-empty tables and last-file identity.
+The existing empty TEST validator rejects the new production configuration.
+
+This is a pure configuration/placement component. No runtime entry accepts it
+yet; initialization and TEST guards are unchanged. It does not execute SQL,
+authorize an empty production roster, qualify any files/templates/destinations,
+adopt the benchmark configuration or issue a READY result. Production binding,
+enabled report execution and native/UI qualification remain required.
