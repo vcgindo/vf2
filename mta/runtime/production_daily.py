@@ -257,7 +257,9 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     if scope_request is not None:
         from mta.runtime.production_scope import validate_request
         validate_request(scope_request)
-        if retry_capture_id is not None or report_disposition is not None:
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        placement_full=scope_request.get('schema')==PLACEMENT_SCHEMA and scope_request.get('scope')=='Full'
+        if (retry_capture_id is not None and not placement_full) or report_disposition is not None:
             raise ValueError('UptoBPR recovery uses its scope attempt, never a new daily capture')
     try:
         owner=ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
@@ -339,7 +341,8 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 problem('/retry_capture_id','frozen MDM capture','Frozen retry daily input identity differs')
             if owner is not None and frame is not None and (predecessor_id is None or parent_context and 'closing_state' in parent_context):
                 inspect_retry(raw,expected_sha256,owner,frame,parent,parent_context,frozen,
-                    execution_revision,pick_output_root,problem,report_disposition=report_disposition)
+                    execution_revision,pick_output_root,problem,report_disposition=report_disposition,
+                    scope_request=scope_request)
         except (ValueError,TypeError,ObjectDoesNotExist) as error:
             problem('/retry_capture_id','frozen MDM capture',error)
     from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
@@ -416,7 +419,8 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
     return True
 
 
-def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None):
+def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None,
+                  *,scope_request=None):
     """Read-only mirror of frozen retry checks; locked execution gates remain."""
     from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
@@ -425,7 +429,8 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
     from mta.mdm.integration_source import verify_predecessor, verify_capture
     from mta.runtime.production_preflight import frozen_retry
     try:
-        day,prior,request,_=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root)
+        day,prior,request,_=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,
+            **({'scope_request':scope_request} if scope_request is not None else {}))
         from mta.application.native_report_disposition import admit, verify_replay, RETRIES
         if report_disposition is not None or revision in RETRIES.values():
             admit(requested=report_disposition,native=True,origin=frozen,parent=parent,
