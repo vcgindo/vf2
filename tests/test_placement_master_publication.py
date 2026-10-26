@@ -75,6 +75,23 @@ class PlacementMasterTests(unittest.TestCase):
             with self.subTest(table=table,count=count),self.assertRaises(ValueError):
                 handoff.configuration_writes(NS(production_manifest={'images':{'bad':dict(table=table,count=count,digest='x')}}))
 
+    def test_every_installed_configuration_image_including_empty_is_accounted(self):
+        from mta.runtime import relational_state as typed
+        from mta.runtime.ingestion_ownership import domain
+        tables={key for key in typed.STORAGE_TABLES
+                if domain('mta_state',typed.table_name(key))=='configuration'}
+        self.assertEqual(tables,{'BPR/ui_ReportConfigurations','DBM/DBMSettingsTbl',
+            'Importer/ImporterSettingsTbl','Importer/VFSettings',
+            'complete/Importer/EmailAlertSettings'})
+        for count,statements in ((0,0),(1,1),(500,1)):
+            images={key:dict(table=key,count=count,digest=digest([])) for key in tables}
+            actual=handoff.configuration_writes(NS(production_manifest={'images':images}))
+            self.assertEqual({row['table'] for row in actual},tables)
+            self.assertEqual([row['statements'] for row in actual],[statements]*len(tables))
+        with self.assertRaises(ValueError):
+            handoff.configuration_writes(NS(production_manifest={'images':{
+                'unknown':dict(table='Other/Settings',count=0,digest=digest([]))}}))
+
     def test_parent_receipt_and_phase_ancestry_are_required(self):
         from mta.runtime import master_revisions
         from mta.runtime.ingestion_models import MasterInputRevision

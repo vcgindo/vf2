@@ -119,7 +119,9 @@ def configuration_writes(run):
         table=table_name(item['table'])
         if domain('mta_state',table)!='configuration':continue
         count=item['count']
-        if (table not in ('dbm_dbmsettingstbl','importer_importersettingstbl','bpr_ui_reportconfigurations')
+        if (table not in ('dbm_dbmsettingstbl','importer_importersettingstbl',
+                'bpr_ui_reportconfigurations','importer_vfsettings',
+                'complete_importer_emailalertsettings')
                 or type(count) is not int or count<0):
             raise ValueError('Placement configuration image/transport differs')
         # insert_image uses one COPY at >=500 rows; otherwise executemany
