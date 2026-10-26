@@ -1344,3 +1344,4 @@ from mta.runtime.scope_expedite_parent_models import (ScopeExpediteParentGenerat
 
 from mta.runtime.scope_read_models import ScopeReadReference
 from mta.runtime.bpr_history_models import BprHistoryCompletion
+from mta.runtime.runtime_report_models import RuntimeReportPublication

@@ -8,6 +8,7 @@ from mta.serialization import digest
 
 SCHEMA='fresh-native-scope-request-v1'
 CONFIGURED_SCHEMA='fresh-native-scope-request-v2'
+PUBLICATION_SCHEMA='fresh-native-postbpr-publication-request-v1'
 
 
 def request(command_key,*,runtime_reports=None):
@@ -18,8 +19,17 @@ def request(command_key,*,runtime_reports=None):
     value=dict(schema=SCHEMA,scope='UptoBPR',command_key=command_key,
         compatibility_digest=digest(dict(release=require_current(),phase_recipe=recipe_digest())))
     if runtime_reports is not None:
-        from mta.runtime.scope_runtime_reports import validate
+        from mta.runtime.scope_runtime_reports import validate,PUBLICATION_REFERENCE,publication_configuration
         value.update(schema=CONFIGURED_SCHEMA,runtime_reports=validate(runtime_reports))
+        if runtime_reports['schema']==PUBLICATION_REFERENCE:
+            from mta.runtime.scope_runtime_reports import require_publication_writer
+            require_publication_writer()
+            from mta.runtime.runtime_report_publication import recipe_digest as publication_recipe
+            _,hook,_=publication_configuration(runtime_reports)
+            value.update(schema=PUBLICATION_SCHEMA,report_hooks=hook,
+                         publication_recipe=publication_recipe())
+            value['compatibility_digest']=digest(dict(request=value,
+                release=require_current(),phase_recipe=recipe_digest()))
     return value
 
 
@@ -191,7 +201,10 @@ def _produce(attempt,value):
     with transaction.atomic():
         _,run=require_claim(attempt.pk,attempt.worker_token,compatibility_digest=compatibility)
         phase,checksum=head(run.pk)
-    if phase=='BPR':return _phase(run,'BPR',checksum)
+    if phase=='BPR':
+        receipt=_phase(run,'BPR',checksum)
+        _publish_reports(attempt,receipt,value)
+        return receipt
     if phase not in ('START','PRE_BPR'):raise ValueError('UptoBPR cannot advance a later phase')
     raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
     prior=frozen_prior(run,raw)
@@ -215,6 +228,7 @@ def _produce(attempt,value):
         parent=_phase(run,'PRE_BPR',checksum)
         prepared,_=phase_state.read(parent.snapshot,prior=prior,day=raw['day'],profile=raw['profile'],
             master_snapshot=master,execute_calculation=calculate)
+    _publish_reports(attempt,parent,value)
     with native_assignments(True):bpr=produce_bpr(prepared)
     sources=capture_bpr(bpr,opening)
     # Both fresh cuts accept configured histories at their canonical BPR owner.
@@ -224,11 +238,27 @@ def _produce(attempt,value):
         from mta.runtime.scope_bpr_histories import complete_sources
         sources=complete_sources(run,sources,opening)
     with transaction.atomic():
-        return _accept_calculation(attempt.pk,attempt.worker_token,bpr,sources,parent=parent,
+        receipt=_accept_calculation(attempt.pk,attempt.worker_token,bpr,sources,parent=parent,
             compatibility_digest=compatibility)
+    _publish_reports(attempt,receipt,value)
+    return receipt
+
+
+def _publish_reports(attempt,receipt,value):
+    if value.get('schema')==PUBLICATION_SCHEMA:
+        from mta.runtime.runtime_report_publication import prepare
+        return prepare(attempt.pk,attempt.worker_token,phase_id=receipt.pk,
+                       compatibility_digest=value['compatibility_digest'])
 
 
 def _read_reference(receipt):
+    from mta.runtime.input_reader import read_input
+    request=read_input(receipt.run,components=('scope_request',)).get('scope_request',{})
+    if request.get('schema')==PUBLICATION_SCHEMA:
+        from mta.presentation.runtime_report_view import prepare
+        from mta.runtime.scoped_actions import revision
+        return prepare(receipt.pk,expected_digest=receipt.digest,
+                       action_revision=revision(receipt.run)).read_identity
     from mta.presentation.scoped_view import prepare
     from mta.runtime.scoped_actions import revision
     return prepare(receipt.pk,expected_digest=receipt.digest,action_revision=revision(receipt.run)).read_identity
@@ -314,6 +344,10 @@ def _advance(run,value,*,worker_reference,recovery_of=None,repair_files=False,pr
     if 'runtime_reports' in value:
         from mta.runtime.scope_runtime_reports import status
         result['runtime_reports']=status(value['runtime_reports'])
+    if value.get('schema')==PUBLICATION_SCHEMA:
+        from mta.runtime.runtime_report_publication import read
+        published=read(run.pk,placement='PostBPR',verify_bytes=True)
+        result['runtime_reports'].update(ready=True,publication_id=str(published.pk),publication_digest=published.digest)
     if read_reference is not None:
         result['phase_read_reference']=read_reference
         result['pending'].remove('phase_read_binding')

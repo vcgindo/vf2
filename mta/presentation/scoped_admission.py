@@ -47,7 +47,7 @@ def binding(expected_run=None):
         raise PublicationUnavailable('phase_certified_source_required')
     permission_catalogue()
     if (settings.VF_MTA_PERMISSIONS_SHA256 != anchor['permissions_sha256']
-            or scoped_selection.recipe_digest() != anchor['recipe_digest']):
+            or scoped_selection.recipe_for_run(run) != anchor['recipe_digest']):
         raise PublicationUnavailable('phase_admission_recipe_or_permissions_changed')
     configuration = {name: getattr(settings, name) for name in CONFIG_SETTINGS}
     configuration.update(VF_MTA_PHASE_SELECTION_FILE=settings.VF_MTA_PHASE_SELECTION_FILE,

@@ -85,6 +85,11 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
     _source_lock(run_id)
     run = CalculationRun.objects.select_for_update().get(pk=run_id)
     _frozen(run)
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.production_scope import PUBLICATION_SCHEMA
+    captured=read_input(run,components=('scope_request',)).get('scope_request',{})
+    if captured.get('schema')==PUBLICATION_SCHEMA and scope!='UptoBPR':
+        raise ValueError('PostBPR publication continuation is not released')
     if head(run.pk) != (expected_phase, expected_receipt_digest):
         raise ValueError('Expected accepted phase changed')
     if RunScopeAttempt.objects.filter(run=run, status='ACTIVE').exists():
@@ -177,6 +182,15 @@ def release(attempt_id, worker_token, *, compatibility_digest):
 
 
 def _close_attempt(attempt,run,status,failure):
+    if status=='RELEASED':
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.production_scope import PUBLICATION_SCHEMA
+        captured=read_input(run,components=('scope_request',)).get('scope_request',{})
+        if captured.get('schema')==PUBLICATION_SCHEMA:
+            from mta.runtime.runtime_report_publication import read
+            if attempt.scope!='UptoBPR':raise ValueError('Unreleased runtime report continuation')
+            for placement in ('PostImporter','PostBPR'):
+                read(run.pk,placement=placement,verify_bytes=True)
     from mta.runtime import scope_revisions as revisions
     after,observed,diagnostics=revisions.closing(run)
     if diagnostics:

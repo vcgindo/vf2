@@ -53,6 +53,27 @@ PROOF_SETTINGS = dict(
 
 
 class InProcessMtaTransportTests(SimpleTestCase):
+    def test_runtime_report_read_seal_adds_only_two_exact_native_names(self):
+        def application(environ, start_response):
+            start_response('200 OK', [('Content-Type', 'application/octet-stream')])
+            return [environ['PATH_INFO'].encode()]
+        with override_settings(MTA_INPROCESS_WSGI_APPLICATION=owned_wsgi_application(application)):
+            for name in ('Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD', 'LogisticPickListReport'):
+                path = '/api/mta/DownloadReports/'+name
+                self.assertEqual(request(base_url='http://mta', method='GET',
+                    url='http://mta'+path).content, path.encode())
+            for name in ('Spiker_Order_Dump.zip', 'Spike_Order_Dump.zip', 'spike_order_dump',
+                         'TotalReqReport_2026-10-26', 'TotalReqReport_2026-02-30',
+                         'TotalReqReport_YYYY-MM-DD.csv', 'ForeignReport', 'BOR_OrderAllocation',
+                         '../Spike_Order_Dump', '%53pike_Order_Dump', 'Spike_Order_Dump/'):
+                with self.subTest(name=name), self.assertRaises(InProcessMtaTransportError):
+                    request(base_url='http://mta', method='GET',
+                        url='http://mta/api/mta/DownloadReports/'+name)
+            for method, path in (('POST', '/api/mta/DownloadReports/Spike_Order_Dump'),
+                                 ('GET', '/api/mto/DownloadReports/Spike_Order_Dump')):
+                with self.subTest(method=method, path=path), self.assertRaises(InProcessMtaTransportError):
+                    request(base_url='http://mta', method=method, url='http://mta'+path)
+
     @override_settings(**PROOF_SETTINGS)
     def test_workflow_seal_is_exact_and_does_not_extend_read_seal(self):
         binding = dict(SETTINGS_MODULE='tools.mdm_approval_day_settings',

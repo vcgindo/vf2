@@ -58,6 +58,15 @@ def _download(view, request, payload, report_name):
         return FileResponse(stream, as_attachment=True, filename='InputData.zip', content_type='application/zip')
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+    from mta.presentation import runtime_report_downloads
+    if report_name in runtime_report_downloads.SELECTORS:
+        try:
+            stream,filename,mimetype=runtime_report_downloads.open_file(view,payload,report_name)
+        except PermissionError:
+            return JsonResponse({'error':'runtime_report_whole_file_scope_denied'},status=403)
+        except (OSError,ValueError) as error:
+            raise PublicationUnavailable('runtime_report_download_unavailable') from error
+        return FileResponse(stream,as_attachment=True,filename=filename,content_type=mimetype)
     if report_name == 'BOR_OrderAllocation':
         from mta.presentation import scoped_batch_downloads
         from mta.presentation.scoped_bor import require_binding
@@ -98,6 +107,8 @@ def dispatch(function, request, payload, arguments):
             scoped_batch_downloads.selected(scoped_selection.selected())
             values['BOR_OrderAllocation'] = dict(path='', downloadName='BOR_OrderAllocation.csv',
                 reportName='Buyer Order Allocation Report', fileType='text/csv')
+        from mta.presentation.runtime_report_downloads import report_paths
+        values.update(report_paths(scoped_selection.selected()))
         return views.envelope(data=values)
     if function.__name__ in ('all_permissions', 'environment', 'user_layout'):
         return function(request, payload, **arguments)

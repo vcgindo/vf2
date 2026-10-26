@@ -10,6 +10,7 @@ from urllib.parse import urlencode, urlsplit
 
 from django.conf import settings
 from django.http.response import ResponseHeaders
+from api_gateway.mta_stream import runtime_report_download
 
 
 GET_PATHS = frozenset('/api/mta/' + route for route in (
@@ -165,7 +166,8 @@ def _validate_target(method, url, base_url, *, workflow=False):
     allowed = GET_PATHS | DOWNLOAD_PATHS if method == 'GET' else POST_PATHS
     if workflow:
         allowed = MDM_WORKFLOW_PATHS if method == 'POST' else frozenset()
-    if parsed.path not in allowed:
+    if parsed.path not in allowed and not (not workflow and method == 'GET'
+            and runtime_report_download(parsed.path)):
         raise InProcessMtaTransportError('mta_inprocess_path_denied')
     return parsed
 

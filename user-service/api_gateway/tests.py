@@ -98,6 +98,53 @@ class TestMtaInterceptorIdentity(SimpleTestCase):
             self.assertEqual(MTA_INTERCEPTOR().forward(request, self.service_map).status_code, 403)
             upstream.assert_not_called()
 
+    def test_runtime_reports_require_existing_grant_and_gateway_derived_scopes(self):
+        for name in ('Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD'):
+            request = self.request('GET', '/api/mta/DownloadReports/'+name,
+                {'product_permissions':[999], 'location_permissions':[999]})
+            request.user.is_admin = False
+            with self.subTest(name=name), \
+                    patch('api_gateway.interceptors.mta_interceptor.Permission.objects.filter') as grants, \
+                    patch('api_gateway.interceptors.mta_interceptor.authenticated_mta_context',
+                          return_value={'product_permissions':[11], 'location_permissions':[22]}), \
+                    patch('api_gateway.interceptors.mta_interceptor.mta_request') as upstream:
+                grants.return_value.exists.return_value = False
+                self.assertEqual(MTA_INTERCEPTOR().forward(request, self.service_map).status_code, 403)
+                upstream.assert_not_called()
+                grants.return_value.exists.return_value = True
+                upstream.return_value = MagicMock(status_code=200)
+                MTA_INTERCEPTOR().forward(request, self.service_map)
+                grants.assert_called_with(url='mta-report-urls', role_id__user_id=7, role_id__application_id=2)
+                forwarded = upstream.call_args.kwargs
+                header = os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity')
+                self.assertEqual(json.loads(forwarded['headers'][header])['entitlements'], ['mta-report-urls'])
+                self.assertEqual(forwarded['json']['product_permissions'], [11])
+                self.assertEqual(forwarded['json']['location_permissions'], [22])
+                self.assertEqual(forwarded['url'], 'http://mta:8000/api/mta/DownloadReports/'+name)
+                self.assertTrue(forwarded['stream'])
+                self.assertEqual(forwarded['timeout'], (5,60))
+
+    def test_runtime_report_aliases_get_no_entitlement_or_new_stream_authority(self):
+        for name in ('Spiker_Order_Dump.zip', 'Spike_Order_Dump.zip', 'spike_order_dump',
+                     'TotalReqReport_2026-10-26', 'TotalReqReport_2026-02-30',
+                     'TotalReqReport_YYYY-MM-DD.csv', '../Spike_Order_Dump',
+                     '%53pike_Order_Dump', 'ForeignReport'):
+            request = self.request('GET', '/api/mta/DownloadReports/'+name)
+            request.user.is_admin = False
+            with self.subTest(name=name), \
+                    patch('api_gateway.interceptors.mta_interceptor.Permission.objects.filter') as grants, \
+                    patch('api_gateway.interceptors.mta_interceptor.authenticated_mta_context',
+                          return_value={'product_permissions':[11], 'location_permissions':[22]}), \
+                    patch('api_gateway.interceptors.mta_interceptor.mta_request') as upstream:
+                upstream.return_value = MagicMock(status_code=200)
+                MTA_INTERCEPTOR().forward(request, self.service_map)
+                grants.assert_not_called()
+                forwarded = upstream.call_args.kwargs
+                header = os.environ.get('MTA_TRUSTED_GATEWAY_HEADER', 'X-VectorFLOW-Identity')
+                self.assertNotIn('entitlements', json.loads(forwarded['headers'][header]))
+                self.assertFalse(forwarded['stream'])
+                self.assertNotIn('timeout', forwarded)
+
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Location_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.User_Application_Product_Permission.objects.filter")
     @patch("api_gateway.interceptors.mta_interceptor.requests.request")

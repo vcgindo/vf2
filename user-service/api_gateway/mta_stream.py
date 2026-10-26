@@ -23,6 +23,9 @@ PICK_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + key for key in (
     'BOR_OrderAllocation',
 ))
 INPUT_ARCHIVE_PATHS = frozenset(('/api/mta/DownloadReports/InputData',))
+RUNTIME_REPORT_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + name for name in (
+    'Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD',
+))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
     'RRRDataCount', 'GetBPRDataCount', 'GetBTRDataCount', 'DBMDataCount',
 ))
@@ -32,12 +35,23 @@ UPSTREAM_TIMEOUT = (5, 60)
 _END = object()
 
 
+def runtime_report_download(path):
+    """Recognize only the two released native RuntimeReports ReportNames.
+
+    The literal YYYY-MM-DD suffix is part of the captured ReportName, not a
+    wildcard. The backend resolves the exact generated file from its receipt.
+    """
+    return type(path) is str and path in RUNTIME_REPORT_DOWNLOAD_PATHS
+
+
 def streams_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+        or runtime_report_download(request.path))
 
 
 def bounded_mta_read(request):
-    return request.method in ('GET', 'POST') and request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+        or runtime_report_download(request.path))
 
 
 class UpstreamChunks:

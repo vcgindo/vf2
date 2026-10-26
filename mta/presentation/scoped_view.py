@@ -23,14 +23,13 @@ SCHEMA='fresh-bpr-read-reference-v2'
 
 
 def recipe_digest():
-    return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
-        handoff=inspect.getsource(import_module('mta.presentation.scoped_preparation')),
-        read_cut=inspect.getsource(import_module('mta.presentation.scoped_read_cut')),
-        read_graph=inspect.getsource(import_module('mta.presentation.scoped_read_graph')),
-        expedite_reader=scoped_expedite.recipe_digest()))
+    # The finite forward-schema adapter preserves the actual59ca6cd3 graph
+    # recipe only while every unchanged reader dependency matches its pin.
+    from mta.presentation.runtime_report_view import legacy_view_recipe
+    return legacy_view_recipe()
 
 
-def verify_guards():
+def verify_guards(*,publication=False):
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
     current=import_module('mta.runtime.migrations.0228_scope_read_action_ownership')
     with connection.cursor() as cursor:
@@ -55,7 +54,15 @@ def verify_guards():
             "JOIN pg_language L ON L.oid=P.prolang CROSS JOIN pg_class C "
             "WHERE C.oid='mta.fresh_mta_scopereadreference'::regclass AND N.nspname='mta' "
             "AND P.proname=ANY(%s) ORDER BY 1",[list(bodies)])
-        if cursor.fetchall()!=[(name,body,False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True) for name,body in sorted(bodies.items())]:
+        actual=cursor.fetchall()
+        forward=import_module('mta.runtime.migrations.0230_runtime_report_publication_guards')
+        forward_body=forward.READ_REFERENCE_BODY
+        expected=[(name,body,False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
+            for name,body in sorted(bodies.items())]
+        alternative=[(name,forward_body if name=='guard_scope_read_reference' else body,
+            False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
+            for name,body in sorted(bodies.items())]
+        if actual not in ((alternative,) if publication else (expected,alternative)):
             raise PublicationUnavailable('bpr_read_reference_guard_body_differs')
         cursor.execute("SELECT prosrc,prosecdef,proconfig FROM pg_proc WHERE oid='mta.ingestion_watch()'::regprocedure")
         if cursor.fetchall()!=[(scoped_derived_body(cursor,minimum='0218_scope_read_reference_guards'),True,['search_path=pg_catalog, mta'])]:
@@ -143,6 +150,11 @@ def _files(phase,row):
 
 @validated_read
 def _bind(row,expected_digest,*,retained_parent=False):
+    from mta.presentation import runtime_report_view
+    if runtime_report_view.applicable_reference(row):
+        if retained_parent:
+            raise PublicationUnavailable('postbpr_read_reference_refresh_not_released')
+        return runtime_report_view.bind(row,expected_digest)
     verify_guards()
     report=row.report_generation
     if row.digest!=expected_digest or row.digest!=digest(row.metadata) or row.recipe_digest!=recipe_digest():
@@ -221,6 +233,11 @@ def _save(bpr,planning,git,expedition,files,configuration,request_digest):
 @transaction.atomic
 def prepare(phase_id,*,expected_digest,action_revision):
     phase=RunPhaseAcceptance.objects.select_related('snapshot').get(pk=phase_id)
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.production_scope import PUBLICATION_SCHEMA
+    if read_input(phase.run,components=('scope_request',)).get('scope_request',{}).get('schema')==PUBLICATION_SCHEMA:
+        from mta.presentation.runtime_report_view import prepare as prepare_publication
+        return prepare_publication(phase_id,expected_digest=expected_digest,action_revision=action_revision)
     run=CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     configuration,request_digest=_configuration(run)
     verify_guards()

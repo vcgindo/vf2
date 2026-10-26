@@ -1,5 +1,6 @@
 """Real PostgreSQL worker ownership; persisted daily fixtures use stub calculations."""
 from concurrent.futures import ThreadPoolExecutor
+from datetime import date
 from pathlib import Path
 import unittest
 import uuid
@@ -13,6 +14,205 @@ from mta.runtime.operational_effects import operation,record_file,record_intent
 from mta.runtime.operational_lease import operational_run_lease,OperationalLeaseError
 from mta.runtime.operational_native import save_population
 from mta.application.operational_io import write_file
+
+
+class PublicationTransactionUnitTests(unittest.TestCase):
+    """Cursor protocol witnesses only; native role/locking proof is separate."""
+    def setUp(self):
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock
+        from psycopg.pq import TransactionStatus
+        from mta.runtime import operational_lease as leases
+        self.leases=leases
+        self.session=MagicMock(closed=False,autocommit=True)
+        self.session.info.backend_pid=41
+        self.session.info.transaction_status=TransactionStatus.IDLE
+        self.session.execute.return_value.fetchone.return_value=(True,)
+        self.lease=leases.OperationalRunLease(uuid.uuid4(),self.session)
+        self.attempt=SimpleNamespace(pk=uuid.uuid4(),run_id=self.lease.run_id,
+            lease_key=self.lease.key,lease_owner=self.lease.owner,
+            business_date=date(2026,10,26),
+            run_output_digest='a'*64,action_digest='b'*64,source_digest='c'*64,
+            configuration_id='d'*64)
+        self.django=SimpleNamespace(in_atomic_block=False,get_autocommit=lambda:True,
+                                    settings_dict={'NAME':'fresh_c6_exact'})
+
+    def test_requires_real_context_even_with_unleased_test_flag(self):
+        with override_settings(VF_OPERATIONAL_UNLEASED_TESTS=True), \
+                patch.object(self.leases,'connection',self.django):
+            with self.assertRaisesRegex(OperationalLeaseError,'Actual matching'):
+                with self.lease.publication_transaction(self.attempt):
+                    self.fail('unleased publication admitted')
+        self.session.transaction.assert_not_called()
+
+    def test_outer_django_or_lease_transaction_denies_before_begin(self):
+        from psycopg.pq import TransactionStatus
+        for kind in ('django_atomic','django_autocommit','lease_transaction','lease_autocommit','worker'):
+            with self.subTest(kind=kind):
+                self.setUp()
+                if kind=='django_atomic':self.django.in_atomic_block=True
+                elif kind=='django_autocommit':self.django.get_autocommit=lambda:False
+                elif kind=='lease_transaction':self.session.info.transaction_status=TransactionStatus.INTRANS
+                elif kind=='lease_autocommit':self.session.autocommit=False
+                else:self.attempt.lease_owner=uuid.uuid4()
+                token=self.leases._current.set(self.lease)
+                try:
+                    with patch.object(self.leases,'connection',self.django), self.assertRaises(OperationalLeaseError):
+                        with self.lease.publication_transaction(self.attempt):self.fail('invalid owner admitted')
+                    self.session.transaction.assert_not_called()
+                finally:self.leases._current.reset(token)
+
+    def test_uses_one_lease_transaction_and_rechecks_before_commit(self):
+        cursor=self.session.cursor.return_value.__enter__.return_value
+        token=self.leases._current.set(self.lease)
+        try:
+            with patch.object(self.leases,'connection',self.django), \
+                    patch.object(self.leases,'_publication_role',return_value={'registration':'exact'}) as role, \
+                    patch.object(self.leases,'_publication_locks') as locks, \
+                    patch.object(self.leases,'_publication_lock') as held:
+                with self.lease.publication_transaction(self.attempt) as actual:
+                    self.assertIs(actual,cursor)
+                    locks.assert_called_once_with(cursor,self.lease,self.attempt)
+                    actual.execute('bounded registrar witness')
+                role.assert_called_with(cursor,self.lease,expected={'registration':'exact'})
+                held.assert_called_once_with(cursor,self.lease)
+            self.session.transaction.assert_called_once_with()
+        finally:self.leases._current.reset(token)
+
+    def test_commit_ack_error_is_unknown_not_automatic_retry_or_attempt_failure(self):
+        import psycopg
+        self.session.transaction.return_value.__exit__.side_effect=psycopg.OperationalError('lost acknowledgement')
+        token=self.leases._current.set(self.lease)
+        try:
+            with patch.object(self.leases,'connection',self.django), \
+                    patch.object(self.leases,'_publication_role',return_value={}), \
+                    patch.object(self.leases,'_publication_locks'), \
+                    patch.object(self.leases,'_publication_lock'), \
+                    self.assertRaisesRegex(OperationalLeaseError,'outcome may be unknown'):
+                with self.lease.publication_transaction(self.attempt):pass
+            self.session.transaction.assert_called_once_with()
+        finally:self.leases._current.reset(token)
+
+    def test_lock_check_requires_same_pid_and_database_filter(self):
+        from unittest.mock import MagicMock
+        for row in ((41,False),(42,True)):
+            cursor=MagicMock();cursor.fetchone.return_value=row
+            with self.subTest(row=row), self.assertRaisesRegex(OperationalLeaseError,'this PID'):
+                self.leases._publication_lock(cursor,self.lease)
+            query=cursor.execute.call_args.args[0]
+            self.assertIn('database=(SELECT oid',query)
+            self.assertIn('pid=pg_backend_pid()',query)
+
+    def test_lease_loss_before_commit_aborts_transaction_without_retry(self):
+        cursor=self.session.cursor.return_value.__enter__.return_value
+        cursor.fetchone.return_value=(41,False)
+        token=self.leases._current.set(self.lease)
+        try:
+            with patch.object(self.leases,'connection',self.django), \
+                    patch.object(self.leases,'_publication_role',return_value={}), \
+                    patch.object(self.leases,'_publication_locks'), \
+                    self.assertRaisesRegex(OperationalLeaseError,'this PID'):
+                with self.lease.publication_transaction(self.attempt):pass
+            self.session.transaction.assert_called_once_with()
+            self.assertIs(self.session.transaction.return_value.__exit__.call_args.args[0],OperationalLeaseError)
+        finally:self.leases._current.reset(token)
+
+    def test_nonmember_issuer_cannot_enter_catalogued_owner(self):
+        from unittest.mock import MagicMock
+        from mta.mdm import owned_namespace as owned
+        from mta.runtime.test_owned_namespace import OwnedNamespaceTests
+        fixture=OwnedNamespaceTests();fixture.setUp()
+        initial=dict(fixture.database,current_user_oid=11)
+        cursor=MagicMock();cursor.fetchone.return_value=(False,)
+        with patch.object(self.leases,'connection',self.django), \
+                patch.object(owned,'_database_identity',return_value=initial), \
+                patch.object(owned,'_registered_identity') as registration, \
+                self.assertRaisesRegex(OperationalLeaseError,'cannot enter'):
+            self.leases._publication_role(cursor,self.lease)
+        registration.assert_not_called()
+        cursor.execute.assert_called_once()
+
+    def test_catalogued_owner_role_is_quoted_and_identity_revalidated(self):
+        from unittest.mock import MagicMock
+        from mta.mdm import owned_namespace as owned
+        from mta.runtime.test_owned_namespace import OwnedNamespaceTests
+        fixture=OwnedNamespaceTests();fixture.setUp()
+        fixture.registration['owner']['name']='owner"catalogued'
+        fixture.database['owner']['name']='owner"catalogued'
+        initial=dict(fixture.database,current_user_oid=11)
+        cursor=MagicMock();cursor.fetchone.side_effect=[(True,),(41,True)]
+        with patch.object(self.leases,'connection',self.django), \
+                patch.object(owned,'_database_identity',side_effect=[initial,fixture.database]), \
+                patch.object(owned,'_registered_identity',return_value=fixture.registration), \
+                patch.object(owned,'_catalogue_evidence',return_value=fixture.evidence):
+            result=self.leases._publication_role(cursor,self.lease)
+        self.assertEqual(result,fixture.registration)
+        self.assertEqual(cursor.execute.call_args_list[1].args[0].as_string(),
+                         'SET LOCAL ROLE "owner""catalogued"')
+
+    def test_foreign_db_issuer_membership_or_unentered_owner_denies(self):
+        from unittest.mock import MagicMock
+        from mta.mdm import owned_namespace as owned
+        from mta.runtime.test_owned_namespace import OwnedNamespaceTests
+        for change in ('database_name','database_oid','issuer','membership','owner_role'):
+            fixture=OwnedNamespaceTests();fixture.setUp()
+            initial=dict(fixture.database,current_user_oid=11)
+            if change=='database_name':initial['name']='foreign'
+            elif change=='database_oid':initial['oid']=999
+            elif change=='issuer':initial['session_user_oid']=12
+            elif change=='membership':fixture.evidence['issuer_roles']=[]
+            elif change=='owner_role':fixture.database['current_user_oid']=11
+            cursor=MagicMock();cursor.fetchone.side_effect=[(True,),(41,True)]
+            with self.subTest(change=change), patch.object(self.leases,'connection',self.django), \
+                    patch.object(owned,'_database_identity',side_effect=[initial,fixture.database]), \
+                    patch.object(owned,'_registered_identity',return_value=fixture.registration), \
+                    patch.object(owned,'_catalogue_evidence',return_value=fixture.evidence), \
+                    self.assertRaises(ValueError):
+                self.leases._publication_role(cursor,self.lease)
+
+    def _locked_rows(self,*,action=False):
+        from mta.serialization import digest
+        payload=dict(operation='APPLY',timestamp='2026-10-26T12:00:00')
+        actions=[dict(id=1,digest=digest(payload),before='e'*64,after='f'*64)] if action else []
+        self.attempt.action_digest=digest(actions)
+        self.attempt.source_digest=digest(dict(input='1'*64,output=self.attempt.run_output_digest,
+                                               production='2'*64,actions=actions))
+        run=('DAILY_CHAIN','SUCCEEDED',self.attempt.business_date,'1'*64,self.attempt.run_output_digest,'2'*64)
+        attempt=(self.lease.run_id,'RUNNING',self.attempt.business_date,self.attempt.run_output_digest,
+                 self.attempt.action_digest,self.attempt.source_digest,self.attempt.configuration_id,
+                 self.lease.key,self.lease.owner)
+        return run,attempt,[(1,payload,digest(payload),'e'*64,'f'*64,True)] if action else []
+
+    def test_source_run_attempt_lock_order_and_same_connection_action_identity(self):
+        from unittest.mock import MagicMock
+        run,attempt,events=self._locked_rows(action=True)
+        cursor=MagicMock()
+        cursor.fetchone.side_effect=[('native-source','CONSUMED'),run,attempt,
+                                    ('native-source','CONSUMED'),(41,True)]
+        cursor.fetchall.return_value=events
+        self.leases._publication_locks(cursor,self.lease,self.attempt)
+        calls=cursor.execute.call_args_list
+        self.assertEqual(calls[1].args[1],('fresh-mdm-supplier:native-source',))
+        self.assertIn('pg_advisory_xact_lock(hashtextextended(%s,0))',calls[1].args[0])
+        self.assertIn('fresh_mta_calculationrun',calls[2].args[0])
+        self.assertIn('fresh_mta_operationalattempt',calls[3].args[0])
+        self.assertIn('phase_acceptance_id IS NULL ORDER BY id',calls[5].args[0])
+
+    def test_changed_run_capture_worker_or_action_denies_before_yield(self):
+        from unittest.mock import MagicMock
+        for change in ('run','capture','worker','action','payload','unsealed'):
+            run,attempt,events=self._locked_rows(action=True)
+            final_capture=('native-source','CONSUMED')
+            if change=='run':run=(*run[:4],'9'*64,run[5])
+            elif change=='capture':final_capture=('foreign-source','CONSUMED')
+            elif change=='worker':attempt=(*attempt[:-1],uuid.uuid4())
+            elif change=='action':events=[]
+            elif change=='payload':events[0][1]['operation']='SLEEP'
+            else:events=[(*events[0][:-1],False)]
+            cursor=MagicMock();cursor.fetchall.return_value=events
+            cursor.fetchone.side_effect=[('native-source','CONSUMED'),run,attempt,final_capture,(41,True)]
+            with self.subTest(change=change), self.assertRaises(OperationalLeaseError):
+                self.leases._publication_locks(cursor,self.lease,self.attempt)
 
 
 class OperationalLeaseProtocol(unittest.TestCase):

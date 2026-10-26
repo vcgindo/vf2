@@ -185,7 +185,7 @@ def effective_schema(cursor, body):
     """Authenticate direct code inheritance without extending the real DDL bound."""
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
-    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; history_transition=False; dbm_transition=False; read_transition=False; anchor=None
+    chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; history_transition=False; dbm_transition=False; read_transition=False; publication_transition=False; anchor=None
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -217,7 +217,12 @@ def effective_schema(cursor, body):
         from mta.runtime import bpr_history_schema_transition as bpr_history
         from mta.runtime import scoped_dbm_transition as scoped_dbm
         from mta.runtime import scoped_read_transition as scoped_read
-        if any(pin[0] in {name for name,_ in scoped_read.PINS} for pin in extension.get('migration_pins',[])):
+        from mta.runtime import runtime_report_schema_transition as publication
+        if any(pin[0] in publication.NAMES for pin in extension.get('migration_pins',[])):
+            if publication_transition or not publication.approved_receipt(extension):
+                raise ValueError('Exact publication schema transition required')
+            publication_transition=True
+        elif any(pin[0] in {name for name,_ in scoped_read.PINS} for pin in extension.get('migration_pins',[])):
             if read_transition or not scoped_read.approved_receipt(extension):
                 raise ValueError('Exact owned live-reference schema transition required')
             read_transition=True

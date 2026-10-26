@@ -8,7 +8,7 @@ from api_gateway.utils import getAllUserDetails
 from django.http import JsonResponse
 from rest_framework.response import Response
 from api_gateway.mta_stream import (INPUT_ARCHIVE_PATHS, PICK_DOWNLOAD_PATHS, streams_mta_read,
-    bounded_mta_read, UPSTREAM_TIMEOUT)
+    bounded_mta_read, runtime_report_download, UPSTREAM_TIMEOUT)
 from api_gateway.inprocess_mta import request as mta_request
 from common.data_scopes import effective_data_scopes
 
@@ -47,7 +47,7 @@ class MTA_INTERCEPTOR:
             if not request.user.is_admin:
                 return JsonResponse({'error': 'mta_input_archive_admin_required'}, status=403)
             identity['entitlements'] = ['mta-input-archive']
-        elif request.path in PICK_DOWNLOAD_PATHS:
+        elif request.path in PICK_DOWNLOAD_PATHS or runtime_report_download(request.path):
             granted = (request.user.is_admin or Permission.objects.filter(
                 url='mta-report-urls', role_id__user_id=request.user.id,
                 role_id__application_id=application_id).exists())

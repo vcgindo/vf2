@@ -29,7 +29,7 @@ def enabled():
     return bool(getattr(settings, 'VF_MTA_PHASE_SELECTION_FILE', ''))
 
 
-def recipe_digest():
+def _current_recipe_digest():
     import inspect
     from mta.mdm import season_current
     from mta.application import production_bor_contract, production_output_policy
@@ -52,6 +52,28 @@ def recipe_digest():
          bor_preparation, boroa_preparation, native_report_colours,
          production_bor_contract, production_output_policy, daily_rrr_read,
          scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)})
+
+
+def recipe_digest():
+    """The exact59ca6cd3 selection contract, with finite dependency pin checks."""
+    from mta.presentation.runtime_report_view import legacy_selection_recipe
+    return legacy_selection_recipe()
+
+
+def publication_recipe_digest():
+    from mta.presentation import runtime_report_view
+    return digest(dict(selection=_current_recipe_digest(),publication=runtime_report_view.recipe_digest()))
+
+
+def recipe_for_run(run):
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.production_scope import PUBLICATION_SCHEMA
+    request=read_input(run,components=('scope_request',)).get('scope_request',{})
+    if request.get('schema')==PUBLICATION_SCHEMA:
+        from mta.presentation.runtime_report_view import configuration
+        configuration(run)
+        return publication_recipe_digest()
+    return recipe_digest()
 
 
 def native_identity(view):
@@ -114,9 +136,12 @@ def candidate(view):
     metadata = view.reference.metadata
     value = {key: metadata[key] for key in ('run_id', 'phase_id', 'phase_digest', 'snapshot_digest',
         'input_digest', 'input_manifest_digest', 'configuration_digest')}
+    from mta.presentation import runtime_report_view
+    selected_recipe=(publication_recipe_digest() if runtime_report_view.applicable_reference(view.reference)
+        else recipe_digest())
     value.update(schema=SCHEMA, native_digest=digest(native_identity(view)),
         capture_digest=view.bpr.reports.generation.phase.capture_digest,
-        permissions_sha256=settings.VF_MTA_PERMISSIONS_SHA256, recipe_digest=recipe_digest(),
+        permissions_sha256=settings.VF_MTA_PERMISSIONS_SHA256, recipe_digest=selected_recipe,
         business_date=view.run.business_date.isoformat())
     value['selection_digest'] = digest(value)
     return validate(value)
@@ -150,10 +175,21 @@ def _selected():
             if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
                 raise PublicationUnavailable('pre_btr_selection_changed')
             return view
+        from mta.runtime.models import CalculationRun
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.production_scope import PUBLICATION_SCHEMA
+        from mta.presentation import runtime_report_view
+        run=CalculationRun.objects.get(pk=anchor['run_id'])
+        publication=(read_input(run,components=('scope_request',)).get('scope_request',{}).get('schema')
+            == PUBLICATION_SCHEMA)
+        expected_selection_recipe=recipe_for_run(run)
+        if anchor['recipe_digest']!=expected_selection_recipe:
+            raise PublicationUnavailable('phase_selection_recipe_differs')
+        reference_recipe=runtime_report_view.recipe_digest() if publication else scoped_view.recipe_digest()
         rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
             action_command__isnull=True,
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
-            recipe_digest=scoped_view.recipe_digest(), metadata__bpr__remarks__live_highwater=cut[1])[:2])
+            recipe_digest=reference_recipe, metadata__bpr__remarks__live_highwater=cut[1])[:2])
         if len(rows) != 1: raise PublicationUnavailable('phase_current_reference_missing_or_ambiguous')
         view = scoped_view.bind(rows[0].pk, expected_digest=rows[0].digest)
         if candidate(view) != anchor: raise PublicationUnavailable('phase_selection_identity_changed')
