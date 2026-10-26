@@ -1156,3 +1156,9 @@ An initial parent receipt's prose saidbase8 despite its actual count9; the origi
 was retained and prose corrected, without changing assertions or data. The earlier
 post-commit remark diagnostic failure and read-only reconciliation are also retained;
 that committing driver must not be rerun.
+
+Subsequent human decision `call_fd913222abc84ca78e37638c9be9a00d` accepted this
+bounded UptoDBM checkpoint5751adbc and released bounded PostDBM. The later native
+finalization and terminal8080 qualification are recorded separately in
+`POSTDBM_NATIVE_RECOVERY_EVIDENCE_20261026.md`; earlier evidence and its limits
+above remain unchanged.
