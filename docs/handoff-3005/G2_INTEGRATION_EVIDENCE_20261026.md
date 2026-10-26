@@ -147,3 +147,37 @@ it does not establish generic Importer-to-BPR copy/hook lineage. These are typed
 source/projection proofs, not SQL Server file/encoding, placement execution,
 production enablement, setup/upgrade, Full/split or UI acceptance. No serving
 code, accepted effect, frontend design or MTO contract changed.
+
+## Runtime report successful file lifecycle
+
+runtime_report_files reuses operational_io and the caller's existing verified
+archive writer. The finite branch supports the retained CSV definitions with
+explicit macro bindings into an owned root. It preserves the literal
+Spiker_Order_Dump filename, current/previous output cleanup, optional previous
+destination deletion, current replacement and the exact single CSV ZIP member.
+It returns LastGeneratedFileName for the phase owner's transaction, without
+changing the supplied configuration. Archive contents are independently read
+back; a writer's success receipt cannot substitute different bytes. Invalid
+paths/contracts fail before cleanup; archive failure does not replace the prior
+download and cannot return a successful receipt. No phase READY claim is made.
+
+Seven focused tests and nine existing operational-file tests pass. The ZIP test
+writer verifies the protocol only; this is not new native 7-Zip qualification.
+The supported previous-filename boundary is explicit: all eight retained rows
+have nonempty previous names. Native NULL/blank FOR/F placeholder behavior for
+fresh initialization remains unqualified and is denied, not guessed. Excel,
+unknown queries and unsupported macro/path expressions remain denied. The
+payload must already be formatter-qualified bytes; encoding is not implemented
+or certified by this file lifecycle component.
+
+runtime-report-native-file-audit-01.json (SHA256
+501885d3f917aaa40428bfc2110dc48ebc2934add4cf06623ae66b99c4f25ea3)
+records read-only reconciliation of the retained benchmark configuration and
+all eight native output/download pairs. Each pair has identical full bytes;
+all literal headers match exactly, and each compressed file has the expected
+single member. Both canonical wrapper/script hashes match. These older files
+are format/provenance evidence, not outputs of the current retained TEST run.
+No SQL Server service was started, files rewritten or serving resources changed.
+
+Phase-owned file publication, formatter data-byte qualification, fresh setup,
+compatible upgrade and final native Full/split integration remain outstanding.
