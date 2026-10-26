@@ -61,9 +61,14 @@ def publication_metadata(run, capture, producer):
     if base.run_id is None and (state.master_epoch,state.configuration_epoch)==(base.master_epoch,base.configuration_epoch):
         IngestionRevisionState.objects.filter(pk=state.pk).update(master_epoch=F('master_epoch')+1)
         state.refresh_from_db()
-    if (not isinstance(producer,dict) or producer.get('configuration_digest')!=capture['configuration_digest']
-            or producer.get('reused') is not capture['qualified_master_reuse']):
+    if not isinstance(producer,dict) or producer.get('configuration_digest')!=capture['configuration_digest']:
         raise ValueError('Native prepared producer result differs')
+    if producer.get('reused') is not capture['qualified_master_reuse']:
+        from mta.runtime.production_post_dbm import AUTHORITY
+        if str(run.pk)!=AUTHORITY['run']:
+            raise ValueError('Native prepared producer result differs')
+        from mta.runtime.scoped_postdbm_recovery import publication_master
+        producer=publication_master(run,capture,producer)
     producer=dict(producer,master_cut=[state.master_epoch,state.configuration_epoch])
     run.production_manifest['master_preparation']=producer
     run.production_manifest['ingestion_preparation']=capture

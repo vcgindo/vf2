@@ -197,3 +197,88 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
             sources.production_reports['extra']=[]
             with self.assertRaisesRegex(ValueError,'finite consumers differ'):
                 scoped_final.require_final_sources('run',receipt,sources)
+
+    def publication_harness(self):
+        from mta.runtime import scoped_postdbm_recovery as recovery,production_post_dbm as entry
+        from mta.runtime.master_revisions import STATIC_TABLES
+        from mta.application.persistent_master import CONTRACT
+        run,value=self.request_value()
+        capture=dict(receipt_digest='067ffb189928dbd9bf7f54394ee5263038a7b7411dbfbdea1969c7dec2806c7d',
+                     qualified_master_reuse=True)
+        producer=dict(contract=CONTRACT,qualified=True,reused=False,configuration_digest=entry.AUTHORITY['profile_digest'],
+                      full_master_producer_calls=1,changed_work=None)
+        images={name:dict(count=3,digest='d'*64,fields=[['x','x','str']]) for name in STATIC_TABLES}
+        manifest=dict(metadata=dict(master_reused=False,master_work=None,master_outcome='APPLIED'),
+            references={'profile':entry.AUTHORITY['profile_digest']},images=images,
+            state={'importer':{name:{'image':name} for name in STATIC_TABLES}})
+        pre=SimpleNamespace(pk='pre',digest='64657436bc1b291ce93a62427b8593d95d4b7b88722333a3476f597eeb544452',
+                            snapshot=SimpleNamespace(manifest=deepcopy(manifest)))
+        dbm=SimpleNamespace(pk=entry.AUTHORITY['dbm'],digest=entry.AUTHORITY['dbm_digest'],
+                            snapshot=SimpleNamespace(manifest=deepcopy(manifest)))
+        run.production_manifest={'images':{'closing/importer/'+name:deepcopy(image) for name,image in images.items()}}
+        attempt=SimpleNamespace(status='ACTIVE',scope='PostDBM',command_key=recovery.COMMAND,
+            compatibility_digest=recovery.COMPATIBILITY,action_revision=177,expected_phase='DBM',
+            expected_receipt_digest=entry.AUTHORITY['dbm_digest'])
+        stack=ExitStack();self.addCleanup(stack.close)
+        pending=stack.enter_context(patch('mta.runtime.scoped_final.require_pending_final'))
+        stack.enter_context(patch('mta.runtime.scoped_final.accepted_prefix',return_value=([pre,dbm],None)))
+        stack.enter_context(patch('mta.runtime.scope_revisions.identity',return_value=capture))
+        stack.enter_context(patch('mta.runtime.models.RunPhaseAcceptance.objects'))\
+            .select_related.return_value.get.return_value=SimpleNamespace(attempt=attempt)
+        stack.enter_context(patch.object(recovery.connection,'cursor'))
+        return recovery,run,capture,producer,pre,dbm,attempt,pending
+
+    def test_terminal_provenance_retains_capture_and_truthful_execution(self):
+        recovery,run,capture,producer,pre,dbm,attempt,pending=self.publication_harness()
+        before=deepcopy(capture);original=deepcopy(producer)
+        result=recovery.publication_master(run,capture,producer)
+        self.assertEqual(capture,before);self.assertEqual(producer,original)
+        self.assertIs(result['reused'],False);self.assertIs(result['qualified'],True)
+        provenance=result['scoped_execution_provenance']
+        self.assertTrue(provenance['capture_selected_reuse'])
+        self.assertFalse(provenance['accepted_master_reused'])
+        self.assertEqual(provenance['accepted_phases'][-1]['digest'],dbm.digest)
+        pending.assert_called_once_with(run)
+
+    def test_terminal_provenance_denies_wrong_pending_owner_and_accepted_execution(self):
+        recovery,run,capture,producer,pre,dbm,attempt,pending=self.publication_harness()
+        for field,changed in (('scope','Full'),('status','RELEASED'),('command_key','new'),
+                              ('compatibility_digest','new'),('action_revision',178)):
+            old=getattr(attempt,field);setattr(attempt,field,changed)
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'publication owner'):
+                recovery.publication_master(run,capture,producer)
+            setattr(attempt,field,old)
+        pre.snapshot.manifest['metadata']['master_reused']=True
+        with self.assertRaisesRegex(ValueError,'accepted execution'):recovery.publication_master(run,capture,producer)
+        pre.snapshot.manifest['metadata']['master_reused']=False
+        pending.side_effect=ValueError('no pending DAY_FINAL')
+        with self.assertRaisesRegex(ValueError,'pending DAY_FINAL'):recovery.publication_master(run,capture,producer)
+
+    def test_terminal_provenance_denies_relabelled_capture_producer_or_static_population(self):
+        recovery,run,capture,producer,pre,dbm,attempt,pending=self.publication_harness()
+        for field,changed in (('reused',True),('qualified',False),('full_master_producer_calls',0),
+                              ('full_master_producer_calls',True),('configuration_digest','other'),('changed_work',{})):
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'execution provenance'):
+                recovery.publication_master(run,capture,dict(producer,**{field:changed}))
+        with self.assertRaisesRegex(ValueError,'execution provenance'):
+            recovery.publication_master(run,dict(capture,qualified_master_reuse=False),producer)
+        run.production_manifest['images']['closing/importer/MasterData']['digest']='changed'
+        with self.assertRaisesRegex(ValueError,'population differs'):recovery.publication_master(run,capture,producer)
+
+    def test_ordinary_full_master_publication_keeps_strict_reuse_validation(self):
+        from mta.runtime.capture_preparation import publication_metadata
+        run=SimpleNamespace(pk='ordinary-full',production_manifest={})
+        capture=dict(base_revision_id='base',initialization_id='owner',configuration_digest='a'*64,
+                     qualified_master_reuse=False)
+        producer=dict(configuration_digest='a'*64,reused=False,qualified=True)
+        with patch('mta.runtime.ingestion_models.MasterInputRevision.objects') as bases, \
+                patch('mta.runtime.ingestion_models.IngestionRevisionState.objects') as states, \
+                patch('mta.runtime.scoped_postdbm_recovery.publication_master') as bounded:
+            bases.get.return_value=SimpleNamespace(run_id='parent')
+            states.select_for_update.return_value.get.return_value=SimpleNamespace(master_epoch=4,configuration_epoch=5)
+            publication_metadata(run,capture,producer)
+            self.assertEqual(run.production_manifest['master_preparation'],dict(producer,master_cut=[4,5]))
+            self.assertIs(run.production_manifest['ingestion_preparation'],capture)
+            with self.assertRaisesRegex(ValueError,'Native prepared producer result differs'):
+                publication_metadata(run,dict(capture,qualified_master_reuse=True),producer)
+            bounded.assert_not_called()

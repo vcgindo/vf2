@@ -21,8 +21,9 @@ PREVIOUS=dict(schema='vectorflow-native-release-source-v1',
     implementation_sha256='12580cb13cb532927b38da248fafe8339553fc579aed35355abccfea1d666d92')
 ENTRY_FILES=frozenset(('mta/runtime/production_post_dbm.py',
     'mta/runtime/scoped_postdbm_recovery.py',
-    'mta/presentation/production_reports.py','mta/presentation/daily_sources.py'))
-PROTECTED='ff7de7409eb7478f407315d057d1b940da10b2020f1df71bb3803e7d5da1af2c'
+    'mta/presentation/production_reports.py','mta/presentation/daily_sources.py',
+    'mta/runtime/capture_preparation.py'))
+PROTECTED='2f58e0a08c15eac89ec4f60370ee5db78d8f13b07112185b11a334754de65a99'
 SCHEMA='0fab95b7876642f0d4027bd382c0df96afa08f9200030aef82340ced8fd01451'
 GUARD='ad6b00d71e9dc772bea7bb8fb10b335af4eb4c553d8a002ee705c8ce2ac67c8c'
 
@@ -92,3 +93,63 @@ def resolve(run,current,release,phase_recipe):
             raise ValueError('PostDBM recovery requires unchanged certified code-only authority')
     require_chain(run,value)
     return value
+
+
+def publication_master(run,capture,producer):
+    """Record actual accepted execution without changing the derived-input seal.
+
+    Read-only retained-run comparison proved all seven PRE master populations
+    exactly equal to the qualified frozen reuse basis. Intake selected reuse;
+    this scoped PRE instead ran the canonical full producer. Neither fact is
+    rewritten, and no ordinary Full publication acquires this exception.
+    """
+    from mta.runtime.production_post_dbm import AUTHORITY
+    from mta.runtime.scoped_final import require_pending_final,accepted_prefix
+    from mta.runtime.models import RunPhaseAcceptance
+    from mta.runtime import scope_revisions
+    from mta.runtime.master_revisions import STATIC_TABLES
+    from mta.application.persistent_master import CONTRACT
+    if (str(run.pk)!=AUTHORITY['run'] or run.input_digest!=AUTHORITY['input_digest']
+            or run.input_manifest_digest!=AUTHORITY['input_manifest_digest']
+            or capture.get('receipt_digest')!='067ffb189928dbd9bf7f54394ee5263038a7b7411dbfbdea1969c7dec2806c7d'
+            or capture.get('qualified_master_reuse') is not True
+            or producer!=dict(contract=CONTRACT,qualified=True,reused=False,
+                configuration_digest=AUTHORITY['profile_digest'],full_master_producer_calls=1,changed_work=None)
+            or producer.get('reused') is not False or producer.get('qualified') is not True
+            or type(producer.get('full_master_producer_calls')) is not int):
+        raise ValueError('Scoped terminal master execution provenance differs')
+    require_pending_final(run)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('fresh.scope_phase',true)")
+        receipt_id=cursor.fetchone()[0]
+    final=RunPhaseAcceptance.objects.select_related('attempt').get(pk=receipt_id,run=run,
+        phase='DAY_FINAL',state_sealed=False,snapshot__isnull=True)
+    attempt=final.attempt
+    if (attempt.status!='ACTIVE' or attempt.scope!='PostDBM' or attempt.command_key!=COMMAND
+            or attempt.compatibility_digest!=COMPATIBILITY or attempt.action_revision!=AUTHORITY['action_revision']
+            or attempt.expected_phase!='DBM' or attempt.expected_receipt_digest!=AUTHORITY['dbm_digest']):
+        raise ValueError('Scoped terminal master publication owner differs')
+    prefix,_=accepted_prefix(run)
+    if (scope_revisions.identity(run)!=capture
+            or prefix[0].digest!='64657436bc1b291ce93a62427b8593d95d4b7b88722333a3476f597eeb544452'
+            or str(prefix[-1].pk)!=AUTHORITY['dbm'] or prefix[-1].digest!=AUTHORITY['dbm_digest']):
+        raise ValueError('Scoped terminal master accepted provenance differs')
+    for phase in prefix:
+        manifest=phase.snapshot.manifest;metadata=manifest['metadata']
+        if (manifest['references']['profile']!=AUTHORITY['profile_digest']
+                or metadata['master_reused'] is not False or metadata['master_work'] is not None
+                or metadata['master_outcome']!='APPLIED'):
+            raise ValueError('Scoped terminal master producer disagrees with accepted execution')
+    manifest=prefix[-1].snapshot.manifest
+    roots={}
+    for name in STATIC_TABLES:
+        source=manifest['images'][manifest['state']['importer'][name]['image']]
+        target=run.production_manifest['images']['closing/importer/'+name]
+        if any(source[key]!=target[key] for key in ('count','digest','fields')):
+            raise ValueError('Scoped terminal master population differs from accepted DBM: '+name)
+        roots[name]=source['digest']
+    return dict(producer,scoped_execution_provenance=dict(
+        schema='fresh-scoped-master-execution-v1',capture_receipt=capture['receipt_digest'],
+        capture_selected_reuse=True,accepted_master_reused=False,
+        accepted_phases=[dict(id=str(p.pk),digest=p.digest) for p in prefix],
+        terminal_static_roots=roots))
