@@ -232,3 +232,52 @@ unsupported token-shift case. No SQL service or protected resources were used.
 
 All phase/source/publication, setup integration, native Full/split and existing
 latency/scale/G3 qualifications remain governed by the sole tracker.
+
+## Existing receipt-recorder compatibility and placement owner decision
+
+Controller/reviewer integration audit found that compressed runtime files returned
+`csv`, while the existing recursive operational recorder skips only `source_csv`
+for deliberately removed inputs. The runtime file adapter now uses that existing
+transient-source convention. A direct adapter-to-recorder test creates actual
+plain/ZIP files, reads complete archive members, and verifies that exactly the
+two surviving output/download files reach record_file. The database writer is
+patched at that boundary; this is recorder compatibility, not durable receipt
+or transaction acceptance. No deployed failure or accepted receipt was changed.
+The 17 affected runtime file/encoder/recorder tests pass.
+
+The bounded ownership review confirms that OperationalAttempt.start_attempt and
+verification require a SUCCEEDED Full run/output digest and its operational
+lease; operational_effects.operation requires autocommit. Those owners cannot
+be nested in atomic scoped acceptance. ScopePickFiles is a separate exact
+four-file contract whose complete module source is part of its accepted recipe.
+Neither owner will be silently widened for RuntimeReports.
+
+The selected integration is a dedicated immutable placement publication receipt,
+using the existing source/projection/encoding/file utilities and current scoped
+claim/fence mechanisms. It must bind an accepted source generation, action cut,
+captured report configuration, recipe, exclusive candidate directory and only
+surviving files/member hashes. Registration will recheck that owner in a short
+transaction. Failed candidates remain unreferenced; retry verifies a completed
+receipt or uses a new candidate, without replaying accepted effects. Generated
+LastGeneratedFileName belongs to the receipt, not the frozen definition.
+This is an implementation decision; durable registration/recovery is not yet
+implemented or verified.
+
+Full currently calculates prepare_day -> BPR -> DBM -> BTR before finish_run.
+It lacks the intermediate durable placement barriers required for enabled early
+reports. Terminal backfilling would not satisfy the contract. Production Full
+activation remains unavailable until the subsequent generic orchestration uses
+the accepted phase owners and gates continuation on required report readiness.
+This dependency does not authorize a parallel Full engine or new fixture campaign.
+
+Source-lineage investigation located the literal canonical copies in
+Scripts/BPR/01. ImportData.sql, SHA256
+c248baeedda13d74a71a499c8b59b7ec46f05f11db00938de59a746bce94ce93:
+SiteDescriptionTbl, SKUDescriptionTbl, SkuAttributeData, SkuLocAttributeData and
+LocationAttributeData are copied from Importer. The modern BPR acceptance writes
+four MDM master partitions through phase_copy_batches; pair attributes remain
+represented in the immutable phase's Importer image. That explains why matching
+field names alone cannot establish BPR ownership. PostBPRProcessing runs before
+PostBPR RuntimeReports and may change those values; exact copy/hook lineage must
+be bound before a generic logical source alias is accepted. No alias, historical
+phase recipe, initialization guard or production report configuration was changed.

@@ -74,7 +74,7 @@ class RuntimeReportFilesTests(unittest.TestCase):
                 with zipfile.ZipFile(Path(root, relative)) as archive:
                     self.assertEqual(archive.namelist(), ['Spiker_Order_Dump.csv'])
                     self.assertEqual(archive.read('Spiker_Order_Dump.csv'), b'header\r\n')
-            self.assertEqual(result['csv']['sha256'], hashlib.sha256(b'header\r\n').hexdigest())
+            self.assertEqual(result['source_csv']['sha256'], hashlib.sha256(b'header\r\n').hexdigest())
 
     def test_same_previous_current_name_and_compressed_delete_old_true(self):
         with tempfile.TemporaryDirectory() as root:
@@ -83,7 +83,7 @@ class RuntimeReportFilesTests(unittest.TestCase):
                 seed(root, relative)
             result = reports.publish(root=root, definition=definition, variables=VARIABLES,
                                      report_bytes=b'', archive_writer=writer)
-            self.assertEqual(result['csv']['size_bytes'], 0)
+            self.assertEqual(result['source_csv']['size_bytes'], 0)
             self.assertEqual(result['output']['sha256'], result['download']['sha256'])
 
     def test_invalid_contract_or_path_denies_before_cleaning_any_files(self):

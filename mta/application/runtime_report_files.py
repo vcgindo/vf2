@@ -129,5 +129,7 @@ def publish(*, root, definition, variables, report_bytes=None, report_chunks=Non
     download = files.copy_file(root, selected['output'], selected['download'])
     return dict(report_id=selected['report_id'], query_sha256=selected['query_sha256'],
                 last_generated_file_name=selected['file_name'], output=output,
-                download=download, csv=csv_receipt, archive=archive_receipt,
+                # Existing operational receipt walkers intentionally skip
+                # source_csv: compression removes it after member readback.
+                download=download, source_csv=csv_receipt, archive=archive_receipt,
                 source_sha256=SOURCE[1], export_source_sha256=EXPORT_SOURCE[1])
