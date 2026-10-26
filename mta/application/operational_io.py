@@ -46,10 +46,24 @@ def remove_file(root, relative):
 def write_file(root, relative, payload):
     if not isinstance(payload, bytes):
         raise ValueError('Exact file bytes required')
+    return write_chunks(root, relative, (payload,))
+
+
+def write_chunks(root, relative, chunks):
+    """Write an owned file incrementally; no receipt is returned on late failure."""
+    if isinstance(chunks, (str, bytes, bytearray)):
+        raise ValueError('Explicit iterable of file byte chunks required')
+    try:
+        chunks = iter(chunks)
+    except TypeError as error:
+        raise ValueError('Explicit iterable of file byte chunks required') from error
     path = owned_path(root, relative)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open('xb') as stream:
-        stream.write(payload)
+        for chunk in chunks:
+            if not isinstance(chunk, bytes):
+                raise ValueError('Exact file byte chunks required')
+            stream.write(chunk)
         stream.flush()
         os.fsync(stream.fileno())
     return inspect_file(root, relative)

@@ -61,10 +61,11 @@ def layout(definition, variables):
         if type(definition[field]) not in (bool, int) or definition[field] not in (0, 1):
             raise ValueError('Native runtime file bit required')
     name = _name(_resolve(definition['FileName'], variables))
-    # All eight retained rows carry an explicit previous basename. Native
-    # FOR/F handling of the NULL/blank placeholder needs separate qualification;
-    # do not invent its cleanup path for a fresh initialization here.
-    previous = _name(definition['LastGeneratedFileName'])
+    # The canonical selector uses ISNULL(...,' '). Native Windows FOR/F retains
+    # that one-space token, so a fresh NULL owner cleans " .csv" / " .zip".
+    # An empty non-NULL token shifts FOR/F fields and is a different contract.
+    previous = (' ' if definition['LastGeneratedFileName'] is None
+                else _name(definition['LastGeneratedFileName']))
     destination = _resolve(definition['DestFolder'], variables)
     # The caller maps a native folder to its explicit owned namespace. Ban the
     # staging namespace to prevent a destination copy deleting its own source.
@@ -82,15 +83,25 @@ def layout(definition, variables):
         previous_download=destination+'/'+previous+'.'+extension)
 
 
-def publish(*, root, definition, variables, report_bytes, archive_writer=None):
+def publish(*, root, definition, variables, report_bytes=None, report_chunks=None, archive_writer=None):
     """Apply the canonical successful file lifecycle; no readiness assertion.
 
     A failure raises, leaving unaccepted staging for the placement owner to
     handle. Neither a partial file nor this receipt is a phase acceptance.
     """
     selected = layout(definition, variables)
-    if type(report_bytes) is not bytes:
-        raise ValueError('Explicit formatter-qualified runtime bytes required')
+    if (report_bytes is None) == (report_chunks is None):
+        raise ValueError('Exactly one formatter-qualified runtime payload required')
+    if report_bytes is not None:
+        if type(report_bytes) is not bytes:
+            raise ValueError('Explicit formatter-qualified runtime bytes required')
+        report_chunks = (report_bytes,)
+    elif isinstance(report_chunks, (str, bytes, bytearray)):
+        raise ValueError('Explicit runtime byte-chunk iterable required')
+    try:
+        report_chunks = iter(report_chunks)
+    except TypeError as error:
+        raise ValueError('Explicit runtime byte-chunk iterable required') from error
     if selected['compression'] and not callable(archive_writer):
         raise ValueError('Verified runtime archive writer required')
     # Validate every path before cleanup, including unused previous names.
@@ -98,7 +109,7 @@ def publish(*, root, definition, variables, report_bytes, archive_writer=None):
         files.owned_path(root, selected[field])
     for relative in (selected['previous_csv'], selected['csv']):
         files.remove_file(root, relative)
-    csv_receipt = files.write_file(root, selected['csv'], report_bytes)
+    csv_receipt = files.write_chunks(root, selected['csv'], report_chunks)
     archive_receipt = None
     if selected['compression']:
         for relative in (selected['previous_output'], selected['output']):

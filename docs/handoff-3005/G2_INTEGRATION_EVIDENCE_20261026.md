@@ -181,3 +181,54 @@ No SQL Server service was started, files rewritten or serving resources changed.
 
 Phase-owned file publication, formatter data-byte qualification, fresh setup,
 compatible upgrade and final native Full/split integration remain outstanding.
+
+## Runtime serializer, streaming file write and fresh NULL filename
+
+runtime_report_encoding binds the eight retained queries to their native SELECT
+types and parses literal HeaderList expressions without executing SQL. It reuses
+the existing scalar encoder and streams CP1252/CRLF lines, preserving NULL,
+decimal scale, stored spaces and unescaped commas/quotes/newlines. Header and
+data remain separate resultsets. Unsupported query/configuration/encoding/type
+values deny; nvarchar(max) values above 256 characters remain unqualified rather
+than receiving an invented display-truncation rule.
+
+operational_io.write_chunks and runtime_report_files.publish now consume those
+chunks incrementally. A late bad cell leaves unaccepted staging and cannot
+replace the prior download or return a successful file receipt. Existing byte
+payload callers retain their behavior. Focused encoder/file/operational tests
+pass, including lazy row consumption and late failure. No phase owner or
+production configuration is enabled by these utilities.
+
+Read-only native scalar reuse proof runtime-report-scalar-reuse-01.json
+(SHA256 6e42c470aabee864edc52b081cba3893a2648d75aca8f292b344b5ba39a3e5c0)
+checks the retained SQLCMD probe bytes for spaces, NULL, integer, decimal, date,
+datetime, bit, empty text and unescaped commas/newlines. This checks actual
+retained output rather than treating general -W documentation as permission to
+trim stored values. The source receipt is sqlcmd-format-a003/native-receipt.json,
+SHA256 6d32b50ad9a61e30fad546d16cfb6604073081e5e1bcadb40bd48cdcccabeda2.
+
+Full retained-file roundtrip01 (SHA256
+b2aa0ff5752845686df242d664d8597acd94567bc3b7a2b706fc00d06f170c7b)
+has five exact-byte successes: both efficiency reports, Spike, allocation history
+and Total Requirement. Together these cover 3,130,270 rows. This is serialized
+value reconstruction, not independent producer parity: text NULL versus SQL
+NULL cannot be recovered from those bytes alone. Its three BOR variants FAIL
+because the proof's simple delimiter parser cannot split SQL-quoted descriptions.
+Roundtrip02 (SHA256
+a4738ea4993b9ae1207b19ff8a1918f233a3bda3eba9bf4f1dcc69e09b1f0fa5)
+corrects that lexical wrapper boundary but still FAILS on native embedded quotes.
+Both failures remain intact. No encoder/output was changed to make the proof
+pass. Complete typed-source/native comparison for those three files remains
+unqualified; another guessed parser is not a substitute. This does not establish
+that legacy output or the modern encoder is defective.
+
+Fresh-setup NULL previous-filename handling is now evidenced, superseding the
+earlier component restriction for NULL only. The read-only native Windows
+runtime-report-null-lastname-probe-01.cmd proves that the canonical selector's
+ISNULL(...,' ') field survives FOR/F as one space; previous filenames are
+" .csv" and " .zip". The implementation preserves exactly those cleanup paths,
+with both plain/ZIP tests. A non-NULL empty previous filename remains a separate
+unsupported token-shift case. No SQL service or protected resources were used.
+
+All phase/source/publication, setup integration, native Full/split and existing
+latency/scale/G3 qualifications remain governed by the sole tracker.

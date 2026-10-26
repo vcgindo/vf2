@@ -92,7 +92,7 @@ class RuntimeReportFilesTests(unittest.TestCase):
             {'FileName':'../escape'}, {'FileName':'NUL'}, {'FileName':'a%unknown%'},
             {'DestFolder':'../escape'}, {'DestFolder':'output'}, {'DestFolder':'output/sub'},
             {'DestFolder':'OUTPUT'}, {'DestFolder':'output '}, {'DestFolder':'download/..'},
-            {'LastGeneratedFileName':None}, {'LastGeneratedFileName':''},
+            {'LastGeneratedFileName':''},
             {'Query':'select 1'})]
         with tempfile.TemporaryDirectory() as root:
             seed(root, 'output/Spiker_Order_Dump.csv')
@@ -118,6 +118,22 @@ class RuntimeReportFilesTests(unittest.TestCase):
                                 report_bytes=b'new', archive_writer=fail)
             self.assertEqual(Path(root,'download/Spiker_Order_Dump.zip').read_bytes(), b'prior')
             self.assertEqual(Path(root,'output/Spiker_Order_Dump.csv').read_bytes(), b'new')
+
+    def test_null_previous_name_uses_native_one_space_placeholder(self):
+        for compressed in (False, True):
+            with self.subTest(compressed=compressed), tempfile.TemporaryDirectory() as root:
+                definition = dict(row(7), Compression=compressed, LastGeneratedFileName=None)
+                extension = 'zip' if compressed else 'csv'
+                seed(root, 'output/ .csv')
+                if compressed:
+                    seed(root, 'output/ .zip')
+                seed(root, 'download/ .'+extension)
+                result = reports.publish(root=root, definition=definition, variables=VARIABLES,
+                                         report_bytes=b'header\r\n', archive_writer=writer)
+                self.assertFalse(Path(root,'output/ .csv').exists())
+                self.assertFalse(Path(root,'output/ .zip').exists())
+                self.assertFalse(Path(root,'download/ .'+extension).exists())
+                self.assertEqual(result['last_generated_file_name'], 'Spiker_Order_Dump')
 
     def test_writer_receipt_cannot_substitute_wrong_archive_content(self):
         def wrong(*, root, staging, members, destination):
