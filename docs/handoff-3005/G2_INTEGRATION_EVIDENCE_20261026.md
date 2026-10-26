@@ -341,3 +341,47 @@ nonempty query fixture is not installed into this run's empty RuntimeReports.
 The 34 affected local tests pass. Independent source-boundary review found no
 actionable defect, explicitly excluding production admission and publication.
 No existing phase codec/recipe, schema, accepted data, frontend or MTO changes.
+
+
+## Private ordered report candidates and filename-state separation
+
+runtime_report_candidates connects the existing query projection, streaming
+encoder and file lifecycle in an exclusive UUID directory. Every selected report
+runs in native Id order. Only final surviving output/download files are retained
+in its manifest; complete file hashes and ZIP member hashes are reread before
+return. A reused candidate identity fails, partial failures retain an unaccepted
+orphan, and verification of an existing complete candidate performs no replay.
+The captured configuration and explicit LastGeneratedFileName state are separate:
+missing/mismatched filename state denies, and before/after state is recorded
+without changing the captured definition.
+
+Cleanup becomes an ordered catalogue change. Old accepted directories are never
+modified or copied wholesale. Unchanged visible files retain their earlier
+candidate reference; logical deletion changes visibility only. Exact same-path
+writes follow Id order. Different spellings of case-equivalent paths are denied
+both within a candidate and against its prior catalogue; this avoids silently
+changing Windows path semantics on Linux. The latter cross-candidate check was
+an independent review finding and now has removal/write collision regressions.
+
+Native Linux proof runtime-report-candidate-proof-02.json (SHA256 540aa6d62318dfd741d97c76ab26f81e4d3ce9e7669a7ab3d6288433e7b94e19)
+uses the protected accepted BPR source adapter to create four private files for
+Spike/Total, verifies full files/member content and explicit generated-name
+state, rejects reuse, injects an archive failure after CSV creation, and retries
+in a new directory. The failed CSV remains without a candidate manifest; the
+original complete candidate still verifies. Captured TEST RuntimeReports and
+the six-model fingerprint f2f1d4b1 remain unchanged. ZIP_DEFLATED follows the
+existing scoped InputData protocol; native 7-Zip archive-byte identity is not
+claimed. These evidence candidates do not install the retained nonempty query
+configuration into the protected run.
+
+Final source readback runtime-report-candidate-final-readback-01.json (SHA256
+2e5b7dd157803cb1ca153810afd797845cf61a0cad65507b4f794201469bb7aa) verifies both native candidates on Windows and checks the added
+cross-candidate case guard. The 26 affected local tests pass, covering late
+failure, exact overwrite, old visibility, missing filename state and tampering.
+An initial unit fixture incorrectly supplied text for native integer OrderKey
+and PartId; only that fixture was corrected, with production encoding unchanged.
+
+This completes private materialization/readback only. Durable database receipts,
+worker fencing, atomic registration, captured configuration admission and retry
+across the registration boundary remain required. No schema, accepted calculation,
+frontend, MTO, serving selection or production readiness changed.
