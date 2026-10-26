@@ -46,3 +46,9 @@ snapshots remain retained. Neither failure reached database work.
 
 This is a component ownership/transaction proof. It does not qualify native
 Full/split parity, a production report roster, successor execution or latency.
+
+Retained evidence plus the existing PostgreSQL copy, including both new source
+snapshots and failed drivers, totals 3,816,420,899 bytes against the approved
+4,294,967,296-byte limit. Read-only accounting is retained in
+`uptodbm-private-20261025/three-day-positive-test/final-g2-history-footprint.json`.
+No evidence was deleted or compressed for this checkpoint.
