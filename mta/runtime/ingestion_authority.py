@@ -197,7 +197,8 @@ def validate_schema_transition(body):
                     '0224_uptodbm_bpr_read_configuration','0225_scope_read_configuration_alias',
                     '0226_scoped_dbm_action_dependencies','0227_scope_read_action_reference',
                     '0228_scope_read_action_ownership','0229_runtime_report_publication',
-                    '0230_runtime_report_publication_guards','0231_runtime_report_placement_guards')):
+                    '0230_runtime_report_publication_guards','0231_runtime_report_placement_guards',
+                    '0232_runtime_report_consumer_read')):
             raise ValueError('Invalid schema transition migration name')
         sha(pin)
     return body

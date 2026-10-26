@@ -907,7 +907,9 @@ def application_functions(catalogue):
             _reject('Scoped revision read helper implementation differs')
         result=result | {name}
     from mta.runtime import scoped_action_ownership
-    return result | scoped_action_ownership.application_functions(catalogue)
+    from mta.runtime import runtime_report_read_transition
+    return (result | scoped_action_ownership.application_functions(catalogue)
+            | runtime_report_read_transition.application_functions(catalogue))
 
 
 APPLICATION_FUNCTIONS = frozenset((

@@ -84,11 +84,11 @@ def hook_for(value,placement):
 def recipe_digest():
     from mta.application import runtime_report_bpr_inputs,runtime_report_postbtr_inputs
     from mta.application.runtime_report_btr_stage import recipe_digest as btr_recipe
-    from mta.runtime import runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution
+    from mta.runtime import runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication
     return digest(dict(schema=SCHEMA,btr=btr_recipe(),modules={
         module.__name__:inspect.getsource(module) for module in (
             inspect.getmodule(recipe_digest),runtime_report_bpr_inputs,runtime_report_postbtr_inputs,
-            runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution)}))
+            runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication)}))
 
 
 def request(scope,command_key,*,runtime_reports):

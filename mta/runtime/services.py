@@ -278,7 +278,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
             finalize_native_audit(run)
         if prepared_capture is not None:
             from mta.runtime.capture_preparation import publication_metadata
-            publication_metadata(run,prepared_capture,producer_preparation)
+            publication_metadata(run,prepared_capture,producer_preparation,
+                                 _scoped_placement=placement and scoped is not None)
         if placement:
             from mta.runtime.runtime_report_execution import register_completion
             register_completion(run,_report_work,final_unit=_scoped_unit)

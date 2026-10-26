@@ -171,7 +171,11 @@ def accept(run, initialization_id, parent_id):
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
     state=IngestionRevisionState.objects.select_for_update().get(initialization_id=initialization_id)
     old=MasterInputRevision.objects.get(pk=parent_id,initialization_id=initialization_id,status='ACCEPTED')
-    if run.production_manifest.get('master_preparation',{}).get('scoped_execution_provenance') is not None:
+    producer=run.production_manifest.get('master_preparation',{})
+    if producer.get('placement_execution_provenance') is not None:
+        from mta.runtime.placement_master_publication import terminal_master_parent
+        old=terminal_master_parent(run,initialization_id,parent_id,state)
+    elif producer.get('scoped_execution_provenance') is not None:
         from mta.runtime.scoped_postdbm_recovery import terminal_master_parent
         old=terminal_master_parent(run,initialization_id,parent_id,state)
     if (state.master_epoch,state.configuration_epoch)==(old.master_epoch,old.configuration_epoch):

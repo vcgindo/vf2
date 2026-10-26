@@ -158,6 +158,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import scoped_read_transition as scoped_read
     from mta.runtime import runtime_report_schema_transition as publication
     from mta.runtime import runtime_placement_schema_transition as placement
+    from mta.runtime import runtime_report_read_transition as consumer_read
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
@@ -166,6 +167,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     read_migration=any(pin[0] in {name for name,_ in scoped_read.PINS} for pin in spec['migration_pins'])
     publication_migration=any(pin[0] in publication.NAMES for pin in spec['migration_pins'])
     placement_migration=any(pin[0] in placement.NAMES for pin in spec['migration_pins'])
+    consumer_read_migration=any(pin[0] in consumer_read.NAMES for pin in spec['migration_pins'])
+    if consumer_read_migration:
+        consumer_read.require_specification(spec)
     if placement_migration:
         placement.require_specification(spec)
     if publication_migration:
@@ -216,6 +220,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             publication.require_start(cursor)
         if placement_migration:
             placement.require_start(cursor)
+        if consumer_read_migration:
+            consumer_read.require_start(cursor)
         before=storage(preservation(owner));before_catalogue=catalogue(cursor)
         old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
@@ -269,6 +275,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0229','0230']]
         if placement_migration:
             allowed_migrations=[['0231']]
+        if consumer_read_migration:
+            allowed_migrations=[['0232']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -324,7 +332,11 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         if any(objects.get(o['name'])!=o for o in old_objects['objects']):
             raise ValueError('Original object identity or owner changed')
         old_acl={(r['scope'],r['name']) for r in old_objects['grants']}
-        if [r for r in now['grants'] if (r['scope'],r['name']) in old_acl]!=old_objects['grants']:
+        retained_grants=[r for r in now['grants'] if (r['scope'],r['name']) in old_acl]
+        if consumer_read_migration:
+            consumer_read.require_preserved_acl(old_objects['grants'],retained_grants,
+                owner_oid=original['owner_oid'],consumer_oid=original['consumer_oid'])
+        elif retained_grants!=old_objects['grants']:
             raise ValueError('Original ACL changed')
         cursor.execute('SELECT oid::bigint,rolname,rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,rolbypassrls,rolinherit,rolconfig FROM pg_roles ORDER BY oid')
         if cursor.fetchall()!=roles:raise ValueError('Schema transition changed roles')

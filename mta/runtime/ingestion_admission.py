@@ -186,6 +186,7 @@ def effective_schema(cursor, body):
     cert = _activation_metadata(cursor, body)
     expected_schema, expected_guard = cert['schema_digest'], cert['guard_digest']
     chain=[]; current=body; seen=set(); real_count=0; guard_transition=False; ownership_transition=False; recovered_transition=False; history_transition=False; dbm_transition=False; read_transition=False; publication_transition=False; placement_transition=False; anchor=None
+    consumer_read_transition=False
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -219,7 +220,12 @@ def effective_schema(cursor, body):
         from mta.runtime import scoped_read_transition as scoped_read
         from mta.runtime import runtime_report_schema_transition as publication
         from mta.runtime import runtime_placement_schema_transition as placement
-        if any(pin[0] in placement.NAMES for pin in extension.get('migration_pins',[])):
+        from mta.runtime import runtime_report_read_transition as consumer_read
+        if any(pin[0] in consumer_read.NAMES for pin in extension.get('migration_pins',[])):
+            if consumer_read_transition or not consumer_read.approved_receipt(extension):
+                raise ValueError('Exact consumer read ACL transition required')
+            consumer_read_transition=True
+        elif any(pin[0] in placement.NAMES for pin in extension.get('migration_pins',[])):
             if placement_transition or not placement.approved_receipt(extension):
                 raise ValueError('Exact placement schema transition required')
             placement_transition=True
