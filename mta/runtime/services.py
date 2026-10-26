@@ -64,7 +64,7 @@ def read_outputs(run, *, include_reports=True):
     return outputs
 
 
-def finish_run(run, output, *, expected_digest, publication_opening=None, _scoped_unit=None):
+def finish_run(run, output, *, expected_digest, publication_opening=None, _scoped_unit=None,_report_work=None):
     """Only writer of a run's complete output, shared by both engine entries."""
     # Immutable profile reconstruction happens once before the atomic writer.
     # The full input audit and run/input digest checks remain inside it.
@@ -76,8 +76,17 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
     if scoped is not None:output=scoped.output
     producer_preparation=output.pop('_MasterPreparation',None)
     with stage('persistence_profile_reconstruction'):
-        frozen_profile = (read_input(run, components=('profile',))['profile']
-                          if run.kind == 'DAILY_CHAIN' else None)
+        frozen=(read_input(run,components=('profile','scope_request')) if run.kind=='DAILY_CHAIN' else {})
+        frozen_profile=frozen.get('profile')
+    from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+    placement=frozen.get('scope_request',{}).get('schema')==PLACEMENT_SCHEMA
+    if placement:
+        from mta.runtime.runtime_report_execution import validate_completion
+        validate_completion(run,_report_work,scoped=scoped is not None,sources=sources)
+        if scoped is None and _report_work.sources.calculation_digest!=digest(output['CalculationOutputs']):
+            raise ValueError('Full placement calculation source differs')
+    elif _report_work is not None:
+        raise ValueError('Report placement work without captured request')
     with transaction.atomic():
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         from mta.mdm.supplier_revisions import lock_transaction
@@ -244,7 +253,12 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
             if publication_opening is not None:
                 from mta.presentation.daily_sources import write_sources
                 if scoped is None:
-                    write_sources(run, output, opening=publication_opening)
+                    if placement:
+                        # Same BPR history producer, completed once at BPR and
+                        # retained for both its PostBTR files and final rows.
+                        write_sources(run,output,opening=publication_opening,_sources=_report_work.sources)
+                    else:
+                        write_sources(run, output, opening=publication_opening)
                 else:
                     from mta.runtime.bpr_history_completion import terminal_completion
                     completion = terminal_completion(run)
@@ -265,6 +279,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
         if prepared_capture is not None:
             from mta.runtime.capture_preparation import publication_metadata
             publication_metadata(run,prepared_capture,producer_preparation)
+        if placement:
+            from mta.runtime.runtime_report_execution import register_completion
+            register_completion(run,_report_work,final_unit=_scoped_unit)
         run.status = 'SUCCEEDED'
         if typed:
             from mta.runtime.receipt_integrity import operational_roster, output_root, source_receipts

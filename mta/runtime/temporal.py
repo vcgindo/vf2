@@ -234,7 +234,9 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     if scope_request is not None:
         from mta.runtime.production_scope import validate_request
         validate_request(scope_request)
-        if (not native or mdm_retry is not None or feed_attempt is not None
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        placement_full=scope_request.get('schema')==PLACEMENT_SCHEMA and scope_request.get('scope')=='Full'
+        if (not native or (mdm_retry is not None and not placement_full) or feed_attempt is not None
                 or report_disposition is not None or type(profile.get('daily_publication')) is not bool):
             raise ValueError('UptoBPR requires an original native capture and explicit publication mode')
     from mta.application.native_report_disposition import RETRIES
@@ -649,7 +651,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             seal(run,consumer_snapshot=consumer_snapshot)
     release_opening()
     logger.warning('daily_phase run=%s phase=input_capture seconds=%.6f', run.pk, perf_counter()-started)
-    if scope_request is not None:
+    if scope_request is not None and not placement_full:
         from mta.runtime.production_scope import captured_run
         return captured_run(run,scope_request)
     return _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
@@ -665,11 +667,21 @@ def _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
     source_digest=run.input_digest
     try:
         calculated_at = perf_counter()
-        result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-            lambda source, **owned:(calculate_current_day(source, defer_pick=True, **owned) if complete_pick else
-                           calculate_current_day(source, **owned),str(run.pk)),effective_report_exceptions,native_daily=native,
-                           **({'master_snapshot':capture_snapshot} if native else {}),
-                           **({'prepared_master':master_reuse or master_change} if master_reuse is not None or master_change is not None else {}))
+        def calculation(source,**owned):
+            return (calculate_current_day(source,defer_pick=True,**owned) if complete_pick else
+                    calculate_current_day(source,**owned)),str(run.pk)
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        report_work=None
+        if raw.get('scope_request',{}).get('schema')==PLACEMENT_SCHEMA:
+            from mta.runtime.runtime_report_execution import calculate_full
+            result,report_work=calculate_full(run,prior,opening_date,raw['day'],raw['profile'],calculation,
+                opening=publication_opening,report_exceptions=effective_report_exceptions,
+                master_snapshot=capture_snapshot,prepared_master=master_reuse or master_change)
+        else:
+            result=calculate_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),calculation,
+                effective_report_exceptions,native_daily=native,
+                **({'master_snapshot':capture_snapshot} if native else {}),
+                **({'prepared_master':master_reuse or master_change} if master_reuse is not None or master_change is not None else {}))
         logger.warning('daily_phase run=%s phase=calculation seconds=%.6f', run.pk, perf_counter()-calculated_at)
         completed=result.pop('_CompletedBoundaries')
         if completed!=list(BOUNDARIES):
@@ -697,7 +709,7 @@ def _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
         commit_at = perf_counter()
         with operation(str(run.pk)), stage('atomic_persistence'):
             finished = finish_run(run,result,expected_digest=source_digest,
-                                  publication_opening=publication_opening)
+                                  publication_opening=publication_opening,_report_work=report_work)
         logger.warning('daily_phase run=%s phase=commit seconds=%.6f', run.pk, perf_counter()-commit_at)
         return finished
     except Exception as error:

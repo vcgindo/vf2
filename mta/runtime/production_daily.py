@@ -342,7 +342,14 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                     execution_revision,pick_output_root,problem,report_disposition=report_disposition)
         except (ValueError,TypeError,ObjectDoesNotExist) as error:
             problem('/retry_capture_id','frozen MDM capture',error)
-    if scope_request is not None and scope_request['scope']=='UptoDBM' and frame is not None:
+    from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+    if scope_request is not None and scope_request.get('schema')==PLACEMENT_SCHEMA and frame is not None:
+        from mta.runtime.runtime_report_request import validate_day
+        try:
+            validate_day(frame['profile'],working_day(decode(raw,expected_sha256),frame['profile']),scope_request)
+        except (ValueError,TypeError,KeyError) as error:
+            problem('/scope_request','Placement configured effects',error)
+    elif scope_request is not None and scope_request['scope']=='UptoDBM' and frame is not None:
         from mta.runtime.production_upto_dbm import configuration
         try:
             configuration(frame['profile'], working_day(decode(raw,expected_sha256),frame['profile']), scope_request)

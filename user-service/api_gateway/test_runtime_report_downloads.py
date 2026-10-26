@@ -15,13 +15,13 @@ class RuntimeReportDownloadSelectorsTests(SimpleTestCase):
             'tests/fixtures/runtime_reports_retained_20261019.json').read_bytes())
         reports = {row['Id']:row for row in retained}
         self.assertEqual(RUNTIME_REPORT_DOWNLOAD_PATHS, frozenset(
-            '/api/mta/DownloadReports/'+reports[key]['ReportName'] for key in (7,10)))
+            '/api/mta/DownloadReports/'+reports[key]['ReportName'] for key in (2,3,4,5,6,7,8,10)))
         self.assertEqual(reports[7]['FileName'], 'Spiker_Order_Dump')
         self.assertTrue(reports[7]['Compression'])
         self.assertEqual(reports[10]['FileName'], '%TotalReqReport%')
         self.assertFalse(reports[10]['Compression'])
 
-    def test_only_two_exact_native_selectors_acquire_transport_authority(self):
+    def test_only_eight_exact_native_selectors_acquire_transport_authority(self):
         for route in RUNTIME_REPORT_DOWNLOAD_PATHS:
             for method in ('GET','POST'):
                 request = SimpleNamespace(path=route, method=method)

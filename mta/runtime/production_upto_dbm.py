@@ -44,6 +44,9 @@ def request(command_key, *, runtime_reports, dispositions):
     from release.native_identity import require_current
     from mta.runtime.phase_state import recipe_digest
     from mta.runtime.scope_runtime_reports import validate
+    from mta.runtime.runtime_report_request import REFERENCE as PLACEMENT_REFERENCE
+    if isinstance(runtime_reports,dict) and runtime_reports.get('schema')==PLACEMENT_REFERENCE:
+        raise ValueError('Placement reports require their new versioned native entry')
     if type(command_key) is not str or not 1 <= len(command_key) <= 120:
         raise ValueError('Explicit UptoDBM command key required')
     value = dict(schema=SCHEMA, scope='UptoDBM', command_key=command_key,
@@ -183,6 +186,10 @@ def advance(run, value, *, worker_reference, recovery_of=None, repair_files=Fals
             bpr = run.phase_acceptances.get(phase='BPR', state_sealed=True)
             files, artifact = _bpr_files(run, bpr, value, repair=repair_files)
             receipt = fresh._phase(run, 'DBM', checksum)
+            from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+            if value.get('schema')==PLACEMENT_SCHEMA:
+                from mta.runtime.runtime_report_placement_publication import read
+                read(run.pk,placement='PostDBM',verify_bytes=True)
     else:
         attempt = workers.claim(run.pk, scope='UptoDBM', command_key=value['command_key'],
             worker_reference=worker_reference, compatibility_digest=compatibility,
@@ -194,6 +201,7 @@ def advance(run, value, *, worker_reference, recovery_of=None, repair_files=Fals
             files, artifact = _bpr_files(run, bpr, value, repair=repair_files)
             receipt = (fresh._phase(run, 'DBM', checksum) if phase == 'DBM' else
                 calculate_dbm(attempt.pk, attempt.worker_token, compatibility_digest=compatibility))
+            fresh._publish_reports(attempt,receipt,value)
             workers.release(attempt.pk, attempt.worker_token, compatibility_digest=compatibility)
         except Exception as error:
             try: workers.fail(attempt.pk, attempt.worker_token, compatibility_digest=compatibility, error=error)

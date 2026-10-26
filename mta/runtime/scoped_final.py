@@ -119,7 +119,7 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         _attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
         prefix,_capture=accepted_prefix(run)
         dbm=prefix[-1]
-    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input'))
+    raw=read_input(run,components=('opening','day','profile','lineage','initialization_binding','mdm_input','scope_request'))
     profile=raw['profile']
     if type(profile.get('daily_publication')) is not bool:
         raise ValueError('Scoped final publication mode must be captured explicitly')
@@ -132,8 +132,14 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         profile=profile,master_snapshot=master_snapshot)
     from mta.runtime.scoped_actions import final_phase
     phase=final_phase(run,dbm,phase,expected_revision=_attempt.action_revision)
+    report_work=None
     with native_assignments(True):
-        result=produce_btr_from_snapshot(phase,sources,pick_source_digests=phase.pick_source_digests)
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        if raw.get('scope_request',{}).get('schema')==PLACEMENT_SCHEMA:
+            from mta.runtime.runtime_report_execution import calculate_tail
+            result,report_work=calculate_tail(run,dbm,_attempt,phase,sources)
+        else:
+            result=produce_btr_from_snapshot(phase,sources,pick_source_digests=phase.pick_source_digests)
     output=result.output
     if output.pop('_CompletedBoundaries')!=list(BOUNDARIES):
         raise ValueError('Incomplete scoped daily boundary roster')
@@ -162,7 +168,7 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         if head(run.pk)!=('DBM',dbm.digest):raise ValueError('Scoped DBM head changed during BTR')
         receipt=_begin_phase(attempt,run,'DAY_FINAL')
         finished=finish_run(run,result,expected_digest=run.input_digest,
-                            publication_opening=publication,_scoped_unit=receipt)
+                            publication_opening=publication,_scoped_unit=receipt,_report_work=report_work)
         _seal_day_final(receipt)
         _close_attempt(attempt,finished,'RELEASED',{})
         return finished

@@ -9,6 +9,26 @@ from mta.runtime import runtime_report_publication as publication
 
 SELECTORS={'Spike_Order_Dump':7,'TotalReqReport_YYYY-MM-DD':10}
 
+# The SQL expressions label positional cells; a supplier is a location
+# permission even when the report calls it SupplierCode. This roster alone
+# does not expose a selector or authorize a new placement.
+PERMISSION_COLUMNS={
+    2:('SKUCode','WhCode','ParentWhCode'),
+    3:('SKUCode','WhCode','ParentWhCode'),
+    4:('A.SKUCode','A.WhCode','A.SupplierCode'),
+    5:('A.SKUCode','A.WhCode','A.SupplierCode'),
+    6:('A.SKUCode','A.WhCode','A.SupplierCode'),
+    7:('SKUCode','WhCode','FirstServicingWhCode'),
+    8:('SKUCode','WhCode','SupplierCode'),
+    10:('SKUCode','WhCode','ParentWhCode'),
+}
+
+
+def _permission_fields(report_id):
+    if type(report_id) is not int or report_id not in PERMISSION_COLUMNS:
+        raise ValueError('Unqualified runtime report permission projection')
+    return tuple(name.removeprefix('A.') for name in PERMISSION_COLUMNS[report_id])
+
 
 def _binding(view):
     from mta.presentation.runtime_report_view import applicable_reference
@@ -43,8 +63,7 @@ def report_paths(view):
 def allowed(rows,report_id,products,locations):
     """Deny a partial-file scope; absent nullable parent is not a location code."""
     if not products or not locations:return False
-    if report_id not in (7,10):raise ValueError('Unqualified runtime report permission projection')
-    parent='FirstServicingWhCode' if report_id==7 else 'ParentWhCode'
+    _sku,_location,parent=_permission_fields(report_id)
     for row in rows:
         if (not any(_sql_equal(row['SKUCode'],code) for code in products)
                 or not any(_sql_equal(row['WhCode'],code) for code in locations)
@@ -55,11 +74,11 @@ def allowed(rows,report_id,products,locations):
 
 def permission_rows(projected,report_id):
     """The real CSV producer yields positional cells, not row dictionaries."""
-    parent='FirstServicingWhCode' if report_id==7 else 'ParentWhCode'
-    columns=projected['columns'];fields=('SKUCode','WhCode',parent)
-    if report_id not in (7,10) or any(columns.count(name)!=1 for name in fields):
+    fields=_permission_fields(report_id)
+    columns=projected['columns'];source_fields=PERMISSION_COLUMNS[report_id]
+    if any(columns.count(name)!=1 for name in source_fields):
         raise PublicationUnavailable('runtime_report_permission_columns_differ')
-    positions=[columns.index(name) for name in fields]
+    positions=[columns.index(name) for name in source_fields]
     for cells in projected['rows']:
         if len(cells)!=len(columns):
             raise PublicationUnavailable('runtime_report_permission_row_width_differs')

@@ -70,15 +70,16 @@ def is_revision_guard(function):
     bpr_history=import_module('mta.runtime.migrations.0223_bpr_history_completion').NEW
     scope_live_read=import_module('mta.runtime.migrations.0228_scope_read_action_ownership').NEW
     runtime_reports=import_module('mta.runtime.migrations.0230_runtime_report_publication_guards').NEW
+    placement_reports=import_module('mta.runtime.migrations.0231_runtime_report_placement_guards').NEW
     return (function['name'] == 'mta.ingestion_watch()' and function['security_definer'] is True
-        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports,scope_sources,scope_planning,scope_consumers,scope_transit,scope_git,scope_pick_view,scope_expedite,scope_expedite_parent,scope_read,bpr_history,scope_live_read,runtime_reports) and function['configuration'] == ['search_path=pg_catalog, mta']
+        and function['body'] in (body,revised,references,consumers,trends,owner_sets,scope_files,scope_capture,scope_reports,scope_sources,scope_planning,scope_consumers,scope_transit,scope_git,scope_pick_view,scope_expedite,scope_expedite_parent,scope_read,bpr_history,scope_live_read,runtime_reports,placement_reports) and function['configuration'] == ['search_path=pg_catalog, mta']
         and function['returns'] == 'trigger')
 
 
 def scoped_derived_body(cursor,*,minimum):
     """Exact applied scoped-watch version, separate from producer recipes."""
     from importlib import import_module
-    versions=('0230_runtime_report_publication_guards','0228_scope_read_action_ownership','0223_bpr_history_completion','0218_scope_read_reference_guards','0216_scope_expedite_parent_guards','0214_scope_expedite_guards','0212_scope_pick_guards','0210_scope_git_guards','0207_scope_transit_guards','0204_scoped_bpr_consumer_ownership','0202_scope_planning_guards','0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
+    versions=('0231_runtime_report_placement_guards','0230_runtime_report_publication_guards','0228_scope_read_action_ownership','0223_bpr_history_completion','0218_scope_read_reference_guards','0216_scope_expedite_parent_guards','0214_scope_expedite_guards','0212_scope_pick_guards','0210_scope_git_guards','0207_scope_transit_guards','0204_scoped_bpr_consumer_ownership','0202_scope_planning_guards','0200_scope_source_guards','0198_scope_report_guards','0196_scope_pick_capture_key')
     if minimum not in versions:raise ValueError('Unknown scoped derived guard minimum')
     cursor.execute("SELECT name FROM mta.django_migrations WHERE app='fresh_mta' AND name=ANY(%s)",[list(versions)])
     installed={name for name, in cursor.fetchall()}

@@ -24,6 +24,8 @@ PICK_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + key for key in (
 ))
 INPUT_ARCHIVE_PATHS = frozenset(('/api/mta/DownloadReports/InputData',))
 RUNTIME_REPORT_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + name for name in (
+    'BOR WH Efficiency report', 'RRR WH Efficiency report', 'BOR_Color_Bandwise',
+    'Chennai_BOR_OrderAllocation', 'Silvasa_BOR_OrderAllocation', 'BOR_OrderAllocationHistory',
     'Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD',
 ))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
@@ -36,7 +38,7 @@ _END = object()
 
 
 def runtime_report_download(path):
-    """Recognize only the two released native RuntimeReports ReportNames.
+    """Recognize only the eight retained native RuntimeReports ReportNames.
 
     The literal YYYY-MM-DD suffix is part of the captured ReportName, not a
     wildcard. The backend resolves the exact generated file from its receipt.

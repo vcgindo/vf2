@@ -86,6 +86,9 @@ def configuration(value):
 
 
 def validate(value):
+    from mta.runtime import runtime_report_request as placement
+    if isinstance(value,dict) and value.get('schema')==placement.REFERENCE:
+        return placement.validate_reference(value)
     if isinstance(value,dict) and value.get('schema')==PUBLICATION_REFERENCE:
         publication_configuration(value)
         return deepcopy(value)
@@ -106,7 +109,8 @@ def decode(raw,expected_sha256):
         raise ValueError('Bounded RuntimeReports file bytes differ')
     def nonfinite(value):raise ValueError('Nonfinite RuntimeReports value')
     parsed=json.loads(raw,object_pairs_hook=object_pairs,parse_constant=nonfinite)
-    if isinstance(parsed,dict) and parsed.get('schema')==PUBLICATION_REFERENCE:
+    from mta.runtime.runtime_report_request import REFERENCE as PLACEMENT_REFERENCE
+    if isinstance(parsed,dict) and parsed.get('schema') in (PUBLICATION_REFERENCE,PLACEMENT_REFERENCE):
         return validate(parsed)
     if len(raw)>LIMIT:raise ValueError('Bounded empty TEST RuntimeReports file bytes differ')
     checked=configuration(parsed)
@@ -132,6 +136,10 @@ def require_test_database():
 def status(value):
     if value is None:return dict(configured=False)
     checked=validate(value)
+    from mta.runtime.runtime_report_request import REFERENCE as PLACEMENT_REFERENCE
+    if checked['schema']==PLACEMENT_REFERENCE:
+        return dict(configured=True,purpose=checked['purpose'],row_count=8,
+            configuration_digest=checked['configuration_digest'])
     if checked['schema']==PUBLICATION_REFERENCE:
         return dict(configured=True,purpose=checked['purpose'],row_count=2,
             configuration_digest=checked['configuration_digest'])

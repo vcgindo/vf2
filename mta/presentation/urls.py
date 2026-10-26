@@ -2,6 +2,7 @@ from functools import partial
 from django.urls import path
 from mta.presentation import views
 from mta.presentation import mdm_views, logistics_views
+from mta.presentation import runtime_placement_downloads
 
 urlpatterns = [
     path('SubmitOpenExpediteRequest', partial(logistics_views.command, operation='submit')),
@@ -39,8 +40,8 @@ urlpatterns = [
     path('SKUDesc', partial(views.descriptions, kind='sku')),
     path('WHDesc', partial(views.descriptions, kind='location')),
     path('GetEnvironmentConfiguration', views.environment),
-    path('GetAllReports', views.report_paths),
-    path('DownloadReports/<str:report_name>', views.download_report),
+    path('GetAllReports', runtime_placement_downloads.report_paths),
+    path('DownloadReports/<str:report_name>', runtime_placement_downloads.download_report),
     path('GetUIConfig', views.ui_config),
     path('GetState', partial(views.user_layout, operation='get')),
     path('SaveState', partial(views.user_layout, operation='save')),

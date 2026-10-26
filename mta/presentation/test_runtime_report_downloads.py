@@ -49,3 +49,42 @@ class WholeFilePermissions(unittest.TestCase):
             locations={row[name] for row in rows for name in ('WhCode',parent) if row[name] is not None}
             self.assertTrue(allowed(rows,identity,products,locations))
             self.assertFalse(allowed(rows,identity,set(),locations))
+
+    def test_postbtr_actual_producers_require_receiving_and_supplier_locations(self):
+        import json
+        from pathlib import Path
+        from mta.application.runtime_report_projection import describe,project
+        from tests.test_runtime_bor_report import sources,bor
+        from tests.test_runtime_history_reports import efficiency_sources,allocation_sources
+        definitions=json.loads((Path(__file__).parents[2]/'tests/fixtures/runtime_reports_retained_20261019.json').read_bytes())
+        for definition in definitions:
+            identity=definition['Id']
+            if identity not in (2,3,4,5,6,8):continue
+            with self.subTest(report=identity):
+                inputs=(efficiency_sources() if identity in (2,3) else
+                        allocation_sources() if identity==8 else sources())
+                if identity==3:inputs['rationing_history'][0]['ParentNorm']=1
+                if identity==6:inputs['bor_with_order_allocation']=[bor(WhCode='P001')]
+                logical={name:([{'LastRunDate':inputs[key]}] if key=='today' else inputs[key])
+                         for key,name in describe(definition)['sources'].items()}
+                rows=list(permission_rows(project(definition,logical),identity))
+                parent='ParentWhCode' if identity in (2,3) else 'SupplierCode'
+                location='P001' if identity==6 else 'P041'
+                self.assertEqual(rows,[{'SKUCode':'sku','WhCode':location,parent:'SUP'}])
+                self.assertTrue(allowed(rows,identity,{'SKU'},{location,'SUP'}))
+                self.assertFalse(allowed(rows,identity,{'SKU'},{location}))
+                self.assertFalse(allowed(rows,identity,{'SKU'},{'SUP'}))
+                self.assertFalse(allowed(rows,identity,{'OTHER'},{location,'SUP'}))
+
+    def test_postbtr_permission_shape_cannot_hide_missing_or_duplicate_columns(self):
+        from mta.presentation.context import PublicationUnavailable
+        good=dict(columns=('A.SKUCode','A.WhCode','A.SupplierCode'),rows=[('sku','WH',None)])
+        rows=list(permission_rows(good,4))
+        self.assertTrue(allowed(rows,4,{'sku'},{'WH'}))
+        for columns,cells in ((('A.SKUCode','A.WhCode'),('sku','WH')),
+                (('A.SKUCode','A.WhCode','A.SupplierCode','A.SupplierCode'),('sku','WH',None,None)),
+                (good['columns'],('sku','WH'))):
+            with self.assertRaises(PublicationUnavailable):
+                list(permission_rows(dict(columns=columns,rows=[cells]),4))
+        for identity in (True,9,'4'):
+            with self.assertRaises(ValueError):list(permission_rows(good,identity))

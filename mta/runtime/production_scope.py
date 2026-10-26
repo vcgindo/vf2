@@ -14,6 +14,9 @@ PUBLICATION_SCHEMA='fresh-native-postbpr-publication-request-v1'
 def request(command_key,*,runtime_reports=None):
     from release.native_identity import require_current
     from mta.runtime.phase_state import recipe_digest
+    from mta.runtime.runtime_report_request import REFERENCE as PLACEMENT_REFERENCE
+    if isinstance(runtime_reports,dict) and runtime_reports.get('schema')==PLACEMENT_REFERENCE:
+        raise ValueError('Placement reports require their new versioned native entry')
     if type(command_key) is not str or not 1<=len(command_key)<=120:
         raise ValueError('Explicit bounded scope command key required')
     value=dict(schema=SCHEMA,scope='UptoBPR',command_key=command_key,
@@ -34,6 +37,9 @@ def request(command_key,*,runtime_reports=None):
 
 
 def validate_request(value):
+    from mta.runtime import runtime_report_request as placement
+    if isinstance(value,dict) and value.get('schema')==placement.SCHEMA:
+        return placement.validate_request(value)
     if isinstance(value,dict) and value.get('scope')=='UptoDBM':
         from mta.runtime.production_upto_dbm import validate_request as validate_dbm
         return validate_dbm(value)
@@ -66,6 +72,9 @@ def captured_run(run,value):
         validate(value['runtime_reports'])
         require_test_database()
     if run.status=='RUNNING':
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        if value.get('schema')==PLACEMENT_SCHEMA and value.get('scope')=='Full':
+            raise ValueError('Full calculation already captured; no concurrent or implicit replay')
         _frozen(run)
     elif run.status=='SUCCEEDED':
         from mta.runtime.services import read_outputs
@@ -245,6 +254,10 @@ def _produce(attempt,value):
 
 
 def _publish_reports(attempt,receipt,value):
+    from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+    if value.get('schema')==PLACEMENT_SCHEMA:
+        from mta.runtime.runtime_report_execution import publish_phase
+        return publish_phase(attempt,receipt,value)
     if value.get('schema')==PUBLICATION_SCHEMA:
         from mta.runtime.runtime_report_publication import prepare
         return prepare(attempt.pk,attempt.worker_token,phase_id=receipt.pk,

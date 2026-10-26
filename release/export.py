@@ -24,6 +24,7 @@ EXCLUDED_COMMANDS = frozenset(('record_parity', 'run_temporal', 'run_daily', 'in
 
 SUPPORTED_MTA_COMMANDS = frozenset(('process_daily_csv', 'initialize_production', 'prepare_native_input_archive', 'run_production_day', 'prepare_daily_ui', 'activate_daily_ui', 'check_daily_selection', 'prepare_guided_aggregates', 'prepare_history_reports', 'prepare_planning_charts', 'prepare_planning_custom', 'prepare_planning_expedite_charts', 'prepare_planning_expedite_custom', 'prepare_planning_expedite_grids', 'prepare_planning_expedite_transit', 'prepare_planning_git', 'prepare_planning_grids', 'prepare_planning_sources', 'prepare_research_availability', 'prepare_rrr', 'build_btr_reporting', 'build_btr_snapshot', 'prepare_bor_membership', 'prepare_boroa_membership', 'cohort2_operational', 'register_operational_configuration'))
 SUPPORTED_MTA_COMMANDS |= frozenset(('run_production_upto_bpr','run_production_upto_dbm','fence_production_scope'))
+SUPPORTED_MTA_COMMANDS |= frozenset(('run_production_report_placement','continue_production_report_placement'))
 
 def included(name):
     path = PurePosixPath(name)

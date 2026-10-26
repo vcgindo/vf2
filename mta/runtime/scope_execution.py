@@ -90,6 +90,13 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
     captured=read_input(run,components=('scope_request',)).get('scope_request',{})
     if captured.get('schema')==PUBLICATION_SCHEMA and scope!='UptoBPR':
         raise ValueError('PostBPR publication continuation is not released')
+    from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA,validate_request
+    if captured.get('schema')==PLACEMENT_SCHEMA:
+        validate_request(captured)
+        allowed={'UptoBPR':('UptoBPR','PostBPR'),'UptoDBM':('UptoDBM','PostDBM')}.get(captured['scope'],())
+        if (scope not in allowed or compatibility_digest!=captured['compatibility_digest']
+                or (scope==captured['scope'])!=(command_key==captured['command_key'])):
+            raise ValueError('Placement claim differs from captured scope/continuation owner')
     if head(run.pk) != (expected_phase, expected_receipt_digest):
         raise ValueError('Expected accepted phase changed')
     if RunScopeAttempt.objects.filter(run=run, status='ACTIVE').exists():
@@ -191,6 +198,12 @@ def _close_attempt(attempt,run,status,failure):
             if attempt.scope!='UptoBPR':raise ValueError('Unreleased runtime report continuation')
             for placement in ('PostImporter','PostBPR'):
                 read(run.pk,placement=placement,verify_bytes=True)
+        from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+        if captured.get('schema')==PLACEMENT_SCHEMA:
+            from mta.runtime.runtime_report_placement_publication import read,PLACEMENTS
+            count={'UptoBPR':2,'UptoDBM':3,'PostBPR':5,'PostDBM':5}.get(attempt.scope)
+            if count is None:raise ValueError('Unqualified placement scope release')
+            for placement in PLACEMENTS[:count]:read(run.pk,placement=placement,verify_bytes=True)
     from mta.runtime import scope_revisions as revisions
     after,observed,diagnostics=revisions.closing(run)
     if diagnostics:

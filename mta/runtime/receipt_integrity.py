@@ -67,6 +67,21 @@ def source_receipts(run):
     native_audit = audit_receipt(run)
     if native_audit is not None:
         result['NativeUploadAudit'] = [native_audit]
+    # Only the new request's terminal set joins its root. Old receipt/root
+    # identities remain byte-for-byte unchanged; there is no output-root cycle.
+    request_node=next((node for key,node in run.input_payload.get('tree',{}).get('object',[])
+                       if key=='scope_request'),{})
+    placement_request=any(key=='schema' and node.get('scalar')=='fresh-native-report-placement-request-v1'
+                          for key,node in request_node.get('object',[]))
+    if placement_request:
+        from mta.runtime.models import RuntimeReportPublication
+        placements=list(RuntimeReportPublication.objects.filter(run=run,
+            metadata__schema='fresh-runtime-report-placement-publication-v1').order_by('placement'))
+        from mta.runtime.runtime_report_publication import _body
+        if ({row.placement for row in placements}!=set(('PostImporter','PostBPR','PostDBM','PostBTR','Final'))
+                or any(row.digest!=digest(_body(row)) for row in placements)):
+            raise ValueError('Terminal runtime report publication set differs')
+        result['RuntimeReportPublication']=[dict(id=str(row.pk),placement=row.placement,digest=row.digest) for row in placements]
     return storage(result)
 
 
