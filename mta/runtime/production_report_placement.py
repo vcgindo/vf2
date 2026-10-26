@@ -8,8 +8,8 @@ from django.db import transaction
 from mta.runtime import runtime_report_request as contract
 
 
-def execute(raw,expected_sha256,*,scope,command_key,runtime_reports,worker_reference=None,
-            recovery_of=None,inspect_only=False,repair_files=False,**arguments):
+def execute(raw,expected_sha256,*,scope,command_key,runtime_reports=None,worker_reference=None,
+            recovery_of=None,inspect_only=False,repair_files=False,registration_digest=None,**arguments):
     from mta.runtime import production_scope as original,production_daily
     from mta.runtime.scope_runtime_reports import require_publication_writer,require_test_database
     from mta.runtime.production_preflight import require
@@ -17,7 +17,16 @@ def execute(raw,expected_sha256,*,scope,command_key,runtime_reports,worker_refer
     if type(inspect_only) is not bool or type(repair_files) is not bool:
         raise ValueError('Explicit placement inspection/repair flags required')
     require_publication_writer();original.authorize();require_test_database()
-    value=contract.request(scope,command_key,runtime_reports=runtime_reports)
+    registration=None
+    if registration_digest is not None:
+        if runtime_reports is not None:
+            raise ValueError('Choose registered definitions or the original explicit reference')
+        from mta.runtime.runtime_report_registered_request import request_for_execution
+        registered=request_for_execution(raw,expected_sha256,scope=scope,command_key=command_key,
+            registration_digest=registration_digest,arguments=arguments)
+        value=registered['scope_request'];registration=registered['report_registration_request']
+    else:
+        value=contract.request(scope,command_key,runtime_reports=runtime_reports)
     if any(arguments.get(name) is not None for name in ('feed_attempt','report_disposition')):
         raise ValueError('Placement request cannot replace its captured input/dispositions')
     if scope!='Full' and arguments.get('retry_capture_id') is not None:
@@ -29,13 +38,18 @@ def execute(raw,expected_sha256,*,scope,command_key,runtime_reports,worker_refer
     # Existing Full native retry uses a new failed-capture successor/revision;
     # it never adopts an already-running calculation or resets a failed run.
     run=original.repeated(raw,expected_sha256,value,arguments)
+    if run is not None:
+        from mta.runtime.runtime_report_registered_request import check_repeated
+        check_repeated(run,value,registration)
     if run is None:
         if recovery_of is not None:raise ValueError('Scoped recovery requires its existing run')
         if inspect_only:
-            report,*_=production_daily.inspect_execution(raw,expected_sha256,scope_request=value,**arguments)
+            report,*_=production_daily.inspect_execution(raw,expected_sha256,scope_request=value,
+                report_registration_request=registration,**arguments)
             require(report,'day')
             return report
-        run=production_daily.execute(raw,expected_sha256,scope_request=value,**arguments)
+        run=production_daily.execute(raw,expected_sha256,scope_request=value,
+            report_registration_request=registration,**arguments)
     if scope=='Full':
         if run.status!='SUCCEEDED':raise ValueError('Full placement has not completed')
         from mta.runtime.receipt_integrity import verify_root
@@ -100,6 +114,8 @@ def continue_run(run_id,*,scope,expected_phase_digest,expected_action_revision,c
     require_publication_writer();original.authorize()
     run=CalculationRun.objects.select_related('predecessor').get(pk=run_id)
     captured=contract.validate_request(read_input(run,components=('scope_request',))['scope_request'])
+    from mta.runtime.runtime_report_registered_request import read_captured
+    read_captured(run)
     original.captured_run(run,captured)
     source_scope,source_phase={'PostBPR':('UptoBPR','BPR'),'PostDBM':('UptoDBM','DBM')}[scope]
     if captured['scope']!=source_scope or captured['command_key']==command_key:

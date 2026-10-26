@@ -101,7 +101,7 @@ def _prepared_query(run):
             ' WHERE run_id=%s'), [run.pk]
 
 
-def build_query(run, payload, kind, attributes):
+def build_query(run, payload, kind, attributes, *, read_binding=None):
     if kind not in KINDS:
         raise ValueError('unknown_guided_dbm_kind')
     predicate = InsightPredicate(payload, attributes['LocationAttributeData'], kind=kind)
@@ -110,7 +110,7 @@ def build_query(run, payload, kind, attributes):
     if not products or not locations:
         return None, []
     ctes, params = [], []
-    query, values = _prepared_query(run)
+    query, values = read_binding.occurrence_query() if read_binding is not None else _prepared_query(run)
     ctes.append('prepared AS NOT MATERIALIZED (' + query + ')')
     params.extend(values)
     for alias, codes in (('AUTH_SKU', products), ('AUTH_LOC', locations)):
@@ -123,14 +123,15 @@ def build_query(run, payload, kind, attributes):
     if kind in ('loc', 'sku'):
         path = ('closing/btr/SiteDescriptionTbl' if kind == 'loc'
                 else 'closing/btr/SKUDescriptionTbl')
-        query, values = image_query(run, path)
+        query, values = read_binding.query(path) if read_binding is not None else image_query(run, path)
         ctes.append('D AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
         key = '"WHCode"' if kind == 'loc' else '"SKUCode"'
         source = 'R.a_whcode' if kind == 'loc' else 'R.a_skucode'
         joins += ' JOIN D ON ' + raw_equal(source, 'D.' + key)
     if predicate.children:
-        query, values = image_query(run, 'closing/btr/LocationAttributeData')
+        query, values = (read_binding.query('closing/btr/LocationAttributeData') if read_binding is not None
+                         else image_query(run, 'closing/btr/LocationAttributeData'))
         ctes.append('PARENT AS NOT MATERIALIZED (' + query + ')')
         params.extend(values)
         joins += (' JOIN PARENT ON ' + equal('R.m_parentwhcode', 'PARENT."WHCode"') +
@@ -149,8 +150,7 @@ def build_query(run, payload, kind, attributes):
     return sql, params
 
 
-def read_guided_dbm(run, payload, kind, attributes):
-    """Return the existing small raw projection contract from the sealed bag."""
+def _require_prepared(run):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily:
@@ -171,7 +171,18 @@ def read_guided_dbm(run, payload, kind, attributes):
         verify_guards(connection)
     except ValueError as exc:
         raise PublicationUnavailable('Guided_DBM_prepared_guards_changed') from exc
-    query, params = build_query(run, payload, kind, attributes)
+
+
+def read_guided_dbm(run, payload, kind, attributes, *, read_binding=None):
+    """Existing projections over either sealed Full rows or an explicit phase."""
+    if read_binding is None:
+        _require_prepared(run)
+    else:
+        from mta.presentation.scoped_guided_dbm import GuidedDbmBinding
+        if (not isinstance(read_binding, GuidedDbmBinding) or read_binding.run.pk != run.pk
+                or attributes != read_binding.attributes()):
+            raise PublicationUnavailable('guided_scoped_read_binding_differs')
+    query, params = build_query(run, payload, kind, attributes, read_binding=read_binding)
     if query is None:
         return []
     with transaction.atomic(), connection.cursor() as cursor:

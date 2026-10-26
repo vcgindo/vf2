@@ -137,3 +137,59 @@ class SupplierAllocationTests(unittest.TestCase):
             with self.assertRaisesRegex(PublicationUnavailable, 'receipt_missing'):
                 read(dict(filters={}), 'LDC001')
         builder.assert_not_called()
+
+    def test_scoped_query_changes_only_prepared_and_remark_owners(self):
+        run = SimpleNamespace(pk='owned-run')
+        bound = SimpleNamespace(remarks=lambda family: ('SELECT * FROM scoped_remarks', ['phase-remark']))
+        for count in (True, False):
+            with patch('mta.presentation.supplier_allocation.remark_query',
+                    return_value=('SELECT * FROM scoped_remarks', ['phase-remark'])):
+                full_sql, full_params = query(run, dict(filters={}), 'OWN-ROOT7', count=count)
+            with patch('mta.presentation.boroa_preparation.query',
+                    return_value=('SELECT * FROM scoped_occurrences', ['phase-rows'], [])) as prepared, \
+                    patch('mta.presentation.supplier_allocation.remark_query', side_effect=AssertionError('Full owner')):
+                sql, params = query(run, dict(filters={}), 'OWN-ROOT7', count=count, read_binding=bound)
+            expected = full_sql.replace(full_sql.split('prepared AS (', 1)[1].split('),R AS', 1)[0],
+                                        'SELECT * FROM scoped_occurrences', 1)
+            self.assertEqual(sql, expected)
+            self.assertEqual(params, ['phase-rows', *full_params[1:]])
+            prepared.assert_called_once_with(run, read_binding=bound)
+
+    def test_scoped_read_requires_phase_binding_without_full_receipt_fallback(self):
+        view = SimpleNamespace(run=SimpleNamespace(pk='owned-run'))
+        with patch('mta.presentation.scoped_bor.require_binding',
+                side_effect=PublicationUnavailable('phase-owner-differs')) as binding, \
+                patch('mta.presentation.boroa_sources.admitted_sources', side_effect=AssertionError('Full owner')), \
+                patch('mta.presentation.supplier_allocation.query') as builder:
+            with self.assertRaisesRegex(PublicationUnavailable, 'phase-owner-differs'):
+                read(dict(filters={}), 'OWN-ROOT7', read_binding=view)
+            binding.assert_called_once_with(view.run, view)
+            builder.assert_not_called()
+
+    @override_settings(MTA_TRUSTED_GATEWAY_HEADER='X-VectorFLOW-Identity', VF_MTA_PHASE_SELECTION_FILE='owned-selection')
+    def test_scoped_endpoint_preserves_gateway_name_count_and_empty_contracts(self):
+        from mta.presentation.registered_report_view import SCHEMA
+        view = SimpleNamespace(reference=SimpleNamespace(metadata={'runtime_reports':{'schema':SCHEMA}}))
+        for count in (False, True):
+            request = RequestFactory().post('/api/mta/getSupplierWiseAllocationReportData',
+                data=json.dumps(dict(user=dict(name='OTHER'), supplier_name='OTHER', filters={})),
+                content_type='application/json',
+                HTTP_X_VECTORFLOW_IDENTITY=json.dumps(dict(id=8, name='OWN-ROOT7')))
+            with patch('mta.presentation.scoped_selection.selected', return_value=view), \
+                    patch('mta.presentation.supplier_allocation.read', return_value=0 if count else []) as reader:
+                response = supplier_allocation_data(request, count=count)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(json.loads(response.content)['data'], [{'count':0}] if count else [])
+            self.assertEqual(reader.call_args.args[1], 'OWN-ROOT7')
+            self.assertEqual(reader.call_args.kwargs, dict(count=count, read_binding=view))
+
+    @override_settings(MTA_TRUSTED_GATEWAY_HEADER='X-VectorFLOW-Identity', VF_MTA_PHASE_SELECTION_FILE='owned-selection')
+    def test_old_scoped_format_does_not_silently_gain_supplier_support(self):
+        request = RequestFactory().post('/api/mta/getSupplierWiseAllocationReportData', data='{}',
+            content_type='application/json', HTTP_X_VECTORFLOW_IDENTITY=json.dumps(dict(id=8, name='OWN-ROOT7')))
+        view = SimpleNamespace(reference=SimpleNamespace(metadata={}))
+        with patch('mta.presentation.scoped_selection.selected', return_value=view), \
+                patch('mta.presentation.supplier_allocation.read') as reader:
+            response = supplier_allocation_data(request)
+        self.assertEqual(response.status_code, 503)
+        reader.assert_not_called()

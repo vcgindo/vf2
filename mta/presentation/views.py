@@ -160,6 +160,15 @@ def report_paths(request, payload):
 
 @endpoint('GET')
 def download_report(request, payload, *, report_name):
+    from mta.presentation import diagnostic_downloads
+    if report_name in diagnostic_downloads.SELECTORS:
+        try:
+            diagnostic_downloads.require_entitlement(identity(request))
+            stream,filename,mimetype=diagnostic_downloads.open_file(selected_run(),identity(request),report_name)
+        except PermissionError as error:
+            return JsonResponse({'error':str(error)},status=403)
+        from django.http import FileResponse
+        return FileResponse(stream,as_attachment=True,filename=filename,content_type=mimetype)
     if report_name == 'InputData':
         if identity(request).get('entitlements') != ['mta-input-archive']:
             return JsonResponse({'error': 'mta_input_archive_forbidden'}, status=403)

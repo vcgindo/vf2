@@ -174,6 +174,8 @@ PICK_READ_ROUTES = frozenset((
     'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData',
     'BOR_OrderAllocation',
     'Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD',
+    'DailyDataUnavailabilityReport','InvalidDataReport','NMSAddNewSKULoc','NMSModifySKULoc',
+    'NMSRemoveSKULoc','NMSLocMaster','NMSSKUMaster','NMSSOBMaster','NMSMOQMaster','ForceNormChangeUpload',
 ))
 
 

@@ -20,11 +20,19 @@ class Command(BaseCommand):
         parser.add_argument('--attempt')
         parser.add_argument('--proof')
         parser.add_argument('--resume', action='store_true')
+        parser.add_argument('--fullkit-configuration',type=Path)
+        parser.add_argument('--fullkit-sha256')
 
     def handle(self, *args, **options):
         from mta.runtime import daily_feed as service
         try:
             operation = options['operation']
+            fullkit=None
+            if options['fullkit_configuration'] is not None or options['fullkit_sha256'] is not None:
+                if operation!='stage' or options['fullkit_configuration'] is None or options['fullkit_sha256'] is None:
+                    raise ValueError('Fullkit configuration and SHA256 apply together only to staging')
+                from mta.runtime.management.commands.register_runtime_report_configuration import read_reference
+                fullkit=read_reference(options['fullkit_configuration'],options['fullkit_sha256'])
             if operation == 'schema':
                 from mta.application.production_csv_contract import describe
                 from mta.application.production_csv_files import load_binding
@@ -35,6 +43,7 @@ class Command(BaseCommand):
                 params = dict(input_root=options['input_root'], pick_root=options['pick_root'])
                 if operation == 'stage':
                     params['work_root'] = options['work_root']
+                    if fullkit is not None:params['fullkit']=fullkit
                 value = getattr(service, operation)(options['binding'], options['input_directory'], options['date'], **params)
             elif operation == 'execute':
                 value = service.execute(options['attempt'], options['binding'],

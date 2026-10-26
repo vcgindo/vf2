@@ -158,7 +158,12 @@ def fail(attempt_id, worker_token, *, compatibility_digest, error):
     with transaction.atomic():
         attempt, run = _locked_claim(attempt_id, worker_token, compatibility_digest=compatibility_digest)
         with _setting('fresh.scope_worker', worker_token):
+            from mta.runtime.intake_diagnostics import capture_importer
+            diagnostic=capture_importer(run,error,scope_attempt=attempt)
             _close_attempt(attempt,run,'FAILED',dict(type=type(error).__name__,message=str(error)[:4000]))
+    if diagnostic is not None:
+        from mta.runtime.diagnostic_publication import publish_importer
+        publish_importer(diagnostic)
     return attempt
 
 

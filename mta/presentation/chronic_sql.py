@@ -28,24 +28,31 @@ def native_fixture(run):
         raise PublicationUnavailable(str(exc)) from exc
 
 
-def read_chronic(run, payload, kind):
+def read_chronic(run, payload, kind, *, read_binding=None):
     from mta.presentation.daily_preparation import production_branch
-    if (run.kind != 'LEGACY_UI_FIXTURE' and not production_branch(run)) or kind not in (
+    if read_binding is not None:
+        from mta.presentation.scoped_guided_chronic import ChronicBinding
+        if (not isinstance(read_binding,ChronicBinding) or read_binding.run.pk!=run.pk
+                or read_binding.kind!=kind):
+            raise PublicationUnavailable('chronic_scoped_read_binding_differs')
+    if (read_binding is None and run.kind != 'LEGACY_UI_FIXTURE' and not production_branch(run)) or kind not in (
             'chronic-grid', 'chronic-loc', 'chronic-sku'):
         raise ValueError('admitted_chronic_kind_required')
     if not native_fixture(run):
         raise PublicationUnavailable('chronic_SQL_hierarchy_supplement_not_bound')
-    attrs = {name: image_rows(run, 'closing/btr/' + name)
+    attrs = {name: (read_binding.rows('closing/btr/' + name) if read_binding is not None
+                   else image_rows(run, 'closing/btr/' + name))
              for name in ('SkuAttributeData','LocationAttributeData')}
     predicate = InsightPredicate(payload, attrs['LocationAttributeData'], kind=kind)
     products, locations = scope(payload, attributes=attrs)
-    if production_branch(run):
+    if read_binding is not None or production_branch(run):
         fact_path = 'closing/btr/ChronicUnavalabilityData'
-        fact = image_metadata(run, fact_path)
+        fact = read_binding.metadata(fact_path) if read_binding is not None else image_metadata(run, fact_path)
         if fact['count'] == 0:
             # Empty native images have no observed wire fields. Validate the
             # retained empty population after validating the canonical filter.
-            image_rows(run, fact_path, metadata=fact)
+            if read_binding is not None: read_binding.rows(fact_path)
+            else: image_rows(run, fact_path, metadata=fact)
             return []
     ctes, params, wires = [], [], {}
     paths = {'_a':'closing/btr/ChronicUnavalabilityData',
@@ -56,7 +63,8 @@ def read_chronic(run, payload, kind):
                              'closing/btr/SiteDescriptionTbl' if kind=='chronic-loc' else
                              'closing/btr/SKUDescriptionTbl')}
     for alias,path in paths.items():
-        item=image_metadata(run,path); query,values=image_query(run,path)
+        item=read_binding.metadata(path) if read_binding is not None else image_metadata(run,path)
+        query,values=read_binding.query(path) if read_binding is not None else image_query(run,path)
         ctes.append(alias+' AS NOT MATERIALIZED ('+query+')'); params.extend(values)
         wires[alias]={name:wire for name,_,wire in item['fields']}
     def col(alias,field):

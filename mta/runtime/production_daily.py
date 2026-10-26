@@ -243,7 +243,7 @@ def _inspection_frame(owner, predecessor_id, retry_capture_id):
 def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             pick_output_root, execution_revision=None, retry_capture_id=None,
             predecessor_id=None, predecessor_output_digest=None, report_disposition=None,
-            scope_request=None):
+            scope_request=None, report_registration_request=None):
     """Read persisted identities only; return every known input/capability issue."""
     from django.core.exceptions import ObjectDoesNotExist
     from mta.runtime.models import ProductionInitialization, CalculationRun
@@ -252,6 +252,9 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     issues=[];owner=None;parent=None;frame=None;parent_context=None
+    if report_registration_request is not None:
+        from mta.runtime.runtime_report_registered_request import validate_request as validate_registered
+        validate_registered(report_registration_request,scope_request)
     def problem(path,owner_name,error):
         issues.append(dict(path=path,owner=owner_name,code='CONTEXT_INVALID',message=str(error)))
     if scope_request is not None:
@@ -321,7 +324,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
             from mta.mdm.integration_source import verify_predecessor
             try:
                 repeated=inspect_completed_request(raw,expected_sha256,owner,frame,parent,parent_context,
-                    execution_revision,pick_output_root,**({'scope_request':scope_request} if scope_request is not None else {}))
+                    execution_revision,pick_output_root,**({'scope_request':scope_request,'report_registration_request':report_registration_request} if scope_request is not None else {}))
                 if not repeated:verify_predecessor(owner.source,parent)
             except (ValueError,TypeError,KeyError,OSError,ObjectDoesNotExist) as error:
                 problem('/predecessor/current_ownership' if parent is not None else '/initialization/current_ownership',
@@ -342,7 +345,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
             if owner is not None and frame is not None and (predecessor_id is None or parent_context and 'closing_state' in parent_context):
                 inspect_retry(raw,expected_sha256,owner,frame,parent,parent_context,frozen,
                     execution_revision,pick_output_root,problem,report_disposition=report_disposition,
-                    scope_request=scope_request)
+                    scope_request=scope_request,report_registration_request=report_registration_request)
         except (ValueError,TypeError,ObjectDoesNotExist) as error:
             problem('/retry_capture_id','frozen MDM capture',error)
     from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
@@ -365,7 +368,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     return report,owner,parent,frame
 
 
-def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,*,scope_request=None):
+def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,*,scope_request=None, report_registration_request=None):
     """Reconstruct the same pre-capture request used by locked execute_day."""
     from mta.runtime.temporal import request_input,command_states,resolved_pick_root
     value=decode(raw,sha256)
@@ -383,17 +386,17 @@ def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,*,
         content_digest=owner.input_digest,configuration_digest=owner.configuration_digest)
     request=digest(request_input(day=day,profile=frame['profile'],initial=initial,lineage=lineage,
         initialization_binding=binding,daily_input_sha256=sha256,complete_pick=True,
-        pick_output_root=resolved_pick_root(pick_root),scope_request=scope_request))
+        pick_output_root=resolved_pick_root(pick_root),scope_request=scope_request,report_registration_request=report_registration_request))
     return day,prior,request,binding
 
 
-def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revision,pick_root,*,scope_request=None):
+def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revision,pick_root,*,scope_request=None, report_registration_request=None):
     """Verify an exact completed normal request without restoring files/writing."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
     day,_,request,binding=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,
-        scope_request=scope_request)
+        scope_request=scope_request,report_registration_request=report_registration_request)
     repeated=MdmDailyInputCapture.objects.select_related('run').filter(source=owner.source,
         request_digest=request,run__execution_revision=revision).first()
     if repeated is None:return False
@@ -420,7 +423,7 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
 
 
 def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None,
-                  *,scope_request=None):
+                  *,scope_request=None, report_registration_request=None):
     """Read-only mirror of frozen retry checks; locked execution gates remain."""
     from mta.runtime.input_reader import read_input
     from mta.runtime.services import read_outputs
@@ -430,7 +433,7 @@ def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,p
     from mta.runtime.production_preflight import frozen_retry
     try:
         day,prior,request,_=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,
-            **({'scope_request':scope_request} if scope_request is not None else {}))
+            **({'scope_request':scope_request,'report_registration_request':report_registration_request} if scope_request is not None else {}))
         from mta.application.native_report_disposition import admit, verify_replay, RETRIES
         if report_disposition is not None or revision in RETRIES.values():
             admit(requested=report_disposition,native=True,origin=frozen,parent=parent,
@@ -482,7 +485,7 @@ def _daily_initialization(owner, parent, retry_capture_id, handle):
 @opening_operation
 def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
-            retry_capture_id=None, report_disposition=None, feed_attempt=None, scope_request=None):
+            retry_capture_id=None, report_disposition=None, feed_attempt=None, scope_request=None, report_registration_request=None):
     started = perf_counter()
     from mta.runtime.models import ProductionInitialization, CalculationRun
     from mta.mdm.production_families import require_initialization, certified_handle
@@ -519,7 +522,7 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
             source_digest=source_digest,configuration_digest=configuration_digest,pick_output_root=pick_output_root,
             predecessor_id=predecessor_id,predecessor_output_digest=predecessor_output_digest,
             execution_revision=execution_revision,retry_capture_id=retry_capture_id,report_disposition=report_disposition,
-            scope_request=scope_request)
+            scope_request=scope_request,report_registration_request=report_registration_request)
         require(report,'day')
     value = decode(raw, expected_sha256)
     owner = ProductionInitialization.objects.select_related('source').get(pk=uuid.UUID(str(initialization_id)))
@@ -561,4 +564,4 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
         production_initialization=owner, daily_input_sha256=expected_sha256,
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
         feed_attempt=feed_attempt, prepared_arguments=prepared_arguments, prepared_state=prepared_state,
-        scope_request=scope_request)
+        scope_request=scope_request,report_registration_request=report_registration_request)

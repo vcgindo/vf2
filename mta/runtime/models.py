@@ -1345,3 +1345,7 @@ from mta.runtime.scope_expedite_parent_models import (ScopeExpediteParentGenerat
 from mta.runtime.scope_read_models import ScopeReadReference
 from mta.runtime.bpr_history_models import BprHistoryCompletion
 from mta.runtime.runtime_report_models import RuntimeReportPublication
+from mta.runtime.report_definition_models import (ReportDefinitionRegistration,
+    RegisteredRuntimeReport, RegisteredRuntimeReportSeed, RegisteredDownloadableUiSetting)
+from mta.runtime.intake_diagnostic_models import (IntakeDiagnostic,IntakeRejection,
+    IntakeAbortReason,IntakeFileObservation,IntakeFullkitSetting,IntakeDiagnosticArchive,DiagnosticPublication)

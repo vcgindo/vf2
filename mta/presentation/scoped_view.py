@@ -29,7 +29,7 @@ def recipe_digest():
     return legacy_view_recipe()
 
 
-def verify_guards(*,publication=False):
+def verify_guards(*,publication=False,registered=False):
     frozen=import_module('mta.runtime.migrations.0218_scope_read_reference_guards')
     current=import_module('mta.runtime.migrations.0228_scope_read_action_ownership')
     with connection.cursor() as cursor:
@@ -62,7 +62,13 @@ def verify_guards(*,publication=False):
         alternative=[(name,forward_body if name=='guard_scope_read_reference' else body,
             False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
             for name,body in sorted(bodies.items())]
-        if actual not in ((alternative,) if publication else (expected,alternative)):
+        registered_body=import_module('mta.runtime.migrations.0235_registered_scope_read_attachment').BODY
+        registered_expected=[(name,registered_body if name=='guard_scope_read_reference' else body,
+            False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
+            for name,body in sorted(bodies.items())]
+        allowed=((registered_expected,) if registered else
+            (alternative,registered_expected) if publication else (expected,alternative,registered_expected))
+        if actual not in allowed:
             raise PublicationUnavailable('bpr_read_reference_guard_body_differs')
         cursor.execute("SELECT prosrc,prosecdef,proconfig FROM pg_proc WHERE oid='mta.ingestion_watch()'::regprocedure")
         if cursor.fetchall()!=[(scoped_derived_body(cursor,minimum='0218_scope_read_reference_guards'),True,['search_path=pg_catalog, mta'])]:
@@ -70,6 +76,9 @@ def verify_guards(*,publication=False):
 
 
 def _configuration(run):
+    from mta.presentation import registered_report_view
+    if registered_report_view.applicable_run(run):
+        return registered_report_view.configuration(run)
     from mta.runtime.input_reader import read_input
     from mta.runtime.production_scope import CONFIGURED_SCHEMA
     request=read_input(run,components=('scope_request',)).get('scope_request')
@@ -91,6 +100,12 @@ def _configuration(run):
     sha(request['compatibility_digest'])
     scope_runtime_reports.require_test_database()
     return scope_runtime_reports.validate(request['runtime_reports']),digest(request)
+
+
+def recipe_for_configuration(configuration):
+    from mta.presentation import registered_report_view
+    return (registered_report_view.recipe_digest()
+            if registered_report_view.applicable_configuration(configuration) else recipe_digest())
 
 
 @dataclass(frozen=True)
@@ -133,7 +148,7 @@ def _metadata(bpr,planning,git,expedite,files,configuration,request_digest,*,
         input_manifest_digest=source.run.input_manifest_digest,
         action_revision=source.action_revision if action_command is None else action_command.pk,
         source_digest=source.source_digest,configuration_digest=bpr.reports.generation.configuration_digest,
-        recipe_digest=recipe_digest(),scope_request_digest=request_digest,runtime_reports=configuration,
+        recipe_digest=recipe_for_configuration(configuration),scope_request_digest=request_digest,runtime_reports=configuration,
         bpr=bpr.read_identity,planning=planning.read_identity,git=git.read_identity,
         pick=expedite.core.pick.provenance(),expedite=expedite.read_identity,
         pick_files=dict(digest=files.digest,directory=str(files.directory),files=files.files),
@@ -150,6 +165,9 @@ def _files(phase,row):
 
 @validated_read
 def _bind(row,expected_digest,*,retained_parent=False):
+    from mta.presentation import registered_report_view
+    if registered_report_view.applicable_reference(row):
+        return registered_report_view.bind(row,expected_digest,retained_parent=retained_parent)
     from mta.presentation import runtime_report_view
     if runtime_report_view.applicable_reference(row):
         if retained_parent:
@@ -198,6 +216,10 @@ def _owner(reference_id):
 
 def _save_reference(bpr,planning,git,expedition,files,configuration,request_digest,*,
                     action_command=None,previous_reference=None,transition_kind=None):
+    from mta.presentation.registered_report_view import applicable_configuration
+    if not applicable_configuration(configuration):
+        from mta.presentation.legacy_scope_read_compatibility import require_original_writer
+        require_original_writer()
     if not connection.in_atomic_block:raise ValueError('Read reference registration requires its transaction')
     metadata=_metadata(bpr,planning,git,expedition,files,configuration,request_digest,
         action_command=action_command,previous_reference=previous_reference,transition_kind=transition_kind)
@@ -206,7 +228,7 @@ def _save_reference(bpr,planning,git,expedition,files,configuration,request_dige
     if row is None:
         row=ScopeReadReference(action_command=action_command,previous_reference=previous_reference,
             report_generation=bpr.reports.generation,git_generation=git.generation,
-            expedite_parent_generation=expedition.parent.generation,pick_files=files,recipe_digest=recipe_digest(),
+            expedite_parent_generation=expedition.parent.generation,pick_files=files,recipe_digest=recipe_for_configuration(configuration),
             runtime_reports_digest=configuration['configuration_digest'],metadata=metadata,digest=checksum)
         with _owner(row.pk):row.save(force_insert=True)
     return row,checksum
@@ -238,9 +260,17 @@ def prepare(phase_id,*,expected_digest,action_revision):
     if read_input(phase.run,components=('scope_request',)).get('scope_request',{}).get('schema')==PUBLICATION_SCHEMA:
         from mta.presentation.runtime_report_view import prepare as prepare_publication
         return prepare_publication(phase_id,expected_digest=expected_digest,action_revision=action_revision)
+    from mta.presentation.registered_report_view import applicable_run
+    if applicable_run(phase.run):
+        from mta.runtime.scope_execution import _source_lock
+        _source_lock(phase.run_id)
     run=CalculationRun.objects.select_for_update().get(pk=phase.run_id)
     configuration,request_digest=_configuration(run)
-    verify_guards()
+    from mta.presentation.registered_report_view import applicable_configuration
+    if not applicable_configuration(configuration):
+        from mta.presentation.legacy_scope_read_compatibility import require_original_writer
+        require_original_writer()
+    verify_guards(registered=applicable_configuration(configuration))
     from mta.presentation import scoped_sources
     sources=scoped_sources.bind(phase_id,expected_digest=expected_digest,action_revision=action_revision,include_nms=True,include_inherited_btr=True)
     if sources.inherited_btr is None:raise PublicationUnavailable('bpr_read_reference_inherited_btr_required')

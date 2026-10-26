@@ -303,6 +303,25 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
 
 
 def fail_run(run, error):
+    from mta.application.intake_errors import NativeIntakeRejected
+    if isinstance(error,NativeIntakeRejected) and run.kind=='DAILY_CHAIN' and run.evidence_mode=='production':
+        # Facts and failure status share the original short failure boundary.
+        # File production follows separately and cannot roll this failure back.
+        from mta.runtime.scope_execution import _source_lock
+        from mta.runtime.intake_diagnostics import capture_importer
+        diagnostic=None
+        with transaction.atomic():
+            _source_lock(run.pk)
+            current=CalculationRun.objects.select_for_update().get(pk=run.pk)
+            if current.status=='RUNNING':
+                diagnostic=capture_importer(current,error)
+                CalculationRun.objects.filter(pk=current.pk,status='RUNNING').update(
+                    status='FAILED',failure={'type':type(error).__name__,'message':str(error)},
+                    completed_at=timezone.now())
+        if diagnostic is not None:
+            from mta.runtime.diagnostic_publication import publish_importer
+            publish_importer(diagnostic)
+        return
     CalculationRun.objects.filter(pk=run.pk, status='RUNNING').update(
         status='FAILED', failure={'type': type(error).__name__, 'message': str(error)},
         completed_at=timezone.now())

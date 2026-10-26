@@ -28,6 +28,11 @@ RUNTIME_REPORT_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + name for
     'Chennai_BOR_OrderAllocation', 'Silvasa_BOR_OrderAllocation', 'BOR_OrderAllocationHistory',
     'Spike_Order_Dump', 'TotalReqReport_YYYY-MM-DD',
 ))
+DIAGNOSTIC_DOWNLOAD_PATHS = frozenset('/api/mta/DownloadReports/' + name for name in (
+    'DailyDataUnavailabilityReport', 'InvalidDataReport',
+    'NMSAddNewSKULoc', 'NMSModifySKULoc', 'NMSRemoveSKULoc',
+    'NMSLocMaster', 'NMSSKUMaster', 'NMSSOBMaster', 'NMSMOQMaster', 'ForceNormChangeUpload',
+))
 COUNT_PATHS = frozenset('/api/mta/' + route for route in (
     'RRRDataCount', 'GetBPRDataCount', 'GetBTRDataCount', 'DBMDataCount',
 ))
@@ -47,12 +52,12 @@ def runtime_report_download(path):
 
 
 def streams_mta_read(request):
-    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS | DIAGNOSTIC_DOWNLOAD_PATHS
         or runtime_report_download(request.path))
 
 
 def bounded_mta_read(request):
-    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS
+    return request.method in ('GET', 'POST') and (request.path in READ_PATHS | COUNT_PATHS | PICK_DOWNLOAD_PATHS | INPUT_ARCHIVE_PATHS | DIAGNOSTIC_DOWNLOAD_PATHS
         or runtime_report_download(request.path))
 
 

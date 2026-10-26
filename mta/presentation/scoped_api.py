@@ -58,6 +58,10 @@ def _download(view, request, payload, report_name):
         return FileResponse(stream, as_attachment=True, filename='InputData.zip', content_type='application/zip')
     if identity(request).get('entitlements') != ['mta-report-urls']:
         return JsonResponse({'error': 'mta_report_download_forbidden'}, status=403)
+    from mta.presentation import diagnostic_downloads
+    if report_name in diagnostic_downloads.SELECTORS:
+        stream,filename,mimetype=diagnostic_downloads.open_file(view.run,identity(request),report_name)
+        return FileResponse(stream,as_attachment=True,filename=filename,content_type=mimetype)
     from mta.presentation import runtime_report_downloads
     if report_name in runtime_report_downloads.SELECTORS:
         try:
@@ -154,6 +158,41 @@ def dispatch(function, request, payload, arguments):
         except DatabaseError:
             return views.envelope(status=500)
     name = function.__name__; count = arguments.get('count', False)
+    if name in ('insight_data','report_read_identity'):
+        from mta.presentation import scoped_guided, report_cache
+        bound=scoped_guided.bind(view)
+        if name=='report_read_identity':
+            return views.envelope(data={'identity':report_cache.read_identity(view.run,payload,
+                views.identity(request),read_binding=bound)})
+        kind=arguments['kind']
+        if kind.startswith('excess-') and views.settings.VF_MTA_GUIDED_EXCESS_DISPOSITION:
+            from mta.presentation.daily_history_disposition import guard
+            guard(view.run,kind)
+        response=report_cache.cached_response(request,payload,kind,
+            lambda:bound.response(payload,kind),read_binding=bound)
+        if kind.startswith('excess-') and response.status_code==200:
+            response['X-VectorFLOW-History-Policy']='lookback-over-owned-observations'
+            response['X-VectorFLOW-History-Known-From']=bound.excess.history['root_date']
+            response['X-VectorFLOW-History-Before-Root']='unknown'
+        return response
+    if name in ('research_insights', 'historical_availability'):
+        from mta.presentation import scoped_research, research_read
+        bound = scoped_research.bind(view)
+        reader = (research_read.read_research if name == 'research_insights'
+                  else research_read.read_historical_availability)
+        return views.envelope(data=reader(view.run, payload, read_binding=bound), message='')
+    if name == 'supplier_allocation_data':
+        from mta.presentation.registered_report_view import applicable_reference
+        if not applicable_reference(view.reference):
+            raise PublicationUnavailable('selected_supplier_registered_view_required')
+        from mta.presentation.supplier_allocation import read
+        try:
+            rows = read(payload, views.identity(request).get('name'), count=count, read_binding=view)
+            return views.envelope(data=[{'count': rows}]) if count else views.envelope(data=rows)
+        except PublicationUnavailable:
+            raise
+        except (ValueError, KeyError, TypeError, DatabaseError):
+            return views.envelope(status=500)
     if name == 'bor_ui_config':
         return _bor_config(view, 'BuyerOrderReport')
     if name in ('bor_data', 'boroa_data', 'bor_analytics'):

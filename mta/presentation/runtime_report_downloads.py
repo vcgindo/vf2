@@ -44,6 +44,10 @@ def _binding(view):
 
 
 def report_paths(view):
+    from mta.presentation import registered_report_view
+    if registered_report_view.applicable_reference(view.reference):
+        from mta.presentation.registered_report_downloads import report_paths as registered_paths
+        return registered_paths(view)
     from mta.presentation.runtime_report_view import applicable_reference
     if not applicable_reference(view.reference):return {}
     row,_raw,_request,config=_binding(view)
@@ -107,6 +111,10 @@ def _open(root,relative,receipt):
 
 
 def open_file(view,payload,selector):
+    from mta.presentation import registered_report_view
+    if registered_report_view.applicable_reference(view.reference):
+        from mta.presentation.registered_report_downloads import open_file as registered_file
+        return registered_file(view,payload,selector)
     from mta.application.runtime_report_projection import project
     identity=SELECTORS.get(selector)
     if identity is None:raise PublicationUnavailable('runtime_report_selector_not_qualified')

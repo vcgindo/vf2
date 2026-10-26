@@ -20,8 +20,9 @@ class RuntimeReportViewTests(unittest.TestCase):
         self.assertNotEqual(scoped_selection.publication_recipe_digest(),scoped_selection.recipe_digest())
 
     def test_changed_reader_cannot_keep_legacy_recipe(self):
-        with patch.object(module.inspect,'getsource',return_value='changed reader'):
-            with self.assertRaisesRegex(PublicationUnavailable,'legacy_reader_dependency_changed'):
+        from mta.presentation import legacy_scope_read_compatibility as profile
+        with patch.object(profile.inspect,'getsource',return_value='changed reader'):
+            with self.assertRaisesRegex(PublicationUnavailable,'legacy_scope_read_profile_source_differs'):
                 module.legacy_view_recipe()
             with self.assertRaises(PublicationUnavailable):module.legacy_selection_recipe()
 

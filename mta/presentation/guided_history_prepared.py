@@ -33,11 +33,11 @@ def fields_for(node, alias):
     return {node[1][1]} if node[1][0] == alias else set()
 
 
-def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None, payload=None):
+def _prepared_owner(run, cutoff, predicate, products, locations, kind, minimum_age=None, payload=None):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily:
-        return None
+        return False, None
     if daily:
         from mta.presentation.daily_preparation import source_digest
         source = source_digest(run)
@@ -67,11 +67,47 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
         from mta.presentation.guided_aggregates import read_aggregate
         aggregated = read_aggregate(run, cutoff, predicate, payload, kind, minimum_age)
         if aggregated is not None:
-            return aggregated
+            return True, aggregated
+    return True, None
+
+
+def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age=None, payload=None, *, read_binding=None):
+    family = 'excess' if kind.startswith('excess-') else 'availability'
+    from mta.presentation.scoped_guided_availability import AvailabilityBinding, require_owner
+    inherited_availability = isinstance(read_binding, AvailabilityBinding)
+    if inherited_availability:
+        if read_binding.btr.predecessor.pk != run.pk or kind not in ('availability-trend','availability-ageing'):
+            raise PublicationUnavailable('scoped_availability_predecessor_differs')
+        require_owner(run)
+        # Authorization/aggregate validation remains live on every read. Only
+        # immutable receipt/source/guard validation uses request-local reuse.
+        if payload is not None:
+            from mta.presentation.guided_aggregates import read_aggregate
+            aggregated = read_aggregate(run,cutoff,predicate,payload,kind,minimum_age)
+            if aggregated is not None: return aggregated
+        daily = True
+        read_binding = None  # Original predecessor SQL relations below.
+    elif read_binding is None:
+        daily, aggregated = _prepared_owner(run, cutoff, predicate, products, locations, kind, minimum_age, payload)
+        if not daily: return None
+        if aggregated is not None: return aggregated
+    else:
+        from mta.presentation.scoped_guided_excess import ExcessBinding, KINDS
+        if (not isinstance(read_binding, ExcessBinding) or read_binding.run.pk != run.pk or kind not in KINDS):
+            raise PublicationUnavailable('scoped_excess_read_binding_differs')
+        daily = True
+    def metadata(path):
+        return read_binding.metadata(path) if read_binding is not None else image_metadata(run,path)
+    def relation(path):
+        return read_binding.query(path) if read_binding is not None else image_query(run,path)
     model = GuidedExcessHistoryRow if family == 'excess' else GuidedAvailabilityHistoryRow
     table = 'mta.' + quote(model._meta.db_table)
-    ctes = ['H AS (SELECT * FROM ' + table + ' WHERE run_id=%s AND report_date>%s)']
-    params = [run.pk, cutoff]
+    if read_binding is None:
+        ctes = ['H AS (SELECT * FROM ' + table + ' WHERE run_id=%s AND report_date>%s)']
+        params = [run.pk, cutoff]
+    else:
+        query, params = read_binding.history_query(cutoff)
+        ctes = ['H AS ('+query+')']
     wires = {'_a': {'SKUCode': 'str', 'WHCode': 'str', 'WhCode': 'str', 'ParentWhCode': 'str', 'ReportDate': 'str', 'PhysicalInventoryColor': 'str', 'Amount': 'int'}}
     aliases = {node[1][0] for node in predicate.sql_terms if node[0] != 'or'}
     for node in predicate.sql_terms:
@@ -81,8 +117,8 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     relations = {}
     for alias, name in (('_sku', 'SkuAttributeData'), ('_location', 'LocationAttributeData'), ('_pair', 'SkuLocAttributeData')):
         if alias in aliases:
-            item = image_metadata(run, owner + name)
-            query, values = image_query(run, owner + name)
+            item = metadata(owner + name)
+            query, values = relation(owner + name)
             ctes.append(alias + ' AS (' + query + ')')
             params.extend(values)
             wires[alias] = {field: wire for field, _, wire in item['fields']}
@@ -94,7 +130,11 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
     if any((field not in core for field in fact_fields)):
         if family == 'excess':
             fact_where = ' WHERE run_id IN (SELECT DISTINCT fact_run_id FROM H))' if daily else ' WHERE run_id=%s)'
-            ctes.append('_fact AS (SELECT *,ordinal vf_ordinal FROM mta.' + quote(ExcessInventoryRow._meta.db_table) + fact_where)
+            if read_binding is None:
+                ctes.append('_fact AS (SELECT *,ordinal vf_ordinal FROM mta.' + quote(ExcessInventoryRow._meta.db_table) + fact_where)
+            else:
+                query, values = read_binding.fact_query()
+                ctes.append('_fact AS ('+query+')'); params.extend(values)
             if not daily:
                 params.append(run.pk)
                 item = removed_mode('historical_fixture')
@@ -102,8 +142,8 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
             else:
                 wires['_a'] = {field.name: 'str' if field.get_internal_type() in ('CharField', 'TextField', 'DateField') else 'decimal' if field.get_internal_type() == 'DecimalField' else 'int' for field in ExcessInventoryRow._meta.fields if field.name not in ('id', 'run')}
         else:
-            item = image_metadata(run, 'closing/btr/BPR')
-            query, values = image_query(run, 'closing/btr/BPR')
+            item = metadata('closing/btr/BPR')
+            query, values = relation('closing/btr/BPR')
             ctes.append('_fact AS (' + query + ')')
             params.extend(values)
             wires['_a'] = {field: wire for field, _, wire in item['fields']}
@@ -113,8 +153,8 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
         ctes.append('_snapshot_ref AS (SELECT * FROM ' + ref + ' WHERE run_id=%s)')
         params.append(run.pk)
         if '_snapshot' in aliases:
-            item = image_metadata(run, 'closing/btr/BTRSnapshotForUI')
-            query, values = image_query(run, 'closing/btr/BTRSnapshotForUI')
+            item = metadata('closing/btr/BTRSnapshotForUI')
+            query, values = relation('closing/btr/BTRSnapshotForUI')
             ctes.append('_snapshot AS (' + query + ')')
             params.extend(values)
             wires['_snapshot'] = {field: wire for field, _, wire in item['fields']}
@@ -161,8 +201,8 @@ def read_prepared(run, cutoff, predicate, products, locations, kind, minimum_age
             joins += ('LEFT JOIN ' if alias == '_pair' else 'JOIN ') + alias + ' ON H.' + column + '=' + alias + '.vf_ordinal '
     joins += 'JOIN P ON H.sku_code=P.code JOIN L ON H.location_code=L.code '
     if predicate.children:
-        item = image_metadata(run, owner + 'LocationAttributeData')
-        query, values = image_query(run, owner + 'LocationAttributeData')
+        item = metadata(owner + 'LocationAttributeData')
+        query, values = relation(owner + 'LocationAttributeData')
         ctes.append('_parent AS (' + query + ')')
         params.extend(values)
         joins += 'JOIN _parent parent ON ' + equal('H.parent_location_code', 'parent."WHCode"') + ' AND (' + ' OR '.join((equal('parent."LocationType"', '%s') for _ in predicate.children)) + ') '

@@ -61,11 +61,21 @@ def recipe_digest():
 
 
 def publication_recipe_digest():
-    from mta.presentation import runtime_report_view
-    return digest(dict(selection=_current_recipe_digest(),publication=runtime_report_view.recipe_digest()))
+    from mta.presentation.legacy_scope_read_compatibility import verify,POSTBPR_SELECTION_RECIPE
+    verify()
+    return POSTBPR_SELECTION_RECIPE
+
+
+def registered_recipe_digest():
+    from mta.presentation import registered_report_view
+    return digest(dict(selection=_current_recipe_digest(),registered=registered_report_view.recipe_digest()))
 
 
 def recipe_for_run(run):
+    from mta.presentation import registered_report_view
+    if registered_report_view.applicable_run(run):
+        registered_report_view.configuration(run)
+        return registered_recipe_digest()
     from mta.runtime.input_reader import read_input
     from mta.runtime.production_scope import PUBLICATION_SCHEMA
     request=read_input(run,components=('scope_request',)).get('scope_request',{})
@@ -137,8 +147,7 @@ def candidate(view):
     value = {key: metadata[key] for key in ('run_id', 'phase_id', 'phase_digest', 'snapshot_digest',
         'input_digest', 'input_manifest_digest', 'configuration_digest')}
     from mta.presentation import runtime_report_view
-    selected_recipe=(publication_recipe_digest() if runtime_report_view.applicable_reference(view.reference)
-        else recipe_digest())
+    selected_recipe=recipe_for_run(view.run)
     value.update(schema=SCHEMA, native_digest=digest(native_identity(view)),
         capture_digest=view.bpr.reports.generation.phase.capture_digest,
         permissions_sha256=settings.VF_MTA_PERMISSIONS_SHA256, recipe_digest=selected_recipe,
@@ -185,7 +194,8 @@ def _selected():
         expected_selection_recipe=recipe_for_run(run)
         if anchor['recipe_digest']!=expected_selection_recipe:
             raise PublicationUnavailable('phase_selection_recipe_differs')
-        reference_recipe=runtime_report_view.recipe_digest() if publication else scoped_view.recipe_digest()
+        reference_recipe=(runtime_report_view.recipe_digest() if publication else
+            scoped_view.recipe_for_configuration(scoped_view._configuration(run)[0]))
         rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
             action_command__isnull=True,
             report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],

@@ -9,23 +9,30 @@ from mta.presentation.selective import image_metadata, image_query, image_rows
 from mta.runtime.relational_state import quote, wire_value
 
 
-def attributes(run):
-    state = {name: image_rows(run, 'closing/btr/' + name)
+def attributes(run, *, read_binding=None):
+    if read_binding is not None and read_binding.run.pk != run.pk:
+        raise PublicationUnavailable('research_scoped_run_differs')
+    state = {name: (read_binding.rows('closing/btr/' + name) if read_binding is not None
+                    else image_rows(run, 'closing/btr/' + name))
              for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:
         manifest = hierarchy.selected_manifest(run)
+        if read_binding is not None and manifest:
+            raise PublicationUnavailable('research_scoped_native_hierarchy_required')
         return hierarchy.project_attributes(state, permission_catalogue(), manifest) if manifest else state
     except hierarchy.HierarchyUnavailable as exc:
         raise PublicationUnavailable(str(exc)) from exc
 
 
-def selected_rows(run, path, pairs, *, children=False):
+def selected_rows(run, path, pairs, *, children=False, read_binding=None):
     """EXISTS restricts transfer without multiplying native source occurrences."""
     pairs = sorted(pair for pair in pairs if pair is not None)
     if not pairs:
         return []
-    item = image_metadata(run, path)
-    relation, params = image_query(run, path)
+    item = read_binding.metadata(path) if read_binding is not None else image_metadata(run, path)
+    if read_binding is not None and item['count'] == 0:
+        return []
+    relation, params = read_binding.query(path) if read_binding is not None else image_query(run, path)
     selected = 'VALUES ' + ','.join(['(%s,%s)'] * len(pairs))
     terms = ['(' + key('A."WhCode"') + '=K.column2)']
     if children:
@@ -40,35 +47,37 @@ def selected_rows(run, path, pairs, *, children=False):
                 for row in cursor.fetchall()]
 
 
-def read_research(run, payload):
+def read_research(run, payload, *, read_binding=None):
     data = payload.get('data')
     if not isinstance(data, list) or not data:
         raise ValueError('Selected research data required')
     from mta.presentation import history_prepared_sql
-    if history_prepared_sql.admitted(run) is not None:
+    if read_binding is None and history_prepared_sql.admitted(run) is not None:
         return history_prepared_sql.read_research(run, payload)
     selected = {sql_key(row['SKUCode'], row['WhCode']) for row in data}
-    state = attributes(run)
+    state = attributes(run, read_binding=read_binding)
     products, locations = scope(payload, attributes=state)
-    masters = selected_rows(run, 'reports/bpr/vf_RationedReqReport', selected)
+    masters = selected_rows(run, 'reports/bpr/vf_RationedReqReport', selected, read_binding=read_binding)
     parents = {sql_key(row['SKUCode'], row['ParentWhCode']) for row in masters}
     for name in ('BufferTrendPhysicalInv', 'BufferTrendDispatch'):
-        state[name] = selected_rows(run, 'closing/btr/' + name, selected | parents, children=True)
+        state[name] = selected_rows(run, 'closing/btr/' + name, selected | parents,
+                                   children=True, read_binding=read_binding)
     return history_native.research_rows(state, masters, data, products=products, locations=locations)
 
 
-def read_historical_availability(run, payload):
+def read_historical_availability(run, payload, *, read_binding=None):
     """Three date bands use the source's no-pair-attribute join grain."""
     from mta.presentation import history_prepared_sql
-    if history_prepared_sql.admitted(run) is not None:
+    if read_binding is None and history_prepared_sql.admitted(run) is not None:
         return history_prepared_sql.read_historical_availability(run, payload)
-    state = attributes(run)
+    state = attributes(run, read_binding=read_binding)
     products, locations = scope(payload, attributes=state)
     if not products or not locations:
         return [dict(availability_01_30=0, availability_31_60=0, availability_61_90=0)]
     ctes, params = [], []
     for alias, name in (('A', 'BufferTrendPhysicalInv'), ('sa', 'SkuAttributeData'), ('la', 'LocationAttributeData')):
-        query, values = image_query(run, 'closing/btr/' + name)
+        query, values = (read_binding.query('closing/btr/' + name) if read_binding is not None
+                         else image_query(run, 'closing/btr/' + name))
         ctes.append(alias + ' AS (' + query + ')'); params.extend(values)
     for alias, codes in (('P', products), ('L', locations)):
         ctes.append(alias + ' AS (VALUES ' + ','.join(['(%s,%s)'] * len(codes)) + ')')

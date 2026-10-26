@@ -28,9 +28,13 @@ def compose(view, phase_id, *, expected_digest):
     from mta.runtime.production_upto_dbm import SCHEMA as REQUEST_SCHEMA
     phase = _accepted(phase_id,expected_digest)
     request = read_input(phase.run,components=('scope_request',)).get('scope_request')
+    from mta.presentation import registered_report_view
+    registered=registered_report_view.applicable_reference(view.reference)
+    if registered:
+        registered_report_view.require_dbm(view,phase)
     if (phase.phase!='DBM' or phase.run_id!=view.run_id
             or type(request) is not dict or request.get('scope')!='UptoDBM'
-            or request.get('schema')!=REQUEST_SCHEMA
+            or (not registered and request.get('schema')!=REQUEST_SCHEMA)
             or phase.snapshot.parent.acceptance_id!=view.bpr.sources.acceptance_id
             or phase.metadata['effects']['parent_acceptance_digest']!=view.bpr.sources.acceptance_digest):
         raise PublicationUnavailable('pre_btr_bpr_dependency_differs')
@@ -68,7 +72,7 @@ def prepare(phase_id, *, expected_digest, action_revision):
 def candidate(view):
     from django.conf import settings
     from mta.presentation.context import permission_catalogue
-    from mta.presentation.scoped_selection import native_identity,recipe_digest
+    from mta.presentation.scoped_selection import native_identity,recipe_for_run
     permission_catalogue()
     phase = view.dbm_phase
     value = {key:view.reference.metadata[key] for key in (
@@ -76,7 +80,7 @@ def candidate(view):
     value.update(schema=DBM_SCHEMA,phase_id=str(phase.pk),phase_digest=phase.digest,
         snapshot_digest=phase.snapshot.state_digest,native_digest=digest(native_identity(view)),
         capture_digest=phase.capture_digest,permissions_sha256=settings.VF_MTA_PERMISSIONS_SHA256,
-        recipe_digest=recipe_digest(),business_date=view.run.business_date.isoformat())
+        recipe_digest=recipe_for_run(view.run),business_date=view.run.business_date.isoformat())
     value['selection_digest'] = digest(value)
     return validate(value)
 
@@ -95,9 +99,10 @@ def selected(anchor, cut):
 def _references(phase,cut):
     from django.db.models import Q
     from mta.runtime.models import ScopeReadReference
+    configuration,_=scoped_view._configuration(phase.run)
     return list(ScopeReadReference.objects.filter(
         Q(action_command_id=cut[0])|Q(action_command__isnull=True,report_generation__action_revision=cut[0]),
         report_generation__run_id=phase.run_id,
         report_generation__phase_id=phase.snapshot.parent.acceptance_id,
-        recipe_digest=scoped_view.recipe_digest(),
+        recipe_digest=scoped_view.recipe_for_configuration(configuration),
         metadata__bpr__remarks__live_highwater=cut[1])[:2])

@@ -48,12 +48,19 @@ cache = ReportReadCache()
 @lru_cache(maxsize=1)
 def reader_recipe():
     root = Path(__file__).resolve().parent
-    files = ('views.py', 'report_cache.py', 'insight_read.py', 'insight_filters.py', 'insight_response.py', 'guided_aggregates.py', 'guided_history_prepared.py', 'insight_history_sql.py', 'guided_dbm.py', 'guided_chronic.py', 'chronic_sql.py', 'context.py', 'permissions.py')
+    files = ('views.py', 'report_cache.py', 'insight_read.py', 'insight_filters.py', 'insight_response.py', 'guided_aggregates.py', 'guided_history_prepared.py', 'insight_history_sql.py', 'guided_dbm.py', 'guided_chronic.py', 'chronic_sql.py', 'context.py', 'permissions.py',
+        'scoped_guided.py', 'scoped_guided_dbm.py', 'scoped_guided_chronic.py',
+        'scoped_guided_availability.py', 'scoped_guided_excess.py', 'registered_report_view.py')
     return digest({name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in files})
 
 
-def read_identity(run, payload, actor):
+def read_identity(run, payload, actor, *, read_binding=None):
     from mta.presentation.context import PublicationUnavailable
+    if read_binding is not None:
+        from mta.presentation.scoped_guided import GuidedBinding
+        if not isinstance(read_binding,GuidedBinding) or read_binding.run.pk!=run.pk:
+            raise PublicationUnavailable('scoped_guided_read_binding_differs')
+        return digest(dict(binding=read_binding.identity(payload,actor),recipe=reader_recipe()))
     from mta.presentation.guided_aggregates import recipe_digest, source_binding
     from mta.runtime.models import ReportAggregateReceipt
     from mta.presentation.native_publication import enabled
@@ -81,20 +88,20 @@ def read_identity(run, payload, actor):
     return digest(dict(run=str(run.pk), source=source, aggregates=receipt.rows_digest, memberships=receipt.members_digest, prepared=sources, recipe=reader_recipe(), scope=scope, actor=actor))
 
 
-def cached_response(request, payload, kind, compute):
+def cached_response(request, payload, kind, compute, *, read_binding=None):
     from django.http import HttpResponse, JsonResponse
     from mta.presentation.context import selected_run, PublicationUnavailable
     from mta.presentation.views import identity
     from mta.runtime.models import ReportAggregateReceipt
-    run = selected_run()
+    run = selected_run() if read_binding is None else read_binding.run
     claimed = payload.pop('_report_read_identity', None)
     from mta.presentation.native_publication import enabled
-    eligible = enabled() and run.kind == 'DAILY_CHAIN'
-    if not eligible or not ReportAggregateReceipt.objects.filter(run=run).exists():
+    eligible = read_binding is not None or (enabled() and run.kind == 'DAILY_CHAIN')
+    if not eligible or (read_binding is None and not ReportAggregateReceipt.objects.filter(run=run).exists()):
         if claimed is not None:
             raise PublicationUnavailable('report_read_generation_unavailable')
         return compute()
-    token = read_identity(run, payload, identity(request))
+    token = read_identity(run, payload, identity(request), read_binding=read_binding)
     if claimed is not None and claimed != token:
         return JsonResponse({'error': 'report_read_identity_changed'}, status=409)
     key = digest(dict(identity=token, kind=kind, payload=payload))

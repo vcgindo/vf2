@@ -341,12 +341,25 @@ def unresolved_attempts(owner):
         ).exclude(run_id__in=_finite_resolved_ancestors(owner))
 
 
-def stage(binding_file, source, business_date, *, input_root, work_root, pick_root):
+def stage(binding_file, source, business_date, *, input_root, work_root, pick_root, fullkit=None):
     binding, owner = binding_owner(binding_file)
     identity=uuid.uuid4()
     root=Path(work_root).absolute()/str(identity)
     root.mkdir(parents=True,exist_ok=False)
     try:
+        if fullkit is not None:
+            from mta.runtime.intake_diagnostics import fullkit_request,capture_fullkit,FullkitUnavailable
+            config,clock=fullkit_request(fullkit,initialization=owner,business_date=business_date,
+                source=source,input_root=input_root)
+            with job_lock(owner):
+                diagnostic,_result=capture_fullkit(owner,config,business_date=business_date,
+                    run_datetime=clock,capture_root=root/'fullkit-originals')
+            if diagnostic is not None:
+                from mta.runtime.diagnostic_publication import publish_failure
+                try:publish_failure(diagnostic.pk,output_root=root)
+                except Exception as publication_error:
+                    raise FullkitUnavailable(diagnostic.pk) from publication_error
+                raise FullkitUnavailable(diagnostic.pk)
         # Hash originals once, while making the immutable attempt snapshot.
         batch,manifest=snapshot(source,root/'original',input_root)
         batch_contract(batch,binding,business_date)

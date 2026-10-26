@@ -58,7 +58,8 @@ def prepare_native_opening(owner, frame, profile, opening, predecessor):
 def request_input(*, day, profile, initial, lineage, report_exceptions=None,
                   finalization_binding=None, initialization_binding=None,
                   daily_input_sha256=None, complete_pick=False, pick_output_root=None,
-                  pick_config_sha256=None, shipment_sha256=None, scope_request=None):
+                  pick_config_sha256=None, shipment_sha256=None, scope_request=None,
+                  report_registration_request=None):
     """Exact pre-capture identity shared by execution and read-only inspection."""
     raw=dict(schema='fresh-daily-chain-v1',day=day,profile=profile,opening=initial,
              lineage=lineage,report_exceptions=storage(report_exceptions or {}))
@@ -70,6 +71,9 @@ def request_input(*, day, profile, initial, lineage, report_exceptions=None,
     if pick_config_sha256 is not None: raw['pick_config_sha256']=pick_config_sha256
     if shipment_sha256 is not None: raw['shipment_sha256']=shipment_sha256
     if scope_request is not None: raw['scope_request']=storage(scope_request)
+    if report_registration_request is not None:
+        from mta.runtime.runtime_report_registered_request import attach_input
+        raw=attach_input(raw,report_registration_request)
     return raw
 
 
@@ -197,7 +201,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
                 prepared_arguments=None, prepared_state=None, _captured_retry=None,
-                scope_request=None):
+                scope_request=None, report_registration_request=None):
     if _captured_retry is not None:
         # The finite-reference kind uses this same production owner. Its
         # independently pinned stopped prefix is authenticated by resume;
@@ -205,7 +209,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         if any(value is not None for value in (day,profile,predecessor,opening,mdm_source,mdm_retry,
                 feed_attempt,prepared_arguments,prepared_state,production_initialization,
                 report_exceptions,pick_output_root,pick_config_sha256,finalization_config,
-                shipment_sha256,daily_input_sha256,consumer_opening,report_disposition,scope_request)):
+                shipment_sha256,daily_input_sha256,consumer_opening,report_disposition,scope_request,
+                report_registration_request)):
             raise ValueError('Captured continuation cannot replace its frozen native arguments')
         from mta.runtime.captured_recovery import resume
         return resume(execution_revision=execution_revision, **_captured_retry)
@@ -231,6 +236,11 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     finalization = configuration(profile)
     finalization_binding = None
     native = production_initialization is not None
+    if report_registration_request is not None:
+        from mta.runtime.runtime_report_registered_request import validate_request as validate_registered
+        validate_registered(report_registration_request,scope_request)
+        if not native:
+            raise ValueError('Registered report attachment requires native capture')
     if scope_request is not None:
         from mta.runtime.production_scope import validate_request
         validate_request(scope_request)
@@ -335,6 +345,19 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             initialization_binding = dict(id=str(initialized.pk), source_digest=initialized.source.digest,
                 input_sha256=initialized.input_sha256, content_digest=initialized.input_digest,
                 configuration_digest=initialized.configuration_digest)
+            if report_registration_request is not None:
+                if prepared_state is None:
+                    raise ValueError('Registered report capture requires certified admission')
+                from release.native_identity import require_current
+                from mta.runtime.ingestion_admission import _admit
+                with connection.cursor() as cursor:
+                    locked_admission=_admit(cursor,str(initialized.pk),require_current(),pending=True)
+                if locked_admission != prepared_state:
+                    raise ValueError('Registered report admission changed before locked capture')
+                from mta.runtime.runtime_report_registered_request import verify_capture
+                verify_capture(report_registration_request,scope_request,
+                    initialization_id=str(initialized.pk),source_digest=initialized.source.digest,
+                    certificate_digest=locked_admission.certification_digest)
             if predecessor is None:
                 if consumer_opening is None:
                     raise ValueError('Native root requires explicitly declared consumer opening')
@@ -411,7 +434,7 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
             initialization_binding=initialization_binding,daily_input_sha256=daily_input_sha256,
             complete_pick=complete_pick,pick_output_root=pick_output_root,
             pick_config_sha256=pick_config_sha256,shipment_sha256=shipment_sha256,
-            scope_request=scope_request)
+            scope_request=scope_request,report_registration_request=report_registration_request)
         capture_snapshot=None; origin_capture=None; request_digest=None
         if mdm_source is not None or mdm_retry is not None:
             from mta.mdm.daily_input import (apply_refresh_setting,

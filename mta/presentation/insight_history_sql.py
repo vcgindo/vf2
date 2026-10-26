@@ -16,7 +16,7 @@ from mta.runtime.models import ExcessInventoryRow
 from mta.runtime.relational_state import quote
 
 
-def read_history(run, payload, kind):
+def read_history(run, payload, kind, *, read_binding=None):
     from mta.presentation.native_publication import enabled, require_mode
     native = enabled()
     if native:
@@ -28,6 +28,21 @@ def read_history(run, payload, kind):
     if not excess and (not 1 <= horizon <= 90):
         raise ValueError('horizon must be between 1 and 90 days')
     cutoff = run.business_date - timedelta(days=horizon)
+    if read_binding is not None:
+        from mta.presentation.scoped_guided_availability import AvailabilityBinding, KINDS as AVAILABILITY
+        from mta.presentation.scoped_guided_excess import ExcessBinding, KINDS as EXCESS
+        expected = ExcessBinding if excess else AvailabilityBinding
+        if (not isinstance(read_binding, expected) or read_binding.run.pk != run.pk
+                or kind not in (EXCESS if excess else AVAILABILITY)):
+            raise PublicationUnavailable('scoped_history_read_binding_differs')
+        attributes = read_binding.attributes()
+        predicate = InsightPredicate(payload, attributes['LocationAttributeData'], kind=kind)
+        products, locations = scope(payload, attributes=attributes)
+        if not products or not locations: return []
+        rows = read_binding.read(cutoff, predicate, products, locations, kind,
+            minimum_age=int(payload.get('ageing',1)) if kind=='availability-ageing' else None,
+            payload=payload)
+        return _result(rows,kind)
     owner = 'closing/importer/' if excess else 'closing/btr/'
     attributes = {name: image_rows(run, owner + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
     try:

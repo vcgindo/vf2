@@ -3,9 +3,6 @@
 The old graph schema remains v2. New publication configuration and an explicit
 recipe distinguish this extension; no old request adopts a new report roster.
 """
-import hashlib
-import inspect
-from importlib import import_module
 from dataclasses import replace
 from django.db import connection, transaction
 from mta.serialization import digest
@@ -84,11 +81,9 @@ LEGACY_DEPENDENCIES = {'mta.application.production_bor_contract': '81e6a3307ba29
 
 @once_per_request
 def require_legacy_dependencies():
-    """Only the named compatibility dispatchers may change from the pinned build."""
-    for name, expected in LEGACY_DEPENDENCIES.items():
-        actual = inspect.getsource(import_module(name)).encode()
-        if hashlib.sha256(actual).hexdigest() != expected:
-            raise PublicationUnavailable('postbpr_legacy_reader_dependency_changed:' + name)
+    """Admit only the finite compatible reader; never grant producer rights."""
+    from mta.presentation.legacy_scope_read_compatibility import verify
+    verify()
 
 
 def legacy_view_recipe():
@@ -102,12 +97,9 @@ def legacy_selection_recipe():
 
 
 def recipe_digest():
-    from mta.presentation import scoped_view, scoped_read_graph, scoped_read_cut
+    from mta.presentation.legacy_scope_read_compatibility import POSTBPR_RECIPE
     require_legacy_dependencies()
-    return digest(dict(schema='fresh-postbpr-publication-read-v1',
-        builder=inspect.getsource(import_module(__name__)),
-        legacy_dispatch=inspect.getsource(scoped_view),
-        graph=inspect.getsource(scoped_read_graph),cut=inspect.getsource(scoped_read_cut)))
+    return POSTBPR_RECIPE
 
 
 def applicable_reference(row):
@@ -173,6 +165,8 @@ def bind(row, expected_digest):
 
 @transaction.atomic
 def prepare(phase_id, *, expected_digest, action_revision):
+    from mta.presentation.legacy_scope_read_compatibility import require_original_writer
+    require_original_writer()
     from mta.runtime.models import RunPhaseAcceptance, CalculationRun, ScopeReadReference, RemarkOwner
     from mta.presentation import (scoped_view, scoped_sources, scoped_requests,
         scoped_report_storage, scoped_prepared, scoped_planning, scoped_transit_storage,

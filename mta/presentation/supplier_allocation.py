@@ -88,15 +88,19 @@ class SupplierFilters(BorOaFilters):
         self.grouped([{**i, 'value': self.value(i)} for i in items], custom)
 
 
-def query(run, payload, supplier_name, *, count=False):
+def query(run, payload, supplier_name, *, count=False, read_binding=None):
     if not isinstance(supplier_name, str):
         raise ValueError('Authenticated supplier name required')
     from mta.runtime.boroa_models import BorOaPreparedRow
     filters = SupplierFilters(payload, count=count)
     where = filters.compile()
-    prepared = 'SELECT * FROM mta.' + quote(BorOaPreparedRow._meta.db_table) + ' WHERE run_id=%s'
+    if read_binding is not None:
+        from mta.presentation.boroa_preparation import query as phase_query
+        prepared, params, _columns = phase_query(run, read_binding=read_binding)
+    else:
+        prepared = 'SELECT * FROM mta.' + quote(BorOaPreparedRow._meta.db_table) + ' WHERE run_id=%s'
+        params = [run.pk]
     ctes = ['prepared AS (' + prepared + ')']
-    params = [run.pk]
     if count:
         # Collapse only joins absent from native count: F, descriptions and
         # remark ties. A/B/C/D/E ordinals preserve their duplicate occurrences.
@@ -108,7 +112,8 @@ def query(run, payload, supplier_name, *, count=False):
         ctes.append('R AS (SELECT * FROM prepared)')
     joins = ' FROM R'
     if not count:
-        remarks, values = remark_query(run)
+        remarks, values = (read_binding.remarks('BORReport_OARemarkDetails')
+                          if read_binding is not None else remark_query(run))
         ctes.append('remarks AS (' + remarks + ')'); params += values
         ctes.append('latest AS (SELECT ' + key('"SKUCode"') + ' sk,' + key('"WhCode"') + ' lk,' +
             key('"SupplierCode"') + ' sp,max("RemarkDate") d FROM remarks GROUP BY 1,2,3)')
@@ -138,23 +143,29 @@ def query(run, payload, supplier_name, *, count=False):
     return sql, params
 
 
-def read(payload, supplier_name, *, count=False):
+def read(payload, supplier_name, *, count=False, read_binding=None):
     from mta.presentation.boroa_sources import admitted_sources
     from mta.presentation.boroa_contract import production_prepared_recipe
     from mta.presentation import native_publication
     from mta.runtime.boroa_models import BorOaPreparedReceipt
     from mta.runtime.boroa_prepared_schema import verify_guards
-    run, source = admitted_sources()
-    native_publication.require_mode()
-    receipt = BorOaPreparedReceipt.objects.filter(run=run).first()
-    recipe = production_prepared_recipe()
-    if receipt is None or receipt.source_digest != source.source_digest or receipt.recipe_digest != recipe:
-        raise PublicationUnavailable('BOROA_prepared_receipt_missing_or_changed')
-    try:
-        verify_guards(connection)
-    except ValueError as exc:
-        raise PublicationUnavailable('BOROA_prepared_guards_changed') from exc
-    sql, params = query(run, payload, supplier_name, count=count)
+    bound = None
+    if read_binding is not None:
+        from mta.presentation.scoped_bor import require_binding
+        run = read_binding.run
+        bound = require_binding(run, read_binding)
+    else:
+        run, source = admitted_sources()
+        native_publication.require_mode()
+        receipt = BorOaPreparedReceipt.objects.filter(run=run).first()
+        recipe = production_prepared_recipe()
+        if receipt is None or receipt.source_digest != source.source_digest or receipt.recipe_digest != recipe:
+            raise PublicationUnavailable('BOROA_prepared_receipt_missing_or_changed')
+        try:
+            verify_guards(connection)
+        except ValueError as exc:
+            raise PublicationUnavailable('BOROA_prepared_guards_changed') from exc
+    sql, params = query(run, payload, supplier_name, count=count, read_binding=bound)
     with connection.cursor() as cursor:
         cursor.execute(sql, params)
         if count:

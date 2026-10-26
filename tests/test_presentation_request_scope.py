@@ -58,7 +58,9 @@ class RequestScopeTests(unittest.TestCase):
         from mta.presentation.request_scope import in_read_request
         paths = ['GetExportDataAsync', 'SKUDesc', 'WHDesc'] + ['DownloadReports/' + name for name in (
             'LogisticPickListReport', 'LogisticRemainingQtySummary',
-            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData', 'BOR_OrderAllocation')]
+            'LogisticRemainingQtyDetails', 'TransportReqSummaryRpt', 'InputData', 'BOR_OrderAllocation',
+            'DailyDataUnavailabilityReport','InvalidDataReport','NMSAddNewSKULoc','NMSModifySKULoc',
+            'NMSRemoveSKULoc','NMSLocMaster','NMSSKUMaster','NMSSOBMaster','NMSMOQMaster','ForceNormChangeUpload')]
         for path in paths:
             with self.subTest(path=path):
                 current = ['accepted']

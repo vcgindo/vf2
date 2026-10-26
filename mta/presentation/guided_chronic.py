@@ -43,12 +43,12 @@ def _prepared_query(run):
             ' WHERE run_id=%s'), [run.pk]
 
 
-def build_query(run, payload, attributes):
+def build_query(run, payload, attributes, *, read_binding=None):
     predicate = InsightPredicate(payload, attributes['LocationAttributeData'], kind='chronic-grid')
     products, locations = scope(payload, attributes=attributes)
     if not products or not locations: return None, [], []
     ctes, params, wires = [], [], {}
-    query, values = _prepared_query(run)
+    query, values = read_binding.occurrence_query() if read_binding is not None else _prepared_query(run)
     ctes.append('prepared AS NOT MATERIALIZED (' + query + ')'); params.extend(values)
     owners = referenced_owners(predicate.sql_terms)
     # A's normal grid filter fields are already stored. Only an unexpected but
@@ -65,7 +65,8 @@ def build_query(run, payload, attributes):
     for owner in ('_a', '_description', '_location', '_sku', '_pair'):
         if owner not in owners: continue
         source, ordinal = OWNERS[owner]; path = SOURCES[source]
-        item = image_metadata(run, path); query, values = image_query(run, path)
+        item = read_binding.metadata(path) if read_binding is not None else image_metadata(run, path)
+        query, values = read_binding.query(path) if read_binding is not None else image_query(run, path)
         ctes.append(source + ' AS NOT MATERIALIZED (' + query + ')'); params.extend(values)
         wires[owner] = {name: wire for name, _, wire in item['fields']}
         joins += ' LEFT JOIN ' + source + ' ON ' + source + '.vf_ordinal=R.' + ordinal
@@ -103,7 +104,8 @@ def build_query(run, payload, attributes):
               ' JOIN AUTH_L ON ' + raw_equal('R.location', 'AUTH_L.code'))
     if predicate.children:
         if 'L' not in {OWNERS[owner][0] for owner in owners}:
-            item = image_metadata(run, SOURCES['L']); query, values = image_query(run, SOURCES['L'])
+            query, values = (read_binding.query(SOURCES['L']) if read_binding is not None
+                             else image_query(run, SOURCES['L']))
             ctes.append('L AS NOT MATERIALIZED (' + query + ')'); params.extend(values)
         joins += (' JOIN L parent ON ' + equal('R.parentloc', 'parent."WHCode"') + ' AND (' +
                   ' OR '.join(equal('parent."LocationType"', '%s') for _ in predicate.children) + ')')
@@ -118,7 +120,7 @@ def build_query(run, payload, attributes):
         ('PipelineInventoryPen','str'),('ecocolor','str'),('RationedStockatparent','int'),('_copies','int')]
 
 
-def read_guided_chronic(run, payload):
+def _require_prepared(run):
     from mta.presentation.daily_preparation import production_branch
     daily = production_branch(run)
     if not daily:
@@ -144,8 +146,19 @@ def read_guided_chronic(run, payload):
         verify_guards(connection)
     except ValueError as exc:
         raise PublicationUnavailable('Guided_Chronic_prepared_guards_changed') from exc
-    attributes = {name: image_rows(run, 'closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
-    query, params, outputs = build_query(run, payload, attributes)
+
+
+def read_guided_chronic(run, payload, *, read_binding=None):
+    if read_binding is None:
+        _require_prepared(run)
+        attributes = {name: image_rows(run, 'closing/btr/' + name) for name in ('SkuAttributeData', 'LocationAttributeData')}
+    else:
+        from mta.presentation.scoped_guided_chronic import ChronicBinding
+        if (not isinstance(read_binding,ChronicBinding) or read_binding.run.pk!=run.pk
+                or read_binding.kind!='chronic-grid'):
+            raise PublicationUnavailable('chronic_scoped_read_binding_differs')
+        attributes=read_binding.attributes()
+    query, params, outputs = build_query(run, payload, attributes, read_binding=read_binding)
     if query is None:
         return []
     with transaction.atomic(), connection.cursor() as cursor:
