@@ -99,13 +99,14 @@ class InheritedBtr:
 def bind(phase):
     """Called only after the existing accepted BPR/input/action binding checks."""
     from django.core.exceptions import ObjectDoesNotExist
-    from mta.presentation.selected_input import read_input
+    from mta.runtime.captured_input import SCHEMAS,origin
+    from mta.runtime.input_reader import read_input
     from mta.runtime.models import CalculationRun,RunCommand
     from mta.runtime.receipt_integrity import verify_root
     try:
         run=phase.run
-        from mta.presentation.selected_input import physical as input_owner
-        physical=input_owner(run)
+        physical=origin(run) if run.input_payload.get('schema') in SCHEMAS else run
+        input_storage.read_input(physical,components=())
         raw=read_input(run,components=('lineage','initialization_binding'))
         opening_date=date.fromisoformat(phase.snapshot.manifest['metadata']['opening_date'])
         if opening_date>=run.business_date:_fail()
