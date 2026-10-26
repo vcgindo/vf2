@@ -17,6 +17,9 @@ COLOR_PATH = 'metadata/bpr/ColorSequence'
 # Exact v5 writer observed on the retained 9bc51168 runtime before this change.
 # Historical receipts remain immutable; this is not recomputed from new code.
 RETAINED_V5_RECIPE = '4e110600f15a7dcf36beb191261961cbdef641c0514b5a1d89ecc4164ec71cab'
+# Authenticated c21850c8 native package; both retained Full predecessors use it.
+# The corrected writer publishes accepted scoped histories without recollection.
+RETAINED_V6_RECIPE = '06126733256006b008a2b11b0b9e7bfefaecef56e68cd395f5d0f7474eb15b59'
 
 
 def recipe_digest():
@@ -141,7 +144,7 @@ def write_sources(run, output, *, opening=None, _sources=None, _bpr_history=None
 @once_per_request
 def receipt(run):
     value = DailySourceReceipt.objects.get(run=run)
-    if (value.input_digest != run.input_digest or value.recipe_digest not in (recipe_digest(), RETAINED_V5_RECIPE)
+    if (value.input_digest != run.input_digest or value.recipe_digest not in (recipe_digest(), RETAINED_V5_RECIPE, RETAINED_V6_RECIPE)
             or value.images_digest != digest(value.images)):
         raise ValueError('Daily source publication identity drift')
     if value.recipe_digest == RETAINED_V5_RECIPE and any(

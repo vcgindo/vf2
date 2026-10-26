@@ -70,12 +70,18 @@ def write(run, output, opening):
 
 
 def _write_report_rows(run, values, opening):
-    """Original BPR-produced populations; histories still use this run's parent."""
+    """Publish accepted complete BPR sources, or collect current-only histories."""
     expected={'BORWithOrderAllocation','RRR_OrderAllocation','AllocatedOrders','BOROARequirement'}
     if opening.get('production_report_schema')==production_output_policy.SOURCE_SCHEMA:
         expected.add('SupplierDispatchReq')
-    if not isinstance(values,dict) or set(values)!=expected:
+    histories={'BOR_OrderAllocationHistory','RRR_OrderAllocationHistory'}
+    if not isinstance(values,dict) or set(values) not in (expected,expected|histories):
         raise ValueError('Captured production report population roster differs')
+    if set(values)==expected|histories:
+        # finish_run's require_final_sources authenticated every population
+        # against the accepted DBM snapshot, including its BPR-owned histories.
+        # This is typed publication only: do not collect those effects again.
+        return _save_populations(run,opening,values)
     return _write_sources(run,opening,lambda:dict(values))
 
 
@@ -110,6 +116,14 @@ def _write_sources(run,opening,produce):
     values['RRR_OrderAllocationHistory']=operational_bor.collect_rrr_order_allocation_history(
         opening_history=history['RRR_OrderAllocationHistory'],current_rrr=values['RRR_OrderAllocation'],
         business_date=run.business_date.isoformat(),horizon=policy['rrr_history_horizon'])
+    return _save_populations(run,opening,values)
+
+
+def _save_populations(run,opening,values):
+    if transaction.get_autocommit() or run.kind!='DAILY_CHAIN' or run.status!='RUNNING':
+        raise ValueError('Native report sources require the running day transaction')
+    policy=opening['production_report_policy']
+    expanded=opening.get('production_report_schema')==production_output_policy.SOURCE_SCHEMA
     recipe=recipe_digest()
     images={}
     for name,rows in values.items():
@@ -128,6 +142,7 @@ def recipe_digest():
     from mta.presentation import daily_rrr_colour
     return digest(dict(adapter=inspect.getsource(current),writer=inspect.getsource(write),
         finite_writer=inspect.getsource(_write_report_rows),source_writer=inspect.getsource(_write_sources),
+        population_writer=inspect.getsource(_save_populations),
         rrr=inspect.getsource(production_rrr),bor=inspect.getsource(operational_bor),
         source_lookups=inspect.getsource(row_bag_lookup),norm_rrr=inspect.getsource(daily_rrr_colour),
         allocation=inspect.getsource(production_order_allocation),

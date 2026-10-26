@@ -41,8 +41,12 @@ def request(run, *, expected_dbm_digest, expected_action_revision, command_key):
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
         dbm_digest=expected_dbm_digest, action_revision=expected_action_revision,
         command_key=command_key, authority=deepcopy(AUTHORITY), dispositions=deepcopy(DISPOSITIONS))
+    release=require_current();phase_recipe=recipe_digest()
     value['compatibility_digest'] = digest(dict(request=value,
-        release=require_current(), phase_recipe=recipe_digest()))
+        release=release, phase_recipe=phase_recipe))
+    from mta.runtime import scoped_postdbm_recovery as recovery
+    if command_key==recovery.COMMAND and release!=recovery.PREVIOUS:
+        value=recovery.resolve(run,value,release,phase_recipe)
     return value
 
 
