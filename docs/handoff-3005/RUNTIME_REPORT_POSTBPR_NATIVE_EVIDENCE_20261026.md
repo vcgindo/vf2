@@ -66,7 +66,7 @@ fingerprint actual old columns and serialize the actual CalculationSources
 dataclass; original errors remain. The first HTTP observer expected 403 for an
 unknown permission ID; existing production behavior correctly denied it as 503.
 
-## Unmet first-item proof
+## Prior checkpoint's unmet proof
 
 The strict first-item exit is still open. Literal connection loss before INSERT
 and before COMMIT racing replacement, plus death after the first COMMIT before
@@ -86,3 +86,71 @@ RuntimeReports readiness is true for these two files; whole-scope readiness is
 false, with configured-artifact and end-to-end gates still pending. Full,
 PostBTR/Final, operational publication, other report families, matched latency,
 scale, G3, browser delivery and serving cutover are not accepted by this evidence.
+
+## Completed recovery and authenticated gateway supplement
+
+The human delegated approval to controller chat
+`01a16a2e-ce92-7440-b834-b3b0e05b68ef`, which approved the exact prepared plan
+above. The human subsequently confirmed the same additional-fixture approval
+directly. One database was created: `vftest_fresh_runtime_publication_recovery_20261026`,
+OID558712. It uses the already qualified target0230 schema, identical retained
+inputs/dispositions and independently computed Full23/24 predecessors. No
+accepted rows were copied into its calculations.
+
+New UptoBPR25 run `a5d7cc11-1837-4f78-9738-ba178b69cfb3` produced BPR phase
+`114606b5-1746-4046-8b88-10a55501224c`. Actual connection termination immediately
+before INSERT and after INSERT before COMMIT left no PostBPR receipt. In both
+cases a replacement was observed waiting on the live registrar's lock; explicit
+fencing and a new claim succeeded only after that connection ended.
+
+Two concurrent first registrars then prepared distinct private candidates.
+Exactly one committed publication, `466c291d-fdfd-411f-bc3b-bc038ca928c9`, digest
+`1fca201df594ad0f8db971a4b622c4d908d34e51cb01be0413c26a8c2a849c98`.
+The winner exited86 in Django's post-COMMIT callback before the registrar
+returned. The competing request and subsequent explicitly fenced recovery both
+returned that same immutable receipt. All four interrupted/fenced attempts and
+the final released attempt remain. There are still exactly two accepted business
+phases and no commands; complete decoded BPR/consumer state, predecessor output,
+business-table fingerprints and the original PostImporter receipt are unchanged.
+Runtime-role readback confirms both recovered files match the original fixture's
+complete source-derived CSV/member content.
+
+Real gateway proof uses the original new publication run `bae24882...`, the
+existing verified administrator1 and unchanged canonical password login and
+CookieJWT authentication. Native scope expansion overwrites forged request
+identity/grants. Production MTA startup/request admission, metadata and both GET
+downloads pass with exact bytes, filename and MIME. Missing authentication and
+an invalid JWT signature return401; unsupported POST returns405. This is actual
+HTTP through the auth interceptor and private MTA, not an asserted-user unit
+test. Normal login audit/token/last-login effects are expected; credentials,
+grants, frontend and MTO contracts are unchanged. Browser/CAPTCHA interaction and
+Chrome file arrival are not claimed.
+
+The first three gateway harness attempts remain failures. Inspection established
+that the protected MTA already shares PostgreSQL's network namespace on8000;
+the proposed fixed-port test server collided, and the metadata assertions
+correctly rejected the old backend's report list. The final harness uses an
+ephemeral private socket, verifies its own running container and exact
+run/selection/native identity before authentication, and compares its admission
+digest over HTTP. The temporary upstream hostname is explicitly allowed. No
+host port, protected route, service restart or8080 switch was made. Temporary
+workers were removed after exact ownership/ID checks.
+
+Final evidence root:
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/runtime-publication-recovery-20261026`.
+
+| Artifact | SHA256 |
+| --- | --- |
+| `first-item-native-proof.json` | `b2f9df95073492fbdcc27da3726276b50c008dec5e60f1d3775c6b4f057a65bb` |
+| `recovery-race-proof.json` | `0946abc950f8023261b94e7ca80baaa2e4816a501a340aa003c6e05f28a1d2e5` |
+| `final-readback-proof.json` | `b725ad56369c310dc524e13b771021d185d25e126b98d2866b6b3c8621c2d117` |
+| `original-preservation-after.json` | `bc2d8a5f42c4fc2c3806d9970e3fc210f7d180a1a64e9564b97ede5304d43186` |
+| `../runtime-publication-20261026/auth-gateway-proof/proof.json` | `260a803dc6b7d709c9a92a414c194ce35ecc091dd0812c6b1a1fe1d7fa2177f6` |
+
+All736 original fixture tables match their before fingerprints exactly. Final
+accounted storage plus the existing512MiB reserve is3,852,200,695bytes, below4GiB.
+The bounded first-item native evidence is complete for independent controller
+review. This does not accept broader G2, whole-scope artifact/end-to-end delivery,
+later owner variants, browser/cutover, latency or scale, and grants no adjacent
+implementation release. The implementation remains b453a511; this supplement
+changes evidence/documentation only.
