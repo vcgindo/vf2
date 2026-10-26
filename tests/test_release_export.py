@@ -65,6 +65,10 @@ class ReleaseExportTests(unittest.TestCase):
             self.assertEqual(values[constant], schema_sha)
             self.assertIn(schema_name, reader)
         data=io.BytesIO()
+        delivery_commands = {
+            'mta/runtime/management/commands/'+name+'.py':
+                (root_source/'mta/runtime/management/commands'/ (name+'.py')).read_bytes()
+            for name in ('register_runtime_report_configuration', 'publish_diagnostic_download')}
         with tarfile.open(fileobj=data, mode='w') as tar:
             for name, raw in [('manage.py', b'print("entry")'), ('release/.dockerignore', b'**/secrets\n'),
                               ('requirements.txt', b'Django==5.2.17\n'),
@@ -79,7 +83,8 @@ class ReleaseExportTests(unittest.TestCase):
                               ('baseline/unrelated-schema.json', b'not-exported'),
                               ('mta/fixtures/current-day.json', b'not-exported'),
                               ('evidence/receipt.json', b'not-exported'),
-                              ('release/secrets/password', b'not-exported'), ('tests/test_any.py', b'not-exported')]:
+                              ('release/secrets/password', b'not-exported'), ('tests/test_any.py', b'not-exported'),
+                              *delivery_commands.items()]:
                 entry=tarfile.TarInfo(name);entry.size=len(raw)
                 tar.addfile(entry,io.BytesIO(raw))
         with tempfile.TemporaryDirectory() as directory:
@@ -90,7 +95,7 @@ class ReleaseExportTests(unittest.TestCase):
             self.assertEqual(set(receipt['files']),{'manage.py','requirements.txt','release/.dockerignore','.dockerignore',
                 'frontend/tsconfig.json', 'frontend/tsconfig.paths.json',
                 'mta/mdm/initialization.py', 'mta/runtime/migrations/0142_native_evidence_default.py',
-                'vectorflow/settings.py', 'baseline/production-state-schema.json', schema_name})
+                'vectorflow/settings.py', 'baseline/production-state-schema.json', schema_name, *delivery_commands})
             self.assertEqual((destination/schema_name).read_bytes(), schema)
             self.assertEqual(receipt['files'][schema_name], schema_sha)
             self.assertEqual((destination/'.dockerignore').read_bytes(),b'**/secrets\n')
@@ -100,6 +105,10 @@ class ReleaseExportTests(unittest.TestCase):
             native = json.loads((destination/MANIFEST).read_text())
             self.assertEqual(native['source_commit'], 'a'*40)
             self.assertEqual(native['files'][schema_name], schema_sha)
+            for name, raw in delivery_commands.items():
+                self.assertEqual((destination/name).read_bytes(), raw)
+                self.assertEqual(native['files'][name], hashlib.sha256(raw).hexdigest())
+                self.assertEqual(receipt['files'][name], native['files'][name])
             self.assertNotIn('release/.dockerignore', native['files'])
             with self.assertRaisesRegex(ValueError,'existing targets'):
                 export(root/'repository','HEAD',destination)
