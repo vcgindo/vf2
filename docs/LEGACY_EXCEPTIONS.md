@@ -1905,6 +1905,30 @@ waiver, alternative source alias/default/numeric fill, other amendment transfer,
 frontend component or MTO API change. Status and proof remain in the sole
 F:/freshvcf/docs/handoff-3005/TRACKER.md.
 
+### LEG-RUNTIME-BOR-HISTORY-LATEST-REMARK-TIE (26 October 2026)
+
+Source: retained RuntimeReports query8, SHA256
+`589872d44d3f0f09a5d87421130e46797bbab6598046ebf544642e4bed3a76a8`,
+in the configuration fixture pinned to
+`1f036745abadf0224d9778a8fabf3cc93ad632d106a61127973f08b2baa9af55`.
+The SQL partitions ROW_NUMBER by SKUCode/WhCode, orders only by RemarkDate DESC,
+then joins the rn=1 result to the allocation supplier. Equal maximum dates can
+therefore choose different suppliers or remark text. Adding supplier to the
+partition or an extra ordering key would change the canonical contract.
+
+Input witness: `tests/test_runtime_history_reports.py`,
+`test_latest_remark_ties_deny_only_distinguishable_projected_results` supplies
+same-pair, equal-latest-date candidates with differing projected outcomes.
+The pure projection raises AmbiguousLatestRemark rather than choosing a winner.
+Candidates with the same projected result do not multiply the rn=1 output.
+This is source-derived ambiguity with a local component witness, not a newly
+observed failure in an accepted run or native SQL Server/file parity proof.
+
+Affected boundary: the Remark cell of this runtime allocation-history query.
+Numeric history and other report contracts remain unchanged. Actual affected
+deployment data requires a concrete applicability/disposition decision; this
+entry authorizes no data repair, tie-break, history change or production waiver.
+
 ## Supplied scoped-test BTR direction configuration — 26 October 2026
 
 This is a recorded fixture deviation, not permission to repair legacy behavior

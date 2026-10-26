@@ -110,13 +110,13 @@ current approved empty TEST roster.
 
 | Id | ReportName | Placement / output | Required source semantics |
 | --- | --- | --- | --- |
-| 2 | BOR WH Efficiency report | PostBTR; ZIP | BTR RationingHistory, today's Stock/GIT join, attributes and Pick join; last 45 days; NULLIF ParentNorm empty selects BOR. Preserve join multiplicity even when joined columns are not selected. |
+| 2 | BOR WH Efficiency report | PostBTR; ZIP | BTR RationingHistory, today's Stock/GIT join, attributes and Pick join; strict today-45 lower bound, no upper bound. ParentNorm is numeric: NULL/zero selects BOR. TOR_B/TOR_R/TOY/TOG resolve to the Pick join, with its complete multiplicity. |
 | 3 | RRR WH Efficiency report | PostBTR; ZIP | Same history/joins; nonempty ParentNorm selects RRR. |
 | 4 | BOR_Color_Bandwise | PostBTR; CSV | BORWithOrderAllocation, colour ordering, descriptions and pair/SKU attributes. Not the existing fixed BOR CSV's column contract. |
 | 5 | Chennai_BOR_OrderAllocation | PostBTR; CSV | Id4 projection/order with literal receiving location P041. Site-specific, not a global default. |
 | 6 | Silvasa_BOR_OrderAllocation | PostBTR; CSV | Id4 projection/order with literal receiving location P001. Site-specific, not a global default. |
 | 7 | Spike_Order_Dump | PostBPR; ZIP `Spiker_Order_Dump.zip` | Exact 12-column SpikeOrderData projection. Preserve the distinct report/file spelling. |
-| 8 | BOR_OrderAllocationHistory | PostBTR; CSV `BOR OrderAllocationHistory Report.csv` | Accepted BOR allocation history, latest remark window partitioned by SKU/location, supplier join, descriptions/attributes and requirement join; inclusive today-44 through today. No invented tie-break for equal remark dates. |
+| 8 | BOR_OrderAllocationHistory | PostBTR; CSV `BOR OrderAllocationHistory Report.csv` | Accepted BOR allocation history, latest remark window partitioned by SKU/location, supplier join, descriptions/attributes and requirement join supplying AdvAllocDone; inclusive today-44 through today. No invented tie-break for equal remark dates. |
 | 10 | TotalReqReport_YYYY-MM-DD | PostBPR; CSV `%TotalReqReport%` | Rationed report, SupplierDispatchReq and mandatory pair/SKU/location attribute joins; exact substitution/date contract. Retained last-generated name is not the next business date. |
 
 Retain all 16 literal native fields, including misspelled `Delimeter`, HeaderList,

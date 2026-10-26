@@ -74,3 +74,38 @@ yet; initialization and TEST guards are unchanged. It does not execute SQL,
 authorize an empty production roster, qualify any files/templates/destinations,
 adopt the benchmark configuration or issue a READY result. Production binding,
 enabled report execution and native/UI qualification remain required.
+
+## Retained RuntimeReports data projections
+
+All eight captured SQL queries now have finite pure data projections and an
+explicit logical source dispatch contract in `runtime_report_projection`.
+Query SHA256 selects the implementation; a deployment Id remains execution
+order rather than business identity. Wrong BaseDB, missing/extra logical source
+tables and unknown queries are denied. BTR attributes are not substituted with
+similarly named BPR or Importer attributes. Date-dependent queries use the
+specified LastBatchRunTbl scalar population; no host/run-date fallback exists.
+
+The three BOR bandwise variants produce 31 cells, the two efficiency reports
+24, Spike 12, allocation history 34 and Total Requirement 107. Complete local
+expected tuples and duplicate/NULL/filter/date witnesses pass. The efficiency
+Pick join supplies the four unqualified TOR columns. Allocation-history
+AdvAllocDone comes from the requirement join; its latest remark is selected
+per pair before matching supplier. Distinguishable latest-date ties deny
+explicitly; no artificial native tie-break is introduced.
+
+Metadata lookups are grouped once. Latest remark bags are prepared once per
+pair and projected outcomes cached per pair/supplier for one query lifetime;
+a 101-remark/60-output witness proves one preparation and one resolution without
+deduplicating output. The unordered Total Requirement projection yields rows
+incrementally from RecordRows; the 10,001-row witness confirms consuming one
+output does not enumerate all fact rows. This is an operation-count/lifetime
+proof, not a scale or latency benchmark.
+
+All 38 focused configuration/projection tests pass (0.086 seconds locally).
+Independent bounded static review compared all eight full captured SQL queries
+and relevant canonical DDL with the implementations and found no actionable
+projection mismatch. The review and tests are limited to pure typed sources.
+Persisted wire conversion, accepted phase-source binding, enabled placement
+execution, native query equivalence, SQLCMD headers/types/encoding, physical
+files, setup/upgrade and UI remain unqualified. Current serving code and
+accepted state were not changed or replayed.
