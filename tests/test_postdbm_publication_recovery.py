@@ -295,40 +295,61 @@ class PostDbmPublicationRecoveryTests(unittest.TestCase):
                 publication_metadata(run,dict(capture,qualified_master_reuse=True),producer)
             bounded.assert_not_called()
 
-    def test_master_promotion_updates_locked_state_once_before_metadata(self):
+    def test_terminal_master_binds_exact_publication_cut_without_counter_write(self):
         from mta.runtime import scoped_postdbm_recovery as recovery
         parent=SimpleNamespace(pk='parent',receipt_digest='a'*64)
-        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=41,configuration_epoch=312)
-        state.refresh_from_db=lambda:setattr(state,'master_epoch',42)
+        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=41,configuration_epoch=402)
         capture={'base_revision_id':'base'};producer={'scoped_execution_provenance':{'preserved':True}}
         with patch.object(recovery,'_pending_owner'),patch.object(recovery,'_master_parent',return_value=parent), \
+                patch.object(recovery,'publication_configuration_writes',return_value=['verified-images']), \
                 patch.object(recovery.connection,'in_atomic_block',True), \
-                patch('mta.runtime.ingestion_models.IngestionRevisionState.objects') as states:
-            states.filter.return_value.update.return_value=1
+                patch('mta.runtime.ingestion_models.IngestionRevisionState.objects') as states, \
+                patch('mta.runtime.ingestion_models.MasterInputRevision.objects') as revisions:
+            revisions.filter.return_value.exists.return_value=False
             result=recovery.promote_master('run',capture,producer,state)
-            self.assertEqual(state.master_epoch,42)
-            self.assertEqual(result['scoped_execution_provenance']['master_promotion']['after'],[42,312])
+            self.assertEqual(state.master_epoch,41)
+            self.assertEqual(result['scoped_execution_provenance']['master_promotion']['after'],[41,402])
+            self.assertEqual(result['scoped_execution_provenance']['master_promotion']['additional_master_increment'],0)
             self.assertEqual(producer,{'scoped_execution_provenance':{'preserved':True}})
-            with self.assertRaisesRegex(ValueError,'promotion cut differs'):
+            for changed in ([41,312],[41,403],[42,402]):
+                state.master_epoch,state.configuration_epoch=changed
+                with self.assertRaisesRegex(ValueError,'promotion cut differs'):
+                    recovery.promote_master('run',capture,producer,state)
+            state.master_epoch,state.configuration_epoch=41,402
+            revisions.filter.return_value.exists.return_value=True
+            with self.assertRaisesRegex(ValueError,'already occupied'):
                 recovery.promote_master('run',capture,producer,state)
-            self.assertEqual(states.filter.return_value.update.call_count,1)
+            states.assert_not_called()
+
+    def test_terminal_configuration_plan_counts_repeated_images_and_rejects_changed_transport(self):
+        from mta.runtime import scoped_postdbm_recovery as recovery
+        images={str(i):dict(table='BPR/UI_ReportConfigurations',count=9,digest='a'*64) for i in range(10)}
+        run=SimpleNamespace(production_manifest={'images':images})
+        result=recovery.publication_configuration_writes(run)
+        self.assertEqual(len(result),10);self.assertEqual(sum(i['count'] for i in result),90)
+        images['0']['count']=500
+        with self.assertRaisesRegex(ValueError,'transport differs'):recovery.publication_configuration_writes(run)
+        images['0']['count']=8
+        with self.assertRaisesRegex(ValueError,'write plan differs'):recovery.publication_configuration_writes(run)
 
     def test_terminal_master_acceptance_rechecks_promoted_cut_and_parent(self):
         from mta.runtime import scoped_postdbm_recovery as recovery
         parent=SimpleNamespace(pk='parent',receipt_digest='a'*64)
-        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=42,configuration_epoch=312)
-        promotion=dict(parent_id='parent',captured_base_id='base',before=[41,312],after=[42,312],parent_receipt='a'*64)
-        run=SimpleNamespace(production_manifest=dict(master_preparation=dict(master_cut=[42,312],
+        state=SimpleNamespace(pk=recovery.INITIALIZATION,master_epoch=41,configuration_epoch=402)
+        promotion=dict(parent_id='parent',captured_base_id='base',before=[41,312],after=[41,402],parent_receipt='a'*64,
+                       configuration_writes=['verified-images'],additional_master_increment=0)
+        run=SimpleNamespace(production_manifest=dict(master_preparation=dict(master_cut=[41,402],
             scoped_execution_provenance={'master_promotion':promotion}),ingestion_preparation={'base_revision_id':'base'}))
         with patch.object(recovery,'_pending_owner'),patch.object(recovery,'_master_parent',return_value=parent), \
+                patch.object(recovery,'publication_configuration_writes',return_value=['verified-images']), \
                 patch('mta.runtime.receipt_integrity.verify_root') as verify:
             self.assertIs(recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state),parent)
             verify.assert_called_once_with(run)
-            for changed in ([41,312],[42,313]):
+            for changed in ([41,312],[42,402]):
                 state.master_epoch,state.configuration_epoch=changed
                 with self.assertRaisesRegex(ValueError,'acceptance promotion differs'):
                     recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state)
-            state.master_epoch,state.configuration_epoch=42,312
+            state.master_epoch,state.configuration_epoch=41,402
             promotion['parent_id']='foreign'
             with self.assertRaisesRegex(ValueError,'acceptance promotion differs'):
                 recovery.terminal_master_parent(run,recovery.INITIALIZATION,'base',state)

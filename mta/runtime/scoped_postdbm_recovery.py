@@ -203,24 +203,43 @@ def _master_parent(run,base_id):
     return parent
 
 
+def publication_configuration_writes(run):
+    """Exact retained save_daily settings-image statement effects, not new rules."""
+    from mta.runtime.relational_state import table_name
+    from mta.runtime.ingestion_ownership import domain
+    images=[]
+    for path,item in run.production_manifest['images'].items():
+        table=table_name(item['table'])
+        if domain('mta_state',table)!='configuration' or not item['count']:continue
+        if table not in ('dbm_dbmsettingstbl','importer_importersettingstbl','bpr_ui_reportconfigurations'):
+            raise ValueError('Scoped terminal configuration table differs')
+        count=item['count']
+        if type(count) is not int or not 0<count<500:
+            raise ValueError('Scoped terminal configuration transport differs')
+        # Existing small-image bulk uses executemany: one guarded INSERT per row.
+        images.append(dict(image=path,table=item['table'],count=count,digest=item['digest']))
+    images.sort(key=lambda item:item['image'])
+    if len(images)!=10 or sum(item['count'] for item in images)!=90:
+        raise ValueError('Scoped terminal configuration write plan differs')
+    return images
+
+
 def promote_master(run,capture,producer,state):
-    """Allocate a terminal representation cut before its producer/root is sealed."""
-    from django.db.models import F
-    from mta.runtime.ingestion_models import IngestionRevisionState
+    """Bind the publication-created cut; no additional counter increment."""
+    from mta.runtime.ingestion_models import MasterInputRevision
     _pending_owner(run)
     parent=_master_parent(run,capture['base_revision_id'])
+    images=publication_configuration_writes(run)
     if (not connection.in_atomic_block or str(state.pk)!=INITIALIZATION
-            or [state.master_epoch,state.configuration_epoch]!=[41,312]
+            or [state.master_epoch,state.configuration_epoch]!=[41,402]
             or 'scoped_execution_provenance' not in producer):
         raise ValueError('Scoped terminal master promotion cut differs')
-    changed=IngestionRevisionState.objects.filter(pk=state.pk,master_epoch=41,configuration_epoch=312).update(
-        master_epoch=F('master_epoch')+1)
-    if changed!=1:raise ValueError('Scoped terminal master promotion raced')
-    state.refresh_from_db()
-    if [state.master_epoch,state.configuration_epoch]!=[42,312]:
-        raise ValueError('Scoped terminal master promoted cut differs')
+    if MasterInputRevision.objects.filter(initialization_id=state.pk,
+            master_epoch=41,configuration_epoch=402).exists():
+        raise ValueError('Scoped terminal publication cut is already occupied')
     promotion=dict(parent_id=str(parent.pk),captured_base_id=str(capture['base_revision_id']),
-        before=[41,312],after=[42,312],parent_receipt=parent.receipt_digest)
+        before=[41,312],after=[41,402],parent_receipt=parent.receipt_digest,
+        configuration_writes=images,additional_master_increment=0)
     return dict(producer,scoped_execution_provenance=dict(producer['scoped_execution_provenance'],
         master_promotion=promotion))
 
@@ -231,11 +250,12 @@ def terminal_master_parent(run,initialization_id,base_id,state):
     _pending_owner(run)
     parent=_master_parent(run,base_id)
     producer=run.production_manifest['master_preparation']
-    expected=dict(parent_id=str(parent.pk),captured_base_id=str(base_id),before=[41,312],after=[42,312],
-                  parent_receipt=parent.receipt_digest)
+    expected=dict(parent_id=str(parent.pk),captured_base_id=str(base_id),before=[41,312],after=[41,402],
+        parent_receipt=parent.receipt_digest,configuration_writes=publication_configuration_writes(run),
+        additional_master_increment=0)
     if (str(initialization_id)!=INITIALIZATION or str(state.pk)!=INITIALIZATION
-            or [state.master_epoch,state.configuration_epoch]!=[42,312]
-            or producer.get('master_cut')!=[42,312]
+            or [state.master_epoch,state.configuration_epoch]!=[41,402]
+            or producer.get('master_cut')!=[41,402]
             or producer.get('scoped_execution_provenance',{}).get('master_promotion')!=expected
             or run.production_manifest['ingestion_preparation']['base_revision_id']!=str(base_id)):
         raise ValueError('Scoped terminal master acceptance promotion differs')
