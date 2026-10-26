@@ -157,3 +157,27 @@ The retained-root accounting before final evidence consolidation was
 3,784,157,090bytes under4GiB. Independent bounded review of the native, report,
 file, restart and activation receipts found no consequential overclaim; its
 next-opening evidence limit is retained above.
+
+## Subsequent next-opening proof and human acceptance
+
+The later read-only proof `postdbm-next-opening-read.json` closes the previously
+unproved **reader reconstruction** boundary. It invokes the actual production
+`read_outputs`, `verify_successor` and `command_states` for prospective26October.
+Every typed opening section matches the authenticated final-publisher expected
+closing, digest `6802c18cb53d356217b9e1224319108bc8b564455087da199d1afd9af1b70dc4`.
+All six commands belong to the accepted DBM phase; the terminal replay list is
+empty. Complete recorded state remains `f2f1d4b1` before and after. No next-day
+capture or calculation occurred, so successor execution and paired native
+Full/split proof remain open. This supplements, rather than alters, the earlier
+130-file manifest and its historically accurate evidence limits.
+
+Receipt SHA256:
+`1ce1436af2647f1f278d6e13cef60aedffb89843328064c616320b094c389d2b`.
+Driver `g2/postdbm-next-opening-read.py` SHA256:
+`164de6af6f22c2efa9c299aba3212305d03f8c01d7ae3e9099c485c81c8accdf`.
+
+Human `call_9c648591ac624ec29b121db85abeac4e/0` then accepted bounded PostDBM and
+released final G2 integration. The requirement/evidence matrix and current work
+are maintained solely in TRACKER.md. The already approved temporary empty TEST
+RuntimeReports roster continues to govern stable delivery; production
+regularisation remains at its later exit boundary and is not a delivery blocker.

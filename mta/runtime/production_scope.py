@@ -217,7 +217,10 @@ def _produce(attempt,value):
             master_snapshot=master,execute_calculation=calculate)
     with native_assignments(True):bpr=produce_bpr(prepared)
     sources=capture_bpr(bpr,opening)
-    if value['scope']=='UptoDBM':
+    # Both fresh cuts accept configured histories at their canonical BPR owner.
+    # Existing accepted BPR returns above; it is never supplemented or replayed.
+    # New native execution is fenced by its release-bound request identity.
+    if value['scope']=='UptoDBM' or (value['scope']=='UptoBPR' and sources.production_reports is not None):
         from mta.runtime.scope_bpr_histories import complete_sources
         sources=complete_sources(run,sources,opening)
     with transaction.atomic():
