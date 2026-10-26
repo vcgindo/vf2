@@ -130,8 +130,8 @@ read_prefix,read_suffix=READ_REFERENCE_OLD.rsplit(READ_REFERENCE_MARKER,1)
 READ_REFERENCE_BODY = read_prefix+READ_REFERENCE_BRANCH+READ_REFERENCE_MARKER+read_suffix
 read_prefix,read_suffix=READ_REFERENCE_BODY.rsplit('octet_length(NEW.metadata::text)>32768',1)
 READ_REFERENCE_BODY = read_prefix+(
-    "octet_length(NEW.metadata::text)>CASE WHEN NEW.metadata#>>'{runtime_reports,schema}'="
-    "'fresh-postbpr-publication-reference-v1' THEN 2097152 ELSE 32768 END")+read_suffix
+    "octet_length(NEW.metadata::text)>(CASE WHEN NEW.metadata#>>'{runtime_reports,schema}'="
+    "'fresh-postbpr-publication-reference-v1' THEN 2097152 ELSE 32768 END)")+read_suffix
 replace_read = import_module('mta.runtime.migrations.0224_uptodbm_bpr_read_configuration').replace
 SQL = ("CREATE FUNCTION mta.runtime_report_publication_source(P mta.fresh_mta_runtimereportpublication) "
        "RETURNS boolean LANGUAGE sql STABLE SET search_path=pg_catalog,mta AS $source$"+SOURCE+"$source$;\n"
