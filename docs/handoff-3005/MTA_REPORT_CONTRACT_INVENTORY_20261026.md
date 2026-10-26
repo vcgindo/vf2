@@ -137,6 +137,15 @@ Pinned wrapper hashes:
 
 ## Implementation and qualification boundary
 
+There is also a clean-setup boundary: `initialization_contract.COMPLETE_OUTPUTS`
+currently classifies RuntimeReports with calculated outputs and rejects every
+nonempty initial population. `initialization_storage_v1.json` already defines
+its 16 typed fields. Production registration therefore needs a deliberate
+configuration-versus-generated-state distinction, not just a new file or a
+relaxed scoped validator. Preserve the prohibition on seeding calculated
+outputs and distinguish configured file names from last-generated runtime state.
+Do not enable nonempty rows until their enabled execution/readiness path exists.
+
 1. Bind a versioned deployment configuration to existing UI/readiness owners,
    fixed-file settings and the applicable RuntimeReports/DownloadableUIReportSettings
    records. Preserve old request digests and the explicit empty TEST validator.
