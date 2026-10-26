@@ -103,3 +103,6 @@ mta/runtime/test_native_location_add.py -text -eol whitespace=cr-at-eol
 
 # Offline historical sources retain exact original committed bytes.
 /development/step5_originals/** -text -eol whitespace=cr-at-eol
+
+# Retained RuntimeReports fixture is authenticated as exact source bytes.
+/tests/fixtures/runtime_reports_retained_20261019.json -text -eol whitespace=cr-at-eol
