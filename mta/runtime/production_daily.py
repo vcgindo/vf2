@@ -547,7 +547,13 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
     logger.warning('daily_phase initialization=%s phase=native_preflight_and_bootstrap seconds=%.6f',
                    owner.pk, perf_counter()-started)
     from mta.runtime.ingestion_admission import preparation_source
-    prepared_state = preparation_source(owner.source.digest) if retry_capture_id is None else None
+    from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
+    placement_full=(scope_request is not None and scope_request.get('schema')==PLACEMENT_SCHEMA
+                    and scope_request.get('scope')=='Full')
+    # A Full placement retry keeps its frozen inputs but still needs a fresh
+    # locked capture cut and atomic terminal master acceptance. execute_day
+    # excludes retry origins from both master-reuse shortcuts independently.
+    prepared_state = preparation_source(owner.source.digest) if retry_capture_id is None or placement_full else None
     return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,
