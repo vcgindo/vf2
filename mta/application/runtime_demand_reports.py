@@ -31,6 +31,8 @@ TOTAL_CORE = tuple('SKUCode SKUName WhCode WhName Norm VirtualNorm VirtualNodeNo
     'StockPercentageForRationing NormPercentReservation ParentStockPercentageForRationing '
     'ParentNormPercentReservation'.split())
 ATTRIBUTES = tuple('c' + str(n) for n in range(1, 16))
+SUPPLIER_BANDS = ('ReqTopOfRed', 'ReqTopOfYellow', 'ReqTopOfGreen')
+RATIONED_FIELDS = tuple(field for field in TOTAL_CORE if field not in (*SUPPLIER_BANDS, 'ParentWhName'))
 # Positional expression labels, not SQLCMD metadata or invented CSV headers.
 TOTAL_COLUMNS = TOTAL_CORE + tuple(owner + '.' + field
                                   for owner in ('C', 'D', 'E') for field in ATTRIBUTES)
@@ -105,15 +107,14 @@ def total_requirements(definition, *, rationed_report, supplier_dispatch,
     _query(definition, TOTAL_QUERY)
     _population(rationed_report, 'vf_RationedReqReport')
     suppliers = _lookup(supplier_dispatch, ('SKUCode', 'WHCode'),
-                        ('SupplierCode', 'OriginalReq', 'DispatchReq'), 'SupplierDispatchReq')
+                        ('SupplierCode', 'OriginalReq', 'DispatchReq', *SUPPLIER_BANDS), 'SupplierDispatchReq')
     sites = _lookup(site_descriptions, ('WHCode',), ('WHDescription',), 'SiteDescriptionTbl')
     pairs = _lookup(sku_loc_attributes, ('SKUCode', 'LocCode'), ATTRIBUTES, 'SkuLocAttributeData')
     skus = _lookup(sku_attributes, ('SKUCode',), ATTRIBUTES, 'SkuAttributeData')
     locations = _lookup(location_attributes, ('WHCode',), ATTRIBUTES, 'LocationAttributeData')
 
     def records():
-        for row in _each(rationed_report, tuple(f for f in TOTAL_CORE if f != 'ParentWhName'),
-                         'vf_RationedReqReport'):
+        for row in _each(rationed_report, RATIONED_FIELDS, 'vf_RationedReqReport'):
             for field in ('SKUCode', 'WhCode', 'ParentWhCode'):
                 value = row[field]
                 if value is not None and (type(value) is not str or not value.isascii()):
@@ -135,6 +136,11 @@ def total_requirements(definition, *, rationed_report, supplier_dispatch,
                         ParentWhName=_without_commas(None if site is None else site['WHDescription']),
                         Req=_coalesce(supplier, 'OriginalReq', row['Req']),
                         RationedReq=_coalesce(supplier, 'DispatchReq', row['RationedReq']))
+                    # Unqualified SELECT names resolve to B: these fields do
+                    # not exist on A.vf_RationedReqReport. Missing LEFT JOIN B
+                    # means NULL bands, not rationed data or numeric defaults.
+                    values.update({field: None if supplier is None else supplier[field]
+                                   for field in SUPPLIER_BANDS})
                     core = tuple(values[field] for field in TOTAL_CORE)
                     for pair, sku, location in product(*attrs):
                         yield core + tuple(record[field] for record in (pair, sku, location)

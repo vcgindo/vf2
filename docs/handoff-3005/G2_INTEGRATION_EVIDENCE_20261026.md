@@ -109,3 +109,41 @@ Persisted wire conversion, accepted phase-source binding, enabled placement
 execution, native query equivalence, SQLCMD headers/types/encoding, physical
 files, setup/upgrade and UI remain unqualified. Current serving code and
 accepted state were not changed or replayed.
+
+## Persisted source decoder and Total Requirement correction
+
+The subsequent real-source audit found an error missed by the pure fixtures and
+static review at 057e38f5: the three unqualified ReqTopOfRed/Yellow/Green columns
+belong to SupplierDispatchReq B. They are absent from vf_RationedReqReport A.
+The projection now reads B and preserves NULL for a missing left-join supplier.
+The fixture no longer invents A columns; a native-schema regression check binds
+both source rosters. This was an undeployed modern projection defect, not a
+legacy exception or accepted-run change. The earlier review is superseded for
+this specific mapping.
+
+runtime_report_sources.image_rows now decodes requested fields from the existing
+checksum/ordinal-verified relational reader using declared physical SQL types.
+It preserves duplicate ordinals, exact decimals, dates, literal \N text and NULLs;
+unknown/missing columns, wrong tables and damaged images fail even for empty
+populations. It retains RecordRows iteration rather than copying a large image.
+The caller still owns accepted-phase authentication and source selection.
+
+All 47 focused configuration/projection/decoder tests pass. Read-only native
+proof runtime-report-source-proof-01.json compares all typed cells for 71 actual
+images / 351 rows with direct PostgreSQL reads. Spike's complete 2 x 12 cells
+also match. runtime-report-empty-source-proof-01.json checks four actual empty
+images and rejects an unknown field. runtime-report-total-proof-02.json compares
+the corrected complete 8 x 107 typed occurrence bag with the captured SELECT
+translated only for PostgreSQL syntax over the same persisted sources: one
+matched supplier and seven NULL supplier-band rows. Complete typed bag digest:
+f312cff293ce13b81d05feb642b6122425b70b71bfb85864909b79e597dbf17d.
+
+All proofs used the retained a2661554 run under runtime-role READ ONLY, and the
+six-model fingerprint stayed f2f1d4b1852f238832402eff89c0a53bf5d9a424c1fa814a7750f483e43d9753.
+Evidence is under the existing g2/uptodbm-private-20261025/three-day-positive-test
+root. Earlier proof snapshots remain unchanged; snapshot02 pins the correction.
+The bounded Total proof explicitly supplies the captured Importer attributes;
+it does not establish generic Importer-to-BPR copy/hook lineage. These are typed
+source/projection proofs, not SQL Server file/encoding, placement execution,
+production enablement, setup/upgrade, Full/split or UI acceptance. No serving
+code, accepted effect, frontend design or MTO contract changed.
