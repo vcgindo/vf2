@@ -1078,3 +1078,81 @@ Originalv15 exclusiveSQL/cProfile action probe preserves canonical post-action s
 Controller-relayed directhuman request verified in chat01a16a2e-ce92-7440-b834-b3b0e05b68ef: matched legacy Apply-only baseline. Read-only reconciliation finds the fixed canonical legacyA reference uses June6-17/1240pairs/input0f3084b7, whereas currentnative trial uses ownOctober23/24predecessors+October25UptoDBM,canonical16ReasonCodes,SUPPLIED-Z9/OWN-PARENT,5commands/revision103/statea6ee3448 andpermissionsc753f576. These are NOT matched pre-Apply states. No matched legacyApply timing exists in reviewedretainedUptoDBMevidence. HistoricalVFTEST_Freshnames incleanupStep1 contract are explicitly NOT usable targets. LocalMSSQLSERVER isstopped; Dockerinventory provides no currentlyrunning authorizedlegacySQL/API target (stoppedinterimvcf SQL belongselsewhere and mustnotborrow). Nolegacyservice/database started or queried/mutated; noDBMreplay.
 Minimum for a defensible Apply-only comparison: locate an existingowned canonical legacyAPI/SQL target and an exact matchingpre-Applystate, OR explicitly authorize a private disposablelegacytarget plus a declared common action-statefixture. Pin allApplyread/write tablepopulations, orderedprioractions/recommendation/key,permission/configuration/date semantics and canonicalDLL/SQL; loading common actioninputs may qualify Apply-only, never independentDBMexecutionparity. Modern durable comparison also needs a separatelyowned reversible/disposable copy or explicit trialstate authority; do not consume preservedrevision103. Require resource/capacity/isolation proposal before newtargetcreation (no sharedSQL restart/publicports). Compare bothfullAPIthroughcommit/response, cold/warm separately; SQL-only andbrowserrefresh times separate. Do not invent a legacybaseline or silently replayJune/OctoberDBM to fill thisgap. Gap limitedto matchedlegacybenchmark; independent authorizedlatencywork remainsavailable,wholegoalACTIVE.
 Nextactiveitem remains end-to-endUptoDBMlatency. Use measured repeated guard/input ownership work to choose one contract-preserving batching/dataflowchange; preservefirstandfinalvalidation, canonicalwriter,denials androllback. Fullbrowser/actionrefresh/scale andallpreviouslyopenlifecycle/downloadcriteria remainOPEN; noPostDBM/Full/G3release or8080deployment.
+
+### Bounded UptoDBM functional delivery, 26 October 2026
+
+Subsequent direct human/controller scope deferred latency, matched legacy timing
+and scale/concurrent performance, retaining functional correctness and recovery.
+The sole status authority remains `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
+This section records evidence, not a second execution queue or whole-G2 acceptance.
+
+Approved temporary 8080 access uses qualified MTA v15 image `558e644e02b4`, source
+`00fa31b94d90127b04252b181109536b21a4102b`, and compatible auth image `a6fdf06d768e`.
+Temporary PostgreSQL exclusively mounts the retained private volume; the original
+private PostgreSQL remains stopped. Limits remain PG 384 MiB/0.5 CPU, MTA
+4 GiB/2 CPU, auth 512 MiB/0.5 CPU, with no new public ports. Exact gateway rollback
+and reactivation passed before this browser work. The prior serving stack remains
+available; frontend assets/design and MTO API/routing were unchanged.
+
+Fresh Chrome-only control worked after reset. The existing authenticated session
+was reused. One real browser Apply accepted SUPPLIED-Z9/OWN-PARENT, Norm36 to24,
+as command177 with parent revision103. The grid settled at zero recommendations.
+A committed remark before Apply and a second browser remark afterward both
+appeared exactly once in history. Independent complete parent queries match all
+stored typed values, NULLs, duplicates and ordinal order: base9/match0. The second
+remark legitimately adds a joined occurrence; no deduplication was introduced.
+
+Current owned run is `a2661554-4450-4ac2-a2fc-c2055e685663`, October25 UptoDBM,
+following its own Full23/24 predecessors. There are six commands, action revision
+177 and remark highwater2. Read reference is
+`4dc7abd3-6667-4c56-bd80-232cbfc4505f`. Canonical four-table digest is
+`2f8552c705477cf163096527dc730c43c3e5ee5a06242f13f827629070523548`;
+all26 report digest is
+`a72c51207589f332d50b876e4cde5f3b4ad64d87dd4c2da4e47c4e25dd72c8f0`;
+complete current fingerprint is
+`3816a7d8473feef94b490daf98cd89113e016b08e6631c056c42bed96dd2517e`.
+Accepted engine phases and earlier commands were preserved without replay.
+
+Actual temporary MTA/PG stop-start passed. While v15 was stopped, previously
+qualified v12 image `5cd900d912c7` read the complete committed action, remark and
+report state. Qualified v15 was restored and ready, then the exact original
+command-key retry returned command177 without another command/reference/effect.
+Final readback after browser checks reproduced the same fingerprint. Auth,
+frontend and protected prior services retained their original starts; the
+compatible readback worker exited0 and remains stopped. This is native idempotent
+retry and compatible readback, not a lost-HTTP-acknowledgement or general G3 proof.
+
+Browser results on 8080: BPR8 rows, BTR8, BOR1, RRR4, and DBM0 after Apply/restart.
+The application date displays25 Oct2026; BTR still belongs to its Full24 producer,
+not an invented BTR25 publication. Planning counts were consistently3/3/0/0/0/8.
+The empty Expedite chart and grid settled without an indefinite spinner.
+
+All six current download requests succeeded and the user confirmed actual arrival
+(`call_87bc7b2acb824a21890f3a4fba3323a7`, "All six downloaded"): Pick List,
+Remaining Quantity Summary, Remaining Quantity Details, Transport Requirement
+Summary, InputData.zip and BOR_OrderAllocation.csv. The browser API could not
+inspect blob arrival; user confirmation is explicitly the arrival evidence.
+An unavailable upload-log download returned403 after normal token refresh;
+Planning remained accessible. Reload during InputData download caused gateway499
+at05:07:29Z, followed by successful Planning counts at05:07:33Z. This is genuine
+request cancellation recovery on the retained3443-byte archive, not a large-file,
+mid-body, throttled or load test.
+
+Positive Sleep/no-op evidence remains native, at its recorded boundary; positive
+Sleep was not repeated in this final browser after Apply consumed the final
+recommendation. No new target was seeded. The observed10.845s Apply interval
+includes tool observation gaps and is not a precise latency measurement or
+acceptance. Universal all-page coverage, matched legacy timing, performance and
+scale remain unclaimed. Later PostDBM/final Full need release; G3 is deferred.
+
+Evidence root: `D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/`.
+Consolidated `uptodbm-private-20261025/three-day-positive-test/functional-result.json`
+pins56 files, SHA256
+`04eda4256f102759e23329668a9d1c6e726606daea6a40d3bd8bfccff1a0ff98`.
+It includes the deployment/recovery scripts and receipts, screenshots, independent
+readbacks and gateway cancellation evidence. Final retained-root accounting was
+3,499,327,916 bytes under4 GiB, using the previous conservative counting convention.
+An initial parent receipt's prose saidbase8 despite its actual count9; the original
+was retained and prose corrected, without changing assertions or data. The earlier
+post-commit remark diagnostic failure and read-only reconciliation are also retained;
+that committing driver must not be rerun.
