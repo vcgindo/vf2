@@ -24,7 +24,7 @@ class DbmViewBinding(scoped_view.ViewBinding):
 
 
 def compose(view, phase_id, *, expected_digest):
-    from mta.runtime.input_reader import read_input
+    from mta.presentation.selected_input import read_input
     from mta.runtime.production_upto_dbm import SCHEMA as REQUEST_SCHEMA
     phase = _accepted(phase_id,expected_digest)
     request = read_input(phase.run,components=('scope_request',)).get('scope_request')

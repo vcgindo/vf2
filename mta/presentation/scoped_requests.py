@@ -129,13 +129,12 @@ class RequestBinding:
 
 def bind(sources):
     from mta.presentation.scoped_sources import BprSources
-    from mta.runtime.captured_input import SCHEMAS,origin
     from django.core.exceptions import ObjectDoesNotExist
     if not isinstance(sources,BprSources):_fail()
     run=sources.run
     try:
-        physical=origin(run) if run.input_payload.get('schema') in SCHEMAS else run
-        input_storage.read_input(physical,components=())
+        from mta.presentation.selected_input import physical as input_owner
+        physical=input_owner(run)
         node=_object(input_v3._node_at(physical.input_payload,INPUT))
         if set(node)!={'owner','revision','provenance_digest','rows','rows_digest'}:_fail()
         expected={key:_scalar(value) for key,value in node.items() if key!='rows'}

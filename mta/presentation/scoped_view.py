@@ -63,7 +63,7 @@ def verify_guards():
 
 
 def _configuration(run):
-    from mta.runtime.input_reader import read_input
+    from mta.presentation.selected_input import read_input
     from mta.runtime.production_scope import CONFIGURED_SCHEMA
     request=read_input(run,components=('scope_request',)).get('scope_request')
     fields={'schema','scope','command_key','compatibility_digest','runtime_reports'}

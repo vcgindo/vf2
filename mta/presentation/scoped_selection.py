@@ -41,7 +41,7 @@ def recipe_digest():
         scoped_btr, btr_sql, btr, btr_display, btr_export, buffer_trends_sql, mdm_views,
         scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
         bor_preparation, boroa_preparation, native_report_colours, daily_rrr_read,
-        scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)
+        scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view, selected_input)
     return digest({m.__name__: inspect.getsource(m) for m in
         (inspect.getmodule(recipe_digest), phase_selection, scoped_api, scoped_overview, scoped_rrr, rrr_prepared_sql,
          views, bpr_prepared, bpr_response, bpr_export, rrr_export, rrr_types, planning_git_sql,
@@ -51,7 +51,7 @@ def recipe_digest():
          scoped_logistics, logistics_read, scoped_bor, bor_sql, boroa_sql,
          bor_preparation, boroa_preparation, native_report_colours,
          production_bor_contract, production_output_policy, daily_rrr_read,
-         scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view)})
+         scoped_batch_files, scoped_batch_downloads, scoped_dbm_stop, scoped_dbm_view, selected_input)})
 
 
 def native_identity(view):
@@ -61,7 +61,7 @@ def native_identity(view):
     from mta.presentation.native_publication import require_mode
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     from mta.runtime.models import ProductionInitialization, MdmDailyInputCapture
-    from mta.runtime.input_reader import read_input
+    from mta.presentation.selected_input import read_input
     from mta.presentation.report_verification import profile_reference
     require_mode()
     run = view.run
@@ -144,21 +144,23 @@ def _selected():
         if anchor != getattr(settings, 'VF_MTA_PHASE_SELECTION', None):
             raise PublicationUnavailable('phase_selection_changed_restart_required')
         cut = _cut(anchor['run_id'])
-        if anchor['schema']==DBM_SCHEMA:
-            from mta.presentation import scoped_dbm_view
-            view = scoped_dbm_view.selected(anchor,cut)
-            if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
-                raise PublicationUnavailable('pre_btr_selection_changed')
+        from mta.presentation.selected_input import selection
+        with selection(anchor['run_id']):
+            if anchor['schema']==DBM_SCHEMA:
+                from mta.presentation import scoped_dbm_view
+                view = scoped_dbm_view.selected(anchor,cut)
+                if candidate(view)!=anchor or _cut(anchor['run_id'])!=cut:
+                    raise PublicationUnavailable('pre_btr_selection_changed')
+                return view
+            rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
+                action_command__isnull=True,
+                report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
+                recipe_digest=scoped_view.recipe_digest(), metadata__bpr__remarks__live_highwater=cut[1])[:2])
+            if len(rows) != 1: raise PublicationUnavailable('phase_current_reference_missing_or_ambiguous')
+            view = scoped_view.bind(rows[0].pk, expected_digest=rows[0].digest)
+            if candidate(view) != anchor: raise PublicationUnavailable('phase_selection_identity_changed')
+            if _cut(anchor['run_id']) != cut: raise PublicationUnavailable('phase_current_reference_changed')
             return view
-        rows = list(ScopeReadReference.objects.filter(report_generation__run_id=anchor['run_id'],
-            action_command__isnull=True,
-            report_generation__phase_id=anchor['phase_id'], report_generation__action_revision=cut[0],
-            recipe_digest=scoped_view.recipe_digest(), metadata__bpr__remarks__live_highwater=cut[1])[:2])
-        if len(rows) != 1: raise PublicationUnavailable('phase_current_reference_missing_or_ambiguous')
-        view = scoped_view.bind(rows[0].pk, expected_digest=rows[0].digest)
-        if candidate(view) != anchor: raise PublicationUnavailable('phase_selection_identity_changed')
-        if _cut(anchor['run_id']) != cut: raise PublicationUnavailable('phase_current_reference_changed')
-        return view
     except (OSError, ValueError, KeyError, TypeError, AttributeError, ObjectDoesNotExist, ValidationError) as error:
         if isinstance(error, PublicationUnavailable): raise
         raise PublicationUnavailable('phase_selection_unavailable') from error

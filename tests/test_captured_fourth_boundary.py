@@ -26,8 +26,9 @@ class Graph:
             run=SimpleNamespace(pk=UUID(int=i+1),kind='DAILY_CHAIN',status='FAILED',
                 evidence_mode='production',business_date=date(2026,4,8),predecessor_id=None,
                 execution_revision='r'+str(i),input_digest='a'*64,output_digest='',output_roster=[],production_digest='',
-                checkpoints=MagicMock(),commands=MagicMock(),successors=MagicMock())
-            for name in ('checkpoints','commands','successors'):getattr(run,name).exists.return_value=False
+                checkpoints=MagicMock(),commands=MagicMock(),successors=MagicMock(),
+                phase_snapshots=MagicMock(),scope_attempts=MagicMock())
+            for name in ('checkpoints','commands','successors','phase_snapshots','scope_attempts'):getattr(run,name).exists.return_value=False
             run.identity=dict(database_name='owned_unit',database_oid=9,source_digest='b'*64,owner_kind='run',owner_id=str(run.pk))
             if not i:
                 run.input_payload=dict(schema='fresh-daily-input-manifest-v3',content_digest=run.input_digest)
@@ -63,6 +64,15 @@ class Graph:
 
 
 class FourthBoundaryTests(unittest.TestCase):
+    def test_committed_phase_or_scope_attempt_prevents_uncommitted_recovery(self):
+        from mta.runtime.captured_recovery import _uncommitted
+        for name in ('phase_snapshots', 'scope_attempts'):
+            with self.subTest(relation=name):
+                run = Graph(0).runs[0]
+                getattr(run, name).exists.return_value = True
+                with self.assertRaises(ValueError):
+                    _uncommitted(run)
+
     def test_terminal_reader_preserves_all_ancestry_and_seventh_is_denied(self):
         for depth in (1,2,3,4,5,6,7):
             g=Graph(depth)

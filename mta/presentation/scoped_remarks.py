@@ -127,14 +127,13 @@ class RemarkBinding:
 
 def bind(sources,*,configuration_digest):
     from mta.presentation.scoped_sources import BprSources
-    from mta.runtime.captured_input import SCHEMAS,origin
-    from mta.runtime.input_reader import read_input
+    from mta.presentation.selected_input import read_input
     from django.core.exceptions import ObjectDoesNotExist
     if not isinstance(sources,BprSources):_fail()
     run=sources.run
     try:
-        physical=origin(run) if run.input_payload.get('schema') in SCHEMAS else run
-        input_storage.read_input(physical,components=())
+        from mta.presentation.selected_input import physical as input_owner
+        physical=input_owner(run)
         node=_object(input_v3._node_at(physical.input_payload,INPUT))
         if set(node)!={'provenance_digest','provenance_receipt','watermark','cutoff','rows','rows_digest'}:_fail()
         expected={key:_metadata_value(value) for key,value in node.items() if key!='rows'}
