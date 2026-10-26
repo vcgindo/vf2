@@ -14,11 +14,10 @@ def prepared(flag, run):
         raise ValueError('Unknown terminal reader mode')
     if getattr(settings, flag, False):
         return True
-    from mta.runtime.bpr_history_completion import AUTHORITY
+    from mta.presentation.terminal_bpr_delivery import applicable, binding
     if (not settings.VF_MTA_NATIVE_PUBLICATION or not settings.VF_MTA_DAILY_PUBLICATION
-            or str(getattr(run, 'pk', None)) != AUTHORITY['run']
+            or not applicable(run)
             or getattr(run, 'status', None) != 'SUCCEEDED'):
         return False
-    from mta.presentation.terminal_bpr_delivery import binding
     binding(run)
     return True

@@ -12,19 +12,39 @@ from mta.serialization import digest
 
 
 def applicable(run):
-    return str(run.pk) == AUTHORITY['run']
+    from mta.runtime.production_post_dbm import AUTHORITY as POST_DBM
+    return str(getattr(run, 'pk', None)) in (AUTHORITY['run'], POST_DBM['run'])
+
+
+def _phase(run):
+    from mta.runtime.scoped_pick_files import _accepted
+    if str(run.pk) == AUTHORITY['run']:
+        from mta.runtime.bpr_history_completion import verified
+        completion = verified(run)
+        return _accepted(completion.phase_id, completion.phase_digest)
+    from mta.runtime.production_post_dbm import AUTHORITY as POST_DBM, _entry
+    dbm = _entry(run, dict(command_key='terminal-bpr-read', dbm_digest=POST_DBM['dbm_digest'],
+                           action_revision=POST_DBM['action_revision']))
+    final = run.phase_acceptances.select_related('attempt').get(phase='DAY_FINAL', state_sealed=True)
+    from mta.runtime.scope_execution import head, receipt_digest
+    owner = final.attempt
+    if (final.digest != receipt_digest(final) or head(run.pk) != ('DAY_FINAL', final.digest)
+            or final.metadata.get('output_digest') != run.output_digest
+            or owner.scope != 'PostDBM' or owner.status != 'RELEASED'
+            or owner.expected_phase != 'DBM' or owner.expected_receipt_digest != dbm.digest
+            or owner.action_revision != POST_DBM['action_revision']):
+        raise PublicationUnavailable('terminal_bpr_post_dbm_owner_differs')
+    return _accepted(dbm.snapshot.parent.acceptance_id,
+                     dbm.metadata['effects']['parent_acceptance_digest'])
 
 
 @once_per_request
 def binding(run):
     from mta.runtime.receipt_integrity import verify_root
-    from mta.runtime.bpr_history_completion import verified
-    from mta.runtime.scoped_pick_files import _accepted
     if not applicable(run) or run.status != 'SUCCEEDED':
         raise PublicationUnavailable('terminal_bpr_delivery_owner_required')
     verify_root(run)
-    completion = verified(run)
-    phase = _accepted(completion.phase_id, completion.phase_digest)
+    phase = _phase(run)
     from mta.presentation.scoped_sources import bind
     from mta.runtime.scoped_actions import revision
     sources = bind(phase.pk, expected_digest=phase.digest, action_revision=revision(run))
@@ -33,8 +53,10 @@ def binding(run):
 
 def output_policy(run, day):
     from mta.presentation.scoped_bor import policy
+    expected = (AUTHORITY['policy'] if str(getattr(run, 'pk', '')) == AUTHORITY['run']
+                else dict(bor_history_horizon=90, rrr_history_horizon=90))
     if (day.get('production_report_schema') != 'fresh-production-source-inputs-v1'
-            or day.get('production_report_policy') != AUTHORITY['policy']):
+            or day.get('production_report_policy') != expected):
         raise PublicationUnavailable('terminal_bpr_original_policy_differs')
     return policy(binding(run))['output_contract']
 
@@ -54,7 +76,7 @@ def projected_rows(run, name, fields):
 
 
 def report_paths(values):
-    if str(settings.VF_MTA_PUBLISHED_RUN) != AUTHORITY['run']:
+    if not applicable(SimpleNamespace(pk=settings.VF_MTA_PUBLISHED_RUN)):
         return values
     from mta.presentation.context import selected_run
     from mta.presentation import scoped_batch_downloads
@@ -84,7 +106,7 @@ def open_report(run, payload, report_name):
         policy(view)
         from mta.runtime.production_report_storage import read
         rows = read(run, 'BORWithOrderAllocation')
-        if digest(rows) != AUTHORITY['sources']['BOR_OrderAllocationHistory']['current_digest']:
+        if digest(rows) != _allocation_digest(view):
             raise PublicationUnavailable('terminal_bpr_allocation_source_changed')
         products, locations = scope(payload, attributes=pick._attributes(run))
         if (not all(any(_sql_equal(row['SKUCode'], code) for code in products) for row in rows)
@@ -112,3 +134,21 @@ def open_report(run, payload, report_name):
     except BaseException:
         stream.close()
         raise
+
+
+def _allocation_digest(view):
+    if str(view.run.pk) == AUTHORITY['run']:
+        return AUTHORITY['sources']['BOR_OrderAllocationHistory']['current_digest']
+    # New UptoDBM runs own histories normally in BPR. Read that accepted image,
+    # never borrow the older run's exceptional history-completion receipt.
+    from mta.presentation.scoped_sources import _image, _checked
+    from mta.runtime import phase_state
+    from mta.runtime.relational_state import load_image
+    manifest = view.phase.snapshot.manifest
+    logical = _image(manifest, ('consumers', 'production_reports', 'BORWithOrderAllocation'))
+    if logical is None:
+        raise PublicationUnavailable('terminal_bpr_allocation_source_missing')
+    item = _checked(manifest['images'].get(logical))
+    if item['table'] != 'production/BORWithOrderAllocation':
+        raise PublicationUnavailable('terminal_bpr_allocation_source_owner_differs')
+    return digest(load_image(view.run, item, table_registry=phase_state.REGISTRY))

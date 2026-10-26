@@ -13,6 +13,43 @@ from mta.presentation import terminal_bpr_delivery as delivery, pick_downloads a
 
 
 class TerminalBprDeliveryTests(TestCase):
+    def test_post_dbm_uses_its_accepted_bpr_not_late_history_exception(self):
+        from mta.runtime.production_post_dbm import AUTHORITY as POST_DBM
+        from unittest.mock import MagicMock
+        run = NS(pk=POST_DBM['run'], status='SUCCEEDED', output_digest='terminal', phase_acceptances=MagicMock())
+        dbm = NS(digest=POST_DBM['dbm_digest'], snapshot=NS(parent=NS(acceptance_id='own-bpr')),
+                 metadata={'effects': {'parent_acceptance_digest': 'own-bpr-digest'}})
+        owner = NS(scope='PostDBM', status='RELEASED', expected_phase='DBM',
+                   expected_receipt_digest=dbm.digest, action_revision=177)
+        final = NS(attempt=owner, digest='final', metadata={'output_digest':'terminal'})
+        run.phase_acceptances.select_related.return_value.get.return_value = final
+        with patch('mta.runtime.production_post_dbm._entry', return_value=dbm), \
+                patch('mta.runtime.scope_execution.head', return_value=('DAY_FINAL','final')), \
+                patch('mta.runtime.scope_execution.receipt_digest', return_value='final'), \
+                patch('mta.runtime.scoped_pick_files._accepted', return_value='own-phase') as accepted, \
+                patch('mta.runtime.bpr_history_completion.verified', side_effect=AssertionError('foreign late completion')):
+            self.assertTrue(delivery.applicable(run))
+            self.assertEqual(delivery._phase(run), 'own-phase')
+            accepted.assert_called_once_with('own-bpr', 'own-bpr-digest')
+            owner.expected_receipt_digest='foreign'
+            with self.assertRaisesRegex(ValueError, 'post_dbm_owner_differs'):delivery._phase(run)
+
+    def test_post_dbm_allocation_digest_reads_exact_accepted_image(self):
+        from mta.runtime.production_post_dbm import AUTHORITY as POST_DBM
+        from mta.serialization import digest
+        rows=[{'SKUCode':'one','Quantity':None},{'SKUCode':'one','Quantity':None}]
+        item={'table':'production/BORWithOrderAllocation'}
+        view=NS(run=NS(pk=POST_DBM['run']),phase=NS(snapshot=NS(manifest={'images':{'own-image':item}})))
+        with patch('mta.presentation.scoped_sources._image',return_value='own-image'), \
+                patch('mta.presentation.scoped_sources._checked',side_effect=lambda value:value), \
+                patch('mta.runtime.relational_state.load_image',return_value=rows) as load:
+            self.assertEqual(delivery._allocation_digest(view),digest(rows))
+            self.assertNotEqual(delivery._allocation_digest(view),digest(rows[:1]))
+            self.assertIs(load.call_args.args[0],view.run)
+            item['table']='wrong-source'
+            with self.assertRaisesRegex(ValueError,'allocation_source_owner_differs'):
+                delivery._allocation_digest(view)
+
     def test_policy_cannot_replace_capture_or_apply_to_another_owner(self):
         self.assertFalse(delivery.applicable(NS(pk='another-run')))
         with patch.object(delivery, 'binding', side_effect=AssertionError('must reject first')):
