@@ -68,7 +68,9 @@ def publication_recipe_digest():
 
 def registered_recipe_digest():
     from mta.presentation import registered_report_view
-    return digest(dict(selection=_current_recipe_digest(),registered=registered_report_view.recipe_digest()))
+    from mta.presentation.registered_read_compatibility import selection_recipe
+    observed = digest(dict(selection=_current_recipe_digest(),registered=registered_report_view.recipe_digest()))
+    return selection_recipe(observed)
 
 
 def recipe_for_run(run):

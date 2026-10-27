@@ -24,7 +24,7 @@ def configuration(run):
     from mta.runtime.scope_runtime_reports import require_test_database
     raw=read_input(run,components=('scope_request','profile','pick_output_root','initialization_binding'))
     request=request_contract.validate_read_request(raw.get('scope_request'))
-    require_test_database()
+    require_test_database(runtime_reports=request['runtime_reports'], run=run)
     config,hook,anchor,policy=request_contract.configuration(request['runtime_reports'])
     binding=raw.get('initialization_binding')
     if (run.kind!='DAILY_CHAIN' or run.evidence_mode!='production'

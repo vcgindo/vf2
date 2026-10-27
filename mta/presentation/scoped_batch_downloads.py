@@ -57,7 +57,7 @@ def _manifest(path, expected_sha256):
     if (type(value) is not dict or set(value) != FIELDS or value['schema'] != producer.SCHEMA
             or value['digest'] != digest({k:v for k,v in value.items() if k != 'digest'})
             or value['recipe_digest'] != producer.recipe_digest()
-            or value['declaration'] != producer.TEST_DECLARATION
+            or value['declaration'] not in (producer.TEST_DECLARATION, producer.PRODUCTION_DECLARATION)
             or type(value['declaration']['IsMTOEnvironment']) is not int):
         _fail('manifest_identity_differs')
     original = {k:v for k,v in value.items() if k not in ('digest','payload_digest','files','wrappers')}
@@ -162,9 +162,15 @@ def verify(phase_id, *, expected_digest, expected_run_id, expected_snapshot_dige
     """
     from mta.runtime.scope_runtime_reports import require_test_database
     try:
-        require_test_database()
         root, value = _manifest(manifest_file, manifest_sha256)
         phase = scoped_sources._accepted_phase(phase_id, expected_digest)
+        if value['declaration'] == producer.PRODUCTION_DECLARATION:
+            from mta.runtime.input_reader import read_input
+            from mta.runtime.production_scope_policy import disposition
+            disposition(read_input(phase.run, components=('scope_request',))['scope_request']['dispositions'])
+            require_test_database(run=phase.run)
+        else:
+            require_test_database()
         if (phase.phase != 'BPR' or value['run_id'] != str(expected_run_id)
                 or value['run_id'] != str(phase.run_id) or value['phase_id'] != str(phase_id)
                 or value['phase_id'] != str(phase.pk) or value['phase_digest'] != expected_digest

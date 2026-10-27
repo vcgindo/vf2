@@ -12,7 +12,7 @@ from types import SimpleNamespace
 from uuid import UUID
 from django.apps import apps
 
-from release.scoped_csv import check_request, profile_reference, require_selection
+from mta.runtime.csv_scope_operator import check_request, profile_reference, require_selection, require_profile_site
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,25 +28,26 @@ class ScopeRegistrationTests(unittest.TestCase):
         self.owner = SimpleNamespace(pk=UUID('00000000-0000-4000-8000-000000000001'), source=SimpleNamespace(digest='source'))
         self.cert = SimpleNamespace(pk=UUID('00000000-0000-4000-8000-000000000002'), receipt_digest='certificate')
         self.guard = self.stack.enter_context(patch('mta.runtime.scope_runtime_reports.require_test_database'))
-        self.stack.enter_context(patch('release.scoped_csv.ROOT',self.root))
+        self.stack.enter_context(patch('mta.runtime.csv_scope_operator.ROOT',self.root))
         self.stack.enter_context(patch('mta.runtime.daily_feed.binding_owner',return_value=({},self.owner)))
         self.stack.enter_context(patch('mta.runtime.models.InitializationCertification.objects.get',return_value=self.cert))
-        self.stack.enter_context(patch('release.scoped_csv.profile_reference',return_value={'actual-initialization':'new'}))
+        self.stack.enter_context(patch('mta.runtime.csv_scope_operator.profile_reference',return_value={'actual-initialization':'new'}))
+        self.site = self.stack.enter_context(patch('mta.runtime.csv_scope_operator.initialized_profile',return_value={'delivery':{'site_code':'SUPPLIED-INSTANCE'}}))
         self.stack.enter_context(patch('mta.runtime.report_definition_registration.encode',return_value={'registration_digest':'registered'}))
         self.writer = self.stack.enter_context(patch('mta.runtime.report_definition_registration.register',return_value=SimpleNamespace(pk='registered')))
         profile = Path(self.temp.name)/'profile.json'
-        profile.write_text('{}')
+        profile.write_text(json.dumps({'hook':{'site_code':'SUPPLIED-INSTANCE'},'disposition':{'site_code':'SUPPLIED-INSTANCE'}}))
         self.args = SimpleNamespace(binding='owned-binding',profile=profile)
 
     def test_registration_uses_actual_certified_owner_and_source(self):
-        from release.scoped_csv import register
+        from mta.runtime.csv_scope_operator import register
         self.assertEqual(register(self.args),{'status':'SCOPE_PROFILE_REGISTERED'})
         self.guard.assert_called_once_with()
         self.writer.assert_called_once_with({'actual-initialization':'new'},initialization_id=str(self.owner.pk),source_digest='source',certificate_digest='certificate')
         self.assertEqual(json.loads((self.root/'registration.json').read_text())['registration_digest'],'registered')
 
     def test_foreign_receipt_refused_before_native_metadata_write(self):
-        from release.scoped_csv import register
+        from mta.runtime.csv_scope_operator import register
         self.root.mkdir()
         target=self.root/'registration.json'
         target.write_bytes(b'{"registration_digest":"another-instance"}')
@@ -56,16 +57,60 @@ class ScopeRegistrationTests(unittest.TestCase):
         self.writer.assert_not_called()
         self.assertEqual(target.read_bytes(),before)
 
+    def test_captured_continuation_keeps_original_registration_without_live_registration(self):
+        from mta.runtime.csv_scope_operator import register
+        self.root.mkdir()
+        captured = dict(registration_digest='original-captured-registration',
+                        reference={'actual-initialization': 'new'})
+        (self.root / 'registration.json').write_text(json.dumps(captured))
+        with patch('mta.runtime.csv_scope_operator.captured_registration', return_value=captured):
+            self.assertEqual(register(self.args, inspect_only=True)['status'], 'SCOPE_REGISTRATION_PREFLIGHT_READY')
+            self.assertEqual(register(self.args)['status'], 'SCOPE_PROFILE_REGISTERED')
+        self.writer.assert_not_called()
+
+    def test_captured_registration_cannot_be_replaced_by_a_different_local_receipt(self):
+        from mta.runtime.csv_scope_operator import register
+        self.root.mkdir()
+        (self.root / 'registration.json').write_text('{"registration_digest":"foreign"}')
+        with patch('mta.runtime.csv_scope_operator.captured_registration', return_value={
+                'registration_digest': 'original', 'reference': {'actual-initialization': 'new'}}):
+            with self.assertRaisesRegex(ValueError, 'Original captured'):
+                register(self.args, inspect_only=True)
+        self.writer.assert_not_called()
+
     def test_native_database_restriction_is_checked_before_registration(self):
-        from release.scoped_csv import register
+        from mta.runtime.csv_scope_operator import register
         self.guard.side_effect=ValueError('owned validation database required')
         with self.assertRaisesRegex(ValueError,'owned validation'):
             register(self.args)
         self.writer.assert_not_called()
         self.assertFalse(self.root.exists())
 
+    def test_actual_opening_site_mismatch_prevents_registration(self):
+        from mta.runtime.csv_scope_operator import register
+        self.site.return_value={'delivery':{'site_code':'GulfOil'}}
+        with self.assertRaisesRegex(ValueError,'GulfOil'):
+            register(self.args)
+        self.writer.assert_not_called()
+        self.assertFalse(self.root.exists())
+
 
 class ScopeRequestTests(unittest.TestCase):
+    def test_large_pack_site_cannot_be_relabelled_as_the_supplied_instance(self):
+        actual={'delivery':{'site_code':'GulfOil'}}
+        profile={'hook':{'site_code':'SUPPLIED-INSTANCE'},'disposition':{'site_code':'SUPPLIED-INSTANCE'}}
+        with self.assertRaisesRegex(ValueError,'contract extension'):
+            require_profile_site(profile,actual)
+        self.assertEqual(actual['delivery']['site_code'],'GulfOil')
+        self.assertIsNone(require_profile_site(profile,{'delivery':{'site_code':'SUPPLIED-INSTANCE'}}))
+
+    def test_scope_adapter_is_in_both_source_and_native_image_rosters(self):
+        from release.export import included
+        from release.native_identity import _native
+        self.assertTrue(included('mta/runtime/csv_scope_operator.py'))
+        self.assertTrue(_native('mta/runtime/csv_scope_operator.py'))
+        self.assertTrue(_native('mta/runtime/csv_scope_operator.py'))
+
     def test_same_run_wrong_phase_cannot_pass_terminal_serving_verification(self):
         with self.assertRaisesRegex(ValueError, 'selection differs'):
             require_selection('same-run', {'selection_digest':'old-bpr'}, 'same-run', 'terminal')
@@ -160,6 +205,7 @@ class ScopeRequestTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('pwsh'), 'PowerShell7 required')
 class ScopeLauncherTests(unittest.TestCase):
+    shell = 'pwsh'
     def invoke_scope(self, case):
         """Run the real host flow with only its Docker process boundary mocked."""
         import os
@@ -210,7 +256,7 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
  & ./release/run_csv_scope.ps1 -BusinessDate 2026-04-09 -Scope UptoBPR -Resume
 } else { & ./release/run_csv_scope.ps1 -BusinessDate 2026-04-09 -Scope UptoBPR }
 ''')
-            result = subprocess.run(['pwsh','-NoProfile','-File',str(root/'runner.ps1')], cwd=root,
+            result = subprocess.run([self.shell,'-NoProfile','-File',str(root/'runner.ps1')], cwd=root,
                 env={**os.environ, 'VECTORFLOW_OPERATOR_ROOT':str(root), 'VECTORFLOW_OPERATOR_CASE':case}, capture_output=True,text=True)
             calls = [json.loads(line) for line in (root/'trace.jsonl').read_text(encoding='utf-8-sig').splitlines()]
             overlay = root/'state/vectorflow.scope.json'
@@ -261,7 +307,7 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
                 'param($BusinessDate,$Scope,[switch]$InspectOnly,[switch]$Resume)\n'
                 '@{date=$BusinessDate;scope=$Scope;inspect=[bool]$InspectOnly;resume=[bool]$Resume}|ConvertTo-Json -Compress\n')
             for scope in ('Full', 'UptoBPR', 'PostBPR', 'UptoDBM', 'PostDBM'):
-                result = subprocess.run(['pwsh', '-NoProfile', '-File', str(root / 'vf.ps1'),
+                result = subprocess.run([self.shell, '-NoProfile', '-File', str(root / 'vf.ps1'),
                     'csv-scope', '2026-04-09', '-Scope', scope, '-InspectOnly'],
                     capture_output=True, text=True, cwd=root)
                 self.assertEqual(result.returncode, 0, result.stderr)
@@ -274,8 +320,13 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
             with tempfile.TemporaryDirectory() as temporary:
                 runner = Path(temporary) / 'parse.ps1'
                 runner.write_text(script)
-                result = subprocess.run(['pwsh', '-NoProfile', '-File', str(runner), str(ROOT / relative)], capture_output=True, text=True)
+                result = subprocess.run([self.shell, '-NoProfile', '-File', str(runner), str(ROOT / relative)], capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
+
+
+@unittest.skipUnless(shutil.which('powershell'), 'Windows PowerShell5.1 required')
+class WindowsPowerShellScopeLauncherTests(ScopeLauncherTests):
+    shell = 'powershell'
 
 
 if __name__ == '__main__':

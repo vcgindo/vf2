@@ -26,13 +26,17 @@ def archive_clock(business_date):
 
 
 def write_input_archive(root, *, physical, table_exports, importer_database,
-                        business_date, executable=None, tool_sha256=None, archive_writer=None):
+                        business_date, executable=None, tool_sha256=None, archive_writer=None,
+                        database_policy=None):
     """Consume separately verified producer bytes; no SQL exporter substitution.
 
     Caller owns the exclusive attempt root and verified database identity. File
     failures remain on disk in that attempt; recovery uses another owned root.
     """
-    if not re.fullmatch(r'VFTEST_Fresh_[A-Za-z0-9_]+', importer_database):
+    if database_policy == 'vectorflow-production-generic-scope-policy-v1':
+        from mta.runtime.production_scope_policy import archive_label
+        archive_label(importer_database)
+    elif database_policy is not None or not re.fullmatch(r'VFTEST_Fresh_[A-Za-z0-9_]+', importer_database):
         raise ValueError('Exclusive Fresh SQL Importer label required')
     physical_names = [name + '.csv' for name in (*PHYSICAL_TABLES, 'InTransitRaw')]
     export_names = [importer_database + '_' + name + '.CSV' for name in PHYSICAL_TABLES]

@@ -59,7 +59,7 @@ def configuration(run):
     inner = read_input(run, components=('scope_request',)).get('scope_request')
     if outer is None or inner['scope'] not in ('UptoBPR', 'UptoDBM'):
         raise PublicationUnavailable('registered_intermediate_capture_required')
-    require_test_database()
+    require_test_database(runtime_reports=inner['runtime_reports'], run=run)
     bpr = RunPhaseAcceptance.objects.select_related('snapshot__parent').get(
         run=run, phase='BPR', state_sealed=True)
     pre = bpr.snapshot.parent.acceptance

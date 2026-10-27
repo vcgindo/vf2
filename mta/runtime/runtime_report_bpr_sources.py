@@ -44,7 +44,7 @@ def _hook(bound):
         if value['site_code'] != site:
             raise ValueError('PostBPR test hook site differs from captured profile')
         kind = 'captured-owned-test-disposition'
-    reference = dict(kind=kind, placement='PostBPR', mode='declared-no-op',
+    reference = dict(kind=kind, placement='PostBPR', mode=value.get('mode', 'declared-no-op'),
         site_code=site, configuration_digest=digest(value), owner=deepcopy(bound.identity))
     reference['digest'] = digest(reference)
     return reference

@@ -85,7 +85,7 @@ def configuration(profile, day, value):
 def _configuration(run, value):
     from mta.runtime.input_reader import read_input
     from mta.runtime.scope_runtime_reports import require_test_database
-    require_test_database()
+    require_test_database(runtime_reports=value['runtime_reports'], run=run)
     raw = read_input(run, components=('profile','day'))
     # A fresh request must declare the normal BPR history producer. The earlier
     # retained run's exceptional late completion cannot apply to this run.
@@ -126,11 +126,15 @@ def _bpr_files(run, bpr, value, *, repair):
     with connection.cursor() as cursor:
         cursor.execute('SELECT current_database()')
         database = cursor.fetchone()[0]
-    declaration = dict(schema=scoped_artifacts.SCHEMA, purpose='owned-scoped-test',
+    from mta.runtime import production_scope_policy as generic
+    production = value['dispositions']['schema'] == generic.SCHEMA
+    declaration = dict(schema=scoped_artifacts.PRODUCTION_SCHEMA if production else scoped_artifacts.SCHEMA,
+        purpose=generic.PURPOSE if production else 'owned-scoped-test',
         run_id=str(run.pk), phase_id=str(bpr.pk), phase_digest=bpr.digest,
         input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
-        site_code=value['dispositions']['site_code'], post_bpr_hook='explicit-test-no-op',
-        input_download=True, importer_database=archive_label(database),
+        site_code=value['dispositions']['site_code'],
+        post_bpr_hook=generic.MODE if production else 'explicit-test-no-op',
+        input_download=True, importer_database=generic.archive_label(database) if production else archive_label(database),
         physical_files=list(scoped_artifacts.PHYSICAL), input_tables=list(scoped_artifacts.TABLES),
         archive_clock='business-midnight-Asia-Kolkata', authority=value['dispositions']['authority'])
     raw = (json.dumps(declaration, sort_keys=True)+'\n').encode()

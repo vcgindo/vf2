@@ -19,13 +19,23 @@ def policy(view):
     """Validate the pinned opt-in without selecting or changing a serving view."""
     from mta.runtime.scope_runtime_reports import require_test_database
     sources = view.bpr.sources
-    expected = dict(purpose='owned-scoped-test', run_id=str(view.run_id),
+    selected = getattr(settings, 'VF_MTA_SCOPED_BOR_OUTPUT_POLICY', None)
+    from mta.runtime import production_scope_policy as generic
+    production = isinstance(selected, dict) and selected.get('purpose') == generic.PURPOSE
+    run = None
+    if production:
+        from mta.runtime.models import CalculationRun
+        from mta.runtime.input_reader import read_input
+        run = CalculationRun.objects.get(pk=view.run_id)
+        captured = read_input(run, components=('scope_request',))['scope_request']
+        generic.disposition(captured['dispositions'])
+    expected = dict(purpose=generic.PURPOSE if production else 'owned-scoped-test', run_id=str(view.run_id),
         phase_id=str(sources.acceptance_id), phase_digest=sources.acceptance_digest,
         snapshot_digest=sources.snapshot_digest, output_contract=production_output_policy.contract())
     if getattr(settings, 'VF_MTA_SCOPED_BOR_OUTPUT_POLICY', None) != expected:
         raise PublicationUnavailable('bpr_bor_test_output_policy_required')
     try:
-        require_test_database()
+        require_test_database(run=run) if production else require_test_database()
     except ValueError as error:
         raise PublicationUnavailable('bpr_bor_owned_test_database_required') from error
     return expected

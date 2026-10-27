@@ -15,13 +15,15 @@ $configText = & docker compose --profile '*' config --format json
 if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
 $config = ConvertFrom-VfJson ($configText -join "`n")
 $daily = $config['x-vectorflow-daily']
+$scopePolicy = if ($daily.scope_policy) { $daily.scope_policy } else { 'retained-test' }
+if ($scopePolicy -notin @('retained-test','generic')) { throw 'Set VECTORFLOW_SCOPE_POLICY=generic for supported generic scope processing' }
 foreach ($key in @('input_dir','binding_file','state_dir')) {
     if (-not $daily[$key] -or -not (Test-VfAbsolutePath $daily[$key])) { throw "Configure the absolute daily $key first; run csv-init once" }
 }
 $inputRoot = [IO.Path]::GetFullPath($daily.input_dir)
 $binding = Get-Item -LiteralPath $daily.binding_file
 $profile = Join-Path $binding.DirectoryName 'config/scope-validation.json'
-if (-not (Test-Path -LiteralPath $profile -PathType Leaf)) { throw 'The offline pack needs config/scope-validation.json; no default scope profile is inferred' }
+if ($scopePolicy -eq 'retained-test' -and -not (Test-Path -LiteralPath $profile -PathType Leaf)) { throw 'The retained-test mode requires config/scope-validation.json; choose generic explicitly for the packaged production profile' }
 $stateRoot = [IO.Path]::GetFullPath($daily.state_dir)
 $null = New-Item -ItemType Directory -Force -Path $stateRoot
 $operationRoot = Join-Path $stateRoot ('scope-' + [guid]::NewGuid().ToString('N'))
@@ -52,8 +54,8 @@ function ComposeCall([string[]]$Arguments, [switch]$Json) {
     if ($Json) { return ConvertFrom-VfJson $text }
 }
 function Worker([string]$Operation, [string]$Service = 'daily', [string]$Run, [string]$SelectionDigest, [string]$Proof) {
-    $arguments = @('run','--rm','--no-deps','-T',$Service,'-m','release.scoped_csv',$Operation,
-        '--date',$BusinessDate,'--scope',$Scope,'--binding',('/onboarding/' + $binding.Name))
+    $arguments = @('run','--rm','--no-deps','-T',$Service,'-m','mta.runtime.csv_scope_operator',$Operation,
+        '--date',$BusinessDate,'--scope',$Scope,'--policy',$scopePolicy,'--binding',('/onboarding/' + $binding.Name))
     if ($Resume) { $arguments += '--resume' }
     if ($Run) { $arguments += @('--run',$Run) }
     if ($SelectionDigest) { $arguments += @('--selection-digest',$SelectionDigest) }
@@ -90,6 +92,7 @@ try {
             @{type='bind';source=$binding.DirectoryName;target='/onboarding';read_only=$true})
     }
     Write-VfUtf8 $privateConfig ($config | ConvertTo-Json -Depth 100)
+    $null = Worker -Operation 'preflight' -Service 'provision'
     $before = Worker -Operation 'inspect'
     if ($InspectOnly) {
         $result = $before
@@ -98,18 +101,20 @@ try {
         $result['message'] = 'Existing published operation retained; no calculation, selection or restart.'
         if ($Resume) {
             # Admit the actual CURRENT selection before touching the service.
-            $null = ComposeCall -Arguments @('run','--rm','--no-deps','-T','mta','-m','release.scoped_csv','serving',
+            $null = ComposeCall -Arguments @('run','--rm','--no-deps','-T','mta','-m','mta.runtime.csv_scope_operator','serving',
                 '--run',$before.run_id,'--selection-digest',$before.selection_digest,'--admission-only') -Json
             $maintenance = $true
             ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--force-recreate','--wait','mta')
-            $result = ComposeCall -Arguments @('exec','-T','mta','python','-m','release.scoped_csv','serving','--run',$before.run_id,
+            $result = ComposeCall -Arguments @('exec','-T','mta','python','-m','mta.runtime.csv_scope_operator','serving','--run',$before.run_id,
                 '--selection-digest',$before.selection_digest) -Json
             $maintenance = $false
         }
     } else {
+        # Actual registration follows complete read-only input admission and
+        # still precedes any stop. Existing published operations remain reads.
+        $null = Worker -Operation 'register' -Service 'provision'
         ComposeCall -Arguments @('stop','mta')
         $maintenance = $true
-        $null = Worker -Operation 'register' -Service 'provision'
         $result = Worker -Operation 'execute'
         if ($result.status -ne 'PREPARED') { throw 'Scope/report preparation is incomplete; no serving change' }
         foreach ($key in @($result.environment.Keys)) { $config.services.mta.environment[$key] = $result.environment[$key] }
@@ -124,7 +129,7 @@ try {
         Write-VfEnvironment -Root (Get-Location).Path -Changes @{COMPOSE_PATH_SEPARATOR=';';COMPOSE_FILE=($files -join ';')}
         Write-VfUtf8 $privateConfig ($config | ConvertTo-Json -Depth 100)
         ComposeCall -Arguments @('up','-d','--no-deps','--no-build','--force-recreate','--wait','mta')
-        $proof = ComposeCall -Arguments @('exec','-T','mta','python','-m','release.scoped_csv','serving','--run',$result.run_id,
+        $proof = ComposeCall -Arguments @('exec','-T','mta','python','-m','mta.runtime.csv_scope_operator','serving','--run',$result.run_id,
             '--selection-digest',$result.selection_digest) -Json
         $result = Worker -Operation 'acknowledge' -Run $result.run_id -SelectionDigest $result.selection_digest -Proof ($proof | ConvertTo-Json -Depth 10 -Compress)
         $maintenance = $false

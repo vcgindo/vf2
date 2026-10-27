@@ -23,55 +23,88 @@ READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 # Filled from the reviewed staged export, never from a caller or live database.
 # Raw hashes qualify the native artifact; text hashes also support Python's
 # universal-newline source recipes in a Windows development checkout.
-ADAPTED_FILES = {'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
+ 'mta/application/runtime_report_hooks.py': '2d1054ac705b43c159fb12618ef5f4ff6c02451a214a407e6fb5dbe5f1611102',
+ 'mta/config/production_scope_profile.json': 'cf6bc4b10854ee966ad4eea2af43b03cb34b1d9a5b6e2dc2e8bed55e40c33421',
+ 'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ 'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
+ 'mta/presentation/registered_report_view.py': '01ae33ab88694414a7f45c816439965ad52e939f87d67bff9dba1fc4027cb144',
+ 'mta/presentation/scoped_artifacts.py': '4f1a61db37335940b1ce6911eff464cf99284053f57ca1fa7c8a764f852b4821',
+ 'mta/presentation/scoped_batch_downloads.py': '6d9c48ed037902564217055005e167782b6a4fffb822660efe60d830d27efb9e',
+ 'mta/presentation/scoped_batch_files.py': '8cfc8221749c47e8646e3689256682890348ba2456dcd75728ff82d1f52188f8',
+ 'mta/presentation/scoped_bor.py': '6f0f61572e1ead503b90d7193f6442c8b93f95e520975660d354f9bc0cade727',
+ 'mta/presentation/scoped_selection.py': '69e8fbb4a5c168ad30dcba47a1ab640394d04dc25c6f917ae8f781687aad802a',
+ 'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
  'mta/presentation/terminal_read_mode.py': '5ddc0218330c6ecf211f189ed5ab9c914034f0725ba74d05abd6a5ca594df3db',
- 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162',
- 'mta/presentation/registered_read_compatibility.py': 'f8a2e56ef5c254b8a34672c0d70e2e45e9fe12eb337578a86746144ca9e7f585',
- 'mta/presentation/registered_report_view.py': 'e8c7291d7f043261d3240577b2d669d1e6bd054da90e5519853a3f1436f27e4d',
- 'mta/presentation/scoped_view.py': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
+ 'mta/runtime/csv_scope_operator.py': '7328a644c20d14f9a1bee52b8272cf69584c3ffcd21cfc823ed043b9068c06cf',
  'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
- 'mta/runtime/ingestion_authority.py': '2d701c9b3500c08400aba7e9345979d7bb3e8fff91eb7f8661ee08a9c35e8630',
+ 'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
  'mta/runtime/migrations/0238_registered_read_action_cut.py': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
+ 'mta/runtime/migrations/0239_production_generic_scope_read.py': '44e28f4a8b34912540ee56767e26c22ab1565870f583cc88a993936f5a522297',
  'mta/runtime/placement_master_publication.py': 'd545c9d84c6aa7ff7f85bab4bbae26e8fcb4eadc5951674f33dc2a520729a0d5',
- 'mta/runtime/production_report_placement.py': 'd27e4eb15f830a977c2e72d48b02148de0a764b226b69bc7f6c62c2e986d483a',
- 'mta/runtime/production_scope.py': '66cb6136186676fd0e110bae2ab2595c89d4837bd1ba2704e7db6103f9b5a44a',
+ 'mta/runtime/production_report_placement.py': 'd061425d85d9a75b149c62c7409a9c14322895777143e8d2290e968638b52544',
+ 'mta/runtime/production_scope.py': '032b122392ee2c4ff5c32ea8af0929233d7bf6e0b23c535a9045b865299aed1b',
+ 'mta/runtime/production_scope_policy.py': '88ab6efa6f77958d874fbcaecb049a32dc7bee2368b7ad61f28dacc52612ff0f',
+ 'mta/runtime/production_upto_dbm.py': '37f6f384e255193578e9a89d627d940c643a5ffd8812944b3ababca7d2442643',
  'mta/runtime/registered_read_action_transition.py': 'e18412674f29ccbf0fe0dcd6ec0845e98d4f0966516c1376790ab10b69057125',
+ 'mta/runtime/report_definition_registration.py': 'cab2b8c7f8403f610e4f8627615537eb6212877dd54b148d9a3f4bdaa1b27816',
+ 'mta/runtime/runtime_report_bpr_sources.py': 'a3b2bd56af4e44e3865b98ed518c6ba644608068eaf855793e07eb6c44234c8d',
  'mta/runtime/runtime_report_execution.py': '9ccfe45c6aefc4b8217740d8e7f3b7a66883b520da8a1f08f32e870b02f54c35',
- 'mta/runtime/runtime_report_registered_request.py': '0e3059f95a13ec3165105d1d2130426c2d389ccf9db08b533396d9151e42176b',
- 'mta/runtime/runtime_report_request.py': 'd99147a7a6b79483a422897faa0b7087511d6dd449a3b14ee722fea0679cc140',
+ 'mta/runtime/runtime_report_placement_publication.py': '7bc24600074336f5ace9807e0c3f2e5da499fe75aa67caad0f183afd52014ead',
+ 'mta/runtime/runtime_report_registered_request.py': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
+ 'mta/runtime/runtime_report_request.py': '8e2f3186a5e6874aed9c3fe3facd131660e49f81445132a3a9006d8cfad702ff',
  'mta/runtime/scope_execution.py': '1812f2e986db6b8b1fd91688ab0c3cd2183a0714c8007c5992d646a17d5b6d78',
- 'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838'}
-ADAPTED_PYTHON_TEXT = {'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ 'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
+ 'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838',
+ 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
+ADAPTED_PYTHON_TEXT = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
+ 'mta/application/runtime_report_hooks.py': '2d1054ac705b43c159fb12618ef5f4ff6c02451a214a407e6fb5dbe5f1611102',
+ 'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ 'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
+ 'mta/presentation/registered_report_view.py': '01ae33ab88694414a7f45c816439965ad52e939f87d67bff9dba1fc4027cb144',
+ 'mta/presentation/scoped_artifacts.py': '4f1a61db37335940b1ce6911eff464cf99284053f57ca1fa7c8a764f852b4821',
+ 'mta/presentation/scoped_batch_downloads.py': '6d9c48ed037902564217055005e167782b6a4fffb822660efe60d830d27efb9e',
+ 'mta/presentation/scoped_batch_files.py': '8cfc8221749c47e8646e3689256682890348ba2456dcd75728ff82d1f52188f8',
+ 'mta/presentation/scoped_bor.py': '6f0f61572e1ead503b90d7193f6442c8b93f95e520975660d354f9bc0cade727',
+ 'mta/presentation/scoped_selection.py': '69e8fbb4a5c168ad30dcba47a1ab640394d04dc25c6f917ae8f781687aad802a',
+ 'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
  'mta/presentation/terminal_read_mode.py': '5ddc0218330c6ecf211f189ed5ab9c914034f0725ba74d05abd6a5ca594df3db',
- 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162',
- 'mta/presentation/registered_read_compatibility.py': 'f8a2e56ef5c254b8a34672c0d70e2e45e9fe12eb337578a86746144ca9e7f585',
- 'mta/presentation/registered_report_view.py': 'e8c7291d7f043261d3240577b2d669d1e6bd054da90e5519853a3f1436f27e4d',
- 'mta/presentation/scoped_view.py': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
+ 'mta/runtime/csv_scope_operator.py': '7328a644c20d14f9a1bee52b8272cf69584c3ffcd21cfc823ed043b9068c06cf',
  'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
- 'mta/runtime/ingestion_authority.py': '2d701c9b3500c08400aba7e9345979d7bb3e8fff91eb7f8661ee08a9c35e8630',
+ 'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
  'mta/runtime/migrations/0238_registered_read_action_cut.py': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
+ 'mta/runtime/migrations/0239_production_generic_scope_read.py': '44e28f4a8b34912540ee56767e26c22ab1565870f583cc88a993936f5a522297',
  'mta/runtime/placement_master_publication.py': 'd545c9d84c6aa7ff7f85bab4bbae26e8fcb4eadc5951674f33dc2a520729a0d5',
- 'mta/runtime/production_report_placement.py': 'd27e4eb15f830a977c2e72d48b02148de0a764b226b69bc7f6c62c2e986d483a',
- 'mta/runtime/production_scope.py': '66cb6136186676fd0e110bae2ab2595c89d4837bd1ba2704e7db6103f9b5a44a',
+ 'mta/runtime/production_report_placement.py': 'd061425d85d9a75b149c62c7409a9c14322895777143e8d2290e968638b52544',
+ 'mta/runtime/production_scope.py': '032b122392ee2c4ff5c32ea8af0929233d7bf6e0b23c535a9045b865299aed1b',
+ 'mta/runtime/production_scope_policy.py': '88ab6efa6f77958d874fbcaecb049a32dc7bee2368b7ad61f28dacc52612ff0f',
+ 'mta/runtime/production_upto_dbm.py': '37f6f384e255193578e9a89d627d940c643a5ffd8812944b3ababca7d2442643',
  'mta/runtime/registered_read_action_transition.py': 'e18412674f29ccbf0fe0dcd6ec0845e98d4f0966516c1376790ab10b69057125',
+ 'mta/runtime/report_definition_registration.py': 'cab2b8c7f8403f610e4f8627615537eb6212877dd54b148d9a3f4bdaa1b27816',
+ 'mta/runtime/runtime_report_bpr_sources.py': 'a3b2bd56af4e44e3865b98ed518c6ba644608068eaf855793e07eb6c44234c8d',
  'mta/runtime/runtime_report_execution.py': '9ccfe45c6aefc4b8217740d8e7f3b7a66883b520da8a1f08f32e870b02f54c35',
- 'mta/runtime/runtime_report_registered_request.py': '0e3059f95a13ec3165105d1d2130426c2d389ccf9db08b533396d9151e42176b',
- 'mta/runtime/runtime_report_request.py': 'd99147a7a6b79483a422897faa0b7087511d6dd449a3b14ee722fea0679cc140',
+ 'mta/runtime/runtime_report_placement_publication.py': '7bc24600074336f5ace9807e0c3f2e5da499fe75aa67caad0f183afd52014ead',
+ 'mta/runtime/runtime_report_registered_request.py': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
+ 'mta/runtime/runtime_report_request.py': '8e2f3186a5e6874aed9c3fe3facd131660e49f81445132a3a9006d8cfad702ff',
  'mta/runtime/scope_execution.py': '1812f2e986db6b8b1fd91688ab0c3cd2183a0714c8007c5992d646a17d5b6d78',
- 'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838'}
-NEW_FILES = {
-    'mta/presentation/registered_read_compatibility.py',
-    'mta/runtime/registered_read_action_transition.py',
-    'mta/runtime/migrations/0238_registered_read_action_cut.py',
-    'mta/runtime/_retained_execution_source_pins.py',
-    'mta/runtime/retained_registered_execution_compatibility.py',
-}
+ 'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
+ 'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838',
+ 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
+NEW_FILES = {'mta/config/production_scope_profile.json',
+ 'mta/presentation/registered_read_compatibility.py',
+ 'mta/runtime/_retained_execution_source_pins.py',
+ 'mta/runtime/csv_scope_operator.py',
+ 'mta/runtime/migrations/0238_registered_read_action_cut.py',
+ 'mta/runtime/migrations/0239_production_generic_scope_read.py',
+ 'mta/runtime/production_scope_policy.py',
+ 'mta/runtime/registered_read_action_transition.py',
+ 'mta/runtime/retained_registered_execution_compatibility.py'}
 PROFILE_FILES = {
     'mta/runtime/_retained_execution_source_pins.py',
     'mta/runtime/retained_registered_execution_compatibility.py',
 }
-OBSERVED_PUBLICATION_RECIPE = '7d5c4dc8a7c1a623c96e9e48f36779a7fd51f954ed5277063376927ddd1a9ead'
-OBSERVED_ATTACHMENT_RECIPE = 'ae393a0d612497af702f650b7cdc2cd824b6ff50fa360f2857ac5ba2d02f7fab'
+OBSERVED_PUBLICATION_RECIPE = 'fc9265d4d6c6401e33015ae3437ab4743ef4c48f9eb4d4e03a9b6e003e7dc3a1'
+OBSERVED_ATTACHMENT_RECIPE = '1ca267426afca271cfb0141bfd6c52d64a0d0254765bb5413dc0e336e846dfaf'
 
 
 def check_source_manifest(files):
@@ -111,6 +144,20 @@ def attachment_recipe(observed):
     if observed != OBSERVED_ATTACHMENT_RECIPE:
         raise ValueError('Retained execution registration adaptation differs')
     return ATTACHMENT_RECIPE
+
+
+def artifact_recipe(observed):
+    _recipe_sources()
+    if observed != OBSERVED_ARTIFACT_RECIPE:
+        raise ValueError('Retained InputData reader adaptation differs')
+    return ARTIFACT_RECIPE
+
+
+def batch_recipe(observed):
+    _recipe_sources()
+    if observed != OBSERVED_BATCH_RECIPE:
+        raise ValueError('Retained BPR batch reader adaptation differs')
+    return BATCH_RECIPE
 
 
 @lru_cache(maxsize=1)
@@ -209,3 +256,8 @@ def transition_profile(initialization_id, previous, target):
     if process_release() != target:
         raise ValueError('Retained execution transition release differs')
     return True
+
+ARTIFACT_RECIPE = 'b7047ad865d00062f29575c07e70ce95834a3cc9871ab9dfd0f4a03f546e2f46'
+OBSERVED_ARTIFACT_RECIPE = 'd2080ffadf99f9cafe71dcf3c7a06b0d6c2a2eaf95989dd17eef0dd8a6478f48'
+BATCH_RECIPE = '1a244a5376c43b7791ba88b3923e461adc6d9e48d9c3ca6e5deaa32bff46abee'
+OBSERVED_BATCH_RECIPE = 'ad4d23e6d2e491fab475a9556ff3c0ed07fe3af5a2515139efa332e3af1f9090'

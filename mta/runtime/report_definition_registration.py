@@ -117,7 +117,10 @@ def decode(value):
         sha(header[key])
     sha(value['registration_digest'])
     config = configuration_from_rows(value['report_rows'], value['seed_rows'], value['ui_rows'])
-    reference = dict(schema=placement.REFERENCE, purpose='owned-placement-publication-test',
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
+    production = json.loads(value['policy']['disposition_json']).get('schema') == PRODUCTION_POLICY
+    reference = dict(schema=placement.REFERENCE,
+        purpose='production-generic-placement' if production else 'owned-placement-publication-test',
         configuration_json=_canonical(config), configuration_digest=digest(config), **value['policy'])
     _supported(reference, header['initialization_id'])
     expected = dict(configuration_digest=digest(config),
@@ -174,7 +177,7 @@ def verify_guards(cursor):
         raise ValueError('Report registration trigger coverage differs')
 
 
-def register(reference, *, initialization_id, source_digest, certificate_digest):
+def register(reference, *, initialization_id, source_digest, certificate_digest, inspect_only=False):
     """Atomically register future definitions under existing native authority.
 
     Neither existing requests nor live/generated settings are updated. An exact
@@ -187,16 +190,20 @@ def register(reference, *, initialization_id, source_digest, certificate_digest)
     from mta.runtime.report_definition_models import (ReportDefinitionRegistration,
         RegisteredRuntimeReport, RegisteredRuntimeReportSeed, RegisteredDownloadableUiSetting)
     identity(initialization_id); sha(source_digest); sha(certificate_digest)
+    if type(inspect_only) is not bool:
+        raise ValueError('Explicit registration inspection mode required')
     _supported(reference, initialization_id)
     if connection.in_atomic_block:
         raise ValueError('Report registration owns its native transaction')
     release = require_current()
     initial = ProductionInitialization.objects.get(pk=initialization_id)
     with transaction.atomic(), connection.cursor() as cursor:
-        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
-        MdmSource.objects.select_for_update().get(pk=initial.source_id)
-        owner = ProductionInitialization.objects.select_for_update().get(pk=initialization_id)
-        IngestionRevisionState.objects.select_for_update().get(initialization=owner)
+        cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ' + (' READ ONLY' if inspect_only else ''))
+        def owned(queryset):
+            return queryset if inspect_only else queryset.select_for_update()
+        owned(MdmSource.objects).get(pk=initial.source_id)
+        owner = owned(ProductionInitialization.objects).get(pk=initialization_id)
+        owned(IngestionRevisionState.objects).get(initialization=owner)
         before = ingestion_admission._admit(cursor, initialization_id, release)
         verify_guards(cursor)
         cursor.execute("SELECT N.owner_oid=(SELECT oid FROM pg_roles WHERE rolname=current_user) "
@@ -213,7 +220,9 @@ def register(reference, *, initialization_id, source_digest, certificate_digest)
         if existing is not None:
             if _stored(existing) != value:
                 raise ValueError('Existing report registration differs')
-            return existing
+            return value if inspect_only else existing
+        if inspect_only:
+            return value
         cursor.execute("SELECT set_config('vectorflow.report_definition_registration',%s,true)",
                        [value['registration_digest']])
         installed = ReportDefinitionRegistration.objects.create(id=value['registration_digest'],

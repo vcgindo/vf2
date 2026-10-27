@@ -25,12 +25,17 @@ SCHEMA = 'fresh-scoped-batch-files-v1'
 TEST_DECLARATION = dict(purpose='owned-scoped-test', IsMTOEnvironment=0,
     excluded_optional_branches=['ModifiedRRR', 'DistSpecialOrder', 'DistTransaction'],
     allocation_history='unsupported-owned-test')
+PRODUCTION_DECLARATION = dict(purpose='production-generic-scoped', IsMTOEnvironment=0,
+    excluded_optional_branches=['ModifiedRRR', 'DistSpecialOrder', 'DistTransaction'],
+    allocation_history='captured-accepted-bpr')
 
 
 def recipe_digest():
     modules = (inspect.getmodule(recipe_digest), bor, exceptions, alerts, sqlcmd, files, operational_io,
                native_report_colours, complete_daily_scalars)
-    return digest({module.__name__: inspect.getsource(module) for module in modules})
+    observed = digest({module.__name__: inspect.getsource(module) for module in modules})
+    from mta.runtime.retained_registered_execution_compatibility import batch_recipe
+    return batch_recipe(observed)
 
 
 def _source(phase, node, table, fields, receipts):
@@ -64,10 +69,16 @@ def _source(phase, node, table, fields, receipts):
 def payload(phase_id, *, expected_digest, declaration):
     """Return canonical bytes and source metadata without writing any files."""
     from mta.runtime.scope_runtime_reports import require_test_database
-    if declaration != TEST_DECLARATION or type(declaration.get('IsMTOEnvironment')) is not int:
+    if declaration not in (TEST_DECLARATION, PRODUCTION_DECLARATION) or type(declaration.get('IsMTOEnvironment')) is not int:
         raise PublicationUnavailable('bpr_batch_explicit_test_declaration_required')
-    require_test_database()
     phase = scoped_sources._accepted_phase(phase_id, expected_digest)
+    if declaration == PRODUCTION_DECLARATION:
+        from mta.runtime.input_reader import read_input
+        from mta.runtime.production_scope_policy import disposition
+        disposition(read_input(phase.run, components=('scope_request',))['scope_request']['dispositions'])
+        require_test_database(run=phase.run)
+    else:
+        require_test_database()
     if phase.phase != 'BPR':
         raise PublicationUnavailable('bpr_batch_accepted_bpr_required')
     sources = {}

@@ -15,6 +15,7 @@ import zipfile
 from mta.serialization import digest
 
 SCHEMA = 'fresh-scoped-test-delivery-v1'
+PRODUCTION_SCHEMA = 'vectorflow-production-generic-scope-delivery-v1'
 RECEIPT = 'fresh-scoped-input-artifact-v1'
 TABLES = ('MasterDataRaw', 'DailyDataRaw', 'SOBDataRaw', 'MOQDataRaw1')
 PHYSICAL = tuple(name + '.csv' for name in (*TABLES, 'InTransitRaw'))
@@ -38,14 +39,21 @@ def declaration(path, expected_sha256):
     if len(raw) > 8192 or _sha(raw) != expected_sha256:
         raise ValueError('Scoped delivery declaration file differs')
     value = json.loads(raw, object_pairs_hook=object_pairs)
-    if (type(value) is not dict or set(value) != FIELDS or value['schema'] != SCHEMA
-            or value['purpose'] != 'owned-scoped-test' or value['input_download'] is not True
+    production = isinstance(value, dict) and value.get('schema') == PRODUCTION_SCHEMA
+    from mta.runtime import production_scope_policy as generic
+    if (type(value) is not dict or set(value) != FIELDS
+            or value['schema'] not in (SCHEMA, PRODUCTION_SCHEMA)
+            or value['purpose'] != (generic.PURPOSE if production else 'owned-scoped-test')
+            or value['input_download'] is not True
             or value['physical_files'] != list(PHYSICAL) or value['input_tables'] != list(TABLES)
             or value['archive_clock'] != 'business-midnight-Asia-Kolkata'
-            or value['site_code'] != 'SUPPLIED-INSTANCE'
-            or value['post_bpr_hook'] != 'explicit-test-no-op'
+            or (not production and value['site_code'] != 'SUPPLIED-INSTANCE')
+            or value['post_bpr_hook'] != (generic.MODE if production else 'explicit-test-no-op')
             or type(value['authority']) is not str or not 1 <= len(value['authority']) <= 1000):
         raise ValueError('Explicit enabled owned-test InputData and hook disposition required')
+    if production:
+        generic.text(value['site_code'], 100, 'configured site')
+        generic.archive_label(value['importer_database'])
     for name in ('run_id', 'phase_id'):
         UUID(value[name])
     for name in ('phase_digest', 'input_digest', 'input_manifest_digest'):
@@ -64,7 +72,19 @@ def _bind(phase_id, expected_digest, value):
     with connection.cursor() as cursor:
         cursor.execute('SELECT current_database()')
         database = cursor.fetchone()[0]
-    if (not database.lower().startswith('vftest_fresh_')
+    production = value['schema'] == PRODUCTION_SCHEMA
+    if production:
+        from mta.runtime.scope_runtime_reports import require_test_database
+        require_test_database(run=run)
+        raw = read_input(run, components=('scope_request',))['scope_request']
+        from mta.runtime.production_scope_policy import SCHEMA as POLICY_SCHEMA
+        if raw['dispositions']['schema'] != POLICY_SCHEMA:
+            raise ValueError('Production archive requires its captured generic policy')
+        if (value['site_code'] != raw['dispositions']['site_code']
+                or value['authority'] != raw['dispositions']['authority']):
+            raise ValueError('Production archive differs from captured policy authority')
+    if ((not production and not database.lower().startswith('vftest_fresh_'))
+            or (production and value['importer_database'] != database)
             or value['importer_database'].casefold() != database.casefold()
             or phase.phase != 'BPR' or value['run_id'] != str(run.pk)
             or value['phase_id'] != str(phase.pk) or value['phase_digest'] != phase.digest
@@ -133,7 +153,8 @@ def _root(phase, value):
 
 
 def _recipe():
-    return digest(inspect.getsource(inspect.getmodule(_recipe)))
+    from mta.runtime.retained_registered_execution_compatibility import artifact_recipe
+    return artifact_recipe(digest(inspect.getsource(inspect.getmodule(_recipe))))
 
 
 def _members(phase, physical, exports):
@@ -168,7 +189,9 @@ def prepare(phase_id, *, expected_digest, declaration_file, declaration_sha256):
         return dict(inspect_file(root, destination), members=members)
     result = write_input_archive(root, physical=physical, table_exports=exports,
         importer_database=value['importer_database'], business_date=phase.run.business_date,
-        archive_writer=archive_writer)
+        archive_writer=archive_writer,
+        database_policy=('vectorflow-production-generic-scope-policy-v1'
+                         if value['schema'] == PRODUCTION_SCHEMA else None))
     receipt = dict(schema=RECEIPT, declaration=value, declaration_sha256=declaration_sha256,
         recipe_digest=_recipe(), phase_snapshot_digest=phase.snapshot.state_digest,
         producer_images=owners, members={name: dict(size=len(raw), sha256=_sha(raw))

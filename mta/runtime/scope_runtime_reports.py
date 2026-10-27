@@ -123,8 +123,22 @@ def load(path,expected_sha256):
     return decode(raw,expected_sha256)
 
 
-def require_test_database():
+def require_test_database(*, runtime_reports=None, run=None):
     """Additional restriction, after the native installer's ownership check."""
+    if run is not None:
+        from mta.runtime.input_reader import read_input
+        captured = read_input(run, components=('scope_request',)).get('scope_request', {})
+        reference = captured.get('runtime_reports')
+        if runtime_reports is not None and reference != runtime_reports:
+            raise ValueError('Scope database request differs from captured owner')
+        runtime_reports = reference
+    if isinstance(runtime_reports, dict):
+        from mta.runtime import production_scope_policy as production
+        from mta.runtime import runtime_report_request
+        if runtime_reports.get('purpose') == 'production-generic-placement':
+            runtime_report_request.configuration(runtime_reports)
+            production.require_database(runtime_reports, run=run)
+            return
     from django.db import connection
     with connection.cursor() as cursor:
         cursor.execute('SELECT current_database()')

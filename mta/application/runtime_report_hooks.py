@@ -11,6 +11,9 @@ SCHEMA = 'fresh-runtime-report-hook-configuration-v1'
 
 
 def configuration(value):
+    from mta.runtime.production_scope_policy import HOOK_SCHEMA, hook
+    if isinstance(value, dict) and value.get('schema') == HOOK_SCHEMA:
+        return hook(value)
     if (type(value) is not dict or set(value) != {
             'schema', 'site_code', 'placement', 'mode', 'authority', 'source_sha256'}
             or value['schema'] != SCHEMA or value['placement'] != 'PostBPR'

@@ -67,6 +67,10 @@ def verify_guards(*,publication=False,registered=False):
             "WHERE app='fresh_mta' AND name='0238_registered_read_action_cut')")
         if cursor.fetchone()==(True,):
             registered_body=import_module('mta.runtime.migrations.0238_registered_read_action_cut').BODY
+        cursor.execute("SELECT EXISTS(SELECT 1 FROM mta.django_migrations "
+            "WHERE app='fresh_mta' AND name='0239_production_generic_scope_read')")
+        if cursor.fetchone()==(True,):
+            registered_body=import_module('mta.runtime.migrations.0239_production_generic_scope_read').BODY
         registered_expected=[(name,registered_body if name=='guard_scope_read_reference' else body,
             False,['search_path=pg_catalog, mta'],'plpgsql',True,True,True)
             for name,body in sorted(bodies.items())]

@@ -16,7 +16,7 @@ def execute(raw,expected_sha256,*,scope,command_key,runtime_reports=None,worker_
     if not transaction.get_autocommit():raise ValueError('Native placement entry owns its transaction boundaries')
     if type(inspect_only) is not bool or type(repair_files) is not bool:
         raise ValueError('Explicit placement inspection/repair flags required')
-    require_publication_writer();original.authorize();require_test_database()
+    require_publication_writer();original.authorize()
     registration=None
     if registration_digest is not None:
         if runtime_reports is not None:
@@ -27,6 +27,7 @@ def execute(raw,expected_sha256,*,scope,command_key,runtime_reports=None,worker_
         value=registered['scope_request'];registration=registered['report_registration_request']
     else:
         value=contract.request(scope,command_key,runtime_reports=runtime_reports)
+    require_test_database(runtime_reports=value['runtime_reports'])
     if any(arguments.get(name) is not None for name in ('feed_attempt','report_disposition')):
         raise ValueError('Placement request cannot replace its captured input/dispositions')
     if scope!='Full' and arguments.get('retry_capture_id') is not None:

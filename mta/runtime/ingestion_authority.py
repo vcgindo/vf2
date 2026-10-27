@@ -201,7 +201,7 @@ def validate_schema_transition(body):
                     '0232_runtime_report_consumer_read','0233_report_definition_registration',
                     '0234_report_definition_guards','0235_registered_scope_read_attachment',
                     '0236_intake_diagnostic_custody','0237_intake_diagnostic_guards',
-                    '0238_registered_read_action_cut')):
+                    '0238_registered_read_action_cut','0239_production_generic_scope_read')):
             raise ValueError('Invalid schema transition migration name')
         sha(pin)
     return body

@@ -20,12 +20,14 @@ FIELDS = frozenset({'schema', 'scope_request_digest', 'registration',
                     'attachment_recipe', 'attachment_digest'})
 
 
-def recipe_digest():
+def recipe_digest(*, production=False):
     # Old placement sources and factory remain untouched. This additional
     # identity covers typed reconstruction and the future attachment contract.
-    observed=digest(dict(schema=SCHEMA, placement=placement.recipe_digest(), modules={
+    observed=digest(dict(schema=SCHEMA, placement=placement.recipe_digest(production=production), modules={
         module.__name__: inspect.getsource(module) for module in
         (inspect.getmodule(recipe_digest), registrations)}))
+    if production:
+        return observed
     from mta.runtime.retained_registered_execution_compatibility import attachment_recipe
     return attachment_recipe(observed)
 
@@ -49,8 +51,10 @@ def _reconstruct(reference, binding):
 def _attachment(scope_request, stored):
     if registrations.decode(stored) != scope_request['runtime_reports']:
         raise ValueError('Executable request differs from registered definitions')
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
+    production = scope_request['dispositions']['schema'] == PRODUCTION_POLICY
     value = dict(schema=SCHEMA, scope_request_digest=digest(scope_request),
-                 registration=_binding(stored), attachment_recipe=recipe_digest())
+                 registration=_binding(stored), attachment_recipe=recipe_digest(production=production))
     value['attachment_digest'] = digest(value)
     return value
 

@@ -1,7 +1,7 @@
-"""Operator adapter for CSV scope validation; existing native owners do the work.
+"""Native-image operator adapter for CSV scope validation; reuse existing owners.
 
 No calculation, admission, hook or report algorithm is implemented here. This
-path deliberately retains the native owned-test database/profile restrictions.
+path preserves old test contracts and explicitly selected generic policies.
 """
 import argparse
 from copy import deepcopy
@@ -31,31 +31,70 @@ def read_json(path):
     return decode_json(raw)
 
 
-def profile_reference(profile, initialization_id, source_digest):
+def operation_record(root):
+    path = root / 'operation.json'
+    if path.exists():
+        return read_json(path)
+    if root.exists():
+        raise ValueError('Incomplete frozen scope directory has no operation receipt; preserve it and diagnose before stop')
+    return None
+
+
+def profile_reference(profile, initialization_id, source_digest, *, policy_mode='retained-test', site_code=None):
     """Rebind supplied configuration to THIS opening; never adopt an old run."""
     from mta.application import runtime_report_configuration as definitions
     from mta.runtime import runtime_report_request as request
     from mta.serialization import digest
-    if (type(profile) is not dict or set(profile) != {
+    production_profile = isinstance(profile, dict) and profile.get('schema') == 'vectorflow-production-scope-profile-v1'
+    if production_profile:
+        from mta.runtime.production_scope_policy import GENERIC_POLICY
+        if (policy_mode != 'generic' or set(profile) != {
+                'schema', 'configuration', 'business_policy', 'client_processing', 'authority'}
+                or profile['business_policy'] != GENERIC_POLICY or profile['client_processing'] is not False):
+            raise ValueError('Explicit generic production profile without client processing required')
+    elif (type(profile) is not dict or set(profile) != {
             'schema', 'configuration', 'hook', 'disposition', 'authority'}
             or profile['schema'] != 'vectorflow-scope-validation-profile-v1'
             or type(profile['authority']) is not str or not profile['authority'].strip()):
         raise ValueError('Explicit offline scope validation profile required')
-    authority = hashlib.sha256(canonical(profile).encode()).hexdigest()
+    if type(profile['authority']) is not str or not profile['authority'].strip():
+        raise ValueError('Explicit configuration authority required')
+    if policy_mode not in ('retained-test', 'generic'):
+        raise ValueError('Explicit supported scope policy mode required')
+    if policy_mode == 'generic' and not production_profile:
+        # Reuse only the qualified definition template. An enabled or unknown
+        # input hook must be refused, never overwritten by the operator choice.
+        profile_reference(profile, initialization_id, source_digest)
+    authority_input = profile if policy_mode == 'retained-test' else dict(
+        profile=profile, scope_policy=policy_mode, initialized_site=site_code)
+    authority = hashlib.sha256(canonical(authority_input).encode()).hexdigest()
     config = definitions.configuration(profile['configuration'])
-    hook, policy = deepcopy(profile['hook']), deepcopy(profile['disposition'])
-    hook.update(authority=profile['authority'], source_sha256=authority)
-    policy['authority'] = profile['authority']
+    hook, policy = ({}, {}) if production_profile else (deepcopy(profile['hook']), deepcopy(profile['disposition']))
+    if policy_mode == 'generic':
+        from mta.runtime import production_scope_policy as generic
+        generic.text(site_code, 100, 'initialized site')
+        generic.report_configuration(config)
+        policy = dict(schema=generic.SCHEMA, purpose=generic.PURPOSE, site_code=site_code,
+            hooks={name: generic.MODE for name in generic.HOOKS},
+            input_download='enabled-five-file-four-table-archive',
+            authority='Explicit VECTORFLOW_SCOPE_POLICY=generic; ' + profile['authority'])
+        hook = dict(schema=generic.HOOK_SCHEMA, placement='PostBPR', mode=generic.MODE,
+            site_code=site_code, authority=policy['authority'], source_sha256=authority)
+    hook.update(authority=policy['authority'] if policy_mode == 'generic' else profile['authority'],
+                source_sha256=authority)
+    if policy_mode == 'retained-test':
+        policy['authority'] = profile['authority']
     anchor = dict(schema='fresh-runtime-report-catalogue-anchor-v1', kind='INITIALIZATION',
         identity=initialization_id, output_digest=None, catalogue={},
         configuration_digest=digest(config), definition_digest=definitions.definition_digest(config),
         last_generated=definitions.last_generated(config),
         evidence=dict(authority=authority, source=source_digest))
-    reference = dict(schema=request.REFERENCE, purpose='owned-placement-publication-test',
+    reference = dict(schema=request.REFERENCE,
+        purpose='production-generic-placement' if policy_mode == 'generic' else 'owned-placement-publication-test',
         configuration_json=canonical(config), configuration_digest=digest(config),
         hook_json=canonical(hook), disposition_json=canonical(policy),
         catalogue_anchor_json=canonical(anchor), authority_sha256=authority)
-    # Enforce the existing exact definitions, seeds, disabled RRR and test hooks.
+    # Enforce exact definitions, seeds, disabled independent RRR and the selected policy version.
     request.validate_reference(reference)
     return reference
 
@@ -99,20 +138,92 @@ def require_selection(actual_run, selected, expected_run, expected_digest):
         raise ValueError('Actual serving run or phase/terminal selection differs')
 
 
+def require_profile_site(profile, initialized):
+    actual = initialized.get('delivery', {}).get('site_code')
+    hook = profile.get('hook', {}).get('site_code')
+    disposition = profile.get('disposition', {}).get('site_code')
+    if not actual or actual != hook or actual != disposition:
+        raise ValueError('Scope profile site %r/%r does not match initialized site %r. '
+            'No scope operation is authorized; use the supported Full csv-day path. '
+            'A site/hook contract extension is required, not a renamed opening.' % (hook, disposition, actual))
+
+
+def initialized_profile(owner):
+    from mta.runtime.input_storage import read_input
+    from mta.runtime.opening_storage import load_image
+    return read_input(owner, components=('profile',), image_reader=load_image)['profile']
+
+
+def selected_profile(args):
+    path = Path(args.profile)
+    if path.exists():
+        return read_json(path)
+    if getattr(args, 'policy', 'retained-test') == 'generic':
+        return read_json(Path(__file__).resolve().parents[1] / 'config/production_scope_profile.json')
+    raise ValueError('Explicit retained scope profile required')
+
+
+def selected_reference(args, owner, profile):
+    initialized = initialized_profile(owner)
+    mode = getattr(args, 'policy', 'retained-test')
+    if mode == 'generic':
+        from mta.runtime import production_scope_policy as generic
+        from mta.runtime.runtime_report_request import configuration
+        site = initialized.get('delivery', {}).get('site_code')
+        reference = profile_reference(profile, str(owner.pk), owner.source.digest,
+            policy_mode=mode, site_code=site)
+        generic.configuration(initialized, configuration(reference)[3])
+        return reference
+    if mode != 'retained-test':
+        raise ValueError('Unknown scope policy mode')
+    require_profile_site(profile, initialized)
+    return profile_reference(profile, str(owner.pk), owner.source.digest)
+
+
+def captured_registration(args, reference):
+    """Existing work keeps its original native registration, not a live reseal."""
+    if not getattr(args, 'date', None):
+        return None
+    path = ROOT / args.date / 'operation.json'
+    receipt = read_json(path) if path.exists() else None
+    if not receipt or not receipt.get('run_id'):
+        return None
+    from mta.runtime.models import CalculationRun
+    from mta.runtime.runtime_report_registered_request import read_captured
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.scope_runtime_reports import require_test_database
+    run = CalculationRun.objects.get(pk=receipt['run_id'])
+    outer = read_captured(run)
+    inner = read_input(run, components=('scope_request',))['scope_request']
+    if outer is None or inner['runtime_reports'] != reference:
+        raise ValueError('Recorded operation differs from its captured typed registration')
+    require_test_database(runtime_reports=reference, run=run)
+    return dict(registration_digest=outer['registration']['registration_digest'], reference=reference)
+
+
 def context(args):
     from mta.runtime import daily_feed as csv
     from mta.runtime.scope_runtime_reports import require_test_database
     from mta.runtime.production_scope import authorize
     from mta.serialization import digest
-    require_test_database()
     authorize()
     binding, owner = csv.binding_owner(args.binding)
-    reference = profile_reference(read_json(args.profile), str(owner.pk), owner.source.digest)
+    profile = selected_profile(args)
+    reference = selected_reference(args, owner, profile)
     batch, payloads, manifest = csv._batch(Path(args.input_root) / args.date, binding, args.date, Path(args.input_root))
     root = ROOT / args.date
-    receipt = read_json(root / 'operation.json') if (root / 'operation.json').exists() else None
+    receipt = operation_record(root)
     decision = check_request(receipt, scope=args.scope, binding_digest=binding['_binding_digest'],
         batch_digest=manifest['digest'], profile_digest=digest(reference), resume=args.resume)
+    if captured_registration(args, reference) is None:
+        if getattr(args, 'policy', 'retained-test') == 'generic' and args.operation == 'inspect':
+            from mta.runtime import report_definition_registration as definitions
+            from mta.runtime.models import InitializationCertification
+            cert = InitializationCertification.objects.get(initialization=owner, status='CERTIFIED')
+            definitions.register(reference, initialization_id=str(owner.pk), source_digest=owner.source.digest,
+                certificate_digest=cert.receipt_digest, inspect_only=True)
+        else:
+            require_test_database(runtime_reports=reference)
     if decision == 'START':
         from mta.runtime.models import CalculationRun
         if CalculationRun.objects.filter(business_date=args.date, mdm_input_capture__source=owner.source).exists():
@@ -127,21 +238,37 @@ def context(args):
     return csv, binding, owner, reference, batch, manifest, root, receipt, decision
 
 
-def register(args):
+def register(args, *, inspect_only=False):
     """Provisioner credential only; native registration enforces its owner."""
     from mta.runtime import daily_feed as csv, report_definition_registration as definitions
     from mta.runtime.scope_runtime_reports import require_test_database
     from mta.runtime.models import InitializationCertification
-    require_test_database()
     binding, owner = csv.binding_owner(args.binding)
-    reference = profile_reference(read_json(args.profile), str(owner.pk), owner.source.digest)
+    profile = selected_profile(args)
+    reference = selected_reference(args, owner, profile)
+    captured = captured_registration(args, reference)
+    if captured is not None:
+        target = ROOT / 'registration.json'
+        if not target.exists() or read_json(target) != captured:
+            raise ValueError('Original captured scope registration receipt is missing or differs')
+        return dict(status='SCOPE_REGISTRATION_PREFLIGHT_READY' if inspect_only else 'SCOPE_PROFILE_REGISTERED')
+    if getattr(args, 'policy', 'retained-test') != 'generic':
+        require_test_database()
     cert = InitializationCertification.objects.get(initialization=owner, status='CERTIFIED')
+    if getattr(args, 'policy', 'retained-test') == 'generic':
+        from mta.runtime.production_scope_policy import archive_label
+        archive_label(cert.database_name)
     encoded = definitions.encode(reference, initialization_id=str(owner.pk),
         source_digest=owner.source.digest, certificate_id=str(cert.pk), certificate_digest=cert.receipt_digest)
     value = dict(registration_digest=encoded['registration_digest'], reference=reference)
     target = ROOT / 'registration.json'
     if target.exists() and read_json(target) != value:
         raise ValueError('Existing scope registration differs; no replacement')
+    if inspect_only:
+        definitions.register(reference, initialization_id=str(owner.pk),
+            source_digest=owner.source.digest, certificate_digest=cert.receipt_digest,
+            inspect_only=True)
+        return dict(status='SCOPE_REGISTRATION_PREFLIGHT_READY')
     registered = definitions.register(reference, initialization_id=str(owner.pk),
         source_digest=owner.source.digest, certificate_digest=cert.receipt_digest)
     if str(registered.pk) != value['registration_digest']:
@@ -234,20 +361,28 @@ def _prepare(csv, root, receipt):
         view = (scoped_view if receipt['scope'] == 'UptoBPR' else scoped_dbm_view).prepare(
             phase.pk, expected_digest=phase.digest, action_revision=revision(run))
         sources = view.bpr.sources
-        policy = dict(purpose='owned-scoped-test', run_id=str(run.pk), phase_id=str(sources.acceptance_id),
+        from mta.runtime.input_reader import read_input
+        from mta.runtime import production_scope_policy as generic
+        request = read_input(run, components=('scope_request',))['scope_request']
+        production = request['dispositions']['schema'] == generic.SCHEMA
+        policy = dict(purpose=generic.PURPOSE if production else 'owned-scoped-test',
+            run_id=str(run.pk), phase_id=str(sources.acceptance_id),
             phase_digest=sources.acceptance_digest, snapshot_digest=sources.snapshot_digest,
             output_contract=contract())
         settings.VF_MTA_SCOPED_BOR_OUTPUT_POLICY = policy
         with connection.cursor() as cursor:
             cursor.execute('SELECT current_database()')
             database = cursor.fetchone()[0]
-        declaration = dict(schema=scoped_artifacts.SCHEMA, purpose='owned-scoped-test', run_id=str(run.pk),
+        from mta.runtime.production_upto_dbm import archive_label
+        declaration = dict(schema=scoped_artifacts.PRODUCTION_SCHEMA if production else scoped_artifacts.SCHEMA,
+            purpose=generic.PURPOSE if production else 'owned-scoped-test', run_id=str(run.pk),
             phase_id=str(sources.acceptance_id), phase_digest=sources.acceptance_digest,
             input_digest=run.input_digest, input_manifest_digest=run.input_manifest_digest,
-            site_code='SUPPLIED-INSTANCE', post_bpr_hook='explicit-test-no-op', input_download=True,
-            importer_database='VFTEST_Fresh_' + database[len('vftest_fresh_'):],
+            site_code=request['dispositions']['site_code'],
+            post_bpr_hook=generic.MODE if production else 'explicit-test-no-op', input_download=True,
+            importer_database=generic.archive_label(database) if production else archive_label(database),
             physical_files=list(scoped_artifacts.PHYSICAL), input_tables=list(scoped_artifacts.TABLES),
-            archive_clock='business-midnight-Asia-Kolkata', authority='Explicit offline scope-validation profile')
+            archive_clock='business-midnight-Asia-Kolkata', authority=request['dispositions']['authority'])
         path = root / 'inputdata-declaration.json'
         csv.atomic_json(path, declaration)
         pin = csv.file_identity(path)['sha256']
@@ -330,9 +465,10 @@ def serving(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('register', 'inspect', 'execute', 'serving', 'acknowledge'))
+    parser.add_argument('operation', choices=('register', 'preflight', 'inspect', 'execute', 'serving', 'acknowledge'))
     parser.add_argument('--date')
     parser.add_argument('--scope', choices=SCOPES)
+    parser.add_argument('--policy', choices=('retained-test', 'generic'), default='retained-test')
     parser.add_argument('--binding', default='/onboarding/binding.json')
     parser.add_argument('--profile', default='/onboarding/config/scope-validation.json')
     parser.add_argument('--input-root', default='/incoming')
@@ -351,12 +487,12 @@ def main():
         configure_image()
     import django
     django.setup()
-    if args.operation == 'register':
+    if args.operation in ('register', 'preflight'):
         # Use the existing installer session/owner role adapter, not the
         # provisioner's superuser identity or a new privilege grant.
         from release.initialize_csv import installer_login
         with installer_login():
-            result = register(args)
+            result = register(args, inspect_only=args.operation == 'preflight')
     elif args.operation == 'serving':
         result = serving(args)
     elif args.operation == 'acknowledge':

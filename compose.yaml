@@ -156,6 +156,7 @@ x-vectorflow-daily:
   input_dir: "${VF_DAILY_INPUT_DIR:-}"
   binding_file: "${VF_DAILY_BINDING_FILE:-}"
   state_dir: "${VF_DAILY_STATE_DIR:-}"
+  scope_policy: "${VECTORFLOW_SCOPE_POLICY:-retained-test}"
 
 x-vectorflow-csv:
   input_dir: "${VF_CSV_INPUT_DIR:-}"

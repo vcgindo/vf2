@@ -22,6 +22,9 @@ SCOPES=('Full','UptoBPR','UptoDBM')
 
 
 def disposition(value):
+    from mta.runtime import production_scope_policy as production
+    if isinstance(value, dict) and value.get('schema') == production.SCHEMA:
+        return production.disposition(value)
     if (type(value) is not dict or set(value)!={
             'schema','purpose','site_code','hooks','input_download','authority'}
             or value['schema']!=DISPOSITION or value['purpose']!='owned-scoped-test'
@@ -40,7 +43,8 @@ def configuration(value):
     from mta.runtime.ingestion_context import sha
     if (type(value) is not dict or set(value)!={'schema','purpose','configuration_json',
             'configuration_digest','hook_json','disposition_json','catalogue_anchor_json','authority_sha256'}
-            or value['schema']!=REFERENCE or value['purpose']!='owned-placement-publication-test'):
+            or value['schema']!=REFERENCE or value['purpose'] not in (
+                'owned-placement-publication-test', 'production-generic-placement')):
         raise ValueError('Explicit new placement publication reference required')
     sha(value['authority_sha256'])
     config=definitions.configuration(_metadata(value['configuration_json']))
@@ -55,6 +59,15 @@ def configuration(value):
         raise ValueError('Enabled downloadable UI reports remain unqualified for this request')
     hook=post_bpr_hook(_metadata(value['hook_json']))
     policy=disposition(_metadata(value['disposition_json']))
+    from mta.runtime import production_scope_policy as production
+    if policy['schema'] == production.SCHEMA:
+        production.report_configuration(config)
+        if (value['purpose'] != 'production-generic-placement'
+                or hook['schema'] != production.HOOK_SCHEMA):
+            raise ValueError('Production generic reference requires its explicit hook policy')
+    elif (value['purpose'] != 'owned-placement-publication-test'
+            or hook['schema'] != 'fresh-runtime-report-hook-configuration-v1'):
+        raise ValueError('Retained test reference cannot adopt production generic policy')
     if (hook['site_code']!=policy['site_code']
             or hook['source_sha256']!=value['authority_sha256']):
         raise ValueError('Captured placement hook authority differs')
@@ -81,7 +94,7 @@ def hook_for(value,placement):
         disposition_digest=digest(policy))
 
 
-def recipe_digest():
+def recipe_digest(*, production=False):
     from mta.application import runtime_report_bpr_inputs,runtime_report_postbtr_inputs
     from mta.application.runtime_report_btr_stage import recipe_digest as btr_recipe
     from mta.runtime import runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication
@@ -89,6 +102,9 @@ def recipe_digest():
         module.__name__:inspect.getsource(module) for module in (
             inspect.getmodule(recipe_digest),runtime_report_bpr_inputs,runtime_report_postbtr_inputs,
             runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication)}))
+    if production:
+        from mta.runtime import production_scope_policy
+        return digest(dict(recipe=observed, policy=inspect.getsource(production_scope_policy)))
     from mta.runtime.retained_registered_execution_compatibility import publication_recipe
     return publication_recipe(observed)
 
@@ -102,8 +118,10 @@ def request(scope,command_key,*,runtime_reports):
         raise ValueError('Explicit placement scope and bounded command key required')
     reference=validate_reference(runtime_reports)
     _config,hook,_anchor,policy=configuration(reference)
+    from mta.runtime.production_scope_policy import SCHEMA as PRODUCTION_POLICY
     value=dict(schema=SCHEMA,scope=scope,command_key=command_key,runtime_reports=reference,
-        report_hooks=hook,dispositions=policy,publication_recipe=recipe_digest())
+        report_hooks=hook,dispositions=policy,
+        publication_recipe=recipe_digest(production=policy['schema'] == PRODUCTION_POLICY))
     value['compatibility_digest']=digest(dict(request=value,release=require_current(),phase_recipe=phase_recipe()))
     return value
 
@@ -143,5 +161,8 @@ def validate_read_request(value):
 def validate_day(profile,day,value):
     """Use the existing history/publication policy; never infer missing fields."""
     validate_request(value)
+    from mta.runtime import production_scope_policy as production
+    if value['dispositions']['schema'] == production.SCHEMA:
+        production.configuration(profile, value['dispositions'])
     from mta.runtime.production_upto_dbm import configuration as validate_production
     validate_production(profile,day,value)

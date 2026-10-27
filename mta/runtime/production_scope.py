@@ -70,7 +70,7 @@ def captured_run(run,value):
     if 'runtime_reports' in value:
         from mta.runtime.scope_runtime_reports import require_test_database,validate
         validate(value['runtime_reports'])
-        require_test_database()
+        require_test_database(runtime_reports=value['runtime_reports'], run=run)
     if run.status=='RUNNING':
         from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
         if value.get('schema')==PLACEMENT_SCHEMA and value.get('scope')=='Full':
