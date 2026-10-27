@@ -1,0 +1,1749 @@
+{
+  "schema": "vectorflow-step5-large-plan-pins-v1",
+  "status": "READ_ONLY_INVENTORY_NOT_EXECUTION_ACCEPTANCE",
+  "recorded_utc": "2026-10-27T15:42:07.368545+00:00",
+  "clone_commit": "022e9ef2b5e33e8f762ab52fc01f75acd33e613d",
+  "application_bytes_commit": "ba32643250c1c3b916cd400fd801ae88b57122c6",
+  "frontend_auth_commit": "c63161ed35955add4ffdddf07042e131d484ca15",
+  "human_date_decision": "Three total dates; retain 2026-04-08 and propose 2026-04-09/10",
+  "opening_date": "2026-04-07",
+  "configuration_digest": "214a1c4326975ddbf9ea67a2535fa4130d3ec3a5958320ab68b80624b1f795fc",
+  "recipe_digest": "b76147260e3f58cd2fbe16a370bfe7d562f3160843595a2e9bfb853ae4fe176d",
+  "native_input_sha256": "27b3893b0f8a0f0db0197439c760677e9dc6dca07ad00f26fc4297781dd57a70",
+  "opening": {
+    "populations": 167,
+    "rows": 1692306,
+    "csv_bytes": 129445303,
+    "all167_hashes_ordered_headers_counts_verified": true,
+    "files": [
+      {
+        "file": "001-configuration-calculation-locations.csv",
+        "path": "input/configuration/calculation/locations",
+        "bytes": 10383,
+        "rows": 234,
+        "sha256": "d25d8855e18106089f4f127d4b1bb7b3583d226a3730c5f1dd3f5014a942ad0d"
+      },
+      {
+        "file": "002-configuration-calculation-logistics-items.csv",
+        "path": "input/configuration/calculation/logistics/items",
+        "bytes": 5321298,
+        "rows": 97097,
+        "sha256": "d47752d09b4ad3371a0c77fab26bec79e39b677d401d3819b357d136298ba6dc"
+      },
+      {
+        "file": "003-configuration-calculation-logistics-location_vehicles.csv",
+        "path": "input/configuration/calculation/logistics/location_vehicles",
+        "bytes": 458,
+        "rows": 54,
+        "sha256": "f645dbeb0b9200c00d95665590df275e97bb39eca42a6dcc4b68b6d973f40509"
+      },
+      {
+        "file": "004-configuration-calculation-logistics-vehicles.csv",
+        "path": "input/configuration/calculation/logistics/vehicles",
+        "bytes": 217,
+        "rows": 6,
+        "sha256": "cbd1462766fff47ed7cded97c1789e1d01c1dc4208f8e7febc968340b7aba53f"
+      },
+      {
+        "file": "005-configuration-calculation-policies.csv",
+        "path": "input/configuration/calculation/policies",
+        "bytes": 6782158,
+        "rows": 97097,
+        "sha256": "2941b430038e30629959d2667f06b4cdc70d22031b786e2e76eaa8654a88d427"
+      },
+      {
+        "file": "006-configuration-calculation-replenishment_exclusions.csv",
+        "path": "input/configuration/calculation/replenishment_exclusions",
+        "bytes": 7,
+        "rows": 0,
+        "sha256": "aed182455e3b7be551d8515b9fd83acdd4ac5875aa80fb9a6fc1196ea60eb793"
+      },
+      {
+        "file": "007-configuration-calculation-skus.csv",
+        "path": "input/configuration/calculation/skus",
+        "bytes": 101785,
+        "rows": 2189,
+        "sha256": "1ecd13607a074cd5ede0bf0496424129257f6fdf282ea4a592ef1abb48318fb8"
+      },
+      {
+        "file": "008-configuration-calculation-stock_openings.csv",
+        "path": "input/configuration/calculation/stock_openings",
+        "bytes": 3445150,
+        "rows": 97097,
+        "sha256": "2fb1bcc7036e93104bd5ba0cffd31609938dd937a548edcf55552a3e30023d62"
+      },
+      {
+        "file": "009-configuration-daily-distributor_codes.csv",
+        "path": "input/configuration/daily/distributor_codes",
+        "bytes": 7,
+        "rows": 0,
+        "sha256": "aed182455e3b7be551d8515b9fd83acdd4ac5875aa80fb9a6fc1196ea60eb793"
+      },
+      {
+        "file": "010-configuration-daily-settings.csv",
+        "path": "input/configuration/daily/settings",
+        "bytes": 77,
+        "rows": 2,
+        "sha256": "6f972429130165d8961fef14a005d563b3429dff6c8db5d3c1ef3d0238d9b221"
+      },
+      {
+        "file": "011-configuration-daily-vector_dms_codes.csv",
+        "path": "input/configuration/daily/vector_dms_codes",
+        "bytes": 7,
+        "rows": 0,
+        "sha256": "aed182455e3b7be551d8515b9fd83acdd4ac5875aa80fb9a6fc1196ea60eb793"
+      },
+      {
+        "file": "012-configuration-daily-vendor_codes.csv",
+        "path": "input/configuration/daily/vendor_codes",
+        "bytes": 7,
+        "rows": 0,
+        "sha256": "aed182455e3b7be551d8515b9fd83acdd4ac5875aa80fb9a6fc1196ea60eb793"
+      },
+      {
+        "file": "013-configuration-daily-vf_settings.csv",
+        "path": "input/configuration/daily/vf_settings",
+        "bytes": 54,
+        "rows": 1,
+        "sha256": "124520dbe1de7d46ae90408dcd92db5b6f347b11a7386906fc82f2f178e7dc3d"
+      },
+      {
+        "file": "014-configuration-delivery-btr_history-importer_vf_settings.csv",
+        "path": "input/configuration/delivery/btr_history/importer_vf_settings",
+        "bytes": 1981,
+        "rows": 16,
+        "sha256": "55117368ac2026de2ee26e27c62b0a744abdadfeb05271220925fdcaad28d158"
+      },
+      {
+        "file": "015-configuration-delivery-conditional_dbm-importer_vf_settings.csv",
+        "path": "input/configuration/delivery/conditional_dbm/importer_vf_settings",
+        "bytes": 317,
+        "rows": 3,
+        "sha256": "7fa29e3a6641125446ff1b3e81b6b5bb8975587ba25c1b8d3600fdae02a07561"
+      },
+      {
+        "file": "016-masters-btr-SKUDescriptionTbl.csv",
+        "path": "input/masters/btr/SKUDescriptionTbl",
+        "bytes": 101787,
+        "rows": 2189,
+        "sha256": "370eff249e6aba78a251eb1ceda084e871e7529002332e6edb3eadd7f10b0ccd"
+      },
+      {
+        "file": "017-masters-btr-SkuAttributeData.csv",
+        "path": "input/masters/btr/SkuAttributeData",
+        "bytes": 163449,
+        "rows": 2189,
+        "sha256": "cd1545712edf40975c911e66d1d9209c0f55d2a71e80973202a9d1a913ec946a"
+      },
+      {
+        "file": "018-masters-dbm-SKUDescriptionTbl.csv",
+        "path": "input/masters/dbm/SKUDescriptionTbl",
+        "bytes": 101787,
+        "rows": 2189,
+        "sha256": "370eff249e6aba78a251eb1ceda084e871e7529002332e6edb3eadd7f10b0ccd"
+      },
+      {
+        "file": "019-masters-dbm-SkuAttributeData.csv",
+        "path": "input/masters/dbm/SkuAttributeData",
+        "bytes": 163449,
+        "rows": 2189,
+        "sha256": "cd1545712edf40975c911e66d1d9209c0f55d2a71e80973202a9d1a913ec946a"
+      },
+      {
+        "file": "020-masters-importer-LocationAttributeData.csv",
+        "path": "input/masters/importer/LocationAttributeData",
+        "bytes": 17928,
+        "rows": 235,
+        "sha256": "29f5c277cba1aa34ffc7b609ab25073f85293af7abfae04b76f4782b92da023a"
+      },
+      {
+        "file": "021-masters-importer-MasterData.csv",
+        "path": "input/masters/importer/MasterData",
+        "bytes": 6006500,
+        "rows": 97097,
+        "sha256": "07db3a4a295766816c0020f84df10127a4711e297f2c88b28324f7f0c7427b9a"
+      },
+      {
+        "file": "022-masters-importer-SKUDescriptionTbl.csv",
+        "path": "input/masters/importer/SKUDescriptionTbl",
+        "bytes": 101787,
+        "rows": 2189,
+        "sha256": "370eff249e6aba78a251eb1ceda084e871e7529002332e6edb3eadd7f10b0ccd"
+      },
+      {
+        "file": "023-masters-importer-SiteDescriptionTbl.csv",
+        "path": "input/masters/importer/SiteDescriptionTbl",
+        "bytes": 7103,
+        "rows": 235,
+        "sha256": "f29eaa7cd91e93e3aa65cde3d81f29083f1caa0e98487afcd0ad97ebdd8b8132"
+      },
+      {
+        "file": "024-masters-importer-SkuAttributeData.csv",
+        "path": "input/masters/importer/SkuAttributeData",
+        "bytes": 163449,
+        "rows": 2189,
+        "sha256": "cd1545712edf40975c911e66d1d9209c0f55d2a71e80973202a9d1a913ec946a"
+      },
+      {
+        "file": "025-masters-importer-SkuLocAttributeData.csv",
+        "path": "input/masters/importer/SkuLocAttributeData",
+        "bytes": 9580862,
+        "rows": 97097,
+        "sha256": "4570ad31419ced3ac3996684c53782e16ab117bdbb50b9b6095ea17a528eee09"
+      },
+      {
+        "file": "026-opening-state-bpr-BPRMaster.csv",
+        "path": "input/opening/state/bpr/BPRMaster",
+        "bytes": 4423356,
+        "rows": 97097,
+        "sha256": "d0914ecf033417fbb6bd1da4d7e8638d5808df0e3cc4c09edda9ab60eae793c1"
+      },
+      {
+        "file": "027-opening-state-bpr-DailyConsumption.csv",
+        "path": "input/opening/state/bpr/DailyConsumption",
+        "bytes": 71,
+        "rows": 0,
+        "sha256": "d0b89759a4ceb8d46039b3aa4f359618fb57c4f8b90bd035060d8028076e5d26"
+      },
+      {
+        "file": "028-opening-state-bpr-NoNormMaster.csv",
+        "path": "input/opening/state/bpr/NoNormMaster",
+        "bytes": 46,
+        "rows": 0,
+        "sha256": "6d2b8003062b234224a3facd563c386f68a49a692d89c812ba0178c4c6e461e0"
+      },
+      {
+        "file": "029-opening-state-bpr-Plants.csv",
+        "path": "input/opening/state/bpr/Plants",
+        "bytes": 21,
+        "rows": 0,
+        "sha256": "94a2c8a5d4f3c017ff052f7728d3889f7d47c89f920310575e52ffd517ef2cf7"
+      },
+      {
+        "file": "030-opening-state-btr-BPPTrendDispatch.csv",
+        "path": "input/opening/state/btr/BPPTrendDispatch",
+        "bytes": 367,
+        "rows": 0,
+        "sha256": "0fe3067d90de866e11472165fd38466996009473df76f0609fc742d3f674d912"
+      },
+      {
+        "file": "031-opening-state-btr-BPPTrendEcon.csv",
+        "path": "input/opening/state/btr/BPPTrendEcon",
+        "bytes": 367,
+        "rows": 0,
+        "sha256": "0fe3067d90de866e11472165fd38466996009473df76f0609fc742d3f674d912"
+      },
+      {
+        "file": "032-opening-state-btr-BPPTrendPhysicalInv.csv",
+        "path": "input/opening/state/btr/BPPTrendPhysicalInv",
+        "bytes": 367,
+        "rows": 0,
+        "sha256": "0fe3067d90de866e11472165fd38466996009473df76f0609fc742d3f674d912"
+      },
+      {
+        "file": "033-opening-state-btr-BPPTrendTech.csv",
+        "path": "input/opening/state/btr/BPPTrendTech",
+        "bytes": 367,
+        "rows": 0,
+        "sha256": "0fe3067d90de866e11472165fd38466996009473df76f0609fc742d3f674d912"
+      },
+      {
+        "file": "034-opening-state-btr-BPR.csv",
+        "path": "input/opening/state/btr/BPR",
+        "bytes": 171,
+        "rows": 0,
+        "sha256": "8189c36ec07f0ff8a9d97c9962fd4d636bf6ce943f9293a54f3302e0a69ff42b"
+      },
+      {
+        "file": "035-opening-state-btr-BTRSnapshotForUI.csv",
+        "path": "input/opening/state/btr/BTRSnapshotForUI",
+        "bytes": 684,
+        "rows": 0,
+        "sha256": "90c880d70e910dcd84c74186fb59555abe50459119523f159ffaf4ecdc323ac7"
+      },
+      {
+        "file": "036-opening-state-btr-BufferTrendDates.csv",
+        "path": "input/opening/state/btr/BufferTrendDates",
+        "bytes": 352,
+        "rows": 0,
+        "sha256": "c568336936eee9f55ab7f7452f1542731641b8f3b7a63343009341d3b6b279a3"
+      },
+      {
+        "file": "037-opening-state-btr-BufferTrendDispatch.csv",
+        "path": "input/opening/state/btr/BufferTrendDispatch",
+        "bytes": 521,
+        "rows": 0,
+        "sha256": "6c3bd4c9b85b464c02aefdcf4efa180d17c7352f6724b9df054d4bf79e811e4f"
+      },
+      {
+        "file": "038-opening-state-btr-BufferTrendGraph.csv",
+        "path": "input/opening/state/btr/BufferTrendGraph",
+        "bytes": 279,
+        "rows": 0,
+        "sha256": "ee19f1d786f3eaa7f1a8413cb6d4ebf72dc1219ca16589ec475fc56a8e88e7cf"
+      },
+      {
+        "file": "039-opening-state-btr-BufferTrendPhysicalInv.csv",
+        "path": "input/opening/state/btr/BufferTrendPhysicalInv",
+        "bytes": 578,
+        "rows": 0,
+        "sha256": "695438d00fbd7eef9ee3776f9370fda84c1d660f021f6c14cc290ad985e1ccea"
+      },
+      {
+        "file": "040-opening-state-btr-BufferTrendReport.csv",
+        "path": "input/opening/state/btr/BufferTrendReport",
+        "bytes": 473,
+        "rows": 0,
+        "sha256": "8d10520d6ec94c6f6579b6e44b44c540f6c53eedf726d0a558452709f5325816"
+      },
+      {
+        "file": "041-opening-state-btr-BufferTrendReportEcon.csv",
+        "path": "input/opening/state/btr/BufferTrendReportEcon",
+        "bytes": 473,
+        "rows": 0,
+        "sha256": "8d10520d6ec94c6f6579b6e44b44c540f6c53eedf726d0a558452709f5325816"
+      },
+      {
+        "file": "042-opening-state-btr-ChronicUnavalabilityData.csv",
+        "path": "input/opening/state/btr/ChronicUnavalabilityData",
+        "bytes": 139,
+        "rows": 0,
+        "sha256": "c387c2ba7bc785302b19f4fb13c086c28f80b35b03be3658fbaa8f84b7e11aa7"
+      },
+      {
+        "file": "043-opening-state-btr-DBMNormSuggestionsData.csv",
+        "path": "input/opening/state/btr/DBMNormSuggestionsData",
+        "bytes": 81,
+        "rows": 0,
+        "sha256": "d44110948db89174c7bef13ac8acc8490267cf6b5d2b5ed27d11b2f8cd19079f"
+      },
+      {
+        "file": "044-opening-state-btr-ExpediteDispatches.csv",
+        "path": "input/opening/state/btr/ExpediteDispatches",
+        "bytes": 284,
+        "rows": 0,
+        "sha256": "a6e53d1b687c5204fe7596ee9acd646c19e8bdca6a5b63cb0c1b40800c3f0d32"
+      },
+      {
+        "file": "045-opening-state-btr-LastBatchRunTbl.csv",
+        "path": "input/opening/state/btr/LastBatchRunTbl",
+        "bytes": 34,
+        "rows": 1,
+        "sha256": "8a5ecf6ac15bff0dbb8a30fe4cf19b5116513248d9e35cd06d81876021360b65"
+      },
+      {
+        "file": "046-opening-state-btr-LocationAttributeData.csv",
+        "path": "input/opening/state/btr/LocationAttributeData",
+        "bytes": 134,
+        "rows": 0,
+        "sha256": "32e7a585dc27feb48036540bfe5b2c791fd3772bcadb3070872445d0f0446599"
+      },
+      {
+        "file": "047-opening-state-btr-RationingHistory.csv",
+        "path": "input/opening/state/btr/RationingHistory",
+        "bytes": 1035,
+        "rows": 0,
+        "sha256": "68ec91863333e75dfd296b497922ee4ff6e7c03f4065b66fa7777efeb728402f"
+      },
+      {
+        "file": "048-opening-state-btr-SKULocStandardAttributes.csv",
+        "path": "input/opening/state/btr/SKULocStandardAttributes",
+        "bytes": 4229291,
+        "rows": 97464,
+        "sha256": "04e5912fe1812275c60784c46765d56523a267e2f58914c4684df43fa9f14c01"
+      },
+      {
+        "file": "049-opening-state-btr-SiteDescriptionTbl.csv",
+        "path": "input/opening/state/btr/SiteDescriptionTbl",
+        "bytes": 22,
+        "rows": 0,
+        "sha256": "1c13c6e901d8dbd384ba81b6a4e5c234dbd6048b1b55196d6e4d505e258f2122"
+      },
+      {
+        "file": "050-opening-state-btr-SkuLocAttributeData.csv",
+        "path": "input/opening/state/btr/SkuLocAttributeData",
+        "bytes": 169,
+        "rows": 0,
+        "sha256": "be6306dbaf5aacc89dbc54a23fa005565bee3892e38636df7d8df80f40ad23df"
+      },
+      {
+        "file": "051-opening-state-complete-BPRReport_RemarkDetails.csv",
+        "path": "input/opening/state/complete/BPRReport_RemarkDetails",
+        "bytes": 43,
+        "rows": 0,
+        "sha256": "e223db7bd084a0a843bb5034dd08fd70a0462a57496b5a3bb523ff502f120379"
+      },
+      {
+        "file": "052-opening-state-complete-InTransitWhereAboutsRemarks.csv",
+        "path": "input/opening/state/complete/InTransitWhereAboutsRemarks",
+        "bytes": 84,
+        "rows": 0,
+        "sha256": "5e5bf3b68e384691eb0a60b44a9dd744544398d7762b0a21cdc314ddce3b23fc"
+      },
+      {
+        "file": "053-opening-state-complete-MOQDataRaw1.csv",
+        "path": "input/opening/state/complete/MOQDataRaw1",
+        "bytes": 98790,
+        "rows": 1791,
+        "sha256": "fd8e8fb869de4478d324040346cbce01bc81789bd60f0984cee17d78462bb82e"
+      },
+      {
+        "file": "054-opening-state-complete-MOQDataRaw2.csv",
+        "path": "input/opening/state/complete/MOQDataRaw2",
+        "bytes": 89922,
+        "rows": 1496,
+        "sha256": "48c0e3cdaf116627f9cdb41915f74815a73424768a27ef4323894a85160ca6cc"
+      },
+      {
+        "file": "055-opening-state-complete-NMSMOQWithDestination.csv",
+        "path": "input/opening/state/complete/NMSMOQWithDestination",
+        "bytes": 62,
+        "rows": 0,
+        "sha256": "152635245fb52d77523dae66f3f04c3a75d8876cc497a6e7251d887072c7782c"
+      },
+      {
+        "file": "056-opening-state-complete-NMSMOQWithoutDestination.csv",
+        "path": "input/opening/state/complete/NMSMOQWithoutDestination",
+        "bytes": 55,
+        "rows": 0,
+        "sha256": "e3717d23315254c19ee3e20810a71d5fad9ed5a7b9e928cc9493f343922b7db4"
+      },
+      {
+        "file": "057-opening-state-complete-NMSSOB.csv",
+        "path": "input/opening/state/complete/NMSSOB",
+        "bytes": 62,
+        "rows": 0,
+        "sha256": "f013ce57d6c0e7efd97d1448601b88cd8499e44deb04e6a2695bfa67bc03289a"
+      },
+      {
+        "file": "058-opening-state-complete-OpenExpeditRequestRemarksHistory.csv",
+        "path": "input/opening/state/complete/OpenExpeditRequestRemarksHistory",
+        "bytes": 45,
+        "rows": 0,
+        "sha256": "0a1b082972393b2646cc00777f165c772163dfbc92175bd3fb29bb59b19a4267"
+      },
+      {
+        "file": "059-opening-state-complete-ProdOrderSuggestions.csv",
+        "path": "input/opening/state/complete/ProdOrderSuggestions",
+        "bytes": 65,
+        "rows": 0,
+        "sha256": "209b60a6fa6160bfcab576a21927f827a2e46615d1a845110b71fa910c7ae22f"
+      },
+      {
+        "file": "060-opening-state-complete-SOBDataRaw.csv",
+        "path": "input/opening/state/complete/SOBDataRaw",
+        "bytes": 5544,
+        "rows": 97,
+        "sha256": "c2c96b2b8a880c00a698b94d09278a25574e9abec74422077967e4c8292d760f"
+      },
+      {
+        "file": "061-opening-state-complete-ScriptExecutedFlag.csv",
+        "path": "input/opening/state/complete/ScriptExecutedFlag",
+        "bytes": 8719,
+        "rows": 206,
+        "sha256": "6d7e39a5513a41474152781c1dab680f9fc7e3aea1cc5440527cd5d147be1ed0"
+      },
+      {
+        "file": "062-opening-state-complete-SupplierDispatchReq.csv",
+        "path": "input/opening/state/complete/SupplierDispatchReq",
+        "bytes": 343,
+        "rows": 0,
+        "sha256": "28106f96a04bf691fee658bac3c90a0be2a94550f1c5d45fff997fe775504a05"
+      },
+      {
+        "file": "063-opening-state-consumer_context-CWH_List.csv",
+        "path": "input/opening/state/consumer_context/CWH_List",
+        "bytes": 9,
+        "rows": 0,
+        "sha256": "fb2884344d500ac7d02f42daf21e3480dc523329a57afb0c237bff60ef2c9557"
+      },
+      {
+        "file": "064-opening-state-consumer_context-CategoryColDescription.csv",
+        "path": "input/opening/state/consumer_context/CategoryColDescription",
+        "bytes": 558,
+        "rows": 7,
+        "sha256": "eefa03cdbc3c3cb275f7624c914f2254d3d7b0bb46ecd2977a1ef7c7920056f9"
+      },
+      {
+        "file": "065-opening-state-consumer_context-DistributorList.csv",
+        "path": "input/opening/state/consumer_context/DistributorList",
+        "bytes": 8,
+        "rows": 0,
+        "sha256": "7096e8ca630f3331c72459e531229fa0a45b998f8b9b0c41eba18f4700a5ae38"
+      },
+      {
+        "file": "066-opening-state-consumer_context-GoodsInTransitTransporterMaster.csv",
+        "path": "input/opening/state/consumer_context/GoodsInTransitTransporterMaster",
+        "bytes": 282,
+        "rows": 0,
+        "sha256": "69cc37aca8daf9caa0a5b6998dd98bba5ad1fb4dc33759a8162c6231f7041477"
+      },
+      {
+        "file": "067-opening-state-consumer_context-NMSAllItems.csv",
+        "path": "input/opening/state/consumer_context/NMSAllItems",
+        "bytes": 31746222,
+        "rows": 97097,
+        "sha256": "f422c6e6f2f9abd584205d5d14601b7ddb0615ba7dc6d3d43071b2cf47885f8d"
+      },
+      {
+        "file": "068-opening-state-control_aux-phase_exceptions.csv",
+        "path": "input/opening/state/control_aux/phase_exceptions",
+        "bytes": 66,
+        "rows": 0,
+        "sha256": "f275094c29d5f62a734806de9f66777e4ac21df3ad2abbf92e44e11c243c19dd"
+      },
+      {
+        "file": "069-opening-state-control_aux-phase_in_norms.csv",
+        "path": "input/opening/state/control_aux/phase_in_norms",
+        "bytes": 208,
+        "rows": 6,
+        "sha256": "bf361ff1ebead84794e35c8eac5ac1c1eefa20269ff7d28cdb77ab96b14ca1e7"
+      },
+      {
+        "file": "070-opening-state-control_aux-phase_in_requests.csv",
+        "path": "input/opening/state/control_aux/phase_in_requests",
+        "bytes": 36,
+        "rows": 0,
+        "sha256": "26682bc65d28e2ac40d99f44377f865ab684d67567c4446cb4bc04107deea0b4"
+      },
+      {
+        "file": "071-opening-state-control_aux-phase_map.csv",
+        "path": "input/opening/state/control_aux/phase_map",
+        "bytes": 2583,
+        "rows": 77,
+        "sha256": "0556529076036d0bddd238e39e65edc98dc8863d51cd86493f34ec2f2bba10a1"
+      },
+      {
+        "file": "072-opening-state-control_aux-phase_requests.csv",
+        "path": "input/opening/state/control_aux/phase_requests",
+        "bytes": 40,
+        "rows": 0,
+        "sha256": "90d1a2cab7304ed1280d01c339a9313d4a923c80a2061a2285750c7c92f25cf3"
+      },
+      {
+        "file": "073-opening-state-control_aux-phase_stops.csv",
+        "path": "input/opening/state/control_aux/phase_stops",
+        "bytes": 16,
+        "rows": 0,
+        "sha256": "003d2a32fb1b6d95cbadb83c015c255c3f43cc446a82e8f3798007bd922608de"
+      },
+      {
+        "file": "074-opening-state-control_aux-season_requests.csv",
+        "path": "input/opening/state/control_aux/season_requests",
+        "bytes": 116,
+        "rows": 0,
+        "sha256": "79945b996006a6c5cb63e96db326cf8a0ad5117e9b5d829a57ad3489926589f3"
+      },
+      {
+        "file": "075-opening-state-control_aux-season_status.csv",
+        "path": "input/opening/state/control_aux/season_status",
+        "bytes": 183,
+        "rows": 11,
+        "sha256": "bea00a93858c7119a504ef6818e773a96caa128f27123969fafac06595fc9cc4"
+      },
+      {
+        "file": "076-opening-state-controls-acceptance.csv",
+        "path": "input/opening/state/controls/acceptance",
+        "bytes": 47,
+        "rows": 0,
+        "sha256": "0990e9ccbe0db06a74bbc7b5844238ab0a78ba4e3ad8bc5f5cd7851c98c87f6a"
+      },
+      {
+        "file": "077-opening-state-controls-accepted.csv",
+        "path": "input/opening/state/controls/accepted",
+        "bytes": 16,
+        "rows": 0,
+        "sha256": "78088ccdf40728dbf23362ed5b9468fb250a8981f5b99c3eff40f1cb70082d67"
+      },
+      {
+        "file": "078-opening-state-controls-dbm_master.csv",
+        "path": "input/opening/state/controls/dbm_master",
+        "bytes": 6006500,
+        "rows": 97097,
+        "sha256": "632cd38c4359970fbcbd9594dab5c8033413013b3905ed4c2bb141ccc9b44789"
+      },
+      {
+        "file": "079-opening-state-controls-dbm_settings.csv",
+        "path": "input/opening/state/controls/dbm_settings",
+        "bytes": 277,
+        "rows": 9,
+        "sha256": "8edce27215b660210cb8fb07cae0241e3fe4643a2e965468bb5961511743cbeb"
+      },
+      {
+        "file": "080-opening-state-controls-force_requests.csv",
+        "path": "input/opening/state/controls/force_requests",
+        "bytes": 45,
+        "rows": 0,
+        "sha256": "a86d871533bdbab3b31633f44b2db31b50d94273362ab5c2ee8991ae422f7011"
+      },
+      {
+        "file": "081-opening-state-controls-forced.csv",
+        "path": "input/opening/state/controls/forced",
+        "bytes": 43,
+        "rows": 0,
+        "sha256": "095220dbcfb40e98c53205c4199e8361c982549e333a289ad2bfb4a679d302dd"
+      },
+      {
+        "file": "082-opening-state-controls-importer_master.csv",
+        "path": "input/opening/state/controls/importer_master",
+        "bytes": 6006500,
+        "rows": 97097,
+        "sha256": "07db3a4a295766816c0020f84df10127a4711e297f2c88b28324f7f0c7427b9a"
+      },
+      {
+        "file": "083-opening-state-controls-importer_settings.csv",
+        "path": "input/opening/state/controls/importer_settings",
+        "bytes": 589,
+        "rows": 22,
+        "sha256": "d6dd58e040a3bf938acaec825d5a447ff4bc13d66d577e2f98406ac6bdd32243"
+      },
+      {
+        "file": "084-opening-state-controls-last_batch.csv",
+        "path": "input/opening/state/controls/last_batch",
+        "bytes": 34,
+        "rows": 1,
+        "sha256": "8a5ecf6ac15bff0dbb8a30fe4cf19b5116513248d9e35cd06d81876021360b65"
+      },
+      {
+        "file": "085-opening-state-controls-log.csv",
+        "path": "input/opening/state/controls/log",
+        "bytes": 64,
+        "rows": 0,
+        "sha256": "c6d971408d030e15da95be9817292eb0b36ce2d9ddee169f181ff11cb6cceaa2"
+      },
+      {
+        "file": "086-opening-state-controls-order_summary.csv",
+        "path": "input/opening/state/controls/order_summary",
+        "bytes": 73,
+        "rows": 0,
+        "sha256": "c3d4dbc9c65a7b4f3da5d0e099013627b0fb099dce97d829b1a91676247ab482"
+      },
+      {
+        "file": "087-opening-state-controls-phase_in.csv",
+        "path": "input/opening/state/controls/phase_in",
+        "bytes": 98,
+        "rows": 0,
+        "sha256": "c368d97aa2f39e6ca1a2edea87dc283d9402c4f31e5f87e1b6d777d9a7b53315"
+      },
+      {
+        "file": "088-opening-state-controls-phase_out.csv",
+        "path": "input/opening/state/controls/phase_out",
+        "bytes": 4975,
+        "rows": 77,
+        "sha256": "0d4a66d00d3f026d6d52867a3b078ebc1c27d9accc3257d08d9a321b9578f66a"
+      },
+      {
+        "file": "089-opening-state-controls-raw_master.csv",
+        "path": "input/opening/state/controls/raw_master",
+        "bytes": 786,
+        "rows": 0,
+        "sha256": "de14061ecb227235e61e9c076e495b95cb131bb1f22c18b05cfb674e6de87778"
+      },
+      {
+        "file": "090-opening-state-controls-reason_codes.csv",
+        "path": "input/opening/state/controls/reason_codes",
+        "bytes": 758,
+        "rows": 16,
+        "sha256": "635a0a6aa97feb00a2f7fbb48a8f6880401c0696f855d5584b8134a3e7881082"
+      },
+      {
+        "file": "091-opening-state-controls-seasonality.csv",
+        "path": "input/opening/state/controls/seasonality",
+        "bytes": 14601,
+        "rows": 83,
+        "sha256": "bca3475de46c138a4270a6da6417c5aba0020ab148c387e4a69a701926b1a5f8"
+      },
+      {
+        "file": "092-opening-state-controls-suggestions.csv",
+        "path": "input/opening/state/controls/suggestions",
+        "bytes": 29,
+        "rows": 0,
+        "sha256": "55103c80ffbb08746c7ecbc904e61076bd63e060b90564a2fc340aef1d4c3c7b"
+      },
+      {
+        "file": "093-opening-state-controls-suggestions_log.csv",
+        "path": "input/opening/state/controls/suggestions_log",
+        "bytes": 52,
+        "rows": 0,
+        "sha256": "0ab024b676a5512d324b21841518c5b19aedbe08ca5feff9d131bd705e31a9fd"
+      },
+      {
+        "file": "094-opening-state-controls-suspend_order_type.csv",
+        "path": "input/opening/state/controls/suspend_order_type",
+        "bytes": 5943679,
+        "rows": 97097,
+        "sha256": "ad2b2dcbaa5534f6ad31cbbc34f41bd6e5889fe5825e35219ce85fc225108905"
+      },
+      {
+        "file": "095-opening-state-controls-triggers.csv",
+        "path": "input/opening/state/controls/triggers",
+        "bytes": 31,
+        "rows": 0,
+        "sha256": "a28fa2109a88ee2ead2297f22fa2dcaee494070efb6fc4a852f866b5cb33aabb"
+      },
+      {
+        "file": "096-opening-state-controls-upload_log.csv",
+        "path": "input/opening/state/controls/upload_log",
+        "bytes": 78,
+        "rows": 0,
+        "sha256": "fbe4d1535fea4936d79bd428a9bcf6e51863bbb3898b3ed3c7d4a7f235d9731b"
+      },
+      {
+        "file": "097-opening-state-dbm-DBMDelistingOfNormsWithHits.csv",
+        "path": "input/opening/state/dbm/DBMDelistingOfNormsWithHits",
+        "bytes": 124,
+        "rows": 0,
+        "sha256": "2335b86ee5febeb89878af93646a60a717b13e902ce78b7d4a5ddf535b7fe284"
+      },
+      {
+        "file": "098-opening-state-dbm-DBMMaster.csv",
+        "path": "input/opening/state/dbm/DBMMaster",
+        "bytes": 6006500,
+        "rows": 97097,
+        "sha256": "632cd38c4359970fbcbd9594dab5c8033413013b3905ed4c2bb141ccc9b44789"
+      },
+      {
+        "file": "099-opening-state-dbm-DBMSettingsTbl.csv",
+        "path": "input/opening/state/dbm/DBMSettingsTbl",
+        "bytes": 277,
+        "rows": 9,
+        "sha256": "8edce27215b660210cb8fb07cae0241e3fe4643a2e965468bb5961511743cbeb"
+      },
+      {
+        "file": "100-opening-state-dbm-DailyConsumption.csv",
+        "path": "input/opening/state/dbm/DailyConsumption",
+        "bytes": 67,
+        "rows": 0,
+        "sha256": "b46a270ec85af470c1f0791170738eba71dfb22af806b50334ef38be42d400e1"
+      },
+      {
+        "file": "101-opening-state-dbm-DiscardedSuggestions.csv",
+        "path": "input/opening/state/dbm/DiscardedSuggestions",
+        "bytes": 58,
+        "rows": 0,
+        "sha256": "29dc1679157ef9809e5ba1261597d7ef2ccd7ec0d892c25f92fdb771a91aa4b4"
+      },
+      {
+        "file": "102-opening-state-dbm-FirstReplenishmentPercentageTbl.csv",
+        "path": "input/opening/state/dbm/FirstReplenishmentPercentageTbl",
+        "bytes": 30,
+        "rows": 1,
+        "sha256": "3c4d7eb2beefae70b59e727f22c30e54d4d1566c463af4daee0122ec1b054ba1"
+      },
+      {
+        "file": "103-opening-state-dbm-ForcedNormChangeTbl.csv",
+        "path": "input/opening/state/dbm/ForcedNormChangeTbl",
+        "bytes": 43,
+        "rows": 0,
+        "sha256": "095220dbcfb40e98c53205c4199e8361c982549e333a289ad2bfb4a679d302dd"
+      },
+      {
+        "file": "104-opening-state-dbm-IntermediateTables.csv",
+        "path": "input/opening/state/dbm/IntermediateTables",
+        "bytes": 8,
+        "rows": 0,
+        "sha256": "38e8843b31c8f9cfe6ca403f7723d0b04a483553a54087bd7db0756cb3077b9e"
+      },
+      {
+        "file": "105-opening-state-dbm-LastBatchRunTbl.csv",
+        "path": "input/opening/state/dbm/LastBatchRunTbl",
+        "bytes": 34,
+        "rows": 1,
+        "sha256": "8a5ecf6ac15bff0dbb8a30fe4cf19b5116513248d9e35cd06d81876021360b65"
+      },
+      {
+        "file": "106-opening-state-dbm-LocationAttributeData.csv",
+        "path": "input/opening/state/dbm/LocationAttributeData",
+        "bytes": 17928,
+        "rows": 235,
+        "sha256": "43d0d4593c37fc758d4bccd579b9958e6f99a0a05f69d40cbd02d9b6d3ecbfdb"
+      },
+      {
+        "file": "107-opening-state-dbm-Norm0Norm1Norm2Report.csv",
+        "path": "input/opening/state/dbm/Norm0Norm1Norm2Report",
+        "bytes": 51,
+        "rows": 0,
+        "sha256": "8532f659bca172ac944c72fdbe34f796a393c651a74e0dc573262a08641e6c08"
+      },
+      {
+        "file": "108-opening-state-dbm-Norm0_1_2ReportDetails.csv",
+        "path": "input/opening/state/dbm/Norm0_1_2ReportDetails",
+        "bytes": 558,
+        "rows": 0,
+        "sha256": "f9f8d474e9e0da7263670c94d7a60b358259e754d3f9305563cf11d5d06a9168"
+      },
+      {
+        "file": "109-opening-state-dbm-Norm1IncreaseSuggestions.csv",
+        "path": "input/opening/state/dbm/Norm1IncreaseSuggestions",
+        "bytes": 99,
+        "rows": 0,
+        "sha256": "58921c69f08d0bce646a80d23d4d5216473f3cc6c6a663b16bbdfaf81a693179"
+      },
+      {
+        "file": "110-opening-state-dbm-NormAcceptanceTbl.csv",
+        "path": "input/opening/state/dbm/NormAcceptanceTbl",
+        "bytes": 47,
+        "rows": 0,
+        "sha256": "0990e9ccbe0db06a74bbc7b5844238ab0a78ba4e3ad8bc5f5cd7851c98c87f6a"
+      },
+      {
+        "file": "111-opening-state-dbm-NormChangeLogTbl.csv",
+        "path": "input/opening/state/dbm/NormChangeLogTbl",
+        "bytes": 64,
+        "rows": 0,
+        "sha256": "c6d971408d030e15da95be9817292eb0b36ce2d9ddee169f181ff11cb6cceaa2"
+      },
+      {
+        "file": "112-opening-state-dbm-NormsInSleepModeTbl.csv",
+        "path": "input/opening/state/dbm/NormsInSleepModeTbl",
+        "bytes": 26,
+        "rows": 0,
+        "sha256": "b47842291c765bfd4ba3e02574b2890c6c16d4d1a347ffa368857a329e9f74f3"
+      },
+      {
+        "file": "113-opening-state-dbm-OrderData.csv",
+        "path": "input/opening/state/dbm/OrderData",
+        "bytes": 59,
+        "rows": 0,
+        "sha256": "f742dcf6ba13a90ad6b7fc03b4fabbffa5816e1dbe1930f637afa676d6c8511a"
+      },
+      {
+        "file": "114-opening-state-dbm-OrderDataSummary.csv",
+        "path": "input/opening/state/dbm/OrderDataSummary",
+        "bytes": 73,
+        "rows": 0,
+        "sha256": "c3d4dbc9c65a7b4f3da5d0e099013627b0fb099dce97d829b1a91676247ab482"
+      },
+      {
+        "file": "115-opening-state-dbm-OrderRuleSummary.csv",
+        "path": "input/opening/state/dbm/OrderRuleSummary",
+        "bytes": 110,
+        "rows": 0,
+        "sha256": "db46b744c4f9ac5203801e94925af4ebd06f17b400ec4a31b879595cd2dc7b3f"
+      },
+      {
+        "file": "116-opening-state-dbm-PhaseInTbl.csv",
+        "path": "input/opening/state/dbm/PhaseInTbl",
+        "bytes": 98,
+        "rows": 0,
+        "sha256": "c368d97aa2f39e6ca1a2edea87dc283d9402c4f31e5f87e1b6d777d9a7b53315"
+      },
+      {
+        "file": "117-opening-state-dbm-PhaseOutTbl.csv",
+        "path": "input/opening/state/dbm/PhaseOutTbl",
+        "bytes": 4975,
+        "rows": 77,
+        "sha256": "0d4a66d00d3f026d6d52867a3b078ebc1c27d9accc3257d08d9a321b9578f66a"
+      },
+      {
+        "file": "118-opening-state-dbm-ReasonCodes.csv",
+        "path": "input/opening/state/dbm/ReasonCodes",
+        "bytes": 758,
+        "rows": 16,
+        "sha256": "635a0a6aa97feb00a2f7fbb48a8f6880401c0696f855d5584b8134a3e7881082"
+      },
+      {
+        "file": "119-opening-state-dbm-SKULocStandardAttributes.csv",
+        "path": "input/opening/state/dbm/SKULocStandardAttributes",
+        "bytes": 4229291,
+        "rows": 97464,
+        "sha256": "04e5912fe1812275c60784c46765d56523a267e2f58914c4684df43fa9f14c01"
+      },
+      {
+        "file": "120-opening-state-dbm-Seasonality.csv",
+        "path": "input/opening/state/dbm/Seasonality",
+        "bytes": 14601,
+        "rows": 83,
+        "sha256": "bca3475de46c138a4270a6da6417c5aba0020ab148c387e4a69a701926b1a5f8"
+      },
+      {
+        "file": "121-opening-state-dbm-SiteDescriptionTbl.csv",
+        "path": "input/opening/state/dbm/SiteDescriptionTbl",
+        "bytes": 7103,
+        "rows": 235,
+        "sha256": "ad5915fd7d365e0e050c3671d2284ab259d7a6af6e6bca3ce3fb2d76cda52d03"
+      },
+      {
+        "file": "122-opening-state-dbm-SkuLocAttributeData.csv",
+        "path": "input/opening/state/dbm/SkuLocAttributeData",
+        "bytes": 9574214,
+        "rows": 97097,
+        "sha256": "4769c9e11a05cecae25bc8cda5a6cd62b7459238183ee3dc0d90a88ad12ca91c"
+      },
+      {
+        "file": "123-opening-state-dbm-SpikeReport.csv",
+        "path": "input/opening/state/dbm/SpikeReport",
+        "bytes": 48,
+        "rows": 0,
+        "sha256": "f8f5cbd2c67b6795af31deba62be37d05619c25ed52399094dceaeaa0da27767"
+      },
+      {
+        "file": "124-opening-state-dbm-Suggestions.csv",
+        "path": "input/opening/state/dbm/Suggestions",
+        "bytes": 29,
+        "rows": 0,
+        "sha256": "55103c80ffbb08746c7ecbc904e61076bd63e060b90564a2fc340aef1d4c3c7b"
+      },
+      {
+        "file": "125-opening-state-dbm-SuggestionsLog.csv",
+        "path": "input/opening/state/dbm/SuggestionsLog",
+        "bytes": 52,
+        "rows": 0,
+        "sha256": "0ab024b676a5512d324b21841518c5b19aedbe08ca5feff9d131bd705e31a9fd"
+      },
+      {
+        "file": "126-opening-state-dbm-SuspendAcceptedNormsConsumptionType.csv",
+        "path": "input/opening/state/dbm/SuspendAcceptedNormsConsumptionType",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "127-opening-state-dbm-SuspendAcceptedNormsStockType.csv",
+        "path": "input/opening/state/dbm/SuspendAcceptedNormsStockType",
+        "bytes": 118,
+        "rows": 0,
+        "sha256": "49d2a4089d4234863d27a2f4c0c5d9d756b697d821bd53b892573a4a4196bcad"
+      },
+      {
+        "file": "128-opening-state-dbm-SuspendAggrCommon.csv",
+        "path": "input/opening/state/dbm/SuspendAggrCommon",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "129-opening-state-dbm-SuspendAggrCommonWithOrderType.csv",
+        "path": "input/opening/state/dbm/SuspendAggrCommonWithOrderType",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "130-opening-state-dbm-SuspendAggrConsumptionType.csv",
+        "path": "input/opening/state/dbm/SuspendAggrConsumptionType",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "131-opening-state-dbm-SuspendAggrStockType.csv",
+        "path": "input/opening/state/dbm/SuspendAggrStockType",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "132-opening-state-dbm-SuspendConsumptionType.csv",
+        "path": "input/opening/state/dbm/SuspendConsumptionType",
+        "bytes": 5796606,
+        "rows": 97097,
+        "sha256": "4f1a864bc49323bba7ec70f282ce7d60ddbc13f3435ed62926f5a78a64610324"
+      },
+      {
+        "file": "133-opening-state-dbm-SuspendConsumptionTypePre.csv",
+        "path": "input/opening/state/dbm/SuspendConsumptionTypePre",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "134-opening-state-dbm-SuspendCustomSKUTbl.csv",
+        "path": "input/opening/state/dbm/SuspendCustomSKUTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "4af129b90b3101164b95686ac43f2f0d136e9c60e2119ea55ce130223b11810c"
+      },
+      {
+        "file": "135-opening-state-dbm-SuspendExistingDisabledNormsTbl.csv",
+        "path": "input/opening/state/dbm/SuspendExistingDisabledNormsTbl",
+        "bytes": 72,
+        "rows": 0,
+        "sha256": "150749078c0eeb640d9d5df7efe1ae129b47d9f61b8ea23bd3ccb0001530fe88"
+      },
+      {
+        "file": "136-opening-state-dbm-SuspendHistory.csv",
+        "path": "input/opening/state/dbm/SuspendHistory",
+        "bytes": 215,
+        "rows": 0,
+        "sha256": "35ee3222936b8ee6e8ef670475d58dd4255450b4d0b663fdb91149a11dd8be80"
+      },
+      {
+        "file": "137-opening-state-dbm-SuspendInsuffDataPointsTbl.csv",
+        "path": "input/opening/state/dbm/SuspendInsuffDataPointsTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "138-opening-state-dbm-SuspendMinNormTbl.csv",
+        "path": "input/opening/state/dbm/SuspendMinNormTbl",
+        "bytes": 16,
+        "rows": 0,
+        "sha256": "003d2a32fb1b6d95cbadb83c015c255c3f43cc446a82e8f3798007bd922608de"
+      },
+      {
+        "file": "139-opening-state-dbm-SuspendNewSKUTbl.csv",
+        "path": "input/opening/state/dbm/SuspendNewSKUTbl",
+        "bytes": 63,
+        "rows": 0,
+        "sha256": "7a9162273fa2ee2053691fe39190c2ae286f8275c44032957436a6a0db7bd0cf"
+      },
+      {
+        "file": "140-opening-state-dbm-SuspendNormsForceChangedTbl.csv",
+        "path": "input/opening/state/dbm/SuspendNormsForceChangedTbl",
+        "bytes": 99,
+        "rows": 0,
+        "sha256": "29523dd3dd94ee0fed55409a07a130cbee16c27614c145c320ea62de215a6653"
+      },
+      {
+        "file": "141-opening-state-dbm-SuspendNormsInSleepModeTbl.csv",
+        "path": "input/opening/state/dbm/SuspendNormsInSleepModeTbl",
+        "bytes": 87,
+        "rows": 0,
+        "sha256": "21a13ee7a7583e4ca061d9ded3b08932145d5534bea1995f54b9b11252371d22"
+      },
+      {
+        "file": "142-opening-state-dbm-SuspendOrderType.csv",
+        "path": "input/opening/state/dbm/SuspendOrderType",
+        "bytes": 5943679,
+        "rows": 97097,
+        "sha256": "ad2b2dcbaa5534f6ad31cbbc34f41bd6e5889fe5825e35219ce85fc225108905"
+      },
+      {
+        "file": "143-opening-state-dbm-SuspendOrderTypePre.csv",
+        "path": "input/opening/state/dbm/SuspendOrderTypePre",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "144-opening-state-dbm-SuspendPhaseInTbl.csv",
+        "path": "input/opening/state/dbm/SuspendPhaseInTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "4af129b90b3101164b95686ac43f2f0d136e9c60e2119ea55ce130223b11810c"
+      },
+      {
+        "file": "145-opening-state-dbm-SuspendPhaseOutTbl.csv",
+        "path": "input/opening/state/dbm/SuspendPhaseOutTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "4af129b90b3101164b95686ac43f2f0d136e9c60e2119ea55ce130223b11810c"
+      },
+      {
+        "file": "146-opening-state-dbm-SuspendSeasonalityTbl.csv",
+        "path": "input/opening/state/dbm/SuspendSeasonalityTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "4af129b90b3101164b95686ac43f2f0d136e9c60e2119ea55ce130223b11810c"
+      },
+      {
+        "file": "147-opening-state-dbm-SuspendSpikeTbl.csv",
+        "path": "input/opening/state/dbm/SuspendSpikeTbl",
+        "bytes": 52385,
+        "rows": 912,
+        "sha256": "702bb3a0ed964d89753123f22c89a26c340b31f55d33c1de50daa4446a552fa5"
+      },
+      {
+        "file": "148-opening-state-dbm-SuspendStepOneOrderTypeTbl.csv",
+        "path": "input/opening/state/dbm/SuspendStepOneOrderTypeTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "149-opening-state-dbm-SuspendStepOneTbl.csv",
+        "path": "input/opening/state/dbm/SuspendStepOneTbl",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "150-opening-state-dbm-SuspendStockType.csv",
+        "path": "input/opening/state/dbm/SuspendStockType",
+        "bytes": 5801016,
+        "rows": 97097,
+        "sha256": "3e8ac2206c2e7fa8c1d4bf9c4cdfd4063b547b8a0359c425a24ed1b18d02c54c"
+      },
+      {
+        "file": "151-opening-state-dbm-SuspendStockTypePre.csv",
+        "path": "input/opening/state/dbm/SuspendStockTypePre",
+        "bytes": 44,
+        "rows": 0,
+        "sha256": "f2ca96c830c36ca480ed4a3fd452a90b0179e644aa059eb388fcd576a1cf1c2a"
+      },
+      {
+        "file": "152-opening-state-dbm-SuspendSupplyIssueTbl.csv",
+        "path": "input/opening/state/dbm/SuspendSupplyIssueTbl",
+        "bytes": 237300,
+        "rows": 5289,
+        "sha256": "55cff84373a9dc96cdc7db7d43481f5f042a0d2af3d680f24d39de49f62669a6"
+      },
+      {
+        "file": "153-opening-state-dbm-SuspendWhitesTbl.csv",
+        "path": "input/opening/state/dbm/SuspendWhitesTbl",
+        "bytes": 29,
+        "rows": 0,
+        "sha256": "e84647e680a202a11899ebb659265afbf22c196596c3e77b007da83c5189bd7d"
+      },
+      {
+        "file": "154-opening-state-dbm-VFSettings.csv",
+        "path": "input/opening/state/dbm/VFSettings",
+        "bytes": 1981,
+        "rows": 16,
+        "sha256": "55117368ac2026de2ee26e27c62b0a744abdadfeb05271220925fdcaad28d158"
+      },
+      {
+        "file": "155-opening-state-dbm-ui_ReportConfigurations.csv",
+        "path": "input/opening/state/dbm/ui_ReportConfigurations",
+        "bytes": 141842,
+        "rows": 2139,
+        "sha256": "3a74a995abc86b0ebdd786d5cdac58e87d3c985071eedb8a15039fba49b136be"
+      },
+      {
+        "file": "156-opening-state-importer-ForceNormChange.csv",
+        "path": "input/opening/state/importer/ForceNormChange",
+        "bytes": 45,
+        "rows": 0,
+        "sha256": "a86d871533bdbab3b31633f44b2db31b50d94273362ab5c2ee8991ae422f7011"
+      },
+      {
+        "file": "157-opening-state-importer-RejectedMaster.csv",
+        "path": "input/opening/state/importer/RejectedMaster",
+        "bytes": 59,
+        "rows": 0,
+        "sha256": "490344e9941f52e21cd2131f57a3dbec01b1342c22be15da4d1b039a6a6960c3"
+      },
+      {
+        "file": "158-opening-state-importer-RetiredNormsTbl.csv",
+        "path": "input/opening/state/importer/RetiredNormsTbl",
+        "bytes": 43,
+        "rows": 0,
+        "sha256": "f30f8bb6722cd26a148ba573370fd8f923d73ec13b09031f97b5397495805f41"
+      },
+      {
+        "file": "159-opening-state-importer_settings.csv",
+        "path": "input/opening/state/importer_settings",
+        "bytes": 589,
+        "rows": 22,
+        "sha256": "d6dd58e040a3bf938acaec825d5a447ff4bc13d66d577e2f98406ac6bdd32243"
+      },
+      {
+        "file": "160-opening-state-orders-ElephantOrders.csv",
+        "path": "input/opening/state/orders/ElephantOrders",
+        "bytes": 122,
+        "rows": 0,
+        "sha256": "dd41c6d47c0c51e9c5d92501d337a8243ed9d92bd1b38c25ebdd5f2fdadaad6f"
+      },
+      {
+        "file": "161-opening-state-orders-NewSpikeOrders.csv",
+        "path": "input/opening/state/orders/NewSpikeOrders",
+        "bytes": 57,
+        "rows": 0,
+        "sha256": "1c78b40ccd87a8300baeeb4568a14030b43fa5f2fad899e618aae393c5c34511"
+      },
+      {
+        "file": "162-opening-state-orders-OrderIdentity.csv",
+        "path": "input/opening/state/orders/OrderIdentity",
+        "bytes": 38,
+        "rows": 1,
+        "sha256": "88706651ef7f308a487f72171384639c4b296de8ecea6aa2507810ace1d6f504"
+      },
+      {
+        "file": "163-opening-state-orders-SpikeOrderClosureHistory.csv",
+        "path": "input/opening/state/orders/SpikeOrderClosureHistory",
+        "bytes": 139,
+        "rows": 0,
+        "sha256": "d9354008f3b4c91346843476295a68821695256fddc1fb4938532ada1aff0b78"
+      },
+      {
+        "file": "164-opening-state-orders-SpikeOrderData.csv",
+        "path": "input/opening/state/orders/SpikeOrderData",
+        "bytes": 891250,
+        "rows": 10256,
+        "sha256": "5a286047fe8512b90a3cf6beea4f99ea2d43fd49394067a887928ca6f6525816"
+      },
+      {
+        "file": "165-opening-state-supplier-MOQData.csv",
+        "path": "input/opening/state/supplier/MOQData",
+        "bytes": 50747,
+        "rows": 1496,
+        "sha256": "517d44b7366e91dfaf1295eb9a174f6ebf7cc8506c8aaeeac9fe53eba047193f"
+      },
+      {
+        "file": "166-opening-state-supplier-SOBData.csv",
+        "path": "input/opening/state/supplier/SOBData",
+        "bytes": 3075,
+        "rows": 97,
+        "sha256": "795333c0b115f229ad4d3601e112a960ad387f358ebb85caf8d7f452ff4c4d0e"
+      },
+      {
+        "file": "167-pair_exclusions.csv",
+        "path": "input/pair_exclusions",
+        "bytes": 621,
+        "rows": 29,
+        "sha256": "3390f2059e789463be4d25d6683e4fac00f57431fa47d994c080511b0831ebf5"
+      }
+    ]
+  },
+  "control_files": [
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/opening/opening-manifest.json",
+      "bytes": 126057,
+      "sha256": "889e2021cca5d0665718a7bf827673c7995d47443489c05c50aefd6d9ec61489"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/opening-original.json",
+      "bytes": 438689733,
+      "sha256": "27b3893b0f8a0f0db0197439c760677e9dc6dca07ad00f26fc4297781dd57a70"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/binding-template.json",
+      "bytes": 1760,
+      "sha256": "79fd3ad70a66918f1994772246517930d4d722e71defb1d8bcb6954c558176fb"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/consumer-opening.json",
+      "bytes": 56,
+      "sha256": "86714f8f28207cdc303b970cedd7fc0a1a8f2534ed6426da9cbad907290479d3"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/permissions.json",
+      "bytes": 4705,
+      "sha256": "74706d8772af325194f049d53684c6042941ad8658e633b98ba568b09cb292de"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/csv-pack-proof-corrected.json",
+      "bytes": 638,
+      "sha256": "88bcba81bc15d587083a7634e7a1e7e8d796bb3adc417f09d155e0727a7f991c"
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/daily-files-proof.json",
+      "bytes": 2167,
+      "sha256": "88cb9257afff3aa72db8d109161b63348d86c574e377e4854e13d51f5a24590b"
+    }
+  ],
+  "retained_daily": [
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/AcceptedNorms.csv",
+      "bytes": 16,
+      "sha256": "78088ccdf40728dbf23362ed5b9468fb250a8981f5b99c3eff40f1cb70082d67",
+      "columns": [
+        "SKUCode",
+        "WHCode"
+      ],
+      "rows": 0
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/AdditionalDataStockForReqCalc.csv",
+      "bytes": 8793,
+      "sha256": "1c4d9f4012d733cd39a28d864a87a2583daec0ad36155da4d4446beb8c5c279d",
+      "columns": [
+        "SKUCode",
+        "WhCode",
+        "StockForReqCalc",
+        "ReportDate"
+      ],
+      "rows": 216
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/DailyDataRaw.csv",
+      "bytes": 4678443,
+      "sha256": "5714e18c51c4a65bb636bedc8437b4003d870e2c7da11eb97b72660184afce20",
+      "columns": [
+        "SKUCode",
+        "WhCode",
+        "Stock",
+        "Consumption",
+        "GIT",
+        "Receipts",
+        "PSO",
+        "ReportDate"
+      ],
+      "rows": 97097
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/DistributorTransactions.csv",
+      "bytes": 50,
+      "sha256": "33d3ace1a15b6a87dd789cb00e765c4f065b89d5ce674dca270293250dc52385",
+      "columns": [
+        "WhCode",
+        "TransactedItemCount",
+        "TotalItems",
+        "ReportDate"
+      ],
+      "rows": 0
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/InTransitRaw.csv",
+      "bytes": 148,
+      "sha256": "542461c0efd06a4849d4f8a88fc1a63f14ee24f3ba1bb4337dc86e9767bb4bc8",
+      "columns": [
+        "SKUCode",
+        "ToLocationCode",
+        "FromLocationCode",
+        "CurrentLocationCode",
+        "LRCode",
+        "OrderNo",
+        "CreationDate",
+        "GateOutDate",
+        "InTransitQty",
+        "TransporterCode",
+        "Remark",
+        "ReportDate"
+      ],
+      "rows": 0
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/MasterDataRawNonNMS.csv",
+      "bytes": 2450194,
+      "sha256": "cd3a052d912d602663cc80dcc84ab0725083df1bff7710b064d6ea879e72b6ce",
+      "columns": [
+        "SKUCode",
+        "WhCode",
+        "Norm",
+        "MinNorm",
+        "RLT",
+        "RCP",
+        "GCP",
+        "OCP",
+        "ParentWhCode",
+        "SKUIntroDate",
+        "SKUDescription",
+        "WHDescription",
+        "ParentDescription",
+        "PackSize",
+        "SpikeThreshold",
+        "PSOThreshold",
+        "FGRMFlag",
+        "MOQ",
+        "StockPercentForRationing",
+        "NormPercentReservation",
+        "MinOrderCount",
+        "ElephantOrderCapping",
+        "Weight",
+        "Volume",
+        "SL1",
+        "SL2",
+        "SL3",
+        "SL4",
+        "SL5",
+        "LocationType",
+        "LogisticsLocation",
+        "LL1",
+        "LL2",
+        "LL3",
+        "LL4",
+        "LL5",
+        "SKUAtt01",
+        "SKUAtt02",
+        "SKUAtt03",
+        "SKUAtt04",
+        "SKUAtt05",
+        "SKUAtt06",
+        "SKUAtt07",
+        "SKUAtt08",
+        "SKUAtt09",
+        "SKUAtt10",
+        "SKUAtt11",
+        "SKUAtt12",
+        "SKUAtt13",
+        "SKUAtt14",
+        "SKUAtt15",
+        "LocAtt01",
+        "LocAtt02",
+        "LocAtt03",
+        "LocAtt04",
+        "LocAtt05",
+        "LocAtt06",
+        "LocAtt07",
+        "LocAtt08",
+        "LocAtt09",
+        "LocAtt10",
+        "LocAtt11",
+        "LocAtt12",
+        "LocAtt13",
+        "LocAtt14",
+        "LocAtt15",
+        "SKULocAtt01",
+        "SKULocAtt02",
+        "SKULocAtt03",
+        "SKULocAtt04",
+        "SKULocAtt05",
+        "SKULocAtt06",
+        "SKULocAtt07",
+        "SKULocAtt08",
+        "SKULocAtt09",
+        "SKULocAtt10",
+        "SKULocAtt11",
+        "SKULocAtt12",
+        "SKULocAtt13",
+        "SKULocAtt14",
+        "SKULocAtt15"
+      ],
+      "rows": 7661
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/NoNormMasterRaw.csv",
+      "bytes": 649,
+      "sha256": "cc62799fdc8a89cd05f1d06da194464b855f2544961081e03c904cb2d446d413",
+      "columns": [
+        "SKUCode",
+        "WhCode",
+        "RLT",
+        "ParentWhCode",
+        "SKUIntroDate",
+        "SKUDescription",
+        "WHDescription",
+        "ParentDescription",
+        "ElephantOrderCapping",
+        "Weight",
+        "Volume",
+        "SL1",
+        "SL2",
+        "SL3",
+        "SL4",
+        "SL5",
+        "LocationType",
+        "LogisticsLocation",
+        "LL1",
+        "LL2",
+        "LL3",
+        "LL4",
+        "LL5",
+        "SKUAtt01",
+        "SKUAtt02",
+        "SKUAtt03",
+        "SKUAtt04",
+        "SKUAtt05",
+        "SKUAtt06",
+        "SKUAtt07",
+        "SKUAtt08",
+        "SKUAtt09",
+        "SKUAtt10",
+        "SKUAtt11",
+        "SKUAtt12",
+        "SKUAtt13",
+        "SKUAtt14",
+        "SKUAtt15",
+        "LocAtt01",
+        "LocAtt02",
+        "LocAtt03",
+        "LocAtt04",
+        "LocAtt05",
+        "LocAtt06",
+        "LocAtt07",
+        "LocAtt08",
+        "LocAtt09",
+        "LocAtt10",
+        "LocAtt11",
+        "LocAtt12",
+        "LocAtt13",
+        "LocAtt14",
+        "LocAtt15",
+        "SKULocAtt01",
+        "SKULocAtt02",
+        "SKULocAtt03",
+        "SKULocAtt04",
+        "SKULocAtt05",
+        "SKULocAtt06",
+        "SKULocAtt07",
+        "SKULocAtt08",
+        "SKULocAtt09",
+        "SKULocAtt10",
+        "SKULocAtt11",
+        "SKULocAtt12",
+        "SKULocAtt13",
+        "SKULocAtt14",
+        "SKULocAtt15"
+      ],
+      "rows": 0
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/OrderData.csv",
+      "bytes": 28012,
+      "sha256": "a72253307665a3238507adc5949aa8a885b7caef7bc6783b7856d0c70d50fdfc",
+      "columns": [
+        "OrderID",
+        "SKUCode",
+        "WhCode",
+        "OrderQuantity",
+        "OrderDate",
+        "ImportDate"
+      ],
+      "rows": 333
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/OrderFeed.csv",
+      "bytes": 559158,
+      "sha256": "61afa37f237828c464db8524639e0f1012d3a9e82388094a117565322af94ffb",
+      "columns": [
+        "OrderID",
+        "SKUCode",
+        "WhCode",
+        "Qty",
+        "CustomerExpDate"
+      ],
+      "rows": 12671
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/Transporters.csv",
+      "bytes": 52,
+      "sha256": "67da1f2a8c5504c606fc61a0c84cf108d04731a320f8831b495c191504ac7628",
+      "columns": [
+        "TransporterCode",
+        "TransporterName",
+        "TransporterContact"
+      ],
+      "rows": 0
+    },
+    {
+      "path": "I:/VectorFLOW-benchmark-20261020/fresh-start/2026-04-08/VendorTransactions.csv",
+      "bytes": 50,
+      "sha256": "33d3ace1a15b6a87dd789cb00e765c4f065b89d5ce674dca270293250dc52385",
+      "columns": [
+        "WhCode",
+        "TransactedItemCount",
+        "TotalItems",
+        "ReportDate"
+      ],
+      "rows": 0
+    }
+  ],
+  "source_files": [
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/compose.yaml",
+      "bytes": 5742,
+      "sha256": "c71817f8bc98593aeb52f0eb910c78b54ecf7509c74764209a15f16372bbec5f"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/compose.yaml",
+      "bytes": 24872,
+      "sha256": "1a634d275f0b8facd8503d3bb523b95770c1b45aceff526c6f3df2a7c903bd1b"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/compose.Dockerfile",
+      "bytes": 6159,
+      "sha256": "b460fff6761d4fa8c18f5e603d2996c7e8bd0a6385ff69a2031c9fa2b9e6c5cf"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/nginx.template",
+      "bytes": 2909,
+      "sha256": "b1be1a02cb4789fa30ac0ab2d96a464594693208a0964020b9cba8fe1d72e677"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/compose.resource-test.yaml",
+      "bytes": 1433,
+      "sha256": "c7bdacba7385e076543ee487c6a13e275d6e99160da0c60a0a2e06f36ab900f8"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/requirements-mta.lock",
+      "bytes": 151,
+      "sha256": "57cddf79fe300ddf19ce011c7a1b0fb74f3ae160ca3e34b6edbb87c08aed638b"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/requirements-auth.lock",
+      "bytes": 1347,
+      "sha256": "9d9e713f9aa2057e64032389c7afd4a283b9d7ab41bbee6742fa8e9eb3d45ac9"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/requirements-mto.lock",
+      "bytes": 1028,
+      "sha256": "84098022989bc888f9b8c38edbf1568184100429a224efa00a391a3f7a94782f"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/frontend/package-lock.json",
+      "bytes": 1014882,
+      "sha256": "62ed35a547c5718b34f83a7d7fc2bb23e529f8d31f0df05baa282a4dcbb29f36"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/vf.ps1",
+      "bytes": 13441,
+      "sha256": "c55767197d1380c1403a565a74d969fe6705ab8e241d89e4c6d1529356824a83"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/run_daily.ps1",
+      "bytes": 11342,
+      "sha256": "60b8077599718223bee23177f73b812afdd813ea8155819c50a644ac2d36f48c"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/initialize_csv.py",
+      "bytes": 14345,
+      "sha256": "dea7e9561f8e8539cac189ad74e5d705117fe4deaec695959f42dbb16bd5ed7a"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/mta/application/production_csv_contract.py",
+      "bytes": 3492,
+      "sha256": "e8f3af7ecaca482b744d2150702470fc24f142100cd58780ec39e4409ca4d9b5"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/mta/application/r1_order_input.py",
+      "bytes": 12414,
+      "sha256": "12827720744d3ddbd2d38162e7a3d45ee4887d32ab95749d76fb68462b70ef7e"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/tools/large_data_benchmark.py",
+      "bytes": 42533,
+      "sha256": "436c0dc5e2928a280d733d816a336540b69f493966ae549637487ca114e5b246"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/configuration.py",
+      "bytes": 5948,
+      "sha256": "4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162"
+    },
+    {
+      "path": "C:/Users/thapa/.codex/worktrees/bounded-ui-recovery/freshvcf/release/auth_settings.py",
+      "bytes": 919,
+      "sha256": "fcd9a3431d052a2c6ff63ee262bdb84c56adc91502c4238b9ce3ae730eb66c16"
+    }
+  ],
+  "historical_receipts": [
+    {
+      "path": "D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/case.json",
+      "bytes": 53939,
+      "sha256": "c872e22ceacdefdaeafc2255ae2bd35a9472de44e58f216ea6b133a6f9663104"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-contract-audit-20261021/section11/minimum-closeout-20261022/final-operation-entry-corrected-20261022/operational-commit.json",
+      "bytes": 197,
+      "sha256": "01a1dd37461e883baf6979a92a337fb273fbed75049aebf8e87c5bd4ebbabbfc"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-contract-audit-20261021/section11/minimum-closeout-20261022/final-operation-entry-corrected-20261022/human-stop-preservation.json",
+      "bytes": 2853,
+      "sha256": "45260301eebfd71d90a2d3f3f4b818b5c03a7bd529631dd697abe6e6215fbd3b"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/daily-contract-audit-20261021/section11/minimum-closeout-20261022/final-operation-entry-corrected-20261022/next-opening-readback.json",
+      "bytes": 332,
+      "sha256": "b114f13325ed5791f152478882250f60892b121c87121ade1a017352f68721ac"
+    },
+    {
+      "path": "D:/vf5/git-clean-build-20261018/image-checks-78775f49/mta.json",
+      "bytes": 83316,
+      "sha256": "d625685ddd3e17020c427694abb47cba5b5d78b0646b0dc54d282be8d039507a"
+    },
+    {
+      "path": "D:/freshvcf-build/evidence/starter-lifecycle-20261020/two-date-db-proof.json",
+      "bytes": 595,
+      "sha256": "fab939ac0d0b3ce2393a76923f7ebd6c92765c5d853e1a61f5ae2bacb74c0156"
+    }
+  ],
+  "raw_master": {
+    "path": "D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/csv/MasterDataRaw.csv",
+    "bytes": 30496531,
+    "sha256": "3bb8e675520480c234d5daadcc31144f65759b6ffac7a5e88e93a18b608455ad",
+    "columns": [
+      "SKUCode",
+      "WhCode",
+      "Norm",
+      "MinNorm",
+      "RLT",
+      "RCP",
+      "GCP",
+      "OCP",
+      "ParentWhCode",
+      "SKUIntroDate",
+      "SKUDescription",
+      "WHDescription",
+      "ParentDescription",
+      "PackSize",
+      "SpikeThreshold",
+      "PSOThreshold",
+      "FGRMFlag",
+      "MOQ",
+      "StockPercentForRationing",
+      "NormPercentReservation",
+      "MinOrderCount",
+      "ElephantOrderCapping",
+      "Weight",
+      "Volume",
+      "SL1",
+      "SL2",
+      "SL3",
+      "SL4",
+      "SL5",
+      "LocationType",
+      "LogisticsLocation",
+      "LL1",
+      "LL2",
+      "LL3",
+      "LL4",
+      "LL5",
+      "SKUAtt01",
+      "SKUAtt02",
+      "SKUAtt03",
+      "SKUAtt04",
+      "SKUAtt05",
+      "SKUAtt06",
+      "SKUAtt07",
+      "SKUAtt08",
+      "SKUAtt09",
+      "SKUAtt10",
+      "SKUAtt11",
+      "SKUAtt12",
+      "SKUAtt13",
+      "SKUAtt14",
+      "SKUAtt15",
+      "LocAtt01",
+      "LocAtt02",
+      "LocAtt03",
+      "LocAtt04",
+      "LocAtt05",
+      "LocAtt06",
+      "LocAtt07",
+      "LocAtt08",
+      "LocAtt09",
+      "LocAtt10",
+      "LocAtt11",
+      "LocAtt12",
+      "LocAtt13",
+      "LocAtt14",
+      "LocAtt15",
+      "SKULocAtt01",
+      "SKULocAtt02",
+      "SKULocAtt03",
+      "SKULocAtt04",
+      "SKULocAtt05",
+      "SKULocAtt06",
+      "SKULocAtt07",
+      "SKULocAtt08",
+      "SKULocAtt09",
+      "SKULocAtt10",
+      "SKULocAtt11",
+      "SKULocAtt12",
+      "SKULocAtt13",
+      "SKULocAtt14",
+      "SKULocAtt15"
+    ],
+    "rows": 97464
+  },
+  "normalized_master": {
+    "path": "D:/freshvcf-build/evidence/large-data-day1-benchmark-20261019/csv/MasterData.csv",
+    "bytes": 6006500,
+    "sha256": "bea437f82fba74677a2dad51a77fa3d77daf25bc7f8feda9e78f71f80b91881b",
+    "columns": [
+      "SKUCode",
+      "WhCode",
+      "Norm",
+      "MinNorm",
+      "RLT",
+      "RCP",
+      "GCP",
+      "OCP",
+      "MinOrderCount",
+      "ParentWhCode",
+      "SKUIntroDate"
+    ],
+    "rows": 97097
+  },
+  "qualification": [
+    "No new raw facts generated",
+    "No database/container/service/build/calculation changes",
+    "Historical Full49 operational success is separate from its incomplete-report stop receipt",
+    "Prior two-date clone is the small starter, not the large pack",
+    "Counts identify populations and do not assert value parity",
+    "Retained generator next_row already writes closing Stock; new external ledger starts at supplied Stock8, never reapplies day8 C/R"
+  ]
+}
