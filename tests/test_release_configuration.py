@@ -4,10 +4,33 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from release.configuration import database_options, integer, load_secret, public_url, secret, security, email_settings
+from release.configuration import database_options, integer, load_secret, public_url, secret, security, email_settings, auth_site_key_cache
 
 
 class ReleaseConfigurationTests(unittest.TestCase):
+    def test_site_identity_cache_requires_both_explicit_owner_and_location(self):
+        self.assertIsNone(auth_site_key_cache())
+        for values in ({'VF_AUTH_SITE_CACHE_URL': 'redis://redis:6379/0'},
+                       {'VF_AUTH_SITE_KEY_NAMESPACE': 'owned-auth'},
+                       {'VF_AUTH_SITE_CACHE_URL': 'https://redis/0', 'VF_AUTH_SITE_KEY_NAMESPACE': 'owned-auth'},
+                       {'VF_AUTH_SITE_CACHE_URL': 'redis://redis/0', 'VF_AUTH_SITE_KEY_NAMESPACE': '*'},
+                       {'VF_AUTH_SITE_CACHE_URL': 'redis://redis', 'VF_AUTH_SITE_KEY_NAMESPACE': 'owned-auth'},
+                       {'VF_AUTH_SITE_CACHE_URL': 'redis://redis:99999/0', 'VF_AUTH_SITE_KEY_NAMESPACE': 'owned-auth'}):
+            with self.subTest(values=values), patch.dict(os.environ, values, clear=True):
+                with self.assertRaises(ValueError):
+                    auth_site_key_cache()
+
+    def test_site_identity_configuration_is_separate_and_accepts_secret_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'cache-url'
+            path.write_text('rediss://redis.example.invalid:6379/0\n')
+            os.environ.update(VF_AUTH_SITE_CACHE_URL_FILE=str(path), VF_AUTH_SITE_KEY_NAMESPACE='owned-auth:one')
+            configured = auth_site_key_cache()
+        self.assertEqual(configured['BACKEND'], 'django.core.cache.backends.redis.RedisCache')
+        self.assertEqual(configured['LOCATION'], 'rediss://redis.example.invalid:6379/0')
+        self.assertEqual(configured['KEY_PREFIX'], 'vectorflow:site-key:owned-auth:one')
+        self.assertEqual(configured['OPTIONS'], {'socket_connect_timeout': 5, 'socket_timeout': 5})
+
     def test_optional_smtp_and_explicit_starttls_or_ssl(self):
         self.assertEqual(email_settings()['EMAIL_HOST'], '')
         os.environ.update(EMAIL_HOST='smtp.example.invalid', EMAIL_FROM='sender@example.invalid',

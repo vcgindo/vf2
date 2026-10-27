@@ -1,5 +1,6 @@
 """External deployment configuration, independent of Django/application imports."""
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -19,6 +20,29 @@ def secret(name, *, required=True):
 def load_secret(name):
     os.environ[name] = secret(name)
     os.environ.pop(name + '_FILE', None)
+
+
+def auth_site_key_cache():
+    """An explicit site-owned namespace; never reuse the permission cache."""
+    location = secret('VF_AUTH_SITE_CACHE_URL', required=False)
+    namespace = os.environ.get('VF_AUTH_SITE_KEY_NAMESPACE', '')
+    if not location and not namespace:
+        return None  # Retained unconfigured installations keep their old boundary.
+    if not location or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9:._-]{0,127}', namespace):
+        raise ValueError('Supply both VF_AUTH_SITE_CACHE_URL and an explicit VF_AUTH_SITE_KEY_NAMESPACE')
+    url = urlsplit(location)
+    if (url.scheme not in ('redis', 'rediss') or not url.hostname
+            or not re.fullmatch(r'/[0-9]+', url.path) or url.query or url.fragment):
+        raise ValueError('VF_AUTH_SITE_CACHE_URL must identify one Redis database')
+    try:
+        port = url.port
+    except ValueError:
+        raise ValueError('VF_AUTH_SITE_CACHE_URL has an invalid port') from None
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError('VF_AUTH_SITE_CACHE_URL has an invalid port')
+    return dict(BACKEND='django.core.cache.backends.redis.RedisCache', LOCATION=location,
+                KEY_PREFIX='vectorflow:site-key:' + namespace,
+                OPTIONS=dict(socket_connect_timeout=5, socket_timeout=5))
 
 
 def integer(name, default, *, minimum=1, maximum=65535):

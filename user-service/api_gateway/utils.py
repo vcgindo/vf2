@@ -1,9 +1,7 @@
 from api.models import *
 from api.serializer.profile import *
 import pandas as pd
-import secrets
-from datetime import datetime
-from django.core.cache import cache
+from .site_keys import get_site_key
 from ipaddress import ip_address
 import logging
 
@@ -126,18 +124,6 @@ def getApproverList(request,application_id):
         logger.exception("Unexpected error occurred")
         return None
 
-
-def get_site_key():
-    today_key = datetime.utcnow().strftime("%Y-%m-%d")
-    cache_key = f"site_key_{today_key}"
-    
-    site_key = cache.get(cache_key)
-    if not site_key:
-        site_key = secrets.token_hex(16)  # 128-bit hex
-        # Set expiry for slightly more than 24h to ensure overlap
-        cache.set(cache_key, site_key, timeout=60 * 60 * 25)
-    
-    return site_key
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
