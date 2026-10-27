@@ -1,0 +1,327 @@
+{
+  "status": "REMAINING_LIFECYCLE_JOURNEY_EVIDENCED_ORIGINAL_STACK_RESTORED_STEP3_OPEN",
+  "at": "2026-10-27T05:51:15.777050+00:00",
+  "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+  "pre_window_checkpoint": "999abf6f",
+  "evidence_root": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027",
+  "tracker": "F:/freshvcf/docs/handoff-3005/TRACKER.md",
+  "frontend_changed": false,
+  "mto_changed": false,
+  "step3_accepted": false,
+  "latency_accepted": false,
+  "continuous_availability_accepted": false,
+  "open_items": [
+    "Combined BTR visual usability: observed collapsed vertical grid heights; cause unconfirmed, no approved exclusion",
+    "Independent controller review against fixed Step3 matrix",
+    "Performance and continuity gates remain separate; no release of adjacent tranche"
+  ],
+  "evidence": [
+    {
+      "path": "window4-proposal.json",
+      "bytes": 5938,
+      "sha256": "ae5b2973efe8f9c928959b618627931e1fb07531582332eb41437aa0aa163fdf"
+    },
+    {
+      "path": "window4-approval.json",
+      "bytes": 322,
+      "sha256": "7495ee0d50f98eebdc02ab5dc0ad3541712267345ce95328d8c9cdf8cd09e50d"
+    },
+    {
+      "path": "window4-announcement.json",
+      "bytes": 272,
+      "sha256": "2de7864c48fb1baa39534f2b4cc8e6ec319d9b0b15a7211f160841bc84d39f97"
+    },
+    {
+      "path": "window4-activated.json",
+      "bytes": 191,
+      "sha256": "cd67775e695bef9975b74940ef8c4fc4f4697befc7b1ac829a4437c3b82fafb0"
+    },
+    {
+      "path": "window4-selected26-diagnostic-runtime.json",
+      "bytes": 893,
+      "sha256": "5a1c440e1817aa2884ef7483e54c9e8f080a6d237b86c4d2b2adfec98dd5df02"
+    },
+    {
+      "path": "window4-diagnostic-browser-proof.json",
+      "bytes": 1460,
+      "sha256": "21b71642ed961f61577a876f9eb47fcb6708b4cc8877e6b8e3c68c2087918a56"
+    },
+    {
+      "path": "window4-selected26-planning.png",
+      "bytes": 64100,
+      "sha256": "39ba6082c95dc793c2006968c6a29a9cec299e5ced4bc9797b8109bd7a881d27"
+    },
+    {
+      "path": "window4-btr-onhand.png",
+      "bytes": 126774,
+      "sha256": "9950d0ba85cc8081c793b9e3e6fa7c3564121e190109e95810b0bd58296f1746"
+    },
+    {
+      "path": "window4-btr-combined.png",
+      "bytes": 54962,
+      "sha256": "1cc2d775bff3b207212628ff83ad843db3d28c9c7be4d6cd5a6865da78472d70"
+    },
+    {
+      "path": "window4-btr-horizontal.png",
+      "bytes": 199394,
+      "sha256": "1de89a4a4f91230f1481a98340e4f7efde92526401b5313077dee8c1a181fd49"
+    },
+    {
+      "path": "window4-dbm-actions.json",
+      "bytes": 2924,
+      "sha256": "425991c268bc9c19c9d4b2ba2f68c1c0c1746179dab3b1bf5c0368f1b7e753fe"
+    },
+    {
+      "path": "window4-dbm-browser-observations.json",
+      "bytes": 542,
+      "sha256": "fa070e14826a491223b8f4123d05795ad834135dbed8c65f1cb5a4f14603a7f8"
+    },
+    {
+      "path": "window4-dbm-applied.png",
+      "bytes": 91037,
+      "sha256": "862cb0afd9dd5bbceaf07206ca515eb92471c4973ea068b8cf18e9ddff0530a9"
+    },
+    {
+      "path": "window4-dbm-remark.png",
+      "bytes": 72794,
+      "sha256": "8c01c05e05a41bd69a8beca1b501dd6c7070e3f9f1a60cf4eda68ed405ba02e5"
+    },
+    {
+      "path": "window4-dbm-slept.png",
+      "bytes": 79464,
+      "sha256": "97f38cdcc7fc1320ce5c1ae1aabc6bfa1b2fe533ef833ff1bd4be9b42a639574"
+    },
+    {
+      "path": "dbm-journey/terminal-continuation-inspect.json",
+      "bytes": 205,
+      "sha256": "d7c7efaa5182c0ea51429777f8af92630d7d4c5f6ad0c25db2c34cb03152f73c"
+    },
+    {
+      "path": "dbm-journey/terminal-continuation-result.json",
+      "bytes": 755,
+      "sha256": "ca3620e2082c42b1d824b392cd1f956b83ee6f1459656c03b94be15ead9363b4"
+    },
+    {
+      "path": "dbm-journey/terminal-continuation-proof.json",
+      "bytes": 2534,
+      "sha256": "8566003903a6815d271a32c746185d66adb22c5ff4dc55bc0b5dc1c6bc481069"
+    },
+    {
+      "path": "window4-dbm-terminal-readback.json",
+      "bytes": 3040,
+      "sha256": "695398e7aa3ea33bd2b1a70771d17e23451117b002267584e303eb80bc973f99"
+    },
+    {
+      "path": "window4-dbm-terminal-browser-observations.json",
+      "bytes": 1435,
+      "sha256": "b94fc7cdd3b57bb413cbbd58aa2f36ee8657a518d0da08339287422192bc0f37"
+    },
+    {
+      "path": "window4-dbm-terminal-browser.json",
+      "bytes": 2276,
+      "sha256": "8fa0a75b6ab97aab57e52e2f29f4a4d808246708968b879aae08d70b7f663096"
+    },
+    {
+      "path": "window4-dbm-terminal-planning.png",
+      "bytes": 64100,
+      "sha256": "39ba6082c95dc793c2006968c6a29a9cec299e5ced4bc9797b8109bd7a881d27"
+    },
+    {
+      "path": "window4-dbm-terminal-btr.png",
+      "bytes": 126774,
+      "sha256": "9950d0ba85cc8081c793b9e3e6fa7c3564121e190109e95810b0bd58296f1746"
+    },
+    {
+      "path": "window4-sanitized-request-statuses.json",
+      "bytes": 3728,
+      "sha256": "f05988d9ba3fafd5a877c9329a9cea508e542dc47087cb45a3afdb0e31621ed9"
+    },
+    {
+      "path": "window4-restored.json",
+      "bytes": 597,
+      "sha256": "d029bfea4e813a28540bf42a9d87f0920d55dcace59194457847a79dff63bc89"
+    },
+    {
+      "path": "window4-pg-restored.json",
+      "bytes": 523,
+      "sha256": "2eaa78af378d57bed8e5526d8f69bfdcaa6c699d3c942ce2c7a11686f60433d3"
+    },
+    {
+      "path": "window4-restored-landing.png",
+      "bytes": 105609,
+      "sha256": "4a13dba4167c1d24cd634cee428d16ab307cdaae3ba10bada7c3f0cc9692efbf"
+    },
+    {
+      "path": "window4-final-capacity.json",
+      "bytes": 8697,
+      "sha256": "9046cec287a9a2bf61823453ef4ed1bf5df68f560f5b3ef11c96a1b6360dbe20"
+    },
+    {
+      "path": "window4-capacity-observation.json",
+      "bytes": 478,
+      "sha256": "c3016cad871e0adb802ebd15e914fe496aa218a37276bf5754a7570e09273bfe"
+    },
+    {
+      "path": "window4-live-capacity.jsonl",
+      "bytes": 43063,
+      "sha256": "bd0aa836cff8d75f30d41aec5d5a125234c2330c2e25e894961a754884a495f7"
+    },
+    {
+      "path": "vectorflow-step3-dbm-window4-continue-step3-window4-terminal.json",
+      "bytes": 277,
+      "sha256": "28b4a20b2850ba8cec805a926fd42535eac765ac2a2c1a6ba58e5958137cea45"
+    },
+    {
+      "path": "vectorflow-step3-dbm-window4-continue-step3-window4.stdout.log",
+      "bytes": 118,
+      "sha256": "1316dadf449806d3641438c787f38743bc4e60f49778255ffd14cd0885d6f531"
+    },
+    {
+      "path": "vectorflow-step3-dbm-window4-continue-step3-window4.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "window4-dbm-action-baseline.json",
+      "bytes": 16159,
+      "sha256": "2e934918222180fbb97a63898eb06c27852d4decf0d5c9ef44a9eaaef97beed0"
+    },
+    {
+      "path": "window4-dbm-action-apply.json",
+      "bytes": 16837,
+      "sha256": "43b8bfc9747a490b482dde86fb59d4813e222dc748b57bccd8583c14019bbc66"
+    },
+    {
+      "path": "window4-dbm-action-remark.json",
+      "bytes": 16973,
+      "sha256": "69025e34912bed848568dcb2b88cace3791223b6d99b51a3ed7300a816b16cc0"
+    },
+    {
+      "path": "window4-dbm-action-final.json",
+      "bytes": 17468,
+      "sha256": "e1b7ac5d0d321818a181e2ae45f9586fff1fb852a59fd6db8ed313f2986f5e5d"
+    }
+  ],
+  "reused_evidence": [
+    {
+      "path": "window3-logical-pause-proof.json",
+      "bytes": 5806,
+      "sha256": "99b614c9544cf5c2ddb9bb06f78a22339b47798986398e18fd77f8d6ff1ada2c"
+    },
+    {
+      "path": "window3-bpr-actions.json",
+      "bytes": 2162,
+      "sha256": "1ef5835e07e8714bdfd5cf946107075e71be996b45bcb014a64c54b91901828e"
+    },
+    {
+      "path": "window3-bpr-terminal-readback.json",
+      "bytes": 3040,
+      "sha256": "b314b3706ff3071bb31d77028815d22b6a1b3b35e2bafeed7a4d9ebb4c13c812"
+    },
+    {
+      "path": "window3-bpr-terminal-browser.json",
+      "bytes": 1281,
+      "sha256": "15ffc835ed8c2c330fa71c835ce5cc2f5bec40e7c79ce4f93b54773377b62c78"
+    },
+    {
+      "path": "window2-browser-observations.json",
+      "bytes": 2957,
+      "sha256": "2dc650bdb10a3e4aa23518d45c783f5e85d2175328f42f30f4622008b7a15502"
+    },
+    {
+      "path": "bpr-journey/invalid27-diagnostic-proof.json",
+      "bytes": 10297,
+      "sha256": "2b58d21cec9a58bf9fe5e6568ba5ff4d469c8d9817d6d58fb7a0e37ace275235"
+    },
+    {
+      "path": "bpr-journey/native-consumer-qualified-observations.json",
+      "bytes": 6317,
+      "sha256": "cff904d93d6f93c5357ad7620531f0afcd0c94ecd4c4716786615129b784727b"
+    },
+    {
+      "path": "dbm-journey/native-consumer-qualified-observations.json",
+      "bytes": 4151,
+      "sha256": "4b86508a739d85f2ec6cc0513e283150facc8ddd7586980affb9e71a322c25b9"
+    },
+    {
+      "path": "bpr-journey/native-consumer-edges-proof.json",
+      "bytes": 33556,
+      "sha256": "3cee7b8c29e2ccf7f48848ab4e4a71b01866f3d17f528a401070d79d173eda1f"
+    },
+    {
+      "path": "dbm-journey/native-consumer-edges-proof.json",
+      "bytes": 33556,
+      "sha256": "611dc84e18e4c7af31de57550cb985cf70519262c34e056bd5ca6c6398aac552"
+    },
+    {
+      "path": "retained-execution-qualification-index.json",
+      "bytes": 18276,
+      "sha256": "84a5df0b44eaf0a1db208848b0ed686ed2b052e65cbb27fd9fd59cf1ae5e8448"
+    },
+    {
+      "path": "bpr-retained-execution-proof.json",
+      "bytes": 53324,
+      "sha256": "0167f91d959c0fd97466349d29dfb4df65f9d2fad077e35ec652d3db46f6f575"
+    },
+    {
+      "path": "dbm-retained-execution-proof.json",
+      "bytes": 53561,
+      "sha256": "54747b9caa259e7d8214681eefe1dfa1b4423e1cd006d39b0cb23be62eacb449"
+    },
+    {
+      "path": "registered-actions-rollback-bpr-proof.json",
+      "bytes": 7762,
+      "sha256": "6efa7e96e8bf4dc8a25e6e3ea25e1407b1d0e5262559d45bd7cfa6dc20ee3c90"
+    },
+    {
+      "path": "registered-actions-rollback-dbm-proof.json",
+      "bytes": 6702,
+      "sha256": "9597b3aa8baad54e219dcb1d4485b0d20a4196bcc7258bc3a93811b86b4be1e5"
+    },
+    {
+      "path": "private-auth-restart-proof.json",
+      "bytes": 2565,
+      "sha256": "d6eafa351970d36fd398743461cf6fd14d7d4782d6f63be616dcc90b252768a1"
+    },
+    {
+      "path": "private-mta-restart-proof.json",
+      "bytes": 2343,
+      "sha256": "0398fa604260a682092665bb91c0108931ee1996fe7e5b51dd16f2558b9b8c42"
+    },
+    {
+      "path": "bpr-report-registration-proof.json",
+      "bytes": 1809,
+      "sha256": "1b01ce64079891e6ef7ccc4acf6d0282f584e0de953beb240499c4d2d583bd08"
+    },
+    {
+      "path": "dbm-report-registration-proof.json",
+      "bytes": 1809,
+      "sha256": "9bc97c98d100654b6492d24b555e6f1a63418470baebe78308a6c80f140a729d"
+    },
+    {
+      "path": "fresh-schema-resume-proof.json",
+      "bytes": 1238,
+      "sha256": "097b438b2c7eab462d4af2c1087976fdd4b37398d58932115400783f6e2af8c0"
+    },
+    {
+      "path": "used-packaged-transition-proof.json",
+      "bytes": 3140,
+      "sha256": "c9f4c6d1392f399f5b121a29639f24840db42adcbafa8595d29a1d79b7921a27"
+    },
+    {
+      "path": "native-diagnostic-guards-proof.json",
+      "bytes": 9470,
+      "sha256": "f683a36018055452f4d7d480d5adfd83db3fc44eacb95461d20b9cd67ed33169"
+    },
+    {
+      "path": "native-gateway-identity-proof.json",
+      "bytes": 9669,
+      "sha256": "46811a0daecc95bbdca03c8e3195e82824a443531d5c3d4d724e92b341516ad6"
+    }
+  ],
+  "reuse_limits": [
+    "Old native supplier dimension-gate label is reconciled by H45 and controller supplier-name contract, not by changing rows or filters",
+    "Window3 combined BTR load timings prove data/loading completion only; current visual gap explicitly remains open",
+    "Approved NULL excess amount and missing Type5 label positive-witness limits retained"
+  ]
+}
