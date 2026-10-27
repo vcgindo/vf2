@@ -1,0 +1,512 @@
+{
+  "schema": "fresh-step3-guard-qualified-evidence-index-v1",
+  "source_commit": "36c33f66f825299a0b3796ba6d1496c13cc3d6c3",
+  "image_id": "sha256:730ca68dbd2c8870109d6f8d52379b8ee0c6491e1f5ef10ac063d38af0627e84",
+  "native_identity": {
+    "implementation_sha256": "c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d",
+    "manifest_sha256": "08703fa862fe22ffb2c23c7755a56872bfb3fe2aa07797ab64bca11d1749c8e3",
+    "migrations_digest": "e4de538800805c44979885143da5e57b97ead149db5dc1d39d681a88b3f46093",
+    "schema": "vectorflow-native-release-source-v1",
+    "source_commit": "36c33f66f825299a0b3796ba6d1496c13cc3d6c3",
+    "source_files_digest": "12201c3e24444e533fe84c67e9d0aa7584435b7e5a72e7e3c2dbd32c1e97da0f"
+  },
+  "results": {
+    "bpr": {
+      "database": "vftest_fresh_runtime_step3_bpr_20261027",
+      "typed_table_count": 1130,
+      "unchanged_typed_digest": "9aef9b662778fea3dc226bc5f639434e233e2a839641e37e60a2bf91b657ff31",
+      "read_identity": {
+        "id": "66e9676a-6b29-4ecc-873b-fa8c6b6c27ff",
+        "digest": "b23879cc7dc2e17057ddc87afbf74aadc9331005c2873e6fde7e97aaba70ea58"
+      },
+      "native_action_checks": [
+        {
+          "check": "POSITIVE_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-Z9",
+            "OWN-PARENT"
+          ],
+          "event_id": 2,
+          "parent_revision": 0,
+          "revision": 2,
+          "expected_state_digest": "43a0464a27c35aab5c809abe41f58cce2582ad134a3e192218e70b7d8e5f957c",
+          "read_identity": {
+            "id": "e7e70638-00b8-4fa1-981a-4a6483a01dc2",
+            "digest": "494c0deaf2dd2a9d6cf4bbf31c1b41c677c472c155537d3fcf11bf683cf09544"
+          },
+          "inherited_phase_digest": "efd4e5e349dcc1deaddc4bd211580ff41a411a3217c5d808c3f494b8068e2cda",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "POSITIVE_REMARK_AFTER_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "highwater": 1,
+          "read_identity": {
+            "id": "20b5d017-0880-4184-8f61-526ae5f79f6f",
+            "digest": "f5898e8f21011876aa5ddd84b879d05097dd425c6a4deef6ca805791ee7c1a67"
+          }
+        },
+        {
+          "check": "POSITIVE_SLEEP",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-PHASE",
+            "OWN-WH8"
+          ],
+          "event_id": 3,
+          "parent_revision": 2,
+          "revision": 3,
+          "expected_state_digest": "bd1a2a4a0d9148b3a259a0c59aabd22d8e4ca559e9ca0becc0d7e6ad6786ed14",
+          "read_identity": {
+            "id": "5405862c-b398-4b82-b1d1-9ea9e34c2467",
+            "digest": "abcfd23cacd60fb6e8905a6437a58e9dac3915adcadc6bfa4034f7d8bdf27dfc"
+          },
+          "inherited_phase_digest": "efd4e5e349dcc1deaddc4bd211580ff41a411a3217c5d808c3f494b8068e2cda",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "STALE_ACTOR_LEASE",
+          "denial_type": "ProgrammingError",
+          "message": "Application scoped image requires its fresh selected command\nCONTEXT:  PL/pgSQL function fresh_control.guard_application_write() line 102 at RAISE"
+        },
+        {
+          "check": "POSITIVE_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-Z9",
+            "OWN-PARENT"
+          ],
+          "event_id": 5,
+          "parent_revision": 0,
+          "revision": 5,
+          "expected_state_digest": "43a0464a27c35aab5c809abe41f58cce2582ad134a3e192218e70b7d8e5f957c",
+          "read_identity": {
+            "id": "51b3448b-5eff-46f3-afed-96462c178a92",
+            "digest": "493ef68cbdde4f5aae44f2926cf78ea1bf3ed0a8a6308df46e119bfae8cf5178"
+          },
+          "inherited_phase_digest": "efd4e5e349dcc1deaddc4bd211580ff41a411a3217c5d808c3f494b8068e2cda",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "STALE_ACTION_REVISION",
+          "denial_type": "ValueError",
+          "message": "Scoped action requires its exact released stage/action head"
+        },
+        {
+          "check": "ALTERED_POSTBPR_LOCATOR",
+          "denial_type": "ProgrammingError",
+          "message": "Registered read requires its accepted placement chain\nCONTEXT:  PL/pgSQL function guard_scope_read_reference() line 298 at RAISE"
+        },
+        {
+          "check": "AFTER_REFRESHED_SELECTION",
+          "denial_type": "LatePublicationFailure",
+          "message": "after actual refreshed selected action read"
+        }
+      ],
+      "sequence_observations": [
+        {
+          "schema": "mta",
+          "name": "fresh_mta_bprliveremark_id_seq",
+          "before": null,
+          "after": 1
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_runcommand_id_seq",
+          "before": 1,
+          "after": 7
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopebprcandidaterow_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeexcessrow_id_seq",
+          "before": 2,
+          "after": 7
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeexpeditechartmember_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeexpediteparentbase_id_seq",
+          "before": 16,
+          "after": 64
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeexpediterow_id_seq",
+          "before": 8,
+          "after": 28
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopefulfillmentdetailrow_id_seq",
+          "before": 4,
+          "after": 14
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopefulfillmentsummaryrow_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopegitoccurrence_id_seq",
+          "before": 10,
+          "after": 35
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopepickpostrow_id_seq",
+          "before": 8,
+          "after": 28
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopepickreference_id_seq",
+          "before": 8,
+          "after": 28
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningbprrow_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningchartdisplay_id_seq",
+          "before": 36,
+          "after": 126
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningchartmember_id_seq",
+          "before": 44,
+          "after": 154
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningexcesscustom_id_seq",
+          "before": 2,
+          "after": 7
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningexcessgrid_id_seq",
+          "before": 2,
+          "after": 7
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningfulfillmentcustom_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanningfulfillmentgrid_id_seq",
+          "before": 16,
+          "after": 56
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeplanninggitrow_id_seq",
+          "before": 14,
+          "after": 49
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scoperrrreference_id_seq",
+          "before": 8,
+          "after": 28
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopetransitrow_id_seq",
+          "before": 14,
+          "after": 49
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopetransporterrow_id_seq",
+          "before": 14,
+          "after": 49
+        }
+      ],
+      "continuation_inspection_error": "Captured placement request or implementation differs"
+    },
+    "dbm": {
+      "database": "vftest_fresh_runtime_step3_dbm_20261027",
+      "typed_table_count": 1130,
+      "unchanged_typed_digest": "fe2377e133da0f641025c1b79c033ee7e787b5df46a52737d949c3412fc81ddf",
+      "read_identity": {
+        "id": "69f4e6fa-545b-494f-a517-39242f0f1c5a",
+        "digest": "9cd50db78703001289446cd9486c81c150a65f6d9bd140fcd328d94cf58f067e",
+        "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+        "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+        "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0"
+      },
+      "native_action_checks": [
+        {
+          "check": "POSITIVE_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-Z9",
+            "OWN-PARENT"
+          ],
+          "event_id": 1,
+          "parent_revision": 0,
+          "revision": 1,
+          "expected_state_digest": "43a0464a27c35aab5c809abe41f58cce2582ad134a3e192218e70b7d8e5f957c",
+          "read_identity": {
+            "id": "b07d56d7-1114-455a-b242-0d5de1c3a88c",
+            "digest": "07a120ff1f01873607367bf85813121f7de5537090bb1f7e827413f028a3046b",
+            "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+            "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+            "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0"
+          },
+          "inherited_phase_digest": "fbbe890c3c5434f58e4da3cebaec95f81f9feac66d7fc6089620fa8a5d369085",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "POSITIVE_REMARK_AFTER_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "highwater": 1,
+          "read_identity": {
+            "id": "761f474f-cab9-4230-8abc-b01d020a1eb4",
+            "digest": "e8ed3ddad45d5b32410e37981ccd5c5467d390713817ad747bef87d1a44fd3bb",
+            "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+            "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+            "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0"
+          }
+        },
+        {
+          "check": "POSITIVE_SLEEP",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-PHASE",
+            "OWN-WH8"
+          ],
+          "event_id": 2,
+          "parent_revision": 1,
+          "revision": 2,
+          "expected_state_digest": "bd1a2a4a0d9148b3a259a0c59aabd22d8e4ca559e9ca0becc0d7e6ad6786ed14",
+          "read_identity": {
+            "id": "e71588b8-bc79-4795-90eb-2990eca06795",
+            "digest": "0c9ef9e4bc3962eee221f298fbd8a96c1b192138901ac8224e4914c1ef03d2f9",
+            "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+            "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+            "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0"
+          },
+          "inherited_phase_digest": "fbbe890c3c5434f58e4da3cebaec95f81f9feac66d7fc6089620fa8a5d369085",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "STALE_ACTOR_LEASE",
+          "denial_type": "ProgrammingError",
+          "message": "Application scoped image requires its fresh selected command\nCONTEXT:  PL/pgSQL function fresh_control.guard_application_write() line 102 at RAISE"
+        },
+        {
+          "check": "POSITIVE_APPLY",
+          "transaction": "OUTER_ROLLBACK_ONLY",
+          "pair": [
+            "SUPPLIED-Z9",
+            "OWN-PARENT"
+          ],
+          "event_id": 4,
+          "parent_revision": 0,
+          "revision": 4,
+          "expected_state_digest": "43a0464a27c35aab5c809abe41f58cce2582ad134a3e192218e70b7d8e5f957c",
+          "read_identity": {
+            "id": "d49a6773-8b22-4e66-b863-9abfff42414e",
+            "digest": "a97490e7029617740e940f82740a4eb2bc2a5cbd0671b9d273d7cf844566d6e2",
+            "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+            "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+            "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0"
+          },
+          "inherited_phase_digest": "fbbe890c3c5434f58e4da3cebaec95f81f9feac66d7fc6089620fa8a5d369085",
+          "immutable_post_bpr_revision": 0
+        },
+        {
+          "check": "STALE_ACTION_REVISION",
+          "denial_type": "ValueError",
+          "message": "Scoped action requires its exact released stage/action head"
+        },
+        {
+          "check": "ALTERED_POSTBPR_LOCATOR",
+          "denial_type": "ProgrammingError",
+          "message": "Registered read requires its accepted placement chain\nCONTEXT:  PL/pgSQL function guard_scope_read_reference() line 298 at RAISE"
+        },
+        {
+          "check": "AFTER_REFRESHED_SELECTION",
+          "denial_type": "LatePublicationFailure",
+          "message": "after actual refreshed selected action read"
+        }
+      ],
+      "sequence_observations": [
+        {
+          "schema": "mta",
+          "name": "fresh_mta_bprliveremark_id_seq",
+          "before": null,
+          "after": 1
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_runcommand_id_seq",
+          "before": null,
+          "after": 6
+        },
+        {
+          "schema": "mta",
+          "name": "fresh_mta_scopeexpediteparentbase_id_seq",
+          "before": 8,
+          "after": 16
+        }
+      ],
+      "continuation_inspection_error": "Captured placement request or implementation differs"
+    }
+  },
+  "boundary": "Packaged consumed migration and rollback-only runtime actions qualified on two existing test namespaces. No committed action durability, browser or latency acceptance; frozen continuation remains refused. Sole status is F:/freshvcf/docs/handoff-3005/TRACKER.md.",
+  "files": {
+    "action-guard-build-approval.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\action-guard-build-approval.json",
+      "sha256": "2493c0b071da6d5da22149b0d56093ea8585a3df4d8a5e4a63a5060bdf2c2962"
+    },
+    "action-guard-correction-build-proposal.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\action-guard-correction-build-proposal.json",
+      "sha256": "f4e1c39097aad5ad466c13fe5adbddba77069bb62f40b5c31845c4a205f86ec4"
+    },
+    "bpr-guard-continuation-inspection.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-guard-continuation-inspection.json",
+      "sha256": "1cbcfbbb6d668852c4f356a07cb2e79e0cb7f6d5f5f9c470b47c156c934dbfc5"
+    },
+    "bpr-guard-transition-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-guard-transition-proof.json",
+      "sha256": "a23d251204f13317973397195134e563d21f592e35e92676218cb00aff213182"
+    },
+    "bpr-guard-transition-rollback.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-guard-transition-rollback.json",
+      "sha256": "b0eb47bc4274e3fc0829e076269616e4d57963f9c124f62321430c6107cc257b"
+    },
+    "bpr-guard-transition-specification.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-guard-transition-specification.json",
+      "sha256": "6e5c49b32b40ad08e2ba64502ca1f00463598517f7bf78dd0a953a41f5abb644"
+    },
+    "dbm-guard-continuation-inspection.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-guard-continuation-inspection.json",
+      "sha256": "67425747b21e41df4a409d922162621fd90f886efc8c824917c3dd96479ac73f"
+    },
+    "dbm-guard-transition-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-guard-transition-proof.json",
+      "sha256": "4b701e844bcc3b8d7a8971786cb8e51b794c910373ed1ae60a5738edc1653c3b"
+    },
+    "dbm-guard-transition-rollback.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-guard-transition-rollback.json",
+      "sha256": "5c296e35a17280ab3be3d1d2613722291bdeda8a93d9ab184ff2ec6eacda1bc6"
+    },
+    "dbm-guard-transition-specification.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-guard-transition-specification.json",
+      "sha256": "0920eff2c773d98ce35eba314f7dfb4a4dac4ed710c31f7fa3374730d687ce18"
+    },
+    "guard-build-archive-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\guard-build-archive-proof.json",
+      "sha256": "8760e638e78cdc0ba76a2a47bb6c993cc460c51f3890b7a0b7cd59080d7511a5"
+    },
+    "guard-continuation-inspection-observer-failure.txt": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\guard-continuation-inspection-observer-failure.txt",
+      "sha256": "e6bfff92675290f5dd206c49453ada59d0f8464f4bd3d8d5b335729be207d21c"
+    },
+    "guard-packaged-candidate-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\guard-packaged-candidate-proof.json",
+      "sha256": "1ea5c24345498ec0aa614d2e8d21f899523cacd79ea00924fa16feebaa71d121"
+    },
+    "inspect-guard-continuation-v2.py": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\inspect-guard-continuation-v2.py",
+      "sha256": "b611ade55feb6ab19ee0d26826ae528bd889974449129c48e3152d8ce2a5f0b3"
+    },
+    "inspect-guard-continuation.py": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\inspect-guard-continuation.py",
+      "sha256": "3ad53c9e535db919bd0bc10514e091747b284e0bfd0fcfaa5eccee5ea0bba623"
+    },
+    "mta-guard-candidate.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\mta-guard-candidate.json",
+      "sha256": "72a860009911fabf1482e6b260b44fd517baefc27a25ff3e73c91ca9de92ab89"
+    },
+    "post-guard-qualification-capacity.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\post-guard-qualification-capacity.json",
+      "sha256": "c0cb46125432cd2d48ad450de5e4f86d8202863895d0089a2d54ab6bccb48506"
+    },
+    "qualify-guard-transition.py": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\qualify-guard-transition.py",
+      "sha256": "715c4345fcc23f5dccda19873f906c7dff4d274a705aa5cddfe941cbb6c671d1"
+    },
+    "qualify-registered-actions-rollback.py": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\qualify-registered-actions-rollback.py",
+      "sha256": "0b7326b20d9348165d2c08214a8b4a7476834998b98d70e2e99afaae26e7f5e0"
+    },
+    "registered-actions-rollback-bpr-negative-AFTER_REFRESHED_SELECTION.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-negative-AFTER_REFRESHED_SELECTION.json",
+      "sha256": "39f3d18d014992e0bbf18f60bc159ccfb99c42e6c7e7957708938fa18386976b"
+    },
+    "registered-actions-rollback-bpr-negative-ALTERED_POSTBPR_LOCATOR.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-negative-ALTERED_POSTBPR_LOCATOR.json",
+      "sha256": "393cae1634a9fcaee39a14b8ed51b6e5fe2725f35441bed5d0eefccf21681714"
+    },
+    "registered-actions-rollback-bpr-negative-STALE_ACTION_REVISION.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-negative-STALE_ACTION_REVISION.json",
+      "sha256": "d5bd1e7c0ef21c5bc2552035775344d633197d17907d81749baa603a944e80a9"
+    },
+    "registered-actions-rollback-bpr-negative-STALE_ACTOR_LEASE.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-negative-STALE_ACTOR_LEASE.json",
+      "sha256": "1bc38283bb58e60b7914f2568022478ea989959b8f385d4f16a043232a3f405f"
+    },
+    "registered-actions-rollback-bpr-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-proof.json",
+      "sha256": "6efa7e96e8bf4dc8a25e6e3ea25e1407b1d0e5262559d45bd7cfa6dc20ee3c90"
+    },
+    "registered-actions-rollback-bpr-start.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-start.json",
+      "sha256": "2154872cd0ccae7bd9dea881de006398df9fc4e623cca551c7976d922937eb63"
+    },
+    "registered-actions-rollback-dbm-negative-AFTER_REFRESHED_SELECTION.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-negative-AFTER_REFRESHED_SELECTION.json",
+      "sha256": "39f3d18d014992e0bbf18f60bc159ccfb99c42e6c7e7957708938fa18386976b"
+    },
+    "registered-actions-rollback-dbm-negative-ALTERED_POSTBPR_LOCATOR.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-negative-ALTERED_POSTBPR_LOCATOR.json",
+      "sha256": "9eb51e94799a6934fc8f33948a336cbd85806394141087da12debcef6d6fc3a3"
+    },
+    "registered-actions-rollback-dbm-negative-STALE_ACTION_REVISION.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-negative-STALE_ACTION_REVISION.json",
+      "sha256": "d5bd1e7c0ef21c5bc2552035775344d633197d17907d81749baa603a944e80a9"
+    },
+    "registered-actions-rollback-dbm-negative-STALE_ACTOR_LEASE.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-negative-STALE_ACTOR_LEASE.json",
+      "sha256": "1bc38283bb58e60b7914f2568022478ea989959b8f385d4f16a043232a3f405f"
+    },
+    "registered-actions-rollback-dbm-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-proof.json",
+      "sha256": "9597b3aa8baad54e219dcb1d4485b0d20a4196bcc7258bc3a93811b86b4be1e5"
+    },
+    "registered-actions-rollback-dbm-start.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-start.json",
+      "sha256": "b067a32e8710c1e7e93276c011ed0f19093cfc3831ed581edd9c228528b9df3c"
+    }
+  },
+  "next_proposal": {
+    "path": "D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/runtime-step3-20261027/retained-execution-correction-proposal.json",
+    "status": "PREPARED_NOT_APPROVED_NOT_IMPLEMENTED",
+    "sha256": "d2d025b8cb6bf1bcc49327c2aa5c2dec150e63d250c5765b001866ed51845ac7"
+  }
+}
