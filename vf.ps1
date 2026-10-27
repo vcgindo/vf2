@@ -5,8 +5,9 @@ DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend pre
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day')][string]$Operation,
+    [Parameter(Mandatory,Position=0)][ValidateSet('csv-sample','csv-init','csv-day','csv-scope')][string]$Operation,
     [Parameter(Position=1)][string]$BusinessDate,
+    [ValidateSet('Full','UptoBPR','PostBPR','UptoDBM','PostDBM')][string]$Scope,
     [switch]$InspectOnly,
     [switch]$Resume
 )
@@ -15,6 +16,12 @@ $PSNativeCommandUseErrorActionPreference = $false
 . "$PSScriptRoot/release/powershell_compat.ps1"
 Push-Location $PSScriptRoot
 try {
+    if ($Operation -eq 'csv-scope') {
+        if (-not $BusinessDate -or -not $Scope) { throw 'Usage: ./vf.ps1 csv-scope YYYY-MM-DD -Scope Full|UptoBPR|PostBPR|UptoDBM|PostDBM' }
+        & "$PSScriptRoot/release/run_csv_scope.ps1" -BusinessDate $BusinessDate -Scope $Scope -InspectOnly:$InspectOnly -Resume:$Resume
+        return
+    }
+    if ($Scope) { throw '-Scope belongs to csv-scope; other commands retain their existing behavior' }
     $configText = & docker compose --profile daily config --format json
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
     $config = ConvertFrom-VfJson ($configText -join "`n")
