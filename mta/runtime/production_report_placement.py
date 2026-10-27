@@ -113,7 +113,7 @@ def continue_run(run_id,*,scope,expected_phase_digest,expected_action_revision,c
         raise ValueError('Exact bounded placement continuation command required')
     require_publication_writer();original.authorize()
     run=CalculationRun.objects.select_related('predecessor').get(pk=run_id)
-    captured=contract.validate_request(read_input(run,components=('scope_request',))['scope_request'])
+    captured=contract.validate_request(read_input(run,components=('scope_request',))['scope_request'],run=run)
     from mta.runtime.runtime_report_registered_request import read_captured
     read_captured(run)
     original.captured_run(run,captured)
@@ -173,7 +173,7 @@ def fence(attempt_id,*,expected_worker_token,reason):
     from mta.runtime.scope_execution import fence as fence_worker
     authorize()
     attempt=RunScopeAttempt.objects.select_related('run').get(pk=attempt_id)
-    request=contract.validate_request(read_input(attempt.run,components=('scope_request',))['scope_request'])
+    request=contract.validate_request(read_input(attempt.run,components=('scope_request',))['scope_request'],run=attempt.run)
     scopes=(request['scope'],{'UptoBPR':'PostBPR','UptoDBM':'PostDBM'}.get(request['scope']))
     if attempt.scope not in scopes or attempt.compatibility_digest!=request['compatibility_digest']:
         raise ValueError('Placement fencing requires its captured scoped worker')

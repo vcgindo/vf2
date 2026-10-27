@@ -92,7 +92,7 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
         raise ValueError('PostBPR publication continuation is not released')
     from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA,validate_request
     if captured.get('schema')==PLACEMENT_SCHEMA:
-        validate_request(captured)
+        validate_request(captured,run=run)
         allowed={'UptoBPR':('UptoBPR','PostBPR'),'UptoDBM':('UptoDBM','PostDBM')}.get(captured['scope'],())
         if (scope not in allowed or compatibility_digest!=captured['compatibility_digest']
                 or (scope==captured['scope'])!=(command_key==captured['command_key'])):

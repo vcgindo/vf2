@@ -122,7 +122,7 @@ def publish_phase(attempt,receipt,value):
     from mta.runtime.runtime_report_bpr_sources import bind_post_bpr
     from mta.application.runtime_report_configuration import plan
     from mta.runtime.models import RuntimeReportPublication
-    contract.validate_request(value)
+    contract.validate_request(value,run=attempt.run)
     placement={'PRE_BPR':'PostImporter','BPR':'PostBPR','DBM':'PostDBM'}[receipt.phase]
     with transaction.atomic():
         _current,run=require_claim(attempt.pk,attempt.worker_token,compatibility_digest=value['compatibility_digest'])

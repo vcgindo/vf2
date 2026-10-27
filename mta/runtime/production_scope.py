@@ -36,10 +36,10 @@ def request(command_key,*,runtime_reports=None):
     return value
 
 
-def validate_request(value):
+def validate_request(value, *, run=None):
     from mta.runtime import runtime_report_request as placement
     if isinstance(value,dict) and value.get('schema')==placement.SCHEMA:
-        return placement.validate_request(value)
+        return placement.validate_request(value,run=run)
     if isinstance(value,dict) and value.get('scope')=='UptoDBM':
         from mta.runtime.production_upto_dbm import validate_request as validate_dbm
         return validate_dbm(value)
@@ -179,7 +179,7 @@ def fence(attempt_id,*,expected_worker_token,reason):
     authorize()
     attempt=RunScopeAttempt.objects.select_related('run').get(pk=attempt_id)
     value=read_input(attempt.run,components=('scope_request',)).get('scope_request')
-    validate_request(value)
+    validate_request(value,run=attempt.run)
     captured_run(attempt.run,value)
     if (attempt.scope!=value['scope'] or attempt.command_key!=value['command_key']
             or attempt.compatibility_digest!=value['compatibility_digest']):

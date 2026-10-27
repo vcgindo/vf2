@@ -23,9 +23,11 @@ FIELDS = frozenset({'schema', 'scope_request_digest', 'registration',
 def recipe_digest():
     # Old placement sources and factory remain untouched. This additional
     # identity covers typed reconstruction and the future attachment contract.
-    return digest(dict(schema=SCHEMA, placement=placement.recipe_digest(), modules={
+    observed=digest(dict(schema=SCHEMA, placement=placement.recipe_digest(), modules={
         module.__name__: inspect.getsource(module) for module in
         (inspect.getmodule(recipe_digest), registrations)}))
+    from mta.runtime.retained_registered_execution_compatibility import attachment_recipe
+    return attachment_recipe(observed)
 
 
 def _binding(stored):
@@ -83,7 +85,7 @@ def request_for_execution(raw, expected_sha256, *, scope, command_key, registrat
     if outer is None:
         raise ValueError('A registration command cannot adopt an inner-only capture')
     inner = read_input(owner, components=('scope_request',))['scope_request']
-    validate_request(outer, inner)
+    validate_request(outer, inner, run=owner)
     binding = outer['registration']
     if (binding['registration_digest'] != registration_digest
             or binding['initialization_id'] != str(arguments['initialization_id'])
@@ -102,8 +104,8 @@ def _expected(value, scope_request):
     return _attachment(scope_request, stored)
 
 
-def validate_request(value, scope_request):
-    placement.validate_request(scope_request)
+def validate_request(value, scope_request, *, run=None):
+    placement.validate_request(scope_request,run=run)
     if value != _expected(value, scope_request):
         raise ValueError('Registered placement attachment or execution recipe differs')
     return deepcopy(value)
@@ -138,7 +140,7 @@ def check_repeated(run, scope_request, expected):
             or captured.get('report_registration_request') != expected):
         raise ValueError('Repeated registration attachment differs from frozen capture')
     if expected is not None:
-        validate_request(expected, scope_request)
+        validate_request(expected, scope_request,run=run)
 
 
 def read_captured(run):

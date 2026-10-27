@@ -85,10 +85,12 @@ def recipe_digest():
     from mta.application import runtime_report_bpr_inputs,runtime_report_postbtr_inputs
     from mta.application.runtime_report_btr_stage import recipe_digest as btr_recipe
     from mta.runtime import runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication
-    return digest(dict(schema=SCHEMA,btr=btr_recipe(),modules={
+    observed=digest(dict(schema=SCHEMA,btr=btr_recipe(),modules={
         module.__name__:inspect.getsource(module) for module in (
             inspect.getmodule(recipe_digest),runtime_report_bpr_inputs,runtime_report_postbtr_inputs,
             runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication)}))
+    from mta.runtime.retained_registered_execution_compatibility import publication_recipe
+    return publication_recipe(observed)
 
 
 def request(scope,command_key,*,runtime_reports):
@@ -106,11 +108,16 @@ def request(scope,command_key,*,runtime_reports):
     return value
 
 
-def validate_request(value):
+def validate_request(value, *, run=None):
     if (type(value) is not dict or set(value)!={'schema','scope','command_key','runtime_reports',
-            'report_hooks','dispositions','publication_recipe','compatibility_digest'}
-            or value!=request(value.get('scope'),value.get('command_key'),runtime_reports=value.get('runtime_reports'))):
+            'report_hooks','dispositions','publication_recipe','compatibility_digest'}):
         raise ValueError('Captured placement request or implementation differs')
+    expected=request(value.get('scope'),value.get('command_key'),runtime_reports=value.get('runtime_reports'))
+    if value!=expected:
+        if run is None:
+            raise ValueError('Captured placement request or implementation differs')
+        from mta.runtime.retained_registered_execution_compatibility import validate_retained
+        validate_retained(run,value,expected)
     return deepcopy(value)
 
 

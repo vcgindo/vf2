@@ -110,14 +110,16 @@ ORIGINAL_DEPENDENCIES = {'mta.application.production_bor_contract': '81e6a3307ba
  'release.phase_selection': '2ff72ae1ad25aad0d0011fb1429e992225fdc27880aecda30ea2de0019db00b6'}
 ADAPTED_DEPENDENCIES = {'mta.presentation.registered_report_view': 'e8c7291d7f043261d3240577b2d669d1e6bd054da90e5519853a3f1436f27e4d',
  'mta.presentation.scoped_view': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
- 'mta.runtime.migrations.0238_registered_read_action_cut': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b'}
+ 'mta.runtime.migrations.0238_registered_read_action_cut': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
+ 'mta.runtime.runtime_report_registered_request': '0e3059f95a13ec3165105d1d2130426c2d389ccf9db08b533396d9151e42176b'}
 
 
 @once_per_request
 def recipe():
     if set(ADAPTED_DEPENDENCIES) != {
             'mta.presentation.scoped_view', 'mta.presentation.registered_report_view',
-            'mta.runtime.migrations.0238_registered_read_action_cut'}:
+            'mta.runtime.migrations.0238_registered_read_action_cut',
+            'mta.runtime.runtime_report_registered_request'}:
         raise PublicationUnavailable('registered_read_profile_roster_differs')
     for name, checksum in dict(ORIGINAL_DEPENDENCIES, **ADAPTED_DEPENDENCIES).items():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()

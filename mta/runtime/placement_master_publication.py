@@ -17,7 +17,7 @@ def _owner(run,capture):
     from mta.runtime.input_reader import read_input
     from mta.runtime.runtime_report_request import validate_request
     from mta.runtime.scoped_actions import revision
-    request=validate_request(read_input(run,components=('scope_request',))['scope_request'])
+    request=validate_request(read_input(run,components=('scope_request',))['scope_request'],run=run)
     continuation={'UptoBPR':'PostBPR','UptoDBM':'PostDBM'}.get(request['scope'])
     if continuation is None:raise ValueError('Placement master requires a scoped request')
     scoped_final.require_pending_final(run)

@@ -420,7 +420,21 @@ def transition(initialization_id, *, previous_release, target_release):
     release = require_current()
     if release != target_release or previous_release['manifest_sha256'] == release['manifest_sha256']:
         raise ValueError('Exact independently reviewed old/new releases required')
-    with transaction.atomic(), connection.cursor() as cursor:
+    from mta.runtime import retained_registered_execution_compatibility as execution
+    retained_execution = execution.transition_profile(initialization_id, previous_release, target_release)
+    from contextlib import nullcontext
+    from mta.runtime.daily_feed import job_lock
+    from mta.mdm.supplier_revisions import source_lock
+    prepared_owner = None
+    if retained_execution:
+        if not transaction.get_autocommit():
+            raise ValueError('Retained execution transition owns its outer transaction')
+        prepared_owner = ProductionInitialization.objects.get(pk=initialization_id)
+    # Acquire the same cooperating writer locks as schema_transition BEFORE the
+    # snapshot; a later connection must not write outside our preservation cut.
+    with (job_lock(prepared_owner) if retained_execution else nullcontext()), \
+            (source_lock(prepared_owner.source_id) if retained_execution else nullcontext()), \
+            transaction.atomic(), connection.cursor() as cursor:
         cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')
         authority._provisioner(cursor)
         cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended('fresh.production.initialization',0))")
@@ -429,7 +443,15 @@ def transition(initialization_id, *, previous_release, target_release):
         if cursor.fetchone() is not None:
             raise ValueError('Compatible transition requires exclusive maintenance ownership')
         owner = ProductionInitialization.objects.select_for_update().select_related('source').get(pk=initialization_id)
-        before = retained(owner)
+        def preserved():
+            original = retained(owner)
+            if retained_execution:
+                from mta.runtime.registered_read_action_transition import preservation as typed_preservation
+                return typed_preservation(cursor, original)
+            return original
+        before = preserved()
+        before_catalogue = catalogue(cursor) if retained_execution else None
+        before_history = authority_history(cursor, owner.pk) if retained_execution else None
         previous = _admit(cursor, owner.pk, previous_release, pending=True)
         original, capability = registration(cursor)
         old = authority.read(cursor, owner.pk, previous_release['manifest_sha256'])
@@ -449,9 +471,17 @@ def transition(initialization_id, *, previous_release, target_release):
         authority.append(cursor, body)
         current = _admit(cursor, owner.pk, release, pending=True)
         owner.refresh_from_db(); owner.source.refresh_from_db()
-        if (retained(owner) != before or registration(cursor) != (original, capability)
+        if (preserved() != before or registration(cursor) != (original, capability)
                 or current.certification_digest != previous.certification_digest):
             raise ValueError('Compatible release changed a sealed producer or opening')
+        if retained_execution:
+            if catalogue(cursor) != before_catalogue:
+                raise ValueError('Retained execution code transition changed the catalogue')
+            after_history = authority_history(cursor, owner.pk)
+            for table, rows in before_history.items():
+                if (any(after_history[table].get(key) != value for key, value in rows.items())
+                        or set(after_history[table])-set(rows) != {release['manifest_sha256']}):
+                    raise ValueError('Retained execution transition changed original authority')
     return dict(status='COMPATIBLE_RELEASE_APPENDED_ORIGINAL_CERTIFICATE_PRESERVED',
         initialization_id=str(owner.pk), certification_digest=current.certification_digest,
         previous_release=previous_release, target_release=release)
