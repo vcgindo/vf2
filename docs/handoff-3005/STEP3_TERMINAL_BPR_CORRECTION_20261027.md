@@ -1,0 +1,37 @@
+# Terminal BPR correction: source and delivery proposal
+
+Step3 remains open. This is the concrete correction following checkpoint **cbf49f05** and the controller's review. It does not authorize a build or another serving window. Status remains solely in `F:/freshvcf/docs/handoff-3005/TRACKER.md`.
+
+## Exact source change
+
+`mta/presentation/terminal_read_mode.py` adds a BPR-only branch for a successful registered native daily run. Before returning prepared mode it verifies native configuration, the captured registration and its own PostImporter/PostBPR phase-publication chain, the exact selected terminal run, and its sealed READY publication/Planning summary. Existing BPR source, schema, receipt and guard validation still runs in the prepared reader. Explicit flags and historical qualified owners retain their existing behavior; other report modes are unchanged.
+
+The change does not alter the frozen prepared flag, publish another report, append a run UUID to the historical exception, return an empty success, or introduce an unprepared fallback. It does not recreate earlier intermediate selection after completion.
+
+`mta/runtime/retained_registered_execution_compatibility.py` pins the exact reader adaptation and permits the exact qualified3ed8 predecessor pair through the existing code-only transition. That transition retains the original catalogue, typed state and certificates and appends the actual new release authority. The existing qualified36 predecessor remains supported. Original producer hashes and original captured execution digests remain unchanged.
+
+The current source also includes c63161's previously qualified auth cache helper in shared `release/configuration.py`. Its exact hash is declared as an adaptation. AST comparison proves that removing only the new helper and `import re` leaves every previous statement unchanged; MTA does not call the helper. Omitting this pin would make the truthful native source-closure check reject the new package.
+
+## Source evidence
+
+Fifteen focused tests pass across `test_terminal_read_mode` and `test_retained_registered_execution`. They cover unchanged configuration, all required owner-check failures, missing registration, unsupported/incomplete modes, unchanged legacy routing, exact predecessor identity, owned initialization and actual target identity. The actual source closure passes; publication recipe `6fb2894f…4007b` and attachment recipe `798dd462…e4a9` remain unchanged. Independent bounded review found no concrete blocker.
+
+Evidence: `D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/runtime-step3-20261027/terminal-bpr-source-proof.json` and `terminal-bpr-focused-tests.log`. The first mock observation counted its own configuration snapshot; the observer was corrected. The initial source-closure failure exposed the shared auth-helper pin above. Both are recorded; these checks are not native or browser acceptance.
+
+## Proposed bounded execution
+
+1. Build **one MTA image as an exact source delta** over qualified image `sha256:c2f91e4e96207b7956fd0e9fa9956837f59b0ca9263f5e8637fa9cc72823a762` (3ed8). Export committed sources with the existing exporter; require the identical native file roster and unchanged dependency, schema and packaging files. Copy only the two changed MTA modules, the previously qualified shared configuration helper and the new native manifest. Set truthful new commit/manifest/source labels and environment pins. Keep the exact base layers, user, entrypoint, runtime and installed dependencies; no dependency installation or RUN instruction. Use the existing4GiB/2CPU/offline/no-pull bounds. Before admission, verify every native file against independently pinned new commit/manifest, original recipe identities and the unchanged migration graph in the actual image. Record the explicit delta Dockerfile separately; do not pretend the standard full build ran. Preserve every earlier image and failure artifact. No auth/frontend rebuild.
+2. On only the existing Step3 BPR and DBM databases, qualify the existing exclusive code-only transition from3ed8: injected rollback, exact typed/catalogue/certificate preservation, commit and exact retry. Only release-authority audit rows may be appended. Do not execute any day, action, report producer or preparation again.
+3. With the actual restricted runtime and each original terminal selection, prove the new gate and existing prepared reader together. Compare all BPR grid values/count with the retained prepared population; check a real positive filter, valid empty filter, clearing, and canonical export bytes/rows. Missing registration, invalid phase owner, incomplete READY and changed selection/configuration must still deny. Fault observations must use rollback/component boundaries, never alter accepted records. Prove complete run/phase/command/output/file/configuration equality, both current selections and unchanged BTR reading.
+4. Only after native qualification, open **one new60-minute8080 window**. Reuse the retained PG16 exclusive volume and qualified corrected auth/frontend images. Use the new MTA image with complete pinned selection; verify actual BPR count/values/filter/export for the completed deliveries and targeted BTR/session continuity. Record actual file arrival. Preserve the existing cookie lifetimes and never solve an expired session by weakening auth.
+5. Restore original frontend/PG/MTA/HBA/gateway automatically at expiry or earlier. Reuse the proven exact startup-generated/original gateway restoration logic. Verify readiness, protected identities, completed data and final capacity. Submit the finite evidence for controller closure review; no next tranche follows automatically.
+
+## Resource and serving decision required
+
+Current final accounting is5,718,691,869bytes including512MiBreserve, leaving164,511,139bytes within both existing caps. The standard full MTA build admission requires330MiB, exceeding this headroom. This proposal instead uses the explicit delta build above; it does not weaken or bypass that standard-build check.
+
+Keep total5.5GiB, cumulative growth1936MiB,512MiBreserve and all CPU/memory limits unchanged. Require64MiB available for this delta operation: committed export/source copies32MiB, delta/context/image metadata16MiB, and qualification/authority/evidence16MiB. Recheck actual sizes before build and every native/serving action; stop if the operation cannot fit. Charge all new intermediate layers and writable containers. No pruning or archival replacement is proposed. The full-build alternative would need a separate capacity decision and is not included.
+
+The closed window5 explicitly pinned unchanged MTA and auth/frontend-only overlays. This proposal therefore needs release of the specified MTA delta packaging/native code-admission and replacement window, even though resource caps do not increase. It creates no database, public port, permanent cutover, frontend design change or MTO change. PG/MTA/frontend briefly stop/restart only inside the approved replacement window; original serving remains available during source/build/private qualification wherever the original boundary permits it.
+
+Remaining evidence limits from Step3 stay explicit. No latency/scale work, matched Full/split campaign, production roster work or general continuous-availability acceptance is included.

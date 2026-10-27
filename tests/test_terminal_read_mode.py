@@ -6,6 +6,7 @@ django.setup()
 from types import SimpleNamespace as NS
 from unittest import TestCase
 from unittest.mock import patch
+from contextlib import ExitStack
 from django.test import override_settings
 from django.conf import settings
 from mta.presentation import terminal_read_mode as mode
@@ -42,3 +43,49 @@ class TerminalReadModeTests(TestCase):
                 binding.assert_not_called()
         with override_settings(VF_BPR_PREPARED=True):
             self.assertTrue(mode.prepared('VF_BPR_PREPARED', NS(pk='another-run')))
+
+    def test_registered_terminal_bpr_requires_all_existing_owners_without_configuration_change(self):
+        from mta.presentation.daily_publication import configuration_identity
+        run = NS(pk='registered-terminal', kind='DAILY_CHAIN', status='SUCCEEDED')
+        checks = ('native_publication.require_mode', 'registered_report_view.configuration',
+                  'native_selection.require_selected', 'native_publication.require_publication')
+        with ExitStack() as stack:
+            stack.enter_context(override_settings(VF_MTA_NATIVE_PUBLICATION=True,
+                VF_MTA_DAILY_PUBLICATION=True, **{flag: False for flag in mode.FLAGS}))
+            applicable = stack.enter_context(patch('mta.presentation.registered_report_view.applicable_run', return_value=True))
+            owners = [stack.enter_context(patch('mta.presentation.' + name)) for name in checks]
+            legacy = stack.enter_context(patch('mta.presentation.terminal_bpr_delivery.binding'))
+            original = configuration_identity()
+            for owner in owners:owner.reset_mock()
+            self.assertTrue(mode.prepared('VF_BPR_PREPARED', run))
+            applicable.assert_called_once_with(run)
+            owners[0].assert_called_once_with()
+            for owner in owners[1:]:owner.assert_called_once_with(run)
+            self.assertEqual(configuration_identity(), original)
+            self.assertFalse(settings.VF_BPR_PREPARED)
+            legacy.assert_not_called()
+            # This correction does not silently route other report families.
+            for flag in mode.FLAGS - {'VF_BPR_PREPARED'}:
+                self.assertFalse(mode.prepared(flag, run))
+            applicable.reset_mock()
+            applicable.return_value = False
+            self.assertFalse(mode.prepared('VF_BPR_PREPARED', run))
+            applicable.return_value = True
+            for failed in owners:
+                with self.subTest(owner=failed):
+                    failed.side_effect = ValueError('owner validation refused')
+                    with self.assertRaisesRegex(ValueError, 'owner validation refused'):
+                        mode.prepared('VF_BPR_PREPARED', run)
+                    failed.side_effect = None
+
+    def test_unfinished_or_non_native_days_do_not_enter_registered_terminal_path(self):
+        for native, daily, kind, status in ((False, True, 'DAILY_CHAIN', 'SUCCEEDED'),
+                (True, False, 'DAILY_CHAIN', 'SUCCEEDED'),
+                (True, True, 'DAILY_CHAIN', 'RUNNING'),
+                (True, True, 'LEGACY_UI_FIXTURE', 'SUCCEEDED')):
+            with self.subTest(native=native, daily=daily, kind=kind, status=status), \
+                    override_settings(VF_MTA_NATIVE_PUBLICATION=native,
+                        VF_MTA_DAILY_PUBLICATION=daily, VF_BPR_PREPARED=False), \
+                    patch('mta.presentation.registered_report_view.applicable_run') as applicable:
+                self.assertFalse(mode.prepared('VF_BPR_PREPARED', NS(pk='other', kind=kind, status=status)))
+                applicable.assert_not_called()

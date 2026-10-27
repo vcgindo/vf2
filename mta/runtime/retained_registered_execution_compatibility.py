@@ -17,11 +17,15 @@ PUBLICATION_RECIPE = '6fb2894f2165fcd087bece0e580c1b5802923d5c83dbf16fab00025120
 ATTACHMENT_RECIPE = '798dd462a82d43272015c4c683a6bf58cf3b7c9f7c22d27e9e6b572c59e7e4a9'
 PREVIOUS_RELEASE = '08703fa862fe22ffb2c23c7755a56872bfb3fe2aa07797ab64bca11d1749c8e3'
 PREVIOUS_COMMIT = '36c33f66f825299a0b3796ba6d1496c13cc3d6c3'
+READ_ROUTING_PREVIOUS_RELEASE = '39489103fddb29766949f6f8b5642904f6a1688ad397a4ea9b5278603d0ad7e6'
+READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 
 # Filled from the reviewed staged export, never from a caller or live database.
 # Raw hashes qualify the native artifact; text hashes also support Python's
 # universal-newline source recipes in a Windows development checkout.
 ADAPTED_FILES = {'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ 'mta/presentation/terminal_read_mode.py': 'c4ac7a12220ac552788a9d09a16d0acf82cb5ba76d4bafdcc60408a51d4829bc',
+ 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162',
  'mta/presentation/registered_read_compatibility.py': 'f8a2e56ef5c254b8a34672c0d70e2e45e9fe12eb337578a86746144ca9e7f585',
  'mta/presentation/registered_report_view.py': 'e8c7291d7f043261d3240577b2d669d1e6bd054da90e5519853a3f1436f27e4d',
  'mta/presentation/scoped_view.py': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
@@ -38,6 +42,8 @@ ADAPTED_FILES = {'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8
  'mta/runtime/scope_execution.py': '1812f2e986db6b8b1fd91688ab0c3cd2183a0714c8007c5992d646a17d5b6d78',
  'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838'}
 ADAPTED_PYTHON_TEXT = {'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
+ 'mta/presentation/terminal_read_mode.py': 'c4ac7a12220ac552788a9d09a16d0acf82cb5ba76d4bafdcc60408a51d4829bc',
+ 'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162',
  'mta/presentation/registered_read_compatibility.py': 'f8a2e56ef5c254b8a34672c0d70e2e45e9fe12eb337578a86746144ca9e7f585',
  'mta/presentation/registered_report_view.py': 'e8c7291d7f043261d3240577b2d669d1e6bd054da90e5519853a3f1436f27e4d',
  'mta/presentation/scoped_view.py': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
@@ -193,9 +199,10 @@ def validate_retained(run, value, expected):
 
 
 def transition_profile(initialization_id, previous, target):
-    """Only the approved code-only successor of qualified36, with no DDL."""
-    if (previous.get('manifest_sha256') != PREVIOUS_RELEASE
-            or previous.get('source_commit') != PREVIOUS_COMMIT):
+    """Exact qualified predecessors for code-only adaptation, with no DDL."""
+    if (previous.get('source_commit'), previous.get('manifest_sha256')) not in (
+            (PREVIOUS_COMMIT, PREVIOUS_RELEASE),
+            (READ_ROUTING_PREVIOUS_COMMIT, READ_ROUTING_PREVIOUS_RELEASE)):
         return False
     if str(initialization_id) not in {p['initialization_id'] for p in RETAINED_RUNS.values()}:
         raise ValueError('Retained execution transition requires its owned initialization')

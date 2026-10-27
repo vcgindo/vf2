@@ -235,6 +235,27 @@ class SourceClosureTests(unittest.TestCase):
             text_check.assert_called_once()
 
 
+class TerminalReaderTransitionTests(unittest.TestCase):
+    def test_code_only_transition_requires_exact_predecessor_owner_and_actual_target(self):
+        target = {'manifest_sha256': 'actual-target', 'source_commit': 'actual-commit'}
+        previous = dict(source_commit=compatible.READ_ROUTING_PREVIOUS_COMMIT,
+                        manifest_sha256=compatible.READ_ROUTING_PREVIOUS_RELEASE)
+        with patch.object(compatible, 'RETAINED_RUNS', {'run': {'initialization_id': 'owned'}}), \
+                patch.object(compatible, 'process_release', return_value=target) as release:
+            self.assertTrue(compatible.transition_profile('owned', previous, target))
+            original = dict(source_commit=compatible.PREVIOUS_COMMIT,
+                            manifest_sha256=compatible.PREVIOUS_RELEASE)
+            self.assertTrue(compatible.transition_profile('owned', original, target))
+            for field in previous:
+                release.reset_mock()
+                self.assertFalse(compatible.transition_profile('owned', dict(previous, **{field: 'other'}), target))
+                release.assert_not_called()
+            with self.assertRaisesRegex(ValueError, 'owned initialization'):
+                compatible.transition_profile('foreign', previous, target)
+            with self.assertRaisesRegex(ValueError, 'release differs'):
+                compatible.transition_profile('owned', previous, dict(target, source_commit='other'))
+
+
 class EntryForwardingTests(unittest.TestCase):
     def test_deep_mutation_validators_receive_the_persisted_run(self):
         # Static routing proof only: these deep functions require native SQL and
