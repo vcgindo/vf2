@@ -948,7 +948,7 @@ ORIGINAL_FILES = {'baseline/cohort2-alert-source-schema.json': 'c6c22f36719e39fd
  'mta/runtime/runtime_report_execution.py': '7a341105fba3f9f6f9310e146329e616dc93391ab831d86db2ccdd73dcfe3bd6',
  'mta/runtime/runtime_report_models.py': '2dd7abb1d967259c97cecb625eb0aab9819eeed6932ab41a8de4de6475cf6388',
  'mta/runtime/runtime_report_phase_sources.py': '07ce31f790f24292e32286cc028c748e6fd1284b5b3d507f2140cdf2647bbcd1',
- 'mta/runtime/runtime_report_placement_publication.py': '80f7caf23dc8e2f2751165851fdb7456254b51bd0ae0174f47809c779afaebca',
+ 'mta/runtime/runtime_report_placement_publication.py': '6c384fabad01c3ea7f6cbed2c8d236f86caf2c9bcd0efabb2b4134d3b3352775',
  'mta/runtime/runtime_report_publication.py': 'd433471690c19b18377fca9e430ed29a73e049f00ee0b60b11760d20c3996a8a',
  'mta/runtime/runtime_report_read_transition.py': 'c0a5088312d999373ffb5bbf6f61ba59f7cce80caf267d54b8fb86eaff2204d3',
  'mta/runtime/runtime_report_registered_request.py': '44a92b00707e195dc0599e19efaa5804ae2f68313b13cd514b94a1d70f53000b',

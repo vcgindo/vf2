@@ -50,7 +50,7 @@ ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9f
  'mta/runtime/report_definition_registration.py': 'cab2b8c7f8403f610e4f8627615537eb6212877dd54b148d9a3f4bdaa1b27816',
  'mta/runtime/runtime_report_bpr_sources.py': 'a3b2bd56af4e44e3865b98ed518c6ba644608068eaf855793e07eb6c44234c8d',
  'mta/runtime/runtime_report_execution.py': '9ccfe45c6aefc4b8217740d8e7f3b7a66883b520da8a1f08f32e870b02f54c35',
- 'mta/runtime/runtime_report_placement_publication.py': '7bc24600074336f5ace9807e0c3f2e5da499fe75aa67caad0f183afd52014ead',
+ 'mta/runtime/runtime_report_placement_publication.py': '6c384fabad01c3ea7f6cbed2c8d236f86caf2c9bcd0efabb2b4134d3b3352775',
  'mta/runtime/runtime_report_registered_request.py': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
  'mta/runtime/runtime_report_request.py': '8e2f3186a5e6874aed9c3fe3facd131660e49f81445132a3a9006d8cfad702ff',
  'mta/runtime/scope_execution.py': '1812f2e986db6b8b1fd91688ab0c3cd2183a0714c8007c5992d646a17d5b6d78',
@@ -83,7 +83,7 @@ ADAPTED_PYTHON_TEXT = {'mta/application/operational_input_archive.py': '3ceb9a2d
  'mta/runtime/report_definition_registration.py': 'cab2b8c7f8403f610e4f8627615537eb6212877dd54b148d9a3f4bdaa1b27816',
  'mta/runtime/runtime_report_bpr_sources.py': 'a3b2bd56af4e44e3865b98ed518c6ba644608068eaf855793e07eb6c44234c8d',
  'mta/runtime/runtime_report_execution.py': '9ccfe45c6aefc4b8217740d8e7f3b7a66883b520da8a1f08f32e870b02f54c35',
- 'mta/runtime/runtime_report_placement_publication.py': '7bc24600074336f5ace9807e0c3f2e5da499fe75aa67caad0f183afd52014ead',
+ 'mta/runtime/runtime_report_placement_publication.py': '6c384fabad01c3ea7f6cbed2c8d236f86caf2c9bcd0efabb2b4134d3b3352775',
  'mta/runtime/runtime_report_registered_request.py': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
  'mta/runtime/runtime_report_request.py': '8e2f3186a5e6874aed9c3fe3facd131660e49f81445132a3a9006d8cfad702ff',
  'mta/runtime/scope_execution.py': '1812f2e986db6b8b1fd91688ab0c3cd2183a0714c8007c5992d646a17d5b6d78',
@@ -103,8 +103,8 @@ PROFILE_FILES = {
     'mta/runtime/_retained_execution_source_pins.py',
     'mta/runtime/retained_registered_execution_compatibility.py',
 }
-OBSERVED_PUBLICATION_RECIPE = 'fc9265d4d6c6401e33015ae3437ab4743ef4c48f9eb4d4e03a9b6e003e7dc3a1'
-OBSERVED_ATTACHMENT_RECIPE = '1ca267426afca271cfb0141bfd6c52d64a0d0254765bb5413dc0e336e846dfaf'
+OBSERVED_PUBLICATION_RECIPE = '4c1eba2cbf7e0cbe45acbebc9e540bf9956a669665c44905aa5301ccb0f76147'
+OBSERVED_ATTACHMENT_RECIPE = 'dd79fcd51ea797843b790ea232a029c85f9a680e57fcb02b0345211bb33a9e67'
 
 
 def check_source_manifest(files):

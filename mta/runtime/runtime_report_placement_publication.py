@@ -214,7 +214,10 @@ def register(run,work,*,attempt=None,worker_token=None,final_unit=None):
             placement=work.placement,input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest,
             source_digest=digest(metadata['authority']),profile_digest=digest(raw['profile']),
             scope_request_digest=digest(request),configuration_digest=digest(config),
-            recipe_digest=request_contract.recipe_digest(),action_revision=work.owner['action_revision'],
+            # The captured request selects the production policy recipe for
+            # generic scopes. Persist that exact identity so the SQL custody
+            # guard can compare it with the request captured on the run.
+            recipe_digest=request['publication_recipe'],action_revision=work.owner['action_revision'],
             action_digest=digest(dict(phase=work.owner['phase_digest'],revision=work.owner['action_revision'])),
             candidate_digest=work.candidate['digest'],catalogue_digest=digest(work.catalogue),metadata=metadata)
         row.digest=digest(_body(row))
@@ -232,7 +235,7 @@ def read(run_id,*,placement,verify_bytes=False):
     authority=row.metadata['authority'];owned=authority['owner']
     if (row.source_digest!=digest(authority) or authority['request_node']!=_request_node(row.run)
             or row.scope_request_digest!=digest(request) or row.configuration_digest!=digest(config)
-            or row.profile_digest!=digest(raw['profile']) or row.recipe_digest!=request_contract.recipe_digest()
+            or row.profile_digest!=digest(raw['profile']) or row.recipe_digest!=request['publication_recipe']
             or row.input_digest!=row.run.input_digest or row.input_manifest_digest!=row.run.input_manifest_digest
             or row.candidate_digest!=row.metadata['candidate']['digest']
             or row.catalogue_digest!=digest(row.metadata['catalogue'])
