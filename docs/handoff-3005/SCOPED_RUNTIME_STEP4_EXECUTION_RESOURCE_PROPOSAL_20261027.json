@@ -1,0 +1,355 @@
+{
+  "purpose": "ONE combined Step4 execution-and-resource proposal; NO approval or executable helper",
+  "source_commit": "ba32643250c1c3b916cd400fd801ae88b57122c6",
+  "image": "sha256:4e66836122213a23fa8d52981cda1d8bc274b3412c775fa01e79cd4230e30708",
+  "native_manifest_sha256": "9f15707cf3ee46cc0878c1fce714e291b688d391aa79cd65d879d208391fac5c",
+  "owners": [
+    {
+      "arm": "full",
+      "database": "vftest_fresh_runtime_step4_full_20261027",
+      "source_identity": "owned-step4-full-conserving-20261027",
+      "scope26": "Full",
+      "initializer_template": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\bpr-operator-input.json",
+      "initializer_template_sha256": "7b24a76ba596cee6ed87dce35019d0a75d6f28b6de1bb494219a0ab904a76cd1",
+      "only_initializer_edits": {
+        "/opening/identity": "owned-step4-full-conserving-initial-facts-v1",
+        "/recipe/source_identity": "owned-step4-full-conserving-20261027",
+        "/recipe/version": "supplied-step4-full-conserving-v1"
+      },
+      "planned_initializer_serialization": "json.dumps(sort_keys=True,indent=2,ensure_ascii=True,allow_nan=False)+LF",
+      "planned_initializer_sha256": "3d7828f793de984ee2a24c8f28819d50539b3048d15569394589fd05ad13dec6",
+      "planned_initializer_bytes": 118852,
+      "configuration_digest": "e68126aa6602169be3996303249ec9dcb73b985b69eca4a8eb9aed1a9c6ec106",
+      "host_root": "D:/freshvcf-build/evidence/scoped-runtime-step4-20261027/full",
+      "container_root": "/evidence/full",
+      "producer_command_keys": [
+        "runtime-step4-full-full23-20261027",
+        "runtime-step4-full-full24-20261027",
+        "runtime-step4-full-full25-20261027",
+        "runtime-step4-full26-20261027"
+      ],
+      "continuation_key": null,
+      "worker_container_names": [
+        "vectorflow-step4-full-full23-20261027",
+        "vectorflow-step4-full-full24-20261027",
+        "vectorflow-step4-full-full25-20261027",
+        "vectorflow-step4-full-26-20261027"
+      ]
+    },
+    {
+      "arm": "bpr",
+      "database": "vftest_fresh_runtime_step4_bpr_20261027",
+      "source_identity": "owned-step4-bpr-conserving-20261027",
+      "scope26": "UptoBPR",
+      "initializer_template": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\bpr-operator-input.json",
+      "initializer_template_sha256": "7b24a76ba596cee6ed87dce35019d0a75d6f28b6de1bb494219a0ab904a76cd1",
+      "only_initializer_edits": {
+        "/opening/identity": "owned-step4-bpr-conserving-initial-facts-v1",
+        "/recipe/source_identity": "owned-step4-bpr-conserving-20261027",
+        "/recipe/version": "supplied-step4-bpr-conserving-v1"
+      },
+      "planned_initializer_serialization": "json.dumps(sort_keys=True,indent=2,ensure_ascii=True,allow_nan=False)+LF",
+      "planned_initializer_sha256": "4eaf0c52babfd460266cd340fc06a71ec9b22f5c4269bc3f36675782d085885c",
+      "planned_initializer_bytes": 118849,
+      "configuration_digest": "e68126aa6602169be3996303249ec9dcb73b985b69eca4a8eb9aed1a9c6ec106",
+      "host_root": "D:/freshvcf-build/evidence/scoped-runtime-step4-20261027/bpr",
+      "container_root": "/evidence/bpr",
+      "producer_command_keys": [
+        "runtime-step4-bpr-full23-20261027",
+        "runtime-step4-bpr-full24-20261027",
+        "runtime-step4-bpr-full25-20261027",
+        "runtime-step4-bpr26-20261027"
+      ],
+      "continuation_key": "runtime-step4-postbpr26-20261027",
+      "worker_container_names": [
+        "vectorflow-step4-bpr-full23-20261027",
+        "vectorflow-step4-bpr-full24-20261027",
+        "vectorflow-step4-bpr-full25-20261027",
+        "vectorflow-step4-bpr-26-20261027",
+        "vectorflow-step4-bpr-post26-20261027"
+      ]
+    },
+    {
+      "arm": "dbm",
+      "database": "vftest_fresh_runtime_step4_dbm_20261027",
+      "source_identity": "owned-step4-dbm-conserving-20261027",
+      "scope26": "UptoDBM",
+      "initializer_template": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\bpr-operator-input.json",
+      "initializer_template_sha256": "7b24a76ba596cee6ed87dce35019d0a75d6f28b6de1bb494219a0ab904a76cd1",
+      "only_initializer_edits": {
+        "/opening/identity": "owned-step4-dbm-conserving-initial-facts-v1",
+        "/recipe/source_identity": "owned-step4-dbm-conserving-20261027",
+        "/recipe/version": "supplied-step4-dbm-conserving-v1"
+      },
+      "planned_initializer_serialization": "json.dumps(sort_keys=True,indent=2,ensure_ascii=True,allow_nan=False)+LF",
+      "planned_initializer_sha256": "758aae76afeffa45737c56225b789444499a1fe955edbe8d9aed2580266a8ca4",
+      "planned_initializer_bytes": 118849,
+      "configuration_digest": "e68126aa6602169be3996303249ec9dcb73b985b69eca4a8eb9aed1a9c6ec106",
+      "host_root": "D:/freshvcf-build/evidence/scoped-runtime-step4-20261027/dbm",
+      "container_root": "/evidence/dbm",
+      "producer_command_keys": [
+        "runtime-step4-dbm-full23-20261027",
+        "runtime-step4-dbm-full24-20261027",
+        "runtime-step4-dbm-full25-20261027",
+        "runtime-step4-dbm26-20261027"
+      ],
+      "continuation_key": "runtime-step4-postdbm26-20261027",
+      "worker_container_names": [
+        "vectorflow-step4-dbm-full23-20261027",
+        "vectorflow-step4-dbm-full24-20261027",
+        "vectorflow-step4-dbm-full25-20261027",
+        "vectorflow-step4-dbm-26-20261027",
+        "vectorflow-step4-dbm-post26-20261027"
+      ]
+    }
+  ],
+  "facts": [
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\day23-input.json",
+      "sha256": "cdc75639779d275ea9ed9e3bc8e5e35e69776ada31d35849ad9a55efbff25f11",
+      "size_bytes": 10061
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\day24-input.json",
+      "sha256": "6b60cabac12c41439edffcdb23efbf9dfe5f3655024ba6b3b286c5177dd8e05b",
+      "size_bytes": 9877
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\day25-input.json",
+      "sha256": "6ceaa5d767e73fc2f84e73b1733b124094e2276fe864efe7c3d020871ec28a78",
+      "size_bytes": 9922
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\day26-input.json",
+      "sha256": "3e44fde251f7679cdd936e16d7cbd93d45be5c004574557cd81db6fce073590e",
+      "size_bytes": 9372
+    }
+  ],
+  "references": [
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\manifest.json",
+      "bytes": 1910,
+      "sha256": "2319d241704f56db0e14b79a572a58f7fd6d894338c28f0aba3ab4d5b926cad9"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fixtures-v2\\ledger-proof.json",
+      "bytes": 16051,
+      "sha256": "683e19c54f9637e6a41478b87d590fda483e0f45bd0a7b3207742f0c6471a720"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\eight-report-roster.json",
+      "bytes": 20022,
+      "sha256": "1f036745abadf0224d9778a8fabf3cc93ad632d106a61127973f08b2baa9af55"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-report-reference.json",
+      "bytes": 22601,
+      "sha256": "d5ae9ee69d5f4f3805b9d0f580634a185ed6f4fca96139e061c464b0564573f4"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-report-registration-proof.json",
+      "bytes": 1809,
+      "sha256": "1b01ce64079891e6ef7ccc4acf6d0282f584e0de953beb240499c4d2d583bd08"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\generic-serving-20261027\\package-proof.json",
+      "bytes": 592,
+      "sha256": "647a96b9848966ca94bae47b482a0681d09d4180d17c958c9bb1380061881f62"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\window8-final-capacity.json",
+      "bytes": 8850,
+      "sha256": "6054ee892b696c0b940e4f02a8aa7f62e508cbae7438b4e9d1086868ec4020a1"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\own-full-predecessor-v2.py",
+      "bytes": 4020,
+      "sha256": "fc2b43f7eee8df4de3695cc365bfd2e382047a03c576a3e7c8170e6685fe8c31"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\fresh-initialize.py",
+      "bytes": 3024,
+      "sha256": "a52db9ab1c5024507547601ab6ab7e1960754d297606f28e06b9d5ea26cb63cb"
+    },
+    {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\create-database.py",
+      "bytes": 2012,
+      "sha256": "2d85eda39d2f8ec67ef88923701c6748d34f90849117eba69129dff6336eec7b"
+    }
+  ],
+  "source_inspection_pins": [
+    {
+      "git_path": "release/register_mta.py",
+      "sha256_canonical_git_blob": "c658d670128b4e923c1cf99db390893040009e8acfcd0a08abc9529846595851"
+    },
+    {
+      "git_path": "release/native_identity.py",
+      "sha256_canonical_git_blob": "bf789c61ea9c18790d1b51a779004afce676378d6f58021ae31addc2b624a455"
+    },
+    {
+      "git_path": "mta/runtime/report_definition_registration.py",
+      "sha256_canonical_git_blob": "cc2a95a029c1eec505838ddddbd98868a98e6b05195b2610e3ffd724985fa8ce"
+    },
+    {
+      "git_path": "mta/runtime/runtime_report_registered_request.py",
+      "sha256_canonical_git_blob": "0e3059f95a13ec3165105d1d2130426c2d389ccf9db08b533396d9151e42176b"
+    },
+    {
+      "git_path": "mta/runtime/runtime_report_request.py",
+      "sha256_canonical_git_blob": "d99147a7a6b79483a422897faa0b7087511d6dd449a3b14ee722fea0679cc140"
+    },
+    {
+      "git_path": "mta/runtime/production_report_placement.py",
+      "sha256_canonical_git_blob": "d27e4eb15f830a977c2e72d48b02148de0a764b226b69bc7f6c62c2e986d483a"
+    },
+    {
+      "git_path": "mta/runtime/management/commands/run_production_report_placement.py",
+      "sha256_canonical_git_blob": "079482f2f2d7e9932168008e50a524dece17c1c3925e744a6e6061c44ff7deb0"
+    },
+    {
+      "git_path": "mta/runtime/management/commands/run_production_day.py",
+      "sha256_canonical_git_blob": "e82f286964a45c480bed63adf282cf120249f4e3e9bac1c6a04d4e9bb92f3ea0"
+    },
+    {
+      "git_path": "mta/runtime/scope_runtime_reports.py",
+      "sha256_canonical_git_blob": "9efdef51585a2e36f9565a79b378d477d5148955d73dd383974a5cf4722946fd"
+    },
+    {
+      "git_path": "mta/runtime/retained_registered_execution_compatibility.py",
+      "sha256_canonical_git_blob": "92ef5eb340c4ec3831c997153cc0bad0e7c35c2220b49a7a0dc5f23384b0b0cb"
+    },
+    {
+      "git_path": "mta/presentation/terminal_read_mode.py",
+      "sha256_canonical_git_blob": "5ddc0218330c6ecf211f189ed5ab9c914034f0725ba74d05abd6a5ca594df3db"
+    },
+    {
+      "git_path": "mta/presentation/daily_preparation.py",
+      "sha256_canonical_git_blob": "3814767da98eedcbb97928f2c7ae4fbb111cbd5e6fd9f1f96d1f4230eeea1614"
+    },
+    {
+      "git_path": "mta/runtime/scoped_final.py",
+      "sha256_canonical_git_blob": "6f7b24fda79ba6c7347e626e4a4242b87ed5482105b41d2e03d1141373e3e0cf"
+    }
+  ],
+  "fresh_applicability": "Source-inspected supported strict fresh paths, NOT runtime qualified on Step4 owners. Full, UptoBPR and UptoDBM explicitly accepted by factory/CLI. Native identity captured afresh; originaltwo-run retained fallback must not execute. Real complete0238migration and newsource cert/owner registration required. A refusal stops before calculation, with no waiver/edit/build.",
+  "readonly_observation": {
+    "query": "BEGIN READ ONLY; selected five exact proposed/existing database names, pg_database_size; COMMIT",
+    "observed_existing_database_bytes": {
+      "vftest_fresh_runtime_step3_bpr_20261027": 71711767,
+      "vftest_fresh_runtime_step3_dbm_20261027": 71171095
+    },
+    "proposed_names_absent": true,
+    "timing": "This planning turn; name absence must be checked again immediately before any approved creation.",
+    "last_total_measurement": "2026-10-27T09:53:12.596376+00:00",
+    "last_total_with_global_reserve": 5804651475,
+    "last_cumulative_growth": 1951491603,
+    "last_headroom": 78551533,
+    "qualification": "No current total-capacity sweep; retained totals are not asserted current."
+  },
+  "run_roster": {
+    "logical_days": 12,
+    "full_prefix_days": 9,
+    "target_full_days": 1,
+    "split_target_days": 2,
+    "producing_command_invocations": 14,
+    "terminal_exact_retry_nonproducing_calls": 3,
+    "input_inspections_before_producing_commands": 14,
+    "new_initializations": 3,
+    "new_report_registrations": 3,
+    "new_full25_and_full26_daily_preparation_coordinators": 6,
+    "new_early_stop_read_preparations": 2,
+    "no_manual_actions_or_remarks": true,
+    "no_day27_execution": true,
+    "no_failed_attempt_replay": true
+  },
+  "roles_reused": {
+    "owner": "vftest_g2n_20261024_owner",
+    "installer": "vftest_g2n_20261024_installer",
+    "runtime": "vftest_g2n_20261024_runtime",
+    "authorities": [
+      "fresh_namespace_registrar",
+      "fresh_operational_acceptor"
+    ]
+  },
+  "resources_reused": {
+    "postgres_id": "407fda1021836b322c9db248f9f91fab8ffc73c8351b6b0fb7ae2081b9b6a110",
+    "postgres_volume": "vectorflow-uptodbm-private-pg-20261025",
+    "new_images": 0,
+    "new_roles": 0,
+    "new_ports": 0,
+    "new_auth_or_frontend": 0,
+    "postgres_restart": false,
+    "concurrency": 1,
+    "restart": "no",
+    "pg_memory_bytes": 402653184,
+    "pg_cpus": 0.5,
+    "worker_memory_bytes": 4294967296,
+    "worker_cpus": 2
+  },
+  "storage_proposal": {
+    "old_total_ceiling": 5905580032,
+    "old_cumulative_ceiling": 2030043136,
+    "combined_requested_ceiling_delta": 352321536,
+    "proposed_total_ceiling": 6257901568,
+    "proposed_cumulative_ceiling": 2382364672,
+    "step4_operation_allowance_including_20mib_reserve": 419430400,
+    "allocations_bytes": {
+      "three_database_allocations_80mib_each": 251658240,
+      "incremental_wal": 67108864,
+      "evidence_original_files_and_comparisons": 67108864,
+      "worker_writable_and_scratch": 12582912,
+      "unspent_operation_reserve": 20971520
+    },
+    "global_reserve_unchanged": 536870912,
+    "illustrative_remaining_after_full_allowance_at_last_measurement": 11442669,
+    "estimated_pg_peak_increment_with_wal": 318767104,
+    "estimated_actual_growth_upper_allocation_excluding_reserve": 398458880,
+    "uncertainty": "80MiB per DB is a bounded estimate above measured68.39/67.87MiB retained sources, not a measured Step4 size. Newinitialization/schema, Full26 versus scoped storage, exact compression/comparison and transientWAL high-water remain unmeasured. 400MiB is a proposed hard allowance, not a fit claim. All ceilings apply simultaneously; preserve prior global/cumulative baseline and all relocated copies.",
+    "approval": "Both execution and stated disk delta require one explicit human decision; neither is enacted. No RAM/CPU expansion or preliminary capacity decision.",
+    "illustrative_total_headroom_after_allowance": 33819693,
+    "illustrative_cumulative_headroom_after_allowance": 11442669
+  },
+  "comparison_roster": [
+    "independent own predecessor full typed state and histories before26",
+    "phaseacceptance PRE_BPR,BPR,DBM,DAY_FINAL for split targets, no fabricated Full scope attempts",
+    "five placements PostImporter,PostBPR,PostDBM,PostBTR,Final for each target",
+    "all applicable typed operational closing state, effects, histories, queues, duplicate ordinals,NULLs,dates,native scalars",
+    "all declared Pick and eightRuntimeReport typed rows and file/member/filename/MIME contracts",
+    "new owned Full25 reporting and current/inherited early source bindings",
+    "native terminal grid,count,filter,export,Research,availability,Guided,Planning andBTR outputs at own owner/date",
+    "complete perarm closing-to-prospective27opening and crossarm semantic equality",
+    "exact terminal retry preserving original phases,effects,files,registration and finalization owner",
+    "raw source/configuration/certificate/selection/claim/nativeidentity verification with explicit bijective owner map only"
+  ],
+  "stop": "No approval=no execution. After approval, missing pin/authority/name absence/capacity reserve, first divergence, permission/schema/runtime refusal or per-slice allocation excess stops affected run; preserve completed and failed prefixes, no reset/replay/escalation/newbuild/cleanup. No automatic nextstage.",
+  "provisioning_scope": "Reuse Step3 create-database.py template0/newdatabase/existingroles pattern, never release.provision.provision which creates additionalMTO/globalroles. Native real complete0238migrations and exact newnamespace grants only. No old namespace grant/schema change.",
+  "resource_owner_thread": "01a17c63-cae8-7730-b340-01900cd1dd6c",
+  "evidence_root": "D:/freshvcf-build/evidence/scoped-runtime-step4-20261027",
+  "evidence_root_absent_at_planning_inspection": true,
+  "mounts_proposed": {
+    "new_evidence_root": "rw /evidence; only this newroot",
+    "retained_fixture_v2": "ro /retained/fixtures-v2",
+    "old_evidence_and_relocated_folders": "no writable mount; originals unchanged",
+    "postgres_volume": "existing exclusive PG mount unchanged; no newvolume/restart"
+  },
+  "report_reference_transformation": {
+    "template": "E/bpr-report-reference.json",
+    "configuration_json": "byte-identical (eight reports and exact disabled independent RRR row)",
+    "configuration_digest": "f8d5fe6f6706cc2dff81d52440cb3157db77aa5d97826781805ac489c3a4a8ee",
+    "catalogue_anchor_json": "own newly returned initialization UUID/source digest; empty initialcatalogue/null output; original seed/order unchanged",
+    "authority_sha256": "SHA256 of this final proposal JSON, only usable after matching humanapproval",
+    "hook_json": "same declared-no-op/site/placement; source_sha256=this proposal JSON SHA; authority text identifies Step4 decision",
+    "disposition_json": "same exact five no-op hooks/InputData/site; authority text identifies Step4 decision",
+    "all_other_fields": "unchanged; canonical innerJSON regenerated only for these declared owner/authority changes; register through actual typedowner factory",
+    "inputdata_declaration": "same five filenames/four tables and business-midnightAsia-Kolkata; new own source/run/input/phase/database/authority, never Step3 IDs"
+  },
+  "allowed_identity_mapping": [
+    "database names/OIDs and native connection target -> FULL/BPR/DBM arm aliases, verified actual ownership",
+    "new source/initialization/certificate/registration/run/capture/attempt/claim/phase/publication/generation UUIDs and foreignkeys -> bijective role+businessdate+phase+ordinal mapping; everyreference verified within its arm",
+    "command/revision/worker identifiers and acquisition/completionwall-clock/audit sequence ids -> preserved audited identity envelope, not business payload",
+    "/evidence/{arm}/pick-output/{ownrun}/runtime-reports and explicitnewroot artifacts -> same logicalplacement/member and exactcontent; hash rawcustody separately",
+    "business dates, event timestamps inside source facts, supplier/SKU/location/parent identities, native scalar values, NULLs/empties, ordinal order/multiplicity, semanticconfiguration and filename seeds -> NO normalization",
+    "derived custody digests are recomputed from verified own metadata; do not require crossarm digest equality if identity participates; complete businessrows still exactly equal",
+    "InputData archive top-level native source database/name/producer-identity text -> declared sourcealias only where source-derived identity is part of serialization; CSVbusiness cells/header/order/member bytes otherwise exact. A new unlisted difference stops, not autoadded."
+  ]
+}
