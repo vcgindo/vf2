@@ -57,3 +57,11 @@ Unsupported inherited Order Allocation, SDR, Elephant Orders, mock Total Require
 Concrete window7 proposal SHA256: `4a43cffc2f6d55956b09f3af4fe46e76123595d682a86af8d44a6d46c84f5ff4`; activation_ready=false. The exact archive digest is in source-package-preservation.json. This is a prepared operational package with a failed capacity gate, not a serving-window approval request.
 
 N/native-observer-limitation-correction.json explicitly corrects an inherited prose sentence in the immutable native proof receipts: missing batch registration is intentionally not a generic UI-reader denial. Actual response, selection/configuration-denial, transition and preservation assertions remain valid. H55 records that observer-annotation issue.
+
+## Human cleanup approval answered; tool policy still prevents removal
+
+The controller relayed explicit human approval to delete only the two verified duplicate directories. Fresh revalidation again proved exact resolved targets, all4,042files/33,635,273bytes, archive SHA/CRC and file equality, no reparse points or direct container mounts, and retained candidate image/delta context. Receipt: N/duplicate-cleanup-human-approval-revalidation.json.
+
+The subsequent native PowerShell command used two explicit literal paths after exact resolved-path checks. Automatic approval review rejected it before execution as “blocked by policy”, despite the recorded approval. No alternative deletion method was attempted. Both directories and the verified archive remain intact. The cleanup question is answered; no repeat human permission is required. N/duplicate-cleanup-approved-action-rejected.json preserves the result.
+
+Fresh actual accounting after that rejection: total5,801,470,820bytes includingreserve, globalremaining81,732,188bytes, operationgrowth82,674,520bytes. Adding the unchanged20MiB activation reserve exceeds the80MiB operation allowance by19,759,960bytes. N/post-approved-rejection-capacity.json proves activation_capacity_pass=false. The exact window7 package remains prepared/inert; no serving approval is being requested while its capacity gate fails. Completing the already approved deletion requires an execution-policy change or removal outside the rejected tool; no bypass, reserve reduction, resource increase or accounting reset is authorized.
