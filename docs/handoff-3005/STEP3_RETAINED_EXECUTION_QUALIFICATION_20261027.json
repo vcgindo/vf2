@@ -1,0 +1,328 @@
+{
+  "capacity": {
+    "cumulative_growth": 1806777347,
+    "remaining_bytes": 223265789,
+    "total_with_reserve": 5659937219
+  },
+  "evidence": [
+    {
+      "bytes": 290,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-continuation-inspect.json",
+      "sha256": "9db837e87dacfb21110a69f4e1c1be1f90eb4bf484ba78d5b2b5fbc486e84a0d"
+    },
+    {
+      "bytes": 1125,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-ALTERED_CAPTURE_BINDING.json",
+      "sha256": "ae62c1b4ab28cdf75b9ba2bad7d5ce3809d68e44387db2cdb127042349e1246b"
+    },
+    {
+      "bytes": 1152,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-ALTERED_CAPTURED_REQUEST.json",
+      "sha256": "93f0acd4ff0b6e41f03892059c8dcbd7682e34d3e448067c9f6d66581ae6f3f2"
+    },
+    {
+      "bytes": 1146,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-ALTERED_COMPATIBILITY.json",
+      "sha256": "4056e5a294b855f6a654482f3b145593d2378743cfe183fd579a5a5b24af827f"
+    },
+    {
+      "bytes": 1148,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-ALTERED_INPUT_HEADER.json",
+      "sha256": "5c8f4bfd7343b39357c9fab896ea26967017f55f29ebf5e3ff0b5eb5a9e02fcf"
+    },
+    {
+      "bytes": 1140,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-ALTERED_PHASE_RECIPE.json",
+      "sha256": "7aae7ef81223788d15bab321e4ef05ab9676eae7a59e28399d6a3f2416298d6d"
+    },
+    {
+      "bytes": 1066,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-FENCE_OUTER_TRANSACTION_OWNERSHIP.json",
+      "sha256": "d64fe9bd6384b4c8473c76dc385bb50faeb290435fb1ce576665f464fc40959c"
+    },
+    {
+      "bytes": 864,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-MASTER_PENDING_FINAL_OWNER.json",
+      "sha256": "94ead10c4f46c699ed65c9a08227450a92c050836c7aa76da5ad3183c9cbbfca"
+    },
+    {
+      "bytes": 762,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-STALE_CLAIM_COMPATIBILITY.json",
+      "sha256": "ebcba1a913a10fffe26da26b867a2d9a5aa17e8d10d2076cf68414149fa59778"
+    },
+    {
+      "bytes": 670,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-STALE_PHASE.json",
+      "sha256": "a50c4a9346acf8146daa1387396f18ee98eafe58a61f956c236048ee10be49ed"
+    },
+    {
+      "bytes": 762,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-STRICT_NO_RUN.json",
+      "sha256": "c933e7ae098738a381182f38b0c9560ed223947e7eace8b45e4c75a953ab5953"
+    },
+    {
+      "bytes": 1148,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-UNKNOWN_RETAINED_RUN.json",
+      "sha256": "af6b70b5ab881add6e877fea2588354f19964e0e19e729d5091ec1ae6ab973e8"
+    },
+    {
+      "bytes": 914,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-denial-WRONG_ACTUAL_TARGET.json",
+      "sha256": "91a209158d95882353f35839a1638b8766de1f14787d1b3961fce7f12d767edc"
+    },
+    {
+      "bytes": 835,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-pins.json",
+      "sha256": "9e179eeda90c728ac688f8b8f3efea62530255f82a54ccd888d3dcf8e3f29a67"
+    },
+    {
+      "bytes": 53324,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-proof.json",
+      "sha256": "0167f91d959c0fd97466349d29dfb4df65f9d2fad077e35ec652d3db46f6f575"
+    },
+    {
+      "bytes": 894,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-runtime-startup.json",
+      "sha256": "4e6a6a0afd93c437dae9fe2c004b0bd75084c4ebfa939cd91d2b30bc6358c70d"
+    },
+    {
+      "bytes": 1579,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-start.json",
+      "sha256": "e94c788ff18aab282328731801536a19b62f8475e7c2af775bdbadba5a5a58be"
+    },
+    {
+      "bytes": 2193,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-transition-commit-retry.json",
+      "sha256": "a9a4687384a93a559ec0e812cf730ff4a45a758655c70011a20ed04d779a0a2b"
+    },
+    {
+      "bytes": 1278,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-transition-original-injected-failure.json",
+      "sha256": "58efa83b4d1e10fa85cc8660ed0e168198dc8401bac2f14afb8084c2aeb4f0f0"
+    },
+    {
+      "bytes": 575,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-retained-execution-transition-rollback.json",
+      "sha256": "0b641e945cc782f453aea59312f509a33c898e44da7570b224ceace929e23cee"
+    },
+    {
+      "bytes": 61825,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\build-layer-accounting-execution.json",
+      "sha256": "7e7562885c0fe2ba810622741ed61ba867e150fe4c127cab9a63334ad6134464"
+    },
+    {
+      "bytes": 290,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-continuation-inspect.json",
+      "sha256": "3c6f69ec6b7c2dac180c12c5eeb1e1a93421d04fbb65efbf733084a3122701d4"
+    },
+    {
+      "bytes": 1125,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-ALTERED_CAPTURE_BINDING.json",
+      "sha256": "ae62c1b4ab28cdf75b9ba2bad7d5ce3809d68e44387db2cdb127042349e1246b"
+    },
+    {
+      "bytes": 1152,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-ALTERED_CAPTURED_REQUEST.json",
+      "sha256": "93f0acd4ff0b6e41f03892059c8dcbd7682e34d3e448067c9f6d66581ae6f3f2"
+    },
+    {
+      "bytes": 1146,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-ALTERED_COMPATIBILITY.json",
+      "sha256": "4056e5a294b855f6a654482f3b145593d2378743cfe183fd579a5a5b24af827f"
+    },
+    {
+      "bytes": 1148,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-ALTERED_INPUT_HEADER.json",
+      "sha256": "5c8f4bfd7343b39357c9fab896ea26967017f55f29ebf5e3ff0b5eb5a9e02fcf"
+    },
+    {
+      "bytes": 1140,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-ALTERED_PHASE_RECIPE.json",
+      "sha256": "7aae7ef81223788d15bab321e4ef05ab9676eae7a59e28399d6a3f2416298d6d"
+    },
+    {
+      "bytes": 1066,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-FENCE_OUTER_TRANSACTION_OWNERSHIP.json",
+      "sha256": "d64fe9bd6384b4c8473c76dc385bb50faeb290435fb1ce576665f464fc40959c"
+    },
+    {
+      "bytes": 864,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-MASTER_PENDING_FINAL_OWNER.json",
+      "sha256": "94ead10c4f46c699ed65c9a08227450a92c050836c7aa76da5ad3183c9cbbfca"
+    },
+    {
+      "bytes": 762,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-STALE_CLAIM_COMPATIBILITY.json",
+      "sha256": "ebcba1a913a10fffe26da26b867a2d9a5aa17e8d10d2076cf68414149fa59778"
+    },
+    {
+      "bytes": 670,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-STALE_PHASE.json",
+      "sha256": "a50c4a9346acf8146daa1387396f18ee98eafe58a61f956c236048ee10be49ed"
+    },
+    {
+      "bytes": 762,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-STRICT_NO_RUN.json",
+      "sha256": "c933e7ae098738a381182f38b0c9560ed223947e7eace8b45e4c75a953ab5953"
+    },
+    {
+      "bytes": 1148,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-UNKNOWN_RETAINED_RUN.json",
+      "sha256": "af6b70b5ab881add6e877fea2588354f19964e0e19e729d5091ec1ae6ab973e8"
+    },
+    {
+      "bytes": 914,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-denial-WRONG_ACTUAL_TARGET.json",
+      "sha256": "91a209158d95882353f35839a1638b8766de1f14787d1b3961fce7f12d767edc"
+    },
+    {
+      "bytes": 835,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-pins.json",
+      "sha256": "d821c597013f2eb3d04b039f2d46636b12adb2c94c5c2441cc23c1e22a6e238c"
+    },
+    {
+      "bytes": 53561,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-proof.json",
+      "sha256": "54747b9caa259e7d8214681eefe1dfa1b4423e1cd006d39b0cb23be62eacb449"
+    },
+    {
+      "bytes": 1141,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-runtime-startup.json",
+      "sha256": "7fbba6496a71f6fbc0e21c933a3a6aa727d4ecc4ebf539a66ee106b6b9fd0eec"
+    },
+    {
+      "bytes": 1579,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-start.json",
+      "sha256": "76dc734f8217d5ccf28cba56e595e29cd788bdaccf17ad2ba1d44dfb9fd2b4aa"
+    },
+    {
+      "bytes": 2193,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-transition-commit-retry.json",
+      "sha256": "bdbb53cd91a10cd502559f205a0f319d1db6c8f1e870f03d05356ea86090f02b"
+    },
+    {
+      "bytes": 1278,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-transition-original-injected-failure.json",
+      "sha256": "58efa83b4d1e10fa85cc8660ed0e168198dc8401bac2f14afb8084c2aeb4f0f0"
+    },
+    {
+      "bytes": 575,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-retained-execution-transition-rollback.json",
+      "sha256": "72523ffe3d622ce06ca3e07aa4aea05a1dfbc41dc54f8fcfccf63e33be2d7045"
+    },
+    {
+      "bytes": 9882,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\execution-build-archive-proof.json",
+      "sha256": "2e4e33d7ac8c4e0f58846269489c7ae83df42298abf6ebf92dfc175fdb1b40d6"
+    },
+    {
+      "bytes": 1289,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\execution-packaged-candidate-proof.json",
+      "sha256": "7048f1fd61c5e9f22c3bb6ad806e7e981f72f60e7e3b45b549db053711912bb0"
+    },
+    {
+      "bytes": 1383,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\execution-packaged-check-terminal.json",
+      "sha256": "7861181558cc5be2693d3640404869d1d86d3315171f06b52bc54961d37f14b6"
+    },
+    {
+      "bytes": 273,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\execution-source-checkpoint.json",
+      "sha256": "b1549bd9fdaad0b4e157bc19bc65f435a09029d41f1c023b72830a7aa5d4ed33"
+    },
+    {
+      "bytes": 136877,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\mta-execution-candidate.json",
+      "sha256": "8ab6028e46fe0dabed003b3e2677a641d84c9af0787536d77416f54e90d21606"
+    },
+    {
+      "bytes": 8696,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\post-execution-qualification-capacity.json",
+      "sha256": "f3926f57fd27f981e78772a9b4b4bb852ffea04f4eb5d6808561b1f3ae16878c"
+    },
+    {
+      "bytes": 669,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\post-execution-serving-preservation.json",
+      "sha256": "bb337468c10557a4aadd5cbf3c6e3a84b17fb79cad25d89ecb63b10ec63ce693"
+    },
+    {
+      "bytes": 7762,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-bpr-proof.json",
+      "sha256": "6efa7e96e8bf4dc8a25e6e3ea25e1407b1d0e5262559d45bd7cfa6dc20ee3c90"
+    },
+    {
+      "bytes": 6702,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-actions-rollback-dbm-proof.json",
+      "sha256": "9597b3aa8baad54e219dcb1d4485b0d20a4196bcc7258bc3a93811b86b4be1e5"
+    },
+    {
+      "bytes": 356,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\retained-execution-approval.json",
+      "sha256": "b553f11f2b905ca31d6974dbd0aa4308c3ff930312f08df41b9aa64d79bc790c"
+    },
+    {
+      "bytes": 150784,
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\retained-execution-correction-proposal.json",
+      "sha256": "d2d025b8cb6bf1bcc49327c2aa5c2dec150e63d250c5765b001866ed51845ac7"
+    }
+  ],
+  "fixtures": {
+    "bpr": {
+      "limitations": [
+        "Fencing was ownership denial/forwarding ONLY; no positive fence or reclaim.",
+        "Master owner was canonical missing-pending-final denial ONLY; no final-master acceptance.",
+        "Existing-publication read path ONLY; no new phase/file production.",
+        "Claim was outer rollback ONLY; no committed worker durability.",
+        "No calculation/action/finalization replay or serving/browser acceptance. Sequence gaps allowed, never reset."
+      ],
+      "original_read_identity": {
+        "digest": "b23879cc7dc2e17057ddc87afbf74aadc9331005c2873e6fde7e97aaba70ea58",
+        "id": "66e9676a-6b29-4ecc-873b-fa8c6b6c27ff"
+      },
+      "run_id": "7e0999fb-ce04-457b-865e-5bfab1bc4fdb",
+      "status": "RETAINED_EXECUTION_CODE_ADMISSION_AND_SUPPORTED_ROLLBACK_COMPONENTS_PASS",
+      "typed_table_count": 1130,
+      "unchanged_catalogue_digest": "9e08dba2264967346757c00b7f98ffc02a62aefb79b212567d8bd4dace713fc5",
+      "unchanged_file_digest": "6a83169a97033f4cad79137608a1bd0058cb5d0292e0028fb9288b265326e252",
+      "unchanged_typed_digest": "9aef9b662778fea3dc226bc5f639434e233e2a839641e37e60a2bf91b657ff31"
+    },
+    "dbm": {
+      "limitations": [
+        "Fencing was ownership denial/forwarding ONLY; no positive fence or reclaim.",
+        "Master owner was canonical missing-pending-final denial ONLY; no final-master acceptance.",
+        "Existing-publication read path ONLY; no new phase/file production.",
+        "Claim was outer rollback ONLY; no committed worker durability.",
+        "No calculation/action/finalization replay or serving/browser acceptance. Sequence gaps allowed, never reset."
+      ],
+      "original_read_identity": {
+        "dbm_phase_digest": "8f155165a3b103a351abcc6fc3045bb39047fcc70e894c827c9e6d2b5b427c11",
+        "dbm_phase_id": "9308d4a8-43e4-4095-b435-5759ccc5deed",
+        "dbm_snapshot_digest": "d66980f6c9c360b12284c5bb44016960c169761577b74871440f388b1961e9f0",
+        "digest": "9cd50db78703001289446cd9486c81c150a65f6d9bd140fcd328d94cf58f067e",
+        "id": "69f4e6fa-545b-494f-a517-39242f0f1c5a"
+      },
+      "run_id": "c1b7cecf-88e2-4197-b9e0-3b29d149ced7",
+      "status": "RETAINED_EXECUTION_CODE_ADMISSION_AND_SUPPORTED_ROLLBACK_COMPONENTS_PASS",
+      "typed_table_count": 1130,
+      "unchanged_catalogue_digest": "b18cc192ef64deaeb3da96613516b9239f6987dc38f457db1eccf631db7a3b72",
+      "unchanged_file_digest": "6bf4e4dcc44ba8ed21b0fadd12fa5dd9e4edaa618444d242ef7085a820f0b6cb",
+      "unchanged_typed_digest": "fe2377e133da0f641025c1b79c033ee7e787b5df46a52737d949c3412fc81ddf"
+    }
+  },
+  "image_id": "sha256:c2f91e4e96207b7956fd0e9fa9956837f59b0ca9263f5e8637fa9cc72823a762",
+  "limits": [
+    "Action rollback evidence belongs to unchanged qualified 36c33f66 action path.",
+    "No positive fence/reclaim, new report production, terminal execution, committed action, browser or latency acceptance.",
+    "Only the two pinned retained executions are compatible; no general historical-execution migration claim."
+  ],
+  "native_identity": {
+    "implementation_sha256": "c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d",
+    "manifest_sha256": "39489103fddb29766949f6f8b5642904f6a1688ad397a4ea9b5278603d0ad7e6",
+    "migrations_digest": "e4de538800805c44979885143da5e57b97ead149db5dc1d39d681a88b3f46093",
+    "schema": "vectorflow-native-release-source-v1",
+    "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+    "source_files_digest": "2213648ce3de326300209c57413507a29ccf976d0e460ac755c8cba3db69d43d"
+  },
+  "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+  "status": "BOUNDED_RETAINED_EXECUTION_QUALIFICATION_CHECKPOINT"
+}
