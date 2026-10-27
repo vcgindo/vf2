@@ -1,0 +1,75 @@
+{
+  "schema": "fresh-step3-browser-evidence-index-v1",
+  "source_checkpoint": "18b9da4d5b1333d6f8409884e452bf12a7b0258f",
+  "boundary": "Partial browser proof with preserved Sleep blocker; original stack restored; no Step3 acceptance",
+  "files": {
+    "window2-browser-observations.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\window2-browser-observations.json",
+      "sha256": "2dc650bdb10a3e4aa23518d45c783f5e85d2175328f42f30f4622008b7a15502"
+    },
+    "browser-sleep-rollback-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-sleep-rollback-proof.json",
+      "sha256": "dccf80281adf14c7d7dfbcbe79a7271111843315eaa533174a00311a5409b88d"
+    },
+    "browser-sleep-failure-backend.log": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-sleep-failure-backend.log",
+      "sha256": "768077a076bd0e4dbffa77f3f19f2cc7cfbb2a3a8b6640492488889b595f3516"
+    },
+    "window2-auth-browser.log": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\window2-auth-browser.log",
+      "sha256": "6ebb2f45b3b0bf86408c991301f6e09bc21a57daedb90e256f93c968b76c14ea"
+    },
+    "window2-mta-browser.log": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\window2-mta-browser.log",
+      "sha256": "5c951b1056d71cb9c8d99acac6603bea93a30d1ec316c918278fe83a20f0747e"
+    },
+    "pg16-live-capacity.jsonl": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\pg16-live-capacity.jsonl",
+      "sha256": "d5ad1da92416adc5f861df8b020a6552524f635a096aba5e8b910a5a36099a1c"
+    },
+    "window2-restored.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\window2-restored.json",
+      "sha256": "3caa06930e30542f829f564f001e5a5212713530c8f1f06f667508313627155f"
+    },
+    "pg16-restored.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\pg16-restored.json",
+      "sha256": "7815f64fdef65625950050911e50a2cfe0a7e795a6457ebd77b06352a0d8c507"
+    },
+    "native-gateway-identity-proof.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\native-gateway-identity-proof.json",
+      "sha256": "46811a0daecc95bbdca03c8e3195e82824a443531d5c3d4d724e92b341516ad6"
+    },
+    "browser-bpr.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-bpr.png",
+      "sha256": "e20f01da399e35471b694a71ddd15d507609a2401cdfffb0feecd586ff20a256"
+    },
+    "browser-btr.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-btr.png",
+      "sha256": "a57dc9186ce8e658e335b905eae9bce6cc60a98b2388dc3f7714b818ecb793fe"
+    },
+    "browser-guided-ageing.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-guided-ageing.png",
+      "sha256": "5a1d653b4be9bdca79b77cbd8e515e61862cb554209a01148cb90a5935f11f7a"
+    },
+    "browser-guided-availability.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-guided-availability.png",
+      "sha256": "46daef3d94385a3976ef1c6a759ee3f09d1fb8e16d18b2d12ad0fa02e8a3fa3c"
+    },
+    "browser-guided-chronic.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-guided-chronic.png",
+      "sha256": "f6378fad94d15c54aedd0d6509ba41cb726b2f2212847c6cbfeb275a36ee78ec"
+    },
+    "browser-guided-dbm.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-guided-dbm.png",
+      "sha256": "90e5a94a768aeb4fe3af988beee8d99c52ed359690d4e412d8fa53224b88625e"
+    },
+    "browser-guided-excess.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-guided-excess.png",
+      "sha256": "c2ff3a906df79c94a549dd54b54b33f14d008f9b07011c3be570b4622216b0bc"
+    },
+    "browser-mdm-seasonality-empty.png": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\browser-mdm-seasonality-empty.png",
+      "sha256": "192bfda324bf5d6b526e327a9cf7f9ef5f54851602d2c934728bb121a6647e49"
+    }
+  }
+}
