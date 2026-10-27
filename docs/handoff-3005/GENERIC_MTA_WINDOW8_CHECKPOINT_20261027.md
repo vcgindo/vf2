@@ -39,3 +39,9 @@ The user's same-eight-row observation of improved speed is valid. Current reques
 Independent controller review and closure decision remain outstanding. No further window, source edit, build, replay or adjacent tranche is released by this checkpoint.
 
 Evidence snapshot: E/window8-evidence-index.json, SHA256 `618020b4b2515ac244b0b9b51f7e0a2eed0efead1b3484ac3a0a6136aeaf9b03` (104 pinned files, including raw failures and excluded observers).
+
+## Independent acceptance — 15:28 IST
+
+Controller chat `01a172ed-600b-7cb2-8757-8786c84ea860`, completed turn `01a17ccb-0f8f-7ba2-ac2d-43296b33fbb2`, independently accepted P1–P9 within the approved evidence-reuse boundary, finding no remaining blocker for this correction. It verified both selections, session refresh, fresh-load BTR, all104 evidence hashes, preservation and restoration, then deleted its completed review automation. This supersedes the pending-review statements above. The correction is functionally accepted; permanent deployment, performance qualification and later-stage work remain outside this decision.
+
+Acceptance receipt: E/generic-serving-independent-closure-20261027.json, SHA256 `5b02dfc5782f9da8073a7ee010812a77ab226cc6f3caffba3c5c9ec466bf6baa`.
