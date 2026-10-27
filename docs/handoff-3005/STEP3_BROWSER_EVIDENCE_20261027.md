@@ -98,3 +98,51 @@ and `window2-mta-browser.log` retain request outcomes. Guided/BPR/BTR/MDM PNGs
 retain actual screens. `pg16-live-capacity.jsonl`, `window2-restored.json` and
 `pg16-restored.json` retain resource/restoration observations. Their SHA256 pins
 are in the adjacent `STEP3_BROWSER_EVIDENCE_20261027.json`.
+
+## Correction source checkpoint after restoration
+
+Forward migration `fresh_mta.0238_registered_read_action_cut` now replaces only
+the erroneous equality with `BPR.action_revision<=H.action_revision`. Its sole
+dependency is0237; its RunSQL is required on both fresh and upgraded databases.
+It owns only the read-reference guard body. Reverse SQL refuses an existing
+action-refreshed reference that the older guard cannot support.
+
+The exact registered-read compatibility profile preserves reference recipe
+`4a8e21999d14a0aae89b6c5850bb2db38b3a34cd0073a15c91c4d46dc7ed2f38`
+and selection recipe
+`b2a0a38bb20c045eefc00d22b6dc5fcab3bc4f01634dbbf00a03cf9462ca678b`.
+It pins the original94-module dependency roster, the two adapted readers and
+the forward migration. The original publication and calculation producers
+remain unchanged; new native release/schema authority is independently needed.
+
+The separate consumed0237 transition uses the existing exclusive atomic
+schema-transition path, with exact18b9 predecessor, migration/catalogue/role
+contracts and optional registrar bootstrap. Before/after binary COPY digests
+cover every existing typed table in mta, mta_state and mta_opening, independent
+of CSV versus JSON/MDM lineage. Prior migration and authority rows, table and
+function identities, roles and ACLs remain protected separately.
+
+Twenty-five focused tests pass. Django check passes and model drift reports no
+changes; the local command could not inspect PostgreSQL history on5432. The
+packaged native migration plan is therefore still required. Independent source
+review found no concrete blocker.
+
+Actual source-only PostgreSQL observations pass:
+
+- exact forward/reverse SQL compilation and rollback;
+- both complete expected catalogue variants: BPR with registrar bootstrap and
+  DBM without it;
+- binary preservation of all1,130 typed tables in each namespace, and restoration
+  of original catalogue/authority after rollback;
+- original function names, OIDs, owners and signatures across the forward guard
+  change in both databases.
+
+The first full observer used an installer session at the registrar bootstrap
+and was correctly refused. Its transaction rolled back. The corrected observer
+uses the same already-authorized local provisioning transport as the earlier
+schema proof; no privilege, role, password or HBA change was made.
+
+These observations are pinned in `STEP3_ACTION_GUARD_PROBE_INDEX_20261027.json`.
+No schema transition has committed, no positive action has been repeated, and
+no new browser window has opened. Packaged transition/rollback/retry, positive
+Apply/Sleep/remark refresh and affected DBM proof remain mandatory.

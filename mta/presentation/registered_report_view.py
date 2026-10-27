@@ -4,9 +4,6 @@ The BPR graph remains its original typed owner. This versioned configuration
 binds captured registration and actual placement receipts, not copied results.
 Live actions/remarks continue through the existing immutable-reference leases.
 """
-import inspect
-from importlib import import_module
-
 from mta.serialization import digest
 from mta.presentation.context import PublicationUnavailable
 from mta.presentation.request_scope import once_per_request
@@ -32,28 +29,10 @@ def applicable_run(run):
 
 @once_per_request
 def recipe_digest():
-    from mta.presentation import runtime_report_view
-    # A new recipe covers actual adapters. Original recipe constants and pins
-    # are not replaced or offered as execution authority for this new format.
-    names = set(runtime_report_view.LEGACY_DEPENDENCIES) | {
-        __name__, 'mta.presentation.scoped_view', 'mta.presentation.scoped_selection',
-        'mta.presentation.scoped_read_graph', 'mta.presentation.scoped_read_cut',
-        'mta.presentation.registered_report_downloads', 'mta.presentation.runtime_report_downloads',
-        'mta.presentation.scoped_api', 'mta.presentation.supplier_allocation',
-        'mta.presentation.scoped_research', 'mta.presentation.research_read',
-        'mta.presentation.scoped_guided_dbm', 'mta.presentation.guided_dbm',
-        'mta.presentation.daily_native_prepared', 'mta.presentation.guided_dbm_fields',
-        'mta.presentation.scoped_guided_chronic', 'mta.presentation.guided_chronic',
-        'mta.presentation.chronic_sql', 'mta.presentation.guided_chronic_fields',
-        'mta.presentation.scoped_guided_excess', 'mta.presentation.native_excess_history',
-        'mta.presentation.scoped_guided_availability', 'mta.presentation.insight_history_sql',
-        'mta.presentation.guided_history_prepared', 'mta.presentation.guided_aggregates',
-        'mta.presentation.scoped_guided', 'mta.presentation.report_cache',
-          'mta.presentation.diagnostic_downloads','mta.runtime.diagnostic_publication',
-          'mta.runtime.intake_diagnostics','mta.runtime.intake_diagnostic_models',
-        'mta.runtime.runtime_report_registered_request'}
-    return digest(dict(schema=SCHEMA, modules={name:inspect.getsource(import_module(name))
-                                             for name in sorted(names)}))
+    # Preserve the existing graph identity only under the exact compatible
+    # reader profile. Native build/schema authority remains independent.
+    from mta.presentation.registered_read_compatibility import recipe
+    return recipe()
 
 
 def _locator(row):

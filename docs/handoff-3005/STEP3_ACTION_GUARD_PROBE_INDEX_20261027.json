@@ -1,0 +1,34 @@
+{
+  "schema": "fresh-step3-action-guard-source-probe-index-v1",
+  "boundary": "Source-only native rollback probes; packaged transition and positive actions not yet qualified",
+  "files": {
+    "registered-read-original-profile.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\registered-read-original-profile.json",
+      "sha256": "b87db0e3deaa0f2a509162582e921e9e5ca3ae176cc3613e052d53c5dd8d82a2"
+    },
+    "action-guard-rollback-probe.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\action-guard-rollback-probe.json",
+      "sha256": "63e99a83e531979f6790b073cfdbf08d802633311e41773dceb568291105a22d"
+    },
+    "action-guard-rollback-probe.log": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\action-guard-rollback-probe.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "bpr-consumed-guard-catalogue-probe.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\bpr-consumed-guard-catalogue-probe.json",
+      "sha256": "961d77c3ee2ec0790c32dc63303eda6117ac7299a34e456dc524ba97dc3312a1"
+    },
+    "dbm-consumed-guard-catalogue-probe.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\dbm-consumed-guard-catalogue-probe.json",
+      "sha256": "d7c5bd4e818c9ddce3987f6c85bc781d15f23fb0437e43bda91ae0a14589ee4d"
+    },
+    "action-guard-function-identity-probe.json": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\action-guard-function-identity-probe.json",
+      "sha256": "1d62bd5e366cb28070f01eccbc29e0de96dcac81581858c73a5e5ff7e2c50d09"
+    },
+    "consumed-guard-catalogue-first-failure.txt": {
+      "path": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\consumed-guard-catalogue-first-failure.txt",
+      "sha256": "9cec805c2cad3fcd31782f5ba43027fd6e76848e8309d681dd51fc25c4d77245"
+    }
+  }
+}

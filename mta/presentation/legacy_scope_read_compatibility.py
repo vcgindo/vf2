@@ -35,7 +35,7 @@ DISPATCHERS = {
     'mta.presentation.supplier_allocation': 'c5d5b6d79c476285fa3880c0f556792283925a0ac9126838564b39e963353e6d',
     'mta.presentation.scoped_api': 'ccad0e5092687b436e6a3e6b413fe2ef9cf4ad30a7e0b7ff6bc8450307f03f07',
     'mta.presentation.runtime_report_downloads': '62ee73a83321718f7ca8fe2a0f45a3a3a7439473b21094d05fccee0129e85dc7',
-    'mta.presentation.scoped_view': 'd8a35e8c9eb8817faaf4befe69246d5b6d74a9d93ba375fa5ace59d5d7c88244',
+    'mta.presentation.scoped_view': '501572cdc61bc1eebcb61ba2c6bd42d3ee571988290daf08d4eee16789c68306',
     'mta.presentation.scoped_selection': 'aa7cd5a9ceb48a5da1beb6f445607dfa7c721fa957e0a8a18fe6257d0f79dc31',
     'mta.presentation.runtime_report_view': 'f1c6cafbc344f0939e149890cce9373e918f85015e86a9b94071973f752ea6ff',
 }
