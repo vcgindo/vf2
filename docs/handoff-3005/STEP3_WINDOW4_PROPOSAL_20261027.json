@@ -1,0 +1,140 @@
+{
+  "status": "PREPARED_NOT_AUTHORIZED_NOT_EXECUTED",
+  "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+  "checkpoint": "a6ca2dfb",
+  "previous_proposal_sha256": "97dbbb83991bb3b5dade6deaee6cafbfd1c8967f921ce4ddc02c60fc55cbf198",
+  "candidate_image": "sha256:c2f91e4e96207b7956fd0e9fa9956837f59b0ca9263f5e8637fa9cc72823a762",
+  "duration_minutes": 60,
+  "helpers": [
+    {
+      "name": "harness_window4.py",
+      "source": "harness_window3.py",
+      "sha256": "6ab84ab87cff673fb5032672951b54280efdb81a5f7be045cce8287832ad2f33"
+    },
+    {
+      "name": "window4-postgres.py",
+      "source": "window3-postgres.py",
+      "sha256": "6ca9af5c5497dfc4c8ee446ca88a36e659b6bf8d19c6759368be4793440d4c85"
+    },
+    {
+      "name": "window4-services.py",
+      "source": "window3-services.py",
+      "sha256": "b7fab91483a1e0d6b010bbefddbf11dd71f619be7b0666352ea86f97b3d78e57"
+    },
+    {
+      "name": "window4-hba.py",
+      "source": "window3-hba.py",
+      "sha256": "8d48767c14b1b9fa3c0f462b45f7ea13354d0c5e5afcac0ba8c9d91957af01fb"
+    },
+    {
+      "name": "run-worker-window4.py",
+      "source": "run-worker-window3.py",
+      "sha256": "bfaaf179d413d8982f9ce0cf7fe63df4061ce57b37747a94021af00b7ca308c4"
+    },
+    {
+      "name": "continue-step3-window4.py",
+      "source": "continue-step3-window3.py",
+      "sha256": "6ae79cc5e515e75193aeb7935051ced25c331476e329fbe18ba5941ff377eeb4"
+    },
+    {
+      "name": "watch-window4-capacity.py",
+      "source": "watch-window3-capacity.py",
+      "sha256": "bf0d2ef8c6542039ec8e8aaaafc8d1c1d6e35596ded5b110c43e8ea1185a7f47"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "mta-execution-candidate.json",
+      "sha256": "8ab6028e46fe0dabed003b3e2677a641d84c9af0787536d77416f54e90d21606"
+    },
+    {
+      "name": "pg16-resources.json",
+      "sha256": "66552882df47b58c198097017c867b0d39179a36a824762ea6b44f042218636b"
+    },
+    {
+      "name": "private-services-pg16.json",
+      "sha256": "58ba4ded5da3e365e03d51be09e0447f255f90d349f279590c84878f3218dc77"
+    },
+    {
+      "name": "pre-window-gateway-original.conf",
+      "sha256": "428ad8901a3356391143e53aec5502b4ce11156be4aae41365f16b4b1681d014"
+    },
+    {
+      "name": "pre-window-hba-original.conf",
+      "sha256": "6183a9bed0b585b6e2dad99bcf4395720cb62dcadd7efc253c32250c528de6bb"
+    },
+    {
+      "name": "private-auth-hba-proposed.conf",
+      "sha256": "5f1cbf0be33ef19fbf2fcb502b1252535cf7cde6b67f35acc11db3594eb85f2f"
+    },
+    {
+      "name": "pre-private-protected-fingerprints.json",
+      "sha256": "eea1bc73617ef81bb07ae9a0004ae4136fb0b5de38163126f5b8f470f0d96f20"
+    },
+    {
+      "name": "launch-private-mta.py",
+      "sha256": "3ca7ba5deb990acd8f82a11e467a4ac9882d3a7b4adf8e1efa90387c2dfb4544"
+    },
+    {
+      "name": "retained-execution-qualification-index.json",
+      "sha256": "84a5df0b44eaf0a1db208848b0ed686ed2b052e65cbb27fd9fd59cf1ae5e8448"
+    },
+    {
+      "name": "bpr-retained-execution-proof.json",
+      "sha256": "0167f91d959c0fd97466349d29dfb4df65f9d2fad077e35ec652d3db46f6f575"
+    },
+    {
+      "name": "dbm-retained-execution-proof.json",
+      "sha256": "54747b9caa259e7d8214681eefe1dfa1b4423e1cd006d39b0cb23be62eacb449"
+    },
+    {
+      "name": "window3-resource-preflight.json",
+      "sha256": "66ae9c4928cd615253e5b3b708e16aaad8322baf2b113f379f6dc3407acccb51"
+    },
+    {
+      "name": "window3-lock-proof.json",
+      "sha256": "58b8cf6699cfb9a3aa4a663baf71b9ac548064a5268244f0eba980568e4ff527"
+    },
+    {
+      "name": "window3-logical-pause-proof.json",
+      "sha256": "99b614c9544cf5c2ddb9bb06f78a22339b47798986398e18fd77f8d6ff1ada2c"
+    },
+    {
+      "name": "window3-pg-restored.json",
+      "sha256": "b54d74e21e6453bd96bf03662c62b855748a3e5869f5fc9b958f1fe3dabf8c86"
+    },
+    {
+      "name": "bpr-journey/terminal-continuation-proof.json",
+      "sha256": "ad4d509a13c1ee32ad2e662523b6d6ed9f1307c541357808027c4c4dd8573b4b"
+    },
+    {
+      "name": "bpr-journey/terminal-selection.json",
+      "sha256": "6a543d34a3309663add56b4e142bc13a08232f3002c3b477765cc393aefe542d"
+    },
+    {
+      "name": "bpr-journey/terminal-environment.json",
+      "sha256": "7f931eda33bda6354d82ebdd6b43faa41486b231661649e380a0980a74618e89"
+    },
+    {
+      "name": "bpr-journey/invalid27-diagnostic-proof.json",
+      "sha256": "2b58d21cec9a58bf9fe5e6568ba5ff4d469c8d9817d6d58fb7a0e37ace275235"
+    }
+  ],
+  "sequence": [
+    "Activate existing exclusive PG16 and original-image companion, then terminal BPR candidate",
+    "Download already-recovered invalid27 ZIP through Chrome; prove selected26 Planning remains usable; inspect BTR viewport readability without editing UI",
+    "Independent original UptoDBM26: browser Apply, remark, Sleep and exact runtime readback",
+    "Continue only original DBM26 through PostDBM with existing phase owner; exact retry, terminal startup/readback/browser",
+    "Restore exact original stack before expiry; record remaining limits"
+  ],
+  "preserve": [
+    "Accepted BPR actions and terminal run",
+    "Committed invalid27 failure/capture/diagnostic/publication; no producer retry",
+    "Independent DBM accepted prefix",
+    "All original serving resources and receipts",
+    "Frontend design and MTO"
+  ],
+  "resources": "Same existing PG16 exclusive volume384MiB/.5CPU; MTA4GiB/2CPU; auth512MiB/.5CPU; 5.5GiB total,1936MiB growth,512MiB reserve; no new database/image/public port",
+  "serving_effect": "Original PG/MTA briefly stop/restart; gateway temporarily selects test auth. Automatic exact original restoration.",
+  "helper_delta": "Reuse reviewed window3 mechanics with fresh window4 completion/lock/approval records and names. Initial mode terminal BPR; scoped BPR mode forbidden; worker permits only DBM continuation. No original helper or receipt overwritten."
+}
