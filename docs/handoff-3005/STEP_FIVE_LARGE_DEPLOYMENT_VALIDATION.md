@@ -1,100 +1,47 @@
-# VectorFLOW — Stage 5 manual orchestration
+# VectorFLOW — Stage 5 large deployment validation
 
-You run these commands on a new installation. This guide covers application setup and operation. The input package is being prepared separately; its path, manifest and business dates are pending.
+Use this guide to install VectorFLOW and run the large dataset yourself. Run each command separately and stop at the first error. These instructions have been checked against the source; this new installation and dataset have not yet been exercised together.
 
-**Status:** source-reviewed instructions, not an exercised Stage 5 installation. Step 6 will record the commands that actually succeed during your run.
+Use a clean computer or independent Docker environment: the `vectorflow` project already exists on the current shared host. Leave the existing installation and localhost:8080 unchanged. Requires Git, PowerShell 5.1 or 7, Docker Desktop with Linux/amd64 containers and Compose 2.24.4 or later. The first build needs internet access; the input data is offline.
 
-## 1. Release and folders
+## 1. Clone VectorFLOW
 
-| Item | Version or location |
-| --- | --- |
-| Git release for this Full-run procedure | `022e9ef2b5e33e8f762ab52fc01f75acd33e613d` |
-| MTA application source represented by that release | `ba32643250c1c3b916cd400fd801ae88b57122c6` |
-| Frontend/auth corrections included | `c63161ed35955add4ffdddf07042e131d484ca15` |
-| Project | `vectorflow` |
-| Clone and private environment file | `D:/VectorFLOW` and `D:/VectorFLOW/.env` |
-| This installation's input copy | `D:/VectorFLOW-Input`, outside Git |
-| Configuration and operation records | `D:/VectorFLOW-Operations`, outside Git |
-| Application address | `http://127.0.0.1:8091` |
+Use a new `D:/VectorFLOW` folder. The fixed checkout selects the reviewed Full-run source rather than unfinished work at the branch tip.
 
-Build all four application images from the pinned release. Record their actual image IDs after building; do not substitute a retained image or database.
+```powershell
+git clone --single-branch --branch codex/bounded-ui-recovery git@github.com:yurtse/freshvcf.git D:/VectorFLOW
+Set-Location D:/VectorFLOW
+git checkout --detach 022e9ef2b5e33e8f762ab52fc01f75acd33e613d
+```
 
-The earlier installation is `I:/VectorFLOW`. Its runbooks are `release/SOURCE_BUILD.md`, `release/CSV_STARTER_RUN.md` and `release/CSV_DAILY_RUN.md`. The completed large-data G1 handoff is recorded in `docs/handoff-3005/BOUNDED_RECOVERY_8080.md`, documentation checkpoint `c53cab1d`, MTA source `67aebd28`. These are historical references. Leave that installation and the current fast 8080 baseline unchanged.
+## 2. Configure once
 
-## 2. Check the target
+The offline package is **`I:/data/vectorflow-synthetic-97097-20261027-v2`**. It contains the 7 April 2026 opening and four daily batches, 8–11 April, with 97,097 processed pairs per day. It has no prehistory. Use only this v2 package.
 
-Requires Git, PowerShell 5.1 or 7, Docker Desktop using Linux/amd64 containers, Compose 2.24.4 or later, repository access and internet access for the first build. The data package is offline; the application build downloads pinned dependencies and base images.
-
-The name `vectorflow` is already used on the current shared Docker host. Use a clean target computer or independent Docker environment. Do not remove existing resources to reuse the name.
+Copy it to a fresh working folder. Initialization will bind that copy to this installation; the original stays reusable. If transporting the package to another computer, change only the source path in the copy command.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-$InstallDir = 'D:/VectorFLOW'
-$InputDir = 'D:/VectorFLOW-Input'
-$OperationsDir = 'D:/VectorFLOW-Operations'
-foreach ($Path in @($InstallDir, $InputDir, $OperationsDir)) {
-    if (Test-Path -LiteralPath $Path) { throw "Existing target: $Path. Do not overwrite it." }
-}
-docker version
-if ($LASTEXITCODE -ne 0) { throw 'Docker is unavailable' }
-docker compose version
-if ($LASTEXITCODE -ne 0) { throw 'Compose is unavailable' }
-$Existing = docker ps -aq --filter label=com.docker.compose.project=vectorflow
-if ($LASTEXITCODE -ne 0 -or $Existing) { throw 'Existing vectorflow containers' }
-$Existing = docker volume ls -q --filter label=com.docker.compose.project=vectorflow
-if ($LASTEXITCODE -ne 0 -or $Existing) { throw 'Existing vectorflow volumes' }
-$Existing = docker network ls -q --filter label=com.docker.compose.project=vectorflow
-if ($LASTEXITCODE -ne 0 -or $Existing) { throw 'Existing vectorflow network' }
-if (Get-NetTCPConnection -State Listen -LocalPort 8091 -ErrorAction SilentlyContinue) {
-    throw 'Port 8091 is occupied'
-}
-```
-
-Check Docker/host memory and free space on the Docker, source, input and records drives:
-
-```powershell
-docker info --format 'Docker CPUs={{.NCPU}} MemoryBytes={{.MemTotal}}'
-Get-CimInstance Win32_OperatingSystem |
-    Select-Object TotalVisibleMemorySize, FreePhysicalMemory
-Get-PSDrive -PSProvider FileSystem |
-    Select-Object Name, @{Name='FreeGiB';Expression={[math]::Round($_.Free / 1GB, 1)}}
-```
-
-The earlier large calculation approached 8 GiB for one worker. That is not a whole-installation requirement or proof that the new package fits. Builds, PostgreSQL, serving processes and other jobs also need memory. Keep at least 2 GiB host memory and 20 GiB disk free on the relevant backing drives during work. Do not start large initialization until the delivered package's storage/history footprint and resource fit are confirmed. Do not resize Docker, raise a limit or stop another owner's services to force a fit.
-
-Normal Compose defaults impose no application CPU/RAM ceiling. The optional 4 GiB test overlay is not qualified for this large package. This guide changes no resource allocation.
-
-## 3. Clone and configure
-
-```powershell
-git clone --single-branch --branch codex/bounded-ui-recovery `
-  git@github.com:yurtse/freshvcf.git D:/VectorFLOW
-if ($LASTEXITCODE -ne 0) { throw 'Clone failed' }
-Set-Location D:/VectorFLOW
-git checkout --detach 022e9ef2b5e33e8f762ab52fc01f75acd33e613d
-if ($LASTEXITCODE -ne 0) { throw 'Release checkout failed' }
-git rev-parse HEAD
-git status --porcelain
-```
-
-Expect the release above and an empty tracked-change status. The fixed checkout avoids unfinished work at the branch tip.
-
-```powershell
-Copy-Item -LiteralPath .env.example -Destination .env
+if (Test-Path -LiteralPath D:/VectorFLOW-Input) { throw 'Input folder already exists; use a fresh target' }
+if (Test-Path -LiteralPath D:/VectorFLOW-Operations) { throw 'Operations folder already exists; use a fresh target' }
+Copy-Item -LiteralPath I:/data/vectorflow-synthetic-97097-20261027-v2 -Destination D:/VectorFLOW-Input -Recurse
 New-Item -ItemType Directory -Path D:/VectorFLOW-Operations
+Copy-Item -LiteralPath .env.example -Destination .env
+@'
+services:
+  auth:
+    environment:
+      VF_AUTH_SITE_CACHE_URL: redis://redis:6379/1
+      VF_AUTH_SITE_KEY_NAMESPACE: vectorflow
+'@ | Set-Content -LiteralPath D:/VectorFLOW-Operations/vectorflow.yaml -Encoding ASCII
 notepad D:/VectorFLOW/.env
 ```
 
-Maintain these values in **`D:/VectorFLOW/.env`**. Keep the other template entries, including the native identity settings set to `image`.
+Maintain the following entries in **`D:/VectorFLOW/.env`**. Change existing entries rather than duplicating them; add entries that are absent. Keep the other template settings unchanged.
 
 ```dotenv
 VF_PROJECT=vectorflow
-VF_IMAGE_PREFIX=vectorflow
-VF_RELEASE=source
-VF_BIND_ADDRESS=127.0.0.1
 VF_HTTP_PORT=8091
-VF_PUBLIC_URL=http://127.0.0.1:8091
-VF_PUBLIC_WS_URL=ws://127.0.0.1:8091
 PG_ADMIN_USER=vectorflow_admin
 MTA_DB_NAME=vectorflow_mta
 MTO_DB_NAME=vectorflow_mto
@@ -107,168 +54,128 @@ COMPOSE_PATH_SEPARATOR=;
 COMPOSE_FILE=compose.yaml;D:/VectorFLOW-Operations/vectorflow.yaml
 ```
 
-Enter your new application administrator email/name. Leave `VF_ADMIN_PASSWORD` blank to enter and confirm it privately during installation. If you keep it in `.env`, keep the file private. Editing these fields after installation does not reset an account. The password policy requires at least eight characters, an uppercase letter and a special character, and rejects common/similar passwords.
+Enter your application administrator email and name. Leave its password blank to enter and confirm it privately during installation. Database passwords are generated by the installer and stored in private Docker volumes; their location and usernames are in Appendix A. No credentials or input data belong in Git.
 
-Database passwords are generated on the first install. The administrator is `vectorflow_admin`. The default service users are:
+The configuration block above gives this installation its own authentication site-key cache. Use port 8091 before building; the HTTP/WebSocket origins derive from it. Do not copy the data package's older resource-profile configuration into this installation.
 
-| Service | Installer user | Runtime user |
-| --- | --- | --- |
-| MTA | `vectorflow_mta_installer` | `vectorflow_mta_runtime` |
-| Authentication | `vectorflow_auth_installer` | `vectorflow_auth_runtime` |
-| MTO | `vectorflow_mto_installer` | `vectorflow_mto_runtime` |
+## 3. Build, install and start
 
-Owner roles do not have login passwords. Generated passwords and signing keys live in private Docker secret volumes and are routed only to the services that need them. The admin password is `source/postgres_admin_password` in `vectorflow_secret_store`, mounted as `/secrets/private/source/postgres_admin_password` by secret initialization. Adding `PG_ADMIN_PASSWORD` or `POSTGRES_PASSWORD` to `.env` does not configure this installer.
-
-Create the deployment configuration:
+From `D:/VectorFLOW`, run these commands **one at a time**. Continue only when each succeeds.
 
 ```powershell
-notepad D:/VectorFLOW-Operations/vectorflow.yaml
-```
-
-Save this content. It gives this installation its own shared authentication site-key namespace without changing permission caching or session expiry.
-
-```yaml
-services:
-  auth:
-    environment:
-      VF_AUTH_SITE_CACHE_URL: redis://redis:6379/1
-      VF_AUTH_SITE_KEY_NAMESPACE: vectorflow
-```
-
-Keep `.env`, secrets, inputs and operation records outside Git. Do not print or retain resolved Compose configuration; it can contain private values.
-
-## 4. Build, install and start
-
-From `D:/VectorFLOW`, run one command at a time:
-
-```powershell
-docker compose config --quiet
-if ($LASTEXITCODE -ne 0) { throw 'Configuration is invalid' }
 docker compose build
-if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
-docker compose images
+```
+
+```powershell
 docker compose run --rm install
-if ($LASTEXITCODE -ne 0) { throw 'Installation failed; retain the error before any recovery' }
+```
+
+```powershell
 docker compose up -d --no-build --wait
-if ($LASTEXITCODE -ne 0) { throw 'Startup failed' }
-docker compose ps
 ```
 
-The single install command generates secrets, creates the new databases/roles, applies real migrations and creates your administrator. It does not load masters, register an opening or calculate a day. Do not run a separate migration command against another installation.
+Installation creates the databases, roles, secrets and your application administrator. It does not load business inputs or calculate results. Open **http://127.0.0.1:8091** and sign in normally, including CAPTCHA. Business reports become available after initialization and the first published day.
 
-Expect six running/healthy services. Open `http://127.0.0.1:8091` and sign in with your new administrator and normal CAPTCHA. A blank installation has no business results. Keep build/installation output and actual image IDs with your operation records.
-
-## 5. Connect the package and initialize once
-
-**Pending data handoff:** fill these details from its delivery note. Do not invent dates or use another installation's bound folder.
+## 4. Initialize once
 
 ```powershell
-$InputPackage = '<ABSOLUTE_OFFLINE_PACKAGE_PATH>'
-$BusinessDates = @('<DATE_1>', '<DATE_2>', '<DATE_3>')
-```
-
-The package must supply an unbound native CSV opening, `opening/opening-manifest.json`, its required original/control files and complete dated raw batches with `batch.json` and `READY`. Its manifest/date roster and source/site compatibility come from the data handoff. The launcher checks internal identities; you do not enter UUIDs or checksums manually.
-
-```powershell
-if ($InputPackage.StartsWith('<') -or -not (Test-Path -LiteralPath $InputPackage)) {
-    throw 'Wait for the data package and enter its delivered path'
-}
-if ($BusinessDates.Count -ne 3 -or ($BusinessDates | Where-Object { $_ -notmatch '^\d{4}-\d{2}-\d{2}$' })) {
-    throw 'Enter the three business dates from the data handoff'
-}
-if (Test-Path -LiteralPath (Join-Path $InputPackage 'binding.json')) {
-    throw 'That package is already bound to an installation'
-}
-if (Test-Path -LiteralPath D:/VectorFLOW-Input) { throw 'Working input folder already exists' }
-Copy-Item -LiteralPath $InputPackage -Destination D:/VectorFLOW-Input -Recurse
-Set-Location D:/VectorFLOW
 .\vf.ps1 csv-init
-if ($LASTEXITCODE -ne 0) { throw 'Initialization failed; preserve its receipt' }
 ```
 
-Expect `INITIALIZED` and `READY_FOR_FIRST_CSV_DAY`. The command registers/certifies this opening, loads the native master families and configures master serving. It writes binding/access files into the working copy. The original offline package stays reusable. Do not repeat initialization after a daily run.
+Wait for **INITIALIZED / READY_FOR_FIRST_CSV_DAY**. This loads the opening and masters and prepares this working copy for daily operation. No manual hashes, UUIDs, registrations or JSON edits are needed. Never repeat initialization to recover a daily failure.
 
-## 6. Run one date at a time
+## 5. Run each day
+
+Run one date, wait for **PUBLISHED**, and check its reports before advancing to the next date.
 
 ```powershell
-.\vf.ps1 csv-day $BusinessDates[0]
-if ($LASTEXITCODE -ne 0) { throw 'First daily operation failed; stop' }
+.\vf.ps1 csv-day 2026-04-08
 ```
-
-Wait for **PUBLISHED**. The command freezes/validates CSV, executes the native day, prepares reports, selects that generation, restarts only its MTA and verifies serving. MTA reports may be unavailable during processing.
-
-Before the next date, check the browser:
-
-- Displayed date and selected run match the completed operation.
-- BPR and RRR have readable results, correct counts/filters and actual CSV downloads.
-- BTR works on direct reload, standalone view and both combined orientations, including scrolling.
-- Applicable Planning/Guided grids and graphs load; master screens remain readable.
-- Record click-to-usable time, filter/page behavior, export completion, rejection diagnostics and unavailable/empty results. Check values and files against the run's supplied/produced records; a count or HTTP 200 alone is not acceptance.
-
-Record the run/output identities from the receipt, then continue:
 
 ```powershell
-.\vf.ps1 csv-day $BusinessDates[1]
-if ($LASTEXITCODE -ne 0) { throw 'Second daily operation failed; stop' }
-# Check the second date's reports before continuing.
-.\vf.ps1 csv-day $BusinessDates[2]
-if ($LASTEXITCODE -ne 0) { throw 'Third daily operation failed; stop' }
+.\vf.ps1 csv-day 2026-04-09
 ```
 
-Each date uses this installation's own preceding successful state. Do not substitute another arm's outputs or seed calculated results as inputs.
+```powershell
+.\vf.ps1 csv-day 2026-04-10
+```
 
-## 7. Full and split paths
+```powershell
+.\vf.ps1 csv-day 2026-04-11
+```
 
-| Path | Supported interface and boundary |
+The launcher handles input validation, calculation, report preparation, selection and MTA restart. Reports and administrator permission lookup may be unavailable during processing. Each day uses this installation's own preceding state.
+
+After each publication, check the displayed date, BPR and RRR values/filters/CSV downloads, BTR views and scrolling, and applicable Planning/Guided reports. Record errors, empty or unavailable reports and click-to-usable times alongside the operation records. A row count or HTTP 200 alone does not establish correct results. The 8 April transit case has a known report limitation described in Appendix C.
+
+## 6. Execution scope
+
+| Requested path | Current operator support for this dataset |
 | --- | --- |
-| Full | `vf.ps1 csv-day DATE`, as above |
-| Up to BPR → Post BPR | Native report-placement entry and continuation exist for their qualified owned-test contract. No runnable GulfOil package procedure is released here. |
-| Up to DBM → Post DBM | Same restriction; Post DBM must continue its own accepted DBM prefix. |
+| Full | The four `csv-day` commands above |
+| Up to BPR → Post BPR | Open: the retained GulfOil data does not match the supported SUPPLIED-INSTANCE scope contract |
+| Up to DBM → Post DBM | The same open contract gap |
 
-For interface reference after building/installing, these commands display help without calculating:
+The pinned release has no accepted simple split-scope launcher for this package. Do not rename its site or bypass the guards. The intended comparison uses fresh, independently initialized copies of the **same external dataset**, with each path computing its own predecessors. Post BPR completes the remaining tail; Post DBM continues its own DBM prefix. Never combine Full and split producers on one initialized date. Keep manual actions/remarks identical or absent when comparing paths.
 
-```powershell
-docker compose --profile daily run --rm --no-deps -T daily manage.py run_production_report_placement --help
-docker compose --profile daily run --rm --no-deps -T daily manage.py continue_production_report_placement --help
-```
+---
 
-The first entry accepts Full/UptoBPR/UptoDBM; the continuation accepts PostBPR/PostDBM. They require a supported captured site/hook/report configuration, native ownership, registration and phase/action receipts. Do not fill parameters with trial IDs or bypass a guard.
+## Appendix A — Environment and credentials
 
-**OPEN:** the retained large opening is GulfOil; the qualified scope profile is SUPPLIED-INSTANCE with explicit no-op test hooks. That pairing is rejected. Data generation or a database rename does not resolve it. The draft simple scope adapter is not an accepted part of the pinned release or a runnable GulfOil handoff.
+`D:/VectorFLOW/.env` is the installation's private configuration file. It holds paths, database/user names and administrator fields. Keep it with matched backups, outside Git. Editing administrator fields after installation does not reset the account. The password policy requires at least eight characters, an uppercase letter and a special character, and rejects common/similar passwords.
 
-Full/split comparisons need identical external inputs in independent initialized installations. Each computes its own predecessors. Post BPR resumes accepted BPR and completes the remaining tail; it is not followed by another Up to DBM call. Post DBM resumes accepted DBM. Never run Full and a split journey over one already-mutated date. Keep manual actions/remarks identical or absent for equivalence. Simultaneous workers require separate capacity.
-
-This contract/command gap remains open without blocking the rest of the guide.
-
-## 8. Stop, resume and restart
-
-Stop at the first failed command, wrong run/date/value, missing publication, unreadable required report, failed export or resource pressure. Keep the input copy, `.env`, records and matched database/file/secret volumes. Do not reset/reseal, delete volumes, replay committed days, regenerate secrets or increase resources as recovery.
-
-Use these existing recovery commands after diagnosing the recorded failure:
-
-| Recorded state | Command and limit |
+| Account | Default username |
 | --- | --- |
-| Initialization committed but completion/configuration/serving failed; no daily run exists | `.\vf.ps1 csv-init -Resume`, completing the same checkpoint |
-| Calculation committed but preparation/selection/serving failed | `.\vf.ps1 csv-day DATE -Resume`, using that receipt's date without accepted calculation replay |
-| Latest published date, stopped MTA | Same dated `csv-day DATE -Resume`; it validates the current selection before service-only recovery and cannot reselect an older day |
-| Failed/interrupted calculation | Stop for reconciliation; this guide provides no automatic calculation retry |
+| PostgreSQL administrator | `vectorflow_admin` as configured above |
+| MTA installer / runtime | `vectorflow_mta_installer` / `vectorflow_mta_runtime` |
+| Authentication installer / runtime | `vectorflow_auth_installer` / `vectorflow_auth_runtime` |
+| MTO installer / runtime | `vectorflow_mto_installer` / `vectorflow_mto_runtime` |
 
-For a planned service restart after publication:
+Database passwords are generated once by `secret-init`. The administrator password is stored as `source/postgres_admin_password` in the private `vectorflow_secret_store` Docker volume, mounted by secret initialization at `/secrets/private/source/postgres_admin_password`. Service passwords and signing keys are distributed into service-specific private secret volumes. Owner roles have no login. Adding `PG_ADMIN_PASSWORD` or `POSTGRES_PASSWORD` to `.env` does not configure this installer.
+
+Do not share resolved Compose configuration or secret-volume contents. The authentication override created in section 2 uses this installation's Redis database and namespace; permission caching and session expiry remain unchanged. The root Compose file does not automatically forward those optional settings from `.env`.
+
+## Appendix B — Capacity and exceptional recovery
+
+Before building or importing, confirm that the target has no existing `vectorflow` resources, port 8091 is free, and all three destination folders are new. Do not remove existing resources to reuse the name.
+
+These read-only commands help check capacity:
 
 ```powershell
-docker compose restart mta
-if ($LASTEXITCODE -ne 0) { throw 'MTA restart failed' }
-docker compose ps
-Invoke-RestMethod http://127.0.0.1:8091/readyz
+docker info --format 'Docker CPUs={{.NCPU}} MemoryBytes={{.MemTotal}}'
+Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory
+Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{Name='FreeGiB';Expression={[math]::Round($_.Free / 1GB, 1)}}
 ```
 
-Expect readiness and the same selected date/run in the browser. Restart does not install, migrate, reload inputs or calculate. For an orderly stop/start of this new installation, use `docker compose stop`, then `docker compose up -d --no-build --wait`. Do not delete volumes or use old 8080 recovery controllers.
+Normal Compose defaults impose no application CPU/RAM ceiling. The earlier large calculation approached 8 GiB for one worker; that does not size this complete installation or prove that the new opening fits. Builds, PostgreSQL and serving processes also consume resources. Confirm capacity before import; keep at least 2 GiB host RAM and 20 GiB disk free on relevant backing drives. The optional 4 GiB test overlay is not qualified for this package. Do not raise limits, resize Docker or stop other services to force a fit.
 
-## 9. Remaining acceptance
+On failure, retain the input copy, `.env`, operation records, error output and matched database/file/secret volumes. Do not reset, delete volumes, regenerate secrets or replay accepted days.
 
-- **Data:** package path/manifest/dates, file checks, site compatibility and capacity. The separate data task owns this.
-- **Contract:** supported GulfOil split scopes and a runnable operator procedure. Still open; this guide authorizes no extension or bypass.
-- **Runtime:** the human's clean build/install/initialization, sequential execution, report/export/browser checks and supported restart/recovery results.
-- **Step 6:** the final runbook of commands actually exercised successfully and their observed limits.
+| Recorded failure | Supported recovery after diagnosis |
+| --- | --- |
+| Initialization committed, but completion/configuration/serving failed; no daily run exists | `.\vf.ps1 csv-init -Resume` |
+| Daily calculation committed, but report preparation/selection/serving failed | `.\vf.ps1 csv-day DATE -Resume`, with that receipt's actual date |
+| Latest published date is still selected, but MTA stopped | The same dated `csv-day DATE -Resume`; it validates the selection before service recovery |
+| Calculation failed or was interrupted | Stop for reconciliation; no automatic calculation retry is provided |
 
-Keep product Git/image identity, external inputs and deployment/operation records separate. This is a completed orchestration guide, not Stage 5 runtime or Step 6 acceptance.
+For a planned service restart, use `docker compose stop`, then `docker compose up -d --no-build --wait`. Check readiness and the same displayed date/run afterward. Restart does not install, import or calculate. Never use `down -v` as recovery or run historical 8080 controllers.
+
+## Appendix C — Data limits and references
+
+The v2 package's `file-check.json` reports PASS at **file level only**. A separate reproduction matched 236 generated files byte for byte. Initialization, calculation, publication, browser/report correctness and resource fit remain unproved for this generated opening. Your Stage 5 run supplies that evidence; Step 6 records commands that actually succeed and any remaining limits.
+
+- The cold opening has no BPR/DBM consumption prehistory or suspension/rationing/spike-closure history. It cannot prove mature-history DBM behavior or full rule-window coverage.
+- There are 97,464 raw-master rows and 97,097 distinct processed pairs. The retained processed roster lacks 3,054 same-SKU parent pairs; the raw export has 367 additional keys, including 106 with NULL SKU. Their exclusion reasons are not all established. No parents or raw-only pairs were invented to fill the gaps.
+- The generated opening assigns 100 units to 1,837 existing stock identities and preserves NULL for 95,260. Each known-stock pair consumes one unit per day. One five-unit shipment departs on 8 April and arrives on 9 April between an existing parent and its RLT-1 child. This is narrow logistics coverage.
+- Planning GIT child grid with nonempty transit has a retained unavailable response: HTTP 503, `LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120`. The 8 April batch has nonempty transit. Record the actual response; do not count an unavailable grid as a successful report.
+- Split-path execution remains blocked by the GulfOil/SUPPLIED-INSTANCE site, hook and report contract mismatch. File checks or a successful Full run do not establish split-scope acceptance.
+
+Read-only references:
+
+- Package: `I:/data/vectorflow-synthetic-97097-20261027-v2`; `file-check.json` and `provenance.json` are directly inside that folder.
+- Data guide: `C:/Users/thapa/Documents/Codex/2026-10-27/vectorflow-synthetic-97097/outputs/vectorflow-synthetic-tools/COLD_START_GUIDE.md`.
+- Reproduction proof: `C:/Users/thapa/Documents/Codex/2026-10-27/vectorflow-synthetic-97097/outputs/cold-reproduction-proof.json`.
+- Earlier simple runbooks: `I:/VectorFLOW/release/SOURCE_BUILD.md`, `CSV_STARTER_RUN.md`, `CSV_DAILY_RUN.md` and `RUNBOOK.md`.
+- Completed earlier large-run history: [BOUNDED_RECOVERY_8080.md](BOUNDED_RECOVERY_8080.md). This is a historical reference, not an instruction to replace the current 8080 service.
+
+The first cold package without the `-v2` suffix and older dense-history attempts are superseded. Do not mix their files with this package. Keep source code, reusable offline inputs and this installation's operation records separate.
