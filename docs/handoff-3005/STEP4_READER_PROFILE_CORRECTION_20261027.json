@@ -1,0 +1,141 @@
+{
+  "purpose": "Proved human-approved terminal-reader configuration correction; not an execution tracker",
+  "source_commit": "ba32643250c1c3b916cd400fd801ae88b57122c6",
+  "human_turn": "01a17d69-3391-7172-b935-bfc8785a81e1",
+  "human_message": "01a17d69-3435-7d81-bcd6-6f40e44580e4",
+  "cause": "Copied Step3 continuation-worker environment omitted CURRENT; actual qualified stable8080/nativehandoff/G1 configured1. No documented intentional Step4 disable.",
+  "correction": "Only immutable new terminal-read worker sidecar CURRENT1 andCOMMAND_DATABASEempty; original producer/retry environments and terminal selections untouched.",
+  "product_edits": 0,
+  "builds": 0,
+  "new_databases": 0,
+  "report_regenerations": 0,
+  "logistics_initializations": 0,
+  "serving_changes": 0,
+  "completion": [
+    {
+      "arm": "full",
+      "run_id": "01855c48-c242-4c3a-9c03-b550dbeccbbf",
+      "responses": 45,
+      "read_profile_sha256": "75fb5f87e3f8d5b63b9b9a6c4cbc4918665a3af5e5f9bba728c593e822f88a4f",
+      "unchanged_live_ownership": {
+        "history": 0,
+        "generations": 0,
+        "annotations": 0
+      }
+    },
+    {
+      "arm": "bpr",
+      "run_id": "bf71feef-97b6-4ef1-80fa-9a616b822757",
+      "responses": 45,
+      "read_profile_sha256": "75fb5f87e3f8d5b63b9b9a6c4cbc4918665a3af5e5f9bba728c593e822f88a4f",
+      "unchanged_live_ownership": {
+        "history": 0,
+        "generations": 0,
+        "annotations": 0
+      }
+    },
+    {
+      "arm": "dbm",
+      "run_id": "de63a23e-d6d7-4bf5-9daa-487b069db5f0",
+      "responses": 45,
+      "read_profile_sha256": "75fb5f87e3f8d5b63b9b9a6c4cbc4918665a3af5e5f9bba728c593e822f88a4f",
+      "unchanged_live_ownership": {
+        "history": 0,
+        "generations": 0,
+        "annotations": 0
+      }
+    }
+  ],
+  "pins": [
+    {
+      "path": "logistics-setting-deployed-provenance.json",
+      "sha256": "38c69d26e2870a01dfc645b3e9b7693f88413aa9eac392455c56a73a480f69fa",
+      "bytes": 24765
+    },
+    {
+      "path": "terminal-read-profile.json",
+      "sha256": "75fb5f87e3f8d5b63b9b9a6c4cbc4918665a3af5e5f9bba728c593e822f88a4f",
+      "bytes": 542
+    },
+    {
+      "path": "terminal-read-profile-approval.json",
+      "sha256": "83bb5ba17208d4391dcd7543317aa23610d1a516710723facf1926c44d3d6763",
+      "bytes": 1275
+    },
+    {
+      "path": "terminal-parent-expedite-refusal-diagnosis.json",
+      "sha256": "ea1509c2ac7272c19250239371225a2df71b8a47f156bb9da68986f7aca21d06",
+      "bytes": 1988
+    },
+    {
+      "path": "terminal-parent-expedite-exact-setting.json",
+      "sha256": "4b273148422ada6d2b9e5fff62c7d729be56b541d77a66e279f991f4829edccc",
+      "bytes": 646
+    },
+    {
+      "path": "target26-complete-terminal-comparison.json",
+      "sha256": "02c5a0fa50c1ed0b23969ab27cbfbb514c4012de9420ca0fd7bb5075157d39ed",
+      "bytes": 13829
+    },
+    {
+      "path": "full/terminal-environment.json",
+      "sha256": "2fc612c12a85a5379938a0ae6eefea3b75be174dec97b9e261bf9ca22ef3284a",
+      "bytes": 733
+    },
+    {
+      "path": "full/terminal-parent-prerequisite-readonly.json",
+      "sha256": "00fc15b5768ca3fb0d7c4720cab10b20fe7b8d47c0eaf313e12b5b9aa946f553",
+      "bytes": 4694
+    },
+    {
+      "path": "full/terminal-readback.json",
+      "sha256": "a4e775e51e88c0ff3c5e4524f56c657f79cd79fa84b7419f1ebb95047304e5cd",
+      "bytes": 4831
+    },
+    {
+      "path": "full/terminal-exact-retry.json",
+      "sha256": "93bfb7e1bc0936070aa907d05a55b5e165e129fd4464b7d9a5694e38e1a1122c",
+      "bytes": 1659
+    },
+    {
+      "path": "bpr/terminal-environment.json",
+      "sha256": "409cfdf2591257e263b3059a4ea15ea7667e69c6e00880fefc5f41df7fcb1b7b",
+      "bytes": 732
+    },
+    {
+      "path": "bpr/terminal-parent-prerequisite-readonly.json",
+      "sha256": "23eee602f96c834f96cdcecc5c38a5dd05ae49929ddd3bc4af863adf903e6878",
+      "bytes": 4693
+    },
+    {
+      "path": "bpr/terminal-readback.json",
+      "sha256": "22dafa4873d1a643a521a725920796a7486b8b9d76ad231872f0ea7090dbcd3b",
+      "bytes": 4828
+    },
+    {
+      "path": "bpr/terminal-exact-retry.json",
+      "sha256": "04cc55a82ddfb3492d2f7affb772f997432628bdfa494e57e2cf1dea4c685b75",
+      "bytes": 1902
+    },
+    {
+      "path": "dbm/terminal-environment.json",
+      "sha256": "aba53a69e39e9169a5bc606b798ca201ebd724aaba11de6ea758e8e518c195ce",
+      "bytes": 732
+    },
+    {
+      "path": "dbm/terminal-parent-prerequisite-readonly.json",
+      "sha256": "3e18ce8c99ff29bcc7aac07d2249cf9144553a69a7fc3958db02a5ec8b478d59",
+      "bytes": 4693
+    },
+    {
+      "path": "dbm/terminal-readback.json",
+      "sha256": "eb0f34eec44dbc8e96a07486fb9bcd4b79dd14874f13ff7b35ddbf5b5bcd0a53",
+      "bytes": 4828
+    },
+    {
+      "path": "dbm/terminal-exact-retry.json",
+      "sha256": "e7f404360a8ecfc3b3364cb9094220e206399648c5a95135e1040c1254736401",
+      "bytes": 1902
+    }
+  ]
+}
