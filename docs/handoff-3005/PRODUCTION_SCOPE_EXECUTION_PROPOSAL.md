@@ -1,6 +1,10 @@
 # VectorFLOW: isolated scope proof resources
 
-**Pending approval.** The source implementation is already approved. This is one request for the additional resources needed to prove its database, native package and small integrated execution. It does not request deployment to 8080 or permission to run the large Terra dataset.
+**Approved, with sizing superseded by direct human direction on 28 October 2026.** The original approved version is retained at commit `2c5add06`, SHA256 `a18cdbca3883b4713478ac1b7599f70cec369d84bd4700e375b91e20e4942b66`. The human subsequently authorized practical RAM and disk sizing from actual capacity, without further small-slice approval loops (controller turn `01a17f1a-4714-7153-93b2-b7cc6132d188`).
+
+Current bounded profile: **6 GiB additional operation storage**, one active builder or worker at **4 GiB / 2 CPU**, and isolated PostgreSQL at **512 MiB / 1 CPU**. Memory-plus-swap equals each memory limit. Fresh observations showed about 10.8 GiB available engine memory and C:51.10/D:58.96 GiB free; require ample remaining host/engine headroom before launch. The original two-build and ten-logical-day/fourteen-producing-invocation limits remain binding. Keep existing spending, baselines, global reserve and protected services. Record actual use with the existing measurements; the former 2 GiB and individual disk slices below are historical planning values and no longer block the approved finite proof. Adjust practical sizing only from fresh measured need, without unbounded growth or consuming other owners' capacity.
+
+The large Terra/manual clean installation and final exercised-command acceptance belong to the human and are outside the agent goal. Candidate image, small real PostgreSQL/native proof and an accurate manual guide remain required. This authorizes no 8080 change.
 
 ## Requested operation
 
@@ -10,7 +14,7 @@ Names: `vectorflow-generic-scope-pg-20261028`, network `vectorflow-generic-scope
 
 PostgreSQL uses the already retained PG16 image `721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea`, capped at **384 MiB / 0.5 CPU**, `shared_buffers=32MB`, `max_connections=16`, `max_wal_size=32MB`, `min_wal_size=32MB`. The one active native worker is capped at **4 GiB / 2 CPU**, without swap expansion. No simultaneous producer workers. Retain all containers/volumes/evidence after stopping them; no prune, deletion or reclaim is authorized.
 
-## Disk ceiling and accounting
+## Original disk allocation (superseded sizing)
 
 Request **2,048 MiB additional cumulative allocation**, charged to the same accounting basis as the existing protected baseline. This would raise the total ceiling from 6,068 to **8,116 MiB** and cumulative growth from 2,372 to **4,420 MiB**. The existing **512 MiB global reserve**, original baseline **3,853,159,872 bytes**, frozen Step 4 reservation **192,686,244 bytes**, previous failure evidence and all existing spending remain charged. This is not permission to spend their unused reserves.
 
