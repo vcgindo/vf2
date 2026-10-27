@@ -1,0 +1,148 @@
+{
+  "status": "LOGICAL_PAUSE_ORIGINAL_STACK_RESTORED",
+  "at": "2026-10-27T05:08:08.236651+00:00",
+  "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+  "source_checkpoint": "00a95197",
+  "request": "take a logical pause",
+  "completed": [
+    "UptoBPR real browser Apply/remark/Sleep and exact native state",
+    "PostBPR26 terminal continuation, exact retry, native integrity and complete next opening",
+    "Terminal BTR CSV actual arrival confirmed by human",
+    "Actual invalid27 typed diagnostic, intentional first CSV failure, explicit publication recovery without producer replay"
+  ],
+  "remaining": [
+    "Invalid27 authenticated browser diagnostic download and post-failure selected26 navigation",
+    "Independent UptoDBM browser Apply/remark/Sleep",
+    "PostDBM continuation and terminal native/browser readback",
+    "Controller Step3 functional acceptance",
+    "Separate latency and scale qualification"
+  ],
+  "latency_acceptance": false,
+  "observations": {
+    "sleep_ms": 23965,
+    "planning_ms": 1058,
+    "pipeline_btr_ms": 2090,
+    "combined_btr_ms": 1938
+  },
+  "timing_limit": "Small fixture only. BTR numbers establish loading completion/data presence, not all layout usability. Later combined-view screenshot showed compressed grid viewports despite AX rows; visual readability remains unqualified, no UI edit.",
+  "proofs": [
+    {
+      "name": "window3-approval.json",
+      "bytes": 245,
+      "sha256": "b629d75d3a696b60d5ba4eff8723d58bc1b062479eb7249d6c54e7b32cd166c8"
+    },
+    {
+      "name": "window3-announcement.json",
+      "bytes": 272,
+      "sha256": "7c79828530a8a6e7af7e63e6a3a4036de4880bd1182d251a0bc30b90e43901c4"
+    },
+    {
+      "name": "window3-bpr-actions.json",
+      "bytes": 2162,
+      "sha256": "1ef5835e07e8714bdfd5cf946107075e71be996b45bcb014a64c54b91901828e"
+    },
+    {
+      "name": "window3-bpr-action-baseline.json",
+      "bytes": 15656,
+      "sha256": "14d5726187c4491d5b2aff69c196af6ae817ed2abbe60ce656f6e4845623bb71"
+    },
+    {
+      "name": "window3-bpr-action-apply.json",
+      "bytes": 16334,
+      "sha256": "d06dbcb9a99069b980cff98f2f1b6c2d3ba3a8d757dc7508447a14cd361455de"
+    },
+    {
+      "name": "window3-bpr-action-remark.json",
+      "bytes": 16470,
+      "sha256": "e860aff29832e97570b3b1f4e94b34088da22f600101b6ad30ae77b598002c45"
+    },
+    {
+      "name": "window3-bpr-action-final.json",
+      "bytes": 16965,
+      "sha256": "937c38d9a4592c918c2e471d361290b9db6fda05ab79c5884d8a93142d610688"
+    },
+    {
+      "name": "bpr-journey/terminal-continuation-proof.json",
+      "bytes": 2534,
+      "sha256": "ad4d509a13c1ee32ad2e662523b6d6ed9f1307c541357808027c4c4dd8573b4b"
+    },
+    {
+      "name": "bpr-journey/terminal-continuation-result.json",
+      "bytes": 757,
+      "sha256": "734dfd14d74b4713dd6cb15216086491f9dfb12b4ecd6e31d5de42020dc39250"
+    },
+    {
+      "name": "window3-bpr-terminal-readback.json",
+      "bytes": 3040,
+      "sha256": "b314b3706ff3071bb31d77028815d22b6a1b3b35e2bafeed7a4d9ebb4c13c812"
+    },
+    {
+      "name": "window3-bpr-terminal-browser.json",
+      "bytes": 1281,
+      "sha256": "15ffc835ed8c2c330fa71c835ce5cc2f5bec40e7c79ce4f93b54773377b62c78"
+    },
+    {
+      "name": "bpr-journey/invalid27-before.json",
+      "bytes": 2840,
+      "sha256": "035a49355fdc6ca4011997c2b331239b7edd67e36e8a6de992260f2180cafbb6"
+    },
+    {
+      "name": "bpr-journey/invalid27-original-error.json",
+      "bytes": 307,
+      "sha256": "50d8dbbc4b06021d68168d09240bfa28fc726d9a016332cbadcd7756654e70f8"
+    },
+    {
+      "name": "bpr-journey/invalid27-committed-before-write-failure.json",
+      "bytes": 3992,
+      "sha256": "46afc93eaf9d792583a929923900109c2c75f341ada941578a723fcd1deb7be7"
+    },
+    {
+      "name": "bpr-journey/invalid27-rejection-reconciliation.json",
+      "bytes": 6343,
+      "sha256": "8002f02f4c59b3133a9e7c2995020e29b957d414006ae85b64249be7049727a7"
+    },
+    {
+      "name": "bpr-journey/invalid27-publication-recovery.json",
+      "bytes": 203,
+      "sha256": "acdca967d5e511c0519d9974f76461580b5080f15ae6fd8799db79a40be07add"
+    },
+    {
+      "name": "bpr-journey/invalid27-diagnostic-proof.json",
+      "bytes": 10297,
+      "sha256": "2b58d21cec9a58bf9fe5e6568ba5ff4d469c8d9817d6d58fb7a0e37ace275235"
+    },
+    {
+      "name": "recover-invalid27-window3.py",
+      "bytes": 12347,
+      "sha256": "6e5dd604d19c09d8d5d2b7471a85270670ddbfa3cf32bfb7c035a465ad29a115"
+    },
+    {
+      "name": "resume-bpr-terminal-window3.py",
+      "bytes": 1250,
+      "sha256": "e63e0ecc30454f1867bd17bd0b3ec8bfa93ad6eb6516e9db61de08a8865260ea"
+    },
+    {
+      "name": "window3-bpr_terminal-resumed-after-invalid27.json",
+      "bytes": 9522,
+      "sha256": "9b007c6df9257fa03c227afe2855bd322c8f73117fe4e667ebd126def9c097fc"
+    },
+    {
+      "name": "window3-pg-restored.json",
+      "bytes": 523,
+      "sha256": "b54d74e21e6453bd96bf03662c62b855748a3e5869f5fc9b958f1fe3dabf8c86"
+    },
+    {
+      "name": "window3-restored.json",
+      "bytes": 597,
+      "sha256": "34d7f12f5e5990fe56407054d75fdeb92c2f42d8456c78a802e3f65e004bffd4"
+    }
+  ],
+  "restoration": {
+    "at": "2026-10-27T05:08:01.870574+00:00",
+    "baseline_readiness": "{\"ready\": true, \"admission_digest\": \"4b0bf02bdc73c75597d50a349203bbc781b95441452ca3d79ca1c21bc517b4ae\"}\n",
+    "note": "These two start times legitimately changed under explicit coordinated restart approval; frontend/auth remain unchanged.",
+    "original_mta_started": "2026-10-27T05:07:19.116311907Z",
+    "original_pg_started": "2026-10-27T05:07:16.409166433Z",
+    "status": "ORIGINAL_PG_MTA_CONTAINERS_CONFIG_VOLUME_HBA_GATEWAY_RESTORED"
+  }
+}
