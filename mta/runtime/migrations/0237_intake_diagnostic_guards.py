@@ -53,7 +53,7 @@ BEGIN
     WHEN 'download/UIUploadLogs/ForceNormChangeUploadLog.zip' THEN 'ForceNormChangeUpload'
     WHEN 'download/InvalidDataReport.zip' THEN 'InvalidDataReport'
     WHEN 'download/DailyDataUnavailabilityReport.zip' THEN 'DailyDataUnavailabilityReport' ELSE NULL END;
-   IF native_group IS DISTINCT FROM CASE WHEN native_path LIKE 'download/UIUploadLogs/%' THEN 'O5' ELSE 'O7' END THEN
+   IF native_group IS DISTINCT FROM (CASE WHEN native_path LIKE 'download/UIUploadLogs/%' THEN 'O5' ELSE 'O7' END) THEN
     RAISE EXCEPTION 'Diagnostic operation group differs';
    END IF;
   END IF;

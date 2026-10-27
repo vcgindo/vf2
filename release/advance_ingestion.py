@@ -159,6 +159,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import runtime_report_schema_transition as publication
     from mta.runtime import runtime_placement_schema_transition as placement
     from mta.runtime import runtime_report_read_transition as consumer_read
+    from mta.runtime import registered_report_schema_transition as registered_reports
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
@@ -168,6 +169,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     publication_migration=any(pin[0] in publication.NAMES for pin in spec['migration_pins'])
     placement_migration=any(pin[0] in placement.NAMES for pin in spec['migration_pins'])
     consumer_read_migration=any(pin[0] in consumer_read.NAMES for pin in spec['migration_pins'])
+    registered_reports_migration=any(pin[0] in registered_reports.NAMES for pin in spec['migration_pins'])
+    if registered_reports_migration:
+        registered_reports.require_specification(spec)
     if consumer_read_migration:
         consumer_read.require_specification(spec)
     if placement_migration:
@@ -222,6 +226,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             placement.require_start(cursor)
         if consumer_read_migration:
             consumer_read.require_start(cursor)
+        if registered_reports_migration:
+            registered_reports.require_start(cursor)
         before=storage(preservation(owner));before_catalogue=catalogue(cursor)
         old_history=authority_history(cursor,owner.pk)
         old=authority.read(cursor,owner.pk,previous['manifest_sha256'])
@@ -277,6 +283,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0231']]
         if consumer_read_migration:
             allowed_migrations=[['0232']]
+        if registered_reports_migration:
+            allowed_migrations=[['0233','0234','0235','0236','0237']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -286,7 +294,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         # migration. Migration bookkeeping cannot advance a business epoch;
         # no epoch is restored and no business writer guard is disabled.
         from importlib import import_module
-        if not has_schema_authority and not action_migration and not publication_migration and not placement_migration:
+        if not has_schema_authority and not action_migration and not publication_migration and not placement_migration and not registered_reports_migration:
             cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
         executor.migrate(executor.loader.graph.leaf_nodes())
         cursor.execute('RESET ROLE')
