@@ -1,12 +1,40 @@
-"""Read routing for the qualified terminal TEST delivery, not configuration repair.
+"""Choose existing readers from the selected native daily publication contract.
 
-The original flags/configuration receipt stay unchanged. Native startup still
-requires the entire READY roster; each chosen reader verifies its own receipt.
+Prepared switches retain their explicit legacy meaning. A native sealed daily
+publication owns a fixed prepared roster independently of those switches; its
+original configuration, selection, sources and summary must still validate.
+Historical phase/file custody adapters do not decide ordinary reader eligibility.
 """
+from dataclasses import dataclass
 from django.conf import settings
+from mta.presentation.request_scope import once_per_request
 
-FLAGS = frozenset(('VF_BPR_PREPARED', 'VF_RRR_PREPARED',
-                   'VF_HISTORY_REPORTS_PREPARED', 'VF_RESEARCH_AVAILABILITY_PREPARED'))
+LAYERS = {'VF_BPR_PREPARED': 'bpr', 'VF_RRR_PREPARED': 'rrr',
+          'VF_HISTORY_REPORTS_PREPARED': 'history',
+          'VF_RESEARCH_AVAILABILITY_PREPARED': 'research_availability'}
+FLAGS = frozenset(LAYERS)
+
+
+@dataclass(frozen=True)
+class TerminalReaders:
+    run_id: object
+    publication_seal: str
+    configuration_digest: str
+    contract: str = 'native-sealed-daily-v1'
+
+
+@once_per_request
+def binding(run):
+    """Request-local references only; the existing owners verify all authority."""
+    from mta.presentation import native_publication, native_selection, daily_publication
+    native_publication.require_mode()
+    native_selection.require_selected(run)
+    native_publication.require_publication(run)
+    publication = daily_publication.require_ready(run)
+    # require_ready validates the exact supported roster, sources, recipe,
+    # statuses, configuration and seal. Readers additionally verify their own
+    # projection receipts and source ordinals before reading any business rows.
+    return TerminalReaders(run.pk, publication.seal_digest, publication.configuration_digest)
 
 
 def prepared(flag, run):
@@ -14,22 +42,9 @@ def prepared(flag, run):
         raise ValueError('Unknown terminal reader mode')
     if getattr(settings, flag, False):
         return True
-    from mta.presentation.terminal_bpr_delivery import applicable, binding
     if (not settings.VF_MTA_NATIVE_PUBLICATION or not settings.VF_MTA_DAILY_PUBLICATION
+            or getattr(run, 'kind', None) != 'DAILY_CHAIN'
             or getattr(run, 'status', None) != 'SUCCEEDED'):
         return False
-    if applicable(run):
-        binding(run)
-        return True
-    if flag == 'VF_BPR_PREPARED' and getattr(run, 'kind', None) == 'DAILY_CHAIN':
-        from mta.presentation import registered_report_view, native_publication, native_selection
-        if registered_report_view.applicable_run(run):
-            # Select the existing terminal projection only after validating its
-            # captured registration, own phase chain and sealed selected day.
-            # The flag stays part of the original immutable configuration.
-            native_publication.require_mode()
-            registered_report_view.configuration(run)
-            native_selection.require_selected(run)
-            native_publication.require_publication(run)
-            return True
-    return False
+    binding(run)
+    return True

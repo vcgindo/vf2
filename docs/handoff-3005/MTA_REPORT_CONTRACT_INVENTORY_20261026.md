@@ -39,12 +39,12 @@ export. Neither is a placement-driven batch file.
 | RRR colour bandwise / `RRROA` | `rrr-color-bandwise` | `GetRRROrderAllocationReportData`, `GetRRRAllocationReportDataCount`; `daily_rrr_read.read` | Full and phase views; CSV RRROA and Excel. |
 | Buyer Order / `BOR`, `BuyerOrderReport` | `MTA-BOR` | `BORData[Count]`, `BORAnalytics`, `BORUIConfig`; `bor_sql`, `bor_sources`, `scoped_bor` | Actual configured BOR sources required; synthetic core-without-BOR denies; CSV BOR and Excel. |
 | Buyer Order colour bandwise / `BOROA`, `BOR_OA` | `SCIH-BOR-color` | `GetBOROrderAllocationReportData[Count]`; `boroa_sql`, `scoped_bor` | Actual allocation sources required; same synthetic denial; CSV BOROA and Excel. |
-| Supplier Wise Allocation | `SCIH-Supplier-Wise-Allocation` | `getSupplierWiseAllocationReportData[Count]`; `supplier_allocation.read` | Full native implementation uses authenticated supplier account and BOROA. Scoped dispatcher absent. Excel only. |
+| Supplier Wise Allocation | `SCIH-Supplier-Wise-Allocation` | `getSupplierWiseAllocationReportData[Count]`; `supplier_allocation.read` | Full native implementation uses authenticated supplier account and BOROA. Registered scoped supplier dispatch reuses its guarded BOROA view and authenticated supplier account. Excel only. |
 | DBM Norm Suggestions / `NormSuggestion` | `MTA-DBMNS` | `DBMData[Count]`; `dbm_read`, `scoped_dbm`, `scoped_dbm_view` | Full, inherited BPR view and accepted DBM view use explicit owners/revisions. Excel; Apply/Sleep remain typed action workflows. |
 | BTR / `BTR` | `MTA-BTR` | `GetBTRData[Count]`; `btr_sql`, `scoped_btr` | Full or explicitly inherited phase BTR, never fabricated current BTR; CSV BTR, on-hand/pipeline layouts and Excel. |
 | Buffer Trends | `MTA-BT` | `GetBufferTrendGraphData`; `buffer_trends_sql` | Full and guarded phase graph; no server CSV report key. |
-| Research Insights / historical availability | `MTA-RI` | `GetResearchInsightData`, `GetHistroricalAvailabilityBPRData`, `DailyDataGraph`; `research_read`, history readers | Full prepared implementations. First two phase dispatch branches absent; DailyDataGraph phase branch exists. Existing grid exports. |
-| Guided Insights | `MTA-GI` | `DBMNormSuggestionLoc/SKUs/Pie/Ageing`, `ChronicUnavailabilityLoc/Sku/GridViewData`, `AvailabilityTrend/Ageing`, `ExcessInventorySku/Value`; `guided_dbm`, `chronic_sql`, prepared history | Full optimized readers; phase `insight_data` dispatcher absent. Preserve history coverage/unknown-before-root rules; existing client exports. |
+| Research Insights / historical availability | `MTA-RI` | `GetResearchInsightData`, `GetHistroricalAvailabilityBPRData`, `DailyDataGraph`; `research_read`, history readers | Full prepared implementations; phase Research/availability bind scoped_research and its separate current/inherited sources; DailyDataGraph retains its phase owner. Existing grid exports. |
+| Guided Insights | `MTA-GI` | `DBMNormSuggestionLoc/SKUs/Pie/Ageing`, `ChronicUnavailabilityLoc/Sku/GridViewData`, `AvailabilityTrend/Ageing`, `ExcessInventorySku/Value`; `guided_dbm`, `chronic_sql`, prepared history | Full optimized readers; existing phase `insight_data` dispatch binds the corresponding scoped Guided owners. Preserve history coverage/unknown-before-root rules; existing client exports. |
 | Open Expediting Requests | `MTA-OER` | `GetOpenExpediteRequest`; `logistics_views`, `logistics_read` | Full and phase logistics binding; existing client export and separate remark workflow. |
 | InTransit Whereabouts | `MTA-IW` | `GetInTransitWhereAboutsData[Count]`; `logistics_read` | Full and phase producer-owned transit binding; existing client export and transporter/remark history. |
 
@@ -64,6 +64,24 @@ commented out; SDR and Elephant Orders have frontend services/permissions but
 no corresponding modern report routes. Do not count these as parity or silently
 implement new business contracts under report registration. BOR/BOROA phase
 read/export support also does not imply support for their phase remark writers.
+
+## Generic terminal reader disposition (27 October correction)
+
+For BPR data/count/analytics/CSV, RRR data/count/CSV, Research/history availability
+and Buffer Trends, terminal_read_mode now derives reader eligibility from the
+existing native DAILY_CHAIN contract: atomic selected run, complete sealed daily
+roster, unchanged captured configuration/source/recipe and Planning summary.
+Individual prepared readers continue to verify their own projection receipts,
+ordinals and guards. Legacy prepared switches remain captured configuration;
+false grants no eligibility outside this verified native contract. No literal
+run ID, registered batch-file roster or TEST database name selects these readers.
+Stable Full uses the same existing readers; completed PostBPR/PostDBM uses its
+terminal publication. Intermediate scoped_api dispatch is unchanged and retains
+its immutable per-report current/inherited phase and action-revision owners.
+Historical terminal_bpr_delivery IDs remain only in their exceptional file/BOR
+custody adapters, whose policies are unchanged. Fixed files and RuntimeReports
+retain separate readiness/placement/custody and TEST policies. This source
+contract description does not claim native/browser acceptance of the correction.
 
 ## Fixed files and operational outputs
 
