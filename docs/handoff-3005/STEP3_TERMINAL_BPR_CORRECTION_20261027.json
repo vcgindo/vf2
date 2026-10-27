@@ -1,0 +1,119 @@
+{
+  "base_image": "sha256:c2f91e4e96207b7956fd0e9fa9956837f59b0ca9263f5e8637fa9cc72823a762",
+  "base_native_identity": {
+    "implementation_sha256": "c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d",
+    "manifest_sha256": "39489103fddb29766949f6f8b5642904f6a1688ad397a4ea9b5278603d0ad7e6",
+    "migrations_digest": "e4de538800805c44979885143da5e57b97ead149db5dc1d39d681a88b3f46093",
+    "schema": "vectorflow-native-release-source-v1",
+    "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+    "source_files_digest": "2213648ce3de326300209c57413507a29ccf976d0e460ac755c8cba3db69d43d"
+  },
+  "build": {
+    "base_layers_must_be_exact_prefix": true,
+    "cpus": 2,
+    "dependency_and_runtime_config_unchanged": true,
+    "full_actual_native_verification_required": true,
+    "memory_bytes": 4294967296,
+    "method": "Exact qualified base plus three committed files/new native manifest; no RUN/install/schema/data instruction",
+    "network": "none",
+    "pull": false
+  },
+  "changed_native_files": {
+    "mta/presentation/terminal_read_mode.py": "c4ac7a12220ac552788a9d09a16d0acf82cb5ba76d4bafdcc60408a51d4829bc",
+    "mta/runtime/retained_registered_execution_compatibility.py": "1b4824196e0bd187270ad794a26addd56f57274583f3bf59417d908f260b75b4",
+    "release/configuration.py": "4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162"
+  },
+  "context": "D:\\freshvcf-build\\evidence\\bounded-ui-recovery-20261023\\g2\\runtime-step3-20261027\\terminal-bpr-delta-debf805c",
+  "context_files": {
+    "Dockerfile": "49470378338dad2bc02e5c7a737be0ff36f14ec16bb4a61b59238ae99113c040",
+    "mta/presentation/terminal_read_mode.py": "c4ac7a12220ac552788a9d09a16d0acf82cb5ba76d4bafdcc60408a51d4829bc",
+    "mta/runtime/retained_registered_execution_compatibility.py": "1b4824196e0bd187270ad794a26addd56f57274583f3bf59417d908f260b75b4",
+    "release-native-source.json": "57134a21720f680e71629c003f0adc6ce44ced034db58760e464bb60ba9116d0",
+    "release/configuration.py": "4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162"
+  },
+  "declaration": "New packaging and serving release required. Existing full-build330MiB gate is unchanged; explicitly proposed delta method is not that standard full build.",
+  "exclusions": [
+    "new fixture",
+    "replay",
+    "report regeneration",
+    "flag or guard bypass",
+    "frontend design change",
+    "MTO change",
+    "latency campaign",
+    "new public port",
+    "permanent cutover"
+  ],
+  "implementation_unchanged": true,
+  "migrations_unchanged": true,
+  "native_admission": {
+    "databases": [
+      "vftest_fresh_runtime_step3_bpr_20261027",
+      "vftest_fresh_runtime_step3_dbm_20261027"
+    ],
+    "operation": "Exact code-only authority transition using unchanged catalogue/certificates/typed state; rollback, commit and retry; no replay or new database",
+    "previous_source": {
+      "implementation_sha256": "c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d",
+      "manifest_sha256": "39489103fddb29766949f6f8b5642904f6a1688ad397a4ea9b5278603d0ad7e6",
+      "migrations_digest": "e4de538800805c44979885143da5e57b97ead149db5dc1d39d681a88b3f46093",
+      "schema": "vectorflow-native-release-source-v1",
+      "source_commit": "3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5",
+      "source_files_digest": "2213648ce3de326300209c57413507a29ccf976d0e460ac755c8cba3db69d43d"
+    }
+  },
+  "native_file_roster_unchanged": true,
+  "native_identity": {
+    "implementation_sha256": "c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d",
+    "manifest_sha256": "57134a21720f680e71629c003f0adc6ce44ced034db58760e464bb60ba9116d0",
+    "migrations_digest": "e4de538800805c44979885143da5e57b97ead149db5dc1d39d681a88b3f46093",
+    "schema": "vectorflow-native-release-source-v1",
+    "source_commit": "debf805cd9a258d5d45f8d181a555aa0a7994fc8",
+    "source_files_digest": "d4d532480d2bbd1044fa63aa12d1ce39a21a8f0084163dfa14fff2062640b281"
+  },
+  "preparation_limit_correction_sha256": "7c912c1abd765d68ee06178cf0350b869c6d1eb5ecec268ca178dcda17178c2f",
+  "prepared_bytes": {
+    "terminal-bpr-delta-debf805c": 174859,
+    "terminal-bpr-export-debf805c": 23582118,
+    "terminal-bpr-native-debf805c": 10052275
+  },
+  "required_proof": [
+    "Full packaged native file verification and unchanged recipes/dependencies/schema",
+    "Actual restricted native BPR count/values/positive and empty filters/export for both retained terminal selections",
+    "Registration/phase/READY/selection/configuration denial without accepted-data mutation",
+    "Exact completed-state/file/configuration preservation and targeted BTR",
+    "Actual browser BPR values/count/filter/export arrival, existing BTR/layout and refresh",
+    "Exact original restoration and live capacity"
+  ],
+  "resources": {
+    "auth_cpus": 0.5,
+    "auth_memory_bytes": 536870912,
+    "cumulative_growth_bytes": 2030043136,
+    "frontend_cpus": 0.5,
+    "frontend_memory_bytes": 268435456,
+    "increase": 0,
+    "mta_cpus": 2,
+    "mta_memory_bytes": 4294967296,
+    "operation_allowance_including_prepared_copies": 83886080,
+    "postgres_cpus": 0.5,
+    "postgres_memory_bytes": 402653184,
+    "remaining_operation_allowance": 50076828,
+    "reserve_bytes": 536870912,
+    "total_including_reserve": 5905580032
+  },
+  "schema": "fresh-step3-terminal-bpr-delta-proposal-v1",
+  "source_commit": "debf805cd9a258d5d45f8d181a555aa0a7994fc8",
+  "source_proof_sha256": "666736ce4c2aa83377c8ee237c1f1df6c16be92d922974dcb673248e6bb59d34",
+  "status": "PREPARED_NOT_BUILT_NOT_DEPLOYED",
+  "window": {
+    "address": "localhost:8080",
+    "conditional": "Only after actual package/native admission/read preservation qualification; fresh watchdog before mutation; original restored at expiry or earlier",
+    "duration_seconds": 3600,
+    "new_databases": false,
+    "new_ports": false,
+    "original_config_sha256": "428ad8901a3356391143e53aec5502b4ce11156be4aae41365f16b4b1681d014",
+    "postgres_resources_sha256": "66552882df47b58c198097017c867b0d39179a36a824762ea6b44f042218636b",
+    "reused_auth_image": "sha256:10f1e7924162246f98ee44f7319179887c905b69ba2165acaff474a7d2fd9b7e",
+    "reused_frontend_image": "sha256:b450ab1266af07dc63a6720585f0113134a48a775df323432272d81146e0fce2",
+    "same_exclusive_volume": true,
+    "startup_config_sha256": "4404cc59d3759fcc91784d1fd9555b9b19e875659deeec88467815cb43e6dee4"
+  }
+}
