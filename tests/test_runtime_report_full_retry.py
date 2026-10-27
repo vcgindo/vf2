@@ -39,11 +39,15 @@ class PlacementFullRetryTests(unittest.TestCase):
     @patch('release.native_identity.require_current',return_value={'local-test':'same-release'})
     def test_retry_reconstructs_exact_captured_report_request(self,_identity):
         request=self.request('Full')
-        with patch.object(production_daily,'inspection_request',side_effect=ReachedOwnedSource) as reconstruct:
-            with self.assertRaises(ReachedOwnedSource):
-                production_daily.inspect_retry(b'raw','a'*64,None,None,None,None,None,'retry','/owned',
-                    lambda *args:self.fail('unexpected diagnostic'),scope_request=request)
-            self.assertEqual(reconstruct.call_args.kwargs,{'scope_request':request})
+        for registered in (None, {'captured': 'original-registered-custody'}):
+            with self.subTest(registered=registered), \
+                    patch.object(production_daily,'inspection_request',side_effect=ReachedOwnedSource) as reconstruct:
+                with self.assertRaises(ReachedOwnedSource):
+                    production_daily.inspect_retry(b'raw','a'*64,None,None,None,None,None,'retry','/owned',
+                        lambda *args:self.fail('unexpected diagnostic'),scope_request=request,
+                        report_registration_request=registered)
+                self.assertEqual(reconstruct.call_args.kwargs,
+                    {'scope_request':request,'report_registration_request':registered})
 
     def test_ordinary_retry_retains_original_reconstruction_call(self):
         with patch.object(production_daily,'inspection_request',side_effect=ReachedOwnedSource) as reconstruct:

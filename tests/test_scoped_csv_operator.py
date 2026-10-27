@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from contextlib import ExitStack
 from types import SimpleNamespace
 from uuid import UUID
@@ -327,6 +327,76 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
 @unittest.skipUnless(shutil.which('powershell'), 'Windows PowerShell5.1 required')
 class WindowsPowerShellScopeLauncherTests(ScopeLauncherTests):
     shell = 'powershell'
+
+
+@unittest.skipUnless(apps.ready, 'Django model bootstrap required; no database connections are used')
+class ScopeNativePreflightTests(unittest.TestCase):
+    def setUp(self):
+        self.stack = self.enterContext(ExitStack())
+        root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        self.root = root / 'csv-scopes'
+        self.stack.enter_context(patch('mta.runtime.csv_scope_operator.ROOT', self.root))
+        self.stack.enter_context(patch.dict('os.environ', {'VF_WORK_ROOT': str(root / 'work')}))
+        self.args = SimpleNamespace(scope='UptoBPR', date='2026-10-18')
+        self.raw = SimpleNamespace(sha256='a' * 64)
+        self.csv = SimpleNamespace(predecessor=Mock(return_value=None),
+            assemble=Mock(return_value=(self.raw, {})), _parameters=Mock(return_value={'initialization_id': 'owned'}))
+        self.report = {'stage_eligibility': {'day': True}}
+        self.inspection = self.stack.enter_context(patch('mta.runtime.production_daily.inspect_execution',
+            return_value=(self.report, None, None, None)))
+        self.stack.enter_context(patch('mta.runtime.daily_preparation.prepare', return_value='prepared'))
+        self.request = self.stack.enter_context(patch('mta.runtime.runtime_report_request.request', return_value='placement'))
+        self.execute = self.stack.enter_context(patch('mta.runtime.production_report_placement.execute'))
+        self.continue_run = self.stack.enter_context(patch('mta.runtime.production_report_placement.continue_run'))
+
+    def inspect(self, decision='START', receipt=None):
+        from mta.runtime.csv_scope_operator import inspect_native
+        return inspect_native(self.args, self.csv, {}, 'owner', 'reference', {}, {'digest': 'batch'},
+            {}, receipt, decision)
+
+    def test_new_input_reaches_native_readiness_with_owned_output_and_streamed_transport(self):
+        def check(*args, **kwargs):
+            self.assertTrue((self.root.parent / 'pick').is_dir())
+            self.assertEqual(args, ('prepared', self.raw.sha256))
+            self.assertEqual(kwargs, {'scope_request': 'placement', 'initialization_id': 'owned'})
+            return self.report, None, None, None
+        self.inspection.side_effect = check
+        self.inspect()
+        self.assertTrue(self.csv.assemble.call_args.kwargs['_transfer'])
+        self.assertFalse(self.csv.assemble.call_args.kwargs['output_file'].parent.exists())
+        self.request.assert_called_once_with('UptoBPR', 'csv-UptoBPR-batch', runtime_reports='reference')
+        self.assertFalse(self.root.exists())
+        self.execute.assert_not_called()
+        self.continue_run.assert_not_called()
+
+    def test_native_readiness_failure_is_propagated_without_calculation_or_operation_receipt(self):
+        from mta.runtime.production_preflight import PreflightError
+        self.report['stage_eligibility']['day'] = False
+        with self.assertRaises(PreflightError): self.inspect()
+        self.execute.assert_not_called()
+        self.assertFalse(self.root.exists())
+
+    def test_continuation_rechecks_the_actual_phase_and_action_cut_without_reassembly(self):
+        self.args.scope = 'PostBPR'
+        run = SimpleNamespace(pk='owned-run', phase_acceptances=Mock())
+        run.phase_acceptances.get.return_value = SimpleNamespace(digest='accepted-bpr')
+        with patch('mta.runtime.models.CalculationRun.objects.get', return_value=run), \
+                patch('mta.runtime.scoped_actions.revision', return_value=3):
+            self.inspect('CONTINUE', {'run_id': 'owned-run'})
+        self.continue_run.assert_called_once_with('owned-run', scope='PostBPR',
+            expected_phase_digest='accepted-bpr', expected_action_revision=3,
+            command_key='csv-PostBPR-batch', worker_reference='vectorflow-csv-scope', inspect_only=True)
+        self.csv.assemble.assert_not_called()
+        self.inspection.assert_not_called()
+
+    def test_existing_and_prepared_recovery_do_not_reinspect_or_recalculate_accepted_input(self):
+        for decision in ('EXISTING', 'RESUME'):
+            self.inspect(decision)
+        self.csv.assemble.assert_not_called()
+        self.inspection.assert_not_called()
+        self.continue_run.assert_not_called()
+        self.execute.assert_not_called()
+        self.assertFalse((self.root.parent / 'pick').exists())
 
 
 if __name__ == '__main__':

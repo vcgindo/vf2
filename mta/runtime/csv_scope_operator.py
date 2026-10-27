@@ -235,7 +235,57 @@ def context(args):
             if name in payloads:
                 rows, positions = parse_csv(payloads[name], spec['columns'], name)
                 del rows, positions
+    if args.operation == 'inspect':
+        inspect_native(args, csv, binding, owner, reference, batch, manifest, payloads, receipt, decision)
     return csv, binding, owner, reference, batch, manifest, root, receipt, decision
+
+
+def pick_root():
+    """The same installation-owned output root used by ordinary CSV staging."""
+    root = ROOT.parent / 'pick'
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def inspect_native(args, csv, binding, owner, reference, batch, manifest, payloads, receipt, decision):
+    """Admit native input/current ownership before the launcher stops serving.
+
+    The inner placement request validates the effects before immutable report
+    registration. Its separate read-only preflight owns certificate/registration
+    admission; execute rechecks the final registered attachment under its locks.
+    No operation receipt or business capture is created by this inspection.
+    """
+    from mta.runtime import production_report_placement as engine, scoped_actions
+    if decision == 'CONTINUE':
+        from mta.runtime.models import CalculationRun
+        run = CalculationRun.objects.get(pk=receipt['run_id'])
+        phase = run.phase_acceptances.get(phase='BPR' if args.scope == 'PostBPR' else 'DBM', state_sealed=True)
+        engine.continue_run(str(run.pk), scope=args.scope,
+            expected_phase_digest=phase.digest, expected_action_revision=scoped_actions.revision(run),
+            command_key='csv-' + args.scope + '-' + manifest['digest'],
+            worker_reference='vectorflow-csv-scope', inspect_only=True)
+    elif decision == 'START':
+        import tempfile
+        from mta.runtime import production_daily, runtime_report_request
+        from mta.runtime.daily_preparation import prepare
+        from mta.runtime.production_preflight import require
+        parent = csv.predecessor(owner, args.date)
+        output = pick_root()
+        work = Path(os.environ.get('VF_WORK_ROOT', str(ROOT.parent / 'work')))
+        work.mkdir(parents=True, exist_ok=True)
+        # Stream through the supported CSV transport, including RecordRows.
+        # Only this unregistered temporary transport is released afterwards.
+        with tempfile.TemporaryDirectory(prefix='scope-preflight-', dir=work) as temporary:
+            raw, _positions = csv.assemble(batch, binding, payloads, first_day=parent is None,
+                output_file=Path(temporary) / 'native-day.json', _transfer=True)
+            prepared = prepare(raw, raw.sha256)
+            parameters = csv._parameters(binding, owner, parent,
+                'csv-scope-' + manifest['digest'], output)
+            request = runtime_report_request.request(args.scope,
+                'csv-' + args.scope + '-' + manifest['digest'], runtime_reports=reference)
+            report, *_ = production_daily.inspect_execution(prepared, raw.sha256,
+                scope_request=request, **parameters)
+            require(report, 'day')
 
 
 def register(args, *, inspect_only=False):
@@ -301,7 +351,7 @@ def _calculate(args, csv, binding, owner, reference, batch, manifest, root, rece
             output_file=root / 'native-day.json', _transfer=True)
         csv.atomic_json(root / 'record-lines.json', positions)
         parameters = csv._parameters(binding, owner, parent, 'csv-scope-' + manifest['digest'],
-                                     '/var/lib/vectorflow/pick')
+                                     pick_root())
         for field in ('initialization_id', 'predecessor_id'):
             if parameters[field] is not None:
                 parameters[field] = str(parameters[field])
