@@ -3,6 +3,16 @@
 Prepared for controller review after the retained-execution qualification.
 This document does not authorize a window or change the sole tracker.
 
+The executable procedure is prepared in
+`D:/freshvcf-build/evidence/bounded-ui-recovery-20261023/g2/runtime-step3-20261027/window3-proposal.json`,
+SHA256 `97dbbb83991bb3b5dade6deaee6cafbfd1c8967f921ce4ddc02c60fc55cbf198`.
+It pins eight helpers and their retained inputs. Independent bounded review
+found no outstanding material defects after correcting launch/restoration
+serialization, exact resource checks, live watchdog verification and bounded
+subprocess waits. The real Windows lock test passed using test files only.
+All five operational entry points reject the absent window approval before
+performing an operation. No window, candidate launch or PG restart occurred.
+
 ## Exact deployment
 
 Use the qualified MTA image
@@ -41,11 +51,11 @@ recipe test substitutes for selected-run readiness.
 
 Prepare a new, uniquely named window record and restoration record. Do not
 reuse old completed window2 or pg16 completion markers: their restore helpers
-deliberately return once the historical DONE file exists. Adapt the existing
-helpers to the new image, actual native identity, current limits, existing PG16
-identity and fresh record names before activation. Preserve the old helpers
-and their evidence. Old `continue-step3-terminal.py` also pins the superseded
-18b9 image and must be adapted before use; do not run it unchanged.
+deliberately return once the historical DONE file exists. The prepared window3
+helpers use the new image, actual native identity, current limits, existing PG16
+identity and fresh record names. The old helpers and evidence remain intact.
+Use `continue-step3-window3.py` and `qualify-invalid27-window3.py` only through
+the window3 worker launcher; the original scripts pin the superseded image.
 
 Propose one 60-minute window. Start an independent hidden restoration watchdog
 before stopping original PG/MTA. The same expiry governs the PG replacement
