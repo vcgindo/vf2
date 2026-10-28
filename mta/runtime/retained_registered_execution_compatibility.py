@@ -26,7 +26,7 @@ READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
  'mta/application/runtime_report_hooks.py': '2d1054ac705b43c159fb12618ef5f4ff6c02451a214a407e6fb5dbe5f1611102',
  'mta/config/production_scope_profile.json': 'cf6bc4b10854ee966ad4eea2af43b03cb34b1d9a5b6e2dc2e8bed55e40c33421',
- 'mta/mdm/daily_current.py': '24c373788903e69568da15ece505ce9638e1445f3ea54adf824cea3c2db6ec61',
+ 'mta/mdm/daily_current.py': '92fa18895fd53a8621423bba35978e522da72da15e66c4b98c4d2913ce87d9f5',
  'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
  'mta/presentation/registered_read_compatibility.py': '5a7646f2f69d60572ad5feda7931e4ba86434d62abe9d013f0d89b2df1629533',
  'mta/presentation/registered_report_view.py': '01ae33ab88694414a7f45c816439965ad52e939f87d67bff9dba1fc4027cb144',
