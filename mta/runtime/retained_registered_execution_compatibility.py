@@ -25,7 +25,7 @@ READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 # universal-newline source recipes in a Windows development checkout.
 ADAPTED_FILES = {'mta/runtime/transit_settings_schema_transition.py': 'e9c47c7bcfc68cda0531a9694536a9abb4f036508b0540cd01d7737f17f300ff',
  'mta/runtime/migrations/0241_scope_transit_settings_owners.py': '4fb95f0a1d0b12e116d0a592eb8fd927e61dba40416465aadf0d04b6512e5300',
- 'mta/presentation/scoped_transit_storage.py': '59858a4654d2f65155852730a262936df0fad265b10435a90e698d9e946eb28b',
+ 'mta/presentation/scoped_transit_storage.py': '3a772b15d458a4e31f213aed18806593ae6de676d150437c3a33fb98a88d83fc',
  'mta/presentation/scoped_transit.py': '2457e1f7471b0f10c37d231c6e98d36f00de29d8787e0995ad38df9a130bf36d',
  'mta/runtime/migrations/0240_framework_metadata_writer_guards.py': 'f3049a4f6e0e8b195565bb97fb441aa4247b9fdb3771906d532e060bdee0b2c1',
  'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
