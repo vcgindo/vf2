@@ -113,6 +113,24 @@ def bulk(sql,records):
         execute_seconds=write_seconds,execute_cpu_seconds=write_cpu)
 
 
+INGESTION_COPY_MIN_ROWS=500
+
+
+def copy_rows(table,columns,records):
+    """Stream typed records into a qualified table under the caller's transaction.
+
+    Callers select PostgreSQL and a registered table/column roster. Keep COPY
+    failures in the owning transaction; an INSERT retry could conceal a guard
+    failure or repeat records. Small/non-PostgreSQL callers retain bulk().
+    """
+    copied=0
+    with connection.wrap_database_errors,connection.cursor() as cursor:
+        with cursor.copy('COPY '+table+' ('+','.join(quote(name) for name in columns)+') FROM STDIN') as writer:
+            for record in records:
+                writer.write_row(record);copied+=1
+    summary('typed_transport',rows=copied,batches=1,transport='copy')
+
+
 def describe_rows(rows, columns, image):
     """One complete ordered pass; avoid one history scan per output column."""
     fields=list(rows[0]) if rows else []

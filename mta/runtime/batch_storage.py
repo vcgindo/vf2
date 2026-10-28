@@ -19,7 +19,8 @@ from django.db import connection
 
 from mta.application.production_csv_contract import feeds
 from mta.row_sequences import RecordRows
-from mta.runtime.relational_state import bulk, db_value, describe_rows, quote, wire_value
+from mta.runtime.relational_state import (bulk, copy_rows, INGESTION_COPY_MIN_ROWS,
+    db_value, describe_rows, quote, wire_value)
 from mta.serialization import canonical_parts
 from mta.application.stage_observation import stage, summary
 from time import perf_counter, process_time
@@ -164,11 +165,15 @@ def save_populations(attempt, intake, populations, *, _identity_resolver=None):
             sql = ('INSERT INTO ' + table_sql(filename) + ' (vf_attempt_id,vf_ordinal,' +
                 ','.join(quote(name) for name in insert_names) + ') VALUES (' +
                 ','.join(['%s'] * (len(insert_names) + 2)) + ')')
+            records = ((owner['attempt_id'], ordinal, *[
+                db_value(row[field], kind) for field, (_, kind) in zip(fields, native)],
+                *[_wire_text(row[field], kind) for field, _, kind in temporal])
+                for ordinal, row in enumerate(rows))
             with stage('batch_insert', feed=filename, rows=len(rows)):
-                bulk(sql, ((owner['attempt_id'], ordinal, *[
-                    db_value(row[field], kind) for field, (_, kind) in zip(fields, native)],
-                    *[_wire_text(row[field], kind) for field, _, kind in temporal])
-                    for ordinal, row in enumerate(rows)))
+                if len(rows) >= INGESTION_COPY_MIN_ROWS and connection.vendor == 'postgresql':
+                    copy_rows(table_sql(filename), ['vf_attempt_id', 'vf_ordinal', *insert_names], records)
+                else:
+                    bulk(sql, records)
         entries.append(dict(filename=filename, path=declaration['path'],
             table=declaration['table'], columns=declaration['columns'],
             fields=meta['fields'], count=meta['count'], digest=meta['digest']))
