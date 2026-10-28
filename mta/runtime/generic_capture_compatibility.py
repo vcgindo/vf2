@@ -40,6 +40,18 @@ ADDED_FILES = frozenset(['mta/presentation/generic_terminal_delivery.py',
  'mta/runtime/migrations/0242_generic_read_sql_aliases.py',
  'mta/runtime/transit_settings_schema_transition.py'])
 
+
+# Exact qualified candidate11 factory; this is not arbitrary future upgrade authority.
+PREVIOUS_RELEASE = {'implementation_sha256': '9a95264d656ae25493196318b336b8c4aa75faeaff4128150948747f5214ef87',
+ 'manifest_sha256': '9f54aa557f523d7a4f744774111301210844d304928e63aeb62448809bf28f9b',
+ 'migrations_digest': '27a26cab2725c56accb46b1e622ac790495279cbfeb68ee593bc863d69014778',
+ 'schema': 'vectorflow-native-release-source-v1',
+ 'source_commit': 'eae6c927972c8f31f22f65e0946bf021d7d67110',
+ 'source_files_digest': 'd056777b19701d4f7f4e02d17cc903c9394df4de588547c25b51001f219deee1'}
+PREVIOUS_OVERRIDES = {'mta/runtime/csv_scope_operator.py': 'ec7ec0dde884604cac12cc7b242ba4d44f59fb664c1d5fca88c38dfc4a64a197',
+ 'mta/runtime/generic_capture_compatibility.py': '2e43f4d9740cab36d0e04d06d4b9260e1795b296c89df8a2020b2cc3edc72a5f',
+ 'mta/runtime/retained_registered_execution_compatibility.py': '80460e74f6d6c638433b56f5199cc690f70b6156de9a807548c576173338737b'}
+
 # Filled from the exact reviewed original and corrected source recipes. Native
 # source identity remains truthful and separate from compatible metadata recipes.
 ORIGINAL_PRODUCTION_PUBLICATION_RECIPE = '6a38e8bfeca016b5780bb8f802e5994150a9d51d1e2bccd6c085331783dd7e80'
@@ -61,27 +73,38 @@ def applicable(value):
         and value['dispositions'].get('schema') == SCHEMA)
 
 
-def require_original_sources(files):
+def require_original_sources(files, *, factory_release=None):
     """Reconstruct the signed origin map, never import historical producers."""
-    if not ORIGIN_OVERRIDES.keys() <= files.keys():
+    factory = ORIGIN_RELEASE if factory_release is None else factory_release
+    if factory == ORIGIN_RELEASE:
+        overrides, added = ORIGIN_OVERRIDES, ADDED_FILES
+    elif factory == PREVIOUS_RELEASE:
+        overrides, added = PREVIOUS_OVERRIDES, ()
+    else:
+        raise ValueError('Generic continuation factory is not source qualified')
+    if not overrides.keys() <= files.keys():
         raise ValueError('Generic continuation lost a retained native source')
     original = dict(files)
-    for name in ADDED_FILES:
+    for name in added:
         original.pop(name, None)
-    original.update(ORIGIN_OVERRIDES)
-    if digest(original) != ORIGIN_RELEASE['source_files_digest']:
+    original.update(overrides)
+    if digest(original) != factory['source_files_digest']:
         raise ValueError('Generic continuation producer sources differ from the certified origin')
 
 
 @lru_cache(maxsize=2)
-def _source_release(commit, manifest_sha256):
+def _source_release(commit, manifest_sha256, factory_manifest):
     from release import native_identity
     actual = native_identity.require_current()
     if (actual['source_commit'],actual['manifest_sha256']) != (commit,manifest_sha256):
         raise ValueError('Generic continuation independent process pins differ')
     root = Path(native_identity.__file__).resolve().parents[1]
     manifest = json.loads((root/native_identity.MANIFEST).read_bytes())
-    require_original_sources(manifest['files'])
+    factory = next((release for release in (ORIGIN_RELEASE, PREVIOUS_RELEASE)
+                    if release['manifest_sha256'] == factory_manifest), None)
+    if factory is None:
+        raise ValueError('Generic continuation factory is not source qualified')
+    require_original_sources(manifest['files'], factory_release=factory)
     return actual
 
 
@@ -90,9 +113,10 @@ def require_factory(value, expected, phase_recipe):
             or any(value[key] != expected[key] for key in expected if key != 'compatibility_digest')):
         raise ValueError('Generic continuation changed the captured factory contract')
     body = {key:item for key,item in value.items() if key != 'compatibility_digest'}
-    if value['compatibility_digest'] != digest(dict(request=body,
-            release=ORIGIN_RELEASE,phase_recipe=phase_recipe)):
-        raise ValueError('Generic continuation original factory or phase recipe differs')
+    for release in (ORIGIN_RELEASE, PREVIOUS_RELEASE):
+        if value['compatibility_digest'] == digest(dict(request=body, release=release, phase_recipe=phase_recipe)):
+            return release
+    raise ValueError('Generic continuation original factory or phase recipe differs')
 
 
 def validate(run, value, expected):
@@ -117,9 +141,9 @@ def validate(run, value, expected):
             or digest(run.input_payload) != run.input_manifest_digest):
         raise ValueError('Generic continuation requires its intact production capture')
     recipe = phase_state.recipe_digest()
-    require_factory(value,expected,recipe)
+    factory = require_factory(value,expected,recipe)
     deployed = require_current()
-    actual = _source_release(deployed['source_commit'],deployed['manifest_sha256'])
+    actual = _source_release(deployed['source_commit'],deployed['manifest_sha256'],factory['manifest_sha256'])
     raw = read_input(run,components=('scope_request','report_registration_request','initialization_binding'))
     outer = read_captured(run)
     binding = raw.get('initialization_binding') or {}
@@ -136,7 +160,8 @@ def validate(run, value, expected):
         raise ValueError('Generic continuation original initialization/source differs')
     with transaction.atomic(),connection.cursor() as cursor:
         _original,capability = registration(cursor)
-        if capability['release_identity'] != ORIGIN_RELEASE:
+        allowed = (ORIGIN_RELEASE,) if factory == ORIGIN_RELEASE else (ORIGIN_RELEASE, PREVIOUS_RELEASE)
+        if capability['release_identity'] not in allowed:
             raise ValueError('Generic continuation requires its certified original native factory')
         admitted = _admit(cursor,owner.pk,actual,pending=True)
         if outer['registration']['certificate_digest'] != admitted.certification_digest:
@@ -157,6 +182,6 @@ def validate(run, value, expected):
             if row.run_id != run.pk:
                 raise ValueError('Generic continuation original publication owner differs')
         pick_files(phase.pk,expected_digest=phase.digest)
-    return dict(run_id=str(run.pk),origin_release=ORIGIN_RELEASE['manifest_sha256'],
+    return dict(run_id=str(run.pk),origin_release=factory['manifest_sha256'],
         actual_release=actual['manifest_sha256'],compatibility_digest=value['compatibility_digest'],
         phase_id=str(phase.pk),phase_digest=phase.digest)

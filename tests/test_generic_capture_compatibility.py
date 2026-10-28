@@ -37,6 +37,25 @@ class GenericCaptureCompatibilityTests(unittest.TestCase):
         self.assertFalse(compatible.applicable(value))
         self.assertFalse(compatible.applicable(None))
 
+    def test_exact_previous_factory_and_no_arbitrary_future_factory(self):
+        value,expected=self.value('UptoBPR')
+        body={key:item for key,item in value.items() if key!='compatibility_digest'}
+        value['compatibility_digest']=digest(dict(request=body,release=compatible.PREVIOUS_RELEASE,phase_recipe='r'*64))
+        self.assertEqual(compatible.require_factory(value,expected,'r'*64),compatible.PREVIOUS_RELEASE)
+        unknown=dict(compatible.PREVIOUS_RELEASE,source_commit='0'*40)
+        value['compatibility_digest']=digest(dict(request=body,release=unknown,phase_recipe='r'*64))
+        with self.assertRaises(ValueError):compatible.require_factory(value,expected,'r'*64)
+
+    def test_previous_reconstruction_preserves_all_other_native_bytes(self):
+        original={'producer.py':'p'*64,'adapter.py':'old'}
+        previous=dict(compatible.PREVIOUS_RELEASE,source_files_digest=digest(original))
+        current={'producer.py':'p'*64,'adapter.py':'corrected'}
+        with patch.object(compatible,'PREVIOUS_RELEASE',previous),patch.object(compatible,'PREVIOUS_OVERRIDES',{'adapter.py':'old'}):
+            compatible.require_original_sources(current,factory_release=previous)
+            for changed in ({**current,'producer.py':'wrong'},{**current,'extra.py':'x'}):
+                with self.assertRaises(ValueError):compatible.require_original_sources(changed,factory_release=previous)
+        with self.assertRaises(ValueError):compatible.require_original_sources(current,factory_release={'source_commit':'future'})
+
     def test_reconstruction_authenticates_every_unchanged_file_and_roster(self):
         original={'producer.py':'p'*64,'guard.py':'g'*64}
         release=dict(compatible.ORIGIN_RELEASE,source_files_digest=digest(original))

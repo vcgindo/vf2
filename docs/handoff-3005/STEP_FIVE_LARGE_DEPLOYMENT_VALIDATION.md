@@ -1,6 +1,6 @@
 # VectorFLOW — Stage 5 large deployment validation
 
-**Release pending qualification.** The clone tag below is reserved and is not published. Wait for the qualified release before executing this guide. Current proof and the pending execution decision are recorded in the [authoritative tracker](F:/freshvcf/docs/handoff-3005/TRACKER.md).
+Use the published release tag **`vectorflow-generic-scope-20261028`** with this runbook. If Git cannot resolve that tag, stop: the release is still being qualified.
 
 Use this guide to install VectorFLOW and run the large dataset yourself after release. Run each command separately and stop at the first error. Your clean installation and large-data execution supply the Stage 5 evidence; the small release qualification does not establish large-data capacity.
 
@@ -8,7 +8,7 @@ Use a clean computer or independent Docker environment: the `vectorflow` project
 
 ## 1. Clone VectorFLOW
 
-Use a new `D:/VectorFLOW` folder. After the small integrated qualification passes, the published release tag will pin its source. The command below is the intended released command; it currently cannot resolve the reserved tag.
+Use a new `D:/VectorFLOW` folder. The release tag pins the source for these commands. This is a clean-install procedure; do not connect this clone to an older installation's databases, secrets or operation folders. An existing installation needs a version-specific upgrade plan.
 
 ```powershell
 git clone --single-branch --branch vectorflow-generic-scope-20261028 git@github.com:yurtse/freshvcf.git D:/VectorFLOW
@@ -187,26 +187,70 @@ On failure, retain the input copy, `.env`, operation records, error output and m
 | Daily calculation committed, but report preparation/selection/serving failed | `.\vf.ps1 csv-day DATE -Resume`, with that receipt's actual date |
 | Latest published date is still selected, but MTA stopped | The same dated `csv-day DATE -Resume`; it validates the selection before service recovery |
 | Scoped calculation committed and its receipt says CALCULATED or PREPARED; preparation or serving failed | Repeat that exact `csv-scope DATE -Scope SCOPE -Resume` after diagnosis; preparation/selection recovery does not calculate again |
-| A scoped operation says EXECUTING or FAILED, or has an incomplete frozen directory without a receipt | Preserve it and stop for native-ownership reconciliation; do not resubmit a producer |
+| A PostBPR or PostDBM operation says EXECUTING or FAILED | After diagnosis, use the separate reconciliation sequence below. It recognizes an exact failed tail or a tail that never claimed a native worker; it is not an automatic retry |
+| Full failed, a worker is still active, or a frozen directory has no operation receipt | Preserve it and stop for diagnosis. The scoped reconciliation command does not repair these cases |
 | Calculation failed or was interrupted | Stop for reconciliation; no automatic calculation retry is provided |
+
+### Reconcile a scoped continuation
+
+Use these commands with the published release named in section 1. Reconciliation
+is separate from continuing the calculation.
+
+Use the failed operation's exact date and scope. For example, for an 8 April
+PostBPR continuation, run reconciliation by itself:
+
+```powershell
+.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -Reconcile
+```
+
+Reconciliation verifies the original input snapshot, initialization, registration,
+accepted phase, action revision and latest worker. It preserves the original
+failure in an immutable reconciliation record. It does not calculate, register
+new inputs, stop MTA or start MTA. Do not combine `-Reconcile` with `-Resume` or
+`-InspectOnly`.
+
+Read the returned status before continuing:
+
+| Status | Meaning and next step |
+| --- | --- |
+| `CALCULATED` | The database already completed this operation. After inspection, `-Resume` performs the remaining preparation and selection without repeating its calculation |
+| `RECOVERABLE` | The exact failed tail, or an unclaimed tail with an unchanged released prefix, can continue. After inspection, a separate `-Resume` explicitly runs its remaining unaccepted work; accepted phases are not repeated |
+| An error | Stop and retain the error and operation records. Do not edit the journal or choose a new runtime folder to bypass the refusal |
+
+For either returned status, inspect the same operation first:
+
+```powershell
+.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -InspectOnly -Resume
+```
+
+Continue only when inspection succeeds and the date, run and scope are correct:
+
+```powershell
+.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -Resume
+```
+
+For PostDBM, replace `PostBPR` with `PostDBM` in all three commands. Never switch
+between split paths to repair a failure. Reconciliation refuses active workers,
+changed inputs, foreign ownership, stale phases or changed action revisions.
+After recovery, perform the same readiness, selected-date, report and download
+checks as a normal completed day before starting the next date. A successful
+calculation does not by itself mean reports have been prepared and published.
 
 For a planned service restart, use `docker compose stop`, then `docker compose up -d --no-build --wait`. Check readiness and the same displayed date/run afterward. Restart does not install, import or calculate. Never use `down -v` as recovery or run historical 8080 controllers.
 
 ## Appendix C — Data limits and references
 
-The v2 package's `file-check.json` reports PASS at **file level only**. A separate reproduction matched 236 generated files byte for byte. Initialization, calculation, publication, browser/report correctness and resource fit remain unproved for this generated opening. Your Stage 5 run supplies that evidence; Step 6 records commands that actually succeed and any remaining limits.
+The v2 package's `file-check.json` reports PASS at **file level only**. Initialization, calculation, publication, browser/report correctness and resource fit remain unproved for this generated opening. Your Stage 5 run supplies that evidence; Step 6 records commands that actually succeed and any remaining limits. The small release qualification does not complete your clean installation or large-data rehearsal.
 
 - The cold opening has no BPR/DBM consumption prehistory or suspension/rationing/spike-closure history. It cannot prove mature-history DBM behavior or full rule-window coverage.
 - There are 97,464 raw-master rows and 97,097 distinct processed pairs. The retained processed roster lacks 3,054 same-SKU parent pairs; the raw export has 367 additional keys, including 106 with NULL SKU. Their exclusion reasons are not all established. No parents or raw-only pairs were invented to fill the gaps.
 - The generated opening assigns 100 units to 1,837 existing stock identities and preserves NULL for 95,260. Each known-stock pair consumes one unit per day. One five-unit shipment departs on 8 April and arrives on 9 April between an existing parent and its RLT-1 child. This is narrow logistics coverage.
 - Planning GIT child grid with nonempty transit has a retained unavailable response: HTTP 503, `LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120`. The 8 April batch has nonempty transit. Record the actual response; do not count an unavailable grid as a successful report.
-- The candidate source implements explicitly selected generic processing and the report roster under real site/database names; its required small normal-name runtime qualification is still incomplete. Enabled GulfOil client effects and unsupported report definitions are refused. File checks and small native proofs do not establish four-day large-data Full/split equivalence; that is part of your manual validation.
+- The published release uses explicitly selected generic processing and the report roster under real site/database names. Enabled GulfOil client effects and unsupported report definitions are refused. File checks and small native proofs do not establish four-day large-data Full/split equivalence; that is part of your manual validation.
 
 Read-only references:
 
 - Package: `I:/data/vectorflow-synthetic-97097-20261027-v2`; `file-check.json` and `provenance.json` are directly inside that folder.
-- Data guide: `C:/Users/thapa/Documents/Codex/2026-10-27/vectorflow-synthetic-97097/outputs/vectorflow-synthetic-tools/COLD_START_GUIDE.md`.
-- Reproduction proof: `C:/Users/thapa/Documents/Codex/2026-10-27/vectorflow-synthetic-97097/outputs/cold-reproduction-proof.json`.
 - Earlier simple runbooks: `I:/VectorFLOW/release/SOURCE_BUILD.md`, `CSV_STARTER_RUN.md`, `CSV_DAILY_RUN.md` and `RUNBOOK.md`.
 - Completed earlier large-run history: [BOUNDED_RECOVERY_8080.md](BOUNDED_RECOVERY_8080.md). This is a historical reference, not an instruction to replace the current 8080 service.
 

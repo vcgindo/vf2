@@ -644,7 +644,7 @@ class ScopeReconciliationTests(unittest.TestCase):
         self.run.scope_attempts.filter.return_value.exists.return_value=False
         receipt=deepcopy(self.receipt)
         prefix=dict(run_id=str(self.run.pk),phase_acceptance_id=str(self.phase.pk),
-            phase_acceptance_digest=self.phase.digest,snapshot_digest='snapshot',action_revision=0)
+            phase_acceptance_digest=self.phase.digest,snapshot_digest='snapshot')
         receipt.update(status='EXECUTING',results={'UptoBPR':prefix})
         with patch('mta.runtime.scope_execution.head',return_value=('BPR',self.phase.digest)):
             proof,result=self.op._reconciliation_state(self.args,self.run,self.captured,receipt)
@@ -654,6 +654,9 @@ class ScopeReconciliationTests(unittest.TestCase):
                 corrupt=deepcopy(receipt);corrupt['results']['UptoBPR'][field]='foreign'
                 with self.subTest(field=field),self.assertRaises(ValueError):
                     self.op._reconciliation_state(self.args,self.run,self.captured,corrupt)
+            with patch('mta.runtime.scoped_actions.revision',return_value=1):
+                with self.assertRaises(ValueError):
+                    self.op._reconciliation_state(self.args,self.run,self.captured,receipt)
             self.run.scope_attempts.filter.return_value.exists.side_effect=[False,True]
             with self.assertRaises(ValueError):
                 self.op._reconciliation_state(self.args,self.run,self.captured,receipt)

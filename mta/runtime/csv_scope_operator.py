@@ -470,9 +470,10 @@ def _reconciliation_state(args, run, captured, receipt=None):
                 or prefix.get('run_id') != str(run.pk)
                 or prefix.get('phase_acceptance_id') != str(source.pk)
                 or prefix.get('phase_acceptance_digest') != source.digest
-                or prefix.get('snapshot_digest') != source.snapshot.state_digest
-                or prefix.get('action_revision') != action):
+                or prefix.get('snapshot_digest') != source.snapshot.state_digest):
             raise ValueError('Unclaimed continuation requires its exact unchanged released prefix')
+        # The public prefix result has no action_revision field. The released
+        # native owner's action_revision == current action was checked above.
         scope_revisions.require_current(run)
         return dict(proof, outcome='RECOVERABLE', recovery_of=None, continuation_never_claimed=True), None
     if latest.scope != args.scope or latest.command_key != command:
