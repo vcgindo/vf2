@@ -6,10 +6,44 @@ from copy import deepcopy
 from datetime import date
 from pathlib import Path
 import uuid
+import re
 
 from django.db import connection, transaction
 from mta.serialization import digest
 from mta.application.stage_observation import operation, stage
+
+
+class ContainerOOM(RuntimeError):
+    """An independently evidenced container memory-limit interruption."""
+
+
+def _interruption_receipt(value, *, original):
+    """Bound external diagnostics; they never replace native custody checks."""
+    if value is None:
+        return None
+    fields={'kind','container_id','exit_code','memory_limit_bytes',
+            'kernel_constraint','evidence_sha256'}
+    if (not original or type(value) is not dict or set(value)!=fields
+            or value['kind']!='ContainerOOM' or type(value['exit_code']) is not int
+            or value['exit_code']!=137 or type(value['memory_limit_bytes']) is not int
+            or not 0<value['memory_limit_bytes']<2**63
+            or value['kernel_constraint']!='CONSTRAINT_MEMCG'
+            or any(type(value[name]) is not str or re.fullmatch('[0-9a-f]{64}',value[name]) is None
+                   for name in ('container_id','evidence_sha256'))):
+        raise ValueError('OOM interruption requires exact evidence and the original captured owner')
+    return dict(value)
+
+
+def _interruption_failure(receipt, *, human_stop=False):
+    """Preserve historical defaults; record the explicit first-hop OOM truthfully."""
+    message=('Explicit human-stop interruption reconciled; immutable input retained'
+        if human_stop else 'Explicit container memory-limit OOM reconciled; immutable input retained'
+        if receipt is not None else 'Explicit external-deadline interruption reconciled; immutable input retained')
+    error=dict(type='HumanInterruption' if human_stop else 'ContainerOOM' if receipt is not None else 'ExternalInterruption',
+        message='Original input retained; explicit distinct continuation')
+    if receipt is not None:
+        error['interruption']=receipt
+    return (ContainerOOM if receipt is not None else RuntimeError)(message),error
 
 
 def _uncommitted(run):
@@ -166,7 +200,7 @@ def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupte
 def resume(*, origin_run_id, execution_revision, expected, archive_path, second_hop=None, final_third_hop=False,
            final_interrupted_fourth_hop=False, final_failed_fifth_hop=False, final_interrupted_sixth_hop=False,
            finite_continuation=None, terminal_continuation=None, terminal_retry=None,
-           one_additional_attempt=None):
+           one_additional_attempt=None, interruption=None):
     """Called only by execute_day's explicit captured-continuation dispatch.
 
     Daily/source locks and the original revision cut are checked before marking
@@ -191,6 +225,8 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             or (any(flags) and second_hop is None)
             or (finite_continuation is not None and (second_hop is not None or any(flags)))):
         raise ValueError('Final continuation requires explicit physical pins and current cut')
+    interruption=_interruption_receipt(interruption,original=not any(flags) and all(value is None for value in
+        (second_hop,finite_continuation,terminal_continuation,terminal_retry,one_additional_attempt)))
     additional=one_additional_attempt is not None
     retry=terminal_retry is not None
     if additional:
@@ -326,10 +362,9 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             if physical is None or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
                 if old.status != 'RUNNING':
                     raise ValueError('External interruption has already been reconciled')
-                message = ('Explicit human-stop interruption reconciled; immutable input retained'
-                    if final_interrupted_fourth_hop or final_interrupted_sixth_hop else
-                    'Explicit external-deadline interruption reconciled; immutable input retained')
-                fail_run(old, RuntimeError(message))
+                failure,attempt_error=_interruption_failure(interruption,
+                    human_stop=final_interrupted_fourth_hop or final_interrupted_sixth_hop)
+                fail_run(old, failure)
                 old.refresh_from_db()
             from mta.mdm.integration_source import verify_predecessor, verify_capture, replace_working_inputs
             verify_predecessor(owner.source,parent,retry_capture=frozen,
@@ -338,8 +373,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             verify_capture(owner.source,snapshot)
             if physical is None or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
                 attempt.status='FAILED'
-                attempt.error=dict(type='HumanInterruption' if final_interrupted_fourth_hop or final_interrupted_sixth_hop else 'ExternalInterruption',
-                    message='Original input retained; explicit distinct continuation')
+                attempt.error=attempt_error
                 attempt.save(update_fields=['status','error','updated_at'])
             from mta.runtime.capture_preparation import seed, seal
             from mta.runtime.captured_input import manifest
@@ -402,6 +436,8 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             continuation=dict(origin_run_id=str(old.pk),run_id=str(run.pk),
                 origin_attempt_id=str(attempt.attempt_id),attempt_id=str(new_attempt.attempt_id),
                 input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest)
+            if interruption is not None:
+                continuation['interruption']=interruption
             if final_interrupted_sixth_hop or finite_continuation is not None:
                 continuation.update(kind=('failed-terminal-retry-v1' if retry else 'stopped-finite-terminal-v1' if terminal else 'stopped-terminal-sixth-finite-v1' if finite_continuation is not None
                     else 'human-interrupted-fifth-to-terminal-sixth-v1'),
