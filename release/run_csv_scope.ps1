@@ -5,9 +5,11 @@ param(
     [Parameter(Mandatory)][ValidatePattern('^\d{4}-\d{2}-\d{2}$')][string]$BusinessDate,
     [Parameter(Mandatory)][ValidateSet('Full','UptoBPR','PostBPR','UptoDBM','PostDBM')][string]$Scope,
     [switch]$InspectOnly,
-    [switch]$Resume
+    [switch]$Resume,
+    [switch]$Reconcile
 )
 $ErrorActionPreference = 'Stop'
+if ($Reconcile -and ($Resume -or $InspectOnly)) { throw 'Reconcile separately, then inspect or resume the exact scope' }
 . "$PSScriptRoot/powershell_compat.ps1"
 if ($env:COMPOSE_FILE -or $env:COMPOSE_PATH_SEPARATOR) { throw 'Use .env for Compose settings; shell overrides would hide the persisted scope selection' }
 $null = [datetime]::ParseExact($BusinessDate,'yyyy-MM-dd',[cultureinfo]::InvariantCulture)
@@ -92,9 +94,14 @@ try {
             @{type='bind';source=$binding.DirectoryName;target='/onboarding';read_only=$true})
     }
     Write-VfUtf8 $privateConfig ($config | ConvertTo-Json -Depth 100)
-    $null = Worker -Operation 'preflight' -Service 'provision'
-    $before = Worker -Operation 'inspect'
-    if ($InspectOnly) {
+    if ($Reconcile) {
+        # Reconciliation verifies existing database ownership and journals the
+        # observed cut. It never registers, calculates, stops or starts MTA.
+        $result = Worker -Operation 'reconcile'
+    } else {
+      $null = Worker -Operation 'preflight' -Service 'provision'
+      $before = Worker -Operation 'inspect'
+      if ($InspectOnly) {
         $result = $before
     } elseif ($before.status -eq 'EXISTING') {
         $result = $before
@@ -133,6 +140,7 @@ try {
             '--selection-digest',$result.selection_digest) -Json
         $result = Worker -Operation 'acknowledge' -Run $result.run_id -SelectionDigest $result.selection_digest -Proof ($proof | ConvertTo-Json -Depth 10 -Compress)
         $maintenance = $false
+    }
     }
     Write-VfUtf8 $receiptFile ($result | ConvertTo-Json -Depth 100)
     $result | ConvertTo-Json -Depth 100

@@ -9,7 +9,8 @@ param(
     [Parameter(Position=1)][string]$BusinessDate,
     [ValidateSet('Full','UptoBPR','PostBPR','UptoDBM','PostDBM')][string]$Scope,
     [switch]$InspectOnly,
-    [switch]$Resume
+    [switch]$Resume,
+    [switch]$Reconcile
 )
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
@@ -18,10 +19,11 @@ Push-Location $PSScriptRoot
 try {
     if ($Operation -eq 'csv-scope') {
         if (-not $BusinessDate -or -not $Scope) { throw 'Usage: ./vf.ps1 csv-scope YYYY-MM-DD -Scope Full|UptoBPR|PostBPR|UptoDBM|PostDBM' }
-        & "$PSScriptRoot/release/run_csv_scope.ps1" -BusinessDate $BusinessDate -Scope $Scope -InspectOnly:$InspectOnly -Resume:$Resume
+        & "$PSScriptRoot/release/run_csv_scope.ps1" -BusinessDate $BusinessDate -Scope $Scope -InspectOnly:$InspectOnly -Resume:$Resume -Reconcile:$Reconcile
         return
     }
     if ($Scope) { throw '-Scope belongs to csv-scope; other commands retain their existing behavior' }
+    if ($Reconcile) { throw '-Reconcile belongs to csv-scope' }
     $configText = & docker compose --profile daily config --format json
     if ($LASTEXITCODE -ne 0) { throw 'Compose configuration failed' }
     $config = ConvertFrom-VfJson ($configText -join "`n")

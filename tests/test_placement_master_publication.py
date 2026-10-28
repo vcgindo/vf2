@@ -120,20 +120,30 @@ class PlacementMasterTests(unittest.TestCase):
 
     def test_promotion_uses_exact_write_delta_and_rejects_occupied_cut(self):
         from mta.runtime.ingestion_models import MasterInputRevision
+        from mta.runtime import placement_current_master
         capture,_,prefix=self.basis();parent=NS(pk='DBM',master_epoch=7,configuration_epoch=31,receipt_digest='parent')
         state=NS(pk='init',master_epoch=7,configuration_epoch=34)
         with patch.object(handoff,'_parent',return_value=parent), \
              patch.object(handoff,'configuration_writes',return_value=[{'statements':2},{'statements':1}]), \
+             patch.object(placement_current_master,'validate',return_value=0) as validate, \
              patch.object(handoff,'connection',NS(in_atomic_block=True)), \
              patch.object(MasterInputRevision.objects,'filter') as occupied:
             occupied.return_value.exists.return_value=False
-            owner,promotion=handoff._promotion('run',capture,prefix,state)
+            options=dict(current_master_publication={'cut':'actual'},final_id='final')
+            owner,promotion=handoff._promotion('run',capture,prefix,state,**options)
             self.assertIs(owner,parent);self.assertEqual(promotion['after'],[7,34])
             self.assertEqual(promotion['additional_master_increment'],0)
             state.configuration_epoch=35
-            with self.assertRaisesRegex(ValueError,'configuration cut'):handoff._promotion('run',capture,prefix,state)
+            with self.assertRaisesRegex(ValueError,'configuration cut'):handoff._promotion('run',capture,prefix,state,**options)
             state.configuration_epoch=34;occupied.return_value.exists.return_value=True
-            with self.assertRaisesRegex(ValueError,'occupied'):handoff._promotion('run',capture,prefix,state)
+            with self.assertRaisesRegex(ValueError,'occupied'):handoff._promotion('run',capture,prefix,state,**options)
+            occupied.return_value.exists.return_value=False
+            validate.return_value=2;state.master_epoch=9;state.configuration_epoch=36
+            _,promotion=handoff._promotion('run',capture,prefix,state,**options)
+            self.assertEqual(promotion['after'],[9,36])
+            self.assertEqual(promotion['additional_master_increment'],2)
+            state.configuration_epoch=34
+            with self.assertRaisesRegex(ValueError,'configuration cut'):handoff._promotion('run',capture,prefix,state,**options)
 
     def test_matching_flag_dispatches_scoped_handoff_and_old_full_keeps_guard(self):
         from mta.runtime import capture_preparation
@@ -145,13 +155,14 @@ class PlacementMasterTests(unittest.TestCase):
              patch.object(handoff,'publication_master',return_value={**producer,handoff.KEY:{}}) as adapter:
             states.return_value.get.return_value=state
             capture_preparation.publication_metadata(run,capture,producer,_scoped_placement=True)
-            adapter.assert_called_once_with(run,capture,producer,state)
+            adapter.assert_called_once_with(run,capture,producer,state,current_master_publication=None)
             self.assertEqual(run.production_manifest['master_preparation']['master_cut'],[7,34])
         self.assertEqual(capture['qualified_master_reuse'],False)
 
     def test_terminal_acceptance_revalidates_provenance(self):
         capture,producer,prefix=self.basis()
-        expected={**producer,handoff.KEY:{'schema':handoff.PROVENANCE}}
+        expected={**producer,handoff.KEY:{'schema':handoff.PROVENANCE,
+            'master_promotion':{'current_master_publication':{'cut':'actual'}}}}
         run=NS(production_manifest=dict(ingestion_preparation=capture,
             master_preparation={**expected,'master_cut':[7,34]}))
         state=NS(master_epoch=7,configuration_epoch=34)

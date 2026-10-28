@@ -99,10 +99,10 @@ def profile_reference(profile, initialization_id, source_digest, *, policy_mode=
     return reference
 
 
-def check_request(stored, *, scope, binding_digest, batch_digest, profile_digest, resume):
+def check_request(stored, *, scope, binding_digest, batch_digest, profile_digest, resume, reconcile=False):
     """Pure state/identity gate, before any producer or selection invocation."""
     if stored is None:
-        if scope in TAILS or resume:
+        if scope in TAILS or resume or reconcile:
             raise ValueError('Continuation/resume requires its own recorded accepted prefix')
         return 'START'
     if any(stored[k] != v for k, v in dict(binding_digest=binding_digest,
@@ -111,8 +111,17 @@ def check_request(stored, *, scope, binding_digest, batch_digest, profile_digest
     origin = TAILS.get(scope, scope)
     if stored['initial_scope'] != origin:
         raise ValueError('Choose Full OR one split path in this initialized date; never mix paths')
+    if reconcile:
+        if (resume or stored['scope'] != scope or stored['status'] not in
+                ('EXECUTING', 'FAILED', 'RECOVERABLE', 'CALCULATED')):
+            raise ValueError('Reconcile requires the exact interrupted operation, without --resume')
+        return 'RECONCILE'
     if stored['status'] in ('EXECUTING', 'FAILED'):
         raise ValueError('Interrupted/failed native work needs reconciliation; no automatic replay')
+    if stored['status'] == 'RECOVERABLE':
+        if scope not in TAILS or stored['scope'] != scope or not resume:
+            raise ValueError('Reconciled continuation requires exact scope and explicit --resume')
+        return 'RECOVER'
     if stored['scope'] == scope:
         if stored['status'] == 'PUBLISHED':
             return 'EXISTING'
@@ -214,7 +223,8 @@ def context(args):
     root = ROOT / args.date
     receipt = operation_record(root)
     decision = check_request(receipt, scope=args.scope, binding_digest=binding['_binding_digest'],
-        batch_digest=manifest['digest'], profile_digest=digest(reference), resume=args.resume)
+        batch_digest=manifest['digest'], profile_digest=digest(reference), resume=args.resume,
+        reconcile=args.operation == 'reconcile')
     if captured_registration(args, reference) is None:
         if getattr(args, 'policy', 'retained-test') == 'generic' and args.operation == 'inspect':
             from mta.runtime import report_definition_registration as definitions
@@ -235,6 +245,16 @@ def context(args):
             if name in payloads:
                 rows, positions = parse_csv(payloads[name], spec['columns'], name)
                 del rows, positions
+    if decision == 'RECOVER':
+        with csv.job_lock(owner) as check:
+            _verify_recovery(args, csv, binding, owner, reference, manifest, root, receipt)
+            check()
+    elif (receipt and receipt['status'] == 'CALCULATED' and decision != 'RECONCILE'
+            and receipt.get('reconciliation', {}).get('verification', {}).get('outcome') == 'CALCULATED'):
+        with csv.job_lock(owner) as check:
+            _verify_recovery(args, csv, binding, owner, reference, manifest, root, receipt,
+                             outcome='CALCULATED')
+            check()
     if args.operation == 'inspect':
         inspect_native(args, csv, binding, owner, reference, batch, manifest, payloads, receipt, decision)
     return csv, binding, owner, reference, batch, manifest, root, receipt, decision
@@ -256,14 +276,17 @@ def inspect_native(args, csv, binding, owner, reference, batch, manifest, payloa
     No operation receipt or business capture is created by this inspection.
     """
     from mta.runtime import production_report_placement as engine, scoped_actions
-    if decision == 'CONTINUE':
+    if decision in ('CONTINUE', 'RECOVER'):
         from mta.runtime.models import CalculationRun
         run = CalculationRun.objects.get(pk=receipt['run_id'])
         phase = run.phase_acceptances.get(phase='BPR' if args.scope == 'PostBPR' else 'DBM', state_sealed=True)
+        recovery = receipt['reconciliation']['verification'] if decision == 'RECOVER' else None
+        options = {'recovery_of': recovery['recovery_of']} if recovery else {}
         engine.continue_run(str(run.pk), scope=args.scope,
-            expected_phase_digest=phase.digest, expected_action_revision=scoped_actions.revision(run),
+            expected_phase_digest=phase.digest if recovery is None else recovery['source_phase_digest'],
+            expected_action_revision=scoped_actions.revision(run) if recovery is None else recovery['action_revision'],
             command_key='csv-' + args.scope + '-' + manifest['digest'],
-            worker_reference='vectorflow-csv-scope', inspect_only=True)
+            worker_reference='vectorflow-csv-scope', inspect_only=True, **options)
     elif decision == 'START':
         import tempfile
         from mta.runtime import production_daily, runtime_report_request
@@ -333,6 +356,233 @@ def _save(csv, root, receipt):
     return receipt
 
 
+RECONCILIATION = 'vectorflow-csv-scope-reconciliation-v1'
+
+
+def _frozen_operation(args, csv, binding, manifest, root, receipt):
+    from mta.serialization import digest
+    check_request(receipt, scope=args.scope, binding_digest=binding['_binding_digest'],
+        batch_digest=manifest['digest'], profile_digest=receipt['profile_digest'],
+        resume=False, reconcile=True)
+    if (receipt.get('schema') != 'vectorflow-csv-scope-operation-v1'
+            or receipt.get('date') != args.date or args.scope == 'Full'):
+        raise ValueError('Reconciliation supports only the exact scoped date; Full interruption is unsupported')
+    from mta.application.production_csv_files import contained, regular
+    original = contained(root / 'original', root)
+    frozen = read_json(regular(original / 'snapshot.json', root))
+    names = set(manifest['files'])
+    if (frozen != manifest or {path.name for path in original.iterdir()} != names | {'snapshot.json'}
+            or any(csv.file_identity(regular(original / name, root)) != manifest['files'][name]
+                   for name in names)):
+        raise ValueError('Frozen scope originals or snapshot receipt differ')
+    if (csv.file_identity(regular(root / 'native-day.json', root))['sha256']
+            != receipt.get('native_sha256')):
+        raise ValueError('Frozen scope originals or native input differ')
+    return digest(receipt)
+
+
+def _attempt_evidence(attempt):
+    """Finite immutable worker evidence, excluding its authentication token."""
+    from mta.serialization import storage
+    names = ('id', 'run_id', 'scope', 'command_key', 'attempt_no', 'recovery_of_id',
+        'expected_phase', 'expected_receipt_digest', 'input_digest', 'input_manifest_digest',
+        'compatibility_digest', 'action_revision', 'worker_reference', 'status', 'failure',
+        'revision_before', 'revision_after', 'revision_closed', 'created_at', 'finished_at')
+    return storage({name: str(value) if name in ('id', 'run_id', 'recovery_of_id') and value is not None
+                    else value for name in names for value in (getattr(attempt, name),)})
+
+
+def _reconciliation_owner(args, binding, owner, reference, receipt):
+    """Pure authentication after source/run locks; never call an execute entry."""
+    from mta.runtime import production_scope as original, runtime_report_request as requests
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.runtime_report_registered_request import read_captured
+    from mta.runtime.models import CalculationRun
+    from mta.runtime import scope_execution as workers
+    parameters = receipt['parameters']
+    if (str(parameters.get('initialization_id')) != str(owner.pk)
+            or parameters.get('source_digest') != owner.source.digest
+            or parameters.get('configuration_digest') != binding['configuration_digest']
+            or parameters.get('execution_revision') != 'csv-scope-' + receipt['batch_digest']):
+        raise ValueError('Recorded scope parameters differ from the bound initialization/source')
+    candidates = list(CalculationRun.objects.filter(kind='DAILY_CHAIN', business_date=args.date,
+        execution_revision=parameters['execution_revision'], mdm_input_capture__source=owner.source)[:2])
+    if len(candidates) != 1 or receipt.get('run_id') not in (None, str(candidates[0].pk)):
+        raise ValueError('Reconciliation requires one exact own source/date/run')
+    workers._source_lock(candidates[0].pk)
+    run = CalculationRun.objects.select_for_update().get(pk=candidates[0].pk)
+    raw = read_input(run, components=('scope_request', 'initialization_binding', 'daily_input_sha256',
+        'pick_output_root', 'lineage'))
+    captured = requests.validate_request(raw['scope_request'], run=run)
+    registered = read_json(ROOT / 'registration.json')
+    outer = read_captured(run)
+    from mta.runtime.temporal import resolved_pick_root
+    if (captured['scope'] != receipt['initial_scope']
+            or captured['command_key'] != 'csv-' + receipt['initial_scope'] + '-' + receipt['batch_digest']
+            or captured['runtime_reports'] != reference or registered.get('reference') != reference
+            or outer is None or outer['registration']['registration_digest'] != registered.get('registration_digest')
+            or outer['registration']['initialization_id'] != str(owner.pk)
+            or outer['registration']['source_digest'] != owner.source.digest
+            or raw['initialization_binding']['id'] != str(owner.pk)
+            or raw['initialization_binding']['source_digest'] != owner.source.digest
+            or raw['initialization_binding']['configuration_digest'] != binding['configuration_digest']
+            or raw['daily_input_sha256'] != receipt['native_sha256']
+            or raw['pick_output_root'] != resolved_pick_root(parameters['pick_output_root'])
+            or (str(run.predecessor_id) if run.predecessor_id else None) != parameters.get('predecessor_id')
+            or raw['lineage'].get('output_digest') != parameters.get('predecessor_output_digest')
+            or run.business_date.isoformat() != args.date
+            or run.mdm_input_capture.source_id != owner.source.pk):
+        raise ValueError('Captured scope, registration, frozen input or source/date binding differs')
+    original.captured_run(run, captured)
+    return run, captured
+
+
+def _reconciliation_state(args, run, captured):
+    """Read existing accepted owners only; no claim, fence, repair or producer."""
+    from mta.runtime import production_scope as original, scope_execution as workers
+    from mta.runtime import production_report_placement as engine, scoped_actions, scope_revisions
+    latest = run.scope_attempts.select_for_update().order_by('-created_at', '-id').first()
+    if latest is None or run.scope_attempts.filter(status='ACTIVE').exists():
+        raise ValueError('Reconciliation refuses an absent or active worker; explicit fencing is separate')
+    head = workers.head(run.pk)
+    action = scoped_actions.revision(run)
+    command = 'csv-' + args.scope + '-' + args._batch_digest
+    source_name = 'BPR' if captured['scope'] == 'UptoBPR' else 'DBM'
+    source = run.phase_acceptances.select_related('attempt').get(phase=source_name, state_sealed=True)
+    source = original._phase(run, source_name, source.digest)
+    if (source.attempt.status != 'RELEASED' or source.attempt.scope != captured['scope']
+            or source.attempt.command_key != captured['command_key']
+            or source.attempt.compatibility_digest != captured['compatibility_digest']
+            or latest.scope != args.scope or latest.command_key != command
+            or latest.compatibility_digest != captured['compatibility_digest']
+            or latest.input_digest != run.input_digest or latest.input_manifest_digest != run.input_manifest_digest
+            or latest.action_revision != action or latest.worker_reference != 'vectorflow-csv-scope'):
+        raise ValueError('Reconciliation worker/source/command/compatibility/action ownership differs')
+    proof = dict(run_id=str(run.pk), scope=args.scope, command_key=command,
+        compatibility_digest=captured['compatibility_digest'], source_phase_id=str(source.pk),
+        source_phase_digest=source.digest, accepted_head=list(head), action_revision=action,
+        latest_attempt=_attempt_evidence(latest))
+    if args.scope in TAILS and run.status == 'RUNNING':
+        if (latest.status != 'FAILED' or hasattr(latest, 'recovery')
+                or head[0] not in (('BPR', 'DBM') if args.scope == 'PostBPR' else ('DBM',))):
+            raise ValueError('Recovery requires its exact latest failed continuation and accepted head')
+        original._phase(run, head[0], head[1])
+        scope_revisions.require_current(run)
+        return dict(proof, outcome='RECOVERABLE', recovery_of=str(latest.pk)), None
+    if args.scope in TAILS and run.status == 'SUCCEEDED':
+        result = engine._continued(run, captured, scope=args.scope, command_key=command, expected_revision=action)
+        if result['attempt_id'] != str(latest.pk):
+            raise ValueError('Completed continuation is not the latest released owner')
+    elif args.scope == captured['scope'] and run.status == 'RUNNING':
+        if latest.status != 'RELEASED' or latest.pk != source.attempt.pk or head != (source_name, source.digest):
+            raise ValueError('Journal repair requires the latest exact released prefix')
+        from mta.runtime.scoped_pick_files import read as read_pick
+        from mta.runtime.runtime_report_placement_publication import read as read_publication
+        bpr = run.phase_acceptances.get(phase='BPR', state_sealed=True)
+        files = read_pick(bpr.pk, expected_digest=bpr.digest)
+        publication = read_publication(run.pk,
+            placement='PostBPR' if source_name == 'BPR' else 'PostDBM', verify_bytes=True)
+        result = dict(scope=args.scope, run_id=str(run.pk), status=run.status,
+            phase_acceptance_id=str(source.pk), phase_acceptance_digest=source.digest,
+            snapshot_digest=source.snapshot.state_digest, action_revision=action,
+            pick_files_digest=files.digest, calculation_accepted=True, serving_selected=False,
+            application_acceptance=False, runtime_reports=dict(ready=True,
+                publication_id=str(publication.pk), publication_digest=publication.digest))
+    else:
+        raise ValueError('Interrupted operation has no supported accepted result; no general recovery')
+    from mta.serialization import digest
+    return dict(proof, outcome='CALCULATED', recovery_of=None, accepted_result_digest=digest(result)), result
+
+
+def _append_reconciliation(root, original, verification):
+    """Install complete immutable evidence before replacing the mutable journal."""
+    from tempfile import NamedTemporaryFile
+    from mta.serialization import digest
+    evidence = dict(schema=RECONCILIATION, original_operation=original, verification=verification)
+    checksum = digest(evidence)
+    directory = root / 'reconciliations'
+    directory.mkdir(exist_ok=True)
+    target = directory / (checksum + '.json')
+    candidate = None
+    try:
+        with NamedTemporaryFile(dir=directory, prefix='.reconcile-', delete=False) as stream:
+            candidate = Path(stream.name)
+            stream.write((canonical(evidence) + '\n').encode())
+            stream.flush(); os.fsync(stream.fileno())
+        try: os.link(candidate, target)
+        except FileExistsError: pass
+        if target.is_symlink() or read_json(target) != evidence:
+            raise ValueError('Immutable reconciliation evidence differs')
+        if os.name == 'posix':
+            descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+            try: os.fsync(descriptor)
+            finally: os.close(descriptor)
+    finally:
+        if candidate is not None: candidate.unlink(missing_ok=True)
+    return dict(schema=RECONCILIATION, evidence_digest=checksum, verification=verification)
+
+
+def _reconciliation_evidence(root, receipt):
+    from mta.serialization import digest
+    value = receipt.get('reconciliation')
+    if (type(value) is not dict or set(value) != {'schema', 'evidence_digest', 'verification'}
+            or value['schema'] != RECONCILIATION or type(value['evidence_digest']) is not str
+            or len(value['evidence_digest']) != 64
+            or any(c not in '0123456789abcdef' for c in value['evidence_digest'])):
+        raise ValueError('Exact immutable reconciliation evidence required')
+    evidence = read_json(root / 'reconciliations' / (value['evidence_digest'] + '.json'))
+    if (digest(evidence) != value['evidence_digest'] or evidence.get('schema') != RECONCILIATION
+            or evidence.get('verification') != value['verification']):
+        raise ValueError('Reconciliation evidence changed')
+    original = evidence['original_operation']
+    expected = deepcopy(original)
+    expected.update(run_id=value['verification']['run_id'], status=value['verification']['outcome'],
+                    reconciliation=value)
+    if receipt['status'] == 'CALCULATED':
+        expected['results'][receipt['scope']] = receipt['results'][receipt['scope']]
+        if digest(receipt['results'][receipt['scope']]) != value['verification'].get('accepted_result_digest'):
+            raise ValueError('Reconciled accepted result changed')
+    if expected != receipt:
+        raise ValueError('Reconciled journal differs from its immutable original')
+    return value['verification']
+
+
+def _verify_recovery(args, csv, binding, owner, reference, manifest, root, receipt, *, outcome='RECOVERABLE'):
+    from django.db import transaction
+    _frozen_operation(args, csv, binding, manifest, root, receipt)
+    saved = _reconciliation_evidence(root, receipt)
+    with transaction.atomic():
+        if read_json(root / 'operation.json') != receipt:
+            raise ValueError('Scope journal changed before reconciliation verification')
+        run, captured = _reconciliation_owner(args, binding, owner, reference, receipt)
+        args._batch_digest = manifest['digest']
+        actual, _result = _reconciliation_state(args, run, captured)
+        if actual != saved or actual['outcome'] != outcome:
+            raise ValueError('Reconciled recovery owner/head/action changed; reconcile again explicitly')
+    return saved
+
+
+def _reconcile(args, csv, binding, owner, reference, manifest, root, receipt, check):
+    from django.db import transaction
+    _frozen_operation(args, csv, binding, manifest, root, receipt)
+    with transaction.atomic():
+        run, captured = _reconciliation_owner(args, binding, owner, reference, receipt)
+        args._batch_digest = manifest['digest']
+        verification, result = _reconciliation_state(args, run, captured)
+        if receipt['status'] in ('RECOVERABLE', 'CALCULATED'):
+            if _reconciliation_evidence(root, receipt) != verification:
+                raise ValueError('Existing reconciliation owner changed; preserve it and diagnose')
+            if result is not None and receipt['results'].get(args.scope) != result:
+                raise ValueError('Reconciled accepted result differs')
+            return receipt
+        reconciled = deepcopy(receipt)
+        reconciled.update(run_id=str(run.pk), status=verification['outcome'],
+            reconciliation=_append_reconciliation(root, receipt, verification))
+        if result is not None: reconciled['results'][args.scope] = result
+        check()
+        return _save(csv, root, reconciled)
+
+
 def _calculate(args, csv, binding, owner, reference, batch, manifest, root, receipt, decision):
     from mta.serialization import digest
     from mta.runtime import production_report_placement as engine, scoped_actions
@@ -364,15 +614,20 @@ def _calculate(args, csv, binding, owner, reference, batch, manifest, root, rece
     if registered['reference'] != reference:
         raise ValueError('Registered scope profile differs')
     command = 'csv-' + args.scope + '-' + manifest['digest']
+    recovery = None
+    if decision == 'RECOVER':
+        recovery = _verify_recovery(args, csv, binding, owner, reference, manifest, root, receipt)
     receipt.update(scope=args.scope, status='EXECUTING')
     _save(csv, root, receipt)  # A crash here must not silently recalculate.
     try:
-        if decision == 'CONTINUE':
+        if decision in ('CONTINUE', 'RECOVER'):
             run = CalculationRun.objects.get(pk=receipt['run_id'])
             phase = run.phase_acceptances.get(phase='BPR' if args.scope == 'PostBPR' else 'DBM', state_sealed=True)
+            options = {} if recovery is None else {'recovery_of': recovery['recovery_of']}
             result = engine.continue_run(str(run.pk), scope=args.scope,
-                expected_phase_digest=phase.digest, expected_action_revision=scoped_actions.revision(run),
-                command_key=command, worker_reference='vectorflow-csv-scope')
+                expected_phase_digest=phase.digest if recovery is None else recovery['source_phase_digest'],
+                expected_action_revision=scoped_actions.revision(run) if recovery is None else recovery['action_revision'],
+                command_key=command, worker_reference='vectorflow-csv-scope', **options)
         else:
             from mta.application.streamed_input import JsonInputFile
             from mta.runtime.daily_preparation import prepare
@@ -473,14 +728,18 @@ def operation(args):
         return dict(status='EXISTING' if decision == 'EXISTING' else 'SCOPE_PREFLIGHT_READY',
             decision=decision, scope=args.scope, business_date=args.date,
             run_id=receipt.get('run_id') if receipt else None,
-            selection_digest=receipt.get('selection_digest') if receipt else None)
+            selection_digest=receipt.get('selection_digest') if receipt else None,
+            **({'recovery_of': receipt['reconciliation']['verification']['recovery_of']}
+               if decision == 'RECOVER' else {}))
     with csv.job_lock(owner) as check:
         current = read_json(root / 'operation.json') if (root / 'operation.json').exists() else None
         if current != receipt:
             raise ValueError('Scope operation changed while acquiring ownership; inspect again')
         if decision == 'EXISTING':
             return receipt
-        if decision in ('START', 'CONTINUE'):
+        if decision == 'RECONCILE':
+            return _reconcile(args, csv, binding, owner, reference, manifest, root, receipt, check)
+        if decision in ('START', 'CONTINUE', 'RECOVER'):
             receipt = _calculate(args, csv, binding, owner, reference, batch, manifest, root, receipt, decision)
         check()
         if receipt['status'] == 'CALCULATED':
@@ -520,7 +779,7 @@ def serving(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('register', 'preflight', 'inspect', 'execute', 'serving', 'acknowledge'))
+    parser.add_argument('operation', choices=('register', 'preflight', 'inspect', 'execute', 'reconcile', 'serving', 'acknowledge'))
     parser.add_argument('--date')
     parser.add_argument('--scope', choices=SCOPES)
     parser.add_argument('--policy', choices=('retained-test', 'generic'), default='retained-test')

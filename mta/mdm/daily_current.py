@@ -194,13 +194,15 @@ def verify_current(source, closing, *, version=None):
             raise ValueError('MDM current full typed readback differs: ' + path)
 
 
-def publish(run, capture, closing, *, _accepted_prefix=False):
+def publish(run, capture, closing, *, _accepted_prefix=False, _observe_current_master=False):
     from mta.mdm.daily_source import APPROVAL_DAY_ARTIFACT_SHA, SCHEMA
     from mta.application.daily_finalization import ACTIVE_POLICY, POLICY, finish
     from mta.runtime.input_reader import read_input
     from mta.runtime.mdm_models import MdmSource
     if not connection.in_atomic_block:
         raise ValueError('Current master publication requires the day transaction')
+    if _observe_current_master and not _accepted_prefix:
+        raise ValueError('Current master cut requires its accepted scoped prefix')
     source = MdmSource.objects.select_for_update().get(pk=capture.source_id)
     native = source.receipt.get('schema') == 'fresh-production-mdm-source-v1'
     if native:
@@ -262,16 +264,25 @@ def publish(run, capture, closing, *, _accepted_prefix=False):
         # current rows instead use the precise pending DAY_FINAL/BTR guard,
         # outside the marker reserved for PRE queue/task effects.
         with current_context:
+            if _observe_current_master:
+                from mta.runtime.placement_current_master import begin
+                current_master_cut = begin(run)
             for _family, model, partition, rows, path in batches:
                 if _accepted_prefix and partition.get('owner')!='BTR':
                     continue
                 _write_partition(source, model, partition, rows, path)
+            if _observe_current_master:
+                from mta.runtime.placement_current_master import end
+                current_master_cut = end(run, current_master_cut)
         if receipt is not None:
             receipt.metadata = dict(version=VERSION, partitions=_partition_identity(batches),
                 sources=proof['sources'])
             receipt.digest = digest(receipt.metadata)
             receipt.status = 'SEALED'
             receipt.save(update_fields=['metadata','digest','status'])
+        if _observe_current_master:
+            from mta.runtime.placement_current_master import seal
+            return seal(run, current_master_cut, receipt)
     finally:
         # A database error has already marked the enclosing atomic block for
         # rollback. Do not mask that error with a cleanup query on a broken

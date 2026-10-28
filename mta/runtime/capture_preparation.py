@@ -52,7 +52,8 @@ def require_commit(run):
     return body
 
 
-def publication_metadata(run, capture, producer, *, _scoped_placement=False):
+def publication_metadata(run, capture, producer, *, _scoped_placement=False,
+                         _current_master_publication=None):
     if capture is None:
         return
     from mta.runtime.ingestion_models import IngestionRevisionState, MasterInputRevision
@@ -65,7 +66,8 @@ def publication_metadata(run, capture, producer, *, _scoped_placement=False):
         raise ValueError('Native prepared producer result differs')
     if _scoped_placement:
         from mta.runtime.placement_master_publication import publication_master as placement_master
-        producer=placement_master(run,capture,producer,state)
+        producer=placement_master(run,capture,producer,state,
+                                  current_master_publication=_current_master_publication)
     elif producer.get('reused') is not capture['qualified_master_reuse']:
         from mta.runtime.production_post_dbm import AUTHORITY
         if str(run.pk)!=AUTHORITY['run']:

@@ -15,19 +15,39 @@ ORIGIN_RELEASE = {'implementation_sha256': 'c4ca2033c2a0ec295373f000c8acc2f07163
  'schema': 'vectorflow-native-release-source-v1',
  'source_commit': '70554bd1dfa4d909194b873ebd98daaea470c715',
  'source_files_digest': 'a089b36ccb61d0cc36085526b7d3dde3326e15cb22e586df2fd7367021c6b60d'}
-ORIGIN_OVERRIDES = {'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
+ORIGIN_OVERRIDES = {'mta/mdm/daily_current.py': '80ab33ef51e49f043b7fb5f395119217e73ec1b8a1645fad194004caec0e313a',
+ 'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
  'mta/presentation/scoped_transit.py': '24cd6966f52f27c52ef4afc6006f50a50f703bce481e539b695afed4073e3370',
  'mta/presentation/scoped_transit_storage.py': 'afe545c33f2416e6986fd48e9104c1e8232fabba2005775018c2dae024b22729',
  'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
+ 'mta/runtime/capture_preparation.py': '0c52fbcb53a1eb3b13cada52065f86980eb7bde4240453b6c96bd960238a3bbd',
+ 'mta/runtime/csv_scope_operator.py': '4e256c845ada2da72bd054b6907720b923d1299ebbd25b328fedbc7d6d5c6c00',
  'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
  'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
+ 'mta/runtime/placement_master_publication.py': 'd545c9d84c6aa7ff7f85bab4bbae26e8fcb4eadc5951674f33dc2a520729a0d5',
  'mta/runtime/retained_registered_execution_compatibility.py': '1c137b550b89d6ec51ee1f97f8d03e5bb6540ac6fa0253e67a0725d4e2383d83',
+ 'mta/runtime/runtime_report_request.py': '8e2f3186a5e6874aed9c3fe3facd131660e49f81445132a3a9006d8cfad702ff',
+ 'mta/runtime/services.py': '49462c8dc171928c3069f54cb8d78983761f09dcd7597473c396298653c24688',
  'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838'}
-ADDED_FILES = frozenset(['mta/runtime/generic_capture_compatibility.py',
+ADDED_FILES = frozenset(['mta/runtime/placement_current_master.py',
+ 'mta/runtime/generic_capture_compatibility.py',
  'mta/runtime/generic_read_alias_transition.py',
  'mta/runtime/migrations/0241_scope_transit_settings_owners.py',
  'mta/runtime/migrations/0242_generic_read_sql_aliases.py',
  'mta/runtime/transit_settings_schema_transition.py'])
+
+# Filled from the exact reviewed original and corrected source recipes. Native
+# source identity remains truthful and separate from compatible metadata recipes.
+ORIGINAL_PRODUCTION_PUBLICATION_RECIPE = '6a38e8bfeca016b5780bb8f802e5994150a9d51d1e2bccd6c085331783dd7e80'
+OBSERVED_PRODUCTION_PUBLICATION_RECIPE = 'cb83106e56b333a4844d43a95cb32461150d27c3bf491a0896e62802e7c7765c'
+
+
+def production_publication_recipe(observed):
+    from mta.runtime.retained_registered_execution_compatibility import _recipe_sources
+    _recipe_sources()
+    if observed != OBSERVED_PRODUCTION_PUBLICATION_RECIPE:
+        raise ValueError('Generic production publication metadata recipe differs')
+    return ORIGINAL_PRODUCTION_PUBLICATION_RECIPE
 
 
 def applicable(value):

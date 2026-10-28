@@ -104,7 +104,9 @@ def recipe_digest(*, production=False):
             runtime_report_stage_storage,runtime_report_stage_work,runtime_report_placement_publication,runtime_report_execution,placement_master_publication)}))
     if production:
         from mta.runtime import production_scope_policy
-        return digest(dict(recipe=observed, policy=inspect.getsource(production_scope_policy)))
+        from mta.runtime.generic_capture_compatibility import production_publication_recipe
+        return production_publication_recipe(digest(dict(recipe=observed,
+            policy=inspect.getsource(production_scope_policy))))
     from mta.runtime.retained_registered_execution_compatibility import publication_recipe
     return publication_recipe(observed)
 

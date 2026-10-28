@@ -247,12 +247,15 @@ function ComposeCall([string[]]$Arguments,[switch]$Json) {
         foreach($required in @('--run','--selection-digest','--proof')) {if($Arguments -notcontains $required){throw "Missing $required"}}
         return @{status='PUBLISHED';run_id='owned-run'}
     }
+    if ($Arguments -contains 'reconcile') { return @{status='RECOVERABLE';run_id='owned-run'} }
 }
 '''
             (root / 'release/run_csv_scope.ps1').write_text(source[:start] + boundary + source[end:])
             (root / 'runner.ps1').write_text('''
 function docker { $global:LASTEXITCODE=0; Get-Content -LiteralPath (Join-Path $env:VECTORFLOW_OPERATOR_ROOT 'config.json') -Raw }
-if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
+if ($env:VECTORFLOW_OPERATOR_CASE -eq 'reconcile') {
+ & ./release/run_csv_scope.ps1 -BusinessDate 2026-04-09 -Scope PostBPR -Reconcile
+} elseif ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
  & ./release/run_csv_scope.ps1 -BusinessDate 2026-04-09 -Scope UptoBPR -Resume
 } else { & ./release/run_csv_scope.ps1 -BusinessDate 2026-04-09 -Scope UptoBPR }
 ''')
@@ -278,6 +281,17 @@ if ($env:VECTORFLOW_OPERATOR_CASE -eq 'existing-invalid') {
         self.assertNotEqual(result.returncode,0)
         self.assertFalse(any(c[0] in ('stop','up') or 'execute' in c or 'register' in c for c in calls))
         self.assertIsNone(overlay)
+        self.assertEqual(private,[])
+
+    def test_reconcile_is_separate_and_never_changes_serving_or_runs_a_producer(self):
+        result,calls,env,overlay,private=self.invoke_scope('reconcile')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout)['status'],'RECOVERABLE')
+        self.assertEqual(len(calls),1)
+        self.assertIn('reconcile',calls[0])
+        self.assertFalse(any(x in calls[0] for x in ('preflight','register','inspect','execute','stop','up')))
+        self.assertIsNone(overlay)
+        self.assertEqual(env,'COMPOSE_FILE=compose.yaml;extra.json\nEMAIL_PASS=private-value-preserved\n')
         self.assertEqual(private,[])
 
     def test_native_or_readiness_failure_is_not_acknowledged_or_replayed(self):
@@ -398,6 +412,21 @@ class ScopeNativePreflightTests(unittest.TestCase):
         self.execute.assert_not_called()
         self.assertFalse((self.root.parent / 'pick').exists())
 
+    def test_recover_inspects_the_native_failed_owner_before_any_stop(self):
+        self.args.scope='PostBPR'
+        run=SimpleNamespace(pk='owned-run',phase_acceptances=Mock())
+        run.phase_acceptances.get.return_value=SimpleNamespace(digest='source-bpr')
+        receipt=dict(run_id='owned-run',reconciliation={'verification':{
+            'recovery_of':'failed','source_phase_digest':'source-bpr','action_revision':3}})
+        with patch('mta.runtime.models.CalculationRun.objects.get',return_value=run):
+            self.inspect('RECOVER',receipt)
+        self.continue_run.assert_called_once_with('owned-run',scope='PostBPR',
+            expected_phase_digest='source-bpr',expected_action_revision=3,
+            command_key='csv-PostBPR-batch',worker_reference='vectorflow-csv-scope',
+            inspect_only=True,recovery_of='failed')
+        self.csv.assemble.assert_not_called()
+        self.execute.assert_not_called()
+
 
 
 @unittest.skipUnless(apps.ready, 'Django bootstrap required; no database connection')
@@ -443,6 +472,268 @@ class TerminalArchivePreparationTests(unittest.TestCase):
     def test_archive_identity_failure_keeps_calculated_owner_without_selection(self):
         for scope in ('Full', 'PostBPR', 'PostDBM'):
             with self.subTest(scope=scope): self.prepare(scope, ValueError('original hash differs'))
+
+
+@unittest.skipUnless(apps.ready, 'Django bootstrap required; mocks and temporary files only')
+class ScopeReconciliationTests(unittest.TestCase):
+    def setUp(self):
+        from mta.runtime import csv_scope_operator as operator
+        from mta.serialization import digest
+        from datetime import date, datetime, timezone
+        self.op = operator
+        self.stack = self.enterContext(ExitStack())
+        self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        self.stack.enter_context(patch.object(operator, 'ROOT', self.root))
+        self.args = SimpleNamespace(scope='PostBPR', date='2026-10-18', resume=False,
+                                    _batch_digest='batch')
+        self.owner = SimpleNamespace(pk='init', source=SimpleNamespace(pk=3, digest='source'))
+        self.binding = dict(_binding_digest='binding', configuration_digest='configuration')
+        self.reference = {'reference': 'original'}
+        self.receipt = dict(schema='vectorflow-csv-scope-operation-v1', date=self.args.date,
+            initial_scope='UptoBPR', scope='PostBPR', status='FAILED', run_id='run',
+            binding_digest='binding', batch_digest='batch', profile_digest=digest(self.reference),
+            native_sha256='native', error='original failure', results={'UptoBPR': {'run_id': 'run'}},
+            parameters=dict(initialization_id='init', source_digest='source', configuration_digest='configuration',
+                execution_revision='csv-scope-batch', pick_output_root='pick', predecessor_id=None,
+                predecessor_output_digest=None))
+        self.attempt = SimpleNamespace(id='failed', pk='failed', run_id='run', scope='PostBPR',
+            command_key='csv-PostBPR-batch', attempt_no=1, recovery_of_id=None, expected_phase='BPR',
+            expected_receipt_digest='bpr', input_digest='input', input_manifest_digest='manifest',
+            compatibility_digest='compat', action_revision=0, worker_reference='vectorflow-csv-scope',
+            status='FAILED', failure={'message': 'retained'}, revision_before=[0]*5,
+            revision_after=[0,0,0,1,0], revision_closed=[0,0,0,2,0],
+            created_at=datetime(2026,10,18,tzinfo=timezone.utc), finished_at=None)
+        self.source_attempt = SimpleNamespace(pk='source-attempt', status='RELEASED', scope='UptoBPR',
+            command_key='csv-UptoBPR-batch', compatibility_digest='compat')
+        self.phase = SimpleNamespace(pk='bpr-id', digest='bpr', attempt=self.source_attempt,
+                                     snapshot=SimpleNamespace(state_digest='snapshot'))
+        self.run = SimpleNamespace(pk='run', status='RUNNING', business_date=date(2026,10,18),
+            predecessor_id=None, mdm_input_capture=SimpleNamespace(source_id=3),
+            input_digest='input', input_manifest_digest='manifest', phase_acceptances=Mock(), scope_attempts=Mock())
+        self.run.phase_acceptances.select_related.return_value.get.return_value = self.phase
+        self.run.phase_acceptances.get.return_value = self.phase
+        self.run.scope_attempts.select_for_update.return_value.order_by.return_value.first.return_value = self.attempt
+        self.run.scope_attempts.filter.return_value.exists.return_value = False
+        self.captured = dict(scope='UptoBPR', command_key='csv-UptoBPR-batch', runtime_reports=self.reference,
+                             compatibility_digest='compat')
+        self.raw = dict(scope_request=self.captured, initialization_binding=dict(id='init', source_digest='source',
+            configuration_digest='configuration'), daily_input_sha256='native', pick_output_root='pick', lineage={})
+        self.outer = dict(registration=dict(registration_digest='registration', initialization_id='init', source_digest='source'))
+        self.stack.enter_context(patch.object(operator, 'read_json', wraps=operator.read_json))
+        (self.root/'registration.json').write_text(json.dumps(dict(reference=self.reference, registration_digest='registration')))
+        self.manager = self.stack.enter_context(patch('mta.runtime.models.CalculationRun.objects'))
+        self.manager.filter.return_value.__getitem__.return_value = [self.run]
+        self.manager.select_for_update.return_value.get.return_value = self.run
+        self.lock = self.stack.enter_context(patch('mta.runtime.scope_execution._source_lock'))
+        self.stack.enter_context(patch('mta.runtime.input_reader.read_input', return_value=self.raw))
+        self.stack.enter_context(patch('mta.runtime.runtime_report_request.validate_request', side_effect=lambda value, **kw:value))
+        self.stack.enter_context(patch('mta.runtime.runtime_report_registered_request.read_captured', return_value=self.outer))
+        self.stack.enter_context(patch('mta.runtime.production_scope.captured_run'))
+        self.stack.enter_context(patch('mta.runtime.temporal.resolved_pick_root', side_effect=lambda value:value))
+        self.stack.enter_context(patch('mta.runtime.scope_execution.head', return_value=('DBM','dbm')))
+        self.stack.enter_context(patch('mta.runtime.scoped_actions.revision', return_value=0))
+        self.stack.enter_context(patch('mta.runtime.scope_revisions.require_current'))
+        self.phase_reader = self.stack.enter_context(patch('mta.runtime.production_scope._phase', return_value=self.phase))
+        self.producer = self.stack.enter_context(patch('mta.runtime.production_report_placement.execute', side_effect=AssertionError('producer')))
+        self.continuation = self.stack.enter_context(patch('mta.runtime.production_report_placement.continue_run'))
+        self.manifest = {'digest':'batch','files':{'READY':{'sha256':'native','bytes':0}}}
+        (self.root/'original').mkdir()
+        (self.root/'original'/'READY').write_bytes(b'')
+        (self.root/'original'/'snapshot.json').write_text(json.dumps(self.manifest))
+        (self.root/'native-day.json').write_bytes(b'{}')
+        self.csv = SimpleNamespace(file_identity=Mock(return_value={'sha256':'native','bytes':0}))
+        from mta.runtime.daily_feed import atomic_json
+        self.csv.atomic_json = atomic_json
+
+    def authenticate(self):
+        return self.op._reconciliation_owner(self.args,self.binding,self.owner,self.reference,self.receipt)
+
+    def state(self):
+        return self.op._reconciliation_state(self.args,self.run,self.captured)
+
+    def test_frozen_and_captured_identity_negatives(self):
+        self.assertEqual(self.authenticate(), (self.run,self.captured))
+        for changes in ({'date':'2026-10-19'}, {'binding_digest':'foreign'}, {'batch_digest':'foreign'}):
+            invalid=deepcopy(self.receipt);invalid.update(changes)
+            with self.subTest(changes=changes),self.assertRaises(ValueError):
+                self.op._frozen_operation(self.args,self.csv,self.binding,self.manifest,self.root,invalid)
+        for component,field in (('initialization_binding','id'),('initialization_binding','source_digest'),
+                ('initialization_binding','configuration_digest'),('scope_request','scope'),
+                ('scope_request','command_key'),('scope_request','runtime_reports')):
+            previous=self.raw[component][field];self.raw[component][field]='foreign'
+            with self.subTest(component=component,field=field),self.assertRaises(ValueError):self.authenticate()
+            self.raw[component][field]=previous
+        for field in ('daily_input_sha256','pick_output_root'):
+            previous=self.raw[field];self.raw[field]='foreign'
+            with self.subTest(field=field),self.assertRaises(ValueError):self.authenticate()
+            self.raw[field]=previous
+        self.outer['registration']['registration_digest']='foreign'
+        with self.assertRaises(ValueError):self.authenticate()
+        self.csv.file_identity.side_effect=lambda path: (
+            {'sha256':'foreign','bytes':0} if Path(path).name=='native-day.json'
+            else {'sha256':'native','bytes':0})
+        with self.assertRaisesRegex(ValueError,'native input'):
+            self.op._frozen_operation(self.args,self.csv,self.binding,self.manifest,self.root,self.receipt)
+        self.csv.file_identity.side_effect=None
+        (self.root/'original'/'snapshot.json').write_text('{"digest":"foreign"}')
+        with self.assertRaisesRegex(ValueError,'originals'):
+            self.op._frozen_operation(self.args,self.csv,self.binding,self.manifest,self.root,self.receipt)
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+
+    def test_real_snapshot_owned_roster_receipt_and_every_file_are_authenticated(self):
+        from mta.runtime import daily_feed as csv
+        from mta.application.production_csv_contract import SCHEMA_VERSION
+        incoming=self.root/'incoming';incoming.mkdir()
+        (incoming/'READY').write_bytes(b'')
+        (incoming/'batch.json').write_text(json.dumps(dict(schema=SCHEMA_VERSION,
+            feeds={'facts.csv':'PRESENT'})))
+        (incoming/'facts.csv').write_bytes(b'SKUCode,Value\nA,1\n')
+        root=self.root/'real-frozen'
+        _,manifest=csv.snapshot(incoming,root/'original',self.root)
+        (root/'native-day.json').write_bytes(b'{"frozen":"native"}')
+        receipt=deepcopy(self.receipt)
+        receipt.update(batch_digest=manifest['digest'],
+                       native_sha256=csv.file_identity(root/'native-day.json')['sha256'])
+        # The incoming reader stays strict: snapshot.json belongs only to the frozen reader.
+        with patch('mta.runtime.daily_feed.batch_contract'):
+            with self.assertRaisesRegex(ValueError,'file roster'):
+                csv._batch(root/'original',self.binding,self.args.date,root)
+        self.op._frozen_operation(self.args,csv,self.binding,manifest,root,receipt)
+        original={path.name:path.read_bytes() for path in (root/'original').iterdir()}
+        for name in ('READY','batch.json','facts.csv','snapshot.json'):
+            target=root/'original'/name
+            target.write_bytes(json.dumps({**manifest,'digest':'foreign'}).encode()
+                               if name=='snapshot.json' else original[name]+b' ')
+            with self.subTest(name=name),self.assertRaises(ValueError):
+                self.op._frozen_operation(self.args,csv,self.binding,manifest,root,receipt)
+            target.write_bytes(original[name])
+        extra=root/'original'/'extra.json';extra.write_bytes(b'{}')
+        with self.assertRaisesRegex(ValueError,'originals'):
+            self.op._frozen_operation(self.args,csv,self.binding,manifest,root,receipt)
+        extra.unlink()
+        (root/'native-day.json').write_bytes(b'changed')
+        with self.assertRaisesRegex(ValueError,'native input'):
+            self.op._frozen_operation(self.args,csv,self.binding,manifest,root,receipt)
+        self.assertEqual({path.name:path.read_bytes() for path in (root/'original').iterdir()},original)
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+
+    def test_exact_failed_tail_and_worker_action_head_negatives(self):
+        proof,result=self.state()
+        self.assertEqual(proof['outcome'],'RECOVERABLE');self.assertEqual(proof['recovery_of'],'failed')
+        self.assertEqual(proof['accepted_head'],['DBM','dbm']);self.assertIsNone(result)
+        for field,value in (('scope','PostDBM'),('status','ACTIVE'),('command_key','foreign'),
+                ('compatibility_digest','foreign'),('action_revision',1),('input_digest','foreign'),
+                ('input_manifest_digest','foreign'),('worker_reference','foreign'),('recovery','already-claimed')):
+            prior=getattr(self.attempt,field,None);setattr(self.attempt,field,value)
+            with self.subTest(field=field),self.assertRaises(ValueError):self.state()
+            if field=='recovery':delattr(self.attempt,field)
+            else:setattr(self.attempt,field,prior)
+        with patch('mta.runtime.scope_execution.head',return_value=('DAY_FINAL','foreign')):
+            with self.assertRaises(ValueError):self.state()
+        self.run.scope_attempts.filter.return_value.exists.return_value=True
+        with self.assertRaisesRegex(ValueError,'active worker'):self.state()
+
+    def test_append_before_change_crash_reuse_and_idempotent_reconciliation(self):
+        from contextlib import nullcontext
+        self.csv.atomic_json(self.root/'operation.json',self.receipt)
+        with patch('django.db.transaction.atomic',side_effect=nullcontext), \
+                patch.object(self.op,'_reconciliation_owner',return_value=(self.run,self.captured)):
+            with patch.object(self.op,'_save',side_effect=RuntimeError('journal crash')):
+                with self.assertRaisesRegex(RuntimeError,'journal crash'):
+                    self.op._reconcile(self.args,self.csv,self.binding,self.owner,self.reference,
+                        self.manifest,self.root,self.receipt,lambda:None)
+            self.assertEqual(self.op.read_json(self.root/'operation.json'),self.receipt)
+            self.assertEqual(len(list((self.root/'reconciliations').glob('*.json'))),1)
+            repaired=self.op._reconcile(self.args,self.csv,self.binding,self.owner,self.reference,
+                self.manifest,self.root,self.receipt,lambda:None)
+            again=self.op._reconcile(self.args,self.csv,self.binding,self.owner,self.reference,
+                self.manifest,self.root,repaired,lambda:None)
+            self.assertEqual(again,repaired)
+            self.assertEqual(self.op._verify_recovery(self.args,self.csv,self.binding,self.owner,self.reference,
+                self.manifest,self.root,repaired)['recovery_of'],'failed')
+            with patch('mta.runtime.scope_execution.head',return_value=('BPR','changed')):
+                with self.assertRaisesRegex(ValueError,'changed'):
+                    self.op._verify_recovery(self.args,self.csv,self.binding,self.owner,self.reference,
+                        self.manifest,self.root,repaired)
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+        evidence=self.op.read_json(next((self.root/'reconciliations').glob('*.json')))
+        self.assertEqual(evidence['original_operation'],self.receipt)
+        self.assertEqual(evidence['verification']['latest_attempt']['failure'],{'message':'retained'})
+
+    def test_committed_reader_repairs_journal_without_execution(self):
+        from contextlib import nullcontext
+        self.run.status='SUCCEEDED';self.attempt.status='RELEASED'
+        result=dict(run_id='run',scope='PostBPR',attempt_id='failed',output_digest='terminal')
+        with patch('mta.runtime.production_report_placement._continued',return_value=result) as reader, \
+                patch('django.db.transaction.atomic',side_effect=nullcontext), \
+                patch.object(self.op,'_reconciliation_owner',return_value=(self.run,self.captured)):
+            repaired=self.op._reconcile(self.args,self.csv,self.binding,self.owner,self.reference,
+                self.manifest,self.root,self.receipt,lambda:None)
+            self.assertEqual(repaired['status'],'CALCULATED')
+            self.assertEqual(repaired['results']['PostBPR'],result)
+            self.assertEqual(self.op._reconcile(self.args,self.csv,self.binding,self.owner,self.reference,
+                self.manifest,self.root,repaired,lambda:None),repaired)
+            reader.assert_called()
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+
+    def test_gate_requires_explicit_resume_and_exact_identity(self):
+        from mta.serialization import digest
+        receipt=deepcopy(self.receipt);receipt['status']='RECOVERABLE'
+        options=dict(scope='PostBPR',binding_digest='binding',batch_digest='batch',
+                     profile_digest=digest(self.reference),resume=True)
+        self.assertEqual(check_request(receipt,**options),'RECOVER')
+        for field,value in (('resume',False),('profile_digest','foreign'),('batch_digest','foreign'),
+                ('binding_digest','foreign'),('scope','PostDBM')):
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                check_request(receipt,**{**options,field:value})
+        self.args.scope='Full'
+        with self.assertRaises(ValueError):
+            self.op._frozen_operation(self.args,self.csv,self.binding,self.manifest,self.root,self.receipt)
+
+    def test_recovery_routes_exact_failed_identity_only_to_continuation(self):
+        proof,_=self.state()
+        receipt=deepcopy(self.receipt);receipt['status']='RECOVERABLE'
+        self.continuation.return_value=dict(run_id='run',scope='PostBPR',status='SUCCEEDED')
+        with patch.object(self.op,'_verify_recovery',return_value=proof) as verify, \
+                patch('mta.runtime.models.CalculationRun.objects.get',return_value=self.run), \
+                patch('mta.runtime.scoped_actions.revision',return_value=99):
+            result=self.op._calculate(self.args,self.csv,self.binding,self.owner,self.reference,{},
+                self.manifest,self.root,receipt,'RECOVER')
+        verify.assert_called_once()
+        self.continuation.assert_called_once_with('run',scope='PostBPR',expected_phase_digest='bpr',
+            expected_action_revision=0,command_key='csv-PostBPR-batch',
+            worker_reference='vectorflow-csv-scope',recovery_of='failed')
+        self.assertEqual(result['status'],'CALCULATED')
+        self.producer.assert_not_called()
+
+    def test_released_prefix_uses_existing_readers_and_no_producer(self):
+        self.args.scope='UptoBPR';self.attempt=self.source_attempt
+        # Supply the full finite worker evidence while retaining released ownership.
+        for name,value in vars(self.run.scope_attempts.select_for_update.return_value.order_by.return_value.first.return_value).copy().items():
+            if not hasattr(self.attempt,name):setattr(self.attempt,name,value)
+        self.attempt.id=self.attempt.pk;self.attempt.status='RELEASED'
+        self.run.scope_attempts.select_for_update.return_value.order_by.return_value.first.return_value=self.attempt
+        with patch('mta.runtime.scope_execution.head',return_value=('BPR','bpr')), \
+                patch('mta.runtime.scoped_pick_files.read',return_value=SimpleNamespace(digest='pick')) as pick, \
+                patch('mta.runtime.runtime_report_placement_publication.read',
+                    return_value=SimpleNamespace(pk='publication',digest='published')) as publication:
+            proof,result=self.state()
+        self.assertEqual(proof['outcome'],'CALCULATED')
+        self.assertEqual(result['phase_acceptance_digest'],'bpr')
+        pick.assert_called_once_with('bpr-id',expected_digest='bpr')
+        publication.assert_called_once_with('run',placement='PostBPR',verify_bytes=True)
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+
+    def test_public_reconcile_parser_dispatches_without_execute_entry(self):
+        from io import StringIO
+        with patch('sys.argv',['scope-operator','reconcile','--date',self.args.date,'--scope','PostBPR']), \
+                patch.object(self.op,'operation',return_value={'status':'RECOVERABLE'}) as operation, \
+                patch('django.setup'),patch('sys.stdout',new_callable=StringIO) as output:
+            self.op.main()
+        self.assertEqual(operation.call_args.args[0].operation,'reconcile')
+        self.assertFalse(operation.call_args.args[0].resume)
+        self.assertEqual(json.loads(output.getvalue()),{'status':'RECOVERABLE'})
+        self.producer.assert_not_called();self.continuation.assert_not_called()
 
 
 if __name__ == '__main__':

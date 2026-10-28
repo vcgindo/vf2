@@ -58,6 +58,14 @@ class GenericCaptureCompatibilityTests(unittest.TestCase):
         self.assertEqual(set(compatible.ORIGIN_RELEASE),{'schema','source_commit','manifest_sha256',
             'source_files_digest','migrations_digest','implementation_sha256'})
         self.assertTrue(all(name.startswith(('mta/','release/')) for name in compatible.ORIGIN_OVERRIDES))
-        self.assertNotIn('mta/runtime/runtime_report_request.py',compatible.ORIGIN_OVERRIDES)
         self.assertNotIn('mta/temporal/chain.py',compatible.ORIGIN_OVERRIDES)
         self.assertNotIn('mta/temporal/day_phases.py',compatible.ORIGIN_OVERRIDES)
+
+    def test_only_the_exact_source_qualified_publication_recipe_transfers(self):
+        with patch('mta.runtime.retained_registered_execution_compatibility._recipe_sources') as qualified:
+            self.assertEqual(compatible.production_publication_recipe(compatible.OBSERVED_PRODUCTION_PUBLICATION_RECIPE),
+                compatible.ORIGINAL_PRODUCTION_PUBLICATION_RECIPE)
+            qualified.assert_called_once_with()
+            with self.assertRaises(ValueError):compatible.production_publication_recipe('unknown-recipe')
+        with patch('mta.runtime.retained_registered_execution_compatibility._recipe_sources',side_effect=ValueError('source changed')):
+            with self.assertRaises(ValueError):compatible.production_publication_recipe(compatible.OBSERVED_PRODUCTION_PUBLICATION_RECIPE)

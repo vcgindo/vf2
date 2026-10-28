@@ -75,6 +75,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
     sources=None if scoped is None else scoped.calculation_sources
     if scoped is not None:output=scoped.output
     producer_preparation=output.pop('_MasterPreparation',None)
+    current_master_publication=None
     with stage('persistence_profile_reconstruction'):
         frozen=(read_input(run,components=('profile','scope_request')) if run.kind=='DAILY_CHAIN' else {})
         frozen_profile=frozen.get('profile')
@@ -165,7 +166,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
                     if scoped is None:
                         publish_mdm_current(run, captured, output['ClosingState'][0])
                     else:
-                        publish_mdm_current(run,captured,output['ClosingState'][0],_accepted_prefix=True)
+                        current_master_publication=publish_mdm_current(run,captured,output['ClosingState'][0],
+                            _accepted_prefix=True,_observe_current_master=placement)
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
             # Verify the same complete boundary after its actual owned writers,
             # inside the transaction so any failure rolls every writer back.
@@ -279,7 +281,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
         if prepared_capture is not None:
             from mta.runtime.capture_preparation import publication_metadata
             publication_metadata(run,prepared_capture,producer_preparation,
-                                 _scoped_placement=placement and scoped is not None)
+                                 _scoped_placement=placement and scoped is not None,
+                                 _current_master_publication=current_master_publication)
         if placement:
             from mta.runtime.runtime_report_execution import register_completion
             register_completion(run,_report_work,final_unit=_scoped_unit)

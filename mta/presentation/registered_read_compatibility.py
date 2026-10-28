@@ -108,8 +108,7 @@ ORIGINAL_DEPENDENCIES = {'mta.application.production_bor_contract': '81e6a3307ba
  'mta.runtime.intake_diagnostics': '9a7a72dbd88ea48fafc4798a684f8b33a26b01377ad565b54edfbe0cb3081696',
  'mta.runtime.runtime_report_registered_request': '44a92b00707e195dc0599e19efaa5804ae2f68313b13cd514b94a1d70f53000b',
  'release.phase_selection': '2ff72ae1ad25aad0d0011fb1429e992225fdc27880aecda30ea2de0019db00b6'}
-ADAPTED_DEPENDENCIES = {'mta.runtime.migrations.0242_generic_read_sql_aliases': 'edaae0a3a0da675f6ada277a89cc941d540d5668fd1222989191344e1de0a50b',
- 'mta.presentation.registered_report_view': '01ae33ab88694414a7f45c816439965ad52e939f87d67bff9dba1fc4027cb144',
+ADAPTED_DEPENDENCIES = {'mta.presentation.registered_report_view': '01ae33ab88694414a7f45c816439965ad52e939f87d67bff9dba1fc4027cb144',
  'mta.presentation.scoped_artifacts': '4f1a61db37335940b1ce6911eff464cf99284053f57ca1fa7c8a764f852b4821',
  'mta.presentation.scoped_batch_downloads': '6d9c48ed037902564217055005e167782b6a4fffb822660efe60d830d27efb9e',
  'mta.presentation.scoped_batch_files': '8cfc8221749c47e8646e3689256682890348ba2456dcd75728ff82d1f52188f8',
@@ -118,13 +117,15 @@ ADAPTED_DEPENDENCIES = {'mta.runtime.migrations.0242_generic_read_sql_aliases': 
  'mta.presentation.scoped_view': 'b55cf315b2d5b6ded4d6e87ca3278fbada9287389d98076a1bcd659cf9921a1b',
  'mta.runtime.migrations.0238_registered_read_action_cut': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
  'mta.runtime.migrations.0239_production_generic_scope_read': '44e28f4a8b34912540ee56767e26c22ab1565870f583cc88a993936f5a522297',
+ 'mta.runtime.migrations.0242_generic_read_sql_aliases': 'edaae0a3a0da675f6ada277a89cc941d540d5668fd1222989191344e1de0a50b',
  'mta.runtime.production_scope_policy': '88ab6efa6f77958d874fbcaecb049a32dc7bee2368b7ad61f28dacc52612ff0f',
- 'mta.runtime.runtime_report_registered_request': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468'}
+ 'mta.runtime.runtime_report_registered_request': 'fe94595e3241bcdf96ab7704b5a7fd7eae4c975049d905887b885e67956aa468',
+ 'mta.runtime.runtime_report_request': '2cc9ec5352fe08145d14027c6ebc39587827de3c126aaac022df05243ae9631f'}
 
 
 @once_per_request
 def recipe():
-    if set(ADAPTED_DEPENDENCIES) != {'mta.runtime.migrations.0242_generic_read_sql_aliases', 'mta.presentation.registered_report_view', 'mta.presentation.scoped_artifacts', 'mta.presentation.scoped_batch_downloads', 'mta.presentation.scoped_batch_files', 'mta.presentation.scoped_bor', 'mta.presentation.scoped_selection', 'mta.presentation.scoped_view', 'mta.runtime.migrations.0238_registered_read_action_cut', 'mta.runtime.migrations.0239_production_generic_scope_read', 'mta.runtime.production_scope_policy', 'mta.runtime.runtime_report_registered_request'}:
+    if set(ADAPTED_DEPENDENCIES) != {'mta.presentation.scoped_artifacts', 'mta.presentation.registered_report_view', 'mta.presentation.scoped_selection', 'mta.presentation.scoped_view', 'mta.runtime.production_scope_policy', 'mta.presentation.scoped_batch_files', 'mta.presentation.scoped_batch_downloads', 'mta.runtime.runtime_report_registered_request', 'mta.runtime.migrations.0239_production_generic_scope_read', 'mta.presentation.scoped_bor', 'mta.runtime.migrations.0238_registered_read_action_cut', 'mta.runtime.runtime_report_request', 'mta.runtime.migrations.0242_generic_read_sql_aliases'}:
         raise PublicationUnavailable('registered_read_profile_roster_differs')
     for name, checksum in dict(ORIGINAL_DEPENDENCIES, **ADAPTED_DEPENDENCIES).items():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()

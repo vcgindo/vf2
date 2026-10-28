@@ -131,11 +131,13 @@ def configuration_writes(run):
     return sorted(images,key=lambda item:item['image'])
 
 
-def _promotion(run,capture,prefix,state):
+def _promotion(run,capture,prefix,state,*,current_master_publication,final_id):
     from mta.runtime.ingestion_models import MasterInputRevision
     parent=_parent(run,capture,prefix);images=configuration_writes(run)
+    from mta.runtime.placement_current_master import validate
+    increment=validate(run,capture,current_master_publication,parent=parent,final_id=final_id)
     before=[parent.master_epoch,parent.configuration_epoch]
-    after=[before[0],before[1]+sum(item['statements'] for item in images)]
+    after=[before[0]+increment,before[1]+increment+sum(item['statements'] for item in images)]
     if (not connection.in_atomic_block or str(state.pk)!=capture['initialization_id']
             or [state.master_epoch,state.configuration_epoch]!=after):
         raise ValueError('Placement terminal master configuration cut differs')
@@ -144,14 +146,16 @@ def _promotion(run,capture,prefix,state):
         raise ValueError('Placement terminal master cut is already occupied')
     return parent,dict(parent_id=str(parent.pk),captured_base_id=capture['base_revision_id'],
         before=before,after=after,parent_receipt=parent.receipt_digest,
-        configuration_writes=images,additional_master_increment=0)
+        configuration_writes=images,additional_master_increment=increment,
+        current_master_publication=current_master_publication)
 
 
-def publication_master(run,capture,producer,state):
+def publication_master(run,capture,producer,state,*,current_master_publication=None):
     prefix,final=_owner(run,capture)
     _producer(capture,producer,prefix)
     roots=_static_roots(run,prefix[-1])
-    _,promotion=_promotion(run,capture,prefix,state)
+    _,promotion=_promotion(run,capture,prefix,state,
+        current_master_publication=current_master_publication,final_id=final.pk)
     return dict(producer,**{KEY:dict(schema=PROVENANCE,capture_receipt=capture['receipt_digest'],
         capture_selected_reuse=capture['qualified_master_reuse'],accepted_master_reused=False,
         pending_final_id=str(final.pk),accepted_phases=[dict(id=str(p.pk),digest=p.digest) for p in prefix],
@@ -166,7 +170,13 @@ def terminal_master_parent(run,initialization_id,base_id,state):
             or producer.get('master_cut')!=[state.master_epoch,state.configuration_epoch]):
         raise ValueError('Placement terminal master acceptance identity differs')
     raw={key:value for key,value in producer.items() if key not in (KEY,'master_cut')}
-    expected=publication_master(run,capture,raw,state)
+    provenance=producer.get(KEY,{})
+    promotion=provenance.get('master_promotion',{}) if type(provenance) is dict else {}
+    current_master_publication=promotion.get('current_master_publication') if type(promotion) is dict else None
+    if current_master_publication is None:
+        raise ValueError('Placement terminal current-master provenance is absent')
+    expected=publication_master(run,capture,raw,state,
+        current_master_publication=current_master_publication)
     if producer!={**expected,'master_cut':producer['master_cut']}:
         raise ValueError('Placement terminal master provenance differs')
     prefix,_=_owner(run,capture)
