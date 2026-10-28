@@ -437,7 +437,7 @@ def _reconciliation_owner(args, binding, owner, reference, receipt):
     return run, captured
 
 
-def _reconciliation_state(args, run, captured):
+def _reconciliation_state(args, run, captured, receipt=None):
     """Read existing accepted owners only; no claim, fence, repair or producer."""
     from mta.runtime import production_scope as original, scope_execution as workers
     from mta.runtime import production_report_placement as engine, scoped_actions, scope_revisions
@@ -453,7 +453,6 @@ def _reconciliation_state(args, run, captured):
     if (source.attempt.status != 'RELEASED' or source.attempt.scope != captured['scope']
             or source.attempt.command_key != captured['command_key']
             or source.attempt.compatibility_digest != captured['compatibility_digest']
-            or latest.scope != args.scope or latest.command_key != command
             or latest.compatibility_digest != captured['compatibility_digest']
             or latest.input_digest != run.input_digest or latest.input_manifest_digest != run.input_manifest_digest
             or latest.action_revision != action or latest.worker_reference != 'vectorflow-csv-scope'):
@@ -462,6 +461,22 @@ def _reconciliation_state(args, run, captured):
         compatibility_digest=captured['compatibility_digest'], source_phase_id=str(source.pk),
         source_phase_digest=source.digest, accepted_head=list(head), action_revision=action,
         latest_attempt=_attempt_evidence(latest))
+    if (args.scope in TAILS and run.status == 'RUNNING' and latest.pk == source.attempt.pk
+            and latest.status == 'RELEASED' and head == (source_name, source.digest)):
+        prefix = (receipt or {}).get('results', {}).get(captured['scope'], {})
+        if (run.scope_attempts.filter(scope__in=tuple(TAILS)).exists()
+                or (receipt or {}).get('scope') != args.scope
+                or (receipt or {}).get('status') not in ('EXECUTING', 'FAILED', 'RECOVERABLE')
+                or prefix.get('run_id') != str(run.pk)
+                or prefix.get('phase_acceptance_id') != str(source.pk)
+                or prefix.get('phase_acceptance_digest') != source.digest
+                or prefix.get('snapshot_digest') != source.snapshot.state_digest
+                or prefix.get('action_revision') != action):
+            raise ValueError('Unclaimed continuation requires its exact unchanged released prefix')
+        scope_revisions.require_current(run)
+        return dict(proof, outcome='RECOVERABLE', recovery_of=None, continuation_never_claimed=True), None
+    if latest.scope != args.scope or latest.command_key != command:
+        raise ValueError('Reconciliation latest continuation scope/command differs')
     if args.scope in TAILS and run.status == 'RUNNING':
         if (latest.status != 'FAILED' or hasattr(latest, 'recovery')
                 or head[0] not in (('BPR', 'DBM') if args.scope == 'PostBPR' else ('DBM',))):
@@ -556,7 +571,7 @@ def _verify_recovery(args, csv, binding, owner, reference, manifest, root, recei
             raise ValueError('Scope journal changed before reconciliation verification')
         run, captured = _reconciliation_owner(args, binding, owner, reference, receipt)
         args._batch_digest = manifest['digest']
-        actual, _result = _reconciliation_state(args, run, captured)
+        actual, _result = _reconciliation_state(args, run, captured, receipt)
         if actual != saved or actual['outcome'] != outcome:
             raise ValueError('Reconciled recovery owner/head/action changed; reconcile again explicitly')
     return saved
@@ -568,7 +583,7 @@ def _reconcile(args, csv, binding, owner, reference, manifest, root, receipt, ch
     with transaction.atomic():
         run, captured = _reconciliation_owner(args, binding, owner, reference, receipt)
         args._batch_digest = manifest['digest']
-        verification, result = _reconciliation_state(args, run, captured)
+        verification, result = _reconciliation_state(args, run, captured, receipt)
         if receipt['status'] in ('RECOVERABLE', 'CALCULATED'):
             if _reconciliation_evidence(root, receipt) != verification:
                 raise ValueError('Existing reconciliation owner changed; preserve it and diagnose')

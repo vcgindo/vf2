@@ -190,6 +190,10 @@ def download_report(request, payload, *, report_name):
         run = selected_run()
         from mta.presentation import terminal_bpr_delivery
         reader = terminal_bpr_delivery.open_report if terminal_bpr_delivery.applicable(run) else open_report
+        if reader is open_report:
+            from mta.presentation import generic_terminal_delivery
+            if generic_terminal_delivery.applicable(run):
+                reader = generic_terminal_delivery.open_report
         stream, filename = reader(run, payload, report_name)
     except PickDownloadDenied as error:
         return JsonResponse({'error': str(error)}, status=403)

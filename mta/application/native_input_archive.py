@@ -116,6 +116,17 @@ def _zip_info(name,size):
     return info
 
 
+def _archive_path(run, captured, *, create=False):
+    from mta.presentation import generic_terminal_delivery as terminal
+    from mta.presentation.pick_downloads import _owned_file
+    try:
+        if terminal.applicable(run, captured):
+            return terminal.archive_path(run, captured, create=create)
+        return _owned_file(run, 'LogisticPickListReport.csv' if create else FILENAME).parent / FILENAME
+    except (ValueError, OSError) as error:
+        raise ArchiveDenied(str(error)) from error
+
+
 def prepare(run, opening_file, daily_file):
     captured=_inputs(run)
     expanded_limit,compressed_limit=_limits()
@@ -146,10 +157,7 @@ def prepare(run, opening_file, daily_file):
     if total+len(manifest_bytes)>expanded_limit:raise ArchiveDenied('native_input_archive_size_limit')
     files['manifest.json']=lambda:iter((manifest_bytes,))
     metadata={**metadata,'manifest.json':dict(bytes=len(manifest_bytes),sha256=_sha(manifest_bytes))}
-    from mta.presentation.pick_downloads import _owned_file,PickDownloadDenied
-    try:sibling=_owned_file(run,'LogisticPickListReport.csv')
-    except PickDownloadDenied as error:raise ArchiveDenied(str(error)) from error
-    target=sibling.parent/FILENAME
+    target=_archive_path(run,captured,create=True)
     import uuid
     temporary=target.with_name('.'+FILENAME+'.'+uuid.uuid4().hex+'.partial')
     # A failed partial is retained and never promoted/reused as accepted output.
@@ -184,9 +192,7 @@ def prepare(run, opening_file, daily_file):
 def open_archive(run):
     captured=_inputs(run)
     expanded_limit,compressed_limit=_limits()
-    from mta.presentation.pick_downloads import _owned_file,PickDownloadDenied
-    try:path=_owned_file(run,FILENAME)
-    except PickDownloadDenied as error:raise ArchiveDenied(str(error)) from error
+    path=_archive_path(run,captured)
     stream=path.open('rb')
     try:
         if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):raise ArchiveDenied('native_input_archive_not_file')

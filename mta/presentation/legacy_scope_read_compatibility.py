@@ -17,9 +17,8 @@ POSTBPR_RECIPE = '31fee0cee1f8b9008fd969da3585537af75a0321bbb3f2664a2d4490e03eff
 POSTBPR_SELECTION_RECIPE = '2027c2fa7f1c192636249b928bbe19af0ecd0a98ddb464e7197df0b9c8bf2d1a'
 # Exact candidate source pins are frozen after the bounded adapter change.
 # A placeholder is fail-closed, never a wildcard or an environment override.
-ADAPTED_DEPENDENCIES = {
-    'mta.presentation.views': 'b53981c460cfeaadcf6b85cea78aab1c970aea7e5cfc57c929472a0f3ff7c87a',
-    'mta.presentation.scoped_dbm_view': '8f6fbb475537a1264ee53bf22bf5212f0bd3c6dedc4508f5b4b7d2de62353f19'}
+ADAPTED_DEPENDENCIES = {'mta.presentation.scoped_dbm_view': '8f6fbb475537a1264ee53bf22bf5212f0bd3c6dedc4508f5b4b7d2de62353f19',
+ 'mta.presentation.views': 'c7499957ed618bfa74a8f2a2d43db9a44be8042f339fb39d9b81035646c29cf3'}
 DISPATCHERS = {
     'mta.presentation.diagnostic_downloads': '37d4da2c65d1c6d6378c4440cbf9744cc80024ad5aff8bc79120f1cc64945f71',
     'mta.runtime.diagnostic_publication': '9a37d00c2d0fad17169886e40dfc6f931c5f3b6a4231fbb08a513807e9bcbbd5',

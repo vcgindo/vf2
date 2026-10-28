@@ -633,6 +633,32 @@ class ScopeReconciliationTests(unittest.TestCase):
         self.run.scope_attempts.filter.return_value.exists.return_value=True
         with self.assertRaisesRegex(ValueError,'active worker'):self.state()
 
+    def test_tail_not_claimed_requires_exact_prefix_and_no_native_tail(self):
+        from copy import copy
+        source=copy(self.attempt)
+        source.pk=source.id=self.source_attempt.pk
+        source.scope='UptoBPR';source.command_key=self.captured['command_key'];source.status='RELEASED'
+        self.phase.attempt=source
+        self.phase.snapshot=SimpleNamespace(state_digest='snapshot')
+        self.run.scope_attempts.select_for_update.return_value.order_by.return_value.first.return_value=source
+        self.run.scope_attempts.filter.return_value.exists.return_value=False
+        receipt=deepcopy(self.receipt)
+        prefix=dict(run_id=str(self.run.pk),phase_acceptance_id=str(self.phase.pk),
+            phase_acceptance_digest=self.phase.digest,snapshot_digest='snapshot',action_revision=0)
+        receipt.update(status='EXECUTING',results={'UptoBPR':prefix})
+        with patch('mta.runtime.scope_execution.head',return_value=('BPR',self.phase.digest)):
+            proof,result=self.op._reconciliation_state(self.args,self.run,self.captured,receipt)
+            self.assertTrue(proof['continuation_never_claimed']);self.assertIsNone(proof['recovery_of'])
+            self.assertIsNone(result)
+            for field in prefix:
+                corrupt=deepcopy(receipt);corrupt['results']['UptoBPR'][field]='foreign'
+                with self.subTest(field=field),self.assertRaises(ValueError):
+                    self.op._reconciliation_state(self.args,self.run,self.captured,corrupt)
+            self.run.scope_attempts.filter.return_value.exists.side_effect=[False,True]
+            with self.assertRaises(ValueError):
+                self.op._reconciliation_state(self.args,self.run,self.captured,receipt)
+        self.producer.assert_not_called();self.continuation.assert_not_called()
+
     def test_append_before_change_crash_reuse_and_idempotent_reconciliation(self):
         from contextlib import nullcontext
         self.csv.atomic_json(self.root/'operation.json',self.receipt)
