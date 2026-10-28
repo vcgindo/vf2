@@ -1,257 +1,112 @@
-# VectorFLOW — Stage 5 large deployment validation
+# VectorFLOW — deploy and run
 
-Use the published release tag **`vectorflow-generic-scope-20261028`** with this runbook. If Git cannot resolve that tag, stop: the release is still being qualified.
+Fresh installation only. Use an unused project name and fresh input/operation folders. Keep 3005/8080 unchanged. Run each command separately and stop on an error.
 
-Use this guide to install VectorFLOW and run the large dataset yourself after release. Run each command separately and stop at the first error. Your clean installation and large-data execution supply the Stage 5 evidence; the small release qualification does not establish large-data capacity.
+## 1. Clone
 
-Use a clean computer or independent Docker environment: the `vectorflow` project already exists on the current shared host. Leave the existing installation and localhost:8080 unchanged. Requires Git, PowerShell 5.1 or 7, Docker Desktop with Linux/amd64 containers and Compose 2.24.4 or later. The first build needs internet access; the input data is offline.
-
-## 1. Clone VectorFLOW
-
-Use a new `D:/VectorFLOW` folder. The release tag pins the source for these commands. This is a clean-install procedure; do not connect this clone to an older installation's databases, secrets or operation folders. An existing installation needs a version-specific upgrade plan.
+Skip cloning if you already have this tag; use that clone's folder.
 
 ```powershell
-git clone --single-branch --branch vectorflow-generic-scope-20261028 git@github.com:yurtse/freshvcf.git D:/VectorFLOW
-Set-Location D:/VectorFLOW
+git clone --depth 1 --single-branch --branch vectorflow-generic-scope-20261028 git@github.com:yurtse/freshvcf.git D:/VectorFLOW-Small
+cd D:/VectorFLOW-Small
 ```
 
-## 2. Configure once
+## 2. Choose one dataset
 
-The offline package is **`I:/data/vectorflow-synthetic-97097-20261027-v2`**. It contains the 7 April 2026 opening and four daily batches, 8–11 April, with 97,097 processed pairs per day. It has no prehistory. Use only this v2 package.
-
-Copy it to a fresh working folder. Initialization will bind that copy to this installation; the original stays reusable. If transporting the package to another computer, change only the source path in the copy command.
+Small starter:
 
 ```powershell
-$ErrorActionPreference = 'Stop'
-if (Test-Path -LiteralPath D:/VectorFLOW-Input) { throw 'Input folder already exists; use a fresh target' }
-if (Test-Path -LiteralPath D:/VectorFLOW-Operations) { throw 'Operations folder already exists; use a fresh target' }
-Copy-Item -LiteralPath I:/data/vectorflow-synthetic-97097-20261027-v2 -Destination D:/VectorFLOW-Input -Recurse
-New-Item -ItemType Directory -Path D:/VectorFLOW-Operations
-Copy-Item -LiteralPath .env.example -Destination .env
-@'
-services:
-  auth:
-    environment:
-      VF_AUTH_SITE_CACHE_URL: redis://redis:6379/1
-      VF_AUTH_SITE_KEY_NAMESPACE: vectorflow
-'@ | Set-Content -LiteralPath D:/VectorFLOW-Operations/vectorflow.yaml -Encoding ASCII
-notepad D:/VectorFLOW/.env
+Expand-Archive -LiteralPath I:/VectorFLOW-input/vectorflow-starter-csv-complete-20261019.zip -DestinationPath D:/VectorFLOW-Trial-Input
 ```
 
-Maintain the following entries in **`D:/VectorFLOW/.env`**. Change existing entries rather than duplicating them; add entries that are absent. Keep the other template settings unchanged.
+Or large v2:
+
+```powershell
+Copy-Item -LiteralPath I:/data/vectorflow-synthetic-97097-20261027-v2 -Destination D:/VectorFLOW-Trial-Input -Recurse
+```
+
+For another qualified CSV package, copy its unbound folder instead. Do not reuse a folder containing another installation's `binding.json`. The already-prepared `D:/VectorFLOW-Small-Input` can be used directly: skip extraction and set that path in `.env`.
+
+## 3. Configure
+
+```powershell
+Copy-Item .env.example .env
+New-Item -ItemType Directory D:/VectorFLOW-Trial-Operations
+@('services:', '  auth:', '    environment:', '      VF_AUTH_SITE_CACHE_URL: redis://redis:6379/1', '      VF_AUTH_SITE_KEY_NAMESPACE: vectorflow-trial') | Set-Content D:/VectorFLOW-Trial-Operations/vectorflow.yaml -Encoding ASCII
+notepad .env
+```
+
+Set these entries, replacing existing values. Enter your administrator email/name; leave the password blank for the install prompt. Keep other defaults.
 
 ```dotenv
-VF_PROJECT=vectorflow
+VF_PROJECT=vectorflow-trial
+VF_IMAGE_PREFIX=vectorflow-trial
 VF_HTTP_PORT=8091
 PG_ADMIN_USER=postgres
 MTA_DB_NAME=vectorflow_mta
-VECTORFLOW_SCOPE_POLICY=generic
 MTO_DB_NAME=vectorflow_mto
+VECTORFLOW_SCOPE_POLICY=generic
 VF_ADMIN_EMAIL=
 VF_ADMIN_NAME=
 VF_ADMIN_PASSWORD=
-VF_CSV_INPUT_DIR=D:/VectorFLOW-Input
-VF_DAILY_STATE_DIR=D:/VectorFLOW-Operations
+VF_CSV_INPUT_DIR=D:/VectorFLOW-Trial-Input
+VF_DAILY_STATE_DIR=D:/VectorFLOW-Trial-Operations
 COMPOSE_PATH_SEPARATOR=;
-COMPOSE_FILE=compose.yaml;D:/VectorFLOW-Operations/vectorflow.yaml
+COMPOSE_FILE=compose.yaml;D:/VectorFLOW-Trial-Operations/vectorflow.yaml
 ```
 
-Enter your application administrator email and name. Leave its password blank to enter and confirm it privately during installation. Database passwords are generated by the installer and stored in private Docker volumes; their location and usernames are in Appendix A. No credentials or input data belong in Git.
+The small YAML file supplies this release's auth cache settings. Database passwords are generated automatically into private Docker volumes.
 
-Keep `PG_ADMIN_USER=postgres`: the packaged PostgreSQL bootstrap uses local peer authentication and must match its `postgres` operating-system user. The application administrator is the separate account you enter above.
+## 4. Build, install, start
 
-The configuration block gives this installation its own authentication site-key cache and explicitly selects existing generic processing for scoped runs. The actual opening's site is retained. A GulfOil site label does not enable GulfOil client scripts or custom reports. The qualified scope report profile is included in the application; no manual registration or hash preparation is needed. Use port 8091 before building; HTTP/WebSocket origins derive from it. Do not copy the data package's older resource-profile configuration into this installation.
-
-## 3. Build, install and start
-
-From `D:/VectorFLOW`, run these commands **one at a time**. Continue only when each succeeds.
+Run one command at a time; continue only after success.
 
 ```powershell
 docker compose build
-```
-
-```powershell
 docker compose run --rm install
-```
-
-```powershell
 docker compose up -d --no-build --wait
 ```
 
-Installation creates the databases, roles, secrets and your application administrator. It does not load business inputs or calculate results. Open **http://127.0.0.1:8091** and sign in normally, including CAPTCHA. Business reports become available after initialization and the first published day.
+Open **http://127.0.0.1:8091** and sign in with your administrator account.
 
-## 4. Initialize once
+## 5. Initialize and run
+
+Initialize once:
 
 ```powershell
 .\vf.ps1 csv-init
 ```
 
-Wait for **INITIALIZED / READY_FOR_FIRST_CSV_DAY**. This loads the opening and masters and prepares this working copy for daily operation. No manual hashes, UUIDs, registrations or JSON edits are needed. Never repeat initialization to recover a daily failure.
-
-## 5. Run each day
-
-Run one date, wait for **PUBLISHED**, and check its reports before advancing to the next date.
+Choose a date from your package, then run Full:
 
 ```powershell
-.\vf.ps1 csv-day 2026-04-08
+$Day = '2026-10-18'
+.\vf.ps1 csv-day $Day
 ```
 
-```powershell
-.\vf.ps1 csv-day 2026-04-09
-```
+Wait for **PUBLISHED**, check reports/downloads, then change `$Day` to the next date and repeat.
 
-```powershell
-.\vf.ps1 csv-day 2026-04-10
-```
-
-```powershell
-.\vf.ps1 csv-day 2026-04-11
-```
-
-The launcher handles input validation, calculation, report preparation, selection and MTA restart. Reports and administrator permission lookup may be unavailable during processing. Each day uses this installation's own preceding state.
-
-After each publication, check the displayed date, BPR and RRR values/filters/CSV downloads, BTR views and scrolling, and applicable Planning/Guided reports. Record errors, empty or unavailable reports and click-to-usable times alongside the operation records. A row count or HTTP 200 alone does not establish correct results. The 8 April transit case has a known report limitation described in Appendix C.
-
-## 6. Execution scope
-
-| Choose one path | Commands |
+| Dataset | Run dates, in order |
 | --- | --- |
-| Full | The four `csv-day` commands above |
-| Up to BPR → Post BPR | `csv-scope DATE -Scope UptoBPR`, then `csv-scope DATE -Scope PostBPR` |
-| Up to DBM → Post DBM | `csv-scope DATE -Scope UptoDBM`, then `csv-scope DATE -Scope PostDBM` |
+| Small | 2026-10-18, 2026-10-19 |
+| Large v2 | 2026-04-08, 2026-04-09, 2026-04-10, 2026-04-11 |
 
-For a split route, use a fresh independent installation and the **same external dataset**, then run one command at a time. Check the prefix reports before its continuation, and finish the date before advancing. Each installation computes its own predecessors. A comparison requires separate initialized installations; never combine Full and split producers on one initialized date. Keep manual actions/remarks identical or absent when comparing paths.
-
-**Alternative: Up to BPR → Post BPR**
+For split comparisons, use a separate fresh installation/input copy and substitute one pair for Full. Run the prefix, check its reports, then run its tail:
 
 ```powershell
-.\vf.ps1 csv-scope 2026-04-08 -Scope UptoBPR
-.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR
-.\vf.ps1 csv-scope 2026-04-09 -Scope UptoBPR
-.\vf.ps1 csv-scope 2026-04-09 -Scope PostBPR
-.\vf.ps1 csv-scope 2026-04-10 -Scope UptoBPR
-.\vf.ps1 csv-scope 2026-04-10 -Scope PostBPR
-.\vf.ps1 csv-scope 2026-04-11 -Scope UptoBPR
-.\vf.ps1 csv-scope 2026-04-11 -Scope PostBPR
+.\vf.ps1 csv-scope $Day -Scope UptoBPR
+.\vf.ps1 csv-scope $Day -Scope PostBPR
 ```
 
-**Alternative: Up to DBM → Post DBM**
+or:
 
 ```powershell
-.\vf.ps1 csv-scope 2026-04-08 -Scope UptoDBM
-.\vf.ps1 csv-scope 2026-04-08 -Scope PostDBM
-.\vf.ps1 csv-scope 2026-04-09 -Scope UptoDBM
-.\vf.ps1 csv-scope 2026-04-09 -Scope PostDBM
-.\vf.ps1 csv-scope 2026-04-10 -Scope UptoDBM
-.\vf.ps1 csv-scope 2026-04-10 -Scope PostDBM
-.\vf.ps1 csv-scope 2026-04-11 -Scope UptoDBM
-.\vf.ps1 csv-scope 2026-04-11 -Scope PostDBM
+.\vf.ps1 csv-scope $Day -Scope UptoDBM
+.\vf.ps1 csv-scope $Day -Scope PostDBM
 ```
 
----
+Do not mix Full and split producers on one initialized date.
 
-## Appendix A — Environment and credentials
+On failure, stop and retain the operation records. Never repeat initialization, reset volumes or replay an accepted day. A committed preparation/serving failure may use the same command with `-Resume` after diagnosis; interrupted/uncertain calculation needs reconciliation first.
 
-`D:/VectorFLOW/.env` is the installation's private configuration file. It holds paths, database/user names and administrator fields. Keep it with matched backups, outside Git. Editing administrator fields after installation does not reset the account. The password policy requires at least eight characters, an uppercase letter and a special character, and rejects common/similar passwords.
-
-| Account | Default username |
-| --- | --- |
-| PostgreSQL administrator | `postgres`, matching `PG_ADMIN_USER=postgres` above |
-| MTA installer / runtime | `vectorflow_mta_installer` / `vectorflow_mta_runtime` |
-| Authentication installer / runtime | `vectorflow_auth_installer` / `vectorflow_auth_runtime` |
-| MTO installer / runtime | `vectorflow_mto_installer` / `vectorflow_mto_runtime` |
-
-Database passwords are generated once by `secret-init`. The administrator password is stored as `source/postgres_admin_password` in the private `vectorflow_secret_store` Docker volume, mounted by secret initialization at `/secrets/private/source/postgres_admin_password`. Service passwords and signing keys are distributed into service-specific private secret volumes. Owner roles have no login. Adding `PG_ADMIN_PASSWORD` or `POSTGRES_PASSWORD` to `.env` does not configure this installer.
-
-Do not share resolved Compose configuration or secret-volume contents. The authentication override created in section 2 uses this installation's Redis database and namespace; permission caching and session expiry remain unchanged. The root Compose file does not automatically forward those optional settings from `.env`.
-
-## Appendix B — Capacity and exceptional recovery
-
-Before building or importing, confirm that the target has no existing `vectorflow` resources, port 8091 is free, and all three destination folders are new. Do not remove existing resources to reuse the name.
-
-These read-only commands help check capacity:
-
-```powershell
-docker info --format 'Docker CPUs={{.NCPU}} MemoryBytes={{.MemTotal}}'
-Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory
-Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{Name='FreeGiB';Expression={[math]::Round($_.Free / 1GB, 1)}}
-```
-
-Normal Compose defaults impose no application CPU/RAM ceiling. The earlier large calculation approached 8 GiB for one worker; that does not size this complete installation or prove that the new opening fits. Builds, PostgreSQL and serving processes also consume resources. Size your own target from measured use and keep headroom for the whole installation; retain at least 2 GiB host RAM and 20 GiB disk free on relevant backing drives. The optional 4 GiB test overlay is not qualified for this large package. Preserve unrelated installations when configuring your target.
-
-On failure, retain the input copy, `.env`, operation records, error output and matched database/file/secret volumes. Do not reset, delete volumes, regenerate secrets or replay accepted days.
-
-| Recorded failure | Supported recovery after diagnosis |
-| --- | --- |
-| Initialization committed, but completion/configuration/serving failed; no daily run exists | `.\vf.ps1 csv-init -Resume` |
-| Daily calculation committed, but report preparation/selection/serving failed | `.\vf.ps1 csv-day DATE -Resume`, with that receipt's actual date |
-| Latest published date is still selected, but MTA stopped | The same dated `csv-day DATE -Resume`; it validates the selection before service recovery |
-| Scoped calculation committed and its receipt says CALCULATED or PREPARED; preparation or serving failed | Repeat that exact `csv-scope DATE -Scope SCOPE -Resume` after diagnosis; preparation/selection recovery does not calculate again |
-| A PostBPR or PostDBM operation says EXECUTING or FAILED | After diagnosis, use the separate reconciliation sequence below. It recognizes an exact failed tail or a tail that never claimed a native worker; it is not an automatic retry |
-| Full failed, a worker is still active, or a frozen directory has no operation receipt | Preserve it and stop for diagnosis. The scoped reconciliation command does not repair these cases |
-| Calculation failed or was interrupted | Stop for reconciliation; no automatic calculation retry is provided |
-
-### Reconcile a scoped continuation
-
-Use these commands with the published release named in section 1. Reconciliation
-is separate from continuing the calculation.
-
-Use the failed operation's exact date and scope. For example, for an 8 April
-PostBPR continuation, run reconciliation by itself:
-
-```powershell
-.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -Reconcile
-```
-
-Reconciliation verifies the original input snapshot, initialization, registration,
-accepted phase, action revision and latest worker. It preserves the original
-failure in an immutable reconciliation record. It does not calculate, register
-new inputs, stop MTA or start MTA. Do not combine `-Reconcile` with `-Resume` or
-`-InspectOnly`.
-
-Read the returned status before continuing:
-
-| Status | Meaning and next step |
-| --- | --- |
-| `CALCULATED` | The database already completed this operation. After inspection, `-Resume` performs the remaining preparation and selection without repeating its calculation |
-| `RECOVERABLE` | The exact failed tail, or an unclaimed tail with an unchanged released prefix, can continue. After inspection, a separate `-Resume` explicitly runs its remaining unaccepted work; accepted phases are not repeated |
-| An error | Stop and retain the error and operation records. Do not edit the journal or choose a new runtime folder to bypass the refusal |
-
-For either returned status, inspect the same operation first:
-
-```powershell
-.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -InspectOnly -Resume
-```
-
-Continue only when inspection succeeds and the date, run and scope are correct:
-
-```powershell
-.\vf.ps1 csv-scope 2026-04-08 -Scope PostBPR -Resume
-```
-
-For PostDBM, replace `PostBPR` with `PostDBM` in all three commands. Never switch
-between split paths to repair a failure. Reconciliation refuses active workers,
-changed inputs, foreign ownership, stale phases or changed action revisions.
-After recovery, perform the same readiness, selected-date, report and download
-checks as a normal completed day before starting the next date. A successful
-calculation does not by itself mean reports have been prepared and published.
-
-For a planned service restart, use `docker compose stop`, then `docker compose up -d --no-build --wait`. Check readiness and the same displayed date/run afterward. Restart does not install, import or calculate. Never use `down -v` as recovery or run historical 8080 controllers.
-
-## Appendix C — Data limits and references
-
-The v2 package's `file-check.json` reports PASS at **file level only**. Initialization, calculation, publication, browser/report correctness and resource fit remain unproved for this generated opening. Your Stage 5 run supplies that evidence; Step 6 records commands that actually succeed and any remaining limits. The small release qualification does not complete your clean installation or large-data rehearsal.
-
-- The cold opening has no BPR/DBM consumption prehistory or suspension/rationing/spike-closure history. It cannot prove mature-history DBM behavior or full rule-window coverage.
-- There are 97,464 raw-master rows and 97,097 distinct processed pairs. The retained processed roster lacks 3,054 same-SKU parent pairs; the raw export has 367 additional keys, including 106 with NULL SKU. Their exclusion reasons are not all established. No parents or raw-only pairs were invented to fill the gaps.
-- The generated opening assigns 100 units to 1,837 existing stock identities and preserves NULL for 95,260. Each known-stock pair consumes one unit per day. One five-unit shipment departs on 8 April and arrives on 9 April between an existing parent and its RLT-1 child. This is narrow logistics coverage.
-- Planning GIT child grid with nonempty transit has a retained unavailable response: HTTP 503, `LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120`. The 8 April batch has nonempty transit. Record the actual response; do not count an unavailable grid as a successful report.
-- The published release uses explicitly selected generic processing and the report roster under real site/database names. Enabled GulfOil client effects and unsupported report definitions are refused. File checks and small native proofs do not establish four-day large-data Full/split equivalence; that is part of your manual validation.
-
-Read-only references:
-
-- Package: `I:/data/vectorflow-synthetic-97097-20261027-v2`; `file-check.json` and `provenance.json` are directly inside that folder.
-- Earlier simple runbooks: `I:/VectorFLOW/release/SOURCE_BUILD.md`, `CSV_STARTER_RUN.md`, `CSV_DAILY_RUN.md` and `RUNBOOK.md`.
-- Completed earlier large-run history: [BOUNDED_RECOVERY_8080.md](BOUNDED_RECOVERY_8080.md). This is a historical reference, not an instruction to replace the current 8080 service.
-
-The first cold package without the `-v2` suffix and older dense-history attempts are superseded. Do not mix their files with this package. Keep source code, reusable offline inputs and this installation's operation records separate.
+MTA stops during processing, so login can return **503** until publication finishes. Small data is useful for fixed-overhead checks but does not prove large-data performance; the current performance issues remain unresolved. Keep this guide outside the tagged clone so the build source remains clean.
