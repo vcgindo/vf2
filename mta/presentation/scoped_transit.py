@@ -20,12 +20,12 @@ SCHEMA='fresh-bpr-transit-rows-v1'
 SETTINGS_PATH='input/profile/delivery/btr_history/importer_vf_settings'
 
 
-def _settings_owner(run,rows):
+def _settings_owner(run,rows,*,path=SETTINGS_PATH):
     """Resolve this declared profile bag, including native initialization refs."""
     from mta.runtime import input_v3,captured_input
     owner=(captured_input.origin(run) if run.input_payload.get('schema') in captured_input.SCHEMAS else run)
     manifest=owner.input_payload;node=manifest['tree'];current='input'
-    for part in SETTINGS_PATH.split('/')[1:]:
+    for part in path.split('/')[1:]:
         if 'owner_reference' in node:
             owner,manifest,_legacy=input_v3._owner_manifest(owner,current,
                 manifest['owner_references'][current],input_v3._identity(owner,None,reading=True),None)
@@ -39,8 +39,77 @@ def _settings_owner(run,rows):
     if (image is None or image['table']!='Importer/VFSettings'
             or image['count']!=len(rows) or image['digest']!=digest(rows)):
         raise PublicationUnavailable('bpr_transit_settings_physical_owner_differs')
-    return dict(path=SETTINGS_PATH,owner_kind=owner._meta.model_name,owner_id=str(owner.pk),
+    return dict(path=path,owner_kind=owner._meta.model_name,owner_id=str(owner.pk),
         input_manifest_digest=owner.input_manifest_digest,image=image)
+
+
+def _opening_settings(phase):
+    """Read the same pre-day VFSettings owner used by native Full.
+
+    This does not read current mutable masters or reconstruct a missing bag.
+    A successor must use its own accepted predecessor; a root resolves its
+    captured initialization reference and verifies the exact binding.
+    """
+    from datetime import timedelta
+    from mta.runtime import captured_input,opening_storage,relational_state
+    from mta.presentation.scoped_inherited_btr import _node
+    from mta.runtime.models import CalculationRun,RunCommand
+    from mta.runtime.receipt_integrity import verify_root
+    run=phase.run
+    physical=captured_input.origin(run) if run.input_payload.get('schema') in captured_input.SCHEMAS else run
+    raw=read_input(run,components=('lineage','initialization_binding','profile'))
+    if digest(raw['profile'])!=phase.snapshot.manifest['references']['profile']:
+        raise PublicationUnavailable('bpr_transit_captured_profile_differs')
+    binding=raw.get('initialization_binding')
+    if not binding:raise PublicationUnavailable('bpr_transit_settings_initialization_unavailable')
+    if run.predecessor_id is None:
+        path='input/opening/state/dbm/VFSettings'
+        found=_node(physical,path)
+        if found is None:raise PublicationUnavailable('bpr_transit_settings_unavailable')
+        owner,node=found
+        if (owner._meta.model_name!='productioninitialization'
+                or owner.source_id!=phase.source_id
+                or owner.opening_date+timedelta(days=1)!=run.business_date
+                or binding!=dict(id=str(owner.pk),source_digest=owner.source.digest,
+                    input_sha256=owner.input_sha256,content_digest=owner.input_digest,
+                    configuration_digest=owner.configuration_digest)):
+            raise PublicationUnavailable('bpr_transit_settings_initialization_differs')
+        item=owner.input_payload['images'].get(node.get('records'))
+        if item is None or item.get('table')!='Importer/VFSettings':
+            raise PublicationUnavailable('bpr_transit_settings_physical_owner_differs')
+        rows=list(opening_storage.load_image(owner,item))
+        locator=_settings_owner(run,rows,path=path)
+        return rows,locator
+    parent=CalculationRun.objects.get(pk=run.predecessor_id)
+    lineage=raw.get('lineage') or {}
+    if (parent.kind!='DAILY_CHAIN' or parent.status!='SUCCEEDED'
+            or parent.business_date+timedelta(days=1)!=run.business_date
+            or parent.mdm_input_capture.source_id!=phase.source_id
+            or parent.mdm_input_capture.status!='CONSUMED'
+            or lineage.get('run_id')!=str(parent.pk)
+            or lineage.get('output_digest')!=parent.output_digest):
+        raise PublicationUnavailable('bpr_transit_settings_predecessor_differs')
+    verify_root(parent)
+    previous=read_input(parent,components=('initialization_binding','profile'))
+    if previous.get('initialization_binding')!=binding or digest(previous['profile'])!=digest(raw['profile']):
+        raise PublicationUnavailable('bpr_transit_settings_predecessor_differs')
+    commands=[]
+    for event in RunCommand.objects.filter(run=parent,phase_acceptance__isnull=True).order_by('id'):
+        if digest(event.payload)!=event.digest:
+            raise PublicationUnavailable('bpr_transit_settings_predecessor_differs')
+        commands.append(dict(id=event.pk,digest=event.digest,before=event.before_digest,after=event.after_digest))
+    if lineage.get('commands')!=commands:
+        raise PublicationUnavailable('bpr_transit_settings_predecessor_differs')
+    opening=_node(physical,'input/opening')
+    if opening is None or opening[1]!={'scalar':None}:
+        raise PublicationUnavailable('bpr_transit_settings_predecessor_differs')
+    path='closing/dbm/VFSettings'
+    item=parent.production_manifest['images'].get(path)
+    if item is None or item.get('image')!=path or item.get('table')!='Importer/VFSettings':
+        raise PublicationUnavailable('bpr_transit_settings_physical_owner_differs')
+    rows=list(relational_state.load_image(parent,item))
+    return rows,dict(path=path,owner_kind='calculationrun',owner_id=str(parent.pk),
+        output_digest=parent.output_digest,input_manifest_digest=parent.input_manifest_digest,image=item)
 
 
 def recipe_digest():
@@ -73,7 +142,8 @@ def produce(phase_id,*,expected_digest,action_revision):
         raise PublicationUnavailable('bpr_transit_captured_profile_differs')
     delivery=raw['profile'].get('delivery',{})
     settings=delivery.get('btr_history',{}).get('importer_vf_settings')
-    if settings is None:raise PublicationUnavailable('bpr_transit_settings_unavailable')
+    settings_owner=None
+    if settings is None:settings,settings_owner=_opening_settings(phase)
     settings=list(settings);validate_settings_rows(settings)
     factor_rows=[row for row in settings if ascii_equal(row['Parameter'],'SuperDelayFactor')]
     factors=[row['Value'] for row in factor_rows]
@@ -84,7 +154,7 @@ def produce(phase_id,*,expected_digest,action_revision):
     conflicts=[row for row in other if ascii_equal(row['Parameter'],'SuperDelayFactor')]
     if conflicts and conflicts!=factor_rows:
         raise ValueError('Captured Importer VFSettings factor declarations differ')
-    settings_owner=_settings_owner(run,settings)
+    if settings_owner is None:settings_owner=_settings_owner(run,settings)
     standards=sources.rows('closing/dbm/SKULocStandardAttributes')
     report=sources.rows('reports/bpr/vf_RationedReqReport')
     raw_rows=[{key:(date.fromisoformat(value) if key in
