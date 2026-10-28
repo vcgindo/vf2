@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from django.db import connection
 
-from mta.runtime.relational_state import (quote, table_name, bulk,
+from mta.runtime.relational_state import (quote, table_name, bulk, copy_rows, INGESTION_COPY_MIN_ROWS,
     db_value, wire_type, wire_value, describe_rows)
 from mta.serialization import rows_digest, canonical_parts
 from mta.row_sequences import RecordRows
@@ -43,9 +43,14 @@ def save_image(owner, image, binding, rows, *, table):
     query = ('INSERT INTO '+table_sql(table)+' (vf_initialization_id,vf_image,vf_ordinal,'+
         ','.join(quote(name) for name, _ in native)+') VALUES ('+
         ','.join(['%s']*(len(native)+3))+')')
+    records = ((owner.pk, image, ordinal, *[db_value(row[field], kind)
+        for field, (_, kind) in zip(fields, native)]) for ordinal, row in enumerate(rows))
     with stage('opening_insert', image=image, rows=len(rows)):
-        bulk(query, ((owner.pk, image, ordinal, *[db_value(row[field], kind)
-            for field, (_, kind) in zip(fields, native)]) for ordinal, row in enumerate(rows)))
+        if len(rows) >= INGESTION_COPY_MIN_ROWS and connection.vendor == 'postgresql':
+            copy_rows(table_sql(table), ['vf_initialization_id', 'vf_image', 'vf_ordinal',
+                *[name for name, _ in native]], records)
+        else:
+            bulk(query, records)
     return meta
 
 
