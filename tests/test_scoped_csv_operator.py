@@ -399,5 +399,51 @@ class ScopeNativePreflightTests(unittest.TestCase):
         self.assertFalse((self.root.parent / 'pick').exists())
 
 
+
+@unittest.skipUnless(apps.ready, 'Django bootstrap required; no database connection')
+class TerminalArchivePreparationTests(unittest.TestCase):
+    def prepare(self, scope, failure=None):
+        from mta.runtime.csv_scope_operator import _prepare
+        run = SimpleNamespace(pk='owned-run', output_digest='output',
+            mdm_input_capture=SimpleNamespace(source=SimpleNamespace(digest='source')))
+        csv = Mock()
+        root = Path('/frozen-operation')
+        receipt = dict(run_id='owned-run', scope=scope, status='CALCULATED')
+        events = []
+        with ExitStack() as stack:
+            stack.enter_context(patch('mta.runtime.models.CalculationRun.objects.get', return_value=run))
+            stack.enter_context(patch('mta.presentation.native_publication.identity', return_value={}))
+            stack.enter_context(patch('mta.presentation.daily_publication.prepare_reporting_generation', return_value=('publication', 'summary')))
+            archive = stack.enter_context(patch('mta.application.native_input_archive.prepare'))
+            def archive_call(*args):
+                events.append('archive')
+                if failure: raise failure
+            archive.side_effect = archive_call
+            candidate = stack.enter_context(patch('mta.presentation.native_selection.candidate', return_value={}))
+            write = stack.enter_context(patch('mta.presentation.native_selection.write', side_effect=lambda *a: events.append('selection')))
+            stack.enter_context(patch('mta.presentation.native_selection.read', return_value={'btr_generation': 'generation'}))
+            stack.enter_context(patch('mta.runtime.csv_scope_operator.read_json', return_value={'selection_digest': 'selection'}))
+            if failure:
+                with self.assertRaisesRegex(ValueError, 'original hash differs'):
+                    _prepare(csv, root, receipt, binding={'_opening_path': '/opening/original.json'})
+                candidate.assert_not_called()
+                write.assert_not_called()
+                csv.atomic_json.assert_not_called()
+                self.assertEqual(receipt['status'], 'CALCULATED')
+            else:
+                value = _prepare(csv, root, receipt, binding={'_opening_path': '/opening/original.json'})
+                self.assertEqual(value['status'], 'PREPARED')
+                self.assertEqual(events, ['archive', 'selection'])
+            archive.assert_called_once_with(run, '/opening/original.json', root / 'native-day.json')
+
+    def test_full_and_both_completed_tails_prepare_archive_before_selection(self):
+        for scope in ('Full', 'PostBPR', 'PostDBM'):
+            with self.subTest(scope=scope): self.prepare(scope)
+
+    def test_archive_identity_failure_keeps_calculated_owner_without_selection(self):
+        for scope in ('Full', 'PostBPR', 'PostDBM'):
+            with self.subTest(scope=scope): self.prepare(scope, ValueError('original hash differs'))
+
+
 if __name__ == '__main__':
     unittest.main()

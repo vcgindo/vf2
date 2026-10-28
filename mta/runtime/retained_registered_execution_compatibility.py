@@ -36,7 +36,7 @@ ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9f
  'mta/presentation/scoped_selection.py': '69e8fbb4a5c168ad30dcba47a1ab640394d04dc25c6f917ae8f781687aad802a',
  'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
  'mta/presentation/terminal_read_mode.py': '5ddc0218330c6ecf211f189ed5ab9c914034f0725ba74d05abd6a5ca594df3db',
- 'mta/runtime/csv_scope_operator.py': 'b97cb346ccf79ecf1d08b66f542aa63e45e0ed030e072cdcf323358d7bcd1577',
+ 'mta/runtime/csv_scope_operator.py': '4e256c845ada2da72bd054b6907720b923d1299ebbd25b328fedbc7d6d5c6c00',
  'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
  'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
  'mta/runtime/migrations/0238_registered_read_action_cut.py': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
@@ -69,7 +69,7 @@ ADAPTED_PYTHON_TEXT = {'mta/application/operational_input_archive.py': '3ceb9a2d
  'mta/presentation/scoped_selection.py': '69e8fbb4a5c168ad30dcba47a1ab640394d04dc25c6f917ae8f781687aad802a',
  'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
  'mta/presentation/terminal_read_mode.py': '5ddc0218330c6ecf211f189ed5ab9c914034f0725ba74d05abd6a5ca594df3db',
- 'mta/runtime/csv_scope_operator.py': 'b97cb346ccf79ecf1d08b66f542aa63e45e0ed030e072cdcf323358d7bcd1577',
+ 'mta/runtime/csv_scope_operator.py': '4e256c845ada2da72bd054b6907720b923d1299ebbd25b328fedbc7d6d5c6c00',
  'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
  'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
  'mta/runtime/migrations/0238_registered_read_action_cut.py': '572d225c31d4b707da9f22e273b1669274afd46c9334355c73c067cbcea4110b',
@@ -104,7 +104,7 @@ PROFILE_FILES = {
     'mta/runtime/retained_registered_execution_compatibility.py',
 }
 OBSERVED_PUBLICATION_RECIPE = '4c1eba2cbf7e0cbe45acbebc9e540bf9956a669665c44905aa5301ccb0f76147'
-OBSERVED_ATTACHMENT_RECIPE = 'dd79fcd51ea797843b790ea232a029c85f9a680e57fcb02b0345211bb33a9e67'
+OBSERVED_ATTACHMENT_RECIPE = '1ca267426afca271cfb0141bfd6c52d64a0d0254765bb5413dc0e336e846dfaf'
 
 
 def check_source_manifest(files):

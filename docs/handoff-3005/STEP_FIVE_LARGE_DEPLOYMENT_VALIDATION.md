@@ -1,12 +1,14 @@
 # VectorFLOW — Stage 5 large deployment validation
 
-Use this guide to install VectorFLOW and run the large dataset yourself. Run each command separately and stop at the first error. Your clean installation and large-data execution supply the Stage 5 evidence; the small release qualification does not establish large-data capacity.
+**Release pending qualification.** The clone tag below is reserved and is not published. Wait for the qualified release before executing this guide. Current proof and the pending execution decision are recorded in the [authoritative tracker](F:/freshvcf/docs/handoff-3005/TRACKER.md).
+
+Use this guide to install VectorFLOW and run the large dataset yourself after release. Run each command separately and stop at the first error. Your clean installation and large-data execution supply the Stage 5 evidence; the small release qualification does not establish large-data capacity.
 
 Use a clean computer or independent Docker environment: the `vectorflow` project already exists on the current shared host. Leave the existing installation and localhost:8080 unchanged. Requires Git, PowerShell 5.1 or 7, Docker Desktop with Linux/amd64 containers and Compose 2.24.4 or later. The first build needs internet access; the input data is offline.
 
 ## 1. Clone VectorFLOW
 
-Use a new `D:/VectorFLOW` folder. The release tag pins the source used for the small integrated qualification.
+Use a new `D:/VectorFLOW` folder. After the small integrated qualification passes, the published release tag will pin its source. The command below is the intended released command; it currently cannot resolve the reserved tag.
 
 ```powershell
 git clone --single-branch --branch vectorflow-generic-scope-20261028 git@github.com:yurtse/freshvcf.git D:/VectorFLOW
@@ -154,7 +156,7 @@ For a split route, use a fresh independent installation and the **same external 
 
 | Account | Default username |
 | --- | --- |
-| PostgreSQL administrator | `vectorflow_admin` as configured above |
+| PostgreSQL administrator | `postgres`, matching `PG_ADMIN_USER=postgres` above |
 | MTA installer / runtime | `vectorflow_mta_installer` / `vectorflow_mta_runtime` |
 | Authentication installer / runtime | `vectorflow_auth_installer` / `vectorflow_auth_runtime` |
 | MTO installer / runtime | `vectorflow_mto_installer` / `vectorflow_mto_runtime` |
@@ -198,7 +200,7 @@ The v2 package's `file-check.json` reports PASS at **file level only**. A separa
 - There are 97,464 raw-master rows and 97,097 distinct processed pairs. The retained processed roster lacks 3,054 same-SKU parent pairs; the raw export has 367 additional keys, including 106 with NULL SKU. Their exclusion reasons are not all established. No parents or raw-only pairs were invented to fill the gaps.
 - The generated opening assigns 100 units to 1,837 existing stock identities and preserves NULL for 95,260. Each known-stock pair consumes one unit per day. One five-unit shipment departs on 8 April and arrives on 9 April between an existing parent and its RLT-1 child. This is narrow logistics coverage.
 - Planning GIT child grid with nonempty transit has a retained unavailable response: HTTP 503, `LEG-GIT-CHILD-TRANSPORTER-INVALID-SQL:207/8120`. The 8 April batch has nonempty transit. Record the actual response; do not count an unavailable grid as a successful report.
-- The release supports explicitly selected generic processing and the qualified report roster under the real site/database names. Enabled GulfOil client effects and unsupported report definitions are refused. File checks and small native proofs do not establish four-day large-data Full/split equivalence; that is part of your manual validation.
+- The candidate source implements explicitly selected generic processing and the report roster under real site/database names; its required small normal-name runtime qualification is still incomplete. Enabled GulfOil client effects and unsupported report definitions are refused. File checks and small native proofs do not establish four-day large-data Full/split equivalence; that is part of your manual validation.
 
 Read-only references:
 

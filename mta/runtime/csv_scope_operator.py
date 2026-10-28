@@ -393,7 +393,7 @@ def _calculate(args, csv, binding, owner, reference, batch, manifest, root, rece
         raise
 
 
-def _prepare(csv, root, receipt):
+def _prepare(csv, root, receipt, *, binding):
     from django.conf import settings
     from django.db import connection
     from mta.runtime.models import CalculationRun
@@ -452,6 +452,11 @@ def _prepare(csv, root, receipt):
         native = native_publication.identity(run, verify_rows=True)
         publication, summary = daily_publication.prepare_reporting_generation(run.pk,
             expected_output_digest=run.output_digest)
+        # Terminal Full/tails keep the ordinary native archive contract.
+        # Use this operation's frozen daily input, including across continuation;
+        # the archive owner validates both originals against the captured run.
+        from mta.application.native_input_archive import prepare as prepare_archive
+        prepare_archive(run, binding['_opening_path'], root / 'native-day.json')
         selection = Path('/var/lib/vectorflow/selection.json')
         native_selection.write(selection, native_selection.candidate(run, publication, summary, native))
         environment.update(VF_MTA_SELECTION_FILE=str(selection), VF_MTA_PUBLISHED_RUN=str(run.pk),
@@ -479,7 +484,7 @@ def operation(args):
             receipt = _calculate(args, csv, binding, owner, reference, batch, manifest, root, receipt, decision)
         check()
         if receipt['status'] == 'CALCULATED':
-            receipt = _prepare(csv, root, receipt)
+            receipt = _prepare(csv, root, receipt, binding=binding)
         check()
         return receipt
 
