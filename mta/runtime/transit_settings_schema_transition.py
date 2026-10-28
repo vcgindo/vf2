@@ -76,7 +76,7 @@ def require_start(cursor):
         raise ValueError('Transit-owner correction refuses an active scoped worker')
 
 
-def preservation(cursor, original):
+def preservation(cursor, original, *, migration_name=MIGRATION_NAME):
     """Hash every typed row; exclude only the new history/authority appends."""
     from django.db import connection
     from psycopg import sql
@@ -100,7 +100,7 @@ def preservation(cursor, original):
         if not keys or len(set(keys)) != len(keys):
             raise ValueError('Every preserved typed table requires its declared primary key')
         where = (sql.SQL(' WHERE NOT (app={} AND name={})').format(
-            sql.Literal('fresh_mta'), sql.Literal(MIGRATION_NAME))
+            sql.Literal('fresh_mta'), sql.Literal(migration_name))
             if (schema, table) == ('mta', 'django_migrations') else sql.SQL(''))
         checksum = hashlib.sha256()
         statement = sql.SQL('COPY (SELECT * FROM {}{} ORDER BY {}) TO STDOUT (FORMAT BINARY)').format(

@@ -162,6 +162,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import registered_report_schema_transition as registered_reports
     from mta.runtime import registered_read_action_transition as registered_action
     from mta.runtime import transit_settings_schema_transition as transit_settings
+    from mta.runtime import generic_read_alias_transition as generic_alias
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
@@ -174,6 +175,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     registered_reports_migration=any(pin[0] in registered_reports.NAMES for pin in spec['migration_pins'])
     registered_action_migration=any(pin[0]==registered_action.MIGRATION_NAME for pin in spec['migration_pins'])
     transit_settings_migration=any(pin[0]==transit_settings.MIGRATION_NAME for pin in spec['migration_pins'])
+    generic_alias_migration=any(pin[0]==generic_alias.MIGRATION_NAME for pin in spec['migration_pins'])
+    if generic_alias_migration:
+        generic_alias.require_specification(spec)
     if transit_settings_migration:
         transit_settings.require_specification(spec)
     if registered_action_migration:
@@ -240,8 +244,12 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             registered_action.require_start(cursor)
         if transit_settings_migration:
             transit_settings.require_start(cursor)
+        if generic_alias_migration:
+            generic_alias.require_start(cursor)
         def preserved():
             original=preservation(owner)
+            if generic_alias_migration:
+                return storage(generic_alias.preservation(cursor,original))
             if transit_settings_migration:
                 return storage(transit_settings.preservation(cursor,original))
             return storage(registered_action.preservation(cursor,original)
@@ -307,6 +315,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0238']]
         if transit_settings_migration:
             allowed_migrations=[['0241']]
+        if generic_alias_migration:
+            allowed_migrations=[['0242']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -361,7 +371,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         objects={o['name']:o for o in now['objects']}
         if any(objects.get(o['name'])!=o for o in old_objects['objects']):
             raise ValueError('Original object identity or owner changed')
-        if registered_action_migration or transit_settings_migration:
+        if registered_action_migration or transit_settings_migration or generic_alias_migration:
             functions={f['name']:f['oid'] for f in now['functions']}
             if any(functions.get(f['name'])!=f['oid'] for f in old_objects['functions']):
                 raise ValueError('Registered-read correction changed an original function OID')
