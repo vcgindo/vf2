@@ -7,6 +7,7 @@ from mta.domain.ordinal_lookup import OrdinalLookup, OrderedIndex, indexed_state
 from mta.domain.sql_identity_keys import row_join_key
 from datetime import date, datetime, timedelta
 from decimal import Decimal, ROUND_CEILING
+from mta.row_sequences import RecordRows
 
 
 def _key(row):
@@ -18,8 +19,23 @@ def _flags(row, red=False, green=False):
             'IsRedEnabled': red, 'IsGreenEnabled': green}
 
 
+def _working(state, owned, mutates=()):
+    """Fork only declared nested writers in the opt-in connected owner.
+
+    Untouched populations are borrowed read-only. Every subsequent writer must
+    fork its own mutations; standalone component calls retain full isolation.
+    """
+    if not owned:
+        return deepcopy(state)
+    result = dict(state)
+    for name in mutates:
+        rows = state[name]
+        result[name] = [deepcopy(row) for row in rows] if isinstance(rows, RecordRows) else deepcopy(rows)
+    return result
+
+
 @indexed_state('DailyConsumption')
-def suppress_insufficient_data(today, state):
+def suppress_insufficient_data(today, state, *, _owned=False):
     """DAG step26: preserve SQL joined-row counts and post-resume suppression."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
     runs = state['LastBatchRunTbl']
@@ -29,7 +45,7 @@ def suppress_insufficient_data(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal the run business date at midnight')
-    result = deepcopy(state)
+    result = _working(state, _owned, ('SuspendStockType', 'SuspendConsumptionType'))
     sufficient = {}
     for period in ('RCP', 'GCP'):
         counts = {}
@@ -59,10 +75,10 @@ def suppress_insufficient_data(today, state):
     return result
 
 
-def finalize_order_suspensions(today, state):
+def finalize_order_suspensions(today, state, *, _owned=False):
     """DAG step25: PRE-driven release dates after common/order intersection."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
-    result = deepcopy(state)
+    result = _working(state, _owned, ('SuspendOrderType', 'SuspendAggrCommonWithOrderType'))
     master_keys = {_key(r) for r in state['DBMMaster']}
     rows = [r for r in result['SuspendOrderType'] if _key(r) in master_keys]
     existing_keys = {_key(r) for r in rows}
@@ -105,7 +121,7 @@ def finalize_order_suspensions(today, state):
     return result
 
 
-def finalize_consumption_suspensions(today, state):
+def finalize_consumption_suspensions(today, state, *, _owned=False):
     """DAG step24: PRE-driven release dates after common/consumption intersection."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
     last_runs = state['LastBatchRunTbl']
@@ -115,7 +131,7 @@ def finalize_consumption_suspensions(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal the run business date at midnight')
-    result = deepcopy(state)
+    result = _working(state, _owned, ('SuspendConsumptionType', 'SuspendAggrCommon', 'SuspendAggrConsumptionType'))
     master_keys = {_key(r) for r in state['DBMMaster']}
     rows = [r for r in result['SuspendConsumptionType'] if _key(r) in master_keys]
     existing_keys = {_key(r) for r in rows}
@@ -150,7 +166,7 @@ def finalize_consumption_suspensions(today, state):
     return result
 
 
-def finalize_stock_suspensions(today, state):
+def finalize_stock_suspensions(today, state, *, _owned=False):
     """DAG step23: PRE-driven release dates after common/stock intersection."""
     today = date.fromisoformat(today) if isinstance(today, str) else today
     last_runs = state['LastBatchRunTbl']
@@ -160,7 +176,7 @@ def finalize_stock_suspensions(today, state):
     last = datetime.fromisoformat(last) if isinstance(last, str) else last
     if last.date() != today or last.time() != datetime.min.time():
         raise ValueError('LastBatchRun must equal the run business date at midnight')
-    result = deepcopy(state)
+    result = _working(state, _owned, ('SuspendStockType', 'SuspendAggrCommon', 'SuspendAggrStockType'))
     master_keys = {_key(r) for r in state['DBMMaster']}
     rows = [r for r in result['SuspendStockType'] if _key(r) in master_keys]
     existing_keys = {_key(r) for r in rows}
@@ -665,9 +681,9 @@ def _pre(masters, *aggregates):
     return [row for row in rows if not (row['IsRedEnabled'] and row['IsGreenEnabled'])]
 
 
-def prepare_suspensions(state):
+def prepare_suspensions(state, *, _owned=False):
     """DAG steps 1–5, retaining other families and inputs untouched."""
-    result = deepcopy(state)
+    result = _working(state, _owned)
     masters = state['DBMMaster']
     custom = state['SuspendCustomSKUTbl']
     result['SuspendStockTypePre'] = _pre(

@@ -4,11 +4,11 @@ from mta.domain.dbm_ingestion import ingest_dbm
 from mta.domain import dbm_suspensions as s, dbm_rules as r
 
 
-def connected_stages(today, state, facts):
+def connected_stages(today, state, facts, *, _owned=False):
     """Yield actual complete predecessor state; never accept stage answers."""
-    current = ingest_dbm(today, state, facts)
+    current = ingest_dbm(today, state, facts, _owned=_owned)
     yield 'ingestion', current
-    current = s.prepare_suspensions(current)
+    current = s.prepare_suspensions(current, _owned=_owned)
     yield 'suspension1-5', current
     steps = (
         s.suspend_introductions, s.apply_accepted_norm_stock,
@@ -22,8 +22,10 @@ def connected_stages(today, state, facts):
         lambda _, v: s.aggregate_common(v),
         lambda _, v: s.aggregate_stock_family(v),
         lambda _, v: s.aggregate_consumption_family(v),
-        s.finalize_stock_suspensions, s.finalize_consumption_suspensions,
-        s.finalize_order_suspensions, s.suppress_insufficient_data,
+        lambda d, v: s.finalize_stock_suspensions(d, v, _owned=_owned),
+        lambda d, v: s.finalize_consumption_suspensions(d, v, _owned=_owned),
+        lambda d, v: s.finalize_order_suspensions(d, v, _owned=_owned),
+        lambda d, v: s.suppress_insufficient_data(d, v, _owned=_owned),
     )
     for number, calculate in enumerate(steps, 6):
         current = calculate(today, current)

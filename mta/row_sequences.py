@@ -40,6 +40,14 @@ def _read_cache(raw):
         else date.fromisoformat(value) if kind=='date' else value) for key,kind,value in json.loads(raw)}
 
 
+def _release_spool(directory, handles):
+    # The finalizer owns these resources, not the row graph. In a cyclic
+    # traceback/iterator graph this runs before TemporaryDirectory's finalizer.
+    for handle in tuple(handles):handle.close()
+    handles.clear()
+    directory.cleanup()
+
+
 class CanonicalWireRows:
     """Marker for immutable factories already yielding canonical storage scalars."""
     __slots__=()
@@ -99,6 +107,8 @@ class RecordRows(Sequence):
             result._cache_digest=physical.hexdigest();result._block_digests=bytes(block_digests);result._block_sizes=block_sizes
             result._data_stat=result._identity(data);result._index_stat=result._identity(offsets)
             result._thread=local()
+            result._handles=set()
+            result._spool_finalizer=weakref.finalize(result,_release_spool,directory,result._handles)
             reference=weakref.ref(result)
             result.factory=lambda:reference()._iterate_spool()
             result._getter=lambda ordinal:reference()._get_spooled(ordinal)
@@ -116,18 +126,21 @@ class RecordRows(Sequence):
 
     def _iterate_spool(self):
         self._check_spool();checksum=hashlib.sha256();count=0;block=0
-        with self._data.open('rb') as stream:
-            while header:=stream.read(4):
-                if len(header)!=4:raise ValueError('Incomplete history cache block')
-                if block>=len(self._block_sizes) or struct.unpack('<I',header)[0]!=self._block_sizes[block]:
-                    raise ValueError('History cache block size drift')
-                raw=stream.read(self._block_sizes[block])
-                if hashlib.sha256(header+raw).digest()!=self._block_digests[block*32:(block+1)*32]:
-                    raise ValueError('History cache block value/order drift')
-                checksum.update(header+raw);block+=1
-                for line in zlib.decompress(raw).splitlines():
-                    count+=1
-                    yield _read_cache(line)
+        stream=self._data.open('rb');self._handles.add(stream)
+        try:
+            with stream:
+                while header:=stream.read(4):
+                    if len(header)!=4:raise ValueError('Incomplete history cache block')
+                    if block>=len(self._block_sizes) or struct.unpack('<I',header)[0]!=self._block_sizes[block]:
+                        raise ValueError('History cache block size drift')
+                    raw=stream.read(self._block_sizes[block])
+                    if hashlib.sha256(header+raw).digest()!=self._block_digests[block*32:(block+1)*32]:
+                        raise ValueError('History cache block value/order drift')
+                    checksum.update(header+raw);block+=1
+                    for line in zlib.decompress(raw).splitlines():
+                        count+=1
+                        yield _read_cache(line)
+        finally:self._handles.discard(stream)
         self._check_spool()
         if count!=self.count or checksum.hexdigest()!=self._cache_digest:
             raise ValueError('History execution-cache value/order/count drift')
@@ -136,8 +149,11 @@ class RecordRows(Sequence):
         self._check_spool()
         if not hasattr(self._thread,'data'):
             self._thread.data=self._data.open('rb')
+            self._handles.add(self._thread.data)
             self._thread.index=self._offsets.open('rb')
+            self._handles.add(self._thread.index)
             self._thread.mapping=mmap.mmap(self._thread.index.fileno(),0,access=mmap.ACCESS_READ)
+            self._handles.add(self._thread.mapping)
             self._thread.blocks=OrderedDict()
         block,ordinal=divmod(index,256)
         if block not in self._thread.blocks:
@@ -192,18 +208,13 @@ class RecordRows(Sequence):
         return self._ordinal_cache
 
     def __del__(self):
-        # Windows requires mappings/handles closed before directory removal.
-        state=getattr(self,'_thread',None)
-        if state is not None:
-            for name in ('mapping','data','index'):
-                value=getattr(state,name,None)
-                if value is not None:value.close()
-        directory=getattr(self,'_directory',None)
-        if directory is not None:directory.cleanup()
+        finalizer=getattr(self,'_spool_finalizer',None)
+        if finalizer is not None:finalizer()
 
 
 def is_record_rows(value):return isinstance(value,(list,RecordRows))
 
 
-def history_rows(rows,*,like):
-    return RecordRows.from_rows(rows) if isinstance(like,RecordRows) else list(rows)
+def history_rows(rows,*,like,immutable=False):
+    """Keep component defaults; an owned producer may seal its first generation."""
+    return RecordRows.from_rows(rows) if immutable or isinstance(like,RecordRows) else list(rows)

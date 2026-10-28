@@ -11,7 +11,7 @@ or MTO changes. Any future exception requires explicit human authorization.
 from copy import deepcopy
 from dataclasses import replace
 from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
-from mta.application.stage_observation import operation, stage
+from mta.application.stage_observation import operation, stage, summary
 
 from decimal import Decimal
 
@@ -46,6 +46,31 @@ from mta.domain.dbm_norm012 import NORM0_EXPORT_STAGES
 from mta.runtime.dbm_phase_storage import STAGES as PHASE_STAGES, POPULATION as PHASE_POPULATION
 
 
+def _observe_dbm(state, point, name=None):
+    """Bounded owner/representation observations; never consume a row factory."""
+    try:
+        from pathlib import Path
+        populations={table:{'rows':len(state[table]),'representation':type(state[table]).__name__}
+            for table in ('DBMMaster','SKULocStandardAttributes','DailyConsumption','SuspendHistory',
+                'OrderDataSummary','SuspendStockType','SuspendConsumptionType','SuspendOrderType',
+                'Suggestions','NormChangeLogTbl') if table in state}
+        memory={}
+        try:
+            line=next(line for line in Path('/proc/self/status').read_text().splitlines() if line.startswith('VmRSS:'))
+            memory['rss_bytes']=int(line.split()[1])*1024
+        except (OSError,ValueError,StopIteration):pass
+        for field in ('current','peak'):
+            try:memory['cgroup_'+field+'_bytes']=int(Path('/sys/fs/cgroup/memory.'+field).read_text())
+            except (OSError,ValueError):pass
+        try:
+            events=dict(line.split() for line in Path('/sys/fs/cgroup/memory.events').read_text().splitlines())
+            memory.update({'cgroup_'+field:int(events[field]) for field in ('max','oom','oom_kill')})
+        except (OSError,ValueError,KeyError):pass
+        summary('dbm_ownership',point=point,name=name,populations=populations,**memory)
+    except Exception:
+        pass
+
+
 def connected_dbm_stages(today, state, facts, delivery, report_exceptions=None):
     """Daily dispatch consumes the explicitly typed Importer settings owner."""
     from mta.application.native_output_contracts import validate_dbm_writer,producing_native
@@ -54,8 +79,17 @@ def connected_dbm_stages(today, state, facts, delivery, report_exceptions=None):
         _owned=True, _defer_exports=producing_native(),
         conditional_settings=None if delivery is None else
             delivery.get('conditional_dbm', {}).get('importer_vf_settings'))
-    for name,current in stages:
-        if producing_native():validate_dbm_writer(current,name)
+    stopped=object();ordinal=0;previous=None
+    while True:
+        # End each observation before yielding to the report/snapshot consumer.
+        with stage('dbm_dispatch',ordinal=ordinal,after=previous):
+            item=next(stages,stopped)
+            if item is not stopped:
+                name,current=item
+                if producing_native():validate_dbm_writer(current,name)
+        if item is stopped:return
+        if producing_native():_observe_dbm(current,'stage_ready',name)
+        ordinal+=1;previous=name
         yield name,current
 
 
@@ -700,7 +734,15 @@ def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> Dbm
     standard_attributes = phase.standard_attributes
     late = phase.late
     reports = None
-    dbm=deepcopy(prior['dbm'])
+    from mta.application.native_output_contracts import producing_native
+    if producing_native():_observe_dbm(prior['dbm'],'assembly_input')
+    # These generations are replaced below before a DBM consumer can see them.
+    # Retain the original mapping order after assembly without copying discarded
+    # metadata/current-control rows or changing the prior snapshot.
+    replaced = {'SKULocStandardAttributes', 'SKUDescriptionTbl', 'SiteDescriptionTbl',
+                'SkuAttributeData', 'LocationAttributeData', 'SkuLocAttributeData',
+                'LastBatchRunTbl', *SHARED_CONTROLS.values()}
+    dbm = {name:deepcopy(rows) for name, rows in prior['dbm'].items() if name not in replaced}
     # ImportMasterDataComponents.bat runs the deployed Importer initializer on
     # every day before DBM/BTR. Its TRUNCATE plus distinct two-key INSERT
     # discards all prior standard-attribute values.
@@ -729,6 +771,7 @@ def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> Dbm
     elif _action_revision!=0:
         raise ValueError('Scoped DBM action revision requires its exact state')
     dbm['LastBatchRunTbl']=[{'LastRunDate':now}]
+    dbm = {**{name:dbm[name] for name in prior['dbm']}, **dbm}
     facts={n:deepcopy(day[n]) for n in ('order_raw','exclusions','distributor_transactions','vendor_transactions')}
     facts.update(daily_raw=deepcopy(daily_final['DailyDataRaw']),bpr_daily=deepcopy(late['BPRDailyConsumption']))
     from mta.row_sequences import RecordRows
@@ -737,6 +780,7 @@ def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> Dbm
     for name in ('SuspendStockType','SuspendConsumptionType','SuspendOrderType'):
         if isinstance(dbm[name],RecordRows):
             dbm[name]=[deepcopy(row) for row in dbm[name]]
+    if producing_native():_observe_dbm(dbm,'assembly_ready')
     with stage('dbm'):
         selected = connected_dbm_stages(today, dbm, facts, delivery, report_exceptions)
         dbm_stages = retain_dbm_stages(selected,completed_boundaries)

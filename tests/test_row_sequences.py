@@ -11,6 +11,29 @@ from mta.serialization import canonical_parts,digest,storage
 
 
 class ImmutableHistoryTests(unittest.TestCase):
+    def test_cyclic_short_lived_generation_closes_readers_before_directory_finalizer(self):
+        import weakref
+        rows=RecordRows.from_rows([{'v':1},{'v':2}])
+        directory=Path(rows._directory.name)
+        rows[0]  # Exercise the mapped ordinal reader too.
+        iterator=iter(rows);next(iterator)
+        rows._test_cycle=iterator
+        reference=weakref.ref(rows)
+        del iterator,rows
+        gc.collect()
+        self.assertIsNone(reference())
+        self.assertFalse(directory.exists())
+
+    def test_finalizer_owns_cached_readers_from_other_threads(self):
+        from concurrent.futures import ThreadPoolExecutor
+        rows=RecordRows.from_rows([{'v':i} for i in range(600)])
+        directory=Path(rows._directory.name)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(list(pool.map(lambda index:rows[index]['v'],(0,599,256,1))),[0,599,256,1])
+            del rows
+            gc.collect()
+            self.assertFalse(directory.exists())
+
     def test_every_scalar_kind_duplicate_null_and_order_survive(self):
         row=dict(s='001,a\n"b',n=None,b=True,i=-7,f=-0.0,d=Decimal('-2.3400'),
             day=date(2026,4,7),time=datetime(2026,4,7,1,2,tzinfo=timezone.utc))

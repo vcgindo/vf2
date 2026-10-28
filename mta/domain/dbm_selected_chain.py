@@ -29,7 +29,7 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
         if type(config['AutoDBMActive']) is not int or config['AutoDBMActive'] not in (0, 1):
             raise ValueError('Explicit automatic acceptance flag 0/1 required')
         phase_configuration(config)
-    for name, current in connected_stages(today, state, facts):
+    for name, current in connected_stages(today, state, facts, _owned=_owned):
         yield name, current
     if conditional_active:
         for name, calculate in (

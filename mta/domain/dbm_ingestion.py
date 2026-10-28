@@ -13,7 +13,7 @@ from datetime import date, timedelta
 from itertools import chain, groupby
 from mta.domain.ordinal_lookup import OrdinalLookup, OrderedIndex
 from mta.domain.sql_identity_keys import row_join_key, value_join_key
-from mta.row_sequences import history_rows
+from mta.row_sequences import RecordRows, history_rows
 
 
 def _day(value):
@@ -29,7 +29,7 @@ def _key(row):
 
 
 def import_daily_observations(today, previous, raw, masters, bpr_daily,
-                              distributor_transactions, vendor_transactions):
+                              distributor_transactions, vendor_transactions, *, _immutable=False):
     """Replace current-date observations; preserve other history and SQL bags."""
     today = _day(today)
     excluded = {
@@ -48,20 +48,23 @@ def import_daily_observations(today, previous, raw, masters, bpr_daily,
                 raise ValueError('SOURCE_ORDER_AMBIGUITY: conflicting BPR BlueZone rows')
             blues[key] = row['BlueZone']
     retained = (deepcopy(row) for row in previous if _day(row['ReportDate']) != today)
-    current = []
-    for row in raw:
-        key = _key(row)
-        if _day(row['ReportDate']) != today or value_join_key(row['WhCode']) in excluded:
-            continue
-        for _ in range(master_counts.get(key, 0)):
-            current.append({
-                'SKUCode': row['SKUCode'], 'WhCode': row['WhCode'],
-                **{field: row[field] for field in ('Stock', 'Consumption', 'GIT', 'Receipts')},
-                'BlueZone': blues.get(key, 0), 'ReportDate': row['ReportDate'],
-            })
+    def current_rows():
+        for row in raw:
+            key = _key(row)
+            if _day(row['ReportDate']) != today or value_join_key(row['WhCode']) in excluded:
+                continue
+            for _ in range(master_counts.get(key, 0)):
+                yield {
+                    'SKUCode': row['SKUCode'], 'WhCode': row['WhCode'],
+                    **{field: row[field] for field in ('Stock', 'Consumption', 'GIT', 'Receipts')},
+                    'BlueZone': blues.get(key, 0), 'ReportDate': row['ReportDate'],
+                }
+    # Finish construction before producer validation, as on the list path. The
+    # owned native path already has typed flat inputs and seals even cold history.
+    current = RecordRows.from_rows(current_rows()) if _immutable else list(current_rows())
     from mta.application.native_output_contracts import validate_produced_rows
     validate_produced_rows(current,'DBM/DailyConsumption',stage='dbm/ingestion-daily')
-    return history_rows(chain(retained, current), like=previous)
+    return history_rows(chain(retained, current), like=previous, immutable=_immutable)
 
 
 def import_exclusions(exclusions, masters):
@@ -90,10 +93,11 @@ def import_orders(today, previous, raw):
     return [deepcopy(row) for row in previous if _day(row['ImportDate']) != today] + current
 
 
-def calculate_extended_ocp(today, attributes, masters, daily):
+def calculate_extended_ocp(today, attributes, masters, daily, *, _owned=False):
     """Match SQL observation groups, inclusive lower bound, and NULL OCP."""
     today = _day(today)
-    result = deepcopy(attributes)
+    result = ([deepcopy(row) for row in attributes]
+              if _owned and isinstance(attributes, RecordRows) else deepcopy(attributes))
     with OrdinalLookup(masters) as master_index, OrdinalLookup(daily) as daily_index:
         for attr in result:
             matching = [row for row in master_index.matching(masters, _key(attr)) if _key(row) == _key(attr)]
@@ -125,21 +129,25 @@ def calculate_extended_ocp(today, attributes, masters, daily):
     return result
 
 
-def ingest_dbm(today, state, facts):
+def ingest_dbm(today, state, facts, *, _owned=False):
     """Return independently derived closing tables without mutating openings.
 
     The caller must load its own persisted state. `facts['bpr_daily']` is the
     current upstream producer output, not a replacement for running BPR in the
     connected engine. Unknown state families are retained untouched.
     """
-    result = deepcopy(state)
+    # All four writes replace whole populations; calculate_extended_ocp owns
+    # its attribute copy. Borrowed tables are read-only within owned dispatch.
+    result = dict(state) if _owned else deepcopy(state)
     result['DailyConsumption'] = import_daily_observations(
         today, state['DailyConsumption'], facts['daily_raw'], state['DBMMaster'],
         facts['bpr_daily'], facts['distributor_transactions'], facts['vendor_transactions'],
+        _immutable=_owned,
     )
     result['SuspendCustomSKUTbl'] = import_exclusions(facts['exclusions'], state['DBMMaster'])
     result['OrderData'] = import_orders(today, state['OrderData'], facts['order_raw'])
     result['SKULocStandardAttributes'] = calculate_extended_ocp(
         today, state['SKULocStandardAttributes'], state['DBMMaster'], result['DailyConsumption'],
+        _owned=_owned,
     )
     return result
