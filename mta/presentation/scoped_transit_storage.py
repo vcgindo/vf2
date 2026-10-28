@@ -64,7 +64,8 @@ def verify_guards():
             raise PublicationUnavailable('bpr_transit_generation_guard_coverage_differs')
         functions=('guard_scope_transit_generation','guard_scope_transit_rows',
                    'require_scope_transit_complete','deny_scope_transit_truncate')
-        bodies={name:frozen.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1]
+        current=import_module('mta.runtime.migrations.0241_scope_transit_settings_owners')
+        bodies={name:current.SQL.split('CREATE FUNCTION mta.'+name+'()',1)[1]
             .split('AS $guard$',1)[1].split('$guard$;',1)[0] for name in functions}
         cursor.execute("SELECT P.proname,P.prosrc,P.prosecdef,P.proconfig,L.lanname,"
             "P.prorettype='trigger'::regtype,P.proowner=C.relowner,"

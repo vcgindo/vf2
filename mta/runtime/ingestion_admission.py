@@ -189,6 +189,7 @@ def effective_schema(cursor, body):
     consumer_read_transition=False
     registered_reports_transition=False
     registered_action_transition=False
+    transit_settings_transition=False
     link=authority.read_schema_transition(cursor,current)
     # Original schema admission plus the three reviewed finite extensions.
     # Historical catalogues authenticate metadata; only the last is compared live.
@@ -225,7 +226,12 @@ def effective_schema(cursor, body):
         from mta.runtime import runtime_report_read_transition as consumer_read
         from mta.runtime import registered_report_schema_transition as registered_reports
         from mta.runtime import registered_read_action_transition as registered_action
-        if any(pin[0]==registered_action.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+        from mta.runtime import transit_settings_schema_transition as transit_settings
+        if any(pin[0]==transit_settings.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
+            if transit_settings_transition or not transit_settings.approved_receipt(extension):
+                raise ValueError('Exact native transit-owner schema correction required')
+            transit_settings_transition=True
+        elif any(pin[0]==registered_action.MIGRATION_NAME for pin in extension.get('migration_pins',[])):
             if registered_action_transition or not registered_action.approved_receipt(extension):
                 raise ValueError('Exact consumed registered-read correction required')
             registered_action_transition=True

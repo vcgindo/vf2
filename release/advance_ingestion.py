@@ -161,6 +161,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     from mta.runtime import runtime_report_read_transition as consumer_read
     from mta.runtime import registered_report_schema_transition as registered_reports
     from mta.runtime import registered_read_action_transition as registered_action
+    from mta.runtime import transit_settings_schema_transition as transit_settings
     guard_migration=any(pin[0]==report_guard.MIGRATION_NAME for pin in spec['migration_pins'])
     ownership_migration=any(pin[0] in {name for name,_ in ownership.PINS} for pin in spec['migration_pins'])
     action_migration=any(pin[0]==scoped_action.MIGRATION_NAME for pin in spec['migration_pins'])
@@ -172,6 +173,9 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
     consumer_read_migration=any(pin[0] in consumer_read.NAMES for pin in spec['migration_pins'])
     registered_reports_migration=any(pin[0] in registered_reports.NAMES for pin in spec['migration_pins'])
     registered_action_migration=any(pin[0]==registered_action.MIGRATION_NAME for pin in spec['migration_pins'])
+    transit_settings_migration=any(pin[0]==transit_settings.MIGRATION_NAME for pin in spec['migration_pins'])
+    if transit_settings_migration:
+        transit_settings.require_specification(spec)
     if registered_action_migration:
         registered_action.require_specification(spec)
     if registered_reports_migration:
@@ -234,8 +238,12 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             registered_reports.require_start(cursor)
         if registered_action_migration:
             registered_action.require_start(cursor)
+        if transit_settings_migration:
+            transit_settings.require_start(cursor)
         def preserved():
             original=preservation(owner)
+            if transit_settings_migration:
+                return storage(transit_settings.preservation(cursor,original))
             return storage(registered_action.preservation(cursor,original)
                            if registered_action_migration else original)
         before=preserved();before_catalogue=catalogue(cursor)
@@ -297,6 +305,8 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
             allowed_migrations=[['0233','0234','0235','0236','0237']]
         if registered_action_migration:
             allowed_migrations=[['0238']]
+        if transit_settings_migration:
+            allowed_migrations=[['0241']]
         if (pins!=spec['migration_pins'] or [n[:4] for n,h in pins] not in allowed_migrations):
             raise ValueError('Exact reviewed report migration prefix and bytes required')
         from mta.mdm.owned_namespace import _application_catalogue
@@ -306,7 +316,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         # migration. Migration bookkeeping cannot advance a business epoch;
         # no epoch is restored and no business writer guard is disabled.
         from importlib import import_module
-        if not has_schema_authority and not action_migration and not publication_migration and not placement_migration and not registered_reports_migration and not registered_action_migration:
+        if not has_schema_authority and not action_migration and not publication_migration and not placement_migration and not registered_reports_migration and not registered_action_migration and not transit_settings_migration:
             cursor.execute(import_module('mta.runtime.migrations.0164_migration_history_ownership').FORWARD)
         executor.migrate(executor.loader.graph.leaf_nodes())
         cursor.execute('RESET ROLE')
@@ -351,7 +361,7 @@ def schema_transition(initialization_id, *, specification, expected_sha256):
         objects={o['name']:o for o in now['objects']}
         if any(objects.get(o['name'])!=o for o in old_objects['objects']):
             raise ValueError('Original object identity or owner changed')
-        if registered_action_migration:
+        if registered_action_migration or transit_settings_migration:
             functions={f['name']:f['oid'] for f in now['functions']}
             if any(functions.get(f['name'])!=f['oid'] for f in old_objects['functions']):
                 raise ValueError('Registered-read correction changed an original function OID')
