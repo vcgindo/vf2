@@ -23,7 +23,8 @@ READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 # Filled from the reviewed staged export, never from a caller or live database.
 # Raw hashes qualify the native artifact; text hashes also support Python's
 # universal-newline source recipes in a Windows development checkout.
-ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
+ADAPTED_FILES = {'mta/runtime/migrations/0240_framework_metadata_writer_guards.py': 'f3049a4f6e0e8b195565bb97fb441aa4247b9fdb3771906d532e060bdee0b2c1',
+ 'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
  'mta/application/runtime_report_hooks.py': '2d1054ac705b43c159fb12618ef5f4ff6c02451a214a407e6fb5dbe5f1611102',
  'mta/config/production_scope_profile.json': 'cf6bc4b10854ee966ad4eea2af43b03cb34b1d9a5b6e2dc2e8bed55e40c33421',
  'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
@@ -57,7 +58,8 @@ ADAPTED_FILES = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9f
  'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
  'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838',
  'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
-ADAPTED_PYTHON_TEXT = {'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
+ADAPTED_PYTHON_TEXT = {'mta/runtime/migrations/0240_framework_metadata_writer_guards.py': 'f3049a4f6e0e8b195565bb97fb441aa4247b9fdb3771906d532e060bdee0b2c1',
+ 'mta/application/operational_input_archive.py': '3ceb9a2d429a9fc121f1c83133bf25ec10a96e023e585dc8e917f6dd6678f4fa',
  'mta/application/runtime_report_hooks.py': '2d1054ac705b43c159fb12618ef5f4ff6c02451a214a407e6fb5dbe5f1611102',
  'mta/presentation/legacy_scope_read_compatibility.py': '6e5a4e8516344b28cff42d67f8d2047b188ce524b6ba30db9abc85cbf698220e',
  'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
@@ -90,7 +92,8 @@ ADAPTED_PYTHON_TEXT = {'mta/application/operational_input_archive.py': '3ceb9a2d
  'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
  'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838',
  'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
-NEW_FILES = {'mta/config/production_scope_profile.json',
+NEW_FILES = {'mta/runtime/migrations/0240_framework_metadata_writer_guards.py',
+ 'mta/config/production_scope_profile.json',
  'mta/presentation/registered_read_compatibility.py',
  'mta/runtime/_retained_execution_source_pins.py',
  'mta/runtime/csv_scope_operator.py',
