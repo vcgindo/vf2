@@ -1,0 +1,138 @@
+"""Preserve an original generic factory across qualified metadata corrections.
+
+No run/database allowlist, captured-pin replacement or historical code import.
+The frozen origin is authenticated by the original installed capability; source
+reconstruction proves every non-adapter native byte remains unchanged.
+"""
+from functools import lru_cache
+import json
+from pathlib import Path
+from mta.serialization import digest
+
+ORIGIN_RELEASE = {'implementation_sha256': 'c4ca2033c2a0ec295373f000c8acc2f0716376eae455549b5181eb8f0ebb086d',
+ 'manifest_sha256': '9bbb4f0c482563f66d898508c433752cfc6aba9b450b46fc380306c5a352ec2d',
+ 'migrations_digest': 'd8f7d5e8276a25f079a8fb617e40c073ffce8dbb09a5edbb028eb064e151886e',
+ 'schema': 'vectorflow-native-release-source-v1',
+ 'source_commit': '70554bd1dfa4d909194b873ebd98daaea470c715',
+ 'source_files_digest': 'a089b36ccb61d0cc36085526b7d3dde3326e15cb22e586df2fd7367021c6b60d'}
+ORIGIN_OVERRIDES = {'mta/presentation/registered_read_compatibility.py': '1c07517299478c95c559bbd0b2623e0b243100c58ba61fed4c936df159bb434d',
+ 'mta/presentation/scoped_transit.py': '24cd6966f52f27c52ef4afc6006f50a50f703bce481e539b695afed4073e3370',
+ 'mta/presentation/scoped_transit_storage.py': 'afe545c33f2416e6986fd48e9104c1e8232fabba2005775018c2dae024b22729',
+ 'mta/presentation/scoped_view.py': '5b71b0d6c513ed458f6e08bff9dd42c46a5c847f9ff3096eade1aac21c55b4e3',
+ 'mta/runtime/ingestion_admission.py': '3b0549692691bd885060ac24df50769d3d3fdc94a75b982715e16f99b30fdae8',
+ 'mta/runtime/ingestion_authority.py': 'e36857686acd4c00292580cc4c6f7b409a9347643c0b43ceab9b6ac39a3df378',
+ 'mta/runtime/retained_registered_execution_compatibility.py': '1c137b550b89d6ec51ee1f97f8d03e5bb6540ac6fa0253e67a0725d4e2383d83',
+ 'release/advance_ingestion.py': '3eb155dce8b035a3f5aa04a2de2582e66559fc31b3740fd1d3afb0bb8530e838'}
+ADDED_FILES = frozenset(['mta/runtime/generic_capture_compatibility.py',
+ 'mta/runtime/generic_read_alias_transition.py',
+ 'mta/runtime/migrations/0241_scope_transit_settings_owners.py',
+ 'mta/runtime/migrations/0242_generic_read_sql_aliases.py',
+ 'mta/runtime/transit_settings_schema_transition.py'])
+
+
+def applicable(value):
+    from mta.runtime.production_scope_policy import SCHEMA
+    return (type(value) is dict and value.get('scope') in ('UptoBPR','UptoDBM')
+        and type(value.get('dispositions')) is dict
+        and value['dispositions'].get('schema') == SCHEMA)
+
+
+def require_original_sources(files):
+    """Reconstruct the signed origin map, never import historical producers."""
+    if not ORIGIN_OVERRIDES.keys() <= files.keys():
+        raise ValueError('Generic continuation lost a retained native source')
+    original = dict(files)
+    for name in ADDED_FILES:
+        original.pop(name, None)
+    original.update(ORIGIN_OVERRIDES)
+    if digest(original) != ORIGIN_RELEASE['source_files_digest']:
+        raise ValueError('Generic continuation producer sources differ from the certified origin')
+
+
+@lru_cache(maxsize=2)
+def _source_release(commit, manifest_sha256):
+    from release import native_identity
+    actual = native_identity.require_current()
+    if (actual['source_commit'],actual['manifest_sha256']) != (commit,manifest_sha256):
+        raise ValueError('Generic continuation independent process pins differ')
+    root = Path(native_identity.__file__).resolve().parents[1]
+    manifest = json.loads((root/native_identity.MANIFEST).read_bytes())
+    require_original_sources(manifest['files'])
+    return actual
+
+
+def require_factory(value, expected, phase_recipe):
+    if (not applicable(value) or set(value) != set(expected)
+            or any(value[key] != expected[key] for key in expected if key != 'compatibility_digest')):
+        raise ValueError('Generic continuation changed the captured factory contract')
+    body = {key:item for key,item in value.items() if key != 'compatibility_digest'}
+    if value['compatibility_digest'] != digest(dict(request=body,
+            release=ORIGIN_RELEASE,phase_recipe=phase_recipe)):
+        raise ValueError('Generic continuation original factory or phase recipe differs')
+
+
+def validate(run, value, expected):
+    """Authenticate unchanged original execution custody at the current cut.
+
+    This does not claim a worker, change a pin or authorize accepted replay.
+    The native continuation rechecks its phase/action/head and lease under lock.
+    """
+    from django.db import connection,transaction
+    from release.native_identity import require_current
+    from mta.runtime import phase_state
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.runtime_report_registered_request import read_captured
+    from mta.runtime.ingestion_admission import registration,_admit
+    from mta.runtime.models import ProductionInitialization,RunPhaseAcceptance
+    from mta.runtime.scope_execution import receipt_digest
+    from mta.runtime.runtime_report_placement_publication import read as publication
+    from mta.runtime.scoped_pick_files import read as pick_files
+    if (run.kind != 'DAILY_CHAIN' or run.evidence_mode != 'production'
+            or run.status not in ('RUNNING','SUCCEEDED')
+            or run.input_payload.get('content_digest') != run.input_digest
+            or digest(run.input_payload) != run.input_manifest_digest):
+        raise ValueError('Generic continuation requires its intact production capture')
+    recipe = phase_state.recipe_digest()
+    require_factory(value,expected,recipe)
+    deployed = require_current()
+    actual = _source_release(deployed['source_commit'],deployed['manifest_sha256'])
+    raw = read_input(run,components=('scope_request','report_registration_request','initialization_binding'))
+    outer = read_captured(run)
+    binding = raw.get('initialization_binding') or {}
+    if raw.get('scope_request') != value or outer != raw.get('report_registration_request') or not outer:
+        raise ValueError('Generic continuation captured registration differs')
+    owner = ProductionInitialization.objects.select_related('source').get(pk=binding.get('id'))
+    if (owner.source_id != run.mdm_input_capture.source_id
+            or run.mdm_input_capture.status not in ('CAPTURED','CONSUMED')
+            or binding != dict(id=str(owner.pk),source_digest=owner.source.digest,
+                input_sha256=owner.input_sha256,content_digest=owner.input_digest,
+                configuration_digest=owner.configuration_digest)
+            or outer['registration']['initialization_id'] != str(owner.pk)
+            or outer['registration']['source_digest'] != owner.source.digest):
+        raise ValueError('Generic continuation original initialization/source differs')
+    with transaction.atomic(),connection.cursor() as cursor:
+        _original,capability = registration(cursor)
+        if capability['release_identity'] != ORIGIN_RELEASE:
+            raise ValueError('Generic continuation requires its certified original native factory')
+        admitted = _admit(cursor,owner.pk,actual,pending=True)
+        if outer['registration']['certificate_digest'] != admitted.certification_digest:
+            raise ValueError('Generic continuation original certificate differs')
+        phase = RunPhaseAcceptance.objects.select_related('snapshot','attempt').get(
+            run=run,phase={'UptoBPR':'BPR','UptoDBM':'DBM'}[value['scope']],state_sealed=True)
+        if (phase.source_id != owner.source_id or phase.input_digest != run.input_digest
+                or phase.digest != receipt_digest(phase)
+                or phase.snapshot.recipe_digest != recipe
+                or phase.snapshot.run_id != run.pk or phase.snapshot.acceptance_id != phase.pk
+                or phase.attempt.run_id != run.pk or phase.attempt.status != 'RELEASED'
+                or phase.attempt.compatibility_digest != value['compatibility_digest']
+                or phase.attempt.input_digest != run.input_digest
+                or phase.attempt.input_manifest_digest != run.input_manifest_digest):
+            raise ValueError('Generic continuation accepted phase/attempt custody differs')
+        for placement in ('PostImporter','PostBPR'):
+            row = publication(run.pk,placement=placement,verify_bytes=True)
+            if row.run_id != run.pk:
+                raise ValueError('Generic continuation original publication owner differs')
+        pick_files(phase.pk,expected_digest=phase.digest)
+    return dict(run_id=str(run.pk),origin_release=ORIGIN_RELEASE['manifest_sha256'],
+        actual_release=actual['manifest_sha256'],compatibility_digest=value['compatibility_digest'],
+        phase_id=str(phase.pk),phase_digest=phase.digest)

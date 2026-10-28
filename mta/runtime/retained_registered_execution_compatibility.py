@@ -23,7 +23,8 @@ READ_ROUTING_PREVIOUS_COMMIT = '3ed8c93f3c0e3fa3ddf8da2d690af6e3b1bc5de5'
 # Filled from the reviewed staged export, never from a caller or live database.
 # Raw hashes qualify the native artifact; text hashes also support Python's
 # universal-newline source recipes in a Windows development checkout.
-ADAPTED_FILES = {'mta/runtime/generic_read_alias_transition.py': '4a39a058c334c4b8ceb5578108412b7b600ef9f43ad887b9d973ec8b4b689ea4',
+ADAPTED_FILES = {'mta/runtime/generic_capture_compatibility.py': 'e6cd878f3e53da92d65941c9dcea94e9778e998d64292592a73c556c91ade138',
+ 'mta/runtime/generic_read_alias_transition.py': '4a39a058c334c4b8ceb5578108412b7b600ef9f43ad887b9d973ec8b4b689ea4',
  'mta/runtime/migrations/0242_generic_read_sql_aliases.py': 'edaae0a3a0da675f6ada277a89cc941d540d5668fd1222989191344e1de0a50b',
  'mta/runtime/transit_settings_schema_transition.py': 'cf6f7639248043e2842a5a678cc320a30a2c59e87c14ae969e7a44892d28e20e',
  'mta/runtime/migrations/0241_scope_transit_settings_owners.py': '4fb95f0a1d0b12e116d0a592eb8fd927e61dba40416465aadf0d04b6512e5300',
@@ -64,7 +65,8 @@ ADAPTED_FILES = {'mta/runtime/generic_read_alias_transition.py': '4a39a058c334c4
  'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
  'release/advance_ingestion.py': 'bec07727c23bf7655af78880a55d62d7059fa14ba3303d12a801e0bb13e553d2',
  'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
-ADAPTED_PYTHON_TEXT = {'mta/runtime/generic_read_alias_transition.py': '4a39a058c334c4b8ceb5578108412b7b600ef9f43ad887b9d973ec8b4b689ea4',
+ADAPTED_PYTHON_TEXT = {'mta/runtime/generic_capture_compatibility.py': 'e6cd878f3e53da92d65941c9dcea94e9778e998d64292592a73c556c91ade138',
+ 'mta/runtime/generic_read_alias_transition.py': '4a39a058c334c4b8ceb5578108412b7b600ef9f43ad887b9d973ec8b4b689ea4',
  'mta/runtime/migrations/0242_generic_read_sql_aliases.py': 'edaae0a3a0da675f6ada277a89cc941d540d5668fd1222989191344e1de0a50b',
  'mta/runtime/transit_settings_schema_transition.py': 'cf6f7639248043e2842a5a678cc320a30a2c59e87c14ae969e7a44892d28e20e',
  'mta/runtime/migrations/0241_scope_transit_settings_owners.py': '4fb95f0a1d0b12e116d0a592eb8fd927e61dba40416465aadf0d04b6512e5300',
@@ -104,7 +106,8 @@ ADAPTED_PYTHON_TEXT = {'mta/runtime/generic_read_alias_transition.py': '4a39a058
  'mta/runtime/scope_runtime_reports.py': '20d5e22ee8eb1cc1287082ed4028fd04d94074b97e54b387244f8b15eab93797',
  'release/advance_ingestion.py': 'bec07727c23bf7655af78880a55d62d7059fa14ba3303d12a801e0bb13e553d2',
  'release/configuration.py': '4a5294eeb3d965e96c9fea798a3a1d490c6d8e4585ca4c60f617fd021e9aa162'}
-NEW_FILES = {'mta/runtime/generic_read_alias_transition.py',
+NEW_FILES = {'mta/runtime/generic_capture_compatibility.py',
+ 'mta/runtime/generic_read_alias_transition.py',
  'mta/runtime/migrations/0242_generic_read_sql_aliases.py',
  'mta/runtime/transit_settings_schema_transition.py',
  'mta/runtime/migrations/0241_scope_transit_settings_owners.py',
@@ -214,6 +217,10 @@ def retained_facts(run, value, expected):
 
 
 def validate_retained(run, value, expected):
+    from mta.runtime import generic_capture_compatibility as generic
+    if generic.applicable(value):
+        generic.validate(run,value,expected)
+        return
     from django.db import connection
     from mta.runtime.input_reader import read_input
     from mta.runtime.runtime_report_registered_request import read_captured
