@@ -21,6 +21,7 @@ from mta.application.production_csv_files import contained, regular, load_bindin
 from mta.runtime.daily_feed_models import DailyFeedAttempt
 from mta.runtime.models import ProductionInitialization, CalculationRun
 from mta.application.streamed_input import JsonInputFile
+from mta.application.stage_observation import observed, stage as observe_stage
 logger = logging.getLogger(__name__)
 
 
@@ -341,6 +342,7 @@ def unresolved_attempts(owner):
         ).exclude(run_id__in=_finite_resolved_ancestors(owner))
 
 
+@observed('csv_staging', owner_parameter='business_date')
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root, fullkit=None):
     binding, owner = binding_owner(binding_file)
     identity=uuid.uuid4()
@@ -417,8 +419,10 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
             attempt.save(update_fields=['input_sha256', 'predecessor', 'predecessor_output_digest', 'updated_at'])
             from mta.runtime.daily_preparation import prepare
             from mta.runtime.ingestion_admission import preparation_source
-            raw = prepare(raw, attempt.input_sha256)
-            ready = preparation_source(owner.source.digest)
+            with observe_stage('native_daily_validation'):
+                raw = prepare(raw, attempt.input_sha256)
+            with observe_stage('staging_readiness'):
+                ready = preparation_source(owner.source.digest)
             arguments = _parameters(binding, owner, parent, 'csv-v1-' + attempt.batch_digest, pick_root)
             report = _native_inspect(raw, attempt.input_sha256, arguments)
             atomic_json(root / 'preflight.json', report)
@@ -442,6 +446,7 @@ def _bound_attempt(attempt_id, binding):
     return attempt
 
 
+@observed('csv_execution', owner_parameter='attempt_id')
 def execute(attempt_id, binding_file, *, pick_root, resume=False):
     binding, owner = binding_owner(binding_file)
     with job_lock(owner) as check:

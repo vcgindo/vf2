@@ -8,6 +8,7 @@ import uuid
 
 from django.db import connection, transaction
 from mta.serialization import digest, storage
+from mta.application.stage_observation import observed, stage, observe_exit
 from mta.runtime.models import CalculationRun, MdmSource, ProductionInitialization
 from mta.runtime.mdm_models import MdmFamilySource, MdmTask, MdmSubTask
 from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -110,6 +111,7 @@ def verify_current_masters(source, batches):
             raise ValueError('Native master has unknown owners/occurrences: '+model.__name__)
 
 
+@stage('opening_reconstruction')
 def read_initialized_input(owner):
     # These are the initializer's explicit current-list contracts. Operational
     # histories outside these roots remain streamed and fully checksum-checked.
@@ -188,6 +190,7 @@ def initialize_complete(raw, expected_sha256, *, expected_configuration, expecte
         expected_recipe=expected_recipe, complete=True)
 
 
+@observed('native_initialization', owner_parameter='expected_sha256')
 def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe, complete):
     from mta.mdm.initialization_preparation import PreparedInitialization, prepare
     prepared = raw if type(raw) is PreparedInitialization else prepare(raw, expected_sha256,
@@ -198,7 +201,7 @@ def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe
     # current-master readback and sealing stay in the transaction.
     content_digest, families = prepared.content_digest, prepared.families
     own_transaction = not connection.in_atomic_block
-    with transaction.atomic():
+    with observe_exit(transaction.atomic(), 'initialization_transaction_exit'):
         if own_transaction:
             with connection.cursor() as cursor:
                 cursor.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')

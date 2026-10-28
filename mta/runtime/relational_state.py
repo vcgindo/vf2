@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import re
 from itertools import islice
-from time import perf_counter
+from time import perf_counter, process_time
 
 from django.db import connection
 from mta.serialization import digest, storage, rows_digest, canonical_parts
@@ -96,12 +96,21 @@ def wire_value(value,kind):
 
 def bulk(sql,records):
     count=batches=0
+    prepare_seconds=write_seconds=prepare_cpu=write_cpu=0.0
     with connection.cursor() as cursor:
         iterator=iter(records)
-        while batch:=list(islice(iterator,500)):
+        while True:
+            wall,cpu=perf_counter(),process_time()
+            batch=list(islice(iterator,500))
+            prepare_seconds+=perf_counter()-wall;prepare_cpu+=process_time()-cpu
+            if not batch:break
+            wall,cpu=perf_counter(),process_time()
             cursor.executemany(sql,batch)
+            write_seconds+=perf_counter()-wall;write_cpu+=process_time()-cpu
             count+=len(batch);batches+=1
-    summary('typed_transport',rows=count,batches=batches)
+    summary('typed_transport',rows=count,batches=batches,transport='executemany',
+        records_prepare_seconds=prepare_seconds,records_prepare_cpu_seconds=prepare_cpu,
+        execute_seconds=write_seconds,execute_cpu_seconds=write_cpu)
 
 
 def describe_rows(rows, columns, image):

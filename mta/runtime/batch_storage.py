@@ -21,6 +21,8 @@ from mta.application.production_csv_contract import feeds
 from mta.row_sequences import RecordRows
 from mta.runtime.relational_state import bulk, db_value, describe_rows, quote, wire_value
 from mta.serialization import canonical_parts
+from mta.application.stage_observation import stage, summary
+from time import perf_counter, process_time
 
 
 DECLARATION = json.loads((Path(__file__).resolve().parents[1] /
@@ -153,7 +155,8 @@ def save_populations(attempt, intake, populations, *, _identity_resolver=None):
         if any(not isinstance(row, dict) or set(row) != set(declared_fields) for row in rows):
             raise ValueError('Complete ordered daily feed fields required: ' + filename)
         columns = {name.casefold(): (name, kind) for name, kind in declaration['columns']}
-        meta, fields, native = describe_rows(rows, columns, declaration['path'])
+        with stage('batch_describe', feed=filename, rows=len(rows)):
+            meta, fields, native = describe_rows(rows, columns, declaration['path'])
         if rows:
             temporal = [(field, name, kind) for field, (name, kind) in zip(fields, native)
                         if kind in TEMPORAL_KINDS]
@@ -161,10 +164,11 @@ def save_populations(attempt, intake, populations, *, _identity_resolver=None):
             sql = ('INSERT INTO ' + table_sql(filename) + ' (vf_attempt_id,vf_ordinal,' +
                 ','.join(quote(name) for name in insert_names) + ') VALUES (' +
                 ','.join(['%s'] * (len(insert_names) + 2)) + ')')
-            bulk(sql, ((owner['attempt_id'], ordinal, *[
-                db_value(row[field], kind) for field, (_, kind) in zip(fields, native)],
-                *[_wire_text(row[field], kind) for field, _, kind in temporal])
-                for ordinal, row in enumerate(rows)))
+            with stage('batch_insert', feed=filename, rows=len(rows)):
+                bulk(sql, ((owner['attempt_id'], ordinal, *[
+                    db_value(row[field], kind) for field, (_, kind) in zip(fields, native)],
+                    *[_wire_text(row[field], kind) for field, _, kind in temporal])
+                    for ordinal, row in enumerate(rows)))
         entries.append(dict(filename=filename, path=declaration['path'],
             table=declaration['table'], columns=declaration['columns'],
             fields=meta['fields'], count=meta['count'], digest=meta['digest']))
@@ -212,12 +216,19 @@ def _iter_population(attempt, entry):
                 if kinds[native] in TEMPORAL_KINDS]
     count = 0
     checksum = hashlib.sha256(b'[')
+    fetch_seconds=fetch_cpu_seconds=0.0;fetch_calls=0
     with connection.chunked_cursor() as cursor:
         selected = [f[1] for f in fields] + ['vf_wire_' + native for _, native, _ in temporal]
+        wall,cpu=perf_counter(),process_time()
         cursor.execute('SELECT vf_ordinal' + (',' + ','.join(quote(name) for name in selected)
             if selected else '') + ' FROM ' + table_sql(entry['filename']) +
             ' WHERE vf_attempt_id=%s ORDER BY vf_ordinal', [str(attempt.attempt_id)])
-        while records := cursor.fetchmany(500):
+        query_seconds=perf_counter()-wall;query_cpu_seconds=process_time()-cpu
+        while True:
+            wall,cpu=perf_counter(),process_time()
+            records=cursor.fetchmany(500)
+            fetch_seconds+=perf_counter()-wall;fetch_cpu_seconds+=process_time()-cpu;fetch_calls+=1
+            if not records:break
             for record in records:
                 if record[0] != count:
                     raise ValueError('Daily batch ordinal/multiplicity drift')
@@ -244,6 +255,12 @@ def _iter_population(attempt, entry):
     checksum.update(b']')
     if count != entry['count'] or checksum.hexdigest() != entry['digest']:
         raise ValueError('Daily batch typed value/order/count drift: ' + entry['filename'])
+    # A timer held across yield would also charge caller work and leak its phase
+    # into the consumer. Aggregate only actual cursor calls; parent phases own
+    # conversion/hash/consumer costs. No extra row pass or per-row timer/log.
+    summary('batch_readback',feed=entry['filename'],rows=count,fetch_calls=fetch_calls,
+        query_seconds=query_seconds,query_cpu_seconds=query_cpu_seconds,
+        fetch_seconds=fetch_seconds,fetch_cpu_seconds=fetch_cpu_seconds)
 
 
 def iter_population(attempt, filename, manifest=None, *, _identity_resolver=None,

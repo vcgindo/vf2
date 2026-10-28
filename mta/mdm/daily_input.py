@@ -212,12 +212,14 @@ def install_pair_exclusions(source, rows, *, provenance):
     return owner
 
 
+@stage('snapshot_pair_exclusions')
 def compose_pair_exclusions(snapshot, incoming_master):
     """Apply NMSImportData 474-499, then ValidateExclusions 19-61."""
     if snapshot['schema'] != SCHEMA or digest({k: v for k, v in snapshot.items()
             if k != 'revision_digest'}) != snapshot['revision_digest']:
         raise ValueError('MDM daily input revision drift')
-    result = deepcopy(snapshot)
+    with stage('snapshot_copy'):
+        result = deepcopy(snapshot)
     opening = deepcopy(result['pair_exclusion_opening']['rows'])
     if not result['nms_active']:
         post_nms = opening
@@ -247,7 +249,8 @@ def compose_pair_exclusions(snapshot, incoming_master):
     result['pair_exclusions_post_nms'] = storage(post_nms)
     result['pair_exclusions'] = storage(_validated_pair_exclusions(post_nms))
     result.pop('revision_digest', None)
-    result['revision_digest'] = digest(result)
+    with stage('snapshot_digest'):
+        result['revision_digest'] = digest(result)
     return storage(result)
 
 
@@ -286,6 +289,7 @@ def _task_snapshot(source):
     return result
 
 
+@stage('master_snapshot')
 def select_capture(source, *, nms_active, task_status_log_horizon):
     """Freeze one eligible revision; caller owns an atomic source-row lock."""
     if type(nms_active) is not bool:
@@ -362,13 +366,16 @@ def select_capture(source, *, nms_active, task_status_log_horizon):
     if integration is not None:
         snapshot['integration'] = integration
     verify_capture(source, snapshot)
-    snapshot['revision_digest'] = digest(snapshot)
+    with stage('snapshot_digest'):
+        snapshot['revision_digest'] = digest(snapshot)
     return storage(snapshot)
 
 
+@stage('snapshot_pending_conflicts')
 def capture_pending_conflicts(snapshot, source, composed_rows):
     """Freeze native pending-Add 'Already in Vectorflow' history identities."""
-    result = deepcopy(snapshot)
+    with stage('snapshot_copy'):
+        result = deepcopy(snapshot)
     sku_keys = {sql_key(row.get('SKUCode')) for row in composed_rows if row.get('SKUCode') is not None}
     location_keys = {sql_key(row.get('WhCode')) for row in composed_rows if row.get('WhCode') is not None}
     pair_keys = {(sql_key(row.get('SKUCode')), sql_key(row.get('WhCode')))
@@ -392,7 +399,8 @@ def capture_pending_conflicts(snapshot, source, composed_rows):
                 'task_id': row.TaskId, 'row_digest': digest(values)})
     result['history_transitions'] = transitions
     result.pop('revision_digest', None)
-    result['revision_digest'] = digest(result)
+    with stage('snapshot_digest'):
+        result['revision_digest'] = digest(result)
     return storage(result)
 
 
@@ -432,9 +440,11 @@ def _row_version(row):
     return {'pk': row.pk, 'digest': digest(values)}
 
 
+@stage('snapshot_retention')
 def capture_prune_candidates(snapshot, source, business_date):
     """Freeze native completed-task retention candidates and every owned row."""
-    result = deepcopy(snapshot)
+    with stage('snapshot_copy'):
+        result = deepcopy(snapshot)
     cutoff = datetime.combine(business_date - timedelta(days=
         result['configuration']['task_status_log_horizon']), time.min,
         tzinfo=database_now().tzinfo)
@@ -466,7 +476,8 @@ def capture_prune_candidates(snapshot, source, business_date):
     result['completion_tasks'] = completions
     result['prune_tasks'] = candidates
     result.pop('revision_digest', None)
-    result['revision_digest'] = digest(result)
+    with stage('snapshot_digest'):
+        result['revision_digest'] = digest(result)
     return storage(result)
 
 
@@ -729,9 +740,11 @@ def nms_master_raw(prior):
     return [nms_master_row(item) for item in prior['consumer_context']['NMSAllItems']]
 
 
+@stage('master_composition')
 def compose(snapshot, master_rows, *, last_run_date, master_columns=RAW_COLUMNS):
     """Apply the qualified MasterDataRaw statements in their native order."""
-    result = deepcopy(list(master_rows))
+    with stage('composed_master_copy'):
+        result = deepcopy(list(master_rows))
     if snapshot['schema'] != SCHEMA or digest({k: v for k, v in snapshot.items()
             if k != 'revision_digest'}) != snapshot['revision_digest']:
         raise ValueError('MDM daily input revision drift')

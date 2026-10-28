@@ -16,6 +16,7 @@ from django.db import connection
 
 from mta.row_sequences import RecordRows
 from mta.serialization import canonical_parts, digest, rows_digest, storage
+from mta.application.stage_observation import stage
 
 
 V3 = 'fresh-daily-input-manifest-v3'
@@ -192,6 +193,7 @@ def _content_identity(value):
     return {**value, 'initialization_id': initialization_id}
 
 
+@stage('input_content_digest')
 def content_root(raw, content_identity, *, owner_references={}, batch_references={}):
     """Return the bounded prepared-input root without retaining its raw graph."""
     identity = _content_identity(content_identity)
@@ -331,8 +333,9 @@ def _batch_references(raw, references, owner, owner_identity, resolver):
         if not _collection(target):
             raise ValueError('Typed input batch reference requires a collection target')
         rows = _resolve_batch(owner, path, reference, owner_identity, resolver)
-        if not _typed_equal(target, rows):
-            raise ValueError('Typed input batch population differs: ' + path)
+        with stage('batch_reference_compare', path=path):
+            if not _typed_equal(target, rows):
+                raise ValueError('Typed input batch population differs: ' + path)
         result[path] = reference
     return result
 
@@ -469,6 +472,7 @@ def _owner_manifest(owner, source_path, reference, owner_identity, resolver):
     return target, manifest, legacy_initialization
 
 
+@stage('owner_reference_read')
 def _resolve_owner(owner, source_path, reference, owner_identity, resolver):
     from mta.runtime import input_storage
     reference = _owner_reference(reference, source_path)
@@ -537,8 +541,9 @@ def _owner_references(raw, references, owner, owner_identity, resolver):
         reference = _owner_reference(value, path)
         target = _at(raw, path)
         resolved = _resolve_owner(owner, path, reference, owner_identity, resolver)
-        if not _typed_equal(target, resolved):
-            raise ValueError('Typed input referenced population differs: ' + path)
+        with stage('owner_reference_compare', path=path):
+            if not _typed_equal(target, resolved):
+                raise ValueError('Typed input referenced population differs: ' + path)
         result[path] = reference
     return result
 
@@ -667,6 +672,7 @@ def _resolve_derived_master(owner, reference, owner_identity, resolver, *, proje
         snapshot=projection[0],business_date=projection[1])
 
 
+@stage('typed_input_write')
 def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
                identity_resolver=None, explicit_table_selector=False,
                batch_references=None, batch_resolver=None,

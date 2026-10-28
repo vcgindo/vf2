@@ -17,6 +17,7 @@ from mta.application.operational_inputs import NULL, typed_value
 from mta.application.production_csv_contract import SCHEMA_VERSION, feeds
 from mta.application.native_daily_contract import SOURCE_SCHEMA, CONTROL_TABLES
 from mta.serialization import storage, canonical_parts
+from mta.application.stage_observation import stage, summary
 
 
 class IssueRows(Sequence):
@@ -168,8 +169,10 @@ def assemble(batch, binding, payloads, *, first_day, output_file=None, _transfer
     mappings, errors = {}, IssueRows()
     for filename, spec in roster.items():
         try:
-            rows, positions = (parse_csv(payloads[filename], spec['columns'], filename)
-                if filename in payloads else ([], []))
+            with stage('csv_parse', feed=filename):
+                rows, positions = (parse_csv(payloads[filename], spec['columns'], filename)
+                    if filename in payloads else ([], []))
+                summary('csv_feed_rows', feed=filename, rows=len(rows))
             mappings[filename] = positions
             owner = value
             parts = spec['path'].split('/')
@@ -184,10 +187,11 @@ def assemble(batch, binding, payloads, *, first_day, output_file=None, _transfer
         from mta.application.streamed_input import JsonInputFile
         import hashlib
         checksum = hashlib.sha256()
-        with Path(output_file).open('xb') as stream:
+        with stage('csv_native_archive'), Path(output_file).open('xb') as stream:
             for part in canonical_parts(value, ensure_ascii=False):
                 stream.write(part)
                 checksum.update(part)
+            summary('csv_native_archive_bytes', bytes=stream.tell())
         if _transfer:
             from mta.application.streamed_input import StreamedInput
             return StreamedInput.take(value, checksum.hexdigest()), mappings

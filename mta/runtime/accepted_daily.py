@@ -9,6 +9,7 @@ from mta.serialization import canonical_parts, digest
 from mta.row_sequences import RecordRows
 from mta.runtime import batch_storage
 from mta.runtime.ingestion_admission import EPOCHS
+from mta.application.stage_observation import stage, observe_exit
 
 CONTRACT = 'vectorflow-accepted-daily-v1'
 
@@ -73,6 +74,7 @@ def join(tree, populations):
     return unpack(tree)
 
 
+@stage('staging_seal_transaction')
 def seal(attempt, prepared, arguments, readiness):
     """The source lock plus revision row serializes intake against live writers."""
     from mta.mdm.supplier_revisions import source_lock
@@ -80,7 +82,7 @@ def seal(attempt, prepared, arguments, readiness):
     value = prepared.checked(attempt.input_sha256)
     intake = value.get('intake_schema', value['schema'])
     tree, populations = split(value, intake)
-    with source_lock(attempt.initialization.source_id), transaction.atomic():
+    with source_lock(attempt.initialization.source_id), stage('staging_transaction'), observe_exit(transaction.atomic(), 'staging_transaction_exit'):
         current = DailyFeedAttempt.objects.select_for_update().get(pk=attempt.pk)
         before = epochs(attempt.initialization_id, lock=True)
         if (tuple(before) != readiness.revisions.as_tuple() or current.accepted_facts
@@ -111,6 +113,7 @@ def seal(attempt, prepared, arguments, readiness):
     return attempt
 
 
+@stage('accepted_preparation_check')
 def check(attempt, arguments, *, locked=False):
     body = attempt.prepared_context
     if (not isinstance(body, dict) or body.get('contract') != CONTRACT
@@ -145,13 +148,16 @@ def check(attempt, arguments, *, locked=False):
     return body
 
 
+@stage('staged_fact_restore')
 def read(attempt, arguments):
     body = check(attempt, arguments)
     populations = batch_storage.read_populations(attempt)
-    value = join(body['tree'], populations)
+    with stage('staged_fact_materialize'):
+        value = join(body['tree'], populations)
     checksum = hashlib.sha256()
-    for part in canonical_parts(value, ensure_ascii=False):
-        checksum.update(part)
+    with stage('staged_fact_digest'):
+        for part in canonical_parts(value, ensure_ascii=False):
+            checksum.update(part)
     if checksum.hexdigest() != attempt.input_sha256:
         raise ValueError('Accepted daily full typed reconstruction differs')
     from mta.runtime.daily_preparation import restored

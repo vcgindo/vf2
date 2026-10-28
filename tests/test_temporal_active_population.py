@@ -1,6 +1,8 @@
 """Current-master membership at the calculation adapter boundary."""
 from copy import deepcopy
+import json
 import unittest
+from unittest.mock import patch
 
 from mta.temporal.chain import calculation_source, MASTER_SOURCE_MAP
 
@@ -53,6 +55,27 @@ class ActivePopulationTest(unittest.TestCase):
         for rows in ([], processed * 2):
             with self.assertRaisesRegex(ValueError, 'Missing/ambiguous current physical stock'):
                 self.run_adapter(profile, importer, rows)
+
+    def test_stock_failure_logs_only_first_bounded_key_and_exact_reason(self):
+        from mta.application import stage_observation as observation
+        for reason, count in (('missing',0),('duplicate',2),('null',1)):
+            profile, importer, processed = self.inputs()
+            rows = [] if count==0 else processed*count
+            if reason=='null': rows[0]['Stock']=None
+            before = deepcopy((profile,importer,rows))
+            with patch.object(observation._logger,'warning') as logger, observation.operation('test-run'):
+                with self.assertRaisesRegex(ValueError,
+                        '^Missing/ambiguous current physical stock reaches calculation; no substituted input$'):
+                    self.run_adapter(profile,importer,rows)
+            diagnostic = [json.loads(call.args[1]) for call in logger.call_args_list
+                          if json.loads(call.args[1])['event']=='rejection']
+            self.assertEqual(len(diagnostic),1)
+            self.assertEqual({k:diagnostic[0][k] for k in
+                ('sku_code','location_code','business_date','match_count','reason','owner')},
+                dict(sku_code='A',location_code='L',business_date='2026-07-04',
+                     match_count=count,reason=reason,owner='test-run'))
+            self.assertNotIn('Stock',json.dumps(diagnostic))
+            self.assertEqual((profile,importer,rows),before)
 
     def test_current_missing_attributes_still_denied(self):
         profile, importer, processed = self.inputs()

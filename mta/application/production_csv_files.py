@@ -8,6 +8,7 @@ import stat
 
 from mta.serialization import digest
 from mta.application.production_csv_contract import SCHEMA_VERSION
+from mta.application.stage_observation import stage, summary
 
 
 def decode_json(raw):
@@ -39,6 +40,7 @@ def regular(path, root):
     return path
 
 
+@stage('binding_read_hash')
 def load_binding(path):
     path = Path(path).absolute()
     raw = regular(path, path.parent).read_bytes()
@@ -66,6 +68,7 @@ def load_binding(path):
     return result
 
 
+@stage('csv_snapshot_hash')
 def snapshot(source, destination, root):
     source, destination = contained(source, root), Path(destination)
     marker = regular(source / 'READY', root)
@@ -98,4 +101,5 @@ def snapshot(source, destination, root):
     manifest = dict(schema='vectorflow-csv-snapshot-v1', files=receipts)
     manifest['digest'] = digest(manifest)
     (destination / 'snapshot.json').write_text(json.dumps(manifest, sort_keys=True) + '\n', encoding='utf-8')
+    summary('csv_snapshot_files', files=len(receipts), bytes=sum(item['bytes'] for item in receipts.values()))
     return batch, manifest

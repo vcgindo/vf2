@@ -9,6 +9,7 @@ from mta.runtime.relational_state import (quote, table_name, bulk,
     db_value, wire_type, wire_value, describe_rows)
 from mta.serialization import rows_digest, canonical_parts
 from mta.row_sequences import RecordRows
+from mta.application.stage_observation import stage
 
 # Initialization v1 owns the exact table set created by0118, independently of
 # later run-input families. A later daily table is never an opening namespace.
@@ -35,14 +36,16 @@ def save_image(owner, image, binding, rows, *, table):
     elif select(rows[0] if rows else (), image, rows) != table:
         raise ValueError('Opening population/table identity differs')
     columns = {name.casefold(): (name, kind) for name, kind in STORAGE_TABLES[table]}
-    meta,fields,native=describe_rows(rows,columns,image)
+    with stage('opening_describe', image=image, rows=len(rows)):
+        meta,fields,native=describe_rows(rows,columns,image)
     meta['table']=table
     if not rows:return meta
     query = ('INSERT INTO '+table_sql(table)+' (vf_initialization_id,vf_image,vf_ordinal,'+
         ','.join(quote(name) for name, _ in native)+') VALUES ('+
         ','.join(['%s']*(len(native)+3))+')')
-    bulk(query, ((owner.pk, image, ordinal, *[db_value(row[field], kind)
-        for field, (_, kind) in zip(fields, native)]) for ordinal, row in enumerate(rows)))
+    with stage('opening_insert', image=image, rows=len(rows)):
+        bulk(query, ((owner.pk, image, ordinal, *[db_value(row[field], kind)
+            for field, (_, kind) in zip(fields, native)]) for ordinal, row in enumerate(rows)))
     return meta
 
 
@@ -75,12 +78,13 @@ def iter_image(owner, meta):
 
 
 def load_image(owner, meta):
-    if meta['count'] > 10000:
-        if os.environ.get('VF_WORK_ROOT'):
-            return RecordRows.from_rows(iter_image(owner,meta))
-        # Serving roots are read-only. Certify the complete immutable typed
-        # image before returning, then rescan without an application spool.
-        # Installer/daily workers use the existing writable disk cache above.
-        for _ in iter_image(owner,meta):pass
-        return RecordRows(meta['count'],lambda:iter_image(owner,meta))
-    return list(iter_image(owner, meta))
+    with stage('opening_fetch_verify_spool', image=meta['image'], rows=meta['count']):
+        if meta['count'] > 10000:
+            if os.environ.get('VF_WORK_ROOT'):
+                return RecordRows.from_rows(iter_image(owner,meta))
+            # Serving roots are read-only. Certify the complete immutable typed
+            # image before returning, then rescan without an application spool.
+            # Installer/daily workers use the existing writable disk cache above.
+            for _ in iter_image(owner,meta):pass
+            return RecordRows(meta['count'],lambda:iter_image(owner,meta))
+        return list(iter_image(owner, meta))

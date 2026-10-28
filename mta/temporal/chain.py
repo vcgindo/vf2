@@ -307,6 +307,10 @@ def _calculation_source_values(today, opening_date, profile, importer, dbm_maste
     for r in masters:
         matches=processed_by_key.get((r['sku_code'],r['location_code'],today), ())
         if len(matches)!=1 or matches[0]['Stock'] is None:
+            from mta.application.stage_observation import stock_rejection
+            stock_rejection(sku_code=r['sku_code'], location_code=r['location_code'],
+                business_date=today, match_count=len(matches), identity=identity,
+                reason='missing' if not matches else 'duplicate' if len(matches)!=1 else 'null')
             raise ValueError('Missing/ambiguous current physical stock reaches calculation; no substituted input')
         p=matches[0]
         positions.append({'sku_code':p['SKUCode'],'location_code':p['WhCode'],'business_date':today,

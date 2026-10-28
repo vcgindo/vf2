@@ -14,6 +14,7 @@ from mta.runtime import ingestion_authority as authority
 from mta.runtime.ingestion_ownership import require_guard_coverage
 from mta.presentation.request_scope import once_per_request
 from mta.presentation.identity_reuse import certified_readiness
+from mta.application.stage_observation import stage
 
 BASELINE_MANIFEST = '2b7346f3382d78e3ea2d8c352f9854b6f59b5e13cf53d27aa9fa68216f478818'
 EPOCHS = ('master_epoch', 'configuration_epoch', 'fact_epoch', 'operational_epoch', 'action_epoch')
@@ -28,6 +29,7 @@ def receipt(values):
     return digest({k: str(v) if isinstance(v, UUID) else v for k, v in values.items()})
 
 
+@stage('admission_security_catalogue')
 def security_digest(cursor, roles):
     """Catalogue cost depends on schema size, never on business row count."""
     if type(roles) is not list or len(roles) != 3 or len(set(roles)) != 3:
@@ -332,6 +334,7 @@ def validate_activation(cursor, body):
 
 
 @lru_cache(maxsize=4)
+@stage('native_release_files')
 def _process_release(commit, manifest):
     from release.native_identity import require_current
     actual = require_current()
@@ -350,6 +353,7 @@ class CertifiedReadiness:
     revisions: RevisionCut
 
 
+@stage('release_admission')
 def _admit(cursor, initialization_id, release, *, pending=False):
     body = authority.read(cursor, initialization_id, release['manifest_sha256'])
     if body['target_commit'] != release['source_commit']:

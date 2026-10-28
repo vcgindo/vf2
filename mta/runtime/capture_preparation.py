@@ -6,6 +6,7 @@ from django.db import connection
 from django.db.models import F
 from mta.serialization import digest
 from mta.runtime.accepted_daily import epochs
+from mta.application.stage_observation import stage
 
 CONTRACT='vectorflow-native-capture-cut-v1'
 
@@ -17,6 +18,7 @@ def seed(state, *, reused):
         qualified_master_reuse=bool(reused))
 
 
+@stage('capture_receipt_seal')
 def seal(run,*,consumer_snapshot=None):
     body=run.production_manifest.get('ingestion_preparation')
     if body is None:
