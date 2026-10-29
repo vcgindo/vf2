@@ -353,7 +353,7 @@ def _revalidation_origin_digest(origin):
     return digest(dict(identity={name:str(getattr(origin,name)) for name in names},error=origin.error))
 
 
-def _verify_revalidation(attempt, origin=None):
+def _verify_revalidation(attempt, origin=None, *, historical=False):
     receipt_path=Path(attempt.archive_path)/'revalidation.json'
     if origin is None:
         candidates=DailyFeedAttempt.objects.filter(initialization_id=attempt.initialization_id,
@@ -365,6 +365,13 @@ def _verify_revalidation(attempt, origin=None):
             return
     receipt=decode_json(regular(receipt_path,Path(attempt.archive_path)).read_bytes())
     from release.native_identity import require_current
+    if historical:
+        from mta.runtime.ingestion_admission import _admit
+        with connection.cursor() as cursor:
+            _admit(cursor,str(attempt.initialization_id),receipt['target_release'],pending=True)
+        expected_release=receipt['target_release']
+    else:
+        expected_release=require_current()
     if (receipt.get('contract')!='fresh-csv-revalidation-v1'
             or receipt.get('origin_attempt')!=str(origin.attempt_id)
             or receipt.get('origin_digest')!=_revalidation_origin_digest(origin)
@@ -372,7 +379,7 @@ def _verify_revalidation(attempt, origin=None):
             or receipt.get('canonical_request_key')!=origin.request_key
             or receipt.get('original_release')!=origin.initialization.source.receipt['owned_namespace']['release_identity']
             or attempt.request_key!=_revalidation_key(origin)
-            or receipt.get('target_release')!=require_current()
+            or receipt.get('target_release')!=expected_release
             or any(str(getattr(attempt,k))!=str(getattr(origin,k)) for k in (
                 'initialization_id','business_date','batch_id','batch_digest','binding_digest',
                 'input_sha256','predecessor_id','predecessor_output_digest'))):
@@ -429,6 +436,131 @@ def _check_rejected_order_origin(origin, owner, binding, manifest, business_date
         original_release=original_release,target_release=target)
 
 
+def _capture_retry_key(origin, release):
+    return digest(dict(contract='csv-frozen-retry-v1',origin_run=str(origin.run_id),
+        input_digest=origin.run.input_digest,target_release=release['manifest_sha256']))
+
+
+def _capture_origin(origin):
+    failure=dict(type='ValueError',message='DailyConsumption must be an ordered row table')
+    if (origin.status!='FAILED' or origin.phase!='VALIDATED' or not origin.run_id
+            or origin.run.status!='FAILED' or origin.run.failure!=failure or origin.error!=failure
+            or not origin.accepted_facts or not origin.prepared_context):
+        raise ValueError('Resume requires the preserved failed DailyConsumption capture')
+    _verify_revalidation(origin,historical=True)
+    capture=origin.run.mdm_input_capture
+    if capture.status!='CAPTURED' or capture.source_id!=origin.initialization.source_id:
+        raise ValueError('Failed retry capture owner or status differs')
+    return capture
+
+
+def _verify_capture_retry(attempt, origin=None):
+    path=Path(attempt.archive_path)/'capture-retry.json'
+    from release.native_identity import require_current
+    if not path.exists():
+        candidates=DailyFeedAttempt.objects.filter(initialization_id=attempt.initialization_id,
+            business_date=attempt.business_date,status='FAILED').select_related('run')
+        for row in candidates:
+            if row.run_id and _capture_retry_key(row,require_current())==attempt.request_key:
+                raise ValueError('Frozen retry lineage receipt is absent')
+        return None
+    receipt=decode_json(regular(path,Path(attempt.archive_path)).read_bytes())
+    if origin is None:
+        origin=DailyFeedAttempt.objects.select_related('run','initialization__source').get(
+            attempt_id=uuid.UUID(receipt['origin_attempt']))
+    capture=_capture_origin(origin)
+    target=require_current()
+    old_receipt=decode_json(regular(Path(origin.archive_path)/'revalidation.json',
+                                   Path(origin.archive_path)).read_bytes())
+    if (receipt.get('contract')!='csv-frozen-retry-v1'
+            or receipt.get('origin_attempt')!=str(origin.attempt_id)
+            or receipt.get('origin_attempt_digest')!=_revalidation_origin_digest(origin)
+            or receipt.get('origin_run')!=str(origin.run_id)
+            or receipt.get('origin_input_digest')!=origin.run.input_digest
+            or receipt.get('origin_manifest_digest')!=origin.run.input_manifest_digest
+            or receipt.get('capture_request_digest')!=capture.request_digest
+            or receipt.get('capture_revision_digest')!=capture.revision_digest
+            or receipt.get('historical_receipt_digest')!=digest(old_receipt)
+            or receipt.get('target_release')!=target
+            or receipt.get('replacement_attempt')!=str(attempt.attempt_id)
+            or attempt.request_key!=_capture_retry_key(origin,target)
+            or receipt.get('execution_revision')!='csv-retry-v1-'+attempt.request_key
+            or any(str(getattr(attempt,k))!=str(getattr(origin,k)) for k in (
+                'initialization_id','business_date','batch_id','batch_digest','binding_digest',
+                'input_sha256','predecessor_id','predecessor_output_digest'))):
+        raise ValueError('Frozen retry lineage, release or input identity differs')
+    return receipt
+
+
+def _resume_failed_capture(origin, owner, binding, manifest, root, *, pick_root, selection_file, lock_check):
+    capture=_capture_origin(origin)
+    from release.native_identity import require_current
+    from mta.runtime.ingestion_admission import preparation_source
+    target=require_current()
+    old_root=Path(origin.archive_path)
+    old_receipt=decode_json(regular(old_root/'revalidation.json',old_root).read_bytes())
+    if (str(origin.initialization_id)!=str(owner.pk) or origin.binding_digest!=binding['_binding_digest']
+            or origin.batch_digest!=manifest['digest']
+            or target['manifest_sha256']==old_receipt['target_release']['manifest_sha256']
+            or preparation_source(owner.source.digest) is None):
+        raise ValueError('Frozen retry requires unchanged input and an admitted corrected release')
+    key=_capture_retry_key(origin,target)
+    existing=DailyFeedAttempt.objects.filter(request_key=key).first()
+    if existing:
+        _verify_capture_retry(existing,origin)
+        if (existing.status in ('FAILED','REJECTED') or existing.phase=='VALIDATE'
+                or existing.run_id and existing.run.status!='SUCCEEDED'
+                or existing.phase!='VALIDATED' and not existing.run_id):
+            raise ValueError('Frozen retry already attempted; reconcile native state before another action')
+        import shutil
+        shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
+        return result(existing)
+    from mta.runtime.captured_recovery import _uncommitted
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    _uncommitted(origin.run)
+    leaves=list(MdmDailyInputCapture.objects.filter(source_id=capture.source_id,status='CAPTURED',
+        retries__isnull=True).values_list('run_id',flat=True))
+    parent=predecessor(owner,str(origin.business_date))
+    from mta.presentation.native_selection import read as read_selection
+    selected=read_selection(selection_file)
+    if (leaves!=[origin.run_id] or parent is None or parent.pk!=origin.predecessor_id
+            or parent.output_digest!=origin.predecessor_output_digest
+            or selected['run_id']!=str(parent.pk) or selected['output_digest']!=parent.output_digest
+            or selected['initialization_id']!=str(owner.pk)
+            or parent.successors.filter(status__in=('RUNNING','SUCCEEDED')).exists()
+            or unresolved_attempts(owner).exclude(pk=origin.pk).exists()):
+        raise ValueError('Frozen retry leaf, predecessor, selection or competing operation changed')
+    from mta.runtime.input_reader import read_input
+    from mta.runtime.temporal import resolved_pick_root
+    if read_input(origin.run,components=('pick_output_root',)).get('pick_output_root')!=resolved_pick_root(pick_root):
+        raise ValueError('Frozen retry Pick root changed')
+    frozen=decode_json(regular(old_root/'original'/'snapshot.json',old_root).read_bytes())
+    if (frozen!=manifest or frozen['digest']!=digest({k:v for k,v in frozen.items() if k!='digest'})
+            or any(file_identity(regular(old_root/'original'/name,old_root))!=meta
+                   for name,meta in frozen['files'].items())
+            or file_identity(regular(old_root/'native-day.json',old_root))['sha256']!=origin.input_sha256):
+        raise ValueError('Frozen retry original bytes differ')
+    import shutil
+    shutil.copyfile(old_root/'native-day.json',root/'native-day.json')
+    if (old_root/'record-lines.json').is_file():
+        shutil.copyfile(regular(old_root/'record-lines.json',old_root),root/'record-lines.json')
+    identity=uuid.UUID(root.name)
+    receipt=dict(contract='csv-frozen-retry-v1',origin_attempt=str(origin.attempt_id),
+        origin_attempt_digest=_revalidation_origin_digest(origin),origin_run=str(origin.run_id),
+        origin_input_digest=origin.run.input_digest,origin_manifest_digest=origin.run.input_manifest_digest,
+        capture_request_digest=capture.request_digest,capture_revision_digest=capture.revision_digest,
+        historical_receipt_digest=digest(old_receipt),target_release=target,replacement_attempt=str(identity),
+        execution_revision='csv-retry-v1-'+key,pick_root=resolved_pick_root(pick_root))
+    atomic_json(root/'capture-retry.json',receipt)
+    lock_check()
+    retry=DailyFeedAttempt.objects.create(attempt_id=identity,initialization=owner,
+        business_date=origin.business_date,batch_id=origin.batch_id,request_key=key,
+        batch_digest=origin.batch_digest,binding_digest=origin.binding_digest,input_sha256=origin.input_sha256,
+        predecessor=parent,predecessor_output_digest=parent.output_digest,archive_path=str(root),
+        status='RUNNING',phase='VALIDATED',certification_id=origin.certification_id,master_revision_id=origin.master_revision_id)
+    return save(retry,'VALIDATED')
+
+
 @observed('csv_staging', owner_parameter='business_date')
 def stage(binding_file, source, business_date, *, input_root, work_root, pick_root, fullkit=None,
           resume=False, selection_file='/var/lib/vectorflow/selection.json'):
@@ -477,7 +609,7 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
         raise
     request_key = digest(dict(initialization=str(owner.pk), date=business_date,
                               binding=binding['_binding_digest'], batch=manifest['digest']))
-    with job_lock(owner):
+    with job_lock(owner) as lock_check:
         old = DailyFeedAttempt.objects.filter(request_key=request_key).first()
         revalidation=None
         if resume and old is None and DailyFeedAttempt.objects.filter(initialization=owner,
@@ -488,6 +620,9 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
                 request_key=_revalidation_key(old)
                 replacement=DailyFeedAttempt.objects.filter(request_key=request_key).first()
                 if replacement:
+                    if replacement.status=='FAILED':
+                        return _resume_failed_capture(replacement,owner,binding,manifest,root,
+                            pick_root=pick_root,selection_file=selection_file,lock_check=lock_check)
                     _verify_revalidation(replacement,old)
                     if (replacement.status in ('FAILED','REJECTED') or replacement.phase=='VALIDATE'
                             or replacement.run_id and replacement.run.status!='SUCCEEDED'
@@ -555,7 +690,8 @@ def _bound_attempt(attempt_id, binding):
     if (str(attempt.initialization_id) != binding['initialization_id']
             or attempt.binding_digest != binding['_binding_digest']):
         raise ValueError('Attempt does not belong to this unchanged onboarding binding')
-    _verify_revalidation(attempt)
+    _verify_revalidation(attempt,historical=attempt.status=='FAILED')
+    _verify_capture_retry(attempt)
     return attempt
 
 
@@ -580,6 +716,13 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                     raise ValueError('No proven unexecuted native boundary')
                 arguments = _parameters(binding, owner, attempt.predecessor,
                     'csv-v1-' + attempt.batch_digest, pick_root)
+                retry_receipt=_verify_capture_retry(attempt)
+                if retry_receipt:
+                    from mta.runtime.temporal import resolved_pick_root
+                    if retry_receipt['pick_root']!=resolved_pick_root(pick_root):
+                        raise ValueError('Frozen retry Pick root differs from its lineage receipt')
+                    arguments.update(execution_revision=retry_receipt['execution_revision'],
+                                     retry_capture_id=retry_receipt['origin_run'])
                 if attempt.accepted_facts:
                     from mta.runtime.accepted_daily import read
                     raw = read(attempt, arguments)

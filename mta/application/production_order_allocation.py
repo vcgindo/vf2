@@ -12,6 +12,7 @@ from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, ROUND_DOWN
 
 from mta.application.r1_importer_master import _sql_key
 from mta.application.stage_observation import summary
+from mta.row_sequences import is_record_rows
 
 
 OUTPUT_FIELDS = (
@@ -72,7 +73,7 @@ def _integer(value, owner, nullable=False):
 
 
 def _validate(rows, table):
-    if not isinstance(rows, (list, tuple)):
+    if not (is_record_rows(rows) or isinstance(rows, tuple)):
         raise ValueError(f"{table} must be an ordered row table")
     fields = INPUT_TABLE_FIELDS[table]
     for ordinal, row in enumerate(rows):

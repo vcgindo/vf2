@@ -63,7 +63,7 @@ class PlacementFullRetryTests(unittest.TestCase):
         frame=dict(profile={'import_non_nms':False},opening={})
         cut=object();day=dict(business_date='2037-04-10',raw_non_nms=[])
         for request,retry,prepared in ((self.request('Full'),'frozen-failed',cut),
-                                      (None,'frozen-ordinary',None),(None,None,cut)):
+                                      (None,'frozen-ordinary',cut),(None,None,cut)):
             with self.subTest(scope=request and request['scope'],retry=retry),ExitStack() as stack:
                 for target,value in (
                     ('mta.runtime.daily_preparation.prepare',b'raw'),
