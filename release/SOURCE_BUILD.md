@@ -4,12 +4,14 @@
 
 Requires Git, Windows PowerShell5.1 or PowerShell7 and Docker Desktop with Linux/amd64 containers and Compose2.24.4 or later. Host Python/Node and the old image ZIP are not needed. This is a NEW blank installation, not an upgrade/reset of an existing deployment.
 
+For the short clone → local CSV copy → build/install → initialization → daily-run procedure, use [the root runbook](../RUNBOOK.md). The auth cache defaults are already in Compose; optional explicit bridge addressing uses the tracked `compose.local.yaml`. No handwritten external deployment YAML is required.
+
 ## 1. Clone and configure
 
 For the subsequent production CSV operation, see [CSV_DAILY_RUN.md](CSV_DAILY_RUN.md). Installation/onboarding remain separate; the optional daily command reuses existing calculation and full report preparation, then selects and restarts only MTA. Do not apply this new migration to an existing sealed namespace as an undocumented upgrade.
 
 ```powershell
-git clone --depth 1 --single-branch --branch codex/3006-logistics-integration `
+git clone --depth 1 --single-branch --branch codex/bounded-ui-recovery `
   git@github.com:yurtse/freshvcf.git C:/VectorFLOW
 cd C:/VectorFLOW
 Copy-Item .env.example .env

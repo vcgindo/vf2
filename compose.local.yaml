@@ -1,0 +1,9 @@
+# Optional local bridge address selection. This file contains no machine paths.
+# Windows .env: COMPOSE_PATH_SEPARATOR=;
+#              COMPOSE_FILE=compose.yaml;compose.local.yaml
+# Choose a subnet not used by Docker, the host, WSL or a VPN.
+networks:
+  application:
+    ipam:
+      config:
+        - subnet: "${VF_NETWORK_SUBNET:?Set an unused VF_NETWORK_SUBNET for the local bridge}"

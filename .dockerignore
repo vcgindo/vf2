@@ -12,6 +12,7 @@
 **/*.pyc
 **/.venv
 **/.local
+data/
 **/*.pem
 **/*.key
 **/*.enc

@@ -129,6 +129,20 @@ else { & ./vf.ps1 $Operation -Resume:$Resume }
         r=self.run_launcher();self.assertNotEqual(r.returncode,0)
         self.assertFalse(any('stop' in c or 'release.register_mta' in c for c in self.calls()[before:]))
 
+    def test_project_relative_input_and_operations_resolve_to_this_checkout(self):
+        cfg=json.loads((self.root/'config.json').read_text())
+        cfg['x-vectorflow-csv']['input_dir']='./pack'
+        cfg['x-vectorflow-daily']['state_dir']='./state'
+        (self.root/'config.json').write_text(json.dumps(cfg))
+        result=self.run_launcher()
+        self.assertEqual(result.returncode,0,result.stderr)
+        receipt=json.loads((self.state/'onboarding.json').read_text(encoding='utf-8-sig'))
+        self.assertEqual(receipt['input_dir'],str(self.pack).replace('\\','/'))
+        env=(self.root/'.env').read_text()
+        self.assertIn('VF_DAILY_INPUT_DIR="'+str(self.pack).replace('\\','/')+'"',env)
+        self.assertIn('VF_DAILY_STATE_DIR="'+str(self.state).replace('\\','/')+'"',env)
+        self.assertEqual(sum('release.initialize_csv' in c for c in self.calls()),1)
+
     def test_resume_finishes_same_opening_without_registration_or_loading(self):
         self.assertNotEqual(self.run_launcher('configuration').returncode,0)
         before=len(self.calls())

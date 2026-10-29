@@ -184,6 +184,8 @@ services:
       AUTH_KEEP_ALIVE: "${AUTH_KEEP_ALIVE:-5}"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      VF_AUTH_SITE_CACHE_URL: "${VF_AUTH_SITE_CACHE_URL:-redis://redis:6379/1}"
+      VF_AUTH_SITE_KEY_NAMESPACE: "${VF_AUTH_SITE_KEY_NAMESPACE:-${VF_PROJECT:-vectorflow}}"
       STORE_DATA: "/var/lib/vectorflow"
       USER_STORIES_STORAGE: "/var/lib/vectorflow/user-stories"
       DEFAULT_FOLDER_CSV: "/var/lib/vectorflow/uploads"

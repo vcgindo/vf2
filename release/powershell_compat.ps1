@@ -26,6 +26,19 @@ function Test-VfAbsolutePath([string]$Path) {
     return $Path.StartsWith('/')
 }
 
+function Resolve-VfProjectPath([string]$Root, [string]$Path) {
+    if (-not $Path) { throw 'Configure a nonempty data path' }
+    if (-not (Test-VfAbsolutePath $Path)) {
+        # Reject ambiguous Windows drive/root-relative forms instead of adopting
+        # the shell's current drive. Ordinary relative paths belong to the clone.
+        if ([IO.Path]::IsPathRooted($Path) -or $Path -match '^[A-Za-z]:') {
+            throw 'Use a fully qualified or project-relative data path'
+        }
+        $Path = Join-Path $Root $Path
+    }
+    return [IO.Path]::GetFullPath($Path)
+}
+
 function Get-VfRelativePath([string]$Root, [string]$Path) {
     $base = [IO.Path]::GetFullPath($Root).TrimEnd([char[]]'\/')
     $target = [IO.Path]::GetFullPath($Path)

@@ -42,7 +42,7 @@ try {
             # pack/receipts simply because it uses the same Compose project name.
             if (Test-Path -LiteralPath $sample) { $sample += '-' + [guid]::NewGuid().ToString('N').Substring(0,8) }
         }
-        if (-not (Test-VfAbsolutePath $sample)) { throw 'CSV input directory must be absolute' }
+        $sample = Resolve-VfProjectPath $PSScriptRoot $sample
         if (Test-Path -LiteralPath $sample) { throw 'CSV directory already exists; use csv-init or reconcile, never overwrite a pack' }
         $parent = (New-Item -ItemType Directory -Force -Path (Split-Path $sample -Parent)).FullName
         $leaf = Split-Path $sample -Leaf
@@ -59,13 +59,14 @@ try {
     }
     if ($BusinessDate -or $InspectOnly) { throw 'csv-init takes no date or InspectOnly argument; -Resume only completes an existing opening' }
     $root = $config['x-vectorflow-csv']['input_dir']
-    if (-not $root -or -not (Test-VfAbsolutePath $root)) {
-        throw 'Set VF_CSV_INPUT_DIR in .env to the absolute CSV pack directory, then rerun ./vf.ps1 csv-init'
+    if (-not $root) {
+        throw 'Set VF_CSV_INPUT_DIR in .env to the CSV pack directory, then rerun ./vf.ps1 csv-init'
     }
+    $root = Resolve-VfProjectPath $PSScriptRoot $root
     $root = (Resolve-Path -LiteralPath $root).Path.Replace('\','/')
     $state = $config['x-vectorflow-daily']['state_dir']
     if (-not $state) { $state = $root + '-operations' }
-    if (-not (Test-VfAbsolutePath $state)) { throw 'Daily state directory must be absolute' }
+    $state = Resolve-VfProjectPath $PSScriptRoot $state
     $null = New-Item -ItemType Directory -Force -Path $state
     $lock = [IO.File]::Open((Join-Path $state 'daily.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
     $receiptPath = Join-Path $state 'onboarding.json'

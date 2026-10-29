@@ -89,6 +89,13 @@ $data=ConvertFrom-VfJson '{"empty":[],"single":[{"name":"001"}],"ordered":[null,
 if ($data.empty.Count -ne 0 -or $data.single.Count -ne 1 -or $data.single[0].name -ne '001' -or $data.ordered.Count -ne 3 -or $null -ne $data.ordered[0] -or $data.flag -ne $false) {throw 'JSON shape changed'}
 if ((Test-VfAbsolutePath 'C:relative') -or (Test-VfAbsolutePath '\relative') -or -not (Test-VfAbsolutePath 'C:\absolute') -or -not (Test-VfAbsolutePath '\\server\share\path')) {throw 'absolute path check'}
 if ((Get-VfRelativePath 'C:\input' 'C:\input\2026-10-19') -ne '2026-10-19') {throw 'relative path check'}
+if ((Resolve-VfProjectPath 'C:\clone' './data/input') -ne 'C:\clone\data\input') {throw 'project path check'}
+if ((Resolve-VfProjectPath 'C:\clone' 'D:\external\input') -ne 'D:\external\input') {throw 'external path check'}
+foreach ($ambiguous in @('C:relative','\relative')) {
+    $denied=$false
+    try {Resolve-VfProjectPath 'C:\clone' $ambiguous} catch {$denied=$true}
+    if (-not $denied) {throw 'ambiguous project path accepted'}
+}
 $rejected=$false
 try {Get-VfRelativePath 'C:\input' 'C:\input-sibling\date'} catch {$rejected=$true}
 if (-not $rejected) {throw 'sibling escaped containment'}

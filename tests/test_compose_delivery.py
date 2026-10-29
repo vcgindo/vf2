@@ -103,7 +103,7 @@ class RoutedSecretTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which('docker'), 'Docker CLI needed for Compose configuration checks')
 class ComposeConfigurationTests(unittest.TestCase):
-    def config(self, install=False, resource_test=False, prebuilt=False, daily=False):
+    def config(self, install=False, resource_test=False, prebuilt=False, daily=False, local_subnet=None):
         root = Path(__file__).resolve().parents[1]
         env = dict(os.environ)
         for line in (root / '.env.example').read_text().splitlines():
@@ -112,6 +112,9 @@ class ComposeConfigurationTests(unittest.TestCase):
         env['VF_HTTP_PORT'] = '8097'
         env['VF_PROJECT'] = 'unit-compose'
         command = ['docker','compose','--env-file','.env.example', '-f', 'release/compose.yaml' if prebuilt else 'compose.yaml']
+        if local_subnet is not None:
+            env['VF_NETWORK_SUBNET'] = local_subnet
+            command += ['-f', 'compose.local.yaml']
         if resource_test:
             command += ['-f','release/compose.resource-test.yaml']
         if install:
@@ -130,6 +133,10 @@ class ComposeConfigurationTests(unittest.TestCase):
         self.assertEqual(front['build']['args']['REACT_APP_WS_API_HOST'], 'ws://127.0.0.1:8097')
         self.assertEqual(front['build']['args']['REACT_APP_MTO_BM_REPORT_ROWS_PER_PAGE'], '5000')
         self.assertEqual(c['services']['auth']['environment']['VF_PUBLIC_URL'], 'http://127.0.0.1:8097')
+        self.assertEqual(c['services']['auth']['environment']['VF_AUTH_SITE_CACHE_URL'], 'redis://redis:6379/1')
+        self.assertEqual(c['services']['auth']['environment']['VF_AUTH_SITE_KEY_NAMESPACE'], 'unit-compose')
+        self.assertEqual(c['x-vectorflow-csv']['input_dir'], './data/input')
+        self.assertEqual(c['x-vectorflow-daily']['state_dir'], './data/operations')
         self.assertFalse(c.get('secrets'))
         self.assertEqual(c['services']['mta']['image'], 'unit-compose/mta:source')
         self.assertIn('idle_in_transaction_session_timeout=30s', c['services']['postgres']['command'])
@@ -140,6 +147,14 @@ class ComposeConfigurationTests(unittest.TestCase):
             self.assertEqual(len(mounted), 1)
             self.assertEqual(mounted[0]['source'], role+'_secrets')
             self.assertTrue(mounted[0]['read_only'])
+
+    def test_local_subnet_override_changes_network_only(self):
+        normal = self.config(install=True, daily=True)
+        local = self.config(install=True, daily=True, local_subnet='100.127.240.32/27')
+        self.assertEqual(local['services'], normal['services'])
+        self.assertEqual(local['volumes'], normal['volumes'])
+        self.assertEqual(local['networks']['application']['ipam']['config'], [{'subnet':'100.127.240.32/27'}])
+        self.assertFalse(normal['networks']['application'].get('ipam', {}).get('config'))
 
     def test_daily_worker_reuses_trusted_cli_without_listener_or_serving_grant_change(self):
         for prebuilt in (False,True):
