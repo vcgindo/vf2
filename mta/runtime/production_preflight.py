@@ -5,6 +5,7 @@ Stage blockers stay separate: installation does not inherit publication gates.
 No payload mutation, ORM query, owner bootstrap, capture or producer execution.
 """
 from datetime import date, timedelta
+from copy import deepcopy
 from decimal import DecimalException
 import hashlib
 import json
@@ -712,10 +713,14 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
                 c.check('/day/business_date','execute_day',lambda: consecutive(opening_date,day.get('business_date')))
             if isinstance(frame,dict) and isinstance(state,dict) and isinstance(state.get('orders'),dict):
                 from mta.application.r1_order_input import validate_order_input
+                from mta.row_sequences import RecordRows
                 order_state=state['orders']
+                opening_orders=order_state.get('SpikeOrderData')
+                if isinstance(opening_orders,RecordRows):
+                    opening_orders=[deepcopy(row) for row in opening_orders]
                 source=dict(opening_date=opening_date,opening_identity='native-owned-opening',
                     feed_status=day.get('order_feed_status'),feed_rows=day.get('order_feed'),
-                    opening_orders=order_state.get('SpikeOrderData'),closure_history=order_state.get('SpikeOrderClosureHistory'))
+                    opening_orders=opening_orders,closure_history=order_state.get('SpikeOrderClosureHistory'))
                 if isinstance(order_state.get('OrderIdentity'),list) and len(order_state['OrderIdentity'])==1:
                     source['identity_last_value']=order_state['OrderIdentity'][0].get('LastValue')
                 c.check('/day/order_feed','r1_order_input.validate_order_input',lambda:validate_order_input(source,day.get('business_date')))

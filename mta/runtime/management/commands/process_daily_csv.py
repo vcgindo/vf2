@@ -43,6 +43,8 @@ class Command(BaseCommand):
                 params = dict(input_root=options['input_root'], pick_root=options['pick_root'])
                 if operation == 'stage':
                     params['work_root'] = options['work_root']
+                    params['resume'] = options['resume']
+                    params['selection_file'] = options['selection_file']
                     if fullkit is not None:params['fullkit']=fullkit
                 value = getattr(service, operation)(options['binding'], options['input_directory'], options['date'], **params)
             elif operation == 'execute':

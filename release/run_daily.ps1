@@ -111,7 +111,9 @@ try {
     if ($InspectOnly) {
         $attempt = Worker -Arguments (@('inspect') + $sourceArgs)
     } else {
-        $attempt = Worker -Arguments (@('stage') + $sourceArgs)
+        $stageArgs = @('stage') + $sourceArgs
+        if ($Resume) { $stageArgs += '--resume' }
+        $attempt = Worker -Arguments $stageArgs
         if ($attempt.status -eq 'PUBLISHED') {
             # Do not select an older completed day or rerun its calculation.
             $attempt['message'] = 'Already published; no calculation, selection or restart performed.'

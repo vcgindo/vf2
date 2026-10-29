@@ -342,8 +342,96 @@ def unresolved_attempts(owner):
         ).exclude(run_id__in=_finite_resolved_ancestors(owner))
 
 
+def _revalidation_key(origin):
+    return digest(dict(contract='fresh-csv-revalidation-v1', origin_attempt=str(origin.attempt_id),
+                       canonical_request_key=origin.request_key))
+
+
+def _revalidation_origin_digest(origin):
+    names=('attempt_id','initialization_id','business_date','batch_id','request_key','batch_digest',
+           'binding_digest','input_sha256','predecessor_id','predecessor_output_digest','status','phase')
+    return digest(dict(identity={name:str(getattr(origin,name)) for name in names},error=origin.error))
+
+
+def _verify_revalidation(attempt, origin=None):
+    receipt_path=Path(attempt.archive_path)/'revalidation.json'
+    if origin is None:
+        candidates=DailyFeedAttempt.objects.filter(initialization_id=attempt.initialization_id,
+            business_date=attempt.business_date,status='REJECTED')
+        origin=next((row for row in candidates if _revalidation_key(row)==attempt.request_key),None)
+        if origin is None:
+            if receipt_path.exists():
+                raise ValueError('Revalidation origin is absent or changed')
+            return
+    receipt=decode_json(regular(receipt_path,Path(attempt.archive_path)).read_bytes())
+    from release.native_identity import require_current
+    if (receipt.get('contract')!='fresh-csv-revalidation-v1'
+            or receipt.get('origin_attempt')!=str(origin.attempt_id)
+            or receipt.get('origin_digest')!=_revalidation_origin_digest(origin)
+            or receipt.get('replacement_attempt')!=str(attempt.attempt_id)
+            or receipt.get('canonical_request_key')!=origin.request_key
+            or receipt.get('original_release')!=origin.initialization.source.receipt['owned_namespace']['release_identity']
+            or attempt.request_key!=_revalidation_key(origin)
+            or receipt.get('target_release')!=require_current()
+            or any(str(getattr(attempt,k))!=str(getattr(origin,k)) for k in (
+                'initialization_id','business_date','batch_id','batch_digest','binding_digest',
+                'input_sha256','predecessor_id','predecessor_output_digest'))):
+        raise ValueError('Revalidation origin, release or frozen identity differs')
+
+
+def _check_rejected_order_origin(origin, owner, binding, manifest, business_date, selection_file):
+    if (origin.status!='REJECTED' or origin.phase!='VALIDATE' or origin.run_id
+            or str(origin.initialization_id)!=str(owner.pk) or str(origin.business_date)!=business_date
+            or origin.accepted_facts or origin.prepared_context
+            or origin.binding_digest!=binding['_binding_digest'] or origin.batch_digest!=manifest['digest']
+            or origin.error.get('type')!='PreflightError'):
+        raise ValueError('Resume requires the preserved unexecuted order preflight rejection')
+    root=Path(origin.archive_path)
+    report=decode_json(regular(root/'preflight.json',root).read_bytes())
+    expected=dict(category='input',code='CONTRACT_INVALID',message='Order source tables must be row lists',
+        owner='r1_order_input.validate_order_input',path='/day/order_feed',stages=['day'])
+    if ([q for q in report.get('issues',[]) if 'day' in q.get('stages',[])]!=[expected]
+            or json.dumps(report,sort_keys=True)[:2000]!=origin.error.get('message')):
+        raise ValueError('Resume does not match the preserved order preflight diagnostic')
+    original=root/'original'
+    frozen=decode_json(regular(original/'snapshot.json',root).read_bytes())
+    if (frozen!=manifest or frozen['digest']!=digest({k:v for k,v in frozen.items() if k!='digest'})
+            or {p.name for p in original.iterdir()}!=set(frozen['files'])|{'snapshot.json'}
+            or any(file_identity(regular(original/name,root))!=identity for name,identity in frozen['files'].items())
+            or file_identity(regular(root/'native-day.json',root))['sha256']!=origin.input_sha256):
+        raise ValueError('Preserved rejected input bytes differ')
+    parent=predecessor(owner,business_date)
+    selected=decode_json(Path(selection_file).read_bytes())
+    if (parent is None or str(parent.pk)!=str(origin.predecessor_id)
+            or parent.output_digest!=origin.predecessor_output_digest
+            or selected.get('run_id')!=str(parent.pk) or selected.get('output_digest')!=parent.output_digest
+            or selected.get('initialization_id')!=str(owner.pk)):
+        raise ValueError('Rejected staging predecessor or selected publication changed')
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    if MdmDailyInputCapture.objects.filter(source=owner.source,run__business_date=business_date).exists():
+        raise ValueError('Rejected date already has a captured calculation')
+    from mta.runtime import batch_storage
+    with connection.cursor() as cursor:
+        for name in batch_storage.TABLES:
+            cursor.execute('SELECT EXISTS(SELECT 1 FROM '+batch_storage.table_sql(name)+
+                           ' WHERE vf_attempt_id=%s LIMIT 1)',[origin.attempt_id])
+            if cursor.fetchone()!=(False,):
+                raise ValueError('Rejected attempt has accepted staging rows')
+    from release.native_identity import require_current
+    from mta.runtime.ingestion_admission import preparation_source
+    target=require_current()
+    original_release=owner.source.receipt['owned_namespace']['release_identity']
+    if (target['implementation_sha256']==original_release['implementation_sha256']
+            or preparation_source(owner.source.digest) is None):
+        raise ValueError('Rejected staging requires an admitted corrected native release')
+    return dict(contract='fresh-csv-revalidation-v1',origin_attempt=str(origin.attempt_id),
+        canonical_request_key=origin.request_key,origin_digest=_revalidation_origin_digest(origin),
+        original_release=original_release,target_release=target)
+
+
 @observed('csv_staging', owner_parameter='business_date')
-def stage(binding_file, source, business_date, *, input_root, work_root, pick_root, fullkit=None):
+def stage(binding_file, source, business_date, *, input_root, work_root, pick_root, fullkit=None,
+          resume=False, selection_file='/var/lib/vectorflow/selection.json'):
     binding, owner = binding_owner(binding_file)
     identity=uuid.uuid4()
     root=Path(work_root).absolute()/str(identity)
@@ -391,10 +479,29 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
                               binding=binding['_binding_digest'], batch=manifest['digest']))
     with job_lock(owner):
         old = DailyFeedAttempt.objects.filter(request_key=request_key).first()
+        revalidation=None
+        if resume and old is None and DailyFeedAttempt.objects.filter(initialization=owner,
+                business_date=business_date,status='REJECTED').exists():
+            raise ValueError('Resume batch differs from the preserved rejection')
         if old:
-            import shutil
-            shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
-            return result(old)
+            if resume and old.status=='REJECTED':
+                request_key=_revalidation_key(old)
+                replacement=DailyFeedAttempt.objects.filter(request_key=request_key).first()
+                if replacement:
+                    _verify_revalidation(replacement,old)
+                    if (replacement.status in ('FAILED','REJECTED') or replacement.phase=='VALIDATE'
+                            or replacement.run_id and replacement.run.status!='SUCCEEDED'
+                            or replacement.phase!='VALIDATED' and not replacement.run_id):
+                        raise ValueError('Replacement requires diagnosis; automatic retry is forbidden')
+                    import shutil
+                    shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
+                    return result(replacement)
+                revalidation=_check_rejected_order_origin(old,owner,binding,manifest,business_date,selection_file)
+                revalidation['replacement_attempt']=str(identity)
+            else:
+                import shutil
+                shutil.rmtree(root)  # Only this newly created, unregistered snapshot.
+                return result(old)
         if unresolved_attempts(owner).exists():
             raise ValueError('An unfinished daily attempt requires reconciliation/resume first')
         if CalculationRun.objects.filter(business_date=business_date,
@@ -405,6 +512,8 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
             batch_digest=manifest['digest'], binding_digest=binding['_binding_digest'],
             archive_path=str(root))
         try:
+            if revalidation:
+                atomic_json(root/'revalidation.json',revalidation)
             Path(pick_root).mkdir(parents=True, exist_ok=True)
             frozen=batch
             parent = predecessor(owner, business_date)
@@ -412,6 +521,9 @@ def stage(binding_file, source, business_date, *, input_root, work_root, pick_ro
                         for name, state in frozen['feeds'].items() if state == 'PRESENT'}
             raw, positions = assemble(frozen, binding, payloads, first_day=parent is None,
                                       output_file=root / 'native-day.json', _transfer=True)
+            if revalidation and (raw.sha256!=old.input_sha256 or str(parent.pk)!=str(old.predecessor_id)
+                                 or parent.output_digest!=old.predecessor_output_digest):
+                raise ValueError('Revalidated native input or predecessor differs')
             atomic_json(root / 'record-lines.json', positions)
             attempt.input_sha256 = raw.sha256
             attempt.predecessor = parent
@@ -443,6 +555,7 @@ def _bound_attempt(attempt_id, binding):
     if (str(attempt.initialization_id) != binding['initialization_id']
             or attempt.binding_digest != binding['_binding_digest']):
         raise ValueError('Attempt does not belong to this unchanged onboarding binding')
+    _verify_revalidation(attempt)
     return attempt
 
 
