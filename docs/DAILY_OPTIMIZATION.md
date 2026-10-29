@@ -52,6 +52,7 @@ obsolete BTR requests and retains its existing grid/filter/export contracts.
 | --- | --- | --- |
 | 0244 | Owner-only accepted current-write transaction context | Reversible RunPython; verifies and preserves the exact predecessor function bodies, owners, ACLs, OIDs and triggers |
 | 0245 | Typed BTR scope dimensions | Generated model migration plus reversible SQL guards; backfills existing READY v2 dimensions once before attaching immutability guards |
+| 0246 | BTR scope-dimension ingestion ownership | Reversible SQL; verifies the exact 0237 watcher predecessor, adds four operational statement watches, and classifies dimensions through their generation's successful v3 daily run exactly as presentation rows; retains 0245 immutability guards |
 
 Applied migration identities are not rewritten or faked. Fresh PostgreSQL
 application, Django checks, model-drift checks and migration planning are part of
