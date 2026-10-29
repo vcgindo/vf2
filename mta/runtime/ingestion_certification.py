@@ -38,8 +38,7 @@ def certify_locked(initialization_id, release, cursor):
     from mta.runtime.models import CalculationRun
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.mdm import production_families as families
-    from mta.mdm.initialization import verify_current_masters
-    from mta.mdm.master_owners import owner_batches
+    from mta.mdm.initialization import verify_current_masters, validated_master_batches
     from mta.mdm.daily_input import _capture_pair_exclusions
     from mta.runtime.ingestion_admission import registration
     cursor.execute('SELECT current_user,pg_get_userbyid(datdba),datname,oid::bigint '
@@ -80,7 +79,7 @@ def certify_locked(initialization_id, release, cursor):
     checked, frame = families._verified_initialization(owner.source)
     if checked.pk != owner.pk:
         raise ValueError('Initialization audit owner differs')
-    verify_current_masters(owner.source, owner_batches(frame['opening']['state'], strict=True))
+    verify_current_masters(owner.source, validated_master_batches(owner, frame))
     if _capture_pair_exclusions(owner.source)['rows'] != frame['pair_exclusions']:
         raise ValueError('Full pair-exclusion audit differs')
     integration = families.require_binding(owner.source, read_only=True)

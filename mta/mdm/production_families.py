@@ -109,10 +109,9 @@ def _verified_initialization(source, *, input_sha256=None, input_schema=None):
             or frame['opening']['identity'] != initialization.opening_identity
             or frame['opening']['opening_date'] != initialization.opening_date.isoformat()):
         raise ValueError('Native opening/configuration full readback drift')
-    from mta.mdm.initialization import families_for
-    from mta.mdm.master_owners import owner_batches
+    from mta.mdm.initialization import families_for, validated_master_batches
     if p.get('families') != immutable(initialization, 'families',
-            lambda: families_for(owner_batches(frame['opening']['state'], strict=True))):
+            lambda: families_for(validated_master_batches(initialization, frame))):
         raise ValueError('Native initialization master projection identity drift')
     return initialization, frame
 

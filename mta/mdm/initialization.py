@@ -125,6 +125,17 @@ def opening_digests(owner, frame):
         state=digest(frame['opening']['state'])))
 
 
+def validated_master_batches(owner, frame):
+    """Reuse only successful strict projections of this sealed opening.
+
+    Fresh certification clears opening_scope before reconstructing persisted
+    input, so prepared input cannot supply that evidence. Live master rows are
+    still read and compared independently on every verification.
+    """
+    return immutable(owner, 'validated-master-batches',
+        lambda: owner_batches(frame['opening']['state'], strict=True))
+
+
 def verify(owner, *, expected_frame=None, current_masters=False):
     source = owner.source
     p = source.receipt
