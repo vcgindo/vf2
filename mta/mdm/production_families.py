@@ -283,20 +283,17 @@ def _create_rows(model, source, rows, *, ordinal=False, mapping=None):
     expected = {(mapping or {}).get(name, name) for name in names}
     if any(set(row) != expected for row in rows):
         raise ValueError('Native MDM opening fields differ: '+model.__name__)
-    records = []
-    for index, row in enumerate(rows, 1):
-        values = {name: row[(mapping or {}).get(name, name)] for name in names}
-        if model.__name__ == 'MdmForceUploadLog':
-            stamp = datetime.fromisoformat(values['ActionTimeStamp'])
-            if stamp.tzinfo is None:
-                stamp = stamp.replace(tzinfo=ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE))
-            values['ActionTimeStamp'] = stamp
-        records.append(model(source=source, **({'ordinal': index} if ordinal else {}), **values))
-        if len(records) == 500:
-            model.objects.bulk_create(records, batch_size=500)
-            records.clear()
-    if records:
-        model.objects.bulk_create(records, batch_size=500)
+    def records():
+        for index, row in enumerate(rows, 1):
+            values = {name: row[(mapping or {}).get(name, name)] for name in names}
+            if model.__name__ == 'MdmForceUploadLog':
+                stamp = datetime.fromisoformat(values['ActionTimeStamp'])
+                if stamp.tzinfo is None:
+                    stamp = stamp.replace(tzinfo=ZoneInfo(settings.VF_MTA_ACTION_TIME_ZONE))
+                values['ActionTimeStamp'] = stamp
+            yield dict(source_id=source.pk, **({'ordinal': index} if ordinal else {}), **values)
+    from mta.mdm.initialization_transport import create_rows
+    create_rows(model, records(), count=len(rows))
 
 
 def _read_rows(model, source, *, ordinal=False, mapping=None):

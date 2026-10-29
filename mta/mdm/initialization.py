@@ -1,7 +1,7 @@
 """Atomic native instance initialization from supplied masters and opening facts."""
 from collections import Counter
 import hashlib
-from itertools import islice, zip_longest
+from itertools import zip_longest
 import json
 from pathlib import Path
 import uuid
@@ -21,7 +21,7 @@ from mta.runtime.opening_scope import immutable, opening_operation
 from mta.mdm.initialization_rows import select as initialization_table
 
 
-IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation.py', 'runtime/input_v3.py', 'runtime/input_reader.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
+IMPLEMENTATION_FILES = ('mdm/initialization.py', 'mdm/initialization_preparation.py', 'mdm/initialization_transport.py', 'runtime/input_v3.py', 'runtime/input_reader.py', 'mdm/initialization_contract.py', 'mdm/initialization_rows.py', 'mdm/master_owners.py',
         'mdm/owned_namespace.py', 'runtime/initialization_models.py', 'runtime/opening_storage.py',
         'runtime/input_storage.py', 'runtime/relational_state.py',
         'runtime/mdm_models.py', 'runtime/mdm_skuloc_models.py', 'serialization.py',
@@ -245,9 +245,9 @@ def _initialize(raw, expected_sha256, *, expected_configuration, expected_recipe
             cursor.execute("SELECT set_config('fresh.production_initialization',%s,true), "
                 "set_config('fresh.mdm_current_bootstrap',%s,true)", [str(owner.pk), str(source.pk)])
         for _, model, scope, rows, _ in batches:
-            records = (model(source=source, ordinal=i, **scope, **row) for i, row in enumerate(rows, 1))
-            while batch := list(islice(records, 500)):
-                model.objects.bulk_create(batch, batch_size=500)
+            from mta.mdm.initialization_transport import create_rows
+            create_rows(model, (dict(source_id=source.pk, ordinal=i, **scope, **row)
+                               for i, row in enumerate(rows, 1)), count=len(rows))
         for key in ('2', '3'):
             MdmFamilySource.objects.create(source=source, master_id=int(key),
                 digest=digest(families[key]), receipt=families[key])
