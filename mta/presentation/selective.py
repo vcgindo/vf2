@@ -1,6 +1,7 @@
 """Read only named accepted operational images; never a whole-run cache/trace."""
 from django.db import connection
-from mta.runtime.relational_state import load_image, CATALOG, table_sql, quote, wire_value
+from mta.runtime.relational_state import CATALOG, table_sql, quote, wire_value
+from mta.runtime.accepted_state_read import load_accepted_image as load_image
 from mta.presentation.context import PublicationUnavailable
 
 

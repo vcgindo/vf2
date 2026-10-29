@@ -44,17 +44,18 @@ class DailyFinalizationTests(unittest.TestCase):
         from mta.runtime.services import finish_run
         from mta.serialization import digest
         profile=dict(complete_daily=dict(policy=final.ACTIVE_POLICY,consumption_days=43,remark_days=13))
-        run=SimpleNamespace(pk='run',status='RUNNING',kind='DAILY_CHAIN',checkpoints=MagicMock(),
+        run=SimpleNamespace(pk='run',status='RUNNING',kind='DAILY_CHAIN',checkpoints=MagicMock(),scope_attempts=MagicMock(),
             input_payload={'schema':'fresh-daily-input-manifest-v2'}, evidence_mode='production', production_manifest={},
             input_digest=digest(dict(profile=profile)),business_date=date(2037,4,10))
         run.checkpoints.exists.return_value=False
+        run.scope_attempts.exists.return_value=False
         output=dict(ClosingState=[dict(complete=dict(ScriptExecutedFlag=deepcopy(final.FLAG_SEED)))],
             Lineage=[dict(cohort1=dict(policy=final.POLICY))])
         with patch('mta.runtime.receipt_integrity.audit_input'), \
                 patch('mta.runtime.services.transaction.atomic',return_value=nullcontext()), \
                 patch('mta.runtime.services.CalculationRun.objects') as runs, \
                 patch('mta.runtime.mdm_daily_models.MdmDailyInputCapture.objects') as captures, \
-                patch('mta.runtime.services.read_input',return_value=dict(profile=profile)), \
+                patch('mta.runtime.input_reader.read_execution_input',return_value=dict(profile=profile)), \
                 patch('mta.mdm.daily_input.finalize_consumption') as consume, \
                 patch('mta.mdm.daily_current.publish') as current:
             runs.select_for_update.return_value.get.return_value=run

@@ -47,6 +47,7 @@ import { useGetState } from "../../../../Services/MTA/Common/UserUIConfig"
 import { GridRef } from "../../../../../VectorFlow/types/MDM"
 import BTRColorCellRenderer from "./BTRColorCellRenderer";
 import { displayRows } from "./displayRows";
+import { isCancel } from 'axios';
 
 const useBTR = () => {
 
@@ -119,24 +120,44 @@ const useBTR = () => {
     const ecoTotalRows = countData?.EcoCount;
     const techTotalRows = countData?.TechCount;
     const requestVersion = useRef({ tech: 0, eco: 0, count: 0, layout: 0, config: 0 });
+    const countRequest = useRef<AbortController | null>(null);
+    const rowRequests = useRef(new Set<{ controller: AbortController; branches: Set<'tech' | 'eco'> }>());
+    const cancelRows = (branches: Array<'tech' | 'eco'> = ['tech', 'eco']) => {
+        rowRequests.current.forEach(request => {
+            branches.forEach(branch => request.branches.delete(branch));
+            // A Both request can still supply the other independently paged branch.
+            if (!request.branches.size) {
+                request.controller.abort();
+                rowRequests.current.delete(request);
+            }
+        });
+    };
     const [pending, setPending] = useState({ tech: false, eco: false, count: false });
     const mounted = useRef(true);
     useEffect(() => {
         mounted.current = true;
-        return () => { mounted.current = false; };
+        return () => {
+            mounted.current = false;
+            countRequest.current?.abort();
+            cancelRows();
+        };
     }, []);
     const getBTRDataCount = async (payload: any) => {
         const version = ++requestVersion.current.count;
+        countRequest.current?.abort();
+        const request = new AbortController();
+        countRequest.current = request;
         setPending(value => ({ ...value, count: true }));
         try {
-            const response = await fetchBTRDataCount(payload);
-            if (mounted.current && version === requestVersion.current.count) setCountData(response.data.data);
+            const response = await fetchBTRDataCount({ ...payload, signal: request.signal });
+            if (!request.signal.aborted && mounted.current && version === requestVersion.current.count) setCountData(response.data.data);
         } catch (error) {
-            if (mounted.current && version === requestVersion.current.count) {
+            if (!request.signal.aborted && !isCancel(error) && mounted.current && version === requestVersion.current.count) {
                 setCountData(undefined);
                 notifyError(error instanceof Error ? error.message : String(error));
             }
         } finally {
+            if (countRequest.current === request) countRequest.current = null;
             if (mounted.current && version === requestVersion.current.count)
                 setPending(value => ({ ...value, count: false }));
         }
@@ -168,6 +189,8 @@ const useBTR = () => {
     useEffect(() => {
         if (previousActorPublication.current === actorPublication) return;
         previousActorPublication.current = actorPublication;
+        countRequest.current?.abort();
+        cancelRows();
         Object.keys(requestVersion.current).forEach(key => { requestVersion.current[key as keyof typeof requestVersion.current]++; });
         configRequest.current = null;
         setInitialColumnState(undefined);
@@ -358,15 +381,18 @@ const useBTR = () => {
 
     const fetchRows = async (name: 'tech' | 'eco' | 'both', filter: any, pageNumber: number, pageSize: number) => {
         const branches: Array<'tech' | 'eco'> = name === 'both' ? ['tech', 'eco'] : [name];
+        cancelRows(branches);
+        const request = { controller: new AbortController(), branches: new Set(branches) };
+        rowRequests.current.add(request);
         const versions = { ...requestVersion.current };
         branches.forEach(branch => { versions[branch] = ++requestVersion.current[branch]; });
         setPending(value => ({ ...value, ...Object.fromEntries(branches.map(branch => [branch, true])) }));
-        const current = (branch: 'tech' | 'eco') => mounted.current && versions[branch] === requestVersion.current[branch];
+        const current = (branch: 'tech' | 'eco') => mounted.current && !request.controller.signal.aborted && versions[branch] === requestVersion.current[branch];
         const loaderId = notifyLoader("Loading data");
         try {
             const response = await getBTRData({ id: 0, name, fields: [], filters: filter,
                 paginationParameter: { pageNumber, recordsPerPage: pageSize }, ISExport: "0",
-                displayPrepared: true, displayHorizon: horizon });
+                displayPrepared: true, displayHorizon: horizon, signal: request.controller.signal });
             const data = response.data.data;
             branches.forEach(branch => {
                 if (current(branch)) {
@@ -377,6 +403,7 @@ const useBTR = () => {
             });
             if (branches.some(current)) setDateLabels((previous: any) => _.isEqual(previous, data.labels[0]) ? previous : data.labels[0]);
         } catch (error) {
+            if (request.controller.signal.aborted || isCancel(error)) return;
             if (branches.some(current)) notifyError(error instanceof Error ? error.message : String(error));
             branches.forEach(branch => {
                 if (current(branch)) {
@@ -385,6 +412,7 @@ const useBTR = () => {
                 }
             });
         } finally {
+            rowRequests.current.delete(request);
             if (mounted.current) setPending(value => ({ ...value,
                 ...Object.fromEntries(branches.filter(current).map(branch => [branch, false])) }));
             toast.dismiss(loaderId);
@@ -430,6 +458,7 @@ const useBTR = () => {
 
     const onApplyFilter = async (filter: BPRFilterState, refreshConfig = false) => {
         hasAppliedFilter.current = true;
+        cancelRows();
         requestVersion.current.tech++;
         requestVersion.current.eco++;
         setPending(value => ({ ...value, tech: false, eco: false }));
@@ -466,6 +495,7 @@ const useBTR = () => {
 
     const toggleCurrentTab = (tab: VFFloatingTabItemProps) => {
         if (tab.id === currentTab.id) return;
+        cancelRows();
         requestVersion.current.tech++;
         requestVersion.current.eco++;
         requestVersion.current.layout++;

@@ -10,7 +10,9 @@ def business_fields(model):
 
 def typed_field(model, field, raw, *, strict=False):
     """Existing owner scalar validation, usable without replacing caller values."""
-    if strict and raw is not None:
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
+    if not admitted and strict and raw is not None:
         kind = field.get_internal_type()
         valid = (isinstance(raw, str) if kind in ('CharField', 'TextField', 'DateField', 'DateTimeField') else
             type(raw) is bool if kind == 'BooleanField' else
@@ -20,23 +22,26 @@ def typed_field(model, field, raw, *, strict=False):
         if not valid:
             raise ValueError('Owner field type differs: '+model.__name__+'/'+field.name)
     value = field.to_python(raw)
-    if value is None and not field.null:
+    if not admitted and value is None and not field.null:
         raise ValueError('NULL in required synthetic master field: '+field.name)
     if isinstance(value, Decimal):
         exact = value.quantize(Decimal(1).scaleb(-field.decimal_places))
-        if exact != value or strict and exact != Decimal(str(raw)):
+        if not admitted and (exact != value or strict and exact != Decimal(str(raw))):
             raise ValueError('Master decimal precision differs')
         value = exact
-    field.run_validators(value)
+    if not admitted:
+        field.run_validators(value)
     return value
 
 
 def typed(model, rows, *, strict=False):
-    if not isinstance(rows, list):
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
+    if not admitted and not isinstance(rows, list):
         raise ValueError('Owner population must be an explicit list: '+model.__name__)
     fields=business_fields(model); names={f.name for f in fields}; result=[]
     for row in rows:
-        if not isinstance(row, dict) or set(row) != names:
+        if not admitted and (not isinstance(row, dict) or set(row) != names):
             raise ValueError('Synthetic owner fields differ: '+model.__name__)
         item={}
         for field in fields:

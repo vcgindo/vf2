@@ -116,12 +116,14 @@ class NativeBindingTests(unittest.TestCase):
         check.assert_called_once_with(self.run,self.mocks[3].return_value)
         outputs.assert_not_called()
 
-    def test_wrong_initialization_and_nonconsecutive_date_deny(self):
+    def test_wrong_initialization_denied_and_calendar_gap_allowed(self):
         self.input['initialization_binding'] = self.binding | {'id':str(uuid4())}
         with self.assertRaisesRegex(PublicationUnavailable, 'binding_changed'):
             native.identity(self.run)
         self.input['initialization_binding'] = self.binding
         self.run.business_date=date(2037,4,11)
+        self.assertEqual(native.identity(self.run)['business_date'], '2037-04-11')
+        self.run.business_date=self.owner.opening_date
         with self.assertRaisesRegex(PublicationUnavailable, 'opening_date_changed'):
             native.identity(self.run)
 
@@ -132,6 +134,7 @@ class NativeBindingTests(unittest.TestCase):
         with self.assertRaisesRegex(PublicationUnavailable,'predecessor_changed'):
             native.identity(self.run)
         self.input['lineage']['output_digest']='parent'
+        self.run.business_date=date(2037,4,14)
         self.assertEqual(native.identity(self.run)['predecessor_id'],str(parent.pk))
 
     @override_settings(VF_MTA_DAILY_PUBLICATION=True)

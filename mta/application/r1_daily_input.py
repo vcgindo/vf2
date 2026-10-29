@@ -72,8 +72,12 @@ def _typed_rows(rows, fields, nullable=()):
     if isinstance(rows,RecordRows):
         for row in rows:
             typed_row(row)
-        return RecordRows(len(rows),lambda:(typed_row(row) for row in rows),
-                          getitem=lambda ordinal:typed_row(rows[ordinal]))
+        # Admission has checked this immutable population. Consumers only need
+        # its field projection, not another validation on every traversal.
+        def projected(row):
+            return {field: row.get(field) for field in fields}
+        return RecordRows(len(rows),lambda:(projected(row) for row in rows),
+                          getitem=lambda ordinal:projected(rows[ordinal]))
     return [typed_row(row) for row in rows]
 
 

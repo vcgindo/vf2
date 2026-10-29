@@ -27,6 +27,16 @@ from mta.presentation.report_verification import report_operation
 logger = logging.getLogger(__name__)
 _admitted = None
 
+
+def prepared(run):
+    """Read the prepared generation identities without auditing accepted facts."""
+    from mta.presentation.daily_publication import require_ready
+    from mta.presentation.native_publication import identity
+    from mta.presentation.accepted_publication import _summary_ready
+    require_ready(run)
+    _summary_ready(run)
+    return identity(run)
+
 # Only projections consumed by the routes already implemented in this build.
 # Missing future BOR/MDM/logistics consumers are not admission prerequisites.
 PROJECTIONS = (PickProjection, ExcessProjection, FulfillmentProjection,

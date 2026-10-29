@@ -150,16 +150,15 @@ def check(attempt, arguments, *, locked=False):
 
 @stage('staged_fact_restore')
 def read(attempt, arguments):
-    body = check(attempt, arguments)
-    populations = batch_storage.read_populations(attempt)
+    # Staging owns parsed/scalar admission. The joint native gate takes the
+    # command/source lock; restoration only decodes its immutable typed facts.
+    body = attempt.prepared_context
+    from mta.runtime.accepted_input_read import _iter_accepted_batch
+    populations = {entry['filename']: RecordRows(entry['count'],
+        lambda entry=entry: _iter_accepted_batch(attempt, entry))
+        for entry in attempt.accepted_facts['feeds']}
     with stage('staged_fact_materialize'):
         value = join(body['tree'], populations)
-    checksum = hashlib.sha256()
-    with stage('staged_fact_digest'):
-        for part in canonical_parts(value, ensure_ascii=False):
-            checksum.update(part)
-    if checksum.hexdigest() != attempt.input_sha256:
-        raise ValueError('Accepted daily full typed reconstruction differs')
     from mta.runtime.daily_preparation import restored
     return restored(value, attempt.input_sha256, body)
 

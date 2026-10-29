@@ -143,6 +143,9 @@ def terminal_raw(output):
     if output is None:
         raise ValueError('Supplier publication requires actual producer output')
     complete = output.get('ClosingState', [{}])[0].get('complete', {})
+    from mta.application.accepted_inputs import accepted
+    if accepted() and all(name in complete for name in MODELS):
+        return {name: complete[name] for name in MODELS}
     traces = [stage['tables'] for stage in output.get('SupplierStages', ())
               if stage['stage'] == 'ResetFlags.sql']
     if traces and len(traces) != 1:
@@ -163,23 +166,35 @@ def finalize(run, snapshot, output):
         return
     supplier = snapshot['supplier']
     from mta.runtime.mdm_models import MdmSource
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     source = MdmSource.objects.select_for_update().get(pk=snapshot['source_id'])
-    current = capture(source)
+    if admitted:
+        # Intake already accepted these raw owners. Keep the configuration owner
+        # lookup and identity check without recapturing every frozen population.
+        config = MdmSupplierConfiguration.objects.get(source=source)
+        current = dict(source_digest=config.receipt_digest, moq_format=config.moq_format,
+                       raw=supplier['raw'])
+    else:
+        current = capture(source)
     if (current['source_digest'] != supplier['source_digest']
-            or current['moq_format'] != supplier['moq_format'] or current['raw'] != supplier['raw']):
+            or current['moq_format'] != supplier['moq_format']
+            or not admitted and current['raw'] != supplier['raw']):
         raise ValueError('Captured supplier raw/configuration changed before publication')
     final = terminal_raw(output)
-    selected = archive_populations(supplier['queues'], moq_format=supplier['moq_format'])
+    selected = ({'NMSSOB', 'NMSMOQWithDestination' if supplier['moq_format'] == 'WithDestLoc'
+                 else 'NMSMOQWithoutDestination'} if admitted else
+                archive_populations(supplier['queues'], moq_format=supplier['moq_format']))
     for name, model in QUEUES.items():
         for ordinal, frozen in enumerate(supplier['queues'][name], 1):
             row = model.objects.select_for_update().get(source=source, pk=frozen['id'])
-            values = storage({n: getattr(row, n) for n in columns(model)})
+            values = {} if admitted else storage({n: getattr(row, n) for n in columns(model)})
             captured_values = {k: v for k, v in frozen.items() if k not in ('id', 'revision')}
             scalar = 'SOB' if name == 'NMSSOB' else 'MOQ'
             same_revision = row.revision == frozen['revision']
             if (row.revision < frozen['revision']
-                    or any(value != captured_values[key] for key, value in values.items()
-                           if same_revision or key != scalar)):
+                    or not admitted and any(value != captured_values[key] for key, value in values.items()
+                                            if same_revision or key != scalar)):
                 raise ValueError('Captured supplier queue occurrence changed before publication')
             if name in selected:
                 ARCHIVES[name].objects.create(source=source, run=run, source_pk=row.pk,
@@ -202,13 +217,14 @@ def finalize_pending(snapshot, output, *, deferred_tasks=()):
     if not supplier['pending']:
         return
     final = terminal_raw(output)
+    from mta.application.accepted_inputs import accepted
     for item in supplier['pending']:
         if (4 if item['family'] == 'sob' else 5, item['task_id']) in deferred_tasks:
             continue
         sob = item['family'] == 'sob'
         model = MdmSobHistory if sob else MdmMoqHistory
         row = model.objects.select_for_update().get(source_id=snapshot['source_id'], pk=item['history_pk'])
-        if digest({name: storage(getattr(row, name)) for name in columns(model)}) != item['row_digest']:
+        if not accepted() and digest({name: storage(getattr(row, name)) for name in columns(model)}) != item['row_digest']:
             raise ValueError('Captured supplier pending history changed before publication')
         names = ('SKUCode', 'WhCode', 'SupplierCode') if sob or supplier['moq_format'] == 'WithDestLoc' else ('SKUCode', 'SupplierCode')
         identity = tuple(sql_key(getattr(row, n)) for n in names)

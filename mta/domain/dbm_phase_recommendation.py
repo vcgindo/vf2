@@ -56,6 +56,9 @@ def text(value):
 
 
 def validate_target(row):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     for name in FIELDS:
         value = row[name]
         if name in ('StockDays', 'TotalSale', 'CurrentNorm', 'CurrentStock'):

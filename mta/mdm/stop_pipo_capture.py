@@ -61,6 +61,8 @@ def finalize(run, snapshot, output):
     if output is None:
         raise ValueError('StopPIPO requires produced closing state')
     frozen = snapshot['stop_pipo']
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     owner = MdmStopPipoOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
     anchor = frozen['anchor']
     if (owner.receipt_digest != frozen['source_digest']
@@ -71,17 +73,18 @@ def finalize(run, snapshot, output):
             or owner.generation < anchor['generation']):
         raise ValueError('StopPIPO closing owner changed during execution')
     remaining = storage(output['ClosingState'][0]['control_aux']['phase_stops'])
-    if any(set(r) != set(FIELDS) for r in remaining):
+    if not admitted and any(set(r) != set(FIELDS) for r in remaining):
         raise ValueError('StopPIPO closing fields differ')
     counts = Counter(digest(r) for r in remaining)
-    original = Counter(digest(values(r)) for r in frozen['rows'])
-    if any(0 < counts[k] < n for k, n in original.items()):
-        raise ValueError('StopPIPO duplicate consumption provenance is ambiguous')
+    if not admitted:
+        original = Counter(digest(values(r)) for r in frozen['rows'])
+        if any(0 < counts[k] < n for k, n in original.items()):
+            raise ValueError('StopPIPO duplicate consumption provenance is ambiguous')
     live = {r.pk: r for r in MdmStopPipoQueue.objects.select_for_update().filter(source=owner.source)}
     for ordinal, before in enumerate(frozen['rows']):
         row = live.get(before['id'])
         if (row is None or row.revision != before['revision']
-                or {n: getattr(row, n) for n in FIELDS} != values(before)):
+                or not admitted and {n: getattr(row, n) for n in FIELDS} != values(before)):
             raise ValueError('Captured StopPIPO occurrence changed or disappeared')
         key = digest(values(before))
         retained = counts[key] > 0
@@ -92,7 +95,7 @@ def finalize(run, snapshot, output):
             cleared=not retained, **values(before))
         if not retained:
             row.delete()
-    if any(counts.values()):
+    if not admitted and any(counts.values()):
         raise ValueError('StopPIPO produced an unowned stop input')
     owner.last_run = run
     owner.closing_queue_digest = digest(remaining)

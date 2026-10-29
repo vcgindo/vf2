@@ -27,6 +27,8 @@ class DayContext:
     master_reused: bool
     master_work: Any
     action_revision: int = 0
+    accepted_inputs: Any = None
+    master_qualified: Any = None
 
 
 @dataclass(slots=True)
@@ -59,6 +61,21 @@ class PreparedDay(DayPhase):
     @property
     def complete(self):
         return self.context.completion
+
+
+@dataclass(slots=True)
+class ReadyBprDay:
+    """Gate live-out: all existing BPR input preparation, before requirements."""
+
+    phase: PreparedDay
+    source: Any
+    bpr_master: Any
+    order_state: Any
+    r1: Any
+
+    @property
+    def context(self):
+        return self.phase.context
 
 
 @dataclass(slots=True)

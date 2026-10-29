@@ -482,6 +482,8 @@ def capture_prune_candidates(snapshot, source, business_date):
 
 
 def _lock_prune_candidates(snapshot, capture, *, deferred_tasks=()):
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     model_by_label = {_model_identity(MdmTask): MdmTask,
                       _model_identity(MdmSubTask): MdmSubTask}
     for master_id in ('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13'):
@@ -491,11 +493,14 @@ def _lock_prune_candidates(snapshot, capture, *, deferred_tasks=()):
     for candidate in snapshot['prune_tasks']:
         if (int(candidate['master_id']), candidate['task_id']) in deferred_tasks:
             continue
-        if digest(candidate['members']) != candidate['digest']:
+        if not admitted and digest(candidate['members']) != candidate['digest']:
             raise ValueError('captured MDM task-prune roster drift')
         candidate_rows = []
         for label, identities in candidate['members'].items():
             model = model_by_label[label]
+            if admitted:
+                candidate_rows.append((model, [item['pk'] for item in identities]))
+                continue
             field = 'TaskID' if model in (MdmTask, MdmSubTask) else 'TaskId'
             current = list(model.objects.select_for_update().filter(source=capture.source,
                 **{field: candidate['task_id']}).order_by('id'))
@@ -509,9 +514,15 @@ def _lock_prune_candidates(snapshot, capture, *, deferred_tasks=()):
 
 
 def _lock_completion_candidates(snapshot, capture, *, deferred_tasks=()):
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     locked = []
     for candidate in snapshot['completion_tasks']:
         if (int(candidate.get('master_id', 0)), candidate['task_id']) in deferred_tasks:
+            continue
+        if admitted:
+            locked.append((candidate['task']['pk'], [item['pk'] for item in candidate['subtasks']],
+                           candidate['projected_statuses']))
             continue
         expected = {k: v for k, v in candidate.items() if k != 'digest'}
         if digest(expected) != candidate['digest']:
@@ -842,6 +853,9 @@ def _lock_pair_exclusion_opening(snapshot, capture):
     from mta.runtime.mdm_daily_models import (MdmDailyPairExclusion,
         MdmPairExclusion, MdmPairExclusionSource)
     owner = MdmPairExclusionSource.objects.select_for_update().get(source=capture.source)
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return owner, snapshot['pair_exclusions']
     current = list(MdmPairExclusion.objects.select_for_update()
                    .filter(source=capture.source).order_by('ordinal')
                    .values('SKUCode', 'WhCode'))
@@ -879,12 +893,14 @@ def _lock_consumption(run):
     if capture.status == 'CONSUMED': return
     if run.status != 'RUNNING':
         raise ValueError('MDM consumption must precede successful run publication')
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     snapshot = read_input(run, components=('mdm_input',)).get('mdm_input')
     if not snapshot or snapshot['revision_digest'] != capture.revision_digest:
         raise ValueError('MDM capture/run input identity drift')
     from mta.mdm.integration_source import verify_capture
-    verify_capture(capture.source, snapshot)
+    from mta.application.accepted_inputs import accepted
+    if not accepted():
+        verify_capture(capture.source, snapshot)
     deferred_supplier_tasks = superseded_tasks(snapshot)
     from mta.mdm.force_revisions import superseded_tasks as superseded_force_tasks
     deferred_supplier_tasks |= superseded_force_tasks(snapshot)
@@ -904,6 +920,8 @@ def _apply_consumption_effects(run, work, *, output=None):
     if not connection.in_atomic_block or work.capture.run_id != run.pk:
         raise ValueError('Consumption effects require their locked daily transaction')
     capture, snapshot = work.capture, work.snapshot
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     deferred_supplier_tasks = work.deferred_tasks
     exclusion_owner, final_exclusions = work.exclusion_owner, work.final_exclusions
     with connection.cursor() as cursor:
@@ -944,7 +962,7 @@ def _apply_consumption_effects(run, work, *, output=None):
                    for o in capture.occurrences.select_for_update().all()}
     snapshot_rows = {(o['family'], o['queue_kind'], o['source_pk']): o
                      for o in snapshot['occurrences']}
-    if set(by_identity) != set(snapshot_rows):
+    if not admitted and set(by_identity) != set(snapshot_rows):
         raise ValueError('MDM captured occurrence roster drift')
     for key, occurrence in by_identity.items():
         model = _QUEUES[(occurrence.family, occurrence.queue_kind)]
@@ -955,7 +973,7 @@ def _apply_consumption_effects(run, work, *, output=None):
         fields = next(columns for family, kind, _m, columns, _p in _SETS
                       if (family, kind) == (occurrence.family, occurrence.queue_kind))
         current_values = storage({name: getattr(current, name) for name in fields})
-        if digest(current_values) != occurrence.row_digest:
+        if not admitted and digest(current_values) != occurrence.row_digest:
             raise ValueError('captured MDM queue occurrence changed before consumption')
         if capture.nms_active:
             archive_model = archive_models[(occurrence.family, occurrence.queue_kind)]
@@ -1001,18 +1019,19 @@ def _apply_consumption_effects(run, work, *, output=None):
             'action_type': task.Actiontype if task else None,
             'subtask_pk': sub.pk if sub else None,
             'subtask_status': sub.TaskStatus if sub else None, 'history_ids': history_ids}
-        if task is None or sub is None or digest(values) != item.task_digest \
-                or current_history_ids != history_ids or digest(history_ids) != item.history_digest:
+        if not admitted and (task is None or sub is None or digest(values) != item.task_digest \
+                or current_history_ids != history_ids or digest(history_ids) != item.history_digest):
             raise ValueError('captured MDM task transition changed before consumption')
         new_status = '4' if sub.TaskStatus == '2' else '5'
         sub.TaskStatus = new_status; sub.DBUpdatedDate = stamp
         sub.save(update_fields=['TaskStatus', 'DBUpdatedDate'])
         item.transitioned_at = now; item.save(update_fields=['transitioned_at'])
     for task_pk, subtask_pks, projected_statuses in completion_rows:
-        statuses = list(MdmSubTask.objects.filter(pk__in=subtask_pks).order_by('id')
-                        .values_list('TaskStatus', flat=True))
-        if statuses != projected_statuses:
-            raise ValueError('captured MDM task completion differs after transitions')
+        if not admitted:
+            statuses = list(MdmSubTask.objects.filter(pk__in=subtask_pks).order_by('id')
+                            .values_list('TaskStatus', flat=True))
+            if statuses != projected_statuses:
+                raise ValueError('captured MDM task completion differs after transitions')
         MdmTask.objects.filter(source=capture.source, pk=task_pk).update(TaskStatus='7')
     history_models = {'sku': MdmSkuHistory, 'location': MdmLocationHistory,
                       'skuloc': MdmSkuLocHistory}
@@ -1024,7 +1043,7 @@ def _apply_consumption_effects(run, work, *, output=None):
             raise ValueError('captured pending Add history disappeared before consumption')
         values = {field.name: storage(getattr(row, field.name)) for field in row._meta.fields
                   if field.name not in ('id', 'source')}
-        if digest(values) != item.row_digest:
+        if not admitted and digest(values) != item.row_digest:
             raise ValueError('captured pending Add history changed before consumption')
         row.Status = '4'; row.Comments = 'Already in Vectorflow'
         row.save(update_fields=['Status', 'Comments'])

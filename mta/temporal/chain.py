@@ -10,7 +10,8 @@ or MTO changes. Any future exception requires explicit human authorization.
 
 from copy import deepcopy
 from dataclasses import replace
-from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
+from mta.temporal.day_phases import DayContext, PreparedDay, ReadyBprDay, BprDay, DbmDay
+from mta.application import accepted_inputs
 from mta.application.stage_observation import operation, stage, summary
 
 from decimal import Decimal
@@ -33,7 +34,8 @@ from mta.application.r1_master_state import MASTER_FIELDS, reconcile_master_stat
 
 from mta.application.r1_raw_master_entry import MASTER_SOURCE_MAP
 
-from mta.application.r1_input import _prepare_r1_operation_context, calculation_order_rows
+from mta.application.r1_input import (_prepare_r1_operation_context, calculation_order_rows,
+    _ready_r1_for_owned_orders)
 
 from mta.domain.control_carry import control_stages
 
@@ -543,8 +545,10 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
         supplier_moq=supplier_state['refreshed_moq'])
 
 
-def produce_bpr(phase: PreparedDay) -> BprDay:
-    """Run R1/BPR and its complete tail, stopping before DBM input construction."""
+def prepare_bpr_inputs(phase: PreparedDay) -> ReadyBprDay:
+    """Produce the owned BPR inputs once, before requirements/rationing/Pick."""
+    if type(phase) is not PreparedDay:
+        raise ValueError('BPR input preparation requires its prepared day owner')
     from mta.application import daily_finalization
     context = phase.context
     prior = context.prior
@@ -552,24 +556,14 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
     opening_date = context.opening_date
     profile = context.profile
     identity = context.identity
-    execute_calculation = context.execute_calculation
-    native_daily = context.native_daily
     today = context.today
-    now = context.now
-    finalization = context.finalization
     completion = context.completion
     importer = phase.importer
     control_final = phase.control_final
-    completed_boundaries = phase.completed_boundaries
-    daily_input = phase.daily_input
-    supplier_final = phase.supplier_final
-    daily = phase.daily
     daily_final = phase.daily_final
     old_sourcing = phase.old_sourcing
     new_sourcing = phase.new_sourcing
-    standard_attributes = phase.standard_attributes
-    pick_sources = None
-    with stage('r1_orders_requirements_rationing'):
+    with stage('bpr_input_preparation'):
         with stage('r1_source_context_preparation'):
             source=calculation_source(today,opening_date,profile,importer,control_final['dbm_master'],daily_final['DailyDataProcessed'],deepcopy(new_sourcing),deepcopy(old_sourcing),identity,control_final['phase_out'])
             if 'requirement_stock' in day:
@@ -596,6 +590,64 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
         if completion is not None:
             daily_finalization.mark(completion, 'ImportSpikeOrders.sql', 'CalculateDD.sql')
         source['orders'].extend(calculation_order_rows(order_state))
+        ready = _ready_r1_for_owned_orders(r1_context, source, order_state)
+        auxiliary = None
+        if context.native_daily:
+            from mta.application.r1_daily_entry import native_auxiliary_stock_balances
+            if phase.daily_consumption is None:
+                phase.daily_consumption = generated_bpr_daily_state(
+                    {'raw_master_entry': {'business_date': today},
+                     'raw_daily_entry': phase.daily_input}, phase.daily)
+            auxiliary = native_auxiliary_stock_balances(phase.daily_consumption,
+                ready.prepared.stock_balances, importer['SkuLocAttributeData'], today,
+                source['stock_configuration']['reservation_type'])
+        from mta.application.r1_calculation import _prepare_r1_track_a, _OwnedTrackAInputs
+        prepared_r1 = replace(ready.prepared,
+            _track_a_preparation=_OwnedTrackAInputs(_prepare_r1_track_a(ready.prepared)))
+        ready = replace(ready, prepared=prepared_r1, auxiliary_stock=auxiliary)
+        if context.native_daily:
+            from mta.application.persistent_master import qualify
+            # The NMS snapshot and static settings are already produced at
+            # intake. Qualify this representation there, before calculation;
+            # final publication consumes the result without comparing it again.
+            consumer = dict(prior['consumer_context'])
+            if phase.nms is not None:
+                consumer['NMSAllItems'] = phase.nms['NMSAllItems']
+            context.master_qualified = (True if context.master_reused else qualify(
+                context.master, profile, day,
+                dict(importer_settings=prior['importer_settings'], consumer_context=consumer),
+                snapshot=context.master_snapshot))
+    return ReadyBprDay(phase=phase, source=source, bpr_master=bpr_master,
+        order_state=order_state, r1=ready)
+
+
+def produce_bpr(phase: PreparedDay | ReadyBprDay) -> BprDay:
+    ready = phase if type(phase) is ReadyBprDay else prepare_bpr_inputs(phase)
+    accepted_inputs._complete(ready.context)
+    with accepted_inputs.consume(ready.context):
+        return _produce_bpr(ready)
+
+
+def _produce_bpr(phase: ReadyBprDay) -> BprDay:
+    """Consume prepared BPR inputs and run the unchanged calculation tail."""
+    ready = phase if type(phase) is ReadyBprDay else prepare_bpr_inputs(phase)
+    phase = ready.phase
+    context = phase.context
+    prior, day, profile = context.prior, context.day, context.profile
+    today, now = context.today, context.now
+    execute_calculation = context.execute_calculation
+    native_daily = context.native_daily
+    finalization, completion = context.finalization, context.completion
+    importer, control_final = phase.importer, phase.control_final
+    completed_boundaries = phase.completed_boundaries
+    daily_input, daily = phase.daily_input, phase.daily
+    supplier_final = phase.supplier_final
+    daily_final = phase.daily_final
+    standard_attributes = phase.standard_attributes
+    source, bpr_master, order_state = ready.source, ready.bpr_master, ready.order_state
+    pick_sources = None
+    from mta.application import daily_finalization
+    with stage('r1_orders_requirements_rationing'):
         native_stock = {}
         if 'production_report_policy' in day:
             native_stock['_production_sources'] = True
@@ -605,7 +657,7 @@ def produce_bpr(phase: PreparedDay) -> BprDay:
                 if phase.daily_consumption is None else phase.daily_consumption,
                 attributes=importer['SkuLocAttributeData'])
         calculated,calculation_id=execute_calculation(source, _owned_order_closing=order_state,
-            _owned_r1_context=r1_context, **native_stock)
+            _owned_r1_ready=ready.r1, **native_stock)
     if completion is not None:
         daily_finalization.mark(completion, *daily_finalization.CALCULATION_SCRIPTS)
     from mta.application.r1_rationed_report import rationed_report
@@ -716,6 +768,7 @@ def dbm_action_state(phase: BprDay):
     return result
 
 
+@accepted_inputs.phase
 def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> DbmDay:
     """Run the unchanged DBM chain and carry its controls, before BTR."""
     context = phase.context
@@ -821,6 +874,7 @@ def produce_dbm(phase: BprDay, *, _action_state=None, _action_revision=0) -> Dbm
     )
 
 
+@accepted_inputs.phase
 def produce_btr(phase: DbmDay):
     """Run BTR and the original full result/closing assembly; no persistence."""
     if phase.calculated is None:
@@ -828,6 +882,7 @@ def produce_btr(phase: DbmDay):
     return _produce_btr(phase)
 
 
+@accepted_inputs.phase
 def produce_btr_from_snapshot(phase: DbmDay, sources, *, pick_source_digests):
     """Continue the typed phase without inventing discarded diagnostics."""
     from mta.application.stage_calculation_sources import CalculationSources
@@ -965,9 +1020,9 @@ def _produce_btr(phase: DbmDay, *, sources=None, pick_source_digests=None):
     del assemble_closing
     if native_daily:
         result['_ReportBoundary']='fresh-operational-report-boundary-v3'
-        from mta.application.persistent_master import qualify, CONTRACT
+        from mta.application.persistent_master import CONTRACT
         result['_MasterPreparation'] = dict(contract=CONTRACT,
-            qualified=(True if context.master_reused else qualify(master,profile,day,result['ClosingState'][0],snapshot=master_snapshot)),
+            qualified=context.master_qualified,
             configuration_digest=(profile_digest if delivery is not None and finalization is not None
                                   else digest(profile)), reused=context.master_reused,
             full_master_producer_calls=(0 if context.master_reused else

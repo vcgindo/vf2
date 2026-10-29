@@ -56,6 +56,11 @@ def require_final_sources(run,receipt,sources):
     scope_revisions.verify_write(run,scope_revisions.next_cut(receipt.revision_before))
     prefix,capture=accepted_prefix(run)
     manifest=prefix[-1].snapshot.manifest
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        # Consumers come directly from this accepted phase's typed images.
+        # Do not scan/hash the same immutable facts at final publication.
+        return scope_revisions.identity(run)
     if type(sources) is not CalculationSources or sources.calculation_digest!=manifest['metadata']['calculation_digest']:
         raise ValueError('Scoped final calculation identity differs')
     def check(expected,actual):
@@ -93,7 +98,7 @@ def frozen_prior(run,raw):
     if parent is None:
         prior=deepcopy(initial['state'])
     else:
-        from mta.runtime.services import read_outputs
+        from mta.runtime.accepted_state_read import read_accepted_daily as read_outputs
         from mta.runtime.temporal import command_states
         if initial is not None or raw['lineage'].get('run_id')!=str(parent.pk):
             raise ValueError('Scoped native predecessor opening differs')
@@ -110,7 +115,7 @@ def frozen_prior(run,raw):
 
 def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_snapshot=None):
     """BTR may retry; accepted PRE/BPR/DBM calculations/effects never replay."""
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.temporal.chain import produce_btr_from_snapshot
     from mta.runtime.temporal import BOUNDARIES
     from mta.application.native_output_contracts import native_assignments
@@ -162,7 +167,8 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
             if name in raw['day']:publication[name]=raw['day'][name]
     elif sources.production_reports is not None:
         raise ValueError('Configured scoped reports require publication')
-    with transaction.atomic(),_setting('fresh.scope_worker',worker_token), \
+    from mta.application.accepted_inputs import consume
+    with consume(phase.context), transaction.atomic(),_setting('fresh.scope_worker',worker_token), \
             _setting('fresh.mdm_consuming_run',''):
         attempt,run=require_claim(attempt_id,worker_token,compatibility_digest=compatibility_digest)
         if head(run.pk)!=('DBM',dbm.digest):raise ValueError('Scoped DBM head changed during BTR')

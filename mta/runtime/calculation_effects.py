@@ -32,10 +32,18 @@ def _parent(run, parent, phase):
 
 def _accept_calculation(attempt_id, worker_token, phase, sources, *, parent,
                         compatibility_digest):
+    from mta.application.accepted_inputs import consume
+    with consume(phase.context):
+        return _accept_calculation_phase(attempt_id, worker_token, phase, sources,
+            parent=parent, compatibility_digest=compatibility_digest)
+
+
+def _accept_calculation_phase(attempt_id, worker_token, phase, sources, *, parent,
+                              compatibility_digest):
     from mta.temporal.day_phases import BprDay,DbmDay
     from mta.application.stage_calculation_sources import CalculationSources
     from mta.application.daily_finalization import configuration,ACTIVE_POLICY,POLICY
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
     from mta.mdm.daily_source import SCHEMA as DAILY_SOURCE,APPROVAL_DAY_ARTIFACT_SHA
@@ -76,8 +84,12 @@ def _accept_calculation(attempt_id, worker_token, phase, sources, *, parent,
     with transaction.atomic(),_setting('fresh.scope_worker',worker_token):
         receipt=_begin_phase(attempt,run,kind)
         with _setting('fresh.mdm_current_run',run.pk):
-            for _family,model,partition,rows,path in batches:
-                _write_partition(capture.source,model,partition,rows,path)
+            from contextlib import nullcontext
+            from mta.runtime.accepted_current_write import _accepted_current_write
+            from mta.application.accepted_inputs import accepted
+            with (_accepted_current_write(run, capture.source) if native and accepted() else nullcontext()):
+                for _family,model,partition,rows,path in batches:
+                    _write_partition(capture.source,model,partition,rows,path)
         image=phase_state.save(run,phase,sources,parent=parent.snapshot,acceptance=receipt)
         effects=dict(schema=SCHEMA,phase=kind,parent_acceptance_digest=parent.digest,
                      calculation_digest=sources.calculation_digest)

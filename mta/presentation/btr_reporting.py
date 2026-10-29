@@ -158,7 +158,6 @@ def _build(run, *, admission=None, allow_outer=False):
     try:
         existing = BtrReportingGeneration.objects.filter(run=run, version=VERSION, source_digest=source, status='READY').first()
         if existing:
-            verify_generation(existing)
             return existing
         # A released session lock proves a previous BUILDING worker is no longer the owner.
         BtrReportingGeneration.objects.filter(run=run, version=VERSION, source_digest=source, status='BUILDING').update(

@@ -31,7 +31,7 @@ def _source_lock(run_id):
 
 
 def _frozen(run):
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     if (run.kind != 'DAILY_CHAIN' or run.status != 'RUNNING' or run.output_digest
             or run.input_payload.get('content_digest') != run.input_digest
@@ -85,7 +85,7 @@ def _claim(run_id, *, scope, command_key, worker_reference, compatibility_digest
     _source_lock(run_id)
     run = CalculationRun.objects.select_for_update().get(pk=run_id)
     _frozen(run)
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.production_scope import PUBLICATION_SCHEMA
     captured=read_input(run,components=('scope_request',)).get('scope_request',{})
     if captured.get('schema')==PUBLICATION_SCHEMA and scope!='UptoBPR':
@@ -195,7 +195,7 @@ def release(attempt_id, worker_token, *, compatibility_digest):
 
 def _close_attempt(attempt,run,status,failure):
     if status=='RELEASED':
-        from mta.runtime.input_reader import read_input
+        from mta.runtime.input_reader import read_execution_input as read_input
         from mta.runtime.production_scope import PUBLICATION_SCHEMA
         captured=read_input(run,components=('scope_request',)).get('scope_request',{})
         if captured.get('schema')==PUBLICATION_SCHEMA:

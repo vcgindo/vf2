@@ -57,7 +57,7 @@ def _project(run, capture, prepared):
 def _accept_prepared(attempt_id, worker_token, prepared, *, compatibility_digest):
     """Caller owns one acceptance transaction; failure rolls back every effect."""
     from mta.temporal.day_phases import PreparedDay
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.mdm.daily_input import _lock_consumption, _apply_consumption_effects
     from mta.application.daily_finalization import mark, configuration
     if not connection.in_atomic_block:raise ValueError('Prepared effects require their transaction')
@@ -108,7 +108,7 @@ def prepared_family_owner(source, owner, family):
     """
     from mta.runtime.models import RunPhaseAcceptance
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     run=owner.last_run
     if run is None or run.status != 'RUNNING' or owner.source_id != source.pk:
         raise ValueError('Prepared family requires its RUNNING logical owner')

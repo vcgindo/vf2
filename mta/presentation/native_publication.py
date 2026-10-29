@@ -3,7 +3,6 @@
 Calculation ownership is independent of report readiness. A completed native
 day never gains application access merely by passing this source check.
 """
-from datetime import timedelta
 from django.conf import settings
 from mta.presentation.context import PublicationUnavailable
 from mta.serialization import digest
@@ -32,7 +31,7 @@ def require_mode():
 @native_identity
 def identity(run, *, verify_rows=False):
     from mta.mdm.initialization_contract import SOURCE_SCHEMA
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.initialization_models import ProductionInitialization
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.presentation import daily_sources
@@ -64,11 +63,11 @@ def identity(run, *, verify_rows=False):
         previous = read_input(parent, components=('initialization_binding',))
         if (parent.kind != 'DAILY_CHAIN' or parent.status != 'SUCCEEDED'
                 or previous.get('initialization_binding') != binding
-                or parent.business_date + timedelta(days=1) != run.business_date
+                or parent.business_date >= run.business_date
                 or lineage.get('run_id') != str(parent.pk)
                 or lineage.get('output_digest') != parent.output_digest):
             raise PublicationUnavailable('native_report_predecessor_changed')
-    elif owner.opening_date + timedelta(days=1) != run.business_date:
+    elif owner.opening_date >= run.business_date:
         raise PublicationUnavailable('native_report_opening_date_changed')
     source = daily_sources.receipt(run)
     if verify_rows:

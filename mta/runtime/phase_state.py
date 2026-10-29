@@ -45,26 +45,32 @@ def _table(binding):
     return '/'.join(typed.CATALOG['bindings'][binding])
 
 
-def _write_rows(run, path, table, rows):
+def _write_rows(run, path, table, rows, *, description=None):
     """Same scalar conversion/ordinal transport as daily storage, own namespace."""
     columns = {name.casefold(): (name, kind) for name, kind in REGISTRY[table]}
-    meta, fields, native = typed.describe_rows(rows, columns, path)
+    meta, fields, native = (typed.describe_rows(rows, columns, path)
+                            if description is None else description)
     meta['table'] = table
     if rows:
         query = ('INSERT INTO '+typed.table_sql(table)+
             ' (vf_run_id,vf_image,vf_ordinal,'+
             ','.join(typed.quote(name) for name, _ in native)+') VALUES ('+
             ','.join(['%s']*(len(native)+3))+')')
-        typed.bulk(query, ((run.pk, path, ordinal, *[
+        records = ((run.pk, path, ordinal, *[
             typed.db_value(row[field], kind)
             for field, (_, kind) in zip(fields, native)])
-            for ordinal, row in enumerate(rows)))
-    if digest(typed.load_image(run, meta, table_registry=REGISTRY)) != digest(rows):
-        raise ValueError('Continuation typed readback differs: '+path)
+            for ordinal, row in enumerate(rows))
+        if connection.vendor == 'postgresql' and len(rows) >= 500:
+            typed.copy_rows(typed.table_sql(table),
+                ['vf_run_id', 'vf_image', 'vf_ordinal', *[name for name, _ in native]], records)
+        else:
+            typed.bulk(query, records)
+    # The accepted phase is written once; diagnostics own complete readback.
     return meta
 
 
-def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
+def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None,
+           _described_writer=None):
     """Build only shape/reference metadata; every operational cell is typed."""
     from mta.temporal.day_phases import PreparedDay, BprDay, DbmDay
     from mta.application.stage_calculation_sources import CalculationSources
@@ -81,7 +87,8 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         table = table or _table(binding)
         path = 'phase/'+name+'/'+path
         columns = {n.casefold(): (n, kind) for n, kind in REGISTRY[table]}
-        meta, _, _ = typed.describe_rows(values, columns, path)
+        description = typed.describe_rows(values, columns, path)
+        meta = description[0]
         meta['table'] = table
         inherited = (parent_images.get(path.replace('phase/'+name+'/',
             'phase/'+parent_manifest['phase']+'/', 1)) if parent_manifest else None)
@@ -89,7 +96,8 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
                 for k in ('table', 'count', 'digest', 'fields')):
             images[path] = inherited
         else:
-            images[path] = row_writer(path, table, values)
+            images[path] = (row_writer(path, table, values) if _described_writer is None else
+                           _described_writer(path, table, values, description))
         return {'image': path}
 
     def tables(values, prefix, binding_prefix):
@@ -199,6 +207,10 @@ def encode(phase, sources, *, row_writer, export_writer, parent_manifest=None):
         calculation_digest=None if sources is None else sources.calculation_digest)
     if context.action_revision:
         metadata['action_revision']=context.action_revision
+    if context.accepted_inputs is not None:
+        from mta.application.accepted_inputs import CONTRACT
+        metadata['input_admission'] = CONTRACT
+        metadata['master_qualified'] = context.master_qualified
     result = dict(schema=SCHEMA, phase=name, references=_references(context),
                   metadata=metadata, state=state, consumers=consumers, images=images)
     if sum(len(part) for part in canonical_parts(result)) > 1024*1024:
@@ -218,6 +230,16 @@ def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export
     refs = SimpleNamespace(prior=prior, day=day, profile=profile, master_snapshot=master_snapshot)
     if _references(refs) != manifest['references']:
         raise ValueError('Continuation captured dependency revision differs')
+    return _decode_accepted(manifest, prior=prior, day=day, profile=profile,
+        master_snapshot=master_snapshot, row_reader=row_reader,
+        export_reader=export_reader, execute_calculation=execute_calculation)
+
+
+def _decode_accepted(manifest, *, prior, day, profile, master_snapshot,
+                     row_reader, export_reader, execute_calculation=None):
+    from mta.application.stage_calculation_sources import CalculationSources
+    from mta.application.daily_finalization import configuration
+    from mta.temporal.day_phases import DayContext, PreparedDay, BprDay, DbmDay
 
     def unpack(node):
         if isinstance(node, list):return [unpack(value) for value in node]
@@ -243,6 +265,9 @@ def decode(manifest, *, prior, day, profile, master_snapshot, row_reader, export
         master=dict(outcome=metadata['master_outcome'], tables={'MasterDataRaw': state.pop('master_raw')}),
         master_reused=metadata['master_reused'], master_work=metadata['master_work'],
         action_revision=metadata.get('action_revision',0))
+    from mta.application.accepted_inputs import _restore
+    _restore(context, metadata)
+    context.master_qualified = metadata.get('master_qualified')
     common = dict(context=context, delivery=profile.get('delivery'),
         completed_boundaries=list(metadata['completed_boundaries']),
         pick_source_digests=metadata['pick_source_digests'])
@@ -295,6 +320,8 @@ def _save(run, phase, sources, *, parent, acceptance):
         raise ValueError('Phase snapshot run/date/parent differs')
     manifest = encode(phase, sources,
         row_writer=lambda path, table, values: _write_rows(owner, path, table, values),
+        _described_writer=lambda path, table, values, description:
+            _write_rows(owner, path, table, values, description=description),
         export_writer=lambda path, values: typed.save_export(owner, path, values),
         parent_manifest=parent.manifest if parent else None)
     if parent is not None:
@@ -316,9 +343,10 @@ def read(snapshot, **references):
             or snapshot.recipe_digest != recipe_digest()
             or snapshot.state_digest != digest(snapshot.manifest)):
         raise ValueError('Continuation snapshot input/code/storage identity differs')
-    return decode(snapshot.manifest, **references,
-        row_reader=lambda item: typed.load_image(snapshot.run, item, table_registry=REGISTRY),
-        export_reader=lambda item: typed.load_export(snapshot.run, item))
+    from mta.runtime.accepted_state_read import load_accepted_image, load_accepted_export
+    return _decode_accepted(snapshot.manifest, **references,
+        row_reader=lambda item: load_accepted_image(snapshot.run, item, table_registry=REGISTRY),
+        export_reader=lambda item: load_accepted_export(snapshot.run, item))
 
 
 def consumer_identity(manifest):

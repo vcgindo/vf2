@@ -79,7 +79,7 @@ def prepare(run_id, *, expected_output_digest):
     one transaction across all layers. Failed-layer rows roll back independently.
     """
     from django.db import connection
-    from mta.presentation.daily_preparation import required_layers, prepare_layer, verify_layer
+    from mta.presentation.daily_preparation import required_layers, prepare_layer
     if not transaction.get_autocommit():
         raise ValueError('Daily UI preparation owns its transaction boundaries')
     run = CalculationRun.objects.get(pk=run_id)
@@ -100,7 +100,7 @@ def prepare(run_id, *, expected_output_digest):
         if any(getattr(publication, key) != value for key, value in identities.items()):
             raise PublicationUnavailable('daily_publication_identity_changed')
         if publication.status == 'READY':
-            require_ready(run, verify_rows=True)
+            require_ready(run)
             return publication
         attempt = DailyUiPublicationAttempt.objects.create(publication=publication)
         layers = dict(publication.layers)
@@ -112,14 +112,10 @@ def prepare(run_id, *, expected_output_digest):
                         with connection.cursor() as cursor:
                             cursor.execute("SELECT set_config('fresh.daily_publication_build', %s, true)", [str(run.pk)])
                         if name in layers and layers[name].get('status') == 'READY':
-                            with stage('ui_layer_verify',layer=name,reused=True):
-                                verify_layer(run, name, layers[name]['receipt'])
                             result = layers[name]
                         else:
                             with stage('ui_layer_prepare',layer=name):
                                 result = dict(status='READY', receipt=bounded(prepare_layer(run, name)))
-                            with stage('ui_layer_verify',layer=name,reused=False):
-                                verify_layer(run, name, result['receipt'])
                             summary('ui_layer_rows',layer=name,rows=result['receipt'].get('row_count',0))
                         layers[name] = result
                         # Commit the reusable identity with its sealed rows.
@@ -128,8 +124,7 @@ def prepare(run_id, *, expected_output_digest):
                         publication.save(update_fields=['layers'])
                 except Exception as exc:
                     result = dict(status='FAILED', error_type=type(exc).__name__, error=str(exc)[:2000])
-                    # A previously successful receipt that fails verification
-                    # must not be represented as ready on a retry.
+                    # Failed builds retain their diagnostic and may be retried.
                     layers[name] = result
                 results[name] = result
                 attempt.layers = bounded(results)

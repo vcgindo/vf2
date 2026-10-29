@@ -3,7 +3,7 @@
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 """
 from contextlib import contextmanager
-from datetime import date, timedelta
+from datetime import date
 import csv
 import hashlib
 import io
@@ -20,6 +20,7 @@ from mta.application.production_csv import assemble, batch_contract, CsvIntakeEr
 from mta.application.production_csv_files import contained, regular, load_binding, snapshot, decode_json
 from mta.runtime.daily_feed_models import DailyFeedAttempt
 from mta.runtime.models import ProductionInitialization, CalculationRun
+from mta.runtime.day_opening import latest_predecessor
 from mta.application.streamed_input import JsonInputFile
 from mta.application.stage_observation import observed, stage as observe_stage
 logger = logging.getLogger(__name__)
@@ -118,13 +119,9 @@ def _batch(source, binding, business_date, root):
 
 def predecessor(owner, business_date):
     today = date.fromisoformat(business_date)
-    if today == owner.opening_date + timedelta(days=1):
-        return None
-    candidates = list(CalculationRun.objects.filter(kind='DAILY_CHAIN', status='SUCCEEDED',
-        business_date=today - timedelta(days=1), mdm_input_capture__source=owner.source)[:2])
-    if len(candidates) != 1:
-        raise ValueError('A unique immediately preceding successful own native day is required')
-    return candidates[0]
+    candidates = CalculationRun.objects.filter(kind='DAILY_CHAIN', status='SUCCEEDED',
+        business_date__lt=today, mdm_input_capture__source=owner.source).order_by('-business_date')[:2]
+    return latest_predecessor(candidates)
 
 
 def _parameters(binding, owner, parent, revision, pick_root):
@@ -759,7 +756,7 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
             with operation(str(run.pk)), stage('guided_aggregates'):
                 call_command('prepare_guided_aggregates', run_id=str(run.pk), output_digest=run.output_digest,
                              stdout=io.StringIO())
-            from mta.application.native_input_archive import prepare
+            from mta.application.native_input_archive import prepare_accepted as prepare
             native_path = root / 'native-day.json'
             from mta.runtime.captured_input import SCHEMAS as CAPTURED, origin
             if run.input_payload.get('schema') in CAPTURED:
@@ -769,7 +766,7 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                                       Path(original_attempt.archive_path))
             with operation(str(run.pk)), stage('input_archive'):
                 prepare(run, binding['_opening_path'], native_path)
-            from mta.presentation.admission import verify
+            from mta.presentation.admission import prepared as verify
             with operation(str(run.pk)), stage('report_admission'):
                 verify(run)
             from mta.presentation.native_selection import candidate
@@ -814,7 +811,7 @@ def select(attempt_id, binding_file, selection_file):
         candidate = read(root / 'candidate-selection.json')
         if candidate['selection_digest'] != attempt.candidate_selection_digest:
             raise ValueError('Prepared selection differs')
-        from mta.presentation.admission import verify
+        from mta.presentation.admission import prepared as verify
         verify(attempt.run)
         from mta.presentation.native_publication import require_publication, identity
         from mta.presentation.daily_publication import require_ready

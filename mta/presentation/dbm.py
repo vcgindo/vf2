@@ -91,18 +91,29 @@ def daily_graph(state, sku, location):
 def dbm_rows(state, *, predicate=None):
     """DBMProcessor's full joins and literal attribute aliases, including bags."""
     accepted = {key(r) for r in state['NormAcceptanceTbl']}
+    indexes = {}
+
+    def matching(name, key_of, selected):
+        if name not in indexes:
+            index = {}
+            for row in state[name]:
+                index.setdefault(key_of(row), []).append(row)
+            indexes[name] = index
+        return indexes[name].get(selected, [])
+
     result = []
     for s in state['Suggestions']:
-        if key(s) in accepted:
+        pair = key(s)
+        if pair in accepted:
             continue
         populations = (
-            [r for r in state['DBMMaster'] if key(r) == key(s)],
-            [r for r in state['SKUDescriptionTbl'] if r['SKUCode'] == s['SKUCode']],
-            [r for r in state['SiteDescriptionTbl'] if r['WHCode'] == key(s)[1]],
-            [r for r in state['ReasonCodes'] if r['Id'] == s['Type']],
-            [r for r in state['SkuAttributeData'] if r['SKUCode'] == s['SKUCode']] or [{}],
-            [r for r in state['SkuLocAttributeData'] if (r['SKUCode'], r['LocCode']) == key(s)] or [{}],
-            [r for r in state['LocationAttributeData'] if r['WHCode'] == key(s)[1]] or [{}],
+            matching('DBMMaster', key, pair),
+            matching('SKUDescriptionTbl', lambda r: r['SKUCode'], s['SKUCode']),
+            matching('SiteDescriptionTbl', lambda r: r['WHCode'], pair[1]),
+            matching('ReasonCodes', lambda r: r['Id'], s['Type']),
+            matching('SkuAttributeData', lambda r: r['SKUCode'], s['SKUCode']) or [{}],
+            matching('SkuLocAttributeData', lambda r: (r['SKUCode'], r['LocCode']), pair) or [{}],
+            matching('LocationAttributeData', lambda r: r['WHCode'], pair[1]) or [{}],
         )
         for m, sku, loc, reason, sa, sla, la in product(*populations):
             row = {'SKUCode': s['SKUCode'], 'SKUName': sku['SKUDescription'].rstrip(),

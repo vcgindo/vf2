@@ -393,6 +393,7 @@ class PreparedR1CurrentDay:
     order_import_state: dict | None = None
     order_part_identity: dict | None = None
     _order_dependencies: _R1OrderDependencies | None = None
+    _track_a_preparation: object | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -411,6 +412,20 @@ class _PreparedR1OperationContext:
     prepared: PreparedR1CurrentDay
     _source_identity: int
     _dependency_fingerprint: bytes
+
+
+_READY_R1_OWNER = object()
+
+
+@dataclass(frozen=True, slots=True)
+class _ReadyR1:
+    """Private gate-issued preparation, bound to its exclusive live inputs."""
+
+    prepared: PreparedR1CurrentDay
+    source: dict
+    closing: dict
+    _owner: object
+    auxiliary_stock: tuple | None = None
 
 
 def _fingerprint_value(checksum, value):
@@ -517,17 +532,41 @@ def _consume_r1_operation_context(context, payload, closing):
     keys = [row['OrderKey'] for row in rows]
     if len(keys) != len(set(keys)):
         raise ValueError('Duplicate owned order keys')
-    dependencies = context.prepared._order_dependencies
+    return _complete_r1_order_preparation(context.prepared, payload, closing)
+
+
+def _ready_r1_for_owned_orders(context, payload, closing):
+    """Finish the exclusive gate's owned order source without rehashing it."""
+    if type(context) is not _PreparedR1OperationContext or context._source_identity != id(payload):
+        raise ValueError('Owned R1 preparation context does not belong to this operation source')
+    keys = [row['OrderKey'] for row in closing['SpikeOrderData']]
+    if len(keys) != len(set(keys)):
+        raise ValueError('Duplicate owned order keys')
+    prepared = _complete_r1_order_preparation(context.prepared, payload, closing)
+    return _ReadyR1(prepared, payload, closing, _READY_R1_OWNER)
+
+
+def _consume_ready_r1(ready, payload, closing):
+    if (type(ready) is not _ReadyR1 or ready._owner is not _READY_R1_OWNER
+            or ready.source is not payload or ready.closing is not closing):
+        raise ValueError('Ready R1 preparation does not belong to this operation source/order owner')
+    return ready.prepared
+
+
+def _complete_r1_order_preparation(base, payload, closing):
+    """Unchanged mathematical construction shared by both internal owners."""
+    rows = closing['SpikeOrderData']
+    dependencies = base._order_dependencies
     orders_by_key, routed_due, routes = _prepare_r1_orders(
         payload['orders'], dependencies, order_types_reconciled=True)
     nodes = []
-    for node in context.prepared.track_a['nodes']:
+    for node in base.track_a['nodes']:
         key = (node['sku_code'], node['location_code'])
         nodes.append({**node, 'orders': orders_by_key[key],
                       'routed_due_spike': format(routed_due[key], 'f')})
     prepared = replace(
-        context.prepared,
-        track_a={**context.prepared.track_a, 'nodes': nodes},
+        base,
+        track_a={**base.track_a, 'nodes': nodes},
         routes=tuple(routes),
     )
     ids = [row['CustomerOrderId'] for row in rows]

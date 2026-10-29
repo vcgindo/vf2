@@ -34,7 +34,7 @@ def request(run, *, expected_bpr_digest, expected_action_revision, command_key):
 
 
 def _entry(run, value):
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.production_scope import captured_run, _phase
     from mta.runtime.scope_runtime_reports import validate, require_test_database
     from mta.runtime.scoped_actions import revision

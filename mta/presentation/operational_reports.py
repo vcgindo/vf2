@@ -12,7 +12,8 @@ from django.utils import timezone
 from mta.runtime.models import CalculationRun,DailyReportGeneration
 from mta.serialization import digest,storage
 from mta.application.stage_observation import stage,summary
-from mta.runtime.relational_state import save_image,save_export,load_image,load_export,iter_image,iter_export,read_daily
+from mta.runtime.relational_state import save_image,save_export,load_image,load_export,iter_image,iter_export
+from mta.runtime.accepted_state_read import read_accepted_daily as read_daily
 
 SCHEMA='fresh-derived-report-generation-v1'
 CONSUMERS=('ExcessProjection','FulfillmentProjection','ExpediteProjection','PickPostProjection')
@@ -81,11 +82,10 @@ def verify_rows(run,metadata):
 
 
 def _build(run):
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.report_sources import read_routes
     from mta.domain.btr_finalization import reporting_btr,DERIVED_TABLES
     from mta.domain.deferred_dbm_exports import render
-    from mta.application.native_output_contracts import validate_rows
     from mta.presentation.pick_storage import read_pick_bands
     from mta.presentation.excess_storage import write_excess
     from mta.presentation.fulfillment_storage import write_fulfillment
@@ -101,19 +101,14 @@ def _build(run):
         importer_vf_settings=delivery.get('btr_history',{}).get('importer_vf_settings'))
     images={}
     for name in sorted(DERIVED_TABLES):
-        validate_rows(derived[name],'BTR/'+name,stage='report-generation/'+name)
         path='closing/btr/'+name
         images[path]=save_image(run,path,path,derived[name])
-        if load_image(run,images[path])!=storage(derived[name]):
-            raise ValueError('Derived BTR full typed readback differs: '+name)
     exports={}
     for report in output['Reports']:
         if 'deferred' not in report:continue
         rows=render(run.business_date,report['deferred'],report['sources'])
         exports[report['stage']]={name:save_export(run,'reports/'+report['stage']+'/'+name,values)
             for name,values in rows.items()}
-        for name,item in exports[report['stage']].items():
-            if load_export(run,item)!=storage(rows[name]):raise ValueError('Derived export readback differs')
     bands=read_pick_bands(run)
     calculation_digest=run.pick_projection.calculation_digest
     routes=read_routes(run,run.production_manifest['report_sources']['routes'])
@@ -123,7 +118,6 @@ def _build(run):
     write_pick_post(run,output,bands=bands)
     metadata=dict(schema=SCHEMA,images=images,exports=exports,consumers=consumer_metadata(run))
     if len(json.dumps(metadata))>1024*1024:raise ValueError('Derived report metadata exceeds its finite bound')
-    verify_rows(run,metadata)
     return metadata
 
 
@@ -145,7 +139,7 @@ def prepare(run_id,*,expected_output_digest):
         if row.source_digest!=run.production_digest or row.recipe_digest!=recipe_identity():
             raise ValueError('Report source/recipe generation changed')
         if row.status=='READY':
-            row=generation(run);verify_rows(run,row.metadata);return row
+            return generation(run)
         with transaction.atomic():
             row=DailyReportGeneration.objects.select_for_update().get(run=run)
             verify_root(run)

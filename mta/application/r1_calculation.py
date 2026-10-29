@@ -24,15 +24,26 @@ from mta.domain.virtual_norm import _PeerNormGroup, resolve_virtual_norm
 ZERO = Decimal(0)
 
 
-def calculate_r1_requirements(prepared, payload):
-    """Return final Track A-shaped rows and a replayable source-state trace."""
-    payload = prepared.calculation_payload or payload
+class _OwnedTrackAInputs:
+    """Move gate-owned preparation into its one calculation without copying."""
+    __slots__ = ('_value',)
+
+    def __init__(self, value):
+        self._value = value
+
+    def take(self):
+        if self._value is None:
+            raise ValueError('The admitted Track A inputs were already consumed')
+        value, self._value = self._value, None
+        return value
+
+
+def _prepare_r1_track_a(prepared):
+    """Shared Track A construction with the original failure precedence."""
     track = deepcopy(prepared.track_a)
-    foundation = track["foundation"]
-    today = date.fromisoformat(foundation["snapshot"]["business_date"])
-    key = lambda row: (row["sku_code"], row["location_code"])
+    date.fromisoformat(track['foundation']['snapshot']['business_date'])
     try:
-        shared = prepare_track_a(track, allow_negative_stock_for_requirement=True)
+        return track, prepare_track_a(track, allow_negative_stock_for_requirement=True)
     except Exception as preparation_error:
         # Shared preparation is intentionally eager, whereas the public Track
         # A calculation interleaves component preparation and arithmetic. Let
@@ -42,6 +53,19 @@ def calculate_r1_requirements(prepared, payload):
         except Exception:
             raise
         raise preparation_error
+
+
+def calculate_r1_requirements(prepared, payload):
+    """Return final Track A-shaped rows and a replayable source-state trace."""
+    payload = prepared.calculation_payload or payload
+    if prepared._track_a_preparation is None:
+        track, shared = _prepare_r1_track_a(prepared)
+    else:
+        # This gate hands off exclusive ownership. Keep aliases between nodes
+        # and the returned Track A graph without retaining a second large copy.
+        track, shared = prepared._track_a_preparation.take()
+    today = shared['today']
+    key = lambda row: (row["sku_code"], row["location_code"])
     templates = track_a_templates(shared)
     nodes = shared['nodes']
     masters = shared['masters']

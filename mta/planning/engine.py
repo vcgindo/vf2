@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from mta.application.r1_input import (
     _consume_r1_operation_context,
+    _consume_ready_r1,
     prepare_r1_current_day,
     prepare_owned_order_current_day,
 )
@@ -49,7 +50,7 @@ class NormalAllocation:
 
 def calculate_current_day(raw, *, defer_pick=False, _owned_order_closing=None,
                           _owned_daily_stock=None, _production_sources=False,
-                          _owned_r1_context=None):
+                          _owned_r1_context=None, _owned_r1_ready=None):
     """Consume validated external facts and return every produced checkpoint.
 
 Caller cannot supply bands, calculated stock, ration or current-day answers.
@@ -62,8 +63,12 @@ processed-input coverage. Legacy undefined branches retain their guards.
         raw, adapter = prepare_gulfoil_standard_input(raw)
     if _owned_r1_context is not None and _owned_order_closing is None:
         raise ValueError('Owned R1 preparation context requires its connected order owner')
+    if _owned_r1_ready is not None and (_owned_order_closing is None or _owned_r1_context is not None):
+        raise ValueError('Ready R1 preparation requires its exclusive connected order owner')
     with stage('r1_dependency_order_routing'):
-        if _owned_r1_context is not None:
+        if _owned_r1_ready is not None:
+            prepared = _consume_ready_r1(_owned_r1_ready, raw, _owned_order_closing)
+        elif _owned_r1_context is not None:
             prepared = _consume_r1_operation_context(_owned_r1_context, raw, _owned_order_closing)
         else:
             prepared = (prepare_r1_current_day(raw) if _owned_order_closing is None else
@@ -73,9 +78,14 @@ processed-input coverage. Legacy undefined branches retain their guards.
             raise ValueError('Native daily stock requires its connected order/day owner')
         from mta.application.r1_daily_entry import native_auxiliary_stock_balances
         owned = _owned_daily_stock
-        auxiliary = native_auxiliary_stock_balances(owned['daily_consumption'], prepared.stock_balances,
-            owned['attributes'], raw['foundation']['snapshot']['business_date'],
-            raw['stock_configuration']['reservation_type'])
+        if _owned_r1_ready is not None:
+            auxiliary = _owned_r1_ready.auxiliary_stock
+            if auxiliary is None:
+                raise ValueError('Ready R1 native daily stock requires its gate preparation')
+        else:
+            auxiliary = native_auxiliary_stock_balances(owned['daily_consumption'], prepared.stock_balances,
+                owned['attributes'], raw['foundation']['snapshot']['business_date'],
+                raw['stock_configuration']['reservation_type'])
         prepared = replace(prepared, stock_balances=prepared.stock_balances + auxiliary)
     if adapter is not None:
         # Canonical selected site hook follows validation and Norm controls.

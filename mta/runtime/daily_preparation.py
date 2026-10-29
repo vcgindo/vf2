@@ -2,8 +2,8 @@
 
 DO NOT MODIFY FRONTEND CODE OR THE MTO STACK. Preserve the original frontend presentation and behavior. No frontend redesign, substitute screens, refactoring or MTO changes. Any future exception requires explicit human authorization.
 
-This is not a process cache or an admission bypass. Only the existing native
-decoder can produce an instance. Persisted preparation is a separate, revision-
+This is not a process cache or an admission bypass. Only the native intake
+gates can produce an instance. Persisted preparation is a separate, revision-
 checked boundary; this object cannot be constructed from a caller's metadata.
 """
 from mta.mdm.initialization_contract import sha
@@ -32,8 +32,24 @@ def prepare(raw, input_sha256):
     if isinstance(raw, PreparedDaily):
         raw.checked(input_sha256)
         return raw
+    from mta.application.streamed_input import StreamedInput
+    if isinstance(raw, StreamedInput) and getattr(raw, '_csv_native_rows', None) is not None:
+        return _prepare_csv(raw, input_sha256, raw._csv_native_rows)
     from mta.runtime.production_daily import decode
     return PreparedDaily(_ISSUER, decode(raw, input_sha256), input_sha256)
+
+
+def _prepare_csv(carrier, input_sha256, parsed_rows):
+    """Finish the parser-owned gate; canonical archive bytes were just hashed."""
+    from mta.application.production_csv import _CsvNativeRows
+    if type(parsed_rows) is not _CsvNativeRows:
+        raise ValueError('Native CSV evidence requires its parser')
+    from mta.runtime.production_daily import _decode_csv_value
+    value = parsed_rows._handoff(carrier, input_sha256)
+    result = PreparedDaily(_ISSUER, _decode_csv_value(value, parsed_rows), input_sha256)
+    carrier._value = None
+    parsed_rows._release()
+    return result
 
 
 def restored(value, input_sha256, admission):

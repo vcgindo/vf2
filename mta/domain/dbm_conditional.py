@@ -63,6 +63,9 @@ def configuration(batch, importer_vf_settings):
 
 def validate_settings_rows(rows):
     """Exact projected Importer table columns, NOT NULL and UTF16 widths."""
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     widths = {'Parameter': 50, 'Value': 50, 'Description': 200}
     if not isinstance(rows, list):
         raise ValueError('Explicit Importer conditional VFSettings bag required')

@@ -22,12 +22,31 @@ from mta.presentation.btr_snapshot_fields import (
 from mta.presentation.context import PublicationUnavailable, scope
 from mta.presentation.rrr_sql import equal, key
 from mta.presentation.selective import image_query, image_rows
-from mta.runtime.models import BtrPresentationRow, BtrReportingGeneration
+from mta.runtime.models import BtrPresentationRow, BtrReportingGeneration, BtrScopeDimension
 from mta.runtime.relational_state import quote
 from mta.serialization import digest
 
 TABLE = 'mta.' + BtrPresentationRow._meta.db_table
 ROW_FIELDS = tuple(f.attname for f in BtrPresentationRow._meta.fields if f.name not in ('id', 'generation'))
+SCOPE_SOURCES = (
+    ('sa', 'SkuAttributeData', 'SKUCode', 'SL', 'sa_ordinal'),
+    ('la', 'LocationAttributeData', 'WHCode', 'LL', 'la_ordinal'),
+)
+
+
+def _collect_dimensions(dimensions, source_fields):
+    for owner, _table, code, prefix, ordinal in SCOPE_SOURCES:
+        if source_fields[ordinal] is not None:
+            dimensions[owner].add((source_fields[ordinal], *(source_fields[filter_field(owner, name)]
+                for name in (code, *(prefix + str(i) for i in (1, 2, 3))))))
+
+
+def _save_dimensions(generation, dimensions):
+    BtrScopeDimension.objects.bulk_create([
+        BtrScopeDimension(generation=generation, owner=owner, source_ordinal=row[0],
+            code=row[1], level_1=row[2], level_2=row[3], level_3=row[4])
+        for owner, rows in dimensions.items() for row in sorted(rows, key=lambda row: row[0])
+    ], batch_size=500)
 
 
 def rows_identity(generation):
@@ -159,7 +178,6 @@ def _build(run,reference,*,admission=None,allow_outer=False):
             reference.status!='READY' or not reference.eligible or
             reference.source_digest!=digest(btr_reporting.source_identity(run))):
         raise PublicationUnavailable('btr_snapshot_requires_qualified_reference')
-    btr_reporting.verify_generation(reference)
     lineage = btr_reporting.source_identity(run, 2)
     source, generation = digest(lineage), None
     lock = int(source[:15], 16)
@@ -168,7 +186,6 @@ def _build(run,reference,*,admission=None,allow_outer=False):
     try:
         existing = BtrReportingGeneration.objects.filter(run=run, version=2, source_digest=source, status='READY').first()
         if existing:
-            btr_reporting.verify_generation(existing)
             return existing
         BtrReportingGeneration.objects.filter(run=run, version=2, source_digest=source, status='BUILDING').update(
             status='FAILED', failure='Interrupted snapshot build; never selected', completed_at=timezone.now())
@@ -181,9 +198,11 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                 cursor.execute("SET LOCAL statement_timeout='60s'")
                 cursor.execute("SET LOCAL work_mem='32MB'")
             counts = {}
+            dimensions = {owner: set() for owner, *_ in SCOPE_SOURCES}
             for branch in ('tech', 'eco'):
                 count, batch = 0, []
                 for source_fields, raw in _source_rows(run, reference, branch):
+                    _collect_dimensions(dimensions, source_fields)
                     batch.append(BtrPresentationRow(generation=generation, branch=branch,
                                                    **source_fields, **prepared_values(raw)))
                     count += 1
@@ -195,6 +214,7 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                 if count != reference.qualification['populations'][branch + '_grid']:
                     raise PublicationUnavailable('btr_snapshot_population_mismatch')
                 counts[branch] = count
+            _save_dimensions(generation, dimensions)
             generation.row_count, generation.rows_digest = rows_identity(generation)
             if admission is not None:
                 from mta.presentation.admission import binding
@@ -223,18 +243,13 @@ def _build(run,reference,*,admission=None,allow_outer=False):
 
 
 def _attributes(generation):
-    result = {}
-    for owner, table, code, prefix, ordinal in (
-        ('sa', 'SkuAttributeData', 'SKUCode', 'SL', 'sa_ordinal'),
-        ('la', 'LocationAttributeData', 'WHCode', 'LL', 'la_ordinal')):
-        fields = (code, *(prefix + str(i) for i in (1, 2, 3)))
-        # Retain distinct source ordinals, not distinct values; never deduplicate
-        # permission multiplicity. Rows absent from this grid cannot admit keys.
-        sql = ('SELECT DISTINCT ' + ordinal + ',' + ','.join(quote(filter_field(owner, f)) for f in fields) +
-               ' FROM ' + TABLE + ' WHERE generation_id=%s AND ' + ordinal + ' IS NOT NULL')
-        with connection.cursor() as cursor:
-            cursor.execute(sql, [generation.pk])
-            result[table] = [dict(zip(fields, row[1:])) for row in cursor.fetchall()]
+    sources = {owner: (table, (code, *(prefix + str(i) for i in (1, 2, 3))))
+               for owner, table, code, prefix, _ in SCOPE_SOURCES}
+    result = {table: [] for table, _ in sources.values()}
+    for owner, *values in BtrScopeDimension.objects.filter(generation=generation).order_by(
+            'owner', 'source_ordinal').values_list('owner', 'code', 'level_1', 'level_2', 'level_3'):
+        table, fields = sources[owner]
+        result[table].append(dict(zip(fields, values)))
     return result
 
 

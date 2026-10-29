@@ -12,12 +12,95 @@ from itertools import islice
 from pathlib import Path
 import tempfile
 import os
+from copy import deepcopy
+import weakref
 
 from mta.application.operational_inputs import NULL, typed_value
 from mta.application.production_csv_contract import SCHEMA_VERSION, feeds
 from mta.application.native_daily_contract import SOURCE_SCHEMA, CONTROL_TABLES
 from mta.serialization import storage, canonical_parts
 from mta.application.stage_observation import stage, summary
+
+_CSV_ISSUER = object()
+
+
+class _CsvNativeRows:
+    """Private evidence for the exact lists produced by this CSV parser."""
+    def __init__(self, issuer, carrier, populations):
+        if issuer is not _CSV_ISSUER:
+            raise ValueError('Native CSV evidence requires its parser')
+        self._issuer, self._value = issuer, carrier._value
+        self._carrier, self._sha256 = weakref.ref(carrier), carrier.sha256
+        self._columns = {id(rows): tuple((column['name'], column['type'])
+                         for column in spec['columns']) for rows, spec in populations}
+        self._daily = next(rows for rows, spec in populations if spec['path'] == 'day/raw_daily')
+
+    def _require(self, value):
+        if self._issuer is not _CSV_ISSUER or self._value is None or self._value is not value:
+            raise ValueError('Native CSV evidence owner differs')
+
+    def _handoff(self, carrier, expected_sha256):
+        if carrier._value is None:
+            raise ValueError('Input ownership was already transferred')
+        self._require(carrier._value)
+        if (self._carrier() is not carrier or carrier.sha256 != self._sha256
+                or expected_sha256 != self._sha256):
+            raise ValueError('Native CSV evidence identity differs')
+        return self._value
+
+    def _release(self):
+        self._value, self._daily = None, None
+        self._columns.clear()
+
+    def _proves(self, rows, table, label):
+        from mta.runtime.relational_state import STORAGE_TABLES
+        fields = dict(STORAGE_TABLES[table])
+        if label == 'order_feed':
+            fields.pop('Type')
+        if label in ('distributor_transactions', 'vendor_transactions'):
+            fields['ReportDate'] = 'date'
+        return self._columns.get(id(rows)) == tuple(fields.items())
+
+    def _proves_daily(self, rows):
+        return rows is self._daily
+
+    def _source_context(self, sources):
+        """Leave source schema/provenance/policy checks with their owner.
+
+        Only the actual parser-owned row lists omit the already completed cell
+        loop. This temporary validation view never replaces the supplied facts.
+        """
+        from mta.application.production_source_inputs import RAW_TABLE, DIRECTORY_TABLE
+        if not isinstance(sources, dict):
+            return sources
+        for name, table in (('shipments', RAW_TABLE), ('transporters', DIRECTORY_TABLE)):
+            source = sources.get(name)
+            if not isinstance(source, dict) or not self._proves(source.get('rows'), table, ''):
+                return sources
+        return {**sources, **{name: {**sources[name], 'rows': []}
+                for name in ('shipments', 'transporters')}}
+
+
+def _native_cell(value, column, path):
+    """Only native predicates not already proved by typed_value's contract."""
+    name, kind = column['name'], column['type']
+    if path.startswith('day/') and kind in ('nvarchar', 'nchar', 'varchar', 'xml'):
+        if value is not None and '\x00' in value:
+            raise ValueError('Initialization field type differs: ' + path.rsplit('/', 1)[-1] + '/' + name)
+    if path == 'day/raw_daily':
+        if name == 'ReportDate' and value is None:
+            raise ValueError('Daily source NOT NULL column: ReportDate')
+        if name in ('SKUCode', 'WhCode') and value is not None and (not value.isascii() or len(value) > 50):
+            raise ValueError('Daily text requires bounded ASCII; wider collation unproven')
+    if path == 'day/requirement_stock' and name in ('SKUCode', 'WhCode'):
+        if value is None or not value.strip() or not value.isascii() or len(value) > 50:
+            raise ValueError('Requirement-stock identity differs')
+    if path in ('producer_sources/shipments/rows', 'producer_sources/transporters/rows'):
+        if kind in ('nvarchar', 'nchar', 'varchar', 'xml') and value is not None:
+            limit = (125 if name == 'TransporterName' else 20 if name == 'TransporterContact'
+                     else None if name == 'Remark' else 50)
+            if limit is not None and len(value) > limit:
+                raise ValueError(name + ' exceeds native width')
 
 
 class IssueRows(Sequence):
@@ -70,17 +153,21 @@ class CsvIntakeError(ValueError):
 
 
 def parse_csv(raw, columns, filename):
+    return _parse_csv(raw, columns, filename)
+
+
+def _parse_csv(raw, columns, filename, *, native_path=None):
     try:
         with ExitStack() as stack:
             stream = (stack.enter_context(raw.open('r', encoding='utf-8-sig', newline=''))
                       if isinstance(raw, Path) else io.StringIO(raw.decode('utf-8-sig'), newline=''))
-            return _parse_csv_stream(stream, columns, filename)
+            return _parse_csv_stream(stream, columns, filename, native_path=native_path)
     except UnicodeError as error:
         raise CsvIntakeError([dict(file=filename, record=1, column='',
             message=type(error).__name__ + ': ' + str(error)[:300])]) from error
 
 
-def _parse_csv_stream(stream, columns, filename):
+def _parse_csv_stream(stream, columns, filename, *, native_path=None):
     issues, output, ordinals = IssueRows(), [], []
     try:
         reader = csv.reader(stream, strict=True)
@@ -110,8 +197,11 @@ def _parse_csv_stream(stream, columns, filename):
                                 raise ValueError('Timezone is required')
                     else:
                         value = typed_value(value, column)
-                    row[name] = (value.isoformat() if isinstance(value, (date, datetime)) else
-                                 str(value) if kind in ('decimal', 'numeric') and value is not None else value)
+                    value = (value.isoformat() if isinstance(value, (date, datetime)) else
+                             str(value) if kind in ('decimal', 'numeric') and value is not None else value)
+                    if native_path is not None:
+                        _native_cell(value, column, native_path)
+                    row[name] = value
                 except (ValueError, TypeError, OverflowError) as error:
                     issues.append(dict(file=filename, record=ordinal, line=first_line,
                         column=name, message=str(error)[:300]))
@@ -156,24 +246,26 @@ def assemble(batch, binding, payloads, *, first_day, output_file=None, _transfer
             or any(type(v) is not bool for v in validation.values())):
         raise ValueError('Explicit native validation policy required')
     value = dict(schema=SOURCE_SCHEMA, intake_schema=binding['intake_schema'],
-        consumer_opening=binding['consumer_opening'] if first_day else None,
+        consumer_opening=deepcopy(binding['consumer_opening']) if first_day else None,
         day=dict(business_date=business_date, order_feed_status=batch['feeds']['OrderFeed.csv'],
             new_force_requests=[], control_requests={k: [] for k in CONTROL_TABLES}, **validation),
         producer_sources=dict(schema=binding['producer_source_schema'],
-            report_policy=binding['report_policy'],
-            report_opening=binding['report_opening'] if first_day else None,
+            report_policy=deepcopy(binding['report_policy']),
+            report_opening=deepcopy(binding['report_opening']) if first_day else None,
             shipments=dict(schema='daily-transit-raw-v1', business_date=business_date,
                 provenance=dict(batch_id=batch['batch_id'], format=SCHEMA_VERSION), rows=[]),
             transporters=dict(schema='daily-transporter-raw-v1', business_date=business_date,
                 provenance=dict(batch_id=batch['batch_id'], format=SCHEMA_VERSION), rows=[])))
-    mappings, errors = {}, IssueRows()
+    mappings, errors, populations = {}, IssueRows(), []
     for filename, spec in roster.items():
         try:
             with stage('csv_parse', feed=filename):
-                rows, positions = (parse_csv(payloads[filename], spec['columns'], filename)
+                rows, positions = (_parse_csv(payloads[filename], spec['columns'], filename,
+                    native_path=spec['path'] if _transfer else None)
                     if filename in payloads else ([], []))
                 summary('csv_feed_rows', feed=filename, rows=len(rows))
             mappings[filename] = positions
+            populations.append((rows, spec))
             owner = value
             parts = spec['path'].split('/')
             for key in parts[:-1]:
@@ -194,7 +286,9 @@ def assemble(batch, binding, payloads, *, first_day, output_file=None, _transfer
             summary('csv_native_archive_bytes', bytes=stream.tell())
         if _transfer:
             from mta.application.streamed_input import StreamedInput
-            return StreamedInput.take(value, checksum.hexdigest()), mappings
+            carrier = StreamedInput.take(value, checksum.hexdigest())
+            carrier._csv_native_rows = _CsvNativeRows(_CSV_ISSUER, carrier, populations)
+            return carrier, mappings
         return JsonInputFile(output_file), mappings
     raw = json.dumps(storage(value), ensure_ascii=False, sort_keys=True,
                      separators=(',', ':'), allow_nan=False).encode('utf-8')

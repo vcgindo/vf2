@@ -46,7 +46,11 @@ def settings(prior):
 
 
 def static_tables(prior):
-    result=deepcopy(prior['importer'])
+    # Mutable master producers need their own rows. Large persisted closing
+    # populations are immutable RecordRows; deepcopy intentionally shares them.
+    result={name: ([deepcopy(row) for row in rows] if isinstance(rows, RecordRows) else deepcopy(rows))
+            for name, rows in prior['importer'].items()
+            if name not in ('MasterDataRaw', 'MasterDataRawNonNMS', 'NoNormMasterRaw')}
     for rows in result.values():
         for row in rows:
             for name,value in row.items():

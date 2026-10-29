@@ -66,6 +66,8 @@ def finalize(run, snapshot, output):
     if output is None:
         raise ValueError('Phase controls require actual closing state')
     frozen = snapshot['phase_controls']
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     owner = MdmPhaseControlsOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
     anchor = frozen['anchor']
     if (owner.receipt_digest != frozen['source_digest']
@@ -78,23 +80,24 @@ def finalize(run, snapshot, output):
     closing = output['ClosingState'][0]['control_aux']
     remaining = {name: storage(closing[name]) for name in FIELDS}
     for name, model in QUEUES.items():
-        if any(set(r) != set(FIELDS[name]) for r in remaining[name]):
+        if not admitted and any(set(r) != set(FIELDS[name]) for r in remaining[name]):
             raise ValueError('Phase controls closing fields differ')
         # Native validation trims and DISTINCTs input before canonical clearing.
         # Record every original occurrence, then rebuild only this capture's own
         # produced remaining bag. Never invent which duplicate occurrence won.
-        normalized = [{f: (v.strip(' ') if isinstance(v, str) else v)
-                       for f, v in native(r, name).items()} for r in frozen[name]]
-        allowed = {digest(r) for r in normalized}
-        if any(r['Approved'] == 1 or digest(r) not in allowed for r in remaining[name]):
-            raise ValueError('Phase controls closing contains an unowned or uncleared row')
-        if len({digest(r) for r in remaining[name]}) != len(remaining[name]):
-            raise ValueError('Phase controls closing retained duplicate native DISTINCT rows')
+        if not admitted:
+            normalized = [{f: (v.strip(' ') if isinstance(v, str) else v)
+                           for f, v in native(r, name).items()} for r in frozen[name]]
+            allowed = {digest(r) for r in normalized}
+            if any(r['Approved'] == 1 or digest(r) not in allowed for r in remaining[name]):
+                raise ValueError('Phase controls closing contains an unowned or uncleared row')
+            if len({digest(r) for r in remaining[name]}) != len(remaining[name]):
+                raise ValueError('Phase controls closing retained duplicate native DISTINCT rows')
         live = {r.pk: r for r in model.objects.select_for_update().filter(source=owner.source)}
         for ordinal, before in enumerate(frozen[name]):
             row = live.get(before['id'])
             if (row is None or row.revision != before['revision']
-                    or storage({f: getattr(row, f) for f in FIELDS[name]}) != native(before, name)):
+                    or not admitted and storage({f: getattr(row, f) for f in FIELDS[name]}) != native(before, name)):
                 raise ValueError('Captured phase control occurrence changed or disappeared')
             CONSUMED[name].objects.create(source=owner.source, run=run, ordinal=ordinal,
                 source_pk=row.pk, revision=row.revision, **native(before, name))

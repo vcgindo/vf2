@@ -133,10 +133,23 @@ class DailyCalculationPhaseTests(TestCase):
             self.assertIs(context.master_snapshot, snapshot)
             self.assertIsNot(prepared.importer, context.master['tables'])
             bpr = chain.produce_bpr(prepared)
+            qualify.assert_called_once()
+            arguments, options = qualify.call_args
+            self.assertIs(arguments[0], context.master)
+            self.assertIs(arguments[1], profile)
+            self.assertIs(arguments[2], context.day)
+            self.assertIs(options['snapshot'], snapshot)
+            admitted_nms = storage(arguments[3]['consumer_context']['NMSAllItems'])
+            admitted_flags = [(r['Parameter'], r['Value']) for r in arguments[3]['importer_settings']
+                              if r['Parameter'] in ('NMSActive', 'DBMActive')]
             dbm = chain.produce_dbm(bpr)
             result = chain.produce_btr(dbm)
-            qualify.assert_called_once_with(context.master, profile, context.day,
-                                           result['ClosingState'][0], snapshot=snapshot)
+            qualify.assert_called_once()
+            closing = result['ClosingState'][0]
+            self.assertEqual(storage(closing['consumer_context']['NMSAllItems']), admitted_nms)
+            self.assertEqual([(r['Parameter'], r['Value']) for r in closing['importer_settings']
+                              if r['Parameter'] in ('NMSActive', 'DBMActive')], admitted_flags)
+            self.assertIs(result['_MasterPreparation']['qualified'], True)
 
     def test_preparation_failure_does_not_invoke_later_producers(self):
         prior, day, profile = inputs()

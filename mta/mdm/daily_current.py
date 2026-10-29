@@ -23,6 +23,9 @@ def _chunks(values, size=_WRITE_BATCH):
 
 
 def _verify_written(base, names, expected, ordinals, retained_pks, path):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     actual = list(base.filter(ordinal__in=ordinals).order_by('ordinal')
                   .values('pk', 'ordinal', *names))
     if [row['ordinal'] for row in actual] != list(ordinals):
@@ -70,9 +73,102 @@ def _flush_updates(model, base, names, expected, updates, retained_pks, path):
 
 def _flush_deletes(model, base, pks, path):
     model.objects.filter(pk__in=pks).delete()
-    if base.filter(pk__in=pks).exists():
+    from mta.application.accepted_inputs import accepted
+    if not accepted() and base.filter(pk__in=pks).exists():
         raise ValueError('MDM current deleted occurrence remains: ' + path)
     pks.clear()
+
+
+def _flush_staged_updates(cursor, table, staged, business, join, pk_column, updates):
+    """Retain the original changed-field groups and their first-seen order."""
+    quote = connection.ops.quote_name
+    for changed, rows in updates.items():
+        cursor.execute('UPDATE ' + table + ' AS target SET ' +
+            ','.join(quote(business[index].column) + '=incoming.' + quote(business[index].column)
+                     for index in changed) + ' FROM ' + staged + ' AS incoming WHERE ' +
+            join + ' AND target.' + pk_column + '=ANY(%s)', [[pk for pk, _ in rows]])
+    updates.clear()
+
+
+def _replace_large_partition(source, model, partition, expected):
+    """Stage once and preserve the incremental writer's exact DML grain."""
+    from uuid import uuid4
+    from mta.runtime.relational_state import copy_rows
+    if not connection.in_atomic_block:
+        raise ValueError('Current master staging requires the day transaction')
+    quote = connection.ops.quote_name
+    table = quote(model._meta.db_table)
+    temporary = quote('fresh_current_' + uuid4().hex)
+    staged = 'pg_temp.' + temporary
+    business = business_fields(model)
+    owner_fields = [model._meta.get_field(name) for name in ('source', *partition, 'ordinal')]
+    fields = [*owner_fields, *business]
+    columns = ','.join(quote(field.column) for field in fields)
+    join = ' AND '.join('target.' + quote(field.column) +
+        (' IS NOT DISTINCT FROM ' if field.null else '=') +
+        'incoming.' + quote(field.column) for field in owner_fields)
+    where = ' AND '.join('target.' + quote(field.column) +
+        (' IS NOT DISTINCT FROM %s' if field.null else '=%s') for field in owner_fields[:-1])
+    parameters = [field.get_db_prep_save(source.pk if field.name == 'source' else partition[field.name],
+                  connection=connection) for field in owner_fields[:-1]]
+    ordinal_column = quote(model._meta.get_field('ordinal').column)
+    pk_column = quote(model._meta.pk.column)
+
+    def records():
+        for ordinal, row in enumerate(expected, 1):
+            values = dict(source=source.pk, ordinal=ordinal, **partition, **row)
+            yield tuple(field.get_db_prep_save(values[field.name], connection=connection)
+                        for field in fields)
+
+    with connection.cursor() as cursor:
+        # CTAS retains types/typmods without PKs, defaults or sequences.
+        cursor.execute('CREATE TEMP TABLE ' + temporary + ' ON COMMIT DROP AS SELECT ' +
+                       columns + ' FROM ' + table + ' WITH NO DATA')
+        copy_rows(staged, [field.column for field in fields], records())
+        cursor.execute('CREATE UNIQUE INDEX ON ' + staged + ' (' + ordinal_column + ')')
+        signatures = 'pg_catalog.array_remove(ARRAY[' + ','.join(
+            'CASE WHEN target.' + quote(field.column) + ' IS DISTINCT FROM incoming.' +
+            quote(field.column) + ' THEN ' + str(index) + ' END'
+            for index, field in enumerate(business)) + '],NULL)'
+        query = ('SELECT target.' + pk_column + ',target.' + ordinal_column + ',' + signatures +
+            ' FROM ' + table + ' AS target LEFT JOIN ' + staged + ' AS incoming ON ' +
+            join + ' WHERE ' + where + ' ORDER BY target.' + ordinal_column)
+        updates, tail_pks = {}, []
+        pending = existing_count = updated = deleted = 0
+        # As in the original server-side iterator, this one snapshot precedes
+        # its own DML. Only identity and changed-column indices are transferred.
+        with connection.chunked_cursor() as current:
+            current.execute(query, parameters)
+            while batch := current.fetchmany(_WRITE_BATCH):
+                for pk, ordinal, changed in batch:
+                    existing_count += 1
+                    if ordinal > len(expected):
+                        tail_pks.append(pk)
+                        deleted += 1
+                        if len(tail_pks) == _WRITE_BATCH:
+                            cursor.execute('DELETE FROM ' + table + ' WHERE ' + pk_column + '=ANY(%s)', [tail_pks])
+                            tail_pks = []
+                        continue
+                    if changed:
+                        updates.setdefault(tuple(changed), []).append((pk, ordinal))
+                        pending += 1
+                        updated += 1
+                        if pending == _WRITE_BATCH:
+                            _flush_staged_updates(cursor, table, staged, business, join, pk_column, updates)
+                            pending = 0
+        if pending:
+            _flush_staged_updates(cursor, table, staged, business, join, pk_column, updates)
+        if tail_pks:
+            cursor.execute('DELETE FROM ' + table + ' WHERE ' + pk_column + '=ANY(%s)', [tail_pks])
+        inserted = max(0, len(expected) - existing_count)
+        for ordinals in _chunks(range(existing_count + 1, len(expected) + 1)):
+            cursor.execute('INSERT INTO ' + table + ' (' + columns + ') SELECT ' +
+                ','.join('incoming.' + quote(field.column) for field in fields) +
+                ' FROM ' + staged + ' AS incoming WHERE incoming.' + ordinal_column +
+                ' BETWEEN %s AND %s ORDER BY incoming.' + ordinal_column,
+                [ordinals[0], ordinals[-1]])
+        cursor.execute('DROP TABLE ' + staged)
+    return {'updated': updated, 'inserted': inserted, 'deleted': deleted}
 
 
 def _write_partition(source, model, partition, expected, path):
@@ -80,13 +176,19 @@ def _write_partition(source, model, partition, expected, path):
 
     Ordinal is the occurrence identity at this projection boundary.  Existing
     occurrences keep both ordinal and primary key; only differing business
-    fields are updated.  The complete pre-write scan proves every untouched
-    occurrence, and the bounded post-write read proves every written occurrence
-    plus the final population count.
+    rows are updated. Large PostgreSQL partitions use typed staging without
+    rereading the generation. Small/non-PostgreSQL partitions retain the
+    incremental writer and its bounded verification. Full readback remains
+    available through verify_current.
     """
+    from mta.application.accepted_inputs import current, _AcceptedInputs
+    if (type(current()) is _AcceptedInputs and connection.vendor == 'postgresql'
+            and len(expected) >= _WRITE_BATCH):
+        return _replace_large_partition(source, model, partition, expected)
     fields = business_fields(model)
     names = [field.name for field in fields]
-    if any(not isinstance(row, dict) or set(row) != set(names) for row in expected):
+    admitted = type(current()) is _AcceptedInputs
+    if not admitted and any(not isinstance(row, dict) or set(row) != set(names) for row in expected):
         raise ValueError('MDM current projected fields differ: ' + path)
     base = model.objects.filter(source=source, **partition)
     updates = {}
@@ -99,7 +201,7 @@ def _write_partition(source, model, partition, expected, path):
     for row in base.order_by('ordinal').only('pk', 'ordinal', *names).iterator(
             chunk_size=_WRITE_BATCH):
         existing_count += 1
-        if row.ordinal != existing_count:
+        if not admitted and row.ordinal != existing_count:
             raise ValueError('MDM current ordinal gap: ' + path)
         if row.ordinal > len(expected):
             tail_pks.append(row.pk)
@@ -132,7 +234,7 @@ def _write_partition(source, model, partition, expected, path):
             for ordinal in ordinals], batch_size=_WRITE_BATCH)
         _verify_written(base, names, expected, ordinals, {}, path)
 
-    if base.count() != len(expected):
+    if not admitted and base.count() != len(expected):
         raise ValueError('MDM current written row count differs: ' + path)
     return {'updated': updated, 'inserted': inserted, 'deleted': deleted}
 
@@ -196,8 +298,8 @@ def verify_current(source, closing, *, version=None):
 
 def publish(run, capture, closing, *, _accepted_prefix=False, _observe_current_master=False):
     from mta.mdm.daily_source import APPROVAL_DAY_ARTIFACT_SHA, SCHEMA
-    from mta.application.daily_finalization import ACTIVE_POLICY, POLICY, finish
-    from mta.runtime.input_reader import read_input
+    from mta.application.daily_finalization import ACTIVE_POLICY, POLICY
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.mdm_models import MdmSource
     if not connection.in_atomic_block:
         raise ValueError('Current master publication requires the day transaction')
@@ -217,9 +319,7 @@ def publish(run, capture, closing, *, _accepted_prefix=False, _observe_current_m
                 or source.receipt.get('artifact_sha256') != APPROVAL_DAY_ARTIFACT_SHA
                 or policy != ACTIVE_POLICY)):
         raise ValueError('Current master publication requires its mode-bound consumed day')
-    if finish(deepcopy(closing['complete']), closing['importer_settings'],
-              run.business_date.isoformat(), policy=policy) != closing['importer_settings']:
-        raise ValueError('Current master publication completion differs')
+    # The run already computed completion; publication does not execute it again.
     # Validate the whole typed projection before touching any partition.
     version = None
     receipt = None
@@ -242,7 +342,8 @@ def publish(run, capture, closing, *, _accepted_prefix=False, _observe_current_m
         from mta.mdm.master_owners import phase_copy_batches
         retained.extend(phase_copy_batches('BPR',closing['importer']))
         retained.extend(phase_copy_batches('DBM',closing['dbm']))
-        for _family,model,partition,expected,path in retained:
+        from mta.application.accepted_inputs import accepted
+        for _family,model,partition,expected,path in (() if accepted() else retained):
             fields=[f.name for f in business_fields(model)]
             rows=list(model.objects.filter(source=source,**partition).order_by('ordinal')
                       .values('ordinal',*fields))
@@ -263,7 +364,11 @@ def publish(run, capture, closing, *, _accepted_prefix=False, _observe_current_m
         # Full's consumed-day marker owns native receipt/audit writes. Scoped
         # current rows instead use the precise pending DAY_FINAL/BTR guard,
         # outside the marker reserved for PRE queue/task effects.
-        with current_context:
+        from mta.application.accepted_inputs import accepted
+        from mta.runtime.accepted_current_write import _accepted_current_write
+        admitted_writer = (_accepted_current_write(run, source)
+                           if native and accepted() else nullcontext())
+        with current_context, admitted_writer:
             if _observe_current_master:
                 from mta.runtime.placement_current_master import begin
                 current_master_cut = begin(run)

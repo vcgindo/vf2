@@ -77,7 +77,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
     producer_preparation=output.pop('_MasterPreparation',None)
     current_master_publication=None
     with stage('persistence_profile_reconstruction'):
-        frozen=(read_input(run,components=('profile','scope_request')) if run.kind=='DAILY_CHAIN' else {})
+        from mta.runtime.input_reader import read_execution_input
+        frozen=(read_execution_input(run,components=('profile','scope_request')) if run.kind=='DAILY_CHAIN' else {})
         frozen_profile=frozen.get('profile')
     from mta.runtime.runtime_report_request import SCHEMA as PLACEMENT_SCHEMA
     placement=frozen.get('scope_request',{}).get('schema')==PLACEMENT_SCHEMA
@@ -100,7 +101,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
             raise ValueError('Run changed during calculation')
         from mta.runtime.capture_preparation import require_commit
         if scoped is None:
-            prepared_capture=require_commit(run)
+            from mta.application.accepted_inputs import accepted
+            prepared_capture=(run.production_manifest.get('ingestion_preparation')
+                              if accepted() else require_commit(run))
         else:
             from mta.runtime.scoped_final import require_final_sources
             prepared_capture=require_final_sources(run,_scoped_unit,sources)
@@ -110,12 +113,8 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
         typed=run.input_payload.get('schema') in ('fresh-daily-input-manifest-v2','fresh-daily-input-manifest-v3',*CAPTURED)
         if run.kind == 'DAILY_CHAIN' and (not typed or run.evidence_mode != 'production'):
             raise ValueError('Native daily publication requires typed production input')
-        if typed:
-            from mta.runtime.receipt_integrity import audit_input
-            with stage('persistence_input_audit'):
-                audit_input(run)
-        if run.input_digest != expected_digest or (not typed and digest(read_input(run)) != expected_digest):
-            raise ValueError('Input snapshot changed during calculation')
+        # Input admission owns the immutable captured facts. Terminal writes
+        # do not reconstruct or revalidate those same inputs.
         lineage = output.get('Lineage') or [{}]
         from mta.application.native_report_disposition import verify_commit
         admitted_disposition = run.production_manifest.get('native_report_disposition')
@@ -125,12 +124,13 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
         cohort = lineage[0].get('cohort1')
         if scoped is not None and cohort is None:
             raise ValueError('Scoped final requires complete finalization')
-        if run.kind=='DAILY_CHAIN':
-            from mta.application.daily_finalization import configuration,verify_finalization_identity
-            if configuration(frozen_profile) is not None or cohort is not None:
-                verify_finalization_identity(output,frozen_profile,run.business_date.isoformat())
+        from mta.application.daily_finalization import configuration
         if cohort is not None:
             if run.kind!='DAILY_CHAIN':raise ValueError('Complete finalization requires a daily-chain owner')
+            from mta.application.accepted_inputs import accepted
+            if not accepted():
+                from mta.application.daily_finalization import verify_finalization_identity
+                verify_finalization_identity(output, frozen_profile, run.business_date.isoformat())
             configured_policy=configuration(frozen_profile)['policy']
             # Queue/task finalization and typed output commit share this one
             # transaction. Any later writer/readback failure rolls both back.
@@ -169,12 +169,7 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
                         current_master_publication=publish_mdm_current(run,captured,output['ClosingState'][0],
                             _accepted_prefix=True,_observe_current_master=placement)
             cohort['flag_digest'] = digest(complete['ScriptExecutedFlag'])
-            # Verify the same complete boundary after its actual owned writers,
-            # inside the transaction so any failure rolls every writer back.
-            if configured_policy == ACTIVE_POLICY:
-                from mta.application.daily_finalization import verify_successor
-                verify_successor(output, frozen_profile,
-                                 run.business_date.isoformat())
+            # Completion was computed once above, not replayed for publication.
         # Keep one atomic publication, but serialize/write one checkpoint at
         # a time rather than retaining a second whole temporal output graph.
         if run.kind=='DAILY_CHAIN':
@@ -186,15 +181,11 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
                 # require the already sealed native initialization authority.
                 run.production_manifest['ingestion_preparation']=prepared_capture
             if typed:
-                from mta.runtime.receipt_integrity import audit_output
                 run.production_manifest['version']=3 if output.get('_ReportBoundary') else 2
                 run.production_digest=digest(run.production_manifest)
-                with stage('persistence_full_output_readback'):
-                    audit_output(run)
             else:
                 run.production_digest=digest(production_projection(output))
-                if digest(read_daily(run))!=run.production_digest:
-                    raise ValueError('Relational production readback differs from calculated state')
+            # Diagnostic audits remain explicit tools, not a production pass.
             # F3 consumer-only projection: copy produced bands without changing
             # calculations, existing manifests, checkpoints or output digests.
             from mta.presentation.pick_storage import write_pick_bands

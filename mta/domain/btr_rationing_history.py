@@ -60,6 +60,9 @@ def pair(row, warehouse='WhCode'):
 
 
 def validate_target(row):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     if set(row) != set(FIELDS):
         raise ValueError('Complete BTR history field roster required')
     for column in COLUMNS:

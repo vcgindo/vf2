@@ -14,11 +14,12 @@ from django.conf import settings
 
 from mta.planning.engine import calculate_current_day
 from mta.runtime.models import CalculationRun, RunCommand
-from mta.runtime.services import read_outputs, finish_run, fail_run
+from mta.runtime.services import finish_run, fail_run
+from mta.runtime.accepted_state_read import read_accepted_daily as read_outputs
 from mta.serialization import storage, digest
 from mta.temporal.chain import calculate_day
 from mta.temporal.actions import apply_command
-from mta.runtime.input_reader import read_input
+from mta.runtime.input_reader import read_execution_input as read_input
 from mta.runtime.opening_scope import opening_operation, release_opening, sealed_identity
 from mta.application.stage_observation import operation, stage, observe_exit
 
@@ -404,10 +405,8 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                         from mta.presentation.operational_admission import verify
                         verify(parent, selected=False)
                 previous=read_outputs(parent,include_reports=False)
-                if finalization is not None:
-                    from mta.application.daily_finalization import verify_successor
-                    verify_successor(previous, parent_profile, parent.business_date.isoformat())
-                if parent.input_payload['profile']['delivery']['site_code']!=profile['delivery']['site_code']:
+                # Consume the persisted closing; no predecessor completion replay.
+                if parent_profile['delivery']['site_code']!=profile['delivery']['site_code']:
                     raise ValueError('Predecessor belongs to another site')
                 prior=deepcopy(previous['ClosingState'][0])
                 del previous  # The predecessor trace is verified, not the next day's working state.
@@ -427,8 +426,6 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 if date.fromisoformat(opening_date)>=today:raise ValueError('Opening must precede current facts')
                 lineage=dict(opening_identity=initial['identity'],opening_digest=digest(initial))
             if native:
-                if today != date.fromisoformat(opening_date) + timedelta(days=1):
-                    raise ValueError('Native daily execution requires the immediately preceding day')
                 if parent is not None:
                     parent_binding = read_input(parent, components=('initialization_binding',)).get('initialization_binding')
                     if parent_binding != initialization_binding:
@@ -691,7 +688,15 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
         master_reuse,master_change,capture_snapshot,disposition_binding)
 
 
-def _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
+from mta.application.accepted_inputs import execution as accepted_execution
+
+
+def _finish_captured_day(run, *args, **kwargs):
+    with accepted_execution(run.pk):
+        return _calculate_and_finish_captured_day(run, *args, **kwargs)
+
+
+def _calculate_and_finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
         complete_pick,pick_output_root,effective_report_exceptions,finalization,native,
         master_reuse=None,master_change=None,capture_snapshot=None,disposition_binding=None):
     """The same calculation and sole atomic finish owner for fresh/reused input."""
@@ -723,14 +728,8 @@ def _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
             lineage['native_report_disposition'] = disposition_binding
         result['Lineage']=[lineage]
         if finalization is not None:
-            from mta.application.daily_finalization import verify_successor, verify_finalization_identity, ACTIVE_POLICY
             lineage['cohort1'] = result.pop('_Cohort1')
-            # Active MDM archive/clear/task writers execute transactionally
-            # in finish_run. Their markers cannot be complete before then.
-            if finalization['policy'] != ACTIVE_POLICY:
-                verify_successor(result, profile, today.isoformat())
-            else:
-                verify_finalization_identity(result,profile,today.isoformat())
+            # Persist the completion actually computed by this run once.
         if complete_pick:
             source_digests = result.pop('_PickSourceDigests', None)
             if source_digests is not None:

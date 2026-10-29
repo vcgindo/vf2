@@ -61,7 +61,7 @@ def authorize():
 
 def captured_run(run,value):
     """No capture/recalculation on retry, including after later finalization."""
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.scope_execution import _frozen
     if (run.kind!='DAILY_CHAIN' or run.evidence_mode!='production'
@@ -88,7 +88,7 @@ def repeated(raw,expected_sha256,value,arguments):
     """Authenticate a frozen retry before fresh admission can consult live state."""
     from mta.runtime.production_daily import decode
     from mta.runtime.models import CalculationRun
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.temporal import resolved_pick_root
     day=decode(raw,expected_sha256)['day']['business_date']
     # A date/revision/source identifies at most one native logical capture.
@@ -174,7 +174,7 @@ def execute(raw,expected_sha256,*,command_key,worker_reference,recovery_of=None,
 def fence(attempt_id,*,expected_worker_token,reason):
     """Authorized explicit fencing of this entry's existing native worker only."""
     from mta.runtime.models import RunScopeAttempt
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime.scope_execution import fence as fence_worker
     authorize()
     attempt=RunScopeAttempt.objects.select_related('run').get(pk=attempt_id)
@@ -197,7 +197,7 @@ def _phase(run,name,checksum):
 def _produce(attempt,value):
     """Only missing PRE/BPR work; each durable effect has its existing owner."""
     from mta.runtime.scope_execution import head,require_claim
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     from mta.runtime import phase_state
     from mta.runtime.scoped_final import frozen_prior
     from mta.runtime.prepared_effects import _accept_prepared
@@ -265,7 +265,7 @@ def _publish_reports(attempt,receipt,value):
 
 
 def _read_reference(receipt):
-    from mta.runtime.input_reader import read_input
+    from mta.runtime.input_reader import read_execution_input as read_input
     request=read_input(receipt.run,components=('scope_request',)).get('scope_request',{})
     if request.get('schema')==PUBLICATION_SCHEMA:
         from mta.presentation.runtime_report_view import prepare

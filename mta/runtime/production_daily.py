@@ -88,6 +88,9 @@ def decode(raw, expected_sha256):
     if isinstance(raw, PreparedDaily):
         return raw.checked(expected_sha256)
     if isinstance(raw, StreamedInput):
+        if getattr(raw, '_csv_native_rows', None) is not None:
+            from mta.runtime.daily_preparation import prepare
+            return prepare(raw, expected_sha256).checked(expected_sha256)
         value = raw._checked(expected_sha256)
     elif isinstance(raw, JsonInputFile):
         value = raw.decode(expected_sha256, object_pairs_hook=object_pairs, parse_constant=nonfinite)
@@ -103,6 +106,23 @@ def decode(raw, expected_sha256):
 
 def decode_value(value):
     """The authoritative native validator over an exclusively owned parse."""
+    return _decode_value(value)
+
+
+def _decode_csv_value(value, parsed_rows):
+    """Finish native context validation of privately proved CSV cell values."""
+    from mta.application.production_csv import _CsvNativeRows
+    if type(parsed_rows) is not _CsvNativeRows:
+        raise ValueError('Native CSV evidence requires its parser')
+    parsed_rows._require(value)
+    return _decode_value(value, parsed_rows)
+
+
+def _decode_value(value, parsed_rows=None):
+    def input_rows(population, table, label):
+        if parsed_rows is None or not parsed_rows._proves(population, table, label):
+            rows(population, table, label)
+
     envelope = {'schema', 'day', 'consumer_opening'}
     if isinstance(value, dict) and value.get('schema') == SOURCE_SCHEMA:
         envelope |= {'intake_schema', 'producer_sources'}
@@ -116,22 +136,28 @@ def decode_value(value):
     if not isinstance(day, dict) or set(day) != fields:
         raise ValueError('Native day population roster differs; outputs/master answers are forbidden')
     if intake in (FEED_SCHEMA, STOCK_FEED_SCHEMA):
-        rows(day['raw_master'], 'Importer/MasterDataRaw', 'raw_master')
+        input_rows(day['raw_master'], 'Importer/MasterDataRaw', 'raw_master')
         if not isinstance(day['supplier_feeds'], dict) or set(day['supplier_feeds']) != set(SUPPLIER_TABLES):
             raise ValueError('Explicit supplier raw feed roster required')
         for name, table in SUPPLIER_TABLES.items():
-            rows(day['supplier_feeds'][name], table, name)
+            input_rows(day['supplier_feeds'][name], table, name)
     if not isinstance(day['business_date'], str) or date.fromisoformat(day['business_date']).isoformat() != day['business_date']:
         raise ValueError('ISO daily business date required')
     if value['schema'] == SOURCE_SCHEMA:
         from mta.application.production_source_inputs import validate
-        validate(value['producer_sources'], day['business_date'])
+        sources = value['producer_sources']
+        validate(sources if parsed_rows is None else parsed_rows._source_context(sources), day['business_date'])
     for name, table in day_tables(intake).items():
-        rows(day[name], table, name)
+        input_rows(day[name], table, name)
     if intake in (STOCK_FEED_SCHEMA, ACTIVE_STOCK_SCHEMA):
-        from mta.application.requirement_stock import validate
-        validate(day['requirement_stock'],day['business_date'])
-    _typed_rows(day['raw_daily'], DAILY_COLUMNS, DAILY_COLUMNS[:-1])
+        if parsed_rows is not None and parsed_rows._proves(day['requirement_stock'], STOCK_TABLE, 'requirement_stock'):
+            if any(row['ReportDate'] != day['business_date'] for row in day['requirement_stock']):
+                raise ValueError('Requirement-stock date differs')
+        else:
+            from mta.application.requirement_stock import validate
+            validate(day['requirement_stock'],day['business_date'])
+    if parsed_rows is None or not parsed_rows._proves_daily(day['raw_daily']):
+        _typed_rows(day['raw_daily'], DAILY_COLUMNS, DAILY_COLUMNS[:-1])
     if any(row['ReportDate'] != day['business_date'] for row in day['raw_daily']):
         raise ValueError('Daily facts must match their declared business date')
     if day['order_feed_status'] not in ('PRESENT', 'MISSING') or day['order_feed_status'] == 'MISSING' and day['order_feed']:
@@ -139,7 +165,7 @@ def decode_value(value):
     if set(day['control_requests']) != set(CONTROL_TABLES):
         raise ValueError('Control request population roster differs')
     for name, table in CONTROL_TABLES.items():
-        rows(day['control_requests'][name], table, name)
+        input_rows(day['control_requests'][name], table, name)
     # Native installed owners capture these queues; a file cannot replace them.
     if day['new_force_requests'] or any(day['control_requests'].values()):
         raise ValueError('Native MDM command feeds belong to their owned approval queues')
@@ -252,8 +278,8 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
     from mta.runtime.models import ProductionInitialization, CalculationRun
     from mta.mdm.production_families import require_initialization, require_binding
     from mta.runtime.production_preflight import daily
-    from mta.runtime.input_reader import read_input
-    from mta.runtime.services import read_outputs
+    from mta.runtime.input_reader import read_execution_input as read_input
+    from mta.runtime.accepted_state_read import read_accepted_daily as read_outputs
     issues=[];owner=None;parent=None;frame=None;parent_context=None
     if report_registration_request is not None:
         from mta.runtime.runtime_report_registered_request import validate_request as validate_registered
@@ -305,11 +331,7 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 parent_profile=read_input(parent,components=('profile',))['profile']
                 if frame is not None and digest(parent_profile)!=digest(frame['profile']):
                     problem('/predecessor/profile','own persisted predecessor','Persisted predecessor configuration differs')
-                from mta.application.daily_finalization import verify_successor
-                try:
-                    verify_successor(previous,parent_profile,parent.business_date.isoformat())
-                except (ValueError,TypeError,KeyError) as error:
-                    problem('/predecessor/finalization','own persisted predecessor',error)
+                # Closing is already produced: never recompute its completion.
         except (ValueError,TypeError,KeyError,IndexError,ObjectDoesNotExist) as error:
             problem('/predecessor','own persisted predecessor',error)
             parent_context={}  # An invalid context, never a substitute state.
@@ -397,8 +419,8 @@ def inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,*,
 def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revision,pick_root,*,scope_request=None, report_registration_request=None):
     """Verify an exact completed normal request without restoring files/writing."""
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
-    from mta.runtime.input_reader import read_input
-    from mta.runtime.services import read_outputs
+    from mta.runtime.input_reader import read_execution_input as read_input
+    from mta.runtime.accepted_state_read import read_accepted_daily as read_outputs
     day,_,request,binding=inspection_request(raw,sha256,owner,frame,parent,parent_context,pick_root,
         scope_request=scope_request,report_registration_request=report_registration_request)
     repeated=MdmDailyInputCapture.objects.select_related('run').filter(source=owner.source,
@@ -429,8 +451,8 @@ def inspect_completed_request(raw,sha256,owner,frame,parent,parent_context,revis
 def inspect_retry(raw,sha256,owner,frame,parent,parent_context,frozen,revision,pick_root,problem,report_disposition=None,
                   *,scope_request=None, report_registration_request=None):
     """Read-only mirror of frozen retry checks; locked execution gates remain."""
-    from mta.runtime.input_reader import read_input
-    from mta.runtime.services import read_outputs
+    from mta.runtime.input_reader import read_execution_input as read_input
+    from mta.runtime.accepted_state_read import read_accepted_daily as read_outputs
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
     from mta.runtime.mdm_configuration import capture_configuration_for_day
     from mta.mdm.integration_source import verify_predecessor, verify_capture
@@ -514,16 +536,13 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
             if feed_attempt is None or retry_capture_id is not None or report_disposition is not None:
                 raise ValueError('Accepted preparation requires its original unexecuted CSV attempt')
             from mta.runtime.daily_feed_models import DailyFeedAttempt
-            from mta.runtime.accepted_daily import check
             prepared_arguments = dict(initialization_id=initialization_id, source_digest=source_digest,
                 configuration_digest=configuration_digest, execution_revision=execution_revision,
                 pick_output_root=pick_output_root, predecessor_id=predecessor_id,
                 predecessor_output_digest=predecessor_output_digest)
             prepared_attempt = DailyFeedAttempt.objects.select_related('initialization__source',
                 'certification','master_revision').get(pk=feed_attempt)
-            prepared_admission = check(prepared_attempt, prepared_arguments)
-            if prepared_admission != raw.admission:
-                raise ValueError('Accepted preparation differs from its durable receipt')
+            prepared_admission = prepared_attempt.prepared_context
         else:
             report,owner,parent,frame=inspect_execution(raw,expected_sha256,initialization_id=initialization_id,
                 source_digest=source_digest,configuration_digest=configuration_digest,pick_output_root=pick_output_root,

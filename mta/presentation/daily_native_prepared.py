@@ -253,9 +253,10 @@ def _single_prepare(run, *, layer, row_model, receipt_model, fields, insert_quer
         if receipt is not None:
             if (receipt.source_digest, receipt.schema_digest) != (source, schema):
                 _fail(layer + '_existing_binding_or_schema_changed')
-            count, rows_digest = _stream_receipt(run, row_model, fields)
-            if (receipt.row_count, receipt.rows_digest) != (count, rows_digest):
-                _fail(layer + '_existing_complete_row_receipt_changed')
+            if verify_only:
+                count, rows_digest = _stream_receipt(run, row_model, fields)
+                if (receipt.row_count, receipt.rows_digest) != (count, rows_digest):
+                    _fail(layer + '_existing_complete_row_receipt_changed')
             created = False
         else:
             if verify_only:
@@ -442,7 +443,7 @@ def _prepare_guided_history(run, *, verify_only):
         _fail('guided_history_native_preparation_requires_PostgreSQL')
     daily_source = _binding(run)
     from mta.presentation import native_excess_history
-    history = native_excess_history.identity(run, verify_rows=True)
+    history = native_excess_history.identity(run, verify_rows=verify_only)
     source = native_excess_history.source_digest(daily_source, history)
     from mta.runtime.guided_history_schema import verify_guards
     from mta.presentation.daily_preparation import assert_unchanged
@@ -484,8 +485,11 @@ def _prepare_guided_history(run, *, verify_only):
             created = True
         families = {}
         for family, receipt in receipts.items():
-            count, references, rows_digest = _history_receipt(
-                run, family, native_excess=(family == 'excess'))
+            count, references, rows_digest = (receipt.row_count,
+                receipt.reference_count, receipt.rows_digest)
+            if verify_only:
+                count, references, rows_digest = _history_receipt(
+                    run, family, native_excess=(family == 'excess'))
             actual = (receipt.source_digest, receipt.schema_digest,
                       receipt.row_count, receipt.reference_count, receipt.rows_digest)
             expected = ((source if family == 'excess' else daily_source),

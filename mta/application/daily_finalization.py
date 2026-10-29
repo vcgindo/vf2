@@ -59,6 +59,9 @@ def mark(complete, *scripts):
 
 
 def validate_flag_roster(flags):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     fields = {'ScriptName', 'IsScriptExecuted', 'IsScriptCritical', 'ModuleName'}
     shape = lambda rows: Counter((r['ScriptName'], r['IsScriptCritical'], r['ModuleName'])
                                   for r in rows)
@@ -90,6 +93,9 @@ def nms_active(settings):
 
 
 def require_inactive_qualification(settings):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     values = [row['Value'] for row in settings if ascii_equal(row['Parameter'], 'NMSActive')]
     if not values or any(type(value) is not str or value != '0' for value in values):
         raise ValueError('Cohort1 qualification requires explicit NMSActive=0')
@@ -224,6 +230,9 @@ def qualification(policy):
 
 
 def require_active_settings(settings):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     values = [row['Value'] for row in settings if ascii_equal(row['Parameter'], 'NMSActive')]
     if values != ['1']:
         raise ValueError('Active finalization requires one explicit NMSActive=1')

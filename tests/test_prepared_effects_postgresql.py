@@ -20,8 +20,13 @@ if os.environ.get('VF_PHASE_POSTGRES_PROOF') == '1':
 class PreparedEffectsPostgresTests(unittest.TestCase):
     def setUp(self):
         from django.db import connection,transaction
-        if connection.settings_dict['NAME'] != 'VFTEST_Fresh_LifecycleG2_20261024':
+        if connection.settings_dict['NAME'] not in (
+                'VFTEST_Fresh_LifecycleG2_20261024', 'vftest_fresh_dailygate_component_20261030'):
             raise RuntimeError('Prepared effects require their uniquely owned test database')
+        if connection.settings_dict['NAME'] == 'vftest_fresh_dailygate_component_20261030':
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()")
+                self.assertEqual(cursor.fetchone()[0], 'owned daily-single-ingestion component proof 20261030; synthetic only')
         self.atomic=transaction.atomic();self.atomic.__enter__()
         self.addCleanup(self.rollback)
 

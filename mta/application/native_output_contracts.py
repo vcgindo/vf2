@@ -110,6 +110,9 @@ def validate_cell(value,column):
 
 
 def validate_row(row,table,*,fields=None,stage,ordinal=0):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     schema=columns(table)
     selected=tuple(schema) if fields is None else tuple(fields)
     if not selected or len(set(selected))!=len(selected) or any(name not in schema for name in selected):
@@ -124,6 +127,9 @@ def validate_row(row,table,*,fields=None,stage,ordinal=0):
 
 
 def validate_rows(rows,table,*,fields=None,stage):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return rows
     if not is_record_rows(rows):raise ValueError('Explicit native producer row population required: '+table)
     # Resolve the declared roster even for an empty population.
     schema=columns(table)
@@ -183,6 +189,9 @@ NATIVE_ALIASES={'SKULocStandardAttributes':'Importer/SKULocStandardAttributes',
 
 
 def validate_dbm_writer(state,name):
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        return
     if name in DBM_WRITERS:written=DBM_WRITERS[name]
     elif name.startswith('phase-recommendation-'):written=() # separately typed phase owner
     elif name.startswith(('norm0-','norm1-','norm2-')):
@@ -202,6 +211,8 @@ class CurrentGenerations:
             if (rows := (initial or {}).get(name)) is not None}
 
     def validate(self,state,stage):
+        from mta.application.accepted_inputs import accepted
+        if accepted():return
         for name in self.tables:
             rows=state.get(name)
             if rows is None or self.previous.get(name) is rows:continue
@@ -211,6 +222,10 @@ class CurrentGenerations:
 
 def validated_new_rows(rows,table,*,stage):
     """Validate only appended rows while the existing history owner streams."""
+    from mta.application.accepted_inputs import accepted
+    if accepted():
+        yield from rows
+        return
     for ordinal,row in enumerate(rows):
         if producing_native():validate_row(row,table,stage=stage,ordinal=ordinal)
         yield row

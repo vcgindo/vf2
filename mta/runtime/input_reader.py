@@ -7,6 +7,16 @@ from mta.runtime import input_storage
 from mta.serialization import digest
 
 
+def read_execution_input(run, *, components=None):
+    """Decode an already ingested daily owner; audits use read_input below."""
+    if getattr(run, 'input_payload', {}).get('schema') in (
+            input_storage.SCHEMA, input_storage.V3,
+            *('fresh-captured-input-reference-v' + str(v) for v in range(1, 7))):
+        from mta.runtime.accepted_input_read import read_accepted_input
+        return read_accepted_input(run, components=components)
+    return read_input(run, components=components)
+
+
 def read_input(run, *, components=None):
     value = run.input_payload
     from mta.runtime.captured_input import SCHEMAS as CAPTURED, read as read_captured

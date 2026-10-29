@@ -129,6 +129,16 @@ def _archive_path(run, captured, *, create=False):
 
 def prepare(run, opening_file, daily_file):
     captured=_inputs(run)
+    return _prepare(run, opening_file, daily_file, captured)
+
+
+def prepare_accepted(run, opening_file, daily_file):
+    """Export the ingested typed owner without another logical-input audit."""
+    from mta.runtime.input_reader import read_execution_input
+    return _prepare(run, opening_file, daily_file, read_execution_input(run))
+
+
+def _prepare(run, opening_file, daily_file, captured):
     expanded_limit,compressed_limit=_limits()
     files={
         'NativeOpeningInput.json':lambda:_file_parts(opening_file),

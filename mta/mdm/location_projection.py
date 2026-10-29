@@ -27,21 +27,23 @@ def additional_owners(closing):
     """
     batches=[]
     source_proof=[]
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     for owner,section in (('BPR','importer'),('DBM','dbm'),('BTR','btr')):
         for table,model in (('LocationAttributeData',MdmLocationAttributes),
                             ('SiteDescriptionTbl',MdmLocationDescription)):
             rows=closing[section][table]
-            if not isinstance(rows,list):
+            if not admitted and not isinstance(rows,list):
                 raise ValueError('Explicit closing location bag required')
             names={field.name for field in business_fields(model)}
             derived=BTR_DERIVED if owner=='BTR' and model is MdmLocationAttributes else frozenset()
-            if any(set(row)!=names|derived for row in rows):
+            if not admitted and any(set(row)!=names|derived for row in rows):
                 raise ValueError('Complete closing location source fields differ: '+owner+'/'+table)
-            if derived and any((row['WhType'] is not None and not isinstance(row['WhType'],str))
+            if not admitted and derived and any((row['WhType'] is not None and not isinstance(row['WhType'],str))
                 or any(row[k] is not None and type(row[k]) is not bool for k in ('IsChild','IsParent'))
                 for row in rows):
                 raise ValueError('BTR derived location types differ')
-            if owner=='DBM' and _bag(rows)!=_bag(closing['importer'][table]):
+            if not admitted and owner=='DBM' and _bag(rows)!=_bag(closing['importer'][table]):
                 raise ValueError('DBM location copy differs from canonical Importer bag')
             projected=typed(model,[{name:row[name] for name in names} for row in rows],strict=True)
             path='/closing/state/'+section+'/'+table

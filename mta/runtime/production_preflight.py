@@ -710,7 +710,7 @@ def daily(raw, sha256, *, frame=None, predecessor=None, initialization_id=None,
             elif value.get('consumer_opening') is None:
                 c.add('/consumer_opening','daily consumer owners','ROOT_CONSUMERS_REQUIRED','Root requires explicit supplied consumer opening')
             if opening_date is not None:
-                c.check('/day/business_date','execute_day',lambda: consecutive(opening_date,day.get('business_date')))
+                c.check('/day/business_date','execute_day',lambda: preceding(opening_date,day.get('business_date')))
             if isinstance(frame,dict) and isinstance(state,dict) and isinstance(state.get('orders'),dict):
                 from mta.application.r1_order_input import validate_order_input
                 from mta.row_sequences import RecordRows
@@ -766,6 +766,11 @@ def require_native_operation(run, stage):
         require(report,stage)
         return report
     return None
+
+
+def preceding(previous, current):
+    if date.fromisoformat(current) <= date.fromisoformat(previous):
+        raise ValueError('Opening state must precede the processing date')
 
 
 def consecutive(previous, current):

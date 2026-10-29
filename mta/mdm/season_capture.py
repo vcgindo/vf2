@@ -79,6 +79,8 @@ def finalize(run, snapshot, output):
     if output is None:
         raise ValueError('Seasonality publication requires actual closing output')
     frozen = snapshot['season']
+    from mta.application.accepted_inputs import accepted
+    admitted = accepted()
     owner = MdmSeasonOwner.objects.select_for_update().get(source_id=snapshot['source_id'])
     a = frozen['anchor']
     if (owner.receipt_digest != frozen['source_digest']
@@ -93,19 +95,20 @@ def finalize(run, snapshot, output):
     closing = output['ClosingState'][0]
     queue = storage(closing['control_aux']['season_requests'])
     current = storage(closing['dbm']['Seasonality'])
-    if any(set(r) != set(REQUEST_FIELDS) for r in queue) or any(set(r) != set(SEASON_FIELDS) for r in current):
+    if not admitted and (any(set(r) != set(REQUEST_FIELDS) for r in queue) or any(set(r) != set(SEASON_FIELDS) for r in current)):
         raise ValueError('Seasonality terminal field roster differs')
     live = {r.pk: r for r in MdmSeasonQueue.objects.select_for_update().filter(source=owner.source)}
     counts = Counter(digest(native(r, REQUEST_FIELDS)) for r in queue)
-    original = Counter(digest(native(r, REQUEST_FIELDS)) for r in frozen['rows'])
-    if any(0 < counts[k] < n for k, n in original.items()):
-        raise ValueError('Seasonality duplicate consumption provenance is ambiguous')
+    if not admitted:
+        original = Counter(digest(native(r, REQUEST_FIELDS)) for r in frozen['rows'])
+        if any(0 < counts[k] < n for k, n in original.items()):
+            raise ValueError('Seasonality duplicate consumption provenance is ambiguous')
     for ordinal, before in enumerate(frozen['rows']):
         row = live.get(before['id'])
         if row is None or row.revision < before['revision']:
             raise ValueError('Captured seasonal input disappeared or regressed')
         expected = native(before, REQUEST_FIELDS)
-        if row.revision == before['revision'] and storage({n: getattr(row, n) for n in REQUEST_FIELDS}) != expected:
+        if not admitted and row.revision == before['revision'] and storage({n: getattr(row, n) for n in REQUEST_FIELDS}) != expected:
             raise ValueError('Captured seasonal input changed without revision')
         key = digest(expected)
         retained = counts[key] > 0
@@ -115,20 +118,23 @@ def finalize(run, snapshot, output):
             source_pk=row.pk, revision=before['revision'], cleared=not retained, **expected)
         if not retained and row.revision == before['revision']:
             row.delete()
-    if any(counts.values()):
+    if not admitted and any(counts.values()):
         raise ValueError('Seasonality collector produced an unowned importer input')
     live_current = list(MdmSeasonCurrent.objects.select_for_update().filter(source=owner.source).order_by('ordinal'))
     captured = {r['id']: r for r in frozen['current']}
-    if set(captured) != {r.pk for r in live_current}:
+    if not admitted and set(captured) != {r.pk for r in live_current}:
         raise ValueError('Seasonality current occurrence roster changed before publication')
     later = {}
     for row in live_current:
         before = captured[row.pk]
-        actual = storage({n: getattr(row, n) for n in SEASON_FIELDS})
-        if row.revision < before['revision'] or any(actual[n] != before[n] for n in SEASON_FIELDS
+        actual = (native(before, SEASON_FIELDS) if admitted else
+                  storage({n: getattr(row, n) for n in SEASON_FIELDS}))
+        if row.revision < before['revision'] or not admitted and any(actual[n] != before[n] for n in SEASON_FIELDS
                 if row.revision == before['revision'] or n not in ('Status', 'Comment')):
             raise ValueError('Seasonality current changed outside its status writer')
         if row.revision > before['revision']:
+            if admitted:
+                actual = dict(actual, Status=storage(row.Status), Comment=storage(row.Comment))
             key = pair(actual)
             values = (actual['Status'], actual['Comment'])
             if key in later and values != later[key]:

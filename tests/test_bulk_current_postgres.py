@@ -30,10 +30,15 @@ class BulkCurrentPostgresTests(unittest.TestCase):
         from mta.runtime.mdm_daily_models import MdmDailyInputCapture
         from mta.mdm.daily_source import SCHEMA, APPROVAL_DAY_ARTIFACT_SHA
         from mta.serialization import storage
-        self.assertEqual(connection.settings_dict['NAME'], 'vf_minimum_closeout_20261022')
+        owned = {
+            'vf_minimum_closeout_20261022': 'owned Section11 minimum closeout thread01a16058 20261022; synthetic only',
+            'vftest_fresh_dailygate_component_20261030': 'owned daily-single-ingestion component proof 20261030; synthetic only',
+        }
+        database = connection.settings_dict['NAME']
+        self.assertIn(database, owned)
         with connection.cursor() as cursor:
             cursor.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()")
-            self.assertEqual(cursor.fetchone()[0], 'owned Section11 minimum closeout thread01a16058 20261022; synthetic only')
+            self.assertEqual(cursor.fetchone()[0], owned[database])
 
         def guc(name, value):
             with connection.cursor() as cursor:

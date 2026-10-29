@@ -10,15 +10,15 @@ export const QUERY_KEYS = {
 
 export const useGetBTRDataCount = () => {
   return useMutation(async (body:any) => {
-    return await BTRService.getBTRDataCount(body)
+    const { signal, ...payload } = body;
+    return await BTRService.getBTRDataCount(payload, signal)
   });
 }
 
 
 export const useGetBTRData = () => {
     return useMutation(async (body:any) => {
-      return await BTRService.getBTRData(body)
+      const { signal, ...payload } = body;
+      return await BTRService.getBTRData(payload, signal)
     });
   }
-
-  
