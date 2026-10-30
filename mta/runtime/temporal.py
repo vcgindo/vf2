@@ -4,6 +4,7 @@ No oracle input, copied legacy state or secondary child-run persistence exists
 in this service. Parent locking freezes which actions a next day consumes.
 """
 from copy import deepcopy
+import gc
 from datetime import date, datetime, timedelta
 import uuid
 import logging
@@ -207,7 +208,22 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 shipment_sha256=None, production_initialization=None, daily_input_sha256=None,
                 consumer_opening=None, report_disposition=None, feed_attempt=None,
                 prepared_arguments=None, prepared_state=None, _captured_retry=None,
-                scope_request=None, report_registration_request=None):
+                scope_request=None, report_registration_request=None, _native_preparation=None):
+    if _native_preparation is not None:
+        from mta.runtime.production_daily import _NativeCaptureInputs
+        if (type(_native_preparation) is not _NativeCaptureInputs
+                or any(value is not None for value in (day, profile, predecessor, opening,
+                    report_exceptions, mdm_source, mdm_retry, pick_output_root, pick_config_sha256,
+                    finalization_config, shipment_sha256, production_initialization,
+                    daily_input_sha256, consumer_opening, report_disposition, feed_attempt,
+                    prepared_arguments, prepared_state, _captured_retry, scope_request,
+                    report_registration_request))):
+            raise ValueError('Native capture input handoff cannot replace supplied arguments')
+        (day, profile, predecessor, opening, mdm_source, mdm_retry, pick_output_root,
+            production_initialization, daily_input_sha256, consumer_opening,
+            report_disposition, feed_attempt, prepared_arguments, prepared_state,
+            scope_request, report_registration_request) = _native_preparation.take(execution_revision)
+        _native_preparation = None
     if _captured_retry is not None:
         # The finite-reference kind uses this same production owner. Its
         # independently pinned stopped prefix is authenticated by resume;
@@ -690,6 +706,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
     if scope_request is not None and not placement_full:
         from mta.runtime.production_scope import captured_run
         return captured_run(run,scope_request)
+    if native:
+        with stage('capture_memory_release'):
+            # The complete original opening has committed in the typed input.
+            # Calculation consumes its independent prior plus day/profile;
+            # publication uses its explicit supplier/logistics opening below.
+            raw = {name: value for name, value in raw.items() if name != 'opening'}
+            opening = initial = prepared_root = None
+            gc.collect()
     return _finish_captured_day(run,raw,prior,opening_date,lineage,publication_opening,
         complete_pick,pick_output_root,effective_report_exceptions,finalization,native,
         master_reuse,master_change,capture_snapshot,disposition_binding)

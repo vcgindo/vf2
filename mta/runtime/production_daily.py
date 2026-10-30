@@ -511,16 +511,13 @@ def _daily_initialization(owner, parent, retry_capture_id, handle):
     return read_initialized_input(owner)
 
 
-@opening_operation
-@observed('native_execution', owner_parameter='initialization_id')
-def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
+def _prepare_execution(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
             execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
             retry_capture_id=None, report_disposition=None, feed_attempt=None, scope_request=None, report_registration_request=None):
     with stage('native_preflight_and_bootstrap'):
         started = perf_counter()
         from mta.runtime.models import ProductionInitialization, CalculationRun
         from mta.mdm.production_families import require_initialization, certified_handle
-        from mta.runtime.temporal import execute_day
         from mta.runtime.production_preflight import require
         from mta.runtime.daily_preparation import prepare
         try:
@@ -583,7 +580,7 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
     # excludes retry origins from both master-reuse shortcuts independently.
     with stage('capture_readiness'):
         prepared_state = preparation_source(owner.source.digest)
-    return execute_day(day=day, profile=frame['profile'], execution_revision=execution_revision,
+    return dict(day=day, profile=frame['profile'], execution_revision=execution_revision,
         predecessor=parent, opening=frame['opening'] if parent is None else None,
         mdm_source=owner.source if retry_capture_id is None else None,
         mdm_retry=retry_capture_id, pick_output_root=pick_output_root,
@@ -591,3 +588,47 @@ def execute(raw, expected_sha256, *, initialization_id, source_digest, configura
         consumer_opening=value['consumer_opening'], report_disposition=report_disposition,
         feed_attempt=feed_attempt, prepared_arguments=prepared_arguments, prepared_state=prepared_state,
         scope_request=scope_request,report_registration_request=report_registration_request)
+
+
+class _NativeCaptureInputs:
+    """One-shot memory ownership, not an admission or input-validation token.
+
+    Preflight still runs eagerly. Its frames unwind before execute_day, whose
+    caller otherwise retains the complete original profile/opening while that
+    service makes working copies and runs the calculation.
+    """
+    __slots__ = ('_arguments',)
+    FIELDS = ('day', 'profile', 'predecessor', 'opening', 'mdm_source', 'mdm_retry',
+        'pick_output_root', 'production_initialization', 'daily_input_sha256',
+        'consumer_opening', 'report_disposition', 'feed_attempt', 'prepared_arguments',
+        'prepared_state', 'scope_request', 'report_registration_request')
+
+    def __init__(self, arguments):
+        self._arguments = arguments
+
+    def take(self, execution_revision):
+        arguments = self._arguments
+        if arguments is None:
+            raise ValueError('Native capture inputs already consumed')
+        if arguments['execution_revision'] != execution_revision:
+            raise ValueError('Native capture execution revision differs')
+        self._arguments = None
+        return tuple(arguments[name] for name in self.FIELDS)
+
+
+@opening_operation
+@observed('native_execution', owner_parameter='initialization_id')
+def execute(raw, expected_sha256, *, initialization_id, source_digest, configuration_digest,
+            execution_revision, pick_output_root, predecessor_id=None, predecessor_output_digest=None,
+            retry_capture_id=None, report_disposition=None, feed_attempt=None, scope_request=None,
+            report_registration_request=None):
+    from mta.runtime.temporal import execute_day
+    inputs = _NativeCaptureInputs(_prepare_execution(raw, expected_sha256,
+        initialization_id=initialization_id, source_digest=source_digest,
+        configuration_digest=configuration_digest, execution_revision=execution_revision,
+        pick_output_root=pick_output_root, predecessor_id=predecessor_id,
+        predecessor_output_digest=predecessor_output_digest, retry_capture_id=retry_capture_id,
+        report_disposition=report_disposition, feed_attempt=feed_attempt, scope_request=scope_request,
+        report_registration_request=report_registration_request))
+    return execute_day(day=None, profile=None, execution_revision=execution_revision,
+                       _native_preparation=inputs)

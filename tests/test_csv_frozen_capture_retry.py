@@ -52,6 +52,9 @@ class FrozenCsvRetryTests(unittest.TestCase):
         ready=Obj(initialization_id=str(owner.pk),source_digest=owner.source.digest,
             certification_digest='e'*64,master_revision_id=str(uuid.uuid4()),configuration_digest='b'*64)
         def reached(**kwargs):
+            holder=kwargs.pop('_native_preparation')
+            self.assertIsNone(kwargs.pop('day'));self.assertIsNone(kwargs.pop('profile'))
+            kwargs.update(zip(holder.FIELDS,holder.take(kwargs['execution_revision'])))
             self.assertIs(kwargs['prepared_state'],ready)
             self.assertEqual(kwargs['mdm_retry'],'original-failed-capture')
             self.assertIsNone(kwargs['mdm_source'])

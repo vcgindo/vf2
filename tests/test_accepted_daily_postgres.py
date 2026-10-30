@@ -15,6 +15,7 @@ if not os.environ.get('VF_SECRET_KEY_FILE'):
 import django
 django.setup()
 from django.db import connection, transaction, DatabaseError
+from django.test import override_settings
 
 
 @unittest.skipUnless(os.environ.get('VF_INGESTION_M3_POSTGRES_PROOF') == '1',
@@ -93,9 +94,12 @@ class AcceptedDailyPostgresTests(unittest.TestCase):
             binding.update(initialization_id=str(owner.pk),source_digest=owner.source.digest)
             (root/'binding.json').write_text(json.dumps(binding))
             pick=Path(td)/'pick';pick.mkdir()
-            with driver.installer_login():
+            with driver.installer_login(), override_settings(
+                    VF_MDM_SOURCE_DIGEST=owner.source.digest,
+                    VF_MTA_PERMISSIONS_FILE=str(root/'permissions.json'),
+                    VF_MTA_PERMISSIONS_SHA256=hashlib.sha256((root/'permissions.json').read_bytes()).hexdigest()):
                 from mta.runtime import production_daily as native_contract
-                validation=patch.object(native_contract,'decode_value',wraps=native_contract.decode_value)
+                validation=patch.object(native_contract,'_decode_csv_value',wraps=native_contract._decode_csv_value)
                 validator=validation.start();self.addCleanup(validation.stop)
                 # The normal operation prepares this one native graph once.
                 staged=daily_feed.stage(root/'binding.json',root/'2026-10-18','2026-10-18',
@@ -128,7 +132,7 @@ class AcceptedDailyPostgresTests(unittest.TestCase):
                     from mta.runtime.ingestion_models import IngestionRevisionState
                     from django.db.models import F
                     IngestionRevisionState.objects.filter(initialization=owner).update(action_epoch=F('action_epoch')+1)
-                    with self.assertRaisesRegex(ValueError,'stale'):accepted_daily.read(attempt,args)
+                    with self.assertRaisesRegex(ValueError,'stale'):accepted_daily.check(attempt,args)
                     transaction.set_rollback(True)
                 self.assertEqual(digest(decode(accepted_daily.read(attempt,args),attempt.input_sha256)),digest(original))
                 print('M3_POSTGRES_STAGING_PASS full typed reconstruction, seal/update/delete/truncate denial, '
@@ -183,14 +187,22 @@ class AcceptedDailyPostgresTests(unittest.TestCase):
                 self.assertTrue(first.production_manifest['master_preparation']['qualified'])
                 # The unchanged successor must not reconstruct masters or invoke
                 # the canonical full producer; accepted static leaves are refs.
-                from mta.runtime import opening_storage
+                from mta.runtime import opening_storage, accepted_input_read
+                from contextlib import ExitStack
                 image_reader=opening_storage.load_image
                 def no_opening(owner,metadata):
                     self.assertFalse(metadata['image'].startswith('input/opening'),
                         'successor reconstructed immutable opening')
                     return image_reader(owner,metadata)
-                successor_opening=patch.object(opening_storage,'load_image',side_effect=no_opening)
-                successor_opening.start();self.addCleanup(successor_opening.stop)
+                accepted_reader=accepted_input_read._load_opening_image
+                def no_accepted_opening(owner,metadata):
+                    self.assertFalse(metadata['image'].startswith('input/opening'),
+                        'successor reconstructed immutable opening')
+                    return accepted_reader(owner,metadata)
+                successor_opening=ExitStack()
+                successor_opening.enter_context(patch.object(opening_storage,'load_image',side_effect=no_opening))
+                successor_opening.enter_context(patch.object(accepted_input_read,'_load_opening_image',side_effect=no_accepted_opening))
+                self.addCleanup(successor_opening.close)
                 second_stage=daily_feed.stage(root/'binding.json',root/'2026-10-19','2026-10-19',
                     input_root=root,work_root=root/'operations',pick_root=pick)
                 second_attempt=DailyFeedAttempt.objects.get(attempt_id=second_stage['attempt_id'])
@@ -210,7 +222,7 @@ class AcceptedDailyPostgresTests(unittest.TestCase):
                         # The unchanged history-report producer legitimately
                         # reads the initial historical opening. This gate covers
                         # daily preparation/capture/engine/commit, not that report.
-                        successor_opening.stop()
+                        successor_opening.close()
                 original_entry=entry_preparation.prepare
                 def compare_master(prior,opening_date,day,profile,identity,**owned):
                     actual=original_entry(prior,opening_date,day,profile,identity,**owned)
