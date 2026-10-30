@@ -16,7 +16,9 @@ calculation rules are unchanged.
 The resulting private accepted-input handoff stays with the calculation and
 atomic publication. Production readers decode the accepted typed populations
 without another full content audit. Independent diagnostic readers retain their
-exhaustive checks. Track A preparation moves into one calculation and releases
+exhaustive checks. Certified daily opening and configuration reads also use this decoder;
+initialization certification keeps its strict reader and separate operation cache.
+Track A preparation moves into one calculation and releases
 its reference, avoiding an extra retained copy.
 
 Every business date uses the same producer. The most recent unique successful

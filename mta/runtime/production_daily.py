@@ -328,9 +328,11 @@ def inspect_execution(raw, expected_sha256, *, initialization_id, source_digest,
                 previous=read_outputs(parent,include_reports=False)
                 parent_context['closing_state']=previous['ClosingState'][0]
                 parent_context['output_version']=parent.production_manifest.get('version',2)
-                parent_profile=read_input(parent,components=('profile',))['profile']
-                if frame is not None and digest(parent_profile)!=digest(frame['profile']):
-                    problem('/predecessor/profile','own persisted predecessor','Persisted predecessor configuration differs')
+                from mta.runtime.opening_scope import current_certified_opening
+                if owner is None or current_certified_opening(owner) is None:
+                    parent_profile=read_input(parent,components=('profile',))['profile']
+                    if frame is not None and digest(parent_profile)!=digest(frame['profile']):
+                        problem('/predecessor/profile','own persisted predecessor','Persisted predecessor configuration differs')
                 # Closing is already produced: never recompute its completion.
         except (ValueError,TypeError,KeyError,IndexError,ObjectDoesNotExist) as error:
             problem('/predecessor','own persisted predecessor',error)

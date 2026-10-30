@@ -211,8 +211,14 @@ def _private_certified(source):
 def frame_for_daily(initialization, predecessor):
     """Use the root frame once; certified successors require configuration only."""
     handle = current_certified_opening(initialization)
-    if handle is None or predecessor is None:
+    if handle is None:
         return _opening_input(initialization)
+    if predecessor is None:
+        _certified_metadata(initialization, handle)
+        from mta.runtime.accepted_input_read import read_accepted_input
+        from mta.mdm.initialization_contract import CURRENT_LIST_PATHS
+        return immutable(initialization, 'accepted-daily-frame', lambda: read_accepted_input(
+            initialization, materialized_roots=(*CURRENT_LIST_PATHS, 'input/profile', 'input/pair_exclusions')))
     return {'profile': certified_profile(initialization, handle), 'opening': {
         'identity': initialization.opening_identity,
         'opening_date': initialization.opening_date.isoformat()}}
@@ -221,13 +227,9 @@ def frame_for_daily(initialization, predecessor):
 def certified_profile(initialization, handle):
     """Read only immutable configuration for a certified successor."""
     _certified_metadata(initialization, handle)
-    from mta.runtime.input_storage import read_input
-    from mta.runtime import opening_storage
-    profile = read_input(initialization, components=('profile',),
-                         image_reader=opening_storage.load_image)['profile']
-    if digest(profile) != initialization.configuration_digest:
-        raise ValueError('Certified daily profile identity differs')
-    return profile
+    from mta.runtime.accepted_input_read import read_accepted_input
+    return read_accepted_input(initialization, components=('profile',),
+                               materialized_roots=('input/profile',))['profile']
 
 
 def require_certified_binding(source, initialization, handle):

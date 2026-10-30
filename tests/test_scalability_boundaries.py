@@ -253,11 +253,12 @@ class ScalabilityBoundaryTests(unittest.TestCase):
                         initialized.configuration_digest, RevisionCut(2, 4, 5, 6, 7))
                     with self.assertRaisesRegex(ValueError, 'master revision differs'):
                         production.certified_state_handle(initialized, stale)
-            with patch('mta.runtime.input_storage.read_input',
+            with patch('mta.runtime.accepted_input_read.read_accepted_input',
                     return_value={'profile': {'policy': 'fixed'}}) as read:
                 self.assertEqual(production.certified_profile(initialized, handle),
                                  {'policy': 'fixed'})
                 self.assertEqual(read.call_args.kwargs['components'], ('profile',))
+                self.assertEqual(read.call_args.kwargs['materialized_roots'], ('input/profile',))
             with patch.object(production, '_configuration', return_value=configuration), \
                     patch.object(production.MdmSourceIntegration.objects, 'get', return_value=seal), \
                     patch.object(production.MdmFamilySource.objects, 'filter', return_value=families), \
@@ -315,6 +316,9 @@ class ScalabilityBoundaryTests(unittest.TestCase):
             bootstrap.assert_not_called(); public.assert_not_called()
 
         with patch.object(production, 'current_certified_opening', return_value=handle), \
+                patch.object(production, '_certified_metadata'), \
+                patch.object(production, 'immutable', side_effect=lambda owner, key, build: build()), \
+                patch('mta.runtime.accepted_input_read.read_accepted_input', return_value=full_frame) as accepted, \
                 patch.object(production, 'certified_profile',
                              return_value={'successor': True}) as profile, \
                 patch.object(production, '_opening_input', return_value=full_frame) as opening:
@@ -323,7 +327,8 @@ class ScalabilityBoundaryTests(unittest.TestCase):
                                  'identity': 'opening-identity', 'opening_date': '2026-10-01'}})
             opening.assert_not_called()
             self.assertIs(production.frame_for_daily(initialized, None), full_frame)
-            opening.assert_called_once_with(initialized)
+            opening.assert_not_called()
+            accepted.assert_called_once()
 
         with patch('mta.mdm.production_families.bootstrap_native_families') as bootstrap, \
                 patch('mta.mdm.production_families.require_binding') as public, \
