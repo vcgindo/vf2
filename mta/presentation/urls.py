@@ -5,6 +5,7 @@ from mta.presentation import mdm_views, logistics_views
 from mta.presentation import runtime_placement_downloads
 from mta.presentation import order_report_views
 from mta.presentation import native_diagnostic_downloads
+from mta.presentation import planning_git_views
 
 urlpatterns = [
     path('SubmitOpenExpediteRequest', partial(logistics_views.command, operation='submit')),
@@ -80,10 +81,10 @@ urlpatterns = [
     path('AddBORRemark', views.bor_remark),
     path('GetBORRemarkDetails', partial(views.bor_remark, history=True)),
     path('GetExportDataAsync', views.export_data),
-    path('GetPlanningDataGrid', views.planning_grid),
+    path('GetPlanningDataGrid', planning_git_views.planning_grid),
     path('GetPlanningDataCount', views.planning_overview),
     path('GetPlanningDataGraph', views.planning_graph),
-    path('GetPlanningDataGridCount', partial(views.planning_grid,count=True)),
+    path('GetPlanningDataGridCount', partial(planning_git_views.planning_grid,count=True)),
     path('GetPlanningDataCustom', views.planning_custom),
     path('GetBTRData', views.btr_data),
     path('GetBTRDataCount', partial(views.btr_data, count=True)),

@@ -392,7 +392,7 @@ def _planning(view, name, payload, *, count=False):
             read_binding=view.expedite), kind, receiving_own_label=True), message='')
     if category == 'git':
         if name == 'planning_grid':
-            from mta.presentation.planning_git_sql import grid
+            from mta.presentation.planning_git_child import grid
             return views.envelope(data=grid(view.run, payload, count=count, read_binding=view.git))
         products, locations = scope(payload, attributes=view.git.attributes())
         if name == 'planning_custom':

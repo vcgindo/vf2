@@ -902,6 +902,41 @@ Do not count these unavailable branches as accepted or infer permission to
 repair legacy SQL. Valid independently proved parent/count/chart/custom branches
 may continue. A zero count alone does not certify an invalid child query.
 
+### Authorized G4 child-consumer correction — 31 October 2026
+
+The finite report-gap closure authorizes this specific read-query correction;
+the earlier no-repair restriction remains applicable outside this slice. New
+`planning_git_child` and route wrappers leave the hashed report builders,
+publication recipes, parent/location calculation, count and chart owners intact.
+The nested relation is GoodsInTransitTransporterMaster; all four grouped keys
+correlate to the nested shipment, and its own SKU/destination supplies nested
+SKU descriptions, SKU/pair attributes and NMS weight/volume/capping. Original
+inner/left join kinds and multiplicity remain. This is corrected presentation
+behavior, **not unchanged SQL or wire parity with the defective legacy query**.
+
+Outer groups retain direct supplied permission IDs, unlike the existing
+hierarchically expanded count/location scopes. Count may differ from data.
+Both destination-description joins, physical Black/Red eligibility, MAX/SUM,
+NULL equality and nested rows without extra outer eligibility filters remain.
+Nested Price/SL1/SL2 are additive aliases for the unchanged frontend alongside
+pr/Business/Category. No first-group or case/padding spelling representative is
+invented: a group containing multiple raw key spellings is unavailable. Ordering
+still has native age/SLT and penetration keys without an invented tie-break.
+
+Commons preserves numeric filter spelling before the child's case-sensitive
+rewrites. `git`/`GIT`, `stock`/`STOCK` and VirtualNorm bind VF; exact `Git` and
+`Stock` still target missing transporter columns. Norm remains missing or
+ambiguous. Missing custom SKU/pair aliases and ambiguous location hierarchies
+remain unavailable. Invalid filters may now deny even on empty input rather
+than bypass SQL compilation through the old empty-source shortcut.
+
+Independent PostgreSQL fixtures compare complete scalar groups and nested bags,
+including legitimate eight data groups versus ten count groups, NULL keys,
+duplicates, scope/page/filter effects and integer SUM overflow denial. Positive
+fixtures are synthetic evidence only; neither V3 day receives invented shipment
+facts. Evidence is retained under
+`D:/freshvcf-build/evidence/optimized-report-gap-closure-20261030`.
+
 ## Expedite parent — SQL failures become empty success in legacy
 
 Pinned PlanningProcessor `bf716c4f84e43920b5f2ab302e3d3c78ec685f5d714471c53047d377537d3486`

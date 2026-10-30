@@ -22,7 +22,7 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
         from django.db import connection,transaction
         if connection.settings_dict['NAME'] not in (
                 'VFTEST_Fresh_LifecycleG2_20261024', 'vftest_fresh_dailygate_component_20261030',
-                'vftest_fresh_transit_20261030'):
+                'vftest_fresh_transit_20261030', 'vftest_fresh_git_g4_20261031'):
             raise RuntimeError('Prepared effects require their uniquely owned test database')
         if connection.settings_dict['NAME'] == 'vftest_fresh_dailygate_component_20261030':
             with connection.cursor() as cursor:
@@ -32,6 +32,10 @@ class PreparedEffectsPostgresTests(unittest.TestCase):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()")
                 self.assertEqual(cursor.fetchone()[0], 'owned transit lifecycle proof 20261030; isolated native typed SQL only')
+        if connection.settings_dict['NAME'] == 'vftest_fresh_git_g4_20261031':
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()")
+                self.assertEqual(cursor.fetchone()[0], 'owned G4 scoped GIT proof 20261031; synthetic rollback only')
         self.atomic=transaction.atomic();self.atomic.__enter__()
         self.addCleanup(self.rollback)
 
