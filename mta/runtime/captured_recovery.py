@@ -197,16 +197,58 @@ def _second_hop_owner(run,attempt,value,*,final_third_hop=False,final_interrupte
     return physical
 
 
+def _failed_capture_owner(run, attempt, capture, execution_revision):
+    """A failed immutable-row writer retains its original accepted input owner."""
+    from mta.runtime.input_v3 import V3
+    failure = dict(type='TypeError', message='Immutable history row; create a transformed generation')
+    if (run.status != 'FAILED' or run.failure != failure
+            or attempt.status != 'FAILED' or attempt.error != failure
+            or attempt.phase != 'VALIDATED' or attempt.run_id != run.pk
+            or attempt.business_date != run.business_date or attempt.predecessor_id != run.predecessor_id
+            or not attempt.accepted_facts or not attempt.prepared_context
+            or run.input_payload.get('schema') != V3
+            or capture.run_id != run.pk or capture.status != 'CAPTURED' or capture.origin_id is not None
+            or capture.source_id != attempt.initialization.source_id):
+        raise ValueError('Failed capture retry requires its exact original immutable-row failure')
+    from release.native_identity import require_current
+    release = require_current()
+    if execution_revision != 'native-failed-capture-' + release['source_commit']:
+        raise ValueError('Failed capture retry revision must bind its packaged source')
+    return release
+
+
+def _failed_capture_cut(expected):
+    from mta.runtime.ingestion_admission import EPOCHS
+    cut = expected['capture_cut']
+    if (type(cut) is not list or len(cut) != len(EPOCHS)
+            or any(type(value) is not int or value < 0 for value in cut)):
+        raise ValueError('Failed capture retry requires its exact sealed capture cut')
+    cut = list(cut)
+    # Normal exception recording updates one failed run and one failed attempt.
+    # No master/configuration/action or further fact/operational write is allowed.
+    cut[EPOCHS.index('fact_epoch')] += 1
+    cut[EPOCHS.index('operational_epoch')] += 1
+    return cut
+
+
 def resume(*, origin_run_id, execution_revision, expected, archive_path, second_hop=None, final_third_hop=False,
            final_interrupted_fourth_hop=False, final_failed_fifth_hop=False, final_interrupted_sixth_hop=False,
            finite_continuation=None, terminal_continuation=None, terminal_retry=None,
-           one_additional_attempt=None, interruption=None):
+           one_additional_attempt=None, interruption=None, failed_capture=False):
     """Called only by execute_day's explicit captured-continuation dispatch.
 
     Daily/source locks and the original revision cut are checked before marking
     the interruption. One atomic snapshot creates distinct run/attempt/capture
     metadata. Original typed populations and receipts are never rewritten.
+    The explicit failed-capture mode retains its original failure and admits
+    only the two normal failure-metadata revisions after the sealed input cut.
     """
+    if (type(failed_capture) is not bool or failed_capture and (
+            any((final_third_hop, final_interrupted_fourth_hop, final_failed_fifth_hop,
+                 final_interrupted_sixth_hop)) or any(value is not None for value in (
+                    second_hop, finite_continuation, terminal_continuation, terminal_retry,
+                    one_additional_attempt, interruption)))):
+        raise ValueError('Failed capture retry cannot combine continuation modes')
     from mta.runtime.models import CalculationRun, ProductionInitialization
     from mta.runtime.daily_feed_models import DailyFeedAttempt
     from mta.runtime.mdm_daily_models import MdmDailyInputCapture
@@ -245,6 +287,8 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
     old = CalculationRun.objects.get(pk=uuid.UUID(str(origin_run_id)))
     attempt = DailyFeedAttempt.objects.select_related('initialization__source').get(run=old)
     owner = attempt.initialization
+    failed_release = (_failed_capture_owner(old, attempt, old.mdm_input_capture, execution_revision)
+                      if failed_capture else None)
     physical=None if second_hop is None else _second_hop_owner(old,attempt,second_hop,final_third_hop=final_third_hop,
         final_interrupted_fourth_hop=final_interrupted_fourth_hop,
         final_failed_fifth_hop=final_failed_fifth_hop,
@@ -343,6 +387,11 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 else expected['capture_cut'] if physical is None else second_hop['current_revision_cut'])
             original_ok=(attempt.status=='RUNNING' and attempt.phase=='VALIDATED'
                 and bool(attempt.accepted_facts) and frozen.origin_id is None)
+            if failed_capture:
+                if _failed_capture_owner(old, attempt, frozen, execution_revision) != failed_release:
+                    raise ValueError('Failed capture retry packaged source changed')
+                expected_cut = _failed_capture_cut(expected)
+                original_ok = True
             second_ok=(physical is not None and frozen.origin_id==(
                 uuid.UUID(old.input_payload['origin_run_id'])
                 if any(flags) or finite_continuation is not None else physical.pk))
@@ -359,7 +408,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                     or snapshot['configuration']['task_status_log_horizon'] != horizon):
                 raise ValueError('Frozen NMS/task configuration changed')
             check()
-            if physical is None or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
+            if (physical is None and not failed_capture) or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
                 if old.status != 'RUNNING':
                     raise ValueError('External interruption has already been reconciled')
                 failure,attempt_error=_interruption_failure(interruption,
@@ -371,7 +420,7 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
                 **({} if finite_continuation is None else
                    {'finite_prefix_digest':finite_continuation['prefix_digest']}))
             verify_capture(owner.source,snapshot)
-            if physical is None or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
+            if (physical is None and not failed_capture) or final_interrupted_fourth_hop or final_interrupted_sixth_hop:
                 attempt.status='FAILED'
                 attempt.error=attempt_error
                 attempt.save(update_fields=['status','error','updated_at'])
@@ -436,6 +485,10 @@ def resume(*, origin_run_id, execution_revision, expected, archive_path, second_
             continuation=dict(origin_run_id=str(old.pk),run_id=str(run.pk),
                 origin_attempt_id=str(attempt.attempt_id),attempt_id=str(new_attempt.attempt_id),
                 input_digest=run.input_digest,input_manifest_digest=run.input_manifest_digest)
+            if failed_capture:
+                continuation.update(kind='failed-native-capture-retry-v1',
+                    origin_failure=old.failure, execution_revision=execution_revision,
+                    native_release=failed_release)
             if interruption is not None:
                 continuation['interruption']=interruption
             if final_interrupted_sixth_hop or finite_continuation is not None:
