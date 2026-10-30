@@ -734,6 +734,15 @@ def _calculate_and_finish_captured_day(run,raw,prior,opening_date,lineage,public
     profile=raw['profile'];today=date.fromisoformat(raw['day']['business_date'])
     source_digest=run.input_digest
     try:
+        occurrence_binding = None
+        from mta.runtime.occurrence_text_policy import admitted as occurrence_admitted
+        if native and disposition_binding is None and occurrence_admitted(run):
+            from mta.runtime.occurrence_text_policy import context
+            from mta.application.occurrence_text_policy import KEY
+            if effective_report_exceptions:
+                raise ValueError('Native occurrence policy cannot combine raw exceptions')
+            effective_report_exceptions = context(run)
+            occurrence_binding = effective_report_exceptions[KEY]
         calculated_at = perf_counter()
         def calculation(source,**owned):
             return (calculate_current_day(source,defer_pick=True,**owned) if complete_pick else
@@ -757,6 +766,10 @@ def _calculate_and_finish_captured_day(run,raw,prior,opening_date,lineage,public
         lineage = deepcopy(lineage)
         if disposition_binding is not None:
             lineage['native_report_disposition'] = disposition_binding
+        if occurrence_binding is not None:
+            from mta.application.occurrence_text_policy import KEY, summaries
+            lineage[KEY] = occurrence_binding
+            lineage['occurrence_text_availability'] = summaries(result['Reports'], occurrence_binding)
         result['Lineage']=[lineage]
         if finalization is not None:
             lineage['cohort1'] = result.pop('_Cohort1')

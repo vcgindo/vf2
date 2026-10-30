@@ -66,7 +66,18 @@ def _expected_files(owner, config):
         for _, name in LOG_BINDINGS:
             add('O5', folder+'/UIUploadLogs/'+name+'.zip', (name+'.csv',))
     for key, name in NORM_REPORTS.items():
-        add('O6', 'download/'+name+'.zip', (name+'.csv',))
+        members = (name+'.csv',)
+        if key in ('Norm1_30days','Norm2_30days'):
+            from mta.application import occurrence_text_policy as occurrence_policy
+            lineage = owner.run.production_manifest.get('lineage', [])
+            binding = (lineage or [{}])[0].get(occurrence_policy.KEY)
+            if binding is not None:
+                from mta.runtime.input_reader import read_input
+                from mta.application.operational_report_files import occurrence_member_names
+                profile = read_input(owner.run,components=('profile',))['profile']
+                occurrence_policy.verify_owner(binding,owner.run,digest(profile))
+                members += occurrence_member_names(key)
+        add('O6', 'download/'+name+'.zip', members)
         if key == 'DBMNormChange':
             add('O6', 'output/'+name+'.zip', (name+'.csv',))
         else:

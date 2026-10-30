@@ -1905,6 +1905,42 @@ waiver, alternative source alias/default/numeric fill, other amendment transfer,
 frontend component or MTO API change. Status and proof remain in the sole
 F:/freshvcf/docs/handoff-3005/TRACKER.md.
 
+## LEG-NORM012-30-OCCURRENCE-AVAILABILITY — human release 30 October 2026
+
+The direct human release authorizes a reusable versioned availability policy
+for `Occurances` in Norm0/30, Norm1/30 and Norm2/30. It supersedes the need for
+another date/SKU-specific disposition only for this diagnostic field and these
+three families. Historical exact dispositions and receipts remain unchanged.
+Canonical `Scripts/DBM/Norm 0-1-2 Reports/Norm{0,1,2}Data.sql` hashes respectively:
+`c47103cd5d309c8d692766fcef798ab138694627d944dee7c3d25619c9ed9766`,
+`64c58d14390ce1133ff39ccb7c619827fc7c4e01625188e92f9dfe15ef53e7d2`,
+`9edb9e13504f36d6655cb762aa81853cdd10a4e44bba876fee3ffc8c83c16870`.
+
+The retained Apr9 V3 input digest is
+`04ce1484a659a5af0f09082b859a96709bba5c81d0c0727d133769fc0fadc3c1`.
+Its Apr8 predecessor has 85,979 single-fragment Norm0 rows; supplied Apr9 facts
+add another dated positive observation for retained sample pairs. The failed
+Apr9 run committed no post-control/report state: its first runtime key and full
+affected population are not claimed from those input witnesses.
+
+Native capture admits `norm012-30-occurrence-availability-v1` separately from
+immutable facts, bound to run/date/input/configuration/predecessor/execution and
+packaged source. Accepted phases, output lineage and publication retain that
+binding. Empty/single/identical-fragment text remains unchanged. Ambiguous
+distinct-fragment text remains typed NULL in data/details and is visibly
+`UNAVAILABLE: LEGACY_FLAW/NOT_PARITY - unordered STRING_AGG` in exports.
+Affected rows remain typed relational images; bounded family summaries and
+export sidecars identify the limitation. No occurrence-text parity is claimed.
+Numeric/state values, NULL behavior, duplicate/description multiplicity, source
+order, horizons, integer overflow/NOT-NULL denials and all business rules remain
+strict. Norm0/60/90 chronology and other report families do not inherit this
+policy. The frontend and HTTP/UI routes are unchanged; current UI cannot show
+all backend metadata, and no new Norm grid or UI acceptance is claimed.
+
+Implementation/proof/retry status and receipts belong only to the canonical
+tracker, not this contract note. Both prior Apr9 failures and Apr8 remain
+preserved. The authorized next captured retry is not a clean fresh benchmark.
+
 ### LEG-RUNTIME-BOR-HISTORY-LATEST-REMARK-TIE (26 October 2026)
 
 Source: retained RuntimeReports query8, SHA256

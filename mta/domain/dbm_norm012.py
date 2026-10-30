@@ -59,7 +59,12 @@ def _day(value):
 
 
 def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
-               exclude_all_occurrence_order=False):
+               exclude_all_occurrence_order=False, *, occurrence_policy=None):
+    if occurrence_policy is not None:
+        from mta.application.occurrence_text_policy import require_binding
+        require_binding(occurrence_policy,norm=norm,horizon=horizon)
+        if occurrence_order_exclusions or exclude_all_occurrence_order:
+            raise ValueError('Occurrence policy cannot combine exclusions')
     chronological=norm==0 and horizon in (60,90)
     if norm not in (0, 1, 2) or not (horizon==30 or chronological):
         raise ValueError('Selected report requires Norm0 horizon30/60/90 or Norm1/2 horizon30')
@@ -109,7 +114,7 @@ def data_stage(today, state, norm, horizon, occurrence_order_exclusions=(),
         fragments = ['[' + _day(r['ReportDate']).strftime('%d/%m/%y') + ' - '
                      + str(r['Consumption']) + ']' for r in positive]
         ambiguous = not chronological and len(set(fragments)) > 1
-        if ambiguous and not exclude_all_occurrence_order and key not in excluded:
+        if ambiguous and occurrence_policy is None and not exclude_all_occurrence_order and key not in excluded:
             raise AmbiguousReport('Unordered occurrence STRING_AGG has distinct fragments')
         # Both source branches use SUM(int), ignoring NULL inputs. An all-NULL
         # group still fails the native NOT NULL TotalSale target; never seed 0.
@@ -183,7 +188,10 @@ def selected_report_configuration(rows):
     return visible
 
 
-def export_stage(state):
+def export_stage(state, *, occurrence_policy=None, norm=None, horizon=None):
+    if occurrence_policy is not None:
+        from mta.application.occurrence_text_policy import require_binding
+        require_binding(occurrence_policy,norm=norm,horizon=horizon)
     out = deepcopy(state)
     visible = selected_report_configuration(state['ui_ReportConfigurations'])
     selected = [r['Col_Code'] for r in visible]
@@ -193,6 +201,9 @@ def export_stage(state):
         values = []
         for name in selected:
             value = detail['WhCode' if name == 'WHCode' else name]
+            if name == 'Occurances' and value is None and occurrence_policy is not None:
+                from mta.application.occurrence_text_policy import DISPLAY
+                value = DISPLAY
             values.append(_quote(value) if name in ('SKUName', 'WhName', 'Occurances')
                           else ' ' if value is None else str(value).replace(',', ' '))
         rows.append({'values': values})
@@ -202,23 +213,27 @@ def export_stage(state):
 
 def clear_stage(state):
     out = deepcopy(state)
+    out.pop('_OccurrenceExportSources',None)
     out['Norm0Norm1Norm2Report'] = []
     out['Norm0_1_2ReportDetails'] = []
     return out
 
 
 def norm012_stages(today, state, norm, horizon, occurrence_order_exclusions=(),
-                   exclude_all_occurrence_order=False, *, _defer_export=False):
+                   exclude_all_occurrence_order=False, *, _defer_export=False, occurrence_policy=None):
     current = data_stage(today, state, norm, horizon, occurrence_order_exclusions,
-                         exclude_all_occurrence_order)
+                         exclude_all_occurrence_order,occurrence_policy=occurrence_policy)
     yield 'data', current
     current = detail_stage(current)
     yield 'detail', current
     if _defer_export:
         from mta.domain.deferred_dbm_exports import defer
         current = defer(today,current,'norm012')
+        if occurrence_policy is not None:
+            from mta.application.occurrence_text_policy import export_sources
+            current['_OccurrenceExportSources']=export_sources(current,occurrence_policy,norm=norm,horizon=horizon)
     else:
-        current = export_stage(current)
+        current = export_stage(current,occurrence_policy=occurrence_policy,norm=norm,horizon=horizon)
     yield 'export', current
     current = clear_stage(current)
     yield 'clear', current

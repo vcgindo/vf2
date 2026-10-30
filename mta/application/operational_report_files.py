@@ -72,10 +72,10 @@ def _remove(root, *paths):
         files.remove_file(root, path)
 
 
-def _archive(root, archive_writer, *, staging, member, destination):
+def _archive(root, archive_writer, *, staging, member, destination, extra_members=()):
     if not callable(archive_writer):
         raise ValueError("Explicit archive writer required")
-    receipt = archive_writer(root=root, staging=staging, members=[member],
+    receipt = archive_writer(root=root, staging=staging, members=[member, *extra_members],
                              destination=destination)
     actual = files.inspect_file(root, destination)
     return {"writer": receipt, "file": actual}
@@ -239,7 +239,62 @@ def upload_log_report_files(*, root, payloads, archive_writer, client_folder):
     return result
 
 
-def norm_report_files(*, root, payloads, archive_writer):
+def occurrence_member_names(name):
+    if name not in ('Norm1_30days', 'Norm2_30days'):
+        raise ValueError('Occurrence archive family differs')
+    base = NORM_REPORTS[name]
+    return (base+'.metadata.json', base+'.affected-groups.jsonl')
+
+
+def _occurrence_sidecars(metadata, payloads):
+    """Validate both owned families and encode all metadata before file effects."""
+    if metadata is None:
+        return {}
+    import json
+    from mta.application import occurrence_text_policy as policy
+    from mta.application.operational_norm_reports import _values, _cell, NORM_HEADER, NORM_CELLS
+    from mta.application.report_encoding import norm_report_bytes
+    from mta.serialization import digest
+    if not isinstance(metadata, dict) or set(metadata) != {'run_id','output_digest','binding','reports'}:
+        raise ValueError('Complete occurrence archive owner required')
+    binding = policy.require_binding(metadata['binding'])
+    if metadata['run_id'] != binding['owner']['run_id']:
+        raise ValueError('Occurrence archive run differs')
+    output = metadata['output_digest']
+    if type(output) is not str or len(output) != 64 or any(c not in '0123456789abcdef' for c in output):
+        raise ValueError('Occurrence archive output identity required')
+    reports = metadata['reports']
+    if not isinstance(reports, dict) or set(reports) != {'Norm1_30days','Norm2_30days'}:
+        raise ValueError('Complete occurrence archive family roster required')
+    result = {}
+    for name, norm in (('Norm1_30days',1), ('Norm2_30days',2)):
+        report = reports[name]
+        if not isinstance(report, dict) or set(report) != {'tables','summary'}:
+            raise ValueError('Complete occurrence archive facts required')
+        tables = report['tables']
+        policy.verify_export(tables, binding, norm=norm)
+        if _values(tables['ReportHeader'],9,name) != [list(NORM_HEADER)]:
+            raise ValueError('Occurrence archive header differs')
+        rendered = dict(header_result_set=[dict(value=value,native_type='varchar-literal') for value in NORM_HEADER],
+            data_result_set=[[_cell(value,kind,name,str(i)) for i,(value,kind) in enumerate(zip(row,NORM_CELLS,strict=True))]
+                for row in _values(tables['ReportRows'],9,name)])
+        if norm_report_bytes(rendered) != payloads[name]:
+            raise ValueError('Occurrence archive CSV differs from typed facts')
+        stage = f'norm{norm}-export'
+        expected = policy.summaries([dict(stage=stage,tables=tables)], binding)[stage]
+        if digest(report['summary']) != digest(expected):
+            raise ValueError('Occurrence archive summary differs')
+        summary = dict(run_id=metadata['run_id'],output_digest=output,
+            occurrence_text_policy=binding,occurrence_text_availability=expected)
+        meta_name, groups_name = occurrence_member_names(name)
+        result[name] = {
+            meta_name: json.dumps(summary,sort_keys=True,separators=(',',':')).encode('utf-8'),
+            groups_name: b''.join((json.dumps(row,sort_keys=True,separators=(',',':'))+'\n').encode('utf-8')
+                for row in policy.groups(tables,binding,norm=norm))}
+    return result
+
+
+def norm_report_files(*, root, payloads, archive_writer, occurrence_metadata=None):
     """Apply the four enabled generic O6 file lifecycles; Norm0 is unsupported."""
     if isinstance(payloads, dict) and any(name.casefold().startswith("norm0") or
             name.casefold().startswith("norm_0") for name in payloads):
@@ -247,6 +302,7 @@ def norm_report_files(*, root, payloads, archive_writer):
     qualified = _payloads(payloads, NORM_REPORTS, "enabled O6 report")
     if not callable(archive_writer):
         raise ValueError("Explicit archive writer required")
+    sidecars = _occurrence_sidecars(occurrence_metadata, qualified)
     result = {}
     for key, base in NORM_REPORTS.items():
         csv_name, zip_name = base + ".csv", base + ".zip"
@@ -264,8 +320,23 @@ def norm_report_files(*, root, payloads, archive_writer):
         else:
             _remove(root, csv_path, download_zip)
             csv_receipt = files.write_file(root, csv_path, qualified[key])
+            extras = sidecars.get(key, {})
+            for member, content in extras.items():
+                files.remove_file(root, 'output/'+member)
+                files.write_file(root, 'output/'+member, content)
             archive_receipt = _archive(root, archive_writer, staging="output", member=csv_name,
-                                       destination=download_zip)
+                                       destination=download_zip, extra_members=tuple(extras))
+            if extras:
+                import hashlib
+                members = files.zip_members(root, download_zip)
+                expected_members = [dict(ordinal=0,name=csv_name,sha256=csv_receipt['sha256'],size_bytes=csv_receipt['size_bytes'])]
+                expected_members.extend(dict(ordinal=i,name=name,sha256=hashlib.sha256(content).hexdigest(),size_bytes=len(content))
+                    for i,(name,content) in enumerate(extras.items(),1))
+                if len(members) != len(expected_members) or {row['name']:(row['sha256'],row['size_bytes']) for row in members} != {
+                        row['name']:(row['sha256'],row['size_bytes']) for row in expected_members}:
+                    raise ValueError('Occurrence archive member bytes differ')
+                for member in extras:
+                    files.remove_file(root, 'output/'+member)
             result[key] = {"output_csv": csv_receipt, "output_zip": None,
                            "download_zip": archive_receipt}
     return result

@@ -66,6 +66,11 @@ def read_report_inputs(*, run_id, expected_output_digest):
                    phase_out=_population(closing.get('controls'), 'phase_out', PHASE_OUT_FIELDS)),
         'O6': dict(reports=deepcopy(output['Reports']), configuration=deepcopy(REQUIRED_CONFIGURATION)),
     }
+    from mta.application import occurrence_text_policy as occurrence_policy
+    policy = (output.get('Lineage') or [{}])[0].get(occurrence_policy.KEY)
+    if policy is not None:
+        occurrence_policy.verify_owner(policy, run, digest(profile))
+        inputs['O6'][occurrence_policy.KEY] = deepcopy(policy)
     return dict(run_id=str(run.pk), business_date=run.business_date.isoformat(),
         output_digest=run.output_digest, input_digest=run.input_digest,
         source_report_configuration={name: batch[name] for name in REQUIRED_CONFIGURATION},

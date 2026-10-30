@@ -30,6 +30,14 @@ def resultsets(*,reports,batch,run_id,output_digest,lineage=None):
     if not isinstance(reports,list):raise ValueError('Owned typed Reports required')
     result={}
     disposition = (lineage or [{}])[0].get('native_report_disposition')
+    from mta.application import occurrence_text_policy as occurrence_policy
+    policy = (lineage or [{}])[0].get(occurrence_policy.KEY)
+    if policy is not None:
+        occurrence_policy.require_binding(policy)
+        if policy['owner']['run_id'] != owner['run_id']:
+            raise ValueError('Occurrence availability report owner differs')
+        if disposition is not None:
+            raise ValueError('Conflicting occurrence availability policies')
     if disposition is not None:
         from mta.application.native_report_disposition import require_binding, verify_export, limitation
         require_binding(disposition)
@@ -45,6 +53,8 @@ def resultsets(*,reports,batch,run_id,output_digest,lineage=None):
             raise ValueError('Complete typed Norm0 source required: '+stage)
         if disposition is not None and horizon == 30:
             verify_export(tables, disposition)
+        if policy is not None and horizon == 30:
+            occurrence_policy.verify_export(tables, policy, norm=0)
         headers=_values(tables['ReportHeader'],9,stage+'/ReportHeader')
         if len(headers)!=1:raise ValueError('One owned Norm0 header required')
         values=_values(tables['ReportRows'],9,stage+'/ReportRows')
@@ -60,10 +70,18 @@ def resultsets(*,reports,batch,run_id,output_digest,lineage=None):
         if disposition is not None and horizon == 30:
             result[name]['occurrence_classification'] = 'LEGACY_FLAW/NOT_PARITY'
             result[name]['limitations'] = [limitation(disposition)]
+        if policy is not None and horizon == 30:
+            result[name].update(occurrence_text_policy=policy,
+                occurrence_classification=occurrence_policy.CLASSIFICATION,
+                occurrence_text_availability=occurrence_policy.summaries(
+                    [dict(stage=stage, tables=tables)], policy)[stage],
+                affected_groups=list(occurrence_policy.groups(tables, policy, norm=0)))
     receipt = dict(**owner,enabled_horizons=list(horizons),reports=result)
     if disposition is not None:
         receipt['native_report_disposition'] = disposition
         receipt['qualification'] = 'COMPLETE_WITH_LEGACY_FLAWS'
+    if policy is not None:
+        receipt[occurrence_policy.KEY] = policy
     return receipt
 
 
@@ -99,6 +117,16 @@ def export_files(*,root,receipt):
                 raise ValueError('Native report disposition cannot extend to another horizon')
         elif 'limitations' in report:
             raise ValueError('Native report download lacks disposition binding')
+        policy = receipt.get('occurrence_text_policy')
+        if policy is not None and horizon == 30:
+            from mta.application import occurrence_text_policy as occurrence_policy
+            occurrence_policy.require_binding(policy, norm=0, horizon=30)
+            if (policy['owner']['run_id'] != run_id or report.get('occurrence_text_policy') != policy
+                    or report.get('occurrence_classification') != occurrence_policy.CLASSIFICATION):
+                raise ValueError('Occurrence availability download owner differs')
+            metadata = json.dumps(dict(run_id=run_id, output_digest=output_digest,
+                occurrence_text_policy=policy, occurrence_text_availability=report['occurrence_text_availability'],
+                affected_groups=report['affected_groups']), sort_keys=True,separators=(',',':')).encode('utf-8')
         buffer=io.BytesIO()
         with zipfile.ZipFile(buffer,'w',compression=zipfile.ZIP_DEFLATED) as archive:
             info=zipfile.ZipInfo(filename,date_time=(1980,1,1,0,0,0))
@@ -132,6 +160,10 @@ def export_files(*,root,receipt):
             occurrence_rule=report['occurrence_rule'],occurrence_classification=report['occurrence_classification'],
             csv=csv,archive=archive,members=members))
         if metadata is not None:
-            artifacts[-1]['limitations']=report['limitations']
-            artifacts[-1]['native_report_disposition']=receipt['native_report_disposition']
+            if disposition is not None:
+                artifacts[-1]['limitations']=report['limitations']
+                artifacts[-1]['native_report_disposition']=receipt['native_report_disposition']
+            if policy is not None and horizon == 30:
+                artifacts[-1].update(occurrence_text_policy=policy,
+                    occurrence_text_availability=report['occurrence_text_availability'])
     return dict(run_id=run_id,output_digest=output_digest,artifacts=artifacts)

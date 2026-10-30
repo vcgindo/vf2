@@ -228,9 +228,11 @@ def _produce(attempt,value):
     master=raw['mdm_input'] if raw.get('initialization_binding') is not None else None
     if phase=='START':
         opening_date=(run.predecessor.business_date.isoformat() if run.predecessor_id else raw['opening']['opening_date'])
+        from mta.runtime.occurrence_text_policy import context as occurrence_context,admitted as occurrence_admitted
         with native_assignments(True):
             prepared=prepare_day(prior,opening_date,raw['day'],raw['profile'],str(run.pk),
-                calculate,native_daily=True,master_snapshot=master)
+                calculate,occurrence_context(run) if occurrence_admitted(run) else None,
+                native_daily=True,master_snapshot=master)
         with transaction.atomic():
             parent=_accept_prepared(attempt.pk,attempt.worker_token,prepared,compatibility_digest=compatibility)
     else:

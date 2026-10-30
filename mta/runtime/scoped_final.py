@@ -135,6 +135,8 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
         master_snapshot=frozen
     phase,sources=phase_state.read(dbm.snapshot,prior=frozen_prior(run,raw),day=raw['day'],
         profile=profile,master_snapshot=master_snapshot)
+    from mta.runtime.occurrence_text_policy import verify_phase
+    verify_phase(run,phase)
     from mta.runtime.scoped_actions import final_phase
     phase=final_phase(run,dbm,phase,expected_revision=_attempt.action_revision)
     report_work=None
@@ -156,6 +158,10 @@ def _finish_accepted_day(attempt_id,worker_token,*,compatibility_digest,master_s
             for event in RunCommand.objects.filter(run=run,phase_acceptance__isnull=False,
                 state_sealed=True).order_by('id')]
     lineage['cohort1']=output.pop('_Cohort1')
+    from mta.application.occurrence_text_policy import KEY, summaries
+    if (phase.context.report_exceptions or {}).get(KEY) is not None:
+        lineage[KEY]=phase.context.report_exceptions[KEY]
+        lineage['occurrence_text_availability']=summaries(output['Reports'],lineage[KEY])
     source_digests=output.pop('_PickSourceDigests',None)
     if source_digests is not None:lineage['pick_source_digests']=source_digests
     output['Lineage']=[lineage]

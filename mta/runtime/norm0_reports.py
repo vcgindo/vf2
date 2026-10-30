@@ -21,6 +21,11 @@ def read_reports(*,run_id,expected_output_digest):
     from mta.application.native_report_disposition import verify_commit
     disposition=(output['Lineage'] or [{}])[0].get('native_report_disposition')
     verify_commit(disposition,output['Lineage'],run)
+    from mta.application.occurrence_text_policy import KEY, verify_owner
+    policy=(output['Lineage'] or [{}])[0].get(KEY)
+    if policy is not None:
+        from mta.serialization import digest
+        verify_owner(policy,run,digest(inputs['profile']))
     receipt=resultsets(reports=output['Reports'],batch=inputs['profile']['delivery']['batch'],
         run_id=run.pk,output_digest=run.output_digest,lineage=output['Lineage'])
     receipt.update(business_date=run.business_date.isoformat(),initialization_id=binding['id'],source_digest=capture.source.digest)

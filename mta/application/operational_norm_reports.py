@@ -141,7 +141,7 @@ def _cell(value, specification, report_name, column):
     return {"value": deepcopy(value), "native_type": kind}
 
 
-def norm_report_resultsets(*, reports, configuration):
+def norm_report_resultsets(*, reports, configuration, occurrence_text_policy=None):
     """Validate and label the four enabled generic report result sets."""
     if not isinstance(configuration, dict) or configuration != REQUIRED_CONFIGURATION:
         raise ValueError("Exact generic O6 activation and horizon source identity required")
@@ -171,4 +171,12 @@ def norm_report_resultsets(*, reports, configuration):
             "data_result_set": typed_rows,
             "native_formatter_requirements": NATIVE_FORMATTER_REQUIREMENTS,
         }
+        if occurrence_text_policy is not None and stage in ('norm1-export', 'norm2-export'):
+            from mta.application import occurrence_text_policy as policy
+            norm = 1 if stage == 'norm1-export' else 2
+            policy.verify_export(tables, occurrence_text_policy, norm=norm)
+            result[name].update(occurrence_text_policy=deepcopy(occurrence_text_policy),
+                occurrence_classification=policy.CLASSIFICATION,
+                occurrence_text_availability=policy.summaries(
+                    [dict(stage=stage, tables=tables)], occurrence_text_policy)[stage])
     return result

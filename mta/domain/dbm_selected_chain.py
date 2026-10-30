@@ -72,6 +72,14 @@ def selected_stages(today, state, facts, configuration=None, report_exceptions=N
 def selected_norm012_stages(today,state,config=None,report_exceptions=None,*,_defer_exports=False):
     """Actual connected norm-report dispatch, separately bounded for proof."""
     current=state
+    from mta.application.occurrence_text_policy import KEY, require_binding
+    occurrence_policy = (report_exceptions or {}).get(KEY)
+    if occurrence_policy is not None:
+        if set(report_exceptions) != {KEY} or config is None:
+            raise ValueError('Occurrence availability cannot widen report exceptions')
+        require_binding(occurrence_policy)
+        if occurrence_policy['owner']['business_date'] != (today.isoformat() if hasattr(today,'isoformat') else today):
+            raise ValueError('Occurrence availability report date differs')
     disposition = (report_exceptions or {}).get('native_report_disposition')
     if disposition is not None:
         if set(report_exceptions) != {'native_report_disposition'} or config is None or config.get('ActivateNorm0Report30Days') != 1:
@@ -94,7 +102,8 @@ def selected_norm012_stages(today,state,config=None,report_exceptions=None,*,_de
                 excluded = limited_group
             for name, current in norm012_stages(
                     today, current, norm, horizon, excluded, exclude_all,
-                    _defer_export=_defer_exports and disposition is None):
+                    _defer_export=_defer_exports and disposition is None,
+                    occurrence_policy=occurrence_policy if horizon==30 else None):
                 if disposition is not None and (norm, horizon, name) == (0, 30, 'export'):
                     disclose_export(current, disposition)
                 yield report_stage(norm,horizon,name), current

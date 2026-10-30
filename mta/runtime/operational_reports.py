@@ -121,8 +121,19 @@ def materialize_report_operation(attempt_id, *, group, archive_writer):
                 archive_writer=archive_writer, client_folder=inputs['client_folder'])
         else:
             reports = norm_report_resultsets(**inputs)
+            occurrence_metadata = None
+            if inputs.get('occurrence_text_policy') is not None:
+                occurrence_metadata = dict(run_id=str(owner.run_id),output_digest=owner.run_output_digest,
+                    binding=inputs['occurrence_text_policy'],reports={name:dict(
+                        tables=next(item['tables'] for item in inputs['reports'] if item['stage']==report['source_stage']),
+                        summary=report['occurrence_text_availability'])
+                        for name,report in reports.items() if 'occurrence_text_policy' in report})
             receipt = norm_report_files(root=owner.root,
                 payloads={name: norm_report_bytes(report) for name, report in reports.items()},
-                archive_writer=archive_writer)
+                archive_writer=archive_writer,occurrence_metadata=occurrence_metadata)
+            for name, report in reports.items():
+                if 'occurrence_text_policy' in report:
+                    receipt[name].update({key: report[key] for key in
+                        ('occurrence_text_policy', 'occurrence_classification', 'occurrence_text_availability')})
         _record_final_files(effect, receipt)
     return effect

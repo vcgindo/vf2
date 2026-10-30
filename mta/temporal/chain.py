@@ -12,6 +12,7 @@ from copy import deepcopy
 from dataclasses import replace
 from mta.temporal.day_phases import DayContext, PreparedDay, ReadyBprDay, BprDay, DbmDay
 from mta.application import accepted_inputs
+from mta.serialization import digest
 from mta.application.stage_observation import operation, stage, summary
 
 from decimal import Decimal
@@ -134,7 +135,8 @@ def retain_dbm_stages(selected,completed_boundaries):
                 from mta.domain.deferred_dbm_exports import SOURCES
                 marker=current['_DeferredExport']
                 captured['_DeferredExport']=deepcopy(marker)
-                captured['_ReportSourceFacts']={n:deepcopy(current[n]) for n in SOURCES[marker['kind']]}
+                export_sources=current.get('_OccurrenceExportSources',current)
+                captured['_ReportSourceFacts']={n:deepcopy(export_sources[n]) for n in SOURCES[marker['kind']]}
             stages.append((name,captured))
     if last is None:raise ValueError('Connected DBM stages required')
     stages.append(last)
@@ -420,6 +422,14 @@ def prepare_day(prior, opening_date, day, profile, identity, execute_calculation
                           report_exceptions=None, *, native_daily=False, prepared_master=None, master_snapshot=None):
     """PRE_BPR: prepare owned inputs and finish controls before any R1 calculation."""
     today=day['business_date'];now=today+'T00:00:00'
+    from mta.application.occurrence_text_policy import KEY, require_binding
+    occurrence_policy=(report_exceptions or {}).get(KEY)
+    if occurrence_policy is not None:
+        require_binding(occurrence_policy)
+        owner=occurrence_policy['owner']
+        if (owner['run_id']!=str(identity) or owner['business_date']!=today
+                or owner['configuration_digest']!=digest(profile)):
+            raise ValueError('Occurrence policy prepared run/profile/date differs')
     from mta.application import daily_finalization
     from mta.temporal.entry_preparation import prepare
     with stage('entry_preparation'):

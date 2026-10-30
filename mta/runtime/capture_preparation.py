@@ -23,6 +23,10 @@ def seal(run,*,consumer_snapshot=None):
     body=run.production_manifest.get('ingestion_preparation')
     if body is None:
         return
+    if run.production_manifest.get('native_report_disposition') is None:
+        from mta.runtime.occurrence_text_policy import admit, KEY
+        body[KEY] = admit(run, body['configuration_digest'])
+        run.production_manifest[KEY] = body[KEY]
     cut=epochs(body['initialization_id'],lock=True)
     if consumer_snapshot is not None:
         from mta.runtime.scope_consumers import capture

@@ -195,6 +195,8 @@ def calculate_dbm(attempt_id,worker_token,*,compatibility_digest):
         if head(run.pk)!=('BPR',parent.digest):raise ValueError('DBM requires its exact accepted BPR head')
         expected=attempt.action_revision
     phase,sources=restore(run,parent)
+    from mta.runtime.occurrence_text_policy import verify_phase
+    verify_phase(run,phase)
     state=state_after(run,parent,phase,expected_revision=expected)
     with native_assignments(True):
         dbm=produce_dbm(phase,_action_state=state if expected else None,_action_revision=expected)

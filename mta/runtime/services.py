@@ -121,6 +121,9 @@ def finish_run(run, output, *, expected_digest, publication_opening=None, _scope
         if admitted_disposition is not None and run.production_manifest != {'native_report_disposition': admitted_disposition}:
             raise ValueError('Native report disposition admission metadata differs')
         verify_commit(admitted_disposition, lineage, run)
+        from mta.runtime.occurrence_text_policy import verify_output, KEY
+        verify_output(run,lineage,digest(frozen_profile),
+            run.production_manifest.get(KEY,(prepared_capture or {}).get(KEY)),output.get('Reports',[]))
         cohort = lineage[0].get('cohort1')
         if scoped is not None and cohort is None:
             raise ValueError('Scoped final requires complete finalization')
