@@ -66,6 +66,41 @@ def verify_values(run):
         values[DIGEST_FIELDS[name]]=capture_digest(rows())
     return values
 
+def _prepare_statistics(run):
+    """Plan newly staged BOROA joins with their real table populations.
+
+    Native preparation seals A/F in the same transaction that plans their
+    consumer join. Autovacuum cannot see those new rows yet. This scheduling
+    marker skips optional planner maintenance only; source admission remains
+    mandatory and ordinary/scoped readers never acquire privileges.
+    """
+    if connection.vendor != 'postgresql' or not connection.in_atomic_block:
+        return
+    owner = str(run.pk)
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('fresh.daily_publication_build',true),"
+                       "current_setting('transaction_read_only'),"
+                       "current_setting('fresh.boroa_planner_statistics',true)")
+        builder, read_only, marker = cursor.fetchone()
+        if builder != owner or read_only != 'off':
+            return
+        cursor.execute('SELECT txid_current()::text')
+        expected = owner + ':' + cursor.fetchone()[0]
+        if marker == expected:
+            return
+        tables = [MODELS[name]._meta.db_table
+                  for name in ('BORWithOrderAllocation', 'BOROARequirement')]
+        cursor.execute("SELECT count(*)=2 AND bool_and(pg_get_userbyid(c.relowner)=current_user) "
+                       "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                       "WHERE n.nspname='mta' AND c.relname=ANY(%s)", [tables])
+        if cursor.fetchone()[0] is not True:
+            return
+        from mta.runtime.relational_state import quote
+        for table in tables:
+            cursor.execute('ANALYZE mta.' + quote(table))
+        cursor.execute("SELECT set_config('fresh.boroa_planner_statistics',%s,true)", [expected])
+
+
 def admitted_sources(run=None):
     if run is None:
         run, _ = native_binding()
@@ -79,6 +114,7 @@ def admitted_sources(run=None):
     from mta.runtime.boroa_source_schema import verify_guards
     try: verify_guards(connection)
     except ValueError as exc: raise PublicationUnavailable('BOROA_source_guards_changed') from exc
+    _prepare_statistics(run)
     return run,receipt
 
 from mta.presentation.boroa_contract import production_source_recipe
