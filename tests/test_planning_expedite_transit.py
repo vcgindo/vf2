@@ -50,6 +50,25 @@ class TransitAdmissionTests(unittest.TestCase):
         self.guards.side_effect = ValueError('changed')
         with self.assertRaisesRegex(PublicationUnavailable,'guards_changed'): subject.admit(self.run)
 
+    def test_retained_recipe_keeps_exact_source_and_pick_admission(self):
+        self.receipt.recipe_digest=subject.RETAINED_PRODUCTION_RECIPE
+        subject.admit(self.run)
+        for field in ('source_digest','pick_digest'):
+            previous=getattr(self.receipt,field);setattr(self.receipt,field,'different')
+            with self.assertRaisesRegex(PublicationUnavailable,'receipt_missing_or_changed'):subject.admit(self.run)
+            setattr(self.receipt,field,previous)
+
+    def test_native_recipe_tracks_real_builder_instead_of_historical_fixture(self):
+        from mta.presentation import planning_expedite_transit_preparation as preparation
+        def changed_builder(run):return ('SELECT changed_native_contract',[])
+        before=preparation.production_recipe_digest()
+        with patch.object(preparation,'base_query',changed_builder),patch.object(preparation,'match_query',changed_builder):
+            self.assertEqual(preparation.production_recipe_digest(),before)
+        with patch.object(preparation,'production_base_query',changed_builder):
+            self.assertNotEqual(preparation.production_recipe_digest(),before)
+        with patch.object(preparation,'prepared_production_match',changed_builder):
+            self.assertNotEqual(preparation.production_recipe_digest(),before)
+
     def test_unpaged_parent_uses_complete_same_relation_and_order(self):
         from mta.presentation import planning_expedite_sql as reader
         with patch.object(reader,'selected_parent',return_value=('SELECT source_rows', ['fixture'])) as selected, \

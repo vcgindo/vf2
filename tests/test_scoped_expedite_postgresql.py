@@ -189,6 +189,41 @@ class ScopedExpediteTests(unittest.TestCase):
         wrong=deepcopy(self.bound.transit.generation);wrong.phase_id=foreign.pk
         with self.assertRaises(PublicationUnavailable):module.require_binding(self.run,replace(self.bound,transit=replace(self.bound.transit,generation=wrong)))
 
+    def test_retained_complete_reference_reuses_rows_and_refreshes_owned_prefix(self):
+        from django.db import connection
+        from mta.presentation import scoped_expedite as module,scoped_expedite_parent as parent,ancillary_live as live
+        from mta.presentation import legacy_scope_read_compatibility as profile
+        from mta.presentation.context import PublicationUnavailable
+        with patch.object(parent,'recipe_digest',return_value=parent.RETAINED_RECIPE):self.start()
+        old=deepcopy(self.reference);self.assertEqual(old['recipe_digest'],module.RETAINED_RECIPE)
+        before={name:self.bound.parent.rows(name) for name in ('base','match')}
+        # Persist the complete public composite locator; all referenced immutable
+        # core/parent/transit rows are real guarded PostgreSQL generations.
+        with connection.cursor() as c:
+            c.execute('CREATE TEMP TABLE retained_transit_reference (reference jsonb) ON COMMIT DROP')
+            c.execute('INSERT INTO retained_transit_reference VALUES (%s::jsonb)',[json.dumps(old)])
+            c.execute('SELECT reference FROM retained_transit_reference');stored=c.fetchone()[0]
+        if isinstance(stored,str):stored=json.loads(stored)
+        with patch.object(parent,'_inserts',side_effect=AssertionError('retained parent rebuilt')):
+            self.assertEqual(module.bind(stored).read_identity,old)
+            self.assertEqual(module.prepare(self.receipt.pk,expected_digest=self.receipt.digest,action_revision=0),old)
+        with patch.dict(profile.ADAPTED_DEPENDENCIES,{'mta.presentation.planning_expedite_transit':'f'*64}):
+            with self.assertRaises(PublicationUnavailable):module.bind(stored)
+        stamp=datetime(2037,4,11,tzinfo=timezone.utc);value=self.row('new prefix',stamp)
+        live.append(live.BPR,[{k:v for k,v in value.items() if k!='RemarkDate'}],actor_id='retained-reference',timestamp=stamp)
+        with self.assertRaises(PublicationUnavailable):module.bind(stored)
+        fresh=module.refresh_parent(stored)
+        self.assertEqual(fresh['core_generation_id'],old['core_generation_id'])
+        self.assertNotEqual(fresh['parent_generation_id'],old['parent_generation_id'])
+        self.assertEqual(fresh['recipe_digest'],module.recipe_digest())
+        rebound=module.bind(fresh)
+        self.assertTrue(any(r['remark']=='new prefix' for r in rebound.parent.rows('base')))
+        self.assertEqual({name:self.bound.parent.rows(name) for name in before},before)
+        with self.assertRaises(PublicationUnavailable):module.bind(dict(fresh,recipe_digest=module.RETAINED_RECIPE))
+        with connection.cursor() as c:
+            c.execute('SELECT reference FROM retained_transit_reference');same=c.fetchone()[0]
+        self.assertEqual(json.loads(same) if isinstance(same,str) else same,old)
+
     def request_row(self,**values):
         from mta.presentation.daily_requests import FIELDS
         from tests.production_h3_fixture import CHILD,PARENT

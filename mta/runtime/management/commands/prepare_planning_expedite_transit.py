@@ -2,12 +2,13 @@
 import hashlib
 import json
 import time
+from contextlib import nullcontext
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from mta.presentation.planning_expedite_transit_preparation import (base_query, match_query,
     production_base_query, production_match_query, pick_binding, recipe_digest,
-    production_recipe_digest)
+    production_recipe_digest, prepared_production_match, RETAINED_PRODUCTION_RECIPE)
 from mta.runtime.models import PlanningExpediteTransitProjection, PlanningExpediteTransitBase, PlanningExpediteTransitMatch
 from mta.runtime.planning_expedite_transit_schema import verify_guards
 from mta.runtime.relational_state import quote
@@ -65,14 +66,18 @@ class Command(BaseCommand):
                 with connection.cursor() as c:
                     c.execute("SELECT set_config('fresh.planning_expedite_transit_build',%s,true)", [str(run.pk)])
                     builders = ((name, model, (production_base_query if name == 'base' else production_match_query) if run.kind == 'DAILY_CHAIN' else builder) for name, model, builder in MODELS)
-                    for _, model, builder in builders:
-                        query, params = builder(run)
-                        fields = ','.join(map(quote, fields_for(model)))
-                        c.execute('INSERT INTO mta.' + quote(model._meta.db_table) + ' (run_id,' + fields + ') SELECT %s,' + fields + ' FROM (' + query + ') ingredients', [run.pk, *params])
+                    for name, model, builder in builders:
+                        prepared = (prepared_production_match(run) if name == 'match' and run.kind == 'DAILY_CHAIN'
+                                    else nullcontext(builder(run)))
+                        with prepared as (query, params):
+                            fields = ','.join(map(quote, fields_for(model)))
+                            c.execute('INSERT INTO mta.' + quote(model._meta.db_table) + ' (run_id,' + fields + ') SELECT %s,' + fields + ' FROM (' + query + ') ingredients', [run.pk, *params])
             values = {}
             for family, model, _ in MODELS:
                 values[family + '_count'], values[family + '_digest'] = readback(run, model)
             recipe = production_recipe_digest() if run.kind == 'DAILY_CHAIN' else recipe_digest()
+            if receipt and run.kind == 'DAILY_CHAIN' and receipt.recipe_digest == RETAINED_PRODUCTION_RECIPE:
+                recipe = RETAINED_PRODUCTION_RECIPE
             expected = dict(source_digest=source, recipe_digest=recipe, pick_digest=pick_digest, **values)
             if receipt:
                 if any((getattr(receipt, name) != value for name, value in expected.items())):

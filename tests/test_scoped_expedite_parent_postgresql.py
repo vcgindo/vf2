@@ -108,6 +108,35 @@ class ScopedExpediteParentTests(unittest.TestCase):
     def test_complete_availability_matches_without_core_rebuild(self):self.complete('availability')
     def test_explicit_empty_remarks_preserve_nms_left_rows(self):self.complete('dispatch',empty=True)
 
+    def test_retained_parent_recipe_is_readable_and_reused_without_rebuild(self):
+        from mta.presentation import scoped_expedite_parent as module
+        self.start('dispatch')
+        with patch.object(module,'recipe_digest',return_value=module.RETAINED_RECIPE):row=self.prepare()
+        before=self.binding(row).read_identity
+        self.assertNotEqual(row.recipe_digest,module.recipe_digest())
+        with patch.object(module,'_inserts',side_effect=AssertionError('accepted parent rebuild')):
+            self.assertEqual(self.prepare().pk,row.pk)
+        self.assertEqual(self.binding(row).read_identity,before)
+        self.assertEqual({name:self.binding(row).rows(name) for name in module.TABLES},self.expected())
+
+    def test_match_statement_failure_rolls_back_temporary_operands_and_parent(self):
+        from contextlib import contextmanager
+        from django.db import connection,DatabaseError
+        from mta.presentation import scoped_expedite_parent as module
+        self.start('dispatch');original=module._prepared_match;before=self.core.read_identity
+        @contextmanager
+        def failed(*args):
+            with original(*args) as (query,params):
+                yield query.replace('P.parent_stock FROM','(1/0)::numeric AS parent_stock FROM'),params
+        with patch.object(module,'_prepared_match',failed),self.assertRaises(DatabaseError):self.prepare()
+        for model in module.TABLES.values():self.assertEqual(model.objects.count(),0)
+        self.assertEqual(module.models.ScopeExpediteParentGeneration.objects.count(),0)
+        with connection.cursor() as c:
+            c.execute("SELECT count(*) FROM pg_class WHERE relnamespace=pg_my_temp_schema() AND relname LIKE 'vf_transit_%%'")
+            self.assertEqual(c.fetchone()[0],0)
+        self.assertEqual(self.core.read_identity,before)
+        self.assertTrue(self.binding(self.prepare()).rows('match'))
+
     def test_missing_capture_denies_but_retains_independent_core(self):
         from mta.presentation.context import PublicationUnavailable
         self.parents(missing=True);self.dependencies();before=self.core.read_identity

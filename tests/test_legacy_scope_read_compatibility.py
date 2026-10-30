@@ -6,6 +6,14 @@ from django import conf
 
 @unittest.skipUnless(conf.settings.configured, 'Offline Django settings required; no database used')
 class LegacyScopeReadCompatibilityTests(unittest.TestCase):
+    def test_transit_composite_profile_keeps_its_complete_finite_reader_boundary(self):
+        from mta.presentation import legacy_scope_read_compatibility as profile
+        from mta.presentation.context import PublicationUnavailable
+        profile.verify_expedite()
+        for name in ('mta.presentation.planning_expedite_transit','mta.presentation.scoped_expedite'):
+            with patch.dict(profile.ADAPTED_DEPENDENCIES,{name:'f'*64}):
+                with self.assertRaises(PublicationUnavailable):profile.verify_expedite()
+
     def test_exact_candidate_keeps_original_read_recipe_identities(self):
         from mta.presentation import legacy_scope_read_compatibility as profile
         from mta.presentation import runtime_report_view, scoped_view, scoped_selection

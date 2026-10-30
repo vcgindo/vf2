@@ -17,7 +17,10 @@ POSTBPR_RECIPE = '31fee0cee1f8b9008fd969da3585537af75a0321bbb3f2664a2d4490e03eff
 POSTBPR_SELECTION_RECIPE = '2027c2fa7f1c192636249b928bbe19af0ecd0a98ddb464e7197df0b9c8bf2d1a'
 # Exact candidate source pins are frozen after the bounded adapter change.
 # A placeholder is fail-closed, never a wildcard or an environment override.
-ADAPTED_DEPENDENCIES = {'mta.presentation.scoped_dbm_view': '8f6fbb475537a1264ee53bf22bf5212f0bd3c6dedc4508f5b4b7d2de62353f19',
+ADAPTED_DEPENDENCIES = {
+ 'mta.presentation.planning_expedite_transit': '28e75d9a64727d0ce58e05dadaea80ebb58988725d4cd460d46e54bba8c01a0a',
+ 'mta.presentation.scoped_expedite': '6dc5bf1695293353f2c305d626afc9df4e66e1ee5d8e7870780dd2692ab9f9c4',
+ 'mta.presentation.scoped_dbm_view': '8f6fbb475537a1264ee53bf22bf5212f0bd3c6dedc4508f5b4b7d2de62353f19',
  'mta.presentation.views': 'c7499957ed618bfa74a8f2a2d43db9a44be8042f339fb39d9b81035646c29cf3'}
 DISPATCHERS = {
     'mta.presentation.diagnostic_downloads': '37d4da2c65d1c6d6378c4440cbf9744cc80024ad5aff8bc79120f1cc64945f71',
@@ -50,6 +53,26 @@ def verify():
         actual = hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
         if actual != checksum:
             raise PublicationUnavailable('legacy_scope_read_profile_source_differs:' + name)
+
+
+@once_per_request
+def verify_expedite():
+    """Exact former composite reader boundary, without granting view writers.
+
+    The original composite hashed these readers and its own module. Broader
+    legacy view/archive profiles retain their independent strict admission.
+    """
+    from mta.presentation.runtime_report_view import LEGACY_DEPENDENCIES
+    names=('planning_expedite_sql','planning_expedite_custom_sql','planning_expedite_chart_sql',
+        'planning_expedite_transit','planning_expedite_grids','planning_expedite_custom','planning_expedite_charts',
+        'expedite_read','expedite_charts','expedite_child_sources','planning_grid_sql','rrr_sql',
+        'excess_filters','expedite_parent','scoped_expedite')
+    expected=dict(LEGACY_DEPENDENCIES,**ADAPTED_DEPENDENCIES)
+    for module in names:
+        name='mta.presentation.'+module
+        actual=hashlib.sha256(inspect.getsource(import_module(name)).encode()).hexdigest()
+        if actual!=expected[name]:
+            raise PublicationUnavailable('legacy_expedite_read_profile_source_differs:'+name)
 
 
 def require_original_writer():

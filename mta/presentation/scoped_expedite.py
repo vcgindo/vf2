@@ -11,6 +11,7 @@ from mta.serialization import digest
 from mta.presentation.request_scope import validated_read
 
 SCHEMA='fresh-bpr-expedite-view-reference-v1'
+RETAINED_RECIPE='b04467c6b14396263015c56e022936fb8b9e336595204b3a9a95cb359e9e7d00'
 
 
 def recipe_digest():
@@ -43,7 +44,12 @@ class ExpediteBinding:
 
     @property
     def read_identity(self):
-        return dict(schema=SCHEMA,recipe_digest=recipe_digest(),run_id=str(self.run_id),
+        recipe=recipe_digest()
+        if self.parent.generation.recipe_digest==parent_storage.RETAINED_RECIPE:
+            from mta.presentation.legacy_scope_read_compatibility import verify_expedite
+            verify_expedite()
+            recipe=RETAINED_RECIPE
+        return dict(schema=SCHEMA,recipe_digest=recipe,run_id=str(self.run_id),
             phase_id=str(self.sources.acceptance_id),phase_digest=self.sources.acceptance_digest,
             snapshot_digest=self.sources.snapshot_digest,source_digest=self.sources.source_digest,
             configuration_digest=self.core.generation.configuration_digest,action_revision=self.sources.action_revision,
@@ -105,7 +111,8 @@ def require_binding(run,bound):
 
 @validated_read
 def _load(reference,*,retained_parent=False):
-    if not isinstance(reference,dict) or reference.get('schema')!=SCHEMA or reference.get('recipe_digest')!=recipe_digest():
+    if (not isinstance(reference,dict) or reference.get('schema')!=SCHEMA
+            or reference.get('recipe_digest') not in (recipe_digest(),RETAINED_RECIPE)):
         raise PublicationUnavailable('bpr_expedite_reference_differs')
     try:
         revision=reference['action_revision']

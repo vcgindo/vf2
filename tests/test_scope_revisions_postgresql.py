@@ -21,8 +21,13 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None,configuratio
     from mta.runtime.models import ProductionInitialization
     from mta.runtime.ingestion_models import InitializationCertification,IngestionRevisionState,MasterInputRevision
     from mta.runtime.capture_preparation import seal,CONTRACT
-    if connection.settings_dict['NAME'] != 'VFTEST_Fresh_LifecycleG2_20261024':
+    if connection.settings_dict['NAME'] not in ('VFTEST_Fresh_LifecycleG2_20261024','vftest_fresh_transit_20261030'):
         raise RuntimeError('Metadata counter fixture requires its uniquely owned database')
+    if connection.settings_dict['NAME']=='vftest_fresh_transit_20261030':
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT shobj_description(oid,'pg_database') FROM pg_database WHERE datname=current_database()")
+            if cursor.fetchone()[0]!='owned transit lifecycle proof 20261030; isolated native typed SQL only':
+                raise RuntimeError('Transit metadata fixture database ownership differs')
     initial_id=uuid.uuid4()
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.production_initialization',%s,true)",[str(initial_id)])
@@ -48,6 +53,9 @@ def bind_metadata_counter_owner(run,source,*,consumer_snapshot=None,configuratio
         initialization_id=str(initial.pk),source_digest=source.digest,
         certification_digest=cert.receipt_digest,base_revision_id=str(base.pk),
         configuration_digest=configuration_digest,qualified_master_reuse=False)}
+    # Model creation accepts an ISO string; policy admission consumes DateField's
+    # actual persisted Python date, just as the native production entry does.
+    run.refresh_from_db(fields=['business_date'])
     seal(run,consumer_snapshot=consumer_snapshot)
     return initial,state,cert,base,deepcopy(run.production_manifest['ingestion_preparation'])
 

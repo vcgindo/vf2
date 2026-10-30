@@ -14,6 +14,9 @@ from mta.serialization import digest
 
 PICK_TABLE = 'stage_demo_bpr_1."dbo__vf_PickListReport"'
 REMARK_TABLE = 'stage_demo_bpr_1."dbo__BPRReport_RemarkDetails"'
+# Immutable receipts made before the native builder identity was corrected.
+# Their original run/source/Pick/value bindings remain mandatory on admission.
+RETAINED_PRODUCTION_RECIPE = 'aa950d454662a4f9bb9ba6d53e466a689e7ad2ba627b143118802c33f03e9aae'
 
 
 def production_pick_query(run):
@@ -132,6 +135,15 @@ def production_match_query(run):
     return query, [*params,*remark_params,*pick_params,run.pk]
 
 
+def prepared_production_match(run):
+    from mta.presentation.expedite_transit_join import prepared_match
+    return prepared_match(
+        base=('SELECT ordinal,remark_ordinal FROM mta.fresh_mta_planningexpeditetransitbase WHERE run_id=%s', [run.pk]),
+        remarks=image_query(run, 'sources/bpr/BPRReport_RemarkDetails'),
+        facts=('SELECT * FROM mta.fresh_mta_expediterow WHERE run_id=%s', [run.pk]),
+        grids=admitted_expedite_grids(run)['row'], pick=production_pick_query(run))
+
+
 def recipe_digest():
     return digest(dict(version=1,base=inspect.getsource(base_query),matches=inspect.getsource(match_query),
                        pick=inspect.getsource(pick_source),encoding=inspect.getsource(encoded),
@@ -139,6 +151,8 @@ def recipe_digest():
 
 
 def production_recipe_digest():
-    return digest(dict(version=2, base=inspect.getsource(base_query),
-        matches=inspect.getsource(match_query), pick=inspect.getsource(production_pick_query),
+    from mta.presentation import expedite_transit_join
+    return digest(dict(version=3, base=inspect.getsource(production_base_query),
+        matches=inspect.getsource(prepared_production_match), join=expedite_transit_join.recipe_digest(),
+        pick=inspect.getsource(production_pick_query),
         remarks='sources/bpr/BPRReport_RemarkDetails'))

@@ -2,7 +2,7 @@ from mta.presentation.native_mode import removed_mode
 """Prepared parent Expedite transit reads; eligibility stays request-scoped."""
 from django.db import connection
 from mta.presentation.context import PublicationUnavailable
-from mta.presentation.planning_expedite_transit_preparation import pick_binding, recipe_digest, production_recipe_digest
+from mta.presentation.planning_expedite_transit_preparation import pick_binding, recipe_digest, production_recipe_digest, RETAINED_PRODUCTION_RECIPE
 from mta.runtime.models import PlanningExpediteTransitProjection
 from mta.runtime.planning_expedite_transit_schema import verify_guards
 
@@ -18,7 +18,8 @@ def admit(run):
         raise PublicationUnavailable('planning_expedite_transit_wrong_fixture')
     receipt = PlanningExpediteTransitProjection.objects.filter(run=run).first()
     recipe = production_recipe_digest() if daily else recipe_digest()
-    if receipt is None or receipt.source_digest != source or receipt.recipe_digest != recipe or (receipt.pick_digest != pick_binding(run)):
+    accepted = (recipe, RETAINED_PRODUCTION_RECIPE) if daily else (recipe,)
+    if receipt is None or receipt.source_digest != source or receipt.recipe_digest not in accepted or (receipt.pick_digest != pick_binding(run)):
         raise PublicationUnavailable('planning_expedite_transit_receipt_missing_or_changed')
     try:
         verify_guards(connection)

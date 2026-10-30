@@ -12,9 +12,11 @@ from mta.runtime import scope_expedite_parent_models as models
 from mta.runtime.relational_state import quote
 from mta.serialization import digest,storage,rows_digest
 from mta.presentation.request_scope import validated_read,validation_reads
+from mta.presentation import expedite_transit_join
 
 SCHEMA='fresh-bpr-expedite-parent-generation-v1'
 TABLES={'base':models.ScopeExpediteParentBase,'match':models.ScopeExpediteParentMatch}
+RETAINED_RECIPE='93e9b676d014cdd6c05b66346e0d8b963b7d718a7aef1be6f44778cf7f7693a3'
 
 
 def fields(name):
@@ -24,6 +26,7 @@ def fields(name):
 def recipe_digest():
     return digest(dict(schema=SCHEMA,builder=inspect.getsource(inspect.getmodule(recipe_digest)),
         models=inspect.getsource(models),base=inspect.getsource(queries.ExpeditePickQueries.parent_base_query),
+        join=expedite_transit_join.recipe_digest(),
         fields={n:[m._meta.get_field(f).deconstruct() for f in fields(n)] for n,m in TABLES.items()}))
 
 
@@ -121,6 +124,13 @@ def _inserts(bound,remarks,identifier):
             ') SELECT %s,'+columns+' FROM ('+query+') occurrences'),[identifier,*params]
 
 
+def _prepared_match(bound,remarks,identifier):
+    return expedite_transit_join.prepared_match(
+        base=('SELECT ordinal,remark_ordinal FROM mta.fresh_mta_scopeexpediteparentbase WHERE generation_id=%s',[identifier]),
+        remarks=remarks.query(),facts=bound.fact_query('ExpediteDispatches'),
+        grids=bound.query('grid'),pick=bound.pick_query())
+
+
 def _records(identifier,name):
     with connection.chunked_cursor() as cursor:
         cursor.execute('SELECT '+','.join(map(quote,fields(name)))+' FROM mta.'+quote(TABLES[name]._meta.db_table)+
@@ -192,7 +202,7 @@ class ParentBinding:
 def _admit(row,bound,remarks,expected_digest,action_revision):
     verify_guards();generation=bound.generation
     if (not row.sealed or row.sealed_at is None or row.digest!=expected_digest or row.digest!=digest(row.metadata)
-            or row.recipe_digest!=recipe_digest() or row.action_revision!=action_revision
+            or row.recipe_digest not in (recipe_digest(),RETAINED_RECIPE) or row.action_revision!=action_revision
             or row.run_id!=generation.run_id or row.phase_id!=generation.phase_id
             or row.source_digest!=generation.source_digest or row.configuration_digest!=generation.configuration_digest
             or row.core_generation_id!=generation.pk or row.core_generation_digest!=generation.digest
@@ -240,19 +250,28 @@ def _prepare(bound,remarks,*,expected_core_digest,action_revision):
         raise PublicationUnavailable('bpr_expedite_parent_prepared_owner_differs')
     generation=bound.generation
     verify_guards();recipe=recipe_digest();remark_fields=_remark_fields(remarks)
-    existing=models.ScopeExpediteParentGeneration.objects.filter(core_generation=generation,
-        remark_digest=remark_fields['remark_digest'],recipe_digest=recipe).first()
-    if existing is not None:
-        admitted=_admit(existing,bound,remarks,existing.digest,action_revision)
-        for name in TABLES:admitted.verify_rows(name)
-        return admitted
+    for compatible_recipe in (recipe,RETAINED_RECIPE):
+        existing=models.ScopeExpediteParentGeneration.objects.filter(core_generation=generation,
+            remark_digest=remark_fields['remark_digest'],recipe_digest=compatible_recipe).first()
+        if existing is not None:
+            admitted=_admit(existing,bound,remarks,existing.digest,action_revision)
+            for name in TABLES:admitted.verify_rows(name)
+            return admitted
     row=models.ScopeExpediteParentGeneration(run_id=generation.run_id,phase_id=generation.phase_id,
         action_revision=action_revision,source_digest=generation.source_digest,configuration_digest=generation.configuration_digest,
         recipe_digest=recipe,core_generation=generation,core_generation_digest=expected_core_digest,**remark_fields)
     with _owner(row.pk):
         row.save(force_insert=True)
         for name,sql,params in _inserts(bound,remarks,row.pk):
-            with connection.cursor() as cursor:cursor.execute(sql,params)
+            if name=='match':
+                with _prepared_match(bound,remarks,row.pk) as (query,values):
+                    columns=','.join(map(quote,fields(name)))
+                    with connection.cursor() as cursor:
+                        cursor.execute('INSERT INTO mta.'+quote(TABLES[name]._meta.db_table)+
+                            ' (generation_id,'+columns+') SELECT %s,'+columns+' FROM ('+query+') occurrences',
+                            [row.pk,*values])
+            else:
+                with connection.cursor() as cursor:cursor.execute(sql,params)
         images={name:_receipt(row.pk,name) for name in TABLES}
         row.metadata=_identity(row,bound,remarks,images);row.digest=digest(row.metadata)
         row.sealed=True;row.sealed_at=timezone.now()
