@@ -117,31 +117,60 @@ def _duplicates(run):
     return problems
 
 
+def _reference_tables(run, generation):
+    """Normalize narrow source keys once, with statistics for these exact bags.
+
+    Preserve every source ordinal, including duplicate and NULL keys. The
+    temporary projections carry no business state and disappear with the
+    builder's existing transaction; original typed sources stay unchanged.
+    """
+    tables = {}
+    prefix = 'vf_btr_join_' + UUID(str(generation.pk)).hex + '_'
+    for branch in ('tech', 'eco'):
+        for alias in ORDINALS:
+            path = SOURCES[branch + '_' + alias] if alias in ('A', 'btd') else SOURCES[alias]
+            if path in tables:
+                continue
+            sku = None if alias == 'la' else 'source."SKUCode"'
+            location = (None if alias == 'sa' else 'source.' +
+                ('"WHCode"' if alias == 'la' else '"LocCode"' if alias == 'sla' else '"WhCode"'))
+            fields = ['source.vf_ordinal', *(value for value in (sku, location) if value)]
+            fields += [key(sku or 'NULL::text') + ' AS "_vf_btr_sku_key"',
+                       key(location or 'NULL::text') + ' AS "_vf_btr_location_key"']
+            query, bound = image_query(run, path)
+            name = connection.ops.quote_name(prefix + str(len(tables)))
+            with connection.cursor() as cursor:
+                cursor.execute('CREATE TEMP TABLE ' + name + ' ON COMMIT DROP AS SELECT ' +
+                    ','.join(fields) + ' FROM (' + query + ') AS source', bound)
+                cursor.execute('ANALYZE ' + name)
+            tables[path] = 'pg_temp.' + name
+    return tables
+
+
 def _populate(run, generation):
+    tables = _reference_tables(run, generation)
     for branch in ('tech', 'eco'):
         for export in (False, True):
             paths = {alias: SOURCES[branch + '_' + alias] if alias in ('A', 'btd') else SOURCES[alias]
                      for alias in ORDINALS if not (export and alias == 'sla')}
-            ctes, values = [], []
+            ctes = []
             for alias, path in paths.items():
-                query, bound = image_query(run, path)
-                ctes.append(alias + ' AS NOT MATERIALIZED (' + query + ')')
-                values.extend(bound)
+                ctes.append(alias + ' AS NOT MATERIALIZED (SELECT * FROM ' + tables[path] + ')')
             joins = ''
             for alias in paths:
                 if alias == 'A':
                     continue
-                condition = (equal('A."WhCode"', alias + '."WHCode"') if alias == 'la' else
-                             equal('A."SKUCode"', alias + '."SKUCode"'))
+                field = '"_vf_btr_location_key"' if alias == 'la' else '"_vf_btr_sku_key"'
+                condition = 'A.' + field + '=' + alias + '.' + field
                 if alias not in ('sa', 'la'):
-                    condition += ' AND ' + equal('A."WhCode"', alias + ('."LocCode"' if alias == 'sla' else '."WhCode"'))
+                    condition += ' AND A."_vf_btr_location_key"=' + alias + '."_vf_btr_location_key"'
                 joins += ' LEFT JOIN ' + alias + ' ON ' + condition
             expressions = ['%s', '%s', 'A."SKUCode"', 'A."WhCode"', key('A."SKUCode"'), key('A."WhCode"')]
             expressions += ['NULL::bigint' if export and alias == 'sla' else alias + '.vf_ordinal' for alias in ORDINALS]
             with connection.cursor() as cursor:
                 cursor.execute('WITH ' + ','.join(ctes) + ' INSERT INTO ' + REF_TABLE +
                     ' (generation_id,' + ','.join('"' + f + '"' for f in ROW_FIELDS) + ') SELECT %s,' +
-                    ','.join(expressions) + ' FROM A' + joins, values + [generation.pk, branch, export])
+                    ','.join(expressions) + ' FROM A' + joins, [generation.pk, branch, export])
 
 
 def _build(run, *, admission=None, allow_outer=False):
