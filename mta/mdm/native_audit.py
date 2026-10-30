@@ -9,6 +9,8 @@ from mta.serialization import digest, storage
 from mta.mdm.native_audit_policy import validate_policy
 from mta.runtime.native_audit_models import NativeUploadAudit, BINDINGS
 
+_POLICY_UNSET = object()
+
 
 def fields(model):
     return tuple(f.name for f in model._meta.fields if f.name not in ('id','source'))
@@ -69,6 +71,96 @@ def verify(capture, *, sealed=True):
     return capture
 
 
+def _production_initialization(run, initialized=None):
+    """Require the existing private daily or certified-opening owner handoff."""
+    from mta.application import accepted_inputs
+    from mta.runtime.opening_scope import current_certified_opening
+    from mta.mdm.production_families import _certified_metadata
+    token = accepted_inputs.current()
+    admitted = type(token) is accepted_inputs._AcceptedInputs and token.owner == str(run.pk)
+    if token is not None and not admitted:
+        raise ValueError('Native audit accepted daily owner differs')
+    seed = getattr(run, 'production_manifest', {}).get('ingestion_preparation', {})
+    if not isinstance(seed, dict) or not seed.get('initialization_id'):
+        if admitted:
+            raise ValueError('Native audit accepted initialization is absent')
+        return None
+    if initialized is None:
+        from mta.runtime.initialization_models import ProductionInitialization
+        initialized = ProductionInitialization.objects.select_related('source').get(pk=seed['initialization_id'])
+    handle = current_certified_opening(initialized)
+    if not admitted and handle is None:
+        return None
+    if handle is not None:
+        metadata = _certified_metadata(initialized, handle)
+        if (seed.get('certification_digest') != metadata[3]
+                or seed.get('base_revision_id') != metadata[4]):
+            raise ValueError('Native audit certified preparation differs')
+    if (seed.get('initialization_id') != str(initialized.pk)
+            or seed.get('source_digest') != initialized.source.digest
+            or seed.get('configuration_digest') != initialized.configuration_digest
+            or run.kind != 'DAILY_CHAIN'
+            or run.mdm_input_capture.source_id != initialized.source_id):
+        raise ValueError('Native audit accepted source/initialization differs')
+    return initialized
+
+
+def _consumer_profile(run, initialized=None):
+    initialized = _production_initialization(run, initialized)
+    if initialized is None:
+        from mta.runtime.input_reader import read_input
+        return read_input(run, components=('profile',))['profile']
+    from mta.runtime.accepted_input_read import read_accepted_input
+    return read_accepted_input(run, components=('profile',))['profile']
+
+
+def _verify_consumer(capture, *, sealed=True, command=None, policy=None):
+    """Check bounded owner metadata; explicit verify retains complete audits."""
+    command = capture.run if command is None else command
+    initialized = _production_initialization(command, getattr(capture, 'initialization', None))
+    if initialized is None:
+        return verify(capture, sealed=sealed)
+    if policy is None:
+        policy = validate_policy(_consumer_profile(command, initialized))
+    return _accepted_capture(capture, sealed=sealed, policy=policy, initialized=initialized)
+
+
+def _accepted_capture(capture, *, sealed=True, policy=_POLICY_UNSET, initialized=None):
+    """Operational read of SQL-owned immutable audit rows, without a row audit.
+
+    The owning capture already bound its policy to this configuration seal.
+    Receipt assembly also calls this after the private calculation scope ends.
+    This function must not call verify_root: native receipts are part of it.
+    """
+    initialized = capture.initialization if initialized is None else initialized
+    if policy is _POLICY_UNSET:
+        policy = validate_policy({'native_upload_audit': _policy(capture)})
+    from mta.runtime.mdm_daily_models import MdmDailyInputCapture
+    run = capture.run
+    daily = MdmDailyInputCapture.objects.get(run=run)
+    if (policy != _policy(capture) or run.kind != 'DAILY_CHAIN'
+            or capture.source_id != daily.source_id
+            or capture.source_id != initialized.source_id
+            or capture.initialization_id != initialized.pk
+            or capture.configuration_digest != initialized.configuration_digest
+            or capture.business_date != run.business_date
+            or capture.predecessor_id != run.predecessor_id
+            or capture.origin_id != daily.origin_id):
+        raise ValueError('Native audit frozen identity/value drift')
+    if capture.predecessor_id:
+        parent = capture.predecessor
+        if (parent.status != 'SEALED' or parent.run.status != 'SUCCEEDED'
+                or parent.source_id != capture.source_id
+                or parent.initialization_id != capture.initialization_id
+                or _policy(parent) != policy):
+            raise ValueError('Native audit requires its own sealed predecessor')
+    if sealed and capture.status != 'SEALED':
+        raise ValueError('Native audit terminal identity/value drift')
+    if not sealed and capture.status != 'FROZEN':
+        raise ValueError('Native audit capture is not frozen')
+    return capture
+
+
 def bind(run, daily, profile):
     """Called while the daily source lock and REPEATABLE READ are held."""
     policy = validate_policy(profile)
@@ -82,16 +174,17 @@ def bind(run, daily, profile):
     if policy['timezone'] != settings.VF_MTA_ACTION_TIME_ZONE:
         raise ValueError('Native audit timezone differs from the workflow clock')
     initialized = ProductionInitialization.objects.get(source=daily.source)
-    if initialized.configuration_digest != digest(profile):
+    admitted = _production_initialization(run, initialized) is not None
+    if not admitted and initialized.configuration_digest != digest(profile):
         raise ValueError('Native audit policy differs from initialized configuration')
     parent = None
     if run.predecessor_id:
-        parent = verify(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
-                        .get(run_id=run.predecessor_id))
+        parent = _verify_consumer(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
+                        .get(run_id=run.predecessor_id), command=run, policy=policy)
     origin = None
     if daily.origin_id:
-        origin = verify(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
-                        .get(run_id=daily.origin_id), sealed=False)
+        origin = _verify_consumer(NativeUploadAudit.objects.select_related('run','initialization','predecessor__run')
+                        .get(run_id=daily.origin_id), sealed=False, command=run, policy=policy)
         from mta.runtime.captured_input import FINITE,TERMINAL,RETRY,FINAL,origin as captured_origin
         finite=False
         if run.input_payload.get('schema') in (FINITE,TERMINAL,RETRY,FINAL):
@@ -117,24 +210,26 @@ def bind(run, daily, profile):
     for name, _, model in BINDINGS:
         model.objects.bulk_create([model(capture=capture, stage='FROZEN', **row)
                                    for row in rows[name]], batch_size=500)
-    verify(capture, sealed=False)
+    if not admitted:
+        verify(capture, sealed=False)
 
 
 def finalize(run):
     """Run after force OldNorm publication, inside the daily commit transaction."""
-    from mta.runtime.input_reader import read_input
-    policy = validate_policy(read_input(run, components=('profile',))['profile'])
+    policy = validate_policy(_consumer_profile(run))
     if policy is None:
         if NativeUploadAudit.objects.filter(run=run).exists():
             raise ValueError('Native audit capture without its initialized policy')
         return
-    capture = verify(NativeUploadAudit.objects.select_for_update(of=('self',)).select_related(
-        'run','initialization','predecessor__run').get(run=run), sealed=False)
+    capture = _verify_consumer(NativeUploadAudit.objects.select_for_update(of=('self',)).select_related(
+        'run','initialization','predecessor__run').get(run=run), sealed=False, policy=policy)
+    admitted = _production_initialization(run, capture.initialization) is not None
     cutoff = capture.business_date - timedelta(days=capture.horizon + 1)
     zone = ZoneInfo(capture.timezone)
     with connection.cursor() as cursor:
         cursor.execute("SELECT set_config('fresh.native_audit_run',%s,true)", [str(run.pk)])
     frozen = images(capture, 'FROZEN')
+    terminal_images = {}
     for name, source, model in BINDINGS:
         rows = frozen[name]
         current = {row['id']: row for row in source.objects.select_for_update()
@@ -143,7 +238,7 @@ def finalize(run):
         terminal = []
         for row in rows:
             live = current.get(row['source_pk'])
-            if live is None or any(live[key] != row[key] for key in fields(source)
+            if live is None or not admitted and any(live[key] != row[key] for key in fields(source)
                     if not (name == 'UIUploadLogFNC' and key == 'OldNorm')):
                 raise ValueError('Captured native audit occurrence changed: '+name)
             stamp = live['ActionTimeStamp']
@@ -154,19 +249,24 @@ def finalize(run):
                 **{key: live[key] for key in fields(source)}))
         model.objects.bulk_create([model(capture=capture, stage='FINAL', **row)
                                    for row in terminal], batch_size=500)
+        terminal_images[name] = terminal
         # Exact source occurrence identity, never business-key or date-only delete.
         source.objects.filter(source=capture.source,
             pk__in=[r['source_pk'] for r in terminal if not r['retained']]).delete()
-    capture.terminal_digest = image_digest(capture, 'FINAL')
+    capture.terminal_digest = image_digest(capture, 'FINAL', terminal_images) if admitted else image_digest(capture, 'FINAL')
     capture.status = 'SEALED'
     capture.save(update_fields=['status','terminal_digest'])
-    verify(capture)
+    if not admitted:
+        verify(capture)
 
 
 def receipt(run):
-    from mta.runtime.input_reader import read_input
     captures = NativeUploadAudit.objects.select_related('run','initialization','predecessor__run').filter(run=run)
     capture = captures.first()
+    if capture is not None:
+        _accepted_capture(capture)
+        return dict(**identity(capture), status=capture.status,
+            frozen_digest=capture.frozen_digest, terminal_digest=capture.terminal_digest)
     if capture is None:
         from mta.runtime.captured_input import SCHEMAS, origin
         from mta.runtime.input_v3 import component_absent
@@ -175,13 +275,14 @@ def receipt(run):
             capture = captures.first()
             if capture is None:
                 return None
-    policy = validate_policy(read_input(run, components=('profile',)).get('profile', {}))
+    from mta.runtime.accepted_input_read import read_accepted_input
+    policy = validate_policy(read_accepted_input(run, components=('profile',)).get('profile', {}))
     capture = captures.first()
     if policy is None and capture is None:
         return None
     if capture is None:
         raise ValueError('Missing required native audit capture')
-    verify(capture)
+    _accepted_capture(capture, policy=policy)
     return dict(**identity(capture), status=capture.status,
         frozen_digest=capture.frozen_digest, terminal_digest=capture.terminal_digest)
 

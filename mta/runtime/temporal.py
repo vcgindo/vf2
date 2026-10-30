@@ -657,7 +657,14 @@ def execute_day(*, day, profile, execution_revision, predecessor=None, opening=N
                 from mta.runtime.production_daily import input_table
                 options = (dict(version=3,batch_references=batch_references,owner_references=owner_references,
                                 content_identity=content_identity) if prepared_state is not None else {})
-                run.input_payload=save_input(run,raw,table_selector=input_table,**options)
+                if prepared_state is not None:
+                    from mta.runtime.accepted_reference_write import _capture
+                    with _capture(run, raw, initialized, prepared_state, staged_attempt, parent,
+                            owner_references=owner_references, batch_references=batch_references,
+                            content_identity=content_identity):
+                        run.input_payload=save_input(run,raw,table_selector=input_table,**options)
+                else:
+                    run.input_payload=save_input(run,raw,table_selector=input_table,**options)
             else:
                 run.input_payload=save_input(run,raw)
             run.input_manifest_digest=digest(run.input_payload)

@@ -96,11 +96,11 @@ def upload_inputs(owner):
 def native_upload_inputs(run):
     """Existing exporter inputs from immutable same-run typed audit rows."""
     from mta.runtime.receipt_integrity import verify_root
-    from mta.mdm.native_audit import verify, images, native_rows
+    from mta.mdm.native_audit import _accepted_capture, images, native_rows
     from mta.runtime.native_audit_models import NativeUploadAudit
     run.refresh_from_db()
     verify_root(run)
-    capture = verify(NativeUploadAudit.objects.select_related(
+    capture = _accepted_capture(NativeUploadAudit.objects.select_related(
         'run','initialization','predecessor__run').get(run=run))
     retained = {name:[r for r in rows if r['retained']]
                 for name, rows in images(capture, 'FINAL').items()}

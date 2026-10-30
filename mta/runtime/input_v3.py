@@ -291,8 +291,8 @@ def _batch_attempt(owner, attempt_id, resolver):
     return attempt
 
 
-def _resolve_batch(owner, path, reference, owner_identity, resolver, *,
-                   allow_owned_failed=False):
+def _batch_metadata(owner, path, reference, owner_identity, resolver, *,
+                    allow_owned_failed=False):
     reference = _batch_reference(reference, path)
     if owner_identity['owner_kind'] != 'run':
         raise ValueError('Typed input batch references require a run owner')
@@ -314,13 +314,22 @@ def _resolve_batch(owner, path, reference, owner_identity, resolver, *,
     if (entry.get('digest') != reference['population_digest']
             or entry.get('count') != reference['count']):
         raise ValueError('Typed input batch population identity differs')
+    return attempt, manifest
+
+
+def _resolve_batch(owner, path, reference, owner_identity, resolver, *,
+                   allow_owned_failed=False):
+    reference = _batch_reference(reference, path)
+    attempt, manifest = _batch_metadata(owner, path, reference, owner_identity, resolver,
+        allow_owned_failed=allow_owned_failed)
+    from mta.runtime import batch_storage
     factory = lambda: batch_storage.iter_population(attempt, reference['filename'], manifest,
         _allow_owned_failed=allow_owned_failed)
     return (RecordRows(reference['count'], factory)
             if reference['count'] > 10000 else list(factory()))
 
 
-def _batch_references(raw, references, owner, owner_identity, resolver):
+def _batch_references(raw, references, owner, owner_identity, resolver, *, _capture=None):
     if references is None:
         return {}
     if not isinstance(references, dict):
@@ -332,10 +341,15 @@ def _batch_references(raw, references, owner, owner_identity, resolver):
         target = _at(raw, path)
         if not _collection(target):
             raise ValueError('Typed input batch reference requires a collection target')
-        rows = _resolve_batch(owner, path, reference, owner_identity, resolver)
-        with stage('batch_reference_compare', path=path):
-            if not _typed_equal(target, rows):
-                raise ValueError('Typed input batch population differs: ' + path)
+        if _capture is not None:
+            if reference['attempt_id'] != _capture.attempt_id:
+                raise ValueError('Accepted reference batch is foreign')
+            _batch_metadata(owner, path, reference, owner_identity, resolver)
+        else:
+            rows = _resolve_batch(owner, path, reference, owner_identity, resolver)
+            with stage('batch_reference_compare', path=path):
+                if not _typed_equal(target, rows):
+                    raise ValueError('Typed input batch population differs: ' + path)
         result[path] = reference
     return result
 
@@ -530,7 +544,7 @@ def component_absent(owner, path):
     return False
 
 
-def _owner_references(raw, references, owner, owner_identity, resolver):
+def _owner_references(raw, references, owner, owner_identity, resolver, *, _capture=None):
     if references is None:
         return {}
     if not isinstance(references, dict):
@@ -540,10 +554,16 @@ def _owner_references(raw, references, owner, owner_identity, resolver):
         path = _normal_path(path)
         reference = _owner_reference(value, path)
         target = _at(raw, path)
-        resolved = _resolve_owner(owner, path, reference, owner_identity, resolver)
-        with stage('owner_reference_compare', path=path):
-            if not _typed_equal(target, resolved):
-                raise ValueError('Typed input referenced population differs: ' + path)
+        if _capture is not None:
+            if (reference['kind'] == 'INITIALIZATION'
+                    and reference['owner_id'] != str(_capture.initialization.pk)):
+                raise ValueError('Accepted reference initialization is foreign')
+            _owner_manifest(owner, path, reference, owner_identity, resolver)
+        else:
+            resolved = _resolve_owner(owner, path, reference, owner_identity, resolver)
+            with stage('owner_reference_compare', path=path):
+                if not _typed_equal(target, resolved):
+                    raise ValueError('Typed input referenced population differs: ' + path)
         result[path] = reference
     return result
 
@@ -608,7 +628,7 @@ def _derived_parent(owner, reference, resolver):
     return current.predecessor
 
 
-def _resolve_derived_master(owner, reference, owner_identity, resolver, *, projection=None):
+def _derived_master_metadata(owner, reference, owner_identity, resolver):
     reference = _master_reference(reference)
     if owner_identity['owner_kind'] != 'run':
         raise ValueError('Typed input derived master requires a run owner')
@@ -659,6 +679,12 @@ def _resolve_derived_master(owner, reference, owner_identity, resolver, *, proje
         image = parent.production_manifest['images'][MASTER_IMAGE]
     except (KeyError, TypeError) as error:
         raise ValueError('Typed input derived master image is unavailable') from error
+    return parent, image
+
+
+def _resolve_derived_master(owner, reference, owner_identity, resolver, *, projection=None):
+    reference = _master_reference(reference)
+    parent, image = _derived_master_metadata(owner, reference, owner_identity, resolver)
     from mta.runtime.relational_state import load_image
     rows = load_image(parent, image)
     from mta.application.persistent_master import NmsMasterRows
@@ -681,9 +707,11 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
     """Write an opt-in v3 manifest; callers must persist its digest separately."""
     from mta.runtime import input_storage as common
     identity = _identity(owner, identity_resolver, reading=False)
+    from mta.runtime.accepted_reference_write import _for_write
+    capture = _for_write(owner, raw, identity, owner_references, batch_references, content_identity)
     aliases = _aliases(raw, aliases)
-    batch_references = _batch_references(raw, batch_references, owner, identity, batch_resolver)
-    owner_references = _owner_references(raw, owner_references, owner, identity, owner_resolver)
+    batch_references = _batch_references(raw, batch_references, owner, identity, batch_resolver, _capture=capture)
+    owner_references = _owner_references(raw, owner_references, owner, identity, owner_resolver, _capture=capture)
     if len(set(aliases) | set(batch_references) | set(owner_references)) != (
             len(aliases) + len(batch_references) + len(owner_references)):
         raise ValueError('Typed input path cannot have multiple reference owners')
@@ -695,19 +723,25 @@ def save_input(owner, raw, *, image_writer, table_selector, aliases=None,
     derived_references = {}
     if isinstance(raw_master, NmsMasterRows):
         reference = _master_reference(raw_master.reference)
-        resolved = _resolve_derived_master(owner, reference, identity, master_resolver,
-            projection=((raw['mdm_input'],raw['day']['business_date']) if master_resolver is None else None))
-        if not _typed_equal(raw_master, resolved):
-            raise ValueError('Typed input derived master population differs')
+        if capture is not None:
+            if reference['run_id'] != capture.predecessor_id:
+                raise ValueError('Accepted derived master predecessor is foreign')
+            _derived_master_metadata(owner, reference, identity, master_resolver)
+        else:
+            resolved = _resolve_derived_master(owner, reference, identity, master_resolver,
+                projection=((raw['mdm_input'],raw['day']['business_date']) if master_resolver is None else None))
+            if not _typed_equal(raw_master, resolved):
+                raise ValueError('Typed input derived master population differs')
         derived_references[MASTER_PATH] = reference
     prepared_identity = None
     if content_identity is not None:
         prepared_identity = _validate_content_owner(owner, identity, content_identity,
                                                      identity_resolver)
-        expected = content_root(raw, prepared_identity, owner_references=owner_references,
-                                batch_references=batch_references)
-        if owner.input_digest != expected:
-            raise ValueError('Typed prepared input content root differs')
+        if capture is None:
+            expected = content_root(raw, prepared_identity, owner_references=owner_references,
+                                    batch_references=batch_references)
+            if owner.input_digest != expected:
+                raise ValueError('Typed prepared input content root differs')
     images = {}
 
     def image(path, rows, table=None):

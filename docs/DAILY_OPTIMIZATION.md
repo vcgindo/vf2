@@ -31,6 +31,12 @@ Full and the BPR/DBM cuts share their producers. Typed phase snapshots carry the
 accepted-input handoff and preparation result through continuation. Finalization
 does not replay predecessor completion or accepted earlier phases.
 
+Native input capture binds a private reference-writing capability to its exact
+transaction, run, source, accepted feed and reference subtrees. It stores existing
+owner and batch references without rereading their cells; the default writer
+and diagnostic readers retain their comparisons. Native upload-audit consumers
+reuse their bound policy and seals, keeping the original retention calculations.
+
 ## Current tables and reports
 
 Large admitted current-table writes stage expected typed rows once. A narrow

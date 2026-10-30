@@ -68,19 +68,19 @@ class OptionalAuditReceiptTests(TestCase):
             self.assertEqual(query.first.call_count, 2)
             read.assert_not_called()
 
-    def test_existing_capture_keeps_original_full_policy_and_verification(self):
+    def test_existing_capture_uses_bounded_owned_metadata_without_profile_audit(self):
         from mta.mdm import native_audit
         capture = NS(status='SEALED', frozen_digest='frozen', terminal_digest='terminal')
         with patch.object(native_audit.NativeUploadAudit, 'objects') as objects, \
                 patch.object(input_v3, 'component_absent') as absent, \
                 patch('mta.runtime.input_reader.read_input', return_value={'profile': {}}) as read, \
-                patch.object(native_audit, 'verify') as verify, \
+                patch.object(native_audit, '_accepted_capture') as verify, \
                 patch.object(native_audit, 'identity', return_value={'id': 'capture'}):
             objects.select_related.return_value.filter.return_value.first.return_value = capture
             run = NS(input_payload={})
             self.assertEqual(native_audit.receipt(run)['id'], 'capture')
             absent.assert_not_called()
-            read.assert_called_once_with(run, components=('profile',))
+            read.assert_not_called()
             verify.assert_called_once_with(capture)
 
     def test_shared_owner_validation_failure_propagates(self):
