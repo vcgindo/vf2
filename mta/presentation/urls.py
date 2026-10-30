@@ -4,6 +4,7 @@ from mta.presentation import views
 from mta.presentation import mdm_views, logistics_views
 from mta.presentation import runtime_placement_downloads
 from mta.presentation import order_report_views
+from mta.presentation import native_diagnostic_downloads
 
 urlpatterns = [
     path('SubmitOpenExpediteRequest', partial(logistics_views.command, operation='submit')),
@@ -41,8 +42,8 @@ urlpatterns = [
     path('SKUDesc', partial(views.descriptions, kind='sku')),
     path('WHDesc', partial(views.descriptions, kind='location')),
     path('GetEnvironmentConfiguration', views.environment),
-    path('GetAllReports', runtime_placement_downloads.report_paths),
-    path('DownloadReports/<str:report_name>', runtime_placement_downloads.download_report),
+    path('GetAllReports', native_diagnostic_downloads.report_paths),
+    path('DownloadReports/<str:report_name>', native_diagnostic_downloads.download_report),
     path('GetUIConfig', order_report_views.ui_config),
     path('EOUIConfig', order_report_views.ui_config),
     path('GetOrderAllocationReportData', order_report_views.order_data),

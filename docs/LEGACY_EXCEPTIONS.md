@@ -2055,3 +2055,38 @@ and product/location grants unchanged. Existing api.core administrator policy
 already enumerates current FUNCTION metadata; ordinary users still need explicit
 role links. This is new navigation metadata for a now-implemented existing
 screen, not a claim that the retained identity seed contained that permission.
+
+## Native diagnostic availability and accepted rejection export — 30 October 2026
+
+G3 inventory of the qualified V3 source found RejectedMaster3/6 on Apr8/Apr9,
+including carried history, but no NativeUploadAudit, operational files or
+diagnostic publications. Absence of the eight upload-log captures cannot certify
+empty logs. No captured fullkit abort exists for DailyDataUnavailabilityReport.
+Those nine absent downloads are omitted from current native download metadata;
+direct requests return an attributable404 rather than a fabricated file.
+
+InvalidDataReport can be projected read-only from the existing immutable
+selected-run RejectedMaster. Pinned InvalidDataReport.sql SHA256
+26011ea60891f9f04156f7bcac77080015c2f957c81cedb5c612aed72b24874e selects the
+exact RunDateTime and orders only ReasonCode DESC. The wrapper
+InvalidDataAlert.bat SHA256
+2f3954b72a5c47f25f160388b9fedad67486106b461781c297e42f6686684d68 creates the
+download ZIP even for zero selected rows before checking email settings.
+Negative and zero reasons therefore remain report rows. Business midnight is
+the existing approved Asia/Kolkata wall clock, represented without a timezone
+for native SQL datetime; it is not converted to a UTC wall time.
+
+The new HTTP export streams typed SQL rows in bounded batches through the
+existing SQLCMD formatter into one InvalidDataReport.csv ZIP member. It creates
+no new calculation, intake custody, operational attempt, persisted facts,
+producer seal or preparation phase. Existing explicitly published source-local
+diagnostic custody retains priority. Fallback is allowed only after the original
+reader has verified its guards and returned the precise no-publication result;
+guard, receipt, owner and file corruption still deny. The exact existing report
+entitlement and selected-source admission remain mandatory. Scoped dispatch
+continues to use its existing owners, with no fallback to a Full run.
+
+This newly packaged Python ZIP does not claim byte equality with original
+7-Zip timestamps/compression. Source/CSV equivalence is qualified separately,
+including exact clock, historical exclusion, negative/zero reasons, duplicate
+rows, NULL description, native unquoted commas, CRLF and empty header-only output.
