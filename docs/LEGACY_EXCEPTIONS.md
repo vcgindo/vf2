@@ -2044,3 +2044,14 @@ Due-date editing is a separate write contract. The original direct UPDATE of
 ElephantOrders has no accepted immutable-state amendment owner; this read-only
 completion does not authorize updating frozen closing images or certify that
 action. No due-date write endpoint is added by this slice.
+
+Actual G2 Chrome validation found the retained identity FUNCTION catalogue also
+omitted the existing OrderAllocationReport frontend URL, causing a real 403
+page despite successful APIs. The installer now adds that single supplemental
+navigation definition to fresh installations; its bounded repair adds only the
+same missing row to an existing Distribution installation and refuses conflicts.
+It leaves the canonical retained catalogue, roles, role links, users, credentials
+and product/location grants unchanged. Existing api.core administrator policy
+already enumerates current FUNCTION metadata; ordinary users still need explicit
+role links. This is new navigation metadata for a now-implemented existing
+screen, not a claim that the retained identity seed contained that permission.

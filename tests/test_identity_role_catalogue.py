@@ -142,6 +142,32 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(Roles.objects.count(), 1)
         self.assertEqual(list(role.permission_id.all()), [permission])
 
+    def test_order_report_navigation_adds_metadata_without_assigning_grants(self):
+        from api.models import User, Roles, Permission, FeatureMaster
+        self.base()
+        before = dict(users=list(User.all_objects.values()), roles=list(Roles.objects.values()),
+            user_roles=list(Roles.user_id.through.objects.values()),
+            role_urls=list(Permission.role_id.through.objects.values()),
+            role_features=list(FeatureMaster.role_id.through.objects.values()))
+        first = installer.repair_order_report_navigation()
+        self.assertTrue(first['permission_created'])
+        self.assertFalse(installer.repair_order_report_navigation()['permission_created'])
+        self.assertEqual(Permission.objects.filter(**installer.ORDER_REPORT_NAVIGATION).count(), 1)
+        self.assertEqual(before, dict(users=list(User.all_objects.values()), roles=list(Roles.objects.values()),
+            user_roles=list(Roles.user_id.through.objects.values()),
+            role_urls=list(Permission.role_id.through.objects.values()),
+            role_features=list(FeatureMaster.role_id.through.objects.values())))
+
+    def test_order_report_navigation_conflicts_are_not_overwritten(self):
+        from api.models import Permission
+        self.base()
+        definition = dict(installer.ORDER_REPORT_NAVIGATION, code='CUSTOM')
+        Permission.objects.create(**definition)
+        before = list(Permission.objects.values())
+        with self.assertRaisesRegex(ValueError, 'no overwrite'):
+            installer.repair_order_report_navigation()
+        self.assertEqual(list(Permission.objects.values()), before)
+
 
 if __name__ == '__main__':
     unittest.main()
