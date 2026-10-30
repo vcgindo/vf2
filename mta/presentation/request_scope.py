@@ -142,6 +142,8 @@ def in_read_request():
 # Explicit read-only routes, including POST-based report and MDM queries.
 # Action, MDM, layout and remark writes never enter this scope.
 READ_ROUTES = frozenset((
+    'EOUIConfig', 'GetOrderAllocationReportData', 'GetOrderAllocationReportDataCount',
+    'GetElephantOrderData', 'GetElephantOrderDataCount',
     'readyz',
     'GetAllPermmision', 'LocationType', 'GetEnvironmentConfiguration', 'SKUDesc', 'WHDesc',
     'GetAllReports', 'GetUIConfig', 'GetLastRunDate', 'GetState',

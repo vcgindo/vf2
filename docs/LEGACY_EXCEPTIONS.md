@@ -1995,3 +1995,52 @@ date and action-consumer evidence when that later boundary is released. No new
 trial, replay, PostDBM release or configuration mutation follows from this note.
 The authoritative status and decision record remains
 F:/freshvcf/docs/handoff-3005/TRACKER.md.
+
+## Order-report backend presentation completion — 30 October 2026
+
+Scope: isolated optimized8091 gap G2 under the direct human release recorded
+in the canonical handoff tracker. No calculation, producer, receipt, input,
+accepted closing state or frontend change. Pinned API DLL SHA256
+0222eb96677a8f06250c4bba9eb0d477ac2dab6c88d35b214a33e7a9248bb346;
+retained PlanningProcessor decompilation SHA256
+bf716c4f84e43920b5f2ab302e3d3c78ec685f5d714471c53047d377537d3486,
+OrderAllocationReportData3262/count3449 and ElephantOrderData2760/count2812.
+
+OrderAllocation's count references AllocatedOrders.WhCode in its two attribute
+joins, although pinned BPR_DBCreation.sql and the actual typed producer have
+DestWhCode/SrcWhCode only. The data query and count's own permissions explicitly
+use DestWhCode. The new reader corrects only those count destination joins to
+DestWhCode. It retains count's INNER SKU/location attributes, LEFT pair
+attributes and absence of description joins. This is a documented query
+reference correction, not unchanged legacy query parity; data/count may
+legitimately differ when dimensions are missing or duplicated.
+
+Canonical count aliases Count, but the unchanged frontend reads data[0].count;
+the backend retains Count and adds count with the same integer. Elephant's
+initial load reads recordCount while its filter handler reads data[0].count;
+the count response retains the string recordCount and additionally supplies
+that integer array cell. These explicit presentation corrections do not alter
+count grain. Existing Excel exports use the same paginated data endpoint and
+native DueDate, not the separate CSV contract's DueDateAtDest.
+
+OrderAllocation visible configuration derives from the pinned native
+UI_ReportConfiguration_2.0.sql and UI_ReportColumnTypes_2.0.sql seed definitions;
+it is not a deployed configuration-row capture. No ElephantOrderReport seed or
+capture was found in the bounded retained source search. Its new backend
+metadata exposes the existing thirteen processor output fields, using the
+existing frontend tooltip terminology. It makes no legacy configuration parity
+claim. UI columns do not become business facts or a new publication source.
+
+The Commons six-group OR gate, custom-only gate omission, discarded
+forchildren join and attributable missing-column filter failures remain.
+The case-sensitive uppercase A.ParentWhCode replacement does not match
+Commons' emitted lowercase a.ParentWhCode. Missing allocation WhCode,
+ParentWhCode, norm/stock/GIT and unavailable colour/history fields are not
+invented or redirected. Elephant ignores request filters, scopes receiving
+WhCode (not TopmostWhCode), retains the unused receiving-description join's
+multiplicity, and derives EPD only from IntroDate plus the native integer RLT.
+
+Due-date editing is a separate write contract. The original direct UPDATE of
+ElephantOrders has no accepted immutable-state amendment owner; this read-only
+completion does not authorize updating frozen closing images or certify that
+action. No due-date write endpoint is added by this slice.

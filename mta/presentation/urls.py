@@ -3,6 +3,7 @@ from django.urls import path
 from mta.presentation import views
 from mta.presentation import mdm_views, logistics_views
 from mta.presentation import runtime_placement_downloads
+from mta.presentation import order_report_views
 
 urlpatterns = [
     path('SubmitOpenExpediteRequest', partial(logistics_views.command, operation='submit')),
@@ -42,7 +43,12 @@ urlpatterns = [
     path('GetEnvironmentConfiguration', views.environment),
     path('GetAllReports', runtime_placement_downloads.report_paths),
     path('DownloadReports/<str:report_name>', runtime_placement_downloads.download_report),
-    path('GetUIConfig', views.ui_config),
+    path('GetUIConfig', order_report_views.ui_config),
+    path('EOUIConfig', order_report_views.ui_config),
+    path('GetOrderAllocationReportData', order_report_views.order_data),
+    path('GetOrderAllocationReportDataCount', partial(order_report_views.order_data, count=True)),
+    path('GetElephantOrderData', partial(order_report_views.order_data, elephant=True)),
+    path('GetElephantOrderDataCount', partial(order_report_views.order_data, elephant=True, count=True)),
     path('GetState', partial(views.user_layout, operation='get')),
     path('SaveState', partial(views.user_layout, operation='save')),
     path('ResetState', partial(views.user_layout, operation='reset')),

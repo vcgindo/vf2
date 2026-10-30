@@ -21,7 +21,7 @@ def metadata_request(environ):
     path, method = environ.get('PATH_INFO', ''), environ.get('REQUEST_METHOD', 'GET')
     if method == 'GET' and path in (
             '/api/mta/GetEnvironmentConfiguration', '/api/mta/GetAllReports',
-            '/api/mta/GetAllPermmision', '/api/mta/GetUIConfig'):
+            '/api/mta/GetAllPermmision', '/api/mta/GetUIConfig', '/api/mta/EOUIConfig'):
         if path.endswith('/GetUIConfig'):
             from urllib.parse import parse_qs
             values = parse_qs(environ.get('QUERY_STRING', ''))
