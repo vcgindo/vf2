@@ -83,7 +83,8 @@ def _checked_selection(run):
     native = native_publication.identity(run)
     if getattr(settings, 'VF_BTR_REPORTING_GENERATION', ''):
         _btr_ready(run)
-    native_selection.require_candidate(native_selection.candidate(run, publication, summary, native))
+    native_selection.require_candidate(native_selection.candidate(run, publication, summary, native,
+        input_archive=native_selection.selected_archive(run)))
 
 
 def startup(binding):

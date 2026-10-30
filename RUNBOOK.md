@@ -99,6 +99,8 @@ Each command owns staging, full-day calculation, persistence, report/archive pre
 
 After a daily command returns **PUBLISHED**, open **http://127.0.0.1:8089**, sign in with the installed administrator and check the selected date's reports, filters and downloads. During daily processing MTA is stopped; login/report requests may return 503 until publication finishes. A blank installation has no calculated reports.
 
+New daily runs carry the verified InputData ZIP checksum in the same atomic selection bundle. Downloads check native ownership, the current selection and every compressed byte before sending the file; they do not reconstruct all input facts again. Older selection bundles retain the complete audit. The maintenance command `qualify_native_input_archive` can fully audit an existing archive and stage an upgraded operator selection with `--output-file`; it does not initialize, calculate or rebuild reports. Keep the preserved original selection with the instance during a qualified code upgrade.
+
 On an error, retain the output and `data/operations` records, then diagnose the failed phase. Do not reset volumes, repeat initialization or recalculate a committed day. Use `-Resume` only after reconciling that state. A normal later restart uses `docker compose stop` followed by `docker compose up -d --no-build --wait` with this same `.env` and data.
 
 Detailed installation/SMTP reference: [release/SOURCE_BUILD.md](release/SOURCE_BUILD.md). Daily recovery reference: [release/CSV_DAILY_RUN.md](release/CSV_DAILY_RUN.md). Retained prebuilt packages: [release/RUNBOOK.md](release/RUNBOOK.md). The prior captured-input recovery is separate from measuring this fresh build/ingestion/browser run.

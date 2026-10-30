@@ -765,14 +765,16 @@ def execute(attempt_id, binding_file, *, pick_root, resume=False):
                 native_path = regular(Path(original_attempt.archive_path)/'native-day.json',
                                       Path(original_attempt.archive_path))
             with operation(str(run.pk)), stage('input_archive'):
-                prepare(run, binding['_opening_path'], native_path)
+                archive_result = prepare(run, binding['_opening_path'], native_path)
             from mta.presentation.admission import prepared as verify
             with operation(str(run.pk)), stage('report_admission'):
                 verify(run)
             from mta.presentation.native_selection import candidate
             from mta.presentation.native_publication import identity
             with operation(str(run.pk)),stage('candidate_binding'):
-                candidate_value = candidate(run, receipt, summary, identity(run))
+                from mta.archive_receipt import prepared as archive_receipt
+                candidate_value = candidate(run, receipt, summary, identity(run),
+                    input_archive=archive_receipt(archive_result))
                 atomic_json(root / 'candidate-selection.json', candidate_value)
             logger.warning('daily_phase run=%s phase=report_preparation_and_admission seconds=%.6f',
                            run.pk, perf_counter()-prepare_started)
@@ -819,7 +821,8 @@ def select(attempt_id, binding_file, selection_file):
         from mta.presentation.native_selection import candidate as make_candidate
         require_publication(attempt.run)
         expected = make_candidate(attempt.run, require_ready(attempt.run),
-                                  summary_ready(attempt.run), identity(attempt.run))
+                                  summary_ready(attempt.run), identity(attempt.run),
+                                  input_archive=candidate.get('input_archive'))
         if candidate != expected:
             raise ValueError('Prepared generation no longer matches its native receipts')
         if target.exists():

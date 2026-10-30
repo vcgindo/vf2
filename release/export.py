@@ -26,6 +26,7 @@ SUPPORTED_MTA_COMMANDS = frozenset(('process_daily_csv', 'initialize_production'
 SUPPORTED_MTA_COMMANDS |= frozenset(('run_production_upto_bpr','run_production_upto_dbm','fence_production_scope'))
 SUPPORTED_MTA_COMMANDS |= frozenset(('run_production_report_placement','continue_production_report_placement'))
 SUPPORTED_MTA_COMMANDS |= frozenset(('register_runtime_report_configuration','publish_diagnostic_download'))
+SUPPORTED_MTA_COMMANDS |= frozenset(('qualify_native_input_archive',))
 
 def included(name):
     path = PurePosixPath(name)

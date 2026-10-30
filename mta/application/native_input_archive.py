@@ -52,7 +52,7 @@ def _inputs(run):
     return value
 
 
-def _pins(run, captured):
+def _pins(run, captured, *, captured_digest=None):
     binding = captured['initialization_binding']
     from mta.runtime.captured_input import SCHEMAS, origin
     # A continuation owns its wrapper manifest, while its logical root retains
@@ -60,7 +60,8 @@ def _pins(run, captured):
     # fully validated chain; never relabel a prepared root as a raw JSON hash.
     physical=origin(run) if run.input_payload.get('schema') in SCHEMAS else run
     prepared=physical.input_payload.get('content_kind')=='native-prepared-input-v1'
-    versioned=(dict(input_digest_kind='native-prepared-input-v1',captured_input_digest=digest(captured)) if prepared else {})
+    versioned=(dict(input_digest_kind='native-prepared-input-v1',
+        captured_input_digest=digest(captured) if captured_digest is None else captured_digest) if prepared else {})
     return dict(schema='fresh-native-input-download-v2' if prepared else SCHEMA, restriction=RESTRICTION, run_id=str(run.pk),
         business_date=run.business_date.isoformat(),
         initialization_id=binding['id'], source_digest=binding['source_digest'],
@@ -187,25 +188,27 @@ def _prepare(run, opening_file, daily_file, captured):
         output.flush();os.fsync(output.fileno())
     actual=_file_identity(temporary)
     if target.exists():
-        stream,_=open_archive(run)
+        stream,_=audit_archive(run)
         stream.close()
         if _file_identity(target)!=actual:raise ArchiveDenied('native_input_archive_existing_bytes_differ')
     else:
         try:os.link(temporary,target)  # Atomic exclusive promotion; never overwrite.
         except FileExistsError:
-            stream,_=open_archive(run);stream.close()
+            stream,_=audit_archive(run);stream.close()
             if _file_identity(target)!=actual:raise ArchiveDenied('native_input_archive_existing_bytes_differ')
     temporary.unlink()
     return dict(path=str(target),**actual,manifest=manifest)
 
 
-def open_archive(run):
+def audit_archive(run, *, _attest=False):
+    """Original complete relational/member audit, including during upgrades."""
     captured=_inputs(run)
     expanded_limit,compressed_limit=_limits()
     path=_archive_path(run,captured)
     stream=path.open('rb')
     try:
-        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):raise ArchiveDenied('native_input_archive_not_file')
+        before = os.fstat(stream.fileno())
+        if not stat.S_ISREG(before.st_mode):raise ArchiveDenied('native_input_archive_not_file')
         if os.fstat(stream.fileno()).st_size>compressed_limit:raise ArchiveDenied('native_input_archive_compressed_limit')
         with zipfile.ZipFile(stream) as archive:
             infos=archive.infolist()
@@ -228,9 +231,104 @@ def open_archive(run):
                     while block:=member.read(1024*1024):checksum.update(block);size+=len(block)
                 if checksum.hexdigest()!=expected_hash or manifest['files'][name]!=dict(bytes=size,sha256=expected_hash):
                     raise ArchiveDenied('native_input_archive_file_drift')
-        stream.seek(0);return stream,FILENAME
+        stream.seek(0)
+        if _attest:
+            return stream, FILENAME, before, manifest
+        return stream,FILENAME
     except BaseException as error:
         stream.close()
         if isinstance(error,(OSError,zipfile.BadZipFile,KeyError,TypeError,ValueError)):
             raise ArchiveDenied('native_input_archive_invalid: '+str(error)) from error
+        raise
+
+
+def audited_receipt(run):
+    """Attest existing bytes after the full audit, without creating any file."""
+    from mta.archive_receipt import prepared
+    stream, _, before, manifest = audit_archive(run, _attest=True)
+    with stream:
+        stream.seek(0)
+        checksum = hashlib.sha256(); size = 0
+        while block := stream.read(1024*1024):
+            checksum.update(block); size += len(block)
+        after = os.fstat(stream.fileno())
+        if (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
+                after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns, after.st_ctime_ns):
+            raise ArchiveDenied('native_input_archive_changed_during_audit')
+        return prepared(dict(sha256=checksum.hexdigest(), bytes=size, manifest=manifest))
+
+
+def open_archive(run):
+    """Verify every compressed byte against the admitted offline attestation.
+
+    Only protected native ownership and the exact loaded operator selection can
+    use this path. Older selections retain the complete independent audit.
+    """
+    from mta.presentation import native_selection
+    receipt = native_selection.selected_archive(run)
+    if receipt is None:
+        return audit_archive(run)
+    from mta.presentation.accepted_publication import _qualified_ownership
+    from mta.presentation import native_publication
+    native_publication.require_mode()
+    if not _qualified_ownership(run):
+        raise ArchiveDenied('native_input_archive_immutable_ownership_required')
+    native_selection.require_selected(run)
+    identity = native_publication.identity(run)
+    captured = read_input(run, components=('initialization_binding', 'daily_input_sha256',
+        'pick_output_root', 'scope_request'))
+    if (digest(run.input_payload) != run.input_manifest_digest
+            or captured.get('initialization_binding') != identity['initialization']):
+        raise ArchiveDenied('native_input_archive_identity_drift')
+    manifest = receipt['manifest']
+    expected = _pins(run, captured, captured_digest=manifest.get('captured_input_digest'))
+    if (set(manifest) != set(expected) | {'files'}
+            or any(manifest[k] != v for k, v in expected.items())
+            or manifest['files']['NativeOpeningInput.json']['sha256'] !=
+                captured['initialization_binding']['input_sha256']
+            or manifest['files']['NativeDailyInput.json']['sha256'] != captured['daily_input_sha256']):
+        raise ArchiveDenied('native_input_archive_manifest_drift')
+    expanded_limit, compressed_limit = _limits()
+    path = _archive_path(run, captured)
+    stream = path.open('rb')
+    try:
+        before = os.fstat(stream.fileno())
+        if not stat.S_ISREG(before.st_mode):
+            raise ArchiveDenied('native_input_archive_not_file')
+        if before.st_size > compressed_limit:
+            raise ArchiveDenied('native_input_archive_compressed_limit')
+        checksum = hashlib.sha256(); size = 0
+        while block := stream.read(1024*1024):
+            checksum.update(block); size += len(block)
+            if size > compressed_limit:
+                raise ArchiveDenied('native_input_archive_compressed_limit')
+        after = os.fstat(stream.fileno())
+        if (size != receipt['bytes'] or checksum.hexdigest() != receipt['sha256']
+                or (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns,
+                    before.st_ctime_ns) != (after.st_dev, after.st_ino, after.st_size,
+                    after.st_mtime_ns, after.st_ctime_ns)):
+            raise ArchiveDenied('native_input_archive_file_drift')
+        with zipfile.ZipFile(stream) as archive:
+            infos = archive.infolist()
+            if len(infos) != 5 or {item.filename for item in infos} != MEMBERS:
+                raise ArchiveDenied('native_input_archive_member_drift')
+            if (sum(item.file_size for item in infos) > expanded_limit
+                    or any(item.flag_bits & 1 or item.is_dir() or stat.S_ISLNK(item.external_attr >> 16)
+                        or item.compress_type not in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
+                        for item in infos)):
+                raise ArchiveDenied('native_input_archive_member_denied')
+            if archive.getinfo('manifest.json').file_size > 1024*1024:
+                raise ArchiveDenied('native_input_archive_manifest_drift')
+            if (json.loads(archive.read('manifest.json')) != manifest
+                    or any(archive.getinfo(name).file_size != item['bytes']
+                           for name, item in manifest['files'].items())):
+                raise ArchiveDenied('native_input_archive_manifest_drift')
+        # Check the live selection again after IO, before handing out any bytes.
+        native_selection.require_selected(run)
+        stream.seek(0)
+        return stream, FILENAME
+    except BaseException as error:
+        stream.close()
+        if isinstance(error, (OSError, zipfile.BadZipFile, KeyError, TypeError, ValueError)):
+            raise ArchiveDenied('native_input_archive_invalid: ' + str(error)) from error
         raise

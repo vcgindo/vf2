@@ -35,9 +35,19 @@ class Command(BaseCommand):
             values.update(VF_MTA_OPERATIONAL_POLICY=accepted.policy, VF_MTA_OPERATIONAL_RECEIPT=accepted.receipt_digest)
         if native:
             from mta.presentation.planning_summary_daily import require_ready as require_summary
-            from mta.presentation.native_selection import candidate, write
+            from mta.presentation.native_selection import candidate, write, read, selected_archive
             summary = require_summary(run, verify_rows=True)
-            bundle = candidate(run, receipt, summary, native_publication.identity(run))
+            from django.conf import settings
+            loaded = getattr(settings, 'VF_MTA_SELECTION', None)
+            archived = selected_archive(run) if loaded and loaded['run_id'] == str(run.pk) else None
+            if options.get('selection_file'):
+                from pathlib import Path
+                path = Path(options['selection_file'])
+                if path.exists():
+                    previous = read(path)
+                    if previous['run_id'] == str(run.pk):
+                        archived = previous.get('input_archive')
+            bundle = candidate(run, receipt, summary, native_publication.identity(run), input_archive=archived)
             values['native_selection'] = bundle
             if options.get('selection_file'):
                 write(options['selection_file'], bundle)

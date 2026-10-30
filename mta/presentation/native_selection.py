@@ -7,13 +7,16 @@ from uuid import UUID
 from mta.serialization import digest
 
 SCHEMA = 'fresh-production-selection-v1'
+ARCHIVE_SCHEMA = 'fresh-production-selection-v2'
 FIELDS = frozenset(('schema', 'run_id', 'output_digest', 'business_date', 'initialization_id',
     'publication_seal', 'configuration_digest', 'btr_generation', 'summary_generation',
     'summary_digest', 'selection_digest'))
 
 
 def validate(value):
-    if not isinstance(value, dict) or set(value) != FIELDS or value['schema'] != SCHEMA:
+    archived = isinstance(value, dict) and value.get('schema') == ARCHIVE_SCHEMA
+    if (not isinstance(value, dict) or set(value) != FIELDS | ({'input_archive'} if archived else set())
+            or value['schema'] not in (SCHEMA, ARCHIVE_SCHEMA)):
         raise ValueError('Complete native selection bundle required')
     if any(not isinstance(value[field], str) for field in FIELDS):
         raise ValueError('Selection fields must be strings')
@@ -27,6 +30,9 @@ def validate(value):
             raise ValueError('Selection digest differs')
     if value['selection_digest'] != digest({k:v for k,v in value.items() if k != 'selection_digest'}):
         raise ValueError('Selection bundle checksum differs')
+    if archived:
+        from mta.archive_receipt import validate as validate_archive
+        validate_archive(value['input_archive'], value)
     return value
 
 
@@ -61,14 +67,38 @@ def write(path, value):
             temporary.unlink(missing_ok=True)
 
 
-def candidate(run, publication, summary, native):
+def candidate(run, publication, summary, native, *, input_archive=None):
     value = dict(schema=SCHEMA, run_id=str(run.pk), output_digest=run.output_digest,
         business_date=run.business_date.isoformat(), initialization_id=native['initialization']['id'],
         publication_seal=publication.seal_digest, configuration_digest=publication.configuration_digest,
         btr_generation=publication.layers['btr']['receipt']['generation'],
         summary_generation=str(summary.pk), summary_digest=summary.rows_digest)
+    if input_archive is not None:
+        from copy import deepcopy
+        value.update(schema=ARCHIVE_SCHEMA, input_archive=deepcopy(input_archive))
     value['selection_digest'] = digest(value)
     return validate(value)
+
+
+def selected_archive(run):
+    """Use only the already loaded operator selection for this exact owner."""
+    from django.conf import settings
+    value = getattr(settings, 'VF_MTA_SELECTION', None)
+    if value is None or value.get('schema') != ARCHIVE_SCHEMA:
+        return None
+    validate(value)
+    if value['run_id'] != str(run.pk) or value['output_digest'] != run.output_digest:
+        raise ValueError('Archive selection owner differs')
+    return value['input_archive']
+
+
+def base_digest(value):
+    """Exact v1 lineage for historical native journals; never phase selection."""
+    validate(value)
+    base = {k: value[k] for k in FIELDS}
+    base['schema'] = SCHEMA
+    base['selection_digest'] = digest({k:v for k,v in base.items() if k != 'selection_digest'})
+    return validate(base)['selection_digest']
 
 
 def require_selected(run):
@@ -79,7 +109,8 @@ def require_selected(run):
     from mta.presentation.native_publication import identity
     from mta.presentation.daily_publication import require_ready
     from mta.presentation.planning_summary_admission import require_ready as summary_ready
-    expected = candidate(run, require_ready(run), summary_ready(run), identity(run))
+    expected = candidate(run, require_ready(run), summary_ready(run), identity(run),
+                         input_archive=selected_archive(run))
     require_candidate(expected)
 
 

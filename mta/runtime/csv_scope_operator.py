@@ -143,7 +143,11 @@ def check_request(stored, *, scope, binding_digest, batch_digest, profile_digest
 def require_selection(actual_run, selected, expected_run, expected_digest):
     # Prefix and terminal publication can share a run ID. Their selection
     # digests differ; a run-only readiness check would admit the wrong view.
-    if str(actual_run) != expected_run or selected['selection_digest'] != expected_digest:
+    matches = selected['selection_digest'] == expected_digest
+    if not matches:
+        from mta.presentation.native_selection import ARCHIVE_SCHEMA, base_digest
+        matches = selected.get('schema') == ARCHIVE_SCHEMA and base_digest(selected) == expected_digest
+    if str(actual_run) != expected_run or not matches:
         raise ValueError('Actual serving run or phase/terminal selection differs')
 
 
@@ -727,9 +731,11 @@ def _prepare(csv, root, receipt, *, binding):
         # Use this operation's frozen daily input, including across continuation;
         # the archive owner validates both originals against the captured run.
         from mta.application.native_input_archive import prepare as prepare_archive
-        prepare_archive(run, binding['_opening_path'], root / 'native-day.json')
+        archive_result = prepare_archive(run, binding['_opening_path'], root / 'native-day.json')
         selection = Path('/var/lib/vectorflow/selection.json')
-        native_selection.write(selection, native_selection.candidate(run, publication, summary, native))
+        from mta.archive_receipt import prepared as archive_receipt
+        native_selection.write(selection, native_selection.candidate(run, publication, summary, native,
+            input_archive=archive_receipt(archive_result)))
         environment.update(VF_MTA_SELECTION_FILE=str(selection), VF_MTA_PUBLISHED_RUN=str(run.pk),
             VF_MTA_PUBLISHED_DIGEST=run.output_digest,
             VF_BTR_REPORTING_GENERATION=native_selection.read(selection)['btr_generation'])
