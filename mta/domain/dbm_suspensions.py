@@ -25,12 +25,15 @@ def _working(state, owned, mutates=()):
     Untouched populations are borrowed read-only. Every subsequent writer must
     fork its own mutations; standalone component calls retain full isolation.
     """
-    if not owned:
-        return deepcopy(state)
-    result = dict(state)
+    result = dict(state) if owned else deepcopy(state)
     for name in mutates:
         rows = state[name]
-        result[name] = [deepcopy(row) for row in rows] if isinstance(rows, RecordRows) else deepcopy(rows)
+        # A copied immutable generation still belongs to its persisted owner.
+        # Only this writer's declared rows become a mutable generation.
+        if isinstance(rows, RecordRows):
+            result[name] = [deepcopy(row) for row in rows]
+        elif owned:
+            result[name] = deepcopy(rows)
     return result
 
 
@@ -347,7 +350,7 @@ def apply_supply(today, state):
     stamp=datetime.fromisoformat(stamp) if isinstance(stamp,str) else stamp
     if stamp!=datetime.combine(today,datetime.min.time()):
         raise ValueError('Supply seam requires midnight business date')
-    result=deepcopy(state)
+    result=_working(state, False, ('SuspendSupplyIssueTbl',))
     windows={}
     valid_stock=set()
     for master in state['DBMMaster']:
@@ -404,7 +407,7 @@ def apply_white(today, state):
                     and fact['Stock'] > master['Norm'] + fact['BlueZone']):
                 whites.append({'SKUCode':master['SKUCode'], 'WhCode':master_key[1],
                                'IsRedEnabled':False})
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendWhitesTbl',))
     keys = {_key(r) for r in whites}
     rows = [r for r in result['SuspendWhitesTbl'] if _key(r) not in keys]
     for row in rows:
@@ -437,7 +440,7 @@ def apply_spike(today, state):
                     and fact['Consumption'] is not None and fact['Consumption'] > limit
                     and fact['Stock'] is not None and fact['Stock'] <= limit):
                 spikes.append(master)
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendSpikeTbl',))
     replaced = {_key(r) for r in spikes}
     rows = [r for r in result['SuspendSpikeTbl'] if _key(r) not in replaced]
     rows.extend({**_flags(r, False, True), 'WaitStartDate':today.isoformat(),
@@ -475,7 +478,7 @@ def apply_existing_disabled(today, state):
     stamp = datetime.fromisoformat(stamp) if isinstance(stamp, str) else stamp
     if stamp != datetime.combine(today, datetime.min.time()):
         raise ValueError('Existing-disabled seam requires midnight business date')
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendExistingDisabledNormsTbl',))
     rows = result['SuspendExistingDisabledNormsTbl']
     for row in rows:
         end = row['WaitTillDate']
@@ -506,7 +509,7 @@ def apply_sleep(today, state):
     stamp = datetime.fromisoformat(stamp) if isinstance(stamp, str) else stamp
     if stamp != datetime.combine(today, datetime.min.time()):
         raise ValueError('Sleep seam requires midnight business date')
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendNormsInSleepModeTbl',))
     opening_keys = {_key(r) for r in state['SuspendNormsInSleepModeTbl']}
     rows = result['SuspendNormsInSleepModeTbl']
     for command in state['NormsInSleepModeTbl']:
@@ -543,7 +546,7 @@ def apply_forced_norm_consumption(today, state):
             if row['NormChangeReason'] == 101 and
             (date.fromisoformat(row['NormChangeDate']) if isinstance(row['NormChangeDate'], str)
              else row['NormChangeDate']) == today}
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendConsumptionType',))
     for row in result['SuspendConsumptionType']:
         if _key(row) in keys:
             row['RedResumeDate'] = today.isoformat()
@@ -568,7 +571,7 @@ def apply_forced_norm_stock(today, state):
     stamp = datetime.fromisoformat(stamp) if isinstance(stamp, str) else stamp
     if stamp != datetime.combine(today, datetime.min.time()):
         raise ValueError('Forced stock requires midnight business date')
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendStockType',))
     masters = {}
     for row in state['DBMMaster']:
         if _key(row) in masters:
@@ -647,7 +650,7 @@ def apply_accepted_norm_consumption(today, state):
         last_run = datetime.fromisoformat(last_run)
     if last_run != datetime.combine(today, datetime.min.time()):
         raise ValueError('Accepted-consumption run date must equal midnight business date')
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendConsumptionType',))
     logs = [row for row in state['NormChangeLogTbl']
             if (date.fromisoformat(row['NormChangeDate'])
                 if isinstance(row['NormChangeDate'], str) else row['NormChangeDate']) == today]
@@ -797,7 +800,7 @@ def suspend_accepted_norm_stock(today, state):
     if len(last_runs) != 1 or day(last_runs[0]['LastRunDate']) != today:
         raise ValueError('Accepted-Norm seam requires one LastBatchRun date equal to the run date')
 
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendStockType',))
     masters_by_key = {}
     for master in state['DBMMaster']:
         key = _key(master)
@@ -933,7 +936,7 @@ def apply_accepted_norm_stock(today, state):
     if len(last_runs) != 1 or day(last_runs[0]['LastRunDate']) != today:
         raise ValueError('Accepted-Norm seam requires one LastBatchRun date equal to the run date')
 
-    result = deepcopy(state)
+    result = _working(state, False, ('SuspendStockType',))
     masters_by_key = {}
     for master in state['DBMMaster']:
         key = _key(master)
