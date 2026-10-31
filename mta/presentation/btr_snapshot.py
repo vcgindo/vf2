@@ -98,12 +98,43 @@ def prepared_values(raw):
     return result
 
 
-def _source_rows(run, reference, branch):
+def _source_operands(run, reference, generation):
+    """Give fresh driving populations statistics in their owning transaction.
+
+    Shared-table statistics cannot describe an uncommitted generation UUID.
+    One-row estimates for a freshly inserted run/image can turn ordinal joins
+    into repeated full run scans. Keep every occurrence, original id and typed
+    source value; never change operational facts or durable reporting rows.
+    """
+    name = connection.ops.quote_name('vf_btr_snapshot_ref_' + generation.pk.hex)
+    with connection.cursor() as cursor:
+        cursor.execute('CREATE TEMP TABLE ' + name + ' ON COMMIT DROP AS '
+            'SELECT * FROM ' + btr_reporting.REF_TABLE +
+            ' WHERE generation_id=%s AND export=false', [reference.pk])
+        cursor.execute('ANALYZE ' + name)
+    operands = {'reference': 'pg_temp.' + name, 'sources': {}}
+    for branch in ('tech', 'eco'):
+        for alias in (*btr_reporting.ORDINALS, 'sd', 'ld'):
+            path = btr_reporting.SOURCES[branch + '_' + alias if alias in ('A', 'btd') else alias]
+            if path in operands['sources']:
+                continue
+            query, params = image_query(run, path)
+            source = connection.ops.quote_name('vf_btr_snapshot_' + generation.pk.hex + '_' + str(len(operands['sources'])))
+            with connection.cursor() as cursor:
+                cursor.execute('CREATE TEMP TABLE ' + source + ' ON COMMIT DROP AS SELECT * FROM (' + query + ') source', params)
+                cursor.execute('CREATE INDEX ON ' + source + ' (vf_ordinal)')
+                cursor.execute('ANALYZE ' + source)
+            operands['sources'][path] = 'pg_temp.' + source
+    return operands
+
+
+def _source_rows(run, reference, branch, *, operands=None):
     """Retained unique-source qualification makes each stored join occurrence exact."""
     ctes, params = [], []
     for alias in (*btr_reporting.ORDINALS, 'sd', 'ld'):
         path = btr_reporting.SOURCES[branch + '_' + alias if alias in ('A', 'btd') else alias]
-        sql, values = image_query(run, path)
+        sql, values = (('SELECT * FROM ' + operands['sources'][path], []) if operands is not None
+                       else image_query(run, path))
         ctes.append(alias + ' AS NOT MATERIALIZED (' + sql + ')')
         params.extend(values)
     query, values = image_query(run, btr_reporting.SOURCES['B'])
@@ -136,7 +167,7 @@ def _source_rows(run, reference, branch):
     joins += ' LEFT JOIN la parent ON ' + equal('E."ParentWhCode"', 'parent."WHCode"')
     joins += ' LEFT JOIN cd ON ' + equal('B."Category"', 'cd.column1')
     sql = ('WITH ' + ','.join(ctes) + ' SELECT ' + ','.join(value + ' AS ' + quote(name)
-           for name, value in projection + display) + ' FROM ' + btr_reporting.REF_TABLE + ' J' + joins +
+           for name, value in projection + display) + ' FROM ' + (operands['reference'] if operands else btr_reporting.REF_TABLE) + ' J' + joins +
            ' WHERE J.generation_id=%s AND J.branch=%s AND J.export=false ORDER BY J.id')
     # A named cursor keeps the wide build bounded; inserts use a separate cursor.
     with connection.chunked_cursor() as cursor:
@@ -199,9 +230,10 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                 cursor.execute("SET LOCAL work_mem='32MB'")
             counts = {}
             dimensions = {owner: set() for owner, *_ in SCOPE_SOURCES}
+            operands = _source_operands(run, reference, generation)
             for branch in ('tech', 'eco'):
                 count, batch = 0, []
-                for source_fields, raw in _source_rows(run, reference, branch):
+                for source_fields, raw in _source_rows(run, reference, branch, operands=operands):
                     _collect_dimensions(dimensions, source_fields)
                     batch.append(BtrPresentationRow(generation=generation, branch=branch,
                                                    **source_fields, **prepared_values(raw)))

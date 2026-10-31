@@ -84,8 +84,9 @@ class BtrScopeDimensionTests(unittest.TestCase):
         manager = stack.enter_context(patch.object(snapshot.BtrReportingGeneration, 'objects'))
         manager.filter.return_value.first.return_value = existing
         manager.create.return_value = generation
+        stack.enter_context(patch.object(snapshot, '_source_operands', return_value={'reference': 'pg_temp.owned_reference'}))
         stream = stack.enter_context(patch.object(snapshot, '_source_rows',
-            side_effect=lambda *_args: iter([(source(1), {}), (source(2), {})])))
+            side_effect=lambda *_args, **_kwargs: iter([(source(1), {}), (source(2), {})])))
         stack.enter_context(patch.object(snapshot, 'prepared_values', return_value={}))
         stack.enter_context(patch.object(snapshot.BtrPresentationRow.objects, 'bulk_create'))
         stack.enter_context(patch.object(snapshot, 'rows_identity', return_value=(4, 'row-identity')))
@@ -121,7 +122,7 @@ class BtrScopeDimensionTests(unittest.TestCase):
         with ExitStack() as stack:
             run, reference, failed, dimensions, stream, _ = self.setup_build(stack)
 
-            def interrupted(*_args):
+            def interrupted(*_args, **_kwargs):
                 yield source(1), {}
                 raise RuntimeError('interrupted private build')
 
@@ -134,7 +135,7 @@ class BtrScopeDimensionTests(unittest.TestCase):
             rebuilt = BtrReportingGeneration(pk=uuid4(), run_id=run.pk)
             stack.enter_context(patch.object(rebuilt, 'save'))
             snapshot.BtrReportingGeneration.objects.create.return_value = rebuilt
-            stream.side_effect = lambda *_args: iter([(source(1), {}), (source(2), {})])
+            stream.side_effect = lambda *_args, **_kwargs: iter([(source(1), {}), (source(2), {})])
             self.assertIs(snapshot._build(run, reference, allow_outer=True), rebuilt)
             dimensions.assert_called_once()
             self.assertTrue(all(row.generation is rebuilt for row in dimensions.call_args.args[0]))
