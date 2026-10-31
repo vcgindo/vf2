@@ -14,6 +14,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from mta.presentation import btr, btr_display, btr_reporting, hierarchy
+from mta.presentation.btr_copy import write_batch
 from mta.presentation.btr_filters import BtrPredicate, unavailable
 from mta.presentation.btr_snapshot_fields import (
     TEXT_FIELDS, DISPLAY_FIELDS, SCALAR_FIELDS, DAILY_FIELDS, FILTER_FIELDS,
@@ -239,10 +240,10 @@ def _build(run,reference,*,admission=None,allow_outer=False):
                                                    **source_fields, **prepared_values(raw)))
                     count += 1
                     if len(batch) == 64:
-                        BtrPresentationRow.objects.bulk_create(batch, batch_size=64)
+                        write_batch(batch)
                         batch.clear()
                 if batch:
-                    BtrPresentationRow.objects.bulk_create(batch, batch_size=64)
+                    write_batch(batch)
                 if count != reference.qualification['populations'][branch + '_grid']:
                     raise PublicationUnavailable('btr_snapshot_population_mismatch')
                 counts[branch] = count
