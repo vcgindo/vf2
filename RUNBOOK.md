@@ -80,6 +80,8 @@ if ($Config.name -eq 'vectorflow') { throw 'Set a unique VF_PROJECT in .env befo
 $ExistingVolumes = @(docker volume ls --filter "label=com.docker.compose.project=$($Config.name)" --format '{{.Name}}')
 if ($LASTEXITCODE -ne 0) { throw 'Volume inventory failed' }
 if ($ExistingVolumes.Count) { throw 'This project already has volumes; preserve them and choose a genuinely new project for a fresh install' }
+# The V3 procedure above requires its large-package archive policy in every worker.
+if ([long]$Config.services.daily.environment.VF_INPUT_ARCHIVE_MAX_UNCOMPRESSED_BYTES -lt 2147483648 -or [long]$Config.services.daily.environment.VF_INPUT_ARCHIVE_MAX_COMPRESSED_BYTES -lt 268435456) { throw 'Set the two V3 archive-policy values from section 2 before installing' }
 Remove-Variable Config
 
 docker compose build
