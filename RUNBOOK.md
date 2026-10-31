@@ -73,6 +73,15 @@ The subnet above is an example, not a current availability claim. Without this o
 docker compose --profile '*' config --quiet
 if ($LASTEXITCODE -ne 0) { throw 'Compose validation failed' }
 
+# Fresh-install check: a new clone must not reuse another project's volumes.
+$Config = docker compose --profile '*' config --format json | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw 'Compose resolution failed' }
+if ($Config.name -eq 'vectorflow') { throw 'Set a unique VF_PROJECT in .env before building/installing' }
+$ExistingVolumes = @(docker volume ls --filter "label=com.docker.compose.project=$($Config.name)" --format '{{.Name}}')
+if ($LASTEXITCODE -ne 0) { throw 'Volume inventory failed' }
+if ($ExistingVolumes.Count) { throw 'This project already has volumes; preserve them and choose a genuinely new project for a fresh install' }
+Remove-Variable Config
+
 docker compose build
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 
